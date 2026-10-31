@@ -1,0 +1,21 @@
+{
+  "type": "object",
+  "properties": {
+    "lenses": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "standards",
+          "consistency",
+          "craft",
+          "architecture",
+          "product",
+          "docs",
+          "reliability"
+        ]
+      }
+    }
+  },
+  "required": ["lenses"]
+}

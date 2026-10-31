@@ -44,7 +44,7 @@ Every line here is read at the start of every session. A standard earns its plac
 
 ### Writing
 
-These apply to all prose: docs, comments, commit messages, pull requests, issues, and every text in the interface.
+These apply to all prose: docs, comments, commit messages, pull requests, issues, every text in the interface, and every text that code generates, such as log messages and automated reviews.
 
 - Every sentence is easy to parse for a reader with basic English or basic Bahasa Indonesia. This is about sentence structure only. It never means simpler ideas or padding.
 - Connect ideas with words such as "because", "so", "but", and "which means", or split them into separate sentences. A colon may introduce a list, an example, or code, or separate a label from its description. `pnpm check` rejects em dashes, en dashes, and semicolons in prose, but it cannot see a colon that joins two clauses, so watch for that.
@@ -72,7 +72,8 @@ These apply to all prose: docs, comments, commit messages, pull requests, issues
 - Prefer explicit code over clever code. A plain loop beats a chain of `reduce` calls. Names use full words, and ESLint rejects the common abbreviations.
 - Units get branded types, such as rupiah, shares, and lots, so mixing them up is a type error. Amounts of rupiah are whole numbers.
 - An expected failure, such as an order the cash cannot pay for, is a typed result that every caller must handle. Throwing is only for states that should never happen.
-- Data from outside the program, such as form input, environment variables, and prices from the price source, is parsed into types at the boundary where it enters. Code inside the boundary trusts those types and has no defensive checks for impossible states.
+- Data from outside the program is parsed into types at the boundary where it enters, in scripts and CI steps as much as in the app. Outside data includes form input, environment variables, files, prices from the price source, and the output of agents. A type assertion such as `as` is not parsing. Code inside the boundary trusts the parsed types and has no defensive checks for impossible states.
+- A script that fails writes its reason to stderr before it exits, so the CI log explains the failure without a rerun.
 - A comment explains only why: a reason, an outside constraint, or a trap. It never narrates what the code does.
 - A module that only the server may run ends in `.server.ts`, so that React Router keeps it out of the browser bundle.
 

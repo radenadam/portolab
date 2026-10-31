@@ -12,7 +12,7 @@ permissions:
   contents: read
   pull-requests: read
 
-# Each lens runs as its own job with a fresh agent, so a lens either reports its findings or fails its job. The review job then decides the verdict in code. AGENTS.md describes the panel.
+# Each lens runs as its own job with a fresh agent, so a lens either reports its findings or fails its job. The review job then decides the verdict in code, which no agent can skip. AGENTS.md describes the panel.
 jobs:
   route:
     name: route
@@ -24,6 +24,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+      - name: Read the schema of the router's answer
+        id: schema
+        run: echo "schema=$(jq -c . .github/review/route.schema.json)" >> "$GITHUB_OUTPUT"
       - name: Choose the lenses
         id: router
         uses: anthropics/claude-code-action@6d5ae526d25ce88daa2200be073e1a373167f064 # v1.0.265
@@ -38,12 +41,16 @@ jobs:
           claude_args: |
             --model claude-opus-5-5
             --allowedTools "Read,Grep,Glob,Bash"
-            --json-schema '{"type":"object","properties":{"lenses":{"type":"array","items":{"type":"string","enum":["standards","consistency","craft","architecture","product","docs","reliability"]}}},"required":["lenses"]}'
+            --json-schema '${{ steps.schema.outputs.schema }}'
       - name: Add the lenses that review every change
         id: lenses
         env:
           ROUTER_OUTPUT: ${{ steps.router.outputs.structured_output }}
         run: |
+          if [ -z "$ROUTER_OUTPUT" ]; then
+            echo "::error::The router returned no structured output."
+            exit 1
+          fi
           lenses=$(printf '%s' "$ROUTER_OUTPUT" | jq -c '(.lenses + ["standards", "consistency"]) | unique')
           echo "lenses=${lenses}" >> "$GITHUB_OUTPUT"
       # A failed agent is traced through its transcript. It stays for one day, because a public repository's artifacts are public.
@@ -75,6 +82,14 @@ jobs:
       - name: Install the browser for the product lens
         if: matrix.lens == 'product'
         run: pnpm exec playwright install --with-deps chromium
+      # The agent gets exactly the tools that its definition lists.
+      - name: Read the tools of the lens and the schema of its report
+        id: definition
+        env:
+          LENS: ${{ matrix.lens }}
+        run: |
+          echo "tools=$(sed -n 's/^tools: //p' ".claude/agents/review-${LENS}.md" | tr -d ' ')" >> "$GITHUB_OUTPUT"
+          echo "schema=$(jq -c . .github/review/lens-report.schema.json)" >> "$GITHUB_OUTPUT"
       - name: Review through the lens
         id: lens
         uses: anthropics/claude-code-action@6d5ae526d25ce88daa2200be073e1a373167f064 # v1.0.265
@@ -88,14 +103,18 @@ jobs:
             Return the findings and the candidate standards as the structured output. When there is nothing to report, both lists are empty.
           claude_args: |
             --model claude-opus-5-5
-            --allowedTools "Read,Grep,Glob,Write,Bash"
-            --json-schema '{"type":"object","properties":{"findings":{"type":"array","items":{"type":"object","properties":{"location":{"type":"string"},"claim":{"type":"string"},"basis":{"type":"string"},"siblings":{"type":"array","items":{"type":"string"}},"rootCause":{"type":"string"}},"required":["location","claim","basis","siblings","rootCause"]}},"candidateStandards":{"type":"array","items":{"type":"object","properties":{"standard":{"type":"string"},"incident":{"type":"string"}},"required":["standard","incident"]}}},"required":["findings","candidateStandards"]}'
+            --allowedTools "${{ steps.definition.outputs.tools }}"
+            --json-schema '${{ steps.definition.outputs.schema }}'
       - name: Save the findings of the lens
         env:
           LENS: ${{ matrix.lens }}
           LENS_OUTPUT: ${{ steps.lens.outputs.structured_output }}
         run: |
-          printf '%s' "$LENS_OUTPUT" | jq --arg lens "$LENS" '{lens: $lens, findings: (.findings | map(. + {lens: $lens})), candidateStandards}' > "findings-${LENS}.json"
+          if [ -z "$LENS_OUTPUT" ]; then
+            echo "::error::The ${LENS} lens returned no structured output."
+            exit 1
+          fi
+          printf '%s' "$LENS_OUTPUT" | jq --arg lens "$LENS" '{lens: $lens, findings, candidateStandards}' > "findings-${LENS}.json"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: findings-${{ matrix.lens }}
@@ -127,32 +146,38 @@ jobs:
           pattern: findings-*
           path: findings
           merge-multiple: true
-      - name: Count the findings
-        id: count
-        run: echo "total=$(jq -s '[.[].findings[]] | length' findings/*.json)" >> "$GITHUB_OUTPUT"
+      - name: Count the findings and read the verifier's tools and schema
+        id: definition
+        run: |
+          echo "total=$(jq -s '[.[].findings[]] | length' findings/*.json)" >> "$GITHUB_OUTPUT"
+          echo "tools=$(sed -n 's/^tools: //p' .claude/agents/review-verifier.md | tr -d ' ')" >> "$GITHUB_OUTPUT"
+          echo "schema=$(jq -c . .github/review/verified-findings.schema.json)" >> "$GITHUB_OUTPUT"
       - name: Verify the findings
         id: verifier
-        if: steps.count.outputs.total != '0'
+        if: steps.definition.outputs.total != '0'
         uses: anthropics/claude-code-action@6d5ae526d25ce88daa2200be073e1a373167f064 # v1.0.265
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           allowed_bots: "dependabot[bot]"
           prompt: |
-            You verify the findings of the review panel for pull request #${{ github.event.pull_request.number }} in ${{ github.repository }}. The file `.claude/agents/review-verifier.md` defines your task, so read it and follow it. The findings are in `findings/`, one JSON file for each lens. The head of the pull request is checked out, and `git diff origin/${{ github.base_ref }}...HEAD` shows the change.
+            You verify the findings of the review panel for pull request #${{ github.event.pull_request.number }} in ${{ github.repository }}. The file `.claude/agents/review-verifier.md` defines your task, so read it and follow it. The findings are in `findings/`, one JSON file for each lens, and each finding belongs to the lens named in its file. The head of the pull request is checked out, and `git diff origin/${{ github.base_ref }}...HEAD` shows the change.
 
-            Return every finding in the structured output, with its status and the evidence you checked.
+            Return every finding in the structured output, with its lens, its status, and the evidence you checked.
           claude_args: |
             --model claude-opus-5-5
-            --allowedTools "Read,Grep,Glob,Write,Bash"
-            --json-schema '{"type":"object","properties":{"findings":{"type":"array","items":{"type":"object","properties":{"lens":{"type":"string"},"location":{"type":"string"},"claim":{"type":"string"},"basis":{"type":"string"},"siblings":{"type":"array","items":{"type":"string"}},"rootCause":{"type":"string"},"status":{"type":"string","enum":["confirmed","refuted"]},"evidence":{"type":"string"}},"required":["lens","location","claim","basis","siblings","rootCause","status","evidence"]}}},"required":["findings"]}'
+            --allowedTools "${{ steps.definition.outputs.tools }}"
+            --json-schema '${{ steps.definition.outputs.schema }}'
       - name: Save the verified findings
         env:
-          TOTAL: ${{ steps.count.outputs.total }}
+          TOTAL: ${{ steps.definition.outputs.total }}
           VERIFIER_OUTPUT: ${{ steps.verifier.outputs.structured_output }}
         run: |
           if [ "$TOTAL" = "0" ]; then
             echo '{"findings":[]}' > verified.json
+          elif [ -z "$VERIFIER_OUTPUT" ]; then
+            echo "::error::The verifier returned no structured output."
+            exit 1
           else
             printf '%s' "$VERIFIER_OUTPUT" | jq '.' > verified.json
           fi
@@ -172,7 +197,8 @@ jobs:
   review:
     name: review
     needs: [route, lens, verify]
-    if: always()
+    # A run that a newer push cancelled has nothing to report, and the newer run posts its own review.
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:

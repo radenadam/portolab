@@ -1,0 +1,35 @@
+{
+  "type": "object",
+  "properties": {
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "lens": { "type": "string" },
+          "location": { "type": "string" },
+          "claim": { "type": "string" },
+          "basis": { "type": "string" },
+          "siblings": { "type": "array", "items": { "type": "string" } },
+          "rootCause": { "type": "string" },
+          "status": {
+            "type": "string",
+            "enum": ["confirmed", "refuted", "duplicate"]
+          },
+          "evidence": { "type": "string" }
+        },
+        "required": [
+          "lens",
+          "location",
+          "claim",
+          "basis",
+          "siblings",
+          "rootCause",
+          "status",
+          "evidence"
+        ]
+      }
+    }
+  },
+  "required": ["findings"]
+}
