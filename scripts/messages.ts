@@ -1,6 +1,12 @@
-import { fail, succeed } from "../app/result.ts";
+import { succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
-import { isRecord, isStringArray, readJsonFile } from "./json.ts";
+import {
+  invalidField,
+  isRecord,
+  isStringArray,
+  notAnObject,
+  readJsonFile,
+} from "./json.ts";
 
 /** Reads the languages of the app from the settings of the inlang project. */
 export function parseLocales(
@@ -10,7 +16,7 @@ export function parseLocales(
   const locales = isRecord(value) ? value["locales"] : undefined;
   return isStringArray(locales) && locales.length > 0
     ? succeed(locales)
-    : fail(`${source} has no valid "locales".`);
+    : invalidField(source, "locales");
 }
 
 /** Reads one language file of Paraglide messages as an object of message keys. */
@@ -24,9 +30,12 @@ export function parseMessages(
   value: unknown,
   source: string,
 ): Result<Record<string, unknown>, string> {
-  return isRecord(value)
-    ? succeed(value)
-    : fail(`${source} must be a JSON object of messages.`);
+  return isRecord(value) ? succeed(value) : notAnObject(source);
+}
+
+/** Returns the keys of the messages in one language file, without the key that names the file's schema. */
+export function messageKeys(messages: Record<string, unknown>): string[] {
+  return Object.keys(messages).filter((key) => key !== "$schema");
 }
 
 /** Returns one sentence for each key that a language lacks, or that does not start with a feature folder or with app. */

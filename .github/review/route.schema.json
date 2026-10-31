@@ -6,13 +6,13 @@
       "items": {
         "type": "string",
         "enum": [
-          "standards",
+          "architecture",
           "consistency",
           "craft",
-          "architecture",
-          "product",
           "docs",
-          "reliability"
+          "product",
+          "reliability",
+          "standards"
         ]
       }
     }

@@ -6,12 +6,14 @@ import {
   chooseLenses,
   hasCancelledJob,
   parseAgentTools,
-  parseExpectedLenses,
   parseJobResults,
+  parseLensNames,
   parseLensReport,
   parsePullRequestNumber,
   parseRouteSchemaLenses,
+  parseRouterChoice,
   parseVerifiedFindings,
+  verdictStatuses,
 } from "./review-inputs.ts";
 
 const finding = {
@@ -36,23 +38,35 @@ function lensReport(findings: unknown[]): unknown {
 
 test("reads job results and refuses an empty needs context", () => {
   expect(
-    parseJobResults({
-      route: { result: "success" },
-      lens: { result: "failure" },
-    }),
+    parseJobResults(
+      { route: { result: "success" }, lens: { result: "failure" } },
+      "PANEL_RESULTS",
+    ),
   ).toEqual({ ok: true, value: { route: "success", lens: "failure" } });
-  expect(parseJobResults({})).toEqual({
+  expect(parseJobResults({}, "PANEL_RESULTS")).toEqual({
     ok: false,
     failure: "PANEL_RESULTS names no jobs, so the panel cannot be judged.",
   });
 });
 
-test("names the source and the field when a lens finding is invalid", () => {
-  const withoutClaim = Object.fromEntries(
-    Object.entries(finding).filter(([key]) => key !== "claim"),
-  );
+test("names the job when its result is missing", () => {
   expect(
-    parseLensReport(lensReport([finding, withoutClaim]), "findings-craft.json"),
+    parseJobResults(
+      { route: { result: "success" }, lens: {} },
+      "PANEL_RESULTS",
+    ),
+  ).toEqual({
+    ok: false,
+    failure: 'PANEL_RESULTS: job lens has no valid "result".',
+  });
+});
+
+test("names the source and the field when a lens finding is invalid", () => {
+  expect(
+    parseLensReport(
+      lensReport([finding, withoutField(finding, "claim")]),
+      "findings-craft.json",
+    ),
   ).toEqual({
     ok: false,
     failure: 'findings-craft.json: finding 2 has no valid "claim".',
@@ -76,14 +90,41 @@ test("rejects a lens finding that lacks any field its schema requires", () => {
   expect(
     parseLensReport(lensReport([complete]), "findings-craft.json").ok,
   ).toBe(true);
-  for (const field of requiredFindingFields(
-    ".github/review/lens-report.schema.json",
-  )) {
-    const incomplete = Object.fromEntries(
-      Object.entries(complete).filter(([key]) => key !== field),
-    );
+  for (const field of schemaStrings(lensReportSchema, [
+    "properties",
+    "findings",
+    "items",
+    "required",
+  ])) {
+    const incomplete = withoutField(complete, field);
     expect(
       parseLensReport(lensReport([incomplete]), "findings-craft.json").ok,
+      field,
+    ).toBe(false);
+  }
+});
+
+test("rejects a candidate standard that lacks any field its schema requires", () => {
+  const complete = { standard: "The standard.", incident: "The incident." };
+  const report = (candidate: unknown): unknown => ({
+    lens: "craft",
+    findings: [],
+    candidateStandards: [candidate],
+  });
+  expect(parseLensReport(report(complete), "findings-craft.json").ok).toBe(
+    true,
+  );
+  for (const field of schemaStrings(lensReportSchema, [
+    "properties",
+    "candidateStandards",
+    "items",
+    "required",
+  ])) {
+    expect(
+      parseLensReport(
+        report(withoutField(complete, field)),
+        "findings-craft.json",
+      ).ok,
       field,
     ).toBe(false);
   }
@@ -94,53 +135,83 @@ test("rejects a verdict that lacks any field its schema requires", () => {
   expect(
     parseVerifiedFindings({ findings: [complete] }, "verified.json").ok,
   ).toBe(true);
-  for (const field of requiredFindingFields(
-    ".github/review/verified-findings.schema.json",
-  )) {
-    const incomplete = Object.fromEntries(
-      Object.entries(complete).filter(([key]) => key !== field),
-    );
+  for (const field of schemaStrings(verifiedFindingsSchema, [
+    "properties",
+    "findings",
+    "items",
+    "required",
+  ])) {
     expect(
-      parseVerifiedFindings({ findings: [incomplete] }, "verified.json").ok,
+      parseVerifiedFindings(
+        { findings: [withoutField(complete, field)] },
+        "verified.json",
+      ).ok,
       field,
     ).toBe(false);
   }
 });
 
-/** Reads the fields that a schema in .github/review requires of each finding. */
-function requiredFindingFields(schemaPath: string): string[] {
-  const required = readJsonFile(schemaPath, (schema, source) => {
-    const properties = isRecord(schema) ? schema["properties"] : undefined;
-    const findings = isRecord(properties) ? properties["findings"] : undefined;
-    const items = isRecord(findings) ? findings["items"] : undefined;
-    const fields = isRecord(items) ? items["required"] : undefined;
-    return isStringArray(fields) && fields.length > 0
-      ? succeed(fields)
-      : fail(`${source} does not list the fields of a finding.`);
+test("accepts exactly the statuses that the verifier's schema allows", () => {
+  expect([...verdictStatuses].sort()).toEqual(
+    schemaStrings(verifiedFindingsSchema, [
+      "properties",
+      "findings",
+      "items",
+      "properties",
+      "status",
+      "enum",
+    ]).sort(),
+  );
+});
+
+const lensReportSchema = ".github/review/lens-report.schema.json";
+const verifiedFindingsSchema = ".github/review/verified-findings.schema.json";
+
+/** Reads the list of strings at a path of keys in a schema in .github/review. */
+function schemaStrings(schemaPath: string, keys: readonly string[]): string[] {
+  const strings = readJsonFile(schemaPath, (schema, source) => {
+    let value = schema;
+    for (const key of keys) {
+      value = isRecord(value) ? value[key] : undefined;
+    }
+    return isStringArray(value) && value.length > 0
+      ? succeed(value)
+      : fail(`${source} has no list of strings at ${keys.join(".")}.`);
   });
-  if (!required.ok) {
-    throw new Error(required.failure);
+  if (!strings.ok) {
+    throw new Error(strings.failure);
   }
-  return required.value;
+  return strings.value;
+}
+
+function withoutField(
+  value: Record<string, unknown>,
+  field: string,
+): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(value).filter(([key]) => key !== field),
+  );
 }
 
 test("accepts a pull request number and rejects anything else", () => {
-  expect(parsePullRequestNumber("12")).toEqual({ ok: true, value: "12" });
-  expect(parsePullRequestNumber("")).toEqual({
+  expect(parsePullRequestNumber("12", "PULL_REQUEST")).toEqual({
+    ok: true,
+    value: "12",
+  });
+  expect(parsePullRequestNumber("", "PULL_REQUEST")).toEqual({
     ok: false,
     failure: 'PULL_REQUEST must be a pull request number, but it is "".',
   });
 });
 
-test("reads the expected lenses and rejects a value that is not a list", () => {
-  expect(parseExpectedLenses('["craft","docs"]')).toEqual({
+test("reads a list of lens names and rejects a value that is not a list", () => {
+  expect(parseLensNames(["craft", "docs"], "EXPECTED_LENSES")).toEqual({
     ok: true,
     value: ["craft", "docs"],
   });
-  expect(parseExpectedLenses('"craft"')).toEqual({
+  expect(parseLensNames("craft", "EXPECTED_LENSES")).toEqual({
     ok: false,
-    failure:
-      'EXPECTED_LENSES must be a JSON list of lens names, but it is "craft".',
+    failure: "EXPECTED_LENSES must be a JSON list of lens names.",
   });
 });
 
@@ -149,26 +220,31 @@ test("notices a cancelled job", () => {
   expect(hasCancelledJob({ route: "success", lens: "failure" })).toBe(false);
 });
 
-test("adds the lenses for every change to the router's choice", () => {
+test("reads the router's choice and rejects an answer without a list", () => {
   expect(
-    chooseLenses('{"lenses":["docs","standards"]}', routeSchemaLenses()),
-  ).toEqual({ ok: true, value: ["consistency", "docs", "standards"] });
+    parseRouterChoice({ lenses: ["docs", "standards"] }, "ROUTER_OUTPUT"),
+  ).toEqual({ ok: true, value: ["docs", "standards"] });
+  expect(parseRouterChoice({}, "ROUTER_OUTPUT")).toEqual({
+    ok: false,
+    failure: 'ROUTER_OUTPUT has no valid "lenses".',
+  });
 });
 
-test("rejects a router's choice with an unknown lens or no list", () => {
-  expect(chooseLenses('{"lenses":["style"]}', routeSchemaLenses())).toEqual({
+test("adds the lenses for every change to the router's choice", () => {
+  expect(chooseLenses(["docs", "standards"], routeSchemaLenses())).toEqual({
+    ok: true,
+    value: ["consistency", "docs", "standards"],
+  });
+});
+
+test("rejects a router's choice with one unknown lens or several", () => {
+  expect(chooseLenses(["style"], routeSchemaLenses())).toEqual({
     ok: false,
     failure: "The router chose an unknown lens: style.",
   });
-  expect(
-    chooseLenses('{"lenses":["style","speed"]}', routeSchemaLenses()),
-  ).toEqual({
+  expect(chooseLenses(["style", "speed"], routeSchemaLenses())).toEqual({
     ok: false,
     failure: "The router chose unknown lenses: style and speed.",
-  });
-  expect(chooseLenses("{}", routeSchemaLenses())).toEqual({
-    ok: false,
-    failure: `The router's output has no valid "lenses".`,
   });
 });
 

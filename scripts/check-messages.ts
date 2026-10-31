@@ -1,6 +1,11 @@
 import { readdirSync } from "node:fs";
 import { readJsonFile } from "./json.ts";
-import { messageKeyProblems, parseLocales, readMessages } from "./messages.ts";
+import {
+  messageKeyProblems,
+  messageKeys,
+  parseLocales,
+  readMessages,
+} from "./messages.ts";
 import { exitWithFailure } from "./script-failure.ts";
 
 // Paraglide falls back to the base language when a message is missing, so a gap would never surface as an error.
@@ -17,10 +22,7 @@ const keysByLanguage = new Map<string, string[]>();
 for (const locale of locales.value) {
   const messages = readMessages(`messages/${locale}.json`);
   if (messages.ok) {
-    keysByLanguage.set(
-      locale,
-      Object.keys(messages.value).filter((key) => key !== "$schema"),
-    );
+    keysByLanguage.set(locale, messageKeys(messages.value));
   } else {
     problems.push(messages.failure);
   }

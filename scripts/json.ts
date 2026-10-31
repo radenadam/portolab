@@ -3,6 +3,12 @@ import { errorMessage } from "../app/error-message.ts";
 import { fail, succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
 
+/** A parser at a boundary. Its caller supplies the source, which every failure text names. */
+export type Parser<Value> = (
+  value: unknown,
+  source: string,
+) => Result<Value, string>;
+
 export function readTextFile(path: string): Result<string, string> {
   try {
     return succeed(readFileSync(path, "utf8"));
@@ -27,14 +33,34 @@ export function parseJsonText(
   }
 }
 
+/** Parses JSON text, such as an environment variable, and then its content. */
+export function parseJsonWith<Value>(
+  text: string,
+  source: string,
+  parse: Parser<Value>,
+): Result<Value, string> {
+  const json = parseJsonText(text, source);
+  return json.ok ? parse(json.value, source) : json;
+}
+
 /** Reads a JSON file and parses its content, naming the file as the source of every failure. */
 export function readJsonFile<Value>(
   path: string,
-  parse: (value: unknown, source: string) => Result<Value, string>,
+  parse: Parser<Value>,
 ): Result<Value, string> {
   const text = readTextFile(path);
-  const json = text.ok ? parseJsonText(text.value, path) : text;
-  return json.ok ? parse(json.value, path) : json;
+  return text.ok ? parseJsonWith(text.value, path, parse) : text;
+}
+
+export function notAnObject(source: string): Result<never, string> {
+  return fail(`${source} is not a JSON object.`);
+}
+
+export function invalidField(
+  source: string,
+  field: string,
+): Result<never, string> {
+  return fail(`${source} has no valid "${field}".`);
 }
 
 export function isRecord(value: unknown): value is Record<string, unknown> {

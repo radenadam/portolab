@@ -1,6 +1,7 @@
 import { expect, test } from "vitest";
 import {
   messageKeyProblems,
+  messageKeys,
   parseLocales,
   parseMessages,
   readMessages,
@@ -45,6 +46,15 @@ test("rejects a key that starts with no feature folder", () => {
   ]);
 });
 
+test("lists the message keys without the schema key", () => {
+  expect(
+    messageKeys({
+      $schema: "https://inlang.com/schema/inlang-message-format",
+      app_name: "Portolab",
+    }),
+  ).toEqual(["app_name"]);
+});
+
 test("reads a language file of messages", () => {
   const messages = readMessages("messages/en.json");
   expect(messages.ok && messages.value["app_name"]).toBe("Portolab");
@@ -53,7 +63,7 @@ test("reads a language file of messages", () => {
 test("rejects messages that are not a JSON object", () => {
   expect(parseMessages(["app_name"], "messages/en.json")).toEqual({
     ok: false,
-    failure: "messages/en.json must be a JSON object of messages.",
+    failure: "messages/en.json is not a JSON object.",
   });
 });
 

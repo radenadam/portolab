@@ -1,25 +1,62 @@
 import { expect, test } from "vitest";
-import { messageProblems, punctuationProblems } from "./punctuation.ts";
+import { fileKind, punctuationProblems } from "./punctuation.ts";
 
 const emDash = "\u2014";
 
-test("accepts a private field that ends with a semicolon in TypeScript", () => {
+function semicolonAt(location: string): string {
+  return `${location}: replace the semicolon with a connecting word or a new sentence.`;
+}
+
+test("selects files by extension, including files in dot directories", () => {
+  expect(fileKind(".github/workflows/review.yml")).toBe("yaml");
+  expect(fileKind(".github/dependabot.yml")).toBe("yaml");
+  expect(fileKind("pnpm-workspace.yaml")).toBe("yaml");
+  expect(fileKind(".claude/agents/review-craft.md")).toBe("markdown");
+  expect(fileKind(".github/pull_request_template.md")).toBe("markdown");
+  expect(fileKind(".github/ISSUE_TEMPLATE/bug.yml")).toBe("markdown");
+  expect(fileKind("app/root.tsx")).toBe("typescript");
+  expect(fileKind("scripts/json.ts")).toBe("typescript");
+  expect(fileKind("app/theme.css")).toBe("css");
+  expect(fileKind("messages/en.json")).toBe("messages");
+  expect(fileKind("project.inlang/settings.json")).toBeUndefined();
+  expect(fileKind("package.json")).toBeUndefined();
+});
+
+test("accepts semicolons in TypeScript code, strings, and JSX text", () => {
   expect(
-    punctuationProblems("a.ts", "class A {\n  #count = 0;\n}", "code"),
+    punctuationProblems(
+      "a.tsx",
+      [
+        "class A {",
+        "  #count = 0;",
+        "}",
+        'const url = "http://a.test/b; c";',
+        "const page = <p>See http://a.test; then go on.</p>;",
+      ].join("\n"),
+      "typescript",
+    ),
   ).toEqual([]);
 });
 
-test("accepts semicolons in code outside comments", () => {
+test("rejects a semicolon in every kind of TypeScript comment", () => {
   expect(
-    punctuationProblems("a.ts", 'const cookie = "id=1; Path=/";', "code"),
-  ).toEqual([]);
-});
-
-test("rejects a semicolon in a TypeScript comment", () => {
-  expect(
-    punctuationProblems("a.ts", "// It runs; then it stops.", "code"),
+    punctuationProblems(
+      "a.tsx",
+      [
+        "// One; two.",
+        "const value = 1; // One; two.",
+        "/*",
+        "  One; two.",
+        "*/",
+        "const page = <p>{/* One; two. */}</p>;",
+      ].join("\n"),
+      "typescript",
+    ),
   ).toEqual([
-    "a.ts:1: replace the semicolon with a connecting word or a new sentence.",
+    semicolonAt("a.tsx:1"),
+    semicolonAt("a.tsx:2"),
+    semicolonAt("a.tsx:4"),
+    semicolonAt("a.tsx:6"),
   ]);
 });
 
@@ -28,22 +65,38 @@ test("rejects a dash inside a string in code", () => {
     punctuationProblems(
       "a.ts",
       `const verdict = "Failed ${emDash} retry";`,
-      "code",
+      "typescript",
     ),
   ).toEqual([
     "a.ts:1: replace the em dash with a connecting word or a new sentence.",
   ]);
 });
 
-test("rejects a semicolon in a YAML comment and accepts one in a command", () => {
+test("rejects a semicolon in a CSS comment and accepts one in a rule", () => {
+  expect(
+    punctuationProblems("a.css", "a { color: red; }\n/* One; two. */", "css"),
+  ).toEqual([semicolonAt("a.css:2")]);
+});
+
+test("rejects a semicolon in a YAML comment and accepts one in a value", () => {
   expect(
     punctuationProblems(
-      "review.yml",
-      "# It runs; then it stops.\nrun: echo a; echo b",
+      "a.yml",
+      [
+        "# One; two.",
+        "key: value # One; two.",
+        "run: echo it's done # One; two.",
+        "run: echo a; echo b",
+        'run: "a # b; c"',
+        "run: |",
+        "  echo a # b; c",
+      ].join("\n"),
       "yaml",
     ),
   ).toEqual([
-    "review.yml:1: replace the semicolon with a connecting word or a new sentence.",
+    semicolonAt("a.yml:1"),
+    semicolonAt("a.yml:2"),
+    semicolonAt("a.yml:3"),
   ]);
 });
 
@@ -60,15 +113,23 @@ test("ignores code spans and code blocks in Markdown", () => {
 test("rejects a semicolon in Markdown prose", () => {
   expect(
     punctuationProblems("a.md", "It runs; then it stops.", "markdown"),
-  ).toEqual([
-    "a.md:1: replace the semicolon with a connecting word or a new sentence.",
-  ]);
+  ).toEqual([semicolonAt("a.md:1")]);
 });
 
 test("rejects a dash in a message and names its key", () => {
   expect(
-    messageProblems("messages/en.json", { app_name: `Porto ${emDash} lab` }),
+    punctuationProblems(
+      "messages/en.json",
+      JSON.stringify({ app_name: `Porto ${emDash} lab` }),
+      "messages",
+    ),
   ).toEqual([
     "messages/en.json (app_name): replace the em dash with a connecting word or a new sentence.",
+  ]);
+});
+
+test("reports a messages file that is not a JSON object", () => {
+  expect(punctuationProblems("messages/en.json", "[]", "messages")).toEqual([
+    "messages/en.json is not a JSON object.",
   ]);
 });

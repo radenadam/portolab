@@ -1,5 +1,9 @@
-import { readJsonFile } from "./json.ts";
-import { chooseLenses, parseRouteSchemaLenses } from "./review-inputs.ts";
+import { parseJsonWith, readJsonFile } from "./json.ts";
+import {
+  chooseLenses,
+  parseRouteSchemaLenses,
+  parseRouterChoice,
+} from "./review-inputs.ts";
 import { exitWithFailure } from "./script-failure.ts";
 
 const knownLenses = readJsonFile(
@@ -9,10 +13,15 @@ const knownLenses = readJsonFile(
 if (!knownLenses.ok) {
   exitWithFailure([knownLenses.failure]);
 }
-const lenses = chooseLenses(
+const chosenLenses = parseJsonWith(
   process.env["ROUTER_OUTPUT"] ?? "",
-  knownLenses.value,
+  "ROUTER_OUTPUT",
+  parseRouterChoice,
 );
+if (!chosenLenses.ok) {
+  exitWithFailure([chosenLenses.failure]);
+}
+const lenses = chooseLenses(chosenLenses.value, knownLenses.value);
 if (!lenses.ok) {
   exitWithFailure([lenses.failure]);
 }

@@ -2,11 +2,11 @@ import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { parseJsonText, readJsonFile } from "./json.ts";
+import { parseJsonWith, readJsonFile } from "./json.ts";
 import {
   hasCancelledJob,
-  parseExpectedLenses,
   parseJobResults,
+  parseLensNames,
   parseLensReport,
   parsePullRequestNumber,
   parseVerifiedFindings,
@@ -15,18 +15,18 @@ import type { LensReport, VerifiedFinding } from "./review-inputs.ts";
 import { summarizeReview } from "./review-summary.ts";
 import { exitWithFailure } from "./script-failure.ts";
 
-const pullRequest = parsePullRequestNumber(process.env["PULL_REQUEST"] ?? "");
+const pullRequest = parsePullRequestNumber(
+  process.env["PULL_REQUEST"],
+  "PULL_REQUEST",
+);
 if (!pullRequest.ok) {
   exitWithFailure([pullRequest.failure]);
 }
-const panelResults = parseJsonText(
+const jobResults = parseJsonWith(
   process.env["PANEL_RESULTS"] ?? "",
   "PANEL_RESULTS",
+  parseJobResults,
 );
-if (!panelResults.ok) {
-  exitWithFailure([panelResults.failure]);
-}
-const jobResults = parseJobResults(panelResults.value);
 if (!jobResults.ok) {
   exitWithFailure([jobResults.failure]);
 }
@@ -38,8 +38,10 @@ if (hasCancelledJob(jobResults.value)) {
 }
 
 const inputProblems: string[] = [];
-const expectedLenses = parseExpectedLenses(
+const expectedLenses = parseJsonWith(
   process.env["EXPECTED_LENSES"] ?? "",
+  "EXPECTED_LENSES",
+  parseLensNames,
 );
 if (!expectedLenses.ok) {
   inputProblems.push(expectedLenses.failure);

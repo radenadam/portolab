@@ -1,9 +1,9 @@
 import { fail, succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
-import { isRecord, isStringArray, parseJsonText } from "./json.ts";
+import { invalidField, isRecord, isStringArray, notAnObject } from "./json.ts";
 import { listOfWords } from "./sentences.ts";
 
-const verdictStatuses = ["confirmed", "refuted", "duplicate"] as const;
+export const verdictStatuses = ["confirmed", "refuted", "duplicate"] as const;
 
 interface ReportedFinding {
   id: string;
@@ -33,17 +33,24 @@ export interface VerifiedFinding extends ReportedFinding {
   evidence: string;
 }
 
-/** Reads the result of each job from the JSON of the workflow's needs context. */
+/** Reads the result of each job from the needs context of the workflow. */
 export function parseJobResults(
   value: unknown,
+  source: string,
 ): Result<Record<string, string>, string> {
-  if (!isRecord(value) || Object.keys(value).length === 0) {
-    return fail("PANEL_RESULTS names no jobs, so the panel cannot be judged.");
+  if (!isRecord(value)) {
+    return notAnObject(source);
+  }
+  if (Object.keys(value).length === 0) {
+    return fail(`${source} names no jobs, so the panel cannot be judged.`);
   }
   const results: Record<string, string> = {};
   for (const [job, details] of Object.entries(value)) {
     const result = isRecord(details) ? details["result"] : undefined;
-    results[job] = typeof result === "string" ? result : "unknown";
+    if (typeof result !== "string") {
+      return invalidField(`${source}: job ${job}`, "result");
+    }
+    results[job] = result;
   }
   return succeed(results);
 }
@@ -53,7 +60,7 @@ export function parseLensReport(
   source: string,
 ): Result<LensReport, string> {
   if (!isRecord(value)) {
-    return fail(`${source} is not a JSON object.`);
+    return notAnObject(source);
   }
   const { lens, findings, candidateStandards } = value;
   if (typeof lens !== "string") {
@@ -98,11 +105,15 @@ export function parseVerifiedFindings(
   value: unknown,
   source: string,
 ): Result<VerifiedFinding[], string> {
-  if (!isRecord(value) || !Array.isArray(value["findings"])) {
+  if (!isRecord(value)) {
+    return notAnObject(source);
+  }
+  const { findings } = value;
+  if (!Array.isArray(findings)) {
     return invalidField(source, "findings");
   }
   const verifiedFindings: VerifiedFinding[] = [];
-  for (const [index, item] of value["findings"].entries()) {
+  for (const [index, item] of findings.entries()) {
     const findingSource = `${source}: finding ${String(index + 1)}`;
     const finding = readReportedFinding(item, findingSource);
     if (!finding.ok) {
@@ -117,16 +128,12 @@ export function parseVerifiedFindings(
   return succeed(verifiedFindings);
 }
 
-function invalidField(source: string, field: string): Result<never, string> {
-  return fail(`${source} has no valid "${field}".`);
-}
-
 function readReportedFinding(
   value: unknown,
   source: string,
 ): Result<ReportedFinding, string> {
   if (!isRecord(value)) {
-    return fail(`${source} is not a JSON object.`);
+    return notAnObject(source);
   }
   const { id, lens, location, claim, basis, siblings, rootCause } = value;
   if (typeof id !== "string") {
@@ -161,7 +168,7 @@ function readVerdict(
   string
 > {
   if (!isRecord(value)) {
-    return fail(`${source} is not a JSON object.`);
+    return notAnObject(source);
   }
   const { status, duplicateOf, evidence } = value;
   const knownStatus = verdictStatuses.find((candidate) => candidate === status);
@@ -182,7 +189,7 @@ function readCandidateStandard(
   source: string,
 ): Result<CandidateStandard, string> {
   if (!isRecord(value)) {
-    return fail(`${source} is not a JSON object.`);
+    return notAnObject(source);
   }
   const { standard, incident } = value;
   if (typeof standard !== "string") {
@@ -194,24 +201,40 @@ function readCandidateStandard(
   return succeed({ standard, incident });
 }
 
-/** Reads the pull request number that the review is posted on. */
-export function parsePullRequestNumber(text: string): Result<string, string> {
-  return /^[1-9]\d*$/.test(text)
-    ? succeed(text)
-    : fail(`PULL_REQUEST must be a pull request number, but it is "${text}".`);
+/** Reads the number of the pull request that the review is posted on. */
+export function parsePullRequestNumber(
+  value: unknown,
+  source: string,
+): Result<string, string> {
+  return typeof value === "string" && /^[1-9]\d*$/.test(value)
+    ? succeed(value)
+    : fail(
+        `${source} must be a pull request number, but it is "${String(value)}".`,
+      );
 }
 
-/** Reads the list of lenses that the route job chose. */
-export function parseExpectedLenses(text: string): Result<string[], string> {
-  const json = parseJsonText(text, "EXPECTED_LENSES");
-  if (!json.ok) {
-    return json;
+/** Reads a list of lens names, such as the lenses that the route job chose. */
+export function parseLensNames(
+  value: unknown,
+  source: string,
+): Result<string[], string> {
+  return isStringArray(value)
+    ? succeed(value)
+    : fail(`${source} must be a JSON list of lens names.`);
+}
+
+/** Reads the lenses from the router's answer. */
+export function parseRouterChoice(
+  value: unknown,
+  source: string,
+): Result<string[], string> {
+  if (!isRecord(value)) {
+    return notAnObject(source);
   }
-  return isStringArray(json.value)
-    ? succeed(json.value)
-    : fail(
-        `EXPECTED_LENSES must be a JSON list of lens names, but it is ${text}.`,
-      );
+  const { lenses } = value;
+  return isStringArray(lenses)
+    ? succeed(lenses)
+    : invalidField(source, "lenses");
 }
 
 /** Whether any job of the panel was cancelled, in which case the run reviewed nothing. */
@@ -224,18 +247,10 @@ const lensesForEveryChange = ["consistency", "standards"];
 
 /** Adds the lenses for every change to the lenses that the router chose, after checking that each one exists. */
 export function chooseLenses(
-  routerOutput: string,
+  chosenLenses: readonly string[],
   knownLenses: readonly string[],
 ): Result<string[], string> {
-  const json = parseJsonText(routerOutput, "The router's output");
-  if (!json.ok) {
-    return json;
-  }
-  const lenses = isRecord(json.value) ? json.value["lenses"] : undefined;
-  if (!isStringArray(lenses)) {
-    return invalidField("The router's output", "lenses");
-  }
-  const unknown = lenses.filter((lens) => !knownLenses.includes(lens));
+  const unknown = chosenLenses.filter((lens) => !knownLenses.includes(lens));
   if (unknown.length > 0) {
     return fail(
       unknown.length === 1
@@ -243,7 +258,9 @@ export function chooseLenses(
         : `The router chose unknown lenses: ${listOfWords(unknown)}.`,
     );
   }
-  return succeed([...new Set([...lenses, ...lensesForEveryChange])].sort());
+  return succeed(
+    [...new Set([...chosenLenses, ...lensesForEveryChange])].sort(),
+  );
 }
 
 /** Reads the names of the lenses from the schema of the router's answer. */
@@ -264,10 +281,11 @@ export function parseRouteSchemaLenses(
 
 /** Reads the tools that an agent definition lists on its line that starts with "tools: ". */
 export function parseAgentTools(
-  definition: string,
+  value: unknown,
   source: string,
 ): Result<string, string> {
-  const line = /^tools: (.*)$/m.exec(definition)?.[1];
+  const line =
+    typeof value === "string" ? /^tools: (.*)$/m.exec(value)?.[1] : undefined;
   const tools = line?.replaceAll(" ", "") ?? "";
   return /^[A-Za-z]+(,[A-Za-z]+)*$/.test(tools)
     ? succeed(tools)

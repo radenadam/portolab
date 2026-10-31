@@ -49,7 +49,7 @@ Every line here is read at the start of every session. A standard earns its plac
 These apply to all prose: docs, comments, commit messages, pull requests, issues, every text in the interface, and every text that code generates, such as log messages and automated reviews.
 
 - Every sentence is easy to parse for a reader with basic English or basic Bahasa Indonesia. This is about sentence structure only. It never means simpler ideas or padding.
-- Connect ideas with words such as "because", "so", "but", and "which means", or split them into separate sentences. A colon may introduce a list, an example, or code, or separate a label from its description. `pnpm check` rejects em dashes and en dashes in the prose of docs and messages and anywhere in TypeScript, CSS, and YAML files, and semicolons in the prose of docs and messages and in comments. It cannot see a dash inside a code span, a semicolon in text that code generates, or a colon that joins two clauses, so watch for those.
+- Connect ideas with words such as "because", "so", "but", and "which means", or split them into separate sentences. A colon may introduce a list, an example, or code, or separate a label from its description. `pnpm check` reads every Markdown, TypeScript, CSS, and YAML file in the repository, including those in dot folders, and the messages. In prose, which means Markdown outside code spans and code blocks, issue templates, and messages, it rejects em dashes, en dashes, and semicolons. In TypeScript, CSS, and YAML, it rejects dashes on every line and semicolons in comments. It cannot see a dash in a code span, a semicolon in a string that code generates, or a colon that joins two clauses, so watch for those.
 - Write plainly and directly. No marketing filler, no hedging, and no text that coaches the reader on what they already know.
 - Each fact lives in one place, and other places link to it.
 
@@ -75,7 +75,7 @@ These apply to all prose: docs, comments, commit messages, pull requests, issues
 - An abstraction exists only for callers that exist today, never for a future that may not come. Logic that repeats becomes one function that every copy calls.
 - Units get branded types, such as rupiah, shares, and lots, so mixing them up is a type error. Amounts of rupiah are whole numbers.
 - An expected failure, such as an order the cash cannot pay for, is a typed result that every caller must handle. Throwing is only for states that should never happen.
-- Data from outside the program is parsed into types at the boundary where it enters, in scripts and CI steps as much as in the app. Outside data includes form input, environment variables, files, prices from the price source, and the output of agents. A type assertion such as `as` is not parsing, and neither is a type predicate (`value is T`) whose body does not check every part of its type. Code inside the boundary trusts the parsed types and has no defensive checks for impossible states.
+- Data from outside the program is parsed into types at the boundary where it enters, in scripts and CI steps as much as in the app. Outside data includes form input, environment variables, files, prices from the price source, and the output of agents. A type assertion such as `as` is not parsing, and neither is a type predicate (`value is T`) whose body does not check every part of its type. Every parser has the signature `(value: unknown, source: string) => Result<T, string>`, and its caller names the source, so one parser serves a file, an environment variable, and a test alike. Code inside the boundary trusts the parsed types and has no defensive checks for impossible states.
 - A script that fails writes its reason to stderr before it exits, so the CI log explains the failure without a rerun.
 - A failure text names its source and the field or value that was wrong. Code that handles a failed result passes that text on, instead of replacing it with a generic message, so the real reason reaches the reader.
 - A comment explains only why: a reason, an outside constraint, or a trap. It never narrates what the code does.
@@ -96,7 +96,7 @@ These apply to all prose: docs, comments, commit messages, pull requests, issues
 - A test name starts with the verb of the behavior it checks, such as "rejects" or "fails when".
 - When two definitions must agree, such as a schema and its parser, or the lens names in `.github/review/route.schema.json` and the files in `.claude/agents/`, a test checks that they agree through the code that uses them, not through a copy of their data.
 - A test of generated text checks the whole sentence for each case that changes its grammar, such as one item and several items.
-- The logic that a check script uses to judge its input lives in a module with tests beside it, including tests of input that the check must accept.
+- The logic that a check script uses to choose its input and to judge it lives in a module with tests beside it. The tests include input that the check must accept and files in every place the check must reach, such as dot folders.
 - Every calculation of money or of a measure is tested against expected values computed independently, for example in a spreadsheet, and the test names that source.
 - Every user flow has a browser test that runs on the phone and desktop projects and checks accessibility with axe.
 
