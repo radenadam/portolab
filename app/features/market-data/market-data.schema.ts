@@ -1,5 +1,6 @@
 import { integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import type { Rupiah } from "~/units/rupiah";
+import type { IndexCode } from "./price-source.server";
 
 /** The latest delayed quote of each tracked stock, in whole rupiah. */
 export const stockQuotes = sqliteTable("stock_quotes", {
@@ -12,7 +13,7 @@ export const stockQuotes = sqliteTable("stock_quotes", {
 
 /** The latest delayed level of each tracked index, in points with two decimals. */
 export const indexQuotes = sqliteTable("index_quotes", {
-  code: text("code").primaryKey(),
+  code: text("code").$type<IndexCode>().primaryKey(),
   level: real("level").notNull(),
   previousLevel: real("previous_level").notNull(),
   quotedAt: integer("quoted_at", { mode: "timestamp_ms" }).notNull(),

@@ -28,7 +28,7 @@ interface StockQuote {
 /** Index levels are points with two decimals, not amounts of money. */
 interface IndexQuote {
   kind: "index";
-  code: string;
+  code: IndexCode;
   level: number;
   previousLevel: number;
   quotedAt: Date;
@@ -44,7 +44,9 @@ export interface QuoteBatch {
 
 /** Every price in Portolab comes through this interface, so a licensed source can replace another without changes elsewhere. */
 export interface PriceSource {
+  /** Fetches the latest quotes, and gives up with a failure when the signal aborts, because the job that asks sets how long it waits. */
   fetchQuotes(
     instruments: readonly Instrument[],
+    signal: AbortSignal,
   ): Promise<Result<QuoteBatch, string>>;
 }

@@ -23,8 +23,11 @@
   "market_data_last_label": "Harga terakhir",
   "market_data_change_label": "Perubahan",
   "market_data_time_label": "Waktu (WIB)",
-  "market_data_update_failed_notice": "Portolab tidak dapat memperbarui harga pada {time} WIB, jadi harga di bawah adalah harga terakhir yang tersimpan. Portolab mencoba lagi pada {nextTime} WIB.",
-  "market_data_empty_failed_body": "Portolab belum memiliki harga, karena percobaan terakhir untuk mengambilnya pada {time} WIB gagal. Portolab mencoba lagi pada {nextTime} WIB.",
-  "market_data_one_code_failed_notice": "Portolab tidak dapat memperbarui harga {codes} pada {time} WIB, jadi harganya di bawah adalah harga terakhir yang tersimpan. Portolab mencoba lagi pada {nextTime} WIB.",
-  "market_data_several_codes_failed_notice": "Portolab tidak dapat memperbarui harga {codes} pada {time} WIB, jadi harganya di bawah adalah harga terakhir yang tersimpan. Portolab mencoba lagi pada {nextTime} WIB."
+  "market_data_update_failed_notice": "Portolab tidak dapat memperbarui harga pada {time} WIB, jadi harga di bawah adalah harga terakhir yang tersimpan.",
+  "market_data_empty_failed_body": "Portolab belum memiliki harga, karena percobaan terakhir untuk mengambilnya pada {time} WIB gagal.",
+  "market_data_one_stale_price_notice": "Portolab tidak dapat memperbarui harga {codes} pada {time} WIB, jadi harganya di bawah adalah harga terakhir yang tersimpan.",
+  "market_data_several_stale_prices_notice": "Portolab tidak dapat memperbarui harga {codes} pada {time} WIB, jadi harganya di bawah adalah harga terakhir yang tersimpan.",
+  "market_data_one_missing_price_notice": "Portolab belum memiliki harga {codes}, karena percobaan terakhir untuk mengambilnya pada {time} WIB gagal.",
+  "market_data_several_missing_prices_notice": "Portolab belum memiliki harga {codes}, karena percobaan terakhir untuk mengambilnya pada {time} WIB gagal.",
+  "market_data_next_attempt_notice": "Portolab mencoba lagi pada {nextTime} WIB."
 }

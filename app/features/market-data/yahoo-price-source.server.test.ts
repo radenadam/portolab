@@ -1,6 +1,13 @@
-import { expect, test } from "vitest";
+import { afterEach, expect, test, vi } from "vitest";
 import type { Instrument } from "./price-source.server";
-import { collectYahooQuotes } from "./yahoo-price-source.server";
+import {
+  collectYahooQuotes,
+  createYahooPriceSource,
+} from "./yahoo-price-source.server";
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 // The valid quotes are the closes of 30 October 2026, as Yahoo Finance returned them. Each rejection test changes one field.
 const bbcaQuotedAt = new Date("2026-10-30T09:14:55.000Z");
@@ -111,4 +118,25 @@ test("rejects a quote in another currency", () => {
   expect(batch.problems).toEqual([
     'The Yahoo Finance quote for BBCA must be in IDR, but its currency is "USD".',
   ]);
+});
+
+test("passes the signal of the job to every request, and fails when it aborts", async () => {
+  // The client calls the global fetch, so this stand-in sees each request without the network.
+  const requests: { url: string; signal: AbortSignal | null | undefined }[] =
+    [];
+  vi.stubGlobal("fetch", (url: string, init?: RequestInit) => {
+    requests.push({ url, signal: init?.signal });
+    return Promise.reject(new Error("The price job stopped waiting."));
+  });
+  const controller = new AbortController();
+  controller.abort();
+  const result = await createYahooPriceSource().fetchQuotes(
+    [bbca],
+    controller.signal,
+  );
+  expect(result.ok).toBe(false);
+  expect(requests.length).toBeGreaterThan(0);
+  for (const request of requests) {
+    expect(request.signal, request.url).toBe(controller.signal);
+  }
 });

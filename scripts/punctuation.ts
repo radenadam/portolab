@@ -142,16 +142,17 @@ interface Comment {
 }
 
 function comments(file: string, text: string, kind: CodeKind): Comment[] {
-  if (kind === "typescript") {
-    return typescriptComments(file, text);
+  switch (kind) {
+    case "typescript":
+      return typescriptComments(file, text);
+    case "css":
+      return [...text.matchAll(/\/\*[\s\S]*?\*\//g)].map((match) => ({
+        start: match.index,
+        text: match[0],
+      }));
+    case "yaml":
+      return yamlComments(text);
   }
-  if (kind === "css") {
-    return [...text.matchAll(/\/\*[\s\S]*?\*\//g)].map((match) => ({
-      start: match.index,
-      text: match[0],
-    }));
-  }
-  return yamlComments(text);
 }
 
 // The parser knows where strings, regular expressions, and JSX text end, so text such as a URL in a string is never taken for a comment.

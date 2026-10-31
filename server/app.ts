@@ -10,9 +10,16 @@ import {
 import type { Database } from "~/database/database.server";
 import { fixturePriceSource } from "~/features/market-data/fixture-price-source.server";
 import { startPriceJob } from "~/features/market-data/price-job.server";
+import type { PriceSource } from "~/features/market-data/price-source.server";
 import { trackedInstruments } from "~/features/market-data/tracked-instruments";
 import { createYahooPriceSource } from "~/features/market-data/yahoo-price-source.server";
 import type { ServiceSettings } from "./server-options.ts";
+
+const priceSources: Record<ServiceSettings["priceSource"], () => PriceSource> =
+  {
+    yahoo: createYahooPriceSource,
+    fixture: () => fixturePriceSource,
+  };
 
 export interface Services {
   database: Database;
@@ -22,13 +29,9 @@ export interface Services {
 /** Opens the database and starts the price job, with the settings that the server read at startup. */
 export function startServices(settings: ServiceSettings): Services {
   const database = openDatabase(settings.databasePath);
-  const priceSource =
-    settings.priceSource === "fixture"
-      ? fixturePriceSource
-      : createYahooPriceSource();
   const stopPriceJob = startPriceJob({
     database,
-    priceSource,
+    priceSource: priceSources[settings.priceSource](),
     instruments: trackedInstruments,
   });
   return {

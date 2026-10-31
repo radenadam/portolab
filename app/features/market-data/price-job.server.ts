@@ -11,6 +11,9 @@ import {
 } from "./quote-store.server";
 import { isUpdateMinute, nextAttemptTime } from "./update-schedule";
 
+// Shorter than the minute between runs of the schedule, so a stalled request ends as a recorded failure before the next run.
+const requestTimeoutMilliseconds = 20_000;
+
 export interface PriceJobSettings {
   database: Database;
   priceSource: PriceSource;
@@ -53,7 +56,11 @@ export function createPriceUpdater(
     }
     isRunning = true;
     try {
-      await runPriceUpdate(settings, new Date());
+      await runPriceUpdate(
+        settings,
+        new Date(),
+        AbortSignal.timeout(requestTimeoutMilliseconds),
+      );
     } catch (error) {
       writeLog("error", "The price job failed.", {
         detail: errorDetail(error),
@@ -65,18 +72,19 @@ export function createPriceUpdater(
 }
 
 /**
- * Fetches and stores prices unless the job still waits after failures, and records the attempt with its failures in a row and the instruments that it could not update. The state lives in the database, as decision 0009 asks, so a restart keeps waiting.
+ * Fetches and stores prices unless the job still waits after failures, and records the attempt with its failures in a row and the instruments that it could not update. A request that outlasts the signal counts as a failure. The state lives in the database, as decision 0009 asks, so a restart keeps waiting.
  * @internal Tests call it directly, because startPriceJob reaches it only with the real clock.
  */
 export async function runPriceUpdate(
   settings: PriceJobSettings,
   now: Date,
+  signal: AbortSignal,
 ): Promise<void> {
   const latestAttempt = readLatestUpdateAttempt(settings.database);
   if (latestAttempt !== undefined && now < nextAttemptTime(latestAttempt)) {
     return;
   }
-  const savedQuotes = await fetchAndSaveQuotes(settings, now);
+  const savedQuotes = await fetchAndSaveQuotes(settings, now, signal);
   const succeeded = savedQuotes.length > 0;
   const failedCodes: string[] = [];
   for (const instrument of settings.instruments) {
@@ -102,9 +110,13 @@ export async function runPriceUpdate(
 async function fetchAndSaveQuotes(
   settings: PriceJobSettings,
   now: Date,
+  signal: AbortSignal,
 ): Promise<readonly Quote[]> {
   try {
-    const result = await settings.priceSource.fetchQuotes(settings.instruments);
+    const result = await settings.priceSource.fetchQuotes(
+      settings.instruments,
+      signal,
+    );
     if (!result.ok) {
       writeLog(
         "warning",

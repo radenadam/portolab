@@ -42,8 +42,8 @@ const throwingSource: PriceSource = {
 };
 // Answers like the fixture source, but without BBRI and TLKM.
 const partialSource: PriceSource = {
-  fetchQuotes: async (instruments) => {
-    const answer = await fixturePriceSource.fetchQuotes(instruments);
+  fetchQuotes: async (instruments, signal) => {
+    const answer = await fixturePriceSource.fetchQuotes(instruments, signal);
     if (!answer.ok) {
       return answer;
     }
@@ -60,6 +60,9 @@ const partialSource: PriceSource = {
 };
 const trackedCodes = trackedInstruments.map((instrument) => instrument.code);
 
+// A signal that never aborts, for a test where the source always answers.
+const neverAborted = new AbortController().signal;
+
 const start = new Date("2026-11-02T03:00:00.000Z");
 
 function minutesAfterStart(minutes: number): Date {
@@ -75,6 +78,7 @@ test("stores the quotes and records a success", async () => {
       instruments: trackedInstruments,
     },
     start,
+    neverAborted,
   );
   expect(listLatestQuotes(database)).toHaveLength(trackedInstruments.length);
   expect(readLatestUpdateAttempt(database)).toEqual({
@@ -94,6 +98,7 @@ test("records the instruments that an answer lacks, without waiting before the n
       instruments: trackedInstruments,
     },
     start,
+    neverAborted,
   );
   expect(listLatestQuotes(database)).toHaveLength(
     trackedInstruments.length - 2,
@@ -109,14 +114,20 @@ test("records the instruments that an answer lacks, without waiting before the n
 test("counts a failure, an answer without a usable quote, and a thrown error as failures in a row", async () => {
   const database = memoryDatabase();
   const settings = { database, instruments: trackedInstruments };
-  await runPriceUpdate({ ...settings, priceSource: failingSource }, start);
+  await runPriceUpdate(
+    { ...settings, priceSource: failingSource },
+    start,
+    neverAborted,
+  );
   await runPriceUpdate(
     { ...settings, priceSource: emptySource },
     minutesAfterStart(1),
+    neverAborted,
   );
   await runPriceUpdate(
     { ...settings, priceSource: throwingSource },
     minutesAfterStart(3),
+    neverAborted,
   );
   expect(readLatestUpdateAttempt(database)).toEqual({
     attemptedAt: minutesAfterStart(3),
@@ -126,23 +137,56 @@ test("counts a failure, an answer without a usable quote, and a thrown error as 
   });
 });
 
+test("records a failure when the job stops waiting for the price source", async () => {
+  const database = memoryDatabase();
+  const stalledSource: PriceSource = {
+    fetchQuotes: (_instruments, signal) =>
+      new Promise((resolve) => {
+        signal.addEventListener("abort", () => {
+          resolve(fail("Yahoo Finance did not answer in time."));
+        });
+      }),
+  };
+  const controller = new AbortController();
+  const update = runPriceUpdate(
+    { database, priceSource: stalledSource, instruments: trackedInstruments },
+    start,
+    controller.signal,
+  );
+  controller.abort();
+  await update;
+  expect(readLatestUpdateAttempt(database)).toEqual({
+    attemptedAt: start,
+    succeeded: false,
+    consecutiveFailures: 1,
+    failedCodes: trackedCodes,
+  });
+});
+
 test("waits after failures, and a later run of the job keeps waiting, because the state lives in the database", async () => {
   const database = memoryDatabase();
   const settings = { database, instruments: trackedInstruments };
-  await runPriceUpdate({ ...settings, priceSource: failingSource }, start);
+  await runPriceUpdate(
+    { ...settings, priceSource: failingSource },
+    start,
+    neverAborted,
+  );
   await runPriceUpdate(
     { ...settings, priceSource: failingSource },
     minutesAfterStart(1),
+    neverAborted,
   );
   // After two failures in a row, the job waits two minutes.
   await runPriceUpdate(
     { ...settings, priceSource: fixturePriceSource },
     minutesAfterStart(2),
+    neverAborted,
   );
   expect(listLatestQuotes(database)).toEqual([]);
   await runPriceUpdate(
     { ...settings, priceSource: fixturePriceSource },
     minutesAfterStart(3),
+    neverAborted,
   );
   expect(listLatestQuotes(database)).toHaveLength(trackedInstruments.length);
   expect(readLatestUpdateAttempt(database)?.consecutiveFailures).toBe(0);
@@ -153,12 +197,12 @@ test("does nothing when an update starts while another one still runs", async ()
   let calls = 0;
   let answer: (() => void) | undefined;
   const slowSource: PriceSource = {
-    fetchQuotes: async (instruments) => {
+    fetchQuotes: async (instruments, signal) => {
       calls += 1;
       await new Promise<void>((resolve) => {
         answer = resolve;
       });
-      return fixturePriceSource.fetchQuotes(instruments);
+      return fixturePriceSource.fetchQuotes(instruments, signal);
     },
   };
   const updatePrices = createPriceUpdater({

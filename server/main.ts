@@ -2,7 +2,7 @@ import { networkInterfaces } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import express from "express";
-import type { RequestHandler } from "express";
+import type { Express, RequestHandler } from "express";
 import { exitWithFailure } from "../app/exit-with-failure.server.ts";
 import { writeLog } from "../app/write-log.server.ts";
 import { failuresOf } from "../app/result.ts";
@@ -12,7 +12,7 @@ import {
   parsePort,
   parsePriceSource,
 } from "./server-options.ts";
-import type { ServiceSettings } from "./server-options.ts";
+import type { Mode, ServiceSettings } from "./server-options.ts";
 
 // The server only keeps the services and hands them back to the build, so it needs no more of their shape.
 interface Services {
@@ -51,59 +51,18 @@ const settings: ServiceSettings = {
   priceSource: priceSource.value,
   databasePath: databasePath.value,
 };
-const isDevelopment = mode.value === "development";
+// Each mode serves the app in its own way, so a new mode is a type error until it has one.
+const serveApp: Record<
+  Mode,
+  (server: Express, settings: ServiceSettings) => Promise<Services>
+> = {
+  development: serveWithDevServer,
+  production: serveBuiltApp,
+};
 
 const server = express();
 server.disable("x-powered-by");
-let services: Services;
-
-if (isDevelopment) {
-  const vite = await import("vite");
-  const viteServer = await vite.createServer({
-    server: { middlewareMode: true },
-  });
-  const loadBuild = async (): Promise<ServerBuild> =>
-    (await viteServer.ssrLoadModule("./server/app.ts")) as ServerBuild;
-  services = (await loadBuild()).startServices(settings);
-  // Each request loads the module again, so edits to the app apply without a restart. The services stay, and each new build gets an app that uses them.
-  const appsByBuild = new WeakMap<ServerBuild, RequestHandler>();
-  const appFor = (latestBuild: ServerBuild): RequestHandler => {
-    const existingApp = appsByBuild.get(latestBuild);
-    if (existingApp !== undefined) {
-      return existingApp;
-    }
-    const newApp = latestBuild.createApp(services);
-    appsByBuild.set(latestBuild, newApp);
-    return newApp;
-  };
-  server.use(viteServer.middlewares);
-  server.use((request, response, next) => {
-    loadBuild()
-      .then((latestBuild) => {
-        appFor(latestBuild)(request, response, next);
-      })
-      .catch((error: unknown) => {
-        if (error instanceof Error) {
-          viteServer.ssrFixStacktrace(error);
-        }
-        next(error);
-      });
-  });
-} else {
-  const build = (await import(
-    pathToFileURL(serverBuildPath).href
-  )) as ServerBuild;
-  services = build.startServices(settings);
-  server.use(
-    "/assets",
-    express.static(join(buildDirectory, "client", "assets"), {
-      immutable: true,
-      maxAge: "1y",
-    }),
-  );
-  server.use(express.static(join(buildDirectory, "client"), { maxAge: "1h" }));
-  server.use(build.createApp(services));
-}
+const services = await serveApp[mode.value](server, settings);
 
 const listener = server.listen(port.value, () => {
   writeLog("info", "Server started.", {
@@ -129,6 +88,64 @@ for (const signal of ["SIGINT", "SIGTERM"] as const) {
       );
     }, shutdownTimeoutMilliseconds).unref();
   });
+}
+
+// Each request loads the app again, so edits apply without a restart. The services stay, and each new build gets an app that uses them.
+async function serveWithDevServer(
+  server: Express,
+  settings: ServiceSettings,
+): Promise<Services> {
+  const vite = await import("vite");
+  const viteServer = await vite.createServer({
+    server: { middlewareMode: true },
+  });
+  const loadBuild = async (): Promise<ServerBuild> =>
+    (await viteServer.ssrLoadModule("./server/app.ts")) as ServerBuild;
+  const services = (await loadBuild()).startServices(settings);
+  const appsByBuild = new WeakMap<ServerBuild, RequestHandler>();
+  const appFor = (latestBuild: ServerBuild): RequestHandler => {
+    const existingApp = appsByBuild.get(latestBuild);
+    if (existingApp !== undefined) {
+      return existingApp;
+    }
+    const newApp = latestBuild.createApp(services);
+    appsByBuild.set(latestBuild, newApp);
+    return newApp;
+  };
+  server.use(viteServer.middlewares);
+  server.use((request, response, next) => {
+    loadBuild()
+      .then((latestBuild) => {
+        appFor(latestBuild)(request, response, next);
+      })
+      .catch((error: unknown) => {
+        if (error instanceof Error) {
+          viteServer.ssrFixStacktrace(error);
+        }
+        next(error);
+      });
+  });
+  return services;
+}
+
+async function serveBuiltApp(
+  server: Express,
+  settings: ServiceSettings,
+): Promise<Services> {
+  const build = (await import(
+    pathToFileURL(serverBuildPath).href
+  )) as ServerBuild;
+  const services = build.startServices(settings);
+  server.use(
+    "/assets",
+    express.static(join(buildDirectory, "client", "assets"), {
+      immutable: true,
+      maxAge: "1y",
+    }),
+  );
+  server.use(express.static(join(buildDirectory, "client"), { maxAge: "1h" }));
+  server.use(build.createApp(services));
+  return services;
 }
 
 // Phones on the same Wi-Fi network open one of these addresses during a demonstration.

@@ -19,18 +19,23 @@ const yahooIndexSymbols: Record<IndexCode, string> = {
 export function createYahooPriceSource(): PriceSource {
   const client = new YahooFinance({ suppressNotices: ["yahooSurvey"] });
   return {
-    async fetchQuotes(instruments) {
+    async fetchQuotes(instruments, signal) {
       try {
-        const quotes = await client.quote(instruments.map(yahooSymbol), {
-          fields: [
-            "symbol",
-            "currency",
-            "regularMarketPrice",
-            "regularMarketPreviousClose",
-            "regularMarketTime",
-          ],
-          return: "array",
-        });
+        const quotes = await client.quote(
+          instruments.map(yahooSymbol),
+          {
+            fields: [
+              "symbol",
+              "currency",
+              "regularMarketPrice",
+              "regularMarketPreviousClose",
+              "regularMarketTime",
+            ],
+            return: "array",
+          },
+          // The client passes these options to every request that it makes for this call, so the signal ends all of them.
+          { fetchOptions: { signal } },
+        );
         return succeed(collectYahooQuotes(instruments, quotes));
       } catch (error) {
         return fail(
@@ -105,27 +110,32 @@ function parseYahooQuote(
       `${source} must have a time at regularMarketTime, but it is ${describeValue(quotedAt)}.`,
     );
   }
-  if (instrument.kind === "index") {
-    return succeed({
-      kind: "index",
-      code: instrument.code,
-      level: regularMarketPrice,
-      previousLevel: regularMarketPreviousClose,
-      quotedAt,
-    });
+  switch (instrument.kind) {
+    case "index":
+      return succeed({
+        kind: "index",
+        code: instrument.code,
+        level: regularMarketPrice,
+        previousLevel: regularMarketPreviousClose,
+        quotedAt,
+      });
+    case "stock":
+      if (
+        !isRupiah(regularMarketPrice) ||
+        !isRupiah(regularMarketPreviousClose)
+      ) {
+        return fail(
+          `${source} must have whole rupiah, but its price is ${describeValue(regularMarketPrice)} and its previous close is ${describeValue(regularMarketPreviousClose)}.`,
+        );
+      }
+      return succeed({
+        kind: "stock",
+        code: instrument.code,
+        price: regularMarketPrice,
+        previousClose: regularMarketPreviousClose,
+        quotedAt,
+      });
   }
-  if (!isRupiah(regularMarketPrice) || !isRupiah(regularMarketPreviousClose)) {
-    return fail(
-      `${source} must have whole rupiah, but its price is ${describeValue(regularMarketPrice)} and its previous close is ${describeValue(regularMarketPreviousClose)}.`,
-    );
-  }
-  return succeed({
-    kind: "stock",
-    code: instrument.code,
-    price: regularMarketPrice,
-    previousClose: regularMarketPreviousClose,
-    quotedAt,
-  });
 }
 
 function isPositiveNumber(value: unknown): value is number {
@@ -133,7 +143,10 @@ function isPositiveNumber(value: unknown): value is number {
 }
 
 function yahooSymbol(instrument: Instrument): string {
-  return instrument.kind === "index"
-    ? yahooIndexSymbols[instrument.code]
-    : `${instrument.code}.JK`;
+  switch (instrument.kind) {
+    case "index":
+      return yahooIndexSymbols[instrument.code];
+    case "stock":
+      return `${instrument.code}.JK`;
+  }
 }

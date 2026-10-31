@@ -32,7 +32,12 @@ export function PricesView({
       {latestQuotedAt === undefined ? (
         <p>
           {latestAttempt?.succeeded === false
-            ? m.market_data_empty_failed_body(attemptTimes(latestAttempt))
+            ? [
+                m.market_data_empty_failed_body({
+                  time: formatMarketTime(latestAttempt.attemptedAt),
+                }),
+                nextAttemptSentence(latestAttempt),
+              ].join(" ")
             : m.market_data_empty_body()}
         </p>
       ) : (
@@ -40,7 +45,7 @@ export function PricesView({
           {latestAttempt !== undefined &&
             latestAttempt.failedCodes.length > 0 && (
               <p className={styles["notice"]}>
-                {updateFailureNotice(latestAttempt)}
+                {updateFailureNotice(latestAttempt, quotes)}
               </p>
             )}
           <p className={styles["notice"]}>
@@ -73,28 +78,49 @@ export function PricesView({
   );
 }
 
-// The time of the next attempt comes from the schedule that the job follows, so the page never promises an attempt that the job does not make.
-function attemptTimes(attempt: UpdateAttempt): {
-  time: string;
-  nextTime: string;
-} {
-  return {
-    time: formatMarketTime(attempt.attemptedAt),
-    nextTime: formatMarketTime(nextScheduledAttempt(attempt)),
-  };
+// A price that the attempt could not update has a row with an older price, or no row when Portolab never stored one, and each case has its own sentence.
+function updateFailureNotice(
+  attempt: UpdateAttempt,
+  quotes: readonly Quote[],
+): string {
+  const time = formatMarketTime(attempt.attemptedAt);
+  const staleCodes: string[] = [];
+  const missingCodes: string[] = [];
+  for (const code of attempt.failedCodes) {
+    if (quotes.some((quote) => quote.code === code)) {
+      staleCodes.push(code);
+    } else {
+      missingCodes.push(code);
+    }
+  }
+  const sentences: string[] = [];
+  if (!attempt.succeeded) {
+    sentences.push(m.market_data_update_failed_notice({ time }));
+  } else if (staleCodes.length > 0) {
+    const codes = formatList(staleCodes);
+    sentences.push(
+      staleCodes.length === 1
+        ? m.market_data_one_stale_price_notice({ codes, time })
+        : m.market_data_several_stale_prices_notice({ codes, time }),
+    );
+  }
+  if (missingCodes.length > 0) {
+    const codes = formatList(missingCodes);
+    sentences.push(
+      missingCodes.length === 1
+        ? m.market_data_one_missing_price_notice({ codes, time })
+        : m.market_data_several_missing_prices_notice({ codes, time }),
+    );
+  }
+  sentences.push(nextAttemptSentence(attempt));
+  return sentences.join(" ");
 }
 
-function updateFailureNotice(attempt: UpdateAttempt): string {
-  if (!attempt.succeeded) {
-    return m.market_data_update_failed_notice(attemptTimes(attempt));
-  }
-  const codes = formatList(attempt.failedCodes);
-  return attempt.failedCodes.length === 1
-    ? m.market_data_one_code_failed_notice({ codes, ...attemptTimes(attempt) })
-    : m.market_data_several_codes_failed_notice({
-        codes,
-        ...attemptTimes(attempt),
-      });
+// The time comes from the schedule that the job follows, so the page never promises an attempt that the job does not make.
+function nextAttemptSentence(attempt: UpdateAttempt): string {
+  return m.market_data_next_attempt_notice({
+    nextTime: formatMarketTime(nextScheduledAttempt(attempt)),
+  });
 }
 
 function latestQuoteTime(quotes: readonly Quote[]): Date | undefined {
