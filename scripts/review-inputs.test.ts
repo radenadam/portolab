@@ -1,7 +1,8 @@
 import { readdirSync } from "node:fs";
 import { expect, test } from "vitest";
 import { fail, succeed } from "../app/result.ts";
-import { isRecord, isStringArray, readJsonFile, readTextFile } from "./json.ts";
+import { isRecord, isStringArray, readJsonFile } from "./json.ts";
+import { readTextFile } from "./read-text-file.ts";
 import {
   chooseLenses,
   hasCancelledJob,

@@ -43,7 +43,9 @@ const abbreviations = [
 // ESLint has no rule that checks a signature by the name of a function, so these selectors check the parser standard in the section Code of AGENTS.md.
 const parserSignature =
   "A function named parse... takes (value: unknown, source: string) as its first parameters and returns Result<T, string>, as the section Code of AGENTS.md states.";
-const parser = "FunctionDeclaration[id.name=/^parse[A-Z]/]";
+// A function can be declared, assigned to a variable, or written as a method or a property, so the selectors cover each form.
+const parserName = "/^parse[A-Z]/";
+const parser = `:matches(FunctionDeclaration[id.name=${parserName}], VariableDeclarator[id.name=${parserName}] > :function, Property[key.name=${parserName}] > :function, MethodDefinition[key.name=${parserName}] > :function)`;
 
 export default defineConfig(
   globalIgnores([
@@ -84,15 +86,15 @@ export default defineConfig(
         "error",
         { selector: `${parser}[params.length<2]`, message: parserSignature },
         {
-          selector: `${parser} > Identifier.params:first-child:not([name="value"][typeAnnotation.typeAnnotation.type="TSUnknownKeyword"])`,
+          selector: `${parser} > .params:first-child:not(Identifier[name="value"][typeAnnotation.typeAnnotation.type="TSUnknownKeyword"])`,
           message: parserSignature,
         },
         {
-          selector: `${parser} > Identifier.params:nth-child(2):not([name="source"][typeAnnotation.typeAnnotation.type="TSStringKeyword"])`,
+          selector: `${parser} > .params:nth-child(2):not(Identifier[name="source"][typeAnnotation.typeAnnotation.type="TSStringKeyword"])`,
           message: parserSignature,
         },
         {
-          selector: `${parser}:not([returnType.typeAnnotation.typeName.name="Result"])`,
+          selector: `${parser}:not([returnType.typeAnnotation.typeName.name="Result"][returnType.typeAnnotation.typeArguments.params.1.type="TSStringKeyword"])`,
           message: parserSignature,
         },
       ],

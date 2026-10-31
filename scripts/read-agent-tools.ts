@@ -1,5 +1,5 @@
 import { exitWithFailure } from "./exit-with-failure.ts";
-import { readTextFile } from "./json.ts";
+import { readTextFile } from "./read-text-file.ts";
 import { parseAgentTools } from "./review-inputs.ts";
 
 const definitionPath = process.argv[2];

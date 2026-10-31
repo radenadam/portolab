@@ -96,7 +96,7 @@ These apply to all prose: docs, comments, commit messages, pull requests, issues
 - A test name starts with the verb of the behavior it checks, such as "rejects" or "fails when".
 - When two definitions must agree, such as a schema and its parser, or the lens names in `.github/review/route.schema.json` and the files in `.claude/agents/`, a test checks that they agree through the code that uses them, not through a copy of their data.
 - A test of generated text checks the whole sentence for each case that changes its grammar, such as one item and several items.
-- The logic that a check script uses to choose its input and to judge it lives in a module with tests beside it. The tests include input that the check must accept and files in every place the check must reach, such as dot folders.
+- Every check is tested. A check script keeps the logic that chooses and judges its input in a module with tests beside it, and a lint rule is tested through ESLint itself. The tests cover input that the check must accept, files in every place it must reach, such as dot folders, and every form of code that can break the standard it enforces, such as an arrow function beside a function declaration.
 - Every calculation of money or of a measure is tested against expected values computed independently, for example in a spreadsheet, and the test names that source.
 - Every user flow has a browser test that runs on the phone and desktop projects and checks accessibility with axe.
 

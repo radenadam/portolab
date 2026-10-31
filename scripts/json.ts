@@ -1,23 +1,13 @@
-import { readFileSync } from "node:fs";
 import { errorMessage } from "../app/error-message.ts";
 import { fail, succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
+import { readTextFile } from "./read-text-file.ts";
 
 /** A parser at a boundary. Its caller supplies the source, which every failure text names. */
 export type Parser<Value> = (
   value: unknown,
   source: string,
 ) => Result<Value, string>;
-
-export function readTextFile(path: string): Result<string, string> {
-  try {
-    return succeed(readFileSync(path, "utf8"));
-  } catch (error) {
-    return fail(
-      `${path} cannot be read. The system reported: ${errorMessage(error)}`,
-    );
-  }
-}
 
 export function parseJsonText(
   value: unknown,

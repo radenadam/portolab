@@ -138,6 +138,9 @@ function dismissedSection(verifiedFindings: VerifiedFinding[]): string[] {
   const duplicateCount = verifiedFindings.filter(
     (finding) => finding.status === "duplicate",
   ).length;
+  const confirmedCount = verifiedFindings.filter(
+    (finding) => finding.status === "confirmed",
+  ).length;
   const lines: string[] = [];
   if (refutedCount > 0) {
     lines.push(
@@ -146,7 +149,7 @@ function dismissedSection(verifiedFindings: VerifiedFinding[]): string[] {
   }
   if (duplicateCount > 0) {
     lines.push(
-      `The verifier merged ${countOf(duplicateCount, "duplicate finding", "duplicate findings")} into the findings above.`,
+      `The verifier merged ${countOf(duplicateCount, "duplicate finding", "duplicate findings")} into ${singularOrPlural(confirmedCount, "the finding", "the findings")} above.`,
     );
   }
   return lines.length > 0 ? ["", ...lines] : [];

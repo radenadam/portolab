@@ -177,17 +177,18 @@ test("reports refuted and duplicate findings in the singular and the plural", ()
   ).body;
   expect(singular).toContain("The verifier refuted 1 finding.");
   expect(singular).toContain(
-    "The verifier merged 1 duplicate finding into the findings above.",
+    "The verifier merged 1 duplicate finding into the finding above.",
   );
   const plural = summarizeReview(
     craftReview(
-      ["craft-1", "craft-2", "craft-3", "craft-4", "craft-5"],
+      ["craft-1", "craft-2", "craft-3", "craft-4", "craft-5", "craft-6"],
       [
         verdict("craft-1", "confirmed"),
         verdict("craft-2", "refuted"),
         verdict("craft-3", "refuted"),
         verdict("craft-4", "duplicate", "craft-1"),
-        verdict("craft-5", "duplicate", "craft-1"),
+        verdict("craft-5", "duplicate", "craft-6"),
+        verdict("craft-6", "confirmed"),
       ],
     ),
   ).body;
