@@ -4,11 +4,13 @@ import {
   formatList,
   formatMarketClock,
   formatMarketTime,
+  formatNumber,
   formatRupiah,
   formatSignedPercent,
 } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { isSameWibDay } from "./idx-calendar";
+import { priceDelayMinutes } from "./price-delay-minutes";
 import type { Quote } from "./price-source.server";
 import styles from "./prices-view.module.css";
 import { quoteChange } from "./quote-change";
@@ -18,12 +20,15 @@ import { nextScheduledAttempt } from "./update-schedule";
 interface PricesViewProps {
   quotes: readonly Quote[];
   latestAttempt: UpdateAttempt | undefined;
+  /** The moment that the page shows, which decides whether the next attempt is still to come. */
+  now: Date;
 }
 
 /** The table of the latest delayed prices, with the delay and, when the latest attempt could not update some prices or all, which ones and when the job tries again. */
 export function PricesView({
   quotes,
   latestAttempt,
+  now,
 }: PricesViewProps): ReactNode {
   const latestQuotedAt = latestQuoteTime(quotes);
   return (
@@ -36,7 +41,7 @@ export function PricesView({
                 m.market_data_empty_failed_body({
                   time: formatMarketTime(latestAttempt.attemptedAt),
                 }),
-                nextAttemptSentence(latestAttempt),
+                nextAttemptSentence(latestAttempt, now),
               ].join(" ")
             : m.market_data_empty_body()}
         </p>
@@ -45,11 +50,12 @@ export function PricesView({
           {latestAttempt !== undefined &&
             latestAttempt.failedCodes.length > 0 && (
               <p className={styles["notice"]}>
-                {updateFailureNotice(latestAttempt, quotes)}
+                {updateFailureNotice(latestAttempt, quotes, now)}
               </p>
             )}
           <p className={styles["notice"]}>
             {m.market_data_delay_notice({
+              minutes: formatNumber(priceDelayMinutes),
               time: formatMarketTime(latestQuotedAt),
             })}
           </p>
@@ -82,6 +88,7 @@ export function PricesView({
 function updateFailureNotice(
   attempt: UpdateAttempt,
   quotes: readonly Quote[],
+  now: Date,
 ): string {
   const time = formatMarketTime(attempt.attemptedAt);
   const staleCodes: string[] = [];
@@ -112,15 +119,18 @@ function updateFailureNotice(
         : m.market_data_several_missing_prices_notice({ codes, time }),
     );
   }
-  sentences.push(nextAttemptSentence(attempt));
+  sentences.push(nextAttemptSentence(attempt, now));
   return sentences.join(" ");
 }
 
-// The time comes from the schedule that the job follows, so the page never promises an attempt that the job does not make.
-function nextAttemptSentence(attempt: UpdateAttempt): string {
-  return m.market_data_next_attempt_notice({
-    nextTime: formatMarketTime(nextScheduledAttempt(attempt)),
-  });
+// The time comes from the schedule that the job follows, so the page never promises an attempt that the job does not make. Once that time has come, the job is making the attempt, because the page shows the latest attempt that the job finished.
+function nextAttemptSentence(attempt: UpdateAttempt, now: Date): string {
+  const nextAttempt = nextScheduledAttempt(attempt);
+  return nextAttempt <= now
+    ? m.market_data_attempting_now_notice()
+    : m.market_data_next_attempt_notice({
+        nextTime: formatMarketTime(nextAttempt),
+      });
 }
 
 function latestQuoteTime(quotes: readonly Quote[]): Date | undefined {

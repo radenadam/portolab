@@ -1,21 +1,18 @@
 import { expect, test } from "@playwright/test";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 import { chooseLanguage, languages } from "./languages.ts";
-import type { Language } from "./languages.ts";
+import type { TextsByLanguage } from "./languages.ts";
 
 // The server runs with the fixture price source, which returns the closing quotes of 30 October 2026.
 
-const texts: Record<
-  Language["code"],
-  {
-    title: string;
-    delayNotice: string;
-    columns: readonly string[];
-    bbca: readonly string[];
-    ihsg: readonly string[];
-    tlkm: readonly string[];
-  }
-> = {
+const texts: TextsByLanguage<{
+  title: string;
+  delayNotice: string;
+  columns: readonly string[];
+  bbca: readonly string[];
+  ihsg: readonly string[];
+  tlkm: readonly string[];
+}> = {
   id: {
     title: "Harga saham",
     delayNotice:

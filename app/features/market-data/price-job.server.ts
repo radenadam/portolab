@@ -43,28 +43,37 @@ export function startPriceJob(settings: PriceJobSettings): () => void {
 }
 
 /**
- * Returns a function that updates prices once. A call while an update still runs does nothing, so the startup run and a run of the schedule never fetch at the same time, and an error is logged instead of ending the process.
+ * Returns a function that updates prices. A call while an update runs asks for one more update right after it instead of a second one at the same time. So a run of the schedule that arrives during a long startup run still happens within its minute, as the prices page promises. An error is logged instead of ending the process.
  * @internal Tests call it directly, because startPriceJob reaches it only through a running schedule.
  */
 export function createPriceUpdater(
   settings: PriceJobSettings,
 ): () => Promise<void> {
   let isRunning = false;
+  // Each call is a request, and the running loop updates again until no request has arrived since its latest update began.
+  let requests = 0;
   return async () => {
+    requests += 1;
     if (isRunning) {
       return;
     }
     isRunning = true;
     try {
-      await runPriceUpdate(
-        settings,
-        new Date(),
-        AbortSignal.timeout(requestTimeoutMilliseconds),
-      );
-    } catch (error) {
-      writeLog("error", "The price job failed.", {
-        detail: errorDetail(error),
-      });
+      let handledRequests = 0;
+      while (handledRequests < requests) {
+        handledRequests = requests;
+        try {
+          await runPriceUpdate(
+            settings,
+            new Date(),
+            AbortSignal.timeout(requestTimeoutMilliseconds),
+          );
+        } catch (error) {
+          writeLog("error", "The price job failed.", {
+            detail: errorDetail(error),
+          });
+        }
+      }
     } finally {
       isRunning = false;
     }

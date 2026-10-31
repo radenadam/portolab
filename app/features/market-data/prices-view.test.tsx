@@ -1,18 +1,12 @@
 import { renderToStaticMarkup } from "react-dom/server";
-import { afterEach, expect, test } from "vitest";
-import { getLocale, overwriteGetLocale } from "~/paraglide/runtime.js";
+import { expect, test } from "vitest";
+import { languageNames } from "~/language-names";
+import { locales } from "~/paraglide/runtime.js";
+import { switchLocaleForTest } from "~/switch-locale-for-test";
 import { rupiah } from "~/units/rupiah";
 import type { Quote } from "./price-source.server";
 import { PricesView } from "./prices-view";
 import type { UpdateAttempt } from "./quote-store.server";
-
-const defaultGetLocale = getLocale;
-
-afterEach(() => {
-  overwriteGetLocale(defaultGetLocale);
-});
-
-const languageNames = { id: "Bahasa Indonesia", en: "English" } as const;
 
 // The closes of 30 October 2026, and a BBRI price that the source stopped sending two weeks earlier. Portolab has stored no price for TLKM and ASII.
 const quotes: Quote[] = [
@@ -72,6 +66,15 @@ function partialAttempt(failedCodes: string[]): UpdateAttempt {
   };
 }
 
+const halfMinuteAfterFailure = new Date("2026-10-30T09:30:30.000Z");
+const halfMinuteAfterPartialAttempt = new Date("2026-10-30T07:00:30.000Z");
+// The minute when the job makes the next attempt after the failure on Friday, plus ten seconds.
+const duringNextAttemptAfterFailure = new Date("2026-11-02T01:45:10.000Z");
+
+const tryingNow = {
+  id: "Portolab sedang mencoba lagi sekarang.",
+  en: "Portolab is trying again now.",
+};
 const nextMinute = {
   id: "Portolab mencoba lagi pada 30 Okt 2026, 14.01 WIB.",
   en: "Portolab tries again at Oct 30, 2026, 2:01 PM WIB.",
@@ -92,6 +95,7 @@ const states = [
     name: "stored prices after a failed attempt",
     quotes,
     latestAttempt: failedAttempt(["IHSG", "BBCA", "BBRI", "BMRI"]),
+    now: halfMinuteAfterFailure,
     shows: {
       id: `Portolab tidak dapat memperbarui harga pada 30 Okt 2026, 16.30 WIB, jadi harga di bawah adalah harga terakhir yang tersimpan. ${nextMonday.id}`,
       en: `Portolab could not update the prices at Oct 30, 2026, 4:30 PM WIB, so the prices below are the last ones it stored. ${nextMonday.en}`,
@@ -102,6 +106,7 @@ const states = [
     name: "stored prices after a failed attempt that also lacked a price never stored",
     quotes,
     latestAttempt: failedAttempt(["IHSG", "BBCA", "BBRI", "BMRI", "TLKM"]),
+    now: halfMinuteAfterFailure,
     shows: {
       id: `Portolab tidak dapat memperbarui harga pada 30 Okt 2026, 16.30 WIB, jadi harga di bawah adalah harga terakhir yang tersimpan. Portolab belum memiliki harga TLKM, karena percobaan terakhir untuk mengambilnya pada 30 Okt 2026, 16.30 WIB gagal. ${nextMonday.id}`,
       en: `Portolab could not update the prices at Oct 30, 2026, 4:30 PM WIB, so the prices below are the last ones it stored. Portolab has no price for TLKM yet, because its latest attempt to fetch it at Oct 30, 2026, 4:30 PM WIB failed. ${nextMonday.en}`,
@@ -112,6 +117,7 @@ const states = [
     name: "stored prices after a successful attempt",
     quotes,
     latestAttempt: succeededAttempt,
+    now: halfMinuteAfterFailure,
     shows: {
       id: "Harga tertunda sekitar 10 menit",
       en: "Prices are delayed by about 10 minutes",
@@ -122,6 +128,7 @@ const states = [
     name: "an attempt that lacked one stored price",
     quotes,
     latestAttempt: partialAttempt(["BBRI"]),
+    now: halfMinuteAfterPartialAttempt,
     shows: {
       id: `Portolab tidak dapat memperbarui harga BBRI pada 30 Okt 2026, 14.00 WIB, jadi harganya di bawah adalah harga terakhir yang tersimpan. ${nextMinute.id}`,
       en: `Portolab could not update the price of BBRI at Oct 30, 2026, 2:00 PM WIB, so the BBRI price below is the last one it stored. ${nextMinute.en}`,
@@ -132,6 +139,7 @@ const states = [
     name: "an attempt that lacked two stored prices",
     quotes,
     latestAttempt: partialAttempt(["BBRI", "BMRI"]),
+    now: halfMinuteAfterPartialAttempt,
     shows: {
       id: `Portolab tidak dapat memperbarui harga BBRI dan BMRI pada 30 Okt 2026, 14.00 WIB, jadi harganya di bawah adalah harga terakhir yang tersimpan. ${nextMinute.id}`,
       en: `Portolab could not update the prices of BBRI and BMRI at Oct 30, 2026, 2:00 PM WIB, so their prices below are the last ones it stored. ${nextMinute.en}`,
@@ -142,6 +150,7 @@ const states = [
     name: "an attempt that lacked three stored prices",
     quotes,
     latestAttempt: partialAttempt(["BBCA", "BBRI", "BMRI"]),
+    now: halfMinuteAfterPartialAttempt,
     shows: {
       id: `Portolab tidak dapat memperbarui harga BBCA, BBRI, dan BMRI pada 30 Okt 2026, 14.00 WIB, jadi harganya di bawah adalah harga terakhir yang tersimpan. ${nextMinute.id}`,
       en: `Portolab could not update the prices of BBCA, BBRI, and BMRI at Oct 30, 2026, 2:00 PM WIB, so their prices below are the last ones it stored. ${nextMinute.en}`,
@@ -152,6 +161,7 @@ const states = [
     name: "an attempt that lacked one price never stored",
     quotes,
     latestAttempt: partialAttempt(["TLKM"]),
+    now: halfMinuteAfterPartialAttempt,
     shows: {
       id: `Portolab belum memiliki harga TLKM, karena percobaan terakhir untuk mengambilnya pada 30 Okt 2026, 14.00 WIB gagal. ${nextMinute.id}`,
       en: `Portolab has no price for TLKM yet, because its latest attempt to fetch it at Oct 30, 2026, 2:00 PM WIB failed. ${nextMinute.en}`,
@@ -162,6 +172,7 @@ const states = [
     name: "an attempt that lacked two prices never stored",
     quotes,
     latestAttempt: partialAttempt(["TLKM", "ASII"]),
+    now: halfMinuteAfterPartialAttempt,
     shows: {
       id: `Portolab belum memiliki harga TLKM dan ASII, karena percobaan terakhir untuk mengambilnya pada 30 Okt 2026, 14.00 WIB gagal. ${nextMinute.id}`,
       en: `Portolab has no prices for TLKM and ASII yet, because its latest attempt to fetch them at Oct 30, 2026, 2:00 PM WIB failed. ${nextMinute.en}`,
@@ -172,6 +183,7 @@ const states = [
     name: "an attempt that lacked a stored price and a price never stored",
     quotes,
     latestAttempt: partialAttempt(["BBRI", "TLKM"]),
+    now: halfMinuteAfterPartialAttempt,
     shows: {
       id: `Portolab tidak dapat memperbarui harga BBRI pada 30 Okt 2026, 14.00 WIB, jadi harganya di bawah adalah harga terakhir yang tersimpan. Portolab belum memiliki harga TLKM, karena percobaan terakhir untuk mengambilnya pada 30 Okt 2026, 14.00 WIB gagal. ${nextMinute.id}`,
       en: `Portolab could not update the price of BBRI at Oct 30, 2026, 2:00 PM WIB, so the BBRI price below is the last one it stored. Portolab has no price for TLKM yet, because its latest attempt to fetch it at Oct 30, 2026, 2:00 PM WIB failed. ${nextMinute.en}`,
@@ -182,6 +194,7 @@ const states = [
     name: "no stored prices after a failed attempt",
     quotes: [],
     latestAttempt: failedAttempt(["IHSG", "BBCA"]),
+    now: halfMinuteAfterFailure,
     shows: {
       id: `Portolab belum memiliki harga, karena percobaan terakhir untuk mengambilnya pada 30 Okt 2026, 16.30 WIB gagal. ${nextMonday.id}`,
       en: `Portolab has no prices yet, because its latest attempt to fetch them at Oct 30, 2026, 4:30 PM WIB failed. ${nextMonday.en}`,
@@ -189,9 +202,43 @@ const states = [
     hides: { id: "Harga tertunda", en: "Prices are delayed" },
   },
   {
+    name: "stored prices while the job makes the next attempt after a failure",
+    quotes,
+    latestAttempt: failedAttempt(["IHSG", "BBCA", "BBRI", "BMRI"]),
+    now: duringNextAttemptAfterFailure,
+    shows: {
+      id: `Portolab tidak dapat memperbarui harga pada 30 Okt 2026, 16.30 WIB, jadi harga di bawah adalah harga terakhir yang tersimpan. ${tryingNow.id}`,
+      en: `Portolab could not update the prices at Oct 30, 2026, 4:30 PM WIB, so the prices below are the last ones it stored. ${tryingNow.en}`,
+    },
+    hides: { id: "Portolab mencoba lagi pada", en: "Portolab tries again at" },
+  },
+  {
+    name: "stored prices while the job makes the next attempt after an attempt that lacked a price",
+    quotes,
+    latestAttempt: partialAttempt(["BBRI"]),
+    now: new Date("2026-10-30T07:01:05.000Z"),
+    shows: {
+      id: `Portolab tidak dapat memperbarui harga BBRI pada 30 Okt 2026, 14.00 WIB, jadi harganya di bawah adalah harga terakhir yang tersimpan. ${tryingNow.id}`,
+      en: `Portolab could not update the price of BBRI at Oct 30, 2026, 2:00 PM WIB, so the BBRI price below is the last one it stored. ${tryingNow.en}`,
+    },
+    hides: { id: "Portolab mencoba lagi pada", en: "Portolab tries again at" },
+  },
+  {
+    name: "no stored prices while the job makes the next attempt after a failure",
+    quotes: [],
+    latestAttempt: failedAttempt(["IHSG", "BBCA"]),
+    now: duringNextAttemptAfterFailure,
+    shows: {
+      id: `Portolab belum memiliki harga, karena percobaan terakhir untuk mengambilnya pada 30 Okt 2026, 16.30 WIB gagal. ${tryingNow.id}`,
+      en: `Portolab has no prices yet, because its latest attempt to fetch them at Oct 30, 2026, 4:30 PM WIB failed. ${tryingNow.en}`,
+    },
+    hides: { id: "Portolab mencoba lagi pada", en: "Portolab tries again at" },
+  },
+  {
     name: "no stored prices while the first attempt runs",
     quotes: [],
     latestAttempt: undefined,
+    now: halfMinuteAfterFailure,
     shows: {
       id: "Portolab sedang mengambil harga pertamanya. Muat ulang halaman ini sebentar lagi untuk melihatnya.",
       en: "Portolab is fetching its first prices now. Reload this page in a moment to see them.",
@@ -201,13 +248,14 @@ const states = [
 ];
 
 for (const state of states) {
-  for (const language of ["id", "en"] as const) {
+  for (const language of locales) {
     test(`says the right thing for ${state.name} in ${languageNames[language]}`, () => {
-      overwriteGetLocale(() => language);
+      switchLocaleForTest(language);
       const html = renderToStaticMarkup(
         <PricesView
           quotes={state.quotes}
           latestAttempt={state.latestAttempt}
+          now={state.now}
         />,
       );
       expect(html).toContain(state.shows[language]);
@@ -218,13 +266,21 @@ for (const state of states) {
 
 test("dates a price from another day than the newest one, in both languages", () => {
   const indonesian = renderToStaticMarkup(
-    <PricesView quotes={quotes} latestAttempt={succeededAttempt} />,
+    <PricesView
+      quotes={quotes}
+      latestAttempt={succeededAttempt}
+      now={halfMinuteAfterFailure}
+    />,
   );
   expect(indonesian).toContain(">16 Okt 2026, 16.14<");
   expect(indonesian).toContain(">16.14<");
-  overwriteGetLocale(() => "en");
+  switchLocaleForTest("en");
   const english = renderToStaticMarkup(
-    <PricesView quotes={quotes} latestAttempt={succeededAttempt} />,
+    <PricesView
+      quotes={quotes}
+      latestAttempt={succeededAttempt}
+      now={halfMinuteAfterFailure}
+    />,
   );
   expect(english).toContain(">Oct 16, 2026, 4:14 PM<");
   expect(english).toContain(">4:14 PM<");
@@ -302,9 +358,9 @@ const failureKinds = [
 
 for (const failureKind of failureKinds) {
   for (const scheduleState of scheduleStates) {
-    for (const language of ["id", "en"] as const) {
+    for (const language of locales) {
       test(`says when the job tries again for ${failureKind.name} ${scheduleState.name} in ${languageNames[language]}`, () => {
-        overwriteGetLocale(() => language);
+        switchLocaleForTest(language);
         const html = renderToStaticMarkup(
           <PricesView
             quotes={failureKind.quotes}
@@ -314,6 +370,7 @@ for (const failureKind of failureKinds) {
               consecutiveFailures: failureKind.succeeded ? 0 : 3,
               failedCodes: failureKind.failedCodes,
             }}
+            now={new Date(Date.parse(scheduleState.attemptedAt) + 30_000)}
           />,
         );
         const nextTime = failureKind.succeeded

@@ -18,11 +18,14 @@ export function meta(): Route.MetaDescriptors {
 export function loader({ context }: Route.LoaderArgs): {
   quotes: Quote[];
   latestAttempt: UpdateAttempt | undefined;
+  now: Date;
 } {
   const database = context.get(databaseContext);
   return {
     quotes: listLatestQuotes(database),
     latestAttempt: readLatestUpdateAttempt(database),
+    // The server's clock decides the text, so the page that the browser takes over says the same.
+    now: new Date(),
   };
 }
 
@@ -33,6 +36,7 @@ export default function PricesPage({
     <PricesView
       quotes={loaderData.quotes}
       latestAttempt={loaderData.latestAttempt}
+      now={loaderData.now}
     />
   );
 }

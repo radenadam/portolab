@@ -17,7 +17,7 @@
   "app_back_home_link": "Back to the home page",
   "home_prices_link": "See stock prices",
   "market_data_page_title": "Stock prices",
-  "market_data_delay_notice": "Prices are delayed by about 10 minutes and come from Yahoo Finance. The latest price was recorded at {time} WIB.",
+  "market_data_delay_notice": "Prices are delayed by about {minutes} minutes and come from Yahoo Finance. The latest price was recorded at {time} WIB.",
   "market_data_empty_body": "Portolab is fetching its first prices now. Reload this page in a moment to see them.",
   "market_data_code_label": "Code",
   "market_data_last_label": "Last price",
@@ -29,5 +29,6 @@
   "market_data_several_stale_prices_notice": "Portolab could not update the prices of {codes} at {time} WIB, so their prices below are the last ones it stored.",
   "market_data_one_missing_price_notice": "Portolab has no price for {codes} yet, because its latest attempt to fetch it at {time} WIB failed.",
   "market_data_several_missing_prices_notice": "Portolab has no prices for {codes} yet, because its latest attempt to fetch them at {time} WIB failed.",
-  "market_data_next_attempt_notice": "Portolab tries again at {nextTime} WIB."
+  "market_data_next_attempt_notice": "Portolab tries again at {nextTime} WIB.",
+  "market_data_attempting_now_notice": "Portolab is trying again now."
 }

@@ -2,23 +2,20 @@ import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 import { chooseLanguage, languages } from "./languages.ts";
-import type { Language } from "./languages.ts";
+import type { TextsByLanguage } from "./languages.ts";
 
-const texts: Record<
-  Language["code"],
-  {
-    tagline: string;
-    simulationNotice: string;
-    switchLabel: string;
-    pricesLink: string;
-    pricesTitle: string;
-    notFoundTitle: string;
-    notFoundBody: string;
-    backHomeLink: string;
-    unexpectedErrorTitle: string;
-    unexpectedErrorBody: string;
-  }
-> = {
+const texts: TextsByLanguage<{
+  tagline: string;
+  simulationNotice: string;
+  switchLabel: string;
+  pricesLink: string;
+  pricesTitle: string;
+  notFoundTitle: string;
+  notFoundBody: string;
+  backHomeLink: string;
+  unexpectedErrorTitle: string;
+  unexpectedErrorBody: string;
+}> = {
   id: {
     tagline:
       "Laboratorium manajemen portofolio dengan harga saham Indonesia yang nyata.",

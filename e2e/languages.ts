@@ -18,3 +18,6 @@ export async function chooseLanguage(
   await page.getByRole("button", { name: language.name }).click();
   await expect(page.locator("html")).toHaveAttribute("lang", language.code);
 }
+
+/** The expected text of a screen in each language, so a test runs the same checks in each. */
+export type TextsByLanguage<Texts> = Record<Language["code"], Texts>;

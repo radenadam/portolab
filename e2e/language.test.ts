@@ -2,17 +2,14 @@ import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 import { chooseLanguage, languages } from "./languages.ts";
-import type { Language } from "./languages.ts";
+import type { Language, TextsByLanguage } from "./languages.ts";
 
-const texts: Record<
-  Language["code"],
-  {
-    pageTitle: string;
-    pageBody: string;
-    rejectedTitle: string;
-    unknownLanguageError: string;
-  }
-> = {
+const texts: TextsByLanguage<{
+  pageTitle: string;
+  pageBody: string;
+  rejectedTitle: string;
+  unknownLanguageError: string;
+}> = {
   id: {
     pageTitle: "Pilih bahasa",
     pageBody: "Pilih bahasa dengan pengalih di bagian atas halaman.",

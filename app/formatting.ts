@@ -1,8 +1,6 @@
 import { getLocale } from "~/paraglide/runtime.js";
 import type { Rupiah } from "~/units/rupiah";
-
-// Indonesia has no daylight saving time, and IDX publishes every time in WIB.
-const marketTimeZone = "Asia/Jakarta";
+import { wibTimeZone } from "~/wib";
 
 const intlLocales = { id: "id-ID", en: "en-US" } as const;
 
@@ -16,6 +14,10 @@ export function formatRupiah(amount: Rupiah): string {
     currency: "IDR",
     maximumFractionDigits: 0,
   }).format(amount);
+}
+
+export function formatNumber(value: number): string {
+  return new Intl.NumberFormat(intlLocale()).format(value);
 }
 
 export function formatIndexLevel(level: number): string {
@@ -39,7 +41,7 @@ export function formatSignedPercent(fraction: number): string {
 export function formatMarketClock(moment: Date): string {
   return new Intl.DateTimeFormat(intlLocale(), {
     timeStyle: "short",
-    timeZone: marketTimeZone,
+    timeZone: wibTimeZone,
   }).format(moment);
 }
 
@@ -54,6 +56,6 @@ export function formatMarketTime(moment: Date): string {
   return new Intl.DateTimeFormat(intlLocale(), {
     dateStyle: "medium",
     timeStyle: "short",
-    timeZone: marketTimeZone,
+    timeZone: wibTimeZone,
   }).format(moment);
 }

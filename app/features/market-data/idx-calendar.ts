@@ -1,5 +1,7 @@
 import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
+import { wibOffsetHours } from "~/wib";
+import { priceDelayMinutes } from "./price-delay-minutes";
 
 /** The trading days and hours of IDX for the dates from `from` to `until`, in WIB. */
 interface TradingCalendar {
@@ -7,13 +9,13 @@ interface TradingCalendar {
   until: string;
   /** Weekdays on which IDX is closed. */
   holidays: ReadonlySet<string>;
-  /** The minute of the day when delayed prices start to change, from the pre-opening session. */
-  priceUpdateStartMinute: number;
-  /** The minute of the day when delayed prices stop changing, after the post-closing session and the delay. */
-  priceUpdateEndMinute: number;
+  /** The minute of the day when the pre-opening session starts. */
+  sessionStartMinute: number;
+  /** The minute of the day when the post-closing session ends. */
+  sessionEndMinute: number;
 }
 
-// IDX rules are data with the dates they apply, as decision 0002 asks. Sources: the IDX holiday calendars Peng-00171/BEI.POP/09-2025 for 2026 and Peng-00169/BEI.POP/09-2026 for 2027, as reported by Metro TV and CNBC Indonesia. Prices change from the pre-opening session at 08:45 WIB to the end of post-closing at 16:15 WIB, plus the 10 minutes that delayed prices lag behind.
+// IDX rules are data with the dates they apply, as decision 0002 asks. Sources: the IDX holiday calendars Peng-00171/BEI.POP/09-2025 for 2026 and Peng-00169/BEI.POP/09-2026 for 2027, as reported by Metro TV and CNBC Indonesia. Prices change from the pre-opening session at 08:45 WIB to the end of post-closing at 16:15 WIB.
 const tradingCalendars: readonly TradingCalendar[] = [
   {
     from: "2026-01-01",
@@ -42,8 +44,8 @@ const tradingCalendars: readonly TradingCalendar[] = [
       "2026-12-25",
       "2026-12-31",
     ]),
-    priceUpdateStartMinute: 8 * 60 + 45,
-    priceUpdateEndMinute: 16 * 60 + 25,
+    sessionStartMinute: 8 * 60 + 45,
+    sessionEndMinute: 16 * 60 + 15,
   },
   {
     from: "2027-01-01",
@@ -70,13 +72,12 @@ const tradingCalendars: readonly TradingCalendar[] = [
       "2027-12-24",
       "2027-12-31",
     ]),
-    priceUpdateStartMinute: 8 * 60 + 45,
-    priceUpdateEndMinute: 16 * 60 + 25,
+    sessionStartMinute: 8 * 60 + 45,
+    sessionEndMinute: 16 * 60 + 15,
   },
 ];
 
-// WIB is UTC+7 all year, because Indonesia has no daylight saving time.
-const wibOffsetMilliseconds = 7 * 60 * 60 * 1000;
+const wibOffsetMilliseconds = wibOffsetHours * 60 * 60 * 1000;
 
 /** Whether delayed prices can still change at this moment, so that fetching them is worthwhile. It fails for a date that no calendar covers, so a missing year is noticed instead of every weekday counting as a trading day. */
 export function isPriceUpdateTime(moment: Date): Result<boolean, string> {
@@ -86,10 +87,11 @@ export function isPriceUpdateTime(moment: Date): Result<boolean, string> {
     return calendar;
   }
   const minuteOfDay = wib.getUTCHours() * 60 + wib.getUTCMinutes();
+  // Fetching from the start of the pre-opening session costs nothing, and it goes on until the delayed prices show the end of the post-closing session.
   return succeed(
     isTradingDayIn(calendar.value, wib) &&
-      minuteOfDay >= calendar.value.priceUpdateStartMinute &&
-      minuteOfDay <= calendar.value.priceUpdateEndMinute,
+      minuteOfDay >= calendar.value.sessionStartMinute &&
+      minuteOfDay <= calendar.value.sessionEndMinute + priceDelayMinutes,
   );
 }
 

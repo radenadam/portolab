@@ -1,6 +1,5 @@
-import { afterEach, expect, test } from "vitest";
-import { closeDatabase, openDatabase } from "~/database/database.server";
-import type { Database } from "~/database/database.server";
+import { expect, test } from "vitest";
+import { openTestDatabase } from "~/database/open-test-database.server";
 import { rupiah } from "~/units/rupiah";
 import {
   listLatestQuotes,
@@ -9,22 +8,8 @@ import {
   saveUpdateAttempt,
 } from "./quote-store.server";
 
-const openDatabases: Database[] = [];
-
-afterEach(() => {
-  for (const database of openDatabases.splice(0)) {
-    closeDatabase(database);
-  }
-});
-
-function memoryDatabase(): Database {
-  const database = openDatabase(":memory:");
-  openDatabases.push(database);
-  return database;
-}
-
 test("keeps only the latest quote of each instrument, the indices first", () => {
-  const database = memoryDatabase();
+  const database = openTestDatabase();
   const quotedAt = new Date("2026-10-30T09:14:55.000Z");
   saveQuotes(
     database,
@@ -78,7 +63,7 @@ test("keeps only the latest quote of each instrument, the indices first", () => 
 });
 
 test("keeps only the latest attempt to update prices, with the codes that it could not update", () => {
-  const database = memoryDatabase();
+  const database = openTestDatabase();
   expect(readLatestUpdateAttempt(database)).toBeUndefined();
   saveUpdateAttempt(database, {
     attemptedAt: new Date("2026-10-30T09:29:00.000Z"),
