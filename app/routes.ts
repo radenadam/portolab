@@ -5,4 +5,5 @@ export default [
   index("features/home/home-page.tsx"),
   route("language", "features/language/language-route.ts"),
   route("health", "features/health/health-route.ts"),
+  route("*", "not-found-page.tsx"),
 ] satisfies RouteConfig;

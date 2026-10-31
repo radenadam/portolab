@@ -1,13 +1,12 @@
 import { networkInterfaces } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
-import { parseArgs } from "node:util";
 import express from "express";
 import type { RequestHandler } from "express";
 import { exitWithFailure } from "../app/exit-with-failure.server.ts";
 import { writeLog } from "../app/log.server.ts";
 import { failuresOf } from "../app/result.ts";
-import { parseMode, parsePort } from "./server-options.ts";
+import { parseCommandLine, parsePort } from "./server-options.ts";
 
 // The build is this program's own server/app.ts, not outside data, so its type is asserted instead of parsed.
 interface ServerBuild {
@@ -19,10 +18,7 @@ const buildDirectory = join(import.meta.dirname, "..", "build");
 const serverBuildPath = join(buildDirectory, "server", "index.js");
 const shutdownTimeoutMilliseconds = 10_000;
 
-const { values: options } = parseArgs({
-  options: { mode: { type: "string", default: "production" } },
-});
-const mode = parseMode(options.mode, "--mode");
+const mode = parseCommandLine(process.argv.slice(2), "The command line");
 const port = parsePort(process.env["PORT"] ?? "3000", "PORT");
 if (!mode.ok || !port.ok) {
   exitWithFailure(failuresOf([mode, port]), writeError);
@@ -79,7 +75,14 @@ for (const signal of ["SIGINT", "SIGTERM"] as const) {
   process.once(signal, () => {
     writeLog("info", "Server stopping.", { signal });
     listener.close(() => process.exit(0));
-    setTimeout(() => process.exit(1), shutdownTimeoutMilliseconds).unref();
+    setTimeout(() => {
+      exitWithFailure(
+        [
+          `The server did not close its connections within ${String(shutdownTimeoutMilliseconds / 1000)} seconds, so it stopped without them.`,
+        ],
+        writeError,
+      );
+    }, shutdownTimeoutMilliseconds).unref();
   });
 }
 

@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { parseMode, parsePort } from "./server-options.ts";
+import { parseCommandLine, parseMode, parsePort } from "./server-options.ts";
 
 test("accepts the development and production modes and rejects any other", () => {
   expect(parseMode("development", "--mode")).toEqual({
@@ -15,6 +15,28 @@ test("accepts the development and production modes and rejects any other", () =>
     failure:
       '--mode must be "development" or "production", but it is "develop".',
   });
+});
+
+test("reads the mode from the command line and uses production without it", () => {
+  expect(parseCommandLine([], "The command line")).toEqual({
+    ok: true,
+    value: "production",
+  });
+  expect(
+    parseCommandLine(["--mode", "development"], "The command line"),
+  ).toEqual({ ok: true, value: "development" });
+  expect(parseCommandLine(["--mode", "develop"], "The command line")).toEqual({
+    ok: false,
+    failure:
+      '--mode must be "development" or "production", but it is "develop".',
+  });
+});
+
+test("rejects an unknown option and keeps the reason that Node gives", () => {
+  const commandLine = parseCommandLine(["--bogus"], "The command line");
+  expect(commandLine.ok ? "" : commandLine.failure).toMatch(
+    /^The command line is not valid, so the server cannot start\. Node reported: \S/,
+  );
 });
 
 test("accepts a port from 1 to 65535 and rejects anything else", () => {

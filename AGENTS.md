@@ -67,7 +67,7 @@ These apply to all prose: docs, comments, commit messages, pull requests, issues
 - Every screen works with touch on a screen 360 pixels wide and with a keyboard alone. Touch targets are at least 44 pixels high.
 - Forms work before JavaScript loads, so actions use React Router forms and actions instead of client-only handlers.
 - Gains and losses never rely on color alone. A sign or an arrow always carries the meaning.
-- Colors, fonts, and spacing come from the tokens in `app/theme.css`.
+- Colors, fonts, spacing, and sizes, such as the smallest touch target, come from the tokens in `app/theme.css`.
 
 ### Code
 
@@ -98,7 +98,7 @@ These apply to all prose: docs, comments, commit messages, pull requests, issues
 - A test of generated text checks the whole sentence for each case that changes its grammar, such as one item and several items, or a word that takes "a" and one that takes "an".
 - Every check is tested. A check script keeps the logic that chooses and judges its input in a module with tests beside it, and a lint rule is tested through ESLint itself. The tests cover input that the check must accept, files in every place it must reach, such as dot folders, and every form of code that can break the standard it enforces. For a rule that finds functions by name, that is every node that can carry a name together with a function or the type of a function: declarations, variables with a value or a type, parameters, assignments, named function expressions, object properties, class methods, fields, and accessors, and the members of interfaces.
 - Every calculation of money or of a measure is tested against expected values computed independently, for example in a spreadsheet, and the test names that source.
-- Every user flow has a browser test that runs on the phone and desktop projects. Each screen is checked for accessibility with axe and for touch targets with `e2e/expect-touch-targets.ts`, because axe does not check the 44 pixels.
+- Every user flow has a browser test that runs on the phone and desktop projects. Each screen is checked with `e2e/expect-accessible-screen.ts`, which runs axe and checks the 44 pixel touch targets that axe does not check. A test of the text of a screen runs in both languages, including error pages.
 
 ### CI
 

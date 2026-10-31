@@ -1,6 +1,5 @@
-import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { expectTouchTargets } from "./expect-touch-targets.ts";
+import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 
 test("opens the home page in Bahasa Indonesia", async ({ page }) => {
   await page.goto("/");
@@ -25,13 +24,9 @@ test("switches the page to English and back", async ({ page }) => {
   await expect(page.locator("html")).toHaveAttribute("lang", "id");
 });
 
-test("passes the accessibility and touch target checks on the home page", async ({
-  page,
-}) => {
+test("passes the accessibility checks on the home page", async ({ page }) => {
   await page.goto("/");
-  const results = await new AxeBuilder({ page }).analyze();
-  expect(results.violations).toEqual([]);
-  await expectTouchTargets(page);
+  await expectAccessibleScreen(page);
 });
 
 test("shows the not found page in Bahasa Indonesia for an unknown address", async ({
@@ -39,18 +34,33 @@ test("shows the not found page in Bahasa Indonesia for an unknown address", asyn
 }) => {
   const response = await page.goto("/tidak-ada");
   expect(response?.status()).toBe(404);
+  await expect(page.locator("html")).toHaveAttribute("lang", "id");
+  await expect(page).toHaveTitle("Halaman tidak ditemukan | Portolab");
   await expect(
     page.getByRole("heading", { level: 1, name: "Halaman tidak ditemukan" }),
   ).toBeVisible();
 });
 
-test("passes the accessibility and touch target checks on the not found page", async ({
+test("shows the not found page in English to a reader who chose English", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "English" }).click();
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  const response = await page.goto("/not-here");
+  expect(response?.status()).toBe(404);
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  await expect(page).toHaveTitle("Page not found | Portolab");
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Page not found" }),
+  ).toBeVisible();
+});
+
+test("passes the accessibility checks on the not found page", async ({
   page,
 }) => {
   await page.goto("/tidak-ada");
-  const results = await new AxeBuilder({ page }).analyze();
-  expect(results.violations).toEqual([]);
-  await expectTouchTargets(page);
+  await expectAccessibleScreen(page);
 });
 
 test("reports ok from the health check", async ({ request }) => {
