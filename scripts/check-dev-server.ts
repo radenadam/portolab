@@ -12,6 +12,8 @@ import { writeScriptFailure } from "./write-script-failure.ts";
 // Browser tests run the production build, so this check is what keeps `pnpm dev` working for contributors.
 const port = 4174;
 const startupTimeoutSeconds = 60;
+// A request to a server that hangs ends after this, so the check names the failure and passes on the server's stderr instead of waiting until CI stops the job.
+const requestTimeoutSeconds = 10;
 const pages = ["/health", "/prices"];
 // The dev server reloads an edited module and every module that imports it. These modules hold the database and its schema, which once lost the connection on a reload.
 const editedModules = [
@@ -76,7 +78,9 @@ async function answersFrom(paths: readonly string[]): Promise<PageAnswer[]> {
   const answers: PageAnswer[] = [];
   for (const path of paths) {
     try {
-      const response = await fetch(`http://localhost:${String(port)}${path}`);
+      const response = await fetch(`http://localhost:${String(port)}${path}`, {
+        signal: AbortSignal.timeout(requestTimeoutSeconds * 1000),
+      });
       answers.push({ path, outcome: { status: response.status } });
     } catch (error) {
       answers.push({
@@ -92,12 +96,14 @@ async function waitForHealth(): Promise<boolean> {
   const deadline = Date.now() + startupTimeoutSeconds * 1000;
   while (Date.now() < deadline) {
     try {
-      const response = await fetch(`http://localhost:${String(port)}/health`);
+      const response = await fetch(`http://localhost:${String(port)}/health`, {
+        signal: AbortSignal.timeout(requestTimeoutSeconds * 1000),
+      });
       if (response.ok) {
         return true;
       }
     } catch {
-      // The server is still starting, so the connection is refused.
+      // The server is still starting, so the connection is refused or the request runs out of time.
     }
     await new Promise((resolve) => setTimeout(resolve, 500));
   }

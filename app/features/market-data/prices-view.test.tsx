@@ -229,3 +229,98 @@ test("dates a price from another day than the newest one, in both languages", ()
   expect(english).toContain(">Oct 16, 2026, 4:14 PM<");
   expect(english).toContain(">4:14 PM<");
 });
+
+const nextAttemptSentences = {
+  id: (time: string) => `Portolab mencoba lagi pada ${time} WIB.`,
+  en: (time: string) => `Portolab tries again at ${time} WIB.`,
+};
+
+// Each state of the schedule, with the time of the next attempt after an answer that lacked a price, which waits for the next minute of the price hours, and after three failures in a row, which wait four minutes first. Prices change from 08:45 to 16:25 WIB, which is 01:45 to 09:25 UTC.
+const scheduleStates = [
+  {
+    name: "during a session",
+    attemptedAt: "2026-11-02T03:00:00.000Z",
+    afterMissingPrice: { id: "2 Nov 2026, 10.01", en: "Nov 2, 2026, 10:01 AM" },
+    afterFailures: { id: "2 Nov 2026, 10.04", en: "Nov 2, 2026, 10:04 AM" },
+  },
+  {
+    name: "in the last minute of the price hours",
+    attemptedAt: "2026-11-02T09:24:00.000Z",
+    afterMissingPrice: { id: "2 Nov 2026, 16.25", en: "Nov 2, 2026, 4:25 PM" },
+    afterFailures: { id: "3 Nov 2026, 08.45", en: "Nov 3, 2026, 8:45 AM" },
+  },
+  {
+    name: "after the close",
+    attemptedAt: "2026-11-02T09:30:00.000Z",
+    afterMissingPrice: { id: "3 Nov 2026, 08.45", en: "Nov 3, 2026, 8:45 AM" },
+    afterFailures: { id: "3 Nov 2026, 08.45", en: "Nov 3, 2026, 8:45 AM" },
+  },
+  {
+    name: "on a weekend",
+    attemptedAt: "2026-10-31T03:00:00.000Z",
+    afterMissingPrice: { id: "2 Nov 2026, 08.45", en: "Nov 2, 2026, 8:45 AM" },
+    afterFailures: { id: "2 Nov 2026, 08.45", en: "Nov 2, 2026, 8:45 AM" },
+  },
+  {
+    name: "on a holiday before a weekend",
+    attemptedAt: "2026-12-24T03:00:00.000Z",
+    afterMissingPrice: {
+      id: "28 Des 2026, 08.45",
+      en: "Dec 28, 2026, 8:45 AM",
+    },
+    afterFailures: { id: "28 Des 2026, 08.45", en: "Dec 28, 2026, 8:45 AM" },
+  },
+  {
+    name: "on a date that no calendar covers",
+    attemptedAt: "2028-01-03T03:00:00.000Z",
+    afterMissingPrice: { id: "3 Jan 2028, 10.01", en: "Jan 3, 2028, 10:01 AM" },
+    afterFailures: { id: "3 Jan 2028, 10.04", en: "Jan 3, 2028, 10:04 AM" },
+  },
+];
+
+// Each kind of failure that ends with the time of the next attempt.
+const failureKinds = [
+  {
+    name: "stored prices after three failed attempts",
+    quotes,
+    succeeded: false,
+    failedCodes: ["IHSG", "BBCA", "BBRI", "BMRI"],
+  },
+  {
+    name: "an attempt that lacked a stored price",
+    quotes,
+    succeeded: true,
+    failedCodes: ["BBRI"],
+  },
+  {
+    name: "no stored prices after three failed attempts",
+    quotes: [],
+    succeeded: false,
+    failedCodes: ["IHSG", "BBCA"],
+  },
+];
+
+for (const failureKind of failureKinds) {
+  for (const scheduleState of scheduleStates) {
+    for (const language of ["id", "en"] as const) {
+      test(`says when the job tries again for ${failureKind.name} ${scheduleState.name} in ${languageNames[language]}`, () => {
+        overwriteGetLocale(() => language);
+        const html = renderToStaticMarkup(
+          <PricesView
+            quotes={failureKind.quotes}
+            latestAttempt={{
+              attemptedAt: new Date(scheduleState.attemptedAt),
+              succeeded: failureKind.succeeded,
+              consecutiveFailures: failureKind.succeeded ? 0 : 3,
+              failedCodes: failureKind.failedCodes,
+            }}
+          />,
+        );
+        const nextTime = failureKind.succeeded
+          ? scheduleState.afterMissingPrice[language]
+          : scheduleState.afterFailures[language];
+        expect(html).toContain(nextAttemptSentences[language](nextTime));
+      });
+    }
+  }
+}

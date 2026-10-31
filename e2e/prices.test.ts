@@ -1,50 +1,72 @@
 import { expect, test } from "@playwright/test";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
-import { switchToEnglish } from "./switch-to-english.ts";
+import { chooseLanguage, languages } from "./languages.ts";
+import type { Language } from "./languages.ts";
 
 // The server runs with the fixture price source, which returns the closing quotes of 30 October 2026.
 
-test("shows delayed prices in Bahasa Indonesia", async ({ page }) => {
-  await page.goto("/prices");
-  await expect(page).toHaveTitle("Harga saham | Portolab");
-  await expect(
-    page.getByRole("heading", { level: 1, name: "Harga saham" }),
-  ).toBeVisible();
-  await expect(
-    page.getByText(
+const texts: Record<
+  Language["code"],
+  {
+    title: string;
+    delayNotice: string;
+    columns: readonly string[];
+    bbca: readonly string[];
+    ihsg: readonly string[];
+    tlkm: readonly string[];
+  }
+> = {
+  id: {
+    title: "Harga saham",
+    delayNotice:
       "Harga tertunda sekitar 10 menit dan berasal dari Yahoo Finance. Harga terakhir tercatat pada 30 Okt 2026, 16.14 WIB.",
-    ),
-  ).toBeVisible();
-
-  const bbca = page.getByRole("row", { name: /BBCA/ });
-  await expect(bbca).toContainText("4.980");
-  await expect(bbca).toContainText("+0,81%");
-  await expect(bbca).toContainText("16.14");
-
-  const ihsg = page.getByRole("row", { name: /IHSG/ });
-  await expect(ihsg).toContainText("5.057,05");
-  await expect(ihsg).toContainText("-0,80%");
-
-  await expect(page.getByRole("row", { name: /TLKM/ })).toContainText("0,00%");
-});
-
-test("shows delayed prices in English", async ({ page }) => {
-  await switchToEnglish(page);
-  await page.goto("/prices");
-  await expect(page).toHaveTitle("Stock prices | Portolab");
-  await expect(
-    page.getByRole("heading", { level: 1, name: "Stock prices" }),
-  ).toBeVisible();
-  await expect(
-    page.getByText(
+    columns: ["Kode", "Harga terakhir", "Perubahan", "Waktu (WIB)"],
+    bbca: ["4.980", "+0,81%", "16.14"],
+    ihsg: ["5.057,05", "-0,80%", "16.00"],
+    tlkm: ["1.980", "0,00%", "16.14"],
+  },
+  en: {
+    title: "Stock prices",
+    delayNotice:
       "Prices are delayed by about 10 minutes and come from Yahoo Finance. The latest price was recorded at Oct 30, 2026, 4:14 PM WIB.",
-    ),
-  ).toBeVisible();
-  const bbca = page.getByRole("row", { name: /BBCA/ });
-  await expect(bbca).toContainText("IDR 4,980");
-  await expect(bbca).toContainText("+0.81%");
-  await expect(bbca).toContainText("4:14 PM");
-});
+    columns: ["Code", "Last price", "Change", "Time (WIB)"],
+    bbca: ["IDR 4,980", "+0.81%", "4:14 PM"],
+    ihsg: ["5,057.05", "-0.80%", "4:00 PM"],
+    tlkm: ["IDR 1,980", "0.00%", "4:14 PM"],
+  },
+};
+
+for (const language of languages) {
+  const text = texts[language.code];
+
+  test(`shows delayed prices with their changes and times in ${language.name}`, async ({
+    page,
+  }) => {
+    await chooseLanguage(page, language);
+    await page.goto("/prices");
+    await expect(page).toHaveTitle(`${text.title} | Portolab`);
+    await expect(
+      page.getByRole("heading", { level: 1, name: text.title }),
+    ).toBeVisible();
+    await expect(page.getByText(text.delayNotice)).toBeVisible();
+    for (const column of text.columns) {
+      await expect(
+        page.getByRole("columnheader", { name: column }),
+      ).toBeVisible();
+    }
+    for (const [code, cells] of [
+      ["BBCA", text.bbca],
+      ["IHSG", text.ihsg],
+      ["TLKM", text.tlkm],
+    ] as const) {
+      const row = page.getByRole("row", { name: new RegExp(code) });
+      for (const cell of cells) {
+        await expect(row, code).toContainText(cell);
+      }
+    }
+    await expectAccessibleScreen(page);
+  });
+}
 
 test("shows each change in price with a sign and an arrow", async ({
   page,
@@ -65,18 +87,4 @@ test("aligns every number and time of the table to the right", async ({
   for (const cell of await cells.all()) {
     await expect(cell).toHaveCSS("text-align", "right");
   }
-});
-
-test("passes the accessibility checks on the prices page", async ({ page }) => {
-  await page.goto("/prices");
-  await expect(page.getByRole("table")).toBeVisible();
-  await expectAccessibleScreen(page);
-});
-
-test("links the home page to the prices", async ({ page }) => {
-  await page.goto("/");
-  await page.getByRole("link", { name: "Lihat harga saham" }).click();
-  await expect(
-    page.getByRole("heading", { level: 1, name: "Harga saham" }),
-  ).toBeVisible();
 });

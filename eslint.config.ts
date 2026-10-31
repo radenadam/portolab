@@ -147,7 +147,7 @@ export default defineConfig(
     },
   },
   {
-    files: ["**/*.test.ts", "e2e/**/*.ts"],
+    files: ["**/*.test.{ts,tsx}", "e2e/**/*.ts"],
     rules: {
       "max-lines": "off",
     },

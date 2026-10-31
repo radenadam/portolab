@@ -309,7 +309,7 @@ const otherFiles = [
   "app/features/market-data/prices-view.tsx",
   "scripts/json.ts",
   "server/server-options.ts",
-  "e2e/switch-to-english.ts",
+  "e2e/languages.ts",
   "lint/file-named-after-export.ts",
 ];
 
@@ -348,8 +348,8 @@ test("compares the name with the file name before its first dot, in every folder
       'export function readTextFile(): string { return ""; }',
     ],
     [
-      "e2e/switch-to-english.ts",
-      "export function switchToEnglish(): number { return 1; }",
+      "e2e/expect-accessible-screen.ts",
+      "export function expectAccessibleScreen(): number { return 1; }",
     ],
   ] as const) {
     expect(await rulesReporting(code, filePath), filePath).not.toContain(
