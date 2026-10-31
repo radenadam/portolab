@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { data, redirect } from "react-router";
 import { ErrorPage } from "~/error-page";
 import { PageTitle } from "~/page-title";
-import { writeLog } from "~/log.server";
+import { writeLog } from "~/write-log.server";
 import { m } from "~/paraglide/messages.js";
 import { cookieMaxAge, cookieName } from "~/paraglide/runtime.js";
 import type { Route } from "./+types/language-page";

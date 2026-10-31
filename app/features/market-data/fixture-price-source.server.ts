@@ -18,16 +18,14 @@ const fixtureQuotes: Quote[] = [
   stockQuote("ASII", [4800, 4690], "2026-10-30T09:14:58.000Z"),
 ];
 
-export function createFixturePriceSource(): PriceSource {
-  return {
-    fetchQuotes(instruments) {
-      const quotes = fixtureQuotes.filter((quote) =>
-        instruments.some((instrument) => instrument.code === quote.code),
-      );
-      return Promise.resolve(succeed({ quotes, problems: [] }));
-    },
-  };
-}
+export const fixturePriceSource: PriceSource = {
+  fetchQuotes(instruments) {
+    const quotes = fixtureQuotes.filter((quote) =>
+      instruments.some((instrument) => instrument.code === quote.code),
+    );
+    return Promise.resolve(succeed({ quotes, problems: [] }));
+  },
+};
 
 function stockQuote(
   code: string,

@@ -8,7 +8,7 @@ import {
   openDatabase,
 } from "~/database/database.server";
 import type { Database } from "~/database/database.server";
-import { createFixturePriceSource } from "~/features/market-data/fixture-price-source.server";
+import { fixturePriceSource } from "~/features/market-data/fixture-price-source.server";
 import { startPriceJob } from "~/features/market-data/price-job.server";
 import { trackedInstruments } from "~/features/market-data/tracked-instruments";
 import { createYahooPriceSource } from "~/features/market-data/yahoo-price-source.server";
@@ -24,7 +24,7 @@ export function startServices(settings: ServiceSettings): Services {
   const database = openDatabase(settings.databasePath);
   const priceSource =
     settings.priceSource === "fixture"
-      ? createFixturePriceSource()
+      ? fixturePriceSource
       : createYahooPriceSource();
   const stopPriceJob = startPriceJob({
     database,

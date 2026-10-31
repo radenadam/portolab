@@ -10,7 +10,8 @@ CREATE TABLE `price_updates` (
 	`id` integer PRIMARY KEY NOT NULL,
 	`attempted_at` integer NOT NULL,
 	`succeeded` integer NOT NULL,
-	`consecutive_failures` integer NOT NULL
+	`consecutive_failures` integer NOT NULL,
+	`failed_codes` text NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE `stock_quotes` (

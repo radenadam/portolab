@@ -18,11 +18,13 @@
   "home_prices_link": "See stock prices",
   "market_data_page_title": "Stock prices",
   "market_data_delay_notice": "Prices are delayed by about 10 minutes and come from Yahoo Finance. The latest price was recorded at {time} WIB.",
-  "market_data_empty_body": "Portolab has no prices yet. It fetches them when the server starts, and then during trading hours.",
+  "market_data_empty_body": "Portolab is fetching its first prices now. Reload this page in a moment to see them.",
   "market_data_code_label": "Code",
   "market_data_last_label": "Last price",
   "market_data_change_label": "Change",
   "market_data_time_label": "Time (WIB)",
-  "market_data_update_failed_notice": "Portolab could not update the prices at {time} WIB, so the prices below are the last ones it stored. Portolab tries again after longer and longer pauses.",
-  "market_data_empty_failed_body": "Portolab has no prices yet, because its latest attempt to fetch them at {time} WIB failed. Portolab tries again after longer and longer pauses."
+  "market_data_update_failed_notice": "Portolab could not update the prices at {time} WIB, so the prices below are the last ones it stored. Portolab tries again at {nextTime} WIB.",
+  "market_data_empty_failed_body": "Portolab has no prices yet, because its latest attempt to fetch them at {time} WIB failed. Portolab tries again at {nextTime} WIB.",
+  "market_data_one_code_failed_notice": "Portolab could not update the price of {codes} at {time} WIB, so the {codes} price below is the last one it stored. Portolab tries again at {nextTime} WIB.",
+  "market_data_several_codes_failed_notice": "Portolab could not update the prices of {codes} at {time} WIB, so their prices below are the last ones it stored. Portolab tries again at {nextTime} WIB."
 }

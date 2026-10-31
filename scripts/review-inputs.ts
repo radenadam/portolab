@@ -12,7 +12,7 @@ import { parseReportedFinding } from "./lens-reports.ts";
 import type { ReportedFinding } from "./lens-reports.ts";
 import { listOfWords, singularOrPlural } from "../app/sentences.ts";
 
-export const verdictStatuses = ["confirmed", "refuted", "duplicate"] as const;
+const verdictStatuses = ["confirmed", "refuted", "duplicate"] as const;
 
 export interface VerifiedFinding extends ReportedFinding {
   status: (typeof verdictStatuses)[number];

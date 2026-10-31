@@ -62,7 +62,7 @@ export function toLensReport(lens: string, output: LensOutput): LensReport {
 }
 
 /** Reads a lens report that the lens job saved, whose findings carry their lens and id. */
-export function parseLensReport(
+function parseLensReport(
   value: unknown,
   source: string,
 ): Result<LensReport, string> {

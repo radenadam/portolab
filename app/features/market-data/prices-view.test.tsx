@@ -29,16 +29,30 @@ const quotes: Quote[] = [
     quotedAt: new Date("2026-10-16T09:14:56.000Z"),
   },
 ];
+
+// A failure at 16:30 WIB on Friday 30 October 2026, after the price hours, so the job tries again on Monday at 08:45 WIB.
 const failedAttempt: UpdateAttempt = {
   attemptedAt: new Date("2026-10-30T09:30:00.000Z"),
   succeeded: false,
   consecutiveFailures: 1,
+  failedCodes: ["BBCA", "BBRI"],
 };
 const succeededAttempt: UpdateAttempt = {
   attemptedAt: new Date("2026-10-30T09:30:00.000Z"),
   succeeded: true,
   consecutiveFailures: 0,
+  failedCodes: [],
 };
+
+// An answer at 14:00 WIB during the session that lacked some prices, so the job tries again in the next minute.
+function partialAttempt(failedCodes: string[]): UpdateAttempt {
+  return {
+    attemptedAt: new Date("2026-10-30T07:00:00.000Z"),
+    succeeded: true,
+    consecutiveFailures: 0,
+    failedCodes,
+  };
+}
 
 // Every combination of stored prices and the latest attempt, with the sentences that must appear and the ones that must not.
 const states = [
@@ -48,11 +62,11 @@ const states = [
     latestAttempt: failedAttempt,
     shows: {
       id: [
-        "Portolab tidak dapat memperbarui harga pada 30 Okt 2026, 16.30 WIB, jadi harga di bawah adalah harga terakhir yang tersimpan. Portolab mencoba lagi dengan jeda yang makin panjang.",
+        "Portolab tidak dapat memperbarui harga pada 30 Okt 2026, 16.30 WIB, jadi harga di bawah adalah harga terakhir yang tersimpan. Portolab mencoba lagi pada 2 Nov 2026, 08.45 WIB.",
         "Harga tertunda sekitar 10 menit",
       ],
       en: [
-        "Portolab could not update the prices at Oct 30, 2026, 4:30 PM WIB, so the prices below are the last ones it stored. Portolab tries again after longer and longer pauses.",
+        "Portolab could not update the prices at Oct 30, 2026, 4:30 PM WIB, so the prices below are the last ones it stored. Portolab tries again at Nov 2, 2026, 8:45 AM WIB.",
         "Prices are delayed by about 10 minutes",
       ],
     },
@@ -72,15 +86,68 @@ const states = [
     },
   },
   {
+    name: "stored prices after an attempt that lacked one price",
+    quotes,
+    latestAttempt: partialAttempt(["BBRI"]),
+    shows: {
+      id: [
+        "Portolab tidak dapat memperbarui harga BBRI pada 30 Okt 2026, 14.00 WIB, jadi harganya di bawah adalah harga terakhir yang tersimpan. Portolab mencoba lagi pada 30 Okt 2026, 14.01 WIB.",
+        "Harga tertunda sekitar 10 menit",
+      ],
+      en: [
+        "Portolab could not update the price of BBRI at Oct 30, 2026, 2:00 PM WIB, so the BBRI price below is the last one it stored. Portolab tries again at Oct 30, 2026, 2:01 PM WIB.",
+        "Prices are delayed by about 10 minutes",
+      ],
+    },
+    hides: {
+      id: ["memperbarui harga pada", "belum memiliki harga"],
+      en: ["could not update the prices", "has no prices yet"],
+    },
+  },
+  {
+    name: "stored prices after an attempt that lacked two prices",
+    quotes,
+    latestAttempt: partialAttempt(["BBRI", "TLKM"]),
+    shows: {
+      id: [
+        "Portolab tidak dapat memperbarui harga BBRI dan TLKM pada 30 Okt 2026, 14.00 WIB, jadi harganya di bawah adalah harga terakhir yang tersimpan. Portolab mencoba lagi pada 30 Okt 2026, 14.01 WIB.",
+      ],
+      en: [
+        "Portolab could not update the prices of BBRI and TLKM at Oct 30, 2026, 2:00 PM WIB, so their prices below are the last ones it stored. Portolab tries again at Oct 30, 2026, 2:01 PM WIB.",
+      ],
+    },
+    hides: {
+      id: ["memperbarui harga pada", "belum memiliki harga"],
+      en: ["could not update the prices at", "has no prices yet"],
+    },
+  },
+  {
+    name: "stored prices after an attempt that lacked three prices",
+    quotes,
+    latestAttempt: partialAttempt(["BBRI", "TLKM", "ASII"]),
+    shows: {
+      id: [
+        "Portolab tidak dapat memperbarui harga BBRI, TLKM, dan ASII pada 30 Okt 2026, 14.00 WIB, jadi harganya di bawah adalah harga terakhir yang tersimpan. Portolab mencoba lagi pada 30 Okt 2026, 14.01 WIB.",
+      ],
+      en: [
+        "Portolab could not update the prices of BBRI, TLKM, and ASII at Oct 30, 2026, 2:00 PM WIB, so their prices below are the last ones it stored. Portolab tries again at Oct 30, 2026, 2:01 PM WIB.",
+      ],
+    },
+    hides: {
+      id: ["memperbarui harga pada", "belum memiliki harga"],
+      en: ["could not update the prices at", "has no prices yet"],
+    },
+  },
+  {
     name: "no stored prices after a failed attempt",
     quotes: [],
     latestAttempt: failedAttempt,
     shows: {
       id: [
-        "Portolab belum memiliki harga, karena percobaan terakhir untuk mengambilnya pada 30 Okt 2026, 16.30 WIB gagal. Portolab mencoba lagi dengan jeda yang makin panjang.",
+        "Portolab belum memiliki harga, karena percobaan terakhir untuk mengambilnya pada 30 Okt 2026, 16.30 WIB gagal. Portolab mencoba lagi pada 2 Nov 2026, 08.45 WIB.",
       ],
       en: [
-        "Portolab has no prices yet, because its latest attempt to fetch them at Oct 30, 2026, 4:30 PM WIB failed. Portolab tries again after longer and longer pauses.",
+        "Portolab has no prices yet, because its latest attempt to fetch them at Oct 30, 2026, 4:30 PM WIB failed. Portolab tries again at Nov 2, 2026, 8:45 AM WIB.",
       ],
     },
     hides: {
@@ -89,15 +156,15 @@ const states = [
     },
   },
   {
-    name: "no stored prices before any attempt",
+    name: "no stored prices while the first attempt runs",
     quotes: [],
     latestAttempt: undefined,
     shows: {
       id: [
-        "Portolab belum memiliki harga. Portolab mengambilnya saat server dimulai, lalu selama jam bursa.",
+        "Portolab sedang mengambil harga pertamanya. Muat ulang halaman ini sebentar lagi untuk melihatnya.",
       ],
       en: [
-        "Portolab has no prices yet. It fetches them when the server starts, and then during trading hours.",
+        "Portolab is fetching its first prices now. Reload this page in a moment to see them.",
       ],
     },
     hides: {

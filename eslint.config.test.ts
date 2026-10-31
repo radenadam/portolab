@@ -3,7 +3,7 @@ import { expect, test } from "vitest";
 
 const eslint = new ESLint();
 
-/** Lints code as if it were the file at the path, a file in scripts/ unless the test names another, and returns the rules that report it. */
+/** Lints code as if it were the file at the path, a file in scripts/ unless the test names another, and returns the rules that report it. The file must exist, because the type information that ESLint uses covers only files of the project. */
 async function rulesReporting(
   code: string,
   filePath = "scripts/json.ts",
@@ -12,8 +12,11 @@ async function rulesReporting(
   const rules: string[] = [];
   for (const result of results) {
     for (const message of result.messages) {
-      // A syntax error has no rule, so its text is kept to show why the code failed to parse.
-      rules.push(message.ruleId ?? message.message);
+      // A parsing error means that no rule ran, so a test that expects no report would pass without checking anything.
+      expect(message.fatal ?? false, message.message).toBe(false);
+      if (message.ruleId !== null) {
+        rules.push(message.ruleId);
+      }
     }
   }
   return rules;
@@ -224,11 +227,11 @@ const loadingForms: Record<string, (path: string) => string> = {
 // Each module outside the features, with the paths to a feature that it can write: the alias, a path inside its folder, and a path that climbs out of it.
 const modulesOutsideFeatures: Record<string, readonly string[]> = {
   "app/formatting.ts": [
-    "~/features/market-data/price-change",
-    "./features/market-data/price-change",
+    "~/features/market-data/quote-change",
+    "./features/market-data/quote-change",
   ],
-  "app/database/database.server.ts": ["../features/market-data/price-change"],
-  "server/main.ts": ["../app/features/market-data/price-change.ts"],
+  "app/database/database.server.ts": ["../features/market-data/quote-change"],
+  "server/main.ts": ["../app/features/market-data/quote-change.ts"],
 };
 
 test("rejects every way to load a feature from a module outside the features", async () => {
@@ -248,9 +251,9 @@ test("rejects every way to load a feature from a module outside the features", a
 
 test("accepts loading a feature in the modules that compose the app and in the features", async () => {
   for (const [filePath, path] of [
-    ["app/root.tsx", "./features/market-data/price-change"],
-    ["app/routes.ts", "~/features/market-data/price-change"],
-    ["server/app.ts", "~/features/market-data/price-change"],
+    ["app/root.tsx", "./features/market-data/quote-change"],
+    ["app/routes.ts", "~/features/market-data/quote-change"],
+    ["server/app.ts", "~/features/market-data/quote-change"],
     [
       "app/features/market-data/prices-view.tsx",
       "~/features/language/language-switch",
@@ -267,3 +270,140 @@ test("accepts loading a feature in the modules that compose the app and in the f
     }
   }
 }, 120_000);
+
+const fileNameRule = "portolab/file-named-after-export";
+
+// Every way to export one value, each named quoteChange or QuoteChange, so that quote-change is the file name that it asks for.
+const exportForms: Record<string, string> = {
+  "function declaration": "export function quoteChange(): number { return 1; }",
+  "async function":
+    "export async function quoteChange(): Promise<number> { return Promise.resolve(1); }",
+  "declared function": "export declare function quoteChange(): number;",
+  variable: "export const quoteChange = 1;",
+  "destructured variable":
+    "const holder = { quoteChange: 1 };\nexport const { quoteChange } = holder;",
+  "destructured list":
+    "const holder = [1];\nexport const [quoteChange] = holder;",
+  class: "export class QuoteChange {}",
+  "abstract class": "export abstract class QuoteChange {}",
+  enum: "export enum QuoteChange { Rise }",
+  namespace:
+    "export namespace QuoteChange { export const rise = 1; export const fall = 2; }",
+  "default function":
+    "export default function quoteChange(): number { return 1; }",
+  "default class": "export default class QuoteChange {}",
+  "export of a local": "const quoteChange = 1;\nexport { quoteChange };",
+  "renamed export": "const change = 1;\nexport { change as quoteChange };",
+  "quoted export name":
+    'const change = 1;\nexport { change as "quoteChange" };',
+  "export from": 'export { quoteChange } from "./change";',
+  "namespace export from": 'export * as quoteChange from "./change";',
+  "import equals":
+    "namespace Inner { export const value = 1; }\nexport import quoteChange = Inner.value;",
+};
+
+// A file of each kind in each folder that ESLint checks, and none of them is named quote-change.
+const otherFiles = [
+  "app/formatting.ts",
+  "app/features/market-data/quote-store.server.ts",
+  "app/features/market-data/prices-view.tsx",
+  "scripts/json.ts",
+  "server/server-options.ts",
+  "e2e/switch-to-english.ts",
+  "lint/file-named-after-export.ts",
+];
+
+test("rejects a module whose one export is not its file name, in every form of export and in every folder", async () => {
+  for (const [form, code] of Object.entries(exportForms)) {
+    for (const filePath of otherFiles) {
+      expect(
+        await rulesReporting(code, filePath),
+        `${form} in ${filePath}`,
+      ).toContain(fileNameRule);
+    }
+  }
+}, 120_000);
+
+test("accepts a module whose one export is its file name, in every form of export", async () => {
+  for (const [form, code] of Object.entries(exportForms)) {
+    expect(
+      await rulesReporting(code, "app/features/market-data/quote-change.ts"),
+      form,
+    ).not.toContain(fileNameRule);
+  }
+}, 120_000);
+
+test("compares the name with the file name before its first dot, in every folder", async () => {
+  for (const [filePath, code] of [
+    [
+      "app/features/market-data/quote-store.server.ts",
+      "export function quoteStore(): number { return 1; }",
+    ],
+    [
+      "app/features/market-data/prices-view.tsx",
+      "export function PricesView(): null { return null; }",
+    ],
+    [
+      "scripts/read-text-file.ts",
+      'export function readTextFile(): string { return ""; }',
+    ],
+    [
+      "e2e/switch-to-english.ts",
+      "export function switchToEnglish(): number { return 1; }",
+    ],
+  ] as const) {
+    expect(await rulesReporting(code, filePath), filePath).not.toContain(
+      fileNameRule,
+    );
+  }
+}, 60_000);
+
+test("names the export, the file name that it asks for, and the file name that it found", async () => {
+  const results = await eslint.lintText(
+    "export function quoteChange(): number { return 1; }\n",
+    { filePath: "app/formatting.ts" },
+  );
+  const messages = results.flatMap((result) => result.messages);
+  expect(
+    messages.find((message) => message.ruleId === fileNameRule)?.message,
+  ).toBe(
+    "The one export of this module is quoteChange, so its file name must start with quote-change, but it starts with formatting. The section Structure of AGENTS.md states this standard.",
+  );
+});
+
+test("leaves a module alone when its exports serve a concept or cannot be named", async () => {
+  for (const [module, code] of Object.entries({
+    "several exports": "export const first = 1;\nexport const second = 2;",
+    "only types":
+      'export interface Change { value: number }\nexport type Kind = "rise";\nexport type { Other } from "./other";',
+    "an anonymous default export": "export default { size: 1 };",
+    "a default export named default":
+      "const change = 1;\nexport { change as default };",
+    "an export of every name of another module":
+      'export const change = 1;\nexport * from "./other";',
+    "the exports of a route":
+      "export function loader(): null { return null; }\nexport function meta(): [] { return []; }",
+  })) {
+    expect(
+      await rulesReporting(code, "app/formatting.ts"),
+      module,
+    ).not.toContain(fileNameRule);
+  }
+}, 60_000);
+
+test("counts values and not types or the names that React Router reads from a route", async () => {
+  expect(
+    await rulesReporting(
+      "export interface Change { value: number }\nexport function quoteChange(): number { return 1; }",
+      "app/formatting.ts",
+    ),
+  ).toContain(fileNameRule);
+  const route =
+    "export function loader(): null { return null; }\nexport default function PricesPage(): null { return null; }";
+  expect(
+    await rulesReporting(route, "app/features/market-data/prices-page.tsx"),
+  ).not.toContain(fileNameRule);
+  expect(
+    await rulesReporting(route, "app/features/market-data/prices-view.tsx"),
+  ).toContain(fileNameRule);
+}, 60_000);

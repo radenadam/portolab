@@ -4,7 +4,7 @@ import { pathToFileURL } from "node:url";
 import express from "express";
 import type { RequestHandler } from "express";
 import { exitWithFailure } from "../app/exit-with-failure.server.ts";
-import { writeLog } from "../app/log.server.ts";
+import { writeLog } from "../app/write-log.server.ts";
 import { failuresOf } from "../app/result.ts";
 import {
   parseCommandLine,

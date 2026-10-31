@@ -5,7 +5,7 @@ import { renderToPipeableStream } from "react-dom/server";
 import { isRouteErrorResponse, ServerRouter } from "react-router";
 import type { EntryContext, HandleErrorFunction } from "react-router";
 import { errorDetail } from "./error-message";
-import { writeLog } from "./log.server";
+import { writeLog } from "./write-log.server";
 
 export const streamTimeout = 5_000;
 

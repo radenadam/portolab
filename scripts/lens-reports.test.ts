@@ -4,7 +4,6 @@ import { join } from "node:path";
 import { expect, test } from "vitest";
 import {
   parseLensOutput,
-  parseLensReport,
   readLensReports,
   toLensReport,
 } from "./lens-reports.ts";
@@ -47,19 +46,21 @@ test("names the source, the position, and the field when a finding of a lens is 
 });
 
 test("rejects a saved report whose finding has no id", () => {
-  expect(
-    parseLensReport(
-      {
-        lens: "craft",
-        findings: [{ ...finding, lens: "craft" }],
-        candidateStandards: [],
-      },
-      "findings-craft.json",
-    ),
-  ).toEqual({
-    ok: false,
-    failure:
-      "findings-craft.json: finding 1 must have a string at id, but id is missing.",
+  const directory = mkdtempSync(join(tmpdir(), "portolab-lens-reports-"));
+  const path = join(directory, "findings-craft.json");
+  writeFileSync(
+    path,
+    JSON.stringify({
+      lens: "craft",
+      findings: [{ ...finding, lens: "craft" }],
+      candidateStandards: [],
+    }),
+  );
+  expect(readLensReports(directory)).toEqual({
+    reports: [],
+    problems: [
+      `${path}: finding 1 must have a string at id, but id is missing.`,
+    ],
   });
 });
 

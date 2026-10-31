@@ -43,6 +43,13 @@ export function formatMarketClock(moment: Date): string {
   }).format(moment);
 }
 
+/** Joins items into a list for the active language, such as "BBRI, TLKM, and ASII" or "BBRI, TLKM, dan ASII". */
+export function formatList(items: readonly string[]): string {
+  return new Intl.ListFormat(intlLocale(), { type: "conjunction" }).format(
+    items,
+  );
+}
+
 export function formatMarketTime(moment: Date): string {
   return new Intl.DateTimeFormat(intlLocale(), {
     dateStyle: "medium",

@@ -26,4 +26,7 @@ export const priceUpdates = sqliteTable("price_updates", {
   attemptedAt: integer("attempted_at", { mode: "timestamp_ms" }).notNull(),
   succeeded: integer("succeeded", { mode: "boolean" }).notNull(),
   consecutiveFailures: integer("consecutive_failures").notNull(),
+  failedCodes: text("failed_codes", { mode: "json" })
+    .$type<string[]>()
+    .notNull(),
 });

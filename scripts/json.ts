@@ -10,7 +10,7 @@ export type Parser<Value> = (
   source: string,
 ) => Result<Value, string>;
 
-export function parseJsonText(
+function parseJsonText(
   value: unknown,
   source: string,
 ): Result<unknown, string> {

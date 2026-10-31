@@ -1,11 +1,21 @@
 import type { Result } from "~/result";
 import type { Rupiah } from "~/units/rupiah";
 
-export interface Instrument {
-  kind: "stock" | "index";
-  /** The code that IDX uses, such as BBCA for a stock or IHSG for the composite index. */
+/** The indices that Portolab tracks, by the code that IDX uses. */
+export type IndexCode = "IHSG";
+
+interface StockInstrument {
+  kind: "stock";
+  /** The code that IDX uses, such as BBCA. */
   code: string;
 }
+
+interface IndexInstrument {
+  kind: "index";
+  code: IndexCode;
+}
+
+export type Instrument = StockInstrument | IndexInstrument;
 
 interface StockQuote {
   kind: "stock";

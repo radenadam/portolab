@@ -77,22 +77,25 @@ test("keeps only the latest quote of each instrument, the indices first", () => 
   ]);
 });
 
-test("keeps only the latest attempt to update prices", () => {
+test("keeps only the latest attempt to update prices, with the codes that it could not update", () => {
   const database = memoryDatabase();
   expect(readLatestUpdateAttempt(database)).toBeUndefined();
   saveUpdateAttempt(database, {
     attemptedAt: new Date("2026-10-30T09:29:00.000Z"),
     succeeded: true,
     consecutiveFailures: 0,
+    failedCodes: [],
   });
   saveUpdateAttempt(database, {
     attemptedAt: new Date("2026-10-30T09:30:00.000Z"),
-    succeeded: false,
-    consecutiveFailures: 1,
+    succeeded: true,
+    consecutiveFailures: 0,
+    failedCodes: ["BBRI", "TLKM"],
   });
   expect(readLatestUpdateAttempt(database)).toEqual({
     attemptedAt: new Date("2026-10-30T09:30:00.000Z"),
-    succeeded: false,
-    consecutiveFailures: 1,
+    succeeded: true,
+    consecutiveFailures: 0,
+    failedCodes: ["BBRI", "TLKM"],
   });
 });

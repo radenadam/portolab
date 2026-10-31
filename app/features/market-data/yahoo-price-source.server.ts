@@ -5,13 +5,14 @@ import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
 import { isRupiah } from "~/units/rupiah";
 import type {
+  IndexCode,
   Instrument,
   PriceSource,
   Quote,
   QuoteBatch,
 } from "./price-source.server";
 
-const yahooIndexSymbols: Record<string, string | undefined> = {
+const yahooIndexSymbols: Record<IndexCode, string> = {
   IHSG: "^JKSE",
 };
 
@@ -40,7 +41,10 @@ export function createYahooPriceSource(): PriceSource {
   };
 }
 
-/** Matches the quotes that Yahoo Finance returned to the instruments, with one problem for each instrument whose quote is missing or unusable. */
+/**
+ * Matches the quotes that Yahoo Finance returned to the instruments, with one problem for each instrument whose quote is missing or unusable.
+ * @internal Tests call it directly, because createYahooPriceSource reaches it only through the network.
+ */
 export function collectYahooQuotes(
   instruments: readonly Instrument[],
   yahooQuotes: readonly unknown[],
@@ -129,8 +133,7 @@ function isPositiveNumber(value: unknown): value is number {
 }
 
 function yahooSymbol(instrument: Instrument): string {
-  if (instrument.kind === "index") {
-    return yahooIndexSymbols[instrument.code] ?? instrument.code;
-  }
-  return `${instrument.code}.JK`;
+  return instrument.kind === "index"
+    ? yahooIndexSymbols[instrument.code]
+    : `${instrument.code}.JK`;
 }

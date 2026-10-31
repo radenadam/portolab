@@ -5,6 +5,7 @@ import jsxA11y from "eslint-plugin-jsx-a11y-x";
 import reactHooks from "eslint-plugin-react-hooks";
 import globals from "globals";
 import typescriptEslint from "typescript-eslint";
+import { fileNamedAfterExport } from "./lint/file-named-after-export.ts";
 
 // Abbreviations that read as noise. Names use full words instead.
 const abbreviations = [
@@ -109,7 +110,11 @@ export default defineConfig(
         tsconfigRootDir: import.meta.dirname,
       },
     },
+    plugins: {
+      portolab: { rules: { "file-named-after-export": fileNamedAfterExport } },
+    },
     rules: {
+      "portolab/file-named-after-export": "error",
       "@typescript-eslint/switch-exhaustiveness-check": "error",
       "@typescript-eslint/consistent-type-imports": "error",
       complexity: ["error", 12],

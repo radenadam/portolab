@@ -2,7 +2,7 @@ import { afterEach, expect, test } from "vitest";
 import { closeDatabase, openDatabase } from "~/database/database.server";
 import type { Database } from "~/database/database.server";
 import { fail, succeed } from "~/result";
-import { createFixturePriceSource } from "./fixture-price-source.server";
+import { fixturePriceSource } from "./fixture-price-source.server";
 import { createPriceUpdater, runPriceUpdate } from "./price-job.server";
 import type { PriceSource } from "./price-source.server";
 import {
@@ -40,6 +40,25 @@ const emptySource: PriceSource = {
 const throwingSource: PriceSource = {
   fetchQuotes: () => Promise.reject(new Error("The network is down.")),
 };
+// Answers like the fixture source, but without BBRI and TLKM.
+const partialSource: PriceSource = {
+  fetchQuotes: async (instruments) => {
+    const answer = await fixturePriceSource.fetchQuotes(instruments);
+    if (!answer.ok) {
+      return answer;
+    }
+    return succeed({
+      quotes: answer.value.quotes.filter(
+        (quote) => quote.code !== "BBRI" && quote.code !== "TLKM",
+      ),
+      problems: [
+        "Yahoo Finance returned no quote for BBRI.",
+        "Yahoo Finance returned no quote for TLKM.",
+      ],
+    });
+  },
+};
+const trackedCodes = trackedInstruments.map((instrument) => instrument.code);
 
 const start = new Date("2026-11-02T03:00:00.000Z");
 
@@ -52,7 +71,7 @@ test("stores the quotes and records a success", async () => {
   await runPriceUpdate(
     {
       database,
-      priceSource: createFixturePriceSource(),
+      priceSource: fixturePriceSource,
       instruments: trackedInstruments,
     },
     start,
@@ -62,6 +81,28 @@ test("stores the quotes and records a success", async () => {
     attemptedAt: start,
     succeeded: true,
     consecutiveFailures: 0,
+    failedCodes: [],
+  });
+});
+
+test("records the instruments that an answer lacks, without waiting before the next attempt", async () => {
+  const database = memoryDatabase();
+  await runPriceUpdate(
+    {
+      database,
+      priceSource: partialSource,
+      instruments: trackedInstruments,
+    },
+    start,
+  );
+  expect(listLatestQuotes(database)).toHaveLength(
+    trackedInstruments.length - 2,
+  );
+  expect(readLatestUpdateAttempt(database)).toEqual({
+    attemptedAt: start,
+    succeeded: true,
+    consecutiveFailures: 0,
+    failedCodes: ["BBRI", "TLKM"],
   });
 });
 
@@ -81,6 +122,7 @@ test("counts a failure, an answer without a usable quote, and a thrown error as 
     attemptedAt: minutesAfterStart(3),
     succeeded: false,
     consecutiveFailures: 3,
+    failedCodes: trackedCodes,
   });
 });
 
@@ -94,12 +136,12 @@ test("waits after failures, and a later run of the job keeps waiting, because th
   );
   // After two failures in a row, the job waits two minutes.
   await runPriceUpdate(
-    { ...settings, priceSource: createFixturePriceSource() },
+    { ...settings, priceSource: fixturePriceSource },
     minutesAfterStart(2),
   );
   expect(listLatestQuotes(database)).toEqual([]);
   await runPriceUpdate(
-    { ...settings, priceSource: createFixturePriceSource() },
+    { ...settings, priceSource: fixturePriceSource },
     minutesAfterStart(3),
   );
   expect(listLatestQuotes(database)).toHaveLength(trackedInstruments.length);
@@ -116,7 +158,7 @@ test("does nothing when an update starts while another one still runs", async ()
       await new Promise<void>((resolve) => {
         answer = resolve;
       });
-      return createFixturePriceSource().fetchQuotes(instruments);
+      return fixturePriceSource.fetchQuotes(instruments);
     },
   };
   const updatePrices = createPriceUpdater({

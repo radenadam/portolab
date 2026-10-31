@@ -18,11 +18,13 @@
   "home_prices_link": "Lihat harga saham",
   "market_data_page_title": "Harga saham",
   "market_data_delay_notice": "Harga tertunda sekitar 10 menit dan berasal dari Yahoo Finance. Harga terakhir tercatat pada {time} WIB.",
-  "market_data_empty_body": "Portolab belum memiliki harga. Portolab mengambilnya saat server dimulai, lalu selama jam bursa.",
+  "market_data_empty_body": "Portolab sedang mengambil harga pertamanya. Muat ulang halaman ini sebentar lagi untuk melihatnya.",
   "market_data_code_label": "Kode",
   "market_data_last_label": "Harga terakhir",
   "market_data_change_label": "Perubahan",
   "market_data_time_label": "Waktu (WIB)",
-  "market_data_update_failed_notice": "Portolab tidak dapat memperbarui harga pada {time} WIB, jadi harga di bawah adalah harga terakhir yang tersimpan. Portolab mencoba lagi dengan jeda yang makin panjang.",
-  "market_data_empty_failed_body": "Portolab belum memiliki harga, karena percobaan terakhir untuk mengambilnya pada {time} WIB gagal. Portolab mencoba lagi dengan jeda yang makin panjang."
+  "market_data_update_failed_notice": "Portolab tidak dapat memperbarui harga pada {time} WIB, jadi harga di bawah adalah harga terakhir yang tersimpan. Portolab mencoba lagi pada {nextTime} WIB.",
+  "market_data_empty_failed_body": "Portolab belum memiliki harga, karena percobaan terakhir untuk mengambilnya pada {time} WIB gagal. Portolab mencoba lagi pada {nextTime} WIB.",
+  "market_data_one_code_failed_notice": "Portolab tidak dapat memperbarui harga {codes} pada {time} WIB, jadi harganya di bawah adalah harga terakhir yang tersimpan. Portolab mencoba lagi pada {nextTime} WIB.",
+  "market_data_several_codes_failed_notice": "Portolab tidak dapat memperbarui harga {codes} pada {time} WIB, jadi harganya di bawah adalah harga terakhir yang tersimpan. Portolab mencoba lagi pada {nextTime} WIB."
 }

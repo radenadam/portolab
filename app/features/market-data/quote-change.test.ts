@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { rupiah } from "~/units/rupiah";
-import { quoteChange } from "./price-change";
+import { quoteChange } from "./quote-change";
 
 // The expected values were computed with the decimal module of Python at 20 significant digits, from the closes of 30 October 2026.
 const quotedAt = new Date("2026-10-30T09:14:55.000Z");
