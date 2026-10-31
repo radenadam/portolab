@@ -1,5 +1,6 @@
 import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
+import { describeValue } from "~/value-shapes";
 
 /** Reads the path to send the reader back to. A value that leads to another site fails, so a forged link never redirects the reader away. */
 export function parseReturnPath(
@@ -20,6 +21,6 @@ export function parseReturnPath(
     }
   }
   return fail(
-    `${source} must be a path on this site, such as /prices, but it is "${value}".`,
+    `${source} must be a path on this site, such as /prices, but it is ${describeValue(value)}.`,
   );
 }

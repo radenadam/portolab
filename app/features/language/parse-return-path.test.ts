@@ -31,7 +31,7 @@ test("rejects every value that a browser would resolve to another site", () => {
   ]) {
     expect(parseReturnPath(value, "returnTo", siteOrigin), value).toEqual({
       ok: false,
-      failure: `returnTo must be a path on this site, such as /prices, but it is "${value}".`,
+      failure: `returnTo must be a path on this site, such as /prices, but it is ${JSON.stringify(value)}.`,
     });
   }
 });

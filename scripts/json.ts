@@ -1,6 +1,6 @@
 import { errorMessage } from "../app/error-message.ts";
 import { fail, succeed } from "../app/result.ts";
-import { isRecord, isStringArray } from "../app/value-shapes.ts";
+import { describeValue, isRecord, isStringArray } from "../app/value-shapes.ts";
 import type { Result } from "../app/result.ts";
 import { readTextFile } from "./read-text-file.ts";
 
@@ -83,19 +83,36 @@ export function parseListField<Item>(
   return succeed(parsedItems);
 }
 
-/** Reads the list of strings at a path of keys in a JSON object, such as the languages in a settings file or the names of the lenses in a schema. The list must not be empty. */
+interface StringsPath {
+  /** The keys that lead to the list, or none when the value is the list. */
+  keys: readonly string[];
+  mayBeEmpty: boolean;
+}
+
+/** Reads the list of strings at a path of keys in a JSON value, such as the languages in a settings file or the names of the lenses in a schema. */
 export function parseStringsAt(
   value: unknown,
   source: string,
-  keys: readonly string[],
+  path: StringsPath,
 ): Result<string[], string> {
   let current = value;
-  for (const key of keys) {
+  for (const key of path.keys) {
     current = isRecord(current) ? current[key] : undefined;
   }
-  return isStringArray(current) && current.length > 0
-    ? succeed(current)
-    : fail(`${source} has no list of strings at ${keys.join(".")}.`);
+  if (isStringArray(current) && (path.mayBeEmpty || current.length > 0)) {
+    return succeed(current);
+  }
+  const list = path.mayBeEmpty
+    ? "a list of strings"
+    : "a list of strings that is not empty";
+  const given = describeValue(current);
+  if (path.keys.length === 0) {
+    return fail(`${source} must be ${list}, but it is ${given}.`);
+  }
+  const place = path.keys.join(".");
+  return fail(
+    `${source} must have ${list} at ${place}, but ${place} is ${given}.`,
+  );
 }
 
 /** Reads a JSON object whose fields its caller reads later, such as a file of messages or a schema. */

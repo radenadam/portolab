@@ -7,7 +7,10 @@ export function parseLocales(
   value: unknown,
   source: string,
 ): Result<string[], string> {
-  return parseStringsAt(value, source, ["locales"]);
+  return parseStringsAt(value, source, {
+    keys: ["locales"],
+    mayBeEmpty: false,
+  });
 }
 
 /** Reads one language file of Paraglide messages as an object of message keys. */

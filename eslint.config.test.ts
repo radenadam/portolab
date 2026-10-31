@@ -45,8 +45,10 @@ const wrongSignature: Signature = {
   arrowBody: "value",
 };
 
-// Each form of code that binds a function, or the type of a function, to a name.
-const parserForms: Record<string, (signature: Signature) => string> = {
+type Write = (signature: Signature) => string;
+
+// Forms whose name can only be an identifier.
+const namedForms: Record<string, Write> = {
   "function declaration": (signature) =>
     `export function parseName${signature.declared} { ${signature.body} }`,
   "declared function": (signature) =>
@@ -58,54 +60,74 @@ const parserForms: Record<string, (signature: Signature) => string> = {
   "function expression in a variable": (signature) =>
     `export const parseName = function ${signature.declared} { ${signature.body} };`,
   "assignment to a variable": (signature) =>
-    `export let parseName: unknown;\nparseName = ${signature.declared} => ${signature.arrowBody};`,
-  "assignment to a property": (signature) =>
-    `export const holder: Record<string, unknown> = {};\nholder.parseName = ${signature.declared} => ${signature.arrowBody};`,
-  "object method": (signature) =>
-    `export const parsers = { parseName${signature.declared} { ${signature.body} } };`,
-  "object property": (signature) =>
-    `export const parsers = { parseName: ${signature.declared} => ${signature.arrowBody} };`,
-  "class method": (signature) =>
-    `export class Parsers { parseName${signature.declared} { ${signature.body} } }`,
-  "class field": (signature) =>
-    `export class Parsers { parseName = ${signature.declared} => ${signature.arrowBody}; }`,
-  "declared class field": (signature) =>
-    `export class Parsers { declare parseName: ${signature.type}; }`,
-  "abstract method": (signature) =>
-    `export abstract class Parsers { abstract parseName${signature.declared}; }`,
-  "abstract field": (signature) =>
-    `export abstract class Parsers { abstract parseName: ${signature.type}; }`,
-  "interface method": (signature) =>
-    `export interface Parsers { parseName${signature.declared}; }`,
-  "interface property": (signature) =>
-    `export interface Parsers { parseName: ${signature.type}; }`,
+    `export let parseName: unknown;
+parseName = ${signature.declared} => ${signature.arrowBody};`,
   "declared variable with a function type": (signature) =>
     `export declare const parseName: ${signature.type};`,
   "variable with a function type": (signature) =>
     `export let parseName: ${signature.type};`,
   "parameter with a function type": (signature) =>
     `export function apply(parseName: ${signature.type}): unknown { return parseName; }`,
-  "accessor field": (signature) =>
-    `export class Parsers { accessor parseName = ${signature.declared} => ${signature.arrowBody}; }`,
-  "abstract accessor field": (signature) =>
-    `export abstract class Parsers { abstract accessor parseName: ${signature.type}; }`,
-  "object property with a quoted name": (signature) =>
-    `export const parsers = { "parseName": ${signature.declared} => ${signature.arrowBody} };`,
-  "object method with a computed name": (signature) =>
-    `export const parsers = { ["parseName"]${signature.declared} { ${signature.body} } };`,
-  "object property with a template name": (signature) =>
-    `export const parsers = { [\`parseName\`]: ${signature.declared} => ${signature.arrowBody} };`,
-  "assignment to a property with a computed name": (signature) =>
-    `export const holder: Record<string, unknown> = {};\nholder["parseName"] = ${signature.declared} => ${signature.arrowBody};`,
-  "class method with a quoted name": (signature) =>
-    `export class Parsers { "parseName"${signature.declared} { ${signature.body} } }`,
-  "class field with a quoted name": (signature) =>
-    `export class Parsers { "parseName" = ${signature.declared} => ${signature.arrowBody}; }`,
-  "interface method with a quoted name": (signature) =>
-    `export interface Parsers { "parseName"${signature.declared}; }`,
-  "interface property with a quoted name": (signature) =>
-    `export interface Parsers { "parseName": ${signature.type}; }`,
 };
+
+// Forms whose name is a key, which can be written in each of the ways below.
+const keyedForms: Record<
+  string,
+  (key: string, signature: Signature) => string
+> = {
+  "object method": (key, signature) =>
+    `export const parsers = { ${key}${signature.declared} { ${signature.body} } };`,
+  "object property": (key, signature) =>
+    `export const parsers = { ${key}: ${signature.declared} => ${signature.arrowBody} };`,
+  "class method": (key, signature) =>
+    `export class Parsers { ${key}${signature.declared} { ${signature.body} } }`,
+  "class field": (key, signature) =>
+    `export class Parsers { ${key} = ${signature.declared} => ${signature.arrowBody}; }`,
+  "declared class field": (key, signature) =>
+    `export class Parsers { declare ${key}: ${signature.type}; }`,
+  "accessor field": (key, signature) =>
+    `export class Parsers { accessor ${key} = ${signature.declared} => ${signature.arrowBody}; }`,
+  "abstract method": (key, signature) =>
+    `export abstract class Parsers { abstract ${key}${signature.declared}; }`,
+  "abstract field": (key, signature) =>
+    `export abstract class Parsers { abstract ${key}: ${signature.type}; }`,
+  "abstract accessor field": (key, signature) =>
+    `export abstract class Parsers { abstract accessor ${key}: ${signature.type}; }`,
+  "interface method": (key, signature) =>
+    `export interface Parsers { ${key}${signature.declared}; }`,
+  "interface property": (key, signature) =>
+    `export interface Parsers { ${key}: ${signature.type}; }`,
+};
+
+const keyNames: Record<string, string> = {
+  identifier: "parseName",
+  "quoted name": '"parseName"',
+  "computed name": '["parseName"]',
+  "template name": "[`parseName`]",
+};
+
+const propertyAssignments: Record<string, string> = {
+  identifier: "holder.parseName",
+  "computed name": 'holder["parseName"]',
+  "template name": "holder[`parseName`]",
+};
+
+// Every node that can carry the name of a parser, crossed with every way to write that name, as the section "Tests" of AGENTS.md requires.
+const parserForms: Record<string, Write> = { ...namedForms };
+for (const [form, write] of Object.entries(keyedForms)) {
+  for (const [nameForm, key] of Object.entries(keyNames)) {
+    parserForms[
+      `${form} with ${nameForm === "identifier" ? "an identifier" : `a ${nameForm}`}`
+    ] = (signature) => write(key, signature);
+  }
+}
+for (const [nameForm, target] of Object.entries(propertyAssignments)) {
+  parserForms[
+    `assignment to a property with ${nameForm === "identifier" ? "an identifier" : `a ${nameForm}`}`
+  ] = (signature) =>
+    `export const holder: Record<string, unknown> = {};
+${target} = ${signature.declared} => ${signature.arrowBody};`;
+}
 
 test("accepts a parser with the standard signature in every form", async () => {
   for (const [form, write] of Object.entries(parserForms)) {

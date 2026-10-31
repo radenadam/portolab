@@ -13,10 +13,8 @@ export function parseRouteSchemaLenses(
   value: unknown,
   source: string,
 ): Result<string[], string> {
-  return parseStringsAt(value, source, [
-    "properties",
-    "lenses",
-    "items",
-    "enum",
-  ]);
+  return parseStringsAt(value, source, {
+    keys: ["properties", "lenses", "items", "enum"],
+    mayBeEmpty: false,
+  });
 }

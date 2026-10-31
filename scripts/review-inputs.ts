@@ -1,7 +1,12 @@
 import { fail, succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
-import { isRecord, isStringArray } from "../app/value-shapes.ts";
-import { invalidField, notAnObject, parseListField } from "./json.ts";
+import { describeValue, isRecord } from "../app/value-shapes.ts";
+import {
+  invalidField,
+  notAnObject,
+  parseListField,
+  parseStringsAt,
+} from "./json.ts";
 import { parseReportedFinding } from "./lens-reports.ts";
 import type { ReportedFinding } from "./lens-reports.ts";
 import { listOfWords, singularOrPlural } from "./sentences.ts";
@@ -98,7 +103,7 @@ export function parsePullRequestNumber(
   return typeof value === "string" && /^[1-9]\d*$/.test(value)
     ? succeed(value)
     : fail(
-        `${source} must be a pull request number, but it is "${String(value)}".`,
+        `${source} must be a pull request number, but it is ${describeValue(value)}.`,
       );
 }
 
@@ -107,11 +112,8 @@ export function parseLensNames(
   value: unknown,
   source: string,
 ): Result<string[], string> {
-  return isStringArray(value)
-    ? succeed(value)
-    : fail(
-        `${source} must be a JSON list of lens names, but it is ${JSON.stringify(value)}.`,
-      );
+  // The router's choice always gains the lenses for every change, so the list of expected lenses is never empty.
+  return parseStringsAt(value, source, { keys: [], mayBeEmpty: false });
 }
 
 /** Reads the lenses from the router's answer. */
@@ -119,13 +121,8 @@ export function parseRouterChoice(
   value: unknown,
   source: string,
 ): Result<string[], string> {
-  if (!isRecord(value)) {
-    return notAnObject(source);
-  }
-  const { lenses } = value;
-  return isStringArray(lenses)
-    ? succeed(lenses)
-    : invalidField(source, "lenses");
+  // The router may choose no lens, because the lenses for every change are added after it.
+  return parseStringsAt(value, source, { keys: ["lenses"], mayBeEmpty: true });
 }
 
 /** Whether any job of the panel was cancelled, in which case the run reviewed nothing. */
@@ -176,6 +173,6 @@ export function parseLensName(
   return typeof value === "string" && knownLenses.includes(value)
     ? succeed(value)
     : fail(
-        `${source} must be one of ${listOfWords(knownLenses, "disjunction")}, but it is "${String(value)}".`,
+        `${source} must be one of ${listOfWords(knownLenses, "disjunction")}, but it is ${describeValue(value)}.`,
       );
 }

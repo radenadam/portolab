@@ -87,6 +87,7 @@ test("reads the locales from the inlang settings and rejects settings without th
   });
   expect(parseLocales({}, "settings.json")).toEqual({
     ok: false,
-    failure: "settings.json has no list of strings at locales.",
+    failure:
+      "settings.json must have a list of strings that is not empty at locales, but locales is missing.",
   });
 });

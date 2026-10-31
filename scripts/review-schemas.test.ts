@@ -25,7 +25,7 @@ const verdict = {
 /** Reads the list of strings at a path of keys in one of the schemas, which a test needs to compare against. */
 function schemaStrings(schemaPath: string, keys: readonly string[]): string[] {
   const strings = readJsonFile(schemaPath, (value, source) =>
-    parseStringsAt(value, source, keys),
+    parseStringsAt(value, source, { keys, mayBeEmpty: false }),
   );
   if (!strings.ok) {
     throw new Error(strings.failure);
@@ -137,16 +137,14 @@ test("accepts exactly the statuses that the verifier's schema allows", () => {
 
 test("names the path of keys when a schema has no list there", () => {
   expect(
-    parseStringsAt({ properties: {} }, "route.schema.json", [
-      "properties",
-      "lenses",
-      "items",
-      "enum",
-    ]),
+    parseStringsAt({ properties: {} }, "route.schema.json", {
+      keys: ["properties", "lenses", "items", "enum"],
+      mayBeEmpty: false,
+    }),
   ).toEqual({
     ok: false,
     failure:
-      "route.schema.json has no list of strings at properties.lenses.items.enum.",
+      "route.schema.json must have a list of strings that is not empty at properties.lenses.items.enum, but properties.lenses.items.enum is missing.",
   });
 });
 

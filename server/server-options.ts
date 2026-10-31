@@ -2,7 +2,7 @@ import { parseArgs } from "node:util";
 import { errorMessage } from "../app/error-message.ts";
 import { fail, succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
-import { isStringArray } from "../app/value-shapes.ts";
+import { describeValue, isStringArray } from "../app/value-shapes.ts";
 
 const modes = ["development", "production"] as const;
 
@@ -16,7 +16,7 @@ export function parseMode(
   const mode = modes.find((candidate) => candidate === value);
   return mode === undefined
     ? fail(
-        `${source} must be "development" or "production", but it is "${String(value)}".`,
+        `${source} must be "development" or "production", but it is ${describeValue(value)}.`,
       )
     : succeed(mode);
 }
@@ -28,7 +28,7 @@ export function parseCommandLine(
 ): Result<Mode, string> {
   if (!isStringArray(value)) {
     return fail(
-      `${source} must be a list of arguments, but it is ${JSON.stringify(value)}.`,
+      `${source} must be a list of arguments, but it is ${describeValue(value)}.`,
     );
   }
   try {
@@ -56,6 +56,6 @@ export function parsePort(
     }
   }
   return fail(
-    `${source} must be a whole number from 1 to 65535, but it is "${String(value)}".`,
+    `${source} must be a whole number from 1 to 65535, but it is ${describeValue(value)}.`,
   );
 }

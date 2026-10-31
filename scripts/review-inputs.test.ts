@@ -92,7 +92,7 @@ test("reads a list of lens names and rejects a value that is not a list", () => 
   expect(parseLensNames("craft", "EXPECTED_LENSES")).toEqual({
     ok: false,
     failure:
-      'EXPECTED_LENSES must be a JSON list of lens names, but it is "craft".',
+      'EXPECTED_LENSES must be a list of strings that is not empty, but it is "craft".',
   });
 });
 
@@ -118,7 +118,8 @@ test("reads the router's choice and rejects an answer without a list", () => {
   ).toEqual({ ok: true, value: ["docs", "standards"] });
   expect(parseRouterChoice({}, "ROUTER_OUTPUT")).toEqual({
     ok: false,
-    failure: 'ROUTER_OUTPUT has no valid "lenses".',
+    failure:
+      "ROUTER_OUTPUT must have a list of strings at lenses, but lenses is missing.",
   });
 });
 

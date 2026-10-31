@@ -5,6 +5,7 @@ import {
   parseJsonObject,
   parseJsonText,
   parseListField,
+  parseStringsAt,
   readJsonFile,
 } from "./json.ts";
 
@@ -83,5 +84,47 @@ test("reads each item of a list field and names the position of an item that fai
   expect(parseListField({}, "x.json", list)).toEqual({
     ok: false,
     failure: 'x.json has no valid "words".',
+  });
+});
+
+test("reads a list of strings at a path and names the path and the value when it fails", () => {
+  expect(
+    parseStringsAt({ lenses: [] }, "ROUTER_OUTPUT", {
+      keys: ["lenses"],
+      mayBeEmpty: true,
+    }),
+  ).toEqual({ ok: true, value: [] });
+  expect(
+    parseStringsAt({ locales: [] }, "settings.json", {
+      keys: ["locales"],
+      mayBeEmpty: false,
+    }),
+  ).toEqual({
+    ok: false,
+    failure:
+      "settings.json must have a list of strings that is not empty at locales, but locales is [].",
+  });
+  expect(
+    parseStringsAt({ lenses: "craft" }, "ROUTER_OUTPUT", {
+      keys: ["lenses"],
+      mayBeEmpty: true,
+    }),
+  ).toEqual({
+    ok: false,
+    failure:
+      'ROUTER_OUTPUT must have a list of strings at lenses, but lenses is "craft".',
+  });
+  expect(
+    parseStringsAt(7, "EXPECTED_LENSES", { keys: [], mayBeEmpty: true }),
+  ).toEqual({
+    ok: false,
+    failure: "EXPECTED_LENSES must be a list of strings, but it is 7.",
+  });
+  expect(
+    parseStringsAt([], "EXPECTED_LENSES", { keys: [], mayBeEmpty: false }),
+  ).toEqual({
+    ok: false,
+    failure:
+      "EXPECTED_LENSES must be a list of strings that is not empty, but it is [].",
   });
 });
