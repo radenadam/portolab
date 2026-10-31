@@ -44,7 +44,7 @@ const abbreviations = [
 const parserSignature =
   "A function named parse... takes (value: unknown, source: string) as its first parameters and returns Result<T, string>, as the section Code of AGENTS.md states.";
 const parserName = "/^parse[A-Z]/";
-// A parser can be written in any form that binds a function, or the type of a function, to a name, so the rule checks each form.
+// A parser can be any node that carries a name together with a function or the type of a function, so the rule checks each of them.
 const parserForms = [
   `FunctionDeclaration[id.name=${parserName}]`,
   `TSDeclareFunction[id.name=${parserName}]`,
@@ -54,8 +54,9 @@ const parserForms = [
   `AssignmentExpression[left.property.name=${parserName}] > :function`,
   `Property[key.name=${parserName}] > :function`,
   `:matches(MethodDefinition, TSAbstractMethodDefinition)[key.name=${parserName}] > :matches(:function, TSEmptyBodyFunctionExpression)`,
-  `PropertyDefinition[key.name=${parserName}] > :function`,
-  `:matches(PropertyDefinition, TSAbstractPropertyDefinition, TSPropertySignature)[key.name=${parserName}] > TSTypeAnnotation > TSFunctionType`,
+  `:matches(PropertyDefinition, AccessorProperty)[key.name=${parserName}] > :function`,
+  `:matches(PropertyDefinition, AccessorProperty, TSAbstractPropertyDefinition, TSAbstractAccessorProperty, TSPropertySignature)[key.name=${parserName}] > TSTypeAnnotation > TSFunctionType`,
+  `Identifier[name=${parserName}] > TSTypeAnnotation > TSFunctionType`,
   `TSMethodSignature[key.name=${parserName}]`,
 ];
 const parser = `:matches(${parserForms.join(", ")})`;

@@ -79,6 +79,16 @@ const parserForms: Record<string, (signature: Signature) => string> = {
     `export interface Parsers { parseName${signature.declared}; }`,
   "interface property": (signature) =>
     `export interface Parsers { parseName: ${signature.type}; }`,
+  "declared variable with a function type": (signature) =>
+    `export declare const parseName: ${signature.type};`,
+  "variable with a function type": (signature) =>
+    `export let parseName: ${signature.type};`,
+  "parameter with a function type": (signature) =>
+    `export function apply(parseName: ${signature.type}): unknown { return parseName; }`,
+  "accessor field": (signature) =>
+    `export class Parsers { accessor parseName = ${signature.declared} => ${signature.arrowBody}; }`,
+  "abstract accessor field": (signature) =>
+    `export abstract class Parsers { abstract accessor parseName: ${signature.type}; }`,
 };
 
 test("accepts a parser with the standard signature in every form", async () => {

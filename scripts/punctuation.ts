@@ -109,8 +109,13 @@ function withoutCode(text: string): string[] {
       isInFence = !isInFence;
       return "";
     }
-    return isInFence ? "" : line.replaceAll(/`[^`]*`/g, "");
+    return isInFence ? "" : withoutCodeSpans(line);
   });
+}
+
+// A code span in prose or in a comment is code, such as `a; b`, so its characters are never judged as prose.
+function withoutCodeSpans(line: string): string {
+  return line.replaceAll(/`[^`]*`/g, "");
 }
 
 /** Returns, for each line of the file, the text of the comments on that line, without code spans. */
@@ -124,7 +129,7 @@ function commentLines(file: string, text: string, kind: CodeKind): string[] {
     position = comment.start + comment.text.length;
   }
   commentText += onlyLineBreaks(text.slice(position));
-  return commentText.split("\n").map((line) => line.replaceAll(/`[^`]*`/g, ""));
+  return commentText.split("\n").map(withoutCodeSpans);
 }
 
 function onlyLineBreaks(text: string): string {
