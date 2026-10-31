@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
+import { switchToEnglish } from "./switch-to-english.ts";
 
 test("opens the home page in Bahasa Indonesia", async ({ page }) => {
   await page.goto("/");
@@ -12,9 +13,7 @@ test("opens the home page in Bahasa Indonesia", async ({ page }) => {
 });
 
 test("switches the page to English and back", async ({ page }) => {
-  await page.goto("/");
-  await page.getByRole("button", { name: "English" }).click();
-  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  await switchToEnglish(page);
   await expect(page.getByText("Simulation.")).toBeVisible();
   await expect(page.getByRole("button", { name: "English" })).toHaveAttribute(
     "aria-pressed",
@@ -45,9 +44,7 @@ test("shows the not found page in Bahasa Indonesia for an unknown address", asyn
 test("shows the not found page in English to a reader who chose English", async ({
   page,
 }) => {
-  await page.goto("/");
-  await page.getByRole("button", { name: "English" }).click();
-  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  await switchToEnglish(page);
   const response = await page.goto("/not-here");
   expect(response?.status()).toBe(404);
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
@@ -92,9 +89,7 @@ test("shows the page for an unexpected failure in Bahasa Indonesia", async ({
 test("shows the page for an unexpected failure in English", async ({
   page,
 }) => {
-  await page.goto("/");
-  await page.getByRole("button", { name: "English" }).click();
-  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  await switchToEnglish(page);
   await failOnReturnTo(page, "/not-here", "Back to the home page");
   await expect(
     page.getByRole("heading", { level: 1, name: "Something went wrong" }),

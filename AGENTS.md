@@ -55,7 +55,7 @@ These apply to all prose: docs, comments, commit messages, pull requests, issues
 
 ### Interface text
 
-- Bahasa Indonesia is the default language, and English is complete as well. Every text is a Paraglide message in `messages/`, and no text is written directly in a component. `pnpm check` verifies that both languages have the same keys, that each key starts with the feature folder that uses it, or with `app_` when the whole app shares it, and that each key ends with the kind of text it holds: `_title`, `_body`, `_label`, `_notice`, `_error`, `_link`, or `_name`. Both languages must also say the same thing, which only a reader can check.
+- Bahasa Indonesia is the default language, and English is complete as well. Every text is a Paraglide message in `messages/`, and no text is written directly in a component. `pnpm check` verifies that both languages have the same keys, that each key starts with the feature folder that uses it, or with `app_` when the whole app shares it, and that each key ends with the kind of text it holds, such as `_title` or `_label`. `scripts/messages.ts` holds the list of kinds. Both languages must also say the same thing, which only a reader can check.
 - Indonesian text addresses the reader as "Anda".
 - An error teaches. It states what happened with the real numbers, explains the rule behind it, and offers a next step, such as the largest order the cash allows.
 - Numbers, rupiah amounts, percentages, and dates are formatted with `Intl` for the active language, never by hand.
@@ -66,6 +66,7 @@ These apply to all prose: docs, comments, commit messages, pull requests, issues
 
 - Every screen works with touch on a screen 360 pixels wide and with a keyboard alone. Touch targets are at least 44 pixels high.
 - Forms work before JavaScript loads, so actions use React Router forms and actions instead of client-only handlers.
+- A page sets its title through its route `meta` export, unless the title depends on something that `meta` cannot see, such as the result of an action or an error. Such a page renders `PageTitle` from `app/error-page.tsx`.
 - A failure that a reader sees, including one from an action, appears on a page in the reader's language, through `app/error-page.tsx` or on the form that caused it, with the next step that its text offers. A bare text response is only for machines.
 - Gains and losses never rely on color alone. A sign or an arrow always carries the meaning.
 - Colors, fonts, spacing, and sizes, such as the smallest touch target, come from the tokens in `app/theme.css`.
@@ -99,7 +100,7 @@ These apply to all prose: docs, comments, commit messages, pull requests, issues
 - A test of generated text checks the whole sentence for each case that changes its grammar, such as one item and several items, or a word that takes "a" and one that takes "an".
 - Every check is tested. A check script keeps the logic that chooses and judges its input in a module with tests beside it, and a lint rule is tested through ESLint itself. The tests cover input that the check must accept, files in every place it must reach, such as dot folders, and every form of code that can break the standard it enforces. For a rule that finds functions by name, that is every node that can carry a name together with a function or the type of a function: declarations, variables with a value or a type, parameters, assignments, named function expressions, object properties, class methods, fields, and accessors, and the members of interfaces. In each of them, the name can be an identifier, a quoted string, or a computed key.
 - Every calculation of money or of a measure is tested against expected values computed independently, for example in a spreadsheet, and the test names that source.
-- Every user flow has a browser test that runs on the phone and desktop projects. Each screen is checked with `e2e/expect-accessible-screen.ts`, which runs axe and checks the 44 pixel touch targets that axe does not check. A test of the text of a screen runs in both languages, including error pages.
+- Every user flow has a browser test that runs on the phone and desktop projects. Each screen is checked with `e2e/expect-accessible-screen.ts`, which runs axe and checks the touch targets that axe does not check. A test of the text of a screen runs in both languages, including error pages.
 
 ### CI
 

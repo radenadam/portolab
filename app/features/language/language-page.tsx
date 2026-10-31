@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { data, redirect } from "react-router";
-import { ErrorPage } from "~/error-page";
+import { ErrorPage, PageTitle } from "~/error-page";
 import { writeLog } from "~/log.server";
 import { m } from "~/paraglide/messages.js";
 import { cookieMaxAge, cookieName } from "~/paraglide/runtime.js";
@@ -38,8 +38,8 @@ export default function LanguagePage({
   if (actionData === undefined) {
     return (
       <>
-        <title>{`${m.language_switch_label()} | ${m.app_name()}`}</title>
-        <h1>{m.language_switch_label()}</h1>
+        <PageTitle text={m.language_page_title()} />
+        <h1>{m.language_page_title()}</h1>
         <LanguageSwitch />
       </>
     );

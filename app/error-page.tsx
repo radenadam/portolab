@@ -8,12 +8,17 @@ interface ErrorPageProps {
   body: string;
 }
 
+/** The title of a page whose title depends on something that route meta cannot see, such as the result of an action or an error. */
+export function PageTitle({ text }: { text: string }): ReactNode {
+  return <title>{`${text} | ${m.app_name()}`}</title>;
+}
+
 /** A page that explains why the reader cannot see what they asked for, with a way back to the home page. */
 export function ErrorPage({ title, body }: ErrorPageProps): ReactNode {
   return (
     <>
       {/* An error page has no route meta, so it names itself. React places this title in the head. */}
-      <title>{`${title} | ${m.app_name()}`}</title>
+      <PageTitle text={title} />
       <h1>{title}</h1>
       <p>{body}</p>
       <Link to="/" className={styles["backHome"]}>

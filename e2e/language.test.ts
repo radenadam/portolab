@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
+import { switchToEnglish } from "./switch-to-english.ts";
 
 // The switch offers only the languages that Portolab has, so the test changes the value of one of its buttons in the page, as a forged form would. The script is a string because the browser runs it, and the tests are type checked without the types of the browser.
 async function sendUnknownLanguage(
@@ -32,9 +33,7 @@ test("rejects an unknown language on a page in Bahasa Indonesia", async ({
 });
 
 test("rejects an unknown language on a page in English", async ({ page }) => {
-  await page.goto("/");
-  await page.getByRole("button", { name: "English" }).click();
-  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  await switchToEnglish(page);
   await sendUnknownLanguage(page, "id", "Bahasa Indonesia");
   await expect(page).toHaveTitle(
     "The language could not be changed | Portolab",
@@ -50,11 +49,11 @@ test("shows the language switch on a plain visit of the language address", async
   page,
 }) => {
   await page.goto("/language");
-  await expect(page).toHaveTitle("Bahasa | Portolab");
+  await expect(page).toHaveTitle("Pilih bahasa | Portolab");
   await expect(
-    page.getByRole("heading", { level: 1, name: "Bahasa" }),
+    page.getByRole("heading", { level: 1, name: "Pilih bahasa" }),
   ).toBeVisible();
   await expectAccessibleScreen(page);
   await page.getByRole("button", { name: "English" }).click();
-  await expect(page).toHaveTitle("Language | Portolab");
+  await expect(page).toHaveTitle("Choose a language | Portolab");
 });
