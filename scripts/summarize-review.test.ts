@@ -157,11 +157,13 @@ test("fails when duplicates repeat no confirmed finding, with singular and plura
 test("fails when an input could not be read", () => {
   const outcome = summarizeReview({
     ...craftReview([], []),
-    inputProblems: ['findings-craft.json: finding 1 has no valid "claim".'],
+    inputProblems: [
+      "findings-craft.json: finding 1 must have a string at claim, but claim is missing.",
+    ],
   });
   expect(outcome.passed).toBe(false);
   expect(outcome.verdict).toBe(
-    'findings-craft.json: finding 1 has no valid "claim".',
+    "findings-craft.json: finding 1 must have a string at claim, but claim is missing.",
   );
 });
 
@@ -170,11 +172,11 @@ test("reports every input that could not be read", () => {
     ...craftReview([], []),
     inputProblems: [
       "EXPECTED_LENSES is empty or not set, so it holds no JSON.",
-      "review/verified.json is not a JSON object.",
+      "review/verified.json must be a JSON object, but it is [].",
     ],
   });
   expect(outcome.verdict).toBe(
-    "EXPECTED_LENSES is empty or not set, so it holds no JSON. review/verified.json is not a JSON object.",
+    "EXPECTED_LENSES is empty or not set, so it holds no JSON. review/verified.json must be a JSON object, but it is [].",
   );
   expect(outcome.body).toContain(outcome.verdict);
 });

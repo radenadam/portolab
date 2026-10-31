@@ -60,7 +60,7 @@ test("reads a JSON object and rejects a list", () => {
   );
   expect(parseJsonObject(["app_name"], "messages/en.json")).toEqual({
     ok: false,
-    failure: "messages/en.json is not a JSON object.",
+    failure: 'messages/en.json must be a JSON object, but it is ["app_name"].',
   });
 });
 
@@ -80,7 +80,7 @@ test("reads each item of a list field and names the position of an item that fai
   });
   expect(parseListField({}, "x.json", list)).toEqual({
     ok: false,
-    failure: 'x.json has no valid "words".',
+    failure: "x.json must have a list at words, but words is missing.",
   });
 });
 

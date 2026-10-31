@@ -21,8 +21,13 @@ export async function expectAccessibleScreen(page: Page): Promise<void> {
   for (const target of await targets.all()) {
     const box = (await target.isVisible()) ? await target.boundingBox() : null;
     if (box !== null && box.height < smallestTargetHeight) {
-      const text = await target.innerText();
-      smallTargets.push(`"${text}" is ${String(box.height)} pixels high.`);
+      // The opening tag names any target, including a form field that has no text. The script is a string because the browser runs it.
+      const openingTag: unknown = await target.evaluate(
+        "(element) => element.outerHTML.slice(0, element.outerHTML.indexOf('>') + 1)",
+      );
+      smallTargets.push(
+        `${String(openingTag)} is ${String(box.height)} pixels high.`,
+      );
     }
   }
   expect(smallTargets).toEqual([]);

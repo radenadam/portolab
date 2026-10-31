@@ -58,7 +58,8 @@ test("names the job when its result is missing", () => {
     ),
   ).toEqual({
     ok: false,
-    failure: 'PANEL_RESULTS: job lens has no valid "result".',
+    failure:
+      "PANEL_RESULTS: job lens must have a string at result, but result is missing.",
   });
 });
 
@@ -70,7 +71,8 @@ test("names the source and the field when a verdict is invalid", () => {
     ),
   ).toEqual({
     ok: false,
-    failure: 'verified.json: finding 1 has no valid "status".',
+    failure:
+      'verified.json: finding 1 must have one of confirmed, refuted, or duplicate at status, but status is "probably".',
   });
 });
 

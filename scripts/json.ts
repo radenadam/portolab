@@ -1,7 +1,7 @@
 import { errorMessage } from "../app/error-message.ts";
 import { fail, succeed } from "../app/result.ts";
-import { describeValue, isRecord, isStringArray } from "../app/value-shapes.ts";
 import type { Result } from "../app/result.ts";
+import { describeValue, isRecord, isStringArray } from "../app/value-shapes.ts";
 import { readTextFile } from "./read-text-file.ts";
 
 /** A parser at a boundary. Its caller supplies the source, which every failure text names. */
@@ -67,7 +67,11 @@ export function parseListField<Item>(
 ): Result<Item[], string> {
   const items = isRecord(value) ? value[list.field] : undefined;
   if (!Array.isArray(items)) {
-    return invalidField(source, list.field);
+    return invalidField(source, {
+      field: list.field,
+      expected: "a list",
+      value: items,
+    });
   }
   const parsedItems: Item[] = [];
   for (const [index, item] of items.entries()) {
@@ -120,16 +124,42 @@ export function parseJsonObject(
   value: unknown,
   source: string,
 ): Result<Record<string, unknown>, string> {
-  return isRecord(value) ? succeed(value) : notAnObject(source);
+  return isRecord(value) ? succeed(value) : notAnObject(source, value);
 }
 
-export function notAnObject(source: string): Result<never, string> {
-  return fail(`${source} is not a JSON object.`);
+export function notAnObject(
+  source: string,
+  value: unknown,
+): Result<never, string> {
+  return fail(
+    `${source} must be a JSON object, but it is ${describeValue(value)}.`,
+  );
+}
+
+interface FieldProblem {
+  field: string;
+  /** What the field must hold, such as "a string". */
+  expected: string;
+  value: unknown;
 }
 
 export function invalidField(
   source: string,
-  field: string,
+  problem: FieldProblem,
 ): Result<never, string> {
-  return fail(`${source} has no valid "${field}".`);
+  return fail(
+    `${source} must have ${problem.expected} at ${problem.field}, but ${problem.field} is ${describeValue(problem.value)}.`,
+  );
+}
+
+/** Reads a field of a JSON object that holds text. */
+export function parseStringField(
+  value: unknown,
+  source: string,
+  field: string,
+): Result<string, string> {
+  const fieldValue = isRecord(value) ? value[field] : undefined;
+  return typeof fieldValue === "string"
+    ? succeed(fieldValue)
+    : invalidField(source, { field, expected: "a string", value: fieldValue });
 }

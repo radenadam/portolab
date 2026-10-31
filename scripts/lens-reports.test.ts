@@ -41,7 +41,8 @@ test("names the source, the position, and the field when a finding of a lens is 
     ),
   ).toEqual({
     ok: false,
-    failure: 'LENS_OUTPUT: finding 2 has no valid "claim".',
+    failure:
+      "LENS_OUTPUT: finding 2 must have a string at claim, but claim is 7.",
   });
 });
 
@@ -57,7 +58,8 @@ test("rejects a saved report whose finding has no id", () => {
     ),
   ).toEqual({
     ok: false,
-    failure: 'findings-craft.json: finding 1 has no valid "id".',
+    failure:
+      "findings-craft.json: finding 1 must have a string at id, but id is missing.",
   });
 });
 
@@ -72,7 +74,7 @@ test("reads every report in a directory and names each file that fails", () => {
   expect(readLensReports(directory)).toEqual({
     reports: [report],
     problems: [
-      `${join(directory, "findings-docs.json")} is not a JSON object.`,
+      `${join(directory, "findings-docs.json")} must be a JSON object, but it is [].`,
     ],
   });
 });

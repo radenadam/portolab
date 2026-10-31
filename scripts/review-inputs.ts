@@ -5,6 +5,7 @@ import {
   invalidField,
   notAnObject,
   parseListField,
+  parseStringField,
   parseStringsAt,
 } from "./json.ts";
 import { parseReportedFinding } from "./lens-reports.ts";
@@ -26,18 +27,18 @@ export function parseJobResults(
   source: string,
 ): Result<Record<string, string>, string> {
   if (!isRecord(value)) {
-    return notAnObject(source);
+    return notAnObject(source, value);
   }
   if (Object.keys(value).length === 0) {
     return fail(`${source} names no jobs, so the panel cannot be judged.`);
   }
   const results: Record<string, string> = {};
   for (const [job, details] of Object.entries(value)) {
-    const result = isRecord(details) ? details["result"] : undefined;
-    if (typeof result !== "string") {
-      return invalidField(`${source}: job ${job}`, "result");
+    const result = parseStringField(details, `${source}: job ${job}`, "result");
+    if (!result.ok) {
+      return result;
     }
-    results[job] = result;
+    results[job] = result.value;
   }
   return succeed(results);
 }
@@ -47,7 +48,7 @@ export function parseVerifiedFindings(
   source: string,
 ): Result<VerifiedFinding[], string> {
   if (!isRecord(value)) {
-    return notAnObject(source);
+    return notAnObject(source, value);
   }
   return parseListField(value, source, {
     field: "findings",
@@ -78,21 +79,28 @@ function parseVerdict(
   Pick<VerifiedFinding, "status" | "duplicateOf" | "evidence">,
   string
 > {
-  if (!isRecord(value)) {
-    return notAnObject(source);
-  }
-  const { status, duplicateOf, evidence } = value;
+  const status = isRecord(value) ? value["status"] : undefined;
   const knownStatus = verdictStatuses.find((candidate) => candidate === status);
   if (knownStatus === undefined) {
-    return invalidField(source, "status");
+    return invalidField(source, {
+      field: "status",
+      expected: `one of ${listOfWords(verdictStatuses, "disjunction")}`,
+      value: status,
+    });
   }
-  if (typeof duplicateOf !== "string") {
-    return invalidField(source, "duplicateOf");
+  const duplicateOf = parseStringField(value, source, "duplicateOf");
+  if (!duplicateOf.ok) {
+    return duplicateOf;
   }
-  if (typeof evidence !== "string") {
-    return invalidField(source, "evidence");
+  const evidence = parseStringField(value, source, "evidence");
+  if (!evidence.ok) {
+    return evidence;
   }
-  return succeed({ status: knownStatus, duplicateOf, evidence });
+  return succeed({
+    status: knownStatus,
+    duplicateOf: duplicateOf.value,
+    evidence: evidence.value,
+  });
 }
 
 /** Reads the number of the pull request that the review is posted on. */

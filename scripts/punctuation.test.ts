@@ -151,6 +151,6 @@ test("rejects a dash in a message and names its key", () => {
 
 test("reports a messages file that is not a JSON object", () => {
   expect(punctuationProblems("messages/en.json", "[]", "messages")).toEqual([
-    "messages/en.json is not a JSON object.",
+    "messages/en.json must be a JSON object, but it is [].",
   ]);
 });

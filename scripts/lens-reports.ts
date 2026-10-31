@@ -2,11 +2,12 @@ import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
-import { isRecord, isStringArray } from "../app/value-shapes.ts";
+import { isRecord } from "../app/value-shapes.ts";
 import {
-  invalidField,
   notAnObject,
   parseListField,
+  parseStringField,
+  parseStringsAt,
   readJsonFile,
 } from "./json.ts";
 import type { Parser } from "./json.ts";
@@ -66,18 +67,18 @@ export function parseLensReport(
   source: string,
 ): Result<LensReport, string> {
   if (!isRecord(value)) {
-    return notAnObject(source);
+    return notAnObject(source, value);
   }
-  const { lens } = value;
-  if (typeof lens !== "string") {
-    return invalidField(source, "lens");
+  const lens = parseStringField(value, source, "lens");
+  if (!lens.ok) {
+    return lens;
   }
   const report = parseFindingsAndCandidates(
     value,
     source,
     parseReportedFinding,
   );
-  return report.ok ? succeed({ lens, ...report.value }) : report;
+  return report.ok ? succeed({ lens: lens.value, ...report.value }) : report;
 }
 
 /** Reads the findings and the candidate standards that both a lens answer and a saved report hold. Only the shape of one finding differs between them. */
@@ -90,7 +91,7 @@ function parseFindingsAndCandidates<Finding>(
   string
 > {
   if (!isRecord(value)) {
-    return notAnObject(source);
+    return notAnObject(source, value);
   }
   const findings = parseListField(value, source, {
     field: "findings",
@@ -115,21 +116,19 @@ export function parseReportedFinding(
   value: unknown,
   source: string,
 ): Result<ReportedFinding, string> {
-  if (!isRecord(value)) {
-    return notAnObject(source);
+  const id = parseStringField(value, source, "id");
+  if (!id.ok) {
+    return id;
   }
-  const { id, lens } = value;
-  if (typeof id !== "string") {
-    return invalidField(source, "id");
-  }
-  if (typeof lens !== "string") {
-    return invalidField(source, "lens");
+  const lens = parseStringField(value, source, "lens");
+  if (!lens.ok) {
+    return lens;
   }
   const content = parseFindingContent(value, source);
   if (!content.ok) {
     return content;
   }
-  return succeed({ ...content.value, id, lens });
+  return succeed({ ...content.value, id: id.value, lens: lens.value });
 }
 
 export interface LensReportsInDirectory {
@@ -159,25 +158,38 @@ function parseFindingContent(
   source: string,
 ): Result<FindingContent, string> {
   if (!isRecord(value)) {
-    return notAnObject(source);
+    return notAnObject(source, value);
   }
-  const { location, claim, basis, siblings, rootCause } = value;
-  if (typeof location !== "string") {
-    return invalidField(source, "location");
+  const location = parseStringField(value, source, "location");
+  if (!location.ok) {
+    return location;
   }
-  if (typeof claim !== "string") {
-    return invalidField(source, "claim");
+  const claim = parseStringField(value, source, "claim");
+  if (!claim.ok) {
+    return claim;
   }
-  if (typeof basis !== "string") {
-    return invalidField(source, "basis");
+  const basis = parseStringField(value, source, "basis");
+  if (!basis.ok) {
+    return basis;
   }
-  if (!isStringArray(siblings)) {
-    return invalidField(source, "siblings");
+  const siblings = parseStringsAt(value, source, {
+    keys: ["siblings"],
+    mayBeEmpty: true,
+  });
+  if (!siblings.ok) {
+    return siblings;
   }
-  if (typeof rootCause !== "string") {
-    return invalidField(source, "rootCause");
+  const rootCause = parseStringField(value, source, "rootCause");
+  if (!rootCause.ok) {
+    return rootCause;
   }
-  return succeed({ location, claim, basis, siblings, rootCause });
+  return succeed({
+    location: location.value,
+    claim: claim.value,
+    basis: basis.value,
+    siblings: siblings.value,
+    rootCause: rootCause.value,
+  });
 }
 
 function parseCandidateStandards(
@@ -195,15 +207,13 @@ function parseCandidateStandard(
   value: unknown,
   source: string,
 ): Result<CandidateStandard, string> {
-  if (!isRecord(value)) {
-    return notAnObject(source);
+  const standard = parseStringField(value, source, "standard");
+  if (!standard.ok) {
+    return standard;
   }
-  const { standard, incident } = value;
-  if (typeof standard !== "string") {
-    return invalidField(source, "standard");
+  const incident = parseStringField(value, source, "incident");
+  if (!incident.ok) {
+    return incident;
   }
-  if (typeof incident !== "string") {
-    return invalidField(source, "incident");
-  }
-  return succeed({ standard, incident });
+  return succeed({ standard: standard.value, incident: incident.value });
 }
