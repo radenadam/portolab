@@ -4,7 +4,7 @@ import {
   invalidField,
   isRecord,
   isStringArray,
-  notAnObject,
+  parseJsonObject,
   readJsonFile,
 } from "./json.ts";
 import { listOfWords } from "./sentences.ts";
@@ -24,14 +24,7 @@ export function parseLocales(
 export function readMessages(
   path: string,
 ): Result<Record<string, unknown>, string> {
-  return readJsonFile(path, parseMessages);
-}
-
-export function parseMessages(
-  value: unknown,
-  source: string,
-): Result<Record<string, unknown>, string> {
-  return isRecord(value) ? succeed(value) : notAnObject(source);
+  return readJsonFile(path, parseJsonObject);
 }
 
 /** Returns the keys of the messages in one language file, without the key that names the file's schema. */

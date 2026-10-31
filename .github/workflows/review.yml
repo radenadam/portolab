@@ -89,10 +89,13 @@ jobs:
         id: definition
         env:
           DEFINITION: .claude/agents/review-${{ matrix.lens }}.md
+        # The two inputs are independent, so both scripts run before the step stops, and the log names every failure.
         run: |
-          tools=$(node scripts/read-agent-tools.ts "$DEFINITION")
+          failed=0
+          tools=$(node scripts/read-agent-tools.ts "$DEFINITION") || failed=1
+          schema=$(node scripts/print-schema.ts .github/review/lens-report.schema.json) || failed=1
+          if [ "$failed" -ne 0 ]; then exit 1; fi
           echo "tools=${tools}" >> "$GITHUB_OUTPUT"
-          schema=$(node scripts/print-schema.ts .github/review/lens-report.schema.json)
           echo "schema=${schema}" >> "$GITHUB_OUTPUT"
       - name: Review through the lens
         id: lens
@@ -149,12 +152,15 @@ jobs:
         id: definition
         env:
           DEFINITION: .claude/agents/review-verifier.md
+        # The three inputs are independent, so every script runs before the step stops, and the log names every failure.
         run: |
-          tools=$(node scripts/read-agent-tools.ts "$DEFINITION")
+          failed=0
+          tools=$(node scripts/read-agent-tools.ts "$DEFINITION") || failed=1
+          total=$(node scripts/count-findings.ts) || failed=1
+          schema=$(node scripts/print-schema.ts .github/review/verified-findings.schema.json) || failed=1
+          if [ "$failed" -ne 0 ]; then exit 1; fi
           echo "tools=${tools}" >> "$GITHUB_OUTPUT"
-          total=$(node scripts/count-findings.ts)
           echo "total=${total}" >> "$GITHUB_OUTPUT"
-          schema=$(node scripts/print-schema.ts .github/review/verified-findings.schema.json)
           echo "schema=${schema}" >> "$GITHUB_OUTPUT"
       - name: Verify the findings
         id: verifier

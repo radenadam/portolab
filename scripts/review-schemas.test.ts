@@ -1,11 +1,10 @@
 import { readdirSync } from "node:fs";
 import { expect, test } from "vitest";
-import { readJsonFile } from "./json.ts";
+import { parseJsonObject, readJsonFile } from "./json.ts";
 import { parseLensOutput } from "./lens-reports.ts";
 import { parseVerifiedFindings, verdictStatuses } from "./review-inputs.ts";
 import {
   parseRouteSchemaLenses,
-  parseSchema,
   parseSchemaStrings,
   reviewSchemaPaths,
 } from "./review-schemas.ts";
@@ -155,12 +154,8 @@ test("names the path of keys when a schema has no list there", () => {
   });
 });
 
-test("reads every schema of the review as an object and rejects anything else", () => {
+test("reads every schema of the review as an object", () => {
   for (const schemaPath of Object.values(reviewSchemaPaths)) {
-    expect(readJsonFile(schemaPath, parseSchema).ok, schemaPath).toBe(true);
+    expect(readJsonFile(schemaPath, parseJsonObject).ok, schemaPath).toBe(true);
   }
-  expect(parseSchema([], "route.schema.json")).toEqual({
-    ok: false,
-    failure: "route.schema.json is not a JSON object.",
-  });
 });

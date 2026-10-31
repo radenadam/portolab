@@ -3,7 +3,6 @@ import {
   messageKeyProblems,
   messageKeys,
   parseLocales,
-  parseMessages,
   readMessages,
 } from "./messages.ts";
 
@@ -72,13 +71,6 @@ test("lists the message keys without the schema key", () => {
 test("reads a language file of messages", () => {
   const messages = readMessages("messages/en.json");
   expect(messages.ok && messages.value["app_name"]).toBe("Portolab");
-});
-
-test("rejects messages that are not a JSON object", () => {
-  expect(parseMessages(["app_name"], "messages/en.json")).toEqual({
-    ok: false,
-    failure: "messages/en.json is not a JSON object.",
-  });
 });
 
 test("reports a messages file that cannot be read", () => {

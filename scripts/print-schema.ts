@@ -1,6 +1,5 @@
 import { exitWithFailure } from "../app/exit-with-failure.server.ts";
-import { readJsonFile } from "./json.ts";
-import { parseSchema } from "./review-schemas.ts";
+import { parseJsonObject, readJsonFile } from "./json.ts";
 import { writeScriptFailure } from "./write-script-failure.ts";
 
 const schemaPath = process.argv[2];
@@ -10,7 +9,7 @@ if (schemaPath === undefined) {
     writeScriptFailure,
   );
 }
-const schema = readJsonFile(schemaPath, parseSchema);
+const schema = readJsonFile(schemaPath, parseJsonObject);
 if (!schema.ok) {
   exitWithFailure([schema.failure], writeScriptFailure);
 }

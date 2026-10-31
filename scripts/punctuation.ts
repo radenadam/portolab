@@ -1,7 +1,6 @@
 import ts from "typescript";
 import { CST, Lexer } from "yaml";
-import { parseJsonWith } from "./json.ts";
-import { parseMessages } from "./messages.ts";
+import { parseJsonObject, parseJsonWith } from "./json.ts";
 
 // Prose connects ideas with words, so these characters never join clauses. AGENTS.md states the rule.
 const dashes = [
@@ -48,7 +47,7 @@ export function punctuationProblems(
     return linesWithForbidden(file, withoutCode(text), [...dashes, semicolon]);
   }
   if (kind === "messages") {
-    const messages = parseJsonWith(text, file, parseMessages);
+    const messages = parseJsonWith(text, file, parseJsonObject);
     return messages.ok
       ? messageProblems(file, messages.value)
       : [messages.failure];

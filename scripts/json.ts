@@ -18,7 +18,9 @@ export function parseJsonText(
     return fail(`${source} is empty or not set, so it holds no JSON.`);
   }
   if (typeof value !== "string") {
-    return fail(`${source} must be JSON text, but it is a ${typeof value}.`);
+    return fail(
+      `${source} must be JSON text, but it holds a value of type ${value === null ? "null" : typeof value}.`,
+    );
   }
   try {
     const parsed: unknown = JSON.parse(value);
@@ -78,6 +80,14 @@ export function parseListField<Item>(
     parsedItems.push(parsedItem.value);
   }
   return succeed(parsedItems);
+}
+
+/** Reads a JSON object whose fields its caller reads later, such as a file of messages or a schema. */
+export function parseJsonObject(
+  value: unknown,
+  source: string,
+): Result<Record<string, unknown>, string> {
+  return isRecord(value) ? succeed(value) : notAnObject(source);
 }
 
 export function notAnObject(source: string): Result<never, string> {

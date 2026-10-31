@@ -1,7 +1,12 @@
 import { expect, test } from "vitest";
 import { fail, succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
-import { parseJsonText, parseListField, readJsonFile } from "./json.ts";
+import {
+  parseJsonObject,
+  parseJsonText,
+  parseListField,
+  readJsonFile,
+} from "./json.ts";
 
 test("keeps the parser's reason when the text is not valid JSON", () => {
   const result = parseJsonText("{bad", "PANEL_RESULTS");
@@ -33,10 +38,31 @@ test("fails when an environment variable that should hold JSON is empty or not s
   expect(parseJsonText("", "PANEL_RESULTS")).toEqual(expected);
 });
 
-test("rejects a value that is not text", () => {
+test("rejects a value that is not text and names its type", () => {
   expect(parseJsonText(42, "PANEL_RESULTS")).toEqual({
     ok: false,
-    failure: "PANEL_RESULTS must be JSON text, but it is a number.",
+    failure:
+      "PANEL_RESULTS must be JSON text, but it holds a value of type number.",
+  });
+  expect(parseJsonText({}, "PANEL_RESULTS")).toEqual({
+    ok: false,
+    failure:
+      "PANEL_RESULTS must be JSON text, but it holds a value of type object.",
+  });
+  expect(parseJsonText(null, "PANEL_RESULTS")).toEqual({
+    ok: false,
+    failure:
+      "PANEL_RESULTS must be JSON text, but it holds a value of type null.",
+  });
+});
+
+test("reads a JSON object and rejects a list", () => {
+  expect(parseJsonObject({ app_name: "Portolab" }, "messages/en.json")).toEqual(
+    { ok: true, value: { app_name: "Portolab" } },
+  );
+  expect(parseJsonObject(["app_name"], "messages/en.json")).toEqual({
+    ok: false,
+    failure: "messages/en.json is not a JSON object.",
   });
 });
 

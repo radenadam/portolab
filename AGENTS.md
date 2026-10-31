@@ -95,7 +95,7 @@ These apply to all prose: docs, comments, commit messages, pull requests, issues
 - Tests exercise behavior through exported functions, not internals.
 - A test name starts with the verb of the behavior it checks, such as "rejects" or "fails when".
 - When two definitions must agree, such as a schema and its parser, or the lens names in `.github/review/route.schema.json` and the files in `.claude/agents/`, a test checks that they agree through the code that uses them, not through a copy of their data.
-- A test of generated text checks the whole sentence for each case that changes its grammar, such as one item and several items.
+- A test of generated text checks the whole sentence for each case that changes its grammar, such as one item and several items, or a word that takes "a" and one that takes "an".
 - Every check is tested. A check script keeps the logic that chooses and judges its input in a module with tests beside it, and a lint rule is tested through ESLint itself. The tests cover input that the check must accept, files in every place it must reach, such as dot folders, and every form of code that can break the standard it enforces. For a rule that finds functions by name, that is every kind of code that binds a function to a name: declarations, variables, assignments, named function expressions, object properties, class methods and fields, and the same forms in types.
 - Every calculation of money or of a measure is tested against expected values computed independently, for example in a spreadsheet, and the test names that source.
 - Every user flow has a browser test that runs on the phone and desktop projects and checks accessibility with axe.

@@ -1,6 +1,6 @@
 import { fail, succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
-import { isRecord, isStringArray, notAnObject } from "./json.ts";
+import { isRecord, isStringArray } from "./json.ts";
 
 /** The schemas that define the answers of the agents in the review workflow. */
 export const reviewSchemaPaths = {
@@ -35,12 +35,4 @@ export function parseRouteSchemaLenses(
     "items",
     "enum",
   ]);
-}
-
-/** Reads a schema as an object, so that it can be passed on to an agent as one line of JSON. */
-export function parseSchema(
-  value: unknown,
-  source: string,
-): Result<Record<string, unknown>, string> {
-  return isRecord(value) ? succeed(value) : notAnObject(source);
 }
