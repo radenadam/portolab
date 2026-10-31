@@ -14,21 +14,17 @@ export function parseJsonText(
   value: unknown,
   source: string,
 ): Result<unknown, string> {
-  // GitHub Actions sets an environment variable to an empty string when the expression behind it is empty, so both cases mean that the input never arrived.
-  if (value === undefined || value === "") {
-    return fail(`${source} is empty or not set, so it holds no JSON.`);
-  }
-  if (typeof value !== "string") {
-    return fail(
-      `${source} must be JSON text, but it is ${describeValue(value)}.`,
-    );
+  // GitHub Actions sets an environment variable to an empty string when the expression behind it is empty, so an empty value means that the input never arrived.
+  if (typeof value !== "string" || value === "") {
+    const given = value === "" ? "empty" : describeValue(value);
+    return fail(`${source} must be JSON text, but it is ${given}.`);
   }
   try {
     const parsed: unknown = JSON.parse(value);
     return succeed(parsed);
   } catch (error) {
     return fail(
-      `${source} is not valid JSON. The parser reported: ${errorMessage(error)}`,
+      `${source} must be valid JSON, but it is not. The parser reported: ${errorMessage(error)}`,
     );
   }
 }

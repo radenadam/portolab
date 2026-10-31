@@ -33,7 +33,7 @@ test("rejects a field that holds a file instead of text in Bahasa Indonesia", ()
   expect(parseLocale(new File([], "locale.txt"), "locale")).toEqual({
     ok: false,
     failure:
-      "Formulir mengirim sesuatu yang bukan teks di kolom locale. Pilih Bahasa Indonesia atau English di pengalih bahasa.",
+      "Formulir mengirim nilai bertipe File di kolom locale, bukan teks. Pilih Bahasa Indonesia atau English di pengalih bahasa.",
   });
 });
 
@@ -52,6 +52,6 @@ test("rejects an unknown or missing language in English", () => {
   expect(parseLocale(new File([], "locale.txt"), "locale")).toEqual({
     ok: false,
     failure:
-      "The form sent something other than text in the field locale. Choose Bahasa Indonesia or English in the language switch.",
+      "The form sent a value of type File in the field locale instead of text. Choose Bahasa Indonesia or English in the language switch.",
   });
 });

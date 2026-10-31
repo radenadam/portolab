@@ -30,7 +30,9 @@ export function parseJobResults(
     return notAnObject(source, value);
   }
   if (Object.keys(value).length === 0) {
-    return fail(`${source} names no jobs, so the panel cannot be judged.`);
+    return fail(
+      `${source} must name at least one job, but it is ${describeValue(value)}.`,
+    );
   }
   const results: Record<string, string> = {};
   for (const [job, details] of Object.entries(value)) {
@@ -187,7 +189,7 @@ export function parseAgentTools(
   return /^[A-Za-z]+(,[A-Za-z]+)*$/.test(tools)
     ? succeed(tools)
     : fail(
-        `${source} must list its tools on one line that starts with "tools: ", separated by commas.`,
+        `${source} must list its tools on one line that starts with "tools: ", separated by commas, but that list is ${describeValue(line)}.`,
       );
 }
 

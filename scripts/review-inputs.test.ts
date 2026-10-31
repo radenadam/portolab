@@ -46,7 +46,7 @@ test("reads job results and refuses an empty needs context", () => {
   ).toEqual({ ok: true, value: { route: "success", lens: "failure" } });
   expect(parseJobResults({}, "PANEL_RESULTS")).toEqual({
     ok: false,
-    failure: "PANEL_RESULTS names no jobs, so the panel cannot be judged.",
+    failure: "PANEL_RESULTS must name at least one job, but it is {}.",
   });
 });
 
@@ -196,10 +196,15 @@ test("reads the tools of every agent definition in the repository", () => {
   }
 });
 
-test("rejects an agent definition without a tools line", () => {
+test("rejects an agent definition without a tools line or with a wrong list", () => {
   expect(parseAgentTools("---\nname: x\n---", "x.md")).toEqual({
     ok: false,
     failure:
-      'x.md must list its tools on one line that starts with "tools: ", separated by commas.',
+      'x.md must list its tools on one line that starts with "tools: ", separated by commas, but that list is missing.',
+  });
+  expect(parseAgentTools("tools: Read, Grep!", "x.md")).toEqual({
+    ok: false,
+    failure:
+      'x.md must list its tools on one line that starts with "tools: ", separated by commas, but that list is "Read, Grep!".',
   });
 });

@@ -12,7 +12,8 @@ test("accepts a path on this site with its query and fragment", () => {
 test("rejects a missing path and names the field", () => {
   expect(parseReturnPath(null, "returnTo", siteOrigin)).toEqual({
     ok: false,
-    failure: "returnTo is missing from the form.",
+    failure:
+      "returnTo must be a path on this site, such as /prices, but it is missing.",
   });
 });
 
@@ -21,7 +22,8 @@ test("rejects a field that holds a file instead of text and names its type", () 
     parseReturnPath(new File([], "return.txt"), "returnTo", siteOrigin),
   ).toEqual({
     ok: false,
-    failure: "returnTo must be text, but it is a value of type File.",
+    failure:
+      "returnTo must be a path on this site, such as /prices, but it is a value of type File.",
   });
 });
 

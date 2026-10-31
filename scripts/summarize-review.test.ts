@@ -171,12 +171,12 @@ test("reports every input that could not be read", () => {
   const outcome = summarizeReview({
     ...craftReview([], []),
     inputProblems: [
-      "EXPECTED_LENSES is empty or not set, so it holds no JSON.",
+      "EXPECTED_LENSES must be JSON text, but it is empty.",
       "review/verified.json must be a JSON object, but it is [].",
     ],
   });
   expect(outcome.verdict).toBe(
-    "EXPECTED_LENSES is empty or not set, so it holds no JSON. review/verified.json must be a JSON object, but it is [].",
+    "EXPECTED_LENSES must be JSON text, but it is empty. review/verified.json must be a JSON object, but it is [].",
   );
   expect(outcome.body).toContain(outcome.verdict);
 });

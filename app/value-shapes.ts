@@ -10,9 +10,16 @@ export function describeValue(value: unknown): string {
   }
   // JSON shows a class instance, such as a file from a form, as {}, so such a value is named by its class.
   if (isRecord(value) && Object.getPrototypeOf(value) !== Object.prototype) {
-    return `a value of type ${value.constructor.name}`;
+    return `a value of type ${typeName(value)}`;
   }
   return JSON.stringify(value);
+}
+
+/** Names the type of a value, such as "number" for 7 or "File" for a file from a form. */
+export function typeName(value: unknown): string {
+  return isRecord(value) && Object.getPrototypeOf(value) !== Object.prototype
+    ? value.constructor.name
+    : typeof value;
 }
 
 export function isStringArray(value: unknown): value is string[] {

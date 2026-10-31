@@ -8,11 +8,8 @@ export function parseReturnPath(
   source: string,
   siteOrigin: string,
 ): Result<string, string> {
-  if (value === null || value === undefined) {
-    return fail(`${source} is missing from the form.`);
-  }
   if (typeof value !== "string") {
-    return fail(`${source} must be text, but it is ${describeValue(value)}.`);
+    return returnPathFailure(value, source);
   }
   // The URL parser resolves the value the way a browser does, so a value that only looks like a local path, such as one with a tab after its slash, still fails.
   const url = URL.parse(value, siteOrigin);
@@ -23,7 +20,16 @@ export function parseReturnPath(
       return succeed(path);
     }
   }
+  return returnPathFailure(value, source);
+}
+
+function returnPathFailure(
+  value: unknown,
+  source: string,
+): Result<never, string> {
+  // A form gives null for a field that it did not send.
+  const given = value === null ? "missing" : describeValue(value);
   return fail(
-    `${source} must be a path on this site, such as /prices, but it is ${describeValue(value)}.`,
+    `${source} must be a path on this site, such as /prices, but it is ${given}.`,
   );
 }

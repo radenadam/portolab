@@ -1,5 +1,10 @@
 import { expect, test } from "vitest";
-import { describeValue, isRecord, isStringArray } from "./value-shapes";
+import {
+  describeValue,
+  isRecord,
+  isStringArray,
+  typeName,
+} from "./value-shapes";
 
 test("describes a missing value as missing and any other value as JSON", () => {
   expect(describeValue(undefined)).toBe("missing");
@@ -13,6 +18,12 @@ test("names a value that JSON cannot show by its class", () => {
   expect(describeValue(new File([], "return.txt"))).toBe(
     "a value of type File",
   );
+});
+
+test("names the type of a value by its class or by typeof", () => {
+  expect(typeName(new File([], "locale.txt"))).toBe("File");
+  expect(typeName(7)).toBe("number");
+  expect(typeName({ lens: "craft" })).toBe("object");
 });
 
 test("accepts an object with fields and rejects null and lists", () => {
