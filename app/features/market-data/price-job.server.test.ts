@@ -12,9 +12,11 @@ import {
 import { trackedInstruments } from "./tracked-instruments";
 
 const failingSource: PriceSource = {
+  ...fixturePriceSource,
   fetchQuotes: () => Promise.resolve(fail("Yahoo Finance did not answer.")),
 };
 const emptySource: PriceSource = {
+  ...fixturePriceSource,
   fetchQuotes: () =>
     Promise.resolve(
       succeed({
@@ -24,10 +26,12 @@ const emptySource: PriceSource = {
     ),
 };
 const throwingSource: PriceSource = {
+  ...fixturePriceSource,
   fetchQuotes: () => Promise.reject(new Error("The network is down.")),
 };
 // Answers like the fixture source, but without BBRI and TLKM.
 const partialSource: PriceSource = {
+  ...fixturePriceSource,
   fetchQuotes: async (instruments, signal) => {
     const answer = await fixturePriceSource.fetchQuotes(instruments, signal);
     if (!answer.ok) {
@@ -107,6 +111,7 @@ test("counts a failure, an answer without a usable quote, and a thrown error as 
 test("records a failure when the job stops waiting for the price source", async () => {
   const database = openTestDatabase();
   const stalledSource: PriceSource = {
+    ...fixturePriceSource,
     fetchQuotes: (_instruments, signal) =>
       new Promise((resolve) => {
         signal.addEventListener("abort", () => {
@@ -147,6 +152,7 @@ test("runs one more update right after the current one when asked during it, and
   let running = 0;
   let mostAtOnce = 0;
   const slowSource: PriceSource = {
+    ...fixturePriceSource,
     fetchQuotes: async (instruments, signal) => {
       running += 1;
       mostAtOnce = Math.max(mostAtOnce, running);

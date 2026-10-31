@@ -1,6 +1,7 @@
 import { succeed } from "~/result";
 import { rupiah } from "~/units/rupiah";
 import type { PriceSource, Quote } from "./price-source.server";
+import { yahooFinance } from "./yahoo-price-source.server";
 
 // The closing quotes of 30 October 2026, as Yahoo Finance returned them on 31 October 2026. Browser tests use this source, so they never depend on the network.
 const fixtureQuotes: Quote[] = [
@@ -18,7 +19,9 @@ const fixtureQuotes: Quote[] = [
   stockQuote("ASII", [4800, 4690], "2026-10-30T09:14:58.000Z"),
 ];
 
+// The quotes are answers of Yahoo Finance, so the source describes itself as Yahoo Finance.
 export const fixturePriceSource: PriceSource = {
+  ...yahooFinance,
   fetchQuotes(instruments) {
     const quotes = fixtureQuotes.filter((quote) =>
       instruments.some((instrument) => instrument.code === quote.code),

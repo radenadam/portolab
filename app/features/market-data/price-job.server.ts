@@ -27,13 +27,14 @@ export function startPriceJob(settings: PriceJobSettings): () => void {
   void updatePrices();
   const job = new Cron("* * * * *", async () => {
     const now = new Date();
-    const updateTime = isPriceUpdateTime(now);
+    const { delayMinutes } = settings.priceSource;
+    const updateTime = isPriceUpdateTime(now, delayMinutes);
     // The log asks once for the calendar of a year that no calendar covers.
     if (!updateTime.ok && updateTime.failure !== lastCalendarWarning) {
       lastCalendarWarning = updateTime.failure;
       writeLog("warning", updateTime.failure);
     }
-    if (isUpdateMinute(now)) {
+    if (isUpdateMinute(now, delayMinutes)) {
       await updatePrices();
     }
   });

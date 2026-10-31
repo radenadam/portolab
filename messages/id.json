@@ -17,7 +17,7 @@
   "app_back_home_link": "Kembali ke beranda",
   "home_prices_link": "Lihat harga saham",
   "market_data_page_title": "Harga saham",
-  "market_data_delay_notice": "Harga tertunda sekitar {minutes} menit dan berasal dari Yahoo Finance. Harga terakhir tercatat pada {time} WIB.",
+  "market_data_delay_notice": "Harga tertunda sekitar {minutes} menit dan berasal dari {source}. Harga terakhir tercatat pada {time} WIB.",
   "market_data_empty_body": "Portolab sedang mengambil harga pertamanya. Muat ulang halaman ini sebentar lagi untuk melihatnya.",
   "market_data_code_label": "Kode",
   "market_data_last_label": "Harga terakhir",

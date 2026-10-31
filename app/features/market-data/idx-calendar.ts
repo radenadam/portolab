@@ -1,7 +1,6 @@
 import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
 import { wibOffsetHours } from "~/wib";
-import { priceDelayMinutes } from "./price-delay-minutes";
 
 /** The trading days and hours of IDX for the dates from `from` to `until`, in WIB. */
 interface TradingCalendar {
@@ -79,8 +78,11 @@ const tradingCalendars: readonly TradingCalendar[] = [
 
 const wibOffsetMilliseconds = wibOffsetHours * 60 * 60 * 1000;
 
-/** Whether delayed prices can still change at this moment, so that fetching them is worthwhile. It fails for a date that no calendar covers, so a missing year is noticed instead of every weekday counting as a trading day. */
-export function isPriceUpdateTime(moment: Date): Result<boolean, string> {
+/** Whether prices that lag behind the exchange by this many minutes can still change at this moment, so that fetching them is worthwhile. It fails for a date that no calendar covers, so a missing year is noticed instead of every weekday counting as a trading day. */
+export function isPriceUpdateTime(
+  moment: Date,
+  delayMinutes: number,
+): Result<boolean, string> {
   const wib = toWibClock(moment);
   const calendar = calendarFor(wib);
   if (!calendar.ok) {
@@ -91,7 +93,7 @@ export function isPriceUpdateTime(moment: Date): Result<boolean, string> {
   return succeed(
     isTradingDayIn(calendar.value, wib) &&
       minuteOfDay >= calendar.value.sessionStartMinute &&
-      minuteOfDay <= calendar.value.sessionEndMinute + priceDelayMinutes,
+      minuteOfDay <= calendar.value.sessionEndMinute + delayMinutes,
   );
 }
 

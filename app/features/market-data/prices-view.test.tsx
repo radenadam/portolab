@@ -4,7 +4,7 @@ import { languageNames } from "~/language-names";
 import { locales } from "~/paraglide/runtime.js";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
 import { rupiah } from "~/units/rupiah";
-import type { Quote } from "./price-source.server";
+import type { PriceSourceDescription, Quote } from "./price-source.server";
 import { PricesView } from "./prices-view";
 import type { UpdateAttempt } from "./quote-store.server";
 
@@ -65,6 +65,11 @@ function partialAttempt(failedCodes: string[]): UpdateAttempt {
     failedCodes,
   };
 }
+
+const yahooFinance: PriceSourceDescription = {
+  name: "Yahoo Finance",
+  delayMinutes: 10,
+};
 
 const halfMinuteAfterFailure = new Date("2026-10-30T09:30:30.000Z");
 const halfMinuteAfterPartialAttempt = new Date("2026-10-30T07:00:30.000Z");
@@ -256,6 +261,7 @@ for (const state of states) {
           quotes={state.quotes}
           latestAttempt={state.latestAttempt}
           now={state.now}
+          source={yahooFinance}
         />,
       );
       expect(html).toContain(state.shows[language]);
@@ -278,6 +284,7 @@ for (const language of locales) {
         quotes={quotes}
         latestAttempt={succeededAttempt}
         now={halfMinuteAfterFailure}
+        source={yahooFinance}
       />,
     );
     expect(html).toContain(quoteTimes[language].otherDay);
@@ -370,6 +377,7 @@ for (const failureKind of failureKinds) {
               failedCodes: failureKind.failedCodes,
             }}
             now={new Date(Date.parse(scheduleState.attemptedAt) + 30_000)}
+            source={yahooFinance}
           />,
         );
         const nextTime = failureKind.succeeded
@@ -379,4 +387,29 @@ for (const failureKind of failureKinds) {
       });
     }
   }
+}
+
+// A licensed source with another name and a longer delay.
+const licensedSource: PriceSourceDescription = {
+  name: "Data Berlisensi",
+  delayMinutes: 15,
+};
+const licensedDelayNotices = {
+  id: "Harga tertunda sekitar 15 menit dan berasal dari Data Berlisensi. Harga terakhir tercatat pada 30 Okt 2026, 16.14 WIB.",
+  en: "Prices are delayed by about 15 minutes and come from Data Berlisensi. The latest price was recorded at Oct 30, 2026, 4:14 PM WIB.",
+};
+
+for (const language of locales) {
+  test(`names the source of the prices and its delay in ${languageNames[language]}`, () => {
+    switchLocaleForTest(language);
+    const html = renderToStaticMarkup(
+      <PricesView
+        quotes={quotes}
+        latestAttempt={succeededAttempt}
+        now={halfMinuteAfterFailure}
+        source={licensedSource}
+      />,
+    );
+    expect(html).toContain(licensedDelayNotices[language]);
+  });
 }

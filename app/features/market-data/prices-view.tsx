@@ -10,8 +10,7 @@ import {
 } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { isSameWibDay } from "./idx-calendar";
-import { priceDelayMinutes } from "./price-delay-minutes";
-import type { Quote } from "./price-source.server";
+import type { PriceSourceDescription, Quote } from "./price-source.server";
 import styles from "./prices-view.module.css";
 import { quoteChange } from "./quote-change";
 import type { UpdateAttempt } from "./quote-store.server";
@@ -22,6 +21,7 @@ interface PricesViewProps {
   latestAttempt: UpdateAttempt | undefined;
   /** The moment that the page shows, which decides whether the next attempt is still to come. */
   now: Date;
+  source: PriceSourceDescription;
 }
 
 /** The table of the latest delayed prices, with the delay and, when the latest attempt could not update some prices or all, which ones and when the job tries again. */
@@ -29,6 +29,7 @@ export function PricesView({
   quotes,
   latestAttempt,
   now,
+  source,
 }: PricesViewProps): ReactNode {
   const latestQuotedAt = latestQuoteTime(quotes);
   return (
@@ -41,7 +42,7 @@ export function PricesView({
                 m.market_data_empty_failed_body({
                   time: formatMarketTime(latestAttempt.attemptedAt),
                 }),
-                nextAttemptSentence(latestAttempt, now),
+                nextAttemptSentence(latestAttempt, now, source.delayMinutes),
               ].join(" ")
             : m.market_data_empty_body()}
         </p>
@@ -50,12 +51,16 @@ export function PricesView({
           {latestAttempt !== undefined &&
             latestAttempt.failedCodes.length > 0 && (
               <p className={styles["notice"]}>
-                {updateFailureNotice(latestAttempt, quotes, now)}
+                {[
+                  ...failedPriceSentences(latestAttempt, quotes),
+                  nextAttemptSentence(latestAttempt, now, source.delayMinutes),
+                ].join(" ")}
               </p>
             )}
           <p className={styles["notice"]}>
             {m.market_data_delay_notice({
-              minutes: formatNumber(priceDelayMinutes),
+              minutes: formatNumber(source.delayMinutes),
+              source: source.name,
               time: formatMarketTime(latestQuotedAt),
             })}
           </p>
@@ -85,11 +90,10 @@ export function PricesView({
 }
 
 // A price that the attempt could not update has a row with an older price, or no row when Portolab never stored one, and each case has its own sentence.
-function updateFailureNotice(
+function failedPriceSentences(
   attempt: UpdateAttempt,
   quotes: readonly Quote[],
-  now: Date,
-): string {
+): string[] {
   const time = formatMarketTime(attempt.attemptedAt);
   const staleCodes: string[] = [];
   const missingCodes: string[] = [];
@@ -104,28 +108,43 @@ function updateFailureNotice(
   if (!attempt.succeeded) {
     sentences.push(m.market_data_update_failed_notice({ time }));
   } else if (staleCodes.length > 0) {
-    const codes = formatList(staleCodes);
     sentences.push(
-      staleCodes.length === 1
-        ? m.market_data_one_stale_price_notice({ codes, time })
-        : m.market_data_several_stale_prices_notice({ codes, time }),
+      sentenceForCodes(staleCodes, time, {
+        one: m.market_data_one_stale_price_notice,
+        several: m.market_data_several_stale_prices_notice,
+      }),
     );
   }
   if (missingCodes.length > 0) {
-    const codes = formatList(missingCodes);
     sentences.push(
-      missingCodes.length === 1
-        ? m.market_data_one_missing_price_notice({ codes, time })
-        : m.market_data_several_missing_prices_notice({ codes, time }),
+      sentenceForCodes(missingCodes, time, {
+        one: m.market_data_one_missing_price_notice,
+        several: m.market_data_several_missing_prices_notice,
+      }),
     );
   }
-  sentences.push(nextAttemptSentence(attempt, now));
-  return sentences.join(" ");
+  return sentences;
+}
+
+type CodesMessage = (inputs: { codes: string; time: string }) => string;
+
+// A sentence that names prices has one form for a single code and another for several, because English changes its grammar between them.
+function sentenceForCodes(
+  codes: readonly string[],
+  time: string,
+  messages: { one: CodesMessage; several: CodesMessage },
+): string {
+  const inputs = { codes: formatList(codes), time };
+  return codes.length === 1 ? messages.one(inputs) : messages.several(inputs);
 }
 
 // The time comes from the schedule that the job follows, so the page never promises an attempt that the job does not make. Once that time has come, the job is making the attempt, because the page shows the latest attempt that the job finished.
-function nextAttemptSentence(attempt: UpdateAttempt, now: Date): string {
-  const nextAttempt = nextScheduledAttempt(attempt);
+function nextAttemptSentence(
+  attempt: UpdateAttempt,
+  now: Date,
+  delayMinutes: number,
+): string {
+  const nextAttempt = nextScheduledAttempt(attempt, delayMinutes);
   return nextAttempt <= now
     ? m.market_data_attempting_now_notice()
     : m.market_data_next_attempt_notice({

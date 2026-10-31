@@ -6,9 +6,9 @@ const longestDelayMinutes = 30;
 
 const minuteMilliseconds = 60_000;
 
-/** Whether the job tries to update prices in the minute of this moment. It tries whenever delayed prices can change, and also on a date that no IDX calendar covers, because a missing calendar must not stop the prices. */
-export function isUpdateMinute(moment: Date): boolean {
-  const updateTime = isPriceUpdateTime(moment);
+/** Whether the job tries to update prices with this delay in the minute of this moment. It tries whenever such prices can change, and also on a date that no IDX calendar covers, because a missing calendar must not stop the prices. */
+export function isUpdateMinute(moment: Date, delayMinutes: number): boolean {
+  const updateTime = isPriceUpdateTime(moment, delayMinutes);
   return !updateTime.ok || updateTime.value;
 }
 
@@ -23,14 +23,17 @@ export function nextAttemptTime(latestAttempt: UpdateAttempt): Date {
   );
 }
 
-/** The minute in which the running job tries again after the latest attempt: the first minute of its schedule after the minute of that attempt, once the wait after failures has passed. */
-export function nextScheduledAttempt(latestAttempt: UpdateAttempt): Date {
+/** The minute in which the running job tries again after the latest attempt, for prices with this delay: the first minute of its schedule after the minute of that attempt, once the wait after failures has passed. */
+export function nextScheduledAttempt(
+  latestAttempt: UpdateAttempt,
+  delayMinutes: number,
+): Date {
   let minute = Math.max(
     startOfMinute(latestAttempt.attemptedAt) + minuteMilliseconds,
     nextAttemptTime(latestAttempt).getTime(),
   );
   // Each minute is tested with the rule that the job follows, so the time that the prices page promises cannot drift from what the job does.
-  while (!isUpdateMinute(new Date(minute))) {
+  while (!isUpdateMinute(new Date(minute), delayMinutes)) {
     minute += minuteMilliseconds;
   }
   return new Date(minute);

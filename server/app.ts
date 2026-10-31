@@ -10,6 +10,7 @@ import {
 import type { Database } from "~/database/database.server";
 import { fixturePriceSource } from "~/features/market-data/fixture-price-source.server";
 import { startPriceJob } from "~/features/market-data/price-job.server";
+import { priceSourceContext } from "~/features/market-data/price-source-context.server";
 import type { PriceSource } from "~/features/market-data/price-source.server";
 import { trackedInstruments } from "~/features/market-data/tracked-instruments";
 import { createYahooPriceSource } from "~/features/market-data/yahoo-price-source.server";
@@ -23,19 +24,22 @@ const priceSources: Record<ServiceSettings["priceSource"], () => PriceSource> =
 
 export interface Services {
   database: Database;
+  priceSource: PriceSource;
   stop: () => void;
 }
 
 /** Opens the database and starts the price job, with the settings that the server read at startup. */
 export function startServices(settings: ServiceSettings): Services {
   const database = openDatabase(settings.databasePath);
+  const priceSource = priceSources[settings.priceSource]();
   const stopPriceJob = startPriceJob({
     database,
-    priceSource: priceSources[settings.priceSource](),
+    priceSource,
     instruments: trackedInstruments,
   });
   return {
     database,
+    priceSource,
     stop: () => {
       stopPriceJob();
       closeDatabase(database);
@@ -43,7 +47,7 @@ export function startServices(settings: ServiceSettings): Services {
   };
 }
 
-/** Handles requests, and gives every loader and action the database of the services. */
+/** Handles requests, and gives every loader and action the database and the price source of the services. */
 export function createApp(services: Services): RequestHandler {
   return createRequestHandler({
     // The virtual module types `basename` as `string | undefined`, which exactOptionalPropertyTypes rejects for ServerBuild.
@@ -52,6 +56,7 @@ export function createApp(services: Services): RequestHandler {
     getLoadContext() {
       const context = new RouterContextProvider();
       context.set(databaseContext, services.database);
+      context.set(priceSourceContext, services.priceSource);
       return context;
     },
   });

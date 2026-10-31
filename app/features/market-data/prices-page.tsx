@@ -3,7 +3,8 @@ import { databaseContext } from "~/database/database.server";
 import { pageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
 import type { Route } from "./+types/prices-page";
-import type { Quote } from "./price-source.server";
+import { priceSourceContext } from "./price-source-context.server";
+import type { PriceSourceDescription, Quote } from "./price-source.server";
 import { PricesView } from "./prices-view";
 import {
   listLatestQuotes,
@@ -19,13 +20,16 @@ export function loader({ context }: Route.LoaderArgs): {
   quotes: Quote[];
   latestAttempt: UpdateAttempt | undefined;
   now: Date;
+  source: PriceSourceDescription;
 } {
   const database = context.get(databaseContext);
+  const priceSource = context.get(priceSourceContext);
   return {
     quotes: listLatestQuotes(database),
     latestAttempt: readLatestUpdateAttempt(database),
     // The server's clock decides the text, so the page that the browser takes over says the same.
     now: new Date(),
+    source: { name: priceSource.name, delayMinutes: priceSource.delayMinutes },
   };
 }
 
@@ -37,6 +41,7 @@ export default function PricesPage({
       quotes={loaderData.quotes}
       latestAttempt={loaderData.latestAttempt}
       now={loaderData.now}
+      source={loaderData.source}
     />
   );
 }

@@ -50,7 +50,7 @@ try {
     for (const module of editedModules) {
       utimesSync(module, now, now);
     }
-    await new Promise((resolve) => setTimeout(resolve, reloadSeconds * 1000));
+    await waitSeconds(reloadSeconds);
     problems.push(...pageProblems(await answersFrom(pages), "after an edit"));
   } else {
     problems.push(
@@ -74,9 +74,7 @@ async function answersFrom(paths: readonly string[]): Promise<PageAnswer[]> {
   const answers: PageAnswer[] = [];
   for (const path of paths) {
     try {
-      const response = await fetch(`http://localhost:${String(port)}${path}`, {
-        signal: AbortSignal.timeout(requestTimeoutSeconds * 1000),
-      });
+      const response = await requestPage(path);
       answers.push({ path, outcome: { status: response.status } });
     } catch (error) {
       answers.push({
@@ -92,16 +90,24 @@ async function waitForHealth(): Promise<boolean> {
   const deadline = Date.now() + startupTimeoutSeconds * 1000;
   while (Date.now() < deadline) {
     try {
-      const response = await fetch(`http://localhost:${String(port)}/health`, {
-        signal: AbortSignal.timeout(requestTimeoutSeconds * 1000),
-      });
+      const response = await requestPage("/health");
       if (response.ok) {
         return true;
       }
     } catch {
       // The server is still starting, so the connection is refused or the request runs out of time.
     }
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await waitSeconds(0.5);
   }
   return false;
+}
+
+function requestPage(path: string): Promise<Response> {
+  return fetch(`http://localhost:${String(port)}${path}`, {
+    signal: AbortSignal.timeout(requestTimeoutSeconds * 1000),
+  });
+}
+
+function waitSeconds(seconds: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 }

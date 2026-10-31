@@ -42,8 +42,16 @@ export interface QuoteBatch {
   problems: string[];
 }
 
+/** What the prices page tells about the source of its prices. */
+export interface PriceSourceDescription {
+  /** The name of the source, such as Yahoo Finance. */
+  name: string;
+  /** How many minutes the prices of the source lag behind the exchange. */
+  delayMinutes: number;
+}
+
 /** Every price in Portolab comes through this interface, so a licensed source can replace another without changes elsewhere. */
-export interface PriceSource {
+export interface PriceSource extends PriceSourceDescription {
   /** Fetches the latest quotes, and gives up with a failure when the signal aborts, because the job that asks sets how long it waits. */
   fetchQuotes(
     instruments: readonly Instrument[],

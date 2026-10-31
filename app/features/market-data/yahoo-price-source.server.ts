@@ -8,9 +8,16 @@ import type {
   IndexCode,
   Instrument,
   PriceSource,
+  PriceSourceDescription,
   Quote,
   QuoteBatch,
 } from "./price-source.server";
+
+/** Yahoo Finance as a source of prices. Decision 0001 records its delay. */
+export const yahooFinance: PriceSourceDescription = {
+  name: "Yahoo Finance",
+  delayMinutes: 10,
+};
 
 const yahooIndexSymbols: Record<IndexCode, string> = {
   IHSG: "^JKSE",
@@ -19,6 +26,7 @@ const yahooIndexSymbols: Record<IndexCode, string> = {
 export function createYahooPriceSource(): PriceSource {
   const client = new YahooFinance({ suppressNotices: ["yahooSurvey"] });
   return {
+    ...yahooFinance,
     async fetchQuotes(instruments, signal) {
       try {
         const quotes = await client.quote(
