@@ -26,6 +26,12 @@ test("names the type of a value by its class or by typeof", () => {
   expect(typeName({ lens: "craft" })).toBe("object");
 });
 
+test("describes an object without a prototype as JSON instead of failing", () => {
+  const record: unknown = Object.assign(Object.create(null), { lens: "craft" });
+  expect(describeValue(record)).toBe('{"lens":"craft"}');
+  expect(typeName(record)).toBe("object");
+});
+
 test("accepts an object with fields and rejects null and lists", () => {
   expect(isRecord({ lens: "craft" })).toBe(true);
   expect(isRecord(null)).toBe(false);
@@ -36,4 +42,12 @@ test("accepts a list of strings and rejects a list with anything else", () => {
   expect(isStringArray(["craft", "docs"])).toBe(true);
   expect(isStringArray(["craft", 1])).toBe(false);
   expect(isStringArray("craft")).toBe(false);
+});
+
+test("describes an object whose prototype has no constructor as JSON", () => {
+  const prototype: object = {};
+  Object.setPrototypeOf(prototype, null);
+  const record: unknown = Object.create(prototype);
+  expect(describeValue(record)).toBe("{}");
+  expect(typeName(record)).toBe("object");
 });

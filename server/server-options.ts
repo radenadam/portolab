@@ -39,7 +39,7 @@ export function parseCommandLine(
     return parseMode(values.mode, "--mode");
   } catch (error) {
     return fail(
-      `${source} is not valid, so the server cannot start. Node reported: ${errorMessage(error)}`,
+      `${source} must hold only the option --mode, but it is ${describeValue(value)}. Node reported: ${errorMessage(error)}`,
     );
   }
 }

@@ -9,17 +9,25 @@ export function describeValue(value: unknown): string {
     return "missing";
   }
   // JSON shows a class instance, such as a file from a form, as {}, so such a value is named by its class.
-  if (isRecord(value) && Object.getPrototypeOf(value) !== Object.prototype) {
-    return `a value of type ${typeName(value)}`;
-  }
-  return JSON.stringify(value);
+  const name = className(value);
+  return name === undefined ? JSON.stringify(value) : `a value of type ${name}`;
 }
 
 /** Names the type of a value, such as "number" for 7 or "File" for a file from a form. */
 export function typeName(value: unknown): string {
-  return isRecord(value) && Object.getPrototypeOf(value) !== Object.prototype
-    ? value.constructor.name
-    : typeof value;
+  return className(value) ?? typeof value;
+}
+
+/** The name of the class of an object, or undefined for a plain object, an object without a prototype, and any value that is not an object. */
+function className(value: unknown): string | undefined {
+  if (!isRecord(value) || Object.getPrototypeOf(value) === Object.prototype) {
+    return undefined;
+  }
+  // Reflect reads the constructor even when a prototype chain has none, which happens for an object made from another object without a prototype.
+  const classFunction: unknown = Reflect.get(value, "constructor");
+  return typeof classFunction === "function" && classFunction.name !== ""
+    ? classFunction.name
+    : undefined;
 }
 
 export function isStringArray(value: unknown): value is string[] {

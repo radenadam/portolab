@@ -43,7 +43,7 @@ test("rejects a command line that is not a list of arguments and quotes it", () 
 test("rejects an unknown option and keeps the reason that Node gives", () => {
   const commandLine = parseCommandLine(["--bogus"], "The command line");
   expect(commandLine.ok ? "" : commandLine.failure).toMatch(
-    /^The command line is not valid, so the server cannot start\. Node reported: \S/,
+    /^The command line must hold only the option --mode, but it is \["--bogus"\]\. Node reported: \S/,
   );
 });
 
