@@ -49,9 +49,9 @@ function verdictSentence(input: ReviewInput, confirmedCount: number): string {
   if (unfinishedJobs.length > 0) {
     return `The ${listOfWords(unfinishedJobs)} ${singularOrPlural(unfinishedJobs.length, "job", "jobs")} of the panel did not finish, so this change has not been reviewed.`;
   }
-  const [inputProblem] = input.inputProblems;
-  if (inputProblem !== undefined) {
-    return inputProblem;
+  // Each input problem is a whole sentence, so all of them reach the review and the log of the run.
+  if (input.inputProblems.length > 0) {
+    return input.inputProblems.join(" ");
   }
   // A missing input is a failure, never an empty one, because a silent failure to download it would otherwise pass the gate.
   const silentLenses = input.expectedLenses.filter(

@@ -164,6 +164,20 @@ test("fails when an input could not be read", () => {
   );
 });
 
+test("reports every input that could not be read", () => {
+  const outcome = summarizeReview({
+    ...craftReview([], []),
+    inputProblems: [
+      "EXPECTED_LENSES is empty or not set, so it holds no JSON.",
+      "review/verified.json is not a JSON object.",
+    ],
+  });
+  expect(outcome.verdict).toBe(
+    "EXPECTED_LENSES is empty or not set, so it holds no JSON. review/verified.json is not a JSON object.",
+  );
+  expect(outcome.body).toContain(outcome.verdict);
+});
+
 test("reports refuted and duplicate findings in the singular and the plural", () => {
   const singular = summarizeReview(
     craftReview(

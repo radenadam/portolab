@@ -4,6 +4,7 @@ import { pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
 import express from "express";
 import type { RequestHandler } from "express";
+import { writeLog } from "../app/log.server.ts";
 import { parseMode, parsePort } from "./server-options.ts";
 
 // The build is this program's own server/app.ts, not outside data, so its type is asserted instead of parsed.
@@ -97,21 +98,6 @@ function localNetworkAddresses(port: number): string[] {
 }
 
 function exitWithFailure(failure: string): never {
-  writeLog("error", failure, {});
+  writeLog("error", failure);
   process.exit(1);
-}
-
-function writeLog(
-  level: "info" | "error",
-  message: string,
-  details: Record<string, unknown>,
-): void {
-  const line = JSON.stringify({
-    time: new Date().toISOString(),
-    level,
-    message,
-    ...details,
-  });
-  const stream = level === "error" ? process.stderr : process.stdout;
-  stream.write(`${line}\n`);
 }

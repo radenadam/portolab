@@ -43,9 +43,22 @@ const abbreviations = [
 // ESLint has no rule that checks a signature by the name of a function, so these selectors check the parser standard in the section Code of AGENTS.md.
 const parserSignature =
   "A function named parse... takes (value: unknown, source: string) as its first parameters and returns Result<T, string>, as the section Code of AGENTS.md states.";
-// A function can be declared, assigned to a variable, or written as a method or a property, so the selectors cover each form.
 const parserName = "/^parse[A-Z]/";
-const parser = `:matches(FunctionDeclaration[id.name=${parserName}], VariableDeclarator[id.name=${parserName}] > :function, Property[key.name=${parserName}] > :function, MethodDefinition[key.name=${parserName}] > :function)`;
+// A parser can be written in any form that binds a function, or the type of a function, to a name, so the rule checks each form.
+const parserForms = [
+  `FunctionDeclaration[id.name=${parserName}]`,
+  `TSDeclareFunction[id.name=${parserName}]`,
+  `FunctionExpression[id.name=${parserName}]`,
+  `VariableDeclarator[id.name=${parserName}] > :function`,
+  `AssignmentExpression[left.name=${parserName}] > :function`,
+  `AssignmentExpression[left.property.name=${parserName}] > :function`,
+  `Property[key.name=${parserName}] > :function`,
+  `:matches(MethodDefinition, TSAbstractMethodDefinition)[key.name=${parserName}] > :matches(:function, TSEmptyBodyFunctionExpression)`,
+  `PropertyDefinition[key.name=${parserName}] > :function`,
+  `:matches(PropertyDefinition, TSAbstractPropertyDefinition, TSPropertySignature)[key.name=${parserName}] > TSTypeAnnotation > TSFunctionType`,
+  `TSMethodSignature[key.name=${parserName}]`,
+];
+const parser = `:matches(${parserForms.join(", ")})`;
 
 export default defineConfig(
   globalIgnores([
