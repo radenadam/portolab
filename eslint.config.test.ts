@@ -6,7 +6,7 @@ const eslint = new ESLint();
 /** Lints code as if it were a file in scripts/, and returns the rules that report it. */
 async function rulesReporting(code: string): Promise<string[]> {
   const results = await eslint.lintText(code, {
-    filePath: "scripts/sentences.ts",
+    filePath: "scripts/json.ts",
   });
   const rules: string[] = [];
   for (const result of results) {
@@ -171,12 +171,17 @@ test("accepts a parser that takes further parameters after the standard ones", a
   ).not.toContain("no-restricted-syntax");
 }, 60_000);
 
-test("rejects reduce in every form of a call, and accepts a plain loop", async () => {
+test("rejects reduce in every way to reach it, and accepts a plain loop", async () => {
   for (const code of [
     "export const total = [1, 2].reduce((sum, item) => sum + item, 0);",
     "export const total = [1, 2].reduceRight((sum, item) => sum + item, 0);",
     'export const total = [1, 2]["reduce"]((sum, item) => sum + item, 0);',
     "export const total = ([1, 2] as number[] | undefined)?.reduce((sum, item) => sum + item, 0);",
+    "export const total = [1, 2][`reduce`]((sum, item) => sum + item, 0);",
+    "export const total: unknown = Array.prototype.reduce.call([1, 2], (sum: number, item: number) => sum + item, 0);",
+    "export const total: unknown = Array.prototype.reduceRight.apply([1, 2], [(sum: number, item: number) => sum + item, 0]);",
+    "const items = [1, 2];\nexport const { reduce } = items;",
+    'const items = [1, 2];\nexport const { "reduceRight": combine } = items;',
   ]) {
     expect(await rulesReporting(code), code).toContain("no-restricted-syntax");
   }

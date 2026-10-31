@@ -21,5 +21,7 @@
   "market_data_empty_body": "No prices are available yet. Portolab fetches prices each time the server starts, and then every minute during market hours.",
   "market_data_code_label": "Code",
   "market_data_last_label": "Last price",
-  "market_data_change_label": "Change"
+  "market_data_change_label": "Change",
+  "market_data_time_label": "Time (WIB)",
+  "market_data_update_failed_notice": "Portolab could not update the prices at {time} WIB, so the prices below are the last ones it stored. Portolab tries again after longer and longer pauses."
 }

@@ -91,7 +91,7 @@ test("rejects a stock price with a fraction of a rupiah", () => {
   );
   expect(batch.quotes).toEqual([]);
   expect(batch.problems).toEqual([
-    "The Yahoo Finance quote for BBCA has a price with a fraction of a rupiah.",
+    "The Yahoo Finance quote for BBCA must have whole rupiah, but its price is 4980.5 and its previous close is 4940.",
   ]);
 });
 
@@ -109,6 +109,6 @@ test("rejects a quote in another currency", () => {
     ],
   );
   expect(batch.problems).toEqual([
-    "The Yahoo Finance quote for BBCA is in USD, not IDR.",
+    'The Yahoo Finance quote for BBCA must be in IDR, but its currency is "USD".',
   ]);
 });

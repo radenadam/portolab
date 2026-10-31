@@ -35,6 +35,14 @@ export function formatSignedPercent(fraction: number): string {
   }).format(fraction);
 }
 
+/** Formats the time of day in WIB, such as 16.14, for a price of the same day as the newest one. */
+export function formatMarketClock(moment: Date): string {
+  return new Intl.DateTimeFormat(intlLocale(), {
+    timeStyle: "short",
+    timeZone: marketTimeZone,
+  }).format(moment);
+}
+
 export function formatMarketTime(moment: Date): string {
   return new Intl.DateTimeFormat(intlLocale(), {
     dateStyle: "medium",

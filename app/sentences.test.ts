@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { countOf, listOfWords, singularOrPlural } from "./sentences.ts";
+import { countOf, listOfWords, singularOrPlural } from "./sentences";
 
 test("joins one, two, and three words into an English list", () => {
   expect(listOfWords(["craft"])).toBe("craft");

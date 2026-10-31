@@ -6,13 +6,23 @@ import type { RequestHandler } from "express";
 import { exitWithFailure } from "../app/exit-with-failure.server.ts";
 import { writeLog } from "../app/log.server.ts";
 import { failuresOf } from "../app/result.ts";
-import type { Result } from "../app/result.ts";
-import { parseCommandLine, parsePort } from "./server-options.ts";
+import {
+  parseCommandLine,
+  parseDatabasePath,
+  parsePort,
+  parsePriceSource,
+} from "./server-options.ts";
+import type { ServiceSettings } from "./server-options.ts";
+
+// The server only keeps the services and hands them back to the build, so it needs no more of their shape.
+interface Services {
+  stop: () => void;
+}
 
 // The build is this program's own server/app.ts, not outside data, so its type is asserted instead of parsed.
 interface ServerBuild {
-  app: RequestHandler;
-  startServices: () => Result<() => void, string>;
+  startServices: (settings: ServiceSettings) => Services;
+  createApp: (services: Services) => RequestHandler;
 }
 
 const buildDirectory = join(import.meta.dirname, "..", "build");
@@ -20,16 +30,32 @@ const buildDirectory = join(import.meta.dirname, "..", "build");
 const serverBuildPath = join(buildDirectory, "server", "index.js");
 const shutdownTimeoutMilliseconds = 10_000;
 
+// Every setting is read before the server stops on any of them, so the log names every wrong setting at once.
 const mode = parseCommandLine(process.argv.slice(2), "The command line");
 const port = parsePort(process.env["PORT"] ?? "3000", "PORT");
-if (!mode.ok || !port.ok) {
-  exitWithFailure(failuresOf([mode, port]), writeError);
+const priceSource = parsePriceSource(
+  process.env["PRICE_SOURCE"],
+  "PRICE_SOURCE",
+);
+const databasePath = parseDatabasePath(
+  process.env["DATABASE_PATH"],
+  "DATABASE_PATH",
+);
+if (!mode.ok || !port.ok || !priceSource.ok || !databasePath.ok) {
+  exitWithFailure(
+    failuresOf([mode, port, priceSource, databasePath]),
+    writeError,
+  );
 }
+const settings: ServiceSettings = {
+  priceSource: priceSource.value,
+  databasePath: databasePath.value,
+};
 const isDevelopment = mode.value === "development";
 
 const server = express();
 server.disable("x-powered-by");
-let build: ServerBuild;
+let services: Services;
 
 if (isDevelopment) {
   const vite = await import("vite");
@@ -38,12 +64,24 @@ if (isDevelopment) {
   });
   const loadBuild = async (): Promise<ServerBuild> =>
     (await viteServer.ssrLoadModule("./server/app.ts")) as ServerBuild;
-  build = await loadBuild();
+  services = (await loadBuild()).startServices(settings);
+  // Each request loads the module again, so edits to the app apply without a restart. The services stay, and each new build gets an app that uses them.
+  const appsByBuild = new WeakMap<ServerBuild, RequestHandler>();
+  const appFor = (latestBuild: ServerBuild): RequestHandler => {
+    const existingApp = appsByBuild.get(latestBuild);
+    if (existingApp !== undefined) {
+      return existingApp;
+    }
+    const newApp = latestBuild.createApp(services);
+    appsByBuild.set(latestBuild, newApp);
+    return newApp;
+  };
   server.use(viteServer.middlewares);
-  // Each request loads the module again, so edits to the app apply without a restart.
   server.use((request, response, next) => {
     loadBuild()
-      .then((latestBuild) => latestBuild.app(request, response, next))
+      .then((latestBuild) => {
+        appFor(latestBuild)(request, response, next);
+      })
       .catch((error: unknown) => {
         if (error instanceof Error) {
           viteServer.ssrFixStacktrace(error);
@@ -52,7 +90,10 @@ if (isDevelopment) {
       });
   });
 } else {
-  build = (await import(pathToFileURL(serverBuildPath).href)) as ServerBuild;
+  const build = (await import(
+    pathToFileURL(serverBuildPath).href
+  )) as ServerBuild;
+  services = build.startServices(settings);
   server.use(
     "/assets",
     express.static(join(buildDirectory, "client", "assets"), {
@@ -61,14 +102,8 @@ if (isDevelopment) {
     }),
   );
   server.use(express.static(join(buildDirectory, "client"), { maxAge: "1h" }));
-  server.use(build.app);
+  server.use(build.createApp(services));
 }
-
-const services = build.startServices();
-if (!services.ok) {
-  exitWithFailure([services.failure], writeError);
-}
-const stopServices = services.value;
 
 const listener = server.listen(port.value, () => {
   writeLog("info", "Server started.", {
@@ -82,7 +117,7 @@ for (const signal of ["SIGINT", "SIGTERM"] as const) {
   process.once(signal, () => {
     writeLog("info", "Server stopping.", { signal });
     listener.close(() => {
-      stopServices();
+      services.stop();
       process.exit(0);
     });
     setTimeout(() => {

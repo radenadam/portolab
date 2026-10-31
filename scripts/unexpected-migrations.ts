@@ -1,4 +1,4 @@
-import { listOfWords, singularOrPlural } from "./sentences.ts";
+import { listOfWords, singularOrPlural } from "../app/sentences.ts";
 
 /** Returns a sentence when drizzle-kit generated migration files, which means that the schema changed without its migration. */
 export function unexpectedMigrations(

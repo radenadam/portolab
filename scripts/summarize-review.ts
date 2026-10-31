@@ -1,6 +1,6 @@
 import type { LensReport } from "./lens-reports.ts";
 import type { VerifiedFinding } from "./review-inputs.ts";
-import { countOf, listOfWords, singularOrPlural } from "./sentences.ts";
+import { countOf, listOfWords, singularOrPlural } from "../app/sentences.ts";
 
 export interface ReviewInput {
   /** The result of each job of the panel, such as "success" or "failure". */

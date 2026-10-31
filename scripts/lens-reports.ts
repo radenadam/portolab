@@ -6,7 +6,7 @@ import { isRecord } from "../app/value-shapes.ts";
 import {
   notAnObject,
   parseListField,
-  parseStringField,
+  parseStringAt,
   parseStringsAt,
   readJsonFile,
 } from "./json.ts";
@@ -69,7 +69,7 @@ export function parseLensReport(
   if (!isRecord(value)) {
     return notAnObject(source, value);
   }
-  const lens = parseStringField(value, source, "lens");
+  const lens = parseStringAt(value, source, ["lens"]);
   if (!lens.ok) {
     return lens;
   }
@@ -116,11 +116,11 @@ export function parseReportedFinding(
   value: unknown,
   source: string,
 ): Result<ReportedFinding, string> {
-  const id = parseStringField(value, source, "id");
+  const id = parseStringAt(value, source, ["id"]);
   if (!id.ok) {
     return id;
   }
-  const lens = parseStringField(value, source, "lens");
+  const lens = parseStringAt(value, source, ["lens"]);
   if (!lens.ok) {
     return lens;
   }
@@ -160,15 +160,15 @@ function parseFindingContent(
   if (!isRecord(value)) {
     return notAnObject(source, value);
   }
-  const location = parseStringField(value, source, "location");
+  const location = parseStringAt(value, source, ["location"]);
   if (!location.ok) {
     return location;
   }
-  const claim = parseStringField(value, source, "claim");
+  const claim = parseStringAt(value, source, ["claim"]);
   if (!claim.ok) {
     return claim;
   }
-  const basis = parseStringField(value, source, "basis");
+  const basis = parseStringAt(value, source, ["basis"]);
   if (!basis.ok) {
     return basis;
   }
@@ -179,7 +179,7 @@ function parseFindingContent(
   if (!siblings.ok) {
     return siblings;
   }
-  const rootCause = parseStringField(value, source, "rootCause");
+  const rootCause = parseStringAt(value, source, ["rootCause"]);
   if (!rootCause.ok) {
     return rootCause;
   }
@@ -207,11 +207,11 @@ function parseCandidateStandard(
   value: unknown,
   source: string,
 ): Result<CandidateStandard, string> {
-  const standard = parseStringField(value, source, "standard");
+  const standard = parseStringAt(value, source, ["standard"]);
   if (!standard.ok) {
     return standard;
   }
-  const incident = parseStringField(value, source, "incident");
+  const incident = parseStringAt(value, source, ["incident"]);
   if (!incident.ok) {
     return incident;
   }

@@ -59,7 +59,7 @@ These apply to all prose: docs, comments, commit messages, pull requests, issues
 - Indonesian text addresses the reader as "Anda".
 - An error teaches. It states what happened with the real numbers, explains the rule behind it, and offers a next step, such as the largest order the cash allows.
 - Numbers, rupiah amounts, percentages, and dates are formatted with `Intl` for the active language, never by hand.
-- Every screen that shows prices says that they are delayed, and every result is labelled as a simulation.
+- Every screen that shows prices says that they are delayed, shows when each price was quoted, and says when the price source last failed. Every result is labelled as a simulation.
 - Portolab never recommends a security, because recommendations are regulated in Indonesia and because choosing is what students must learn.
 
 ### Interface behavior
@@ -78,7 +78,7 @@ These apply to all prose: docs, comments, commit messages, pull requests, issues
 - Units get branded types, such as rupiah, shares, and lots, so mixing them up is a type error. Amounts of rupiah are whole numbers.
 - An expected failure, such as an order the cash cannot pay for, is a typed result that every caller must handle. Throwing is only for states that should never happen.
 - Data from outside the program is parsed into types at the boundary where it enters, by a parser function, in scripts and CI steps as much as in the app. Outside data includes form input, environment variables, command-line arguments, files, prices from the price source, and the output of agents. A type assertion such as `as` is not parsing, and neither is a type predicate (`value is T`) whose body does not check every part of its type. A parser is named `parse...`, takes `(value: unknown, source: string)` as its first parameters, and returns `Result<T, string>`. Its caller names the source, so one parser serves a file, an environment variable, and a test alike. ESLint checks this signature. Code inside the boundary trusts the parsed types and has no defensive checks for impossible states.
-- A program that fails, such as a script, a CI step, or the server at startup, writes every reason to stderr before it exits, so the log explains the failure without a rerun. It parses all of its independent inputs before it stops, and it stops early only when a later input depends on an earlier one.
+- A program that fails, such as a script, a CI step, or the server at startup, writes every reason to stderr before it exits, so the log explains the failure without a rerun. It parses all of its independent inputs before it stops, and it stops early only when a later input depends on an earlier one, so the server reads every environment variable at startup in one place. A program that runs a child process passes on the stderr of the child when the child fails.
 - A failure text names its source and the field or value that was wrong. A parser says what its source must be or have and what it is, through `describeValue` in `app/value-shapes.ts`, such as `PORT must be a whole number from 1 to 65535, but it is "0".` Code that handles a failed result passes that text on, instead of replacing it with a generic message, so the real reason reaches the reader.
 - A comment explains only why: a reason, an outside constraint, or a trap. It never narrates what the code does.
 - A module that only the server may run ends in `.server.ts`, so that React Router keeps it out of the browser bundle.
@@ -87,10 +87,11 @@ These apply to all prose: docs, comments, commit messages, pull requests, issues
 
 - Code is organized by feature in `app/features/<feature>/`. A feature folder holds that feature's routes, components, logic, styles, and tests. A feature uses another feature only through the exported functions and components that represent that feature's concept.
 - A concept used by several features lives in the feature that owns it. A concept that no feature owns, such as the `Result` type, units of measure, formatting, or logging, lives directly in `app/`, in a file or folder named after the concept. Folders named `utils`, `helpers`, `common`, `shared`, or `lib` are not allowed, because their names say nothing about what they hold.
-- A script in `scripts/` imports from `app/` only a module that imports nothing itself, because scripts run in plain Node without the app's build.
+- A module in `app/` that a script or the server imports uses only relative imports with the `.ts` extension, because both run in plain Node without the app's build. A module directly in `app/` never imports from a feature, so dependencies point from features to `app/` and never back.
+- No module keeps a connection or another service in a variable of its own, because the dev server evaluates an edited module again. The server opens the services at startup and hands them to loaders and actions through the load context, and `pnpm check` edits such modules in the dev server to prove it.
 - File names are kebab-case. A file with one main export is named after it, such as `read-text-file.ts` for `readTextFile`, and a file whose exports serve one concept equally is named after the concept, such as `json.ts`. Tests sit beside their code as `<name>.test.ts`, and browser tests live in `e2e/`.
 - All market data passes through the price source interface, as decision 0001 explains.
-- IDX rules, such as tick sizes and auto rejection limits, are data with the dates they apply, as decision 0002 explains.
+- IDX rules, such as tick sizes, auto rejection limits, trading hours, and exchange holidays, are data with the dates they apply, as decision 0002 explains. A date that the data does not cover fails, so a missing year is noticed.
 
 ### Tests
 

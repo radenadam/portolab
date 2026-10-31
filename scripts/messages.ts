@@ -1,6 +1,6 @@
 import type { Result } from "../app/result.ts";
 import { parseJsonObject, parseStringsAt, readJsonFile } from "./json.ts";
-import { listOfWords } from "./sentences.ts";
+import { listOfWords } from "../app/sentences.ts";
 
 /** Reads the languages of the app from the settings of the inlang project. */
 export function parseLocales(

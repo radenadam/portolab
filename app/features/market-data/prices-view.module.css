@@ -14,12 +14,12 @@
   text-align: left;
 }
 
-.table th:not(:first-child) {
+.table th:not(:first-child),
+.table .number {
   text-align: right;
 }
 
 .number {
-  text-align: right;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }

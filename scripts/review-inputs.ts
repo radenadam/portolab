@@ -5,12 +5,12 @@ import {
   invalidField,
   notAnObject,
   parseListField,
-  parseStringField,
+  parseStringAt,
   parseStringsAt,
 } from "./json.ts";
 import { parseReportedFinding } from "./lens-reports.ts";
 import type { ReportedFinding } from "./lens-reports.ts";
-import { listOfWords, singularOrPlural } from "./sentences.ts";
+import { listOfWords, singularOrPlural } from "../app/sentences.ts";
 
 export const verdictStatuses = ["confirmed", "refuted", "duplicate"] as const;
 
@@ -36,7 +36,7 @@ export function parseJobResults(
   }
   const results: Record<string, string> = {};
   for (const [job, details] of Object.entries(value)) {
-    const result = parseStringField(details, `${source}: job ${job}`, "result");
+    const result = parseStringAt(details, `${source}: job ${job}`, ["result"]);
     if (!result.ok) {
       return result;
     }
@@ -90,11 +90,11 @@ function parseVerdict(
       value: status,
     });
   }
-  const duplicateOf = parseStringField(value, source, "duplicateOf");
+  const duplicateOf = parseStringAt(value, source, ["duplicateOf"]);
   if (!duplicateOf.ok) {
     return duplicateOf;
   }
-  const evidence = parseStringField(value, source, "evidence");
+  const evidence = parseStringAt(value, source, ["evidence"]);
   if (!evidence.ok) {
     return evidence;
   }

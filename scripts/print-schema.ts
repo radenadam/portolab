@@ -1,9 +1,9 @@
 import { exitWithFailure } from "../app/exit-with-failure.server.ts";
+import { parseFilePath } from "../app/value-parsers.ts";
 import { parseJsonObject, readJsonFile } from "./json.ts";
-import { parsePathArgument } from "./parse-path-argument.ts";
 import { writeScriptFailure } from "./write-script-failure.ts";
 
-const schemaPath = parsePathArgument(
+const schemaPath = parseFilePath(
   process.argv[2],
   "The first argument of print-schema.ts",
 );

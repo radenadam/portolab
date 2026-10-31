@@ -104,7 +104,7 @@ export default defineConfig(
         "error",
         {
           selector:
-            "CallExpression > MemberExpression.callee:matches([property.name=/^reduce(Right)?$/], [property.value=/^reduce(Right)?$/])",
+            "MemberExpression:matches([property.name=/^reduce(Right)?$/], [property.value=/^reduce(Right)?$/], [property.quasis.0.value.cooked=/^reduce(Right)?$/]), ObjectPattern > Property:matches([key.name=/^reduce(Right)?$/], [key.value=/^reduce(Right)?$/])",
           message: "Write a plain loop, which states each step explicitly.",
         },
         { selector: `${parser}[params.length<2]`, message: parserSignature },

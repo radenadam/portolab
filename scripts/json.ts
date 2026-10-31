@@ -95,10 +95,7 @@ export function parseStringsAt(
   source: string,
   path: StringsPath,
 ): Result<string[], string> {
-  let current = value;
-  for (const key of path.keys) {
-    current = isRecord(current) ? current[key] : undefined;
-  }
+  const current = valueAt(value, path.keys);
   if (isStringArray(current) && (path.mayBeEmpty || current.length > 0)) {
     return succeed(current);
   }
@@ -148,14 +145,27 @@ export function invalidField(
   );
 }
 
-/** Reads a field of a JSON object that holds text. */
-export function parseStringField(
+/** Reads the text at a path of keys in a JSON value, such as the dev script in package.json. */
+export function parseStringAt(
   value: unknown,
   source: string,
-  field: string,
+  keys: readonly string[],
 ): Result<string, string> {
-  const fieldValue = isRecord(value) ? value[field] : undefined;
-  return typeof fieldValue === "string"
-    ? succeed(fieldValue)
-    : invalidField(source, { field, expected: "a string", value: fieldValue });
+  const found = valueAt(value, keys);
+  return typeof found === "string"
+    ? succeed(found)
+    : invalidField(source, {
+        field: keys.join("."),
+        expected: "a string",
+        value: found,
+      });
+}
+
+/** The value at a path of keys in a JSON value, or undefined when a key on the path is missing. */
+function valueAt(value: unknown, keys: readonly string[]): unknown {
+  let current = value;
+  for (const key of keys) {
+    current = isRecord(current) ? current[key] : undefined;
+  }
+  return current;
 }

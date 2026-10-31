@@ -20,19 +20,25 @@ test("rejects a dev script that does not start with node", () => {
 test("rejects a package without a dev script", () => {
   expect(parseDevArguments({ scripts: {} }, "package.json")).toEqual({
     ok: false,
-    failure: "package.json has no dev script.",
+    failure:
+      "package.json must have a string at scripts.dev, but scripts.dev is missing.",
   });
 });
 
-test("accepts pages that answer with success and names each page that does not", () => {
+test("accepts pages that answer with success and names each page that does not, and when", () => {
   expect(
-    pageProblems([
-      { path: "/health", status: 200 },
-      { path: "/prices", status: 500 },
-      { path: "/missing", status: 404 },
-    ]),
+    pageProblems(
+      [
+        { path: "/health", outcome: { status: 200 } },
+        { path: "/prices", outcome: { status: 500 } },
+        { path: "/missing", outcome: { status: 404 } },
+        { path: "/language", outcome: { connectionFailure: "socket hang up" } },
+      ],
+      "after an edit",
+    ),
   ).toEqual([
-    "/prices answered with status 500.",
-    "/missing answered with status 404.",
+    "/prices answered with status 500 after an edit.",
+    "/missing answered with status 404 after an edit.",
+    "/language did not answer after an edit. The connection reported: socket hang up",
   ]);
 });

@@ -1,6 +1,6 @@
 import YahooFinance from "yahoo-finance2";
 import { errorMessage } from "~/error-message";
-import { isRecord } from "~/value-shapes";
+import { describeValue, isRecord } from "~/value-shapes";
 import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
 import { isRupiah } from "~/units/rupiah";
@@ -73,21 +73,31 @@ function parseYahooQuote(
   instrument: Instrument,
 ): Result<Quote, string> {
   if (!isRecord(value)) {
-    return fail(`${source} is not an object.`);
+    return fail(
+      `${source} must be an object, but it is ${describeValue(value)}.`,
+    );
   }
   const { currency, regularMarketPrice, regularMarketPreviousClose } = value;
   const quotedAt = value["regularMarketTime"];
   if (currency !== "IDR") {
-    return fail(`${source} is in ${String(currency)}, not IDR.`);
+    return fail(
+      `${source} must be in IDR, but its currency is ${describeValue(currency)}.`,
+    );
   }
   if (!isPositiveNumber(regularMarketPrice)) {
-    return fail(`${source} has no positive "regularMarketPrice".`);
+    return fail(
+      `${source} must have a positive regularMarketPrice, but it is ${describeValue(regularMarketPrice)}.`,
+    );
   }
   if (!isPositiveNumber(regularMarketPreviousClose)) {
-    return fail(`${source} has no positive "regularMarketPreviousClose".`);
+    return fail(
+      `${source} must have a positive regularMarketPreviousClose, but it is ${describeValue(regularMarketPreviousClose)}.`,
+    );
   }
   if (!(quotedAt instanceof Date)) {
-    return fail(`${source} has no valid "regularMarketTime".`);
+    return fail(
+      `${source} must have a time at regularMarketTime, but it is ${describeValue(quotedAt)}.`,
+    );
   }
   if (instrument.kind === "index") {
     return succeed({
@@ -99,7 +109,9 @@ function parseYahooQuote(
     });
   }
   if (!isRupiah(regularMarketPrice) || !isRupiah(regularMarketPreviousClose)) {
-    return fail(`${source} has a price with a fraction of a rupiah.`);
+    return fail(
+      `${source} must have whole rupiah, but its price is ${describeValue(regularMarketPrice)} and its previous close is ${describeValue(regularMarketPreviousClose)}.`,
+    );
   }
   return succeed({
     kind: "stock",

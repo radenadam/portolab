@@ -1,21 +1,10 @@
 import { expect, test } from "vitest";
-import { parseCommandLine, parseMode, parsePort } from "./server-options.ts";
-
-test("accepts the development and production modes and rejects any other", () => {
-  expect(parseMode("development", "--mode")).toEqual({
-    ok: true,
-    value: "development",
-  });
-  expect(parseMode("production", "--mode")).toEqual({
-    ok: true,
-    value: "production",
-  });
-  expect(parseMode("develop", "--mode")).toEqual({
-    ok: false,
-    failure:
-      '--mode must be "development" or "production", but it is "develop".',
-  });
-});
+import {
+  parseCommandLine,
+  parseDatabasePath,
+  parsePort,
+  parsePriceSource,
+} from "./server-options.ts";
 
 test("reads the mode from the command line and uses production without it", () => {
   expect(parseCommandLine([], "The command line")).toEqual({
@@ -56,4 +45,34 @@ test("accepts a port from 1 to 65535 and rejects anything else", () => {
       failure: `PORT must be a whole number from 1 to 65535, but it is "${value}".`,
     });
   }
+});
+
+test("uses Yahoo Finance without a price source, and rejects an unknown one", () => {
+  expect(parsePriceSource(undefined, "PRICE_SOURCE")).toEqual({
+    ok: true,
+    value: "yahoo",
+  });
+  expect(parsePriceSource("fixture", "PRICE_SOURCE")).toEqual({
+    ok: true,
+    value: "fixture",
+  });
+  expect(parsePriceSource("google", "PRICE_SOURCE")).toEqual({
+    ok: false,
+    failure: 'PRICE_SOURCE must be "yahoo" or "fixture", but it is "google".',
+  });
+});
+
+test("uses the default database file without a path, and rejects an empty one", () => {
+  expect(parseDatabasePath(undefined, "DATABASE_PATH")).toEqual({
+    ok: true,
+    value: "data/portolab.sqlite",
+  });
+  expect(parseDatabasePath("/srv/portolab.sqlite", "DATABASE_PATH")).toEqual({
+    ok: true,
+    value: "/srv/portolab.sqlite",
+  });
+  expect(parseDatabasePath("", "DATABASE_PATH")).toEqual({
+    ok: false,
+    failure: "DATABASE_PATH must be the path of a file, but it is empty.",
+  });
 });
