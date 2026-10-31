@@ -8,6 +8,7 @@
     "app/exit-with-failure.server.ts",
     "app/log.server.ts",
     "app/result.ts",
+    "app/value-shapes.ts",
     "scripts/**/*.ts",
     "*.config.ts",
     "eslint.config.test.ts",

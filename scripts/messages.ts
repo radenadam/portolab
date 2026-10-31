@@ -1,12 +1,7 @@
 import { succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
-import {
-  invalidField,
-  isRecord,
-  isStringArray,
-  parseJsonObject,
-  readJsonFile,
-} from "./json.ts";
+import { isRecord, isStringArray } from "../app/value-shapes.ts";
+import { invalidField, parseJsonObject, readJsonFile } from "./json.ts";
 import { listOfWords } from "./sentences.ts";
 
 /** Reads the languages of the app from the settings of the inlang project. */

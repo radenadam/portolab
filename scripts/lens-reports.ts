@@ -2,10 +2,9 @@ import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
+import { isRecord, isStringArray } from "../app/value-shapes.ts";
 import {
   invalidField,
-  isRecord,
-  isStringArray,
   notAnObject,
   parseListField,
   readJsonFile,

@@ -1,6 +1,6 @@
 import { fail, succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
-import { isRecord, isStringArray } from "./json.ts";
+import { isRecord, isStringArray } from "../app/value-shapes.ts";
 
 /** The schemas that define the answers of the agents in the review workflow. */
 export const reviewSchemaPaths = {

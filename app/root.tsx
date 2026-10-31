@@ -1,15 +1,7 @@
 import type { ReactNode } from "react";
-import {
-  isRouteErrorResponse,
-  Links,
-  Meta,
-  Outlet,
-  Scripts,
-  ScrollRestoration,
-} from "react-router";
+import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
 import type { Route } from "./+types/root";
-import { ErrorPage } from "./error-page";
-import { m } from "./paraglide/messages.js";
+import { ErrorScreen } from "./error-page";
 import { getLocale } from "./paraglide/runtime.js";
 import { paraglideMiddleware } from "./paraglide/server.js";
 import "./theme.css";
@@ -41,13 +33,5 @@ export default function App(): ReactNode {
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): ReactNode {
-  const isNotFound = isRouteErrorResponse(error) && error.status === 404;
-  return isNotFound ? (
-    <ErrorPage title={m.app_not_found_title()} body={m.app_not_found_body()} />
-  ) : (
-    <ErrorPage
-      title={m.app_unexpected_error_title()}
-      body={m.app_unexpected_error_body()}
-    />
-  );
+  return <ErrorScreen error={error} />;
 }

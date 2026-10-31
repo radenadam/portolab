@@ -1,12 +1,7 @@
 import { fail, succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
-import {
-  invalidField,
-  isRecord,
-  isStringArray,
-  notAnObject,
-  parseListField,
-} from "./json.ts";
+import { isRecord, isStringArray } from "../app/value-shapes.ts";
+import { invalidField, notAnObject, parseListField } from "./json.ts";
 import { parseReportedFinding } from "./lens-reports.ts";
 import type { ReportedFinding } from "./lens-reports.ts";
 import { listOfWords, singularOrPlural } from "./sentences.ts";

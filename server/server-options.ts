@@ -2,6 +2,7 @@ import { parseArgs } from "node:util";
 import { errorMessage } from "../app/error-message.ts";
 import { fail, succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
+import { isStringArray } from "../app/value-shapes.ts";
 
 const modes = ["development", "production"] as const;
 
@@ -25,10 +26,7 @@ export function parseCommandLine(
   value: unknown,
   source: string,
 ): Result<Mode, string> {
-  if (
-    !Array.isArray(value) ||
-    !value.every((item) => typeof item === "string")
-  ) {
+  if (!isStringArray(value)) {
     return fail(`${source} must be a list of arguments.`);
   }
   try {

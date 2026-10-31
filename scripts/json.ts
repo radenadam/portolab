@@ -1,5 +1,6 @@
 import { errorMessage } from "../app/error-message.ts";
 import { fail, succeed } from "../app/result.ts";
+import { isRecord } from "../app/value-shapes.ts";
 import type { Result } from "../app/result.ts";
 import { readTextFile } from "./read-text-file.ts";
 
@@ -99,14 +100,4 @@ export function invalidField(
   field: string,
 ): Result<never, string> {
   return fail(`${source} has no valid "${field}".`);
-}
-
-export function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-export function isStringArray(value: unknown): value is string[] {
-  return (
-    Array.isArray(value) && value.every((item) => typeof item === "string")
-  );
 }

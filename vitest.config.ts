@@ -7,6 +7,7 @@ export default defineConfig({
   test: {
     include: [
       "app/**/*.test.ts",
+      "app/**/*.test.tsx",
       "server/**/*.test.ts",
       "scripts/**/*.test.ts",
       "eslint.config.test.ts",

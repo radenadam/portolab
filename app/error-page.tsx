@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { isRouteErrorResponse, Link } from "react-router";
 import styles from "./error-page.module.css";
 import { m } from "./paraglide/messages.js";
 
@@ -15,9 +16,22 @@ export function ErrorPage({ title, body }: ErrorPageProps): ReactNode {
       <title>{`${title} | ${m.app_name()}`}</title>
       <h1>{title}</h1>
       <p>{body}</p>
-      <a href="/" className={styles["backHome"]}>
+      <Link to="/" className={styles["backHome"]}>
         {m.app_back_home_link()}
-      </a>
+      </Link>
     </main>
+  );
+}
+
+/** Chooses the error page for an error that a route threw: the not found page for a 404, and the page for an unexpected failure otherwise. */
+export function ErrorScreen({ error }: { error: unknown }): ReactNode {
+  const isNotFound = isRouteErrorResponse(error) && error.status === 404;
+  return isNotFound ? (
+    <ErrorPage title={m.app_not_found_title()} body={m.app_not_found_body()} />
+  ) : (
+    <ErrorPage
+      title={m.app_unexpected_error_title()}
+      body={m.app_unexpected_error_body()}
+    />
   );
 }

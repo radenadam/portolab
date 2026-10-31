@@ -179,9 +179,14 @@ jobs:
             --allowedTools "${{ steps.definition.outputs.tools }}"
             --json-schema '${{ steps.definition.outputs.schema }}'
       - name: Save the verified findings
+        if: steps.definition.outputs.total != '0'
         env:
           VERIFIER_OUTPUT: ${{ steps.verifier.outputs.structured_output }}
         run: node scripts/save-verified-findings.ts
+      # Without findings the verifier does not run, and an empty list of verdicts is the complete answer.
+      - name: Record that no lens reported a finding
+        if: steps.definition.outputs.total == '0'
+        run: echo '{"findings":[]}' > verified.json
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: verified
