@@ -16,8 +16,9 @@ export function parseJsonText(
 ): Result<unknown, string> {
   // GitHub Actions sets an environment variable to an empty string when the expression behind it is empty, so an empty value means that the input never arrived.
   if (typeof value !== "string" || value === "") {
-    const given = value === "" ? "empty" : describeValue(value);
-    return fail(`${source} must be JSON text, but it is ${given}.`);
+    return fail(
+      `${source} must be JSON text, but it is ${describeValue(value)}.`,
+    );
   }
   try {
     const parsed: unknown = JSON.parse(value);

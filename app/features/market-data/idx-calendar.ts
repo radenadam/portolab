@@ -78,14 +78,7 @@ const tradingCalendars: readonly TradingCalendar[] = [
 // WIB is UTC+7 all year, because Indonesia has no daylight saving time.
 const wibOffsetMilliseconds = 7 * 60 * 60 * 1000;
 
-/** Whether IDX trades on the WIB calendar day of this moment. It fails for a date that no calendar covers, so a missing year is noticed instead of every weekday counting as a trading day. */
-export function isTradingDay(moment: Date): Result<boolean, string> {
-  const wib = toWibClock(moment);
-  const calendar = calendarFor(wib);
-  return calendar.ok ? succeed(isTradingDayIn(calendar.value, wib)) : calendar;
-}
-
-/** Whether delayed prices can still change at this moment, so that fetching them is worthwhile. */
+/** Whether delayed prices can still change at this moment, so that fetching them is worthwhile. It fails for a date that no calendar covers, so a missing year is noticed instead of every weekday counting as a trading day. */
 export function isPriceUpdateTime(moment: Date): Result<boolean, string> {
   const wib = toWibClock(moment);
   const calendar = calendarFor(wib);

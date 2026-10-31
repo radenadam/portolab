@@ -32,7 +32,9 @@ export function createYahooPriceSource(): PriceSource {
         });
         return succeed(collectYahooQuotes(instruments, quotes));
       } catch (error) {
-        return fail({ reason: "unreachable", detail: errorMessage(error) });
+        return fail(
+          `Yahoo Finance did not answer with quotes that its client could read. The client reported: ${errorMessage(error)}`,
+        );
       }
     },
   };

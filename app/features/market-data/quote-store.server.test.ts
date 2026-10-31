@@ -83,13 +83,16 @@ test("keeps only the latest attempt to update prices", () => {
   saveUpdateAttempt(database, {
     attemptedAt: new Date("2026-10-30T09:29:00.000Z"),
     succeeded: true,
+    consecutiveFailures: 0,
   });
   saveUpdateAttempt(database, {
     attemptedAt: new Date("2026-10-30T09:30:00.000Z"),
     succeeded: false,
+    consecutiveFailures: 1,
   });
   expect(readLatestUpdateAttempt(database)).toEqual({
     attemptedAt: new Date("2026-10-30T09:30:00.000Z"),
     succeeded: false,
+    consecutiveFailures: 1,
   });
 });

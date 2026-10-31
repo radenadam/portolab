@@ -32,14 +32,9 @@ export interface QuoteBatch {
   problems: string[];
 }
 
-interface PriceSourceFailure {
-  reason: "unreachable";
-  detail: string;
-}
-
 /** Every price in Portolab comes through this interface, so a licensed source can replace another without changes elsewhere. */
 export interface PriceSource {
   fetchQuotes(
     instruments: readonly Instrument[],
-  ): Promise<Result<QuoteBatch, PriceSourceFailure>>;
+  ): Promise<Result<QuoteBatch, string>>;
 }

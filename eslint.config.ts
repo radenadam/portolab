@@ -143,4 +143,23 @@ export default defineConfig(
       "max-lines": "off",
     },
   },
+  {
+    files: ["app/**/*.{ts,tsx}"],
+    // The root route and the route table compose the app from its features, so they are the only modules outside the features that may import them.
+    ignores: ["app/features/**", "app/root.tsx", "app/routes.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["**/features/**", "~/features/**"],
+              message:
+                "A module of app/ outside the features never imports from a feature, as the section Structure of AGENTS.md states. Only app/root.tsx and app/routes.ts compose the app from its features.",
+            },
+          ],
+        },
+      ],
+    },
+  },
 );

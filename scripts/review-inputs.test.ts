@@ -83,7 +83,7 @@ test("accepts a pull request number and rejects anything else", () => {
   });
   expect(parsePullRequestNumber("", "PULL_REQUEST")).toEqual({
     ok: false,
-    failure: 'PULL_REQUEST must be a pull request number, but it is "".',
+    failure: "PULL_REQUEST must be a pull request number, but it is empty.",
   });
 });
 

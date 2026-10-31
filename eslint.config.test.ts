@@ -3,11 +3,12 @@ import { expect, test } from "vitest";
 
 const eslint = new ESLint();
 
-/** Lints code as if it were a file in scripts/, and returns the rules that report it. */
-async function rulesReporting(code: string): Promise<string[]> {
-  const results = await eslint.lintText(code, {
-    filePath: "scripts/json.ts",
-  });
+/** Lints code as if it were the file at the path, a file in scripts/ unless the test names another, and returns the rules that report it. */
+async function rulesReporting(
+  code: string,
+  filePath = "scripts/json.ts",
+): Promise<string[]> {
+  const results = await eslint.lintText(code, { filePath });
   const rules: string[] = [];
   for (const result of results) {
     for (const message of result.messages) {
@@ -207,3 +208,45 @@ test("rejects abbreviated and one-letter names, and accepts full words", async (
   expect(fullWords).not.toContain("id-denylist");
   expect(fullWords).not.toContain("id-length");
 }, 60_000);
+
+test("rejects an import from a feature in every module of app/ outside the features", async () => {
+  for (const [filePath, code] of [
+    [
+      "app/formatting.ts",
+      'export { quoteChange } from "~/features/market-data/price-change";',
+    ],
+    [
+      "app/error-page.tsx",
+      'import { LanguageSwitch } from "./features/language/language-switch";\nexport { LanguageSwitch };',
+    ],
+    [
+      "app/database/database.server.ts",
+      'import { stockQuotes } from "../features/market-data/market-data.schema";\nexport { stockQuotes };',
+    ],
+  ] as const) {
+    expect(await rulesReporting(code, filePath), filePath).toContain(
+      "no-restricted-imports",
+    );
+  }
+});
+
+test("accepts imports from features in the root route, the route table, and the features", async () => {
+  for (const [filePath, code] of [
+    [
+      "app/root.tsx",
+      'import { LanguageSwitch } from "./features/language/language-switch";\nexport { LanguageSwitch };',
+    ],
+    [
+      "app/routes.ts",
+      'export { quoteChange } from "~/features/market-data/price-change";',
+    ],
+    [
+      "app/features/market-data/prices-view.tsx",
+      'export { LanguageSwitch } from "~/features/language/language-switch";',
+    ],
+  ] as const) {
+    expect(await rulesReporting(code, filePath), filePath).not.toContain(
+      "no-restricted-imports",
+    );
+  }
+});

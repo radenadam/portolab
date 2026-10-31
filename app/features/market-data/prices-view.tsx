@@ -27,17 +27,23 @@ export function PricesView({
   return (
     <>
       <h1>{m.market_data_title()}</h1>
-      {latestAttempt?.succeeded === false && (
-        <p className={styles["notice"]}>
-          {m.market_data_update_failed_notice({
-            time: formatMarketTime(latestAttempt.attemptedAt),
-          })}
-        </p>
-      )}
       {latestQuotedAt === undefined ? (
-        <p>{m.market_data_empty_body()}</p>
+        <p>
+          {latestAttempt?.succeeded === false
+            ? m.market_data_empty_failed_body({
+                time: formatMarketTime(latestAttempt.attemptedAt),
+              })
+            : m.market_data_empty_body()}
+        </p>
       ) : (
         <>
+          {latestAttempt?.succeeded === false && (
+            <p className={styles["notice"]}>
+              {m.market_data_update_failed_notice({
+                time: formatMarketTime(latestAttempt.attemptedAt),
+              })}
+            </p>
+          )}
           <p className={styles["notice"]}>
             {m.market_data_delay_notice({
               time: formatMarketTime(latestQuotedAt),

@@ -6,6 +6,8 @@ import type { Quote } from "./price-source.server";
 export interface UpdateAttempt {
   attemptedAt: Date;
   succeeded: boolean;
+  /** The failures in a row up to this attempt, which decide how long the job waits before the next one. */
+  consecutiveFailures: number;
 }
 
 // The table holds one row, so every attempt replaces the row with this id.
@@ -99,5 +101,9 @@ export function readLatestUpdateAttempt(
   const [row] = database.select().from(priceUpdates).all();
   return row === undefined
     ? undefined
-    : { attemptedAt: row.attemptedAt, succeeded: row.succeeded };
+    : {
+        attemptedAt: row.attemptedAt,
+        succeeded: row.succeeded,
+        consecutiveFailures: row.consecutiveFailures,
+      };
 }

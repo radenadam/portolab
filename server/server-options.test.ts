@@ -39,7 +39,11 @@ test("rejects an unknown option and keeps the reason that Node gives", () => {
 test("accepts a port from 1 to 65535 and rejects anything else", () => {
   expect(parsePort("1", "PORT")).toEqual({ ok: true, value: 1 });
   expect(parsePort("65535", "PORT")).toEqual({ ok: true, value: 65_535 });
-  for (const value of ["0", "65536", "3000.5", "-1", "", " 80"]) {
+  expect(parsePort("", "PORT")).toEqual({
+    ok: false,
+    failure: "PORT must be a whole number from 1 to 65535, but it is empty.",
+  });
+  for (const value of ["0", "65536", "3000.5", "-1", " 80"]) {
     expect(parsePort(value, "PORT")).toEqual({
       ok: false,
       failure: `PORT must be a whole number from 1 to 65535, but it is "${value}".`,

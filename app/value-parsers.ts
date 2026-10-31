@@ -27,6 +27,7 @@ export function parseFilePath(
   if (typeof value === "string" && value !== "") {
     return succeed(value);
   }
-  const given = value === "" ? "empty" : describeValue(value);
-  return fail(`${source} must be the path of a file, but it is ${given}.`);
+  return fail(
+    `${source} must be the path of a file, but it is ${describeValue(value)}.`,
+  );
 }
