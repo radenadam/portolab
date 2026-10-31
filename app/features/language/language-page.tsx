@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { data, redirect } from "react-router";
-import { ErrorPage, PageTitle } from "~/error-page";
+import { ErrorPage } from "~/error-page";
+import { PageTitle } from "~/page-title";
 import { writeLog } from "~/log.server";
 import { m } from "~/paraglide/messages.js";
 import { cookieMaxAge, cookieName } from "~/paraglide/runtime.js";
@@ -46,6 +47,7 @@ export default function LanguagePage({
   }
   return (
     <>
+      <PageTitle text={m.language_rejected_title()} />
       <ErrorPage
         title={m.language_rejected_title()}
         body={actionData.failure}

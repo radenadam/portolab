@@ -66,7 +66,7 @@ These apply to all prose: docs, comments, commit messages, pull requests, issues
 
 - Every screen works with touch on a screen 360 pixels wide and with a keyboard alone. Touch targets are at least 44 pixels high.
 - Forms work before JavaScript loads, so actions use React Router forms and actions instead of client-only handlers.
-- A page sets its title through its route `meta` export, unless the title depends on something that `meta` cannot see, such as the result of an action or an error. Such a page renders `PageTitle` from `app/error-page.tsx`.
+- A page sets its title through its route `meta` export, unless the title depends on something that `meta` cannot see, such as the result of an action or an error. Such a page renders `PageTitle` from `app/page-title.tsx`.
 - A failure that a reader sees, including one from an action, appears on a page in the reader's language, through `app/error-page.tsx` or on the form that caused it, with the next step that its text offers. A bare text response is only for machines.
 - Gains and losses never rely on color alone. A sign or an arrow always carries the meaning.
 - Colors, fonts, spacing, and sizes, such as the smallest touch target, come from the tokens in `app/theme.css`.

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import styles from "./error-page.module.css";
+import { PageTitle } from "./page-title";
 import { m } from "./paraglide/messages.js";
 
 interface ErrorPageProps {
@@ -8,17 +9,10 @@ interface ErrorPageProps {
   body: string;
 }
 
-/** The title of a page whose title depends on something that route meta cannot see, such as the result of an action or an error. */
-export function PageTitle({ text }: { text: string }): ReactNode {
-  return <title>{`${text} | ${m.app_name()}`}</title>;
-}
-
-/** A page that explains why the reader cannot see what they asked for, with a way back to the home page. */
+/** The content of a page that explains why the reader cannot see what they asked for, with a way back to the home page. Its caller sets the title of the page. */
 export function ErrorPage({ title, body }: ErrorPageProps): ReactNode {
   return (
     <>
-      {/* An error page has no route meta, so it names itself. React places this title in the head. */}
-      <PageTitle text={title} />
       <h1>{title}</h1>
       <p>{body}</p>
       <Link to="/" className={styles["backHome"]}>
@@ -31,9 +25,12 @@ export function ErrorPage({ title, body }: ErrorPageProps): ReactNode {
 /** The page for a failure that no route expected. Every unknown address has its own not found page, so a failure here is never a missing page. */
 export function UnexpectedErrorPage(): ReactNode {
   return (
-    <ErrorPage
-      title={m.app_unexpected_error_title()}
-      body={m.app_unexpected_error_body()}
-    />
+    <>
+      <PageTitle text={m.app_unexpected_error_title()} />
+      <ErrorPage
+        title={m.app_unexpected_error_title()}
+        body={m.app_unexpected_error_body()}
+      />
+    </>
   );
 }
