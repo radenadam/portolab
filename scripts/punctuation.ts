@@ -8,11 +8,11 @@ const semicolon = { character: ";", name: "semicolon" };
 type Forbidden = readonly { character: string; name: string }[];
 
 /** How a file holds its prose, which decides where each character is forbidden. */
-export type FileKind = "markdown" | "typescript" | "workflow";
+export type FileKind = "markdown" | "code" | "yaml";
 
 const commentMarkers = {
-  typescript: ["//", "/*", "*"],
-  workflow: ["#"],
+  code: ["//", "/*", "*"],
+  yaml: ["#"],
 } as const;
 
 /** Returns one sentence for each forbidden character in a file, with the line it is on. */
@@ -24,7 +24,7 @@ export function punctuationProblems(
   if (kind === "markdown") {
     return linesWithForbidden(file, withoutCode(text), [...dashes, semicolon]);
   }
-  // Code has no use for a dash, so dashes are rejected on every line, which covers the text that code generates. Semicolons belong to code, so they are rejected only in comments.
+  // Code and configuration have no use for a dash, so dashes are rejected on every line, which covers the text that code generates. Semicolons belong to code, so they are rejected only in comments.
   return [
     ...linesWithForbidden(file, text.split("\n"), dashes),
     ...linesWithForbidden(file, commentsOnly(text, commentMarkers[kind]), [

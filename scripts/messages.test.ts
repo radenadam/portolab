@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { messageKeyProblems } from "./message-keys.ts";
+import { messageKeyProblems, parseMessages, readMessages } from "./messages.ts";
 
 test("accepts keys that start with a feature folder or with app", () => {
   const keys = ["app_name", "market_data_title"];
@@ -38,4 +38,23 @@ test("rejects a key that starts with no feature folder", () => {
   ).toEqual([
     '"prices_title": start the key with the feature folder that uses it, or with "app_" when the whole app shares it.',
   ]);
+});
+
+test("reads a language file of messages", () => {
+  const messages = readMessages("messages/en.json");
+  expect(messages.ok && messages.value["app_name"]).toBe("Portolab");
+});
+
+test("rejects messages that are not a JSON object", () => {
+  expect(parseMessages(["app_name"], "messages/en.json")).toEqual({
+    ok: false,
+    failure: "messages/en.json must be a JSON object of messages.",
+  });
+});
+
+test("reports a messages file that cannot be read", () => {
+  const messages = readMessages("messages/missing.json");
+  expect(messages.ok ? "" : messages.failure).toMatch(
+    /^messages\/missing\.json cannot be read\. The system reported: /,
+  );
 });

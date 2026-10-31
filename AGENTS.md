@@ -23,7 +23,9 @@ While working, call any lens whenever its view would help: on a plan before writ
 
 On every push to a pull request, the review workflow in CI runs the panel. A fresh agent, the router, picks the lenses: every lens whose description covers what the change touches, and every lens it is unsure about. `review-standards` and `review-consistency` always run. Each lens then runs as its own job with a fresh agent, the verifier checks every finding, and the `review` job posts one review on the pull request. The `review` job fails while any verified finding remains. It also fails when any part of the panel did not finish, because an unfinished lens has reviewed nothing, and when the verifier did not give exactly one verdict for each reported finding.
 
-A finding counts only when it names a standard in this repository or demonstrates a concrete defect, because preference without a standard behind it creates churn instead of quality. Every verified finding is fixed before merge, and there is no lower tier to defer. A lens that believes a standard is missing reports a candidate standard. Adopt it when it would have prevented a real defect, and take candidates that turn on taste to a maintainer. When a defect reaches `main` past the gate, the router or a lens missed it, so trace which one and fix it. An agent without subagents runs each lens file as a separate pass. A lens definition links to the standards in this file instead of restating them, so that sharpening a standard leaves no stale copy behind.
+A finding counts only when it names a standard in this repository or demonstrates a concrete defect, because preference without a standard behind it creates churn instead of quality. Every verified finding is fixed before merge, and there is no lower tier to defer. A lens that believes a standard is missing reports a candidate standard. Adopt it when it would have prevented a real defect, and take candidates that turn on taste to a maintainer. When a defect reaches `main` past the gate, the router or a lens missed it, so trace which one and fix it. An agent without subagents runs each lens file as a separate pass.
+
+A lens definition links to the standards in this file instead of restating them, so that sharpening a standard leaves no stale copy behind. An agent definition describes its task and what each part of its answer means. The schemas in `.github/review/` and the prompts in `.github/workflows/review.yml` alone define the shape of that answer in CI, so the definition and the workflow never disagree about it.
 
 ## Defect protocol
 
@@ -47,7 +49,7 @@ Every line here is read at the start of every session. A standard earns its plac
 These apply to all prose: docs, comments, commit messages, pull requests, issues, every text in the interface, and every text that code generates, such as log messages and automated reviews.
 
 - Every sentence is easy to parse for a reader with basic English or basic Bahasa Indonesia. This is about sentence structure only. It never means simpler ideas or padding.
-- Connect ideas with words such as "because", "so", "but", and "which means", or split them into separate sentences. A colon may introduce a list, an example, or code, or separate a label from its description. `pnpm check` rejects em dashes and en dashes anywhere in docs, messages, and code, and semicolons in docs, messages, and comments. It cannot see a semicolon in text that code generates or a colon that joins two clauses, so watch for both.
+- Connect ideas with words such as "because", "so", "but", and "which means", or split them into separate sentences. A colon may introduce a list, an example, or code, or separate a label from its description. `pnpm check` rejects em dashes and en dashes in the prose of docs and messages and anywhere in TypeScript, CSS, and YAML files, and semicolons in the prose of docs and messages and in comments. It cannot see a dash inside a code span, a semicolon in text that code generates, or a colon that joins two clauses, so watch for those.
 - Write plainly and directly. No marketing filler, no hedging, and no text that coaches the reader on what they already know.
 - Each fact lives in one place, and other places link to it.
 
@@ -70,6 +72,7 @@ These apply to all prose: docs, comments, commit messages, pull requests, issues
 ### Code
 
 - Prefer explicit code over clever code. A plain loop beats a chain of `reduce` calls. Names use full words, and ESLint rejects the common abbreviations.
+- An abstraction exists only for callers that exist today, never for a future that may not come. Logic that repeats becomes one function that every copy calls.
 - Units get branded types, such as rupiah, shares, and lots, so mixing them up is a type error. Amounts of rupiah are whole numbers.
 - An expected failure, such as an order the cash cannot pay for, is a typed result that every caller must handle. Throwing is only for states that should never happen.
 - Data from outside the program is parsed into types at the boundary where it enters, in scripts and CI steps as much as in the app. Outside data includes form input, environment variables, files, prices from the price source, and the output of agents. A type assertion such as `as` is not parsing. Code inside the boundary trusts the parsed types and has no defensive checks for impossible states.
@@ -80,7 +83,7 @@ These apply to all prose: docs, comments, commit messages, pull requests, issues
 
 ### Structure
 
-- Code is organized by feature in `app/features/<feature>/`. A feature folder holds that feature's routes, components, logic, styles, and tests.
+- Code is organized by feature in `app/features/<feature>/`. A feature folder holds that feature's routes, components, logic, styles, and tests. A feature uses another feature only through the exported functions and components that represent that feature's concept.
 - A concept used by several features lives in the feature that owns it. A concept that no feature owns, such as the `Result` type, units of measure, formatting, or logging, lives directly in `app/`, in a file or folder named after the concept. Folders named `utils`, `helpers`, `common`, `shared`, or `lib` are not allowed, because their names say nothing about what they hold.
 - A script in `scripts/` imports from `app/` only a module that imports nothing itself, because scripts run in plain Node without the app's build.
 - File names are kebab-case and named after their main export. Tests sit beside their code as `<name>.test.ts`, and browser tests live in `e2e/`.

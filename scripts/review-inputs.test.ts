@@ -1,8 +1,15 @@
+import { readdirSync, readFileSync } from "node:fs";
 import { expect, test } from "vitest";
 import { isRecord, isStringArray, readJsonFile } from "./json.ts";
 import {
+  chooseLenses,
+  hasCancelledJob,
+  parseAgentTools,
+  parseExpectedLenses,
   parseJobResults,
   parseLensReport,
+  parsePullRequestNumber,
+  parseRouteSchemaLenses,
   parseVerifiedFindings,
 } from "./review-inputs.ts";
 
@@ -112,4 +119,82 @@ function requiredFindingFields(schemaPath: string): string[] {
     throw new Error(`${schemaPath} does not list the fields of a finding.`);
   }
   return required;
+}
+
+test("accepts a pull request number and rejects anything else", () => {
+  expect(parsePullRequestNumber("12")).toEqual({ ok: true, value: "12" });
+  expect(parsePullRequestNumber("")).toEqual({
+    ok: false,
+    failure: 'PULL_REQUEST must be a pull request number, but it is "".',
+  });
+});
+
+test("reads the expected lenses and rejects a value that is not a list", () => {
+  expect(parseExpectedLenses('["craft","docs"]')).toEqual({
+    ok: true,
+    value: ["craft", "docs"],
+  });
+  expect(parseExpectedLenses('"craft"')).toEqual({
+    ok: false,
+    failure:
+      'EXPECTED_LENSES must be a JSON list of lens names, but it is "craft".',
+  });
+});
+
+test("notices a cancelled job", () => {
+  expect(hasCancelledJob({ route: "success", lens: "cancelled" })).toBe(true);
+  expect(hasCancelledJob({ route: "success", lens: "failure" })).toBe(false);
+});
+
+test("adds the lenses for every change to the router's choice", () => {
+  expect(
+    chooseLenses('{"lenses":["docs","standards"]}', routeSchemaLenses()),
+  ).toEqual({ ok: true, value: ["consistency", "docs", "standards"] });
+});
+
+test("rejects a router's choice with an unknown lens or no list", () => {
+  expect(chooseLenses('{"lenses":["style"]}', routeSchemaLenses())).toEqual({
+    ok: false,
+    failure: "The router chose an unknown lens: style.",
+  });
+  expect(
+    chooseLenses('{"lenses":["style","speed"]}', routeSchemaLenses()),
+  ).toEqual({
+    ok: false,
+    failure: "The router chose unknown lenses: style and speed.",
+  });
+  expect(chooseLenses("{}", routeSchemaLenses())).toEqual({
+    ok: false,
+    failure: `The router's output has no valid "lenses".`,
+  });
+});
+
+test("reads the tools of every agent definition in the repository", () => {
+  for (const file of readdirSync(".claude/agents")) {
+    const path = `.claude/agents/${file}`;
+    expect(parseAgentTools(readFileSync(path, "utf8"), path)).toEqual({
+      ok: true,
+      value: "Read,Grep,Glob,Bash",
+    });
+  }
+});
+
+test("rejects an agent definition without a tools line", () => {
+  expect(parseAgentTools("---\nname: x\n---", "x.md")).toEqual({
+    ok: false,
+    failure:
+      'x.md must list its tools on one line that starts with "tools: ", separated by commas.',
+  });
+});
+
+function routeSchemaLenses(): string[] {
+  const path = ".github/review/route.schema.json";
+  const schema = readJsonFile(path);
+  const lenses = schema.ok
+    ? parseRouteSchemaLenses(schema.value, path)
+    : schema;
+  if (!lenses.ok) {
+    throw new Error(lenses.failure);
+  }
+  return lenses.value;
 }

@@ -2,22 +2,21 @@ import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { fail, succeed } from "../app/result.ts";
-import type { Result } from "../app/result.ts";
-import { isStringArray, parseJsonText, readJsonFile } from "./json.ts";
+import { parseJsonText, readJsonFile } from "./json.ts";
 import {
+  hasCancelledJob,
+  parseExpectedLenses,
   parseJobResults,
   parseLensReport,
+  parsePullRequestNumber,
   parseVerifiedFindings,
 } from "./review-inputs.ts";
 import type { LensReport, VerifiedFinding } from "./review-inputs.ts";
 import { summarizeReview } from "./review-summary.ts";
 
-const pullRequest = process.env["PULL_REQUEST"] ?? "";
-if (!/^[1-9]\d*$/.test(pullRequest)) {
-  failWithoutReview(
-    `PULL_REQUEST must be a pull request number, but it is "${pullRequest}".`,
-  );
+const pullRequest = parsePullRequestNumber(process.env["PULL_REQUEST"] ?? "");
+if (!pullRequest.ok) {
+  failWithoutReview(pullRequest.failure);
 }
 const panelResults = parseJsonText(
   process.env["PANEL_RESULTS"] ?? "",
@@ -31,14 +30,16 @@ if (!jobResults.ok) {
   failWithoutReview(jobResults.failure);
 }
 // A cancelled run reviewed nothing, so it fails without posting a review. When a newer push cancelled it, the newer run posts the review.
-if (Object.values(jobResults.value).includes("cancelled")) {
+if (hasCancelledJob(jobResults.value)) {
   failWithoutReview(
     "The panel was cancelled before it finished, so this run reviewed nothing.",
   );
 }
 
 const inputProblems: string[] = [];
-const expectedLenses = readExpectedLenses(process.env["EXPECTED_LENSES"] ?? "");
+const expectedLenses = parseExpectedLenses(
+  process.env["EXPECTED_LENSES"] ?? "",
+);
 if (!expectedLenses.ok) {
   inputProblems.push(expectedLenses.failure);
 }
@@ -81,25 +82,12 @@ const bodyPath = join(tmpdir(), "review-body.md");
 writeFileSync(bodyPath, `${outcome.body}\n`);
 execFileSync(
   "gh",
-  ["pr", "review", pullRequest, "--comment", "--body-file", bodyPath],
+  ["pr", "review", pullRequest.value, "--comment", "--body-file", bodyPath],
   { stdio: "inherit" },
 );
 if (!outcome.passed) {
   process.stderr.write(`::error::${outcome.verdict}\n`);
   process.exit(1);
-}
-
-function readExpectedLenses(text: string): Result<string[], string> {
-  const json = parseJsonText(text, "EXPECTED_LENSES");
-  if (!json.ok) {
-    return json;
-  }
-  if (!isStringArray(json.value)) {
-    return fail(
-      `EXPECTED_LENSES must be a JSON list of lens names, but it is ${text}.`,
-    );
-  }
-  return succeed(json.value);
 }
 
 function failWithoutReview(reason: string): never {

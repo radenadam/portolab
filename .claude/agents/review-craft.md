@@ -12,19 +12,13 @@ A diff range, a set of paths, or a plan, with the intent behind it. In an audit,
 
 ## Look for
 
-- Names that are not full words or that do not describe what a thing holds or does.
-- Redundancy, dead code, and code that duplicates something already in the repository.
-- Abstractions that are missing because the same logic repeats, and abstractions that are needless because they serve one caller or a future that does not exist yet.
-- Verbose code, and comments that narrate what the code does instead of explaining why.
-- Defensive code for states that the types already rule out.
-- Clever code where an explicit version would be clearer.
+- The rules of the section "Code" of `AGENTS.md` that only a reader can judge: names, explicit code, abstractions, comments, parsing at boundaries, failure texts, and defensive checks.
+- Code that duplicates something already in the repository, in a form that `pnpm check` cannot detect.
 - Departures from the idioms of the stack: React Router route modules, loaders, actions, and forms, Paraglide message functions, Drizzle queries, and CSS modules.
 
 ## Findings
 
-A finding is a violation of a written standard in `AGENTS.md`, a nested `AGENTS.md`, or `docs/product.md`, or a concrete defect that you can demonstrate. A preference without a standard behind it is not a finding. When a standard seems to be missing, report a candidate standard instead.
-
-Report each finding with these fields:
+The section "Review panel" of `AGENTS.md` defines what counts as a finding and when to report a candidate standard instead. Report each finding with these parts:
 
 - **Location**: `path:line`.
 - **Claim**: one sentence.

@@ -63,7 +63,15 @@ test("fails when a job of the panel did not finish", () => {
   });
   expect(outcome.passed).toBe(false);
   expect(outcome.verdict).toBe(
-    "The panel did not finish, so this change has not been reviewed. Unfinished jobs: lens.",
+    "The lens job of the panel did not finish, so this change has not been reviewed.",
+  );
+  expect(
+    summarizeReview({
+      ...craftReview([], []),
+      jobResults: { route: "success", lens: "failure", verify: "skipped" },
+    }).verdict,
+  ).toBe(
+    "The lens and verify jobs of the panel did not finish, so this change has not been reviewed.",
   );
 });
 

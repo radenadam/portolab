@@ -1,6 +1,7 @@
 import { fail, succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
-import { isRecord, isStringArray } from "./json.ts";
+import { isRecord, isStringArray, parseJsonText } from "./json.ts";
+import { listOfWords } from "./sentences.ts";
 
 const verdictStatuses = ["confirmed", "refuted", "duplicate"] as const;
 
@@ -199,4 +200,86 @@ function readCandidateStandard(
     return fail(`${source} has no valid "incident".`);
   }
   return succeed({ standard, incident });
+}
+
+/** Reads the pull request number that the review is posted on. */
+export function parsePullRequestNumber(text: string): Result<string, string> {
+  return /^[1-9]\d*$/.test(text)
+    ? succeed(text)
+    : fail(`PULL_REQUEST must be a pull request number, but it is "${text}".`);
+}
+
+/** Reads the list of lenses that the route job chose. */
+export function parseExpectedLenses(text: string): Result<string[], string> {
+  const json = parseJsonText(text, "EXPECTED_LENSES");
+  if (!json.ok) {
+    return json;
+  }
+  return isStringArray(json.value)
+    ? succeed(json.value)
+    : fail(
+        `EXPECTED_LENSES must be a JSON list of lens names, but it is ${text}.`,
+      );
+}
+
+/** Whether any job of the panel was cancelled, in which case the run reviewed nothing. */
+export function hasCancelledJob(jobResults: Record<string, string>): boolean {
+  return Object.values(jobResults).includes("cancelled");
+}
+
+// AGENTS.md says that these lenses review every change.
+const lensesForEveryChange = ["consistency", "standards"];
+
+/** Adds the lenses for every change to the lenses that the router chose, after checking that each one exists. */
+export function chooseLenses(
+  routerOutput: string,
+  knownLenses: readonly string[],
+): Result<string[], string> {
+  const json = parseJsonText(routerOutput, "The router's output");
+  if (!json.ok) {
+    return json;
+  }
+  const lenses = isRecord(json.value) ? json.value["lenses"] : undefined;
+  if (!isStringArray(lenses)) {
+    return fail(`The router's output has no valid "lenses".`);
+  }
+  const unknown = lenses.filter((lens) => !knownLenses.includes(lens));
+  if (unknown.length > 0) {
+    return fail(
+      unknown.length === 1
+        ? `The router chose an unknown lens: ${listOfWords(unknown)}.`
+        : `The router chose unknown lenses: ${listOfWords(unknown)}.`,
+    );
+  }
+  return succeed([...new Set([...lenses, ...lensesForEveryChange])].sort());
+}
+
+/** Reads the names of the lenses from the schema of the router's answer. */
+export function parseRouteSchemaLenses(
+  value: unknown,
+  source: string,
+): Result<string[], string> {
+  const properties = isRecord(value) ? value["properties"] : undefined;
+  const lenses = isRecord(properties) ? properties["lenses"] : undefined;
+  const items = isRecord(lenses) ? lenses["items"] : undefined;
+  const names = isRecord(items) ? items["enum"] : undefined;
+  return isStringArray(names) && names.length > 0
+    ? succeed(names)
+    : fail(
+        `${source} has no list of lens names at properties.lenses.items.enum.`,
+      );
+}
+
+/** Reads the tools that an agent definition lists on its line that starts with "tools: ". */
+export function parseAgentTools(
+  definition: string,
+  source: string,
+): Result<string, string> {
+  const line = /^tools: (.*)$/m.exec(definition)?.[1];
+  const tools = line?.replaceAll(" ", "") ?? "";
+  return /^[A-Za-z]+(,[A-Za-z]+)*$/.test(tools)
+    ? succeed(tools)
+    : fail(
+        `${source} must list its tools on one line that starts with "tools: ", separated by commas.`,
+      );
 }

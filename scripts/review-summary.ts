@@ -1,4 +1,5 @@
 import type { LensReport, VerifiedFinding } from "./review-inputs.ts";
+import { countOf, listOfWords } from "./sentences.ts";
 
 export interface ReviewInput {
   /** The result of each job of the panel, such as "success" or "failure". */
@@ -46,7 +47,7 @@ function verdictSentence(input: ReviewInput, confirmedCount: number): string {
     .filter(([, result]) => result !== "success")
     .map(([job]) => job);
   if (unfinishedJobs.length > 0) {
-    return `The panel did not finish, so this change has not been reviewed. Unfinished jobs: ${unfinishedJobs.join(", ")}.`;
+    return `The ${listOfWords(unfinishedJobs)} ${unfinishedJobs.length === 1 ? "job" : "jobs"} of the panel did not finish, so this change has not been reviewed.`;
   }
   const [inputProblem] = input.inputProblems;
   if (inputProblem !== undefined) {
@@ -108,10 +109,6 @@ function coverageProblem(
   return undefined;
 }
 
-function listOfWords(words: string[]): string {
-  return new Intl.ListFormat("en", { type: "conjunction" }).format(words);
-}
-
 function confirmedSection(confirmed: VerifiedFinding[]): string[] {
   if (confirmed.length === 0) {
     return [];
@@ -165,10 +162,6 @@ function candidateSection(reports: LensReport[]): string[] {
     }
   }
   return lines.length > 0 ? ["", "### Candidate standards", "", ...lines] : [];
-}
-
-function countOf(count: number, singular: string, plural: string): string {
-  return `${String(count)} ${count === 1 ? singular : plural}`;
 }
 
 function listOrNone(ids: string[]): string {

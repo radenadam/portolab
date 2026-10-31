@@ -1,3 +1,24 @@
+import { fail, succeed } from "../app/result.ts";
+import type { Result } from "../app/result.ts";
+import { isRecord, readJsonFile } from "./json.ts";
+
+/** Reads one language file of Paraglide messages as an object of message keys. */
+export function readMessages(
+  path: string,
+): Result<Record<string, unknown>, string> {
+  const json = readJsonFile(path);
+  return json.ok ? parseMessages(json.value, path) : json;
+}
+
+export function parseMessages(
+  value: unknown,
+  source: string,
+): Result<Record<string, unknown>, string> {
+  return isRecord(value)
+    ? succeed(value)
+    : fail(`${source} must be a JSON object of messages.`);
+}
+
 /** Returns one sentence for each key that a language lacks, or that does not start with a feature folder or with app. */
 export function messageKeyProblems(
   keysByLanguage: ReadonlyMap<string, readonly string[]>,

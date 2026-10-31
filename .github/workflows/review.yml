@@ -24,9 +24,15 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+      - uses: pnpm/setup@fa36a5ef7dcdefc3a7cb25655c122e00cf6e636e # v3.1.2
+        with:
+          install: false
+      # Each value is assigned on its own line, because a failure inside a command substitution within echo would not fail the step.
       - name: Read the schema of the router's answer
         id: schema
-        run: echo "schema=$(jq -c . .github/review/route.schema.json)" >> "$GITHUB_OUTPUT"
+        run: |
+          schema=$(jq -c . .github/review/route.schema.json)
+          echo "schema=${schema}" >> "$GITHUB_OUTPUT"
       - name: Choose the lenses
         id: router
         uses: anthropics/claude-code-action@6d5ae526d25ce88daa2200be073e1a373167f064 # v1.0.265
@@ -47,11 +53,7 @@ jobs:
         env:
           ROUTER_OUTPUT: ${{ steps.router.outputs.structured_output }}
         run: |
-          if [ -z "$ROUTER_OUTPUT" ]; then
-            echo "::error::The router returned no structured output."
-            exit 1
-          fi
-          lenses=$(printf '%s' "$ROUTER_OUTPUT" | jq -c '(.lenses + ["standards", "consistency"]) | unique')
+          lenses=$(node scripts/choose-lenses.ts)
           echo "lenses=${lenses}" >> "$GITHUB_OUTPUT"
       # A failed agent is traced through its transcript. It stays for one day, because a public repository's artifacts are public.
       - name: Keep the transcript of a failed router
@@ -88,13 +90,10 @@ jobs:
         env:
           DEFINITION: .claude/agents/review-${{ matrix.lens }}.md
         run: |
-          tools=$(sed -n 's/^tools: //p' "$DEFINITION" | tr -d ' ')
-          if ! printf '%s' "$tools" | grep -Eq '^[A-Za-z]+(,[A-Za-z]+)*$'; then
-            echo "::error::${DEFINITION} must list its tools on one line that starts with tools: and a space."
-            exit 1
-          fi
+          tools=$(node scripts/read-agent-tools.ts "$DEFINITION")
           echo "tools=${tools}" >> "$GITHUB_OUTPUT"
-          echo "schema=$(jq -c . .github/review/lens-report.schema.json)" >> "$GITHUB_OUTPUT"
+          schema=$(jq -c . .github/review/lens-report.schema.json)
+          echo "schema=${schema}" >> "$GITHUB_OUTPUT"
       - name: Review through the lens
         id: lens
         uses: anthropics/claude-code-action@6d5ae526d25ce88daa2200be073e1a373167f064 # v1.0.265
@@ -159,14 +158,12 @@ jobs:
         env:
           DEFINITION: .claude/agents/review-verifier.md
         run: |
-          tools=$(sed -n 's/^tools: //p' "$DEFINITION" | tr -d ' ')
-          if ! printf '%s' "$tools" | grep -Eq '^[A-Za-z]+(,[A-Za-z]+)*$'; then
-            echo "::error::${DEFINITION} must list its tools on one line that starts with tools: and a space."
-            exit 1
-          fi
+          tools=$(node scripts/read-agent-tools.ts "$DEFINITION")
           echo "tools=${tools}" >> "$GITHUB_OUTPUT"
-          echo "total=$(jq -s '[.[].findings[]] | length' findings/*.json)" >> "$GITHUB_OUTPUT"
-          echo "schema=$(jq -c . .github/review/verified-findings.schema.json)" >> "$GITHUB_OUTPUT"
+          total=$(jq -s '[.[].findings[]] | length' findings/*.json)
+          echo "total=${total}" >> "$GITHUB_OUTPUT"
+          schema=$(jq -c . .github/review/verified-findings.schema.json)
+          echo "schema=${schema}" >> "$GITHUB_OUTPUT"
       - name: Verify the findings
         id: verifier
         if: steps.definition.outputs.total != '0'

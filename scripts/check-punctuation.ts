@@ -1,41 +1,44 @@
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { matchesGlob } from "node:path";
-import { isRecord, readJsonFile } from "./json.ts";
+import { readMessages } from "./messages.ts";
 import { messageProblems, punctuationProblems } from "./punctuation.ts";
 import type { FileKind } from "./punctuation.ts";
 
-// Git lists the files the repository holds, so generated and ignored files are never checked.
+// Git lists the files the repository holds, so generated and ignored files are never checked. A file deleted but not yet staged is still listed, so it is skipped.
 const repositoryFiles = execFileSync(
   "git",
   ["ls-files", "--cached", "--others", "--exclude-standard", "-z"],
   { encoding: "utf8" },
 )
   .split("\0")
-  .filter((file) => file !== "");
+  .filter((file) => file !== "" && existsSync(file));
 
+// Issue templates are YAML files whose text is all prose, so they are checked like Markdown.
+const issueTemplates = ".github/ISSUE_TEMPLATE/*.yml";
 const filesByKind: [FileKind, string[]][] = [
-  ["markdown", ["**/*.md", ".github/ISSUE_TEMPLATE/*.yml"]],
-  ["typescript", ["**/*.ts", "**/*.tsx"]],
-  ["workflow", [".github/workflows/*.yml"]],
+  ["markdown", ["**/*.md", issueTemplates]],
+  ["code", ["**/*.ts", "**/*.tsx", "**/*.css"]],
+  ["yaml", ["**/*.yml", "**/*.yaml"]],
 ];
 
 const problems: string[] = [];
 for (const [kind, patterns] of filesByKind) {
-  for (const file of filesMatching(patterns)) {
+  const files = filesMatching(patterns).filter(
+    (file) => kind === "markdown" || !matchesGlob(file, issueTemplates),
+  );
+  for (const file of files) {
     problems.push(
       ...punctuationProblems(file, readFileSync(file, "utf8"), kind),
     );
   }
 }
 for (const file of filesMatching(["messages/*.json"])) {
-  const messages = readJsonFile(file);
-  if (!messages.ok) {
-    problems.push(messages.failure);
-  } else if (isRecord(messages.value)) {
+  const messages = readMessages(file);
+  if (messages.ok) {
     problems.push(...messageProblems(file, messages.value));
   } else {
-    problems.push(`${file} must be a JSON object of messages.`);
+    problems.push(messages.failure);
   }
 }
 

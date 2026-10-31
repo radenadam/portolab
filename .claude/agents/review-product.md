@@ -18,22 +18,14 @@ A diff range, a set of paths, or a plan, with the intent behind it. In an audit,
 
 ## Look for
 
-Judge the change against `docs/product.md` and the quality bar it sets:
-
-- Whether the change does what the brief says, for the users it names, and nothing that the brief excludes.
-- Copy in both languages, errors that teach with the real numbers and a next step, and no recommendation of any security.
+- Whether the change does what `docs/product.md` says, for the users it names, and nothing that the brief excludes.
+- How the change compares with the products in the section "Quality bar" of `docs/product.md`, and whether it meets the standards that section sets.
+- The sections "Interface text" and "Interface behavior" of `AGENTS.md`, as they appear in the running app.
 - Defaults, empty states, loading states, and failure states, including the state when the price source is unavailable.
-- Market realism against the IDX rules, at the level that Stockbit Virtual Trading shows them.
-- Measures that show their formula and inputs, so a student can reproduce them by hand.
-- The simulation label and the price delay on every screen that shows prices or results.
-- Touch, keyboard use, layout at 360 pixels, and gains and losses that never rely on color alone.
-- Pages that render on the server and keep working before JavaScript loads.
 
 ## Findings
 
-A finding is a violation of a written standard in `AGENTS.md`, a nested `AGENTS.md`, or `docs/product.md`, or a concrete defect that you can demonstrate. A preference without a standard behind it is not a finding. When a standard seems to be missing, report a candidate standard instead.
-
-Report each finding with these fields:
+The section "Review panel" of `AGENTS.md` defines what counts as a finding and when to report a candidate standard instead. Report each finding with these parts:
 
 - **Location**: `path:line`, or the page address and the steps that show it.
 - **Claim**: one sentence.

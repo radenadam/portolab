@@ -13,15 +13,12 @@ A diff range, a set of paths, or a plan, with the intent behind it. In an audit,
 ## Look for
 
 - Every standard in `AGENTS.md` and in any nested `AGENTS.md` whose directory the change touches, every requirement in `docs/product.md` that the change affects, and every record in `docs/decisions/` whose subject the change touches.
-- Every text in the change that the section "Writing" of `AGENTS.md` covers, including the text that code generates. That section also says which rules `pnpm check` enforces, so check the rules that it leaves to a reader.
-- Indonesian text that addresses the reader as anything other than "Anda", and pairs of messages whose two languages say different things.
-- The workflow: a pull request title in Conventional Commits form, a description that explains why, and a complete change with its tests and every affected document.
+- Every text in the change that the section "Writing" of `AGENTS.md` covers, including the text that code generates. The sections "Writing" and "Interface text" say which rules a tool enforces, so judge the rules that they leave to a reader.
+- The section "Workflow" of `AGENTS.md`, including the pull request title and description.
 
 ## Findings
 
-A finding is a violation of a written standard in `AGENTS.md`, a nested `AGENTS.md`, or `docs/product.md`, or a concrete defect that you can demonstrate. A preference without a standard behind it is not a finding. When a standard seems to be missing, report a candidate standard instead.
-
-Report each finding with these fields:
+The section "Review panel" of `AGENTS.md` defines what counts as a finding and when to report a candidate standard instead. Report each finding with these parts:
 
 - **Location**: `path:line`.
 - **Claim**: one sentence.
