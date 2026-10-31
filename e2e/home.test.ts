@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import type { Page } from "@playwright/test";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 
 test("opens the home page in Bahasa Indonesia", async ({ page }) => {
@@ -61,6 +62,44 @@ test("passes the accessibility checks on the not found page", async ({
 }) => {
   await page.goto("/tidak-ada");
   await expectAccessibleScreen(page);
+});
+
+// The server never fails on purpose. So the reader leaves a page through its link and goes back, and the test makes the data request of that return fail, as a server that fails would.
+async function failOnReturnTo(
+  page: Page,
+  path: string,
+  linkName: string,
+): Promise<void> {
+  await page.goto(path);
+  await page.waitForLoadState("networkidle");
+  await page.getByRole("link", { name: linkName }).click();
+  await expect(page).toHaveURL("/");
+  await page.route(/\.data(\?|$)/, (route) => route.fulfill({ status: 500 }));
+  await page.goBack();
+}
+
+test("shows the page for an unexpected failure in Bahasa Indonesia", async ({
+  page,
+}) => {
+  await failOnReturnTo(page, "/tidak-ada", "Kembali ke beranda");
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Terjadi kesalahan" }),
+  ).toBeVisible();
+  await expect(page).toHaveTitle("Terjadi kesalahan | Portolab");
+  await expectAccessibleScreen(page);
+});
+
+test("shows the page for an unexpected failure in English", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "English" }).click();
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  await failOnReturnTo(page, "/not-here", "Back to the home page");
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Something went wrong" }),
+  ).toBeVisible();
+  await expect(page).toHaveTitle("Something went wrong | Portolab");
 });
 
 test("reports ok from the health check", async ({ request }) => {
