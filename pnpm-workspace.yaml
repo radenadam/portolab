@@ -1,0 +1,9 @@
+minimumReleaseAge: 1440
+engineStrict: true
+allowBuilds:
+  better-sqlite3: true
+  esbuild: false
+  lefthook: false
+permissions:
+  yahoo-finance2:
+    skills: false

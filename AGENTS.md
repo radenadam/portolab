@@ -1,0 +1,101 @@
+# AGENTS.md
+
+Portolab is a portfolio management lab for university classes in Indonesia. Students build portfolios of IDX stocks with virtual cash at real delayed prices, and Portolab computes the measures of the course from their own holdings. The full product brief is [`docs/product.md`](docs/product.md), and every decision with a real alternative is in [`docs/decisions/`](docs/decisions/).
+
+## Workflow
+
+`pnpm check` runs everything that CI's check job runs.
+
+Every change, however small:
+
+1. Branch from an up-to-date `main` as `<type>/<summary-in-kebab-case>`. One coherent change goes on each branch. An improvement noticed along the way gets its own branch or a GitHub issue.
+2. Make the change complete: code, tests, and every doc, example, and standard that it affects. Nothing is left for a follow-up.
+3. Run `pnpm check`. It passes before every commit.
+4. Commit using Conventional Commits, push, and open a pull request titled with the final commit message. Its description explains why the change is needed, because it becomes the body of the squashed commit. Enable auto-merge with `gh pr merge --auto --squash`. The pull request merges when CI's check job and review job both pass. When the review job fails, fix each verified finding through the defect protocol and push again.
+
+Work that is noticed but not done becomes a GitHub issue: a flaw that is parked, an open question, or an idea. Nothing about the state of the project lives only in a conversation or in a comment in the code.
+
+## Review panel
+
+The reviewers are in `.claude/agents/`. Each `review-*` file is one lens, and its description says which changes it applies to. `review-verifier` tries to refute each finding.
+
+While working, call any lens whenever its view would help: on a plan before writing code, partway through a change, or before opening the pull request. Locally the choice is yours, and the gate is CI.
+
+On every push to a pull request, CI's review job runs a fresh agent, the router. The router runs `review-standards` and `review-consistency` on every change, adds every lens whose description covers what the change touches, and also adds any lens it is unsure about. The verifier checks all findings, and the job fails while any verified finding remains.
+
+A finding counts only when it names a standard in this repository or demonstrates a concrete defect, because preference without a standard behind it creates churn instead of quality. Every verified finding is fixed before merge, and there is no lower tier to defer. A lens that believes a standard is missing reports a candidate standard. Adopt it when it would have prevented a real defect, and take candidates that turn on taste to a maintainer. When a defect reaches `main` past the gate, the router or a lens missed it, so trace which one and fix it. An agent without subagents runs each lens file as a separate pass.
+
+## Defect protocol
+
+A defect is evidence about the process that produced it, wherever it surfaces: in review, in CI, in a bug report, or in a maintainer's reaction.
+
+1. **Trace.** Find what let it through: a standard that was never written or is too vague, a missing check, a lens that was not looking, or a wrong pattern.
+2. **Fix the process.** Write or sharpen the standard, add the check, or sharpen the lens.
+3. **Redo everything the flawed process produced**, not only the instance found. The root cause sets how far that reaches.
+4. **Record.** The commit message states the root cause and the scope. Write a decision record only when a real alternative was weighed and the choice has lasting consequences.
+
+Fixing only the instance leaves in place the process that produced it.
+
+## This file
+
+Every line here is read at the start of every session. A standard earns its place by changing behavior that no tool can enforce and that cannot be derived from the code. To add one, abstract it to the class of defect it prevents, merge it into an existing standard when one covers the same ground, and remove whatever it makes obsolete. Standards for one area of the code go in a nested `AGENTS.md` in that directory, with a `CLAUDE.md` beside it that contains `@AGENTS.md`. This file stays under 200 lines.
+
+## Standards
+
+### Writing
+
+These apply to all prose: docs, comments, commit messages, pull requests, issues, and every text in the interface.
+
+- Every sentence is easy to parse for a reader with basic English or basic Bahasa Indonesia. This is about sentence structure only. It never means simpler ideas or padding.
+- Connect ideas with words such as "because", "so", "but", and "which means", or split them into separate sentences. A colon may introduce a list, an example, or code, or separate a label from its description. `pnpm check` rejects em dashes, en dashes, and semicolons in prose, but it cannot see a colon that joins two clauses, so watch for that.
+- Write plainly and directly. No marketing filler, no hedging, and no text that coaches the reader on what they already know.
+- Each fact lives in one place, and other places link to it.
+
+### Interface text
+
+- Bahasa Indonesia is the default language, and English is complete as well. Every text is a Paraglide message in `messages/`, and no text is written directly in a component. `pnpm check` verifies that both languages have the same keys and that each key starts with the feature folder that uses it, or with `app_` when the whole app shares it. Both languages must also say the same thing, which only a reader can check.
+- Indonesian text addresses the reader as "Anda".
+- An error teaches. It states what happened with the real numbers, explains the rule behind it, and offers a next step, such as the largest order the cash allows.
+- Numbers, rupiah amounts, percentages, and dates are formatted with `Intl` for the active language, never by hand.
+- Every screen that shows prices says that they are delayed, and every result is labelled as a simulation.
+- Portolab never recommends a security, because recommendations are regulated in Indonesia and because choosing is what students must learn.
+
+### Interface behavior
+
+- Every screen works with touch on a screen 360 pixels wide and with a keyboard alone. Touch targets are at least 44 pixels high.
+- Forms work before JavaScript loads, so actions use React Router forms and actions instead of client-only handlers.
+- Gains and losses never rely on color alone. A sign or an arrow always carries the meaning.
+- Colors, fonts, and spacing come from the tokens in `app/theme.css`.
+
+### Code
+
+- Prefer explicit code over clever code. A plain loop beats a chain of `reduce` calls. Names use full words, and ESLint rejects the common abbreviations.
+- Units get branded types, such as rupiah, shares, and lots, so mixing them up is a type error. Amounts of rupiah are whole numbers.
+- An expected failure, such as an order the cash cannot pay for, is a typed result that every caller must handle. Throwing is only for states that should never happen.
+- Data from outside the program, such as form input, environment variables, and prices from the price source, is parsed into types at the boundary where it enters. Code inside the boundary trusts those types and has no defensive checks for impossible states.
+- A comment explains only why: a reason, an outside constraint, or a trap. It never narrates what the code does.
+- A module that only the server may run ends in `.server.ts`, so that React Router keeps it out of the browser bundle.
+
+### Structure
+
+- Code is organized by feature in `app/features/<feature>/`. A feature folder holds that feature's routes, components, logic, styles, and tests.
+- A concept used by several features lives in the feature that owns it. Folders named `utils`, `helpers`, `common`, `shared`, or `lib` are not allowed, because their names say nothing about what they hold.
+- File names are kebab-case and named after their main export. Tests sit beside their code as `<name>.test.ts`, and browser tests live in `e2e/`.
+- All market data passes through the price source interface, as decision 0001 explains.
+- IDX rules, such as tick sizes and auto rejection limits, are data with the dates they apply, as decision 0002 explains.
+
+### Tests
+
+- Tests exercise behavior through exported functions, not internals.
+- Every calculation of money or of a measure is tested against expected values computed independently, for example in a spreadsheet, and the test names that source.
+- Every user flow has a browser test that runs on the phone and desktop projects and checks accessibility with axe.
+
+### Dependencies
+
+- A new dependency must be maintained and must have no lighter alternative already in the repository.
+- `minimumReleaseAge` in `pnpm-workspace.yaml` is never lowered, because the delay gives the registry time to remove a compromised release. A package runs install scripts or provides agent instructions only when `pnpm-workspace.yaml` allows it explicitly.
+
+### Privacy and security
+
+- Portolab stores only what a class needs and nothing about real finances. No secret or credential ever enters the repository.
+- Every change to sign-in or sessions follows decision 0005 and gets a security review.

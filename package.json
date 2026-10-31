@@ -1,0 +1,76 @@
+{
+  "name": "portolab",
+  "version": "0.0.0",
+  "private": true,
+  "description": "A portfolio management lab for classes, with real Indonesian stock prices.",
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "pnpm@12.16.1",
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": "^26.13.0",
+      "onFail": "download"
+    }
+  },
+  "engines": {
+    "node": ">=26.13.0"
+  },
+  "scripts": {
+    "prepare": "lefthook install",
+    "dev": "node server/main.ts --mode development",
+    "build": "react-router build",
+    "start": "node server/main.ts",
+    "check": "pnpm run format:check && pnpm run conventions && pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run unused && pnpm run duplicates && pnpm run build && pnpm run size && pnpm run test:e2e",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "conventions": "node scripts/check-punctuation.ts && node scripts/check-messages.ts",
+    "lint": "pnpm run generate && eslint --max-warnings=0 .",
+    "typecheck": "pnpm run generate && tsc --build",
+    "generate": "paraglide-js compile --project ./project.inlang && react-router typegen",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "unused": "knip",
+    "duplicates": "jscpd",
+    "size": "size-limit"
+  },
+  "dependencies": {
+    "@react-router/express": "^8.5.1",
+    "@react-router/node": "^8.5.1",
+    "express": "^5.3.0",
+    "isbot": "^5.2.2",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-router": "^8.5.1"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@commitlint/cli": "^21.2.4",
+    "@commitlint/config-conventional": "^21.2.4",
+    "@eslint-react/eslint-plugin": "^5.28.8",
+    "@eslint/js": "^10.0.1",
+    "@inlang/paraglide-js": "^2.29.3",
+    "@inlang/plugin-message-format": "^4.5.6",
+    "@playwright/test": "^1.64.1",
+    "@react-router/dev": "^8.5.1",
+    "@size-limit/file": "^14.3.0",
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "eslint": "^10.14.0",
+    "eslint-plugin-jsx-a11y-x": "^0.2.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.13.0",
+    "jscpd": "^5.4.2",
+    "knip": "^6.44.0",
+    "lefthook": "^2.2.2",
+    "prettier": "^3.9.10",
+    "semantic-release": "^25.0.9",
+    "size-limit": "^14.3.0",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.72.1",
+    "vite": "^8.3.5",
+    "vitest": "^5.0.5"
+  }
+}

@@ -1,0 +1,31 @@
+# Dependencies
+/node_modules/
+
+# Build output and generated code
+/build/
+/.react-router/
+/app/paraglide/
+
+# Local data and configuration
+/data/
+.env
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+
+# Test output
+/coverage/
+/playwright-report/
+/test-results/
+/blob-report/
+
+# Logs
+*.log
+
+# Operating systems and editors
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/*
+!.vscode/extensions.json

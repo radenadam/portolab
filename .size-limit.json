@@ -1,0 +1,14 @@
+[
+  {
+    "name": "Client JavaScript",
+    "path": "build/client/assets/*.js",
+    "limit": "200 kB",
+    "gzip": true
+  },
+  {
+    "name": "Client CSS",
+    "path": "build/client/assets/*.css",
+    "limit": "20 kB",
+    "gzip": true
+  }
+]

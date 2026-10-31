@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.base.json",
+  "include": [
+    "server/main.ts",
+    "scripts/**/*.ts",
+    "*.config.ts",
+    "project.inlang/paraglide.config.ts",
+    "e2e/**/*"
+  ],
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.cache/tsconfig.node.tsbuildinfo",
+    "lib": ["ES2024"],
+    "types": ["node"],
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "allowImportingTsExtensions": true
+  }
+}

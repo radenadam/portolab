@@ -1,0 +1,59 @@
+name: Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  review:
+    name: review
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: pnpm/setup@fa36a5ef7dcdefc3a7cb25655c122e00cf6e636e # v3.1.2
+        with:
+          cache: true
+          require-lockfile: true
+      - name: Install the browser for the product lens
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Run the review panel
+        id: review
+        uses: anthropics/claude-code-action@6d5ae526d25ce88daa2200be073e1a373167f064 # v1.0.265
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          allowed_bots: "dependabot[bot]"
+          prompt: |
+            You are the router of the review panel for pull request #${{ github.event.pull_request.number }} in ${{ github.repository }}. The head of the pull request is checked out, and its base is `origin/${{ github.base_ref }}`. The section "Review panel" in AGENTS.md defines your role and what counts as a finding.
+
+            Dependencies are installed, and Playwright's Chromium is available, so a lens can build and run the app.
+
+            When the review is complete:
+
+            1. Post one pull request review with `gh pr review ${{ github.event.pull_request.number }} --comment --body-file <file>`. It lists every verified finding with its location, claim, and basis, and it names the lenses that ran. When no verified finding remains, the review says so.
+            2. Return the structured output. `verdict` is "pass" when no verified finding remains, and "fail" otherwise. `verified_findings` is the number of verified findings, and `lenses` lists the lenses that ran.
+          claude_args: |
+            --model claude-opus-5-5
+            --allowedTools "Agent,Task,Read,Grep,Glob,Write,Bash"
+            --json-schema '{"type":"object","properties":{"verdict":{"type":"string","enum":["pass","fail"]},"verified_findings":{"type":"integer","minimum":0},"lenses":{"type":"array","items":{"type":"string"}}},"required":["verdict","verified_findings","lenses"]}'
+      - name: Fail when a verified finding remains
+        env:
+          REVIEW_OUTPUT: ${{ steps.review.outputs.structured_output }}
+        run: |
+          verdict=$(printf '%s' "$REVIEW_OUTPUT" | jq -r '.verdict')
+          findings=$(printf '%s' "$REVIEW_OUTPUT" | jq -r '.verified_findings')
+          if [ "$verdict" != "pass" ]; then
+            echo "::error::The review panel reported ${findings} verified findings. The review on the pull request lists them."
+            exit 1
+          fi
