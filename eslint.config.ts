@@ -44,20 +44,24 @@ const abbreviations = [
 const parserSignature =
   "A function named parse... takes (value: unknown, source: string) as its first parameters and returns Result<T, string>, as the section Code of AGENTS.md states.";
 const parserName = "/^parse[A-Z]/";
+// A name can be an identifier, a quoted string, or a computed key, and these are the attributes that hold it in each node that can carry a name.
+const nameAttributes = [
+  "id.name",
+  "key.name",
+  "key.value",
+  "key.quasis.0.value.cooked",
+  "left.name",
+  "left.property.name",
+  "left.property.value",
+  "left.property.quasis.0.value.cooked",
+];
+const hasParserName = `:matches(${nameAttributes.map((attribute) => `[${attribute}=${parserName}]`).join(", ")})`;
 // A parser can be any node that carries a name together with a function or the type of a function, so the rule checks each of them.
 const parserForms = [
-  `FunctionDeclaration[id.name=${parserName}]`,
-  `TSDeclareFunction[id.name=${parserName}]`,
-  `FunctionExpression[id.name=${parserName}]`,
-  `VariableDeclarator[id.name=${parserName}] > :function`,
-  `AssignmentExpression[left.name=${parserName}] > :function`,
-  `AssignmentExpression[left.property.name=${parserName}] > :function`,
-  `Property[key.name=${parserName}] > :function`,
-  `:matches(MethodDefinition, TSAbstractMethodDefinition)[key.name=${parserName}] > :matches(:function, TSEmptyBodyFunctionExpression)`,
-  `:matches(PropertyDefinition, AccessorProperty)[key.name=${parserName}] > :function`,
-  `:matches(PropertyDefinition, AccessorProperty, TSAbstractPropertyDefinition, TSAbstractAccessorProperty, TSPropertySignature)[key.name=${parserName}] > TSTypeAnnotation > TSFunctionType`,
+  `:matches(FunctionDeclaration, TSDeclareFunction, FunctionExpression, TSMethodSignature)${hasParserName}`,
+  `${hasParserName} > :matches(:function, TSEmptyBodyFunctionExpression)`,
+  `${hasParserName} > TSTypeAnnotation > TSFunctionType`,
   `Identifier[name=${parserName}] > TSTypeAnnotation > TSFunctionType`,
-  `TSMethodSignature[key.name=${parserName}]`,
 ];
 const parser = `:matches(${parserForms.join(", ")})`;
 

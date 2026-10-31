@@ -89,6 +89,22 @@ const parserForms: Record<string, (signature: Signature) => string> = {
     `export class Parsers { accessor parseName = ${signature.declared} => ${signature.arrowBody}; }`,
   "abstract accessor field": (signature) =>
     `export abstract class Parsers { abstract accessor parseName: ${signature.type}; }`,
+  "object property with a quoted name": (signature) =>
+    `export const parsers = { "parseName": ${signature.declared} => ${signature.arrowBody} };`,
+  "object method with a computed name": (signature) =>
+    `export const parsers = { ["parseName"]${signature.declared} { ${signature.body} } };`,
+  "object property with a template name": (signature) =>
+    `export const parsers = { [\`parseName\`]: ${signature.declared} => ${signature.arrowBody} };`,
+  "assignment to a property with a computed name": (signature) =>
+    `export const holder: Record<string, unknown> = {};\nholder["parseName"] = ${signature.declared} => ${signature.arrowBody};`,
+  "class method with a quoted name": (signature) =>
+    `export class Parsers { "parseName"${signature.declared} { ${signature.body} } }`,
+  "class field with a quoted name": (signature) =>
+    `export class Parsers { "parseName" = ${signature.declared} => ${signature.arrowBody}; }`,
+  "interface method with a quoted name": (signature) =>
+    `export interface Parsers { "parseName"${signature.declared}; }`,
+  "interface property with a quoted name": (signature) =>
+    `export interface Parsers { "parseName": ${signature.type}; }`,
 };
 
 test("accepts a parser with the standard signature in every form", async () => {
