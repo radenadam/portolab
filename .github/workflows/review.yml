@@ -203,7 +203,7 @@ jobs:
   review:
     name: review
     needs: [route, lens, verify]
-    # GitHub counts a skipped required check as passed, so this job always runs. In a cancelled run it fails without posting a review.
+    # GitHub counts a skipped required check as passed, so this job always runs. When a newer push superseded the run, it fails without posting a review, and otherwise it names every job that did not finish.
     if: ${{ always() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
