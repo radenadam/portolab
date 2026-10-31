@@ -4,9 +4,12 @@ import { pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
 import express from "express";
 import type { RequestHandler } from "express";
+import { writeLog } from "../app/log.server.ts";
+import type { Result } from "../app/result.ts";
 
 interface ServerBuild {
   app: RequestHandler;
+  startServices: () => Result<() => void, string>;
 }
 
 const buildDirectory = join(import.meta.dirname, "..", "build");
@@ -22,20 +25,21 @@ const port = parsePort(process.env["PORT"] ?? "3000");
 
 const server = express();
 server.disable("x-powered-by");
+let build: ServerBuild;
 
 if (isDevelopment) {
   const vite = await import("vite");
   const viteServer = await vite.createServer({
     server: { middlewareMode: true },
   });
+  const loadBuild = async (): Promise<ServerBuild> =>
+    (await viteServer.ssrLoadModule("./server/app.ts")) as ServerBuild;
+  build = await loadBuild();
   server.use(viteServer.middlewares);
+  // Each request loads the module again, so edits to the app apply without a restart.
   server.use((request, response, next) => {
-    viteServer
-      .ssrLoadModule("./server/app.ts")
-      .then((module) => {
-        const build = module as ServerBuild;
-        return build.app(request, response, next);
-      })
+    loadBuild()
+      .then((latestBuild) => latestBuild.app(request, response, next))
       .catch((error: unknown) => {
         if (error instanceof Error) {
           viteServer.ssrFixStacktrace(error);
@@ -44,9 +48,7 @@ if (isDevelopment) {
       });
   });
 } else {
-  const build = (await import(
-    pathToFileURL(serverBuildPath).href
-  )) as ServerBuild;
+  build = (await import(pathToFileURL(serverBuildPath).href)) as ServerBuild;
   server.use(
     "/assets",
     express.static(join(buildDirectory, "client", "assets"), {
@@ -57,6 +59,13 @@ if (isDevelopment) {
   server.use(express.static(join(buildDirectory, "client"), { maxAge: "1h" }));
   server.use(build.app);
 }
+
+const services = build.startServices();
+if (!services.ok) {
+  writeLog("error", services.failure);
+  process.exit(1);
+}
+const stopServices = services.value;
 
 const listener = server.listen(port, () => {
   writeLog("info", "Server started.", {
@@ -69,7 +78,10 @@ const listener = server.listen(port, () => {
 for (const signal of ["SIGINT", "SIGTERM"] as const) {
   process.once(signal, () => {
     writeLog("info", "Server stopping.", { signal });
-    listener.close(() => process.exit(0));
+    listener.close(() => {
+      stopServices();
+      process.exit(0);
+    });
     setTimeout(() => process.exit(1), shutdownTimeoutMilliseconds).unref();
   });
 }
@@ -96,19 +108,4 @@ function localNetworkAddresses(): string[] {
     }
   }
   return addresses;
-}
-
-function writeLog(
-  level: "info" | "error",
-  message: string,
-  details: Record<string, unknown>,
-): void {
-  const line = JSON.stringify({
-    time: new Date().toISOString(),
-    level,
-    message,
-    ...details,
-  });
-  const stream = level === "error" ? process.stderr : process.stdout;
-  stream.write(`${line}\n`);
 }

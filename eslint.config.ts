@@ -75,6 +75,13 @@ export default defineConfig(
       "max-params": ["error", 3],
       "no-console": "error",
       "no-param-reassign": "error",
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "CallExpression[callee.property.name=/^reduce(Right)?$/]",
+          message: "Write a plain loop, which states each step explicitly.",
+        },
+      ],
       "no-warning-comments": "error",
       "prefer-const": "error",
     },

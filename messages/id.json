@@ -8,5 +8,12 @@
   "app_not_found_body": "Alamat ini tidak ada di Portolab. Periksa kembali alamatnya, atau kembali ke beranda.",
   "app_unexpected_error_title": "Terjadi kesalahan",
   "app_unexpected_error_body": "Portolab tidak dapat menampilkan halaman ini. Coba muat ulang halaman. Jika masalahnya berlanjut, beri tahu dosen Anda.",
-  "app_back_home": "Kembali ke beranda"
+  "app_back_home": "Kembali ke beranda",
+  "home_prices_link": "Lihat harga saham",
+  "market_data_title": "Harga saham",
+  "market_data_delay_notice": "Harga tertunda sekitar 10 menit dan berasal dari Yahoo Finance. Harga terakhir tercatat pada {time} WIB.",
+  "market_data_empty": "Harga belum tersedia. Portolab mengambil harga setiap kali server dimulai, lalu setiap menit selama jam bursa.",
+  "market_data_column_code": "Kode",
+  "market_data_column_last": "Harga terakhir",
+  "market_data_column_change": "Perubahan"
 }

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import {
   isRouteErrorResponse,
+  Link,
   Links,
   Meta,
   Outlet,
@@ -8,6 +9,7 @@ import {
   ScrollRestoration,
 } from "react-router";
 import type { Route } from "./+types/root";
+import { LanguageSwitch } from "./features/language/language-switch";
 import { m } from "./paraglide/messages.js";
 import { getLocale } from "./paraglide/runtime.js";
 import { paraglideMiddleware } from "./paraglide/server.js";
@@ -37,13 +39,28 @@ export function Layout({ children }: { children: ReactNode }): ReactNode {
 }
 
 export default function App(): ReactNode {
-  return <Outlet />;
+  return (
+    <>
+      <header className={styles["header"]}>
+        <Link to="/" className={styles["brand"]}>
+          {m.app_name()}
+        </Link>
+        <LanguageSwitch />
+      </header>
+      <main className={styles["main"]}>
+        <Outlet />
+      </main>
+      <footer className={styles["footer"]}>
+        <p>{m.app_simulation_notice()}</p>
+      </footer>
+    </>
+  );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): ReactNode {
   const isNotFound = isRouteErrorResponse(error) && error.status === 404;
   return (
-    <main className={styles["errorPage"]}>
+    <main className={styles["main"]}>
       <h1>
         {isNotFound ? m.app_not_found_title() : m.app_unexpected_error_title()}
       </h1>

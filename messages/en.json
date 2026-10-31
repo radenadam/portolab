@@ -8,5 +8,12 @@
   "app_not_found_body": "This address does not exist in Portolab. Check the address again, or go back to the home page.",
   "app_unexpected_error_title": "Something went wrong",
   "app_unexpected_error_body": "Portolab could not show this page. Try reloading the page. If the problem continues, tell your lecturer.",
-  "app_back_home": "Back to the home page"
+  "app_back_home": "Back to the home page",
+  "home_prices_link": "See stock prices",
+  "market_data_title": "Stock prices",
+  "market_data_delay_notice": "Prices are delayed by about 10 minutes and come from Yahoo Finance. The latest price was recorded at {time} WIB.",
+  "market_data_empty": "No prices are available yet. Portolab fetches prices each time the server starts, and then every minute during market hours.",
+  "market_data_column_code": "Code",
+  "market_data_column_last": "Last price",
+  "market_data_column_change": "Change"
 }

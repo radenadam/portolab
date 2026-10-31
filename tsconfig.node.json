@@ -2,6 +2,8 @@
   "extends": "./tsconfig.base.json",
   "include": [
     "server/main.ts",
+    "app/log.server.ts",
+    "app/result.ts",
     "scripts/**/*.ts",
     "*.config.ts",
     "project.inlang/paraglide.config.ts",
