@@ -1,7 +1,5 @@
-import { succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
-import { isRecord, isStringArray } from "../app/value-shapes.ts";
-import { invalidField, parseJsonObject, readJsonFile } from "./json.ts";
+import { parseJsonObject, parseStringsAt, readJsonFile } from "./json.ts";
 import { listOfWords } from "./sentences.ts";
 
 /** Reads the languages of the app from the settings of the inlang project. */
@@ -9,10 +7,7 @@ export function parseLocales(
   value: unknown,
   source: string,
 ): Result<string[], string> {
-  const locales = isRecord(value) ? value["locales"] : undefined;
-  return isStringArray(locales) && locales.length > 0
-    ? succeed(locales)
-    : invalidField(source, "locales");
+  return parseStringsAt(value, source, ["locales"]);
 }
 
 /** Reads one language file of Paraglide messages as an object of message keys. */

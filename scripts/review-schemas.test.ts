@@ -1,13 +1,9 @@
 import { readdirSync } from "node:fs";
 import { expect, test } from "vitest";
-import { parseJsonObject, readJsonFile } from "./json.ts";
+import { parseJsonObject, parseStringsAt, readJsonFile } from "./json.ts";
 import { parseLensOutput } from "./lens-reports.ts";
 import { parseVerifiedFindings, verdictStatuses } from "./review-inputs.ts";
-import {
-  parseRouteSchemaLenses,
-  parseSchemaStrings,
-  reviewSchemaPaths,
-} from "./review-schemas.ts";
+import { parseRouteSchemaLenses, reviewSchemaPaths } from "./review-schemas.ts";
 
 const finding = {
   location: "app/root.tsx:12",
@@ -29,7 +25,7 @@ const verdict = {
 /** Reads the list of strings at a path of keys in one of the schemas, which a test needs to compare against. */
 function schemaStrings(schemaPath: string, keys: readonly string[]): string[] {
   const strings = readJsonFile(schemaPath, (value, source) =>
-    parseSchemaStrings(value, source, keys),
+    parseStringsAt(value, source, keys),
   );
   if (!strings.ok) {
     throw new Error(strings.failure);
@@ -141,7 +137,7 @@ test("accepts exactly the statuses that the verifier's schema allows", () => {
 
 test("names the path of keys when a schema has no list there", () => {
   expect(
-    parseSchemaStrings({ properties: {} }, "route.schema.json", [
+    parseStringsAt({ properties: {} }, "route.schema.json", [
       "properties",
       "lenses",
       "items",

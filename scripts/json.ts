@@ -1,6 +1,6 @@
 import { errorMessage } from "../app/error-message.ts";
 import { fail, succeed } from "../app/result.ts";
-import { isRecord } from "../app/value-shapes.ts";
+import { isRecord, isStringArray } from "../app/value-shapes.ts";
 import type { Result } from "../app/result.ts";
 import { readTextFile } from "./read-text-file.ts";
 
@@ -81,6 +81,21 @@ export function parseListField<Item>(
     parsedItems.push(parsedItem.value);
   }
   return succeed(parsedItems);
+}
+
+/** Reads the list of strings at a path of keys in a JSON object, such as the languages in a settings file or the names of the lenses in a schema. The list must not be empty. */
+export function parseStringsAt(
+  value: unknown,
+  source: string,
+  keys: readonly string[],
+): Result<string[], string> {
+  let current = value;
+  for (const key of keys) {
+    current = isRecord(current) ? current[key] : undefined;
+  }
+  return isStringArray(current) && current.length > 0
+    ? succeed(current)
+    : fail(`${source} has no list of strings at ${keys.join(".")}.`);
 }
 
 /** Reads a JSON object whose fields its caller reads later, such as a file of messages or a schema. */

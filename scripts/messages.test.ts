@@ -87,6 +87,6 @@ test("reads the locales from the inlang settings and rejects settings without th
   });
   expect(parseLocales({}, "settings.json")).toEqual({
     ok: false,
-    failure: 'settings.json has no valid "locales".',
+    failure: "settings.json has no list of strings at locales.",
   });
 });
