@@ -4,6 +4,7 @@ import type { Route } from "./+types/root";
 import { UnexpectedErrorPage } from "./error-page";
 import { getLocale } from "./paraglide/runtime.js";
 import { paraglideMiddleware } from "./paraglide/server.js";
+import styles from "./root.module.css";
 import "./theme.css";
 
 export const middleware: Route.MiddlewareFunction[] = [
@@ -20,7 +21,8 @@ export function Layout({ children }: { children: ReactNode }): ReactNode {
         <Links />
       </head>
       <body>
-        {children}
+        {/* Every page and the error page share this landmark, so no page draws its own. */}
+        <main className={styles["main"]}>{children}</main>
         <ScrollRestoration />
         <Scripts />
       </body>

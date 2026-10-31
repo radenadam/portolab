@@ -5,6 +5,7 @@
   "app_simulation_notice": "Simulasi. Tidak ada uang sungguhan dan tidak ada transaksi sungguhan.",
   "language_switch_label": "Bahasa",
   "language_unknown_error": "Formulir mengirim \"{value}\" di kolom {field}, tetapi Portolab hanya tersedia dalam Bahasa Indonesia dan English. Pilih salah satunya di pengalih bahasa.",
+  "language_rejected_title": "Bahasa tidak dapat diganti",
   "language_missing_error": "Formulir tidak mengirim bahasa di kolom {field}. Pilih Bahasa Indonesia atau English di pengalih bahasa.",
   "app_not_found_title": "Halaman tidak ditemukan",
   "app_not_found_body": "Alamat ini tidak ada di Portolab. Periksa kembali alamatnya, atau kembali ke beranda.",

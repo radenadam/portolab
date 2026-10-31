@@ -66,6 +66,7 @@ These apply to all prose: docs, comments, commit messages, pull requests, issues
 
 - Every screen works with touch on a screen 360 pixels wide and with a keyboard alone. Touch targets are at least 44 pixels high.
 - Forms work before JavaScript loads, so actions use React Router forms and actions instead of client-only handlers.
+- A failure that a reader sees, including one from an action, appears on a page in the reader's language, through `app/error-page.tsx` or on the form that caused it, with the next step that its text offers. A bare text response is only for machines.
 - Gains and losses never rely on color alone. A sign or an arrow always carries the meaning.
 - Colors, fonts, spacing, and sizes, such as the smallest touch target, come from the tokens in `app/theme.css`.
 

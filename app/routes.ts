@@ -3,7 +3,7 @@ import type { RouteConfig } from "@react-router/dev/routes";
 
 export default [
   index("features/home/home-page.tsx"),
-  route("language", "features/language/language-route.ts"),
+  route("language", "features/language/language-page.tsx"),
   route("health", "features/health/health-route.ts"),
   route("*", "not-found-page.tsx"),
 ] satisfies RouteConfig;

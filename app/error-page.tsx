@@ -11,7 +11,7 @@ interface ErrorPageProps {
 /** A page that explains why the reader cannot see what they asked for, with a way back to the home page. */
 export function ErrorPage({ title, body }: ErrorPageProps): ReactNode {
   return (
-    <main className={styles["page"]}>
+    <>
       {/* An error page has no route meta, so it names itself. React places this title in the head. */}
       <title>{`${title} | ${m.app_name()}`}</title>
       <h1>{title}</h1>
@@ -19,7 +19,7 @@ export function ErrorPage({ title, body }: ErrorPageProps): ReactNode {
       <Link to="/" className={styles["backHome"]}>
         {m.app_back_home_link()}
       </Link>
-    </main>
+    </>
   );
 }
 
