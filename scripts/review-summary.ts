@@ -35,6 +35,8 @@ export interface VerifiedFinding extends ReportedFinding {
 export interface ReviewInput {
   /** The result of each job of the panel, such as "success" or "failure". */
   jobResults: Record<string, string>;
+  /** The lenses that the router chose, each of which must have reported. */
+  expectedLenses: string[];
   reports: LensReport[];
   verifiedFindings: VerifiedFinding[] | undefined;
   /** Inputs that could not be read, each as one sentence. */
@@ -82,7 +84,17 @@ function verdictSentence(input: ReviewInput, confirmedCount: number): string {
   if (inputProblem !== undefined) {
     return inputProblem;
   }
-  const coverage = coverageProblem(input.reports, input.verifiedFindings ?? []);
+  // A missing input is a failure, never an empty one, because a silent failure to download it would otherwise pass the gate.
+  const silentLenses = input.expectedLenses.filter(
+    (lens) => !input.reports.some((report) => report.lens === lens),
+  );
+  if (silentLenses.length > 0) {
+    return `The panel has no report from the ${listOfWords(silentLenses)} ${silentLenses.length === 1 ? "lens" : "lenses"}.`;
+  }
+  if (input.verifiedFindings === undefined) {
+    return "The verifier's output is missing, so no finding has been verified.";
+  }
+  const coverage = coverageProblem(input.reports, input.verifiedFindings);
   if (coverage !== undefined) {
     return coverage;
   }
@@ -122,9 +134,14 @@ function coverageProblem(
       finding.status === "duplicate" && !confirmedIds.has(finding.duplicateOf),
   );
   if (orphans.length > 0) {
-    return `A duplicate must repeat a confirmed finding, but ${orphans.map((finding) => finding.id).join(", ")} does not.`;
+    const orphanIds = orphans.map((finding) => finding.id);
+    return `A duplicate must repeat a confirmed finding, but ${listOfWords(orphanIds)} ${orphans.length === 1 ? "repeats" : "repeat"} none.`;
   }
   return undefined;
+}
+
+function listOfWords(words: string[]): string {
+  return new Intl.ListFormat("en", { type: "conjunction" }).format(words);
 }
 
 function confirmedSection(confirmed: VerifiedFinding[]): string[] {

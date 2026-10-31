@@ -35,7 +35,11 @@ if (problems.length > 0) {
 function messageKeys(language: string): string[] {
   const path = `messages/${language}.json`;
   const messages = readJsonFile(path);
-  if (!messages.ok || !isRecord(messages.value)) {
+  if (!messages.ok) {
+    process.stderr.write(`${messages.failure}\n`);
+    process.exit(1);
+  }
+  if (!isRecord(messages.value)) {
     process.stderr.write(`${path} must be a JSON object of messages.\n`);
     process.exit(1);
   }

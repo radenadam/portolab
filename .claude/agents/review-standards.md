@@ -29,4 +29,4 @@ Report each finding with these fields:
 - **Siblings**: every other place with the same problem.
 - **Root cause**: what in the process let it through, when you can tell.
 
-Then list candidate standards, each with the incident that suggests it. When there is nothing to report, reply "No findings."
+Then list candidate standards, each with the incident that suggests it. When there is nothing to report, return no findings and no candidate standards.

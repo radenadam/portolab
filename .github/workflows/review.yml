@@ -212,8 +212,8 @@ jobs:
   review:
     name: review
     needs: [route, lens, verify]
-    # A run that a newer push cancelled has nothing to report, and the newer run posts its own review.
-    if: ${{ !cancelled() }}
+    # GitHub counts a skipped required check as passed, so this job always runs. In a cancelled run it fails without posting a review.
+    if: ${{ always() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -241,4 +241,5 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PULL_REQUEST: ${{ github.event.pull_request.number }}
           PANEL_RESULTS: ${{ toJSON(needs) }}
+          EXPECTED_LENSES: ${{ needs.route.outputs.lenses }}
         run: node scripts/post-review.ts

@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-test("home page opens in Bahasa Indonesia", async ({ page }) => {
+test("opens the home page in Bahasa Indonesia", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator("html")).toHaveAttribute("lang", "id");
   await expect(
@@ -10,9 +10,7 @@ test("home page opens in Bahasa Indonesia", async ({ page }) => {
   await expect(page.getByText("Simulasi.")).toBeVisible();
 });
 
-test("language switch changes the page to English and back", async ({
-  page,
-}) => {
+test("switches the page to English and back", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "English" }).click();
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
@@ -26,13 +24,13 @@ test("language switch changes the page to English and back", async ({
   await expect(page.locator("html")).toHaveAttribute("lang", "id");
 });
 
-test("home page has no accessibility violations", async ({ page }) => {
+test("passes the accessibility check on the home page", async ({ page }) => {
   await page.goto("/");
   const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations).toEqual([]);
 });
 
-test("unknown address shows the not found page in Bahasa Indonesia", async ({
+test("shows the not found page in Bahasa Indonesia for an unknown address", async ({
   page,
 }) => {
   const response = await page.goto("/tidak-ada");
@@ -42,7 +40,7 @@ test("unknown address shows the not found page in Bahasa Indonesia", async ({
   ).toBeVisible();
 });
 
-test("health check reports ok", async ({ request }) => {
+test("reports ok from the health check", async ({ request }) => {
   const response = await request.get("/health");
   expect(response.ok()).toBe(true);
   expect(await response.json()).toEqual({ status: "ok" });

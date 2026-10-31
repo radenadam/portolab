@@ -11,7 +11,7 @@ Every change, however small:
 1. Branch from an up-to-date `main` as `<type>/<summary-in-kebab-case>`. One coherent change goes on each branch. An improvement noticed along the way gets its own branch or a GitHub issue.
 2. Make the change complete: code, tests, and every doc, example, and standard that it affects. Nothing is left for a follow-up.
 3. Run `pnpm check`. It passes before every commit.
-4. Commit using Conventional Commits, push, and open a pull request titled with the final commit message. Its description explains why the change is needed, because it becomes the body of the squashed commit. Enable auto-merge with `gh pr merge --auto --squash`. The pull request merges when CI's check job and review job both pass. When the review job fails, fix each verified finding through the defect protocol and push again.
+4. Commit using Conventional Commits, push, and open a pull request titled with the final commit message. Its description explains why the change is needed, because it becomes the body of the squashed commit, so update it whenever a push changes what the pull request does. Enable auto-merge with `gh pr merge --auto --squash`. The pull request merges when CI's check job and review job both pass. When the review job fails, fix each verified finding through the defect protocol and push again.
 
 Work that is noticed but not done becomes a GitHub issue: a flaw that is parked, an open question, or an idea. Nothing about the state of the project lives only in a conversation or in a comment in the code.
 
@@ -47,7 +47,7 @@ Every line here is read at the start of every session. A standard earns its plac
 These apply to all prose: docs, comments, commit messages, pull requests, issues, every text in the interface, and every text that code generates, such as log messages and automated reviews.
 
 - Every sentence is easy to parse for a reader with basic English or basic Bahasa Indonesia. This is about sentence structure only. It never means simpler ideas or padding.
-- Connect ideas with words such as "because", "so", "but", and "which means", or split them into separate sentences. A colon may introduce a list, an example, or code, or separate a label from its description. `pnpm check` rejects em dashes, en dashes, and semicolons in prose, but it cannot see a colon that joins two clauses, so watch for that.
+- Connect ideas with words such as "because", "so", "but", and "which means", or split them into separate sentences. A colon may introduce a list, an example, or code, or separate a label from its description. `pnpm check` rejects em dashes and en dashes anywhere in docs, messages, and code, and semicolons in docs, messages, and comments. It cannot see a semicolon in text that code generates or a colon that joins two clauses, so watch for both.
 - Write plainly and directly. No marketing filler, no hedging, and no text that coaches the reader on what they already know.
 - Each fact lives in one place, and other places link to it.
 
@@ -74,6 +74,7 @@ These apply to all prose: docs, comments, commit messages, pull requests, issues
 - An expected failure, such as an order the cash cannot pay for, is a typed result that every caller must handle. Throwing is only for states that should never happen.
 - Data from outside the program is parsed into types at the boundary where it enters, in scripts and CI steps as much as in the app. Outside data includes form input, environment variables, files, prices from the price source, and the output of agents. A type assertion such as `as` is not parsing. Code inside the boundary trusts the parsed types and has no defensive checks for impossible states.
 - A script that fails writes its reason to stderr before it exits, so the CI log explains the failure without a rerun.
+- Code that handles a failed result passes its failure text on, instead of replacing it with a generic message, so the real reason reaches the reader.
 - A comment explains only why: a reason, an outside constraint, or a trap. It never narrates what the code does.
 - A module that only the server may run ends in `.server.ts`, so that React Router keeps it out of the browser bundle.
 
@@ -89,9 +90,16 @@ These apply to all prose: docs, comments, commit messages, pull requests, issues
 ### Tests
 
 - Tests exercise behavior through exported functions, not internals.
+- A test name starts with the verb of the behavior it checks, such as "rejects" or "fails when".
 - A test that keeps two definitions in agreement, such as a schema and its parser, exercises the code that uses them, not a copy of their data.
+- A test of generated text checks the whole sentence for each case that changes its grammar, such as one item and several items.
 - Every calculation of money or of a measure is tested against expected values computed independently, for example in a spreadsheet, and the test names that source.
 - Every user flow has a browser test that runs on the phone and desktop projects and checks accessibility with axe.
+
+### CI
+
+- Code that decides a gate checks that every expected input arrived, and treats a missing input as a failure, never as an empty one.
+- A job that is a required check always runs and never ends as skipped, because GitHub counts a skipped required check as passed.
 
 ### Dependencies
 
