@@ -2,14 +2,16 @@ import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { fail, succeed } from "../app/result.ts";
+import type { Result } from "../app/result.ts";
 import { isStringArray, parseJsonText, readJsonFile } from "./json.ts";
 import {
   parseJobResults,
   parseLensReport,
   parseVerifiedFindings,
-  summarizeReview,
-} from "./review-summary.ts";
-import type { LensReport, VerifiedFinding } from "./review-summary.ts";
+} from "./review-inputs.ts";
+import type { LensReport, VerifiedFinding } from "./review-inputs.ts";
+import { summarizeReview } from "./review-summary.ts";
 
 const pullRequest = process.env["PULL_REQUEST"] ?? "";
 if (!/^[1-9]\d*$/.test(pullRequest)) {
@@ -36,20 +38,18 @@ if (Object.values(jobResults.value).includes("cancelled")) {
 }
 
 const inputProblems: string[] = [];
-const expectedLenses = parseJsonText(
-  process.env["EXPECTED_LENSES"] ?? "",
-  "EXPECTED_LENSES",
-);
-if (!expectedLenses.ok || !isStringArray(expectedLenses.value)) {
-  inputProblems.push("EXPECTED_LENSES must be the JSON list of lenses.");
+const expectedLenses = readExpectedLenses(process.env["EXPECTED_LENSES"] ?? "");
+if (!expectedLenses.ok) {
+  inputProblems.push(expectedLenses.failure);
 }
+
 const reports: LensReport[] = [];
 const findingsDirectory = "review/findings";
 for (const file of existsSync(findingsDirectory)
   ? readdirSync(findingsDirectory).sort()
   : []) {
   const json = readJsonFile(join(findingsDirectory, file));
-  const report = json.ok ? parseLensReport(json.value) : json;
+  const report = json.ok ? parseLensReport(json.value, file) : json;
   if (report.ok) {
     reports.push(report.value);
   } else {
@@ -60,7 +60,9 @@ let verifiedFindings: VerifiedFinding[] | undefined;
 const verifiedPath = "review/verified.json";
 if (existsSync(verifiedPath)) {
   const json = readJsonFile(verifiedPath);
-  const verified = json.ok ? parseVerifiedFindings(json.value) : json;
+  const verified = json.ok
+    ? parseVerifiedFindings(json.value, "verified.json")
+    : json;
   if (verified.ok) {
     verifiedFindings = verified.value;
   } else {
@@ -70,10 +72,7 @@ if (existsSync(verifiedPath)) {
 
 const outcome = summarizeReview({
   jobResults: jobResults.value,
-  expectedLenses:
-    expectedLenses.ok && isStringArray(expectedLenses.value)
-      ? expectedLenses.value
-      : [],
+  expectedLenses: expectedLenses.ok ? expectedLenses.value : [],
   reports,
   verifiedFindings,
   inputProblems,
@@ -88,6 +87,19 @@ execFileSync(
 if (!outcome.passed) {
   process.stderr.write(`::error::${outcome.verdict}\n`);
   process.exit(1);
+}
+
+function readExpectedLenses(text: string): Result<string[], string> {
+  const json = parseJsonText(text, "EXPECTED_LENSES");
+  if (!json.ok) {
+    return json;
+  }
+  if (!isStringArray(json.value)) {
+    return fail(
+      `EXPECTED_LENSES must be a JSON list of lens names, but it is ${text}.`,
+    );
+  }
+  return succeed(json.value);
 }
 
 function failWithoutReview(reason: string): never {

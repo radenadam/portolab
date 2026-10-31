@@ -13,8 +13,9 @@ export function parseJsonText(
   try {
     const parsed: unknown = JSON.parse(text);
     return succeed(parsed);
-  } catch {
-    return fail(`${source} is not valid JSON.`);
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    return fail(`${source} is not valid JSON. The parser reported: ${reason}`);
   }
 }
 

@@ -23,7 +23,7 @@ While working, call any lens whenever its view would help: on a plan before writ
 
 On every push to a pull request, the review workflow in CI runs the panel. A fresh agent, the router, picks the lenses: every lens whose description covers what the change touches, and every lens it is unsure about. `review-standards` and `review-consistency` always run. Each lens then runs as its own job with a fresh agent, the verifier checks every finding, and the `review` job posts one review on the pull request. The `review` job fails while any verified finding remains. It also fails when any part of the panel did not finish, because an unfinished lens has reviewed nothing, and when the verifier did not give exactly one verdict for each reported finding.
 
-A finding counts only when it names a standard in this repository or demonstrates a concrete defect, because preference without a standard behind it creates churn instead of quality. Every verified finding is fixed before merge, and there is no lower tier to defer. A lens that believes a standard is missing reports a candidate standard. Adopt it when it would have prevented a real defect, and take candidates that turn on taste to a maintainer. When a defect reaches `main` past the gate, the router or a lens missed it, so trace which one and fix it. An agent without subagents runs each lens file as a separate pass.
+A finding counts only when it names a standard in this repository or demonstrates a concrete defect, because preference without a standard behind it creates churn instead of quality. Every verified finding is fixed before merge, and there is no lower tier to defer. A lens that believes a standard is missing reports a candidate standard. Adopt it when it would have prevented a real defect, and take candidates that turn on taste to a maintainer. When a defect reaches `main` past the gate, the router or a lens missed it, so trace which one and fix it. An agent without subagents runs each lens file as a separate pass. A lens definition links to the standards in this file instead of restating them, so that sharpening a standard leaves no stale copy behind.
 
 ## Defect protocol
 
@@ -74,7 +74,7 @@ These apply to all prose: docs, comments, commit messages, pull requests, issues
 - An expected failure, such as an order the cash cannot pay for, is a typed result that every caller must handle. Throwing is only for states that should never happen.
 - Data from outside the program is parsed into types at the boundary where it enters, in scripts and CI steps as much as in the app. Outside data includes form input, environment variables, files, prices from the price source, and the output of agents. A type assertion such as `as` is not parsing. Code inside the boundary trusts the parsed types and has no defensive checks for impossible states.
 - A script that fails writes its reason to stderr before it exits, so the CI log explains the failure without a rerun.
-- Code that handles a failed result passes its failure text on, instead of replacing it with a generic message, so the real reason reaches the reader.
+- A failure text names its source and the field or value that was wrong. Code that handles a failed result passes that text on, instead of replacing it with a generic message, so the real reason reaches the reader.
 - A comment explains only why: a reason, an outside constraint, or a trap. It never narrates what the code does.
 - A module that only the server may run ends in `.server.ts`, so that React Router keeps it out of the browser bundle.
 
@@ -93,6 +93,7 @@ These apply to all prose: docs, comments, commit messages, pull requests, issues
 - A test name starts with the verb of the behavior it checks, such as "rejects" or "fails when".
 - A test that keeps two definitions in agreement, such as a schema and its parser, exercises the code that uses them, not a copy of their data.
 - A test of generated text checks the whole sentence for each case that changes its grammar, such as one item and several items.
+- The logic that a check script uses to judge its input lives in a module with tests beside it, including tests of input that the check must accept.
 - Every calculation of money or of a measure is tested against expected values computed independently, for example in a spreadsheet, and the test names that source.
 - Every user flow has a browser test that runs on the phone and desktop projects and checks accessibility with axe.
 
