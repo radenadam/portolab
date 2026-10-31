@@ -16,6 +16,15 @@ test("rejects a missing path and names the field", () => {
   });
 });
 
+test("rejects a field that holds a file instead of text and names its type", () => {
+  expect(
+    parseReturnPath(new File([], "return.txt"), "returnTo", siteOrigin),
+  ).toEqual({
+    ok: false,
+    failure: "returnTo must be text, but it is a value of type File.",
+  });
+});
+
 test("rejects every value that a browser would resolve to another site", () => {
   for (const value of [
     "//example.com/phishing",

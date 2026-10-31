@@ -8,8 +8,11 @@ export function parseReturnPath(
   source: string,
   siteOrigin: string,
 ): Result<string, string> {
-  if (typeof value !== "string") {
+  if (value === null || value === undefined) {
     return fail(`${source} is missing from the form.`);
+  }
+  if (typeof value !== "string") {
+    return fail(`${source} must be text, but it is ${describeValue(value)}.`);
   }
   // The URL parser resolves the value the way a browser does, so a value that only looks like a local path, such as one with a tab after its slash, still fails.
   const url = URL.parse(value, siteOrigin);

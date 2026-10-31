@@ -6,6 +6,13 @@ test("describes a missing value as missing and any other value as JSON", () => {
   expect(describeValue("develop")).toBe('"develop"');
   expect(describeValue(["craft"])).toBe('["craft"]');
   expect(describeValue(null)).toBe("null");
+  expect(describeValue({ lens: "craft" })).toBe('{"lens":"craft"}');
+});
+
+test("names a value that JSON cannot show by its class", () => {
+  expect(describeValue(new File([], "return.txt"))).toBe(
+    "a value of type File",
+  );
 });
 
 test("accepts an object with fields and rejects null and lists", () => {

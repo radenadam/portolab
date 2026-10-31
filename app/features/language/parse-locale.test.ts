@@ -29,6 +29,14 @@ test("rejects a missing language in Bahasa Indonesia and names the field", () =>
   });
 });
 
+test("rejects a field that holds a file instead of text in Bahasa Indonesia", () => {
+  expect(parseLocale(new File([], "locale.txt"), "locale")).toEqual({
+    ok: false,
+    failure:
+      "Formulir mengirim sesuatu yang bukan teks di kolom locale. Pilih Bahasa Indonesia atau English di pengalih bahasa.",
+  });
+});
+
 test("rejects an unknown or missing language in English", () => {
   overwriteGetLocale(() => "en");
   expect(parseLocale("fr", "locale")).toEqual({
@@ -40,5 +48,10 @@ test("rejects an unknown or missing language in English", () => {
     ok: false,
     failure:
       "The form sent no language in the field locale. Choose Bahasa Indonesia or English in the language switch.",
+  });
+  expect(parseLocale(new File([], "locale.txt"), "locale")).toEqual({
+    ok: false,
+    failure:
+      "The form sent something other than text in the field locale. Choose Bahasa Indonesia or English in the language switch.",
   });
 });

@@ -12,9 +12,12 @@ export function parseLocale(
   if (isLocale(value)) {
     return succeed(value);
   }
+  if (typeof value === "string") {
+    return fail(m.language_unknown_error({ field: source, value }));
+  }
   return fail(
-    typeof value === "string"
-      ? m.language_unknown_error({ field: source, value })
-      : m.language_missing_error({ field: source }),
+    value === null || value === undefined
+      ? m.language_missing_error({ field: source })
+      : m.language_not_text_error({ field: source }),
   );
 }
