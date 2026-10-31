@@ -1,7 +1,9 @@
-import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
+import { switchToEnglish } from "./switch-to-english.ts";
 
-test("home page opens in Bahasa Indonesia", async ({ page }) => {
+test("opens the home page in Bahasa Indonesia", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator("html")).toHaveAttribute("lang", "id");
   await expect(
@@ -10,12 +12,8 @@ test("home page opens in Bahasa Indonesia", async ({ page }) => {
   await expect(page.getByText("Simulasi.")).toBeVisible();
 });
 
-test("language switch changes the page to English and back", async ({
-  page,
-}) => {
-  await page.goto("/");
-  await page.getByRole("button", { name: "English" }).click();
-  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+test("switches the page to English and back", async ({ page }) => {
+  await switchToEnglish(page);
   await expect(page.getByText("Simulation.")).toBeVisible();
   await expect(page.getByRole("button", { name: "English" })).toHaveAttribute(
     "aria-pressed",
@@ -26,23 +24,80 @@ test("language switch changes the page to English and back", async ({
   await expect(page.locator("html")).toHaveAttribute("lang", "id");
 });
 
-test("home page has no accessibility violations", async ({ page }) => {
+test("passes the accessibility checks on the home page", async ({ page }) => {
   await page.goto("/");
-  const results = await new AxeBuilder({ page }).analyze();
-  expect(results.violations).toEqual([]);
+  await expectAccessibleScreen(page);
 });
 
-test("unknown address shows the not found page in Bahasa Indonesia", async ({
+test("shows the not found page in Bahasa Indonesia for an unknown address", async ({
   page,
 }) => {
   const response = await page.goto("/tidak-ada");
   expect(response?.status()).toBe(404);
+  await expect(page.locator("html")).toHaveAttribute("lang", "id");
+  await expect(page).toHaveTitle("Halaman tidak ditemukan | Portolab");
   await expect(
     page.getByRole("heading", { level: 1, name: "Halaman tidak ditemukan" }),
   ).toBeVisible();
 });
 
-test("health check reports ok", async ({ request }) => {
+test("shows the not found page in English to a reader who chose English", async ({
+  page,
+}) => {
+  await switchToEnglish(page);
+  const response = await page.goto("/not-here");
+  expect(response?.status()).toBe(404);
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  await expect(page).toHaveTitle("Page not found | Portolab");
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Page not found" }),
+  ).toBeVisible();
+});
+
+test("passes the accessibility checks on the not found page", async ({
+  page,
+}) => {
+  await page.goto("/tidak-ada");
+  await expectAccessibleScreen(page);
+});
+
+// The server never fails on purpose. So the reader leaves a page through its link and goes back, and the test makes the data request of that return fail, as a server that fails would.
+async function failOnReturnTo(
+  page: Page,
+  path: string,
+  linkName: string,
+): Promise<void> {
+  await page.goto(path);
+  await page.waitForLoadState("networkidle");
+  await page.getByRole("link", { name: linkName }).click();
+  await expect(page).toHaveURL("/");
+  await page.route(/\.data(\?|$)/, (route) => route.fulfill({ status: 500 }));
+  await page.goBack();
+}
+
+test("shows the page for an unexpected failure in Bahasa Indonesia", async ({
+  page,
+}) => {
+  await failOnReturnTo(page, "/tidak-ada", "Kembali ke beranda");
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Terjadi kesalahan" }),
+  ).toBeVisible();
+  await expect(page).toHaveTitle("Terjadi kesalahan | Portolab");
+  await expectAccessibleScreen(page);
+});
+
+test("shows the page for an unexpected failure in English", async ({
+  page,
+}) => {
+  await switchToEnglish(page);
+  await failOnReturnTo(page, "/not-here", "Back to the home page");
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Something went wrong" }),
+  ).toBeVisible();
+  await expect(page).toHaveTitle("Something went wrong | Portolab");
+});
+
+test("reports ok from the health check", async ({ request }) => {
   const response = await request.get("/health");
   expect(response.ok()).toBe(true);
   expect(await response.json()).toEqual({ status: "ok" });

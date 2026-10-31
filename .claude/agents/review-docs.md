@@ -12,17 +12,14 @@ A diff range, a set of paths, or a plan, with the intent behind it. In an audit,
 
 ## Look for
 
-- Claims in `README.md`, `CONTRIBUTING.md`, `SECURITY.md`, `AGENTS.md`, `docs/`, and comments that are false after the change, including commands, paths, and described behavior.
-- A fact stated in more than one place, instead of stated once and linked.
-- Padding, marketing filler, hedging, and text that coaches the reader on what they already know.
-- Decision records: one record for each choice that weighed a real alternative and has lasting consequences, and every superseded record marked as superseded with a link to its successor.
-- `AGENTS.md`: under 200 lines, no contradictions, no near-duplicate standards, and nothing that a tool already enforces.
+- Claims in `README.md`, `CONTRIBUTING.md`, `SECURITY.md`, `AGENTS.md`, `docs/`, agent definitions, and comments that are false after the change, including commands, paths, and described behavior.
+- The section "Writing" of `AGENTS.md`, especially its rules on facts stated once and on padding.
+- The section "This file" of `AGENTS.md`, applied to `AGENTS.md` itself.
+- Decision records: a record for each choice that step 4 of the section "Defect protocol" of `AGENTS.md` calls for, and every superseded record marked as superseded with a link to its successor.
 
 ## Findings
 
-A finding is a violation of a written standard in `AGENTS.md`, a nested `AGENTS.md`, or `docs/product.md`, or a concrete defect that you can demonstrate. A false statement in a document is a concrete defect. A preference without a standard behind it is not a finding. When a standard seems to be missing, report a candidate standard instead.
-
-Report each finding with these fields:
+The section "Review panel" of `AGENTS.md` defines what counts as a finding and when to report a candidate standard instead. A false statement in a document is a concrete defect. Report each finding with these parts:
 
 - **Location**: `path:line`.
 - **Claim**: one sentence.
@@ -30,4 +27,4 @@ Report each finding with these fields:
 - **Siblings**: every other place with the same problem.
 - **Root cause**: what in the process let it through, when you can tell.
 
-Then list candidate standards, each with the incident that suggests it. When there is nothing to report, reply "No findings."
+Then list candidate standards, each with the incident that suggests it. When there is nothing to report, return no findings and no candidate standards.

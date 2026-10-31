@@ -1,10 +1,14 @@
 import { networkInterfaces } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
-import { parseArgs } from "node:util";
 import express from "express";
 import type { RequestHandler } from "express";
+import { exitWithFailure } from "../app/exit-with-failure.server.ts";
+import { writeLog } from "../app/log.server.ts";
+import { failuresOf } from "../app/result.ts";
+import { parseCommandLine, parsePort } from "./server-options.ts";
 
+// The build is this program's own server/app.ts, not outside data, so its type is asserted instead of parsed.
 interface ServerBuild {
   app: RequestHandler;
 }
@@ -14,11 +18,12 @@ const buildDirectory = join(import.meta.dirname, "..", "build");
 const serverBuildPath = join(buildDirectory, "server", "index.js");
 const shutdownTimeoutMilliseconds = 10_000;
 
-const { values: options } = parseArgs({
-  options: { mode: { type: "string", default: "production" } },
-});
-const isDevelopment = options.mode === "development";
-const port = parsePort(process.env["PORT"] ?? "3000");
+const mode = parseCommandLine(process.argv.slice(2), "The command line");
+const port = parsePort(process.env["PORT"] ?? "3000", "PORT");
+if (!mode.ok || !port.ok) {
+  exitWithFailure(failuresOf([mode, port]), writeError);
+}
+const isDevelopment = mode.value === "development";
 
 const server = express();
 server.disable("x-powered-by");
@@ -58,11 +63,11 @@ if (isDevelopment) {
   server.use(build.app);
 }
 
-const listener = server.listen(port, () => {
+const listener = server.listen(port.value, () => {
   writeLog("info", "Server started.", {
-    port,
-    mode: options.mode,
-    addresses: localNetworkAddresses(),
+    port: port.value,
+    mode: mode.value,
+    addresses: localNetworkAddresses(port.value),
   });
 });
 
@@ -70,23 +75,19 @@ for (const signal of ["SIGINT", "SIGTERM"] as const) {
   process.once(signal, () => {
     writeLog("info", "Server stopping.", { signal });
     listener.close(() => process.exit(0));
-    setTimeout(() => process.exit(1), shutdownTimeoutMilliseconds).unref();
+    setTimeout(() => {
+      exitWithFailure(
+        [
+          `The server did not close its connections within ${String(shutdownTimeoutMilliseconds / 1000)} seconds, so it stopped without them.`,
+        ],
+        writeError,
+      );
+    }, shutdownTimeoutMilliseconds).unref();
   });
 }
 
-function parsePort(value: string): number {
-  const parsed = Number(value);
-  if (!Number.isInteger(parsed) || parsed < 1 || parsed > 65_535) {
-    writeLog("error", "PORT must be a whole number from 1 to 65535.", {
-      value,
-    });
-    process.exit(1);
-  }
-  return parsed;
-}
-
 // Phones on the same Wi-Fi network open one of these addresses during a demonstration.
-function localNetworkAddresses(): string[] {
+function localNetworkAddresses(port: number): string[] {
   const addresses: string[] = [];
   for (const entries of Object.values(networkInterfaces())) {
     for (const entry of entries ?? []) {
@@ -98,17 +99,6 @@ function localNetworkAddresses(): string[] {
   return addresses;
 }
 
-function writeLog(
-  level: "info" | "error",
-  message: string,
-  details: Record<string, unknown>,
-): void {
-  const line = JSON.stringify({
-    time: new Date().toISOString(),
-    level,
-    message,
-    ...details,
-  });
-  const stream = level === "error" ? process.stderr : process.stdout;
-  stream.write(`${line}\n`);
+function writeError(failure: string): void {
+  writeLog("error", failure);
 }

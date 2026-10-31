@@ -1,0 +1,5 @@
+.backHome {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--size-touch-target);
+}
