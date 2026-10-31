@@ -13,7 +13,7 @@ export default function HomePage(): ReactNode {
     <main className={styles["page"]}>
       <LanguageSwitch />
       <h1>{m.app_name()}</h1>
-      <p>{m.home_tagline()}</p>
+      <p>{m.home_tagline_body()}</p>
       <p className={styles["notice"]}>{m.app_simulation_notice()}</p>
     </main>
   );

@@ -5,7 +5,13 @@ export default defineConfig({
     tsconfigPaths: true,
   },
   test: {
-    include: ["app/**/*.test.ts", "server/**/*.test.ts"],
+    include: [
+      "app/**/*.test.ts",
+      "app/**/*.test.tsx",
+      "server/**/*.test.ts",
+      "scripts/**/*.test.ts",
+      "eslint.config.test.ts",
+    ],
     environment: "node",
   },
 });

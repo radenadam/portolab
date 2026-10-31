@@ -1,0 +1,31 @@
+{
+  "type": "object",
+  "properties": {
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "location": { "type": "string" },
+          "claim": { "type": "string" },
+          "basis": { "type": "string" },
+          "siblings": { "type": "array", "items": { "type": "string" } },
+          "rootCause": { "type": "string" }
+        },
+        "required": ["location", "claim", "basis", "siblings", "rootCause"]
+      }
+    },
+    "candidateStandards": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "standard": { "type": "string" },
+          "incident": { "type": "string" }
+        },
+        "required": ["standard", "incident"]
+      }
+    }
+  },
+  "required": ["findings", "candidateStandards"]
+}

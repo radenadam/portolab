@@ -1,39 +1,37 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { readdirSync } from "node:fs";
+import { exitWithFailure } from "../app/exit-with-failure.server.ts";
+import { readJsonFile } from "./json.ts";
+import {
+  messageKeyProblems,
+  messageKeys,
+  parseLocales,
+  readMessages,
+} from "./messages.ts";
+import { writeScriptFailure } from "./write-script-failure.ts";
 
 // Paraglide falls back to the base language when a message is missing, so a gap would never surface as an error.
-const languages = ["id", "en"];
-const featureNames = readdirSync("app/features", { withFileTypes: true })
+const locales = readJsonFile("project.inlang/settings.json", parseLocales);
+if (!locales.ok) {
+  exitWithFailure([locales.failure], writeScriptFailure);
+}
+const featureFolders = readdirSync("app/features", { withFileTypes: true })
   .filter((entry) => entry.isDirectory())
-  .map((entry) => entry.name.replaceAll("-", "_"));
-const allowedPrefixes = ["app", ...featureNames];
+  .map((entry) => entry.name);
 
-const keysByLanguage = new Map(
-  languages.map((language) => [language, messageKeys(language)]),
-);
-const allKeys = new Set([...keysByLanguage.values()].flat());
 const problems: string[] = [];
-
-for (const key of allKeys) {
-  for (const [language, keys] of keysByLanguage) {
-    if (!keys.includes(key)) {
-      problems.push(`messages/${language}.json: add the message "${key}".`);
-    }
-  }
-  if (!allowedPrefixes.some((prefix) => key.startsWith(`${prefix}_`))) {
-    problems.push(
-      `"${key}": start the key with the feature folder that uses it, or with "app_" when the whole app shares it.`,
-    );
+const keysByLanguage = new Map<string, string[]>();
+for (const locale of locales.value) {
+  const messages = readMessages(`messages/${locale}.json`);
+  if (messages.ok) {
+    keysByLanguage.set(locale, messageKeys(messages.value));
+  } else {
+    problems.push(messages.failure);
   }
 }
-
+// Keys can only be compared once every language file has been read.
+if (problems.length === 0) {
+  problems.push(...messageKeyProblems(keysByLanguage, featureFolders));
+}
 if (problems.length > 0) {
-  process.stderr.write(`${problems.join("\n")}\n`);
-  process.exit(1);
-}
-
-function messageKeys(language: string): string[] {
-  const messages = JSON.parse(
-    readFileSync(`messages/${language}.json`, "utf8"),
-  ) as Record<string, unknown>;
-  return Object.keys(messages).filter((key) => key !== "$schema");
+  exitWithFailure(problems, writeScriptFailure);
 }

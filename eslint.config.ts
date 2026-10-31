@@ -40,6 +40,31 @@ const abbreviations = [
   "val",
 ];
 
+// ESLint has no rule that checks a signature by the name of a function, so these selectors check the parser standard in the section Code of AGENTS.md.
+const parserSignature =
+  "A function named parse... takes (value: unknown, source: string) as its first parameters and returns Result<T, string>, as the section Code of AGENTS.md states.";
+const parserName = "/^parse[A-Z]/";
+// A name can be an identifier, a quoted string, or a computed key, and these are the attributes that hold it in each node that can carry a name.
+const nameAttributes = [
+  "id.name",
+  "key.name",
+  "key.value",
+  "key.quasis.0.value.cooked",
+  "left.name",
+  "left.property.name",
+  "left.property.value",
+  "left.property.quasis.0.value.cooked",
+];
+const hasParserName = `:matches(${nameAttributes.map((attribute) => `[${attribute}=${parserName}]`).join(", ")})`;
+// A parser can be any node that carries a name together with a function or the type of a function, so the rule checks each of them.
+const parserForms = [
+  `:matches(FunctionDeclaration, TSDeclareFunction, FunctionExpression, TSMethodSignature)${hasParserName}`,
+  `${hasParserName} > :matches(:function, TSEmptyBodyFunctionExpression)`,
+  `${hasParserName} > TSTypeAnnotation > TSFunctionType`,
+  `Identifier[name=${parserName}] > TSTypeAnnotation > TSFunctionType`,
+];
+const parser = `:matches(${parserForms.join(", ")})`;
+
 export default defineConfig(
   globalIgnores([
     "build/",
@@ -75,6 +100,22 @@ export default defineConfig(
       "max-params": ["error", 3],
       "no-console": "error",
       "no-param-reassign": "error",
+      "no-restricted-syntax": [
+        "error",
+        { selector: `${parser}[params.length<2]`, message: parserSignature },
+        {
+          selector: `${parser} > .params:first-child:not(Identifier[name="value"][typeAnnotation.typeAnnotation.type="TSUnknownKeyword"])`,
+          message: parserSignature,
+        },
+        {
+          selector: `${parser} > .params:nth-child(2):not(Identifier[name="source"][typeAnnotation.typeAnnotation.type="TSStringKeyword"])`,
+          message: parserSignature,
+        },
+        {
+          selector: `${parser}:not([returnType.typeAnnotation.typeName.name="Result"][returnType.typeAnnotation.typeArguments.params.1.type="TSStringKeyword"])`,
+          message: parserSignature,
+        },
+      ],
       "no-warning-comments": "error",
       "prefer-const": "error",
     },

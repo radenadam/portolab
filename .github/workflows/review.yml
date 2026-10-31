@@ -10,13 +10,69 @@ concurrency:
 
 permissions:
   contents: read
-  pull-requests: write
+  pull-requests: read
 
+# Each lens runs as its own job with a fresh agent, so a lens either reports its findings or fails its job. The review job then decides the verdict in code, which no agent can skip. AGENTS.md describes the panel.
 jobs:
-  review:
-    name: review
+  route:
+    name: route
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 15
+    outputs:
+      lenses: ${{ steps.lenses.outputs.lenses }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: pnpm/setup@fa36a5ef7dcdefc3a7cb25655c122e00cf6e636e # v3.1.2
+        with:
+          install: false
+      # Each value is assigned on its own line, because a failure inside a command substitution within echo would not fail the step.
+      - name: Read the schema of the router's answer
+        id: schema
+        run: |
+          schema=$(node scripts/print-schema.ts .github/review/route.schema.json)
+          echo "schema=${schema}" >> "$GITHUB_OUTPUT"
+      - name: Choose the lenses
+        id: router
+        uses: anthropics/claude-code-action@6d5ae526d25ce88daa2200be073e1a373167f064 # v1.0.265
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          allowed_bots: "dependabot[bot]"
+          prompt: |
+            You are the router of the review panel for pull request #${{ github.event.pull_request.number }} in ${{ github.repository }}. The head of the pull request is checked out, and `git diff origin/${{ github.base_ref }}...HEAD` shows the change. The section "Review panel" in AGENTS.md defines your role. Each file `.claude/agents/review-*.md` defines one lens, and its description says which changes the lens applies to.
+
+            Return the structured output. `lenses` lists every lens that applies to the change, by the part of its file name after `review-`, and also every lens you are unsure about.
+          claude_args: |
+            --model claude-opus-5-5
+            --allowedTools "Read,Grep,Glob,Bash"
+            --json-schema '${{ steps.schema.outputs.schema }}'
+      - name: Add the lenses that review every change
+        id: lenses
+        env:
+          ROUTER_OUTPUT: ${{ steps.router.outputs.structured_output }}
+        run: |
+          lenses=$(node scripts/choose-lenses.ts)
+          echo "lenses=${lenses}" >> "$GITHUB_OUTPUT"
+      # A failed agent is traced through its transcript. It stays for one day, because a public repository's artifacts are public.
+      - name: Keep the transcript of a failed router
+        if: failure() && steps.router.outputs.execution_file != ''
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: transcript-route
+          path: ${{ steps.router.outputs.execution_file }}
+          retention-days: 1
+
+  lens:
+    name: lens (${{ matrix.lens }})
+    needs: route
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        lens: ${{ fromJSON(needs.route.outputs.lenses) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -26,34 +82,155 @@ jobs:
           cache: true
           require-lockfile: true
       - name: Install the browser for the product lens
+        if: matrix.lens == 'product'
         run: pnpm exec playwright install --with-deps chromium
-      - name: Run the review panel
-        id: review
+      # The agent gets exactly the tools that its definition lists.
+      - name: Read the tools of the lens and the schema of its report
+        id: definition
+        env:
+          DEFINITION: .claude/agents/review-${{ matrix.lens }}.md
+        # The two inputs are independent, so both scripts run before the step stops, and the log names every failure.
+        run: |
+          failed=0
+          tools=$(node scripts/read-agent-tools.ts "$DEFINITION") || failed=1
+          schema=$(node scripts/print-schema.ts .github/review/lens-report.schema.json) || failed=1
+          if [ "$failed" -ne 0 ]; then exit 1; fi
+          echo "tools=${tools}" >> "$GITHUB_OUTPUT"
+          echo "schema=${schema}" >> "$GITHUB_OUTPUT"
+      - name: Review through the lens
+        id: lens
         uses: anthropics/claude-code-action@6d5ae526d25ce88daa2200be073e1a373167f064 # v1.0.265
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           allowed_bots: "dependabot[bot]"
           prompt: |
-            You are the router of the review panel for pull request #${{ github.event.pull_request.number }} in ${{ github.repository }}. The head of the pull request is checked out, and its base is `origin/${{ github.base_ref }}`. The section "Review panel" in AGENTS.md defines your role and what counts as a finding.
+            You review pull request #${{ github.event.pull_request.number }} in ${{ github.repository }} through one lens of the review panel that AGENTS.md describes. The file `.claude/agents/review-${{ matrix.lens }}.md` defines the lens, so read it and follow it. The head of the pull request is checked out, and `git diff origin/${{ github.base_ref }}...HEAD` shows the change. Dependencies are installed, and Playwright's Chromium is installed for the product lens.
 
-            Dependencies are installed, and Playwright's Chromium is available, so a lens can build and run the app.
-
-            When the review is complete:
-
-            1. Post one pull request review with `gh pr review ${{ github.event.pull_request.number }} --comment --body-file <file>`. It lists every verified finding with its location, claim, and basis, and it names the lenses that ran. When no verified finding remains, the review says so.
-            2. Return the structured output. `verdict` is "pass" when no verified finding remains, and "fail" otherwise. `verified_findings` is the number of verified findings, and `lenses` lists the lenses that ran.
+            Return the findings and the candidate standards as the structured output. When there is nothing to report, both lists are empty.
           claude_args: |
             --model claude-opus-5-5
-            --allowedTools "Agent,Task,Read,Grep,Glob,Write,Bash"
-            --json-schema '{"type":"object","properties":{"verdict":{"type":"string","enum":["pass","fail"]},"verified_findings":{"type":"integer","minimum":0},"lenses":{"type":"array","items":{"type":"string"}}},"required":["verdict","verified_findings","lenses"]}'
-      - name: Fail when a verified finding remains
+            --allowedTools "${{ steps.definition.outputs.tools }}"
+            --json-schema '${{ steps.definition.outputs.schema }}'
+      - name: Save the findings of the lens
         env:
-          REVIEW_OUTPUT: ${{ steps.review.outputs.structured_output }}
+          LENS: ${{ matrix.lens }}
+          LENS_OUTPUT: ${{ steps.lens.outputs.structured_output }}
+        run: node scripts/save-lens-report.ts
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: findings-${{ matrix.lens }}
+          path: findings-${{ matrix.lens }}.json
+          retention-days: 1
+      - name: Keep the transcript of a failed lens
+        if: failure() && steps.lens.outputs.execution_file != ''
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: transcript-lens-${{ matrix.lens }}
+          path: ${{ steps.lens.outputs.execution_file }}
+          retention-days: 1
+
+  verify:
+    name: verify
+    needs: lens
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: pnpm/setup@fa36a5ef7dcdefc3a7cb25655c122e00cf6e636e # v3.1.2
+        with:
+          cache: true
+          require-lockfile: true
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: findings-*
+          path: findings
+          merge-multiple: true
+      - name: Count the findings and read the verifier's tools and schema
+        id: definition
+        env:
+          DEFINITION: .claude/agents/review-verifier.md
+        # The three inputs are independent, so every script runs before the step stops, and the log names every failure.
         run: |
-          verdict=$(printf '%s' "$REVIEW_OUTPUT" | jq -r '.verdict')
-          findings=$(printf '%s' "$REVIEW_OUTPUT" | jq -r '.verified_findings')
-          if [ "$verdict" != "pass" ]; then
-            echo "::error::The review panel reported ${findings} verified findings. The review on the pull request lists them."
-            exit 1
-          fi
+          failed=0
+          tools=$(node scripts/read-agent-tools.ts "$DEFINITION") || failed=1
+          total=$(node scripts/count-findings.ts) || failed=1
+          schema=$(node scripts/print-schema.ts .github/review/verified-findings.schema.json) || failed=1
+          if [ "$failed" -ne 0 ]; then exit 1; fi
+          echo "tools=${tools}" >> "$GITHUB_OUTPUT"
+          echo "total=${total}" >> "$GITHUB_OUTPUT"
+          echo "schema=${schema}" >> "$GITHUB_OUTPUT"
+      - name: Verify the findings
+        id: verifier
+        if: steps.definition.outputs.total != '0'
+        uses: anthropics/claude-code-action@6d5ae526d25ce88daa2200be073e1a373167f064 # v1.0.265
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          allowed_bots: "dependabot[bot]"
+          prompt: |
+            You verify the findings of the review panel for pull request #${{ github.event.pull_request.number }} in ${{ github.repository }}. The file `.claude/agents/review-verifier.md` defines your task, so read it and follow it. The findings are in `findings/`, one JSON file for each lens, and each finding has an id. The head of the pull request is checked out, and `git diff origin/${{ github.base_ref }}...HEAD` shows the change.
+
+            Return exactly one verdict for each finding in the structured output, under the finding's id, with its status and the evidence you checked. `duplicateOf` holds the id of the confirmed finding that a duplicate repeats, and it is empty for any other status.
+          claude_args: |
+            --model claude-opus-5-5
+            --allowedTools "${{ steps.definition.outputs.tools }}"
+            --json-schema '${{ steps.definition.outputs.schema }}'
+      - name: Save the verified findings
+        if: steps.definition.outputs.total != '0'
+        env:
+          VERIFIER_OUTPUT: ${{ steps.verifier.outputs.structured_output }}
+        run: node scripts/save-verified-findings.ts
+      # Without findings the verifier does not run, and an empty list of verdicts is the complete answer.
+      - name: Record that no lens reported a finding
+        if: steps.definition.outputs.total == '0'
+        run: echo '{"findings":[]}' > verified.json
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: verified
+          path: verified.json
+          retention-days: 1
+      - name: Keep the transcript of a failed verifier
+        if: failure() && steps.verifier.outputs.execution_file != ''
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: transcript-verify
+          path: ${{ steps.verifier.outputs.execution_file }}
+          retention-days: 1
+
+  review:
+    name: review
+    needs: [route, lens, verify]
+    # GitHub counts a skipped required check as passed, so this job always runs. In a cancelled run it fails without posting a review.
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/setup@fa36a5ef7dcdefc3a7cb25655c122e00cf6e636e # v3.1.2
+        with:
+          install: false
+      # An unfinished panel uploads no findings, and the next step reports that, so a missing artifact is not an error here.
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        continue-on-error: true
+        with:
+          pattern: findings-*
+          path: review/findings
+          merge-multiple: true
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        continue-on-error: true
+        with:
+          name: verified
+          path: review
+      - name: Post the review and give the verdict
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PULL_REQUEST: ${{ github.event.pull_request.number }}
+          PANEL_RESULTS: ${{ toJSON(needs) }}
+          EXPECTED_LENSES: ${{ needs.route.outputs.lenses }}
+        run: node scripts/post-review.ts

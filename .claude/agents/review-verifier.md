@@ -12,4 +12,6 @@ For each finding, check three things:
 - The basis holds. The quoted standard exists and applies here, or the evidence reproduces when you run it.
 - The listed siblings share the problem. Search for siblings that the lens missed, and add them.
 
-Return each finding as **confirmed**, with the evidence you checked, or as **refuted**, with the reason. Confirm only what you verified. When you cannot settle a finding, refute it and say what would settle it.
+Give each finding one verdict. A finding is **confirmed** when you verified it, with the evidence you checked. It is **refuted** when it does not hold, with the reason. When you cannot settle a finding, refute it and say what would settle it.
+
+Lenses overlap, so two findings can describe the same defect. Confirm the one with the strongest basis, merge the siblings of the others into it, and give each of the others the verdict **duplicate** of the confirmed one.
