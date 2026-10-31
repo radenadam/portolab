@@ -9,3 +9,16 @@ export function succeed<Value>(value: Value): Result<Value, never> {
 export function fail<Failure>(failure: Failure): Result<never, Failure> {
   return { ok: false, failure };
 }
+
+/** Collects the failures of several results, so that a program can report all of them at once. */
+export function failuresOf<Failure>(
+  results: readonly Result<unknown, Failure>[],
+): Failure[] {
+  const failures: Failure[] = [];
+  for (const result of results) {
+    if (!result.ok) {
+      failures.push(result.failure);
+    }
+  }
+  return failures;
+}

@@ -7,6 +7,7 @@ import {
   notAnObject,
   readJsonFile,
 } from "./json.ts";
+import { listOfWords } from "./sentences.ts";
 
 /** Reads the languages of the app from the settings of the inlang project. */
 export function parseLocales(
@@ -38,7 +39,18 @@ export function messageKeys(messages: Record<string, unknown>): string[] {
   return Object.keys(messages).filter((key) => key !== "$schema");
 }
 
-/** Returns one sentence for each key that a language lacks, or that does not start with a feature folder or with app. */
+// The kinds of text in the interface, so that a reader can find every text of one kind by its key.
+const messageKinds = [
+  "title",
+  "body",
+  "label",
+  "notice",
+  "error",
+  "link",
+  "name",
+];
+
+/** Returns one sentence for each key that a language lacks, that does not start with a feature folder or with app, or that does not end with a kind of text. */
 export function messageKeyProblems(
   keysByLanguage: ReadonlyMap<string, readonly string[]>,
   featureFolders: readonly string[],
@@ -58,6 +70,14 @@ export function messageKeyProblems(
     if (!allowedPrefixes.some((prefix) => key.startsWith(`${prefix}_`))) {
       problems.push(
         `"${key}": start the key with the feature folder that uses it, or with "app_" when the whole app shares it.`,
+      );
+    }
+    if (!messageKinds.some((kind) => key.endsWith(`_${kind}`))) {
+      problems.push(
+        `"${key}": end the key with the kind of text it holds, which is one of ${listOfWords(
+          messageKinds.map((kind) => `_${kind}`),
+          "disjunction",
+        )}.`,
       );
     }
   }

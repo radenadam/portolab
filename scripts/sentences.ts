@@ -1,6 +1,9 @@
-/** Joins words into an English list, such as "a, b, and c". */
-export function listOfWords(words: readonly string[]): string {
-  return new Intl.ListFormat("en", { type: "conjunction" }).format(words);
+/** Joins words into an English list, such as "a, b, and c", or "a, b, or c" for a choice. */
+export function listOfWords(
+  words: readonly string[],
+  type: "conjunction" | "disjunction" = "conjunction",
+): string {
+  return new Intl.ListFormat("en", { type }).format(words);
 }
 
 /** Chooses the singular form for a count of one and the plural form for any other count. */

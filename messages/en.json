@@ -1,14 +1,14 @@
 {
   "$schema": "https://inlang.com/schema/inlang-message-format",
   "app_name": "Portolab",
-  "home_tagline": "A portfolio management lab with real Indonesian stock prices.",
+  "home_tagline_body": "A portfolio management lab with real Indonesian stock prices.",
   "app_simulation_notice": "Simulation. No real money and no real trades.",
   "language_switch_label": "Language",
-  "language_unknown": "The form sent \"{value}\" in the field {field}, but Portolab is only available in Bahasa Indonesia and English. Choose one of them in the language switch.",
-  "language_missing": "The form sent no language in the field {field}. Choose Bahasa Indonesia or English in the language switch.",
+  "language_unknown_error": "The form sent \"{value}\" in the field {field}, but Portolab is only available in Bahasa Indonesia and English. Choose one of them in the language switch.",
+  "language_missing_error": "The form sent no language in the field {field}. Choose Bahasa Indonesia or English in the language switch.",
   "app_not_found_title": "Page not found",
   "app_not_found_body": "This address does not exist in Portolab. Check the address again, or go back to the home page.",
   "app_unexpected_error_title": "Something went wrong",
   "app_unexpected_error_body": "Portolab could not show this page. Try reloading the page. If the problem continues, tell your lecturer.",
-  "app_back_home": "Back to the home page"
+  "app_back_home_link": "Back to the home page"
 }

@@ -24,6 +24,10 @@ test("rejects every value that a browser would resolve to another site", () => {
     "/\t/example.com",
     "/\n/example.com",
     "javascript:alert(1)",
+    "/.//example.com",
+    "/..//example.com",
+    "/a/..//example.com",
+    "/%2e//example.com",
   ]) {
     expect(parseReturnPath(value, "returnTo", siteOrigin), value).toEqual({
       ok: false,

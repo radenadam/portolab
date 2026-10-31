@@ -9,6 +9,12 @@ test("joins one, two, and three words into an English list", () => {
   );
 });
 
+test("joins words into a choice", () => {
+  expect(listOfWords(["_title", "_body", "_label"], "disjunction")).toBe(
+    "_title, _body, or _label",
+  );
+});
+
 test("chooses the singular form only for a count of one", () => {
   expect(singularOrPlural(0, "lens", "lenses")).toBe("lenses");
   expect(singularOrPlural(1, "lens", "lenses")).toBe("lens");

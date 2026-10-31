@@ -5,6 +5,7 @@ import { parseArgs } from "node:util";
 import express from "express";
 import type { RequestHandler } from "express";
 import { writeLog } from "../app/log.server.ts";
+import { failuresOf } from "../app/result.ts";
 import { parseMode, parsePort } from "./server-options.ts";
 
 // The build is this program's own server/app.ts, not outside data, so its type is asserted instead of parsed.
@@ -22,11 +23,8 @@ const { values: options } = parseArgs({
 });
 const mode = parseMode(options.mode, "--mode");
 const port = parsePort(process.env["PORT"] ?? "3000", "PORT");
-if (!mode.ok) {
-  exitWithFailure(mode.failure);
-}
-if (!port.ok) {
-  exitWithFailure(port.failure);
+if (!mode.ok || !port.ok) {
+  exitWithFailure(failuresOf([mode, port]));
 }
 const isDevelopment = mode.value === "development";
 
@@ -97,7 +95,9 @@ function localNetworkAddresses(port: number): string[] {
   return addresses;
 }
 
-function exitWithFailure(failure: string): never {
-  writeLog("error", failure);
+function exitWithFailure(failures: readonly string[]): never {
+  for (const failure of failures) {
+    writeLog("error", failure);
+  }
   process.exit(1);
 }

@@ -50,7 +50,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): ReactNode {
       <p>
         {isNotFound ? m.app_not_found_body() : m.app_unexpected_error_body()}
       </p>
-      <a href="/">{m.app_back_home()}</a>
+      <a href="/">{m.app_back_home_link()}</a>
     </main>
   );
 }

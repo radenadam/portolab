@@ -1,14 +1,14 @@
 {
   "$schema": "https://inlang.com/schema/inlang-message-format",
   "app_name": "Portolab",
-  "home_tagline": "Laboratorium manajemen portofolio dengan harga saham Indonesia yang nyata.",
+  "home_tagline_body": "Laboratorium manajemen portofolio dengan harga saham Indonesia yang nyata.",
   "app_simulation_notice": "Simulasi. Tidak ada uang sungguhan dan tidak ada transaksi sungguhan.",
   "language_switch_label": "Bahasa",
-  "language_unknown": "Formulir mengirim \"{value}\" di kolom {field}, tetapi Portolab hanya tersedia dalam Bahasa Indonesia dan English. Pilih salah satunya di pengalih bahasa.",
-  "language_missing": "Formulir tidak mengirim bahasa di kolom {field}. Pilih Bahasa Indonesia atau English di pengalih bahasa.",
+  "language_unknown_error": "Formulir mengirim \"{value}\" di kolom {field}, tetapi Portolab hanya tersedia dalam Bahasa Indonesia dan English. Pilih salah satunya di pengalih bahasa.",
+  "language_missing_error": "Formulir tidak mengirim bahasa di kolom {field}. Pilih Bahasa Indonesia atau English di pengalih bahasa.",
   "app_not_found_title": "Halaman tidak ditemukan",
   "app_not_found_body": "Alamat ini tidak ada di Portolab. Periksa kembali alamatnya, atau kembali ke beranda.",
   "app_unexpected_error_title": "Terjadi kesalahan",
   "app_unexpected_error_body": "Portolab tidak dapat menampilkan halaman ini. Coba muat ulang halaman. Jika masalahnya berlanjut, beri tahu dosen Anda.",
-  "app_back_home": "Kembali ke beranda"
+  "app_back_home_link": "Kembali ke beranda"
 }

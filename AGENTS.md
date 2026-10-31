@@ -55,7 +55,7 @@ These apply to all prose: docs, comments, commit messages, pull requests, issues
 
 ### Interface text
 
-- Bahasa Indonesia is the default language, and English is complete as well. Every text is a Paraglide message in `messages/`, and no text is written directly in a component. `pnpm check` verifies that both languages have the same keys and that each key starts with the feature folder that uses it, or with `app_` when the whole app shares it. Both languages must also say the same thing, which only a reader can check.
+- Bahasa Indonesia is the default language, and English is complete as well. Every text is a Paraglide message in `messages/`, and no text is written directly in a component. `pnpm check` verifies that both languages have the same keys, that each key starts with the feature folder that uses it, or with `app_` when the whole app shares it, and that each key ends with the kind of text it holds: `_title`, `_body`, `_label`, `_notice`, `_error`, `_link`, or `_name`. Both languages must also say the same thing, which only a reader can check.
 - Indonesian text addresses the reader as "Anda".
 - An error teaches. It states what happened with the real numbers, explains the rule behind it, and offers a next step, such as the largest order the cash allows.
 - Numbers, rupiah amounts, percentages, and dates are formatted with `Intl` for the active language, never by hand.
@@ -76,7 +76,7 @@ These apply to all prose: docs, comments, commit messages, pull requests, issues
 - Units get branded types, such as rupiah, shares, and lots, so mixing them up is a type error. Amounts of rupiah are whole numbers.
 - An expected failure, such as an order the cash cannot pay for, is a typed result that every caller must handle. Throwing is only for states that should never happen.
 - Data from outside the program is parsed into types at the boundary where it enters, by a parser function, in scripts and CI steps as much as in the app. Outside data includes form input, environment variables, files, prices from the price source, and the output of agents. A type assertion such as `as` is not parsing, and neither is a type predicate (`value is T`) whose body does not check every part of its type. A parser is named `parse...`, takes `(value: unknown, source: string)` as its first parameters, and returns `Result<T, string>`. Its caller names the source, so one parser serves a file, an environment variable, and a test alike. ESLint checks this signature. Code inside the boundary trusts the parsed types and has no defensive checks for impossible states.
-- A script that fails writes its reason to stderr before it exits, so the CI log explains the failure without a rerun.
+- A program that fails, such as a script, a CI step, or the server at startup, writes every reason to stderr before it exits, so the log explains the failure without a rerun. It parses all of its independent inputs before it stops, and it stops early only when a later input depends on an earlier one.
 - A failure text names its source and the field or value that was wrong. Code that handles a failed result passes that text on, instead of replacing it with a generic message, so the real reason reaches the reader.
 - A comment explains only why: a reason, an outside constraint, or a trap. It never narrates what the code does.
 - A module that only the server may run ends in `.server.ts`, so that React Router keeps it out of the browser bundle.
@@ -114,4 +114,4 @@ These apply to all prose: docs, comments, commit messages, pull requests, issues
 
 - Portolab stores only what a class needs and nothing about real finances. No secret or credential ever enters the repository.
 - Every change to sign-in or sessions follows decision 0005 and gets a security review.
-- A redirect target that comes from input is resolved with the URL parser against the site's own origin. It is accepted only when the origins match, and the redirect uses only the path, query, and fragment of the result, because a check of the text alone misses values that a browser resolves to another site.
+- A redirect target that comes from input is resolved with the URL parser against the site's own origin, and it is accepted only when the origins match. The redirect uses only the path, query, and fragment of the result, and that path must resolve to the site's origin as well, because normalization can turn a value such as `/.//example.com` into a path that leads to another site. A check of the text alone misses such values.

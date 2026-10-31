@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { failuresOf } from "../app/result.ts";
 import { exitWithFailure } from "./exit-with-failure.ts";
 import { parseJsonWith, readJsonFile } from "./json.ts";
 import {
@@ -19,16 +20,13 @@ const pullRequest = parsePullRequestNumber(
   process.env["PULL_REQUEST"],
   "PULL_REQUEST",
 );
-if (!pullRequest.ok) {
-  exitWithFailure([pullRequest.failure]);
-}
 const jobResults = parseJsonWith(
   process.env["PANEL_RESULTS"],
   "PANEL_RESULTS",
   parseJobResults,
 );
-if (!jobResults.ok) {
-  exitWithFailure([jobResults.failure]);
+if (!pullRequest.ok || !jobResults.ok) {
+  exitWithFailure(failuresOf([pullRequest, jobResults]));
 }
 // A cancelled run reviewed nothing, so it fails without posting a review. When a newer push cancelled it, the newer run posts the review.
 if (hasCancelledJob(jobResults.value)) {

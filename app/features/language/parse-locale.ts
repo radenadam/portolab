@@ -14,7 +14,7 @@ export function parseLocale(
   }
   return fail(
     typeof value === "string"
-      ? m.language_unknown({ field: source, value })
-      : m.language_missing({ field: source }),
+      ? m.language_unknown_error({ field: source, value })
+      : m.language_missing_error({ field: source }),
   );
 }

@@ -12,10 +12,14 @@ export function parseReturnPath(
   }
   // The URL parser resolves the value the way a browser does, so a value that only looks like a local path, such as one with a tab after its slash, still fails.
   const url = URL.parse(value, siteOrigin);
-  if (url?.origin !== siteOrigin) {
-    return fail(
-      `${source} must be a path on this site, such as /prices, but it is "${value}".`,
-    );
+  if (url?.origin === siteOrigin) {
+    const path = `${url.pathname}${url.search}${url.hash}`;
+    // A value such as "/.//example.com" normalizes to "//example.com", which a browser reads as another site, so the returned path must resolve to this site too.
+    if (URL.parse(path, siteOrigin)?.origin === siteOrigin) {
+      return succeed(path);
+    }
   }
-  return succeed(`${url.pathname}${url.search}${url.hash}`);
+  return fail(
+    `${source} must be a path on this site, such as /prices, but it is "${value}".`,
+  );
 }
