@@ -9,6 +9,7 @@ import {
   parseListField,
   readJsonFile,
 } from "./json.ts";
+import type { Parser } from "./json.ts";
 
 /** A finding as a lens returns it, before the panel gives it an id. */
 interface FindingContent {
@@ -47,25 +48,7 @@ export function parseLensOutput(
   value: unknown,
   source: string,
 ): Result<LensOutput, string> {
-  if (!isRecord(value)) {
-    return notAnObject(source);
-  }
-  const findings = parseListField(value, source, {
-    field: "findings",
-    itemName: "finding",
-    parseItem: parseFindingContent,
-  });
-  if (!findings.ok) {
-    return findings;
-  }
-  const candidateStandards = parseCandidateStandards(value, source);
-  if (!candidateStandards.ok) {
-    return candidateStandards;
-  }
-  return succeed({
-    findings: findings.value,
-    candidateStandards: candidateStandards.value,
-  });
+  return parseFindingsAndCandidates(value, source, parseFindingContent);
 }
 
 /** Gives each finding of a lens its lens and an id, such as craft-1, so that the review can check that the verifier answered every finding exactly once. */
@@ -77,7 +60,7 @@ export function toLensReport(lens: string, output: LensOutput): LensReport {
   return { lens, findings, candidateStandards: output.candidateStandards };
 }
 
-/** Reads a lens report that the lens job saved. */
+/** Reads a lens report that the lens job saved, whose findings carry their lens and id. */
 export function parseLensReport(
   value: unknown,
   source: string,
@@ -89,10 +72,30 @@ export function parseLensReport(
   if (typeof lens !== "string") {
     return invalidField(source, "lens");
   }
+  const report = parseFindingsAndCandidates(
+    value,
+    source,
+    parseReportedFinding,
+  );
+  return report.ok ? succeed({ lens, ...report.value }) : report;
+}
+
+/** Reads the findings and the candidate standards that both a lens answer and a saved report hold. Only the shape of one finding differs between them. */
+function parseFindingsAndCandidates<Finding>(
+  value: unknown,
+  source: string,
+  parseFinding: Parser<Finding>,
+): Result<
+  { findings: Finding[]; candidateStandards: CandidateStandard[] },
+  string
+> {
+  if (!isRecord(value)) {
+    return notAnObject(source);
+  }
   const findings = parseListField(value, source, {
     field: "findings",
     itemName: "finding",
-    parseItem: parseReportedFinding,
+    parseItem: parseFinding,
   });
   if (!findings.ok) {
     return findings;
@@ -102,7 +105,6 @@ export function parseLensReport(
     return candidateStandards;
   }
   return succeed({
-    lens,
     findings: findings.value,
     candidateStandards: candidateStandards.value,
   });
