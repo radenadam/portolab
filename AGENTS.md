@@ -106,6 +106,7 @@ These apply to all prose: docs, comments, commit messages, pull requests, issues
 
 - Code that decides a gate checks that every expected input arrived, and treats a missing input as a failure, never as an empty one.
 - A job that is a required check always runs and never ends as skipped, because GitHub counts a skipped required check as passed.
+- Code that decides a gate from the results of jobs treats every result other than success as a failure that it names. It treats a cancelled job as superseded only when it can show the newer run, such as a newer head of the pull request, because GitHub also cancels a job that runs out of time.
 
 ### Dependencies
 

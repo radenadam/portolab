@@ -9,12 +9,7 @@ export function describeValue(value: unknown): string {
     return "missing";
   }
   // JSON shows a class instance, such as a file from a form, as {}, so such a value is named by its class.
-  if (
-    typeof value === "object" &&
-    value !== null &&
-    !Array.isArray(value) &&
-    Object.getPrototypeOf(value) !== Object.prototype
-  ) {
+  if (isRecord(value) && Object.getPrototypeOf(value) !== Object.prototype) {
     return `a value of type ${value.constructor.name}`;
   }
   return JSON.stringify(value);

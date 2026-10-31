@@ -125,9 +125,28 @@ export function parseRouterChoice(
   return parseStringsAt(value, source, { keys: ["lenses"], mayBeEmpty: true });
 }
 
-/** Whether any job of the panel was cancelled, in which case the run reviewed nothing. */
-export function hasCancelledJob(jobResults: Record<string, string>): boolean {
-  return Object.values(jobResults).includes("cancelled");
+/** Reads the full hash of a commit, such as the head of a pull request. */
+export function parseCommitHash(
+  value: unknown,
+  source: string,
+): Result<string, string> {
+  return typeof value === "string" && /^[0-9a-f]{40}$/.test(value)
+    ? succeed(value)
+    : fail(
+        `${source} must be the full hash of a commit, but it is ${describeValue(value)}.`,
+      );
+}
+
+/** Returns a sentence when a newer push cancelled the panel, so that the newer run posts the review. GitHub also cancels a job that runs out of time, and then the head has not moved, so the review names that job instead. */
+export function supersededRun(
+  jobResults: Record<string, string>,
+  reviewedHead: string,
+  currentHead: string,
+): string | undefined {
+  const wasCancelled = Object.values(jobResults).includes("cancelled");
+  return wasCancelled && reviewedHead !== currentHead
+    ? `A newer push moved the pull request to ${currentHead} while this run reviewed ${reviewedHead}, so the run for the newer head posts the review.`
+    : undefined;
 }
 
 // AGENTS.md says that these lenses review every change.

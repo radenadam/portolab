@@ -20,7 +20,7 @@ export function parseJsonText(
   }
   if (typeof value !== "string") {
     return fail(
-      `${source} must be JSON text, but it holds a value of type ${value === null ? "null" : typeof value}.`,
+      `${source} must be JSON text, but it is ${describeValue(value)}.`,
     );
   }
   try {

@@ -4,14 +4,15 @@ import { readJsonFile } from "./json.ts";
 import { readTextFile } from "./read-text-file.ts";
 import {
   chooseLenses,
-  hasCancelledJob,
   parseAgentTools,
+  parseCommitHash,
   parseJobResults,
   parseLensName,
   parseLensNames,
   parsePullRequestNumber,
   parseRouterChoice,
   parseVerifiedFindings,
+  supersededRun,
 } from "./review-inputs.ts";
 import { parseRouteSchemaLenses, reviewSchemaPaths } from "./review-schemas.ts";
 
@@ -107,9 +108,48 @@ test("accepts the name of a lens of the panel and rejects any other", () => {
   });
 });
 
-test("notices a cancelled job", () => {
-  expect(hasCancelledJob({ route: "success", lens: "cancelled" })).toBe(true);
-  expect(hasCancelledJob({ route: "success", lens: "failure" })).toBe(false);
+const reviewedHead = "1".repeat(40);
+const newerHead = "2".repeat(40);
+
+test("reports a cancelled run as superseded when the pull request has a newer head", () => {
+  expect(
+    supersededRun(
+      { route: "success", lens: "cancelled" },
+      reviewedHead,
+      newerHead,
+    ),
+  ).toBe(
+    `A newer push moved the pull request to ${newerHead} while this run reviewed ${reviewedHead}, so the run for the newer head posts the review.`,
+  );
+});
+
+test("keeps a cancelled run for the review when the head has not moved, as after a timeout", () => {
+  expect(
+    supersededRun(
+      { route: "success", lens: "cancelled" },
+      reviewedHead,
+      reviewedHead,
+    ),
+  ).toBeUndefined();
+  expect(
+    supersededRun(
+      { route: "success", lens: "failure" },
+      reviewedHead,
+      newerHead,
+    ),
+  ).toBeUndefined();
+});
+
+test("accepts the full hash of a commit and rejects anything else", () => {
+  expect(parseCommitHash(reviewedHead, "REVIEWED_HEAD")).toEqual({
+    ok: true,
+    value: reviewedHead,
+  });
+  expect(parseCommitHash(undefined, "REVIEWED_HEAD")).toEqual({
+    ok: false,
+    failure:
+      "REVIEWED_HEAD must be the full hash of a commit, but it is missing.",
+  });
 });
 
 test("reads the router's choice and rejects an answer without a list", () => {

@@ -39,21 +39,18 @@ test("fails when an environment variable that should hold JSON is empty or not s
   expect(parseJsonText("", "PANEL_RESULTS")).toEqual(expected);
 });
 
-test("rejects a value that is not text and names its type", () => {
+test("rejects a value that is not text and describes it", () => {
   expect(parseJsonText(42, "PANEL_RESULTS")).toEqual({
     ok: false,
-    failure:
-      "PANEL_RESULTS must be JSON text, but it holds a value of type number.",
+    failure: "PANEL_RESULTS must be JSON text, but it is 42.",
   });
   expect(parseJsonText({}, "PANEL_RESULTS")).toEqual({
     ok: false,
-    failure:
-      "PANEL_RESULTS must be JSON text, but it holds a value of type object.",
+    failure: "PANEL_RESULTS must be JSON text, but it is {}.",
   });
   expect(parseJsonText(null, "PANEL_RESULTS")).toEqual({
     ok: false,
-    failure:
-      "PANEL_RESULTS must be JSON text, but it holds a value of type null.",
+    failure: "PANEL_RESULTS must be JSON text, but it is null.",
   });
 });
 

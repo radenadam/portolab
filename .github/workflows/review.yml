@@ -55,9 +55,9 @@ jobs:
         run: |
           lenses=$(node scripts/choose-lenses.ts)
           echo "lenses=${lenses}" >> "$GITHUB_OUTPUT"
-      # A failed agent is traced through its transcript. It stays for one day, because a public repository's artifacts are public.
-      - name: Keep the transcript of a failed router
-        if: failure() && steps.router.outputs.execution_file != ''
+      # An agent that failed or ran out of time is traced through its transcript. It stays for one day, because a public repository's artifacts are public.
+      - name: Keep the transcript of a router that did not finish
+        if: (failure() || cancelled()) && steps.router.outputs.execution_file != ''
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: transcript-route
@@ -122,8 +122,8 @@ jobs:
           name: findings-${{ matrix.lens }}
           path: findings-${{ matrix.lens }}.json
           retention-days: 1
-      - name: Keep the transcript of a failed lens
-        if: failure() && steps.lens.outputs.execution_file != ''
+      - name: Keep the transcript of a lens that did not finish
+        if: (failure() || cancelled()) && steps.lens.outputs.execution_file != ''
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: transcript-lens-${{ matrix.lens }}
@@ -192,8 +192,8 @@ jobs:
           name: verified
           path: verified.json
           retention-days: 1
-      - name: Keep the transcript of a failed verifier
-        if: failure() && steps.verifier.outputs.execution_file != ''
+      - name: Keep the transcript of a verifier that did not finish
+        if: (failure() || cancelled()) && steps.verifier.outputs.execution_file != ''
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: transcript-verify
@@ -231,6 +231,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PULL_REQUEST: ${{ github.event.pull_request.number }}
+          REVIEWED_HEAD: ${{ github.event.pull_request.head.sha }}
           PANEL_RESULTS: ${{ toJSON(needs) }}
           EXPECTED_LENSES: ${{ needs.route.outputs.lenses }}
         run: node scripts/post-review.ts

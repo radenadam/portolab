@@ -3,15 +3,18 @@ import { existsSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { exitWithFailure } from "../app/exit-with-failure.server.ts";
-import { failuresOf } from "../app/result.ts";
+import { errorMessage } from "../app/error-message.ts";
+import { fail, failuresOf } from "../app/result.ts";
+import type { Result } from "../app/result.ts";
 import { parseJsonWith, readJsonFile } from "./json.ts";
 import { readLensReports } from "./lens-reports.ts";
 import {
-  hasCancelledJob,
+  parseCommitHash,
   parseJobResults,
   parseLensNames,
   parsePullRequestNumber,
   parseVerifiedFindings,
+  supersededRun,
 } from "./review-inputs.ts";
 import type { VerifiedFinding } from "./review-inputs.ts";
 import { summarizeReview } from "./summarize-review.ts";
@@ -21,6 +24,10 @@ import { writeScriptFailure } from "./write-script-failure.ts";
 const pullRequest = parsePullRequestNumber(
   process.env["PULL_REQUEST"],
   "PULL_REQUEST",
+);
+const reviewedHead = parseCommitHash(
+  process.env["REVIEWED_HEAD"],
+  "REVIEWED_HEAD",
 );
 const jobResults = parseJsonWith(
   process.env["PANEL_RESULTS"],
@@ -43,21 +50,24 @@ const inputProblems = [...failuresOf([expectedLenses]), ...reportProblems];
 if (verified?.ok === false) {
   inputProblems.push(verified.failure);
 }
-// Without the pull request or the results of the jobs, no review can be posted.
-if (!pullRequest.ok || !jobResults.ok) {
+// Without the pull request, its reviewed head, or the results of the jobs, no review can be posted.
+if (!pullRequest.ok || !reviewedHead.ok || !jobResults.ok) {
   exitWithFailure(
-    [...failuresOf([pullRequest, jobResults]), ...inputProblems],
+    [...failuresOf([pullRequest, reviewedHead, jobResults]), ...inputProblems],
     writeScriptFailure,
   );
 }
-// A cancelled run reviewed nothing, so it fails without posting a review. When a newer push cancelled it, the newer run posts the review.
-if (hasCancelledJob(jobResults.value)) {
-  exitWithFailure(
-    [
-      "The panel was cancelled before it finished, so this run reviewed nothing.",
-    ],
-    writeScriptFailure,
-  );
+const currentHead = readCurrentHead(pullRequest.value);
+if (!currentHead.ok) {
+  exitWithFailure([currentHead.failure], writeScriptFailure);
+}
+const superseded = supersededRun(
+  jobResults.value,
+  reviewedHead.value,
+  currentHead.value,
+);
+if (superseded !== undefined) {
+  exitWithFailure([superseded], writeScriptFailure);
 }
 
 const verifiedFindings: VerifiedFinding[] | undefined = verified?.ok
@@ -79,4 +89,28 @@ execFileSync(
 );
 if (!outcome.passed) {
   exitWithFailure([outcome.verdict], writeScriptFailure);
+}
+
+/** Reads the head of the pull request as it is now, which differs from the reviewed head after a newer push. */
+function readCurrentHead(pullRequestNumber: string): Result<string, string> {
+  try {
+    const head = execFileSync(
+      "gh",
+      [
+        "pr",
+        "view",
+        pullRequestNumber,
+        "--json",
+        "headRefOid",
+        "--jq",
+        ".headRefOid",
+      ],
+      { encoding: "utf8" },
+    ).trim();
+    return parseCommitHash(head, "The head of the pull request from gh");
+  } catch (error) {
+    return fail(
+      `gh could not read the head of pull request ${pullRequestNumber}. It reported: ${errorMessage(error)}`,
+    );
+  }
 }
