@@ -1,8 +1,9 @@
 import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
-import { exitWithFailure } from "./exit-with-failure.ts";
+import { exitWithFailure } from "../app/exit-with-failure.server.ts";
 import { fileKind, punctuationProblems } from "./punctuation.ts";
 import { readTextFile } from "./read-text-file.ts";
+import { writeScriptFailure } from "./write-script-failure.ts";
 
 // Git lists the files the repository holds, so generated and ignored files are never checked. A file deleted but not yet staged is still listed, so it is skipped.
 const repositoryFiles = execFileSync(
@@ -27,5 +28,5 @@ for (const file of repositoryFiles) {
 }
 
 if (problems.length > 0) {
-  exitWithFailure(problems);
+  exitWithFailure(problems, writeScriptFailure);
 }

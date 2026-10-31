@@ -1,5 +1,5 @@
 import { readdirSync } from "node:fs";
-import { exitWithFailure } from "./exit-with-failure.ts";
+import { exitWithFailure } from "../app/exit-with-failure.server.ts";
 import { readJsonFile } from "./json.ts";
 import {
   messageKeyProblems,
@@ -7,11 +7,12 @@ import {
   parseLocales,
   readMessages,
 } from "./messages.ts";
+import { writeScriptFailure } from "./write-script-failure.ts";
 
 // Paraglide falls back to the base language when a message is missing, so a gap would never surface as an error.
 const locales = readJsonFile("project.inlang/settings.json", parseLocales);
 if (!locales.ok) {
-  exitWithFailure([locales.failure]);
+  exitWithFailure([locales.failure], writeScriptFailure);
 }
 const featureFolders = readdirSync("app/features", { withFileTypes: true })
   .filter((entry) => entry.isDirectory())
@@ -32,5 +33,5 @@ if (problems.length === 0) {
   problems.push(...messageKeyProblems(keysByLanguage, featureFolders));
 }
 if (problems.length > 0) {
-  exitWithFailure(problems);
+  exitWithFailure(problems, writeScriptFailure);
 }

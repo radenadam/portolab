@@ -1,30 +1,17 @@
 import { fail, succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
-import { invalidField, isRecord, isStringArray, notAnObject } from "./json.ts";
+import {
+  invalidField,
+  isRecord,
+  isStringArray,
+  notAnObject,
+  parseListField,
+} from "./json.ts";
+import { parseReportedFinding } from "./lens-reports.ts";
+import type { ReportedFinding } from "./lens-reports.ts";
 import { listOfWords, singularOrPlural } from "./sentences.ts";
 
 export const verdictStatuses = ["confirmed", "refuted", "duplicate"] as const;
-
-interface ReportedFinding {
-  id: string;
-  lens: string;
-  location: string;
-  claim: string;
-  basis: string;
-  siblings: string[];
-  rootCause: string;
-}
-
-interface CandidateStandard {
-  standard: string;
-  incident: string;
-}
-
-export interface LensReport {
-  lens: string;
-  findings: ReportedFinding[];
-  candidateStandards: CandidateStandard[];
-}
 
 export interface VerifiedFinding extends ReportedFinding {
   status: (typeof verdictStatuses)[number];
@@ -55,52 +42,6 @@ export function parseJobResults(
   return succeed(results);
 }
 
-export function parseLensReport(
-  value: unknown,
-  source: string,
-): Result<LensReport, string> {
-  if (!isRecord(value)) {
-    return notAnObject(source);
-  }
-  const { lens, findings, candidateStandards } = value;
-  if (typeof lens !== "string") {
-    return invalidField(source, "lens");
-  }
-  if (!Array.isArray(findings)) {
-    return invalidField(source, "findings");
-  }
-  if (!Array.isArray(candidateStandards)) {
-    return invalidField(source, "candidateStandards");
-  }
-  const parsedFindings: ReportedFinding[] = [];
-  for (const [index, item] of findings.entries()) {
-    const finding = parseReportedFinding(
-      item,
-      `${source}: finding ${String(index + 1)}`,
-    );
-    if (!finding.ok) {
-      return finding;
-    }
-    parsedFindings.push(finding.value);
-  }
-  const parsedCandidates: CandidateStandard[] = [];
-  for (const [index, item] of candidateStandards.entries()) {
-    const candidate = parseCandidateStandard(
-      item,
-      `${source}: candidate standard ${String(index + 1)}`,
-    );
-    if (!candidate.ok) {
-      return candidate;
-    }
-    parsedCandidates.push(candidate.value);
-  }
-  return succeed({
-    lens,
-    findings: parsedFindings,
-    candidateStandards: parsedCandidates,
-  });
-}
-
 export function parseVerifiedFindings(
   value: unknown,
   source: string,
@@ -108,56 +49,26 @@ export function parseVerifiedFindings(
   if (!isRecord(value)) {
     return notAnObject(source);
   }
-  const { findings } = value;
-  if (!Array.isArray(findings)) {
-    return invalidField(source, "findings");
-  }
-  const verifiedFindings: VerifiedFinding[] = [];
-  for (const [index, item] of findings.entries()) {
-    const findingSource = `${source}: finding ${String(index + 1)}`;
-    const finding = parseReportedFinding(item, findingSource);
-    if (!finding.ok) {
-      return finding;
-    }
-    const verdict = parseVerdict(item, findingSource);
-    if (!verdict.ok) {
-      return verdict;
-    }
-    verifiedFindings.push({ ...finding.value, ...verdict.value });
-  }
-  return succeed(verifiedFindings);
+  return parseListField(value, source, {
+    field: "findings",
+    itemName: "finding",
+    parseItem: parseVerifiedFinding,
+  });
 }
 
-function parseReportedFinding(
+function parseVerifiedFinding(
   value: unknown,
   source: string,
-): Result<ReportedFinding, string> {
-  if (!isRecord(value)) {
-    return notAnObject(source);
+): Result<VerifiedFinding, string> {
+  const finding = parseReportedFinding(value, source);
+  if (!finding.ok) {
+    return finding;
   }
-  const { id, lens, location, claim, basis, siblings, rootCause } = value;
-  if (typeof id !== "string") {
-    return invalidField(source, "id");
+  const verdict = parseVerdict(value, source);
+  if (!verdict.ok) {
+    return verdict;
   }
-  if (typeof lens !== "string") {
-    return invalidField(source, "lens");
-  }
-  if (typeof location !== "string") {
-    return invalidField(source, "location");
-  }
-  if (typeof claim !== "string") {
-    return invalidField(source, "claim");
-  }
-  if (typeof basis !== "string") {
-    return invalidField(source, "basis");
-  }
-  if (!isStringArray(siblings)) {
-    return invalidField(source, "siblings");
-  }
-  if (typeof rootCause !== "string") {
-    return invalidField(source, "rootCause");
-  }
-  return succeed({ id, lens, location, claim, basis, siblings, rootCause });
+  return succeed({ ...finding.value, ...verdict.value });
 }
 
 function parseVerdict(
@@ -182,23 +93,6 @@ function parseVerdict(
     return invalidField(source, "evidence");
   }
   return succeed({ status: knownStatus, duplicateOf, evidence });
-}
-
-function parseCandidateStandard(
-  value: unknown,
-  source: string,
-): Result<CandidateStandard, string> {
-  if (!isRecord(value)) {
-    return notAnObject(source);
-  }
-  const { standard, incident } = value;
-  if (typeof standard !== "string") {
-    return invalidField(source, "standard");
-  }
-  if (typeof incident !== "string") {
-    return invalidField(source, "incident");
-  }
-  return succeed({ standard, incident });
 }
 
 /** Reads the number of the pull request that the review is posted on. */
@@ -261,22 +155,6 @@ export function chooseLenses(
   );
 }
 
-/** Reads the names of the lenses from the schema of the router's answer. */
-export function parseRouteSchemaLenses(
-  value: unknown,
-  source: string,
-): Result<string[], string> {
-  const properties = isRecord(value) ? value["properties"] : undefined;
-  const lenses = isRecord(properties) ? properties["lenses"] : undefined;
-  const items = isRecord(lenses) ? lenses["items"] : undefined;
-  const names = isRecord(items) ? items["enum"] : undefined;
-  return isStringArray(names) && names.length > 0
-    ? succeed(names)
-    : fail(
-        `${source} has no list of lens names at properties.lenses.items.enum.`,
-      );
-}
-
 /** Reads the tools that an agent definition lists on its line that starts with "tools: ". */
 export function parseAgentTools(
   value: unknown,
@@ -289,5 +167,18 @@ export function parseAgentTools(
     ? succeed(tools)
     : fail(
         `${source} must list its tools on one line that starts with "tools: ", separated by commas.`,
+      );
+}
+
+/** Reads the name of one lens, which must be a lens that the router's schema names. */
+export function parseLensName(
+  value: unknown,
+  source: string,
+  knownLenses: readonly string[],
+): Result<string, string> {
+  return typeof value === "string" && knownLenses.includes(value)
+    ? succeed(value)
+    : fail(
+        `${source} must be one of ${listOfWords(knownLenses, "disjunction")}, but it is "${String(value)}".`,
       );
 }

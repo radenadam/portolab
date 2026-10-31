@@ -1,5 +1,6 @@
 import { expect, test } from "vitest";
-import type { LensReport, VerifiedFinding } from "./review-inputs.ts";
+import type { LensReport } from "./lens-reports.ts";
+import type { VerifiedFinding } from "./review-inputs.ts";
 import { summarizeReview } from "./summarize-review.ts";
 import type { ReviewInput } from "./summarize-review.ts";
 

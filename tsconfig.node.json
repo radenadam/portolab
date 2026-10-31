@@ -5,6 +5,7 @@
     "server/server-options.ts",
     "server/server-options.test.ts",
     "app/error-message.ts",
+    "app/exit-with-failure.server.ts",
     "app/log.server.ts",
     "app/result.ts",
     "scripts/**/*.ts",

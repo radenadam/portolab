@@ -1,6 +1,7 @@
 import { expect, test } from "vitest";
-import { fail } from "../app/result.ts";
-import { parseJsonText, readJsonFile } from "./json.ts";
+import { fail, succeed } from "../app/result.ts";
+import type { Result } from "../app/result.ts";
+import { parseJsonText, parseListField, readJsonFile } from "./json.ts";
 
 test("keeps the parser's reason when the text is not valid JSON", () => {
   const result = parseJsonText("{bad", "PANEL_RESULTS");
@@ -36,5 +37,25 @@ test("rejects a value that is not text", () => {
   expect(parseJsonText(42, "PANEL_RESULTS")).toEqual({
     ok: false,
     failure: "PANEL_RESULTS must be JSON text, but it is a number.",
+  });
+});
+
+test("reads each item of a list field and names the position of an item that fails", () => {
+  const parseWord = (value: unknown, source: string): Result<string, string> =>
+    typeof value === "string"
+      ? succeed(value)
+      : fail(`${source} is not a word.`);
+  const list = { field: "words", itemName: "word", parseItem: parseWord };
+  expect(parseListField({ words: ["a", "b"] }, "x.json", list)).toEqual({
+    ok: true,
+    value: ["a", "b"],
+  });
+  expect(parseListField({ words: ["a", 2] }, "x.json", list)).toEqual({
+    ok: false,
+    failure: "x.json: word 2 is not a word.",
+  });
+  expect(parseListField({}, "x.json", list)).toEqual({
+    ok: false,
+    failure: 'x.json has no valid "words".',
   });
 });

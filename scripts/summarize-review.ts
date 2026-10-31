@@ -1,4 +1,5 @@
-import type { LensReport, VerifiedFinding } from "./review-inputs.ts";
+import type { LensReport } from "./lens-reports.ts";
+import type { VerifiedFinding } from "./review-inputs.ts";
 import { countOf, listOfWords, singularOrPlural } from "./sentences.ts";
 
 export interface ReviewInput {

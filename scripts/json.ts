@@ -49,6 +49,37 @@ export function readJsonFile<Value>(
   return text.ok ? parseJsonWith(text.value, path, parse) : text;
 }
 
+interface ListField<Item> {
+  field: string;
+  /** What one item is called in a failure text, such as "finding". */
+  itemName: string;
+  parseItem: Parser<Item>;
+}
+
+/** Reads a field of a JSON object that holds a list, and parses each item. A failure names the position of the item, such as "finding 2". */
+export function parseListField<Item>(
+  value: unknown,
+  source: string,
+  list: ListField<Item>,
+): Result<Item[], string> {
+  const items = isRecord(value) ? value[list.field] : undefined;
+  if (!Array.isArray(items)) {
+    return invalidField(source, list.field);
+  }
+  const parsedItems: Item[] = [];
+  for (const [index, item] of items.entries()) {
+    const parsedItem = list.parseItem(
+      item,
+      `${source}: ${list.itemName} ${String(index + 1)}`,
+    );
+    if (!parsedItem.ok) {
+      return parsedItem;
+    }
+    parsedItems.push(parsedItem.value);
+  }
+  return succeed(parsedItems);
+}
+
 export function notAnObject(source: string): Result<never, string> {
   return fail(`${source} is not a JSON object.`);
 }
