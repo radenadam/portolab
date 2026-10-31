@@ -1,7 +1,7 @@
 import { fail, succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
 import { invalidField, isRecord, isStringArray, notAnObject } from "./json.ts";
-import { listOfWords } from "./sentences.ts";
+import { listOfWords, singularOrPlural } from "./sentences.ts";
 
 export const verdictStatuses = ["confirmed", "refuted", "duplicate"] as const;
 
@@ -74,7 +74,7 @@ export function parseLensReport(
   }
   const parsedFindings: ReportedFinding[] = [];
   for (const [index, item] of findings.entries()) {
-    const finding = readReportedFinding(
+    const finding = parseReportedFinding(
       item,
       `${source}: finding ${String(index + 1)}`,
     );
@@ -85,7 +85,7 @@ export function parseLensReport(
   }
   const parsedCandidates: CandidateStandard[] = [];
   for (const [index, item] of candidateStandards.entries()) {
-    const candidate = readCandidateStandard(
+    const candidate = parseCandidateStandard(
       item,
       `${source}: candidate standard ${String(index + 1)}`,
     );
@@ -115,11 +115,11 @@ export function parseVerifiedFindings(
   const verifiedFindings: VerifiedFinding[] = [];
   for (const [index, item] of findings.entries()) {
     const findingSource = `${source}: finding ${String(index + 1)}`;
-    const finding = readReportedFinding(item, findingSource);
+    const finding = parseReportedFinding(item, findingSource);
     if (!finding.ok) {
       return finding;
     }
-    const verdict = readVerdict(item, findingSource);
+    const verdict = parseVerdict(item, findingSource);
     if (!verdict.ok) {
       return verdict;
     }
@@ -128,7 +128,7 @@ export function parseVerifiedFindings(
   return succeed(verifiedFindings);
 }
 
-function readReportedFinding(
+function parseReportedFinding(
   value: unknown,
   source: string,
 ): Result<ReportedFinding, string> {
@@ -160,7 +160,7 @@ function readReportedFinding(
   return succeed({ id, lens, location, claim, basis, siblings, rootCause });
 }
 
-function readVerdict(
+function parseVerdict(
   value: unknown,
   source: string,
 ): Result<
@@ -184,7 +184,7 @@ function readVerdict(
   return succeed({ status: knownStatus, duplicateOf, evidence });
 }
 
-function readCandidateStandard(
+function parseCandidateStandard(
   value: unknown,
   source: string,
 ): Result<CandidateStandard, string> {
@@ -253,9 +253,7 @@ export function chooseLenses(
   const unknown = chosenLenses.filter((lens) => !knownLenses.includes(lens));
   if (unknown.length > 0) {
     return fail(
-      unknown.length === 1
-        ? `The router chose an unknown lens: ${listOfWords(unknown)}.`
-        : `The router chose unknown lenses: ${listOfWords(unknown)}.`,
+      `The router chose ${singularOrPlural(unknown.length, "an unknown lens", "unknown lenses")}: ${listOfWords(unknown)}.`,
     );
   }
   return succeed(

@@ -1,8 +1,13 @@
+import { exitWithFailure } from "./exit-with-failure.ts";
 import { readTextFile } from "./json.ts";
 import { parseAgentTools } from "./review-inputs.ts";
-import { exitWithFailure } from "./script-failure.ts";
 
-const definitionPath = process.argv[2] ?? "";
+const definitionPath = process.argv[2];
+if (definitionPath === undefined) {
+  exitWithFailure([
+    "read-agent-tools.ts needs the path of an agent definition as its first argument.",
+  ]);
+}
 const definition = readTextFile(definitionPath);
 if (!definition.ok) {
   exitWithFailure([definition.failure]);

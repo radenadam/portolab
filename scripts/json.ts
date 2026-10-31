@@ -20,11 +20,18 @@ export function readTextFile(path: string): Result<string, string> {
 }
 
 export function parseJsonText(
-  text: string,
+  value: unknown,
   source: string,
 ): Result<unknown, string> {
+  // GitHub Actions sets an environment variable to an empty string when the expression behind it is empty, so both cases mean that the input never arrived.
+  if (value === undefined || value === "") {
+    return fail(`${source} is empty or not set, so it holds no JSON.`);
+  }
+  if (typeof value !== "string") {
+    return fail(`${source} must be JSON text, but it is a ${typeof value}.`);
+  }
   try {
-    const parsed: unknown = JSON.parse(text);
+    const parsed: unknown = JSON.parse(value);
     return succeed(parsed);
   } catch (error) {
     return fail(
@@ -35,11 +42,11 @@ export function parseJsonText(
 
 /** Parses JSON text, such as an environment variable, and then its content. */
 export function parseJsonWith<Value>(
-  text: string,
+  value: unknown,
   source: string,
   parse: Parser<Value>,
 ): Result<Value, string> {
-  const json = parseJsonText(text, source);
+  const json = parseJsonText(value, source);
   return json.ok ? parse(json.value, source) : json;
 }
 

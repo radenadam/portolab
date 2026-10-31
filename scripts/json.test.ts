@@ -29,3 +29,19 @@ test("names the file as the source when its content fails to parse", () => {
     readJsonFile("package.json", (_value, source) => fail(`${source} failed.`)),
   ).toEqual({ ok: false, failure: "package.json failed." });
 });
+
+test("fails when an environment variable that should hold JSON is empty or not set", () => {
+  const expected = {
+    ok: false,
+    failure: "PANEL_RESULTS is empty or not set, so it holds no JSON.",
+  };
+  expect(parseJsonText(undefined, "PANEL_RESULTS")).toEqual(expected);
+  expect(parseJsonText("", "PANEL_RESULTS")).toEqual(expected);
+});
+
+test("rejects a value that is not text", () => {
+  expect(parseJsonText(42, "PANEL_RESULTS")).toEqual({
+    ok: false,
+    failure: "PANEL_RESULTS must be JSON text, but it is a number.",
+  });
+});

@@ -40,6 +40,11 @@ const abbreviations = [
   "val",
 ];
 
+// ESLint has no rule that checks a signature by the name of a function, so these selectors check the parser standard in the section Code of AGENTS.md.
+const parserSignature =
+  "A function named parse... takes (value: unknown, source: string) as its first parameters and returns Result<T, string>, as the section Code of AGENTS.md states.";
+const parser = "FunctionDeclaration[id.name=/^parse[A-Z]/]";
+
 export default defineConfig(
   globalIgnores([
     "build/",
@@ -75,6 +80,22 @@ export default defineConfig(
       "max-params": ["error", 3],
       "no-console": "error",
       "no-param-reassign": "error",
+      "no-restricted-syntax": [
+        "error",
+        { selector: `${parser}[params.length<2]`, message: parserSignature },
+        {
+          selector: `${parser} > Identifier.params:first-child:not([name="value"][typeAnnotation.typeAnnotation.type="TSUnknownKeyword"])`,
+          message: parserSignature,
+        },
+        {
+          selector: `${parser} > Identifier.params:nth-child(2):not([name="source"][typeAnnotation.typeAnnotation.type="TSStringKeyword"])`,
+          message: parserSignature,
+        },
+        {
+          selector: `${parser}:not([returnType.typeAnnotation.typeName.name="Result"])`,
+          message: parserSignature,
+        },
+      ],
       "no-warning-comments": "error",
       "prefer-const": "error",
     },

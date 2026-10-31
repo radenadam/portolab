@@ -1,5 +1,5 @@
 import type { LensReport, VerifiedFinding } from "./review-inputs.ts";
-import { countOf, listOfWords } from "./sentences.ts";
+import { countOf, listOfWords, singularOrPlural } from "./sentences.ts";
 
 export interface ReviewInput {
   /** The result of each job of the panel, such as "success" or "failure". */
@@ -47,7 +47,7 @@ function verdictSentence(input: ReviewInput, confirmedCount: number): string {
     .filter(([, result]) => result !== "success")
     .map(([job]) => job);
   if (unfinishedJobs.length > 0) {
-    return `The ${listOfWords(unfinishedJobs)} ${unfinishedJobs.length === 1 ? "job" : "jobs"} of the panel did not finish, so this change has not been reviewed.`;
+    return `The ${listOfWords(unfinishedJobs)} ${singularOrPlural(unfinishedJobs.length, "job", "jobs")} of the panel did not finish, so this change has not been reviewed.`;
   }
   const [inputProblem] = input.inputProblems;
   if (inputProblem !== undefined) {
@@ -58,7 +58,7 @@ function verdictSentence(input: ReviewInput, confirmedCount: number): string {
     (lens) => !input.reports.some((report) => report.lens === lens),
   );
   if (silentLenses.length > 0) {
-    return `The panel has no report from the ${listOfWords(silentLenses)} ${silentLenses.length === 1 ? "lens" : "lenses"}.`;
+    return `The panel has no report from the ${listOfWords(silentLenses)} ${singularOrPlural(silentLenses.length, "lens", "lenses")}.`;
   }
   if (input.verifiedFindings === undefined) {
     return "The verifier's output is missing, so no finding has been verified.";
@@ -104,7 +104,7 @@ function coverageProblem(
   );
   if (orphans.length > 0) {
     const orphanIds = orphans.map((finding) => finding.id);
-    return `A duplicate must repeat a confirmed finding, but ${listOfWords(orphanIds)} ${orphans.length === 1 ? "repeats" : "repeat"} none.`;
+    return `A duplicate must repeat a confirmed finding, but ${listOfWords(orphanIds)} ${singularOrPlural(orphans.length, "repeats", "repeat")} none.`;
   }
   return undefined;
 }

@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 import type { LensReport, VerifiedFinding } from "./review-inputs.ts";
-import { summarizeReview } from "./review-summary.ts";
-import type { ReviewInput } from "./review-summary.ts";
+import { summarizeReview } from "./summarize-review.ts";
+import type { ReviewInput } from "./summarize-review.ts";
 
 const finishedJobs = { route: "success", lens: "success", verify: "success" };
 

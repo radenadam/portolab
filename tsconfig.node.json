@@ -8,6 +8,7 @@
     "app/result.ts",
     "scripts/**/*.ts",
     "*.config.ts",
+    "eslint.config.test.ts",
     "project.inlang/paraglide.config.ts",
     "e2e/**/*"
   ],

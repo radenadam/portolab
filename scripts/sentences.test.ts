@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { countOf, listOfWords } from "./sentences.ts";
+import { countOf, listOfWords, singularOrPlural } from "./sentences.ts";
 
 test("joins one, two, and three words into an English list", () => {
   expect(listOfWords(["craft"])).toBe("craft");
@@ -7,6 +7,12 @@ test("joins one, two, and three words into an English list", () => {
   expect(listOfWords(["craft", "docs", "product"])).toBe(
     "craft, docs, and product",
   );
+});
+
+test("chooses the singular form only for a count of one", () => {
+  expect(singularOrPlural(0, "lens", "lenses")).toBe("lenses");
+  expect(singularOrPlural(1, "lens", "lenses")).toBe("lens");
+  expect(singularOrPlural(2, "lens", "lenses")).toBe("lenses");
 });
 
 test("counts in the singular and the plural", () => {

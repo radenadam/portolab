@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { exitWithFailure } from "./exit-with-failure.ts";
 import { parseJsonWith, readJsonFile } from "./json.ts";
 import {
   hasCancelledJob,
@@ -12,8 +13,7 @@ import {
   parseVerifiedFindings,
 } from "./review-inputs.ts";
 import type { LensReport, VerifiedFinding } from "./review-inputs.ts";
-import { summarizeReview } from "./review-summary.ts";
-import { exitWithFailure } from "./script-failure.ts";
+import { summarizeReview } from "./summarize-review.ts";
 
 const pullRequest = parsePullRequestNumber(
   process.env["PULL_REQUEST"],
@@ -23,7 +23,7 @@ if (!pullRequest.ok) {
   exitWithFailure([pullRequest.failure]);
 }
 const jobResults = parseJsonWith(
-  process.env["PANEL_RESULTS"] ?? "",
+  process.env["PANEL_RESULTS"],
   "PANEL_RESULTS",
   parseJobResults,
 );
@@ -39,7 +39,7 @@ if (hasCancelledJob(jobResults.value)) {
 
 const inputProblems: string[] = [];
 const expectedLenses = parseJsonWith(
-  process.env["EXPECTED_LENSES"] ?? "",
+  process.env["EXPECTED_LENSES"],
   "EXPECTED_LENSES",
   parseLensNames,
 );

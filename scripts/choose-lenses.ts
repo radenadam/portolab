@@ -1,10 +1,10 @@
+import { exitWithFailure } from "./exit-with-failure.ts";
 import { parseJsonWith, readJsonFile } from "./json.ts";
 import {
   chooseLenses,
   parseRouteSchemaLenses,
   parseRouterChoice,
 } from "./review-inputs.ts";
-import { exitWithFailure } from "./script-failure.ts";
 
 const knownLenses = readJsonFile(
   ".github/review/route.schema.json",
@@ -14,7 +14,7 @@ if (!knownLenses.ok) {
   exitWithFailure([knownLenses.failure]);
 }
 const chosenLenses = parseJsonWith(
-  process.env["ROUTER_OUTPUT"] ?? "",
+  process.env["ROUTER_OUTPUT"],
   "ROUTER_OUTPUT",
   parseRouterChoice,
 );

@@ -9,6 +9,7 @@ export default defineConfig({
       "app/**/*.test.ts",
       "server/**/*.test.ts",
       "scripts/**/*.test.ts",
+      "eslint.config.test.ts",
     ],
     environment: "node",
   },

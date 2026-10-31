@@ -1,4 +1,5 @@
 import { readdirSync } from "node:fs";
+import { exitWithFailure } from "./exit-with-failure.ts";
 import { readJsonFile } from "./json.ts";
 import {
   messageKeyProblems,
@@ -6,7 +7,6 @@ import {
   parseLocales,
   readMessages,
 } from "./messages.ts";
-import { exitWithFailure } from "./script-failure.ts";
 
 // Paraglide falls back to the base language when a message is missing, so a gap would never surface as an error.
 const locales = readJsonFile("project.inlang/settings.json", parseLocales);
