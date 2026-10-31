@@ -42,15 +42,20 @@ export default function App(): ReactNode {
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): ReactNode {
   const isNotFound = isRouteErrorResponse(error) && error.status === 404;
+  const title = isNotFound
+    ? m.app_not_found_title()
+    : m.app_unexpected_error_title();
   return (
     <main className={styles["errorPage"]}>
-      <h1>
-        {isNotFound ? m.app_not_found_title() : m.app_unexpected_error_title()}
-      </h1>
+      {/* A route that fails renders no meta, so the boundary names the page itself. React places this title in the head. */}
+      <title>{`${title} | ${m.app_name()}`}</title>
+      <h1>{title}</h1>
       <p>
         {isNotFound ? m.app_not_found_body() : m.app_unexpected_error_body()}
       </p>
-      <a href="/">{m.app_back_home_link()}</a>
+      <a href="/" className={styles["backHome"]}>
+        {m.app_back_home_link()}
+      </a>
     </main>
   );
 }

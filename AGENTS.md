@@ -49,7 +49,7 @@ Every line here is read at the start of every session. A standard earns its plac
 These apply to all prose: docs, comments, commit messages, pull requests, issues, every text in the interface, and every text that code generates, such as log messages and automated reviews.
 
 - Every sentence is easy to parse for a reader with basic English or basic Bahasa Indonesia. This is about sentence structure only. It never means simpler ideas or padding.
-- Connect ideas with words such as "because", "so", "but", and "which means", or split them into separate sentences. A colon may introduce a list, an example, or code, or separate a label from its description. `pnpm check` reads every Markdown, TypeScript, CSS, and YAML file in the repository, including those in dot folders, and the messages. In prose, which means Markdown outside code spans and code blocks, issue templates, and messages, it rejects em dashes, en dashes, and semicolons. In TypeScript, CSS, and YAML, it rejects dashes on every line and semicolons in comments. It cannot see a dash in a code span, a semicolon in a string that code generates, or a colon that joins two clauses, so watch for those.
+- Connect ideas with words such as "because", "so", "but", and "which means", or split them into separate sentences. A colon may introduce a list, an example, or code, or separate a label from its description. `pnpm check` reads every Markdown, TypeScript, CSS, and YAML file in the repository, including those in dot folders, and the messages. In prose, which means Markdown outside code spans and code blocks, issue templates, and messages, it rejects em dashes, en dashes, and semicolons. In TypeScript, CSS, and YAML, it rejects dashes on every line and semicolons in comments. It cannot see a dash in a code span in prose, a semicolon in a string that code generates, or a colon that joins two clauses, so watch for those.
 - Write plainly and directly. No marketing filler, no hedging, and no text that coaches the reader on what they already know.
 - Each fact lives in one place, and other places link to it.
 
@@ -86,7 +86,7 @@ These apply to all prose: docs, comments, commit messages, pull requests, issues
 - Code is organized by feature in `app/features/<feature>/`. A feature folder holds that feature's routes, components, logic, styles, and tests. A feature uses another feature only through the exported functions and components that represent that feature's concept.
 - A concept used by several features lives in the feature that owns it. A concept that no feature owns, such as the `Result` type, units of measure, formatting, or logging, lives directly in `app/`, in a file or folder named after the concept. Folders named `utils`, `helpers`, `common`, `shared`, or `lib` are not allowed, because their names say nothing about what they hold.
 - A script in `scripts/` imports from `app/` only a module that imports nothing itself, because scripts run in plain Node without the app's build.
-- File names are kebab-case. A file with one main export is named after it, such as `exit-with-failure.ts` for `exitWithFailure`, and a file whose exports serve one concept equally is named after the concept, such as `json.ts`. Tests sit beside their code as `<name>.test.ts`, and browser tests live in `e2e/`.
+- File names are kebab-case. A file with one main export is named after it, such as `read-text-file.ts` for `readTextFile`, and a file whose exports serve one concept equally is named after the concept, such as `json.ts`. Tests sit beside their code as `<name>.test.ts`, and browser tests live in `e2e/`.
 - All market data passes through the price source interface, as decision 0001 explains.
 - IDX rules, such as tick sizes and auto rejection limits, are data with the dates they apply, as decision 0002 explains.
 
@@ -98,7 +98,7 @@ These apply to all prose: docs, comments, commit messages, pull requests, issues
 - A test of generated text checks the whole sentence for each case that changes its grammar, such as one item and several items, or a word that takes "a" and one that takes "an".
 - Every check is tested. A check script keeps the logic that chooses and judges its input in a module with tests beside it, and a lint rule is tested through ESLint itself. The tests cover input that the check must accept, files in every place it must reach, such as dot folders, and every form of code that can break the standard it enforces. For a rule that finds functions by name, that is every node that can carry a name together with a function or the type of a function: declarations, variables with a value or a type, parameters, assignments, named function expressions, object properties, class methods, fields, and accessors, and the members of interfaces.
 - Every calculation of money or of a measure is tested against expected values computed independently, for example in a spreadsheet, and the test names that source.
-- Every user flow has a browser test that runs on the phone and desktop projects and checks accessibility with axe.
+- Every user flow has a browser test that runs on the phone and desktop projects. Each screen is checked for accessibility with axe and for touch targets with `e2e/expect-touch-targets.ts`, because axe does not check the 44 pixels.
 
 ### CI
 

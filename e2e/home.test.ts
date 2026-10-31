@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
+import { expectTouchTargets } from "./expect-touch-targets.ts";
 
 test("opens the home page in Bahasa Indonesia", async ({ page }) => {
   await page.goto("/");
@@ -24,10 +25,13 @@ test("switches the page to English and back", async ({ page }) => {
   await expect(page.locator("html")).toHaveAttribute("lang", "id");
 });
 
-test("passes the accessibility check on the home page", async ({ page }) => {
+test("passes the accessibility and touch target checks on the home page", async ({
+  page,
+}) => {
   await page.goto("/");
   const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations).toEqual([]);
+  await expectTouchTargets(page);
 });
 
 test("shows the not found page in Bahasa Indonesia for an unknown address", async ({
@@ -38,6 +42,15 @@ test("shows the not found page in Bahasa Indonesia for an unknown address", asyn
   await expect(
     page.getByRole("heading", { level: 1, name: "Halaman tidak ditemukan" }),
   ).toBeVisible();
+});
+
+test("passes the accessibility and touch target checks on the not found page", async ({
+  page,
+}) => {
+  await page.goto("/tidak-ada");
+  const results = await new AxeBuilder({ page }).analyze();
+  expect(results.violations).toEqual([]);
+  await expectTouchTargets(page);
 });
 
 test("reports ok from the health check", async ({ request }) => {
