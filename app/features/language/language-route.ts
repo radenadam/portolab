@@ -14,7 +14,11 @@ export async function action({ request }: Route.ActionArgs): Promise<Response> {
       headers: { "Content-Type": "text/plain; charset=utf-8" },
     });
   }
-  const returnPath = parseReturnPath(form.get("returnTo"), "returnTo");
+  const returnPath = parseReturnPath(
+    form.get("returnTo"),
+    "returnTo",
+    new URL(request.url).origin,
+  );
   // The language still changes, and the reader goes to the home page instead of a path that could lead to another site.
   if (!returnPath.ok) {
     writeLog("warning", returnPath.failure);

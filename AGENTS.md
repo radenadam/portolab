@@ -114,3 +114,4 @@ These apply to all prose: docs, comments, commit messages, pull requests, issues
 
 - Portolab stores only what a class needs and nothing about real finances. No secret or credential ever enters the repository.
 - Every change to sign-in or sessions follows decision 0005 and gets a security review.
+- A redirect target that comes from input is resolved with the URL parser against the site's own origin. It is accepted only when the origins match, and the redirect uses only the path, query, and fragment of the result, because a check of the text alone misses values that a browser resolves to another site.

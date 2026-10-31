@@ -181,13 +181,8 @@ function typescriptComments(file: string, text: string): Comment[] {
   );
 }
 
-// The lexer marks the structure of the file with control characters that are not part of its text, so they do not move the offset.
-const yamlControlTokens = new Set([
-  CST.BOM,
-  CST.DOCUMENT,
-  CST.FLOW_END,
-  CST.SCALAR,
-]);
+// The lexer marks the structure of the file with control characters that are not part of its text, so they do not move the offset. A byte order mark is part of the text, so it is not among them.
+const yamlControlTokens = new Set([CST.DOCUMENT, CST.FLOW_END, CST.SCALAR]);
 
 // The YAML lexer knows where quoted and block scalars end, so a # inside them is never taken for a comment.
 function yamlComments(text: string): Comment[] {

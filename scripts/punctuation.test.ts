@@ -100,6 +100,27 @@ test("rejects a semicolon in a YAML comment and accepts one in a value", () => {
   ]);
 });
 
+test("reports the right line in a file that starts with a byte order mark", () => {
+  const byteOrderMark = "\uFEFF";
+  expect(
+    punctuationProblems("a.yml", `${byteOrderMark}a: 1\n# One; two.`, "yaml"),
+  ).toEqual([semicolonAt("a.yml:2")]);
+  expect(
+    punctuationProblems(
+      "a.ts",
+      `${byteOrderMark}const value = 1;\n// One; two.`,
+      "typescript",
+    ),
+  ).toEqual([semicolonAt("a.ts:2")]);
+  expect(
+    punctuationProblems(
+      "a.css",
+      `${byteOrderMark}a { color: red; }\n/* One; two. */`,
+      "css",
+    ),
+  ).toEqual([semicolonAt("a.css:2")]);
+});
+
 test("ignores code spans and code blocks in Markdown", () => {
   expect(
     punctuationProblems(
