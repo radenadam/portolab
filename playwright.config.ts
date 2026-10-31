@@ -1,6 +1,13 @@
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { defineConfig, devices } from "@playwright/test";
 
 const port = 4173;
+// Each run starts from an empty database, so tests never see data from an earlier run.
+const databasePath = join(
+  tmpdir(),
+  `portolab-e2e-${String(Date.now())}.sqlite`,
+);
 const isContinuousIntegration = process.env["CI"] === "true";
 
 export default defineConfig({
@@ -23,7 +30,11 @@ export default defineConfig({
   webServer: {
     command: "node server/main.ts",
     url: `http://localhost:${String(port)}/health`,
-    env: { PORT: String(port) },
+    env: {
+      PORT: String(port),
+      DATABASE_PATH: databasePath,
+      PRICE_SOURCE: "fixture",
+    },
     reuseExistingServer: false,
   },
 });

@@ -6,6 +6,7 @@
   "language_switch_label": "Bahasa",
   "language_unknown_error": "Formulir mengirim \"{value}\" di kolom {field}, tetapi Portolab hanya tersedia dalam Bahasa Indonesia dan English. Pilih salah satunya di pengalih bahasa.",
   "language_page_title": "Pilih bahasa",
+  "language_page_body": "Pilih bahasa dengan pengalih di bagian atas halaman.",
   "language_rejected_title": "Bahasa tidak dapat diganti",
   "language_not_text_error": "Formulir mengirim nilai bertipe {type} di kolom {field}, bukan teks. Pilih Bahasa Indonesia atau English di pengalih bahasa.",
   "language_missing_error": "Formulir tidak mengirim bahasa di kolom {field}. Pilih Bahasa Indonesia atau English di pengalih bahasa.",
@@ -13,5 +14,12 @@
   "app_not_found_body": "Alamat ini tidak ada di Portolab. Periksa kembali alamatnya, atau kembali ke beranda.",
   "app_unexpected_error_title": "Terjadi kesalahan",
   "app_unexpected_error_body": "Portolab tidak dapat menampilkan halaman ini. Coba muat ulang halaman. Jika masalahnya berlanjut, beri tahu dosen Anda.",
-  "app_back_home_link": "Kembali ke beranda"
+  "app_back_home_link": "Kembali ke beranda",
+  "home_prices_link": "Lihat harga saham",
+  "market_data_title": "Harga saham",
+  "market_data_delay_notice": "Harga tertunda sekitar 10 menit dan berasal dari Yahoo Finance. Harga terakhir tercatat pada {time} WIB.",
+  "market_data_empty_body": "Harga belum tersedia. Portolab mengambil harga setiap kali server dimulai, lalu setiap menit selama jam bursa.",
+  "market_data_code_label": "Kode",
+  "market_data_last_label": "Harga terakhir",
+  "market_data_change_label": "Perubahan"
 }

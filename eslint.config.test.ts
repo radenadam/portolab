@@ -171,6 +171,22 @@ test("accepts a parser that takes further parameters after the standard ones", a
   ).not.toContain("no-restricted-syntax");
 }, 60_000);
 
+test("rejects reduce in every form of a call, and accepts a plain loop", async () => {
+  for (const code of [
+    "export const total = [1, 2].reduce((sum, item) => sum + item, 0);",
+    "export const total = [1, 2].reduceRight((sum, item) => sum + item, 0);",
+    'export const total = [1, 2]["reduce"]((sum, item) => sum + item, 0);',
+    "export const total = ([1, 2] as number[] | undefined)?.reduce((sum, item) => sum + item, 0);",
+  ]) {
+    expect(await rulesReporting(code), code).toContain("no-restricted-syntax");
+  }
+  expect(
+    await rulesReporting(
+      "export function total(items: readonly number[]): number {\n  let sum = 0;\n  for (const item of items) {\n    sum += item;\n  }\n  return sum;\n}\n",
+    ),
+  ).not.toContain("no-restricted-syntax");
+}, 60_000);
+
 test("rejects abbreviated and one-letter names, and accepts full words", async () => {
   for (const code of [
     "export const msg = 1;",

@@ -102,6 +102,11 @@ export default defineConfig(
       "no-param-reassign": "error",
       "no-restricted-syntax": [
         "error",
+        {
+          selector:
+            "CallExpression > MemberExpression.callee:matches([property.name=/^reduce(Right)?$/], [property.value=/^reduce(Right)?$/])",
+          message: "Write a plain loop, which states each step explicitly.",
+        },
         { selector: `${parser}[params.length<2]`, message: parserSignature },
         {
           selector: `${parser} > .params:first-child:not(Identifier[name="value"][typeAnnotation.typeAnnotation.type="TSUnknownKeyword"])`,

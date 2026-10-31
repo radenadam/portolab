@@ -73,7 +73,7 @@ These apply to all prose: docs, comments, commit messages, pull requests, issues
 
 ### Code
 
-- Prefer explicit code over clever code. A plain loop beats a chain of `reduce` calls. Names use full words, and ESLint rejects the common abbreviations.
+- Prefer explicit code over clever code, even when it takes more lines. ESLint rejects `reduce` in favor of plain loops, and it rejects the common abbreviations in favor of full words.
 - An abstraction exists only for callers that exist today, never for a future that may not come. Logic that repeats becomes one function that every copy calls. When an existing function almost fits a new caller, it is reshaped instead of copied.
 - Units get branded types, such as rupiah, shares, and lots, so mixing them up is a type error. Amounts of rupiah are whole numbers.
 - An expected failure, such as an order the cash cannot pay for, is a typed result that every caller must handle. Throwing is only for states that should never happen.

@@ -6,6 +6,7 @@
   "language_switch_label": "Language",
   "language_unknown_error": "The form sent \"{value}\" in the field {field}, but Portolab is only available in Bahasa Indonesia and English. Choose one of them in the language switch.",
   "language_page_title": "Choose a language",
+  "language_page_body": "Choose a language with the switch at the top of the page.",
   "language_rejected_title": "The language could not be changed",
   "language_not_text_error": "The form sent a value of type {type} in the field {field} instead of text. Choose Bahasa Indonesia or English in the language switch.",
   "language_missing_error": "The form sent no language in the field {field}. Choose Bahasa Indonesia or English in the language switch.",
@@ -13,5 +14,12 @@
   "app_not_found_body": "This address does not exist in Portolab. Check the address again, or go back to the home page.",
   "app_unexpected_error_title": "Something went wrong",
   "app_unexpected_error_body": "Portolab could not show this page. Try reloading the page. If the problem continues, tell your lecturer.",
-  "app_back_home_link": "Back to the home page"
+  "app_back_home_link": "Back to the home page",
+  "home_prices_link": "See stock prices",
+  "market_data_title": "Stock prices",
+  "market_data_delay_notice": "Prices are delayed by about 10 minutes and come from Yahoo Finance. The latest price was recorded at {time} WIB.",
+  "market_data_empty_body": "No prices are available yet. Portolab fetches prices each time the server starts, and then every minute during market hours.",
+  "market_data_code_label": "Code",
+  "market_data_last_label": "Last price",
+  "market_data_change_label": "Change"
 }
