@@ -1,7 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { existsSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { existsSync } from "node:fs";
 import { exitWithFailure } from "../app/exit-with-failure.server.ts";
 import { errorMessage } from "../app/error-message.ts";
 import { fail, failuresOf } from "../app/result.ts";
@@ -80,12 +78,11 @@ const outcome = summarizeReview({
   verifiedFindings,
   inputProblems,
 });
-const bodyPath = join(tmpdir(), "review-body.md");
-writeFileSync(bodyPath, `${outcome.body}\n`);
+// gh reads the body from standard input, so the step leaves no file behind.
 execFileSync(
   "gh",
-  ["pr", "review", pullRequest.value, "--comment", "--body-file", bodyPath],
-  { stdio: "inherit" },
+  ["pr", "review", pullRequest.value, "--comment", "--body-file", "-"],
+  { input: `${outcome.body}\n`, stdio: ["pipe", "inherit", "inherit"] },
 );
 if (!outcome.passed) {
   exitWithFailure([outcome.verdict], writeScriptFailure);

@@ -1,12 +1,21 @@
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { expect, test } from "vitest";
+import { expect, onTestFinished, test } from "vitest";
 import {
   parseLensOutput,
   readLensReports,
   toLensReport,
 } from "./lens-reports.ts";
+
+/** Creates an empty folder for one test, and removes it when the test finishes. */
+function temporaryDirectory(): string {
+  const directory = mkdtempSync(join(tmpdir(), "portolab-lens-reports-"));
+  onTestFinished(() => {
+    rmSync(directory, { recursive: true, force: true });
+  });
+  return directory;
+}
 
 const finding = {
   location: "app/root.tsx:12",
@@ -46,7 +55,7 @@ test("names the source, the position, and the field when a finding of a lens is 
 });
 
 test("rejects a saved report whose finding has no id", () => {
-  const directory = mkdtempSync(join(tmpdir(), "portolab-lens-reports-"));
+  const directory = temporaryDirectory();
   const path = join(directory, "findings-craft.json");
   writeFileSync(
     path,
@@ -65,7 +74,7 @@ test("rejects a saved report whose finding has no id", () => {
 });
 
 test("reads every report in a directory and names each file that fails", () => {
-  const directory = mkdtempSync(join(tmpdir(), "portolab-lens-reports-"));
+  const directory = temporaryDirectory();
   const report = toLensReport("craft", {
     findings: [finding],
     candidateStandards: [],

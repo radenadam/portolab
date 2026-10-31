@@ -264,27 +264,26 @@ for (const state of states) {
   }
 }
 
-test("dates a price from another day than the newest one, in both languages", () => {
-  const indonesian = renderToStaticMarkup(
-    <PricesView
-      quotes={quotes}
-      latestAttempt={succeededAttempt}
-      now={halfMinuteAfterFailure}
-    />,
-  );
-  expect(indonesian).toContain(">16 Okt 2026, 16.14<");
-  expect(indonesian).toContain(">16.14<");
-  switchLocaleForTest("en");
-  const english = renderToStaticMarkup(
-    <PricesView
-      quotes={quotes}
-      latestAttempt={succeededAttempt}
-      now={halfMinuteAfterFailure}
-    />,
-  );
-  expect(english).toContain(">Oct 16, 2026, 4:14 PM<");
-  expect(english).toContain(">4:14 PM<");
-});
+// The BBRI price is from two weeks before the newest price, and the BBCA price is from its day.
+const quoteTimes = {
+  id: { otherDay: ">16 Okt 2026, 16.14<", sameDay: ">16.14<" },
+  en: { otherDay: ">Oct 16, 2026, 4:14 PM<", sameDay: ">4:14 PM<" },
+};
+
+for (const language of locales) {
+  test(`dates a price from another day than the newest one in ${languageNames[language]}`, () => {
+    switchLocaleForTest(language);
+    const html = renderToStaticMarkup(
+      <PricesView
+        quotes={quotes}
+        latestAttempt={succeededAttempt}
+        now={halfMinuteAfterFailure}
+      />,
+    );
+    expect(html).toContain(quoteTimes[language].otherDay);
+    expect(html).toContain(quoteTimes[language].sameDay);
+  });
+}
 
 const nextAttemptSentences = {
   id: (time: string) => `Portolab mencoba lagi pada ${time} WIB.`,

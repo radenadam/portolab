@@ -1,7 +1,5 @@
 import { spawn } from "node:child_process";
 import { utimesSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
 import { errorMessage } from "../app/error-message.ts";
 import { exitWithFailure } from "../app/exit-with-failure.server.ts";
 import { pageProblems, parseDevArguments } from "./dev-server-check.ts";
@@ -33,10 +31,8 @@ const server = spawn(process.execPath, devArguments.value, {
     ...process.env,
     PORT: String(port),
     PRICE_SOURCE: "fixture",
-    DATABASE_PATH: join(
-      tmpdir(),
-      `portolab-dev-check-${String(Date.now())}.sqlite`,
-    ),
+    // A database in memory starts empty and leaves no file behind.
+    DATABASE_PATH: ":memory:",
   },
   stdio: ["ignore", "ignore", "pipe"],
 });

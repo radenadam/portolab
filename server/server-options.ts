@@ -11,6 +11,11 @@ export type Mode = (typeof modes)[number];
 
 const priceSourceNames = ["yahoo", "fixture"] as const;
 
+// README.md lists each default for the people who run the server, and a test checks that it lists these.
+const defaultPort = 3000;
+const defaultPriceSource: (typeof priceSourceNames)[number] = "yahoo";
+const defaultDatabasePath = "data/portolab.sqlite";
+
 /** The settings of the services that the server starts. README.md lists each variable and its default. */
 export interface ServiceSettings {
   databasePath: string;
@@ -40,13 +45,13 @@ export function parseCommandLine(
   }
 }
 
-/** Reads the port that the server listens on, which is 3000 unless the variable names another. */
+/** Reads the port that the server listens on, or the default port when the variable is not set. */
 export function parsePort(
   value: unknown,
   source: string,
 ): Result<number, string> {
   if (value === undefined) {
-    return succeed(3000);
+    return succeed(defaultPort);
   }
   if (typeof value === "string" && /^\d+$/.test(value)) {
     const port = Number(value);
@@ -59,18 +64,18 @@ export function parsePort(
   );
 }
 
-/** Reads the source of prices, which is Yahoo Finance unless the variable names the fixture for tests. */
+/** Reads the source of prices, or the default source when the variable is not set. */
 export function parsePriceSource(
   value: unknown,
   source: string,
 ): Result<ServiceSettings["priceSource"], string> {
-  return parseChoice(value ?? "yahoo", source, priceSourceNames);
+  return parseChoice(value ?? defaultPriceSource, source, priceSourceNames);
 }
 
-/** Reads the place of the database file, which is data/portolab.sqlite unless the variable names another. */
+/** Reads the place of the database file, or the default place when the variable is not set. */
 export function parseDatabasePath(
   value: unknown,
   source: string,
 ): Result<string, string> {
-  return parseFilePath(value ?? "data/portolab.sqlite", source);
+  return parseFilePath(value ?? defaultDatabasePath, source);
 }

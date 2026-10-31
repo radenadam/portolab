@@ -44,7 +44,7 @@ export function startPriceJob(settings: PriceJobSettings): () => void {
 
 /**
  * Returns a function that updates prices. A call while an update runs asks for one more update right after it instead of a second one at the same time. So a run of the schedule that arrives during a long startup run still happens within its minute, as the prices page promises. An error is logged instead of ending the process.
- * @internal Tests call it directly, because startPriceJob reaches it only through a running schedule.
+ * @internal Tests call it directly, because calling it through startPriceJob also starts the schedule.
  */
 export function createPriceUpdater(
   settings: PriceJobSettings,

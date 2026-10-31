@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { expect, test } from "vitest";
 import {
   parseCommandLine,
@@ -83,4 +84,31 @@ test("uses the default database file without a path, and rejects an empty one", 
     ok: false,
     failure: "DATABASE_PATH must be the path of a file, but it is empty.",
   });
+});
+
+/** Reads the table of environment variables in README.md, whose rows name a variable and its default, each in a code span. */
+function readmeDefaults(): Map<string, string> {
+  const defaults = new Map<string, string>();
+  for (const line of readFileSync("README.md", "utf8").split("\n")) {
+    const [, name, defaultValue] = line.split("|").map((cell) => cell.trim());
+    if (name?.startsWith("`") && defaultValue?.startsWith("`")) {
+      defaults.set(name.slice(1, -1), defaultValue.slice(1, -1));
+    }
+  }
+  return defaults;
+}
+
+test("lists in README.md each environment variable with the default that its parser uses", () => {
+  const parsedDefaults = new Map<string, string>();
+  for (const [name, parsed] of [
+    ["PORT", parsePort(undefined, "PORT")],
+    ["DATABASE_PATH", parseDatabasePath(undefined, "DATABASE_PATH")],
+    ["PRICE_SOURCE", parsePriceSource(undefined, "PRICE_SOURCE")],
+  ] as const) {
+    if (!parsed.ok) {
+      throw new Error(parsed.failure);
+    }
+    parsedDefaults.set(name, String(parsed.value));
+  }
+  expect(readmeDefaults()).toEqual(parsedDefaults);
 });

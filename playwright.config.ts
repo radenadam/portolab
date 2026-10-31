@@ -1,13 +1,6 @@
-import { tmpdir } from "node:os";
-import { join } from "node:path";
 import { defineConfig, devices } from "@playwright/test";
 
 const port = 4173;
-// Each run starts from an empty database, so tests never see data from an earlier run.
-const databasePath = join(
-  tmpdir(),
-  `portolab-e2e-${String(Date.now())}.sqlite`,
-);
 const isContinuousIntegration = process.env["CI"] === "true";
 
 export default defineConfig({
@@ -32,7 +25,8 @@ export default defineConfig({
     url: `http://localhost:${String(port)}/health`,
     env: {
       PORT: String(port),
-      DATABASE_PATH: databasePath,
+      // A database in memory starts empty for each run, so tests never see data from an earlier run, and it leaves no file behind.
+      DATABASE_PATH: ":memory:",
       PRICE_SOURCE: "fixture",
     },
     reuseExistingServer: false,
