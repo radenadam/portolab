@@ -1,5 +1,10 @@
 import { expect, test } from "vitest";
-import { messageKeyProblems, parseMessages, readMessages } from "./messages.ts";
+import {
+  messageKeyProblems,
+  parseLocales,
+  parseMessages,
+  readMessages,
+} from "./messages.ts";
 
 test("accepts keys that start with a feature folder or with app", () => {
   const keys = ["app_name", "market_data_title"];
@@ -57,4 +62,15 @@ test("reports a messages file that cannot be read", () => {
   expect(messages.ok ? "" : messages.failure).toMatch(
     /^messages\/missing\.json cannot be read\. The system reported: /,
   );
+});
+
+test("reads the locales from the inlang settings and rejects settings without them", () => {
+  expect(parseLocales({ locales: ["id", "en"] }, "settings.json")).toEqual({
+    ok: true,
+    value: ["id", "en"],
+  });
+  expect(parseLocales({}, "settings.json")).toEqual({
+    ok: false,
+    failure: 'settings.json has no valid "locales".',
+  });
 });

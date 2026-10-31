@@ -1,21 +1,19 @@
 import { readJsonFile } from "./json.ts";
 import { chooseLenses, parseRouteSchemaLenses } from "./review-inputs.ts";
+import { exitWithFailure } from "./script-failure.ts";
 
-const schemaPath = ".github/review/route.schema.json";
-const schema = readJsonFile(schemaPath);
-const knownLenses = schema.ok
-  ? parseRouteSchemaLenses(schema.value, schemaPath)
-  : schema;
+const knownLenses = readJsonFile(
+  ".github/review/route.schema.json",
+  parseRouteSchemaLenses,
+);
 if (!knownLenses.ok) {
-  process.stderr.write(`::error::${knownLenses.failure}\n`);
-  process.exit(1);
+  exitWithFailure([knownLenses.failure]);
 }
 const lenses = chooseLenses(
   process.env["ROUTER_OUTPUT"] ?? "",
   knownLenses.value,
 );
 if (!lenses.ok) {
-  process.stderr.write(`::error::${lenses.failure}\n`);
-  process.exit(1);
+  exitWithFailure([lenses.failure]);
 }
 process.stdout.write(JSON.stringify(lenses.value));

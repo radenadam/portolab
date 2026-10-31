@@ -1,13 +1,23 @@
 import { fail, succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
-import { isRecord, readJsonFile } from "./json.ts";
+import { isRecord, isStringArray, readJsonFile } from "./json.ts";
+
+/** Reads the languages of the app from the settings of the inlang project. */
+export function parseLocales(
+  value: unknown,
+  source: string,
+): Result<string[], string> {
+  const locales = isRecord(value) ? value["locales"] : undefined;
+  return isStringArray(locales) && locales.length > 0
+    ? succeed(locales)
+    : fail(`${source} has no valid "locales".`);
+}
 
 /** Reads one language file of Paraglide messages as an object of message keys. */
 export function readMessages(
   path: string,
 ): Result<Record<string, unknown>, string> {
-  const json = readJsonFile(path);
-  return json.ok ? parseMessages(json.value, path) : json;
+  return readJsonFile(path, parseMessages);
 }
 
 export function parseMessages(

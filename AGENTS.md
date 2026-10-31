@@ -75,7 +75,7 @@ These apply to all prose: docs, comments, commit messages, pull requests, issues
 - An abstraction exists only for callers that exist today, never for a future that may not come. Logic that repeats becomes one function that every copy calls.
 - Units get branded types, such as rupiah, shares, and lots, so mixing them up is a type error. Amounts of rupiah are whole numbers.
 - An expected failure, such as an order the cash cannot pay for, is a typed result that every caller must handle. Throwing is only for states that should never happen.
-- Data from outside the program is parsed into types at the boundary where it enters, in scripts and CI steps as much as in the app. Outside data includes form input, environment variables, files, prices from the price source, and the output of agents. A type assertion such as `as` is not parsing. Code inside the boundary trusts the parsed types and has no defensive checks for impossible states.
+- Data from outside the program is parsed into types at the boundary where it enters, in scripts and CI steps as much as in the app. Outside data includes form input, environment variables, files, prices from the price source, and the output of agents. A type assertion such as `as` is not parsing, and neither is a type predicate (`value is T`) whose body does not check every part of its type. Code inside the boundary trusts the parsed types and has no defensive checks for impossible states.
 - A script that fails writes its reason to stderr before it exits, so the CI log explains the failure without a rerun.
 - A failure text names its source and the field or value that was wrong. Code that handles a failed result passes that text on, instead of replacing it with a generic message, so the real reason reaches the reader.
 - A comment explains only why: a reason, an outside constraint, or a trap. It never narrates what the code does.
@@ -94,7 +94,7 @@ These apply to all prose: docs, comments, commit messages, pull requests, issues
 
 - Tests exercise behavior through exported functions, not internals.
 - A test name starts with the verb of the behavior it checks, such as "rejects" or "fails when".
-- A test that keeps two definitions in agreement, such as a schema and its parser, exercises the code that uses them, not a copy of their data.
+- When two definitions must agree, such as a schema and its parser, or the lens names in `.github/review/route.schema.json` and the files in `.claude/agents/`, a test checks that they agree through the code that uses them, not through a copy of their data.
 - A test of generated text checks the whole sentence for each case that changes its grammar, such as one item and several items.
 - The logic that a check script uses to judge its input lives in a module with tests beside it, including tests of input that the check must accept.
 - Every calculation of money or of a measure is tested against expected values computed independently, for example in a spreadsheet, and the test names that source.

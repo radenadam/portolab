@@ -57,13 +57,13 @@ export function parseLensReport(
   }
   const { lens, findings, candidateStandards } = value;
   if (typeof lens !== "string") {
-    return fail(`${source} has no valid "lens".`);
+    return invalidField(source, "lens");
   }
   if (!Array.isArray(findings)) {
-    return fail(`${source} has no valid "findings".`);
+    return invalidField(source, "findings");
   }
   if (!Array.isArray(candidateStandards)) {
-    return fail(`${source} has no valid "candidateStandards".`);
+    return invalidField(source, "candidateStandards");
   }
   const parsedFindings: ReportedFinding[] = [];
   for (const [index, item] of findings.entries()) {
@@ -99,7 +99,7 @@ export function parseVerifiedFindings(
   source: string,
 ): Result<VerifiedFinding[], string> {
   if (!isRecord(value) || !Array.isArray(value["findings"])) {
-    return fail(`${source} has no valid "findings".`);
+    return invalidField(source, "findings");
   }
   const verifiedFindings: VerifiedFinding[] = [];
   for (const [index, item] of value["findings"].entries()) {
@@ -117,32 +117,8 @@ export function parseVerifiedFindings(
   return succeed(verifiedFindings);
 }
 
-const findingTextFields = [
-  "id",
-  "lens",
-  "location",
-  "claim",
-  "basis",
-  "rootCause",
-] as const;
-
-/** Returns the name of the first field that is missing or has the wrong type. */
-function invalidFindingField(
-  value: Record<string, unknown>,
-): string | undefined {
-  const textField = findingTextFields.find(
-    (field) => typeof value[field] !== "string",
-  );
-  if (textField !== undefined) {
-    return textField;
-  }
-  return isStringArray(value["siblings"]) ? undefined : "siblings";
-}
-
-function isReportedFinding(
-  value: Record<string, unknown>,
-): value is Record<string, unknown> & ReportedFinding {
-  return invalidFindingField(value) === undefined;
+function invalidField(source: string, field: string): Result<never, string> {
+  return fail(`${source} has no valid "${field}".`);
 }
 
 function readReportedFinding(
@@ -152,12 +128,28 @@ function readReportedFinding(
   if (!isRecord(value)) {
     return fail(`${source} is not a JSON object.`);
   }
-  if (!isReportedFinding(value)) {
-    return fail(
-      `${source} has no valid "${String(invalidFindingField(value))}".`,
-    );
-  }
   const { id, lens, location, claim, basis, siblings, rootCause } = value;
+  if (typeof id !== "string") {
+    return invalidField(source, "id");
+  }
+  if (typeof lens !== "string") {
+    return invalidField(source, "lens");
+  }
+  if (typeof location !== "string") {
+    return invalidField(source, "location");
+  }
+  if (typeof claim !== "string") {
+    return invalidField(source, "claim");
+  }
+  if (typeof basis !== "string") {
+    return invalidField(source, "basis");
+  }
+  if (!isStringArray(siblings)) {
+    return invalidField(source, "siblings");
+  }
+  if (typeof rootCause !== "string") {
+    return invalidField(source, "rootCause");
+  }
   return succeed({ id, lens, location, claim, basis, siblings, rootCause });
 }
 
@@ -174,13 +166,13 @@ function readVerdict(
   const { status, duplicateOf, evidence } = value;
   const knownStatus = verdictStatuses.find((candidate) => candidate === status);
   if (knownStatus === undefined) {
-    return fail(`${source} has no valid "status".`);
+    return invalidField(source, "status");
   }
   if (typeof duplicateOf !== "string") {
-    return fail(`${source} has no valid "duplicateOf".`);
+    return invalidField(source, "duplicateOf");
   }
   if (typeof evidence !== "string") {
-    return fail(`${source} has no valid "evidence".`);
+    return invalidField(source, "evidence");
   }
   return succeed({ status: knownStatus, duplicateOf, evidence });
 }
@@ -194,10 +186,10 @@ function readCandidateStandard(
   }
   const { standard, incident } = value;
   if (typeof standard !== "string") {
-    return fail(`${source} has no valid "standard".`);
+    return invalidField(source, "standard");
   }
   if (typeof incident !== "string") {
-    return fail(`${source} has no valid "incident".`);
+    return invalidField(source, "incident");
   }
   return succeed({ standard, incident });
 }
@@ -241,7 +233,7 @@ export function chooseLenses(
   }
   const lenses = isRecord(json.value) ? json.value["lenses"] : undefined;
   if (!isStringArray(lenses)) {
-    return fail(`The router's output has no valid "lenses".`);
+    return invalidField("The router's output", "lenses");
   }
   const unknown = lenses.filter((lens) => !knownLenses.includes(lens));
   if (unknown.length > 0) {

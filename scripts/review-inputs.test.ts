@@ -1,6 +1,7 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { readdirSync } from "node:fs";
 import { expect, test } from "vitest";
-import { isRecord, isStringArray, readJsonFile } from "./json.ts";
+import { fail, succeed } from "../app/result.ts";
+import { isRecord, isStringArray, readJsonFile, readTextFile } from "./json.ts";
 import {
   chooseLenses,
   hasCancelledJob,
@@ -108,17 +109,19 @@ test("rejects a verdict that lacks any field its schema requires", () => {
 
 /** Reads the fields that a schema in .github/review requires of each finding. */
 function requiredFindingFields(schemaPath: string): string[] {
-  const schema = readJsonFile(schemaPath);
-  const findings =
-    schema.ok && isRecord(schema.value) && isRecord(schema.value["properties"])
-      ? schema.value["properties"]["findings"]
-      : undefined;
-  const items = isRecord(findings) ? findings["items"] : undefined;
-  const required = isRecord(items) ? items["required"] : undefined;
-  if (!isStringArray(required) || required.length === 0) {
-    throw new Error(`${schemaPath} does not list the fields of a finding.`);
+  const required = readJsonFile(schemaPath, (schema, source) => {
+    const properties = isRecord(schema) ? schema["properties"] : undefined;
+    const findings = isRecord(properties) ? properties["findings"] : undefined;
+    const items = isRecord(findings) ? findings["items"] : undefined;
+    const fields = isRecord(items) ? items["required"] : undefined;
+    return isStringArray(fields) && fields.length > 0
+      ? succeed(fields)
+      : fail(`${source} does not list the fields of a finding.`);
+  });
+  if (!required.ok) {
+    throw new Error(required.failure);
   }
-  return required;
+  return required.value;
 }
 
 test("accepts a pull request number and rejects anything else", () => {
@@ -172,7 +175,10 @@ test("rejects a router's choice with an unknown lens or no list", () => {
 test("reads the tools of every agent definition in the repository", () => {
   for (const file of readdirSync(".claude/agents")) {
     const path = `.claude/agents/${file}`;
-    expect(parseAgentTools(readFileSync(path, "utf8"), path)).toEqual({
+    const definition = readTextFile(path);
+    expect(
+      definition.ok ? parseAgentTools(definition.value, path) : definition,
+    ).toEqual({
       ok: true,
       value: "Read,Grep,Glob,Bash",
     });
@@ -187,12 +193,21 @@ test("rejects an agent definition without a tools line", () => {
   });
 });
 
+test("names exactly the lenses that .claude/agents defines in the router's schema", () => {
+  const lensFiles = readdirSync(".claude/agents")
+    .filter(
+      (file) => file.startsWith("review-") && file !== "review-verifier.md",
+    )
+    .map((file) => file.replace(/^review-/, "").replace(/\.md$/, ""))
+    .sort();
+  expect([...routeSchemaLenses()].sort()).toEqual(lensFiles);
+});
+
 function routeSchemaLenses(): string[] {
-  const path = ".github/review/route.schema.json";
-  const schema = readJsonFile(path);
-  const lenses = schema.ok
-    ? parseRouteSchemaLenses(schema.value, path)
-    : schema;
+  const lenses = readJsonFile(
+    ".github/review/route.schema.json",
+    parseRouteSchemaLenses,
+  );
   if (!lenses.ok) {
     throw new Error(lenses.failure);
   }

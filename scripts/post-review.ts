@@ -13,27 +13,28 @@ import {
 } from "./review-inputs.ts";
 import type { LensReport, VerifiedFinding } from "./review-inputs.ts";
 import { summarizeReview } from "./review-summary.ts";
+import { exitWithFailure } from "./script-failure.ts";
 
 const pullRequest = parsePullRequestNumber(process.env["PULL_REQUEST"] ?? "");
 if (!pullRequest.ok) {
-  failWithoutReview(pullRequest.failure);
+  exitWithFailure([pullRequest.failure]);
 }
 const panelResults = parseJsonText(
   process.env["PANEL_RESULTS"] ?? "",
   "PANEL_RESULTS",
 );
 if (!panelResults.ok) {
-  failWithoutReview(panelResults.failure);
+  exitWithFailure([panelResults.failure]);
 }
 const jobResults = parseJobResults(panelResults.value);
 if (!jobResults.ok) {
-  failWithoutReview(jobResults.failure);
+  exitWithFailure([jobResults.failure]);
 }
 // A cancelled run reviewed nothing, so it fails without posting a review. When a newer push cancelled it, the newer run posts the review.
 if (hasCancelledJob(jobResults.value)) {
-  failWithoutReview(
+  exitWithFailure([
     "The panel was cancelled before it finished, so this run reviewed nothing.",
-  );
+  ]);
 }
 
 const inputProblems: string[] = [];
@@ -49,8 +50,7 @@ const findingsDirectory = "review/findings";
 for (const file of existsSync(findingsDirectory)
   ? readdirSync(findingsDirectory).sort()
   : []) {
-  const json = readJsonFile(join(findingsDirectory, file));
-  const report = json.ok ? parseLensReport(json.value, file) : json;
+  const report = readJsonFile(join(findingsDirectory, file), parseLensReport);
   if (report.ok) {
     reports.push(report.value);
   } else {
@@ -60,10 +60,7 @@ for (const file of existsSync(findingsDirectory)
 let verifiedFindings: VerifiedFinding[] | undefined;
 const verifiedPath = "review/verified.json";
 if (existsSync(verifiedPath)) {
-  const json = readJsonFile(verifiedPath);
-  const verified = json.ok
-    ? parseVerifiedFindings(json.value, "verified.json")
-    : json;
+  const verified = readJsonFile(verifiedPath, parseVerifiedFindings);
   if (verified.ok) {
     verifiedFindings = verified.value;
   } else {
@@ -86,11 +83,5 @@ execFileSync(
   { stdio: "inherit" },
 );
 if (!outcome.passed) {
-  process.stderr.write(`::error::${outcome.verdict}\n`);
-  process.exit(1);
-}
-
-function failWithoutReview(reason: string): never {
-  process.stderr.write(`::error::${reason}\n`);
-  process.exit(1);
+  exitWithFailure([outcome.verdict]);
 }

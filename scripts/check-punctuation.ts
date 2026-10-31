@@ -1,9 +1,11 @@
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { matchesGlob } from "node:path";
+import { readTextFile } from "./json.ts";
 import { readMessages } from "./messages.ts";
 import { messageProblems, punctuationProblems } from "./punctuation.ts";
 import type { FileKind } from "./punctuation.ts";
+import { exitWithFailure } from "./script-failure.ts";
 
 // Git lists the files the repository holds, so generated and ignored files are never checked. A file deleted but not yet staged is still listed, so it is skipped.
 const repositoryFiles = execFileSync(
@@ -28,9 +30,12 @@ for (const [kind, patterns] of filesByKind) {
     (file) => kind === "markdown" || !matchesGlob(file, issueTemplates),
   );
   for (const file of files) {
-    problems.push(
-      ...punctuationProblems(file, readFileSync(file, "utf8"), kind),
-    );
+    const text = readTextFile(file);
+    if (text.ok) {
+      problems.push(...punctuationProblems(file, text.value, kind));
+    } else {
+      problems.push(text.failure);
+    }
   }
 }
 for (const file of filesMatching(["messages/*.json"])) {
@@ -43,8 +48,7 @@ for (const file of filesMatching(["messages/*.json"])) {
 }
 
 if (problems.length > 0) {
-  process.stderr.write(`${problems.join("\n")}\n`);
-  process.exit(1);
+  exitWithFailure(problems);
 }
 
 function filesMatching(patterns: string[]): string[] {

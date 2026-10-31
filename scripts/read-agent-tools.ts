@@ -1,20 +1,14 @@
-import { readFileSync } from "node:fs";
+import { readTextFile } from "./json.ts";
 import { parseAgentTools } from "./review-inputs.ts";
+import { exitWithFailure } from "./script-failure.ts";
 
 const definitionPath = process.argv[2] ?? "";
-let definition: string;
-try {
-  definition = readFileSync(definitionPath, "utf8");
-} catch (error) {
-  const reason = error instanceof Error ? error.message : String(error);
-  process.stderr.write(
-    `::error::${definitionPath} cannot be read. The system reported: ${reason}\n`,
-  );
-  process.exit(1);
+const definition = readTextFile(definitionPath);
+if (!definition.ok) {
+  exitWithFailure([definition.failure]);
 }
-const tools = parseAgentTools(definition, definitionPath);
+const tools = parseAgentTools(definition.value, definitionPath);
 if (!tools.ok) {
-  process.stderr.write(`::error::${tools.failure}\n`);
-  process.exit(1);
+  exitWithFailure([tools.failure]);
 }
 process.stdout.write(tools.value);

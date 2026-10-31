@@ -1,16 +1,16 @@
 import { readFileSync } from "node:fs";
+import { errorMessage } from "../app/error-message.ts";
 import { fail, succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
 
-export function readJsonFile(path: string): Result<unknown, string> {
-  let text: string;
+export function readTextFile(path: string): Result<string, string> {
   try {
-    text = readFileSync(path, "utf8");
+    return succeed(readFileSync(path, "utf8"));
   } catch (error) {
-    const reason = error instanceof Error ? error.message : String(error);
-    return fail(`${path} cannot be read. The system reported: ${reason}`);
+    return fail(
+      `${path} cannot be read. The system reported: ${errorMessage(error)}`,
+    );
   }
-  return parseJsonText(text, path);
 }
 
 export function parseJsonText(
@@ -21,9 +21,20 @@ export function parseJsonText(
     const parsed: unknown = JSON.parse(text);
     return succeed(parsed);
   } catch (error) {
-    const reason = error instanceof Error ? error.message : String(error);
-    return fail(`${source} is not valid JSON. The parser reported: ${reason}`);
+    return fail(
+      `${source} is not valid JSON. The parser reported: ${errorMessage(error)}`,
+    );
   }
+}
+
+/** Reads a JSON file and parses its content, naming the file as the source of every failure. */
+export function readJsonFile<Value>(
+  path: string,
+  parse: (value: unknown, source: string) => Result<Value, string>,
+): Result<Value, string> {
+  const text = readTextFile(path);
+  const json = text.ok ? parseJsonText(text.value, path) : text;
+  return json.ok ? parse(json.value, path) : json;
 }
 
 export function isRecord(value: unknown): value is Record<string, unknown> {
