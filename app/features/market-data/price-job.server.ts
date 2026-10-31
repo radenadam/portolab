@@ -20,41 +20,44 @@ export interface PriceJobSettings {
 /** Fetches prices once at startup, so a fresh server shows the last close, then every minute while prices can change. Returns a function that stops the job. */
 export function startPriceJob(settings: PriceJobSettings): () => void {
   let lastCalendarWarning = "";
-  void runPriceUpdateSafely(settings);
-  const job = new Cron(
-    "* * * * *",
-    {
-      protect: true,
-      // A failure that escapes an update must not end the process, so the job logs it and runs again the next minute.
-      catch: (error: unknown) => {
-        writeLog("error", "The price job failed.", {
-          detail: errorDetail(error),
-        });
-      },
-    },
-    async () => {
-      const updateTime = isPriceUpdateTime(new Date());
-      // A date that the calendar does not cover still gets prices, and the log asks for the calendar of that year once.
-      if (!updateTime.ok && updateTime.failure !== lastCalendarWarning) {
-        lastCalendarWarning = updateTime.failure;
-        writeLog("warning", updateTime.failure);
-      }
-      if (!updateTime.ok || updateTime.value) {
-        await runPriceUpdateSafely(settings);
-      }
-    },
-  );
+  const updatePrices = createPriceUpdater(settings);
+  void updatePrices();
+  const job = new Cron("* * * * *", async () => {
+    const updateTime = isPriceUpdateTime(new Date());
+    // A date that the calendar does not cover still gets prices, and the log asks for the calendar of that year once.
+    if (!updateTime.ok && updateTime.failure !== lastCalendarWarning) {
+      lastCalendarWarning = updateTime.failure;
+      writeLog("warning", updateTime.failure);
+    }
+    if (!updateTime.ok || updateTime.value) {
+      await updatePrices();
+    }
+  });
   return () => {
     job.stop();
   };
 }
 
-async function runPriceUpdateSafely(settings: PriceJobSettings): Promise<void> {
-  try {
-    await runPriceUpdate(settings, new Date());
-  } catch (error) {
-    writeLog("error", "The price job failed.", { detail: errorDetail(error) });
-  }
+/** Returns a function that updates prices once. A call while an update still runs does nothing, so the startup run and a run of the schedule never fetch at the same time, and an error is logged instead of ending the process. */
+export function createPriceUpdater(
+  settings: PriceJobSettings,
+): () => Promise<void> {
+  let isRunning = false;
+  return async () => {
+    if (isRunning) {
+      return;
+    }
+    isRunning = true;
+    try {
+      await runPriceUpdate(settings, new Date());
+    } catch (error) {
+      writeLog("error", "The price job failed.", {
+        detail: errorDetail(error),
+      });
+    } finally {
+      isRunning = false;
+    }
+  };
 }
 
 /** Fetches and stores prices unless the job still waits after failures, and records the attempt with its failures in a row. The state lives in the database, as decision 0009 asks, so a restart keeps waiting. */

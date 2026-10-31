@@ -209,44 +209,61 @@ test("rejects abbreviated and one-letter names, and accepts full words", async (
   expect(fullWords).not.toContain("id-length");
 }, 60_000);
 
-test("rejects an import from a feature in every module of app/ outside the features", async () => {
-  for (const [filePath, code] of [
-    [
-      "app/formatting.ts",
-      'export { quoteChange } from "~/features/market-data/price-change";',
-    ],
-    [
-      "app/error-page.tsx",
-      'import { LanguageSwitch } from "./features/language/language-switch";\nexport { LanguageSwitch };',
-    ],
-    [
-      "app/database/database.server.ts",
-      'import { stockQuotes } from "../features/market-data/market-data.schema";\nexport { stockQuotes };',
-    ],
-  ] as const) {
-    expect(await rulesReporting(code, filePath), filePath).toContain(
-      "no-restricted-imports",
-    );
-  }
-});
+// Every way to load a module, for a path that names a feature.
+const loadingForms: Record<string, (path: string) => string> = {
+  "static import": (path) =>
+    `import { quoteChange } from "${path}";\nexport { quoteChange };`,
+  "type import": (path) =>
+    `import type { Quote } from "${path}";\nexport type { Quote };`,
+  "export from": (path) => `export { quoteChange } from "${path}";`,
+  "export all from": (path) => `export * from "${path}";`,
+  "dynamic import": (path) =>
+    `export const load = async (): Promise<unknown> => import("${path}");`,
+};
 
-test("accepts imports from features in the root route, the route table, and the features", async () => {
-  for (const [filePath, code] of [
-    [
-      "app/root.tsx",
-      'import { LanguageSwitch } from "./features/language/language-switch";\nexport { LanguageSwitch };',
-    ],
-    [
-      "app/routes.ts",
-      'export { quoteChange } from "~/features/market-data/price-change";',
-    ],
+// Each module outside the features, with the paths to a feature that it can write: the alias, a path inside its folder, and a path that climbs out of it.
+const modulesOutsideFeatures: Record<string, readonly string[]> = {
+  "app/formatting.ts": [
+    "~/features/market-data/price-change",
+    "./features/market-data/price-change",
+  ],
+  "app/database/database.server.ts": ["../features/market-data/price-change"],
+  "server/main.ts": ["../app/features/market-data/price-change.ts"],
+};
+
+test("rejects every way to load a feature from a module outside the features", async () => {
+  for (const [filePath, paths] of Object.entries(modulesOutsideFeatures)) {
+    for (const path of paths) {
+      for (const [form, write] of Object.entries(loadingForms)) {
+        const rules = await rulesReporting(write(path), filePath);
+        expect(
+          rules.includes("no-restricted-imports") ||
+            rules.includes("no-restricted-syntax"),
+          `${form} of ${path} in ${filePath}`,
+        ).toBe(true);
+      }
+    }
+  }
+}, 120_000);
+
+test("accepts loading a feature in the modules that compose the app and in the features", async () => {
+  for (const [filePath, path] of [
+    ["app/root.tsx", "./features/market-data/price-change"],
+    ["app/routes.ts", "~/features/market-data/price-change"],
+    ["server/app.ts", "~/features/market-data/price-change"],
     [
       "app/features/market-data/prices-view.tsx",
-      'export { LanguageSwitch } from "~/features/language/language-switch";',
+      "~/features/language/language-switch",
     ],
   ] as const) {
-    expect(await rulesReporting(code, filePath), filePath).not.toContain(
-      "no-restricted-imports",
-    );
+    for (const [form, write] of Object.entries(loadingForms)) {
+      const rules = await rulesReporting(write(path), filePath);
+      expect(rules, `${form} in ${filePath}`).not.toContain(
+        "no-restricted-imports",
+      );
+      expect(rules, `${form} in ${filePath}`).not.toContain(
+        "no-restricted-syntax",
+      );
+    }
   }
-});
+}, 120_000);

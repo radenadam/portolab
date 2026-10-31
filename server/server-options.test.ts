@@ -36,6 +36,10 @@ test("rejects an unknown option and keeps the reason that Node gives", () => {
   );
 });
 
+test("uses port 3000 without a port", () => {
+  expect(parsePort(undefined, "PORT")).toEqual({ ok: true, value: 3000 });
+});
+
 test("accepts a port from 1 to 65535 and rejects anything else", () => {
   expect(parsePort("1", "PORT")).toEqual({ ok: true, value: 1 });
   expect(parsePort("65535", "PORT")).toEqual({ ok: true, value: 65_535 });

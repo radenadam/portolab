@@ -8,13 +8,18 @@ export function retryDelayMinutes(consecutiveFailures: number): number {
   return Math.min(2 ** (consecutiveFailures - 1), longestDelayMinutes);
 }
 
-/** The earliest moment for the next attempt after the latest one, which is at once after a success. */
+const minuteMilliseconds = 60_000;
+
+/** The earliest moment for the next attempt after the latest one, which is at once after a success. The wait counts whole minutes from the start of the minute of the attempt, because the schedule runs at the start of each minute and its runs land a few milliseconds late. */
 export function nextAttemptTime(latestAttempt: UpdateAttempt): Date {
   if (latestAttempt.consecutiveFailures === 0) {
     return latestAttempt.attemptedAt;
   }
+  const attemptMinute =
+    Math.floor(latestAttempt.attemptedAt.getTime() / minuteMilliseconds) *
+    minuteMilliseconds;
   return new Date(
-    latestAttempt.attemptedAt.getTime() +
-      retryDelayMinutes(latestAttempt.consecutiveFailures) * 60_000,
+    attemptMinute +
+      retryDelayMinutes(latestAttempt.consecutiveFailures) * minuteMilliseconds,
   );
 }

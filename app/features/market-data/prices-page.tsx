@@ -12,7 +12,7 @@ import {
 import type { UpdateAttempt } from "./quote-store.server";
 
 export function meta(): Route.MetaDescriptors {
-  return [{ title: pageTitle(m.market_data_title()) }];
+  return [{ title: pageTitle(m.market_data_page_title()) }];
 }
 
 export function loader({ context }: Route.LoaderArgs): {

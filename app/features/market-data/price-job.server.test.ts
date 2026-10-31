@@ -3,7 +3,7 @@ import { closeDatabase, openDatabase } from "~/database/database.server";
 import type { Database } from "~/database/database.server";
 import { fail, succeed } from "~/result";
 import { createFixturePriceSource } from "./fixture-price-source.server";
-import { runPriceUpdate } from "./price-job.server";
+import { createPriceUpdater, runPriceUpdate } from "./price-job.server";
 import type { PriceSource } from "./price-source.server";
 import {
   listLatestQuotes,
@@ -104,4 +104,30 @@ test("waits after failures, and a later run of the job keeps waiting, because th
   );
   expect(listLatestQuotes(database)).toHaveLength(trackedInstruments.length);
   expect(readLatestUpdateAttempt(database)?.consecutiveFailures).toBe(0);
+});
+
+test("does nothing when an update starts while another one still runs", async () => {
+  const database = memoryDatabase();
+  let calls = 0;
+  let answer: (() => void) | undefined;
+  const slowSource: PriceSource = {
+    fetchQuotes: async (instruments) => {
+      calls += 1;
+      await new Promise<void>((resolve) => {
+        answer = resolve;
+      });
+      return createFixturePriceSource().fetchQuotes(instruments);
+    },
+  };
+  const updatePrices = createPriceUpdater({
+    database,
+    priceSource: slowSource,
+    instruments: trackedInstruments,
+  });
+  const first = updatePrices();
+  await updatePrices();
+  answer?.();
+  await first;
+  expect(calls).toBe(1);
+  expect(listLatestQuotes(database)).toHaveLength(trackedInstruments.length);
 });

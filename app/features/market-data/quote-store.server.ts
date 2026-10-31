@@ -10,7 +10,7 @@ export interface UpdateAttempt {
   consecutiveFailures: number;
 }
 
-// The table holds one row, so every attempt replaces the row with this id.
+// The schema explains why price_updates holds one row.
 const latestAttemptId = 1;
 
 export function saveQuotes(

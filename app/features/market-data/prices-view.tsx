@@ -26,7 +26,7 @@ export function PricesView({
   const latestQuotedAt = latestQuoteTime(quotes);
   return (
     <>
-      <h1>{m.market_data_title()}</h1>
+      <h1>{m.market_data_page_title()}</h1>
       {latestQuotedAt === undefined ? (
         <p>
           {latestAttempt?.succeeded === false

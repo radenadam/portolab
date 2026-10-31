@@ -65,6 +65,30 @@ const parserForms = [
 ];
 const parser = `:matches(${parserForms.join(", ")})`;
 
+const restrictedSyntax = [
+  {
+    selector:
+      "MemberExpression:matches([property.name=/^reduce(Right)?$/], [property.value=/^reduce(Right)?$/], [property.quasis.0.value.cooked=/^reduce(Right)?$/]), ObjectPattern > Property:matches([key.name=/^reduce(Right)?$/], [key.value=/^reduce(Right)?$/])",
+    message: "Write a plain loop, which states each step explicitly.",
+  },
+  { selector: `${parser}[params.length<2]`, message: parserSignature },
+  {
+    selector: `${parser} > .params:first-child:not(Identifier[name="value"][typeAnnotation.typeAnnotation.type="TSUnknownKeyword"])`,
+    message: parserSignature,
+  },
+  {
+    selector: `${parser} > .params:nth-child(2):not(Identifier[name="source"][typeAnnotation.typeAnnotation.type="TSStringKeyword"])`,
+    message: parserSignature,
+  },
+  {
+    selector: `${parser}:not([returnType.typeAnnotation.typeName.name="Result"][returnType.typeAnnotation.typeArguments.params.1.type="TSStringKeyword"])`,
+    message: parserSignature,
+  },
+];
+
+const featureImport =
+  "A module outside the features never imports from a feature, as the section Structure of AGENTS.md states. Only app/root.tsx, app/routes.ts, and server/app.ts compose the app from its features.";
+
 export default defineConfig(
   globalIgnores([
     "build/",
@@ -100,27 +124,7 @@ export default defineConfig(
       "max-params": ["error", 3],
       "no-console": "error",
       "no-param-reassign": "error",
-      "no-restricted-syntax": [
-        "error",
-        {
-          selector:
-            "MemberExpression:matches([property.name=/^reduce(Right)?$/], [property.value=/^reduce(Right)?$/], [property.quasis.0.value.cooked=/^reduce(Right)?$/]), ObjectPattern > Property:matches([key.name=/^reduce(Right)?$/], [key.value=/^reduce(Right)?$/])",
-          message: "Write a plain loop, which states each step explicitly.",
-        },
-        { selector: `${parser}[params.length<2]`, message: parserSignature },
-        {
-          selector: `${parser} > .params:first-child:not(Identifier[name="value"][typeAnnotation.typeAnnotation.type="TSUnknownKeyword"])`,
-          message: parserSignature,
-        },
-        {
-          selector: `${parser} > .params:nth-child(2):not(Identifier[name="source"][typeAnnotation.typeAnnotation.type="TSStringKeyword"])`,
-          message: parserSignature,
-        },
-        {
-          selector: `${parser}:not([returnType.typeAnnotation.typeName.name="Result"][returnType.typeAnnotation.typeArguments.params.1.type="TSStringKeyword"])`,
-          message: parserSignature,
-        },
-      ],
+      "no-restricted-syntax": ["error", ...restrictedSyntax],
       "no-warning-comments": "error",
       "prefer-const": "error",
     },
@@ -144,9 +148,14 @@ export default defineConfig(
     },
   },
   {
-    files: ["app/**/*.{ts,tsx}"],
-    // The root route and the route table compose the app from its features, so they are the only modules outside the features that may import them.
-    ignores: ["app/features/**", "app/root.tsx", "app/routes.ts"],
+    files: ["app/**/*.{ts,tsx}", "server/**/*.ts"],
+    // The root route, the route table, and the services of the server compose the app from its features, so they are the only modules outside the features that may import them.
+    ignores: [
+      "app/features/**",
+      "app/root.tsx",
+      "app/routes.ts",
+      "server/app.ts",
+    ],
     rules: {
       "no-restricted-imports": [
         "error",
@@ -154,10 +163,19 @@ export default defineConfig(
           patterns: [
             {
               group: ["**/features/**", "~/features/**"],
-              message:
-                "A module of app/ outside the features never imports from a feature, as the section Structure of AGENTS.md states. Only app/root.tsx and app/routes.ts compose the app from its features.",
+              message: featureImport,
             },
           ],
+        },
+      ],
+      // A dynamic import loads a module too, and no-restricted-imports does not look at it.
+      "no-restricted-syntax": [
+        "error",
+        ...restrictedSyntax,
+        {
+          selector:
+            "ImportExpression:matches([source.value=/(^|\\/)features\\//], [source.quasis.0.value.cooked=/(^|\\/)features\\//])",
+          message: featureImport,
         },
       ],
     },

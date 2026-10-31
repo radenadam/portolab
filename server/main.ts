@@ -32,7 +32,7 @@ const shutdownTimeoutMilliseconds = 10_000;
 
 // Every setting is read before the server stops on any of them, so the log names every wrong setting at once.
 const mode = parseCommandLine(process.argv.slice(2), "The command line");
-const port = parsePort(process.env["PORT"] ?? "3000", "PORT");
+const port = parsePort(process.env["PORT"], "PORT");
 const priceSource = parsePriceSource(
   process.env["PRICE_SOURCE"],
   "PRICE_SOURCE",

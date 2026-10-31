@@ -40,11 +40,14 @@ export function parseCommandLine(
   }
 }
 
-/** Reads the port that the server listens on. */
+/** Reads the port that the server listens on, which is 3000 unless the variable names another. */
 export function parsePort(
   value: unknown,
   source: string,
 ): Result<number, string> {
+  if (value === undefined) {
+    return succeed(3000);
+  }
   if (typeof value === "string" && /^\d+$/.test(value)) {
     const port = Number(value);
     if (port >= 1 && port <= 65_535) {
