@@ -1,24 +1,12 @@
 import { fail, succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
+import { isRecord, isStringArray } from "./json.ts";
 
-// These lists must equal the `required` lists in .github/review/, and a test compares them.
-export const lensFindingFields = [
-  "location",
-  "claim",
-  "basis",
-  "siblings",
-  "rootCause",
-] as const;
-export const verifiedFindingFields = [
-  "lens",
-  ...lensFindingFields,
-  "status",
-  "evidence",
-] as const;
+const verdictStatuses = ["confirmed", "refuted", "duplicate"] as const;
 
-const verifiedStatuses = ["confirmed", "refuted", "duplicate"] as const;
-
-interface Finding {
+interface ReportedFinding {
+  id: string;
+  lens: string;
   location: string;
   claim: string;
   basis: string;
@@ -26,15 +14,21 @@ interface Finding {
   rootCause: string;
 }
 
-export interface LensReport {
-  lens: string;
-  findings: Finding[];
-  candidateStandards: { standard: string; incident: string }[];
+interface CandidateStandard {
+  standard: string;
+  incident: string;
 }
 
-export interface VerifiedFinding extends Finding {
+export interface LensReport {
   lens: string;
-  status: (typeof verifiedStatuses)[number];
+  findings: ReportedFinding[];
+  candidateStandards: CandidateStandard[];
+}
+
+export interface VerifiedFinding extends ReportedFinding {
+  status: (typeof verdictStatuses)[number];
+  /** The id of the confirmed finding that a duplicate repeats, or an empty string. */
+  duplicateOf: string;
   evidence: string;
 }
 
@@ -54,8 +48,11 @@ export interface ReviewOutcome {
   body: string;
 }
 
+const passedVerdict = "No verified finding remains.";
+
 export function summarizeReview(input: ReviewInput): ReviewOutcome {
-  const confirmed = (input.verifiedFindings ?? []).filter(
+  const verifiedFindings = input.verifiedFindings ?? [];
+  const confirmed = verifiedFindings.filter(
     (finding) => finding.status === "confirmed",
   );
   const verdict = verdictSentence(input, confirmed.length);
@@ -68,13 +65,11 @@ export function summarizeReview(input: ReviewInput): ReviewOutcome {
     "",
     `Lenses that ran: ${lenses === "" ? "none" : lenses}.`,
     ...confirmedSection(confirmed),
-    ...dismissedSection(input.verifiedFindings ?? []),
+    ...dismissedSection(verifiedFindings),
     ...candidateSection(input.reports),
   ].join("\n");
   return { passed, verdict, body };
 }
-
-const passedVerdict = "No verified finding remains.";
 
 function verdictSentence(input: ReviewInput, confirmedCount: number): string {
   const unfinishedJobs = Object.entries(input.jobResults)
@@ -87,15 +82,49 @@ function verdictSentence(input: ReviewInput, confirmedCount: number): string {
   if (inputProblem !== undefined) {
     return inputProblem;
   }
-  const reportedCount = countFindings(input.reports);
-  const verifiedCount = input.verifiedFindings?.length ?? 0;
-  if (verifiedCount !== reportedCount) {
-    return `The lenses reported ${countOf(reportedCount, "finding", "findings")}, but the verifier returned ${String(verifiedCount)}, so some findings were never verified.`;
+  const coverage = coverageProblem(input.reports, input.verifiedFindings ?? []);
+  if (coverage !== undefined) {
+    return coverage;
   }
   if (confirmedCount > 0) {
     return `${countOf(confirmedCount, "verified finding remains", "verified findings remain")}.`;
   }
   return passedVerdict;
+}
+
+/** Returns a sentence when the verifier did not give exactly one verdict for each reported finding, or when a duplicate points at no confirmed finding. */
+function coverageProblem(
+  reports: LensReport[],
+  verifiedFindings: VerifiedFinding[],
+): string | undefined {
+  const reportedIds = new Set<string>();
+  for (const report of reports) {
+    for (const finding of report.findings) {
+      reportedIds.add(finding.id);
+    }
+  }
+  const verdictIds = verifiedFindings.map((finding) => finding.id);
+  const missing = [...reportedIds].filter((id) => !verdictIds.includes(id));
+  const unknown = verdictIds.filter((id) => !reportedIds.has(id));
+  const repeated = verdictIds.filter(
+    (id, index) => verdictIds.indexOf(id) !== index,
+  );
+  if (missing.length > 0 || unknown.length > 0 || repeated.length > 0) {
+    return `The verifier must give exactly one verdict for each reported finding, so its answer cannot be trusted. Missing: ${listOrNone(missing)}. Unknown: ${listOrNone(unknown)}. Repeated: ${listOrNone(repeated)}.`;
+  }
+  const confirmedIds = new Set(
+    verifiedFindings
+      .filter((finding) => finding.status === "confirmed")
+      .map((finding) => finding.id),
+  );
+  const orphans = verifiedFindings.filter(
+    (finding) =>
+      finding.status === "duplicate" && !confirmedIds.has(finding.duplicateOf),
+  );
+  if (orphans.length > 0) {
+    return `A duplicate must repeat a confirmed finding, but ${orphans.map((finding) => finding.id).join(", ")} does not.`;
+  }
+  return undefined;
 }
 
 function confirmedSection(confirmed: VerifiedFinding[]): string[] {
@@ -153,88 +182,12 @@ function candidateSection(reports: LensReport[]): string[] {
   return lines.length > 0 ? ["", "### Candidate standards", "", ...lines] : [];
 }
 
-function countFindings(reports: LensReport[]): number {
-  let count = 0;
-  for (const report of reports) {
-    count += report.findings.length;
-  }
-  return count;
-}
-
 function countOf(count: number, singular: string, plural: string): string {
   return `${String(count)} ${count === 1 ? singular : plural}`;
 }
 
-export function parseLensReport(value: unknown): Result<LensReport, string> {
-  if (
-    !isRecord(value) ||
-    typeof value["lens"] !== "string" ||
-    !Array.isArray(value["findings"]) ||
-    !Array.isArray(value["candidateStandards"])
-  ) {
-    return fail(
-      "A lens report lacks its lens, findings, or candidate standards.",
-    );
-  }
-  const findings: Finding[] = [];
-  for (const finding of value["findings"]) {
-    if (!isFinding(finding)) {
-      return fail(
-        `The ${value["lens"]} lens returned a finding with missing fields.`,
-      );
-    }
-    findings.push(finding);
-  }
-  const candidateStandards: LensReport["candidateStandards"] = [];
-  for (const candidate of value["candidateStandards"]) {
-    if (
-      !isRecord(candidate) ||
-      typeof candidate["standard"] !== "string" ||
-      typeof candidate["incident"] !== "string"
-    ) {
-      return fail(
-        `The ${value["lens"]} lens returned a malformed candidate standard.`,
-      );
-    }
-    candidateStandards.push({
-      standard: candidate["standard"],
-      incident: candidate["incident"],
-    });
-  }
-  return succeed({ lens: value["lens"], findings, candidateStandards });
-}
-
-export function parseVerifiedFindings(
-  value: unknown,
-): Result<VerifiedFinding[], string> {
-  if (!isRecord(value) || !Array.isArray(value["findings"])) {
-    return fail("The verifier's output lacks its list of findings.");
-  }
-  const verifiedFindings: VerifiedFinding[] = [];
-  for (const finding of value["findings"]) {
-    const status = verifiedStatuses.find(
-      (candidate) => isRecord(finding) && candidate === finding["status"],
-    );
-    if (
-      !isFinding(finding) ||
-      typeof finding["lens"] !== "string" ||
-      typeof finding["evidence"] !== "string" ||
-      status === undefined
-    ) {
-      return fail("The verifier returned a finding with missing fields.");
-    }
-    verifiedFindings.push({
-      lens: finding["lens"],
-      location: finding.location,
-      claim: finding.claim,
-      basis: finding.basis,
-      siblings: finding.siblings,
-      rootCause: finding.rootCause,
-      status,
-      evidence: finding["evidence"],
-    });
-  }
-  return succeed(verifiedFindings);
+function listOrNone(ids: string[]): string {
+  return ids.length > 0 ? ids.join(", ") : "none";
 }
 
 /** Reads the result of each job from the JSON of the workflow's needs context. */
@@ -252,18 +205,89 @@ export function parseJobResults(
   return succeed(results);
 }
 
-function isFinding(value: unknown): value is Finding & Record<string, unknown> {
-  return (
-    isRecord(value) &&
-    typeof value["location"] === "string" &&
-    typeof value["claim"] === "string" &&
-    typeof value["basis"] === "string" &&
-    typeof value["rootCause"] === "string" &&
-    Array.isArray(value["siblings"]) &&
-    value["siblings"].every((sibling) => typeof sibling === "string")
-  );
+export function parseLensReport(value: unknown): Result<LensReport, string> {
+  if (
+    !isRecord(value) ||
+    typeof value["lens"] !== "string" ||
+    !Array.isArray(value["findings"]) ||
+    !Array.isArray(value["candidateStandards"])
+  ) {
+    return fail(
+      "A lens report lacks its lens, findings, or candidate standards.",
+    );
+  }
+  const lens = value["lens"];
+  const findings: ReportedFinding[] = [];
+  for (const item of value["findings"]) {
+    const finding = readReportedFinding(item);
+    if (finding === undefined) {
+      return fail(`The ${lens} lens returned a finding with missing fields.`);
+    }
+    findings.push(finding);
+  }
+  const candidateStandards: CandidateStandard[] = [];
+  for (const item of value["candidateStandards"]) {
+    if (
+      !isRecord(item) ||
+      typeof item["standard"] !== "string" ||
+      typeof item["incident"] !== "string"
+    ) {
+      return fail(`The ${lens} lens returned a malformed candidate standard.`);
+    }
+    candidateStandards.push({
+      standard: item["standard"],
+      incident: item["incident"],
+    });
+  }
+  return succeed({ lens, findings, candidateStandards });
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+export function parseVerifiedFindings(
+  value: unknown,
+): Result<VerifiedFinding[], string> {
+  if (!isRecord(value) || !Array.isArray(value["findings"])) {
+    return fail("The verifier's output lacks its list of findings.");
+  }
+  const verifiedFindings: VerifiedFinding[] = [];
+  for (const item of value["findings"]) {
+    const finding = readReportedFinding(item);
+    const status = verdictStatuses.find(
+      (candidate) => isRecord(item) && candidate === item["status"],
+    );
+    if (
+      finding === undefined ||
+      !isRecord(item) ||
+      status === undefined ||
+      typeof item["duplicateOf"] !== "string" ||
+      typeof item["evidence"] !== "string"
+    ) {
+      return fail("The verifier returned a finding with missing fields.");
+    }
+    verifiedFindings.push({
+      ...finding,
+      status,
+      duplicateOf: item["duplicateOf"],
+      evidence: item["evidence"],
+    });
+  }
+  return succeed(verifiedFindings);
+}
+
+function readReportedFinding(value: unknown): ReportedFinding | undefined {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+  const { id, lens, location, claim, basis, siblings, rootCause } = value;
+  if (
+    typeof id !== "string" ||
+    typeof lens !== "string" ||
+    typeof location !== "string" ||
+    typeof claim !== "string" ||
+    typeof basis !== "string" ||
+    !isStringArray(siblings) ||
+    typeof rootCause !== "string"
+  ) {
+    return undefined;
+  }
+  return { id, lens, location, claim, basis, siblings, rootCause };
 }

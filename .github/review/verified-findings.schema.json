@@ -6,19 +6,43 @@
       "items": {
         "type": "object",
         "properties": {
-          "lens": { "type": "string" },
-          "location": { "type": "string" },
-          "claim": { "type": "string" },
-          "basis": { "type": "string" },
-          "siblings": { "type": "array", "items": { "type": "string" } },
-          "rootCause": { "type": "string" },
+          "id": {
+            "type": "string"
+          },
+          "lens": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          },
+          "claim": {
+            "type": "string"
+          },
+          "basis": {
+            "type": "string"
+          },
+          "siblings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "rootCause": {
+            "type": "string"
+          },
           "status": {
             "type": "string",
             "enum": ["confirmed", "refuted", "duplicate"]
           },
-          "evidence": { "type": "string" }
+          "evidence": {
+            "type": "string"
+          },
+          "duplicateOf": {
+            "type": "string"
+          }
         },
         "required": [
+          "id",
           "lens",
           "location",
           "claim",
@@ -26,6 +50,7 @@
           "siblings",
           "rootCause",
           "status",
+          "duplicateOf",
           "evidence"
         ]
       }

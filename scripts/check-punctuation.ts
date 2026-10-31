@@ -1,6 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { matchesGlob } from "node:path";
+import { isRecord, readJsonFile } from "./json.ts";
 
 // Prose connects ideas with words, so these characters never join clauses. AGENTS.md states the rule.
 const forbidden = [
@@ -28,11 +29,12 @@ for (const file of proseFiles) {
   checkLines(file, withoutCode(readFileSync(file, "utf8")));
 }
 for (const file of messageFiles) {
-  const messages = JSON.parse(readFileSync(file, "utf8")) as Record<
-    string,
-    unknown
-  >;
-  for (const [key, text] of Object.entries(messages)) {
+  const messages = readJsonFile(file);
+  if (!messages.ok || !isRecord(messages.value)) {
+    problems.push(`${file}: the file must be a JSON object of messages.`);
+    continue;
+  }
+  for (const [key, text] of Object.entries(messages.value)) {
     if (typeof text === "string") {
       checkText(`${file} (${key})`, text);
     }

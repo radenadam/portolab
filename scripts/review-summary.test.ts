@@ -1,38 +1,53 @@
-import { readFileSync } from "node:fs";
 import { expect, test } from "vitest";
+import { isRecord, isStringArray, readJsonFile } from "./json.ts";
 import {
-  lensFindingFields,
   parseJobResults,
   parseLensReport,
   parseVerifiedFindings,
   summarizeReview,
-  verifiedFindingFields,
 } from "./review-summary.ts";
 import type { LensReport, VerifiedFinding } from "./review-summary.ts";
 
 const finishedJobs = { route: "success", lens: "success", verify: "success" };
-const finding = {
-  location: "app/root.tsx:12",
-  claim: "The claim.",
-  basis: "The basis.",
-  siblings: [],
-  rootCause: "",
-};
-const reportWithOneFinding: LensReport = {
-  lens: "craft",
-  findings: [finding],
-  candidateStandards: [],
-};
 
-function verified(status: VerifiedFinding["status"]): VerifiedFinding {
-  return { ...finding, lens: "craft", status, evidence: "The evidence." };
+function reportedFinding(id: string): LensReport["findings"][number] {
+  return {
+    id,
+    lens: "craft",
+    location: "app/root.tsx:12",
+    claim: "The claim.",
+    basis: "The basis.",
+    siblings: [],
+    rootCause: "",
+  };
+}
+
+function verdict(
+  id: string,
+  status: VerifiedFinding["status"],
+  duplicateOf = "",
+): VerifiedFinding {
+  return {
+    ...reportedFinding(id),
+    status,
+    duplicateOf,
+    evidence: "The evidence.",
+  };
+}
+
+function report(...ids: string[]): LensReport {
+  return {
+    lens: "craft",
+    findings: ids.map(reportedFinding),
+    candidateStandards: [],
+  };
 }
 
 test("passes when every job finished and nothing was confirmed", () => {
   const outcome = summarizeReview({
     jobResults: finishedJobs,
-    reports: [reportWithOneFinding],
-    verifiedFindings: [verified("refuted")],
+    reports: [report("craft-1")],
+    verifiedFindings: [verdict("craft-1", "refuted")],
     inputProblems: [],
   });
   expect(outcome.passed).toBe(true);
@@ -54,23 +69,59 @@ test("fails when a job of the panel did not finish", () => {
 test("fails with singular wording when one finding is confirmed", () => {
   const outcome = summarizeReview({
     jobResults: finishedJobs,
-    reports: [reportWithOneFinding],
-    verifiedFindings: [verified("confirmed")],
+    reports: [report("craft-1")],
+    verifiedFindings: [verdict("craft-1", "confirmed")],
     inputProblems: [],
   });
   expect(outcome.passed).toBe(false);
   expect(outcome.verdict).toBe("1 verified finding remains.");
 });
 
-test("fails when the verifier leaves a finding out", () => {
+test("fails when the verifier leaves a finding out and repeats another", () => {
   const outcome = summarizeReview({
     jobResults: finishedJobs,
-    reports: [reportWithOneFinding],
-    verifiedFindings: [],
+    reports: [report("craft-1", "craft-2")],
+    verifiedFindings: [
+      verdict("craft-1", "refuted"),
+      verdict("craft-1", "refuted"),
+    ],
     inputProblems: [],
   });
   expect(outcome.passed).toBe(false);
-  expect(outcome.verdict).toContain("some findings were never verified");
+  expect(outcome.verdict).toContain("Missing: craft-2.");
+  expect(outcome.verdict).toContain("Repeated: craft-1.");
+});
+
+test("fails when every finding is marked as a duplicate of another", () => {
+  const outcome = summarizeReview({
+    jobResults: finishedJobs,
+    reports: [report("craft-1", "craft-2")],
+    verifiedFindings: [
+      verdict("craft-1", "duplicate", "craft-2"),
+      verdict("craft-2", "duplicate", "craft-1"),
+    ],
+    inputProblems: [],
+  });
+  expect(outcome.passed).toBe(false);
+  expect(outcome.verdict).toContain(
+    "A duplicate must repeat a confirmed finding",
+  );
+});
+
+test("counts a duplicate of a confirmed finding once", () => {
+  const outcome = summarizeReview({
+    jobResults: finishedJobs,
+    reports: [report("craft-1", "craft-2")],
+    verifiedFindings: [
+      verdict("craft-1", "confirmed"),
+      verdict("craft-2", "duplicate", "craft-1"),
+    ],
+    inputProblems: [],
+  });
+  expect(outcome.verdict).toBe("1 verified finding remains.");
+  expect(outcome.body).toContain(
+    "The verifier merged 1 duplicate finding into the findings above.",
+  );
 });
 
 test("fails when an input could not be read", () => {
@@ -78,26 +129,10 @@ test("fails when an input could not be read", () => {
     jobResults: finishedJobs,
     reports: [],
     verifiedFindings: [],
-    inputProblems: ["The craft lens report is not valid JSON."],
+    inputProblems: ["findings-craft.json is not valid JSON."],
   });
   expect(outcome.passed).toBe(false);
-  expect(outcome.verdict).toBe("The craft lens report is not valid JSON.");
-});
-
-test("rejects a lens report with a finding that lacks fields", () => {
-  const result = parseLensReport({
-    lens: "craft",
-    findings: [{ location: "app/root.tsx:12" }],
-    candidateStandards: [],
-  });
-  expect(result.ok).toBe(false);
-});
-
-test("rejects a verified finding with an unknown status", () => {
-  const result = parseVerifiedFindings({
-    findings: [{ ...verified("confirmed"), status: "probably" }],
-  });
-  expect(result.ok).toBe(false);
+  expect(outcome.verdict).toBe("findings-craft.json is not valid JSON.");
 });
 
 test("reads job results and refuses an empty needs context", () => {
@@ -110,17 +145,57 @@ test("reads job results and refuses an empty needs context", () => {
   expect(parseJobResults({}).ok).toBe(false);
 });
 
-test("parses exactly the fields that the schemas require", () => {
-  const lensSchema = JSON.parse(
-    readFileSync(".github/review/lens-report.schema.json", "utf8"),
-  ) as { properties: { findings: { items: { required: string[] } } } };
-  const verifiedSchema = JSON.parse(
-    readFileSync(".github/review/verified-findings.schema.json", "utf8"),
-  ) as { properties: { findings: { items: { required: string[] } } } };
-  expect(lensSchema.properties.findings.items.required).toEqual([
-    ...lensFindingFields,
-  ]);
-  expect(verifiedSchema.properties.findings.items.required).toEqual([
-    ...verifiedFindingFields,
-  ]);
+test("the lens report parser rejects a finding without any field that its schema requires", () => {
+  const complete = { ...reportedFinding("craft-1") };
+  const wrap = (finding: object): unknown => ({
+    lens: "craft",
+    findings: [finding],
+    candidateStandards: [],
+  });
+  expect(parseLensReport(wrap(complete)).ok).toBe(true);
+  for (const field of requiredFindingFields(
+    ".github/review/lens-report.schema.json",
+  )) {
+    const incomplete = Object.fromEntries(
+      Object.entries(complete).filter(([key]) => key !== field),
+    );
+    expect(parseLensReport(wrap(incomplete)).ok, field).toBe(false);
+  }
 });
+
+test("the verifier parser rejects a finding without any field that its schema requires", () => {
+  const complete = { ...verdict("craft-1", "confirmed") };
+  expect(parseVerifiedFindings({ findings: [complete] }).ok).toBe(true);
+  for (const field of requiredFindingFields(
+    ".github/review/verified-findings.schema.json",
+  )) {
+    const incomplete = Object.fromEntries(
+      Object.entries(complete).filter(([key]) => key !== field),
+    );
+    expect(parseVerifiedFindings({ findings: [incomplete] }).ok, field).toBe(
+      false,
+    );
+  }
+});
+
+test("the verifier parser rejects an unknown status", () => {
+  const result = parseVerifiedFindings({
+    findings: [{ ...verdict("craft-1", "confirmed"), status: "probably" }],
+  });
+  expect(result.ok).toBe(false);
+});
+
+/** Reads the fields that a schema in .github/review requires of each finding. */
+function requiredFindingFields(schemaPath: string): string[] {
+  const schema = readJsonFile(schemaPath);
+  const findings =
+    schema.ok && isRecord(schema.value) && isRecord(schema.value["properties"])
+      ? schema.value["properties"]["findings"]
+      : undefined;
+  const items = isRecord(findings) ? findings["items"] : undefined;
+  const required = isRecord(items) ? items["required"] : undefined;
+  if (!isStringArray(required) || required.length === 0) {
+    throw new Error(`${schemaPath} does not list the fields of a finding.`);
+  }
+  return required;
+}

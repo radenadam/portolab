@@ -1,4 +1,5 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { readdirSync } from "node:fs";
+import { isRecord, readJsonFile } from "./json.ts";
 
 // Paraglide falls back to the base language when a message is missing, so a gap would never surface as an error.
 const languages = ["id", "en"];
@@ -32,8 +33,11 @@ if (problems.length > 0) {
 }
 
 function messageKeys(language: string): string[] {
-  const messages = JSON.parse(
-    readFileSync(`messages/${language}.json`, "utf8"),
-  ) as Record<string, unknown>;
-  return Object.keys(messages).filter((key) => key !== "$schema");
+  const path = `messages/${language}.json`;
+  const messages = readJsonFile(path);
+  if (!messages.ok || !isRecord(messages.value)) {
+    process.stderr.write(`${path} must be a JSON object of messages.\n`);
+    process.exit(1);
+  }
+  return Object.keys(messages.value).filter((key) => key !== "$schema");
 }

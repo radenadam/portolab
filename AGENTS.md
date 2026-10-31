@@ -21,7 +21,7 @@ The reviewers are in `.claude/agents/`. Each `review-*` file is one lens, and it
 
 While working, call any lens whenever its view would help: on a plan before writing code, partway through a change, or before opening the pull request. Locally the choice is yours, and the gate is CI.
 
-On every push to a pull request, the review workflow in CI runs the panel. A fresh agent, the router, picks the lenses: every lens whose description covers what the change touches, and every lens it is unsure about. `review-standards` and `review-consistency` always run. Each lens then runs as its own job with a fresh agent, the verifier checks every finding, and the `review` job posts one review on the pull request. The `review` job fails while any verified finding remains, and it also fails when any part of the panel did not finish, because an unfinished lens has reviewed nothing.
+On every push to a pull request, the review workflow in CI runs the panel. A fresh agent, the router, picks the lenses: every lens whose description covers what the change touches, and every lens it is unsure about. `review-standards` and `review-consistency` always run. Each lens then runs as its own job with a fresh agent, the verifier checks every finding, and the `review` job posts one review on the pull request. The `review` job fails while any verified finding remains. It also fails when any part of the panel did not finish, because an unfinished lens has reviewed nothing, and when the verifier did not give exactly one verdict for each reported finding.
 
 A finding counts only when it names a standard in this repository or demonstrates a concrete defect, because preference without a standard behind it creates churn instead of quality. Every verified finding is fixed before merge, and there is no lower tier to defer. A lens that believes a standard is missing reports a candidate standard. Adopt it when it would have prevented a real defect, and take candidates that turn on taste to a maintainer. When a defect reaches `main` past the gate, the router or a lens missed it, so trace which one and fix it. An agent without subagents runs each lens file as a separate pass.
 
@@ -31,7 +31,7 @@ A defect is evidence about the process that produced it, wherever it surfaces: i
 
 1. **Trace.** Find what let it through: a standard that was never written or is too vague, a missing check, a lens that was not looking, or a wrong pattern.
 2. **Fix the process.** Write or sharpen the standard, add the check, or sharpen the lens.
-3. **Redo everything the flawed process produced**, not only the instance found. The root cause sets how far that reaches.
+3. **Redo everything the flawed process produced**, not only the instance found. The root cause sets how far that reaches. A new or sharpened standard reaches every existing file that it now covers, in the same change.
 4. **Record.** The commit message states the root cause and the scope. Write a decision record only when a real alternative was weighed and the choice has lasting consequences.
 
 Fixing only the instance leaves in place the process that produced it.
@@ -80,7 +80,8 @@ These apply to all prose: docs, comments, commit messages, pull requests, issues
 ### Structure
 
 - Code is organized by feature in `app/features/<feature>/`. A feature folder holds that feature's routes, components, logic, styles, and tests.
-- A concept used by several features lives in the feature that owns it. Folders named `utils`, `helpers`, `common`, `shared`, or `lib` are not allowed, because their names say nothing about what they hold.
+- A concept used by several features lives in the feature that owns it. A concept that no feature owns, such as the `Result` type, units of measure, formatting, or logging, lives directly in `app/`, in a file or folder named after the concept. Folders named `utils`, `helpers`, `common`, `shared`, or `lib` are not allowed, because their names say nothing about what they hold.
+- A script in `scripts/` imports from `app/` only a module that imports nothing itself, because scripts run in plain Node without the app's build.
 - File names are kebab-case and named after their main export. Tests sit beside their code as `<name>.test.ts`, and browser tests live in `e2e/`.
 - All market data passes through the price source interface, as decision 0001 explains.
 - IDX rules, such as tick sizes and auto rejection limits, are data with the dates they apply, as decision 0002 explains.
@@ -88,6 +89,7 @@ These apply to all prose: docs, comments, commit messages, pull requests, issues
 ### Tests
 
 - Tests exercise behavior through exported functions, not internals.
+- A test that keeps two definitions in agreement, such as a schema and its parser, exercises the code that uses them, not a copy of their data.
 - Every calculation of money or of a measure is tested against expected values computed independently, for example in a spreadsheet, and the test names that source.
 - Every user flow has a browser test that runs on the phone and desktop projects and checks accessibility with axe.
 
