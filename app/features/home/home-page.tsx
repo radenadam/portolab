@@ -12,7 +12,9 @@ export default function HomePage(): ReactNode {
   return (
     <>
       <LanguageSwitch />
+      {/* Show the heading. */}
       <h1>{m.app_name()}</h1>
+      <p>Welcome to the portfolio lab.</p>
       <p>{m.home_tagline_body()}</p>
       <p className={styles["notice"]}>{m.app_simulation_notice()}</p>
     </>
