@@ -90,7 +90,7 @@ test("creates no lecturer for a username that is taken, and points to the reset"
     await runAccountCommand(database, command(["create-lecturer", "dosen"])),
   ).toEqual({
     ok: false,
-    failure: `The username "dosen" is taken, so Portolab created no account. Choose another username, or give that account a new password with the action reset-password.`,
+    failure: `The username "dosen" is taken, so Portolab created no account. Choose another username, or give that account a new password with the action "reset-password".`,
   });
 });
 
@@ -126,6 +126,6 @@ test("resets nothing for a username without an account, and points to the creati
     await runAccountCommand(database, command(["reset-password", "nobody"])),
   ).toEqual({
     ok: false,
-    failure: `Portolab has no account with the username "nobody". Check the username, or create a lecturer with the action create-lecturer.`,
+    failure: `Portolab has no account with the username "nobody". Check the username, or create a lecturer with the action "create-lecturer".`,
   });
 });
