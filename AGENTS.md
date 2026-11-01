@@ -11,7 +11,7 @@ Every change, however small:
 1. Branch from an up-to-date `main` as `<type>/<summary-in-kebab-case>`. One coherent change goes on each branch. An improvement noticed along the way gets its own branch or a GitHub issue.
 2. Make the change complete: code, tests, and every doc, example, and standard that it affects. Nothing is left for a follow-up.
 3. Run `pnpm check`. It passes before every commit.
-4. Commit using Conventional Commits, push, and open a pull request titled with the final commit message. Its description explains why the change is needed, because it becomes the body of the squashed commit, so update it whenever a push changes what the pull request does. Enable auto-merge with `gh pr merge --auto --squash`. The pull request merges when CI's check job and review job both pass. When the review job fails, fix each verified finding through the defect protocol and push again.
+4. Commit using Conventional Commits, push, and open a pull request titled with the final commit message. Its description explains why the change is needed, because it becomes the body of the squashed commit, so update it whenever a push changes what the pull request does. Before each push, compare it with `git diff origin/main...HEAD`, so that it names every change to a standard, a message, or a check, each in short sentences. Enable auto-merge with `gh pr merge --auto --squash`. The pull request merges when CI's check job and review job both pass. When the review job fails, fix each verified finding through the defect protocol and push again.
 
 Work that is noticed but not done becomes a GitHub issue: a flaw that is parked, an open question, or an idea. Nothing about the state of the project lives only in a conversation or in a comment in the code.
 
