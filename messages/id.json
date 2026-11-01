@@ -90,5 +90,6 @@
   "accounts_privacy_rights_title": "Hak Anda",
   "accounts_privacy_rights_body": "Undang-Undang Nomor 27 Tahun 2022 tentang Pelindungan Data Pribadi memberi Anda hak untuk melihat, memperbaiki, dan menghapus data Anda, serta menarik persetujuan Anda. Portolab menyimpan data Anda sampai orang yang menjalankan server ini menghapusnya, jadi mintalah hal-hal tersebut kepada mereka.",
   "accounts_sign_out_title": "Keluar",
-  "accounts_sign_out_body": "Keluar dari Portolab di perangkat ini."
+  "accounts_sign_out_body": "Keluar dari Portolab di perangkat ini.",
+  "accounts_privacy_attempts_body": "Nama pengguna yang diketik seseorang dengan kata sandi salah, hanya di memori, selama {minutes} menit setelah setiap kata sandi salah untuknya, untuk mencegah siapa pun menebak kata sandi sebuah akun."
 }

@@ -17,7 +17,7 @@ export interface AttemptLimiter {
   keyCount: () => number;
 }
 
-// The attempts stay in memory only. An address is personal data that Portolab has no reason to store, and a restart that forgets them gives an attacker only what one window allows.
+// The attempts stay in memory only. A username or an address is personal data that Portolab has no reason to store, and a restart that forgets them gives an attacker only what one window allows.
 export function createAttemptLimiter(limit: AttemptLimit): AttemptLimiter {
   const windowMilliseconds = limit.windowMinutes * 60_000;
   const attemptsByKey = new Map<string, Date[]>();

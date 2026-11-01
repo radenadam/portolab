@@ -4,8 +4,9 @@ import { clientAddressContext } from "~/client-address-context.server";
 import { databaseContext } from "~/database/database.server";
 import { FormFailure, SubmitButton, TextField } from "~/form";
 import formStyles from "~/form.module.css";
-import { parseFilledText } from "~/form-text";
+import { parseFilledText, typedText } from "~/form-text";
 import { pageTitle } from "~/page-title";
+import { failureOf } from "~/result";
 import { m } from "~/paraglide/messages.js";
 import { returnDestination } from "~/return-destination.server";
 import type { Route } from "./+types/sign-in-page";
@@ -47,9 +48,9 @@ export async function action({ context, request }: Route.ActionArgs) {
   if (!username.ok || !password.ok) {
     return data(
       {
-        username: username.ok ? username.value : "",
-        usernameFailure: username.ok ? undefined : username.failure,
-        passwordFailure: password.ok ? undefined : password.failure,
+        username: typedText(form.get("username")),
+        usernameFailure: failureOf(username),
+        passwordFailure: failureOf(password),
         failure: undefined,
       },
       { status: 400 },

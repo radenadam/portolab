@@ -1,13 +1,21 @@
 import { fail, succeed } from "../../result.ts";
 import type { Result } from "../../result.ts";
+import { listOfWords } from "../../sentences.ts";
 import { describeValue } from "../../value-shapes.ts";
 
 /** The name that a person signs in with, in lowercase. */
 export type Username = string & { readonly brand: "Username" };
 
-// The failure text of parseUsername states these limits and characters, so a change here changes it too.
 const usernameLength = { minimum: 3, maximum: 32 } as const;
-const usernamePattern = /^[a-z0-9._-]+$/;
+
+/** The characters of a username: two ranges of letters and digits, and the symbols that join its words. Each text that states the rule builds it from these. */
+const usernameCharacters = {
+  ranges: [
+    ["a", "z"],
+    ["0", "9"],
+  ],
+  symbols: [".", "-", "_"],
+} as const;
 
 /** Puts what a person typed as a username into the form that Portolab stores. A username ignores case and the spaces around it, because a phone keyboard often capitalizes the first letter. */
 export function normalizeUsername(text: string): string {
@@ -16,11 +24,18 @@ export function normalizeUsername(text: string): string {
 
 /** Whether a normalized text is a username that Portolab accepts. */
 export function isUsername(text: string): text is Username {
-  return (
-    text.length >= usernameLength.minimum &&
-    text.length <= usernameLength.maximum &&
-    usernamePattern.test(text)
-  );
+  if (
+    text.length < usernameLength.minimum ||
+    text.length > usernameLength.maximum
+  ) {
+    return false;
+  }
+  for (const character of text) {
+    if (!isUsernameCharacter(character)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 /** Reads a username from a command line, where the failure is for the person who runs the server. */
@@ -34,7 +49,20 @@ export function parseUsername(
       return succeed(normalized);
     }
   }
+  const characters = listOfWords([
+    ...usernameCharacters.ranges.map(([first, last]) => `${first} to ${last}`),
+    ...usernameCharacters.symbols.map((symbol) => `"${symbol}"`),
+  ]);
   return fail(
-    `${source} must be ${String(usernameLength.minimum)} to ${String(usernameLength.maximum)} characters from a to z, 0 to 9, ".", "-", and "_", but it is ${describeValue(value)}.`,
+    `${source} must be ${String(usernameLength.minimum)} to ${String(usernameLength.maximum)} characters from ${characters}, but it is ${describeValue(value)}.`,
   );
+}
+
+function isUsernameCharacter(character: string): boolean {
+  for (const [first, last] of usernameCharacters.ranges) {
+    if (character >= first && character <= last) {
+      return true;
+    }
+  }
+  return usernameCharacters.symbols.some((symbol) => symbol === character);
 }

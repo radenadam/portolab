@@ -90,5 +90,6 @@
   "accounts_privacy_rights_title": "Your rights",
   "accounts_privacy_rights_body": "Indonesia's Law Number 27 of 2022 on Personal Data Protection gives you the right to see, correct, and delete your data, and to withdraw your agreement. Portolab keeps your data until the person who runs this server deletes it, so ask them for any of these.",
   "accounts_sign_out_title": "Sign out",
-  "accounts_sign_out_body": "Sign out of Portolab on this device."
+  "accounts_sign_out_body": "Sign out of Portolab on this device.",
+  "accounts_privacy_attempts_body": "A username that someone typed with a wrong password, in memory only, for {minutes} minutes after each wrong password for it, to stop anyone from guessing the password of an account."
 }
