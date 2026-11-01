@@ -20,7 +20,7 @@ export const indexQuotes = sqliteTable("index_quotes", {
   fetchedAt: integer("fetched_at", { mode: "timestamp_ms" }).notNull(),
 });
 
-// Only the latest attempt matters, so the table holds one row, whose id is always 1.
+// Only the latest attempt matters, so the table holds one row.
 /** The latest attempt to update prices, so the prices page can say when the source failed. */
 export const priceUpdates = sqliteTable("price_updates", {
   id: integer("id").primaryKey(),

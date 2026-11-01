@@ -1,7 +1,7 @@
 import { isPriceUpdateTime } from "./idx-calendar";
 import type { UpdateAttempt } from "./quote-store.server";
 
-// Decision 0001 asks the job to back off when Yahoo fails, and half an hour still updates the prices several times in a session.
+// Decision 0001 asks the job to back off when Yahoo fails, and this longest wait still updates the prices several times in a session.
 const longestDelayMinutes = 30;
 
 const minuteMilliseconds = 60_000;
@@ -39,7 +39,7 @@ export function nextScheduledAttempt(
   return new Date(minute);
 }
 
-// The minutes to wait after this many failures in a row: 1, 2, 4, 8, 16, and then 30.
+// Doubling the wait after each failure gives a source that fails room to recover, without many requests while it does.
 function retryDelayMinutes(consecutiveFailures: number): number {
   return Math.min(2 ** (consecutiveFailures - 1), longestDelayMinutes);
 }

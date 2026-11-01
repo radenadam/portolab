@@ -14,7 +14,7 @@ interface TradingCalendar {
   sessionEndMinute: number;
 }
 
-// IDX rules are data with the dates they apply, as decision 0002 asks. Sources: the IDX holiday calendars Peng-00171/BEI.POP/09-2025 for 2026 and Peng-00169/BEI.POP/09-2026 for 2027, as reported by Metro TV and CNBC Indonesia. Prices change from the pre-opening session at 08:45 WIB to the end of post-closing at 16:15 WIB.
+// IDX rules are data with the dates they apply, as decision 0002 asks. Sources: the IDX holiday calendars Peng-00171/BEI.POP/09-2025 for 2026 and Peng-00169/BEI.POP/09-2026 for 2027, as reported by Metro TV and CNBC Indonesia.
 const tradingCalendars: readonly TradingCalendar[] = [
   {
     from: "2026-01-01",
