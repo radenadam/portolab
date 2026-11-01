@@ -29,7 +29,7 @@
   white-space: nowrap;
 }
 
-/* The time cell may wrap the date of a price from another day, so the table fits a screen 360 pixels wide with any font, while the time of day stays on one line. */
+/* The time cell may wrap the date of a price from another day, so the table fits the narrowest screen that AGENTS.md names with any font, while the time of day stays on one line. */
 .date {
   display: block;
 }
