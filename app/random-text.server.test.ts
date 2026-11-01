@@ -1,5 +1,9 @@
 import { expect, test } from "vitest";
-import { isReadableText, randomReadableText } from "./random-text.server";
+import {
+  isReadableText,
+  lookalikeCharacters,
+  randomReadableText,
+} from "./random-text.server";
 
 test("makes text of the asked length from lowercase letters and digits without l, o, 0, and 1", () => {
   const seen = new Set<string>();
@@ -12,6 +16,10 @@ test("makes text of the asked length from lowercase letters and digits without l
   }
   // 200 samples of 24 characters draw each of the 32 characters with near certainty, so a character that never appears means the alphabet lost it.
   expect(seen.size).toBe(32);
+});
+
+test("names the letters and digits that it leaves out", () => {
+  expect(lookalikeCharacters()).toEqual(["l", "o", "0", "1"]);
 });
 
 test("accepts only the characters that it writes", () => {

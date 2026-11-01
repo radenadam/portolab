@@ -1,7 +1,7 @@
 import { parseFilledText } from "~/form-text";
-import { formatNumber } from "~/formatting";
+import { formatList, formatNumber } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
-import { isReadableText } from "~/random-text.server";
+import { isReadableText, lookalikeCharacters } from "~/random-text.server";
 import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
 import { joinCodeLength } from "./join-code";
@@ -24,6 +24,10 @@ export function parseJoinCode(
           field: source,
           code: text.value.trim(),
           length: formatNumber(joinCodeLength),
+          lookalikes: formatList(
+            lookalikeCharacters().map((character) => `"${character}"`),
+            "disjunction",
+          ),
         }),
       );
 }

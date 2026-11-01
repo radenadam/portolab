@@ -30,6 +30,7 @@ const texts: Record<
     cashLabel: string;
     cashHint: string;
     createButton: string;
+    typedCash: string;
     cashNotWhole: string;
     taughtClass: string;
     shareNotice: string;
@@ -60,10 +61,10 @@ const texts: Record<
     usernameHint: string;
     createAccountButton: string;
     existingAccountLink: string;
-    usernameTaken: string;
+    usernameTaken: readonly [string, string];
     joinButton: string;
     resetTitle: string;
-    resetBody: string;
+    resetBody: readonly [string, string];
     resetButton: string;
     temporaryPassword: string;
     backLink: string;
@@ -82,6 +83,7 @@ const texts: Record<
     cashHint:
       "Uang virtual dalam rupiah bulat yang dimiliki setiap mahasiswa di awal.",
     createButton: "Buat kelas",
+    typedCash: "100.000.000",
     cashNotWhole:
       'Kolom "Modal awal" menerima bilangan bulat rupiah, misalnya 100.000.000, tetapi isinya "seratus juta". Tulis jumlahnya dengan angka, dengan atau tanpa "." di antara kelompok angka.',
     taughtClass: "Mahasiswa: 1. Modal awal: Rp 100.000.000.",
@@ -104,9 +106,9 @@ const texts: Record<
     codeFieldLabel: "Kode kelas",
     continueButton: "Lanjutkan",
     malformedCode:
-      'Kolom "Kode kelas" menerima kode kelas, yang terdiri dari 8 huruf dan angka, tetapi isinya "abc". Periksa kodenya dengan dosen Anda.',
+      'Kolom "Kode kelas" menerima kode kelas, yang terdiri dari 8 huruf dan angka tanpa "l", "o", "0", atau "1", tetapi isinya "abc". Periksa kodenya dengan dosen Anda.',
     unknownCode:
-      'Kolom "Kode kelas" berisi kode "aaaa-aaaa", tetapi tidak ada kelas dengan kode ini. Periksa kodenya dengan dosen Anda, lalu coba lagi.',
+      'Kolom "Kode kelas" berisi "aaaa-aaaa", tetapi tidak ada kelas dengan kode ini. Periksa kodenya dengan dosen Anda, lalu coba lagi.',
     lecturerCannotJoin:
       "Hanya mahasiswa yang bergabung ke kelas, dan Anda masuk sebagai dosen. Untuk bergabung sebagai mahasiswa, keluar terlebih dahulu.",
     lecturerOnly:
@@ -119,11 +121,16 @@ const texts: Record<
       'Anda masuk dengan nama ini. Panjangnya 3 sampai 32 karakter dari a sampai z, 0 sampai 9, ".", "-", dan "_".',
     createAccountButton: "Buat akun dan gabung",
     existingAccountLink: "Masuk dengan akun yang sudah Anda miliki",
-    usernameTaken:
-      '", yang sudah dipakai akun lain. Pilih yang lain, misalnya dengan angka di akhirnya.',
+    usernameTaken: [
+      'Kolom "Nama pengguna" berisi "',
+      '", tetapi akun lain sudah memakai nama pengguna ini. Pilih yang lain, misalnya dengan angka di akhirnya.',
+    ],
     joinButton: "Gabung ke kelas",
     resetTitle: "Atur ulang kata sandi",
-    resetBody: `Portolab memberi ${studentName}, yang masuk sebagai "`,
+    resetBody: [
+      `Portolab memberi ${studentName}, yang masuk sebagai "`,
+      '", kata sandi sementara dan mengeluarkannya dari semua perangkat. Saat masuk berikutnya, ia memilih kata sandi baru.',
+    ],
     resetButton: "Atur ulang kata sandi",
     temporaryPassword: `Berikan kata sandi sementara ini kepada ${studentName}. Kata sandi ini berlaku sampai ia memilih kata sandi baru.`,
     backLink: `Kembali ke ${className}`,
@@ -140,6 +147,7 @@ const texts: Record<
     cashLabel: "Starting cash",
     cashHint: "The virtual cash in whole rupiah that each student starts with.",
     createButton: "Create the class",
+    typedCash: "100,000,000",
     cashNotWhole:
       'The field "Starting cash" takes a whole number of rupiah, such as 100,000,000, but it holds "seratus juta". Write the amount in digits, with or without "," between groups of digits.',
     taughtClass: "Students: 1. Starting cash: IDR 100,000,000.",
@@ -162,9 +170,9 @@ const texts: Record<
     codeFieldLabel: "Code of the class",
     continueButton: "Continue",
     malformedCode:
-      'The field "Code of the class" takes the code of a class, which has 8 letters and digits, but it holds "abc". Check the code with your lecturer.',
+      'The field "Code of the class" takes the code of a class, which has 8 letters and digits without "l", "o", "0", or "1", but it holds "abc". Check the code with your lecturer.',
     unknownCode:
-      'The field "Code of the class" holds the code "aaaa-aaaa", but no class has this code. Check the code with your lecturer and try again.',
+      'The field "Code of the class" holds "aaaa-aaaa", but no class has this code. Check the code with your lecturer and try again.',
     lecturerCannotJoin:
       "Only students join a class, and you are signed in as a lecturer. To join as a student, sign out first.",
     lecturerOnly:
@@ -177,11 +185,16 @@ const texts: Record<
       'You sign in with it. It has 3 to 32 characters from a to z, 0 to 9, ".", "-", and "_".',
     createAccountButton: "Create the account and join",
     existingAccountLink: "Sign in with the account that you have",
-    usernameTaken:
-      '", which another account has. Choose another one, for example with a number at its end.',
+    usernameTaken: [
+      'The field "Username" holds "',
+      '", but another account has this username. Choose another one, for example with a number at its end.',
+    ],
     joinButton: "Join the class",
     resetTitle: "Reset a password",
-    resetBody: `Portolab gives ${studentName}, who signs in as "`,
+    resetBody: [
+      `Portolab gives ${studentName}, who signs in as "`,
+      '", a temporary password and signs them out on every device. At the next sign-in, they choose a new password.',
+    ],
     resetButton: "Reset the password",
     temporaryPassword: `Give ${studentName} this temporary password. It works until they choose a new one.`,
     backLink: `Back to ${className}`,
@@ -190,26 +203,8 @@ const texts: Record<
   },
 };
 
-// The other parts of the sentences that hold a username or a time, which the tests cannot know in advance.
-const sentenceParts: Record<
-  Locale,
-  { usernameTaken: string; resetBody: string }
-> = {
-  id: {
-    usernameTaken: 'Kolom "Nama pengguna" berisi nama pengguna "',
-    resetBody:
-      '", kata sandi sementara dan mengeluarkannya dari semua perangkat. Saat masuk berikutnya, ia memilih kata sandi baru.',
-  },
-  en: {
-    usernameTaken: 'The field "Username" holds the username "',
-    resetBody:
-      '", a temporary password and signs them out on every device. At the next sign-in, they choose a new password.',
-  },
-};
-
 for (const locale of locales) {
   const text = texts[locale];
-  const parts = sentenceParts[locale];
   const language = languageNames[locale];
 
   test(`creates a class, which shows the code and the address that students join with, in ${language}`, async ({
@@ -236,9 +231,7 @@ for (const locale of locales) {
     await expect(page.getByLabel(text.nameLabel)).toHaveValue(className);
     await expectAccessibleScreen(page);
 
-    await page
-      .getByLabel(text.cashLabel)
-      .fill(locale === "id" ? "100.000.000" : "100,000,000");
+    await page.getByLabel(text.cashLabel).fill(text.typedCash);
     await page
       .getByRole("main")
       .getByRole("button", { name: text.createButton })
@@ -300,7 +293,7 @@ for (const locale of locales) {
       .click();
     await expect(
       student.getByText(
-        `${parts.usernameTaken}${lecturerUsername}${text.usernameTaken}`,
+        `${text.usernameTaken[0]}${lecturerUsername}${text.usernameTaken[1]}`,
       ),
     ).toBeVisible();
     await expectAccessibleScreen(student);
@@ -417,7 +410,7 @@ for (const locale of locales) {
     await page.getByRole("link", { name: text.resetLink }).click();
     await expect(page).toHaveTitle(`${text.resetTitle} | Portolab`);
     await expect(
-      page.getByText(`${text.resetBody}${username}${parts.resetBody}`),
+      page.getByText(`${text.resetBody[0]}${username}${text.resetBody[1]}`),
     ).toBeVisible();
     await expectAccessibleScreen(page);
     await page

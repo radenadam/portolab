@@ -23,7 +23,7 @@ const texts: Record<
     notWhole:
       'Kolom "Modal awal" menerima bilangan bulat rupiah, misalnya 100.000.000, tetapi isinya "100 juta". Tulis jumlahnya dengan angka, dengan atau tanpa "." di antara kelompok angka.',
     outOfRange:
-      'Kolom "Modal awal" menerima Rp 1.000.000 sampai Rp 1.000.000.000.000, tetapi isinya 999.999. Uang yang lebih sedikit hanya cukup untuk sedikit lot, dan Portolab menjaga jumlah dalam sebuah kelas tetap tepat hanya sampai batas atas. Pilih jumlah di antara keduanya.',
+      'Kolom "Modal awal" menerima Rp 1.000.000 sampai Rp 1.000.000.000.000, tetapi isinya "999.999". Uang yang lebih sedikit hanya cukup untuk sedikit lot, dan Portolab menjaga jumlah dalam sebuah kelas tetap tepat hanya sampai batas atas. Pilih jumlah di antara keduanya.',
   },
   en: {
     label: "Starting cash",
@@ -32,7 +32,7 @@ const texts: Record<
     notWhole:
       'The field "Starting cash" takes a whole number of rupiah, such as 100,000,000, but it holds "100 juta". Write the amount in digits, with or without "," between groups of digits.',
     outOfRange:
-      'The field "Starting cash" takes from IDR 1,000,000 to IDR 1,000,000,000,000, but it holds 999,999. Less cash buys too few lots for a portfolio, and Portolab keeps the sums of a class exact only up to the maximum. Choose an amount between the two.',
+      'The field "Starting cash" takes from IDR 1,000,000 to IDR 1,000,000,000,000, but it holds "999,999". Less cash buys too few lots for a portfolio, and Portolab keeps the sums of a class exact only up to the maximum. Choose an amount between the two.',
   },
 };
 

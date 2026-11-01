@@ -40,7 +40,7 @@ const texts: Record<
     name: "Nama Anda",
     consent: "Saya menyetujui pemberitahuan privasi",
     usernameMalformed:
-      'Kolom "Nama pengguna" menerima 3 sampai 32 karakter dari a sampai z, 0 sampai 9, ".", "-", dan "_", tetapi "budi santoso" memakai karakter lain atau panjang lain. Pilih nama pengguna seperti budi.santoso.',
+      'Kolom "Nama pengguna" menerima 3 sampai 32 karakter dari a sampai z, 0 sampai 9, ".", "-", dan "_", tetapi isinya "budi santoso". Pilih nama pengguna seperti budi.santoso.',
     tooShort:
       'Kolom "Kata sandi baru" perlu paling sedikit 15 karakter, tetapi isinya 14 karakter. Setiap karakter tambahan membuat kata sandi jauh lebih sulit ditebak, jadi pilih yang lebih panjang, misalnya kalimat pendek.',
     tooLong:
@@ -56,7 +56,7 @@ const texts: Record<
     name: "Your name",
     consent: "I agree to the privacy notice",
     usernameMalformed:
-      'The field "Username" takes 3 to 32 characters from a to z, 0 to 9, ".", "-", and "_", but "budi santoso" has others or another length. Choose a username such as budi.santoso.',
+      'The field "Username" takes 3 to 32 characters from a to z, 0 to 9, ".", "-", and "_", but it holds "budi santoso". Choose a username such as budi.santoso.',
     tooShort:
       'The field "New password" needs at least 15 characters, but it has 14. Each extra character makes a password much harder to guess, so choose a longer one, such as a short sentence.',
     tooLong:

@@ -9,3 +9,4 @@ The words that recur in the errors of fields have one translation in each langua
 | The field "X" needs at least ... | Kolom "X" perlu paling sedikit ... | The smallest value or length of a field.                                    |
 | The field "X" holds "V", but ... | Kolom "X" berisi "V", tetapi ...   | A value that a person typed, stated as a fact before what is wrong with it. |
 | ..., but it holds "V".           | ..., tetapi isinya "V".            | The value of a field against its rule.                                      |
+| ..., but it has N.               | ..., tetapi isinya N karakter.     | The length of a field against its rule.                                     |
