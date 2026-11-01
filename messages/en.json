@@ -120,7 +120,7 @@
   "accounts_sign_out_title": "Sign out",
   "accounts_sign_out_body": "Sign out of Portolab on this device.",
   "accounts_privacy_attempts_body": "A username that someone typed with a wrong password, in memory only, for {minutes} minutes after each wrong password for it, to stop anyone from guessing the password of an account.",
-  "trading_lots_too_many_error": "The field \"{field}\" holds \"{value}\", far more lots than IDX accepts in one order. Enter a smaller number of lots.",
+  "trading_lots_too_many_error": "The field \"{field}\" holds \"{value}\", but IDX accepts at most {maximum} lots in one order. Enter a number of lots from 1 to {maximum}.",
   "trading_wait_for_sales_error": "Your open sell orders of {codes} add to your available cash when they fill.",
   "trading_new_order_error": "Place a new order if you still want {code}, and Portolab checks it at the price and with the cash of that moment."
 }

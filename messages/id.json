@@ -120,7 +120,7 @@
   "accounts_sign_out_title": "Keluar",
   "accounts_sign_out_body": "Keluar dari Portolab di perangkat ini.",
   "accounts_privacy_attempts_body": "Nama pengguna yang diketik seseorang dengan kata sandi salah, hanya di memori, selama {minutes} menit setelah setiap kata sandi salah untuknya, untuk mencegah siapa pun menebak kata sandi sebuah akun.",
-  "trading_lots_too_many_error": "Kolom \"{field}\" berisi \"{value}\", jauh lebih banyak daripada lot yang diterima BEI dalam satu order. Masukkan jumlah lot yang lebih kecil.",
+  "trading_lots_too_many_error": "Kolom \"{field}\" berisi \"{value}\", padahal BEI menerima paling banyak {maximum} lot dalam satu order. Masukkan jumlah lot dari 1 sampai {maximum}.",
   "trading_wait_for_sales_error": "Order jual {codes} Anda yang masih terbuka menambah kas Anda yang tersedia saat tereksekusi.",
   "trading_new_order_error": "Pasang order baru jika Anda masih menginginkan {code}, dan Portolab memeriksanya pada harga dan kas saat itu."
 }

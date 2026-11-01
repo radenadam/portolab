@@ -1,5 +1,6 @@
 import type { StockQuote } from "~/features/market-data/price-source.server";
 import { monthEndClosesForTest } from "~/features/measures/month-end-closes-for-test";
+import { lots } from "~/units/lots";
 import type { OrderLots } from "~/units/lots";
 import { successValueForTest } from "~/success-value-for-test";
 import { rupiah } from "~/units/rupiah";
@@ -48,10 +49,10 @@ export function acceptedForTest(
   );
 }
 
-/** The size of an order of a number of lots from 1, as the order form gives it. */
+/** The size of an order of a number of lots from 1, as the order form gives it. The test reads it with no bound below the largest safe number, so that placeOrder applies the largest order of the trading day. */
 export function orderLotsForTest(count: number): OrderLots {
   return successValueForTest(
-    parseOrderLots(String(count), "Lots"),
+    parseOrderLots(String(count), "Lots", lots(Number.MAX_SAFE_INTEGER)),
     `${String(count)} lots are a valid order`,
   );
 }
