@@ -6,7 +6,7 @@ Portolab is made for lecturers and students of portfolio management courses at I
 
 ## Status
 
-Portolab is in early development. It shows delayed prices of a few IDX stocks and of the IHSG, but it cannot trade yet. The first release, planned for November 2026, serves the course sessions on CAPM and on portfolio return and risk. [`docs/product.md`](docs/product.md) describes what Portolab will do and what it deliberately will not do.
+Portolab is in early development. It shows delayed prices of a few IDX stocks and of the IHSG, and lecturers can sign in, but it cannot trade yet. The first release, planned for November 2026, serves the course sessions on CAPM and on portfolio return and risk. [`docs/product.md`](docs/product.md) describes what Portolab will do and what it deliberately will not do.
 
 ## Run it
 
@@ -27,6 +27,22 @@ pnpm start
 ```
 
 The server prints the addresses that phones on the network can open. On Windows, allow the connection when the firewall asks.
+
+## Accounts
+
+Nobody signs up as a lecturer. The person who runs the server creates each lecturer account with the account command:
+
+```sh
+pnpm account create-lecturer <username>
+```
+
+The command prints a temporary password, with what the lecturer does with it. When a lecturer forgets the password, the same command gives the account a new temporary password and signs it out on every device:
+
+```sh
+pnpm account reset-password <username>
+```
+
+The command works on the database that `DATABASE_PATH` names, so run it with the same environment variables as the server. It can run while the server runs.
 
 ## Configuration
 

@@ -3,7 +3,11 @@
   "include": [
     "e2e/**/*",
     "app/language-names.ts",
-    "app/paraglide/runtime.d.ts"
+    "app/paraglide/runtime.d.ts",
+    "app/result.ts",
+    "app/sentences.ts",
+    "app/value-parsers.ts",
+    "app/value-shapes.ts"
   ],
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.cache/tsconfig.e2e.tsbuildinfo",

@@ -196,6 +196,36 @@ test("rejects reduce in every way to reach it, and accepts a plain loop", async 
   ).not.toContain("no-restricted-syntax");
 }, 60_000);
 
+test("accepts throwing a response of React Router, and rejects throwing any other value that is not an error", async () => {
+  const throwsInRoute = (statement: string): string =>
+    `import { data, redirect } from "react-router";
+export function loader(): void {
+  ${statement}
+}
+`;
+  for (const statement of [
+    `throw redirect("/sign-in");`,
+    `throw data(null, { status: 404 });`,
+    `throw new Response(null, { status: 404 });`,
+    `throw new Error("A state that should never happen.");`,
+  ]) {
+    expect(
+      await rulesReporting(throwsInRoute(statement), "app/root.tsx"),
+      statement,
+    ).not.toContain("@typescript-eslint/only-throw-error");
+  }
+  for (const statement of [
+    `throw "/sign-in";`,
+    `throw { status: 404 };`,
+    `throw 404;`,
+  ]) {
+    expect(
+      await rulesReporting(throwsInRoute(statement), "app/root.tsx"),
+      statement,
+    ).toContain("@typescript-eslint/only-throw-error");
+  }
+}, 60_000);
+
 test("rejects abbreviated and one-letter names, and accepts full words", async () => {
   for (const code of [
     "export const msg = 1;",
@@ -254,6 +284,7 @@ test("accepts loading a feature in the modules that compose the app and in the f
     ["app/root.tsx", "./features/market-data/quote-change"],
     ["app/routes.ts", "~/features/market-data/quote-change"],
     ["server/app.ts", "~/features/market-data/quote-change"],
+    ["server/account.ts", "../app/features/market-data/quote-change.ts"],
     [
       "app/features/market-data/prices-view.tsx",
       "~/features/language/language-switch",

@@ -2,12 +2,18 @@ import { createRequestHandler } from "@react-router/express";
 import type { RequestHandler } from "express";
 import { RouterContextProvider } from "react-router";
 import type { ServerBuild } from "react-router";
+import { clientAddressContext } from "~/client-address-context.server";
 import {
   closeDatabase,
   databaseContext,
   openDatabase,
 } from "~/database/database.server";
 import type { Database } from "~/database/database.server";
+import {
+  createPasswordLimiters,
+  passwordLimitersContext,
+} from "~/features/accounts/password-attempts.server";
+import type { PasswordLimiters } from "~/features/accounts/password-attempts.server";
 import { fixturePriceSource } from "~/features/market-data/fixture-price-source.server";
 import { startPriceJob } from "~/features/market-data/price-job.server";
 import { priceSourceContext } from "~/features/market-data/price-source-context.server";
@@ -25,10 +31,11 @@ const priceSources: Record<ServiceSettings["priceSource"], () => PriceSource> =
 export interface Services {
   database: Database;
   priceSource: PriceSource;
+  passwordLimiters: PasswordLimiters;
   stop: () => void;
 }
 
-/** Opens the database and starts the price job, with the settings that the server read at startup. */
+/** Opens the database, starts the price job, and creates the limits on passwords, with the settings that the server read at startup. */
 export function startServices(settings: ServiceSettings): Services {
   const database = openDatabase(
     settings.databasePath,
@@ -43,6 +50,7 @@ export function startServices(settings: ServiceSettings): Services {
   return {
     database,
     priceSource,
+    passwordLimiters: createPasswordLimiters(),
     stop: () => {
       stopPriceJob();
       closeDatabase(database);
@@ -50,16 +58,19 @@ export function startServices(settings: ServiceSettings): Services {
   };
 }
 
-/** Handles requests, and gives every loader and action the database and the price source of the services. */
+/** Handles requests, and gives every loader and action the services and the address that the request came from. */
 export function createApp(services: Services): RequestHandler {
   return createRequestHandler({
     // The virtual module types `basename` as `string | undefined`, which exactOptionalPropertyTypes rejects for ServerBuild.
     build: () =>
       import("virtual:react-router/server-build") as Promise<ServerBuild>,
-    getLoadContext() {
+    getLoadContext(request) {
       const context = new RouterContextProvider();
       context.set(databaseContext, services.database);
       context.set(priceSourceContext, services.priceSource);
+      context.set(passwordLimitersContext, services.passwordLimiters);
+      // Express knows no address only when the connection already closed, and such a request shares the limits of every other one like it.
+      context.set(clientAddressContext, request.ip ?? "");
       return context;
     },
   });
