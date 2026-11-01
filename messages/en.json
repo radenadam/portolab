@@ -140,5 +140,6 @@
   "classes_taught_class_notice": "Students: {count}. Starting cash: {cash}.",
   "accounts_privacy_attempts_body": "A username that someone typed with a wrong password, in memory only, for {minutes} minutes after each wrong password for it, to stop anyone from guessing the password of an account.",
   "accounts_character_range_label": "{first} to {last}",
-  "classes_new_accounts_blocked_error": "Portolab creates no account from your network until {time} WIB, because it received {accounts} requests for a new account from it within {minutes} minutes. The limit stops anyone from flooding a class with accounts. Try again after that time, or join through another network, such as the mobile data of your phone."
+  "classes_new_accounts_blocked_error": "Portolab creates no account from your network until {time} WIB, because it received {accounts} requests for a new account from it within {minutes} minutes. The limit stops anyone from flooding a class with accounts. Try again after that time, or join through another network, such as the mobile data of your phone.",
+  "classes_lecturer_only_error": "Only a lecturer creates a class, and you are signed in as a student. To teach a class, ask the person who runs this Portolab server for a lecturer account."
 }

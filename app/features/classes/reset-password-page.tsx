@@ -3,9 +3,8 @@ import { data, Form, Link } from "react-router";
 import type { RouterContextProvider } from "react-router";
 import { databaseContext } from "~/database/database.server";
 import type { UserId } from "~/features/accounts/accounts.schema";
-import { resetPassword } from "~/features/accounts/account-store.server";
 import { requireLecturer } from "~/features/accounts/current-session.server";
-import { passwordLimitersContext } from "~/features/accounts/password-attempts.server";
+import { resetForgottenPassword } from "~/features/accounts/reset-forgotten-password.server";
 import { SubmitButton } from "~/form";
 import formStyles from "~/form.module.css";
 import { pageTitle } from "~/page-title";
@@ -15,6 +14,7 @@ import type { Route } from "./+types/reset-password-page";
 import { findClassStudent, findTaughtClass } from "./class-store.server";
 import type { ClassStudent } from "./class-store.server";
 import type { ClassId } from "./classes.schema";
+import { classPath } from "./class-path";
 import styles from "./classes.module.css";
 
 export function meta(): Route.MetaDescriptors {
@@ -54,13 +54,7 @@ export function loader({ context, request, params }: Route.LoaderArgs): {
 
 export async function action({ context, request, params }: Route.ActionArgs) {
   const { student } = requireStudentOfTaughtClass(context, request, params);
-  const temporaryPassword = await resetPassword(
-    context.get(databaseContext),
-    student.id,
-  );
-  // A student who reached the limit of wrong passwords may sign in with the new one at once.
-  context.get(passwordLimitersContext).byUsername.forget(student.username);
-  return { temporaryPassword };
+  return { temporaryPassword: await resetForgottenPassword(context, student) };
 }
 
 export default function ResetPasswordPage({
@@ -91,7 +85,7 @@ export default function ResetPasswordPage({
           <p className={styles["code"]}>{actionData.temporaryPassword}</p>
         </>
       )}
-      <Link to={`/classes/${String(classId)}`} className={styles["link"]}>
+      <Link to={classPath(classId)} className={styles["link"]}>
         {m.classes_back_link({ class: className })}
       </Link>
     </>

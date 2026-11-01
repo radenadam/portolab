@@ -92,7 +92,7 @@
   "accounts_sign_out_title": "Keluar",
   "accounts_sign_out_body": "Keluar dari Portolab di perangkat ini.",
   "accounts_username_hint": "Anda masuk dengan nama ini. Panjangnya {minimum} sampai {maximum} karakter dari {characters}.",
-  "accounts_username_error": "Kolom \"{field}\" berisi {minimum} sampai {maximum} karakter dari {characters}, tetapi \"{value}\" memakai karakter lain atau panjang lain. Pilih nama pengguna seperti budi.santoso.",
+  "accounts_username_error": "Kolom \"{field}\" menerima {minimum} sampai {maximum} karakter dari {characters}, tetapi \"{value}\" memakai karakter lain atau panjang lain. Pilih nama pengguna seperti budi.santoso.",
   "home_join_link": "Gabung ke kelas dengan kodenya",
   "home_classes_link": "Kelas Anda",
   "classes_title": "Kelas Anda",
@@ -104,8 +104,8 @@
   "classes_name_hint": "Mahasiswa Anda melihat nama ini.",
   "classes_starting_cash_hint": "Uang virtual dalam rupiah bulat yang dimiliki setiap mahasiswa di awal.",
   "classes_create_label": "Buat kelas",
-  "classes_starting_cash_error": "Kolom \"{field}\" berisi bilangan bulat rupiah, misalnya {example}, tetapi isinya \"{value}\". Tulis jumlahnya dengan angka, dengan atau tanpa \"{separator}\" di antara kelompok angka.",
-  "classes_starting_cash_range_error": "Kolom \"{field}\" berisi {minimum} sampai {maximum}, tetapi isinya {value}. Uang yang lebih sedikit hanya cukup untuk sedikit lot, dan Portolab menjaga jumlah dalam sebuah kelas tetap tepat hanya sampai batas atas. Pilih jumlah di antara keduanya.",
+  "classes_starting_cash_error": "Kolom \"{field}\" menerima bilangan bulat rupiah, misalnya {example}, tetapi isinya \"{value}\". Tulis jumlahnya dengan angka, dengan atau tanpa \"{separator}\" di antara kelompok angka.",
+  "classes_starting_cash_range_error": "Kolom \"{field}\" menerima {minimum} sampai {maximum}, tetapi isinya {value}. Uang yang lebih sedikit hanya cukup untuk sedikit lot, dan Portolab menjaga jumlah dalam sebuah kelas tetap tepat hanya sampai batas atas. Pilih jumlah di antara keduanya.",
   "classes_join_code_label": "Kode untuk bergabung",
   "classes_join_address_label": "Alamat untuk bergabung",
   "classes_share_notice": "Bagikan kode atau alamat ini kepada mahasiswa Anda. Setiap mahasiswa yang bergabung mulai dengan uang virtual sebesar {cash}.",
@@ -125,7 +125,7 @@
   "classes_join_body": "Masukkan kode yang diberikan dosen Anda.",
   "classes_code_label": "Kode kelas",
   "classes_continue_label": "Lanjutkan",
-  "classes_malformed_code_error": "Kolom \"{field}\" berisi kode kelas, yang terdiri dari {length} huruf dan angka, tetapi isinya \"{code}\". Periksa kodenya dengan dosen Anda.",
+  "classes_malformed_code_error": "Kolom \"{field}\" menerima kode kelas, yang terdiri dari {length} huruf dan angka, tetapi isinya \"{code}\". Periksa kodenya dengan dosen Anda.",
   "classes_unknown_code_error": "Kolom \"{field}\" berisi kode \"{code}\", tetapi tidak ada kelas dengan kode ini. Periksa kodenya dengan dosen Anda, lalu coba lagi.",
   "classes_join_blocked_error": "Portolab memblokir kode dari jaringan Anda sampai {time} WIB, karena menerima {failures} kode salah dari jaringan itu dalam {minutes} menit. Blokir ini menghentikan siapa pun yang mencoba menebak kode kelas. Coba lagi setelah waktu tersebut.",
   "classes_lecturer_join_error": "Hanya mahasiswa yang bergabung ke kelas, dan Anda masuk sebagai dosen. Untuk bergabung sebagai mahasiswa, keluar terlebih dahulu.",
@@ -140,5 +140,6 @@
   "classes_taught_class_notice": "Mahasiswa: {count}. Modal awal: {cash}.",
   "accounts_privacy_attempts_body": "Nama pengguna yang diketik seseorang dengan kata sandi salah, hanya di memori, selama {minutes} menit setelah setiap kata sandi salah untuknya, untuk mencegah siapa pun menebak kata sandi sebuah akun.",
   "accounts_character_range_label": "{first} sampai {last}",
-  "classes_new_accounts_blocked_error": "Portolab tidak membuat akun dari jaringan Anda sampai {time} WIB, karena menerima {accounts} permintaan akun baru dari jaringan itu dalam {minutes} menit. Batas ini mencegah siapa pun membanjiri sebuah kelas dengan akun. Coba lagi setelah waktu tersebut, atau bergabunglah melalui jaringan lain, seperti data seluler ponsel Anda."
+  "classes_new_accounts_blocked_error": "Portolab tidak membuat akun dari jaringan Anda sampai {time} WIB, karena menerima {accounts} permintaan akun baru dari jaringan itu dalam {minutes} menit. Batas ini mencegah siapa pun membanjiri sebuah kelas dengan akun. Coba lagi setelah waktu tersebut, atau bergabunglah melalui jaringan lain, seperti data seluler ponsel Anda.",
+  "classes_lecturer_only_error": "Hanya dosen yang membuat kelas, dan Anda masuk sebagai mahasiswa. Untuk mengajar kelas, mintalah akun dosen kepada orang yang menjalankan server Portolab ini."
 }

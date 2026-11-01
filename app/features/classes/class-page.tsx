@@ -14,6 +14,7 @@ import {
 } from "./class-store.server";
 import type { ClassStudent, JoinedClass } from "./class-store.server";
 import type { ClassId } from "./classes.schema";
+import { classPath } from "./class-path";
 import styles from "./classes.module.css";
 import { formatJoinCode, joinPath } from "./join-code";
 
@@ -131,7 +132,7 @@ function Students({
             })}
           </p>
           <Link
-            to={`/classes/${String(classId)}/students/${String(student.id)}/password`}
+            to={`${classPath(classId)}/students/${String(student.id)}/password`}
             className={styles["link"]}
           >
             {m.classes_reset_password_link({ name: student.name })}

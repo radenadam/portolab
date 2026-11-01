@@ -21,9 +21,9 @@ const texts: Record<
     written: ["100.000.000", "100000000", " 100 000 000 "],
     small: "999.999",
     notWhole:
-      'Kolom "Modal awal" berisi bilangan bulat rupiah, misalnya 100.000.000, tetapi isinya "100 juta". Tulis jumlahnya dengan angka, dengan atau tanpa "." di antara kelompok angka.',
+      'Kolom "Modal awal" menerima bilangan bulat rupiah, misalnya 100.000.000, tetapi isinya "100 juta". Tulis jumlahnya dengan angka, dengan atau tanpa "." di antara kelompok angka.',
     outOfRange:
-      'Kolom "Modal awal" berisi Rp 1.000.000 sampai Rp 1.000.000.000.000, tetapi isinya 999.999. Uang yang lebih sedikit hanya cukup untuk sedikit lot, dan Portolab menjaga jumlah dalam sebuah kelas tetap tepat hanya sampai batas atas. Pilih jumlah di antara keduanya.',
+      'Kolom "Modal awal" menerima Rp 1.000.000 sampai Rp 1.000.000.000.000, tetapi isinya 999.999. Uang yang lebih sedikit hanya cukup untuk sedikit lot, dan Portolab menjaga jumlah dalam sebuah kelas tetap tepat hanya sampai batas atas. Pilih jumlah di antara keduanya.',
   },
   en: {
     label: "Starting cash",

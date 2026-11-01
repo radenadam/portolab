@@ -3,7 +3,10 @@ import { data, Form, Link, redirect, useLocation } from "react-router";
 import type { RouterContextProvider } from "react-router";
 import { databaseContext } from "~/database/database.server";
 import type { User } from "~/features/accounts/account";
-import { readNewStudent } from "~/features/accounts/account-fields";
+import {
+  readNewStudent,
+  typedAccountForm,
+} from "~/features/accounts/account-fields";
 import type { AccountFormFailures } from "~/features/accounts/account-fields";
 import {
   ConsentField,
@@ -18,18 +21,20 @@ import {
 import { pathReturningTo } from "~/features/accounts/path-returning-to";
 import { FormFailure, SubmitButton } from "~/form";
 import formStyles from "~/form.module.css";
-import { typedText } from "~/form-text";
 import { formatRupiah } from "~/formatting";
 import { pageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
 import type { Route } from "./+types/join-class-page";
-import { findJoinedClass, joinClass } from "./class-store.server";
+import { classPath } from "./class-path";
+import { findJoinedClass } from "./class-store.server";
 import type { ClassForStudents } from "./class-store.server";
 import styles from "./classes.module.css";
 import { CodeForm } from "./code-form";
 import { createStudentWithinLimit } from "./create-student-within-limit.server";
+import type { ClassId } from "./classes.schema";
 import { findClassWithCode } from "./find-class-with-code.server";
 import type { CodeFailure } from "./find-class-with-code.server";
+import { joinAndOpenClass } from "./join-and-open-class.server";
 
 /** What the address of a code shows: the class with the form that joins it, the form for a code with the code from the address and why it opens no class, or why a lecturer cannot join. */
 type JoinState =
@@ -65,17 +70,24 @@ export function loader({
       return data<JoinState>({ kind: "lecturer" }, { status: 403 });
     case "student":
     case undefined:
-      return classToJoin(context, params.code, user);
+      return classToJoin(context, {
+        code: params.code,
+        student: user,
+        now: new Date(),
+      });
   }
 }
 
 /** The class that the code of the address opens for a student who is signed in or for a visitor, or the form for a code with the reason why it opens none. A student who joined the class already goes to it. */
 function classToJoin(
   context: Readonly<RouterContextProvider>,
-  code: string,
-  student: User | undefined,
+  {
+    code,
+    student,
+    now,
+  }: { code: string; student: User | undefined; now: Date },
 ): ReturnType<typeof data<JoinState>> {
-  const found = findClassWithCode(context, code);
+  const found = findClassWithCode(context, code, now);
   if (!found.ok) {
     return data<JoinState>(
       { kind: "wrongCode", code, failure: found.failure },
@@ -91,7 +103,7 @@ function classToJoin(
       student.id,
     ) !== undefined
   ) {
-    throw redirect(`/classes/${String(joinedClass.id)}`);
+    throw redirect(classPath(joinedClass.id));
   }
   return data<JoinState>({
     kind: "class",
@@ -101,26 +113,32 @@ function classToJoin(
 }
 
 export async function action({ context, request, params }: Route.ActionArgs) {
+  const now = new Date();
   const user = findUser(context, request);
-  const found = findClassWithCode(context, params.code);
+  const found = findClassWithCode(context, params.code, now);
   if (!found.ok) {
-    // The page that the loader shows again explains the code.
-    return { fields: undefined, failure: undefined };
+    // The code opened the class when the page loaded, so the class went away or the network reached its limit since, and the page shows why above its form.
+    return data(
+      { fields: undefined, failure: found.failure.text },
+      { status: found.failure.status },
+    );
   }
   const { joinedClass } = found.value;
   switch (user?.role) {
     case "lecturer":
-      // The page that the loader shows again explains why a lecturer cannot join.
-      return { fields: undefined, failure: undefined };
+      // The page of a lecturer has no form for joining, so only a forged form comes here, and the page that the loader shows explains why a lecturer cannot join.
+      return data({ fields: undefined, failure: undefined }, { status: 403 });
     case "student":
-      joinClass(
+      return joinAndOpenClass(
         context.get(databaseContext),
         { classId: joinedClass.id, studentId: user.id },
-        new Date(),
+        now,
       );
-      return redirect(`/classes/${String(joinedClass.id)}`);
     case undefined:
-      return createStudentInClass(context, request, joinedClass);
+      return createStudentInClass(context, request, {
+        classId: joinedClass.id,
+        now,
+      });
   }
 }
 
@@ -128,10 +146,9 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 async function createStudentInClass(
   context: Readonly<RouterContextProvider>,
   request: Request,
-  joinedClass: ClassForStudents,
+  { classId, now }: { classId: ClassId; now: Date },
 ) {
   const database = context.get(databaseContext);
-  const now = new Date();
   const form = await request.formData();
   const newStudent = readNewStudent(form);
   if (!newStudent.ok) {
@@ -146,15 +163,7 @@ async function createStudentInClass(
     now,
   );
   if (!created.ok) {
-    const typedFields = {
-      name: typedText(form.get("name")),
-      username: typedText(form.get("username")),
-      nameFailure: undefined,
-      usernameFailure: undefined,
-      newPasswordFailure: undefined,
-      repeatedPasswordFailure: undefined,
-      consentFailure: undefined,
-    };
+    const typedFields = typedAccountForm(form);
     switch (created.failure.kind) {
       case "blocked":
         return data(
@@ -177,16 +186,16 @@ async function createStudentInClass(
         );
     }
   }
-  joinClass(
+  const response = joinAndOpenClass(
     database,
-    { classId: joinedClass.id, studentId: created.value },
+    { classId, studentId: created.value },
     now,
   );
-  return redirect(`/classes/${String(joinedClass.id)}`, {
-    headers: {
-      "Set-Cookie": await startSession(database, request, created.value),
-    },
-  });
+  response.headers.append(
+    "Set-Cookie",
+    await startSession(database, request, { userId: created.value, now }),
+  );
+  return response;
 }
 
 export default function JoinClassPage({
@@ -242,6 +251,7 @@ function ClassToJoin({
       </p>
       {isSignedIn ? (
         <Form method="post" className={formStyles["form"]}>
+          {failure !== undefined && <FormFailure text={failure} />}
           <SubmitButton label={m.classes_join_label()} />
         </Form>
       ) : (
@@ -256,7 +266,7 @@ function NewStudentForm({
   failure,
 }: {
   fields: AccountFormFailures | undefined;
-  /** Why the form created no account, apart from its fields. */
+  /** Why the form created no account, apart from its fields, such as a limit on attempts. */
   failure: string | undefined;
 }): ReactNode {
   return (

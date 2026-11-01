@@ -54,13 +54,14 @@ export function loader({ context, request }: Route.LoaderArgs): {
 }
 
 export async function action({ context, request }: Route.ActionArgs) {
+  const now = new Date();
   const session = requireSession(context, request);
   const form = await request.formData();
   const destination = returnDestination(form.get("returnTo"), request);
   if (readyUser(session.account) !== undefined) {
     return redirect(destination);
   }
-  const changes = readSetupForm(form, missingSteps(session.account));
+  const changes = readSetupForm(form, missingSteps(session.account), now);
   if (!changes.ok) {
     return data(changes.failure, { status: 400 });
   }
@@ -72,7 +73,10 @@ export async function action({ context, request }: Route.ActionArgs) {
   // A new password ended every session of the account, so the person continues in a new one.
   return redirect(destination, {
     headers: {
-      "Set-Cookie": await startSession(database, request, session.account.id),
+      "Set-Cookie": await startSession(database, request, {
+        userId: session.account.id,
+        now,
+      }),
     },
   });
 }
@@ -80,10 +84,11 @@ export async function action({ context, request }: Route.ActionArgs) {
 /** The reason that each field of the form was not accepted, and the name as the person typed it, so the form can show it again. The username is not part of this form. */
 type SetupFailures = Omit<AccountFormFailures, "username" | "usernameFailure">;
 
-/** Reads each field that the account still lacks. */
+/** Reads each field that the account still lacks. An agreement to the privacy notice counts from the moment of the request. */
 function readSetupForm(
   form: FormData,
   steps: MissingSteps,
+  now: Date,
 ): Result<AccountChanges, SetupFailures> {
   const name = steps.name
     ? parsePersonName(form.get("name"), m.accounts_name_label())
@@ -104,7 +109,7 @@ function readSetupForm(
   return succeed({
     ...(name.value === undefined ? {} : { name: name.value }),
     ...(password.value === undefined ? {} : { password: password.value }),
-    ...(consent.value === undefined ? {} : { consentedAt: new Date() }),
+    ...(consent.value === undefined ? {} : { consentedAt: now }),
   });
 }
 

@@ -6,9 +6,9 @@ import { typedText } from "~/form-text";
 import { pageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
 import type { Route } from "./+types/join-page";
-import { joinClass } from "./class-store.server";
 import { CodeForm } from "./code-form";
 import { findClassWithCode } from "./find-class-with-code.server";
+import { joinAndOpenClass } from "./join-and-open-class.server";
 import { joinPath } from "./join-code";
 
 export function meta(): Route.MetaDescriptors {
@@ -30,9 +30,10 @@ export function loader({
 }
 
 export async function action({ context, request }: Route.ActionArgs) {
+  const now = new Date();
   const user = findUser(context, request);
   const form = await request.formData();
-  const found = findClassWithCode(context, form.get("code"));
+  const found = findClassWithCode(context, form.get("code"), now);
   if (!found.ok) {
     return data(
       { code: typedText(form.get("code")), failure: found.failure },
@@ -43,12 +44,11 @@ export async function action({ context, request }: Route.ActionArgs) {
   switch (user?.role) {
     case "student":
       // A student who is signed in joins at once.
-      joinClass(
+      return joinAndOpenClass(
         context.get(databaseContext),
         { classId: joinedClass.id, studentId: user.id },
-        new Date(),
+        now,
       );
-      return redirect(`/classes/${String(joinedClass.id)}`);
     case "lecturer":
     case undefined:
       // A visitor first sees the class and creates an account on its page, and a lecturer sees there why a lecturer cannot join.

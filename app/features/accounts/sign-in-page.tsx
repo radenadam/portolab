@@ -38,6 +38,7 @@ export function loader({ context, request }: Route.LoaderArgs): {
 }
 
 export async function action({ context, request }: Route.ActionArgs) {
+  const now = new Date();
   const form = await request.formData();
   const username = parseFilledText(
     form.get("username"),
@@ -66,7 +67,7 @@ export async function action({ context, request }: Route.ActionArgs) {
       username: username.value,
       password: password.value,
       address: context.get(clientAddressContext),
-      now: new Date(),
+      now,
     },
   );
   if (!signedIn.ok) {
@@ -97,7 +98,10 @@ export async function action({ context, request }: Route.ActionArgs) {
       : destination,
     {
       headers: {
-        "Set-Cookie": await startSession(database, request, signedIn.value.id),
+        "Set-Cookie": await startSession(database, request, {
+          userId: signedIn.value.id,
+          now,
+        }),
       },
     },
   );

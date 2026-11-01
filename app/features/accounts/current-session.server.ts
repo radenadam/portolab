@@ -53,16 +53,13 @@ export const sessionMiddleware: MiddlewareFunction<Response> = async (
   return response;
 };
 
-/** Starts a session and returns the header that gives its cookie to the browser. Every sign-in starts a new session, so a token that someone planted before the sign-in never signs anyone in. */
+/** Starts a session of a person at a moment and returns the header that gives its cookie to the browser. Every sign-in starts a new session, so a token that someone planted before the sign-in never signs anyone in. */
 export async function startSession(
   database: Database,
   request: Request,
-  userId: UserId,
+  { userId, now }: { userId: UserId; now: Date },
 ): Promise<string> {
-  return sessionCookieHeader(
-    request,
-    createSession(database, userId, new Date()),
-  );
+  return sessionCookieHeader(request, createSession(database, userId, now));
 }
 
 /** The person who is signed in and finished setting up the account. A visitor who is not signed in goes to the sign-in page, and a person who still has to finish the account goes to that step, and each returns to this page afterwards. */

@@ -52,6 +52,7 @@ const texts: Record<
     malformedCode: string;
     unknownCode: string;
     lecturerCannotJoin: string;
+    lecturerOnly: string;
     joinClassTitle: string;
     joinClassBody: string;
     newAccountTitle: string;
@@ -82,7 +83,7 @@ const texts: Record<
       "Uang virtual dalam rupiah bulat yang dimiliki setiap mahasiswa di awal.",
     createButton: "Buat kelas",
     cashNotWhole:
-      'Kolom "Modal awal" berisi bilangan bulat rupiah, misalnya 100.000.000, tetapi isinya "seratus juta". Tulis jumlahnya dengan angka, dengan atau tanpa "." di antara kelompok angka.',
+      'Kolom "Modal awal" menerima bilangan bulat rupiah, misalnya 100.000.000, tetapi isinya "seratus juta". Tulis jumlahnya dengan angka, dengan atau tanpa "." di antara kelompok angka.',
     taughtClass: "Mahasiswa: 1. Modal awal: Rp 100.000.000.",
     shareNotice:
       "Bagikan kode atau alamat ini kepada mahasiswa Anda. Setiap mahasiswa yang bergabung mulai dengan uang virtual sebesar Rp 100.000.000.",
@@ -103,11 +104,13 @@ const texts: Record<
     codeFieldLabel: "Kode kelas",
     continueButton: "Lanjutkan",
     malformedCode:
-      'Kolom "Kode kelas" berisi kode kelas, yang terdiri dari 8 huruf dan angka, tetapi isinya "abc". Periksa kodenya dengan dosen Anda.',
+      'Kolom "Kode kelas" menerima kode kelas, yang terdiri dari 8 huruf dan angka, tetapi isinya "abc". Periksa kodenya dengan dosen Anda.',
     unknownCode:
       'Kolom "Kode kelas" berisi kode "aaaa-aaaa", tetapi tidak ada kelas dengan kode ini. Periksa kodenya dengan dosen Anda, lalu coba lagi.',
     lecturerCannotJoin:
       "Hanya mahasiswa yang bergabung ke kelas, dan Anda masuk sebagai dosen. Untuk bergabung sebagai mahasiswa, keluar terlebih dahulu.",
+    lecturerOnly:
+      "Hanya dosen yang membuat kelas, dan Anda masuk sebagai mahasiswa. Untuk mengajar kelas, mintalah akun dosen kepada orang yang menjalankan server Portolab ini.",
     joinClassTitle: `Gabung ke ${className}`,
     joinClassBody: `${lecturerName} mengajar kelas ini. Setiap mahasiswa mulai dengan uang virtual sebesar Rp 100.000.000.`,
     newAccountTitle: "Buat akun mahasiswa Anda",
@@ -164,6 +167,8 @@ const texts: Record<
       'The field "Code of the class" holds the code "aaaa-aaaa", but no class has this code. Check the code with your lecturer and try again.',
     lecturerCannotJoin:
       "Only students join a class, and you are signed in as a lecturer. To join as a student, sign out first.",
+    lecturerOnly:
+      "Only a lecturer creates a class, and you are signed in as a student. To teach a class, ask the person who runs this Portolab server for a lecturer account.",
     joinClassTitle: `Join ${className}`,
     joinClassBody: `${lecturerName} teaches this class. Each student starts with IDR 100,000,000 in virtual cash.`,
     newAccountTitle: "Create your student account",
@@ -480,6 +485,34 @@ for (const locale of locales) {
         device.getByRole("heading", { level: 1, name: text.notFoundTitle }),
       ).toBeVisible();
     }
+    await expectAccessibleScreen(member);
+
+    // The page of a student has no form for a class, so the test sends one as a forged page would, from this site.
+    await member.goto("/classes");
+    const refused = member.waitForResponse(
+      (response) =>
+        response.request().method() === "POST" &&
+        new URL(response.url()).pathname === "/classes",
+    );
+    await member.evaluate(() => {
+      const form = document.createElement("form");
+      form.method = "post";
+      form.action = "/classes";
+      for (const [name, value] of [
+        ["name", "Kelas Palsu"],
+        ["startingCash", "100000000"],
+      ]) {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = name ?? "";
+        input.value = value ?? "";
+        form.append(input);
+      }
+      document.body.append(form);
+      form.submit();
+    });
+    expect((await refused).status()).toBe(403);
+    await expect(member.getByRole("alert")).toHaveText(text.lecturerOnly);
     await expectAccessibleScreen(member);
 
     for (const path of ["/join", testClass.joinAddress]) {

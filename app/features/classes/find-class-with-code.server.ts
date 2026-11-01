@@ -21,6 +21,7 @@ export type CodeFailure =
 export function findClassWithCode(
   context: Readonly<RouterContextProvider>,
   value: unknown,
+  now: Date,
 ): Result<{ joinCode: JoinCode; joinedClass: ClassForStudents }, CodeFailure> {
   const field = m.classes_code_label();
   const joinCode = parseJoinCode(value, field);
@@ -29,7 +30,6 @@ export function findClassWithCode(
   }
   const limiter = context.get(joinLimitersContext).wrongCodes;
   const address = context.get(clientAddressContext);
-  const now = new Date();
   const blockedUntil = limiter.startAttempt(address, now);
   if (blockedUntil !== undefined) {
     return fail({

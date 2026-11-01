@@ -1,5 +1,5 @@
 import { RouterContextProvider } from "react-router";
-import { expect, onTestFinished, test, vi } from "vitest";
+import { expect, test } from "vitest";
 import { clientAddressContext } from "~/client-address.server";
 import { databaseContext } from "~/database/database.server";
 import type { Database } from "~/database/database.server";
@@ -32,7 +32,7 @@ const texts: Record<
     empty:
       'Kolom "Kode kelas" kosong, padahal Portolab memerlukannya. Isi kolom itu.',
     malformed:
-      'Kolom "Kode kelas" berisi kode kelas, yang terdiri dari 8 huruf dan angka, tetapi isinya "k7qm-4rx1". Periksa kodenya dengan dosen Anda.',
+      'Kolom "Kode kelas" menerima kode kelas, yang terdiri dari 8 huruf dan angka, tetapi isinya "k7qm-4rx1". Periksa kodenya dengan dosen Anda.',
     unknown:
       'Kolom "Kode kelas" berisi kode "aaaa-aaaa", tetapi tidak ada kelas dengan kode ini. Periksa kodenya dengan dosen Anda, lalu coba lagi.',
     blocked:
@@ -50,7 +50,10 @@ const texts: Record<
   },
 };
 
-/** The context that the server gives to a loader, with the database, a new limit on codes, and the address of one network. */
+// 10.00 WIB on Monday 2 November 2026, so a block that the first wrong code starts ends at 10.15 WIB.
+const now = new Date("2026-11-02T03:00:00.000Z");
+
+/** The context that the server gives to a loader, with the database, new limits on joining, and the address of one network. */
 function contextFor(database: Database): RouterContextProvider {
   const context = new RouterContextProvider();
   context.set(databaseContext, database);
@@ -90,7 +93,7 @@ test("finds the class of a code whatever its case, its spaces, and its hyphen", 
     formatJoinCode(joinCode).toUpperCase(),
     ` ${joinCode.slice(0, 4)} ${joinCode.slice(4)} `,
   ]) {
-    expect(findClassWithCode(context, typed), typed).toMatchObject({
+    expect(findClassWithCode(context, typed, now), typed).toMatchObject({
       ok: true,
       value: { joinCode, joinedClass: { name: "Manajemen Portofolio A" } },
     });
@@ -109,15 +112,15 @@ for (const locale of locales) {
     const database = openDatabaseForTest();
     await createTestClass(database);
     const context = contextFor(database);
-    expect(findClassWithCode(context, "")).toEqual({
+    expect(findClassWithCode(context, "", now)).toEqual({
       ok: false,
       failure: { kind: "wrongCode", text: text.empty, status: 400 },
     });
-    expect(findClassWithCode(context, "k7qm-4rx1")).toEqual({
+    expect(findClassWithCode(context, "k7qm-4rx1", now)).toEqual({
       ok: false,
       failure: { kind: "wrongCode", text: text.malformed, status: 400 },
     });
-    expect(findClassWithCode(context, "AAAA AAAA")).toEqual({
+    expect(findClassWithCode(context, "AAAA AAAA", now)).toEqual({
       ok: false,
       failure: { kind: "wrongCode", text: text.unknown, status: 400 },
     });
@@ -128,20 +131,15 @@ for (const locale of locales) {
     const database = openDatabaseForTest();
     const joinCode = await createTestClass(database);
     const context = contextFor(database);
-    // 10.00 WIB, so the block that the first wrong code starts ends at 10.15 WIB.
-    vi.useFakeTimers({ now: new Date("2026-11-02T03:00:00.000Z") });
-    onTestFinished(() => {
-      vi.useRealTimers();
-    });
     for (let attempt = 0; attempt < 99; attempt += 1) {
-      findClassWithCode(context, "aaaa-aaaa");
-      findClassWithCode(context, joinCode);
+      findClassWithCode(context, "aaaa-aaaa", now);
+      findClassWithCode(context, joinCode, now);
     }
-    expect(findClassWithCode(context, "aaaa-aaaa")).toEqual({
+    expect(findClassWithCode(context, "aaaa-aaaa", now)).toEqual({
       ok: false,
       failure: { kind: "wrongCode", text: text.unknown, status: 400 },
     });
-    expect(findClassWithCode(context, joinCode)).toEqual({
+    expect(findClassWithCode(context, joinCode, now)).toEqual({
       ok: false,
       failure: { kind: "blocked", text: text.blocked, status: 429 },
     });

@@ -35,6 +35,7 @@ export function loader({ context, request }: Route.LoaderArgs): {
 }
 
 export async function action({ context, request }: Route.ActionArgs) {
+  const now = new Date();
   const user = requireUser(context, request);
   const form = await request.formData();
   const currentPassword = parseFilledText(
@@ -64,7 +65,7 @@ export async function action({ context, request }: Route.ActionArgs) {
       username: user.username,
       password: currentPassword.value,
       address: context.get(clientAddressContext),
-      now: new Date(),
+      now,
     },
   );
   if (!checked.ok) {
@@ -91,7 +92,7 @@ export async function action({ context, request }: Route.ActionArgs) {
   // The new password ended every session of the account, so this device continues in a new one. The form starts over when it saved, so the passwords leave its fields.
   return data(
     {
-      savedAt: new Date().toISOString(),
+      savedAt: now.toISOString(),
       failure: undefined,
       currentPasswordFailure: undefined,
       newPasswordFailure: undefined,
@@ -99,7 +100,10 @@ export async function action({ context, request }: Route.ActionArgs) {
     },
     {
       headers: {
-        "Set-Cookie": await startSession(database, request, user.id),
+        "Set-Cookie": await startSession(database, request, {
+          userId: user.id,
+          now,
+        }),
       },
     },
   );

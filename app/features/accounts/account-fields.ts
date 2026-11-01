@@ -158,14 +158,26 @@ export function readNewStudent(
     });
   }
   return fail({
-    name: typedText(form.get("name")),
-    username: typedText(form.get("username")),
+    ...typedAccountForm(form),
     nameFailure: failureOf(name),
     usernameFailure: failureOf(username),
     newPasswordFailure: failureOf(password)?.newPasswordFailure,
     repeatedPasswordFailure: failureOf(password)?.repeatedPasswordFailure,
     consentFailure: failureOf(consent),
   });
+}
+
+/** The fields of the form that creates an account as the person typed them, without a failure, for a check after the form was read, such as whether the username is taken. */
+export function typedAccountForm(form: FormData): AccountFormFailures {
+  return {
+    name: typedText(form.get("name")),
+    username: typedText(form.get("username")),
+    nameFailure: undefined,
+    usernameFailure: undefined,
+    newPasswordFailure: undefined,
+    repeatedPasswordFailure: undefined,
+    consentFailure: undefined,
+  };
 }
 
 /** The length and the characters of a username, in the words of the active language, for the texts that state the rule. */

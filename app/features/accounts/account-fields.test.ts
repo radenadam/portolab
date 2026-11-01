@@ -40,7 +40,7 @@ const texts: Record<
     name: "Nama Anda",
     consent: "Saya menyetujui pemberitahuan privasi",
     usernameMalformed:
-      'Kolom "Nama pengguna" berisi 3 sampai 32 karakter dari a sampai z, 0 sampai 9, ".", "-", dan "_", tetapi "budi santoso" memakai karakter lain atau panjang lain. Pilih nama pengguna seperti budi.santoso.',
+      'Kolom "Nama pengguna" menerima 3 sampai 32 karakter dari a sampai z, 0 sampai 9, ".", "-", dan "_", tetapi "budi santoso" memakai karakter lain atau panjang lain. Pilih nama pengguna seperti budi.santoso.',
     tooShort:
       'Kolom "Kata sandi baru" perlu paling sedikit 15 karakter, tetapi isinya 14 karakter. Setiap karakter tambahan membuat kata sandi jauh lebih sulit ditebak, jadi pilih yang lebih panjang, misalnya kalimat pendek.',
     tooLong:
