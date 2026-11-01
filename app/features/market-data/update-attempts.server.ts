@@ -14,7 +14,7 @@ export interface UpdateAttempt {
   consecutiveFailures: number;
   /** The codes of the instruments that this attempt could not update, which are all of them when it failed. */
   failedCodes: string[];
-  /** The latest trading day whose closes the attempt asked for, which the history job records apart from when the attempt ended, because a long run can end after a later close has become final. The quote job asks for no closes, so it has none. */
+  /** The latest trading day in the closes that the attempt asked for. The history job records it apart from the time of the attempt, because a long run can end after a later close has become final. The quote job asks for no closes, so it has none. */
   finalDate?: string | undefined;
 }
 

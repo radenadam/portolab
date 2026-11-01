@@ -5,7 +5,7 @@ function isBeta(value: number): value is Beta {
   return Number.isFinite(value);
 }
 
-/** Makes a beta that the program computed into a beta. The measures fail with a typed failure for a market whose returns never change, which leaves no variance to divide by, so a value that is not finite is a defect. */
+/** Makes a beta that the program computed into a beta. The measures fail with a typed failure for a market whose returns never change, so the variance of the market is never zero here, and a value that is not finite is a defect. */
 export function beta(value: number): Beta {
   if (!isBeta(value)) {
     throw new Error(`${String(value)} is not a beta.`);

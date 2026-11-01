@@ -166,7 +166,7 @@ async function updateInstrumentHistory(
   }
 }
 
-// A close of a day whose prices can still change is left out, because only a final close belongs in the history. An answer that lacks the close of the latest trading day is stale, so it is a failure, which the job asks again for after the wait.
+// A close of a day whose prices can still change is left out, because only a final close belongs in the history. An answer that lacks the close of the latest trading day is stale. So it is a failure, and the job asks for that instrument again after the wait.
 async function fetchFinalCloses(
   { settings, pacing, finalDay }: HistoryRun,
   instrument: Instrument,

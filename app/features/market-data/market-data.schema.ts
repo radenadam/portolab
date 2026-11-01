@@ -38,7 +38,7 @@ export const priceUpdates = sqliteTable("price_updates", {
   failedCodes: text("failed_codes", { mode: "json" })
     .$type<string[]>()
     .notNull(),
-  /** The latest trading day whose closes a run of the history job asked for, and null for the quote job. */
+  /** The latest trading day in the closes that a run of the history job asked for. The quote job asks for no closes, so it stores null. */
   finalDate: text("final_date"),
 });
 

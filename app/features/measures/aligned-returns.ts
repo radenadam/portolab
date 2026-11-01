@@ -152,7 +152,7 @@ export function alignedReturns<Instrument extends InstrumentCloses>(
   });
 }
 
-// Returns that are all the same have a variance of zero, which a correlation and a beta divide by.
+// Returns that are all the same have a variance of zero, and a correlation and a beta divide by that variance.
 function hasVariation(returns: readonly ReturnMeasure[]): boolean {
   const firstValue = returns[0]?.value;
   return returns.some((measure) => measure.value !== firstValue);
