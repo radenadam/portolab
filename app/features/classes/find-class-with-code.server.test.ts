@@ -1,6 +1,6 @@
 import { RouterContextProvider } from "react-router";
 import { expect, test } from "vitest";
-import { clientAddressContext } from "~/client-address-context.server";
+import { clientAddressContext } from "~/client-address.server";
 import { databaseContext } from "~/database/database.server";
 import type { Database } from "~/database/database.server";
 import { openTestDatabase } from "~/database/open-test-database.server";

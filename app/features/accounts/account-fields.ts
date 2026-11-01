@@ -17,6 +17,7 @@ import {
   usernameLength,
 } from "./username";
 import type { Username } from "./username";
+import { normalizePassword } from "./normalize-password";
 
 // A name rarely comes near this, and a longer one would not fit where a page shows it.
 const nameMaximumLength = 100;
@@ -41,7 +42,7 @@ function parseNewPassword(
   if (!text.ok) {
     return text;
   }
-  const password = text.value.normalize("NFKC");
+  const password = normalizePassword(text.value);
   const length = characterCount(password);
   if (length < passwordLength.minimum) {
     return fail(
@@ -61,7 +62,7 @@ function parseRepeatedPassword(
   source: string,
   password: string,
 ): Result<string, string> {
-  return typeof value === "string" && value.normalize("NFKC") === password
+  return typeof value === "string" && normalizePassword(value) === password
     ? succeed(password)
     : fail(m.accounts_passwords_differ_error({ field: source }));
 }

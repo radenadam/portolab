@@ -1,5 +1,5 @@
 import type { RouterContextProvider } from "react-router";
-import { clientAddressContext } from "~/client-address-context.server";
+import { clientAddressContext } from "~/client-address.server";
 import { databaseContext } from "~/database/database.server";
 import { formatMarketClock, formatNumber } from "~/formatting";
 import { m } from "~/paraglide/messages.js";

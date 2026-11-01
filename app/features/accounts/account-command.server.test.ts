@@ -114,7 +114,7 @@ test("gives an account a temporary password, signs it out on every device, and p
 
   ${temporaryPassword}
 
-Give it to the owner of the account, who signs in with it and chooses a new password.`,
+Give it to the owner of the account, who signs in with it and chooses a new password. When wrong passwords blocked the account, the block lasts until the time that the sign-in page names, because the server keeps it apart from this command.`,
   });
   expect(resumeSession(database, token, now)).toBeUndefined();
   await expectPassword(database, create.username, temporaryPassword);

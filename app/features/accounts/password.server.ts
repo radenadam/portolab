@@ -1,4 +1,5 @@
 import { randomBytes, scrypt, timingSafeEqual } from "node:crypto";
+import { normalizePassword } from "./normalize-password.ts";
 
 /** A password hashed with scrypt, in the PHC string format, which names the parameters, the salt, and the hash. */
 export type PasswordHash = string & { readonly brand: "PasswordHash" };
@@ -60,7 +61,6 @@ export async function verifyPassword(
   return timingSafeEqual(actual, expected);
 }
 
-// The same text can arrive as different code points, such as an accented letter typed on a phone or on a computer, so every password is hashed in one normal form.
 function deriveKey(
   password: string,
   salt: Buffer,
@@ -68,7 +68,7 @@ function deriveKey(
 ): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     scrypt(
-      password.normalize("NFKC"),
+      normalizePassword(password),
       salt,
       keyBytes,
       {

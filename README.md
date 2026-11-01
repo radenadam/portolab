@@ -42,7 +42,7 @@ The command prints a temporary password and says what the lecturer does with it.
 pnpm account reset-password <username>
 ```
 
-The command works on the database that `DATABASE_PATH` names, so run it with the same environment variables as the server. It can run while the server runs.
+The command works on the database that `DATABASE_PATH` names, so run it with the same environment variables as the server. It can run while the server runs, but it cannot end a block after wrong passwords, which the server keeps until the time that the sign-in page names.
 
 ## Configuration
 

@@ -1,8 +1,11 @@
 import { createRequestHandler } from "@react-router/express";
-import type { RequestHandler } from "express";
+import type { Request, RequestHandler } from "express";
 import { RouterContextProvider } from "react-router";
 import type { ServerBuild } from "react-router";
-import { clientAddressContext } from "~/client-address-context.server";
+import {
+  clientAddressContext,
+  parseNetworkAddress,
+} from "~/client-address.server";
 import {
   closeDatabase,
   databaseContext,
@@ -80,9 +83,14 @@ export function createApp(services: Services): RequestHandler {
       context.set(priceSourceContext, services.priceSource);
       context.set(passwordLimitersContext, services.passwordLimiters);
       context.set(joinLimiterContext, services.joinLimiter);
-      // Express knows no address only when the connection already closed, and such a request shares the limits of every other one like it.
-      context.set(clientAddressContext, request.ip ?? "");
+      context.set(clientAddressContext, clientAddress(request));
       return context;
     },
   });
+}
+
+// A proxy that forges its header gives the address of its own connection instead, which is a real address. Express knows no address only when the connection already closed, and such a request shares the limits of every other one like it.
+function clientAddress(request: Request): string {
+  const forwarded = parseNetworkAddress(request.ip, "The address of a request");
+  return forwarded.ok ? forwarded.value : (request.socket.remoteAddress ?? "");
 }

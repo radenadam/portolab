@@ -17,7 +17,7 @@ export type ClassId = number & { readonly brand: "ClassId" };
 /** The number that identifies a student in a class, against which the portfolio of the student in that class is kept. */
 export type MembershipId = number & { readonly brand: "MembershipId" };
 
-/** Each class, which its lecturer teaches, with the cash that each of its students starts with and the code with which they join. */
+/** Each class, which its lecturer teaches, with the cash that each of its students starts with and the code with which they join. A class lives until the person who runs the server deletes it, as the privacy notice states. */
 export const classes = sqliteTable(
   "classes",
   {
@@ -34,7 +34,7 @@ export const classes = sqliteTable(
   (table) => [index("classes_lecturer_id_index").on(table.lecturerId)],
 );
 
-/** Each student in each class that the student joined. */
+/** Each student in each class that the student joined. A membership lives as long as its class and its student, as the privacy notice states. */
 export const memberships = sqliteTable(
   "memberships",
   {

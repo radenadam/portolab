@@ -64,7 +64,7 @@ export async function runAccountCommand(
       }
       const temporaryPassword = await resetPassword(database, account.id);
       return succeed(
-        `Portolab signed the account "${username}" out on every device and gave it a temporary password:\n\n  ${temporaryPassword}\n\nGive it to the owner of the account, who signs in with it and chooses a new password.`,
+        `Portolab signed the account "${username}" out on every device and gave it a temporary password:\n\n  ${temporaryPassword}\n\nGive it to the owner of the account, who signs in with it and chooses a new password. When wrong passwords blocked the account, the block lasts until the time that the sign-in page names, because the server keeps it apart from this command.`,
       );
     }
   }

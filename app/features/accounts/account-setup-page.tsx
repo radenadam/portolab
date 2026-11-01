@@ -10,8 +10,8 @@ import { fail, failureOf, succeed } from "~/result";
 import type { Result } from "~/result";
 import { returnDestination } from "~/return-destination.server";
 import type { Route } from "./+types/account-setup-page";
-import { readyUser } from "./account";
-import type { Account } from "./account";
+import { missingSteps, readyUser } from "./account";
+import type { MissingSteps } from "./account";
 import {
   parseConsent,
   parsePersonName,
@@ -23,21 +23,6 @@ import { NewPasswordFields } from "./new-password-fields";
 import { updateAccount } from "./account-store.server";
 import type { AccountChanges } from "./account-store.server";
 import { requireSession, startSession } from "./current-session.server";
-
-/** The steps that an account still needs before Portolab serves the person. */
-interface MissingSteps {
-  name: boolean;
-  password: boolean;
-  consent: boolean;
-}
-
-function missingSteps(account: Account): MissingSteps {
-  return {
-    name: account.name === null,
-    password: account.mustChangePassword,
-    consent: account.consentedAt === null,
-  };
-}
 
 // A lecturer whom the server owner created still lacks a name and consent, while a person whose password was reset only needs a new password.
 function isFirstSetup(steps: MissingSteps): boolean {
