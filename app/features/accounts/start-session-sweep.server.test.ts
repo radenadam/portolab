@@ -6,7 +6,8 @@ import { startSessionSweep } from "./start-session-sweep.server";
 import { createTestLecturer } from "./accounts-for-test.server";
 
 const start = new Date("2026-11-02T03:00:00.000Z");
-const fourteenDays = 14 * dayMilliseconds;
+// 14 days after a visit that the session did not record, which can come up to an hour after the one that it recorded.
+const sessionLifetime = 14 * dayMilliseconds + hourMilliseconds;
 
 test("deletes the sessions that ended at its start and then every hour, without any request", async () => {
   const database = openDatabaseForTest();
@@ -18,10 +19,10 @@ test("deletes the sessions that ended at its start and then every hour, without 
   const ended = createSession(
     database,
     account.id,
-    new Date(start.getTime() - fourteenDays),
+    new Date(start.getTime() - sessionLifetime),
   );
   const lastUseWithinAnHourOfEnd = new Date(
-    start.getTime() - fourteenDays + hourMilliseconds / 2,
+    start.getTime() - sessionLifetime + hourMilliseconds / 2,
   );
   const endsWithinAnHour = createSession(
     database,

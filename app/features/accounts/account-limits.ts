@@ -4,5 +4,5 @@ export const passwordLimits = {
   byAddress: { failures: 100, windowMinutes: 15 },
 } as const;
 
-/** The days without a visit after which a session ends. A week passes between two meetings of a class, so a student who misses one meeting still finds the session. */
+/** The days without a visit after which a session ends, at most an hour later because a session records a visit at most once an hour. A week passes between two meetings of a class, so a student who misses one meeting still finds the session. */
 export const sessionInactivityDays = 14;

@@ -17,6 +17,8 @@ import {
 import type { SessionToken } from "./session-store.server";
 
 const start = new Date("2026-11-02T03:00:00.000Z");
+// 14 days after a visit that the session did not record, which can come up to an hour after the one that it recorded.
+const sessionLifetime = 14 * dayMilliseconds + hourMilliseconds;
 
 function later(milliseconds: number): Date {
   return new Date(start.getTime() + milliseconds);
@@ -42,7 +44,7 @@ test("finds no session for a token whose secret differs", async () => {
   expect(resumeSession(database, forged, start)).toBeUndefined();
 });
 
-test("extends a session at most once an hour, and ends it after 14 days without a visit", async () => {
+test("extends a session at most once an hour", async () => {
   const database = openDatabaseForTest();
   const { account } = await createTestLecturer(database, "dosen");
   const token = createSession(database, account.id, start);
@@ -52,26 +54,48 @@ test("extends a session at most once an hour, and ends it after 14 days without 
   expect(
     resumeSession(database, token, later(hourMilliseconds))?.wasExtended,
   ).toBe(true);
-  const lastVisit = later(hourMilliseconds + 14 * dayMilliseconds - 1);
-  expect(resumeSession(database, token, lastVisit)?.wasExtended).toBe(true);
+});
+
+test("keeps a session for 14 days after a visit that it did not record", async () => {
+  const database = openDatabaseForTest();
+  const { account } = await createTestLecturer(database, "dosen");
+  const token = createSession(database, account.id, start);
+  const unrecordedVisit = later(hourMilliseconds - 1);
+  expect(resumeSession(database, token, unrecordedVisit)?.wasExtended).toBe(
+    false,
+  );
   expect(
     resumeSession(
       database,
       token,
-      new Date(lastVisit.getTime() + 14 * dayMilliseconds),
+      new Date(unrecordedVisit.getTime() + 14 * dayMilliseconds),
     ),
-  ).toBeUndefined();
-  expect(resumeSession(database, token, lastVisit)).toBeUndefined();
+  ).toBeDefined();
 });
 
-test("deletes the sessions that were unused for 14 days, and keeps the others", async () => {
+test("ends a session 14 days and an hour after the last visit that it recorded", async () => {
+  const database = openDatabaseForTest();
+  const { account } = await createTestLecturer(database, "dosen");
+  const kept = createSession(database, account.id, start);
+  const ended = createSession(database, account.id, start);
+  expect(
+    resumeSession(database, kept, later(sessionLifetime - 1)),
+  ).toBeDefined();
+  expect(
+    resumeSession(database, ended, later(sessionLifetime)),
+  ).toBeUndefined();
+  // The session that ended is deleted, so it stays missing at a moment within its lifetime.
+  expect(resumeSession(database, ended, start)).toBeUndefined();
+});
+
+test("deletes the sessions whose lifetime ended, and keeps the others", async () => {
   const database = openDatabaseForTest();
   const { account } = await createTestLecturer(database, "dosen");
   const unused = createSession(database, account.id, start);
-  const used = createSession(database, account.id, later(dayMilliseconds));
-  deleteExpiredSessions(database, later(14 * dayMilliseconds));
+  const used = createSession(database, account.id, later(1));
+  deleteExpiredSessions(database, later(sessionLifetime));
   expect(resumeSession(database, unused, start)).toBeUndefined();
-  expect(resumeSession(database, used, later(dayMilliseconds))).toBeDefined();
+  expect(resumeSession(database, used, later(1))).toBeDefined();
 });
 
 test("ends one session, or every session of a person", async () => {

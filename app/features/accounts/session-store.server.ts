@@ -23,9 +23,12 @@ export type SessionToken = string & { readonly brand: "SessionToken" };
 
 // Each part has 24 characters of five bits, which makes 120 random bits, as the guide of Lucia on sessions does.
 const tokenPartLength = 24;
-const inactivityMilliseconds = sessionInactivityDays * dayMilliseconds;
 // Writing the time of every request would make every page wait for the one writer that SQLite allows, so the time is written at most once in this interval.
 const usageRecordMilliseconds = hourMilliseconds;
+
+/** How long a session and its cookie live after the last visit that the session recorded. A visit within the interval of usageRecordMilliseconds after it is not recorded, so the session lives through that interval as well, which keeps it for the days of sessionInactivityDays after every visit. */
+export const sessionLifetimeMilliseconds =
+  sessionInactivityDays * dayMilliseconds + usageRecordMilliseconds;
 
 /** The session that the token of a request names, with the account that it signs in. */
 export interface CurrentSession {
@@ -89,7 +92,7 @@ export function resumeSession(
     return undefined;
   }
   const unusedMilliseconds = now.getTime() - row.lastUsedAt.getTime();
-  if (unusedMilliseconds >= inactivityMilliseconds) {
+  if (unusedMilliseconds >= sessionLifetimeMilliseconds) {
     deleteSession(database, id);
     return undefined;
   }
@@ -108,14 +111,14 @@ export function deleteSession(database: Database, id: string): void {
   database.delete(sessions).where(eq(sessions.id, id)).run();
 }
 
-/** Deletes every session that was unused for longer than a session lives, because its cookie never returns to end it. */
+/** Deletes every session whose lifetime ended, because its cookie never returns to end it. */
 export function deleteExpiredSessions(database: Database, now: Date): void {
   database
     .delete(sessions)
     .where(
       lte(
         sessions.lastUsedAt,
-        new Date(now.getTime() - inactivityMilliseconds),
+        new Date(now.getTime() - sessionLifetimeMilliseconds),
       ),
     )
     .run();
