@@ -22,6 +22,11 @@ export function PrivacyNotice(): ReactNode {
           })}
         </li>
         <li>
+          {m.accounts_privacy_attempts_body({
+            minutes: formatNumber(passwordLimits.byUsername.windowMinutes),
+          })}
+        </li>
+        <li>
           {m.accounts_privacy_address_body({
             minutes: formatNumber(passwordLimits.byAddress.windowMinutes),
           })}

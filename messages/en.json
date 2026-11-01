@@ -91,8 +91,8 @@
   "accounts_privacy_rights_body": "Indonesia's Law Number 27 of 2022 on Personal Data Protection gives you the right to see, correct, and delete your data, and to withdraw your agreement. Portolab keeps your data until the person who runs this server deletes it, so ask them for any of these.",
   "accounts_sign_out_title": "Sign out",
   "accounts_sign_out_body": "Sign out of Portolab on this device.",
-  "accounts_username_hint": "You sign in with it. It has {minimum} to {maximum} characters from a to z, 0 to 9, \".\", \"-\", and \"_\".",
-  "accounts_username_error": "The field \"{field}\" takes {minimum} to {maximum} characters from a to z, 0 to 9, \".\", \"-\", and \"_\", but \"{value}\" has others or another length. Choose a username such as budi.santoso.",
+  "accounts_username_hint": "You sign in with it. It has {minimum} to {maximum} characters from {characters}.",
+  "accounts_username_error": "The field \"{field}\" takes {minimum} to {maximum} characters from {characters}, but \"{value}\" has others or another length. Choose a username such as budi.santoso.",
   "home_join_link": "Join a class with its code",
   "home_classes_link": "Your classes",
   "classes_title": "Your classes",
@@ -139,5 +139,7 @@
   "classes_join_label": "Join the class",
   "classes_other_code_link": "Enter another code",
   "classes_username_taken_error": "The username {username} is taken. Choose another one, for example with a number at its end.",
-  "classes_taught_class_notice": "Students: {count}. Starting cash: {cash}."
+  "classes_taught_class_notice": "Students: {count}. Starting cash: {cash}.",
+  "accounts_privacy_attempts_body": "A username that someone typed with a wrong password, in memory only, for {minutes} minutes after each wrong password for it, to stop anyone from guessing the password of an account.",
+  "accounts_character_range_label": "{first} to {last}"
 }

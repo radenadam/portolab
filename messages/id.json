@@ -91,8 +91,8 @@
   "accounts_privacy_rights_body": "Undang-Undang Nomor 27 Tahun 2022 tentang Pelindungan Data Pribadi memberi Anda hak untuk melihat, memperbaiki, dan menghapus data Anda, serta menarik persetujuan Anda. Portolab menyimpan data Anda sampai orang yang menjalankan server ini menghapusnya, jadi mintalah hal-hal tersebut kepada mereka.",
   "accounts_sign_out_title": "Keluar",
   "accounts_sign_out_body": "Keluar dari Portolab di perangkat ini.",
-  "accounts_username_hint": "Anda masuk dengan nama ini. Panjangnya {minimum} sampai {maximum} karakter dari a sampai z, 0 sampai 9, \".\", \"-\", dan \"_\".",
-  "accounts_username_error": "Kolom \"{field}\" berisi {minimum} sampai {maximum} karakter dari a sampai z, 0 sampai 9, \".\", \"-\", dan \"_\", tetapi \"{value}\" memakai karakter lain atau panjang lain. Pilih nama pengguna seperti budi.santoso.",
+  "accounts_username_hint": "Anda masuk dengan nama ini. Panjangnya {minimum} sampai {maximum} karakter dari {characters}.",
+  "accounts_username_error": "Kolom \"{field}\" berisi {minimum} sampai {maximum} karakter dari {characters}, tetapi \"{value}\" memakai karakter lain atau panjang lain. Pilih nama pengguna seperti budi.santoso.",
   "home_join_link": "Gabung ke kelas dengan kodenya",
   "home_classes_link": "Kelas Anda",
   "classes_title": "Kelas Anda",
@@ -139,5 +139,7 @@
   "classes_join_label": "Gabung ke kelas",
   "classes_other_code_link": "Masukkan kode lain",
   "classes_username_taken_error": "Nama pengguna {username} sudah dipakai. Pilih yang lain, misalnya dengan angka di akhirnya.",
-  "classes_taught_class_notice": "Mahasiswa: {count}. Modal awal: {cash}."
+  "classes_taught_class_notice": "Mahasiswa: {count}. Modal awal: {cash}.",
+  "accounts_privacy_attempts_body": "Nama pengguna yang diketik seseorang dengan kata sandi salah, hanya di memori, selama {minutes} menit setelah setiap kata sandi salah untuknya, untuk mencegah siapa pun menebak kata sandi sebuah akun.",
+  "accounts_character_range_label": "{first} sampai {last}"
 }

@@ -12,7 +12,7 @@ import {
 import { failuresOf } from "../app/result.ts";
 import { parseDatabasePath } from "./server-options.ts";
 
-// The person who runs the server creates the first lecturer with this command, and gives a new password to an account whose owner cannot sign in. README.md describes it.
+// README.md describes this command for the person who runs the server.
 const command = parseAccountCommand(process.argv.slice(2), "The command line");
 const databasePath = parseDatabasePath(
   process.env["DATABASE_PATH"],

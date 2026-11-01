@@ -5,12 +5,17 @@ import {
   parseShortText,
   typedText,
 } from "~/form-text";
-import { formatNumber } from "~/formatting";
+import { formatList, formatNumber } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { fail, failureOf, succeed } from "~/result";
 import type { Result } from "~/result";
 import type { NewStudent } from "./account-store.server";
-import { isUsername, normalizeUsername, usernameLength } from "./username";
+import {
+  describeUsernameCharacters,
+  isUsername,
+  normalizeUsername,
+  usernameLength,
+} from "./username";
 import type { Username } from "./username";
 
 // A name rarely comes near this, and a longer one would not fit where a page shows it.
@@ -128,8 +133,7 @@ export function parseNewUsername(
         m.accounts_username_error({
           field: source,
           value: text.value.trim(),
-          minimum: formatNumber(usernameLength.minimum),
-          maximum: formatNumber(usernameLength.maximum),
+          ...usernameRule(),
         }),
       );
 }
@@ -161,4 +165,22 @@ export function readNewStudent(
     repeatedPasswordFailure: failureOf(password)?.repeatedPasswordFailure,
     consentFailure: failureOf(consent),
   });
+}
+
+/** The length and the characters of a username, in the words of the active language, for the texts that state the rule. */
+export function usernameRule(): {
+  minimum: string;
+  maximum: string;
+  characters: string;
+} {
+  return {
+    minimum: formatNumber(usernameLength.minimum),
+    maximum: formatNumber(usernameLength.maximum),
+    characters: formatList(
+      describeUsernameCharacters((first, last) =>
+        m.accounts_character_range_label({ first, last }),
+      ),
+      "conjunction",
+    ),
+  };
 }

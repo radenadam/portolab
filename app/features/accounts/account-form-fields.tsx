@@ -1,10 +1,9 @@
 import type { ReactNode } from "react";
 import { CheckboxField, TextField } from "~/form";
-import { formatNumber } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
+import { usernameRule } from "./account-fields";
 import type { AccountFormFailures } from "./account-fields";
 import { PrivacyNotice } from "./privacy-notice";
-import { usernameLength } from "./username";
 
 export function NameField({
   hint,
@@ -39,10 +38,7 @@ export function UsernameField({
       label={m.accounts_username_label()}
       type="text"
       autoComplete="username"
-      hint={m.accounts_username_hint({
-        minimum: formatNumber(usernameLength.minimum),
-        maximum: formatNumber(usernameLength.maximum),
-      })}
+      hint={m.accounts_username_hint(usernameRule())}
       failure={failures?.usernameFailure}
       defaultValue={failures?.username}
     />
