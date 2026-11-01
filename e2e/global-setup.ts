@@ -1,5 +1,4 @@
 import { spawn } from "node:child_process";
-import { once } from "node:events";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -30,16 +29,24 @@ export default async function globalSetup(): Promise<() => Promise<void>> {
     },
     stdio: ["ignore", "ignore", "inherit"],
   });
+  // A child that a signal ends keeps exitCode at null, so only the exit event tells that the server stopped and why.
+  let exitReason: string | undefined;
+  const exited = new Promise<void>((resolve) => {
+    server.once("exit", (code, signal) => {
+      exitReason =
+        signal === null ? `code ${String(code)}` : `signal ${signal}`;
+      resolve();
+    });
+  });
   const stop = async (): Promise<void> => {
-    if (server.exitCode === null) {
-      const exited = once(server, "exit");
+    if (exitReason === undefined) {
       server.kill();
       await exited;
     }
     rmSync(folder, { recursive: true, force: true });
   };
   try {
-    await waitForHealth(() => server.exitCode);
+    await waitForHealth(() => exitReason);
   } catch (error) {
     await stop();
     throw error;
@@ -48,13 +55,15 @@ export default async function globalSetup(): Promise<() => Promise<void>> {
   return stop;
 }
 
-async function waitForHealth(exitCode: () => number | null): Promise<void> {
+async function waitForHealth(
+  exitReason: () => string | undefined,
+): Promise<void> {
   const deadline = Date.now() + startupTimeoutSeconds * 1000;
   while (Date.now() < deadline) {
-    const code = exitCode();
-    if (code !== null) {
+    const reason = exitReason();
+    if (reason !== undefined) {
       throw new Error(
-        `The server of the browser tests stopped with code ${String(code)} before it answered on /health.`,
+        `The server of the browser tests stopped with ${reason} before it answered on /health.`,
       );
     }
     if (await answersHealth()) {

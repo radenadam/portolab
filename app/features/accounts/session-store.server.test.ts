@@ -3,6 +3,7 @@ import { openTestDatabase } from "~/database/open-test-database.server";
 import { createTestLecturer } from "./test-accounts.server";
 import {
   createSession,
+  deleteExpiredSessions,
   deleteSession,
   deleteSessionsOfUser,
   parseSessionToken,
@@ -55,6 +56,16 @@ test("extends a session at most once an hour, and ends it after 14 days without 
     resumeSession(database, token, new Date(lastVisit.getTime() + 14 * day)),
   ).toBeUndefined();
   expect(resumeSession(database, token, lastVisit)).toBeUndefined();
+});
+
+test("deletes the sessions that were unused for 14 days, and keeps the others", async () => {
+  const database = openTestDatabase();
+  const { account } = await createTestLecturer(database, "dosen");
+  const unused = createSession(database, account.id, start);
+  const used = createSession(database, account.id, later(day));
+  deleteExpiredSessions(database, later(14 * day));
+  expect(resumeSession(database, unused, start)).toBeUndefined();
+  expect(resumeSession(database, used, later(day))).toBeDefined();
 });
 
 test("ends one session, or every session of a person", async () => {

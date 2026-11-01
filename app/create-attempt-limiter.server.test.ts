@@ -1,4 +1,4 @@
-import { expect, test } from "vitest";
+import { expect, onTestFinished, test, vi } from "vitest";
 import { createAttemptLimiter } from "./create-attempt-limiter.server";
 import type { AttemptLimiter } from "./create-attempt-limiter.server";
 
@@ -83,4 +83,26 @@ test("forgets every attempt of a key on request", () => {
   attemptsAt(limiter, [0]);
   limiter.forget("budi");
   expect(attemptsAt(limiter, [0])).toEqual([undefined]);
+});
+
+test("drops a key from memory once its last attempt leaves the window, even when the key never tries again", () => {
+  vi.useFakeTimers({ now: start });
+  onTestFinished(() => {
+    vi.useRealTimers();
+  });
+  const limiter = createAttemptLimiter({ failures: 3, windowMinutes: 15 });
+  limiter.startAttempt("budi", new Date());
+  vi.advanceTimersByTime(5 * 60_000);
+  limiter.startAttempt("budi", new Date());
+  vi.advanceTimersByTime(10 * 60_000);
+  expect(limiter.keyCount()).toBe(1);
+  vi.advanceTimersByTime(5 * 60_000);
+  expect(limiter.keyCount()).toBe(0);
+});
+
+test("drops a key at once when its only attempt is taken back", () => {
+  const limiter = createAttemptLimiter({ failures: 3, windowMinutes: 15 });
+  limiter.startAttempt("budi", start);
+  limiter.takeBack("budi", start);
+  expect(limiter.keyCount()).toBe(0);
 });

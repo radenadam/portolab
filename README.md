@@ -36,7 +36,7 @@ Nobody signs up as a lecturer. The person who runs the server creates each lectu
 pnpm account create-lecturer <username>
 ```
 
-The command prints a temporary password, with what the lecturer does with it. When a lecturer forgets the password, the same command gives the account a new temporary password and signs it out on every device:
+The command prints a temporary password and says what the lecturer does with it. When a lecturer forgets the password, the same command gives the account a new temporary password and signs it out on every device:
 
 ```sh
 pnpm account reset-password <username>

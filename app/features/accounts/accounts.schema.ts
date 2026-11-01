@@ -43,5 +43,8 @@ export const sessions = sqliteTable(
       .references(() => users.id, { onDelete: "cascade" }),
     lastUsedAt: integer("last_used_at", { mode: "timestamp_ms" }).notNull(),
   },
-  (table) => [index("sessions_user_id_index").on(table.userId)],
+  (table) => [
+    index("sessions_user_id_index").on(table.userId),
+    index("sessions_last_used_at_index").on(table.lastUsedAt),
+  ],
 );

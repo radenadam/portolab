@@ -1,5 +1,5 @@
 import { createHash, timingSafeEqual } from "node:crypto";
-import { eq } from "drizzle-orm";
+import { eq, lte } from "drizzle-orm";
 import type {
   Database,
   DatabaseWriter,
@@ -105,6 +105,19 @@ export function resumeSession(
 
 export function deleteSession(database: Database, id: string): void {
   database.delete(sessions).where(eq(sessions.id, id)).run();
+}
+
+/** Deletes every session that was unused for longer than a session lives, because its cookie never returns to end it. */
+export function deleteExpiredSessions(database: Database, now: Date): void {
+  database
+    .delete(sessions)
+    .where(
+      lte(
+        sessions.lastUsedAt,
+        new Date(now.getTime() - inactivityMilliseconds),
+      ),
+    )
+    .run();
 }
 
 /** Signs a person out on every device, which a new password requires. */

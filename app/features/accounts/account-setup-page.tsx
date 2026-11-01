@@ -81,7 +81,10 @@ export async function action({ context, request }: Route.ActionArgs) {
   }
   const database = context.get(databaseContext);
   await updateAccount(database, session.account.id, changes.value);
-  // A new password ends every session of the account, so the person continues in a new one.
+  if (changes.value.password === undefined) {
+    return redirect(destination);
+  }
+  // A new password ended every session of the account, so the person continues in a new one.
   return redirect(destination, {
     headers: {
       "Set-Cookie": await startSession(database, request, session.account.id),
@@ -91,11 +94,11 @@ export async function action({ context, request }: Route.ActionArgs) {
 
 /** The reason that each field of the form was not accepted, and the name as the person typed it, so the form can show it again. */
 interface SetupFailures {
-  typedName: string;
-  name: string | undefined;
-  password: string | undefined;
-  repeatedPassword: string | undefined;
-  consent: string | undefined;
+  name: string;
+  nameFailure: string | undefined;
+  newPasswordFailure: string | undefined;
+  repeatedPasswordFailure: string | undefined;
+  consentFailure: string | undefined;
 }
 
 /** Reads each field that the account still lacks. */
@@ -123,11 +126,11 @@ function readSetupForm(
   if (!name.ok || !password.ok || !repeatedPassword.ok || !consent.ok) {
     const typedName = form.get("name");
     return fail({
-      typedName: typeof typedName === "string" ? typedName : "",
-      name: failureOf(name),
-      password: failureOf(password),
-      repeatedPassword: failureOf(repeatedPassword),
-      consent: failureOf(consent),
+      name: typeof typedName === "string" ? typedName : "",
+      nameFailure: failureOf(name),
+      newPasswordFailure: failureOf(password),
+      repeatedPasswordFailure: failureOf(repeatedPassword),
+      consentFailure: failureOf(consent),
     });
   }
   return succeed({
@@ -176,8 +179,8 @@ export default function AccountSetupPage({
             autoComplete="name"
             capitalizesWords
             hint={m.accounts_lecturer_name_hint()}
-            failure={actionData?.name}
-            defaultValue={actionData?.typedName}
+            failure={actionData?.nameFailure}
+            defaultValue={actionData?.name}
           />
         )}
         {steps.password && (
@@ -190,14 +193,14 @@ export default function AccountSetupPage({
               hint={m.accounts_password_hint({
                 minimum: formatNumber(passwordLength.minimum),
               })}
-              failure={actionData?.password}
+              failure={actionData?.newPasswordFailure}
             />
             <TextField
               name="repeatedPassword"
               label={m.accounts_repeated_password_label()}
               type="password"
               autoComplete="new-password"
-              failure={actionData?.repeatedPassword}
+              failure={actionData?.repeatedPasswordFailure}
             />
           </>
         )}
@@ -208,7 +211,7 @@ export default function AccountSetupPage({
             <CheckboxField
               name="consent"
               label={m.accounts_consent_label()}
-              failure={actionData?.consent}
+              failure={actionData?.consentFailure}
             />
           </>
         )}

@@ -14,14 +14,14 @@ const failures: Record<
     notText:
       'Formulir mengirim nilai bertipe File di kolom "Nama Anda", bukan teks. Muat ulang halaman, lalu isi formulir lagi.',
     tooLong:
-      'Kolom "Nama Anda" memuat paling banyak 1.000 karakter, tetapi isinya 1.001 karakter.',
+      'Kolom "Nama Anda" memuat paling banyak 1.000 karakter, tetapi isinya 1.001 karakter. Persingkat isinya.',
   },
   en: {
     empty: 'Fill in the field "Your name".',
     notText:
       'The form sent a value of type File in the field "Your name" instead of text. Reload the page and fill in the form again.',
     tooLong:
-      'The field "Your name" holds at most 1,000 characters, but it has 1,001.',
+      'The field "Your name" holds at most 1,000 characters, but it has 1,001. Shorten it.',
   },
 };
 

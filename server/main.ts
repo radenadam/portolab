@@ -64,8 +64,8 @@ const serveApp: Record<
 
 const server = express();
 server.disable("x-powered-by");
-// A proxy on the same machine, which serves Portolab over HTTPS, names the protocol and the address of each visitor in its headers. Express trusts those headers only from such a proxy, so the session cookie is Secure behind it, and the limits on passwords count each visitor apart.
-server.set("trust proxy", "loopback");
+// Decision 0005 explains why Express trusts the headers of a proxy from these addresses only.
+server.set("trust proxy", ["loopback", "uniquelocal"]);
 const services = await serveApp[mode.value](server, settings);
 
 const listener = server.listen(port.value, () => {
