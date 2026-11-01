@@ -232,18 +232,15 @@ const failureTexts: FailureTexts = {
     );
     return sentences.join(" ");
   },
-  priceRose: (failure) => {
-    const checkedPrice = formatRupiah(failure.checkedPrice);
-    // The order set aside the cost of its shares at the price it was checked at, so a limit order at that price is within the cash it could use.
-    const sentences: string[] = [
-      m.trading_price_rose_error({ ...purchaseAmounts(failure), checkedPrice }),
-      m.trading_limit_at_checked_price_error({ checkedPrice }),
-    ];
-    if (failure.largestLots > 0) {
-      sentences.push(largestPurchaseText(failure));
-    }
-    return sentences.join(" ");
-  },
+  // A check records this rejection while nobody watches, and the student may read it days later, so its step holds whenever it is read.
+  priceRose: (failure) =>
+    [
+      m.trading_price_rose_error({
+        ...purchaseAmounts(failure),
+        checkedPrice: formatRupiah(failure.checkedPrice),
+      }),
+      m.trading_new_order_error({ code: failure.code }),
+    ].join(" "),
 };
 
 /** The text that tells a student why Portolab rejected an order, in the active language, with the numbers of the failure, the rule behind it, and a next step. */

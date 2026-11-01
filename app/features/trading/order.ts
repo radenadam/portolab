@@ -108,7 +108,7 @@ export type OrderFailure =
   | {
       kind: "noReferenceClose";
       code: string;
-      /** The trading day before the trading day of the order, whose closes the reference price needs. */
+      /** The trading day before the trading day of the order, whose final close of the stock is missing. */
       date: string;
     }
   | { kind: "tooManyLots"; lots: Lots; maximumLots: Lots }

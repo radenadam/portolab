@@ -246,7 +246,7 @@ const texts: Record<Locale, Record<FailureName, string>> = {
     noHistoryOfStock:
       "Portolab belum menyimpan riwayat harga BBCA selama satu bulan penuh, sehingga belum dapat menghitung apakah BBCA memiliki imbal hasil bulanan yang dibutuhkan ukuran portofolio. Coba lagi setelah pembaruan riwayat harga berikutnya menyimpannya.",
     noReferenceClose:
-      "Portolab belum menyimpan harga penutupan 2 November 2026 yang dibutuhkannya, padahal BEI menetapkan rentang harga order limit dari harga penutupan terakhir BBCA sebelum hari bursa order ini. Coba lagi setelah pembaruan riwayat harga berikutnya menyimpan harga penutupan hari itu, atau pasang order harga pasar, yang tidak membutuhkan limit.",
+      "Portolab belum memiliki harga penutupan final BBCA untuk 2 November 2026, padahal BEI menetapkan rentang harga order limit dari harga penutupan terakhir BBCA sebelum hari bursa order ini. Jika BBCA diperdagangkan pada 2 November 2026, pembaruan riwayat harga berikutnya menyimpan harga penutupan itu. Jika tidak, order limit dapat dipasang setelah BBCA kembali diperdagangkan dalam sesi. Order harga pasar tidak membutuhkan limit.",
     severalReturns:
       "AADI baru memiliki 21 imbal hasil bulanan, sedangkan Portolab menghitung ukuran sebuah portofolio hanya jika setiap sahamnya memiliki 24 imbal hasil bulanan. Jika AADI tetap memiliki harga penutupan di akhir setiap bulan dan tetap termasuk LQ45, Anda dapat membelinya setelah pembaruan riwayat harga yang menyimpan harga penutupan hari bursa pertama Januari 2027.",
     oneReturn:
@@ -282,9 +282,9 @@ const texts: Record<Locale, Record<FailureName, string>> = {
     noShares:
       "Order ini menjual 5 lot BBCA, sedangkan Anda tidak memegang saham BBCA, dan Anda hanya dapat menjual saham yang Anda pegang. Periksa kembali sahamnya, dan apakah Anda bermaksud membelinya.",
     priceRose:
-      "Portolab tidak mengeksekusi order harga pasar Anda untuk membeli 20 lot BBCA, karena harganya naik dari Rp\u00a04.980 menjadi Rp\u00a05.025 selama order menunggu. Pada harga Rp\u00a05.025, order tersebut membutuhkan Rp\u00a010.065.075, yaitu Rp\u00a010.050.000 untuk saham dan Rp\u00a015.075 untuk biaya broker, sedangkan kas Anda yang tersedia hanya Rp\u00a010.000.000. Order limit pada harga Rp\u00a04.980, yang hanya tereksekusi jika harga turun kembali ke sana, masih dapat dibayar oleh kas Anda yang tersedia. Order terbesar yang dapat dibayar oleh kas Anda yang tersedia pada harga Rp\u00a05.025 adalah 19 lot.",
+      "Portolab tidak mengeksekusi order harga pasar Anda untuk membeli 20 lot BBCA, karena harganya naik dari Rp\u00a04.980 menjadi Rp\u00a05.025 selama order menunggu. Pada harga Rp\u00a05.025, order tersebut membutuhkan Rp\u00a010.065.075, yaitu Rp\u00a010.050.000 untuk saham dan Rp\u00a015.075 untuk biaya broker, sedangkan kas Anda yang tersedia hanya Rp\u00a010.000.000. Pasang order baru jika Anda masih menginginkan BBCA, dan Portolab memeriksanya pada harga dan kas saat itu.",
     priceRoseByOneLot:
-      "Portolab tidak mengeksekusi order harga pasar Anda untuk membeli 1 lot BBCA, karena harganya naik dari Rp\u00a04.980 menjadi Rp\u00a05.025 selama order menunggu. Pada harga Rp\u00a05.025, order tersebut membutuhkan Rp\u00a0503.254, yaitu Rp\u00a0502.500 untuk saham dan Rp\u00a0754 untuk biaya broker, sedangkan kas Anda yang tersedia hanya Rp\u00a0500.000. Order limit pada harga Rp\u00a04.980, yang hanya tereksekusi jika harga turun kembali ke sana, masih dapat dibayar oleh kas Anda yang tersedia.",
+      "Portolab tidak mengeksekusi order harga pasar Anda untuk membeli 1 lot BBCA, karena harganya naik dari Rp\u00a04.980 menjadi Rp\u00a05.025 selama order menunggu. Pada harga Rp\u00a05.025, order tersebut membutuhkan Rp\u00a0503.254, yaitu Rp\u00a0502.500 untuk saham dan Rp\u00a0754 untuk biaya broker, sedangkan kas Anda yang tersedia hanya Rp\u00a0500.000. Pasang order baru jika Anda masih menginginkan BBCA, dan Portolab memeriksanya pada harga dan kas saat itu.",
     oneFreeLot:
       "Order ini menjual 2 lot BBCA, dan Anda memegang 3 lot. Order jual Anda yang masih terbuka menyisihkan 2 lot di antaranya sampai order tersebut tereksekusi atau kedaluwarsa. Anda dapat menjual paling banyak 1 lot.",
     noSharesForOneLot:
@@ -302,7 +302,7 @@ const texts: Record<Locale, Record<FailureName, string>> = {
     noHistoryOfStock:
       "Portolab has not stored a complete month of the price history of BBCA yet, so it cannot count whether BBCA has the monthly returns that the measures need. Try again after the next update of the price history stores it.",
     noReferenceClose:
-      "Portolab has not stored the closes of November 2, 2026 that it needs yet, and IDX sets the range of prices of a limit order from the latest close of BBCA before the trading day of the order. Try again after the next update of the price history stores the closes of that day, or place a market order, which needs no limit.",
+      "Portolab has no final close of BBCA for November 2, 2026 yet, and IDX sets the range of prices of a limit order from the latest close of BBCA before the trading day of the order. If BBCA traded on November 2, 2026, the next update of the price history stores that close. If it did not, a limit order is possible once BBCA trades again during a session. A market order needs no limit.",
     severalReturns:
       "AADI has 21 monthly returns, but Portolab computes the measures of a portfolio only when each of its stocks has 24 monthly returns. If AADI keeps a close at the end of every month and stays in the LQ45, you can buy it after the update of the price history that stores the close of the first trading day of January 2027.",
     oneReturn:
@@ -338,9 +338,9 @@ const texts: Record<Locale, Record<FailureName, string>> = {
     noShares:
       "This order sells 5 lots of BBCA, but you hold no shares of BBCA, and you can sell only shares that you hold. Check the stock, and whether you meant to buy it.",
     priceRose:
-      "Portolab did not fill your market order to buy 20 lots of BBCA, because the price rose from IDR\u00a04,980 to IDR\u00a05,025 while the order waited. At IDR\u00a05,025 the order costs IDR\u00a010,065,075, which is IDR\u00a010,050,000 for the shares and IDR\u00a015,075 for the broker fee, but your available cash was IDR\u00a010,000,000. A limit order at IDR\u00a04,980, which fills only if the price falls back to it, is within your available cash. The largest order that your available cash pays for at IDR\u00a05,025 is 19 lots.",
+      "Portolab did not fill your market order to buy 20 lots of BBCA, because the price rose from IDR\u00a04,980 to IDR\u00a05,025 while the order waited. At IDR\u00a05,025 the order costs IDR\u00a010,065,075, which is IDR\u00a010,050,000 for the shares and IDR\u00a015,075 for the broker fee, but your available cash was IDR\u00a010,000,000. Place a new order if you still want BBCA, and Portolab checks it at the price and with the cash of that moment.",
     priceRoseByOneLot:
-      "Portolab did not fill your market order to buy 1 lot of BBCA, because the price rose from IDR\u00a04,980 to IDR\u00a05,025 while the order waited. At IDR\u00a05,025 the order costs IDR\u00a0503,254, which is IDR\u00a0502,500 for the shares and IDR\u00a0754 for the broker fee, but your available cash was IDR\u00a0500,000. A limit order at IDR\u00a04,980, which fills only if the price falls back to it, is within your available cash.",
+      "Portolab did not fill your market order to buy 1 lot of BBCA, because the price rose from IDR\u00a04,980 to IDR\u00a05,025 while the order waited. At IDR\u00a05,025 the order costs IDR\u00a0503,254, which is IDR\u00a0502,500 for the shares and IDR\u00a0754 for the broker fee, but your available cash was IDR\u00a0500,000. Place a new order if you still want BBCA, and Portolab checks it at the price and with the cash of that moment.",
     oneFreeLot:
       "This order sells 2 lots of BBCA, and you hold 3 lots. Your open sell orders set aside 2 lots of them until they fill or expire. You can sell at most 1 lot.",
     noSharesForOneLot:

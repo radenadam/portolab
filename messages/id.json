@@ -54,12 +54,11 @@
   "trading_largest_sale_error": "Anda dapat menjual paling banyak {free}.",
   "trading_no_free_shares_error": "Anda dapat menjual lebih banyak saham {code} setelah salah satu order tersebut kedaluwarsa.",
   "trading_no_price_history_error": "Portolab belum menyimpan riwayat harga {instrument} selama satu bulan penuh, sehingga belum dapat menghitung apakah {code} memiliki imbal hasil bulanan yang dibutuhkan ukuran portofolio. Coba lagi setelah pembaruan riwayat harga berikutnya menyimpannya.",
-  "trading_no_reference_close_error": "Portolab belum menyimpan harga penutupan {date} yang dibutuhkannya, padahal BEI menetapkan rentang harga order limit dari harga penutupan terakhir {code} sebelum hari bursa order ini. Coba lagi setelah pembaruan riwayat harga berikutnya menyimpan harga penutupan hari itu, atau pasang order harga pasar, yang tidak membutuhkan limit.",
+  "trading_no_reference_close_error": "Portolab belum memiliki harga penutupan final {code} untuk {date}, padahal BEI menetapkan rentang harga order limit dari harga penutupan terakhir {code} sebelum hari bursa order ini. Jika {code} diperdagangkan pada {date}, pembaruan riwayat harga berikutnya menyimpan harga penutupan itu. Jika tidak, order limit dapat dipasang setelah {code} kembali diperdagangkan dalam sesi. Order harga pasar tidak membutuhkan limit.",
   "trading_lots_not_whole_error": "Kolom \"{field}\" berisi \"{value}\", tetapi jumlah lot harus bilangan bulat mulai dari 1, misalnya 5. Masukkan jumlah lot order ini.",
   "trading_sell_for_cash_error": "Menjual saham yang Anda pegang menambah kas Anda yang tersedia, yang saat ini sebesar {available}.",
   "trading_wait_for_cash_error": "Order beli Anda yang masih terbuka mengembalikan {setAside} yang disisihkannya ke kas Anda yang tersedia saat kedaluwarsa.",
   "trading_lower_price_error": "Pilih harga yang lebih rendah dari {price} atau saham lain.",
-  "trading_limit_at_checked_price_error": "Order limit pada harga {checkedPrice}, yang hanya tereksekusi jika harga turun kembali ke sana, masih dapat dibayar oleh kas Anda yang tersedia.",
   "app_empty_field_error": "Kolom \"{field}\" kosong, padahal Portolab memerlukannya. Isi kolom itu.",
   "app_not_text_error": "Formulir mengirim nilai bertipe {type} di kolom \"{field}\", bukan teks. Muat ulang halaman, lalu isi formulir lagi.",
   "app_too_long_error": "Kolom \"{field}\" memuat paling banyak {maximum} karakter, tetapi isinya {length} karakter. Persingkat isinya.",
@@ -122,5 +121,6 @@
   "accounts_sign_out_body": "Keluar dari Portolab di perangkat ini.",
   "accounts_privacy_attempts_body": "Nama pengguna yang diketik seseorang dengan kata sandi salah, hanya di memori, selama {minutes} menit setelah setiap kata sandi salah untuknya, untuk mencegah siapa pun menebak kata sandi sebuah akun.",
   "trading_lots_too_many_error": "Kolom \"{field}\" berisi \"{value}\", jauh lebih banyak daripada lot yang diterima BEI dalam satu order. Masukkan jumlah lot yang lebih kecil.",
-  "trading_wait_for_sales_error": "Order jual {codes} Anda yang masih terbuka menambah kas Anda yang tersedia saat tereksekusi."
+  "trading_wait_for_sales_error": "Order jual {codes} Anda yang masih terbuka menambah kas Anda yang tersedia saat tereksekusi.",
+  "trading_new_order_error": "Pasang order baru jika Anda masih menginginkan {code}, dan Portolab memeriksanya pada harga dan kas saat itu."
 }

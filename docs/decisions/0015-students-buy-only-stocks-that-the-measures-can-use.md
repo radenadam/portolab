@@ -19,5 +19,5 @@ Decision 0013 computes the measures of a stock from at least 24 monthly returns,
 
 ## Consequences
 
-- A portfolio has its measures, so the sessions on CAPM and on portfolio return and risk can rely on them. The rule checks each stock against the market alone, but the measures of a portfolio use only the months that all its stocks share. So a portfolio can still lose its measures when its stocks lack the close of different months, such as after a suspension, and the measures then name the stock with the fewest returns.
+- A portfolio has its measures, so the sessions on CAPM and on portfolio return and risk can rely on them. The rule checks each stock against the market alone, but the measures of a portfolio use only the months that all its stocks share. So a portfolio can still lose its measures when a holding loses returns after its purchase, such as when a suspension leaves it without the close of a month, or when its stocks lack the closes of different months. The measures then name the stock with the fewest returns.
 - A stock that joins the LQ45 soon after it lists waits up to two years before students can buy it, and the rejection of an order says until when.

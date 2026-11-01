@@ -64,7 +64,7 @@ interface TradingDay {
   date: string;
   tradesFrom: Date;
   expiresAt: Date;
-  /** The trading day before it, whose close or the close of the last day before it on which the stock traded is the reference price. */
+  /** The trading day before it, whose close is the reference price. */
   previousDate: string;
   rules: IdxRules;
   rates: CostRates;
