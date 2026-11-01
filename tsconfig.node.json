@@ -4,7 +4,7 @@
     "server/main.ts",
     "server/server-options.ts",
     "server/server-options.test.ts",
-    "app/database/migrations-folder.ts",
+    "app/database/migrations-folder-name.ts",
     "app/error-message.ts",
     "app/exit-with-failure.server.ts",
     "app/write-log.server.ts",

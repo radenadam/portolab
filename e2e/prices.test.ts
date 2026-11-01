@@ -24,8 +24,8 @@ const texts: Record<
     delayNotice:
       "Harga tertunda sekitar 10 menit dan berasal dari Yahoo Finance. Harga terakhir tercatat pada 30 Okt 2026, 16.14 WIB.",
     columns: ["Kode", "Harga terakhir", "Perubahan", "Waktu (WIB)"],
-    bbca: ["4.980", "+0,81%", "16.14"],
-    ihsg: ["5.057,05", "-0,80%", "16.00"],
+    bbca: ["4.980", "▲", "+0,81%", "16.14"],
+    ihsg: ["5.057,05", "▼", "-0,80%", "16.00"],
     tlkm: ["1.980", "0,00%", "16.14"],
     bmri: ["3.720", "29 Okt 2026", "16.14"],
   },
@@ -34,8 +34,8 @@ const texts: Record<
     delayNotice:
       "Prices are delayed by about 10 minutes and come from Yahoo Finance. The latest price was recorded at Oct 30, 2026, 4:14 PM WIB.",
     columns: ["Code", "Last price", "Change", "Time (WIB)"],
-    bbca: ["IDR 4,980", "+0.81%", "4:14 PM"],
-    ihsg: ["5,057.05", "-0.80%", "4:00 PM"],
+    bbca: ["IDR 4,980", "▲", "+0.81%", "4:14 PM"],
+    ihsg: ["5,057.05", "▼", "-0.80%", "4:00 PM"],
     tlkm: ["IDR 1,980", "0.00%", "4:14 PM"],
     bmri: ["IDR 3,720", "Oct 29, 2026", "4:14 PM"],
   },
@@ -44,7 +44,7 @@ const texts: Record<
 for (const locale of locales) {
   const text = texts[locale];
 
-  test(`shows delayed prices with their changes and times in ${languageNames[locale]}`, async ({
+  test(`shows delayed prices with their changes, signs, arrows, and times in ${languageNames[locale]}`, async ({
     page,
   }) => {
     await chooseLanguage(page, locale);
@@ -73,16 +73,6 @@ for (const locale of locales) {
     await expectAccessibleScreen(page);
   });
 }
-
-test("shows each change in price with a sign and an arrow", async ({
-  page,
-}) => {
-  await page.goto("/prices");
-  const bbca = page.getByRole("row", { name: /BBCA/ });
-  await expect(bbca).toContainText("▲");
-  await expect(bbca).toContainText("+");
-  await expect(page.getByRole("row", { name: /IHSG/ })).toContainText("▼");
-});
 
 test("aligns every number and time of the table to the right", async ({
   page,

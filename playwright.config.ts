@@ -1,3 +1,5 @@
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { defineConfig, devices } from "@playwright/test";
 
 const port = 4173;
@@ -21,7 +23,9 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "node server/main.ts",
+    command: `node "${join(import.meta.dirname, "server", "main.ts")}"`,
+    // The server starts outside the repository, so a file that it finds from the working directory instead of from its code fails every browser test.
+    cwd: tmpdir(),
     url: `http://localhost:${String(port)}/health`,
     env: {
       PORT: String(port),
