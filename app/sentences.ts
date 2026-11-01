@@ -7,12 +7,12 @@ export function listOfWords(
   return new Intl.ListFormat(locale, { type }).format(words);
 }
 
-/** Chooses the singular form for a count of one and the plural form for any other count. */
-export function singularOrPlural(
+/** Chooses the singular form for a count of one and the plural form for any other count, whether the forms are words or the messages that hold them. */
+export function singularOrPlural<Form>(
   count: number,
-  singular: string,
-  plural: string,
-): string {
+  singular: Form,
+  plural: Form,
+): Form {
   return count === 1 ? singular : plural;
 }
 

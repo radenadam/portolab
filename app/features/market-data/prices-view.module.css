@@ -23,3 +23,8 @@
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+
+/* The date of a price from another day takes a line of its own, so the table fits a screen 360 pixels wide. */
+.date {
+  display: block;
+}

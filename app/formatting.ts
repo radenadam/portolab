@@ -1,5 +1,6 @@
 import { getLocale } from "~/paraglide/runtime.js";
 import { listOfWords } from "~/sentences";
+import type { IndexPoints } from "~/units/index-points";
 import type { Rupiah } from "~/units/rupiah";
 import { wibTimeZone } from "~/wib";
 
@@ -21,7 +22,7 @@ export function formatNumber(value: number): string {
   return new Intl.NumberFormat(intlLocale()).format(value);
 }
 
-export function formatIndexLevel(level: number): string {
+export function formatIndexLevel(level: IndexPoints): string {
   return new Intl.NumberFormat(intlLocale(), {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
@@ -73,6 +74,14 @@ export function formatList(
   type: "conjunction" | "disjunction",
 ): string {
   return listOfWords(items, type, intlLocale());
+}
+
+/** Formats the date in WIB, such as 29 Okt 2026, for a price from another day than the newest one. */
+export function formatMarketDate(moment: Date): string {
+  return new Intl.DateTimeFormat(intlLocale(), {
+    dateStyle: "medium",
+    timeZone: wibTimeZone,
+  }).format(moment);
 }
 
 export function formatMarketTime(moment: Date): string {

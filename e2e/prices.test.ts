@@ -16,6 +16,7 @@ const texts: Record<
     bbca: readonly string[];
     ihsg: readonly string[];
     tlkm: readonly string[];
+    bmri: readonly string[];
   }
 > = {
   id: {
@@ -26,6 +27,7 @@ const texts: Record<
     bbca: ["4.980", "+0,81%", "16.14"],
     ihsg: ["5.057,05", "-0,80%", "16.00"],
     tlkm: ["1.980", "0,00%", "16.14"],
+    bmri: ["3.720", "29 Okt 2026", "16.14"],
   },
   en: {
     title: "Stock prices",
@@ -35,6 +37,7 @@ const texts: Record<
     bbca: ["IDR 4,980", "+0.81%", "4:14 PM"],
     ihsg: ["5,057.05", "-0.80%", "4:00 PM"],
     tlkm: ["IDR 1,980", "0.00%", "4:14 PM"],
+    bmri: ["IDR 3,720", "Oct 29, 2026", "4:14 PM"],
   },
 };
 
@@ -60,6 +63,7 @@ for (const locale of locales) {
       ["BBCA", text.bbca],
       ["IHSG", text.ihsg],
       ["TLKM", text.tlkm],
+      ["BMRI", text.bmri],
     ] as const) {
       const row = page.getByRole("row", { name: new RegExp(code) });
       for (const cell of cells) {

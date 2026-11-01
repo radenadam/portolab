@@ -3,6 +3,7 @@ import {
   formatIndexLevel,
   formatList,
   formatMarketClock,
+  formatMarketDate,
   formatMarketTime,
   formatNumber,
   formatRupiah,
@@ -10,6 +11,7 @@ import {
 } from "~/formatting";
 import type { ChangeDirection } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
+import { singularOrPlural } from "~/sentences";
 import { isSameWibDay } from "./idx-calendar";
 import type { PriceSourceDescription, Quote } from "./price-source.server";
 import styles from "./prices-view.module.css";
@@ -135,8 +137,12 @@ function sentenceForCodes(
   time: string,
   messages: { one: CodesMessage; several: CodesMessage },
 ): string {
-  const inputs = { codes: formatList(codes, "conjunction"), time };
-  return codes.length === 1 ? messages.one(inputs) : messages.several(inputs);
+  const message = singularOrPlural(
+    codes.length,
+    messages.one,
+    messages.several,
+  );
+  return message({ codes: formatList(codes, "conjunction"), time });
 }
 
 // The time comes from the schedule that the job follows, so the page never promises an attempt that the job does not make. Once that time has come, the job is making the attempt, because the page shows the latest attempt that the job finished.
@@ -185,9 +191,12 @@ function QuoteRow({
         {change.text}
       </td>
       <td className={styles["number"]}>
-        {isSameWibDay(quote.quotedAt, latestQuotedAt)
-          ? formatMarketClock(quote.quotedAt)
-          : formatMarketTime(quote.quotedAt)}
+        {!isSameWibDay(quote.quotedAt, latestQuotedAt) && (
+          <span className={styles["date"]}>
+            {`${formatMarketDate(quote.quotedAt)} `}
+          </span>
+        )}
+        {formatMarketClock(quote.quotedAt)}
       </td>
     </tr>
   );

@@ -1,4 +1,5 @@
 import { integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import type { IndexPoints } from "~/units/index-points";
 import type { Rupiah } from "~/units/rupiah";
 import type { IndexCode } from "./price-source.server";
 
@@ -11,11 +12,11 @@ export const stockQuotes = sqliteTable("stock_quotes", {
   fetchedAt: integer("fetched_at", { mode: "timestamp_ms" }).notNull(),
 });
 
-/** The latest delayed level of each tracked index, in points with two decimals. */
+/** The latest delayed level of each tracked index, in points. */
 export const indexQuotes = sqliteTable("index_quotes", {
   code: text("code").$type<IndexCode>().primaryKey(),
-  level: real("level").notNull(),
-  previousLevel: real("previous_level").notNull(),
+  level: real("level").$type<IndexPoints>().notNull(),
+  previousLevel: real("previous_level").$type<IndexPoints>().notNull(),
   quotedAt: integer("quoted_at", { mode: "timestamp_ms" }).notNull(),
   fetchedAt: integer("fetched_at", { mode: "timestamp_ms" }).notNull(),
 });

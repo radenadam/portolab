@@ -3,6 +3,7 @@ import { errorMessage } from "~/error-message";
 import { describeValue, isRecord } from "~/value-shapes";
 import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
+import { isIndexPoints } from "~/units/index-points";
 import { isRupiah } from "~/units/rupiah";
 import type {
   IndexCode,
@@ -120,6 +121,14 @@ function parseYahooQuote(
   }
   switch (instrument.kind) {
     case "index":
+      if (
+        !isIndexPoints(regularMarketPrice) ||
+        !isIndexPoints(regularMarketPreviousClose)
+      ) {
+        return fail(
+          `${source} must have finite levels, but its level is ${describeValue(regularMarketPrice)} and its previous level is ${describeValue(regularMarketPreviousClose)}.`,
+        );
+      }
       return succeed({
         kind: "index",
         code: instrument.code,

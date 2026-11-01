@@ -1,4 +1,5 @@
 import type { Result } from "~/result";
+import type { IndexPoints } from "~/units/index-points";
 import type { Rupiah } from "~/units/rupiah";
 
 /** The indices that Portolab tracks, by the code that IDX uses. */
@@ -29,8 +30,8 @@ interface StockQuote {
 interface IndexQuote {
   kind: "index";
   code: IndexCode;
-  level: number;
-  previousLevel: number;
+  level: IndexPoints;
+  previousLevel: IndexPoints;
   quotedAt: Date;
 }
 

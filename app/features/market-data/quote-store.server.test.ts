@@ -1,5 +1,6 @@
 import { expect, test } from "vitest";
 import { openTestDatabase } from "~/database/open-test-database.server";
+import { indexPoints } from "~/units/index-points";
 import { rupiah } from "~/units/rupiah";
 import {
   listLatestQuotes,
@@ -37,8 +38,8 @@ test("keeps only the latest quote of each instrument, the indices first", () => 
       {
         kind: "index",
         code: "IHSG",
-        level: 5057.05,
-        previousLevel: 5098.06,
+        level: indexPoints(5057.05),
+        previousLevel: indexPoints(5098.06),
         quotedAt,
       },
     ],
@@ -48,8 +49,8 @@ test("keeps only the latest quote of each instrument, the indices first", () => 
     {
       kind: "index",
       code: "IHSG",
-      level: 5057.05,
-      previousLevel: 5098.06,
+      level: indexPoints(5057.05),
+      previousLevel: indexPoints(5098.06),
       quotedAt,
     },
     {

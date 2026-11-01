@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+import { indexPoints } from "~/units/index-points";
 import { rupiah } from "~/units/rupiah";
 import { quoteChange } from "./quote-change";
 
@@ -22,8 +23,8 @@ test("computes the fall of an index from its previous level", () => {
     quoteChange({
       kind: "index",
       code: "IHSG",
-      level: 5057.05,
-      previousLevel: 5098.06,
+      level: indexPoints(5057.05),
+      previousLevel: indexPoints(5098.06),
       quotedAt,
     }),
   ).toBeCloseTo(-0.00804423643503607, 15);

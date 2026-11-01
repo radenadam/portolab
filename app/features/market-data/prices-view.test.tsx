@@ -4,6 +4,7 @@ import { languageNames } from "~/language-names";
 import { locales } from "~/paraglide/runtime.js";
 import type { Locale } from "~/paraglide/runtime.js";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
+import { indexPoints } from "~/units/index-points";
 import { rupiah } from "~/units/rupiah";
 import type { PriceSourceDescription, Quote } from "./price-source.server";
 import { PricesView } from "./prices-view";
@@ -14,8 +15,8 @@ const quotes: Quote[] = [
   {
     kind: "index",
     code: "IHSG",
-    level: 5057.05,
-    previousLevel: 5098.06,
+    level: indexPoints(5057.05),
+    previousLevel: indexPoints(5098.06),
     quotedAt: new Date("2026-10-30T09:00:05.000Z"),
   },
   {
@@ -285,8 +286,8 @@ for (const state of states) {
 
 // The BBRI price is from two weeks before the newest price, and the BBCA price is from its day.
 const quoteTimes: Record<Locale, { otherDay: string; sameDay: string }> = {
-  id: { otherDay: ">16 Okt 2026, 16.14<", sameDay: ">16.14<" },
-  en: { otherDay: ">Oct 16, 2026, 4:14 PM<", sameDay: ">4:14 PM<" },
+  id: { otherDay: ">16 Okt 2026 </span>16.14<", sameDay: ">16.14<" },
+  en: { otherDay: ">Oct 16, 2026 </span>4:14 PM<", sameDay: ">4:14 PM<" },
 };
 
 for (const locale of locales) {
@@ -438,8 +439,8 @@ for (const locale of locales) {
 const roundedToZero: Quote = {
   kind: "index",
   code: "IHSG",
-  level: 5057.05,
-  previousLevel: 5057.03,
+  level: indexPoints(5057.05),
+  previousLevel: indexPoints(5057.03),
   quotedAt: new Date("2026-10-30T09:00:05.000Z"),
 };
 const zeroChanges: Record<Locale, string> = { id: ">0,00%<", en: ">0.00%<" };
