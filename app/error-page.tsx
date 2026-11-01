@@ -22,7 +22,24 @@ export function ErrorPage({ title, body }: ErrorPageProps): ReactNode {
   );
 }
 
-/** The page for a failure that no route expected. Every unknown address has its own not found page, so a failure here is never a missing page. */
+/** The content of the page for an address that does not exist, or that the reader may not see. */
+export function MissingPageContent(): ReactNode {
+  return (
+    <ErrorPage title={m.app_not_found_title()} body={m.app_not_found_body()} />
+  );
+}
+
+/** The page for an address that a loader refused, which sets its own title, because route meta cannot see the error. */
+export function MissingPage(): ReactNode {
+  return (
+    <>
+      <PageTitle text={m.app_not_found_title()} />
+      <MissingPageContent />
+    </>
+  );
+}
+
+/** The page for a failure that no route expected. */
 export function UnexpectedErrorPage(): ReactNode {
   return (
     <>

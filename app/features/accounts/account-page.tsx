@@ -19,6 +19,7 @@ import {
   checkPassword,
   passwordLimitersContext,
 } from "./password-attempts.server";
+import type { PasswordFailure } from "./password-attempts.server";
 import { explainPasswordFailure } from "./explain-password-failure.server";
 import { SignOutButton } from "./sign-out-button";
 import styles from "./account-page.module.css";
@@ -34,6 +35,7 @@ export function loader({ context, request }: Route.LoaderArgs): {
 }
 
 export async function action({ context, request }: Route.ActionArgs) {
+  const now = new Date();
   const user = requireUser(context, request);
   const form = await request.formData();
   const currentPassword = parseFilledText(
@@ -63,7 +65,7 @@ export async function action({ context, request }: Route.ActionArgs) {
       username: user.username,
       password: currentPassword.value,
       address: context.get(clientAddressContext),
-      now: new Date(),
+      now,
     },
   );
   if (!checked.ok) {
@@ -79,8 +81,7 @@ export async function action({ context, request }: Route.ActionArgs) {
     return data(
       {
         savedAt: undefined,
-        failure: text,
-        currentPasswordFailure: undefined,
+        ...placePasswordFailure(checked.failure, text),
         newPasswordFailure: undefined,
         repeatedPasswordFailure: undefined,
       },
@@ -91,7 +92,7 @@ export async function action({ context, request }: Route.ActionArgs) {
   // The new password ended every session of the account, so this device continues in a new one. The form starts over when it saved, so the passwords leave its fields.
   return data(
     {
-      savedAt: new Date().toISOString(),
+      savedAt: now.toISOString(),
       failure: undefined,
       currentPasswordFailure: undefined,
       newPasswordFailure: undefined,
@@ -99,10 +100,27 @@ export async function action({ context, request }: Route.ActionArgs) {
     },
     {
       headers: {
-        "Set-Cookie": await startSession(database, request, user.id),
+        "Set-Cookie": await startSession(database, request, {
+          userId: user.id,
+          now,
+        }),
       },
     },
   );
+}
+
+/** Puts the text of a failed check of the current password where it belongs: a wrong password at its field, and a block of the limit on wrong passwords above the form. */
+function placePasswordFailure(
+  failure: PasswordFailure,
+  text: string,
+): { failure: string | undefined; currentPasswordFailure: string | undefined } {
+  switch (failure.kind) {
+    case "wrongPassword":
+      return { failure: undefined, currentPasswordFailure: text };
+    case "usernameBlocked":
+    case "addressBlocked":
+      return { failure: text, currentPasswordFailure: undefined };
+  }
 }
 
 export default function AccountPage({

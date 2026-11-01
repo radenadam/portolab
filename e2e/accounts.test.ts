@@ -1,10 +1,12 @@
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
+import { nameMaximumLength } from "../app/features/accounts/account-limits.ts";
 import { languageNames } from "../app/language-names.ts";
 import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
 import {
   chosenPassword,
+  newDevice,
   runAccountCommand,
   signInAsNewLecturer,
   submitSignIn,
@@ -12,9 +14,10 @@ import {
 } from "./accounts.ts";
 import { chooseLanguage } from "./choose-language.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
+import { wideWord } from "./wide-word.ts";
 
-// The longest name that a test gives, so each screen that shows a name is checked with wide content.
-const longName = "Kusumawardhani Prameswari Wicaksono Hadiningrat Setyaningrum";
+// The longest name that Portolab accepts, as one word, so each screen that shows a name is checked with its widest content.
+const longName = wideWord("Kusumawardhani", nameMaximumLength);
 
 const texts: Record<
   Locale,
@@ -69,7 +72,7 @@ const texts: Record<
     passwordLabel: "Kata sandi",
     signInButton: "Masuk",
     forgotNotice:
-      "Lupa kata sandi? Minta orang yang menjalankan server Portolab ini untuk mengatur ulang kata sandi Anda.",
+      "Lupa kata sandi? Mahasiswa meminta dosennya untuk mengatur ulang kata sandi, dan dosen meminta orang yang menjalankan server Portolab ini.",
     emptyFields: [
       'Kolom "Nama pengguna" kosong, padahal Portolab memerlukannya. Isi kolom itu.',
       'Kolom "Kata sandi" kosong, padahal Portolab memerlukannya. Isi kolom itu.',
@@ -130,7 +133,7 @@ const texts: Record<
     passwordLabel: "Password",
     signInButton: "Sign in",
     forgotNotice:
-      "Forgot your password? Ask the person who runs this Portolab server to reset it.",
+      "Forgot your password? A student asks the lecturer to reset it, and a lecturer asks the person who runs this Portolab server.",
     emptyFields: [
       'The field "Username" is empty, but Portolab needs it. Fill it in.',
       'The field "Password" is empty, but Portolab needs it. Fill it in.',
@@ -310,7 +313,7 @@ for (const locale of locales) {
       .getByRole("main")
       .getByRole("button", { name: text.finishButton })
       .click();
-    await expect(page).toHaveURL("/");
+    await expect(page).toHaveURL("/classes");
 
     await page.getByRole("link", { name: text.accountLink }).click();
     await expect(page).toHaveTitle(`${text.accountTitle} | Portolab`);
@@ -376,14 +379,17 @@ for (const locale of locales) {
   }) => {
     await chooseLanguage(page, locale);
     const username = await signInAsNewLecturer(page, longName);
-    const otherDevice = await browser.newPage();
+    const otherDevice = await newDevice(browser, locale);
     await otherDevice.goto("/sign-in");
     await submitSignIn(otherDevice, username, chosenPassword);
-    await expect(otherDevice).toHaveURL("/");
+    await expect(otherDevice).toHaveURL("/classes");
 
     await page.goto("/account");
     await changePassword(page, locale, "a wrong password");
-    await expect(page.getByRole("alert")).toHaveText(text.wrongCurrentPassword);
+    // A wrong password is about the value of its field, so it appears at the field.
+    await expect(
+      page.getByLabel(text.currentPasswordLabel),
+    ).toHaveAccessibleDescription(text.wrongCurrentPassword);
     await expectAccessibleScreen(page);
 
     await changePassword(page, locale, chosenPassword);
@@ -396,7 +402,7 @@ for (const locale of locales) {
     await expect(otherDevice).toHaveURL("/sign-in?returnTo=%2Faccount");
     await submitSignIn(otherDevice, username, "a second long sentence");
     await expect(otherDevice).toHaveURL("/account");
-    await otherDevice.close();
+    await otherDevice.context().close();
   });
 
   test(`signs out, and signs in again to the page that asked for it, in ${language}`, async ({

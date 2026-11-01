@@ -1,5 +1,6 @@
 import { buildDailyHistory } from "~/features/market-data/build-daily-history";
 import type { DailyHistory } from "~/features/market-data/price-source.server";
+import { trackedInstruments } from "~/features/market-data/tracked-instruments";
 
 // The closes on the last trading day of each month from August 2021 to October 2026, as Yahoo Finance returned them on 1 November 2026, rounded to two decimals as the history job stores them. BBCA split each share into five on 13 October 2021, so its earlier closes are a fifth of the prices of that time. AMMN listed in July 2023 and AADI in December 2024, so their closes start later.
 const recordedMonthEnds = [
@@ -148,8 +149,12 @@ export function monthEndClosesForTest(
     }
     datedCloses.push([date, close]);
   }
-  return buildDailyHistory(
-    code === "IHSG" ? { kind: "index", code } : { kind: "stock", code },
-    datedCloses,
+  // The kind of an instrument comes from the instruments that Portolab tracks, so a new index never passes for a stock.
+  const instrument = trackedInstruments.find(
+    (tracked) => tracked.code === code,
   );
+  if (instrument === undefined) {
+    throw new Error(`Portolab tracks no instrument with the code ${code}.`);
+  }
+  return buildDailyHistory(instrument, datedCloses);
 }

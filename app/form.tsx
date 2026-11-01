@@ -10,6 +10,8 @@ interface TextFieldProps {
   autoComplete: string;
   /** Whether a phone keyboard starts each word with a capital letter, which a name wants and a username or a password does not. */
   capitalizesWords?: boolean;
+  /** The keyboard that a phone shows, such as the one with digits for an amount. */
+  inputMode?: "text" | "numeric";
   hint?: string | undefined;
   /** Why the value that the form sent was not accepted. */
   failure?: string | undefined;
@@ -23,6 +25,7 @@ export function TextField({
   type,
   autoComplete,
   capitalizesWords = false,
+  inputMode = "text",
   hint,
   failure,
   defaultValue,
@@ -54,6 +57,7 @@ export function TextField({
         type={type}
         autoComplete={autoComplete}
         autoCapitalize={capitalizesWords ? "words" : "none"}
+        inputMode={inputMode}
         spellCheck={false}
         defaultValue={defaultValue}
         aria-invalid={failure !== undefined}

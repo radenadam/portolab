@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { data, Form, redirect } from "react-router";
 import { databaseContext } from "~/database/database.server";
-import { CheckboxField, SubmitButton, TextField } from "~/form";
+import { SubmitButton } from "~/form";
 import formStyles from "~/form.module.css";
 import { typedText } from "~/form-text";
 import { pageTitle } from "~/page-title";
@@ -17,12 +17,12 @@ import {
   parsePersonName,
   readNewPassword,
 } from "./account-fields";
-import type { NewPasswordFailures } from "./account-fields";
+import type { AccountFormFailures } from "./account-fields";
+import { ConsentField, NameField } from "./account-form-fields";
 import { NewPasswordFields } from "./new-password-fields";
 import { updateAccount } from "./account-store.server";
 import type { AccountChanges } from "./account-store.server";
 import { requireSession, startSession } from "./current-session.server";
-import { PrivacyNotice } from "./privacy-notice";
 
 // A lecturer whom the server owner created still lacks a name and consent, while a person whose password was reset only needs a new password.
 function isFirstSetup(steps: MissingSteps): boolean {
@@ -54,13 +54,14 @@ export function loader({ context, request }: Route.LoaderArgs): {
 }
 
 export async function action({ context, request }: Route.ActionArgs) {
+  const now = new Date();
   const session = requireSession(context, request);
   const form = await request.formData();
   const destination = returnDestination(form.get("returnTo"), request);
   if (readyUser(session.account) !== undefined) {
     return redirect(destination);
   }
-  const changes = readSetupForm(form, missingSteps(session.account));
+  const changes = readSetupForm(form, missingSteps(session.account), now);
   if (!changes.ok) {
     return data(changes.failure, { status: 400 });
   }
@@ -72,22 +73,22 @@ export async function action({ context, request }: Route.ActionArgs) {
   // A new password ended every session of the account, so the person continues in a new one.
   return redirect(destination, {
     headers: {
-      "Set-Cookie": await startSession(database, request, session.account.id),
+      "Set-Cookie": await startSession(database, request, {
+        userId: session.account.id,
+        now,
+      }),
     },
   });
 }
 
-/** The reason that each field of the form was not accepted, and the name as the person typed it, so the form can show it again. */
-interface SetupFailures extends NewPasswordFailures {
-  name: string;
-  nameFailure: string | undefined;
-  consentFailure: string | undefined;
-}
+/** The reason that each field of the form was not accepted, and the name as the person typed it, so the form can show it again. The username is not part of this form. */
+type SetupFailures = Omit<AccountFormFailures, "username" | "usernameFailure">;
 
-/** Reads each field that the account still lacks. */
+/** Reads each field that the account still lacks. An agreement to the privacy notice counts from the moment of the request. */
 function readSetupForm(
   form: FormData,
   steps: MissingSteps,
+  now: Date,
 ): Result<AccountChanges, SetupFailures> {
   const name = steps.name
     ? parsePersonName(form.get("name"), m.accounts_name_label())
@@ -108,7 +109,7 @@ function readSetupForm(
   return succeed({
     ...(name.value === undefined ? {} : { name: name.value }),
     ...(password.value === undefined ? {} : { password: password.value }),
-    ...(consent.value === undefined ? {} : { consentedAt: new Date() }),
+    ...(consent.value === undefined ? {} : { consentedAt: now }),
   });
 }
 
@@ -133,29 +134,13 @@ export default function AccountSetupPage({
       <Form method="post" className={formStyles["form"]}>
         <input type="hidden" name="returnTo" value={returnTo} />
         {steps.name && (
-          <TextField
-            name="name"
-            label={m.accounts_name_label()}
-            type="text"
-            autoComplete="name"
-            capitalizesWords
+          <NameField
             hint={m.accounts_lecturer_name_hint()}
-            failure={actionData?.nameFailure}
-            defaultValue={actionData?.name}
+            failures={actionData}
           />
         )}
         {steps.password && <NewPasswordFields failures={actionData} />}
-        {/* The person agrees to the whole notice, so the page shows all of it before the box. */}
-        {steps.consent && (
-          <>
-            <PrivacyNotice />
-            <CheckboxField
-              name="consent"
-              label={m.accounts_consent_label()}
-              failure={actionData?.consentFailure}
-            />
-          </>
-        )}
+        {steps.consent && <ConsentField failures={actionData} />}
         <SubmitButton label={m.accounts_finish_label()} />
       </Form>
     </>

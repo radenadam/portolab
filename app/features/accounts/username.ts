@@ -6,7 +6,7 @@ import { describeValue } from "../../value-shapes.ts";
 /** The name that a person signs in with, in lowercase. */
 export type Username = string & { readonly brand: "Username" };
 
-const usernameLength = { minimum: 3, maximum: 32 } as const;
+export const usernameLength = { minimum: 3, maximum: 32 } as const;
 
 /** The characters of a username: two ranges of letters and digits, and the symbols that join its words. Each text that states the rule builds it from these. */
 const usernameCharacters = {
@@ -49,13 +49,22 @@ export function parseUsername(
       return succeed(normalized);
     }
   }
-  const characters = listOfWords([
-    ...usernameCharacters.ranges.map(([first, last]) => `${first} to ${last}`),
-    ...usernameCharacters.symbols.map((symbol) => `"${symbol}"`),
-  ]);
+  const characters = listOfWords(
+    describeUsernameCharacters((first, last) => `${first} to ${last}`),
+  );
   return fail(
     `${source} must be ${String(usernameLength.minimum)} to ${String(usernameLength.maximum)} characters from ${characters}, but it is ${describeValue(value)}.`,
   );
+}
+
+/** Names the characters of a username for a text, each range in the words of the language of the text, such as "a to z", and each symbol in quotes. */
+export function describeUsernameCharacters(
+  range: (first: string, last: string) => string,
+): string[] {
+  return [
+    ...usernameCharacters.ranges.map(([first, last]) => range(first, last)),
+    ...usernameCharacters.symbols.map((symbol) => `"${symbol}"`),
+  ];
 }
 
 function isUsernameCharacter(character: string): boolean {

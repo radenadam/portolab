@@ -80,6 +80,13 @@ p {
   margin: 0;
 }
 
+/* A name that a person typed can be one long word, which would push the page sideways on a phone, so text breaks inside a word when the word does not fit. */
+h1,
+h2,
+p {
+  overflow-wrap: anywhere;
+}
+
 a {
   color: var(--color-signal);
 }

@@ -14,9 +14,9 @@ import { readyUser } from "./account";
 import {
   currentSessionContext,
   isSignedIn,
-  pathReturningTo,
   startSession,
 } from "./current-session.server";
+import { pathReturningTo } from "./path-returning-to";
 import { passwordLimitersContext, signIn } from "./password-attempts.server";
 import { explainPasswordFailure } from "./explain-password-failure.server";
 import { deleteSession } from "./session-store.server";
@@ -33,10 +33,12 @@ export function loader({ context, request }: Route.LoaderArgs): {
   if (isSignedIn(context)) {
     throw redirect(returnDestination(returnTo, request));
   }
-  return { returnTo: returnTo ?? "" };
+  // A person who came to sign in without a page to return to goes to the classes, where every task starts.
+  return { returnTo: returnTo ?? "/classes" };
 }
 
 export async function action({ context, request }: Route.ActionArgs) {
+  const now = new Date();
   const form = await request.formData();
   const username = parseFilledText(
     form.get("username"),
@@ -65,7 +67,7 @@ export async function action({ context, request }: Route.ActionArgs) {
       username: username.value,
       password: password.value,
       address: context.get(clientAddressContext),
-      now: new Date(),
+      now,
     },
   );
   if (!signedIn.ok) {
@@ -96,7 +98,10 @@ export async function action({ context, request }: Route.ActionArgs) {
       : destination,
     {
       headers: {
-        "Set-Cookie": await startSession(database, request, signedIn.value.id),
+        "Set-Cookie": await startSession(database, request, {
+          userId: signedIn.value.id,
+          now,
+        }),
       },
     },
   );

@@ -3,10 +3,16 @@ import { openDatabaseForTest } from "~/database/open-database-for-test.server";
 import {
   createLecturer,
   findAccountWithPassword,
+  findPeople,
   resetPassword,
   updateAccount,
 } from "./account-store.server";
-import { createTestLecturer, expectPassword } from "./accounts-for-test.server";
+import {
+  createReadyTestLecturer,
+  createTestLecturer,
+  createTestStudent,
+  expectPassword,
+} from "./accounts-for-test.server";
 import { createSession, resumeSession } from "./session-store.server";
 
 const now = new Date("2026-11-02T03:00:00.000Z");
@@ -79,4 +85,22 @@ test("saves the details that a person gives, and signs the person out on every d
     mustChangePassword: false,
   });
   await expectPassword(database, account.username, "kopi pagi di kampus");
+});
+
+test("finds the people with the given ids by id, and no one else", async () => {
+  const database = openDatabaseForTest();
+  const lecturerId = await createReadyTestLecturer(
+    database,
+    "dosen",
+    "Budi Santoso",
+  );
+  const studentId = await createTestStudent(database, "sari", "Sari Dewi");
+  await createTestStudent(database, "rudi", "Rudi Hartono");
+  expect(findPeople(database, [studentId, lecturerId])).toEqual(
+    new Map([
+      [studentId, { id: studentId, name: "Sari Dewi", username: "sari" }],
+      [lecturerId, { id: lecturerId, name: "Budi Santoso", username: "dosen" }],
+    ]),
+  );
+  expect(findPeople(database, [])).toEqual(new Map());
 });

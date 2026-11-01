@@ -13,6 +13,17 @@ export function randomReadableText(length: number): string {
   return text;
 }
 
+/** The lowercase letters and digits that randomReadableText leaves out, because a reader confuses them with others, so that a text which states the rule can name them. */
+export function lookalikeCharacters(): string[] {
+  const characters: string[] = [];
+  for (const character of "abcdefghijklmnopqrstuvwxyz0123456789") {
+    if (!alphabet.includes(character)) {
+      characters.push(character);
+    }
+  }
+  return characters;
+}
+
 /** Whether a text uses only the characters that randomReadableText writes. */
 export function isReadableText(text: string): boolean {
   for (const character of text) {

@@ -1,0 +1,127 @@
+import { expect, test } from "vitest";
+import type { Database } from "~/database/database.server";
+import { openDatabaseForTest } from "~/database/open-database-for-test.server";
+import { createReadyTestLecturer } from "~/features/accounts/accounts-for-test.server";
+import { languageNames } from "~/language-names";
+import { locales } from "~/paraglide/runtime.js";
+import type { Locale } from "~/paraglide/runtime.js";
+import { switchLocaleForTest } from "~/switch-locale-for-test";
+import {
+  createClassForTest,
+  joinContextForTest,
+} from "./classes-for-test.server";
+import { findClassWithCode } from "./find-class-with-code.server";
+import { formatJoinCode, joinPath } from "./join-code";
+import type { JoinCode } from "./join-code";
+import { joinLimits } from "./join-limiters.server";
+
+const texts: Record<
+  Locale,
+  {
+    empty: string;
+    malformed: string;
+    unknown: string;
+    blocked: string;
+  }
+> = {
+  id: {
+    empty:
+      'Kolom "Kode kelas" kosong, padahal Portolab memerlukannya. Isi kolom itu.',
+    malformed:
+      'Kolom "Kode kelas" menerima kode kelas, yang terdiri dari 8 huruf dan angka tanpa "l", "o", "0", atau "1", tetapi isinya "k7qm-4rx1". Periksa kodenya dengan dosen Anda.',
+    unknown:
+      'Kolom "Kode kelas" berisi "aaaa-aaaa", tetapi tidak ada kelas dengan kode ini. Periksa kodenya dengan dosen Anda, lalu coba lagi.',
+    blocked:
+      "Portolab memblokir kode dari jaringan Anda sampai 10.15 WIB, karena menerima 100 kode salah dari jaringan itu dalam 15 menit. Blokir ini menghentikan siapa pun yang mencoba menebak kode kelas. Coba lagi setelah waktu tersebut.",
+  },
+  en: {
+    empty:
+      'The field "Code of the class" is empty, but Portolab needs it. Fill it in.',
+    malformed:
+      'The field "Code of the class" takes the code of a class, which has 8 letters and digits without "l", "o", "0", or "1", but it holds "k7qm-4rx1". Check the code with your lecturer.',
+    unknown:
+      'The field "Code of the class" holds "aaaa-aaaa", but no class has this code. Check the code with your lecturer and try again.',
+    blocked:
+      "Portolab blocks codes from your network until 10:15 AM WIB, because it received 100 wrong codes from it within 15 minutes. The block stops anyone who tries to guess the code of a class. Try again after that time.",
+  },
+};
+
+// 10.00 WIB on Monday 2 November 2026, so a block that the first wrong code starts ends at 10.15 WIB.
+const now = new Date("2026-11-02T03:00:00.000Z");
+
+async function createTestClass(database: Database): Promise<JoinCode> {
+  const lecturerId = await createReadyTestLecturer(
+    database,
+    "dosen",
+    "Budi Santoso",
+  );
+  return createClassForTest(database, lecturerId, "Manajemen Portofolio A")
+    .joinCode;
+}
+
+test("finds the class of a code whatever its case, its spaces, and its hyphen", async () => {
+  const database = openDatabaseForTest();
+  const joinCode = await createTestClass(database);
+  const context = joinContextForTest(database);
+  for (const typed of [
+    joinCode,
+    formatJoinCode(joinCode).toUpperCase(),
+    ` ${joinCode.slice(0, 4)} ${joinCode.slice(4)} `,
+  ]) {
+    expect(findClassWithCode(context, typed, now), typed).toMatchObject({
+      ok: true,
+      value: { joinCode, joinedClass: { name: "Manajemen Portofolio A" } },
+    });
+  }
+  expect(joinPath(joinCode)).toBe(`/join/${formatJoinCode(joinCode)}`);
+  expect(formatJoinCode(joinCode)).toMatch(
+    /^[a-km-np-z2-9]{4}-[a-km-np-z2-9]{4}$/,
+  );
+});
+
+for (const locale of locales) {
+  const text = texts[locale];
+
+  test(`explains a code that is empty, malformed, or opens no class in ${languageNames[locale]}`, async () => {
+    switchLocaleForTest(locale);
+    const database = openDatabaseForTest();
+    await createTestClass(database);
+    const context = joinContextForTest(database);
+    expect(findClassWithCode(context, "", now)).toEqual({
+      ok: false,
+      failure: { kind: "wrongCode", text: text.empty, status: 400 },
+    });
+    expect(findClassWithCode(context, "k7qm-4rx1", now)).toEqual({
+      ok: false,
+      failure: { kind: "wrongCode", text: text.malformed, status: 400 },
+    });
+    expect(findClassWithCode(context, "AAAA AAAA", now)).toEqual({
+      ok: false,
+      failure: { kind: "wrongCode", text: text.unknown, status: 400 },
+    });
+  });
+
+  test(`blocks the codes of a network after 100 wrong ones, and counts no right one, in ${languageNames[locale]}`, async () => {
+    switchLocaleForTest(locale);
+    const database = openDatabaseForTest();
+    const joinCode = await createTestClass(database);
+    const context = joinContextForTest(database);
+    // Every wrong code but the last one that the limit allows, each next to a right code, which counts nothing.
+    for (
+      let attempt = 1;
+      attempt < joinLimits.wrongCodes.failures;
+      attempt += 1
+    ) {
+      findClassWithCode(context, "aaaa-aaaa", now);
+      findClassWithCode(context, joinCode, now);
+    }
+    expect(findClassWithCode(context, "aaaa-aaaa", now)).toEqual({
+      ok: false,
+      failure: { kind: "wrongCode", text: text.unknown, status: 400 },
+    });
+    expect(findClassWithCode(context, joinCode, now)).toEqual({
+      ok: false,
+      failure: { kind: "blocked", text: text.blocked, status: 429 },
+    });
+  });
+}
