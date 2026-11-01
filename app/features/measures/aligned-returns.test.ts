@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+import { successValueForTest } from "~/success-value-for-test";
 import { buildDailyHistory } from "~/features/market-data/build-daily-history";
 import { splitAdjustedRupiah } from "~/units/split-adjusted-rupiah";
 import { closeToForTest } from "./close-to-for-test";
@@ -22,17 +23,10 @@ function aligned(
   instruments: readonly InstrumentCloses[],
   settings = defaultEstimationSettings,
 ): AlignedReturns<InstrumentCloses> {
-  const returns = alignedReturns(
-    monthEndClosesForTest("IHSG"),
-    instruments,
-    settings,
+  return successValueForTest(
+    alignedReturns(monthEndClosesForTest("IHSG"), instruments, settings),
+    "The instruments have enough returns",
   );
-  if (!returns.ok) {
-    throw new Error(
-      `The instruments have enough returns, but the returns failed with ${JSON.stringify(returns.failure)}.`,
-    );
-  }
-  return returns.value;
 }
 
 const twoReturns = { returnCount: 2, minimumReturnCount: 2 };

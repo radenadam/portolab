@@ -93,7 +93,7 @@ function stepsWithoutAffordableLot(
   failure: Extract<Failure, { kind: "notEnoughCash" }>,
 ): string[] {
   const steps: string[] = [];
-  if (failure.holdsShares) {
+  if (failure.holdsFreeShares) {
     steps.push(
       m.trading_sell_for_cash_error({
         available: formatRupiah(failure.availableCash),

@@ -24,7 +24,7 @@ interface TradingHours {
   /** Session I and session II, in which orders match continuously, on Monday to Thursday and on Friday. */
   mondayToThursday: readonly MinuteSpan[];
   friday: readonly MinuteSpan[];
-  /** The announcement of IDX that set the hours, or the reports they were read from. */
+  /** The announcement of IDX that set the hours, and the reports they were read from. */
   source: string;
 }
 
@@ -47,7 +47,7 @@ const regularMarketHours: TradingHours = {
     { startMinute: 14 * 60, endMinute: 15 * 60 + 50 },
   ],
   source:
-    "the hours that IDX restored from 3 April 2023, as CNBC Indonesia and Infobank News reported session I and session II on that day, and as Pluang listed the pre-opening and the post-closing session in 2026",
+    "BEI letter S-02349/BEI.POP/03-2023 of 15 March 2023, which restored these hours from 3 April 2023, as Elit Sukses Sekuritas told its clients, CNBC Indonesia and Infobank News reported session I and session II on that day, and Pluang listed the pre-opening and the post-closing session in 2026",
 };
 
 // IDX rules are data with the dates they apply, as decision 0002 asks.

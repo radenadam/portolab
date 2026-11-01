@@ -30,7 +30,7 @@ import type {
   OrderRequest,
   OrderSide,
 } from "./order";
-import { cashSetAside, sharesSetAside } from "./open-orders";
+import { cashSetAside, holdsFreeShares, sharesSetAside } from "./open-orders";
 import { costRatesOn, purchaseCost } from "./trading-costs";
 import type { CostRates } from "./trading-costs";
 
@@ -293,7 +293,7 @@ function checkFunds(
           kind: "notEnoughCash",
           cash: account.cash,
           setAsideCash: setAside,
-          holdsShares: account.holdings.some((holding) => holding.shares > 0),
+          holdsFreeShares: holdsFreeShares(account, account.moment),
           ...paid.failure,
         });
       }

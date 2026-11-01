@@ -4,7 +4,12 @@ import { rupiah } from "~/units/rupiah";
 import type { Rupiah } from "~/units/rupiah";
 import { shares } from "~/units/shares";
 import type { Order, OrderSide, OrderState } from "./order";
-import { cashSetAside, isOpenOrder, sharesSetAside } from "./open-orders";
+import {
+  cashSetAside,
+  holdsFreeShares,
+  isOpenOrder,
+  sharesSetAside,
+} from "./open-orders";
 
 // The comment of each moment gives the time in WIB on Monday 2 November 2026.
 
@@ -88,4 +93,13 @@ test("counts an order that is still waiting as closed from its expiry, so it set
   expect(isOpenOrder(purchase, endOfDay)).toBe(false);
   expect(cashSetAside([purchase], endOfDay)).toBe(0);
   expect(sharesSetAside([sale], "BBCA", endOfDay)).toBe(0);
+});
+
+test("finds free shares only in a holding that open sell orders do not set aside completely", () => {
+  const holdings = [{ code: "BBCA", shares: shares(100), cost: rupiah(0) }];
+  const sale = order("sell", "BBCA", waiting);
+  expect(holdsFreeShares({ holdings, orders: [sale] }, placedAt)).toBe(false);
+  expect(holdsFreeShares({ holdings, orders: [] }, placedAt)).toBe(true);
+  expect(holdsFreeShares({ holdings, orders: [sale] }, endOfDay)).toBe(true);
+  expect(holdsFreeShares({ holdings: [], orders: [] }, placedAt)).toBe(false);
 });

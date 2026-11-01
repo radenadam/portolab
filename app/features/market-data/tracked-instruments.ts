@@ -7,7 +7,7 @@ import type { Instrument } from "./price-source.server";
 /** The stocks of the LQ45 index of IDX from `from` to `until`, which decision 0014 makes the universe of stocks that students trade in that period. */
 interface UniversePeriod extends DatePeriod {
   until: string;
-  /** The announcements of IDX that set the stocks. */
+  /** The announcements of IDX that set the stocks, and the reports they were read from. */
   source: string;
   codes: readonly string[];
 }
@@ -18,7 +18,7 @@ const universePeriods: readonly UniversePeriod[] = [
     from: "2026-11-02",
     until: "2027-01-29",
     source:
-      "Peng-00204/BEI.POP/10-2026 of 26 October 2026, as Peng-00205/BEI.POP/10-2026 of 27 October 2026 revised it",
+      "Peng-00204/BEI.POP/10-2026 of 26 October 2026, as Kontan reported it, and Peng-00205/BEI.POP/10-2026 of 27 October 2026, which revised it, as IDX Channel reported it",
     codes: [
       "AADI",
       "ADMR",

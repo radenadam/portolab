@@ -10,12 +10,14 @@ const labels: Record<Locale, string> = { id: "Jumlah lot", en: "Lots" };
 
 const failures: Record<
   Locale,
-  { notWhole: string; zero: string; empty: string }
+  { notWhole: string; zero: string; tooMany: string; empty: string }
 > = {
   id: {
     notWhole:
       'Kolom "Jumlah lot" berisi "2,5", tetapi jumlah lot harus bilangan bulat mulai dari 1, misalnya 5. Masukkan jumlah lot order ini.',
     zero: 'Kolom "Jumlah lot" berisi "0", tetapi jumlah lot harus bilangan bulat mulai dari 1, misalnya 5. Masukkan jumlah lot order ini.',
+    tooMany:
+      'Kolom "Jumlah lot" berisi "99999999999999999", jauh lebih banyak daripada lot yang diterima BEI dalam satu order. Masukkan jumlah lot yang lebih kecil.',
     empty:
       'Kolom "Jumlah lot" kosong, padahal Portolab memerlukannya. Isi kolom itu.',
   },
@@ -23,6 +25,8 @@ const failures: Record<
     notWhole:
       'The field "Lots" holds "2,5", but the number of lots must be a whole number from 1, such as 5. Enter the number of lots of the order.',
     zero: 'The field "Lots" holds "0", but the number of lots must be a whole number from 1, such as 5. Enter the number of lots of the order.',
+    tooMany:
+      'The field "Lots" holds "99999999999999999", far more lots than IDX accepts in one order. Enter a smaller number of lots.',
     empty: 'The field "Lots" is empty, but Portolab needs it. Fill it in.',
   },
 };
@@ -54,6 +58,14 @@ for (const locale of locales) {
     expect(parseOrderLots("0", label)).toEqual({
       ok: false,
       failure: failure.zero,
+    });
+  });
+
+  test(`rejects a whole number of lots beyond any order without calling it not whole in ${language}`, () => {
+    switchLocaleForTest(locale);
+    expect(parseOrderLots("99999999999999999", label)).toEqual({
+      ok: false,
+      failure: failure.tooMany,
     });
   });
 

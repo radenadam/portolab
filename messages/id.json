@@ -36,7 +36,7 @@
   "trading_one_monthly_return_phrase": "{count} imbal hasil bulanan",
   "trading_several_monthly_returns_phrase": "{count} imbal hasil bulanan",
   "trading_missing_rules_error": "Portolab belum dapat menerima order ini, karena aturan BEI untuk hari bursa order ini belum tercatat. Beri tahu dosen Anda agar aturan tersebut dapat ditambahkan.",
-  "trading_no_price_error": "Portolab belum memiliki harga {code}, sehingga belum dapat memeriksa order ini. Coba lagi setelah Portolab menampilkan harga {code}.",
+  "trading_no_price_error": "Portolab belum memiliki harga {code}, sehingga belum dapat memeriksa order ini. Coba lagi setelah pembaruan harga berikutnya membawa harga {code}.",
   "trading_outside_universe_error": "{code} tidak termasuk LQ45 pada {date}, dan di Portolab Anda hanya dapat membeli saham LQ45 pada hari bursa tersebut. Pilih saham yang termasuk LQ45 pada hari itu.",
   "trading_too_few_returns_error": "{code} baru memiliki {returns}, sedangkan Portolab menghitung ukuran sebuah portofolio hanya jika setiap sahamnya memiliki {minimum}. Anda dapat membeli {code} setelah hari bursa pertama {month} ditutup, saat datanya sudah cukup.",
   "trading_too_many_lots_error": "BEI menerima paling banyak {maximum} dalam satu order, sedangkan order ini berisi {lots}. Bagi order ini menjadi beberapa order yang masing-masing berisi paling banyak {maximum}.",
@@ -52,11 +52,11 @@
   "trading_no_shares_error": "Order ini menjual {lots} {code}, sedangkan Anda tidak memegang saham {code}, dan Anda hanya dapat menjual saham yang Anda pegang. Periksa kembali sahamnya, dan apakah Anda bermaksud membelinya.",
   "trading_set_aside_shares_error": "Order jual Anda yang masih terbuka menyisihkan {setAside} di antaranya sampai order tersebut tereksekusi atau kedaluwarsa.",
   "trading_largest_sale_error": "Anda dapat menjual paling banyak {free}.",
-  "trading_no_free_shares_error": "Anda dapat menjual lebih banyak saham {code} setelah salah satu order tersebut kedaluwarsa, atau setelah Anda membelinya lagi.",
-  "trading_no_price_history_error": "Portolab belum menyimpan riwayat harga {instrument} selama satu bulan penuh, sehingga belum dapat menghitung apakah {code} memiliki imbal hasil bulanan yang dibutuhkan ukuran portofolio. Coba lagi setelah Portolab menyimpannya.",
+  "trading_no_free_shares_error": "Anda dapat menjual lebih banyak saham {code} setelah salah satu order tersebut kedaluwarsa.",
+  "trading_no_price_history_error": "Portolab belum menyimpan riwayat harga {instrument} selama satu bulan penuh, sehingga belum dapat menghitung apakah {code} memiliki imbal hasil bulanan yang dibutuhkan ukuran portofolio. Coba lagi setelah pembaruan riwayat harga berikutnya menyimpannya.",
   "trading_no_reference_close_error": "Portolab belum menyimpan harga penutupan {code} pada {date}, padahal BEI menetapkan rentang harga order limit dari harga penutupan tersebut. Coba lagi setelah Portolab menyimpannya, yang dapat dilakukan setelah harga hari itu final pada pukul {time} WIB, atau pasang order harga pasar, yang tidak membutuhkan limit.",
   "trading_lots_not_whole_error": "Kolom \"{field}\" berisi \"{value}\", tetapi jumlah lot harus bilangan bulat mulai dari 1, misalnya 5. Masukkan jumlah lot order ini.",
-  "trading_sell_for_cash_error": "Menjual saham yang Anda pegang menambah kas Anda yang tersedia sebesar {available}.",
+  "trading_sell_for_cash_error": "Menjual saham yang Anda pegang menambah kas Anda yang tersedia, yang saat ini sebesar {available}.",
   "trading_wait_for_cash_error": "Order beli Anda yang masih terbuka mengembalikan {setAside} yang disisihkannya ke kas Anda yang tersedia saat kedaluwarsa.",
   "trading_lower_price_error": "Pilih harga yang lebih rendah dari {price} atau saham lain.",
   "trading_limit_at_checked_price_error": "Order limit pada harga {checkedPrice}, yang hanya tereksekusi jika harga turun kembali ke sana, masih dapat dibayar oleh kas Anda yang tersedia.",
@@ -120,5 +120,6 @@
   "accounts_privacy_rights_body": "Undang-Undang Nomor 27 Tahun 2022 tentang Pelindungan Data Pribadi memberi Anda hak untuk melihat, memperbaiki, dan menghapus data Anda, serta menarik persetujuan Anda. Portolab menyimpan data Anda sampai orang yang menjalankan server ini menghapusnya, jadi mintalah hal-hal tersebut kepada mereka.",
   "accounts_sign_out_title": "Keluar",
   "accounts_sign_out_body": "Keluar dari Portolab di perangkat ini.",
-  "accounts_privacy_attempts_body": "Nama pengguna yang diketik seseorang dengan kata sandi salah, hanya di memori, selama {minutes} menit setelah setiap kata sandi salah untuknya, untuk mencegah siapa pun menebak kata sandi sebuah akun."
+  "accounts_privacy_attempts_body": "Nama pengguna yang diketik seseorang dengan kata sandi salah, hanya di memori, selama {minutes} menit setelah setiap kata sandi salah untuknya, untuk mencegah siapa pun menebak kata sandi sebuah akun.",
+  "trading_lots_too_many_error": "Kolom \"{field}\" berisi \"{value}\", jauh lebih banyak daripada lot yang diterima BEI dalam satu order. Masukkan jumlah lot yang lebih kecil."
 }

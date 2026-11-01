@@ -36,7 +36,7 @@
   "trading_one_monthly_return_phrase": "{count} monthly return",
   "trading_several_monthly_returns_phrase": "{count} monthly returns",
   "trading_missing_rules_error": "Portolab cannot take this order yet, because it has not recorded the IDX rules for the trading day of the order. Tell your lecturer, so that the rules can be added.",
-  "trading_no_price_error": "Portolab has no price for {code} yet, so it cannot check the order. Try again once Portolab shows a price for {code}.",
+  "trading_no_price_error": "Portolab has no price for {code} yet, so it cannot check the order. Try again after the next update of prices brings a price for {code}.",
   "trading_outside_universe_error": "{code} is not in the LQ45 on {date}, and Portolab lets you buy only the stocks of the LQ45 of the trading day. Choose a stock that is in the LQ45 on that day.",
   "trading_too_few_returns_error": "{code} has {returns}, but Portolab computes the measures of a portfolio only when each of its stocks has {minimum}. You can buy {code} after the first trading day of {month} closes, when it has enough.",
   "trading_too_many_lots_error": "IDX accepts at most {maximum} in one order, but this order has {lots}. Split it into orders of at most {maximum} each.",
@@ -52,11 +52,11 @@
   "trading_no_shares_error": "This order sells {lots} of {code}, but you hold no shares of {code}, and you can sell only shares that you hold. Check the stock, and whether you meant to buy it.",
   "trading_set_aside_shares_error": "Your open sell orders set aside {setAside} of them until they fill or expire.",
   "trading_largest_sale_error": "You can sell at most {free}.",
-  "trading_no_free_shares_error": "You can sell more shares of {code} once one of those orders expires, or after you buy more of them.",
-  "trading_no_price_history_error": "Portolab has not stored a complete month of the price history of {instrument} yet, so it cannot count whether {code} has the monthly returns that the measures need. Try again once Portolab has stored it.",
+  "trading_no_free_shares_error": "You can sell more shares of {code} once one of those orders expires.",
+  "trading_no_price_history_error": "Portolab has not stored a complete month of the price history of {instrument} yet, so it cannot count whether {code} has the monthly returns that the measures need. Try again after the next update of the price history stores it.",
   "trading_no_reference_close_error": "Portolab has not stored the close of {code} on {date} yet, and IDX sets the range of prices of a limit order from that close. Try again once Portolab has stored it, which it can do after the prices of that day are final at {time} WIB, or place a market order, which needs no limit.",
   "trading_lots_not_whole_error": "The field \"{field}\" holds \"{value}\", but the number of lots must be a whole number from 1, such as 5. Enter the number of lots of the order.",
-  "trading_sell_for_cash_error": "Selling shares that you hold adds to your available cash of {available}.",
+  "trading_sell_for_cash_error": "Selling shares that you hold adds to your available cash, which is now {available}.",
   "trading_wait_for_cash_error": "Your open buy orders return the {setAside} that they set aside to your available cash as they expire.",
   "trading_lower_price_error": "Choose a price lower than {price} or another stock.",
   "trading_limit_at_checked_price_error": "A limit order at {checkedPrice}, which fills only if the price falls back to it, is within your available cash.",
@@ -120,5 +120,6 @@
   "accounts_privacy_rights_body": "Indonesia's Law Number 27 of 2022 on Personal Data Protection gives you the right to see, correct, and delete your data, and to withdraw your agreement. Portolab keeps your data until the person who runs this server deletes it, so ask them for any of these.",
   "accounts_sign_out_title": "Sign out",
   "accounts_sign_out_body": "Sign out of Portolab on this device.",
-  "accounts_privacy_attempts_body": "A username that someone typed with a wrong password, in memory only, for {minutes} minutes after each wrong password for it, to stop anyone from guessing the password of an account."
+  "accounts_privacy_attempts_body": "A username that someone typed with a wrong password, in memory only, for {minutes} minutes after each wrong password for it, to stop anyone from guessing the password of an account.",
+  "trading_lots_too_many_error": "The field \"{field}\" holds \"{value}\", far more lots than IDX accepts in one order. Enter a smaller number of lots."
 }

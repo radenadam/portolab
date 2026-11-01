@@ -2,6 +2,7 @@ import { rupiah } from "~/units/rupiah";
 import type { Rupiah } from "~/units/rupiah";
 import { shares } from "~/units/shares";
 import type { Shares } from "~/units/shares";
+import type { Holding } from "./holding-after-fill";
 import type { OpenOrder, Order, OrderSide, OrderState } from "./order";
 
 const isOpenState: Record<OrderState["kind"], boolean> = {
@@ -45,6 +46,17 @@ export function sharesSetAside(
     }
   }
   return shares(total);
+}
+
+/** Whether an account holds shares of any stock beyond what its open sell orders set aside at a moment, which it could sell. */
+export function holdsFreeShares(
+  account: { holdings: readonly Holding[]; orders: readonly Order[] },
+  moment: Date,
+): boolean {
+  return account.holdings.some(
+    (holding) =>
+      holding.shares > sharesSetAside(account.orders, holding.code, moment),
+  );
 }
 
 /** Whether an order is open at a moment: waiting or resting, and not past its expiry. An order whose trading day has ended stays waiting or resting until checkOrder marks it expired, so the moment decides. */

@@ -119,8 +119,8 @@ export type OrderFailure =
       kind: "notEnoughCash";
       cash: Rupiah;
       setAsideCash: Rupiah;
-      /** Whether the account holds shares of any stock, which it could sell to add to its cash. */
-      holdsShares: boolean;
+      /** Whether the account holds shares that no open sell order sets aside, which it could sell to add to its cash. */
+      holdsFreeShares: boolean;
     } & CashShortfall)
   | {
       kind: "notEnoughShares";

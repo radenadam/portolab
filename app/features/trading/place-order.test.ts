@@ -352,7 +352,7 @@ test("rejects a purchase that costs more than the cash that other open orders le
       fee: 3_735,
       cash: 2_500_000,
       setAsideCash: 498_747,
-      holdsShares: false,
+      holdsFreeShares: false,
       availableCash: 2_001_253,
       largestLots: 4,
     },
@@ -378,6 +378,32 @@ test("rejects a purchase while an open buy order of the day sets aside the cash,
   expect(
     placeOrder(purchase({ placedAt: endOfMonday }), state, bbca),
   ).toMatchObject({ ok: true, value: { setAsideCash: 2_493_735 } });
+});
+
+test("offers no sale for cash when open sell orders set aside every share that the account holds", () => {
+  // The cash of Rp400,000 does not pay for 1 lot at Rp4,980, and the only holding of 5 lots is in an open sell order.
+  const holdings = [{ code: "BBCA", shares: shares(500), cost: rupiah(0) }];
+  const state = account({
+    cash: rupiah(400_000),
+    holdings,
+    orders: [accepted(sale(), account({ holdings }))],
+  });
+  expect(
+    placeOrder(purchase({ lots: orderLotsForTest(1) }), state, bbca),
+  ).toMatchObject({
+    ok: false,
+    failure: { kind: "notEnoughCash", largestLots: 0, holdsFreeShares: false },
+  });
+  expect(
+    placeOrder(
+      purchase({ lots: orderLotsForTest(1) }),
+      { ...state, orders: [] },
+      bbca,
+    ),
+  ).toMatchObject({
+    ok: false,
+    failure: { kind: "notEnoughCash", holdsFreeShares: true },
+  });
 });
 
 test("rejects a sale while an open sell order of the day sets aside the shares, and accepts it once that order expires", () => {

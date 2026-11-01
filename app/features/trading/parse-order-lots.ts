@@ -16,10 +16,16 @@ export function parseOrderLots(
   }
   const digits = text.value.trim();
   const count = Number(digits);
-  if (/^\d+$/.test(digits) && isOrderLots(count)) {
-    return succeed(count);
+  if (!/^\d+$/.test(digits) || count < 1) {
+    return fail(
+      m.trading_lots_not_whole_error({ field: source, value: text.value }),
+    );
   }
-  return fail(
-    m.trading_lots_not_whole_error({ field: source, value: text.value }),
-  );
+  // A whole number beyond the whole numbers that a double holds exactly is far beyond the largest order of IDX, which placeOrder names for a smaller one.
+  if (!isOrderLots(count)) {
+    return fail(
+      m.trading_lots_too_many_error({ field: source, value: text.value }),
+    );
+  }
+  return succeed(count);
 }
