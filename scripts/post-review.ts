@@ -1,6 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { exitWithFailure } from "../app/exit-with-failure.server.ts";
+import { minuteMilliseconds } from "../app/time-units.ts";
 import { errorMessage } from "../app/error-message.ts";
 import { fail, failuresOf } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
@@ -19,7 +20,7 @@ import { summarizeReview } from "./summarize-review.ts";
 import { writeScriptFailure } from "./write-script-failure.ts";
 
 // A request to GitHub that hangs ends after this, so the step fails with the reason before CI stops it.
-const githubTimeoutMilliseconds = 60_000;
+const githubTimeoutMilliseconds = minuteMilliseconds;
 
 // Every input is parsed before the script stops, so the log names every problem at once.
 const pullRequest = parsePullRequestNumber(
