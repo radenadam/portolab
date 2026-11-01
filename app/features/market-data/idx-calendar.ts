@@ -96,17 +96,11 @@ export function isPriceUpdateTime(
   );
 }
 
-/** A trading day whose closing prices are final, and the moment from which they are. */
-export interface ClosedTradingDay {
-  date: string;
-  closedAt: Date;
-}
-
 /** The latest trading day whose prices with this delay can no longer change at this moment, which makes its closes final. It fails when the search reaches a date that no calendar covers. */
 export function latestClosedTradingDay(
   moment: Date,
   delayMinutes: number,
-): Result<ClosedTradingDay, string> {
+): Result<string, string> {
   let date = wibDateOf(moment);
   // Each calendar covers whole years, so going back day by day reaches either a trading day that has closed or a date that no calendar covers.
   for (;;) {
@@ -121,7 +115,7 @@ export function latestClosedTradingDay(
         lastPriceMinute(calendar.value, delayMinutes) + 1,
       );
       if (closedAt <= moment) {
-        return succeed({ date, closedAt });
+        return succeed(date);
       }
     }
     date = addDays(date, -1);

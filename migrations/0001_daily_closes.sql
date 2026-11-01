@@ -11,3 +11,5 @@ CREATE TABLE `stock_daily_closes` (
 	`close` real NOT NULL,
 	PRIMARY KEY(`code`, `date`)
 );
+--> statement-breakpoint
+ALTER TABLE `price_updates` ADD `final_date` text;

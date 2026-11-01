@@ -135,35 +135,17 @@ test("finds today as the latest closed trading day from the minute after the pri
   // 16:25 WIB is the last minute of the price hours of a source with this delay, and 16:26 WIB is the minute after it.
   expect(
     latestClosedTradingDay(new Date("2026-11-02T09:25:59Z"), delayMinutes),
-  ).toEqual({
-    ok: true,
-    value: {
-      date: "2026-10-30",
-      closedAt: new Date("2026-10-30T09:26:00Z"),
-    },
-  });
+  ).toEqual({ ok: true, value: "2026-10-30" });
   expect(
     latestClosedTradingDay(new Date("2026-11-02T09:26:00Z"), delayMinutes),
-  ).toEqual({
-    ok: true,
-    value: {
-      date: "2026-11-02",
-      closedAt: new Date("2026-11-02T09:26:00Z"),
-    },
-  });
+  ).toEqual({ ok: true, value: "2026-11-02" });
 });
 
 test("finds the trading day before the holidays and the weekend after them", () => {
   // 24 and 25 December 2026 are holidays, and the weekend follows them.
   expect(
     latestClosedTradingDay(new Date("2026-12-27T03:00:00Z"), delayMinutes),
-  ).toEqual({
-    ok: true,
-    value: {
-      date: "2026-12-23",
-      closedAt: new Date("2026-12-23T09:26:00Z"),
-    },
-  });
+  ).toEqual({ ok: true, value: "2026-12-23" });
 });
 
 test("fails when the search for a closed trading day reaches a date that no calendar covers", () => {

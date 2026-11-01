@@ -14,6 +14,8 @@ export interface UpdateAttempt {
   consecutiveFailures: number;
   /** The codes of the instruments that this attempt could not update, which are all of them when it failed. */
   failedCodes: string[];
+  /** The latest trading day whose closes the attempt asked for, which the history job records apart from when the attempt ended, because a long run can end after a later close has become final. The quote job asks for no closes, so it has none. */
+  finalDate?: string | undefined;
 }
 
 // The schema explains why price_updates holds one row for each job.
@@ -24,7 +26,11 @@ export function saveUpdateAttempt(
   job: UpdateJob,
   attempt: UpdateAttempt,
 ): void {
-  const row = { id: attemptIds[job], ...attempt };
+  const row = {
+    id: attemptIds[job],
+    ...attempt,
+    finalDate: attempt.finalDate ?? null,
+  };
   database
     .insert(priceUpdates)
     .values(row)
@@ -48,5 +54,6 @@ export function readLatestUpdateAttempt(
         succeeded: row.succeeded,
         consecutiveFailures: row.consecutiveFailures,
         failedCodes: row.failedCodes,
+        finalDate: row.finalDate ?? undefined,
       };
 }

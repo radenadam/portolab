@@ -1,7 +1,8 @@
-import { expect, test } from "vitest";
+import { afterEach, expect, test, vi } from "vitest";
 import type { Database } from "~/database/database.server";
 import { openDatabaseForTest } from "~/database/open-database-for-test.server";
 import { fail, succeed } from "~/result";
+import { writeLog } from "~/write-log.server";
 import { buildDailyHistory } from "./build-daily-history";
 import { fixturePriceSource } from "./fixture-price-source.server";
 import { listDailyHistory } from "./history-store.server";
@@ -9,6 +10,14 @@ import type { Instrument, PriceSource } from "./price-source.server";
 import { runHistoryUpdate } from "./run-history-update.server";
 import { trackedInstruments } from "./tracked-instruments";
 import { readLatestUpdateAttempt } from "./update-attempts.server";
+import type { UpdateAttempt } from "./update-attempts.server";
+
+// The log is replaced, so a test can read the texts that the history update writes.
+vi.mock("~/write-log.server");
+
+afterEach(() => {
+  vi.mocked(writeLog).mockClear();
+});
 
 // The fixture source answers with the closes of 26 to 30 October 2026. The moments below follow the IDX calendar for a source with the delay of the fixture, whose price hours end at 16:25 WIB, so the closes of a trading day are final from 16:26 WIB.
 const instruments: readonly Instrument[] = [
@@ -22,6 +31,21 @@ const historyStartDate = "2026-10-26";
 const mondayMorning = new Date("2026-11-02T03:00:00.000Z");
 // 16:26 WIB on Monday 2 November 2026, when the closes of that Monday are final.
 const mondayClose = new Date("2026-11-02T09:26:00.000Z");
+
+/** The attempt of a run in which the instruments failed for the first time, which are all three unless the test names others. */
+function firstFailure(
+  attemptedAt: Date,
+  finalDate: string,
+  failedCodes: readonly string[] = ["IHSG", "BBCA", "BBRI"],
+): UpdateAttempt {
+  return {
+    attemptedAt,
+    succeeded: false,
+    consecutiveFailures: 1,
+    failedCodes: [...failedCodes],
+    finalDate,
+  };
+}
 
 interface Request {
   code: string;
@@ -134,6 +158,7 @@ test("stores the closes of every instrument from the start date, one request aft
     succeeded: true,
     consecutiveFailures: 0,
     failedCodes: [],
+    finalDate: "2026-10-30",
   });
 });
 
@@ -212,12 +237,9 @@ test("counts an answer without the close of the latest trading day as a failure,
   const database = openDatabaseForTest();
   // The fixture has no close of Monday 2 November, so its answers after that close are stale.
   await updateHistory(database, fixturePriceSource, { at: mondayClose });
-  expect(readLatestUpdateAttempt(database, "history")).toEqual({
-    attemptedAt: mondayClose,
-    succeeded: false,
-    consecutiveFailures: 1,
-    failedCodes: ["IHSG", "BBCA", "BBRI"],
-  });
+  expect(readLatestUpdateAttempt(database, "history")).toEqual(
+    firstFailure(mondayClose, "2026-11-02"),
+  );
   const { source, requests } = recordingSource(
     sourceWithLaterCloses(["2026-11-02"]),
   );
@@ -245,6 +267,7 @@ test("records the instruments that failed, waits from the end of the run, and th
     succeeded: true,
     consecutiveFailures: 1,
     failedCodes: ["BBRI"],
+    finalDate: "2026-10-30",
   });
   const { source, requests } = recordingSource(fixturePriceSource);
   // After one failure, the backoff in update-schedule.ts waits one minute from the minute in which the run ended.
@@ -260,6 +283,7 @@ test("records the instruments that failed, waits from the end of the run, and th
     succeeded: true,
     consecutiveFailures: 0,
     failedCodes: [],
+    finalDate: "2026-10-30",
   });
 });
 
@@ -280,12 +304,9 @@ test("counts a failure, a thrown error, and an answer without closes as failed i
     },
   };
   await updateHistory(database, brokenSource, { at: mondayClose });
-  expect(readLatestUpdateAttempt(database, "history")).toEqual({
-    attemptedAt: mondayClose,
-    succeeded: false,
-    consecutiveFailures: 1,
-    failedCodes: ["IHSG", "BBCA", "BBRI"],
-  });
+  expect(readLatestUpdateAttempt(database, "history")).toEqual(
+    firstFailure(mondayClose, "2026-11-02"),
+  );
   expect(listDailyHistory(database, bbca).closes).toHaveLength(5);
 });
 
@@ -314,12 +335,9 @@ test("records a failure when the job stops waiting for a request, and gives each
     },
   });
   expect(new Set(signals).size).toBe(instruments.length);
-  expect(readLatestUpdateAttempt(database, "history")).toEqual({
-    attemptedAt: mondayMorning,
-    succeeded: false,
-    consecutiveFailures: 1,
-    failedCodes: ["IHSG", "BBCA", "BBRI"],
-  });
+  expect(readLatestUpdateAttempt(database, "history")).toEqual(
+    firstFailure(mondayMorning, "2026-10-30"),
+  );
 });
 
 test("stops after three instruments in a row fail, and counts the instruments that it skipped as failed", async () => {
@@ -342,12 +360,15 @@ test("stops after three instruments in a row fail, and counts the instruments th
     "BBCA",
     "BBRI",
   ]);
-  expect(readLatestUpdateAttempt(database, "history")).toEqual({
-    attemptedAt: mondayMorning,
-    succeeded: false,
-    consecutiveFailures: 1,
-    failedCodes: ["IHSG", "BBCA", "BBRI", "TLKM", "ASII"],
-  });
+  expect(readLatestUpdateAttempt(database, "history")).toEqual(
+    firstFailure(mondayMorning, "2026-10-30", [
+      "IHSG",
+      "BBCA",
+      "BBRI",
+      "TLKM",
+      "ASII",
+    ]),
+  );
 });
 
 test("asks between closes for an instrument that has no stored closes", async () => {
@@ -453,3 +474,134 @@ for (const state of scheduleStates) {
     expect(requests).toHaveLength(state.asksAgain ? instruments.length : 0);
   });
 }
+
+test("asks for the closes of a day that became final while a long run was running", async () => {
+  const database = openDatabaseForTest();
+  const source = sourceWithLaterCloses(["2026-11-02"]);
+  // The run starts at 16:25:30 WIB, before the closes of Monday are final, and ends at 16:27 WIB, after they are.
+  await updateHistory(database, source, {
+    at: [
+      new Date("2026-11-02T09:25:30.000Z"),
+      new Date("2026-11-02T09:27:00.000Z"),
+    ],
+  });
+  expect(readLatestUpdateAttempt(database, "history")?.finalDate).toBe(
+    "2026-10-30",
+  );
+  const { source: recording, requests } = recordingSource(source);
+  await updateHistory(database, recording, {
+    at: new Date("2026-11-02T09:28:00.000Z"),
+  });
+  expect(requests).toHaveLength(instruments.length);
+  expect(listDailyHistory(database, bbca).closes.at(-1)?.date).toBe(
+    "2026-11-02",
+  );
+});
+
+const unanswered: PriceSource = {
+  ...fixturePriceSource,
+  fetchDailyHistory: () =>
+    Promise.resolve(fail("Yahoo Finance did not answer.")),
+};
+
+// The warning names the instruments that the run skipped, so its sentence has one form for one instrument and another for several.
+const skippedWarnings: { tracked: readonly Instrument[]; warning: string }[] = [
+  {
+    tracked: [...instruments, { kind: "stock", code: "TLKM" }],
+    warning:
+      "The closes of 3 instruments in a row could not be updated, so the history update skipped TLKM. It tries again once the wait after failures has passed.",
+  },
+  {
+    tracked: [
+      ...instruments,
+      { kind: "stock", code: "TLKM" },
+      { kind: "stock", code: "ASII" },
+    ],
+    warning:
+      "The closes of 3 instruments in a row could not be updated, so the history update skipped TLKM and ASII. It tries again once the wait after failures has passed.",
+  },
+];
+
+for (const { tracked, warning } of skippedWarnings) {
+  test(`warns which instruments it skipped, for ${String(tracked.length - 3)} skipped`, async () => {
+    await updateHistory(openDatabaseForTest(), unanswered, {
+      at: mondayMorning,
+      instrumentsToTrack: tracked,
+    });
+    expect(writeLog).toHaveBeenCalledWith("warning", warning);
+  });
+}
+
+test("logs why it could not update an instrument, for a failure, an answer without closes, and a stale answer", async () => {
+  const closesThroughFriday = await fixturePriceSource.fetchDailyHistory(
+    { kind: "stock", code: "BBRI" },
+    historyStartDate,
+    new AbortController().signal,
+  );
+  const answers: Record<
+    string,
+    () => ReturnType<PriceSource["fetchDailyHistory"]>
+  > = {
+    IHSG: () => Promise.resolve(fail("Yahoo Finance did not answer.")),
+    BBCA: () => Promise.resolve(succeed(buildDailyHistory(bbca, []))),
+    BBRI: () => Promise.resolve(closesThroughFriday),
+  };
+  const source: PriceSource = {
+    ...fixturePriceSource,
+    fetchDailyHistory: (instrument) =>
+      answers[instrument.code]?.() ??
+      Promise.resolve(fail(`The test has no answer for ${instrument.code}.`)),
+  };
+  await updateHistory(openDatabaseForTest(), source, {
+    at: mondayClose,
+    instrumentsToTrack: [
+      { kind: "index", code: "IHSG" },
+      bbca,
+      { kind: "stock", code: "BBRI" },
+    ],
+  });
+  expect(vi.mocked(writeLog).mock.calls).toEqual([
+    [
+      "warning",
+      "The closes of IHSG could not be updated, so its stored closes stay.",
+      { detail: "Yahoo Finance did not answer." },
+    ],
+    [
+      "warning",
+      "The closes of BBCA could not be updated, so its stored closes stay.",
+      {
+        detail:
+          "Yahoo Finance must return the closes of BBCA up to 2026-11-02, but its latest close is missing.",
+      },
+    ],
+    [
+      "warning",
+      "The closes of BBRI could not be updated, so its stored closes stay.",
+      {
+        detail:
+          "Yahoo Finance must return the closes of BBRI up to 2026-11-02, but its latest close is on 2026-10-30.",
+      },
+    ],
+  ]);
+});
+
+test("logs a thrown error as an error with its stack", async () => {
+  await updateHistory(
+    openDatabaseForTest(),
+    {
+      ...fixturePriceSource,
+      fetchDailyHistory: () =>
+        Promise.reject(new Error("The network is down.")),
+    },
+    { at: mondayMorning, instrumentsToTrack: [bbca] },
+  );
+  expect(writeLog).toHaveBeenCalledWith(
+    "error",
+    "Fetching or storing the closes of BBCA failed.",
+    {
+      detail: expect.stringMatching(
+        /^Error: The network is down\.\n\s+at /,
+      ) as string,
+    },
+  );
+});

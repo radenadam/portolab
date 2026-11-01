@@ -3,7 +3,7 @@ import { errorDetail } from "~/error-message";
 import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
 import { listOfWords } from "~/sentences";
-import { wibDateOf, wibMoment } from "~/wib";
+import { wibDateOf } from "~/wib";
 import { writeLog } from "~/write-log.server";
 import { listCodesWithHistory, saveDailyHistory } from "./history-store.server";
 import { latestClosedTradingDay } from "./idx-calendar";
@@ -27,10 +27,9 @@ export interface RequestPacing {
   waitBetweenRequests: () => Promise<void>;
 }
 
-/** The latest day whose closes are final, and the moment from which they are. */
+/** The latest day whose closes are final. */
 interface FinalDay {
   date: string;
-  closedAt: Date;
   /** Whether an IDX calendar shows the day as a trading day, so that every instrument must have a close on it. */
   isTradingDay: boolean;
 }
@@ -43,7 +42,7 @@ interface HistoryRun {
 }
 
 /**
- * Brings the stored daily closes of the instruments up to date. After a trading day closes, it fetches the whole history of every instrument from the start date, because a source adjusts every earlier close after a split, sometimes days later. Between closes, it fetches again only the instruments that failed and the instruments without any stored close, once the wait after failures has passed. It stops after a few failures in a row and counts the instruments that it skipped as failed. It records the attempt when its last request has ended, with the instruments that it could not update. The state lives in the database, as decision 0009 asks, so a restart keeps waiting.
+ * Brings the stored daily closes of the instruments up to date. After a trading day closes, it fetches the whole history of every instrument from the start date, because a source adjusts every earlier close after a split, sometimes days later. Between closes, it fetches again only the instruments that failed and the instruments without any stored close, once the wait after failures has passed. It stops after a few failures in a row and counts the instruments that it skipped as failed. It records the attempt when its last request has ended, with the instruments that it could not update and the latest final day that it asked for, so a later close that became final during a long run is still fetched. The state lives in the database, as decision 0009 asks, so a restart keeps waiting.
  */
 export async function runHistoryUpdate(
   settings: PriceJobSettings,
@@ -94,6 +93,7 @@ export async function runHistoryUpdate(
         ? 0
         : (latestAttempt?.consecutiveFailures ?? 0) + 1,
     failedCodes: notUpdatedCodes,
+    finalDate: run.finalDay.date,
   });
 }
 
@@ -101,14 +101,9 @@ export async function runHistoryUpdate(
 function latestFinalDay(moment: Date, delayMinutes: number): FinalDay {
   const closedDay = latestClosedTradingDay(moment, delayMinutes);
   if (closedDay.ok) {
-    return { ...closedDay.value, isTradingDay: true };
+    return { date: closedDay.value, isTradingDay: true };
   }
-  const today = wibDateOf(moment);
-  return {
-    date: addDays(today, -1),
-    closedAt: wibMoment(today, 0),
-    isTradingDay: false,
-  };
+  return { date: addDays(wibDateOf(moment), -1), isTradingDay: false };
 }
 
 function dueInstruments(
@@ -122,7 +117,7 @@ function dueInstruments(
   if (now < nextAttemptTime(latestAttempt)) {
     return [];
   }
-  if (latestAttempt.attemptedAt < finalDay.closedAt) {
+  if (latestAttempt.finalDate !== finalDay.date) {
     return settings.instruments;
   }
   const storedCodes = listCodesWithHistory(settings.database);

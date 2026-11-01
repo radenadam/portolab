@@ -38,6 +38,8 @@ export const priceUpdates = sqliteTable("price_updates", {
   failedCodes: text("failed_codes", { mode: "json" })
     .$type<string[]>()
     .notNull(),
+  /** The latest trading day whose closes a run of the history job asked for, and null for the quote job. */
+  finalDate: text("final_date"),
 });
 
 /** The close of each tracked stock on each trading day, adjusted for its later splits. The date is in WIB, such as 2026-10-30. */

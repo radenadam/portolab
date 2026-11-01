@@ -5,7 +5,7 @@ import {
   saveUpdateAttempt,
 } from "./update-attempts.server";
 
-test("keeps only the latest attempt of each job, with the codes that it could not update", () => {
+test("keeps only the latest attempt of each job, with the codes that it could not update and the final day that it asked for", () => {
   const database = openDatabaseForTest();
   expect(readLatestUpdateAttempt(database, "quotes")).toBeUndefined();
   expect(readLatestUpdateAttempt(database, "history")).toBeUndefined();
@@ -26,6 +26,7 @@ test("keeps only the latest attempt of each job, with the codes that it could no
     succeeded: false,
     consecutiveFailures: 2,
     failedCodes: ["IHSG", "BBCA"],
+    finalDate: "2026-10-30",
   });
   expect(readLatestUpdateAttempt(database, "quotes")).toEqual({
     attemptedAt: new Date("2026-10-30T09:30:00.000Z"),
@@ -38,5 +39,6 @@ test("keeps only the latest attempt of each job, with the codes that it could no
     succeeded: false,
     consecutiveFailures: 2,
     failedCodes: ["IHSG", "BBCA"],
+    finalDate: "2026-10-30",
   });
 });
