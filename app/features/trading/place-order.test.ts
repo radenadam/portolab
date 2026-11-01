@@ -217,7 +217,7 @@ test("rejects a purchase of a stock with fewer monthly returns than the measures
   });
 });
 
-test("accepts a purchase of a stock once the first trading day of the month that the rejection names has closed, and not during that day", () => {
+test("accepts a purchase of a stock once the update of the price history stores the close of the first trading day of the month that the rejection names, and not before", () => {
   // The closes of the latest 25 month ends give 23 returns in the window that ends in September 2026, so the return of October 2026 is the one missing.
   const shortHistory: InstrumentCloses = {
     code: "BBCA",
@@ -235,7 +235,15 @@ test("accepts a purchase of a stock once the first trading day of the month that
       enoughAfterFirstTradingDayOf: "2026-11-01",
     },
   });
-  // 10:00 on Tuesday 3 November 2026, once the closes of Monday 2 November, the first trading day of November, are stored.
+  // At 16:30 on Monday, after the close of the first trading day of November but before the update stores it.
+  expect(
+    placeOrder(
+      purchase({ placedAt: new Date("2026-11-02T09:30:00Z") }),
+      account(),
+      { ...bbca, closes: shortHistory },
+    ),
+  ).toMatchObject({ ok: false, failure: { kind: "tooFewReturns", count: 23 } });
+  // 10:00 on Tuesday 3 November 2026, once the update has stored the closes of Monday 2 November.
   expect(
     placeOrder(
       purchase({ placedAt: new Date("2026-11-03T03:00:00Z") }),

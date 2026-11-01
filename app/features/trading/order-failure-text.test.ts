@@ -248,9 +248,9 @@ const texts: Record<Locale, Record<FailureName, string>> = {
     noReferenceClose:
       "Portolab belum menyimpan harga penutupan BBCA pada 2 November 2026, padahal BEI menetapkan rentang harga order limit dari harga penutupan tersebut. Coba lagi setelah pembaruan riwayat harga berikutnya menyimpan harga penutupan itu, atau pasang order harga pasar, yang tidak membutuhkan limit.",
     severalReturns:
-      "AADI baru memiliki 21 imbal hasil bulanan, sedangkan Portolab menghitung ukuran sebuah portofolio hanya jika setiap sahamnya memiliki 24 imbal hasil bulanan. Jika AADI tetap memiliki harga penutupan di akhir setiap bulan dan tetap termasuk LQ45, Anda dapat membelinya setelah hari bursa pertama Januari 2027 ditutup.",
+      "AADI baru memiliki 21 imbal hasil bulanan, sedangkan Portolab menghitung ukuran sebuah portofolio hanya jika setiap sahamnya memiliki 24 imbal hasil bulanan. Jika AADI tetap memiliki harga penutupan di akhir setiap bulan dan tetap termasuk LQ45, Anda dapat membelinya setelah pembaruan riwayat harga yang menyimpan harga penutupan hari bursa pertama Januari 2027.",
     oneReturn:
-      "AADI baru memiliki 1 imbal hasil bulanan, sedangkan Portolab menghitung ukuran sebuah portofolio hanya jika setiap sahamnya memiliki 24 imbal hasil bulanan. Jika AADI tetap memiliki harga penutupan di akhir setiap bulan dan tetap termasuk LQ45, Anda dapat membelinya setelah hari bursa pertama September 2028 ditutup.",
+      "AADI baru memiliki 1 imbal hasil bulanan, sedangkan Portolab menghitung ukuran sebuah portofolio hanya jika setiap sahamnya memiliki 24 imbal hasil bulanan. Jika AADI tetap memiliki harga penutupan di akhir setiap bulan dan tetap termasuk LQ45, Anda dapat membelinya setelah pembaruan riwayat harga yang menyimpan harga penutupan hari bursa pertama September 2028.",
     tooManyLots:
       "BEI menerima paling banyak 50.000 lot dalam satu order, sedangkan order ini berisi 50.001 lot. Bagi order ini menjadi beberapa order yang masing-masing berisi paling banyak 50.000 lot.",
     limitsAsRates:
@@ -304,9 +304,9 @@ const texts: Record<Locale, Record<FailureName, string>> = {
     noReferenceClose:
       "Portolab has not stored the close of BBCA on November 2, 2026 yet, and IDX sets the range of prices of a limit order from that close. Try again after the next update of the price history stores that close, or place a market order, which needs no limit.",
     severalReturns:
-      "AADI has 21 monthly returns, but Portolab computes the measures of a portfolio only when each of its stocks has 24 monthly returns. If AADI keeps a close at the end of every month and stays in the LQ45, you can buy it after the first trading day of January 2027 closes.",
+      "AADI has 21 monthly returns, but Portolab computes the measures of a portfolio only when each of its stocks has 24 monthly returns. If AADI keeps a close at the end of every month and stays in the LQ45, you can buy it after the update of the price history that stores the close of the first trading day of January 2027.",
     oneReturn:
-      "AADI has 1 monthly return, but Portolab computes the measures of a portfolio only when each of its stocks has 24 monthly returns. If AADI keeps a close at the end of every month and stays in the LQ45, you can buy it after the first trading day of September 2028 closes.",
+      "AADI has 1 monthly return, but Portolab computes the measures of a portfolio only when each of its stocks has 24 monthly returns. If AADI keeps a close at the end of every month and stays in the LQ45, you can buy it after the update of the price history that stores the close of the first trading day of September 2028.",
     tooManyLots:
       "IDX accepts at most 50,000 lots in one order, but this order has 50,001 lots. Split it into orders of at most 50,000 lots each.",
     limitsAsRates:

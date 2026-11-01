@@ -20,6 +20,7 @@ import type { Shares } from "~/units/shares";
 import { wibDateOf } from "~/wib";
 import { acceptedPriceRange, checkLimitPrice } from "./accepted-prices";
 import { checkCashForPurchase } from "./check-cash-for-purchase";
+import { referencePrice } from "./reference-price";
 import type { Holding } from "./holding-after-fill";
 import { idxRulesOn } from "./idx-rules-on";
 import type { IdxRules } from "./idx-rules-on";
@@ -53,7 +54,7 @@ export interface StockState {
   quote: StockQuote | undefined;
   /** How many minutes the quotes lag behind the exchange, which sets when the prices of a day are final. */
   delayMinutes: number;
-  /** The stored final daily closes of the stock and of the market. They give the monthly returns that the measures can use and the reference price of the auto rejection limits. */
+  /** The stored final daily closes of the stock and of the market. They give the monthly returns that the measures can use, and with the quote the reference price of the auto rejection limits. */
   closes: InstrumentCloses;
   marketCloses: InstrumentCloses;
 }
@@ -63,7 +64,7 @@ interface TradingDay {
   date: string;
   tradesFrom: Date;
   expiresAt: Date;
-  /** The trading day before it, whose close is the reference price. */
+  /** The trading day before it, whose close or the close of the last day before it on which the stock traded is the reference price. */
   previousDate: string;
   rules: IdxRules;
   rates: CostRates;
@@ -104,11 +105,7 @@ export function placeOrder(
       maximumLots: rules.maximumLots,
     });
   }
-  const price = checkedPrice(
-    request,
-    { quote, closes: stock.closes },
-    day.value,
-  );
+  const price = checkedPrice(request, { ...stock, quote }, day.value);
   if (!price.ok) {
     return price;
   }
@@ -226,32 +223,16 @@ function checkBuyable(
   return succeed(undefined);
 }
 
-/** The reference price of the auto rejection limits of a trading day, which is the stored close of the stock on the trading day before it. */
-function referencePrice(
-  code: string,
-  closes: InstrumentCloses,
-  day: TradingDay,
-): Result<Rupiah, OrderFailure> {
-  const close = closes.closes.find(
-    (candidate) => candidate.date === day.previousDate,
-  );
-  if (close === undefined) {
-    return fail({ kind: "noReferenceClose", code, date: day.previousDate });
-  }
-  // A close that a later split adjusted can hold a fraction of a rupiah, but a reference price is whole.
-  return succeed(rupiah(Math.round(close.close)));
-}
-
 function checkedPrice(
   request: OrderRequest,
-  stock: { quote: StockQuote; closes: InstrumentCloses },
+  stock: StockState & { quote: StockQuote },
   day: TradingDay,
 ): Result<Rupiah, OrderFailure> {
   switch (request.price.kind) {
     case "market":
       return succeed(stock.quote.price);
     case "limit": {
-      const reference = referencePrice(request.code, stock.closes, day);
+      const reference = referencePrice(request.code, stock, day);
       if (!reference.ok) {
         return reference;
       }
