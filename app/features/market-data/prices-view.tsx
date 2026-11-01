@@ -92,7 +92,7 @@ export function PricesView({
   );
 }
 
-// A price that the attempt could not update has a row with an older price, or no row when Portolab never stored one, and each case has its own sentence.
+// A sentence that calls the price below an older one would be false for a price that Portolab never stored, because that price has no row.
 function failedPriceSentences(
   attempt: UpdateAttempt,
   quotes: readonly Quote[],
@@ -200,7 +200,7 @@ function QuoteRow({
   );
 }
 
-// A price from the newest day shows its time of day. One from another day shows its date as well, on a line of its own, which comes from the same format as the times in the notices.
+// The date and the time come from the format of the notices, so a moment reads the same in the table and in the text above it.
 function QuoteTime({
   quotedAt,
   isNewestDay,
