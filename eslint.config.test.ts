@@ -1,5 +1,6 @@
 import { ESLint } from "eslint";
 import { expect, test } from "vitest";
+import { minuteMilliseconds } from "./app/time-units.ts";
 
 const eslint = new ESLint();
 
@@ -133,114 +134,147 @@ for (const [nameForm, target] of Object.entries(propertyAssignments)) {
 ${target} = ${signature.declared} => ${signature.arrowBody};`;
 }
 
-test("accepts a parser with the standard signature in every form", async () => {
-  for (const [form, write] of Object.entries(parserForms)) {
+test(
+  "accepts a parser with the standard signature in every form",
+  async () => {
+    for (const [form, write] of Object.entries(parserForms)) {
+      expect(
+        await rulesReporting(`${imports}${write(standardSignature)}\n`),
+        form,
+      ).not.toContain("no-restricted-syntax");
+    }
+  },
+  2 * minuteMilliseconds,
+);
+
+test(
+  "rejects a parser with a wrong signature in every form",
+  async () => {
+    for (const [form, write] of Object.entries(parserForms)) {
+      expect(
+        await rulesReporting(`${write(wrongSignature)}\n`),
+        form,
+      ).toContain("no-restricted-syntax");
+    }
+  },
+  2 * minuteMilliseconds,
+);
+
+test(
+  "rejects a parser whose value, source, or result breaks the signature",
+  async () => {
+    for (const signature of [
+      "parseName(text: unknown, source: string): Result<string, string>",
+      "parseName(value: string, source: string): Result<string, string>",
+      "parseName(value: unknown = 1, source: string): Result<string, string>",
+      "parseName(value: unknown, where: string): Result<string, string>",
+      "parseName(value: unknown, source: string): Result<string, number>",
+      "parseName(value: unknown, source: string): string",
+      "parseName(value: unknown): Result<string, string>",
+    ]) {
+      expect(
+        await rulesReporting(
+          `${imports}export declare function ${signature};\n`,
+        ),
+        signature,
+      ).toContain("no-restricted-syntax");
+    }
+  },
+  minuteMilliseconds,
+);
+
+test(
+  "accepts a parser that takes further parameters after the standard ones",
+  async () => {
     expect(
-      await rulesReporting(`${imports}${write(standardSignature)}\n`),
-      form,
+      await rulesReporting(
+        `${imports}export declare function parseName(value: unknown, source: string, suffix: string): Result<string, string>;\n`,
+      ),
     ).not.toContain("no-restricted-syntax");
-  }
-}, 120_000);
+  },
+  minuteMilliseconds,
+);
 
-test("rejects a parser with a wrong signature in every form", async () => {
-  for (const [form, write] of Object.entries(parserForms)) {
-    expect(await rulesReporting(`${write(wrongSignature)}\n`), form).toContain(
-      "no-restricted-syntax",
-    );
-  }
-}, 120_000);
-
-test("rejects a parser whose value, source, or result breaks the signature", async () => {
-  for (const signature of [
-    "parseName(text: unknown, source: string): Result<string, string>",
-    "parseName(value: string, source: string): Result<string, string>",
-    "parseName(value: unknown = 1, source: string): Result<string, string>",
-    "parseName(value: unknown, where: string): Result<string, string>",
-    "parseName(value: unknown, source: string): Result<string, number>",
-    "parseName(value: unknown, source: string): string",
-    "parseName(value: unknown): Result<string, string>",
-  ]) {
+test(
+  "rejects reduce in every way to reach it, and accepts a plain loop",
+  async () => {
+    for (const code of [
+      "export const total = [1, 2].reduce((sum, item) => sum + item, 0);",
+      "export const total = [1, 2].reduceRight((sum, item) => sum + item, 0);",
+      'export const total = [1, 2]["reduce"]((sum, item) => sum + item, 0);',
+      "export const total = ([1, 2] as number[] | undefined)?.reduce((sum, item) => sum + item, 0);",
+      "export const total = [1, 2][`reduce`]((sum, item) => sum + item, 0);",
+      "export const total: unknown = Array.prototype.reduce.call([1, 2], (sum: number, item: number) => sum + item, 0);",
+      "export const total: unknown = Array.prototype.reduceRight.apply([1, 2], [(sum: number, item: number) => sum + item, 0]);",
+      "const items = [1, 2];\nexport const { reduce } = items;",
+      'const items = [1, 2];\nexport const { "reduceRight": combine } = items;',
+    ]) {
+      expect(await rulesReporting(code), code).toContain(
+        "no-restricted-syntax",
+      );
+    }
     expect(
-      await rulesReporting(`${imports}export declare function ${signature};\n`),
-      signature,
-    ).toContain("no-restricted-syntax");
-  }
-}, 60_000);
+      await rulesReporting(
+        "export function total(items: readonly number[]): number {\n  let sum = 0;\n  for (const item of items) {\n    sum += item;\n  }\n  return sum;\n}\n",
+      ),
+    ).not.toContain("no-restricted-syntax");
+  },
+  minuteMilliseconds,
+);
 
-test("accepts a parser that takes further parameters after the standard ones", async () => {
-  expect(
-    await rulesReporting(
-      `${imports}export declare function parseName(value: unknown, source: string, suffix: string): Result<string, string>;\n`,
-    ),
-  ).not.toContain("no-restricted-syntax");
-}, 60_000);
-
-test("rejects reduce in every way to reach it, and accepts a plain loop", async () => {
-  for (const code of [
-    "export const total = [1, 2].reduce((sum, item) => sum + item, 0);",
-    "export const total = [1, 2].reduceRight((sum, item) => sum + item, 0);",
-    'export const total = [1, 2]["reduce"]((sum, item) => sum + item, 0);',
-    "export const total = ([1, 2] as number[] | undefined)?.reduce((sum, item) => sum + item, 0);",
-    "export const total = [1, 2][`reduce`]((sum, item) => sum + item, 0);",
-    "export const total: unknown = Array.prototype.reduce.call([1, 2], (sum: number, item: number) => sum + item, 0);",
-    "export const total: unknown = Array.prototype.reduceRight.apply([1, 2], [(sum: number, item: number) => sum + item, 0]);",
-    "const items = [1, 2];\nexport const { reduce } = items;",
-    'const items = [1, 2];\nexport const { "reduceRight": combine } = items;',
-  ]) {
-    expect(await rulesReporting(code), code).toContain("no-restricted-syntax");
-  }
-  expect(
-    await rulesReporting(
-      "export function total(items: readonly number[]): number {\n  let sum = 0;\n  for (const item of items) {\n    sum += item;\n  }\n  return sum;\n}\n",
-    ),
-  ).not.toContain("no-restricted-syntax");
-}, 60_000);
-
-test("accepts throwing a response of React Router, and rejects throwing any other value that is not an error", async () => {
-  const throwsInRoute = (statement: string): string =>
-    `import { data, redirect } from "react-router";
+test(
+  "accepts throwing a response of React Router, and rejects throwing any other value that is not an error",
+  async () => {
+    const throwsInRoute = (statement: string): string =>
+      `import { data, redirect } from "react-router";
 export function loader(): void {
   ${statement}
 }
 `;
-  for (const statement of [
-    `throw redirect("/sign-in");`,
-    `throw data(null, { status: 404 });`,
-    `throw new Response(null, { status: 404 });`,
-    `throw new Error("A state that should never happen.");`,
-  ]) {
-    expect(
-      await rulesReporting(throwsInRoute(statement), "app/root.tsx"),
-      statement,
-    ).not.toContain("@typescript-eslint/only-throw-error");
-  }
-  for (const statement of [
-    `throw "/sign-in";`,
-    `throw { status: 404 };`,
-    `throw 404;`,
-  ]) {
-    expect(
-      await rulesReporting(throwsInRoute(statement), "app/root.tsx"),
-      statement,
-    ).toContain("@typescript-eslint/only-throw-error");
-  }
-}, 60_000);
+    for (const statement of [
+      `throw redirect("/sign-in");`,
+      `throw data(null, { status: 404 });`,
+      `throw new Response(null, { status: 404 });`,
+      `throw new Error("A state that should never happen.");`,
+    ]) {
+      expect(
+        await rulesReporting(throwsInRoute(statement), "app/root.tsx"),
+        statement,
+      ).not.toContain("@typescript-eslint/only-throw-error");
+    }
+    for (const statement of [
+      `throw "/sign-in";`,
+      `throw { status: 404 };`,
+      `throw 404;`,
+    ]) {
+      expect(
+        await rulesReporting(throwsInRoute(statement), "app/root.tsx"),
+        statement,
+      ).toContain("@typescript-eslint/only-throw-error");
+    }
+  },
+  minuteMilliseconds,
+);
 
-test("rejects abbreviated and one-letter names, and accepts full words", async () => {
-  for (const code of [
-    "export const msg = 1;",
-    "export function handle(err: unknown): unknown { return err; }",
-    "export const parsers = { cfg: 1 };",
-  ]) {
-    expect(await rulesReporting(code), code).toContain("id-denylist");
-  }
-  expect(await rulesReporting("export const x = 1;")).toContain("id-length");
-  const fullWords = await rulesReporting(
-    "export function handle(error: unknown): unknown { const message = error; return message; }",
-  );
-  expect(fullWords).not.toContain("id-denylist");
-  expect(fullWords).not.toContain("id-length");
-}, 60_000);
+test(
+  "rejects abbreviated and one-letter names, and accepts full words",
+  async () => {
+    for (const code of [
+      "export const msg = 1;",
+      "export function handle(err: unknown): unknown { return err; }",
+      "export const parsers = { cfg: 1 };",
+    ]) {
+      expect(await rulesReporting(code), code).toContain("id-denylist");
+    }
+    expect(await rulesReporting("export const x = 1;")).toContain("id-length");
+    const fullWords = await rulesReporting(
+      "export function handle(error: unknown): unknown { const message = error; return message; }",
+    );
+    expect(fullWords).not.toContain("id-denylist");
+    expect(fullWords).not.toContain("id-length");
+  },
+  minuteMilliseconds,
+);
 
 // Every way to load a module, for a path that names a feature.
 const loadingForms: Record<string, (path: string) => string> = {
@@ -264,43 +298,51 @@ const modulesOutsideFeatures: Record<string, readonly string[]> = {
   "server/main.ts": ["../app/features/market-data/quote-change.ts"],
 };
 
-test("rejects every way to load a feature from a module outside the features", async () => {
-  for (const [filePath, paths] of Object.entries(modulesOutsideFeatures)) {
-    for (const path of paths) {
-      for (const [form, write] of Object.entries(loadingForms)) {
-        const rules = await rulesReporting(write(path), filePath);
-        expect(
-          rules.includes("no-restricted-imports") ||
-            rules.includes("no-restricted-syntax"),
-          `${form} of ${path} in ${filePath}`,
-        ).toBe(true);
+test(
+  "rejects every way to load a feature from a module outside the features",
+  async () => {
+    for (const [filePath, paths] of Object.entries(modulesOutsideFeatures)) {
+      for (const path of paths) {
+        for (const [form, write] of Object.entries(loadingForms)) {
+          const rules = await rulesReporting(write(path), filePath);
+          expect(
+            rules.includes("no-restricted-imports") ||
+              rules.includes("no-restricted-syntax"),
+            `${form} of ${path} in ${filePath}`,
+          ).toBe(true);
+        }
       }
     }
-  }
-}, 120_000);
+  },
+  2 * minuteMilliseconds,
+);
 
-test("accepts loading a feature in the modules that compose the app and in the features", async () => {
-  for (const [filePath, path] of [
-    ["app/root.tsx", "./features/market-data/quote-change"],
-    ["app/routes.ts", "~/features/market-data/quote-change"],
-    ["server/app.ts", "~/features/market-data/quote-change"],
-    ["server/account.ts", "../app/features/market-data/quote-change.ts"],
-    [
-      "app/features/market-data/prices-view.tsx",
-      "~/features/language/language-switch",
-    ],
-  ] as const) {
-    for (const [form, write] of Object.entries(loadingForms)) {
-      const rules = await rulesReporting(write(path), filePath);
-      expect(rules, `${form} in ${filePath}`).not.toContain(
-        "no-restricted-imports",
-      );
-      expect(rules, `${form} in ${filePath}`).not.toContain(
-        "no-restricted-syntax",
-      );
+test(
+  "accepts loading a feature in the modules that compose the app and in the features",
+  async () => {
+    for (const [filePath, path] of [
+      ["app/root.tsx", "./features/market-data/quote-change"],
+      ["app/routes.ts", "~/features/market-data/quote-change"],
+      ["server/app.ts", "~/features/market-data/quote-change"],
+      ["server/account.ts", "../app/features/market-data/quote-change.ts"],
+      [
+        "app/features/market-data/prices-view.tsx",
+        "~/features/language/language-switch",
+      ],
+    ] as const) {
+      for (const [form, write] of Object.entries(loadingForms)) {
+        const rules = await rulesReporting(write(path), filePath);
+        expect(rules, `${form} in ${filePath}`).not.toContain(
+          "no-restricted-imports",
+        );
+        expect(rules, `${form} in ${filePath}`).not.toContain(
+          "no-restricted-syntax",
+        );
+      }
     }
-  }
-}, 120_000);
+  },
+  2 * minuteMilliseconds,
+);
 
 const fileNameRule = "portolab/file-named-after-export";
 
@@ -344,50 +386,62 @@ const otherFiles = [
   "lint/file-named-after-export.ts",
 ];
 
-test("rejects a module whose one export is not its file name, in every form of export and in every folder", async () => {
-  for (const [form, code] of Object.entries(exportForms)) {
-    for (const filePath of otherFiles) {
-      expect(
-        await rulesReporting(code, filePath),
-        `${form} in ${filePath}`,
-      ).toContain(fileNameRule);
+test(
+  "rejects a module whose one export is not its file name, in every form of export and in every folder",
+  async () => {
+    for (const [form, code] of Object.entries(exportForms)) {
+      for (const filePath of otherFiles) {
+        expect(
+          await rulesReporting(code, filePath),
+          `${form} in ${filePath}`,
+        ).toContain(fileNameRule);
+      }
     }
-  }
-}, 120_000);
+  },
+  2 * minuteMilliseconds,
+);
 
-test("accepts a module whose one export is its file name, in every form of export", async () => {
-  for (const [form, code] of Object.entries(exportForms)) {
-    expect(
-      await rulesReporting(code, "app/features/market-data/quote-change.ts"),
-      form,
-    ).not.toContain(fileNameRule);
-  }
-}, 120_000);
+test(
+  "accepts a module whose one export is its file name, in every form of export",
+  async () => {
+    for (const [form, code] of Object.entries(exportForms)) {
+      expect(
+        await rulesReporting(code, "app/features/market-data/quote-change.ts"),
+        form,
+      ).not.toContain(fileNameRule);
+    }
+  },
+  2 * minuteMilliseconds,
+);
 
-test("compares the name with the file name before its first dot, in every folder", async () => {
-  for (const [filePath, code] of [
-    [
-      "app/features/market-data/quote-store.server.ts",
-      "export function quoteStore(): number { return 1; }",
-    ],
-    [
-      "app/features/market-data/prices-view.tsx",
-      "export function PricesView(): null { return null; }",
-    ],
-    [
-      "scripts/read-text-file.ts",
-      'export function readTextFile(): string { return ""; }',
-    ],
-    [
-      "e2e/expect-accessible-screen.ts",
-      "export function expectAccessibleScreen(): number { return 1; }",
-    ],
-  ] as const) {
-    expect(await rulesReporting(code, filePath), filePath).not.toContain(
-      fileNameRule,
-    );
-  }
-}, 60_000);
+test(
+  "compares the name with the file name before its first dot, in every folder",
+  async () => {
+    for (const [filePath, code] of [
+      [
+        "app/features/market-data/quote-store.server.ts",
+        "export function quoteStore(): number { return 1; }",
+      ],
+      [
+        "app/features/market-data/prices-view.tsx",
+        "export function PricesView(): null { return null; }",
+      ],
+      [
+        "scripts/read-text-file.ts",
+        'export function readTextFile(): string { return ""; }',
+      ],
+      [
+        "e2e/expect-accessible-screen.ts",
+        "export function expectAccessibleScreen(): number { return 1; }",
+      ],
+    ] as const) {
+      expect(await rulesReporting(code, filePath), filePath).not.toContain(
+        fileNameRule,
+      );
+    }
+  },
+  minuteMilliseconds,
+);
 
 test("names the export, the file name that it asks for, and the file name that it found", async () => {
   const results = await eslint.lintText(
@@ -402,39 +456,47 @@ test("names the export, the file name that it asks for, and the file name that i
   );
 });
 
-test("leaves a module alone when its exports serve a concept or cannot be named", async () => {
-  for (const [module, code] of Object.entries({
-    "several exports": "export const first = 1;\nexport const second = 2;",
-    "only types":
-      'export interface Change { value: number }\nexport type Kind = "rise";\nexport type { Other } from "./other";',
-    "an anonymous default export": "export default { size: 1 };",
-    "a default export named default":
-      "const change = 1;\nexport { change as default };",
-    "an export of every name of another module":
-      'export const change = 1;\nexport * from "./other";',
-    "the exports of a route":
-      "export function loader(): null { return null; }\nexport function meta(): [] { return []; }",
-  })) {
-    expect(
-      await rulesReporting(code, "app/formatting.ts"),
-      module,
-    ).not.toContain(fileNameRule);
-  }
-}, 60_000);
+test(
+  "leaves a module alone when its exports serve a concept or cannot be named",
+  async () => {
+    for (const [module, code] of Object.entries({
+      "several exports": "export const first = 1;\nexport const second = 2;",
+      "only types":
+        'export interface Change { value: number }\nexport type Kind = "rise";\nexport type { Other } from "./other";',
+      "an anonymous default export": "export default { size: 1 };",
+      "a default export named default":
+        "const change = 1;\nexport { change as default };",
+      "an export of every name of another module":
+        'export const change = 1;\nexport * from "./other";',
+      "the exports of a route":
+        "export function loader(): null { return null; }\nexport function meta(): [] { return []; }",
+    })) {
+      expect(
+        await rulesReporting(code, "app/formatting.ts"),
+        module,
+      ).not.toContain(fileNameRule);
+    }
+  },
+  minuteMilliseconds,
+);
 
-test("counts values and not types or the names that React Router reads from a route", async () => {
-  expect(
-    await rulesReporting(
-      "export interface Change { value: number }\nexport function quoteChange(): number { return 1; }",
-      "app/formatting.ts",
-    ),
-  ).toContain(fileNameRule);
-  const route =
-    "export function loader(): null { return null; }\nexport default function PricesPage(): null { return null; }";
-  expect(
-    await rulesReporting(route, "app/features/market-data/prices-page.tsx"),
-  ).not.toContain(fileNameRule);
-  expect(
-    await rulesReporting(route, "app/features/market-data/prices-view.tsx"),
-  ).toContain(fileNameRule);
-}, 60_000);
+test(
+  "counts values and not types or the names that React Router reads from a route",
+  async () => {
+    expect(
+      await rulesReporting(
+        "export interface Change { value: number }\nexport function quoteChange(): number { return 1; }",
+        "app/formatting.ts",
+      ),
+    ).toContain(fileNameRule);
+    const route =
+      "export function loader(): null { return null; }\nexport default function PricesPage(): null { return null; }";
+    expect(
+      await rulesReporting(route, "app/features/market-data/prices-page.tsx"),
+    ).not.toContain(fileNameRule);
+    expect(
+      await rulesReporting(route, "app/features/market-data/prices-view.tsx"),
+    ).toContain(fileNameRule);
+  },
+  minuteMilliseconds,
+);

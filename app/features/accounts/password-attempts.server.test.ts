@@ -10,12 +10,13 @@ import type {
   PasswordLimiters,
 } from "./password-attempts.server";
 import { createTestLecturer } from "./accounts-for-test.server";
+import { minuteMilliseconds } from "~/time-units";
 
 const now = new Date("2026-11-02T03:00:00.000Z");
 const fifteenMinutesLater = new Date("2026-11-02T03:15:00.000Z");
 const address = "192.0.2.1";
 // Each check of a password runs scrypt, which takes about half a second on a runner of CI, so a test of many attempts needs more time than a test usually gets.
-const manyHashesTimeout = 60_000;
+const manyHashesTimeout = minuteMilliseconds;
 
 const wrongPassword = { ok: false, failure: { kind: "wrongPassword" } };
 const usernameBlocked = {

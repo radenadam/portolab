@@ -1,4 +1,8 @@
-import { dayMilliseconds, hourMilliseconds } from "~/time-units";
+import {
+  dayMilliseconds,
+  hourMilliseconds,
+  secondMilliseconds,
+} from "~/time-units";
 import { expect, test } from "vitest";
 import { openDatabaseForTest } from "~/database/open-database-for-test.server";
 import { createTestLecturer } from "./accounts-for-test.server";
@@ -22,7 +26,7 @@ test("finds the session that a token names, with the account that it signs in", 
   const database = openDatabaseForTest();
   const { account } = await createTestLecturer(database, "dosen");
   const token = createSession(database, account.id, start);
-  expect(resumeSession(database, token, later(1000))).toEqual({
+  expect(resumeSession(database, token, later(secondMilliseconds))).toEqual({
     id: token.split(".")[0],
     account,
     wasExtended: false,
