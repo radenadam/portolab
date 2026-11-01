@@ -290,13 +290,13 @@ const quoteTimes: Record<
   { otherDay: string; newestDay: string; clock: string }
 > = {
   id: {
-    otherDay: ">16 Okt 2026 </span>",
-    newestDay: ">30 Okt 2026 </span>",
+    otherDay: ">16 Okt 2026, </span>",
+    newestDay: ">30 Okt 2026, </span>",
     clock: ">16.14</span>",
   },
   en: {
-    otherDay: ">Oct 16, 2026 </span>",
-    newestDay: ">Oct 30, 2026 </span>",
+    otherDay: ">Oct 16, 2026, </span>",
+    newestDay: ">Oct 30, 2026, </span>",
     clock: ">4:14 PM</span>",
   },
 };

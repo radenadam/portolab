@@ -3,8 +3,8 @@ import {
   formatIndexLevel,
   formatList,
   formatMarketClock,
-  formatMarketDate,
   formatMarketTime,
+  formatMarketTimeParts,
   formatNumber,
   formatRupiah,
   formatSignedPercent,
@@ -191,16 +191,34 @@ function QuoteRow({
         {change.text}
       </td>
       <td className={styles["time"]}>
-        {!isSameWibDay(quote.quotedAt, latestQuotedAt) && (
-          <span className={styles["date"]}>
-            {`${formatMarketDate(quote.quotedAt)} `}
-          </span>
-        )}
-        <span className={styles["clock"]}>
-          {formatMarketClock(quote.quotedAt)}
-        </span>
+        <QuoteTime
+          quotedAt={quote.quotedAt}
+          isNewestDay={isSameWibDay(quote.quotedAt, latestQuotedAt)}
+        />
       </td>
     </tr>
+  );
+}
+
+// A price from the newest day shows its time of day. One from another day shows its date as well, on a line of its own, which comes from the same format as the times in the notices.
+function QuoteTime({
+  quotedAt,
+  isNewestDay,
+}: {
+  quotedAt: Date;
+  isNewestDay: boolean;
+}): ReactNode {
+  if (isNewestDay) {
+    return (
+      <span className={styles["clock"]}>{formatMarketClock(quotedAt)}</span>
+    );
+  }
+  const { date, clock } = formatMarketTimeParts(quotedAt);
+  return (
+    <>
+      <span className={styles["date"]}>{date}</span>
+      <span className={styles["clock"]}>{clock}</span>
+    </>
   );
 }
 

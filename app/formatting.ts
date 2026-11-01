@@ -76,18 +76,35 @@ export function formatList(
   return listOfWords(items, type, intlLocale());
 }
 
-/** Formats the date in WIB, such as 29 Okt 2026, for a price from another day than the newest one. */
-export function formatMarketDate(moment: Date): string {
-  return new Intl.DateTimeFormat(intlLocale(), {
-    dateStyle: "medium",
-    timeZone: wibTimeZone,
-  }).format(moment);
+export function formatMarketTime(moment: Date): string {
+  return marketTimeFormat().format(moment);
 }
 
-export function formatMarketTime(moment: Date): string {
+/** Formats a moment in WIB as formatMarketTime does, split where the time of day starts, so a layout can put the time on a line of its own. The date keeps the separator that the active language writes before the time. */
+export function formatMarketTimeParts(moment: Date): {
+  date: string;
+  clock: string;
+} {
+  let date = "";
+  let clock = "";
+  let hasClockStarted = false;
+  for (const part of marketTimeFormat().formatToParts(moment)) {
+    if (part.type === "hour") {
+      hasClockStarted = true;
+    }
+    if (hasClockStarted) {
+      clock += part.value;
+    } else {
+      date += part.value;
+    }
+  }
+  return { date, clock };
+}
+
+function marketTimeFormat(): Intl.DateTimeFormat {
   return new Intl.DateTimeFormat(intlLocale(), {
     dateStyle: "medium",
     timeStyle: "short",
     timeZone: wibTimeZone,
-  }).format(moment);
+  });
 }
