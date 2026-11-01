@@ -1,3 +1,6 @@
+/** The most characters of the name of a person. A name rarely comes near this, and a longer one would not fit where a page shows it. */
+export const nameMaximumLength = 100;
+
 /** How long each limit by the address of a network keeps the address in memory after its last attempt from it. The privacy notice states this one time for every such limit, so every limit by address uses it as its window. */
 export const addressWindowMinutes = 15;
 

@@ -3,7 +3,7 @@ import { clientAddressContext } from "~/client-address.server";
 import { databaseContext } from "~/database/database.server";
 import type { Database } from "~/database/database.server";
 import type { UserId } from "~/features/accounts/accounts.schema";
-import { rupiah } from "~/units/rupiah";
+import { defaultStartingCash } from "./class-rules";
 import { createClass, findTaughtClass } from "./class-store.server";
 import type { ClassId } from "./classes.schema";
 import type { JoinCode } from "./join-code";
@@ -28,7 +28,7 @@ export function joinContextForTest(
   return context;
 }
 
-/** Creates a class of a lecturer for a test, with the default starting cash of Rp100.000.000, and returns its id and its code. */
+/** Creates a class of a lecturer for a test, with the default starting cash, and returns its id and its code. */
 export function createClassForTest(
   database: Database,
   lecturerId: UserId,
@@ -36,7 +36,7 @@ export function createClassForTest(
 ): { classId: ClassId; joinCode: JoinCode } {
   const classId = createClass(
     database,
-    { lecturerId, name, startingCash: rupiah(100_000_000) },
+    { lecturerId, name, startingCash: defaultStartingCash },
     new Date("2026-11-02T03:00:00.000Z"),
   );
   const taught = findTaughtClass(database, classId, lecturerId);

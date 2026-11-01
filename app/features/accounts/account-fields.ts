@@ -17,10 +17,8 @@ import {
   usernameLength,
 } from "./username";
 import type { Username } from "./username";
+import { nameMaximumLength } from "./account-limits";
 import { normalizePassword } from "./normalize-password";
-
-// A name rarely comes near this, and a longer one would not fit where a page shows it.
-const nameMaximumLength = 100;
 
 /** The limits of a password that a person chooses. NIST SP 800-63B asks for at least 15 characters when a password alone signs a person in, and for a maximum of at least 64. */
 export const passwordLength = { minimum: 15, maximum: 128 } as const;

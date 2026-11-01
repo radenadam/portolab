@@ -1,4 +1,4 @@
-import { rupiah } from "~/units/rupiah";
+import { rupiah } from "../../units/rupiah.ts";
 
 /** The cash that each student of a class starts with, unless the lecturer sets another amount. */
 export const defaultStartingCash = rupiah(100_000_000);
@@ -9,5 +9,5 @@ export const startingCashLimits = {
   maximum: rupiah(1_000_000_000_000),
 } as const;
 
-// A name of a class names a course and a group, such as Portfolio Management A, which rarely comes near this.
+/** The most characters of the name of a class. A name of a class names a course and a group, such as Portfolio Management A, which rarely comes near this. */
 export const classNameMaximumLength = 100;

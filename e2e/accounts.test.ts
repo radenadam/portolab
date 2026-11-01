@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
+import { nameMaximumLength } from "../app/features/accounts/account-limits.ts";
 import { languageNames } from "../app/language-names.ts";
 import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
@@ -13,9 +14,10 @@ import {
 } from "./accounts.ts";
 import { chooseLanguage } from "./choose-language.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
+import { wideWord } from "./wide-word.ts";
 
-// The longest name that a test gives, so each screen that shows a name is checked with wide content.
-const longName = "Kusumawardhani Prameswari Wicaksono Hadiningrat Setyaningrum";
+// The longest name that Portolab accepts, as one word, so each screen that shows a name is checked with its widest content.
+const longName = wideWord("Kusumawardhani", nameMaximumLength);
 
 const texts: Record<
   Locale,

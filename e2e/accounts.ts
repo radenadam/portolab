@@ -6,6 +6,7 @@ import type { Browser, Page } from "@playwright/test";
 import { secondMilliseconds } from "../app/time-units.ts";
 import { printedPasswordForTest } from "../app/features/accounts/printed-password-for-test.ts";
 import type { AccountAction } from "../app/features/accounts/account-actions.ts";
+import { usernameLength } from "../app/features/accounts/username.ts";
 import { parseFilePath } from "../app/value-parsers.ts";
 import type { Locale } from "../app/paraglide/runtime.js";
 import { chooseLanguage } from "./choose-language.ts";
@@ -17,13 +18,10 @@ const commandTimeoutSeconds = 30;
 /** A password that every test account chooses, long enough for the rule of passwords. */
 export const chosenPassword = "kopi pagi di kampus";
 
-// The longest username that Portolab accepts, of wide letters, so each screen that shows a username is checked with its widest content.
-const usernameLength = 32;
-
-/** A username that no other test uses, because the tests of both projects share one database, as long and as wide as a username can be. */
+/** A username that no other test uses, because the tests of both projects share one database. It is as long as a username can be, in wide letters and without a place to break the line, so each screen that shows a username is checked with its widest content. */
 export function uniqueUsername(prefix: string): string {
   const unique = randomUUID().slice(0, 8);
-  return `${prefix}${"w".repeat(usernameLength - prefix.length - unique.length - 1)}-${unique}`;
+  return `${prefix}${"w".repeat(usernameLength.maximum - prefix.length - unique.length)}${unique}`;
 }
 
 /** Runs the account command on the database of the test server, as the person who runs a server would, and returns the temporary password that it prints. */

@@ -1,4 +1,6 @@
 import { expect, test } from "@playwright/test";
+import { nameMaximumLength } from "../app/features/accounts/account-limits.ts";
+import { classNameMaximumLength } from "../app/features/classes/class-rules.ts";
 import { languageNames } from "../app/language-names.ts";
 import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
@@ -12,12 +14,13 @@ import {
 } from "./accounts.ts";
 import { chooseLanguage } from "./choose-language.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
+import { wideWord } from "./wide-word.ts";
 
-// The longest names that the tests give, so each screen that shows them is checked with wide content.
-const className =
-  "Manajemen Portofolio dan Analisis Investasi Kelas Eksekutif Sabtu Pagi";
-const lecturerName = "Budi Santoso";
-const studentName = "Kusumawardhani Prameswari Wicaksono Hadiningrat";
+// The longest names that Portolab accepts, each one word, so each screen that shows a name is checked with its widest content.
+const className = wideWord("Kelas", classNameMaximumLength);
+const otherClassName = wideWord("KelasLain", classNameMaximumLength);
+const lecturerName = wideWord("Dosen", nameMaximumLength);
+const studentName = wideWord("Mahasiswa", nameMaximumLength);
 
 const texts: Record<
   Locale,
@@ -332,7 +335,7 @@ for (const locale of locales) {
     await chooseLanguage(page, locale);
     await signInAsNewLecturer(page, lecturerName);
     const first = await createTestClass(page, className);
-    const second = await createTestClass(page, `${className} B`);
+    const second = await createTestClass(page, otherClassName);
 
     const student = await newDevice(browser, locale);
     await student.goto("/classes");
@@ -461,7 +464,7 @@ for (const locale of locales) {
 
     const otherLecturer = await newDevice(browser, locale);
     await signInAsNewLecturer(otherLecturer, lecturerName);
-    const otherClass = await createTestClass(otherLecturer, `${className} B`);
+    const otherClass = await createTestClass(otherLecturer, otherClassName);
     const outsider = await newDevice(browser, locale);
     await joinAsNewStudent(outsider, otherClass.joinAddress, studentName);
 
