@@ -60,8 +60,8 @@ export async function action({ context, request }: Route.ActionArgs) {
         currentPasswordFailure: currentPassword.ok
           ? undefined
           : currentPassword.failure,
-        password: newPassword.ok ? undefined : newPassword.failure,
-        repeatedPassword:
+        newPasswordFailure: newPassword.ok ? undefined : newPassword.failure,
+        repeatedPasswordFailure:
           repeatedPassword?.ok === false ? repeatedPassword.failure : undefined,
       },
       { status: 400 },
@@ -92,8 +92,8 @@ export async function action({ context, request }: Route.ActionArgs) {
           }),
         ),
         currentPasswordFailure: undefined,
-        password: undefined,
-        repeatedPassword: undefined,
+        newPasswordFailure: undefined,
+        repeatedPasswordFailure: undefined,
       },
       { status: checked.failure.kind === "wrongPassword" ? 400 : 429 },
     );
@@ -105,8 +105,8 @@ export async function action({ context, request }: Route.ActionArgs) {
       savedAt: new Date().toISOString(),
       failure: undefined,
       currentPasswordFailure: undefined,
-      password: undefined,
-      repeatedPassword: undefined,
+      newPasswordFailure: undefined,
+      repeatedPasswordFailure: undefined,
     },
     {
       headers: {

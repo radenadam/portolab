@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "8efb21b5-c8aa-4ad6-8018-9211e690a9e7",
+  "id": "79a611a6-dee9-4775-81e0-2df1728847ca",
   "prevId": "979b8cac-5e9f-4864-991a-8efc9977a875",
   "tables": {
     "sessions": {
@@ -40,6 +40,11 @@
         "sessions_user_id_index": {
           "name": "sessions_user_id_index",
           "columns": ["user_id"],
+          "isUnique": false
+        },
+        "sessions_last_used_at_index": {
+          "name": "sessions_last_used_at_index",
+          "columns": ["last_used_at"],
           "isUnique": false
         }
       },

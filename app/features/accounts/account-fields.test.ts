@@ -30,11 +30,11 @@ const texts: Record<
     repeated: "Ulangi kata sandi baru",
     consent: "Saya menyetujui pemberitahuan privasi",
     tooShort:
-      'Kolom "Kata sandi baru" perlu paling sedikit 15 karakter, tetapi isinya 14 karakter. Setiap karakter tambahan membuat kata sandi jauh lebih sulit ditebak.',
+      'Kolom "Kata sandi baru" perlu paling sedikit 15 karakter, tetapi isinya 14 karakter. Setiap karakter tambahan membuat kata sandi jauh lebih sulit ditebak, jadi pilih yang lebih panjang, misalnya kalimat pendek.',
     tooLong:
-      'Kolom "Kata sandi baru" memuat paling banyak 128 karakter, tetapi isinya 129 karakter.',
+      'Kolom "Kata sandi baru" memuat paling banyak 128 karakter, tetapi isinya 129 karakter. Persingkat isinya.',
     nameTooLong:
-      'Kolom "Nama Anda" memuat paling banyak 100 karakter, tetapi isinya 101 karakter.',
+      'Kolom "Nama Anda" memuat paling banyak 100 karakter, tetapi isinya 101 karakter. Persingkat isinya.',
     passwordsDiffer:
       'Isi kolom "Ulangi kata sandi baru" berbeda dari kata sandi baru. Ketik kata sandi yang sama di kedua kolom.',
     consentMissing:
@@ -46,11 +46,11 @@ const texts: Record<
     repeated: "New password again",
     consent: "I agree to the privacy notice",
     tooShort:
-      'The field "New password" needs at least 15 characters, but it has 14. Each extra character makes a password much harder to guess.',
+      'The field "New password" needs at least 15 characters, but it has 14. Each extra character makes a password much harder to guess, so choose a longer one, such as a short sentence.',
     tooLong:
-      'The field "New password" holds at most 128 characters, but it has 129.',
+      'The field "New password" holds at most 128 characters, but it has 129. Shorten it.',
     nameTooLong:
-      'The field "Your name" holds at most 100 characters, but it has 101.',
+      'The field "Your name" holds at most 100 characters, but it has 101. Shorten it.',
     passwordsDiffer:
       'The field "New password again" differs from the new password. Type the same password in both fields.',
     consentMissing:

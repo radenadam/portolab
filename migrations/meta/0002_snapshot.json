@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "a3e1293e-5dca-4baf-a3af-4c6104c94990",
-  "prevId": "8efb21b5-c8aa-4ad6-8018-9211e690a9e7",
+  "id": "4168e1c4-456c-405e-a530-eb5a762fb45e",
+  "prevId": "79a611a6-dee9-4775-81e0-2df1728847ca",
   "tables": {
     "sessions": {
       "name": "sessions",
@@ -39,9 +39,12 @@
       "indexes": {
         "sessions_user_id_index": {
           "name": "sessions_user_id_index",
-          "columns": [
-            "user_id"
-          ],
+          "columns": ["user_id"],
+          "isUnique": false
+        },
+        "sessions_last_used_at_index": {
+          "name": "sessions_last_used_at_index",
+          "columns": ["last_used_at"],
           "isUnique": false
         }
       },
@@ -50,12 +53,8 @@
           "name": "sessions_user_id_users_id_fk",
           "tableFrom": "sessions",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -127,9 +126,7 @@
       "indexes": {
         "users_username_unique": {
           "name": "users_username_unique",
-          "columns": [
-            "username"
-          ],
+          "columns": ["username"],
           "isUnique": true
         }
       },
@@ -187,16 +184,12 @@
       "indexes": {
         "classes_join_code_unique": {
           "name": "classes_join_code_unique",
-          "columns": [
-            "join_code"
-          ],
+          "columns": ["join_code"],
           "isUnique": true
         },
         "classes_lecturer_id_index": {
           "name": "classes_lecturer_id_index",
-          "columns": [
-            "lecturer_id"
-          ],
+          "columns": ["lecturer_id"],
           "isUnique": false
         }
       },
@@ -205,12 +198,8 @@
           "name": "classes_lecturer_id_users_id_fk",
           "tableFrom": "classes",
           "tableTo": "users",
-          "columnsFrom": [
-            "lecturer_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["lecturer_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -254,17 +243,12 @@
       "indexes": {
         "memberships_class_id_student_id_unique": {
           "name": "memberships_class_id_student_id_unique",
-          "columns": [
-            "class_id",
-            "student_id"
-          ],
+          "columns": ["class_id", "student_id"],
           "isUnique": true
         },
         "memberships_student_id_index": {
           "name": "memberships_student_id_index",
-          "columns": [
-            "student_id"
-          ],
+          "columns": ["student_id"],
           "isUnique": false
         }
       },
@@ -273,12 +257,8 @@
           "name": "memberships_class_id_classes_id_fk",
           "tableFrom": "memberships",
           "tableTo": "classes",
-          "columnsFrom": [
-            "class_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["class_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -286,12 +266,8 @@
           "name": "memberships_student_id_users_id_fk",
           "tableFrom": "memberships",
           "tableTo": "users",
-          "columnsFrom": [
-            "student_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["student_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }

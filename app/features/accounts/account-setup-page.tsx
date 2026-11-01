@@ -85,7 +85,10 @@ export async function action({ context, request }: Route.ActionArgs) {
   }
   const database = context.get(databaseContext);
   await updateAccount(database, session.account.id, changes.value);
-  // A new password ends every session of the account, so the person continues in a new one.
+  if (changes.value.password === undefined) {
+    return redirect(destination);
+  }
+  // A new password ended every session of the account, so the person continues in a new one.
   return redirect(destination, {
     headers: {
       "Set-Cookie": await startSession(database, request, session.account.id),
@@ -117,13 +120,13 @@ function readSetupForm(
   );
   if (!name.ok || !password.ok || !repeatedPassword.ok || !consent.ok) {
     return fail({
-      typedName: typedText(form.get("name")),
-      typedUsername: "",
-      name: failureOf(name),
-      username: undefined,
-      password: failureOf(password),
-      repeatedPassword: failureOf(repeatedPassword),
-      consent: failureOf(consent),
+      name: typedText(form.get("name")),
+      username: "",
+      nameFailure: failureOf(name),
+      usernameFailure: undefined,
+      newPasswordFailure: failureOf(password),
+      repeatedPasswordFailure: failureOf(repeatedPassword),
+      consentFailure: failureOf(consent),
     });
   }
   return succeed({

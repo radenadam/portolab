@@ -18,13 +18,13 @@ const nameMaximumLength = 100;
 
 /** Why the fields of a form of an account were not accepted, and the text that the person typed in the fields that the form shows again. */
 export interface AccountFormFailures {
-  typedName: string;
-  typedUsername: string;
-  name: string | undefined;
-  username: string | undefined;
-  password: string | undefined;
-  repeatedPassword: string | undefined;
-  consent: string | undefined;
+  name: string;
+  username: string;
+  nameFailure: string | undefined;
+  usernameFailure: string | undefined;
+  newPasswordFailure: string | undefined;
+  repeatedPasswordFailure: string | undefined;
+  consentFailure: string | undefined;
 }
 
 /** The limits of a password that a person chooses. NIST SP 800-63B asks for at least 15 characters when a password alone signs a person in, and for a maximum of at least 64. */
@@ -139,12 +139,12 @@ export function readNewStudent(
     });
   }
   return fail({
-    typedName: typedText(form.get("name")),
-    typedUsername: typedText(form.get("username")),
-    name: failureOf(name),
-    username: failureOf(username),
-    password: failureOf(password),
-    repeatedPassword: failureOf(repeatedPassword),
-    consent: failureOf(consent),
+    name: typedText(form.get("name")),
+    username: typedText(form.get("username")),
+    nameFailure: failureOf(name),
+    usernameFailure: failureOf(username),
+    newPasswordFailure: failureOf(password),
+    repeatedPasswordFailure: failureOf(repeatedPassword),
+    consentFailure: failureOf(consent),
   });
 }

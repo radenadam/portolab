@@ -38,9 +38,7 @@ export const classes = sqliteTable(
 export const memberships = sqliteTable(
   "memberships",
   {
-    id: integer("id")
-      .$type<MembershipId>()
-      .primaryKey({ autoIncrement: true }),
+    id: integer("id").$type<MembershipId>().primaryKey({ autoIncrement: true }),
     classId: integer("class_id")
       .$type<ClassId>()
       .notNull()

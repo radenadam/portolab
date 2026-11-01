@@ -153,7 +153,10 @@ export function findJoinedClass(
 ): JoinedClass | undefined {
   const row = selectJoinedClasses(database)
     .where(
-      and(eq(memberships.classId, classId), eq(memberships.studentId, studentId)),
+      and(
+        eq(memberships.classId, classId),
+        eq(memberships.studentId, studentId),
+      ),
     )
     .get();
   return row === undefined ? undefined : withLecturerName(row);

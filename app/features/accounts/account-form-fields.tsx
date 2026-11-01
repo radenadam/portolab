@@ -22,8 +22,8 @@ export function NameField({
       autoComplete="name"
       capitalizesWords
       hint={hint}
-      failure={failures?.name}
-      defaultValue={failures?.typedName}
+      failure={failures?.nameFailure}
+      defaultValue={failures?.name}
     />
   );
 }
@@ -43,8 +43,8 @@ export function UsernameField({
         minimum: formatNumber(usernameLength.minimum),
         maximum: formatNumber(usernameLength.maximum),
       })}
-      failure={failures?.username}
-      defaultValue={failures?.typedUsername}
+      failure={failures?.usernameFailure}
+      defaultValue={failures?.username}
     />
   );
 }
@@ -54,7 +54,11 @@ export function NewPasswordFields({
   failures,
 }: {
   failures:
-    Pick<AccountFormFailures, "password" | "repeatedPassword"> | undefined;
+    | Pick<
+        AccountFormFailures,
+        "newPasswordFailure" | "repeatedPasswordFailure"
+      >
+    | undefined;
 }): ReactNode {
   return (
     <>
@@ -66,14 +70,14 @@ export function NewPasswordFields({
         hint={m.accounts_password_hint({
           minimum: formatNumber(passwordLength.minimum),
         })}
-        failure={failures?.password}
+        failure={failures?.newPasswordFailure}
       />
       <TextField
         name="repeatedPassword"
         label={m.accounts_repeated_password_label()}
         type="password"
         autoComplete="new-password"
-        failure={failures?.repeatedPassword}
+        failure={failures?.repeatedPasswordFailure}
       />
     </>
   );
@@ -91,7 +95,7 @@ export function ConsentField({
       <CheckboxField
         name="consent"
         label={m.accounts_consent_label()}
-        failure={failures?.consent}
+        failure={failures?.consentFailure}
       />
     </>
   );

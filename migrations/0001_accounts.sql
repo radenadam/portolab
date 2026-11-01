@@ -7,6 +7,7 @@ CREATE TABLE `sessions` (
 );
 --> statement-breakpoint
 CREATE INDEX `sessions_user_id_index` ON `sessions` (`user_id`);--> statement-breakpoint
+CREATE INDEX `sessions_last_used_at_index` ON `sessions` (`last_used_at`);--> statement-breakpoint
 CREATE TABLE `users` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`username` text NOT NULL,
