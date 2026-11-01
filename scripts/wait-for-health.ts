@@ -1,4 +1,5 @@
 import type { ChildProcess } from "node:child_process";
+import { setTimeout as pause } from "node:timers/promises";
 import { secondMilliseconds } from "../app/time-units.ts";
 
 /** How the wait for a server ended: it answered, the process that runs it stopped for a reason, or the time ran out. */
@@ -34,7 +35,7 @@ export async function waitForHealth(
     if (Date.now() >= deadline) {
       return { kind: "timedOut" };
     }
-    await new Promise((resolve) => setTimeout(resolve, pauseMilliseconds));
+    await pause(pauseMilliseconds);
   }
 }
 

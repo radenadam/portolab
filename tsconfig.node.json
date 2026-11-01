@@ -9,6 +9,7 @@
     "app/database/migrations-folder-name.ts",
     "app/error-message.ts",
     "app/exit-with-failure.server.ts",
+    "app/features/accounts/account-actions.ts",
     "app/features/accounts/account-command.server.ts",
     "app/features/accounts/account-limits.ts",
     "app/features/accounts/account-store.server.ts",

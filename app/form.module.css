@@ -23,9 +23,11 @@
   font-size: var(--text-small);
 }
 
+/* A failure can quote a username, which is one word without a place to break, so the text breaks inside a word rather than widen the page. */
 .failure,
 .success {
   font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
 /* A field takes the whole width of its form, so a long value stays visible on a phone. Its border has the muted color, because a thin line in the color of lines is too faint to show where a field is. */

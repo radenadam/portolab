@@ -10,7 +10,8 @@
     "app/value-shapes.ts",
     "scripts/wait-for-health.ts",
     "app/time-units.ts",
-    "app/features/accounts/printed-password-for-test.ts"
+    "app/features/accounts/printed-password-for-test.ts",
+    "app/features/accounts/account-actions.ts"
   ],
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.cache/tsconfig.e2e.tsbuildinfo",
