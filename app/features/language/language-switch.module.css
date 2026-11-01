@@ -3,27 +3,29 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
-  gap: var(--space-2);
+  gap: 0 var(--space-3);
   color: var(--color-muted);
+  font-size: var(--text-small);
 }
 
 .options {
   display: flex;
-  gap: var(--space-1);
+  gap: var(--space-3);
 }
 
 .option {
   min-height: var(--size-touch-target);
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius);
-  background: var(--color-background);
-  color: var(--color-ink);
+  padding: 0 var(--space-1);
+  border: 0;
+  background: none;
+  color: var(--color-muted);
   font: inherit;
   cursor: pointer;
 }
 
+/* The chosen language is marked by its weight and by a line in the signal color, so it never depends on color alone. An inset shadow draws the line, because a border would push the text off the center of the button. */
 .option[aria-pressed="true"] {
-  border-color: var(--color-ink);
+  box-shadow: inset 0 calc(-1 * var(--size-mark)) 0 var(--color-signal);
+  color: var(--color-ink);
   font-weight: 600;
 }
