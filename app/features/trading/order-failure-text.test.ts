@@ -246,7 +246,7 @@ const texts: Record<Locale, Record<FailureName, string>> = {
     noHistoryOfStock:
       "Portolab belum menyimpan riwayat harga BBCA selama satu bulan penuh, sehingga belum dapat menghitung apakah BBCA memiliki imbal hasil bulanan yang dibutuhkan ukuran portofolio. Coba lagi setelah pembaruan riwayat harga berikutnya menyimpannya.",
     noReferenceClose:
-      "Portolab belum menyimpan harga penutupan BBCA pada 2 November 2026, padahal BEI menetapkan rentang harga order limit dari harga penutupan tersebut. Coba lagi setelah pembaruan riwayat harga berikutnya menyimpan harga penutupan itu, atau pasang order harga pasar, yang tidak membutuhkan limit.",
+      "Portolab belum menyimpan harga penutupan 2 November 2026 yang dibutuhkannya, padahal BEI menetapkan rentang harga order limit dari harga penutupan terakhir BBCA sebelum hari bursa order ini. Coba lagi setelah pembaruan riwayat harga berikutnya menyimpan harga penutupan hari itu, atau pasang order harga pasar, yang tidak membutuhkan limit.",
     severalReturns:
       "AADI baru memiliki 21 imbal hasil bulanan, sedangkan Portolab menghitung ukuran sebuah portofolio hanya jika setiap sahamnya memiliki 24 imbal hasil bulanan. Jika AADI tetap memiliki harga penutupan di akhir setiap bulan dan tetap termasuk LQ45, Anda dapat membelinya setelah pembaruan riwayat harga yang menyimpan harga penutupan hari bursa pertama Januari 2027.",
     oneReturn:
@@ -254,9 +254,9 @@ const texts: Record<Locale, Record<FailureName, string>> = {
     tooManyLots:
       "BEI menerima paling banyak 50.000 lot dalam satu order, sedangkan order ini berisi 50.001 lot. Bagi order ini menjadi beberapa order yang masing-masing berisi paling banyak 50.000 lot.",
     limitsAsRates:
-      "BEI menolak harga Rp\u00a06.225 untuk BBCA pada 2 November 2026 karena batas auto rejection, yang mengizinkan harga paling jauh 25% di atas dan 7% di bawah harga acuan Rp\u00a04.940, yaitu harga penutupan hari bursa sebelumnya. Pilih harga dari Rp\u00a04.600 sampai Rp\u00a06.175.",
+      "BEI menolak harga Rp\u00a06.225 untuk BBCA pada 2 November 2026 karena batas auto rejection, yang mengizinkan harga paling jauh 25% di atas dan 7% di bawah harga acuan Rp\u00a04.940, yaitu harga penutupan terakhir BBCA sebelum hari itu. Pilih harga dari Rp\u00a04.600 sampai Rp\u00a06.175.",
     limitsAsAmounts:
-      "BEI menolak harga Rp\u00a012 untuk GOTO pada 2 November 2026 karena batas auto rejection, yang mengizinkan harga paling jauh Rp\u00a01 di atas dan Rp\u00a01 di bawah harga acuan Rp\u00a010, yaitu harga penutupan hari bursa sebelumnya. Pilih harga dari Rp\u00a09 sampai Rp\u00a011.",
+      "BEI menolak harga Rp\u00a012 untuk GOTO pada 2 November 2026 karena batas auto rejection, yang mengizinkan harga paling jauh Rp\u00a01 di atas dan Rp\u00a01 di bawah harga acuan Rp\u00a010, yaitu harga penutupan terakhir GOTO sebelum hari itu. Pilih harga dari Rp\u00a09 sampai Rp\u00a011.",
     offTick:
       "BEI hanya menerima harga dari Rp\u00a02.000 sampai di bawah Rp\u00a05.000 dalam kelipatan Rp\u00a010, yaitu fraksi harga rentang tersebut, sehingga Rp\u00a04.985 bukan harga yang sah. Pilih Rp\u00a04.980 atau Rp\u00a04.990, harga sah yang terdekat.",
     offTickOfTopBand:
@@ -302,7 +302,7 @@ const texts: Record<Locale, Record<FailureName, string>> = {
     noHistoryOfStock:
       "Portolab has not stored a complete month of the price history of BBCA yet, so it cannot count whether BBCA has the monthly returns that the measures need. Try again after the next update of the price history stores it.",
     noReferenceClose:
-      "Portolab has not stored the close of BBCA on November 2, 2026 yet, and IDX sets the range of prices of a limit order from that close. Try again after the next update of the price history stores that close, or place a market order, which needs no limit.",
+      "Portolab has not stored the closes of November 2, 2026 that it needs yet, and IDX sets the range of prices of a limit order from the latest close of BBCA before the trading day of the order. Try again after the next update of the price history stores the closes of that day, or place a market order, which needs no limit.",
     severalReturns:
       "AADI has 21 monthly returns, but Portolab computes the measures of a portfolio only when each of its stocks has 24 monthly returns. If AADI keeps a close at the end of every month and stays in the LQ45, you can buy it after the update of the price history that stores the close of the first trading day of January 2027.",
     oneReturn:
@@ -310,9 +310,9 @@ const texts: Record<Locale, Record<FailureName, string>> = {
     tooManyLots:
       "IDX accepts at most 50,000 lots in one order, but this order has 50,001 lots. Split it into orders of at most 50,000 lots each.",
     limitsAsRates:
-      "IDX rejects a price of IDR\u00a06,225 for BBCA on November 2, 2026 by its auto rejection limits, which allow a price at most 25% above and 7% below the reference price of IDR\u00a04,940, the close of the previous trading day. Choose a price from IDR\u00a04,600 to IDR\u00a06,175.",
+      "IDX rejects a price of IDR\u00a06,225 for BBCA on November 2, 2026 by its auto rejection limits, which allow a price at most 25% above and 7% below the reference price of IDR\u00a04,940, the latest close of BBCA before that day. Choose a price from IDR\u00a04,600 to IDR\u00a06,175.",
     limitsAsAmounts:
-      "IDX rejects a price of IDR\u00a012 for GOTO on November 2, 2026 by its auto rejection limits, which allow a price at most IDR\u00a01 above and IDR\u00a01 below the reference price of IDR\u00a010, the close of the previous trading day. Choose a price from IDR\u00a09 to IDR\u00a011.",
+      "IDX rejects a price of IDR\u00a012 for GOTO on November 2, 2026 by its auto rejection limits, which allow a price at most IDR\u00a01 above and IDR\u00a01 below the reference price of IDR\u00a010, the latest close of GOTO before that day. Choose a price from IDR\u00a09 to IDR\u00a011.",
     offTick:
       "IDX accepts prices from IDR\u00a02,000 to below IDR\u00a05,000 only in steps of IDR\u00a010, the tick size of that range, so IDR\u00a04,985 is not a valid price. Choose IDR\u00a04,980 or IDR\u00a04,990, the nearest valid prices.",
     offTickOfTopBand:

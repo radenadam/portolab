@@ -1,28 +1,23 @@
 import { expect, test } from "vitest";
-import type { InstrumentCloses } from "~/features/measures/aligned-returns";
-import { splitAdjustedRupiah } from "~/units/split-adjusted-rupiah";
+import { buildDailyHistory } from "~/features/market-data/build-daily-history";
+import type { Instrument } from "~/features/market-data/price-source.server";
+import { marketIndex } from "~/features/market-data/tracked-instruments";
 import { quoteForTest } from "./orders-for-test";
 import { referencePrice } from "./reference-price";
 
 // An order that trades on Tuesday 3 November 2026, whose trading day before is Monday 2 November 2026. The comment of each quote gives its time in WIB.
 const day = { date: "2026-11-03", previousDate: "2026-11-02" };
 
-function closes(code: string, dated: [string, number][]): InstrumentCloses {
-  return {
-    code,
-    closes: dated.map(([date, close]) => ({
-      date,
-      close: splitAdjustedRupiah(close),
-    })),
-  };
-}
+const bbca: Instrument = { kind: "stock", code: "BBCA" };
 
-const marketWithMonday = closes("IHSG", [
+const marketWithMonday = buildDailyHistory(marketIndex, [
   ["2026-10-30", 5057.05],
   ["2026-11-02", 5100],
 ]);
-const marketBeforeMonday = closes("IHSG", [["2026-10-30", 5057.05]]);
-const stockBeforeMonday = closes("BBCA", [["2026-10-30", 4980]]);
+const marketBeforeMonday = buildDailyHistory(marketIndex, [
+  ["2026-10-30", 5057.05],
+]);
+const stockBeforeMonday = buildDailyHistory(bbca, [["2026-10-30", 4980]]);
 // 16:14 on Friday 30 October 2026.
 const quoteOfFriday = quoteForTest("BBCA", 4_980, "2026-10-30T09:14:55Z");
 // 16:14 on Monday 2 November 2026.
@@ -34,7 +29,7 @@ test("takes the stored close of the trading day before, rounded to a whole rupia
       "BBCA",
       {
         quote: quoteOfMonday,
-        closes: closes("BBCA", [["2026-11-02", 4999.6]]),
+        closes: buildDailyHistory(bbca, [["2026-11-02", 4999.6]]),
         marketCloses: marketWithMonday,
       },
       day,
@@ -113,7 +108,7 @@ test("fails for a stock whose stored closes end before its latest quote", () => 
       "BBCA",
       {
         quote: quoteOfFriday,
-        closes: closes("BBCA", [["2026-10-29", 4940]]),
+        closes: buildDailyHistory(bbca, [["2026-10-29", 4940]]),
         marketCloses: marketWithMonday,
       },
       day,

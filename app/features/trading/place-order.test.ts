@@ -1,10 +1,12 @@
 import { expect, test } from "vitest";
+import { buildDailyHistory } from "~/features/market-data/build-daily-history";
+import type { Instrument } from "~/features/market-data/price-source.server";
+import { marketIndex } from "~/features/market-data/tracked-instruments";
 import type { InstrumentCloses } from "~/features/measures/aligned-returns";
 import { marketWithoutCompleteMonthForTest } from "~/features/measures/market-without-complete-month-for-test";
 import { monthEndClosesForTest } from "~/features/measures/month-end-closes-for-test";
 import { rupiah } from "~/units/rupiah";
 import { shares } from "~/units/shares";
-import { splitAdjustedRupiah } from "~/units/split-adjusted-rupiah";
 import type { OpenOrder, OrderRequest } from "./order";
 import {
   acceptedForTest,
@@ -61,19 +63,22 @@ function accepted(
   return acceptedForTest(request, state, bbca);
 }
 
-/** Closes with an added close of Monday 2 November 2026. */
+/** The closes of an instrument with an added close of Monday 2 November 2026, in the unit of the instrument. */
 function withCloseOfMonday(
+  instrument: Instrument,
   history: InstrumentCloses,
   close: number,
 ): InstrumentCloses {
-  return {
-    code: history.code,
-    closes: [
-      ...history.closes,
-      { date: "2026-11-02", close: splitAdjustedRupiah(close) },
-    ],
-  };
+  return buildDailyHistory(instrument, [
+    ...history.closes.map((dated): [string, number] => [
+      dated.date,
+      dated.close,
+    ]),
+    ["2026-11-02", close],
+  ]);
 }
+
+const bbcaInstrument: Instrument = { kind: "stock", code: "BBCA" };
 
 test("accepts a market purchase of a stock with the monthly returns that the measures need, and sets aside its value and fee at the latest delayed price", () => {
   expect(placeOrder(purchase(), account(), bbca)).toEqual({
@@ -107,7 +112,7 @@ test("accepts a limit purchase in the evening for the next trading day, against 
   const closedMonday: StockState = {
     ...bbca,
     quote: quoteForTest("BBCA", 5_000, "2026-11-02T09:14:55Z"),
-    closes: withCloseOfMonday(bbcaCloses, 5_000),
+    closes: withCloseOfMonday(bbcaInstrument, bbcaCloses, 5_000),
   };
   expect(placeOrder(request, account(), closedMonday)).toEqual({
     ok: true,
@@ -148,7 +153,7 @@ test("rejects a limit order for the next trading day until the close of the day 
     placeOrder(
       { ...limitOrder, placedAt: new Date("2026-11-02T09:26:00Z") },
       account(),
-      { ...bbca, closes: withCloseOfMonday(bbcaCloses, 4_980) },
+      { ...bbca, closes: withCloseOfMonday(bbcaInstrument, bbcaCloses, 4_980) },
     ),
   ).toMatchObject({ ok: true, value: { tradingDay: "2026-11-03" } });
 });
@@ -251,8 +256,8 @@ test("accepts a purchase of a stock once the update of the price history stores 
       {
         ...bbca,
         quote: quoteForTest("BBCA", 4_980, "2026-11-03T02:50:00Z"),
-        closes: withCloseOfMonday(shortHistory, 4_980),
-        marketCloses: withCloseOfMonday(ihsg, 5_100),
+        closes: withCloseOfMonday(bbcaInstrument, shortHistory, 4_980),
+        marketCloses: withCloseOfMonday(marketIndex, ihsg, 5_100),
       },
     ),
   ).toMatchObject({ ok: true, value: { tradingDay: "2026-11-03" } });
