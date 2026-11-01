@@ -1,5 +1,9 @@
 import { expect, test } from "vitest";
-import { isPriceUpdateTime, isSameWibDay } from "./idx-calendar";
+import {
+  isPriceUpdateTime,
+  isSameWibDay,
+  latestClosedTradingDay,
+} from "./idx-calendar";
 
 // The answers below were worked out by hand from the calendars in idx-calendar.ts for a source with this delay.
 const delayMinutes = 10;
@@ -124,5 +128,51 @@ test("ends the price hours later for a source with a longer delay", () => {
   expect(isPriceUpdateTime(halfPastFour, 15)).toEqual({
     ok: true,
     value: true,
+  });
+});
+
+test("finds today as the latest closed trading day from the minute after the price hours", () => {
+  // 16:25 WIB is the last minute of the price hours of a source with this delay, and 16:26 WIB is the minute after it.
+  expect(
+    latestClosedTradingDay(new Date("2026-11-02T09:25:59Z"), delayMinutes),
+  ).toEqual({
+    ok: true,
+    value: {
+      date: "2026-10-30",
+      closedAt: new Date("2026-10-30T09:26:00Z"),
+    },
+  });
+  expect(
+    latestClosedTradingDay(new Date("2026-11-02T09:26:00Z"), delayMinutes),
+  ).toEqual({
+    ok: true,
+    value: {
+      date: "2026-11-02",
+      closedAt: new Date("2026-11-02T09:26:00Z"),
+    },
+  });
+});
+
+test("finds the trading day before the holidays and the weekend after them", () => {
+  // 24 and 25 December 2026 are holidays, and the weekend follows them.
+  expect(
+    latestClosedTradingDay(new Date("2026-12-27T03:00:00Z"), delayMinutes),
+  ).toEqual({
+    ok: true,
+    value: {
+      date: "2026-12-23",
+      closedAt: new Date("2026-12-23T09:26:00Z"),
+    },
+  });
+});
+
+test("fails when the search for a closed trading day reaches a date that no calendar covers", () => {
+  // 1 January 2026 is a holiday, and 2 January 2026 has not closed at 10:00 WIB, so the search goes back into 2025.
+  expect(
+    latestClosedTradingDay(new Date("2026-01-02T03:00:00Z"), delayMinutes),
+  ).toEqual({
+    ok: false,
+    failure:
+      "No IDX trading calendar covers 2025-12-31, so add the holidays and trading hours of that year to idx-calendar.ts.",
   });
 });

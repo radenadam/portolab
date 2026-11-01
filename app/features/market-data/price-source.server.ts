@@ -1,6 +1,7 @@
 import type { Result } from "~/result";
 import type { IndexPoints } from "~/units/index-points";
 import type { Rupiah } from "~/units/rupiah";
+import type { SplitAdjustedRupiah } from "~/units/split-adjusted-rupiah";
 
 /** The indices that Portolab tracks, by the code that IDX uses. */
 export type IndexCode = "IHSG";
@@ -43,6 +44,17 @@ export interface QuoteBatch {
   problems: string[];
 }
 
+/** The close of one trading day, on its date in WIB, such as 2026-10-30. */
+export interface DailyClose<Price> {
+  date: string;
+  close: Price;
+}
+
+/** The daily closes of one instrument, oldest first. A stock's closes are adjusted for its later splits, so a split never shows as a fall in price, and an index's closes are its levels. */
+export type DailyHistory =
+  | { kind: "stock"; code: string; closes: DailyClose<SplitAdjustedRupiah>[] }
+  | { kind: "index"; code: IndexCode; closes: DailyClose<IndexPoints>[] };
+
 /** What the prices page tells about the source of its prices. */
 export interface PriceSourceDescription {
   /** The name of the source, such as Yahoo Finance. */
@@ -58,4 +70,10 @@ export interface PriceSource extends PriceSourceDescription {
     instruments: readonly Instrument[],
     signal: AbortSignal,
   ): Promise<Result<QuoteBatch, string>>;
+  /** Fetches the closes of one instrument from a date in WIB, such as 2021-10-01, to the latest trading day. It gives up with a failure when the signal aborts. */
+  fetchDailyHistory(
+    instrument: Instrument,
+    from: string,
+    signal: AbortSignal,
+  ): Promise<Result<DailyHistory, string>>;
 }

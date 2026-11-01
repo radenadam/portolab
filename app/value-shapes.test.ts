@@ -15,6 +15,13 @@ test("describes a missing value as missing and any other value as JSON", () => {
   expect(describeValue({ lens: "craft" })).toBe('{"lens":"craft"}');
 });
 
+test("describes a number as its text, because JSON shows Infinity and NaN as null", () => {
+  expect(describeValue(4980.5)).toBe("4980.5");
+  expect(describeValue(-4980)).toBe("-4980");
+  expect(describeValue(Number.POSITIVE_INFINITY)).toBe("Infinity");
+  expect(describeValue(Number.NaN)).toBe("NaN");
+});
+
 test("names a value that JSON cannot show by its class", () => {
   expect(describeValue(new File([], "return.txt"))).toBe(
     "a value of type File",

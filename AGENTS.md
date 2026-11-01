@@ -94,7 +94,7 @@ These apply to all prose: docs, comments, commit messages, pull requests, issues
 - No module keeps a connection or another service in a variable of its own, because the dev server evaluates an edited module again. The server opens the services at startup and hands them to loaders and actions through the load context, and `pnpm check` edits such modules in the dev server to prove it.
 - File names are kebab-case. A file with one main export is named after it, such as `read-text-file.ts` for `readTextFile`, and a file whose exports serve one concept equally is named after the concept, such as `json.ts`. ESLint checks the name of every module that exports one value, apart from the names that React Router reads from a route module. Tests sit beside their code as `<name>.test.ts`, and browser tests live in `e2e/`.
 - All market data passes through the price source interface, as decision 0001 explains, and every fact about the source, such as its name and its delay, comes from that interface.
-- IDX rules, such as tick sizes, auto rejection limits, trading hours, and exchange holidays, are data with the dates they apply, as decision 0002 explains. A date that the data does not cover fails, so a missing year is noticed.
+- IDX rules, such as tick sizes, auto rejection limits, trading hours, and exchange holidays, are data with the dates they apply, as decision 0002 explains, and so are other facts of the market that change on announced dates, such as the stocks of the LQ45 and the BI-Rate. Each entry names the source that states it. A date that the data of IDX does not cover fails, so a missing year or review is noticed.
 
 ### Tests
 

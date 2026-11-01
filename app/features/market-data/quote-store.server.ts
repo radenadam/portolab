@@ -1,20 +1,23 @@
-import { asc } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import type { Database } from "~/database/database.server";
 import { indexQuotes, priceUpdates, stockQuotes } from "./market-data.schema";
 import type { Quote } from "./price-source.server";
 
+/** The jobs that update prices: the latest quotes during trading sessions, and the daily closes after each close. */
+export type UpdateJob = "quotes" | "history";
+
 export interface UpdateAttempt {
   attemptedAt: Date;
-  /** Whether the source answered with at least one usable quote. */
+  /** Whether the source answered with at least one usable price. */
   succeeded: boolean;
-  /** The failures in a row up to this attempt, which decide how long the job waits before the next one. */
+  /** The failures in a row up to this attempt, which decide how long the job waits before the next one. Each job decides what counts as a failure. */
   consecutiveFailures: number;
   /** The codes of the instruments that this attempt could not update, which are all of them when it failed. */
   failedCodes: string[];
 }
 
-// The schema explains why price_updates holds one row.
-const latestAttemptId = 1;
+// The schema explains why price_updates holds one row for each job.
+const attemptIds: Record<UpdateJob, number> = { quotes: 1, history: 2 };
 
 export function saveQuotes(
   database: Database,
@@ -88,9 +91,10 @@ export function listLatestQuotes(database: Database): Quote[] {
 
 export function saveUpdateAttempt(
   database: Database,
+  job: UpdateJob,
   attempt: UpdateAttempt,
 ): void {
-  const row = { id: latestAttemptId, ...attempt };
+  const row = { id: attemptIds[job], ...attempt };
   database
     .insert(priceUpdates)
     .values(row)
@@ -100,8 +104,13 @@ export function saveUpdateAttempt(
 
 export function readLatestUpdateAttempt(
   database: Database,
+  job: UpdateJob,
 ): UpdateAttempt | undefined {
-  const [row] = database.select().from(priceUpdates).all();
+  const [row] = database
+    .select()
+    .from(priceUpdates)
+    .where(eq(priceUpdates.id, attemptIds[job]))
+    .all();
   return row === undefined
     ? undefined
     : {

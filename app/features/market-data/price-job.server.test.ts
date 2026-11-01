@@ -3,7 +3,8 @@ import type { Database } from "~/database/database.server";
 import { openTestDatabase } from "~/database/open-test-database.server";
 import { fail, succeed } from "~/result";
 import { fixturePriceSource } from "./fixture-price-source.server";
-import { createPriceUpdater, runPriceUpdate } from "./price-job.server";
+import { runPriceUpdate, serializeUpdates } from "./price-job.server";
+import type { PriceJobSettings } from "./price-job-settings";
 import type { PriceSource } from "./price-source.server";
 import {
   listLatestQuotes,
@@ -56,6 +57,18 @@ function minutesAfterStart(minutes: number): Date {
   return new Date(start.getTime() + minutes * 60_000);
 }
 
+function jobSettings(
+  database: Database,
+  priceSource: PriceSource,
+): PriceJobSettings {
+  return {
+    database,
+    priceSource,
+    instruments: trackedInstruments,
+    historyStartDate: "2026-10-26",
+  };
+}
+
 /** Updates the tracked prices from a source at a moment, with a signal that never aborts unless the test gives one. */
 function updateFrom(
   database: Database,
@@ -63,7 +76,7 @@ function updateFrom(
   options: { at: Date; signal?: AbortSignal },
 ): Promise<void> {
   return runPriceUpdate(
-    { database, priceSource, instruments: trackedInstruments },
+    jobSettings(database, priceSource),
     options.at,
     options.signal ?? new AbortController().signal,
   );
@@ -73,7 +86,7 @@ test("stores the quotes and records a success", async () => {
   const database = openTestDatabase();
   await updateFrom(database, fixturePriceSource, { at: start });
   expect(listLatestQuotes(database)).toHaveLength(trackedInstruments.length);
-  expect(readLatestUpdateAttempt(database)).toEqual({
+  expect(readLatestUpdateAttempt(database, "quotes")).toEqual({
     attemptedAt: start,
     succeeded: true,
     consecutiveFailures: 0,
@@ -87,7 +100,7 @@ test("records the instruments that an answer lacks, without waiting before the n
   expect(listLatestQuotes(database)).toHaveLength(
     trackedInstruments.length - 2,
   );
-  expect(readLatestUpdateAttempt(database)).toEqual({
+  expect(readLatestUpdateAttempt(database, "quotes")).toEqual({
     attemptedAt: start,
     succeeded: true,
     consecutiveFailures: 0,
@@ -100,7 +113,7 @@ test("counts a failure, an answer without a usable quote, and a thrown error as 
   await updateFrom(database, failingSource, { at: start });
   await updateFrom(database, emptySource, { at: minutesAfterStart(1) });
   await updateFrom(database, throwingSource, { at: minutesAfterStart(3) });
-  expect(readLatestUpdateAttempt(database)).toEqual({
+  expect(readLatestUpdateAttempt(database, "quotes")).toEqual({
     attemptedAt: minutesAfterStart(3),
     succeeded: false,
     consecutiveFailures: 3,
@@ -126,7 +139,7 @@ test("records a failure when the job stops waiting for the price source", async 
   });
   controller.abort();
   await update;
-  expect(readLatestUpdateAttempt(database)).toEqual({
+  expect(readLatestUpdateAttempt(database, "quotes")).toEqual({
     attemptedAt: start,
     succeeded: false,
     consecutiveFailures: 1,
@@ -143,7 +156,9 @@ test("waits after failures, and a later run of the job keeps waiting, because th
   expect(listLatestQuotes(database)).toEqual([]);
   await updateFrom(database, fixturePriceSource, { at: minutesAfterStart(3) });
   expect(listLatestQuotes(database)).toHaveLength(trackedInstruments.length);
-  expect(readLatestUpdateAttempt(database)?.consecutiveFailures).toBe(0);
+  expect(readLatestUpdateAttempt(database, "quotes")?.consecutiveFailures).toBe(
+    0,
+  );
 });
 
 test("runs one more update right after the current one when asked during it, and never two at once", async () => {
@@ -163,11 +178,15 @@ test("runs one more update right after the current one when asked during it, and
       return fixturePriceSource.fetchQuotes(instruments, signal);
     },
   };
-  const updatePrices = createPriceUpdater({
-    database,
-    priceSource: slowSource,
-    instruments: trackedInstruments,
-  });
+  const updatePrices = serializeUpdates(
+    () =>
+      runPriceUpdate(
+        jobSettings(database, slowSource),
+        new Date(),
+        new AbortController().signal,
+      ),
+    "The price job failed.",
+  );
   const first = updatePrices();
   // Two runs of the schedule arrive while the first update waits for its answer.
   await updatePrices();

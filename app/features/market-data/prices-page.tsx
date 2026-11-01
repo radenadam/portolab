@@ -26,7 +26,7 @@ export function loader({ context }: Route.LoaderArgs): {
   const priceSource = context.get(priceSourceContext);
   return {
     quotes: listLatestQuotes(database),
-    latestAttempt: readLatestUpdateAttempt(database),
+    latestAttempt: readLatestUpdateAttempt(database, "quotes"),
     // The server's clock decides the text, so the page that the browser takes over says the same.
     now: new Date(),
     source: { name: priceSource.name, delayMinutes: priceSource.delayMinutes },
