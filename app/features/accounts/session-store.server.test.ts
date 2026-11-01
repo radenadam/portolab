@@ -52,14 +52,8 @@ test("extends a session at most once an hour, and ends it after 14 days without 
   expect(
     resumeSession(database, token, later(hourMilliseconds))?.wasExtended,
   ).toBe(true);
-  expect(
-    resumeSession(
-      database,
-      token,
-      later(hourMilliseconds + 14 * dayMilliseconds - 1),
-    )?.wasExtended,
-  ).toBe(true);
   const lastVisit = later(hourMilliseconds + 14 * dayMilliseconds - 1);
+  expect(resumeSession(database, token, lastVisit)?.wasExtended).toBe(true);
   expect(
     resumeSession(
       database,

@@ -20,28 +20,23 @@ test("deletes the sessions that ended at its start and then every hour, without 
     account.id,
     new Date(start.getTime() - fourteenDays),
   );
+  const lastUseWithinAnHourOfEnd = new Date(
+    start.getTime() - fourteenDays + hourMilliseconds / 2,
+  );
   const endsWithinAnHour = createSession(
     database,
     account.id,
-    new Date(start.getTime() - fourteenDays + hourMilliseconds / 2),
+    lastUseWithinAnHourOfEnd,
   );
   const stop = startSessionSweep(database);
   onTestFinished(stop);
   // A session that the sweep deleted stays missing, whatever moment a later request names.
   expect(resumeSession(database, ended, start)).toBeUndefined();
   expect(
-    resumeSession(
-      database,
-      endsWithinAnHour,
-      new Date(start.getTime() - fourteenDays + hourMilliseconds / 2),
-    ),
+    resumeSession(database, endsWithinAnHour, lastUseWithinAnHourOfEnd),
   ).toBeDefined();
   vi.advanceTimersByTime(hourMilliseconds);
   expect(
-    resumeSession(
-      database,
-      endsWithinAnHour,
-      new Date(start.getTime() - fourteenDays + hourMilliseconds / 2),
-    ),
+    resumeSession(database, endsWithinAnHour, lastUseWithinAnHourOfEnd),
   ).toBeUndefined();
 });
