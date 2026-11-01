@@ -5,22 +5,21 @@ import { databaseContext } from "~/database/database.server";
 import { FormFailure, FormSuccess, SubmitButton, TextField } from "~/form";
 import formStyles from "~/form.module.css";
 import { parseFilledText } from "~/form-text";
-import { formatNumber } from "~/formatting";
 import { pageTitle } from "~/page-title";
+import { failureOf } from "~/result";
 import { m } from "~/paraglide/messages.js";
 import type { Route } from "./+types/account-page";
 import type { User } from "./account";
 import { AccountDetails } from "./account-details";
-import { parseNewPassword, parseRepeatedPassword } from "./account-fields";
-import { NewPasswordFields } from "./account-form-fields";
+import { readNewPassword } from "./account-fields";
+import { NewPasswordFields } from "./new-password-fields";
 import { updateAccount } from "./account-store.server";
 import { requireUser, startSession } from "./current-session.server";
 import {
   checkPassword,
   passwordLimitersContext,
 } from "./password-attempts.server";
-import { passwordFailureText } from "./password-failure-text.server";
-import { passwordLimits } from "./account-limits";
+import { explainPasswordFailure } from "./explain-password-failure.server";
 import { SignOutButton } from "./sign-out-button";
 import styles from "./account-page.module.css";
 
@@ -41,28 +40,16 @@ export async function action({ context, request }: Route.ActionArgs) {
     form.get("currentPassword"),
     m.accounts_current_password_label(),
   );
-  const newPassword = parseNewPassword(
-    form.get("newPassword"),
-    m.accounts_new_password_label(),
-  );
-  const repeatedPassword = newPassword.ok
-    ? parseRepeatedPassword(
-        form.get("repeatedPassword"),
-        m.accounts_repeated_password_label(),
-        newPassword.value,
-      )
-    : undefined;
-  if (!currentPassword.ok || !newPassword.ok || repeatedPassword?.ok !== true) {
+  const newPassword = readNewPassword(form);
+  if (!currentPassword.ok || !newPassword.ok) {
     return data(
       {
         savedAt: undefined,
         failure: undefined,
-        currentPasswordFailure: currentPassword.ok
-          ? undefined
-          : currentPassword.failure,
-        newPasswordFailure: newPassword.ok ? undefined : newPassword.failure,
+        currentPasswordFailure: failureOf(currentPassword),
+        newPasswordFailure: failureOf(newPassword)?.newPasswordFailure,
         repeatedPasswordFailure:
-          repeatedPassword?.ok === false ? repeatedPassword.failure : undefined,
+          failureOf(newPassword)?.repeatedPasswordFailure,
       },
       { status: 400 },
     );
@@ -80,22 +67,20 @@ export async function action({ context, request }: Route.ActionArgs) {
     },
   );
   if (!checked.ok) {
+    const { text, status } = explainPasswordFailure(
+      checked.failure,
+      user.username,
+      m.accounts_wrong_current_password_error,
+    );
     return data(
       {
         savedAt: undefined,
-        failure: passwordFailureText(
-          checked.failure,
-          user.username,
-          m.accounts_wrong_current_password_error({
-            failures: formatNumber(passwordLimits.byUsername.failures),
-            minutes: formatNumber(passwordLimits.byUsername.windowMinutes),
-          }),
-        ),
+        failure: text,
         currentPasswordFailure: undefined,
         newPasswordFailure: undefined,
         repeatedPasswordFailure: undefined,
       },
-      { status: checked.failure.kind === "wrongPassword" ? 400 : 429 },
+      { status },
     );
   }
   await updateAccount(database, user.id, { password: newPassword.value });

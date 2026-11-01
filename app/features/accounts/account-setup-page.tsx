@@ -14,16 +14,12 @@ import { readyUser } from "./account";
 import type { Account } from "./account";
 import {
   parseConsent,
-  parseNewPassword,
   parsePersonName,
-  parseRepeatedPassword,
+  readNewPassword,
 } from "./account-fields";
 import type { AccountFormFailures } from "./account-fields";
-import {
-  ConsentField,
-  NameField,
-  NewPasswordFields,
-} from "./account-form-fields";
+import { ConsentField, NameField } from "./account-form-fields";
+import { NewPasswordFields } from "./new-password-fields";
 import { updateAccount } from "./account-store.server";
 import type { AccountChanges } from "./account-store.server";
 import { requireSession, startSession } from "./current-session.server";
@@ -96,36 +92,27 @@ export async function action({ context, request }: Route.ActionArgs) {
   });
 }
 
+/** The reason that each field of the form was not accepted, and the name as the person typed it, so the form can show it again. The username is not part of this form. */
+type SetupFailures = Omit<AccountFormFailures, "username" | "usernameFailure">;
+
 /** Reads each field that the account still lacks. */
 function readSetupForm(
   form: FormData,
   steps: MissingSteps,
-): Result<AccountChanges, AccountFormFailures> {
-  const name = readWhenMissing(steps.name, () =>
-    parsePersonName(form.get("name"), m.accounts_name_label()),
-  );
-  const password = readWhenMissing(steps.password, () =>
-    parseNewPassword(form.get("newPassword"), m.accounts_new_password_label()),
-  );
-  const repeatedPassword =
-    password.ok && password.value !== undefined
-      ? parseRepeatedPassword(
-          form.get("repeatedPassword"),
-          m.accounts_repeated_password_label(),
-          password.value,
-        )
-      : succeed(undefined);
-  const consent = readWhenMissing(steps.consent, () =>
-    parseConsent(form.get("consent"), m.accounts_consent_label()),
-  );
-  if (!name.ok || !password.ok || !repeatedPassword.ok || !consent.ok) {
+): Result<AccountChanges, SetupFailures> {
+  const name = steps.name
+    ? parsePersonName(form.get("name"), m.accounts_name_label())
+    : succeed(undefined);
+  const password = steps.password ? readNewPassword(form) : succeed(undefined);
+  const consent = steps.consent
+    ? parseConsent(form.get("consent"), m.accounts_consent_label())
+    : succeed(undefined);
+  if (!name.ok || !password.ok || !consent.ok) {
     return fail({
       name: typedText(form.get("name")),
-      username: "",
       nameFailure: failureOf(name),
-      usernameFailure: undefined,
-      newPasswordFailure: failureOf(password),
-      repeatedPasswordFailure: failureOf(repeatedPassword),
+      newPasswordFailure: failureOf(password)?.newPasswordFailure,
+      repeatedPasswordFailure: failureOf(password)?.repeatedPasswordFailure,
       consentFailure: failureOf(consent),
     });
   }
@@ -134,13 +121,6 @@ function readSetupForm(
     ...(password.value === undefined ? {} : { password: password.value }),
     ...(consent.value === undefined ? {} : { consentedAt: new Date() }),
   });
-}
-
-function readWhenMissing<Value>(
-  isMissing: boolean,
-  read: () => Result<Value, string>,
-): Result<Value | undefined, string> {
-  return isMissing ? read() : succeed(undefined);
 }
 
 export default function AccountSetupPage({

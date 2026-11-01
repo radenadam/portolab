@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import { CheckboxField, TextField } from "~/form";
 import { formatNumber } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
-import { passwordLength } from "./account-fields";
 import type { AccountFormFailures } from "./account-fields";
 import { PrivacyNotice } from "./privacy-notice";
 import { usernameLength } from "./username";
@@ -12,7 +11,7 @@ export function NameField({
   failures,
 }: {
   hint: string;
-  failures: AccountFormFailures | undefined;
+  failures: Pick<AccountFormFailures, "name" | "nameFailure"> | undefined;
 }): ReactNode {
   return (
     <TextField
@@ -31,7 +30,8 @@ export function NameField({
 export function UsernameField({
   failures,
 }: {
-  failures: AccountFormFailures | undefined;
+  failures:
+    Pick<AccountFormFailures, "username" | "usernameFailure"> | undefined;
 }): ReactNode {
   return (
     <TextField
@@ -49,45 +49,11 @@ export function UsernameField({
   );
 }
 
-/** The fields of a new password, which a person types twice, so that a typing mistake never locks the person out. */
-export function NewPasswordFields({
-  failures,
-}: {
-  failures:
-    | Pick<
-        AccountFormFailures,
-        "newPasswordFailure" | "repeatedPasswordFailure"
-      >
-    | undefined;
-}): ReactNode {
-  return (
-    <>
-      <TextField
-        name="newPassword"
-        label={m.accounts_new_password_label()}
-        type="password"
-        autoComplete="new-password"
-        hint={m.accounts_password_hint({
-          minimum: formatNumber(passwordLength.minimum),
-        })}
-        failure={failures?.newPasswordFailure}
-      />
-      <TextField
-        name="repeatedPassword"
-        label={m.accounts_repeated_password_label()}
-        type="password"
-        autoComplete="new-password"
-        failure={failures?.repeatedPasswordFailure}
-      />
-    </>
-  );
-}
-
 // The person agrees to the whole notice, so the form shows all of it before the box.
 export function ConsentField({
   failures,
 }: {
-  failures: AccountFormFailures | undefined;
+  failures: Pick<AccountFormFailures, "consentFailure"> | undefined;
 }): ReactNode {
   return (
     <>

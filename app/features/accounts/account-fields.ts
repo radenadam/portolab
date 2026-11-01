@@ -16,17 +16,6 @@ import type { Username } from "./username";
 // A name rarely comes near this, and a longer one would not fit where a page shows it.
 const nameMaximumLength = 100;
 
-/** Why the fields of a form of an account were not accepted, and the text that the person typed in the fields that the form shows again. */
-export interface AccountFormFailures {
-  name: string;
-  username: string;
-  nameFailure: string | undefined;
-  usernameFailure: string | undefined;
-  newPasswordFailure: string | undefined;
-  repeatedPasswordFailure: string | undefined;
-  consentFailure: string | undefined;
-}
-
 /** The limits of a password that a person chooses. NIST SP 800-63B asks for at least 15 characters when a password alone signs a person in, and for a maximum of at least 64. */
 export const passwordLength = { minimum: 15, maximum: 128 } as const;
 
@@ -39,7 +28,7 @@ export function parsePersonName(
 }
 
 /** Reads a password that a person chose, in the normal form that the hash reads, so that its length counts what the hash reads. */
-export function parseNewPassword(
+function parseNewPassword(
   value: unknown,
   source: string,
 ): Result<string, string> {
@@ -62,7 +51,7 @@ export function parseNewPassword(
 }
 
 /** Reads the field that repeats a new password, which must hold the same password, so that a typing mistake never locks the person out. */
-export function parseRepeatedPassword(
+function parseRepeatedPassword(
   value: unknown,
   source: string,
   password: string,
@@ -80,6 +69,47 @@ export function parseConsent(
   return value === "yes"
     ? succeed(true)
     : fail(m.accounts_consent_missing_error({ field: source }));
+}
+
+/** Why the fields of a new password were not accepted. */
+export interface NewPasswordFailures {
+  newPasswordFailure: string | undefined;
+  repeatedPasswordFailure: string | undefined;
+}
+
+/** Reads a new password from the two fields of a form that hold it, which must match. */
+export function readNewPassword(
+  form: FormData,
+): Result<string, NewPasswordFailures> {
+  const password = parseNewPassword(
+    form.get("newPassword"),
+    m.accounts_new_password_label(),
+  );
+  const repeatedPassword = password.ok
+    ? parseRepeatedPassword(
+        form.get("repeatedPassword"),
+        m.accounts_repeated_password_label(),
+        password.value,
+      )
+    : password;
+  if (password.ok && repeatedPassword.ok) {
+    return succeed(password.value);
+  }
+  return fail({
+    newPasswordFailure: failureOf(password),
+    repeatedPasswordFailure: password.ok
+      ? failureOf(repeatedPassword)
+      : undefined,
+  });
+}
+
+/** Why the fields of the form that creates an account were not accepted, with the name and the username as the person typed them, so the form can show them again. */
+export interface AccountFormFailures extends NewPasswordFailures {
+  name: string;
+  username: string;
+  nameFailure: string | undefined;
+  usernameFailure: string | undefined;
+  consentFailure: string | undefined;
 }
 
 /** Reads a username that a person chose for a new account. */
@@ -113,25 +143,9 @@ export function readNewStudent(
     form.get("username"),
     m.accounts_username_label(),
   );
-  const password = parseNewPassword(
-    form.get("newPassword"),
-    m.accounts_new_password_label(),
-  );
-  const repeatedPassword = password.ok
-    ? parseRepeatedPassword(
-        form.get("repeatedPassword"),
-        m.accounts_repeated_password_label(),
-        password.value,
-      )
-    : succeed("");
+  const password = readNewPassword(form);
   const consent = parseConsent(form.get("consent"), m.accounts_consent_label());
-  if (
-    name.ok &&
-    username.ok &&
-    password.ok &&
-    repeatedPassword.ok &&
-    consent.ok
-  ) {
+  if (name.ok && username.ok && password.ok && consent.ok) {
     return succeed({
       name: name.value,
       username: username.value,
@@ -143,8 +157,8 @@ export function readNewStudent(
     username: typedText(form.get("username")),
     nameFailure: failureOf(name),
     usernameFailure: failureOf(username),
-    newPasswordFailure: failureOf(password),
-    repeatedPasswordFailure: failureOf(repeatedPassword),
+    newPasswordFailure: failureOf(password)?.newPasswordFailure,
+    repeatedPasswordFailure: failureOf(password)?.repeatedPasswordFailure,
     consentFailure: failureOf(consent),
   });
 }

@@ -6,9 +6,9 @@ import type { AccountFormFailures } from "~/features/accounts/account-fields";
 import {
   ConsentField,
   NameField,
-  NewPasswordFields,
   UsernameField,
 } from "~/features/accounts/account-form-fields";
+import { NewPasswordFields } from "~/features/accounts/new-password-fields";
 import { createStudent } from "~/features/accounts/account-store.server";
 import {
   findUser,

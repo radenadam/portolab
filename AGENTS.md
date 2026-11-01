@@ -124,6 +124,6 @@ These apply to all prose: docs, comments, commit messages, pull requests, issues
 
 - Portolab stores only what a class needs and nothing about real finances. No secret or credential ever enters the repository.
 - Every change to sign-in or sessions follows decision 0005 and gets a security review.
-- Every record about a person, in a table or in memory, has a stated time to live, and code that runs without a request, such as a timer or a job, removes it when that time ends, with a test that shows it gone.
+- Every record about a person, in a table or in memory, has a time to live that its definition and the privacy notice state, such as an account until the person who runs the server deletes it. A record whose time ends by itself, such as a session that nobody uses, is removed by code that runs without a request, such as a timer or a job, with a test that shows it gone.
 - Every loader and action that serves the data of a person finds who is signed in through `app/features/accounts/current-session.server.ts` before it reads that data, and serves only what that person may see or change.
 - A redirect target that comes from input is resolved with the URL parser against the site's own origin, and it is accepted only when the origins match. The redirect uses only the path, query, and fragment of the result, and that path must resolve to the site's origin as well, because normalization can turn a value such as `/.//example.com` into a path that leads to another site. A check of the text alone misses such values.
