@@ -12,7 +12,7 @@ A diff range, a set of paths, or a plan, with the intent behind it. In an audit,
 
 ## How to exercise the product
 
-1. Run `pnpm build`. Then start the server in the background with the environment variable `PORT=4180` and the command `node server/main.ts`, and wait until `http://localhost:4180/health` answers.
+1. Run `pnpm build`. Then start the server in the background with the environment variables `PORT=4180`, `PRICE_SOURCE=fixture`, and `DATABASE_PATH=:memory:` and the command `node server/main.ts`, so the review needs no network and leaves no database file behind, and wait until `http://localhost:4180/health` answers.
 2. Drive the app in a real browser with Playwright from `@playwright/test`, through a temporary script outside the repository. Use a phone viewport 360 pixels wide with touch, and a desktop viewport. Use both languages. The language comes from the `PARAGLIDE_LOCALE` cookie, which the language switch sets.
 3. Stop the server when you are done.
 
