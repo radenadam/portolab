@@ -5,7 +5,7 @@ import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
 import { chooseLanguage } from "./choose-language.ts";
 
-// The server runs with the fixture price source, which returns the closing quotes of 30 October 2026.
+// The server runs with the fixture price source, whose quotes fixture-price-source.server.ts describes.
 
 const texts: Record<
   Locale,

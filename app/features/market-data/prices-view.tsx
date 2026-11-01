@@ -190,13 +190,15 @@ function QuoteRow({
         <ChangeArrow direction={change.direction} />
         {change.text}
       </td>
-      <td className={styles["number"]}>
+      <td className={styles["time"]}>
         {!isSameWibDay(quote.quotedAt, latestQuotedAt) && (
           <span className={styles["date"]}>
             {`${formatMarketDate(quote.quotedAt)} `}
           </span>
         )}
-        {formatMarketClock(quote.quotedAt)}
+        <span className={styles["clock"]}>
+          {formatMarketClock(quote.quotedAt)}
+        </span>
       </td>
     </tr>
   );

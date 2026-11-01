@@ -285,9 +285,20 @@ for (const state of states) {
 }
 
 // The BBRI price is from two weeks before the newest price, and the BBCA price is from its day.
-const quoteTimes: Record<Locale, { otherDay: string; sameDay: string }> = {
-  id: { otherDay: ">16 Okt 2026 </span>16.14<", sameDay: ">16.14<" },
-  en: { otherDay: ">Oct 16, 2026 </span>4:14 PM<", sameDay: ">4:14 PM<" },
+const quoteTimes: Record<
+  Locale,
+  { otherDay: string; newestDay: string; clock: string }
+> = {
+  id: {
+    otherDay: ">16 Okt 2026 </span>",
+    newestDay: ">30 Okt 2026 </span>",
+    clock: ">16.14</span>",
+  },
+  en: {
+    otherDay: ">Oct 16, 2026 </span>",
+    newestDay: ">Oct 30, 2026 </span>",
+    clock: ">4:14 PM</span>",
+  },
 };
 
 for (const locale of locales) {
@@ -302,7 +313,8 @@ for (const locale of locales) {
       />,
     );
     expect(html).toContain(quoteTimes[locale].otherDay);
-    expect(html).toContain(quoteTimes[locale].sameDay);
+    expect(html).not.toContain(quoteTimes[locale].newestDay);
+    expect(html).toContain(quoteTimes[locale].clock);
   });
 }
 

@@ -15,16 +15,25 @@
 }
 
 .table th:not(:first-child),
-.table .number {
+.table .number,
+.table .time {
   text-align: right;
 }
 
-.number {
+.number,
+.time {
   font-variant-numeric: tabular-nums;
+}
+
+.number {
   white-space: nowrap;
 }
 
-/* The date of a price from another day takes a line of its own, so the table fits a screen 360 pixels wide. */
+/* The time cell may wrap the date of a price from another day, so the table fits a screen 360 pixels wide with any font, while the time of day stays on one line. */
 .date {
   display: block;
+}
+
+.clock {
+  white-space: nowrap;
 }

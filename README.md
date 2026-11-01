@@ -36,7 +36,7 @@ Portolab reads these environment variables when it starts, and it names every wr
 | --------------- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `PORT`          | `3000`                 | The port the server listens on.                                                                                                                                                                                                              |
 | `DATABASE_PATH` | `data/portolab.sqlite` | The SQLite database file. Portolab creates it, and its folder, when they do not exist. `:memory:` keeps the database in memory until the server stops, which the checks use. An empty value stops the server, because it would keep no data. |
-| `PRICE_SOURCE`  | `yahoo`                | Where prices come from. `yahoo` fetches delayed prices from Yahoo Finance. `fixture` always returns the closing prices of 30 October 2026, for tests.                                                                                        |
+| `PRICE_SOURCE`  | `yahoo`                | Where prices come from. `yahoo` fetches delayed prices from Yahoo Finance. `fixture` returns recorded quotes for tests, which `app/features/market-data/fixture-price-source.server.ts` describes.                                           |
 
 ## Contributing
 
