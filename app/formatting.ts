@@ -62,10 +62,7 @@ export function formatSignedPercent(fraction: number): SignedPercent {
 
 /** Formats the time of day in WIB, such as 16.14, for a price of the same day as the newest one. */
 export function formatMarketClock(moment: Date): string {
-  return new Intl.DateTimeFormat(intlLocale(), {
-    timeStyle: "short",
-    timeZone: wibTimeZone,
-  }).format(moment);
+  return formatMarketTimeParts(moment).clock;
 }
 
 /** Joins items into a list for the active language, with "and" such as "BBRI, TLKM, and ASII", or with "or" for a choice, such as "BBRI, TLKM, or ASII". */

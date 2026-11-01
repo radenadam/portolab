@@ -19,6 +19,8 @@ const defaultDatabasePath = "data/portolab.sqlite";
 /** The settings of the services that the server starts. README.md lists each variable and its default. */
 export interface ServiceSettings {
   databasePath: string;
+  /** The migrations that ship with the server, which it finds from the location of its code instead of from a variable. */
+  migrationsFolder: string;
   priceSource: (typeof priceSourceNames)[number];
 }
 

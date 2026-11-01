@@ -30,7 +30,10 @@ export interface Services {
 
 /** Opens the database and starts the price job, with the settings that the server read at startup. */
 export function startServices(settings: ServiceSettings): Services {
-  const database = openDatabase(settings.databasePath);
+  const database = openDatabase(
+    settings.databasePath,
+    settings.migrationsFolder,
+  );
   const priceSource = priceSources[settings.priceSource]();
   const stopPriceJob = startPriceJob({
     database,

@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import express from "express";
 import type { Express, RequestHandler } from "express";
+import { migrationsFolder } from "../app/database/migrations-folder.ts";
 import { exitWithFailure } from "../app/exit-with-failure.server.ts";
 import { writeLog } from "../app/write-log.server.ts";
 import { failuresOf } from "../app/result.ts";
@@ -50,6 +51,7 @@ if (!mode.ok || !port.ok || !priceSource.ok || !databasePath.ok) {
 const settings: ServiceSettings = {
   priceSource: priceSource.value,
   databasePath: databasePath.value,
+  migrationsFolder,
 };
 // Each mode serves the app in its own way, so a new mode is a type error until it has one.
 const serveApp: Record<

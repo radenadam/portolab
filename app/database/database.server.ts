@@ -10,16 +10,15 @@ export type Database = BetterSQLite3Database & {
   $client: BetterSqlite3.Database;
 };
 
-/** Opens the database file, creating it and its folder when they do not exist, and applies every pending migration. */
-export function openDatabase(path: string): Database {
+/** Opens the database file, creating it and its folder when they do not exist, and applies every pending migration from the folder. */
+export function openDatabase(path: string, migrationsFolder: string): Database {
   mkdirSync(dirname(path), { recursive: true });
   const client = new BetterSqlite3(path);
   client.pragma("journal_mode = WAL");
   client.pragma("foreign_keys = ON");
   client.pragma("busy_timeout = 5000");
   const database = drizzle({ client });
-  // The server starts from the repository root, where the migrations live.
-  migrate(database, { migrationsFolder: "migrations" });
+  migrate(database, { migrationsFolder });
   return database;
 }
 

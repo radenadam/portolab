@@ -83,6 +83,7 @@ These apply to all prose: docs, comments, commit messages, pull requests, issues
 - A failure text names its source and the field or value that was wrong. A parser says what its source must be or have and what it is, through `describeValue` in `app/value-shapes.ts`, such as `PORT must be a whole number from 1 to 65535, but it is "0".` Code that handles a failed result passes that text on, instead of replacing it with a generic message, so the real reason reaches the reader.
 - A program, a check, or a test that creates a temporary file or folder removes it when it finishes, even when it fails, or avoids the file, such as with a database in memory.
 - A comment explains only why: a reason, an outside constraint, or a trap. It never narrates what the code does.
+- The server finds the files that ship with it, such as its build and its migrations, from the location of its own code, never from the working directory. Only a path that the operator gives, such as `DATABASE_PATH`, resolves against the working directory. Scripts run through pnpm, which starts them in the root of the repository.
 - A module that only the server may run ends in `.server.ts`, so that React Router keeps it out of the browser bundle.
 
 ### Structure
