@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "4168e1c4-456c-405e-a530-eb5a762fb45e",
-  "prevId": "79a611a6-dee9-4775-81e0-2df1728847ca",
+  "id": "0a14c5c1-2842-4e2f-973c-b9aab5b16c12",
+  "prevId": "2878ecae-4906-4af4-9c11-9117e5c06070",
   "tables": {
     "sessions": {
       "name": "sessions",
@@ -113,13 +113,6 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
-          "autoincrement": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
           "autoincrement": false
         }
       },

@@ -24,7 +24,6 @@ const texts: Record<
   {
     classesTitle: string;
     noTaughtClasses: string;
-    noJoinedClasses: string;
     createTitle: string;
     nameLabel: string;
     nameHint: string;
@@ -76,8 +75,6 @@ const texts: Record<
     classesTitle: "Kelas Anda",
     noTaughtClasses:
       "Anda belum mengajar kelas. Buat kelas di bawah, lalu bagikan kodenya kepada mahasiswa Anda.",
-    noJoinedClasses:
-      "Anda belum bergabung ke kelas. Dosen Anda memberikan kode kelasnya.",
     createTitle: "Buat kelas",
     nameLabel: "Nama kelas",
     nameHint: "Mahasiswa Anda melihat nama ini.",
@@ -120,7 +117,8 @@ const texts: Record<
       'Anda masuk dengan nama ini. Panjangnya 3 sampai 32 karakter dari a sampai z, 0 sampai 9, ".", "-", dan "_".',
     createAccountButton: "Buat akun dan gabung",
     existingAccountLink: "Masuk dengan akun yang sudah Anda miliki",
-    usernameTaken: "Pilih yang lain, misalnya dengan angka di akhirnya.",
+    usernameTaken:
+      " sudah dipakai. Pilih yang lain, misalnya dengan angka di akhirnya.",
     joinButton: "Gabung ke kelas",
     otherCodeLink: "Masukkan kode lain",
     resetTitle: "Atur ulang kata sandi",
@@ -135,8 +133,6 @@ const texts: Record<
     classesTitle: "Your classes",
     noTaughtClasses:
       "You teach no class yet. Create one below, then share its code with your students.",
-    noJoinedClasses:
-      "You have joined no class yet. Your lecturer gives you the code of the class.",
     createTitle: "Create a class",
     nameLabel: "Name of the class",
     nameHint: "Your students see this name.",
@@ -178,7 +174,8 @@ const texts: Record<
       'You sign in with it. It has 3 to 32 characters from a to z, 0 to 9, ".", "-", and "_".',
     createAccountButton: "Create the account and join",
     existingAccountLink: "Sign in with the account that you have",
-    usernameTaken: "Choose another one, for example with a number at its end.",
+    usernameTaken:
+      " is taken. Choose another one, for example with a number at its end.",
     joinButton: "Join the class",
     otherCodeLink: "Enter another code",
     resetTitle: "Reset a password",
@@ -301,7 +298,7 @@ for (const locale of locales) {
       .click();
     await expect(
       student.getByText(
-        `${parts.usernameTaken}${lecturerUsername}${locale === "id" ? " sudah dipakai. " : " is taken. "}${text.usernameTaken}`,
+        `${parts.usernameTaken}${lecturerUsername}${text.usernameTaken}`,
       ),
     ).toBeVisible();
     await expectAccessibleScreen(student);
@@ -394,6 +391,9 @@ for (const locale of locales) {
       testClass.joinAddress,
       studentName,
     );
+    // A student who opens the address of a class again goes to the class.
+    await student.goto(testClass.joinAddress);
+    await expect(student).toHaveURL(testClass.path);
 
     await page.goto(testClass.path);
     await expect(page.getByText(studentName, { exact: true })).toBeVisible();
@@ -484,20 +484,5 @@ for (const locale of locales) {
     for (const device of [member, otherLecturer, outsider]) {
       await device.context().close();
     }
-  });
-
-  test(`shows a student without classes where to join in ${language}`, async ({
-    page,
-    browser,
-  }) => {
-    await chooseLanguage(page, locale);
-    await signInAsNewLecturer(page, lecturerName);
-    const testClass = await createTestClass(page, className);
-    const student = await newDevice(browser, locale);
-    await joinAsNewStudent(student, testClass.joinAddress, studentName);
-    await student.goto(testClass.joinAddress);
-    await expect(student).toHaveURL(testClass.path);
-    await student.context().close();
-    expect(text.noJoinedClasses).not.toBe("");
   });
 }

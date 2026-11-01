@@ -5,7 +5,6 @@ import type { Locale } from "~/paraglide/runtime.js";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
 import {
   parseConsent,
-  parseNewUsername,
   parsePersonName,
   readNewPassword,
   readNewStudent,
@@ -29,7 +28,6 @@ const texts: Record<
   {
     name: string;
     consent: string;
-    username: string;
     usernameMalformed: string;
     tooShort: string;
     tooLong: string;
@@ -41,7 +39,6 @@ const texts: Record<
   id: {
     name: "Nama Anda",
     consent: "Saya menyetujui pemberitahuan privasi",
-    username: "Nama pengguna",
     usernameMalformed:
       'Kolom "Nama pengguna" berisi 3 sampai 32 karakter dari a sampai z, 0 sampai 9, ".", "-", dan "_", tetapi "budi santoso" memakai karakter lain atau panjang lain. Pilih nama pengguna seperti budi.santoso.',
     tooShort:
@@ -58,7 +55,6 @@ const texts: Record<
   en: {
     name: "Your name",
     consent: "I agree to the privacy notice",
-    username: "Username",
     usernameMalformed:
       'The field "Username" takes 3 to 32 characters from a to z, 0 to 9, ".", "-", and "_", but "budi santoso" has others or another length. Choose a username such as budi.santoso.',
     tooShort:
@@ -116,10 +112,6 @@ for (const locale of locales) {
 
   test(`rejects a username of other characters, and shows every field of a new student with its failure, in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
-    expect(parseNewUsername(" budi santoso ", text.username)).toEqual({
-      ok: false,
-      failure: text.usernameMalformed,
-    });
     const form = passwordForm("short", "short");
     form.set("name", "Sari");
     form.set("username", "budi santoso");

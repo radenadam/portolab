@@ -167,9 +167,7 @@ function JoinedClasses({
 }: {
   classes: readonly JoinedClass[];
 }): ReactNode {
-  if (classes.length === 0) {
-    return <p>{m.classes_no_joined_classes_body()}</p>;
-  }
+  // A student joins a class when the account is created, so the list of a student is never empty.
   return (
     <ul className={styles["list"]}>
       {classes.map((joined) => (

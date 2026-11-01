@@ -118,7 +118,7 @@ export interface AccountFormFailures extends NewPasswordFailures {
 }
 
 /** Reads a username that a person chose for a new account. */
-export function parseNewUsername(
+function parseNewUsername(
   value: unknown,
   source: string,
 ): Result<Username, string> {

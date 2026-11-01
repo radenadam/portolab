@@ -93,7 +93,6 @@ export async function createStudent(
       passwordHash: await hashPassword(student.password),
       mustChangePassword: false,
       consentedAt: now,
-      createdAt: now,
     })
     .onConflictDoNothing({ target: users.username })
     .returning({ id: users.id })

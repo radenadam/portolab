@@ -61,6 +61,23 @@ export async function submitSignIn(
   await page.locator("main form button[type=submit]").click();
 }
 
+/** Fills the form that finishes or creates an account with a name, the username when the form asks for one, the chosen password twice, and consent, and sends it. */
+async function submitAccountForm(
+  page: Page,
+  { name, username }: { name: string; username?: string },
+): Promise<void> {
+  await page.locator('main input[name="name"]').fill(name);
+  if (username !== undefined) {
+    await page.locator('main input[name="username"]').fill(username);
+  }
+  await page.locator('main input[name="newPassword"]').fill(chosenPassword);
+  await page
+    .locator('main input[name="repeatedPassword"]')
+    .fill(chosenPassword);
+  await page.locator('main input[name="consent"]').check();
+  await page.locator("main form button[type=submit]").click();
+}
+
 /** Creates a lecturer with the account command, signs in, and finishes the account with a name, a password, and consent, so that the page ends signed in on the classes of the lecturer. */
 export async function signInAsNewLecturer(
   page: Page,
@@ -71,13 +88,7 @@ export async function signInAsNewLecturer(
   await page.goto("/sign-in");
   await submitSignIn(page, username, temporaryPassword);
   await expect(page).toHaveURL(/\/account\/setup/);
-  await page.locator('main input[name="name"]').fill(name);
-  await page.locator('main input[name="newPassword"]').fill(chosenPassword);
-  await page
-    .locator('main input[name="repeatedPassword"]')
-    .fill(chosenPassword);
-  await page.locator('main input[name="consent"]').check();
-  await page.locator("main form button[type=submit]").click();
+  await submitAccountForm(page, { name });
   await expect(page).toHaveURL("/classes");
   return username;
 }
@@ -114,14 +125,7 @@ export async function joinAsNewStudent(
 ): Promise<string> {
   const username = uniqueUsername("mhs");
   await page.goto(joinAddress);
-  await page.locator('main input[name="name"]').fill(name);
-  await page.locator('main input[name="username"]').fill(username);
-  await page.locator('main input[name="newPassword"]').fill(chosenPassword);
-  await page
-    .locator('main input[name="repeatedPassword"]')
-    .fill(chosenPassword);
-  await page.locator('main input[name="consent"]').check();
-  await page.locator("main form button[type=submit]").click();
+  await submitAccountForm(page, { name, username });
   await expect(page).toHaveURL(/\/classes\/\d+$/);
   return username;
 }
