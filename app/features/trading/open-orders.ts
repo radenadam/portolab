@@ -59,6 +59,20 @@ export function holdsFreeShares(
   );
 }
 
+/** The codes of the stocks that the sell orders that are open at a moment sell, each once, which bring cash when the orders fill. */
+export function codesOfOpenSales(
+  orders: readonly Order[],
+  moment: Date,
+): string[] {
+  const codes = new Set<string>();
+  for (const order of orders) {
+    if (isOpenOrder(order, moment) && setsAsideShares[order.side]) {
+      codes.add(order.code);
+    }
+  }
+  return [...codes].sort();
+}
+
 /** Whether an order is open at a moment: waiting or resting, and not past its expiry. An order whose trading day has ended stays waiting or resting until checkOrder marks it expired, so the moment decides. */
 export function isOpenOrder(order: Order, moment: Date): order is OpenOrder {
   return isOpenState[order.state.kind] && moment < order.expiresAt;

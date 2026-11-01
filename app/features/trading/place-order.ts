@@ -30,7 +30,12 @@ import type {
   OrderRequest,
   OrderSide,
 } from "./order";
-import { cashSetAside, holdsFreeShares, sharesSetAside } from "./open-orders";
+import {
+  cashSetAside,
+  codesOfOpenSales,
+  holdsFreeShares,
+  sharesSetAside,
+} from "./open-orders";
 import { costRatesOn, purchaseCost } from "./trading-costs";
 import type { CostRates } from "./trading-costs";
 
@@ -58,9 +63,8 @@ interface TradingDay {
   date: string;
   tradesFrom: Date;
   expiresAt: Date;
-  /** The trading day before it, whose close is the reference price, and when the prices of that day are final. */
+  /** The trading day before it, whose close is the reference price. */
   previousDate: string;
-  previousFinalAt: Date;
   rules: IdxRules;
   rates: CostRates;
 }
@@ -154,19 +158,11 @@ function tradingDayOf(
       reason: failuresOf([expiresAt, previousDate, rules, rates]).join(" "),
     });
   }
-  // The search for the previous trading day found its calendar, so the calendar covers it.
-  const previousFinalAt = pricesFinalAt(previousDate.value, delayMinutes);
-  if (!previousFinalAt.ok) {
-    throw new Error(
-      `tradingDayBefore found ${previousDate.value} in the calendar, but ${previousFinalAt.failure}`,
-    );
-  }
   return succeed({
     date,
     tradesFrom: tradesFrom.value,
     expiresAt: expiresAt.value,
     previousDate: previousDate.value,
-    previousFinalAt: previousFinalAt.value,
     rules: rules.value,
     rates: rates.value,
   });
@@ -240,12 +236,7 @@ function referencePrice(
     (candidate) => candidate.date === day.previousDate,
   );
   if (close === undefined) {
-    return fail({
-      kind: "noReferenceClose",
-      code,
-      date: day.previousDate,
-      finalAt: day.previousFinalAt,
-    });
+    return fail({ kind: "noReferenceClose", code, date: day.previousDate });
   }
   // A close that a later split adjusted can hold a fraction of a rupiah, but a reference price is whole.
   return succeed(rupiah(Math.round(close.close)));
@@ -294,6 +285,7 @@ function checkFunds(
           cash: account.cash,
           setAsideCash: setAside,
           holdsFreeShares: holdsFreeShares(account, account.moment),
+          sellingCodes: codesOfOpenSales(account.orders, account.moment),
           ...paid.failure,
         });
       }

@@ -141,14 +141,9 @@ test("rejects a limit order for the next trading day until the close of the day 
     ),
   ).toEqual({
     ok: false,
-    failure: {
-      kind: "noReferenceClose",
-      code: "BBCA",
-      date: "2026-11-02",
-      finalAt: new Date("2026-11-02T09:26:00.000Z"),
-    },
+    failure: { kind: "noReferenceClose", code: "BBCA", date: "2026-11-02" },
   });
-  // At 16:26, once the history job has stored the close of Monday.
+  // At 16:26, once the next update of the price history has stored the close of Monday.
   expect(
     placeOrder(
       { ...limitOrder, placedAt: new Date("2026-11-02T09:26:00Z") },
@@ -353,6 +348,7 @@ test("rejects a purchase that costs more than the cash that other open orders le
       cash: 2_500_000,
       setAsideCash: 498_747,
       holdsFreeShares: false,
+      sellingCodes: [],
       availableCash: 2_001_253,
       largestLots: 4,
     },
@@ -392,7 +388,12 @@ test("offers no sale for cash when open sell orders set aside every share that t
     placeOrder(purchase({ lots: orderLotsForTest(1) }), state, bbca),
   ).toMatchObject({
     ok: false,
-    failure: { kind: "notEnoughCash", largestLots: 0, holdsFreeShares: false },
+    failure: {
+      kind: "notEnoughCash",
+      largestLots: 0,
+      holdsFreeShares: false,
+      sellingCodes: ["BBCA"],
+    },
   });
   expect(
     placeOrder(

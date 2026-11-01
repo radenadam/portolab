@@ -10,7 +10,7 @@ Decision 0013 computes the measures of a stock from at least 24 monthly returns,
 ## Decision
 
 - A student can buy a stock only when it is in the universe of decision 0014 on the trading day of the order and has at least as many monthly returns as the measures need. The returns are counted with the settings of the measures, so a change of the minimum reaches this rule by itself.
-- A stock without enough returns still shows on the prices page. An order to buy it fails with a text that gives its returns, the minimum, and the month whose first trading day brings enough once it closes, if the stock keeps trading every month.
+- A stock without enough returns still shows on the prices page. An order to buy it fails with a text that gives its returns, the minimum, and the month whose first trading day brings enough once it closes, if the stock keeps a close at the end of every month and stays in the universe.
 - A student can always sell the shares of a holding, even of a stock that has left the universe.
 
 ## Alternatives

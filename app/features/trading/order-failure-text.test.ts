@@ -10,7 +10,7 @@ import type { FillFailure, OrderFailure } from "./order";
 import { orderFailureText } from "./order-failure-text";
 import { oneRupiahLimit, rateLimit } from "./price-limits";
 
-// Each failure in the states that shape its sentences: one and several lots or returns, a limit as a rate and as an amount of rupiah, a band of tick sizes with and without an end, cash or shares that other orders set aside or not, and an account with or without shares that it can still sell. Intl puts a no-break space after the currency, which the texts write as \u00a0.
+// Each failure in the states that shape its sentences: one and several lots or returns, a limit as a rate and as an amount of rupiah, a band of tick sizes with and without an end, cash or shares that other orders set aside or not, an account with or without shares that it can still sell, and open sell orders that add cash or not. Intl puts a no-break space after the currency, which the texts write as \u00a0.
 // A purchase of 1 lot while open buy orders set aside nearly all of the cash.
 const allCashSetAside = {
   kind: "notEnoughCash",
@@ -22,6 +22,7 @@ const allCashSetAside = {
   cash: rupiah(500_000),
   setAsideCash: rupiah(498_747),
   holdsFreeShares: false,
+  sellingCodes: [],
   availableCash: rupiah(1_253),
   largestLots: lots(0),
 } satisfies OrderFailure;
@@ -51,8 +52,6 @@ const failures = {
     kind: "noReferenceClose",
     code: "BBCA",
     date: "2026-11-02",
-    // 16:26 WIB.
-    finalAt: new Date("2026-11-02T09:26:00Z"),
   },
   severalReturns: {
     kind: "tooFewReturns",
@@ -127,6 +126,7 @@ const failures = {
     cash: rupiah(2_500_000),
     setAsideCash: rupiah(498_747),
     holdsFreeShares: false,
+    sellingCodes: [],
     availableCash: rupiah(2_001_253),
     largestLots: lots(4),
   },
@@ -140,6 +140,7 @@ const failures = {
     cash: rupiah(400_000),
     setAsideCash: rupiah(0),
     holdsFreeShares: false,
+    sellingCodes: [],
     availableCash: rupiah(400_000),
     largestLots: lots(0),
   },
@@ -153,11 +154,17 @@ const failures = {
     cash: rupiah(600_000),
     setAsideCash: rupiah(0),
     holdsFreeShares: false,
+    sellingCodes: [],
     availableCash: rupiah(600_000),
     largestLots: lots(1),
   },
   allCashSetAside,
   sharesAndCashSetAside: { ...allCashSetAside, holdsFreeShares: true },
+  allSharesInSales: {
+    ...allCashSetAside,
+    setAsideCash: rupiah(0),
+    sellingCodes: ["BBCA", "TLKM"],
+  },
   sharesSetAside: {
     kind: "notEnoughShares",
     code: "BBCA",
@@ -239,11 +246,11 @@ const texts: Record<Locale, Record<FailureName, string>> = {
     noHistoryOfStock:
       "Portolab belum menyimpan riwayat harga BBCA selama satu bulan penuh, sehingga belum dapat menghitung apakah BBCA memiliki imbal hasil bulanan yang dibutuhkan ukuran portofolio. Coba lagi setelah pembaruan riwayat harga berikutnya menyimpannya.",
     noReferenceClose:
-      "Portolab belum menyimpan harga penutupan BBCA pada 2 November 2026, padahal BEI menetapkan rentang harga order limit dari harga penutupan tersebut. Coba lagi setelah Portolab menyimpannya, yang dapat dilakukan setelah harga hari itu final pada pukul 16.26 WIB, atau pasang order harga pasar, yang tidak membutuhkan limit.",
+      "Portolab belum menyimpan harga penutupan BBCA pada 2 November 2026, padahal BEI menetapkan rentang harga order limit dari harga penutupan tersebut. Coba lagi setelah pembaruan riwayat harga berikutnya menyimpan harga penutupan itu, atau pasang order harga pasar, yang tidak membutuhkan limit.",
     severalReturns:
-      "AADI baru memiliki 21 imbal hasil bulanan, sedangkan Portolab menghitung ukuran sebuah portofolio hanya jika setiap sahamnya memiliki 24 imbal hasil bulanan. Anda dapat membeli AADI setelah hari bursa pertama Januari 2027 ditutup, saat datanya sudah cukup.",
+      "AADI baru memiliki 21 imbal hasil bulanan, sedangkan Portolab menghitung ukuran sebuah portofolio hanya jika setiap sahamnya memiliki 24 imbal hasil bulanan. Jika AADI tetap memiliki harga penutupan di akhir setiap bulan dan tetap termasuk LQ45, Anda dapat membelinya setelah hari bursa pertama Januari 2027 ditutup.",
     oneReturn:
-      "AADI baru memiliki 1 imbal hasil bulanan, sedangkan Portolab menghitung ukuran sebuah portofolio hanya jika setiap sahamnya memiliki 24 imbal hasil bulanan. Anda dapat membeli AADI setelah hari bursa pertama September 2028 ditutup, saat datanya sudah cukup.",
+      "AADI baru memiliki 1 imbal hasil bulanan, sedangkan Portolab menghitung ukuran sebuah portofolio hanya jika setiap sahamnya memiliki 24 imbal hasil bulanan. Jika AADI tetap memiliki harga penutupan di akhir setiap bulan dan tetap termasuk LQ45, Anda dapat membelinya setelah hari bursa pertama September 2028 ditutup.",
     tooManyLots:
       "BEI menerima paling banyak 50.000 lot dalam satu order, sedangkan order ini berisi 50.001 lot. Bagi order ini menjadi beberapa order yang masing-masing berisi paling banyak 50.000 lot.",
     limitsAsRates:
@@ -264,6 +271,8 @@ const texts: Record<Locale, Record<FailureName, string>> = {
       "Membeli 1 lot BBCA pada harga Rp\u00a04.980 membutuhkan Rp\u00a0498.747, yaitu Rp\u00a0498.000 untuk saham dan Rp\u00a0747 untuk biaya broker, sedangkan kas Anda yang tersedia hanya Rp\u00a01.253. Order beli Anda yang masih terbuka menyisihkan Rp\u00a0498.747 dari kas Anda sebesar Rp\u00a0500.000 sampai order tersebut tereksekusi atau kedaluwarsa. Kas Anda yang tersedia tidak cukup untuk membayar 1 lot pada harga Rp\u00a04.980. Order beli Anda yang masih terbuka mengembalikan Rp\u00a0498.747 yang disisihkannya ke kas Anda yang tersedia saat kedaluwarsa.",
     sharesAndCashSetAside:
       "Membeli 1 lot BBCA pada harga Rp\u00a04.980 membutuhkan Rp\u00a0498.747, yaitu Rp\u00a0498.000 untuk saham dan Rp\u00a0747 untuk biaya broker, sedangkan kas Anda yang tersedia hanya Rp\u00a01.253. Order beli Anda yang masih terbuka menyisihkan Rp\u00a0498.747 dari kas Anda sebesar Rp\u00a0500.000 sampai order tersebut tereksekusi atau kedaluwarsa. Kas Anda yang tersedia tidak cukup untuk membayar 1 lot pada harga Rp\u00a04.980. Menjual saham yang Anda pegang menambah kas Anda yang tersedia, yang saat ini sebesar Rp\u00a01.253. Order beli Anda yang masih terbuka mengembalikan Rp\u00a0498.747 yang disisihkannya ke kas Anda yang tersedia saat kedaluwarsa.",
+    allSharesInSales:
+      "Membeli 1 lot BBCA pada harga Rp\u00a04.980 membutuhkan Rp\u00a0498.747, yaitu Rp\u00a0498.000 untuk saham dan Rp\u00a0747 untuk biaya broker, sedangkan kas Anda yang tersedia hanya Rp\u00a01.253. Kas Anda yang tersedia tidak cukup untuk membayar 1 lot pada harga Rp\u00a04.980. Order jual BBCA dan TLKM Anda yang masih terbuka menambah kas Anda yang tersedia saat tereksekusi.",
     sharesSetAside:
       "Order ini menjual 3 lot BBCA, dan Anda memegang 5 lot. Order jual Anda yang masih terbuka menyisihkan 3 lot di antaranya sampai order tersebut tereksekusi atau kedaluwarsa. Anda dapat menjual paling banyak 2 lot.",
     fewerShares:
@@ -293,11 +302,11 @@ const texts: Record<Locale, Record<FailureName, string>> = {
     noHistoryOfStock:
       "Portolab has not stored a complete month of the price history of BBCA yet, so it cannot count whether BBCA has the monthly returns that the measures need. Try again after the next update of the price history stores it.",
     noReferenceClose:
-      "Portolab has not stored the close of BBCA on November 2, 2026 yet, and IDX sets the range of prices of a limit order from that close. Try again once Portolab has stored it, which it can do after the prices of that day are final at 4:26 PM WIB, or place a market order, which needs no limit.",
+      "Portolab has not stored the close of BBCA on November 2, 2026 yet, and IDX sets the range of prices of a limit order from that close. Try again after the next update of the price history stores that close, or place a market order, which needs no limit.",
     severalReturns:
-      "AADI has 21 monthly returns, but Portolab computes the measures of a portfolio only when each of its stocks has 24 monthly returns. You can buy AADI after the first trading day of January 2027 closes, when it has enough.",
+      "AADI has 21 monthly returns, but Portolab computes the measures of a portfolio only when each of its stocks has 24 monthly returns. If AADI keeps a close at the end of every month and stays in the LQ45, you can buy it after the first trading day of January 2027 closes.",
     oneReturn:
-      "AADI has 1 monthly return, but Portolab computes the measures of a portfolio only when each of its stocks has 24 monthly returns. You can buy AADI after the first trading day of September 2028 closes, when it has enough.",
+      "AADI has 1 monthly return, but Portolab computes the measures of a portfolio only when each of its stocks has 24 monthly returns. If AADI keeps a close at the end of every month and stays in the LQ45, you can buy it after the first trading day of September 2028 closes.",
     tooManyLots:
       "IDX accepts at most 50,000 lots in one order, but this order has 50,001 lots. Split it into orders of at most 50,000 lots each.",
     limitsAsRates:
@@ -318,6 +327,8 @@ const texts: Record<Locale, Record<FailureName, string>> = {
       "Buying 1 lot of BBCA at IDR\u00a04,980 costs IDR\u00a0498,747, which is IDR\u00a0498,000 for the shares and IDR\u00a0747 for the broker fee, but your available cash is IDR\u00a01,253. Your open buy orders set aside IDR\u00a0498,747 of your cash of IDR\u00a0500,000 until they fill or expire. Your available cash does not pay for 1 lot at IDR\u00a04,980. Your open buy orders return the IDR\u00a0498,747 that they set aside to your available cash as they expire.",
     sharesAndCashSetAside:
       "Buying 1 lot of BBCA at IDR\u00a04,980 costs IDR\u00a0498,747, which is IDR\u00a0498,000 for the shares and IDR\u00a0747 for the broker fee, but your available cash is IDR\u00a01,253. Your open buy orders set aside IDR\u00a0498,747 of your cash of IDR\u00a0500,000 until they fill or expire. Your available cash does not pay for 1 lot at IDR\u00a04,980. Selling shares that you hold adds to your available cash, which is now IDR\u00a01,253. Your open buy orders return the IDR\u00a0498,747 that they set aside to your available cash as they expire.",
+    allSharesInSales:
+      "Buying 1 lot of BBCA at IDR\u00a04,980 costs IDR\u00a0498,747, which is IDR\u00a0498,000 for the shares and IDR\u00a0747 for the broker fee, but your available cash is IDR\u00a01,253. Your available cash does not pay for 1 lot at IDR\u00a04,980. Your open sell orders of BBCA and TLKM add to your available cash when they fill.",
     sharesSetAside:
       "This order sells 3 lots of BBCA, and you hold 5 lots. Your open sell orders set aside 3 lots of them until they fill or expire. You can sell at most 2 lots.",
     fewerShares:

@@ -1,6 +1,6 @@
 import {
   formatCalendarDate,
-  formatMarketClock,
+  formatList,
   formatMonth,
   formatNumber,
   formatPercent,
@@ -88,7 +88,7 @@ function largestPurchaseText(failure: Shortfall): string {
   });
 }
 
-/** The steps that add to the available cash of an account that does not pay for 1 lot, each only in a state of the account where the student can take it. A lower price or another stock helps only with enough cash, so it is the step only when the account has nothing to sell and nothing set aside. */
+/** The steps that add to the available cash of an account that does not pay for 1 lot, each only in a state of the account where the student can take it or wait for it. A lower price or another stock helps only with enough cash, so it is the step only when no sale and no open order can add to the cash. */
 function stepsWithoutAffordableLot(
   failure: Extract<Failure, { kind: "notEnoughCash" }>,
 ): string[] {
@@ -97,6 +97,13 @@ function stepsWithoutAffordableLot(
     steps.push(
       m.trading_sell_for_cash_error({
         available: formatRupiah(failure.availableCash),
+      }),
+    );
+  }
+  if (failure.sellingCodes.length > 0) {
+    steps.push(
+      m.trading_wait_for_sales_error({
+        codes: formatList(failure.sellingCodes, "conjunction"),
       }),
     );
   }
@@ -132,7 +139,6 @@ const failureTexts: FailureTexts = {
     m.trading_no_reference_close_error({
       code: failure.code,
       date: formatCalendarDate(failure.date),
-      time: formatMarketClock(failure.finalAt),
     }),
   tooFewReturns: (failure) =>
     m.trading_too_few_returns_error({

@@ -1,5 +1,6 @@
 import { expect } from "vitest";
 import type { Database } from "~/database/database.server";
+import { successValueForTest } from "~/success-value-for-test";
 import type { Account } from "./account";
 import {
   createLecturer,
@@ -15,12 +16,12 @@ export async function createTestLecturer(
   database: Database,
   usernameText: string,
 ): Promise<{ account: Account; temporaryPassword: string }> {
-  const username = parseUsername(usernameText, "The username of the test");
-  if (!username.ok) {
-    throw new Error(username.failure);
-  }
-  const temporaryPassword = await createLecturer(database, username.value);
-  const account = findAccountByUsername(database, username.value);
+  const username = successValueForTest(
+    parseUsername(usernameText, "The username of the test"),
+    `The username ${usernameText} is valid`,
+  );
+  const temporaryPassword = await createLecturer(database, username);
+  const account = findAccountByUsername(database, username);
   if (temporaryPassword === undefined || account === undefined) {
     throw new Error(`The test could not create the lecturer ${usernameText}.`);
   }

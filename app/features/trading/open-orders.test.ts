@@ -6,6 +6,7 @@ import { shares } from "~/units/shares";
 import type { Order, OrderSide, OrderState } from "./order";
 import {
   cashSetAside,
+  codesOfOpenSales,
   holdsFreeShares,
   isOpenOrder,
   sharesSetAside,
@@ -102,4 +103,22 @@ test("finds free shares only in a holding that open sell orders do not set aside
   expect(holdsFreeShares({ holdings, orders: [] }, placedAt)).toBe(true);
   expect(holdsFreeShares({ holdings, orders: [sale] }, endOfDay)).toBe(true);
   expect(holdsFreeShares({ holdings: [], orders: [] }, placedAt)).toBe(false);
+});
+
+test("lists each stock of the open sell orders once, and none of purchases or of orders that are done", () => {
+  expect(
+    codesOfOpenSales(
+      [
+        order("sell", "TLKM", waiting),
+        order("sell", "BBCA", resting),
+        order("sell", "BBCA", waiting),
+        order("sell", "ASII", expired),
+        order("buy", "BMRI", waiting),
+      ],
+      placedAt,
+    ),
+  ).toEqual(["BBCA", "TLKM"]);
+  expect(codesOfOpenSales([order("sell", "BBCA", waiting)], endOfDay)).toEqual(
+    [],
+  );
 });

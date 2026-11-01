@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { expect, test } from "vitest";
+import { successValueForTest } from "../app/success-value-for-test.ts";
 import {
   parseCommandLine,
   parseDatabasePath,
@@ -105,10 +106,15 @@ test("lists in README.md each environment variable with the default that its par
     ["DATABASE_PATH", parseDatabasePath(undefined, "DATABASE_PATH")],
     ["PRICE_SOURCE", parsePriceSource(undefined, "PRICE_SOURCE")],
   ] as const) {
-    if (!parsed.ok) {
-      throw new Error(parsed.failure);
-    }
-    parsedDefaults.set(name, String(parsed.value));
+    parsedDefaults.set(
+      name,
+      String(
+        successValueForTest<number | string, string>(
+          parsed,
+          `The default of ${name} is valid`,
+        ),
+      ),
+    );
   }
   expect(readmeDefaults()).toEqual(parsedDefaults);
 });
