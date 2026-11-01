@@ -11,10 +11,11 @@ const token = `${"a".repeat(24)}.${"b".repeat(24)}` as SessionToken;
 const secureRequest = new Request("https://portolab.example/account");
 const plainRequest = new Request("http://192.168.1.5:3000/account");
 
-test("keeps the session in a cookie that scripts cannot read, that stays on this site, and that lasts 14 days", async () => {
+test("keeps the session in a cookie that scripts cannot read, that stays on this site, and that lasts as long as the session", async () => {
   const header = await sessionCookieHeader(plainRequest, token);
   expect(header).toMatch(/^portolab_session=[^;]+; /);
-  expect(header).toContain("Max-Age=1209600");
+  // 14 days and an hour in seconds: 14 × 86400 + 3600.
+  expect(header).toContain("Max-Age=1213200");
   expect(header).toContain("Path=/");
   expect(header).toContain("HttpOnly");
   expect(header).toContain("SameSite=Lax");
