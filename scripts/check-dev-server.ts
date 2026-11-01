@@ -2,6 +2,7 @@ import { spawn } from "node:child_process";
 import { utimesSync } from "node:fs";
 import { errorMessage } from "../app/error-message.ts";
 import { exitWithFailure } from "../app/exit-with-failure.server.ts";
+import { secondMilliseconds } from "../app/time-units.ts";
 import {
   isAppModule,
   modulesToEdit,
@@ -119,10 +120,12 @@ async function answersFrom(paths: readonly string[]): Promise<PageAnswer[]> {
 
 function requestPage(path: string): Promise<Response> {
   return fetch(`${baseUrl}${path}`, {
-    signal: AbortSignal.timeout(requestTimeoutSeconds * 1000),
+    signal: AbortSignal.timeout(requestTimeoutSeconds * secondMilliseconds),
   });
 }
 
 function waitSeconds(seconds: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, seconds * 1000));
+  return new Promise((resolve) =>
+    setTimeout(resolve, seconds * secondMilliseconds),
+  );
 }

@@ -5,6 +5,7 @@ import express from "express";
 import type { Express, RequestHandler } from "express";
 import { migrationsFolderName } from "../app/database/migrations-folder-name.ts";
 import { exitWithFailure } from "../app/exit-with-failure.server.ts";
+import { secondMilliseconds } from "../app/time-units.ts";
 import { writeLog } from "../app/write-log.server.ts";
 import { failuresOf } from "../app/result.ts";
 import {
@@ -29,7 +30,7 @@ interface ServerBuild {
 const buildDirectory = join(import.meta.dirname, "..", "build");
 // The server build is loaded through a variable path so that type checking does not depend on a build.
 const serverBuildPath = join(buildDirectory, "server", "index.js");
-const shutdownTimeoutMilliseconds = 10_000;
+const shutdownTimeoutMilliseconds = 10 * secondMilliseconds;
 
 // Every setting is read before the server stops on any of them, so the log names every wrong setting at once.
 const mode = parseCommandLine(process.argv.slice(2), "The command line");
@@ -86,7 +87,7 @@ for (const signal of ["SIGINT", "SIGTERM"] as const) {
     setTimeout(() => {
       exitWithFailure(
         [
-          `The server did not close its connections within ${String(shutdownTimeoutMilliseconds / 1000)} seconds, so it stopped without them.`,
+          `The server did not close its connections within ${String(shutdownTimeoutMilliseconds / secondMilliseconds)} seconds, so it stopped without them.`,
         ],
         writeError,
       );

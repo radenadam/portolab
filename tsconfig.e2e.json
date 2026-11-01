@@ -8,7 +8,9 @@
     "app/sentences.ts",
     "app/value-parsers.ts",
     "app/value-shapes.ts",
-    "scripts/wait-for-health.ts"
+    "scripts/wait-for-health.ts",
+    "app/time-units.ts",
+    "app/features/accounts/printed-password-for-test.ts"
   ],
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.cache/tsconfig.e2e.tsbuildinfo",

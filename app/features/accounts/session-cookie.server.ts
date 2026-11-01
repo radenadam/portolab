@@ -1,7 +1,7 @@
 import { createCookie } from "react-router";
 import type { Cookie } from "react-router";
 import type { Result } from "~/result";
-import { dayMilliseconds } from "~/time-units";
+import { dayMilliseconds, secondMilliseconds } from "~/time-units";
 import { sessionInactivityDays } from "./account-limits";
 import { parseSessionToken } from "./session-store.server";
 import type { SessionToken } from "./session-store.server";
@@ -11,7 +11,7 @@ const cookieOptions = {
   sameSite: "lax",
   path: "/",
   // A cookie counts its lifetime in seconds.
-  maxAge: (sessionInactivityDays * dayMilliseconds) / 1000,
+  maxAge: (sessionInactivityDays * dayMilliseconds) / secondMilliseconds,
 } as const;
 
 // Decision 0005 explains why a request over HTTPS gets a cookie that is Secure, with the prefix __Host-, and a request over plain HTTP gets one without either.
