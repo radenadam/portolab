@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+import { successValueForTest } from "~/success-value-for-test";
 import { portfolioWeight } from "~/units/portfolio-weight";
 import { closeToForTest } from "./close-to-for-test";
 import { defaultEstimationSettings } from "./estimation-settings";
@@ -10,13 +11,10 @@ import { monthEndClosesForTest } from "./month-end-closes-for-test";
 const ihsg = monthEndClosesForTest("IHSG");
 
 function measured(holdings: readonly Holding[]): PortfolioMeasures {
-  const measures = measurePortfolio(holdings, ihsg, defaultEstimationSettings);
-  if (!measures.ok) {
-    throw new Error(
-      `The holdings have enough monthly returns, but the measures failed with ${JSON.stringify(measures.failure)}.`,
-    );
-  }
-  return measures.value;
+  return successValueForTest(
+    measurePortfolio(holdings, ihsg, defaultEstimationSettings),
+    "The holdings have enough monthly returns",
+  );
 }
 
 test("measures each holding of a portfolio of two stocks over the latest 60 monthly returns", () => {

@@ -76,6 +76,40 @@ function returnsBetween(
   return returns;
 }
 
+/** The last trading days of the months whose returns the settings choose, oldest first, which includes the month before the first return. */
+function windowEndDates(
+  marketCloses: readonly DailyClose<ClosePrice>[],
+  settings: EstimationSettings,
+): string[] {
+  return monthEndDates(marketCloses).slice(-(settings.returnCount + 1));
+}
+
+/** How many monthly returns an instrument has for the measures, against how many they need. */
+export interface ReturnCount {
+  code: string;
+  /** The returns of the instrument in the window of the settings. The market has a return in every month of the window, so these are the months that the instrument shares with the market. */
+  count: number;
+  /** The fewest returns that the measures accept. */
+  minimum: number;
+  /** The end date of the latest month of the window, or undefined while the market has no complete month. */
+  windowEnd: string | undefined;
+}
+
+/** Counts the monthly returns of an instrument in the window of the settings, which are the returns that alignedReturns gives for the instrument and the market alone. */
+export function countReturns(
+  instrument: InstrumentCloses,
+  market: InstrumentCloses,
+  settings: EstimationSettings,
+): ReturnCount {
+  const window = windowEndDates(market.closes, settings);
+  return {
+    code: instrument.code,
+    count: returnsBetween(instrument.closes, window).length,
+    minimum: settings.minimumReturnCount,
+    windowEnd: window.at(-1),
+  };
+}
+
 /** The returns of the market and of instruments over the months that they all share. */
 export interface AlignedReturns<Instrument> {
   market: ReturnMeasure[];
@@ -94,9 +128,7 @@ export function alignedReturns<Instrument extends InstrumentCloses>(
   instruments: readonly Instrument[],
   settings: EstimationSettings,
 ): Result<AlignedReturns<Instrument>, MeasureFailure> {
-  const window = monthEndDates(market.closes).slice(
-    -(settings.returnCount + 1),
-  );
+  const window = windowEndDates(market.closes, settings);
   const marketReturns = returnsBetween(market.closes, window);
   let sharedEndDates = endDatesOf(marketReturns);
   let shortest = { code: market.code, count: marketReturns.length };

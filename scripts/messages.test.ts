@@ -57,7 +57,7 @@ test("rejects a key that ends with no kind of text", () => {
       [],
     ),
   ).toEqual([
-    '"app_tagline": end the key with the kind of text it holds, which is one of _title, _body, _label, _hint, _notice, _error, _link, or _name.',
+    '"app_tagline": end the key with the kind of text it holds, which is one of _title, _body, _label, _hint, _notice, _error, _link, _name, or _phrase.',
   ]);
 });
 

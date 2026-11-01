@@ -6,6 +6,7 @@ import type { Page } from "@playwright/test";
 import { secondMilliseconds } from "../app/time-units.ts";
 import { printedPasswordForTest } from "../app/features/accounts/printed-password-for-test.ts";
 import type { AccountAction } from "../app/features/accounts/account-actions.ts";
+import { successValueForTest } from "../app/success-value-for-test.ts";
 import { parseFilePath } from "../app/value-parsers.ts";
 import { databasePathVariable } from "./test-server.ts";
 
@@ -29,18 +30,15 @@ export function runAccountCommand(
   action: AccountAction,
   username: string,
 ): string {
-  const databasePath = parseFilePath(
-    process.env[databasePathVariable],
-    databasePathVariable,
+  const databasePath = successValueForTest(
+    parseFilePath(process.env[databasePathVariable], databasePathVariable),
+    `The test server sets ${databasePathVariable}`,
   );
-  if (!databasePath.ok) {
-    throw new Error(databasePath.failure);
-  }
   const output = execFileSync(
     process.execPath,
     [accountCommand, action, username],
     {
-      env: { ...process.env, DATABASE_PATH: databasePath.value },
+      env: { ...process.env, DATABASE_PATH: databasePath },
       encoding: "utf8",
       timeout: commandTimeoutSeconds * secondMilliseconds,
     },
