@@ -38,7 +38,7 @@ test("finds no session for a token whose secret differs", async () => {
   expect(resumeSession(database, forged, start)).toBeUndefined();
 });
 
-test("extends a session at most once an hourMilliseconds, and ends it after 14 days without a visit", async () => {
+test("extends a session at most once an hour, and ends it after 14 days without a visit", async () => {
   const database = openDatabaseForTest();
   const { account } = await createTestLecturer(database, "dosen");
   const token = createSession(database, account.id, start);

@@ -8,7 +8,7 @@ import { createTestLecturer } from "./accounts-for-test.server";
 const start = new Date("2026-11-02T03:00:00.000Z");
 const fourteenDays = 14 * dayMilliseconds;
 
-test("deletes the sessions that ended at its start and then every hourMilliseconds, without any request", async () => {
+test("deletes the sessions that ended at its start and then every hour, without any request", async () => {
   const database = openDatabaseForTest();
   const { account } = await createTestLecturer(database, "dosen");
   vi.useFakeTimers({ now: start });
