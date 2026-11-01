@@ -27,10 +27,13 @@ export function formatIndexLevel(level: number): string {
   }).format(level);
 }
 
+/** The direction that the sign of a change shows, which is none for a change without a sign. */
+export type ChangeDirection = "rise" | "fall" | "none";
+
 /** A change as the page shows it, and the direction that its sign shows. */
 interface SignedPercent {
   text: string;
-  direction: "rise" | "fall" | "none";
+  direction: ChangeDirection;
 }
 
 /** Formats a fraction such as 0.0081 as a percentage with an explicit sign, such as +0.81%. The direction comes from the sign that the text shows, so a change that rounds to zero has none. */
@@ -42,7 +45,7 @@ export function formatSignedPercent(fraction: number): SignedPercent {
     signDisplay: "exceptZero",
   }).formatToParts(fraction);
   let text = "";
-  let direction: SignedPercent["direction"] = "none";
+  let direction: ChangeDirection = "none";
   for (const part of parts) {
     text += part.value;
     if (part.type === "plusSign") {

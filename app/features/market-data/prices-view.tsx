@@ -8,6 +8,7 @@ import {
   formatRupiah,
   formatSignedPercent,
 } from "~/formatting";
+import type { ChangeDirection } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { isSameWibDay } from "./idx-calendar";
 import type { PriceSourceDescription, Quote } from "./price-source.server";
@@ -192,14 +193,14 @@ function QuoteRow({
   );
 }
 
-const arrows = { rise: "▲", fall: "▼", none: undefined } as const;
+const arrows: Record<ChangeDirection, string | undefined> = {
+  rise: "▲",
+  fall: "▼",
+  none: undefined,
+};
 
 // The arrow repeats the sign that the change shows for sighted readers, so screen readers skip it.
-function ChangeArrow({
-  direction,
-}: {
-  direction: "rise" | "fall" | "none";
-}): ReactNode {
+function ChangeArrow({ direction }: { direction: ChangeDirection }): ReactNode {
   const arrow = arrows[direction];
   // The space belongs to the arrow, so a change without an arrow starts with its number.
   return arrow === undefined ? null : (
