@@ -6,10 +6,10 @@ import {
   nextScheduledAttempt,
 } from "./update-schedule";
 
-// A source whose prices lag 10 minutes behind the exchange.
+// The expected times below follow the price hours of a source with this delay.
 const delayMinutes = 10;
 
-// The expected times were worked out by hand from the IDX calendars in idx-calendar.ts, where prices change from 08:45 to 16:25 WIB, which is 01:45 to 09:25 UTC.
+// The expected times were worked out by hand from the IDX calendars in idx-calendar.ts and the backoff in update-schedule.ts.
 
 function failedAttempt(
   attemptedAt: string,
@@ -135,7 +135,7 @@ test("tries again on Monday after a failed fetch at startup on a Saturday", () =
 });
 
 test("tries again after the holidays and the weekend that follow them", () => {
-  // 24 and 25 December 2026 are holidays, and 26 and 27 December are a weekend.
+  // The holidays of the 2026 calendar and the weekend after them close IDX until Monday.
   expect(
     nextScheduledAttempt(
       failedAttempt("2026-12-23T09:30:00.000Z", 1),

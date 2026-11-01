@@ -41,7 +41,7 @@ const quotes: Quote[] = [
   },
 ];
 
-// A failure at 16:30 WIB on Friday 30 October 2026, after the price hours, so the job tries again on Monday at 08:45 WIB.
+// A failure at 16:30 WIB on Friday 30 October 2026, after the price hours, so the job tries again at the start of the next session, on Monday.
 function failedAttempt(failedCodes: string[]): UpdateAttempt {
   return {
     attemptedAt: new Date("2026-10-30T09:30:00.000Z"),
@@ -310,7 +310,7 @@ const nextAttemptSentences: Record<Locale, (time: string) => string> = {
   en: (time: string) => `Portolab tries again at ${time} WIB.`,
 };
 
-// Each state of the schedule, with the time of the next attempt after an answer that lacked a price, which waits for the next minute of the price hours, and after three failures in a row, which wait four minutes first. Prices change from 08:45 to 16:25 WIB, which is 01:45 to 09:25 UTC.
+// Each state of the schedule, with the time of the next attempt after an answer that lacked a price and after three failures in a row, worked out by hand from the calendars in idx-calendar.ts and the backoff in update-schedule.ts.
 interface ScheduleState {
   name: string;
   attemptedAt: string;

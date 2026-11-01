@@ -1,21 +1,26 @@
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
-import { chooseLanguage, languages } from "./languages.ts";
-import type { TextsByLanguage } from "./languages.ts";
+import { languageNames } from "../app/language-names.ts";
+import { baseLocale, locales } from "../app/paraglide/runtime.js";
+import type { Locale } from "../app/paraglide/runtime.js";
+import { chooseLanguage } from "./choose-language.ts";
 
-const texts: TextsByLanguage<{
-  tagline: string;
-  simulationNotice: string;
-  switchLabel: string;
-  pricesLink: string;
-  pricesTitle: string;
-  notFoundTitle: string;
-  notFoundBody: string;
-  backHomeLink: string;
-  unexpectedErrorTitle: string;
-  unexpectedErrorBody: string;
-}> = {
+const texts: Record<
+  Locale,
+  {
+    tagline: string;
+    simulationNotice: string;
+    switchLabel: string;
+    pricesLink: string;
+    pricesTitle: string;
+    notFoundTitle: string;
+    notFoundBody: string;
+    backHomeLink: string;
+    unexpectedErrorTitle: string;
+    unexpectedErrorBody: string;
+  }
+> = {
   id: {
     tagline:
       "Laboratorium manajemen portofolio dengan harga saham Indonesia yang nyata.",
@@ -48,27 +53,33 @@ const texts: TextsByLanguage<{
   },
 };
 
-test("opens the home page in Bahasa Indonesia for a reader who chose no language", async ({
+test(`opens the home page in ${languageNames[baseLocale]} for a reader who chose no language`, async ({
   page,
 }) => {
   await page.goto("/");
-  await expect(page.locator("html")).toHaveAttribute("lang", "id");
-  await expect(page.getByText(texts.id.simulationNotice)).toBeVisible();
+  await expect(page.locator("html")).toHaveAttribute("lang", baseLocale);
+  await expect(
+    page.getByText(texts[baseLocale].simulationNotice),
+  ).toBeVisible();
 });
 
-test("switches the page to English and back", async ({ page }) => {
-  await chooseLanguage(page, languages[1]);
-  await page.getByRole("button", { name: languages[0].name }).click();
-  await expect(page.locator("html")).toHaveAttribute("lang", "id");
-});
-
-for (const language of languages) {
-  const text = texts[language.code];
-
-  test(`shows the home page and its link to the prices in ${language.name}`, async ({
+for (const locale of locales.filter((other) => other !== baseLocale)) {
+  test(`switches the page to ${languageNames[locale]} and back`, async ({
     page,
   }) => {
-    await chooseLanguage(page, language);
+    await chooseLanguage(page, locale);
+    await page.getByRole("button", { name: languageNames[baseLocale] }).click();
+    await expect(page.locator("html")).toHaveAttribute("lang", baseLocale);
+  });
+}
+
+for (const locale of locales) {
+  const text = texts[locale];
+
+  test(`shows the home page and its link to the prices in ${languageNames[locale]}`, async ({
+    page,
+  }) => {
+    await chooseLanguage(page, locale);
     await expect(page).toHaveTitle("Portolab");
     await expect(
       page.getByRole("heading", { level: 1, name: "Portolab" }),
@@ -79,7 +90,7 @@ for (const language of languages) {
       page.getByRole("group", { name: text.switchLabel }),
     ).toBeVisible();
     await expect(
-      page.getByRole("button", { name: language.name }),
+      page.getByRole("button", { name: languageNames[locale] }),
     ).toHaveAttribute("aria-pressed", "true");
     await expectAccessibleScreen(page);
     await page.getByRole("link", { name: text.pricesLink }).click();
@@ -88,13 +99,13 @@ for (const language of languages) {
     ).toBeVisible();
   });
 
-  test(`shows the not found page for an unknown address in ${language.name}`, async ({
+  test(`shows the not found page for an unknown address in ${languageNames[locale]}`, async ({
     page,
   }) => {
-    await chooseLanguage(page, language);
+    await chooseLanguage(page, locale);
     const response = await page.goto("/tidak-ada");
     expect(response?.status()).toBe(404);
-    await expect(page.locator("html")).toHaveAttribute("lang", language.code);
+    await expect(page.locator("html")).toHaveAttribute("lang", locale);
     await expect(page).toHaveTitle(`${text.notFoundTitle} | Portolab`);
     await expect(
       page.getByRole("heading", { level: 1, name: text.notFoundTitle }),
@@ -106,10 +117,10 @@ for (const language of languages) {
     await expectAccessibleScreen(page);
   });
 
-  test(`shows the page for an unexpected failure in ${language.name}`, async ({
+  test(`shows the page for an unexpected failure in ${languageNames[locale]}`, async ({
     page,
   }) => {
-    await chooseLanguage(page, language);
+    await chooseLanguage(page, locale);
     await failOnReturnTo(page, "/tidak-ada", text.backHomeLink);
     await expect(
       page.getByRole("heading", { level: 1, name: text.unexpectedErrorTitle }),

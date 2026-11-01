@@ -309,7 +309,7 @@ const otherFiles = [
   "app/features/market-data/prices-view.tsx",
   "scripts/json.ts",
   "server/server-options.ts",
-  "e2e/languages.ts",
+  "e2e/choose-language.ts",
   "lint/file-named-after-export.ts",
 ];
 

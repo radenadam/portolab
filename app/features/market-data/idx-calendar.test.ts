@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 import { isPriceUpdateTime, isSameWibDay } from "./idx-calendar";
 
-// A source whose prices lag 10 minutes behind the exchange, so its prices change until 16:25 WIB.
+// The answers below were worked out by hand from the calendars in idx-calendar.ts for a source with this delay.
 const delayMinutes = 10;
 
 // 03:00 UTC is 10:00 WIB, inside the trading hours, so these answers depend only on the day.
@@ -115,7 +115,7 @@ test("compares days in WIB, not in UTC", () => {
 });
 
 test("ends the price hours later for a source with a longer delay", () => {
-  // 16:30 WIB, after the price hours of a source with a delay of 10 minutes.
+  // 16:30 WIB, after the price hours of the shorter delay and within those of the longer one.
   const halfPastFour = new Date("2026-11-02T09:30:00Z");
   expect(isPriceUpdateTime(halfPastFour, 10)).toEqual({
     ok: true,

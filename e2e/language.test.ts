@@ -1,15 +1,20 @@
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
-import { chooseLanguage, languages } from "./languages.ts";
-import type { Language, TextsByLanguage } from "./languages.ts";
+import { languageNames } from "../app/language-names.ts";
+import { locales } from "../app/paraglide/runtime.js";
+import type { Locale } from "../app/paraglide/runtime.js";
+import { chooseLanguage } from "./choose-language.ts";
 
-const texts: TextsByLanguage<{
-  pageTitle: string;
-  pageBody: string;
-  rejectedTitle: string;
-  unknownLanguageError: string;
-}> = {
+const texts: Record<
+  Locale,
+  {
+    pageTitle: string;
+    pageBody: string;
+    rejectedTitle: string;
+    unknownLanguageError: string;
+  }
+> = {
   id: {
     pageTitle: "Pilih bahasa",
     pageBody: "Pilih bahasa dengan pengalih di bagian atas halaman.",
@@ -38,39 +43,44 @@ async function sendUnknownLanguage(
   await button.click();
 }
 
-// The language that each test switches to, after it checks the page in its own language.
-const otherLanguages: Record<Language["code"], Language> = {
-  id: languages[1],
-  en: languages[0],
-};
+/** Another language than this one, which a test switches to after it checks the page. */
+function anotherLocale(locale: Locale): Locale {
+  for (const other of locales) {
+    if (other !== locale) {
+      return other;
+    }
+  }
+  throw new Error(
+    "Portolab has only one language, so no test can switch to another.",
+  );
+}
 
-for (const language of languages) {
-  const text = texts[language.code];
-  const otherLanguage = otherLanguages[language.code];
+for (const locale of locales) {
+  const text = texts[locale];
+  const otherLocale = anotherLocale(locale);
 
-  test(`rejects an unknown language and keeps the switch working in ${language.name}`, async ({
+  test(`rejects an unknown language and keeps the switch working in ${languageNames[locale]}`, async ({
     page,
   }) => {
-    await chooseLanguage(page, language);
-    await sendUnknownLanguage(page, otherLanguage.name);
-    await expect(page.locator("html")).toHaveAttribute("lang", language.code);
+    await chooseLanguage(page, locale);
+    await sendUnknownLanguage(page, languageNames[otherLocale]);
+    await expect(page.locator("html")).toHaveAttribute("lang", locale);
     await expect(page).toHaveTitle(`${text.rejectedTitle} | Portolab`);
     await expect(
       page.getByRole("heading", { level: 1, name: text.rejectedTitle }),
     ).toBeVisible();
     await expect(page.getByText(text.unknownLanguageError)).toBeVisible();
     await expectAccessibleScreen(page);
-    await page.getByRole("button", { name: otherLanguage.name }).click();
-    await expect(page.locator("html")).toHaveAttribute(
-      "lang",
-      otherLanguage.code,
-    );
+    await page
+      .getByRole("button", { name: languageNames[otherLocale] })
+      .click();
+    await expect(page.locator("html")).toHaveAttribute("lang", otherLocale);
   });
 
-  test(`shows the language switch on a plain visit of the language address in ${language.name}`, async ({
+  test(`shows the language switch on a plain visit of the language address in ${languageNames[locale]}`, async ({
     page,
   }) => {
-    await chooseLanguage(page, language);
+    await chooseLanguage(page, locale);
     await page.goto("/language");
     await expect(page).toHaveTitle(`${text.pageTitle} | Portolab`);
     await expect(
@@ -78,9 +88,11 @@ for (const language of languages) {
     ).toBeVisible();
     await expect(page.getByText(text.pageBody)).toBeVisible();
     await expectAccessibleScreen(page);
-    await page.getByRole("button", { name: otherLanguage.name }).click();
+    await page
+      .getByRole("button", { name: languageNames[otherLocale] })
+      .click();
     await expect(page).toHaveTitle(
-      `${texts[otherLanguage.code].pageTitle} | Portolab`,
+      `${texts[otherLocale].pageTitle} | Portolab`,
     );
   });
 }

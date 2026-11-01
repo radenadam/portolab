@@ -1,18 +1,23 @@
 import { expect, test } from "@playwright/test";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
-import { chooseLanguage, languages } from "./languages.ts";
-import type { TextsByLanguage } from "./languages.ts";
+import { languageNames } from "../app/language-names.ts";
+import { locales } from "../app/paraglide/runtime.js";
+import type { Locale } from "../app/paraglide/runtime.js";
+import { chooseLanguage } from "./choose-language.ts";
 
 // The server runs with the fixture price source, which returns the closing quotes of 30 October 2026.
 
-const texts: TextsByLanguage<{
-  title: string;
-  delayNotice: string;
-  columns: readonly string[];
-  bbca: readonly string[];
-  ihsg: readonly string[];
-  tlkm: readonly string[];
-}> = {
+const texts: Record<
+  Locale,
+  {
+    title: string;
+    delayNotice: string;
+    columns: readonly string[];
+    bbca: readonly string[];
+    ihsg: readonly string[];
+    tlkm: readonly string[];
+  }
+> = {
   id: {
     title: "Harga saham",
     delayNotice:
@@ -33,13 +38,13 @@ const texts: TextsByLanguage<{
   },
 };
 
-for (const language of languages) {
-  const text = texts[language.code];
+for (const locale of locales) {
+  const text = texts[locale];
 
-  test(`shows delayed prices with their changes and times in ${language.name}`, async ({
+  test(`shows delayed prices with their changes and times in ${languageNames[locale]}`, async ({
     page,
   }) => {
-    await chooseLanguage(page, language);
+    await chooseLanguage(page, locale);
     await page.goto("/prices");
     await expect(page).toHaveTitle(`${text.title} | Portolab`);
     await expect(
