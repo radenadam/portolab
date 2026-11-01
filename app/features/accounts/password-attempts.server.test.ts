@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { openTestDatabase } from "~/database/open-test-database.server";
+import { openDatabaseForTest } from "~/database/open-database-for-test.server";
 import {
   checkPassword,
   createPasswordLimiters,
@@ -9,7 +9,7 @@ import type {
   PasswordAttempt,
   PasswordLimiters,
 } from "./password-attempts.server";
-import { createTestLecturer } from "./test-accounts.server";
+import { createTestLecturer } from "./accounts-for-test.server";
 
 const now = new Date("2026-11-02T03:00:00.000Z");
 const fifteenMinutesLater = new Date("2026-11-02T03:15:00.000Z");
@@ -39,7 +39,7 @@ function startAddressAttempts(limiters: PasswordLimiters, count: number): void {
 }
 
 test("signs in with the right password, whatever the case and the spaces around the username", async () => {
-  const database = openTestDatabase();
+  const database = openDatabaseForTest();
   const { account, temporaryPassword } = await createTestLecturer(
     database,
     "dosen",
@@ -56,7 +56,7 @@ test("signs in with the right password, whatever the case and the spaces around 
 test(
   "counts a text that is no username against its address only, and keeps no such text",
   async () => {
-    const database = openTestDatabase();
+    const database = openDatabaseForTest();
     const limiters = createPasswordLimiters();
     for (let failure = 0; failure < 11; failure += 1) {
       expect(
@@ -70,7 +70,7 @@ test(
 );
 
 test("fails in the same way for a wrong password and for a username without an account", async () => {
-  const database = openTestDatabase();
+  const database = openDatabaseForTest();
   await createTestLecturer(database, "dosen");
   const limiters = createPasswordLimiters();
   for (const username of ["dosen", "nobody", "no"]) {
@@ -83,7 +83,7 @@ test("fails in the same way for a wrong password and for a username without an a
 test(
   "blocks a username after 10 wrong passwords within 15 minutes, even when they arrive at once",
   async () => {
-    const database = openTestDatabase();
+    const database = openDatabaseForTest();
     const { temporaryPassword } = await createTestLecturer(database, "dosen");
     const limiters = createPasswordLimiters();
     const results = await Promise.all(
@@ -109,7 +109,7 @@ test(
 );
 
 test("blocks every username from an address that reached its limit, and no other address", async () => {
-  const database = openTestDatabase();
+  const database = openDatabaseForTest();
   const { temporaryPassword } = await createTestLecturer(database, "dosen");
   const limiters = createPasswordLimiters();
   startAddressAttempts(limiters, 100);
@@ -127,7 +127,7 @@ test("blocks every username from an address that reached its limit, and no other
 test(
   "forgets the wrong passwords of a username once it signs in, and keeps counting those of its address",
   async () => {
-    const database = openTestDatabase();
+    const database = openDatabaseForTest();
     const { temporaryPassword } = await createTestLecturer(database, "dosen");
     const limiters = createPasswordLimiters();
     for (let failure = 0; failure < 9; failure += 1) {
@@ -150,7 +150,7 @@ test(
 test(
   "checks the password of a person who is signed in within the same limits",
   async () => {
-    const database = openTestDatabase();
+    const database = openDatabaseForTest();
     const { account, temporaryPassword } = await createTestLecturer(
       database,
       "dosen",

@@ -1,4 +1,5 @@
 import { afterEach, expect, test, vi } from "vitest";
+import type { Result } from "~/result";
 import type { Instrument } from "./price-source.server";
 import {
   collectYahooQuotes,
@@ -102,6 +103,24 @@ test("rejects a stock price with a fraction of a rupiah", () => {
   ]);
 });
 
+test("rejects a quote whose time is not a valid date", () => {
+  const batch = collectYahooQuotes(
+    [bbca],
+    [
+      {
+        symbol: "BBCA.JK",
+        currency: "IDR",
+        regularMarketPrice: 4980,
+        regularMarketPreviousClose: 4940,
+        regularMarketTime: new Date("not a date"),
+      },
+    ],
+  );
+  expect(batch.problems).toEqual([
+    "The Yahoo Finance quote for BBCA must have a time at regularMarketTime, but it is an invalid date.",
+  ]);
+});
+
 test("rejects a quote in another currency", () => {
   const batch = collectYahooQuotes(
     [bbca],
@@ -120,23 +139,64 @@ test("rejects a quote in another currency", () => {
   ]);
 });
 
-test("passes the signal of the job to every request, and fails when it aborts", async () => {
-  // The client calls the global fetch, so this stand-in sees each request without the network.
-  const requests: { url: string; signal: AbortSignal | null | undefined }[] =
-    [];
+interface StubbedRequest {
+  url: string;
+  signal: AbortSignal | null | undefined;
+}
+
+// The client calls the global fetch, so this stand-in sees each request without the network, and fails it.
+function stubFetch(): StubbedRequest[] {
+  const requests: StubbedRequest[] = [];
   vi.stubGlobal("fetch", (url: string, init?: RequestInit) => {
     requests.push({ url, signal: init?.signal });
     return Promise.reject(new Error("The price job stopped waiting."));
   });
-  const controller = new AbortController();
-  controller.abort();
-  const result = await createYahooPriceSource().fetchQuotes(
-    [bbca],
-    controller.signal,
+  return requests;
+}
+
+const fetchesWithSignal: {
+  name: string;
+  fetch: (signal: AbortSignal) => Promise<Result<unknown, string>>;
+  failure: RegExp;
+}[] = [
+  {
+    name: "quotes",
+    fetch: (signal) => createYahooPriceSource().fetchQuotes([bbca], signal),
+    failure:
+      /^Yahoo Finance did not answer with quotes that its client could read\. The client reported: \S/,
+  },
+  {
+    name: "a history",
+    fetch: (signal) =>
+      createYahooPriceSource().fetchDailyHistory(bbca, "2026-10-26", signal),
+    failure:
+      /^Yahoo Finance did not answer with a history of BBCA that its client could read\. The client reported: \S/,
+  },
+];
+
+for (const { name, fetch, failure } of fetchesWithSignal) {
+  test(`passes the signal of the job to every request for ${name}, and fails when it aborts`, async () => {
+    const requests = stubFetch();
+    const controller = new AbortController();
+    controller.abort();
+    const result = await fetch(controller.signal);
+    expect(result.ok ? "" : result.failure).toMatch(failure);
+    expect(requests.length).toBeGreaterThan(0);
+    for (const request of requests) {
+      expect(request.signal, request.url).toBe(controller.signal);
+    }
+  });
+}
+
+test("asks for the history from the start of the day in WIB", async () => {
+  const requests = stubFetch();
+  await createYahooPriceSource().fetchDailyHistory(
+    bbca,
+    "2026-10-26",
+    new AbortController().signal,
   );
-  expect(result.ok).toBe(false);
-  expect(requests.length).toBeGreaterThan(0);
-  for (const request of requests) {
-    expect(request.signal, request.url).toBe(controller.signal);
-  }
+  // 00:00 WIB on 26 October 2026 is 17:00 UTC on 25 October, which is 1792947600 seconds after 1970.
+  expect(
+    requests.some((request) => request.url.includes("period1=1792947600")),
+  ).toBe(true);
 });

@@ -1,18 +1,18 @@
 import { expect, test } from "vitest";
-import { openTestDatabase } from "~/database/open-test-database.server";
+import { openDatabaseForTest } from "~/database/open-database-for-test.server";
 import {
   createLecturer,
   findAccountWithPassword,
   resetPassword,
   updateAccount,
 } from "./account-store.server";
-import { createTestLecturer, expectPassword } from "./test-accounts.server";
+import { createTestLecturer, expectPassword } from "./accounts-for-test.server";
 import { createSession, resumeSession } from "./session-store.server";
 
 const now = new Date("2026-11-02T03:00:00.000Z");
 
 test("creates a lecturer with a temporary password and nothing that the lecturer has not given", async () => {
-  const database = openTestDatabase();
+  const database = openDatabaseForTest();
   const { account, temporaryPassword } = await createTestLecturer(
     database,
     "dosen",
@@ -32,13 +32,13 @@ test("creates a lecturer with a temporary password and nothing that the lecturer
 });
 
 test("creates no account for a username that is taken", async () => {
-  const database = openTestDatabase();
+  const database = openDatabaseForTest();
   const { account } = await createTestLecturer(database, "dosen");
   expect(await createLecturer(database, account.username)).toBeUndefined();
 });
 
 test("resets a password to a temporary one and signs the person out on every device", async () => {
-  const database = openTestDatabase();
+  const database = openDatabaseForTest();
   const { account } = await createTestLecturer(database, "dosen");
   await updateAccount(database, account.id, {
     name: "Budi Santoso",
@@ -56,7 +56,7 @@ test("resets a password to a temporary one and signs the person out on every dev
 });
 
 test("saves the details that a person gives, and signs the person out on every device only for a new password", async () => {
-  const database = openTestDatabase();
+  const database = openDatabaseForTest();
   const { account } = await createTestLecturer(database, "dosen");
   const token = createSession(database, account.id, now);
   await updateAccount(database, account.id, {

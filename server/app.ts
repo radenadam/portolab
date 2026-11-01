@@ -29,6 +29,11 @@ import { priceSourceContext } from "~/features/market-data/price-source-context.
 import type { PriceSource } from "~/features/market-data/price-source.server";
 import { trackedInstruments } from "~/features/market-data/tracked-instruments";
 import { createYahooPriceSource } from "~/features/market-data/yahoo-price-source.server";
+import {
+  defaultEstimationSettings,
+  earliestCloseDate,
+} from "~/features/measures/estimation-settings";
+import { wibDateOf } from "~/wib";
 import type { ServiceSettings } from "./server-options.ts";
 
 const priceSources: Record<ServiceSettings["priceSource"], () => PriceSource> =
@@ -56,6 +61,11 @@ export function startServices(settings: ServiceSettings): Services {
     database,
     priceSource,
     instruments: trackedInstruments,
+    // The date comes from the day the server starts, which is earlier than the measures need on every later day.
+    historyStartDate: earliestCloseDate(
+      defaultEstimationSettings,
+      wibDateOf(new Date()),
+    ),
   });
   const stopSessionSweep = startSessionSweep(database);
   return {

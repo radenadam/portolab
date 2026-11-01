@@ -33,7 +33,7 @@
     "test": "vitest run",
     "test:dev": "node scripts/check-dev-server.ts",
     "test:e2e": "playwright test",
-    "unused": "knip && knip --production --include exports,nsExports,types",
+    "unused": "knip && knip --production --include files,exports,nsExports,types",
     "duplicates": "jscpd",
     "size": "size-limit"
   },

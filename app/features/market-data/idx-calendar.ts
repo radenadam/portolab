@@ -1,6 +1,7 @@
 import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
-import { wibOffsetHours } from "~/wib";
+import { addDays, dayOfWeek } from "~/calendar-dates";
+import { wibDateOf, wibMinuteOfDay, wibMoment } from "~/wib";
 
 /** The trading days and hours of IDX for the dates from `from` to `until`, in WIB. */
 interface TradingCalendar {
@@ -76,35 +77,65 @@ const tradingCalendars: readonly TradingCalendar[] = [
   },
 ];
 
-const wibOffsetMilliseconds = wibOffsetHours * 60 * 60 * 1000;
-
 /** Whether prices that lag behind the exchange by this many minutes can still change at this moment, so that fetching them is worthwhile. It fails for a date that no calendar covers, so a missing year is noticed instead of every weekday counting as a trading day. */
 export function isPriceUpdateTime(
   moment: Date,
   delayMinutes: number,
 ): Result<boolean, string> {
-  const wib = toWibClock(moment);
-  const calendar = calendarFor(wib);
+  const date = wibDateOf(moment);
+  const calendar = calendarFor(date);
   if (!calendar.ok) {
     return calendar;
   }
-  const minuteOfDay = wib.getUTCHours() * 60 + wib.getUTCMinutes();
+  const minuteOfDay = wibMinuteOfDay(moment);
   // Fetching from the start of the pre-opening session costs nothing, and it goes on until the delayed prices show the end of the post-closing session.
   return succeed(
-    isTradingDayIn(calendar.value, wib) &&
+    isTradingDayIn(calendar.value, date) &&
       minuteOfDay >= calendar.value.sessionStartMinute &&
-      minuteOfDay <= calendar.value.sessionEndMinute + delayMinutes,
+      minuteOfDay <= lastPriceMinute(calendar.value, delayMinutes),
   );
 }
 
-function isTradingDayIn(calendar: TradingCalendar, wib: Date): boolean {
-  const dayOfWeek = wib.getUTCDay();
-  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-  return !isWeekend && !calendar.holidays.has(wibDate(wib));
+/** The latest trading day whose prices with this delay can no longer change at this moment, which makes its closes final. It fails when the search reaches a date that no calendar covers. */
+export function latestClosedTradingDay(
+  moment: Date,
+  delayMinutes: number,
+): Result<string, string> {
+  let date = wibDateOf(moment);
+  // Each calendar covers whole years, so going back day by day reaches either a trading day that has closed or a date that no calendar covers.
+  for (;;) {
+    const calendar = calendarFor(date);
+    if (!calendar.ok) {
+      return calendar;
+    }
+    if (isTradingDayIn(calendar.value, date)) {
+      // The price hours include their last minute, so the closes are final from the minute after it.
+      const closedAt = wibMoment(
+        date,
+        lastPriceMinute(calendar.value, delayMinutes) + 1,
+      );
+      if (closedAt <= moment) {
+        return succeed(date);
+      }
+    }
+    date = addDays(date, -1);
+  }
 }
 
-function calendarFor(wib: Date): Result<TradingCalendar, string> {
-  const date = wibDate(wib);
+function lastPriceMinute(
+  calendar: TradingCalendar,
+  delayMinutes: number,
+): number {
+  return calendar.sessionEndMinute + delayMinutes;
+}
+
+function isTradingDayIn(calendar: TradingCalendar, date: string): boolean {
+  const weekday = dayOfWeek(date);
+  const isWeekend = weekday === 0 || weekday === 6;
+  return !isWeekend && !calendar.holidays.has(date);
+}
+
+function calendarFor(date: string): Result<TradingCalendar, string> {
   for (const calendar of tradingCalendars) {
     if (date >= calendar.from && date <= calendar.until) {
       return succeed(calendar);
@@ -115,16 +146,7 @@ function calendarFor(wib: Date): Result<TradingCalendar, string> {
   );
 }
 
-/** Shifts a moment so that its UTC fields read as the wall clock in WIB. */
-function toWibClock(moment: Date): Date {
-  return new Date(moment.getTime() + wibOffsetMilliseconds);
-}
-
-function wibDate(wib: Date): string {
-  return wib.toISOString().slice(0, 10);
-}
-
 /** Whether two moments fall on the same calendar day in WIB. */
 export function isSameWibDay(first: Date, second: Date): boolean {
-  return wibDate(toWibClock(first)) === wibDate(toWibClock(second));
+  return wibDateOf(first) === wibDateOf(second);
 }

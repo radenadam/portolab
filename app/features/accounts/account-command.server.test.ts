@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { openTestDatabase } from "~/database/open-test-database.server";
+import { openDatabaseForTest } from "~/database/open-database-for-test.server";
 import type { Result } from "~/result";
 import {
   parseAccountCommand,
@@ -7,7 +7,7 @@ import {
 } from "./account-command.server";
 import type { AccountCommand } from "./account-command.server";
 import { findAccountByUsername } from "./account-store.server";
-import { expectPassword } from "./test-accounts.server";
+import { expectPassword } from "./accounts-for-test.server";
 import { createSession, resumeSession } from "./session-store.server";
 
 const now = new Date("2026-11-02T03:00:00.000Z");
@@ -68,7 +68,7 @@ function printedPassword(result: Result<string, string>): string {
 }
 
 test("creates a lecturer and prints the temporary password with what the lecturer does with it", async () => {
-  const database = openTestDatabase();
+  const database = openDatabaseForTest();
   const create = command(["create-lecturer", "dosen"]);
   const result = await runAccountCommand(database, create);
   const temporaryPassword = printedPassword(result);
@@ -84,7 +84,7 @@ Give it to the lecturer, who signs in with it, gives a name, chooses a new passw
 });
 
 test("creates no lecturer for a username that is taken, and points to the reset", async () => {
-  const database = openTestDatabase();
+  const database = openDatabaseForTest();
   await runAccountCommand(database, command(["create-lecturer", "dosen"]));
   expect(
     await runAccountCommand(database, command(["create-lecturer", "dosen"])),
@@ -95,7 +95,7 @@ test("creates no lecturer for a username that is taken, and points to the reset"
 });
 
 test("gives an account a temporary password, signs it out on every device, and prints the password", async () => {
-  const database = openTestDatabase();
+  const database = openDatabaseForTest();
   const create = command(["create-lecturer", "dosen"]);
   await runAccountCommand(database, create);
   const account = findAccountByUsername(database, create.username);
@@ -121,7 +121,7 @@ Give it to the owner of the account, who signs in with it and chooses a new pass
 });
 
 test("resets nothing for a username without an account, and points to the creation of a lecturer", async () => {
-  const database = openTestDatabase();
+  const database = openDatabaseForTest();
   expect(
     await runAccountCommand(database, command(["reset-password", "nobody"])),
   ).toEqual({

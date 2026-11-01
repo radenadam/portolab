@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "0a14c5c1-2842-4e2f-973c-b9aab5b16c12",
-  "prevId": "2878ecae-4906-4af4-9c11-9117e5c06070",
+  "id": "ddd678b7-51c9-4576-bb07-8653e8691e0b",
+  "prevId": "7ead1649-a8a9-4ced-b295-2bf17ed7e9c9",
   "tables": {
     "sessions": {
       "name": "sessions",
@@ -128,144 +128,39 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
-    "classes": {
-      "name": "classes",
+    "index_daily_closes": {
+      "name": "index_daily_closes",
       "columns": {
-        "id": {
-          "name": "id",
-          "type": "integer",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": true
-        },
-        "name": {
-          "name": "name",
+        "code": {
+          "name": "code",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "lecturer_id": {
-          "name": "lecturer_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "starting_cash": {
-          "name": "starting_cash",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "join_code": {
-          "name": "join_code",
+        "date": {
+          "name": "date",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "created_at": {
-          "name": "created_at",
-          "type": "integer",
+        "close": {
+          "name": "close",
+          "type": "real",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         }
       },
-      "indexes": {
-        "classes_join_code_unique": {
-          "name": "classes_join_code_unique",
-          "columns": ["join_code"],
-          "isUnique": true
-        },
-        "classes_lecturer_id_index": {
-          "name": "classes_lecturer_id_index",
-          "columns": ["lecturer_id"],
-          "isUnique": false
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "index_daily_closes_code_date_pk": {
+          "columns": ["code", "date"],
+          "name": "index_daily_closes_code_date_pk"
         }
       },
-      "foreignKeys": {
-        "classes_lecturer_id_users_id_fk": {
-          "name": "classes_lecturer_id_users_id_fk",
-          "tableFrom": "classes",
-          "tableTo": "users",
-          "columnsFrom": ["lecturer_id"],
-          "columnsTo": ["id"],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
-    "memberships": {
-      "name": "memberships",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "integer",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": true
-        },
-        "class_id": {
-          "name": "class_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "student_id": {
-          "name": "student_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "joined_at": {
-          "name": "joined_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        }
-      },
-      "indexes": {
-        "memberships_class_id_student_id_unique": {
-          "name": "memberships_class_id_student_id_unique",
-          "columns": ["class_id", "student_id"],
-          "isUnique": true
-        },
-        "memberships_student_id_index": {
-          "name": "memberships_student_id_index",
-          "columns": ["student_id"],
-          "isUnique": false
-        }
-      },
-      "foreignKeys": {
-        "memberships_class_id_classes_id_fk": {
-          "name": "memberships_class_id_classes_id_fk",
-          "tableFrom": "memberships",
-          "tableTo": "classes",
-          "columnsFrom": ["class_id"],
-          "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "memberships_student_id_users_id_fk": {
-          "name": "memberships_student_id_users_id_fk",
-          "tableFrom": "memberships",
-          "tableTo": "users",
-          "columnsFrom": ["student_id"],
-          "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
@@ -351,11 +246,54 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
+        },
+        "final_date": {
+          "name": "final_date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
         }
       },
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "stock_daily_closes": {
+      "name": "stock_daily_closes",
+      "columns": {
+        "code": {
+          "name": "code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "date": {
+          "name": "date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "close": {
+          "name": "close",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "stock_daily_closes_code_date_pk": {
+          "columns": ["code", "date"],
+          "name": "stock_daily_closes_code_date_pk"
+        }
+      },
       "uniqueConstraints": {},
       "checkConstraints": {}
     },

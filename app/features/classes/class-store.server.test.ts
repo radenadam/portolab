@@ -1,11 +1,11 @@
 import { expect, test } from "vitest";
 import type { Database } from "~/database/database.server";
-import { openTestDatabase } from "~/database/open-test-database.server";
+import { openDatabaseForTest } from "~/database/open-database-for-test.server";
 import type { UserId } from "~/features/accounts/accounts.schema";
 import {
   createReadyTestLecturer,
   createTestStudent,
-} from "~/features/accounts/test-accounts.server";
+} from "~/features/accounts/accounts-for-test.server";
 import { rupiah } from "~/units/rupiah";
 import {
   createClass,
@@ -36,7 +36,7 @@ function classOf(
 }
 
 test("creates a class with a code of eight readable characters, which opens the class", async () => {
-  const database = openTestDatabase();
+  const database = openDatabaseForTest();
   const lecturerId = await createReadyTestLecturer(
     database,
     "dosen",
@@ -58,7 +58,7 @@ test("creates a class with a code of eight readable characters, which opens the 
 });
 
 test("shows a class only to the lecturer who teaches it and to its students", async () => {
-  const database = openTestDatabase();
+  const database = openDatabaseForTest();
   const lecturerId = await createReadyTestLecturer(
     database,
     "dosen",
@@ -94,7 +94,7 @@ test("shows a class only to the lecturer who teaches it and to its students", as
 });
 
 test("adds a student to a class once, however often the student joins", async () => {
-  const database = openTestDatabase();
+  const database = openDatabaseForTest();
   const lecturerId = await createReadyTestLecturer(
     database,
     "dosen",
@@ -113,7 +113,7 @@ test("adds a student to a class once, however often the student joins", async ()
 });
 
 test("lists the classes of a lecturer with their students, and the classes of a student, in the order they began", async () => {
-  const database = openTestDatabase();
+  const database = openDatabaseForTest();
   const lecturerId = await createReadyTestLecturer(
     database,
     "dosen",

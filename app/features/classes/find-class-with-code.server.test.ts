@@ -3,8 +3,8 @@ import { expect, test } from "vitest";
 import { clientAddressContext } from "~/client-address.server";
 import { databaseContext } from "~/database/database.server";
 import type { Database } from "~/database/database.server";
-import { openTestDatabase } from "~/database/open-test-database.server";
-import { createReadyTestLecturer } from "~/features/accounts/test-accounts.server";
+import { openDatabaseForTest } from "~/database/open-database-for-test.server";
+import { createReadyTestLecturer } from "~/features/accounts/accounts-for-test.server";
 import { languageNames } from "~/language-names";
 import { locales } from "~/paraglide/runtime.js";
 import type { Locale } from "~/paraglide/runtime.js";
@@ -81,7 +81,7 @@ async function createTestClass(database: Database): Promise<JoinCode> {
 }
 
 test("finds the class of a code whatever its case, its spaces, and its hyphen", async () => {
-  const database = openTestDatabase();
+  const database = openDatabaseForTest();
   const joinCode = await createTestClass(database);
   const context = contextFor(database);
   for (const typed of [
@@ -105,7 +105,7 @@ for (const locale of locales) {
 
   test(`explains a code that is empty, malformed, or opens no class in ${languageNames[locale]}`, async () => {
     switchLocaleForTest(locale);
-    const database = openTestDatabase();
+    const database = openDatabaseForTest();
     await createTestClass(database);
     const context = contextFor(database);
     expect(findClassWithCode(context, "")).toEqual({
@@ -124,7 +124,7 @@ for (const locale of locales) {
 
   test(`blocks the codes of a network after 100 wrong ones, and counts no right one, in ${languageNames[locale]}`, async () => {
     switchLocaleForTest(locale);
-    const database = openTestDatabase();
+    const database = openDatabaseForTest();
     const joinCode = await createTestClass(database);
     const context = contextFor(database);
     for (let attempt = 0; attempt < 99; attempt += 1) {

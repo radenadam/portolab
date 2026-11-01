@@ -16,7 +16,7 @@ import { isSameWibDay } from "./idx-calendar";
 import type { PriceSourceDescription, Quote } from "./price-source.server";
 import styles from "./prices-view.module.css";
 import { quoteChange } from "./quote-change";
-import type { UpdateAttempt } from "./quote-store.server";
+import type { UpdateAttempt } from "./update-attempts.server";
 import { nextScheduledAttempt } from "./update-schedule";
 
 interface PricesViewProps {
