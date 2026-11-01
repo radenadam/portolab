@@ -1,6 +1,7 @@
 import { errorMessage } from "../app/error-message.ts";
 import { fail, succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
+import { describeChoices, parseChoice } from "../app/value-parsers.ts";
 import { describeValue, isRecord, isStringArray } from "../app/value-shapes.ts";
 import { readTextFile } from "./read-text-file.ts";
 
@@ -158,6 +159,23 @@ export function parseStringAt(
     : invalidField(source, {
         field: keys.join("."),
         expected: "a string",
+        value: found,
+      });
+}
+
+/** Reads a field of a JSON object that holds one of a fixed set of names. Its failure names the field, as the failures of the other fields of the object do. */
+export function parseChoiceAt<Choice extends string>(
+  value: unknown,
+  source: string,
+  field: { name: string; choices: readonly Choice[] },
+): Result<Choice, string> {
+  const found = valueAt(value, [field.name]);
+  const choice = parseChoice(found, source, field.choices);
+  return choice.ok
+    ? choice
+    : invalidField(source, {
+        field: field.name,
+        expected: describeChoices(field.choices),
         value: found,
       });
 }

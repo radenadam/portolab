@@ -71,7 +71,7 @@ test("names the source and the field when a verdict is invalid", () => {
   ).toEqual({
     ok: false,
     failure:
-      'verified.json: finding 1: the status must be "confirmed", "refuted", or "duplicate", but it is "probably".',
+      'verified.json: finding 1 must have "confirmed", "refuted", or "duplicate" at status, but status is "probably".',
   });
 });
 

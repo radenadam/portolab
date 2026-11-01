@@ -1,9 +1,9 @@
 import { fail, succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
 import { describeValue, isRecord } from "../app/value-shapes.ts";
-import { parseChoice } from "../app/value-parsers.ts";
 import {
   notAnObject,
+  parseChoiceAt,
   parseListField,
   parseStringAt,
   parseStringsAt,
@@ -81,11 +81,10 @@ function parseVerdict(
   Pick<VerifiedFinding, "status" | "duplicateOf" | "evidence">,
   string
 > {
-  const status = parseChoice(
-    isRecord(value) ? value["status"] : undefined,
-    `${source}: the status`,
-    verdictStatuses,
-  );
+  const status = parseChoiceAt(value, source, {
+    name: "status",
+    choices: verdictStatuses,
+  });
   if (!status.ok) {
     return status;
   }

@@ -13,10 +13,15 @@ export function parseChoice<Choice extends string>(
   if (choice !== undefined) {
     return succeed(choice);
   }
-  const quotedChoices = choices.map((candidate) => `"${candidate}"`);
   return fail(
-    `${source} must be ${listOfWords(quotedChoices, "disjunction")}, but it is ${describeValue(value)}.`,
+    `${source} must be ${describeChoices(choices)}, but it is ${describeValue(value)}.`,
   );
+}
+
+/** Names a fixed set of names as a choice in a failure text, such as "yahoo" or "fixture". */
+export function describeChoices(choices: readonly string[]): string {
+  const quotedChoices = choices.map((candidate) => `"${candidate}"`);
+  return listOfWords(quotedChoices, "disjunction");
 }
 
 /** Reads the path of a file, such as a command-line argument or the place of the database. */

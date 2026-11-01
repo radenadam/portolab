@@ -2,6 +2,7 @@ import { expect, test } from "vitest";
 import { fail, succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
 import {
+  parseChoiceAt,
   parseJsonObject,
   parseJsonWith,
   parseListField,
@@ -131,5 +132,25 @@ test("reads a list of strings at a path and names the path and the value when it
     ok: false,
     failure:
       "EXPECTED_LENSES must be a list of strings that is not empty, but it is [].",
+  });
+});
+
+test("reads a field that holds one of a fixed set of names, and names the field when it holds another", () => {
+  const field = { name: "status", choices: ["confirmed", "refuted"] as const };
+  expect(parseChoiceAt({ status: "refuted" }, "verified.json", field)).toEqual({
+    ok: true,
+    value: "refuted",
+  });
+  expect(parseChoiceAt({ status: "probably" }, "verified.json", field)).toEqual(
+    {
+      ok: false,
+      failure:
+        'verified.json must have "confirmed" or "refuted" at status, but status is "probably".',
+    },
+  );
+  expect(parseChoiceAt({}, "verified.json", field)).toEqual({
+    ok: false,
+    failure:
+      'verified.json must have "confirmed" or "refuted" at status, but status is missing.',
   });
 });
