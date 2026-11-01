@@ -87,7 +87,7 @@ export interface AlignedReturns<Instrument> {
 
 /**
  * The returns of the market and of each instrument in the latest complete months that the settings choose, kept only for the months in which the market and every instrument have a return. So every measure of these instruments comes from one table of returns.
- * It fails when fewer months remain than the settings require, and names the instrument with the fewest returns, or the market when no instrument has fewer.
+ * It fails when fewer months remain than the settings require, and names the instrument with the fewest returns, or the market when no instrument has fewer. It also fails for an instrument whose returns are the same in every month, such as a stock whose price never changed, and names it.
  */
 export function alignedReturns<Instrument extends InstrumentCloses>(
   market: InstrumentCloses,
@@ -129,14 +129,33 @@ export function alignedReturns<Instrument extends InstrumentCloses>(
       `The settings must require at least one return, but they require ${String(settings.minimumReturnCount)}.`,
     );
   }
-  return succeed({
-    market: sharedMarketReturns,
-    instruments: instrumentReturns.map(({ instrument, returns }) => ({
+  const sharedInstrumentReturns = instrumentReturns.map(
+    ({ instrument, returns }) => ({
       instrument,
       returns: returns.filter(isShared),
+    }),
+  );
+  const unvaried = [
+    { code: market.code, returns: sharedMarketReturns },
+    ...sharedInstrumentReturns.map(({ instrument, returns }) => ({
+      code: instrument.code,
+      returns,
     })),
+  ].find(({ returns }) => !hasVariation(returns));
+  if (unvaried !== undefined) {
+    return fail({ kind: "noVariation", code: unvaried.code });
+  }
+  return succeed({
+    market: sharedMarketReturns,
+    instruments: sharedInstrumentReturns,
     windowEnd,
   });
+}
+
+// Returns that are all the same have a variance of zero, which a correlation and a beta divide by.
+function hasVariation(returns: readonly ReturnMeasure[]): boolean {
+  const firstValue = returns[0]?.value;
+  return returns.some((measure) => measure.value !== firstValue);
 }
 
 function endDatesOf(returns: readonly ReturnMeasure[]): Set<string> {

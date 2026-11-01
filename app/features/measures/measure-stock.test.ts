@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+import { splitAdjustedRupiah } from "~/units/split-adjusted-rupiah";
 import type { MarketMeasures, StockMeasures } from "./capm";
 import { closeToForTest } from "./close-to-for-test";
 import { defaultEstimationSettings } from "./estimation-settings";
@@ -116,5 +117,19 @@ test("fails for a stock with fewer monthly returns than the minimum", () => {
   ).toEqual({
     ok: false,
     failure: { kind: "tooFewReturns", code: "AADI", count: 21, minimum: 24 },
+  });
+});
+
+test("fails for a stock whose price never changed in the window, instead of dividing by its variance of zero", () => {
+  const unchanged = {
+    code: "BBCA",
+    closes: monthEndClosesForTest("BBCA").closes.map((close) => ({
+      ...close,
+      close: splitAdjustedRupiah(1000),
+    })),
+  };
+  expect(measureStock(unchanged, ihsg, defaultEstimationSettings)).toEqual({
+    ok: false,
+    failure: { kind: "noVariation", code: "BBCA" },
   });
 });

@@ -1,13 +1,15 @@
 import { expect, test } from "vitest";
 import { buildDailyHistory } from "~/features/market-data/build-daily-history";
+import { splitAdjustedRupiah } from "~/units/split-adjusted-rupiah";
 import { closeToForTest } from "./close-to-for-test";
 import { defaultEstimationSettings } from "./estimation-settings";
 import { monthEndClosesForTest } from "./month-end-closes-for-test";
 import { alignedReturns } from "./aligned-returns";
 import type { AlignedReturns, InstrumentCloses } from "./aligned-returns";
 
-// The closes of the IHSG and BBCA around the ends of August, September, and October 2026, as Yahoo Finance returned them on 1 November 2026, and an invented close on Monday 2 November 2026, a day that has not come yet. The expected return was computed with the decimal module of Python at 50 significant digits.
+// The closes of the IHSG and BBCA around the ends of the months from June to October 2026, as Yahoo Finance returned them on 1 November 2026, and an invented close on Monday 2 November 2026, a day that has not come yet. The expected returns were computed with the decimal module of Python at 50 significant digits.
 const ihsg = buildDailyHistory({ kind: "index", code: "IHSG" }, [
+  ["2026-08-31", 6525.48],
   ["2026-09-29", 6121.7],
   ["2026-09-30", 6071.14],
   ["2026-10-01", 6009.5],
@@ -32,13 +34,23 @@ function aligned(
   return returns.value;
 }
 
-const oneReturn = { returnCount: 1, minimumReturnCount: 1 };
+const twoReturns = { returnCount: 2, minimumReturnCount: 2 };
 
-test("computes a return from the closes on the last trading days of two complete months, and leaves out the month of the latest close", () => {
-  expect(alignedReturns(ihsg, [], oneReturn)).toEqual({
+test("computes each return from the closes on the last trading days of two complete months, and leaves out the month of the latest close", () => {
+  expect(alignedReturns(ihsg, [], twoReturns)).toEqual({
     ok: true,
     value: {
       market: [
+        {
+          formula: "priceChange",
+          value: closeToForTest(-0.06962552946296671, 15),
+          inputs: {
+            startDate: "2026-08-31",
+            startClose: 6525.48,
+            endDate: "2026-09-30",
+            endClose: 6071.14,
+          },
+        },
         {
           formula: "priceChange",
           value: closeToForTest(-0.16703452728812052, 15),
@@ -58,44 +70,43 @@ test("computes a return from the closes on the last trading days of two complete
 
 test("finds no return for a market with closes in only one month", () => {
   expect(
-    alignedReturns({ ...ihsg, closes: ihsg.closes.slice(-1) }, [], oneReturn),
+    alignedReturns({ ...ihsg, closes: ihsg.closes.slice(-1) }, [], twoReturns),
   ).toEqual({
     ok: false,
-    failure: { kind: "tooFewReturns", code: "IHSG", count: 0, minimum: 1 },
+    failure: { kind: "tooFewReturns", code: "IHSG", count: 0, minimum: 2 },
   });
 });
 
 test("gives no return for the months on either side of a month end without a close", () => {
   const market = buildDailyHistory({ kind: "index", code: "IHSG" }, [
-    ["2026-08-31", 6525.48],
+    ["2026-06-30", 5643.19],
+    ["2026-07-31", 6236.13],
     ...ihsg.closes.map((close): [string, number] => [close.date, close.close]),
   ]);
-  const bbcaWithout = (date: string): InstrumentCloses => ({
-    code: "BBCA",
-    closes: buildDailyHistory({ kind: "stock", code: "BBCA" }, [
-      ["2026-08-31", 6475],
-      ["2026-09-30", 6075],
-      ["2026-10-30", 4980],
-    ]).closes.filter((close) => close.date !== date),
-  });
-  const twoReturns = { returnCount: 2, minimumReturnCount: 1 };
-  // Without the close of 31 August, only October has a return.
-  const withoutAugust = alignedReturns(
-    market,
-    [bbcaWithout("2026-08-31")],
-    twoReturns,
-  );
-  expect(
-    withoutAugust.ok &&
-      withoutAugust.value.market.map((measure) => measure.inputs.endDate),
-  ).toEqual(["2026-10-30"]);
-  // Without the close of 30 September, neither September nor October has a return.
-  expect(
-    alignedReturns(market, [bbcaWithout("2026-09-30")], twoReturns),
-  ).toEqual({
-    ok: false,
-    failure: { kind: "tooFewReturns", code: "BBCA", count: 0, minimum: 1 },
-  });
+  const bbcaCloses: [string, number][] = [
+    ["2026-06-30", 5550],
+    ["2026-07-31", 6325],
+    ["2026-08-31", 6475],
+    ["2026-09-30", 6075],
+    ["2026-10-30", 4980],
+  ];
+  const endDatesWithout = (date: string): string[] => {
+    const bbca = buildDailyHistory(
+      { kind: "stock", code: "BBCA" },
+      bbcaCloses.filter(([closeDate]) => closeDate !== date),
+    );
+    const returns = alignedReturns(market, [bbca], {
+      returnCount: 4,
+      minimumReturnCount: 2,
+    });
+    return returns.ok
+      ? returns.value.market.map((measure) => measure.inputs.endDate)
+      : [];
+  };
+  // Without the close of 31 August, the returns of August and September are missing.
+  expect(endDatesWithout("2026-08-31")).toEqual(["2026-07-31", "2026-10-30"]);
+  // Without the close of 30 September, the returns of September and October are missing.
+  expect(endDatesWithout("2026-09-30")).toEqual(["2026-07-31", "2026-08-31"]);
 });
 
 test("takes the latest complete months of the settings, and keeps those in which every instrument has a return", () => {
@@ -153,6 +164,28 @@ test("names the market when no instrument has fewer returns than the market", ()
     ),
   ).toEqual({
     ok: false,
-    failure: { kind: "tooFewReturns", code: "IHSG", count: 1, minimum: 24 },
+    failure: { kind: "tooFewReturns", code: "IHSG", count: 2, minimum: 24 },
   });
+});
+
+test("fails for an instrument whose returns are the same in every month, and names it", () => {
+  // A stock whose price never changed, as for a stock that stayed suspended.
+  const unchangedCloses = monthEndClosesForTest("BBCA").closes.map((close) => ({
+    ...close,
+    close: splitAdjustedRupiah(1000),
+  }));
+  expect(
+    alignedReturns(
+      monthEndClosesForTest("IHSG"),
+      [{ code: "BBCA", closes: unchangedCloses }],
+      defaultEstimationSettings,
+    ),
+  ).toEqual({ ok: false, failure: { kind: "noVariation", code: "BBCA" } });
+  expect(
+    alignedReturns(
+      { code: "IHSG", closes: unchangedCloses },
+      [monthEndClosesForTest("TLKM")],
+      defaultEstimationSettings,
+    ),
+  ).toEqual({ ok: false, failure: { kind: "noVariation", code: "IHSG" } });
 });

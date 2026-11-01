@@ -30,6 +30,11 @@ export type MeasureFailure =
       minimum: number;
     }
   | {
+      kind: "noVariation";
+      /** The instrument whose returns are the same in every month of the window, so it has no standard deviation, and a correlation with it, or a beta against it, divides by zero. */
+      code: string;
+    }
+  | {
       kind: "noRiskFreeRate";
       /** The last day of the window, for which no rate is recorded. */
       date: string;

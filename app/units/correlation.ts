@@ -5,7 +5,7 @@ function isCorrelation(value: number): value is Correlation {
   return Number.isFinite(value);
 }
 
-/** Makes a correlation that the program computed into a correlation. A stock whose price never changed has no correlation, so a value that is not finite is a defect. */
+/** Makes a correlation that the program computed into a correlation. The measures fail with a typed failure for returns that never change, which have no correlation, so a value that is not finite is a defect. */
 export function correlation(value: number): Correlation {
   if (!isCorrelation(value)) {
     throw new Error(`${String(value)} is not a correlation.`);
