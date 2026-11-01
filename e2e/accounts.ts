@@ -59,7 +59,7 @@ export async function submitSignIn(
   await page.locator("main form button[type=submit]").click();
 }
 
-/** Creates a lecturer with the account command, signs in, and finishes the account with a name, a password, and consent, so that the page ends signed in on the home page. */
+/** Creates a lecturer with the account command, signs in, and finishes the account with a name, a password, and consent, so that the page ends signed in on the classes of the lecturer. */
 export async function signInAsNewLecturer(
   page: Page,
   name: string,
@@ -76,6 +76,50 @@ export async function signInAsNewLecturer(
     .fill(chosenPassword);
   await page.locator('main input[name="consent"]').check();
   await page.locator("main form button[type=submit]").click();
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL("/classes");
+  return username;
+}
+
+/** A class that a test created, with the path of its page and what its lecturer shares. */
+export interface TestClass {
+  path: string;
+  joinCode: string;
+  joinAddress: string;
+}
+
+/** Creates a class from the classes page of a lecturer who is signed in, and returns it from its page. */
+export async function createTestClass(
+  page: Page,
+  name: string,
+): Promise<TestClass> {
+  await page.goto("/classes");
+  await page.locator('main input[name="name"]').fill(name);
+  await page.locator("main form button[type=submit]").click();
+  await expect(page).toHaveURL(/\/classes\/\d+$/);
+  const shared = page.locator("main dd");
+  return {
+    path: new URL(page.url()).pathname,
+    joinCode: (await shared.nth(0).textContent()) ?? "",
+    joinAddress: (await shared.nth(1).textContent()) ?? "",
+  };
+}
+
+/** Opens the address of a class as a visitor, creates a student account on it, and returns the username, so that the page ends signed in on the page of the class. */
+export async function joinAsNewStudent(
+  page: Page,
+  joinAddress: string,
+  name: string,
+): Promise<string> {
+  const username = uniqueUsername("mhs");
+  await page.goto(joinAddress);
+  await page.locator('main input[name="name"]').fill(name);
+  await page.locator('main input[name="username"]').fill(username);
+  await page.locator('main input[name="newPassword"]').fill(chosenPassword);
+  await page
+    .locator('main input[name="repeatedPassword"]')
+    .fill(chosenPassword);
+  await page.locator('main input[name="consent"]').check();
+  await page.locator("main form button[type=submit]").click();
+  await expect(page).toHaveURL(/\/classes\/\d+$/);
   return username;
 }

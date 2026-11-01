@@ -305,7 +305,7 @@ for (const locale of locales) {
       .getByRole("main")
       .getByRole("button", { name: text.finishButton })
       .click();
-    await expect(page).toHaveURL("/");
+    await expect(page).toHaveURL("/classes");
 
     await page.getByRole("link", { name: text.accountLink }).click();
     await expect(page).toHaveTitle(`${text.accountTitle} | Portolab`);
@@ -369,7 +369,7 @@ for (const locale of locales) {
     const otherDevice = await browser.newPage();
     await otherDevice.goto("/sign-in");
     await submitSignIn(otherDevice, username, chosenPassword);
-    await expect(otherDevice).toHaveURL("/");
+    await expect(otherDevice).toHaveURL("/classes");
 
     await page.goto("/account");
     await changePassword(page, locale, "a wrong password");

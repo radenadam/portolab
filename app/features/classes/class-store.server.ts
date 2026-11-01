@@ -98,7 +98,7 @@ export function listTaughtClasses(
     .leftJoin(memberships, eq(memberships.classId, classes.id))
     .where(eq(classes.lecturerId, lecturerId))
     .groupBy(classes.id)
-    .orderBy(asc(classes.createdAt))
+    .orderBy(asc(classes.createdAt), asc(classes.id))
     .all();
 }
 
