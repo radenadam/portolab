@@ -1,4 +1,5 @@
 import { getLocale } from "~/paraglide/runtime.js";
+import { listOfWords } from "~/sentences";
 import type { Rupiah } from "~/units/rupiah";
 import { wibTimeZone } from "~/wib";
 
@@ -71,7 +72,7 @@ export function formatList(
   items: readonly string[],
   type: "conjunction" | "disjunction",
 ): string {
-  return new Intl.ListFormat(intlLocale(), { type }).format(items);
+  return listOfWords(items, type, intlLocale());
 }
 
 export function formatMarketTime(moment: Date): string {
