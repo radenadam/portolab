@@ -110,7 +110,7 @@ const texts: Record<
     passwordChanged:
       "Portolab menyimpan kata sandi baru Anda dan mengeluarkan Anda dari semua perangkat lain.",
     wrongCurrentPassword:
-      "Kata sandi saat ini salah. Ketik lagi. Setelah 10 percobaan salah dalam 15 menit, Portolab memblokir nama pengguna Anda untuk sementara, agar tidak ada yang dapat menebak kata sandinya.",
+      'Kata sandi di kolom "Kata sandi saat ini" salah. Ketik lagi. Setelah 10 percobaan salah dalam 15 menit, Portolab memblokir nama pengguna Anda untuk sementara, agar tidak ada yang dapat menebak kata sandinya.',
     signOutButton: "Keluar",
     signOutTitle: "Keluar",
     signOutBody: "Keluar dari Portolab di perangkat ini.",
@@ -167,7 +167,7 @@ const texts: Record<
     passwordChanged:
       "Portolab saved your new password and signed you out on every other device.",
     wrongCurrentPassword:
-      "The current password is wrong. Type it again. After 10 wrong attempts within 15 minutes, Portolab blocks your username for a while, so that nobody can guess its password.",
+      'The password in the field "Current password" is wrong. Type it again. After 10 wrong attempts within 15 minutes, Portolab blocks your username for a while, so that nobody can guess its password.',
     signOutButton: "Sign out",
     signOutTitle: "Sign out",
     signOutBody: "Sign out of Portolab on this device.",

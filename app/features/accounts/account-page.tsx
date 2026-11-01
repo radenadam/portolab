@@ -70,7 +70,11 @@ export async function action({ context, request }: Route.ActionArgs) {
     const { text, status } = explainPasswordFailure(
       checked.failure,
       user.username,
-      m.accounts_wrong_current_password_error,
+      (limit) =>
+        m.accounts_wrong_current_password_error({
+          ...limit,
+          field: m.accounts_current_password_label(),
+        }),
     );
     return data(
       {
