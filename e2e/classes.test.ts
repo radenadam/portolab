@@ -37,7 +37,7 @@ const texts: Record<
     addressLabel: string;
     studentsTitle: string;
     noStudents: string;
-    studentNotice: readonly [string, string];
+    studentNotice: readonly [string, string, string];
     resetLink: string;
     taughtBy: string;
     startingCash: string;
@@ -91,7 +91,7 @@ const texts: Record<
     addressLabel: "Alamat untuk bergabung",
     studentsTitle: "Mahasiswa",
     noStudents: "Belum ada mahasiswa yang bergabung.",
-    studentNotice: [", bergabung pada ", " WIB"],
+    studentNotice: ['Masuk sebagai "', '". Bergabung pada ', " WIB."],
     resetLink: `Atur ulang kata sandi ${studentName}`,
     taughtBy: `${lecturerName} mengajar kelas ini.`,
     startingCash: "Anda mulai dengan uang virtual sebesar Rp 100.000.000.",
@@ -106,7 +106,7 @@ const texts: Record<
     malformedCode:
       'Kode kelas terdiri dari 8 huruf dan angka, tetapi "abc" bukan kode seperti itu. Periksa kodenya dengan dosen Anda.',
     unknownCode:
-      "Tidak ada kelas dengan kode aaaa-aaaa. Periksa kodenya dengan dosen Anda, lalu coba lagi.",
+      'Tidak ada kelas dengan kode "aaaa-aaaa". Periksa kodenya dengan dosen Anda, lalu coba lagi.',
     lecturerCannotJoin:
       "Hanya mahasiswa yang bergabung ke kelas, dan Anda masuk sebagai dosen. Untuk bergabung sebagai mahasiswa, keluar terlebih dahulu.",
     joinClassTitle: `Gabung ke ${className}`,
@@ -118,7 +118,7 @@ const texts: Record<
     createAccountButton: "Buat akun dan gabung",
     existingAccountLink: "Masuk dengan akun yang sudah Anda miliki",
     usernameTaken:
-      " sudah dipakai. Pilih yang lain, misalnya dengan angka di akhirnya.",
+      '" sudah dipakai. Pilih yang lain, misalnya dengan angka di akhirnya.',
     joinButton: "Gabung ke kelas",
     otherCodeLink: "Masukkan kode lain",
     resetTitle: "Atur ulang kata sandi",
@@ -148,7 +148,7 @@ const texts: Record<
     addressLabel: "Address for joining",
     studentsTitle: "Students",
     noStudents: "No student has joined yet.",
-    studentNotice: [", joined on ", " WIB"],
+    studentNotice: ['Signs in as "', '". Joined on ', " WIB."],
     resetLink: `Reset the password of ${studentName}`,
     taughtBy: `${lecturerName} teaches this class.`,
     startingCash: "You start with IDR 100,000,000 in virtual cash.",
@@ -163,7 +163,7 @@ const texts: Record<
     malformedCode:
       'The code of a class has 8 letters and digits, but "abc" is not such a code. Check the code with your lecturer.',
     unknownCode:
-      "No class has the code aaaa-aaaa. Check the code with your lecturer and try again.",
+      'No class has the code "aaaa-aaaa". Check the code with your lecturer and try again.',
     lecturerCannotJoin:
       "Only students join a class, and you are signed in as a lecturer. To join as a student, sign out first.",
     joinClassTitle: `Join ${className}`,
@@ -175,7 +175,7 @@ const texts: Record<
     createAccountButton: "Create the account and join",
     existingAccountLink: "Sign in with the account that you have",
     usernameTaken:
-      " is taken. Choose another one, for example with a number at its end.",
+      '" is taken. Choose another one, for example with a number at its end.',
     joinButton: "Join the class",
     otherCodeLink: "Enter another code",
     resetTitle: "Reset a password",
@@ -194,12 +194,12 @@ const sentenceParts: Record<
   { usernameTaken: string; resetBody: string }
 > = {
   id: {
-    usernameTaken: "Nama pengguna ",
+    usernameTaken: 'Nama pengguna "',
     resetBody:
       ") kata sandi sementara dan mengeluarkannya dari semua perangkat. Saat masuk berikutnya, ia memilih kata sandi baru.",
   },
   en: {
-    usernameTaken: "The username ",
+    usernameTaken: 'The username "',
     resetBody:
       ") a temporary password and signs them out on every device. At the next sign-in, they choose a new password.",
   },
@@ -398,8 +398,10 @@ for (const locale of locales) {
     await page.goto(testClass.path);
     await expect(page.getByText(studentName, { exact: true })).toBeVisible();
     await expect(
-      page.getByText(`${username}${text.studentNotice[0]}`),
-    ).toContainText(text.studentNotice[1]);
+      page.getByText(
+        `${text.studentNotice[0]}${username}${text.studentNotice[1]}`,
+      ),
+    ).toContainText(text.studentNotice[2]);
     await expectAccessibleScreen(page);
     await page.getByRole("link", { name: text.resetLink }).click();
     await expect(page).toHaveTitle(`${text.resetTitle} | Portolab`);

@@ -30,7 +30,7 @@ const texts: Record<
     malformed:
       'Kode kelas terdiri dari 8 huruf dan angka, tetapi "k7qm-4rx1" bukan kode seperti itu. Periksa kodenya dengan dosen Anda.',
     unknown:
-      "Tidak ada kelas dengan kode aaaa-aaaa. Periksa kodenya dengan dosen Anda, lalu coba lagi.",
+      'Tidak ada kelas dengan kode "aaaa-aaaa". Periksa kodenya dengan dosen Anda, lalu coba lagi.',
     blocked: [
       "Portolab memblokir kode dari jaringan Anda sampai ",
       " WIB, karena menerima 100 kode salah dari jaringan itu dalam 15 menit. Blokir ini menghentikan siapa pun yang mencoba menebak kode kelas. Coba lagi setelah waktu tersebut.",
@@ -41,7 +41,7 @@ const texts: Record<
     malformed:
       'The code of a class has 8 letters and digits, but "k7qm-4rx1" is not such a code. Check the code with your lecturer.',
     unknown:
-      "No class has the code aaaa-aaaa. Check the code with your lecturer and try again.",
+      'No class has the code "aaaa-aaaa". Check the code with your lecturer and try again.',
     blocked: [
       "Portolab blocks codes from your network until ",
       " WIB, because it received 100 wrong codes from it within 15 minutes. The block stops anyone who tries to guess the code of a class. Try again after that time.",
