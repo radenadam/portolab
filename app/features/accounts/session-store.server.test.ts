@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
-import { openTestDatabase } from "~/database/open-test-database.server";
-import { createTestLecturer } from "./test-accounts.server";
+import { openDatabaseForTest } from "~/database/open-database-for-test.server";
+import { createTestLecturer } from "./accounts-for-test.server";
 import {
   createSession,
   deleteExpiredSessions,
@@ -21,7 +21,7 @@ const hour = 60 * 60_000;
 const day = 24 * hour;
 
 test("finds the session that a token names, with the account that it signs in", async () => {
-  const database = openTestDatabase();
+  const database = openDatabaseForTest();
   const { account } = await createTestLecturer(database, "dosen");
   const token = createSession(database, account.id, start);
   expect(resumeSession(database, token, later(1000))).toEqual({
@@ -32,7 +32,7 @@ test("finds the session that a token names, with the account that it signs in", 
 });
 
 test("finds no session for a token whose secret differs", async () => {
-  const database = openTestDatabase();
+  const database = openDatabaseForTest();
   const { account } = await createTestLecturer(database, "dosen");
   const token = createSession(database, account.id, start);
   const [id] = token.split(".");
@@ -41,7 +41,7 @@ test("finds no session for a token whose secret differs", async () => {
 });
 
 test("extends a session at most once an hour, and ends it after 14 days without a visit", async () => {
-  const database = openTestDatabase();
+  const database = openDatabaseForTest();
   const { account } = await createTestLecturer(database, "dosen");
   const token = createSession(database, account.id, start);
   expect(resumeSession(database, token, later(hour - 1))?.wasExtended).toBe(
@@ -59,7 +59,7 @@ test("extends a session at most once an hour, and ends it after 14 days without 
 });
 
 test("deletes the sessions that were unused for 14 days, and keeps the others", async () => {
-  const database = openTestDatabase();
+  const database = openDatabaseForTest();
   const { account } = await createTestLecturer(database, "dosen");
   const unused = createSession(database, account.id, start);
   const used = createSession(database, account.id, later(day));
@@ -69,7 +69,7 @@ test("deletes the sessions that were unused for 14 days, and keeps the others", 
 });
 
 test("ends one session, or every session of a person", async () => {
-  const database = openTestDatabase();
+  const database = openDatabaseForTest();
   const { account } = await createTestLecturer(database, "dosen");
   const first = createSession(database, account.id, start);
   const second = createSession(database, account.id, start);
@@ -83,7 +83,7 @@ test("ends one session, or every session of a person", async () => {
 });
 
 test("reads a token that createSession made, and rejects any other value of the cookie with what it is", async () => {
-  const database = openTestDatabase();
+  const database = openDatabaseForTest();
   const { account } = await createTestLecturer(database, "dosen");
   const token = createSession(database, account.id, start);
   expect(parseSessionToken(token, "The cookie portolab_session")).toEqual({

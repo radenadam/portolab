@@ -12,8 +12,15 @@
     {
       "idx": 1,
       "version": "6",
-      "when": 1793512899629,
-      "tag": "0001_accounts",
+      "when": 1793511518075,
+      "tag": "0001_daily_closes",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1793516059835,
+      "tag": "0002_accounts",
       "breakpoints": true
     }
   ]

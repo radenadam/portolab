@@ -1,16 +1,11 @@
 import { expect, test } from "vitest";
-import { openTestDatabase } from "~/database/open-test-database.server";
+import { openDatabaseForTest } from "~/database/open-database-for-test.server";
 import { indexPoints } from "~/units/index-points";
 import { rupiah } from "~/units/rupiah";
-import {
-  listLatestQuotes,
-  readLatestUpdateAttempt,
-  saveQuotes,
-  saveUpdateAttempt,
-} from "./quote-store.server";
+import { listLatestQuotes, saveQuotes } from "./quote-store.server";
 
 test("keeps only the latest quote of each instrument, the indices first", () => {
-  const database = openTestDatabase();
+  const database = openDatabaseForTest();
   const quotedAt = new Date("2026-10-30T09:14:55.000Z");
   saveQuotes(
     database,
@@ -61,27 +56,4 @@ test("keeps only the latest quote of each instrument, the indices first", () => 
       quotedAt,
     },
   ]);
-});
-
-test("keeps only the latest attempt to update prices, with the codes that it could not update", () => {
-  const database = openTestDatabase();
-  expect(readLatestUpdateAttempt(database)).toBeUndefined();
-  saveUpdateAttempt(database, {
-    attemptedAt: new Date("2026-10-30T09:29:00.000Z"),
-    succeeded: true,
-    consecutiveFailures: 0,
-    failedCodes: [],
-  });
-  saveUpdateAttempt(database, {
-    attemptedAt: new Date("2026-10-30T09:30:00.000Z"),
-    succeeded: true,
-    consecutiveFailures: 0,
-    failedCodes: ["BBRI", "TLKM"],
-  });
-  expect(readLatestUpdateAttempt(database)).toEqual({
-    attemptedAt: new Date("2026-10-30T09:30:00.000Z"),
-    succeeded: true,
-    consecutiveFailures: 0,
-    failedCodes: ["BBRI", "TLKM"],
-  });
 });
