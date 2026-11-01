@@ -1,6 +1,6 @@
 # 0002. Orders fill at delayed prices during trading sessions
 
-- Status: Accepted. [Decision 0016](0016-orders-last-one-trading-day-and-fill-as-the-order-book-would.md) changes two of its rules. A market order fills at the first delayed price quoted in the sessions of its trading day, so it waits for a price from the session when the latest delayed price is older. A limit order fills at once when the latest delayed price of its sessions already reaches its limit.
+- Status: Accepted. [Decision 0016](0016-orders-last-one-trading-day-and-fill-as-the-order-book-would.md) changes three of its rules. A market order fills at the first delayed price quoted in the sessions of its trading day, so it waits for a price from the session when the latest delayed price is older. A limit order fills at once when the latest delayed price of its sessions already reaches its limit. An order waits for one trading day only, and it expires instead of waiting for a later session when the prices of that day are final.
 - Date: 2026-10-31
 
 ## Context

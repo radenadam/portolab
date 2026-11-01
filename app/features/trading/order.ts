@@ -110,6 +110,8 @@ export type OrderFailure =
       code: string;
       /** The trading day before the trading day of the order, whose close is the reference price. */
       date: string;
+      /** When the prices of that day are final, after which Portolab can store the close. */
+      finalAt: Date;
     }
   | { kind: "tooManyLots"; lots: Lots; maximumLots: Lots }
   | (PriceFailure & { code: string; date: string })
@@ -117,6 +119,8 @@ export type OrderFailure =
       kind: "notEnoughCash";
       cash: Rupiah;
       setAsideCash: Rupiah;
+      /** Whether the account holds shares of any stock, which it could sell to add to its cash. */
+      holdsShares: boolean;
     } & CashShortfall)
   | {
       kind: "notEnoughShares";

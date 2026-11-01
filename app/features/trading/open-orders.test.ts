@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { orderLots } from "~/units/lots";
+import { orderLotsForTest } from "./orders-for-test";
 import { rupiah } from "~/units/rupiah";
 import type { Rupiah } from "~/units/rupiah";
 import { shares } from "~/units/shares";
@@ -25,7 +25,7 @@ function order(side: OrderSide, code: string, state: OrderState): Order {
   return {
     code,
     side,
-    lots: orderLots(1),
+    lots: orderLotsForTest(1),
     price: { kind: "market" },
     placedAt,
     shares: shares(100),

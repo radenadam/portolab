@@ -58,8 +58,9 @@ interface TradingDay {
   date: string;
   tradesFrom: Date;
   expiresAt: Date;
-  /** The trading day before it, whose close is the reference price. */
+  /** The trading day before it, whose close is the reference price, and when the prices of that day are final. */
   previousDate: string;
+  previousFinalAt: Date;
   rules: IdxRules;
   rates: CostRates;
 }
@@ -153,11 +154,19 @@ function tradingDayOf(
       reason: failuresOf([expiresAt, previousDate, rules, rates]).join(" "),
     });
   }
+  // The search for the previous trading day found its calendar, so the calendar covers it.
+  const previousFinalAt = pricesFinalAt(previousDate.value, delayMinutes);
+  if (!previousFinalAt.ok) {
+    throw new Error(
+      `tradingDayBefore found ${previousDate.value} in the calendar, but ${previousFinalAt.failure}`,
+    );
+  }
   return succeed({
     date,
     tradesFrom: tradesFrom.value,
     expiresAt: expiresAt.value,
     previousDate: previousDate.value,
+    previousFinalAt: previousFinalAt.value,
     rules: rules.value,
     rates: rates.value,
   });
@@ -231,7 +240,12 @@ function referencePrice(
     (candidate) => candidate.date === day.previousDate,
   );
   if (close === undefined) {
-    return fail({ kind: "noReferenceClose", code, date: day.previousDate });
+    return fail({
+      kind: "noReferenceClose",
+      code,
+      date: day.previousDate,
+      finalAt: day.previousFinalAt,
+    });
   }
   // A close that a later split adjusted can hold a fraction of a rupiah, but a reference price is whole.
   return succeed(rupiah(Math.round(close.close)));
@@ -279,6 +293,7 @@ function checkFunds(
           kind: "notEnoughCash",
           cash: account.cash,
           setAsideCash: setAside,
+          holdsShares: account.holdings.some((holding) => holding.shares > 0),
           ...paid.failure,
         });
       }

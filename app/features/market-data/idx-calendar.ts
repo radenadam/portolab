@@ -12,18 +12,19 @@ interface TradingCalendar extends DatePeriod {
   source: string;
   /** Weekdays on which IDX is closed. */
   holidays: ReadonlySet<string>;
+  hours: TradingHours;
+}
+
+/** The hours of the regular market of IDX on a trading day. */
+interface TradingHours {
   /** The minute of the day when the pre-opening session starts. */
   sessionStartMinute: number;
   /** The minute of the day when the post-closing session ends. */
   sessionEndMinute: number;
-  continuousSessions: ContinuousSessions;
-}
-
-/** Session I and session II of the regular market, in which orders match continuously, on Monday to Thursday and on Friday. */
-interface ContinuousSessions {
+  /** Session I and session II, in which orders match continuously, on Monday to Thursday and on Friday. */
   mondayToThursday: readonly MinuteSpan[];
   friday: readonly MinuteSpan[];
-  /** The announcement of IDX that set the hours, and the report it was read from. */
+  /** The announcement of IDX that set the hours, or the reports they were read from. */
   source: string;
 }
 
@@ -34,7 +35,9 @@ interface MinuteSpan {
 }
 
 // IDX ends session II at 15:49:59, so each session here ends before its end minute, which leaves out only the first second of 12:00 and of 11:30, when IDX ends session I. IDX shortens the sessions during Ramadan, which issue #31 tracks.
-const regularMarketSessions: ContinuousSessions = {
+const regularMarketHours: TradingHours = {
+  sessionStartMinute: 8 * 60 + 45,
+  sessionEndMinute: 16 * 60 + 15,
   mondayToThursday: [
     { startMinute: 9 * 60, endMinute: 12 * 60 },
     { startMinute: 13 * 60 + 30, endMinute: 15 * 60 + 50 },
@@ -44,7 +47,7 @@ const regularMarketSessions: ContinuousSessions = {
     { startMinute: 14 * 60, endMinute: 15 * 60 + 50 },
   ],
   source:
-    "BEI letter S-02349/BEI.POP/03-2023 of 15 March 2023, which set these hours from 3 April 2023, as CNBC Indonesia reported on that day",
+    "the hours that IDX restored from 3 April 2023, as CNBC Indonesia and Infobank News reported session I and session II on that day, and as Pluang listed the pre-opening and the post-closing session in 2026",
 };
 
 // IDX rules are data with the dates they apply, as decision 0002 asks.
@@ -78,9 +81,7 @@ const tradingCalendars: readonly TradingCalendar[] = [
       "2026-12-25",
       "2026-12-31",
     ]),
-    sessionStartMinute: 8 * 60 + 45,
-    sessionEndMinute: 16 * 60 + 15,
-    continuousSessions: regularMarketSessions,
+    hours: regularMarketHours,
   },
   {
     from: "2027-01-01",
@@ -109,9 +110,7 @@ const tradingCalendars: readonly TradingCalendar[] = [
       "2027-12-24",
       "2027-12-31",
     ]),
-    sessionStartMinute: 8 * 60 + 45,
-    sessionEndMinute: 16 * 60 + 15,
-    continuousSessions: regularMarketSessions,
+    hours: regularMarketHours,
   },
 ];
 
@@ -129,7 +128,7 @@ export function isPriceUpdateTime(
   // Fetching from the start of the pre-opening session costs nothing, and it goes on until the delayed prices show the end of the post-closing session.
   return succeed(
     isTradingDayIn(calendar.value, date) &&
-      minuteOfDay >= calendar.value.sessionStartMinute &&
+      minuteOfDay >= calendar.value.hours.sessionStartMinute &&
       minuteOfDay <= lastPriceMinute(calendar.value, delayMinutes),
   );
 }
@@ -252,15 +251,15 @@ function continuousSessionsOn(
 ): readonly MinuteSpan[] {
   const friday = 5;
   return dayOfWeek(date) === friday
-    ? calendar.continuousSessions.friday
-    : calendar.continuousSessions.mondayToThursday;
+    ? calendar.hours.friday
+    : calendar.hours.mondayToThursday;
 }
 
 function lastPriceMinute(
   calendar: TradingCalendar,
   delayMinutes: number,
 ): number {
-  return calendar.sessionEndMinute + delayMinutes;
+  return calendar.hours.sessionEndMinute + delayMinutes;
 }
 
 function isTradingDayIn(calendar: TradingCalendar, date: string): boolean {

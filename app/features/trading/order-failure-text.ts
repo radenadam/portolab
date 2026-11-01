@@ -1,5 +1,6 @@
 import {
   formatCalendarDate,
+  formatMarketClock,
   formatMonth,
   formatNumber,
   formatPercent,
@@ -81,13 +82,37 @@ function purchaseAmounts(failure: Shortfall): {
 }
 
 function largestPurchaseText(failure: Shortfall): string {
-  const price = formatRupiah(failure.price);
-  return failure.largestLots === 0
-    ? m.trading_no_affordable_lot_error({ price })
-    : m.trading_largest_purchase_error({
-        price,
-        lots: lotCount(failure.largestLots),
-      });
+  return m.trading_largest_purchase_error({
+    price: formatRupiah(failure.price),
+    lots: lotCount(failure.largestLots),
+  });
+}
+
+/** The steps that add to the available cash of an account that does not pay for 1 lot, each only in a state of the account where the student can take it. A lower price or another stock helps only with enough cash, so it is the step only when the account has nothing to sell and nothing set aside. */
+function stepsWithoutAffordableLot(
+  failure: Extract<Failure, { kind: "notEnoughCash" }>,
+): string[] {
+  const steps: string[] = [];
+  if (failure.holdsShares) {
+    steps.push(
+      m.trading_sell_for_cash_error({
+        available: formatRupiah(failure.availableCash),
+      }),
+    );
+  }
+  if (failure.setAsideCash > 0) {
+    steps.push(
+      m.trading_wait_for_cash_error({
+        setAside: formatRupiah(failure.setAsideCash),
+      }),
+    );
+  }
+  if (steps.length === 0) {
+    steps.push(
+      m.trading_lower_price_error({ price: formatRupiah(failure.price) }),
+    );
+  }
+  return steps;
 }
 
 const failureTexts: FailureTexts = {
@@ -107,6 +132,7 @@ const failureTexts: FailureTexts = {
     m.trading_no_reference_close_error({
       code: failure.code,
       date: formatCalendarDate(failure.date),
+      time: formatMarketClock(failure.finalAt),
     }),
   tooFewReturns: (failure) =>
     m.trading_too_few_returns_error({
@@ -158,7 +184,16 @@ const failureTexts: FailureTexts = {
         }),
       );
     }
-    sentences.push(largestPurchaseText(failure));
+    if (failure.largestLots > 0) {
+      sentences.push(largestPurchaseText(failure));
+    } else {
+      sentences.push(
+        m.trading_no_affordable_lot_error({
+          price: formatRupiah(failure.price),
+        }),
+        ...stepsWithoutAffordableLot(failure),
+      );
+    }
     return sentences.join(" ");
   },
   notEnoughShares: (failure) => {
@@ -191,14 +226,18 @@ const failureTexts: FailureTexts = {
     );
     return sentences.join(" ");
   },
-  priceRose: (failure) =>
-    [
-      m.trading_price_rose_error({
-        ...purchaseAmounts(failure),
-        checkedPrice: formatRupiah(failure.checkedPrice),
-      }),
-      largestPurchaseText(failure),
-    ].join(" "),
+  priceRose: (failure) => {
+    const checkedPrice = formatRupiah(failure.checkedPrice);
+    // The order set aside the cost of its shares at the price it was checked at, so a limit order at that price is within the cash it could use.
+    const sentences: string[] = [
+      m.trading_price_rose_error({ ...purchaseAmounts(failure), checkedPrice }),
+      m.trading_limit_at_checked_price_error({ checkedPrice }),
+    ];
+    if (failure.largestLots > 0) {
+      sentences.push(largestPurchaseText(failure));
+    }
+    return sentences.join(" ");
+  },
 };
 
 /** The text that tells a student why Portolab rejected an order, in the active language, with the numbers of the failure, the rule behind it, and a next step. */

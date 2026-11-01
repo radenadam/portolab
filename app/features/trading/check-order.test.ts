@@ -1,12 +1,16 @@
 import { expect, test } from "vitest";
 import type { StockQuote } from "~/features/market-data/price-source.server";
 import { monthEndClosesForTest } from "~/features/measures/month-end-closes-for-test";
-import { orderLots } from "~/units/lots";
 import { rupiah } from "~/units/rupiah";
 import { shares } from "~/units/shares";
 import { checkOrder } from "./check-order";
 import type { OpenOrder, Order, OrderRequest } from "./order";
-import { acceptedForTest, limitForTest, quoteForTest } from "./orders-for-test";
+import {
+  acceptedForTest,
+  limitForTest,
+  orderLotsForTest,
+  quoteForTest,
+} from "./orders-for-test";
 
 // The money in the expected fills was computed with the decimal module of Python, with a broker fee of 0.15% and a tax of 0.1% of the value, each rounded to a whole rupiah with ROUND_HALF_UP. The comment of each moment gives the time in WIB on Monday 2 November 2026, unless it names another day.
 
@@ -23,7 +27,7 @@ function placed(
     {
       code: "BBCA",
       side: "buy",
-      lots: orderLots(5),
+      lots: orderLotsForTest(5),
       price: { kind: "market" },
       // 10:00.
       placedAt: new Date("2026-11-02T03:00:00Z"),
@@ -132,7 +136,10 @@ test("keeps an order placed in the break waiting for a price of session II", () 
 });
 
 test("fills a limit purchase that arrives at a price below its limit at that price", () => {
-  const order = placed({ lots: orderLots(10), price: limitForTest(5_000) });
+  const order = placed({
+    lots: orderLotsForTest(10),
+    price: limitForTest(5_000),
+  });
   expect(checked(order, latestAtTen, "2026-11-02T03:00:00Z")).toEqual({
     kind: "filled",
     fill: {
@@ -148,7 +155,10 @@ test("fills a limit purchase that arrives at a price below its limit at that pri
 });
 
 test("rests a limit purchase whose first price is above its limit, and fills it at its limit when a later price falls through it", () => {
-  const order = placed({ lots: orderLots(10), price: limitForTest(4_950) });
+  const order = placed({
+    lots: orderLotsForTest(10),
+    price: limitForTest(4_950),
+  });
   expect(checked(order, latestAtTen, "2026-11-02T03:00:00Z")).toEqual({
     kind: "resting",
   });
@@ -193,9 +203,30 @@ test("fills a resting limit sale at its limit when a later price rises through i
   });
 });
 
+test("fills a resting order with a price of session II that arrives after the session ends", () => {
+  const order: OpenOrder = {
+    ...placed({ lots: orderLotsForTest(10), price: limitForTest(4_950) }),
+    state: { kind: "resting" },
+  };
+  // Quoted at 15:45, in session II, and checked at 15:55, after it.
+  const lastOfSession = quoteForTest("BBCA", 4_940, "2026-11-02T08:45:00Z");
+  expect(checked(order, lastOfSession, "2026-11-02T08:55:00Z")).toEqual({
+    kind: "filled",
+    fill: {
+      price: 4_950,
+      value: 4_950_000,
+      fee: 7_425,
+      tax: 0,
+      cashChange: -4_957_425,
+      quotedAt: lastOfSession.quotedAt,
+      filledAt: new Date("2026-11-02T08:55:00Z"),
+    },
+  });
+});
+
 test("fills no order with a price quoted after session II", () => {
   const order: OpenOrder = {
-    ...placed({ lots: orderLots(10), price: limitForTest(4_950) }),
+    ...placed({ lots: orderLotsForTest(10), price: limitForTest(4_950) }),
     state: { kind: "resting" },
   };
   // Quoted at 15:55, in the pre-closing session.
@@ -207,7 +238,7 @@ test("fills no order with a price quoted after session II", () => {
 
 test("expires an order that has not filled once the prices of its trading day are final", () => {
   const order: OpenOrder = {
-    ...placed({ lots: orderLots(10), price: limitForTest(4_950) }),
+    ...placed({ lots: orderLotsForTest(10), price: limitForTest(4_950) }),
     state: { kind: "resting" },
   };
   const lastOfDay = quoteForTest("BBCA", 4_990, "2026-11-02T08:49:00Z");
@@ -225,7 +256,7 @@ test("rejects a market purchase whose price rose beyond the cash while it waited
   // Placed at 20:00 at the close of Rp4,980, which sets aside Rp9,974,940, and checked at 09:10 on Tuesday 3 November 2026 against a price of Rp5,025 that costs Rp10,065,075.
   const closeOfMonday = quoteForTest("BBCA", 4_980, "2026-11-02T09:14:55Z");
   const order = placed(
-    { lots: orderLots(20), placedAt: new Date("2026-11-02T13:00:00Z") },
+    { lots: orderLotsForTest(20), placedAt: new Date("2026-11-02T13:00:00Z") },
     closeOfMonday,
   );
   expect(order.setAsideCash).toBe(9_974_940);
@@ -282,7 +313,7 @@ test("keeps an order waiting through holidays until the next trading day", () =>
 
 test("expires an order at its expiry even when a price of its sessions that a check reaches late would fill it", () => {
   const order: OpenOrder = {
-    ...placed({ lots: orderLots(10), price: limitForTest(4_950) }),
+    ...placed({ lots: orderLotsForTest(10), price: limitForTest(4_950) }),
     state: { kind: "resting" },
   };
   // Quoted at 15:40 below the limit, but checked only at 16:30.

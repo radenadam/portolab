@@ -8,7 +8,8 @@ function isLots(value: number): value is Lots {
   return Number.isSafeInteger(value) && value >= 0;
 }
 
-function isOrderLots(value: number): value is OrderLots {
+/** Whether a number from outside the program can be the size of an order, which is a whole number of at least 1. */
+export function isOrderLots(value: number): value is OrderLots {
   return isLots(value) && value >= 1;
 }
 
@@ -16,14 +17,6 @@ function isOrderLots(value: number): value is OrderLots {
 export function lots(count: number): Lots {
   if (!isLots(count)) {
     throw new Error(`${String(count)} is not a whole number of lots.`);
-  }
-  return count;
-}
-
-/** Makes the size of an order that the program holds, such as a constant, into the lots of an order. */
-export function orderLots(count: number): OrderLots {
-  if (!isOrderLots(count)) {
-    throw new Error(`${String(count)} is not a whole number of lots from 1.`);
   }
   return count;
 }

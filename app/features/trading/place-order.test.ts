@@ -2,12 +2,16 @@ import { expect, test } from "vitest";
 import type { InstrumentCloses } from "~/features/measures/aligned-returns";
 import { marketWithoutCompleteMonthForTest } from "~/features/measures/market-without-complete-month-for-test";
 import { monthEndClosesForTest } from "~/features/measures/month-end-closes-for-test";
-import { orderLots } from "~/units/lots";
 import { rupiah } from "~/units/rupiah";
 import { shares } from "~/units/shares";
 import { splitAdjustedRupiah } from "~/units/split-adjusted-rupiah";
 import type { OpenOrder, OrderRequest } from "./order";
-import { acceptedForTest, limitForTest, quoteForTest } from "./orders-for-test";
+import {
+  acceptedForTest,
+  limitForTest,
+  orderLotsForTest,
+  quoteForTest,
+} from "./orders-for-test";
 import { placeOrder } from "./place-order";
 import type { AccountState, StockState } from "./place-order";
 import { rateLimit } from "./price-limits";
@@ -35,7 +39,7 @@ function purchase(changes: Partial<OrderRequest> = {}): OrderRequest {
   return {
     code: "BBCA",
     side: "buy",
-    lots: orderLots(5),
+    lots: orderLotsForTest(5),
     price: { kind: "market" },
     placedAt: duringSession,
     ...changes,
@@ -96,7 +100,7 @@ test("accepts a market purchase of a stock with the monthly returns that the mea
 test("accepts a limit purchase in the evening for the next trading day, against the limits of the stored close of the day", () => {
   // At 20:00, Monday has closed at Rp5,000, which is the reference price of Tuesday. Its highest price is Rp6,250, while the close of Friday allows only Rp6,225 on Monday.
   const request = purchase({
-    lots: orderLots(1),
+    lots: orderLotsForTest(1),
     price: limitForTest(6_250),
     placedAt: new Date("2026-11-02T13:00:00Z"),
   });
@@ -126,27 +130,38 @@ test("accepts a limit purchase in the evening for the next trading day, against 
   });
 });
 
-test("rejects a limit order for the next trading day while the close of the day is not final, and gives the day of the missing close", () => {
-  // At 16:00, after session II, the order trades on Tuesday, but the close of Monday is not stored before 16:26.
+test("rejects a limit order for the next trading day until the close of the day is stored, and accepts it once the close is stored after the prices are final", () => {
+  const limitOrder = purchase({ price: limitForTest(5_000) });
+  // At 16:25, after session II, the order trades on Tuesday, and the close of Monday is not final before 16:26.
   expect(
     placeOrder(
-      purchase({
-        price: limitForTest(5_000),
-        placedAt: new Date("2026-11-02T09:00:00Z"),
-      }),
+      { ...limitOrder, placedAt: new Date("2026-11-02T09:25:00Z") },
       account(),
       bbca,
     ),
   ).toEqual({
     ok: false,
-    failure: { kind: "noReferenceClose", code: "BBCA", date: "2026-11-02" },
+    failure: {
+      kind: "noReferenceClose",
+      code: "BBCA",
+      date: "2026-11-02",
+      finalAt: new Date("2026-11-02T09:26:00.000Z"),
+    },
   });
+  // At 16:26, once the history job has stored the close of Monday.
+  expect(
+    placeOrder(
+      { ...limitOrder, placedAt: new Date("2026-11-02T09:26:00Z") },
+      account(),
+      { ...bbca, closes: withCloseOfMonday(bbcaCloses, 4_980) },
+    ),
+  ).toMatchObject({ ok: true, value: { tradingDay: "2026-11-03" } });
 });
 
 test("accepts a sale of shares that no other order sets aside, which sets aside no cash", () => {
   const holdings = [{ code: "BBCA", shares: shares(1_000), cost: rupiah(0) }];
   const earlierSale = accepted(
-    sale({ lots: orderLots(3) }),
+    sale({ lots: orderLotsForTest(3) }),
     account({ holdings }),
   );
   expect(
@@ -272,7 +287,7 @@ test("rejects an order for a stock that has no delayed price yet", () => {
 
 test("rejects an order of more lots than IDX accepts in one order", () => {
   expect(
-    placeOrder(purchase({ lots: orderLots(50_001) }), account(), bbca),
+    placeOrder(purchase({ lots: orderLotsForTest(50_001) }), account(), bbca),
   ).toEqual({
     ok: false,
     failure: { kind: "tooManyLots", lots: 50_001, maximumLots: 50_000 },
@@ -319,7 +334,7 @@ test("rejects a limit price between two steps of its band", () => {
 
 test("rejects a purchase that costs more than the cash that other open orders leave, and gives the largest that it pays for", () => {
   // The waiting purchase of 1 lot at Rp4,980 sets aside Rp498,747 of the cash of Rp2,500,000.
-  const earlierPurchase = accepted(purchase({ lots: orderLots(1) }));
+  const earlierPurchase = accepted(purchase({ lots: orderLotsForTest(1) }));
   expect(
     placeOrder(
       purchase(),
@@ -337,37 +352,60 @@ test("rejects a purchase that costs more than the cash that other open orders le
       fee: 3_735,
       cash: 2_500_000,
       setAsideCash: 498_747,
+      holdsShares: false,
       availableCash: 2_001_253,
       largestLots: 4,
     },
   });
 });
 
-test("counts no cash of an order whose trading day has ended, even before checkOrder marks it expired", () => {
-  // The purchase of Monday sets aside Rp2,493,735 of the cash of Rp2,500,000 until 16:26 on Monday, and a purchase at 10:00 on Tuesday can use that cash again.
-  const purchaseOfMonday = accepted(purchase());
-  const tuesday: StockState = {
-    ...bbca,
-    quote: quoteForTest("BBCA", 4_980, "2026-11-03T02:50:00Z"),
-  };
+// 16:25, the last minute before the prices of Monday are final, and 16:26, when the open orders of Monday expire.
+const lastMinuteOfMonday = new Date("2026-11-02T09:25:00Z");
+const endOfMonday = new Date("2026-11-02T09:26:00Z");
+
+test("rejects a purchase while an open buy order of the day sets aside the cash, and accepts it once that order expires", () => {
+  // The purchase of Monday sets aside Rp2,493,735 of the cash of Rp2,500,000 until 16:26, even before a check marks it expired.
+  const state = account({
+    cash: rupiah(2_500_000),
+    orders: [accepted(purchase())],
+  });
   expect(
-    placeOrder(
-      purchase({ placedAt: new Date("2026-11-03T03:00:00Z") }),
-      account({ cash: rupiah(2_500_000), orders: [purchaseOfMonday] }),
-      tuesday,
-    ),
+    placeOrder(purchase({ placedAt: lastMinuteOfMonday }), state, bbca),
+  ).toMatchObject({
+    ok: false,
+    failure: { kind: "notEnoughCash", setAsideCash: 2_493_735 },
+  });
+  expect(
+    placeOrder(purchase({ placedAt: endOfMonday }), state, bbca),
   ).toMatchObject({ ok: true, value: { setAsideCash: 2_493_735 } });
+});
+
+test("rejects a sale while an open sell order of the day sets aside the shares, and accepts it once that order expires", () => {
+  const holdings = [{ code: "BBCA", shares: shares(500), cost: rupiah(0) }];
+  const state = account({
+    holdings,
+    orders: [accepted(sale(), account({ holdings }))],
+  });
+  expect(
+    placeOrder(sale({ placedAt: lastMinuteOfMonday }), state, bbca),
+  ).toMatchObject({
+    ok: false,
+    failure: { kind: "notEnoughShares", heldLots: 5, setAsideLots: 5 },
+  });
+  expect(
+    placeOrder(sale({ placedAt: endOfMonday }), state, bbca),
+  ).toMatchObject({ ok: true, value: { side: "sell" } });
 });
 
 test("rejects a sale of more lots than the holding has beyond other open sell orders", () => {
   const holdings = [{ code: "BBCA", shares: shares(500), cost: rupiah(0) }];
   const earlierSale = accepted(
-    sale({ lots: orderLots(3) }),
+    sale({ lots: orderLotsForTest(3) }),
     account({ holdings }),
   );
   expect(
     placeOrder(
-      sale({ lots: orderLots(3) }),
+      sale({ lots: orderLotsForTest(3) }),
       account({ holdings, orders: [earlierSale] }),
       bbca,
     ),

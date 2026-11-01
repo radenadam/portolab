@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { orderLots } from "~/units/lots";
+import { orderLotsForTest } from "./orders-for-test";
 import { rupiah } from "~/units/rupiah";
 import { shares } from "~/units/shares";
 import { checkCashForPurchase } from "./check-cash-for-purchase";
@@ -11,7 +11,7 @@ const rates = costRatesForTest("2026-11-02");
 
 const purchase = {
   code: "BBCA",
-  lots: orderLots(5),
+  lots: orderLotsForTest(5),
   shares: shares(500),
   price: rupiah(4_980),
 };
