@@ -19,7 +19,7 @@ interface IndexInstrument {
 
 export type Instrument = StockInstrument | IndexInstrument;
 
-interface StockQuote {
+export interface StockQuote {
   kind: "stock";
   code: string;
   price: Rupiah;

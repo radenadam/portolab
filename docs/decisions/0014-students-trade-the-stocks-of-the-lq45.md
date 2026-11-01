@@ -1,6 +1,6 @@
 # 0014. Students trade the stocks of the LQ45
 
-- Status: Accepted
+- Status: Accepted. [Decision 0015](0015-students-buy-only-stocks-that-the-measures-can-use.md) narrows its universe for purchases to the stocks that have the monthly returns that the measures need.
 - Date: 2026-11-01
 
 ## Context

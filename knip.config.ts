@@ -8,6 +8,9 @@ export default {
     "project.inlang/paraglide.config.ts",
     // The screens of issues #8 and #9 will call the measures, which landed before them because the plan of the first release builds the calculations first. Remove this entry when those screens import the module.
     "app/features/measures/measure-stored.server.ts!",
+    // The order screens of issue #7 will call the order engine and make the lots of each order, which landed before them because the accounts and classes that store orders were not done yet. Remove these entries when those screens import the modules.
+    "app/features/trading/{place-order,check-order,holding-after-fill,order-failure-text,open-orders}.ts!",
+    "app/units/lots.ts!",
   ],
   // Helpers of tests, browser tests, and lint rules are not production code, so the production run leaves them out.
   project: [

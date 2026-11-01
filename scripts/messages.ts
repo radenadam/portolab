@@ -35,6 +35,7 @@ const messageKinds = [
   "error",
   "link",
   "name",
+  "phrase",
 ];
 
 /** Returns one sentence for each key that a language lacks, that does not start with a feature folder or with app, or that does not end with a kind of text. */

@@ -32,9 +32,9 @@ The first release serves the course sessions on CAPM and on portfolio return and
 
 - A lecturer creates a class, and students join it with a code. Accounts need no email.
 - Each student starts with virtual cash, Rp100 million unless the lecturer sets another amount.
-- Students trade the stocks of the LQ45 index, as decision 0014 explains. They trade during IDX trading sessions at delayed prices, which decision 0001 describes. Orders follow IDX lots, tick sizes, auto rejection limits, fees, and the final tax on sales. Limit orders and market orders are supported.
+- Students trade the stocks of the LQ45 index, as decision 0014 explains, and buy only those that have the monthly returns that the measures need, as decision 0015 explains. They trade during IDX trading sessions at delayed prices, which decision 0001 describes. Orders follow IDX lots, tick sizes, auto rejection limits, fees, and the final tax on sales. Limit orders and market orders are supported, and an order lasts for one trading day, as decision 0016 explains.
 - A portfolio shows its holdings, cash, value, and return over time against the IHSG index.
-- For each stock and for the whole portfolio, Portolab shows the expected return, variance, standard deviation, covariances and correlations, beta against the IHSG, the return that CAPM requires, and the position on the security market line. A stock gets them once it has the monthly returns that decision 0013 requires, and so does a portfolio that holds it.
+- For each stock and for the whole portfolio, Portolab shows the expected return, variance, standard deviation, covariances and correlations, beta against the IHSG, the return that CAPM requires, and the position on the security market line. A stock gets them once it has the monthly returns that decision 0013 requires. Students buy only such stocks, as decision 0015 explains, so a portfolio has them too, unless its stocks lack the close of different months.
 - The lecturer sees every portfolio and every measure, and can export them for grading.
 - Every screen works on a phone, a tablet, and a computer.
 - Every result is labelled as a simulation, and the price delay is always visible.

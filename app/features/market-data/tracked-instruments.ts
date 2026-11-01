@@ -1,10 +1,11 @@
+import { periodCovering } from "~/period-covering";
+import type { DatePeriod } from "~/period-covering";
 import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
 import type { Instrument } from "./price-source.server";
 
 /** The stocks of the LQ45 index of IDX from `from` to `until`, which decision 0014 makes the universe of stocks that students trade in that period. */
-interface UniversePeriod {
-  from: string;
+interface UniversePeriod extends DatePeriod {
   until: string;
   /** The announcements of IDX that set the stocks. */
   source: string;
@@ -91,10 +92,9 @@ function listTrackedInstruments(): Instrument[] {
 
 /** The codes of the stocks in the universe on a date, such as 2026-11-02. It fails for a date that no recorded period covers, so a missing review of IDX is noticed. */
 export function universeOn(date: string): Result<readonly string[], string> {
-  for (const period of universePeriods) {
-    if (date >= period.from && date <= period.until) {
-      return succeed(period.codes);
-    }
+  const period = periodCovering(universePeriods, date);
+  if (period !== undefined) {
+    return succeed(period.codes);
   }
   return fail(
     `No recorded period of the LQ45 covers ${date}, so add the stocks of the latest review of IDX to tracked-instruments.ts.`,

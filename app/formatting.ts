@@ -1,3 +1,4 @@
+import { startOfUtcDate } from "~/calendar-dates";
 import { getLocale } from "~/paraglide/runtime.js";
 import { listOfWords } from "~/sentences";
 import type { IndexPoints } from "~/units/index-points";
@@ -27,6 +28,33 @@ export function formatIndexLevel(level: IndexPoints): string {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(level);
+}
+
+/** Formats a fraction such as 0.07 as a percentage without a sign, such as 7%, with at most two decimals. */
+export function formatPercent(fraction: number): string {
+  return new Intl.NumberFormat(intlLocale(), {
+    style: "percent",
+    maximumFractionDigits: 2,
+  }).format(fraction);
+}
+
+/** Formats a calendar date such as 2026-11-02 as a date in words, such as 2 November 2026. */
+export function formatCalendarDate(date: string): string {
+  // A calendar date names a day without a time zone, and startOfUtcDate gives the start of that day in UTC, so the date is formatted in UTC.
+  return new Intl.DateTimeFormat(intlLocale(), {
+    dateStyle: "long",
+    timeZone: "UTC",
+  }).format(startOfUtcDate(date));
+}
+
+/** Formats the month of a calendar date such as 2027-01-01 in words, such as January 2027. */
+export function formatMonth(date: string): string {
+  // The month is formatted in UTC for the same reason as a calendar date.
+  return new Intl.DateTimeFormat(intlLocale(), {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(startOfUtcDate(date));
 }
 
 /** The direction that the sign of a change shows, which is none for a change without a sign. */

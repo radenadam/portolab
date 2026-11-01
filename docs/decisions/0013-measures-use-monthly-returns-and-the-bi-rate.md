@@ -1,6 +1,6 @@
 # 0013. Measures use five years of monthly returns and the BI-Rate
 
-- Status: Accepted
+- Status: Accepted. [Decision 0015](0015-students-buy-only-stocks-that-the-measures-can-use.md) changes one of its consequences. Students cannot buy a stock with fewer returns than the minimum, so such a stock takes the measures away from no portfolio.
 - Date: 2026-11-01
 
 ## Context
