@@ -49,7 +49,7 @@ export async function runAccountCommand(
       const temporaryPassword = await createLecturer(database, username);
       return temporaryPassword === undefined
         ? fail(
-            `The username "${username}" is taken, so Portolab created no account. Choose another username, or give that account a new password with the action reset-password.`,
+            `The username "${username}" is taken, so Portolab created no account. Choose another username, or give that account a new password with the action "reset-password".`,
           )
         : succeed(
             `Portolab created the lecturer account "${username}". Its temporary password is:\n\n  ${temporaryPassword}\n\nGive it to the lecturer, who signs in with it, gives a name, chooses a new password, and agrees to the privacy notice.`,
@@ -59,7 +59,7 @@ export async function runAccountCommand(
       const account = findAccountByUsername(database, username);
       if (account === undefined) {
         return fail(
-          `Portolab has no account with the username "${username}". Check the username, or create a lecturer with the action create-lecturer.`,
+          `Portolab has no account with the username "${username}". Check the username, or create a lecturer with the action "create-lecturer".`,
         );
       }
       const temporaryPassword = await resetPassword(database, account.id);
