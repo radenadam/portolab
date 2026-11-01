@@ -8,14 +8,14 @@ import {
   findAccountByUsername,
   resetPassword,
 } from "./account-store.server.ts";
+import { accountActions } from "./account-actions.ts";
+import type { AccountAction } from "./account-actions.ts";
 import { parseUsername } from "./username.ts";
 import type { Username } from "./username.ts";
 
-const actions = ["create-lecturer", "reset-password"] as const;
-
 /** What the person who runs the server asked the account command to do. */
 export interface AccountCommand {
-  action: (typeof actions)[number];
+  action: AccountAction;
   username: Username;
 }
 
@@ -30,7 +30,7 @@ export function parseAccountCommand(
     );
   }
   const [actionArgument, usernameArgument] = value;
-  const action = parseChoice(actionArgument, "The action", actions);
+  const action = parseChoice(actionArgument, "The action", accountActions);
   const username = parseUsername(usernameArgument, "The username");
   if (!action.ok || !username.ok) {
     return fail(failuresOf([action, username]).join(" "));

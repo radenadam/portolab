@@ -1,5 +1,6 @@
 import { spawn } from "node:child_process";
 import { utimesSync } from "node:fs";
+import { setTimeout as pause } from "node:timers/promises";
 import { errorMessage } from "../app/error-message.ts";
 import { exitWithFailure } from "../app/exit-with-failure.server.ts";
 import { secondMilliseconds } from "../app/time-units.ts";
@@ -74,7 +75,7 @@ try {
       for (const module of editedModules) {
         utimesSync(module, now, now);
       }
-      await waitSeconds(reloadSeconds);
+      await pause(reloadSeconds * secondMilliseconds);
       problems.push(...pageProblems(await answersFrom(pages), "after an edit"));
       break;
     }
@@ -122,10 +123,4 @@ function requestPage(path: string): Promise<Response> {
   return fetch(`${baseUrl}${path}`, {
     signal: AbortSignal.timeout(requestTimeoutSeconds * secondMilliseconds),
   });
-}
-
-function waitSeconds(seconds: number): Promise<void> {
-  return new Promise((resolve) =>
-    setTimeout(resolve, seconds * secondMilliseconds),
-  );
 }

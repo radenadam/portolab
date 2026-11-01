@@ -11,7 +11,7 @@ interface ScryptParameters {
   keyBytes: number;
 }
 
-// The cheat sheet on password storage of OWASP lists these parameters as one of five equal choices for scrypt. The others use more memory for each hash, and Node computes up to four hashes at once on a small server.
+// The cheat sheet on password storage of OWASP lists these parameters as one of five choices for scrypt that resist guessing equally. Each hash needs 32 MiB with them, and Node computes up to four hashes at once, so a small server keeps its memory. The choices with less memory take longer for each sign-in, and those with more risk the memory of the server.
 const parameters: ScryptParameters = {
   costExponent: 15,
   blockSize: 8,
