@@ -1,7 +1,9 @@
 import { spawn } from "node:child_process";
 import { utimesSync } from "node:fs";
+import { setTimeout as pause } from "node:timers/promises";
 import { errorMessage } from "../app/error-message.ts";
 import { exitWithFailure } from "../app/exit-with-failure.server.ts";
+import { secondMilliseconds } from "../app/time-units.ts";
 import {
   isAppModule,
   modulesToEdit,
@@ -11,10 +13,12 @@ import {
 import type { PageAnswer } from "./dev-server-check.ts";
 import { readJsonFile } from "./json.ts";
 import { readFilesIn } from "./read-files-in.ts";
+import { waitForHealth, watchExit } from "./wait-for-health.ts";
 import { writeScriptFailure } from "./write-script-failure.ts";
 
 // Browser tests run the production build, so this check is what keeps `pnpm dev` working for contributors.
 const port = 4174;
+const baseUrl = `http://localhost:${String(port)}`;
 const startupTimeoutSeconds = 60;
 // A request to a server that hangs ends after this, so the check names the failure and passes on the server's stderr instead of waiting until CI stops the job.
 const requestTimeoutSeconds = 10;
@@ -50,6 +54,7 @@ const server = spawn(process.execPath, devArguments.value, {
   },
   stdio: ["ignore", "ignore", "pipe"],
 });
+const serverExit = watchExit(server);
 let serverErrors = "";
 server.stderr.on("data", (chunk: Buffer) => {
   serverErrors += chunk.toString();
@@ -57,19 +62,33 @@ server.stderr.on("data", (chunk: Buffer) => {
 
 const problems: string[] = [];
 try {
-  if (await waitForHealth()) {
-    problems.push(...pageProblems(await answersFrom(pages), "at startup"));
-    // Touching a module makes the dev server reload it as if it was edited, without changing the code.
-    const now = new Date();
-    for (const module of editedModules) {
-      utimesSync(module, now, now);
+  const wait = await waitForHealth(`${baseUrl}/health`, {
+    timeoutSeconds: startupTimeoutSeconds,
+    requestTimeoutSeconds,
+    stopReason: serverExit.reason,
+  });
+  switch (wait.kind) {
+    case "answered": {
+      problems.push(...pageProblems(await answersFrom(pages), "at startup"));
+      // Touching a module makes the dev server reload it as if it was edited, without changing the code.
+      const now = new Date();
+      for (const module of editedModules) {
+        utimesSync(module, now, now);
+      }
+      await pause(reloadSeconds * secondMilliseconds);
+      problems.push(...pageProblems(await answersFrom(pages), "after an edit"));
+      break;
     }
-    await waitSeconds(reloadSeconds);
-    problems.push(...pageProblems(await answersFrom(pages), "after an edit"));
-  } else {
-    problems.push(
-      `The development server did not answer on /health within ${String(startupTimeoutSeconds)} seconds.`,
-    );
+    case "stopped":
+      problems.push(
+        `The development server stopped with ${wait.reason} before it answered on /health.`,
+      );
+      break;
+    case "timedOut":
+      problems.push(
+        `The development server did not answer on /health within ${String(startupTimeoutSeconds)} seconds.`,
+      );
+      break;
   }
 } finally {
   server.kill();
@@ -100,28 +119,8 @@ async function answersFrom(paths: readonly string[]): Promise<PageAnswer[]> {
   return answers;
 }
 
-async function waitForHealth(): Promise<boolean> {
-  const deadline = Date.now() + startupTimeoutSeconds * 1000;
-  while (Date.now() < deadline) {
-    try {
-      const response = await requestPage("/health");
-      if (response.ok) {
-        return true;
-      }
-    } catch {
-      // The server is still starting, so the connection is refused or the request runs out of time.
-    }
-    await waitSeconds(0.5);
-  }
-  return false;
-}
-
 function requestPage(path: string): Promise<Response> {
-  return fetch(`http://localhost:${String(port)}${path}`, {
-    signal: AbortSignal.timeout(requestTimeoutSeconds * 1000),
+  return fetch(`${baseUrl}${path}`, {
+    signal: AbortSignal.timeout(requestTimeoutSeconds * secondMilliseconds),
   });
-}
-
-function waitSeconds(seconds: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 }

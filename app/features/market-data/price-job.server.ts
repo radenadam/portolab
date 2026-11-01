@@ -1,6 +1,7 @@
 import { setTimeout as wait } from "node:timers/promises";
 import { Cron } from "croner";
 import { errorDetail } from "~/error-message";
+import { secondMilliseconds } from "~/time-units";
 import { writeLog } from "~/write-log.server";
 import { missingDataWarnings } from "./missing-data-warnings";
 import type { PriceJobSettings } from "./price-job-settings";
@@ -14,10 +15,10 @@ import {
 import { isUpdateMinute, nextAttemptTime } from "./update-schedule";
 
 // Shorter than the minute between runs of the schedule, so a stalled request ends as a recorded failure before the next run.
-const requestTimeoutMilliseconds = 20_000;
+const requestTimeoutMilliseconds = 20 * secondMilliseconds;
 
 // Decision 0001 asks for a low load on Yahoo, and with a second between requests the closes of the whole universe take about a minute.
-const historyRequestPauseMilliseconds = 1000;
+const historyRequestPauseMilliseconds = secondMilliseconds;
 
 /** Fetches quotes and daily closes once at startup, so a fresh server shows the last close, then quotes every minute while prices can change and daily closes after each trading day closes. Returns a function that stops the job. */
 export function startPriceJob(settings: PriceJobSettings): () => void {

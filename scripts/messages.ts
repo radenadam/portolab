@@ -31,6 +31,7 @@ const messageKinds = [
   "title",
   "body",
   "label",
+  "hint",
   "notice",
   "error",
   "link",

@@ -88,7 +88,7 @@ const restrictedSyntax = [
 ];
 
 const featureImport =
-  "A module outside the features never imports from a feature, as the section Structure of AGENTS.md states. Only app/root.tsx, app/routes.ts, and server/app.ts compose the app from its features.";
+  "A module outside the features never imports from a feature, as the section Structure of AGENTS.md states. Only app/root.tsx, app/routes.ts, server/app.ts, and server/account.ts compose the app from its features.";
 
 export default defineConfig(
   globalIgnores([
@@ -117,6 +117,20 @@ export default defineConfig(
       "portolab/file-named-after-export": "error",
       "@typescript-eslint/switch-exhaustiveness-check": "error",
       "@typescript-eslint/consistent-type-imports": "error",
+      // A loader, an action, or a middleware of React Router stops with a response, such as a redirect to the sign-in page, by throwing it.
+      "@typescript-eslint/only-throw-error": [
+        "error",
+        {
+          allow: [
+            { from: "lib", name: "Response" },
+            {
+              from: "package",
+              package: "react-router",
+              name: "DataWithResponseInit",
+            },
+          ],
+        },
+      ],
       complexity: ["error", 12],
       eqeqeq: "error",
       "id-denylist": ["error", ...abbreviations],
@@ -154,12 +168,13 @@ export default defineConfig(
   },
   {
     files: ["app/**/*.{ts,tsx}", "server/**/*.ts"],
-    // The root route, the route table, and the services of the server compose the app from its features, so they are the only modules outside the features that may import them.
+    // The root route, the route table, the services of the server, and the account command compose the app from its features, so they are the only modules outside the features that may import them.
     ignores: [
       "app/features/**",
       "app/root.tsx",
       "app/routes.ts",
       "server/app.ts",
+      "server/account.ts",
     ],
     rules: {
       "no-restricted-imports": [

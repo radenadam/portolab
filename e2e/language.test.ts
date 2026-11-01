@@ -20,14 +20,14 @@ const texts: Record<
     pageBody: "Pilih bahasa dengan pengalih di bagian atas halaman.",
     rejectedTitle: "Bahasa tidak dapat diganti",
     unknownLanguageError:
-      'Formulir mengirim "fr" di kolom locale, tetapi Portolab hanya tersedia dalam Bahasa Indonesia dan English. Pilih salah satunya di pengalih bahasa.',
+      'Formulir mengirim "fr" di kolom "Bahasa", tetapi Portolab hanya tersedia dalam Bahasa Indonesia dan English. Pilih salah satunya di pengalih bahasa.',
   },
   en: {
     pageTitle: "Choose a language",
     pageBody: "Choose a language with the switch at the top of the page.",
     rejectedTitle: "The language could not be changed",
     unknownLanguageError:
-      'The form sent "fr" in the field locale, but Portolab is only available in Bahasa Indonesia and English. Choose one of them in the language switch.',
+      'The form sent "fr" in the field "Language", but Portolab is only available in Bahasa Indonesia and English. Choose one of them in the language switch.',
   },
 };
 
