@@ -149,7 +149,10 @@ test("accepts exactly the statuses that the verifier's schema allows", () => {
     ),
   ).toEqual({
     ok: false,
-    failure: `VERIFIER_OUTPUT: finding 1 must have one of ${listOfWords(statuses, "disjunction")} at status, but status is "unsure".`,
+    failure: `VERIFIER_OUTPUT: finding 1: the status must be ${listOfWords(
+      statuses.map((status) => `"${status}"`),
+      "disjunction",
+    )}, but it is "unsure".`,
   });
 });
 

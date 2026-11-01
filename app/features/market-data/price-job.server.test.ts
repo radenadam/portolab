@@ -138,7 +138,7 @@ test("waits after failures, and a later run of the job keeps waiting, because th
   const database = openTestDatabase();
   await updateFrom(database, failingSource, { at: start });
   await updateFrom(database, failingSource, { at: minutesAfterStart(1) });
-  // After two failures in a row, the job waits two minutes.
+  // After two failures in a row, the backoff in update-schedule.ts makes this attempt too early.
   await updateFrom(database, fixturePriceSource, { at: minutesAfterStart(2) });
   expect(listLatestQuotes(database)).toEqual([]);
   await updateFrom(database, fixturePriceSource, { at: minutesAfterStart(3) });

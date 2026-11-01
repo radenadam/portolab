@@ -137,7 +137,7 @@ interface FieldProblem {
   value: unknown;
 }
 
-export function invalidField(
+function invalidField(
   source: string,
   problem: FieldProblem,
 ): Result<never, string> {

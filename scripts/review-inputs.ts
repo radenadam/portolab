@@ -1,8 +1,8 @@
 import { fail, succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
 import { describeValue, isRecord } from "../app/value-shapes.ts";
+import { parseChoice } from "../app/value-parsers.ts";
 import {
-  invalidField,
   notAnObject,
   parseListField,
   parseStringAt,
@@ -81,14 +81,13 @@ function parseVerdict(
   Pick<VerifiedFinding, "status" | "duplicateOf" | "evidence">,
   string
 > {
-  const status = isRecord(value) ? value["status"] : undefined;
-  const knownStatus = verdictStatuses.find((candidate) => candidate === status);
-  if (knownStatus === undefined) {
-    return invalidField(source, {
-      field: "status",
-      expected: `one of ${listOfWords(verdictStatuses, "disjunction")}`,
-      value: status,
-    });
+  const status = parseChoice(
+    isRecord(value) ? value["status"] : undefined,
+    `${source}: the status`,
+    verdictStatuses,
+  );
+  if (!status.ok) {
+    return status;
   }
   const duplicateOf = parseStringAt(value, source, ["duplicateOf"]);
   if (!duplicateOf.ok) {
@@ -99,7 +98,7 @@ function parseVerdict(
     return evidence;
   }
   return succeed({
-    status: knownStatus,
+    status: status.value,
     duplicateOf: duplicateOf.value,
     evidence: evidence.value,
   });
@@ -190,18 +189,5 @@ export function parseAgentTools(
     ? succeed(tools)
     : fail(
         `${source} must list its tools on one line that starts with "tools: ", separated by commas, but that list is ${describeValue(line)}.`,
-      );
-}
-
-/** Reads the name of one lens, which must be a lens that the router's schema names. */
-export function parseLensName(
-  value: unknown,
-  source: string,
-  knownLenses: readonly string[],
-): Result<string, string> {
-  return typeof value === "string" && knownLenses.includes(value)
-    ? succeed(value)
-    : fail(
-        `${source} must be one of ${listOfWords(knownLenses, "disjunction")}, but it is ${describeValue(value)}.`,
       );
 }

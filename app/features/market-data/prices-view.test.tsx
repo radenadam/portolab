@@ -41,7 +41,7 @@ const quotes: Quote[] = [
   },
 ];
 
-// A failure at 16:30 WIB on Friday 30 October 2026, after the price hours, so the job tries again at the start of the next session, on Monday.
+// A failure at 16:30 WIB on Friday 30 October 2026, after the price hours.
 function failedAttempt(failedCodes: string[]): UpdateAttempt {
   return {
     attemptedAt: new Date("2026-10-30T09:30:00.000Z"),
@@ -57,7 +57,7 @@ const succeededAttempt: UpdateAttempt = {
   failedCodes: [],
 };
 
-// An answer at 14:00 WIB during the session that lacked some prices, so the job tries again in the next minute.
+// An answer at 14:00 WIB during the session that lacked some prices.
 function partialAttempt(failedCodes: string[]): UpdateAttempt {
   return {
     attemptedAt: new Date("2026-10-30T07:00:00.000Z"),

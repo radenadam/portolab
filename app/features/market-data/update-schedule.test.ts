@@ -145,7 +145,7 @@ test("tries again after the holidays and the weekend that follow them", () => {
 });
 
 test("tries again in the first minute of a date that no calendar covers, as the job does", () => {
-  // 31 December 2027 is a holiday, and no calendar covers 2028 yet.
+  // The last day that the calendars cover is a holiday, and the day after it is in no calendar.
   expect(
     nextScheduledAttempt(
       failedAttempt("2027-12-30T09:30:00.000Z", 1),
