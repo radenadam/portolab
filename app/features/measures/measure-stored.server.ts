@@ -3,6 +3,8 @@ import { listDailyHistory } from "~/features/market-data/history-store.server";
 import type { Instrument } from "~/features/market-data/price-source.server";
 import type { Result } from "~/result";
 import { portfolioWeight } from "~/units/portfolio-weight";
+import { rupiah } from "~/units/rupiah";
+import type { Rupiah } from "~/units/rupiah";
 import type { MarketMeasures, StockMeasures } from "./capm";
 import { defaultEstimationSettings } from "./estimation-settings";
 import type { MeasureFailure } from "./measure";
@@ -24,15 +26,22 @@ export function measureStoredStock(
   );
 }
 
-/** Measures a portfolio against the IHSG from the daily closes that the price job stored, with the settings that every measure uses. Each holding names a stock and its share of the value of the portfolio as a fraction from 0 to 1, and the rest of the value is cash. */
+/** Measures a portfolio against the IHSG from the daily closes that the price job stored, with the settings that every measure uses. Each holding names a stock and its value at the latest prices, and the cash is the rest of the value of the portfolio. The weight of a holding is its share of that whole value. */
 export function measureStoredPortfolio(
   database: Database,
-  holdings: readonly { code: string; weight: number }[],
+  portfolio: {
+    holdings: readonly { code: string; value: Rupiah }[];
+    cash: Rupiah;
+  },
 ): Result<PortfolioMeasures, MeasureFailure> {
+  let wholeValue = portfolio.cash;
+  for (const holding of portfolio.holdings) {
+    wholeValue = rupiah(wholeValue + holding.value);
+  }
   return measurePortfolio(
-    holdings.map((holding) => ({
+    portfolio.holdings.map((holding) => ({
       ...listDailyHistory(database, { kind: "stock", code: holding.code }),
-      weight: portfolioWeight(holding.weight),
+      weight: portfolioWeight(holding.value / wholeValue),
     })),
     listDailyHistory(database, market),
     defaultEstimationSettings,

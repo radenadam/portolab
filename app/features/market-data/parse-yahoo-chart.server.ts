@@ -2,7 +2,7 @@ import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
 import { isIndexPoints } from "~/units/index-points";
 import { isSplitAdjustedRupiah } from "~/units/split-adjusted-rupiah";
-import { describeValue, isRecord } from "~/value-shapes";
+import { describeValue, isRecord, isValidDate } from "~/value-shapes";
 import { wibDateOf } from "~/wib";
 import type {
   DailyClose,
@@ -69,7 +69,7 @@ function parseCloses<Price extends number>(
   for (const [index, row] of value.entries()) {
     const rowNumber = String(index + 1);
     const date = isRecord(row) ? row["date"] : undefined;
-    if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+    if (!isValidDate(date)) {
       return fail(
         `${source} must have a time in the date of each row, but the date of row ${rowNumber} is ${describeValue(date)}.`,
       );

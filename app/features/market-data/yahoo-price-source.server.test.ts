@@ -103,6 +103,24 @@ test("rejects a stock price with a fraction of a rupiah", () => {
   ]);
 });
 
+test("rejects a quote whose time is not a valid date", () => {
+  const batch = collectYahooQuotes(
+    [bbca],
+    [
+      {
+        symbol: "BBCA.JK",
+        currency: "IDR",
+        regularMarketPrice: 4980,
+        regularMarketPreviousClose: 4940,
+        regularMarketTime: new Date("not a date"),
+      },
+    ],
+  );
+  expect(batch.problems).toEqual([
+    "The Yahoo Finance quote for BBCA must have a time at regularMarketTime, but it is an invalid date.",
+  ]);
+});
+
 test("rejects a quote in another currency", () => {
   const batch = collectYahooQuotes(
     [bbca],

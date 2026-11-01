@@ -362,12 +362,44 @@ test("stops after three instruments in a row fail, and counts the instruments th
   ]);
   expect(readLatestUpdateAttempt(database, "history")).toEqual(
     firstFailure(mondayMorning, "2026-10-30", [
+      "TLKM",
+      "ASII",
       "IHSG",
       "BBCA",
       "BBRI",
-      "TLKM",
-      "ASII",
     ]),
+  );
+});
+
+test("asks first for the instruments that a retry skipped, so instruments that keep failing cannot hold back the others", async () => {
+  const database = openDatabaseForTest();
+  const tlkm: Instrument = { kind: "stock", code: "TLKM" };
+  // The first three instruments never have a close of the latest trading day, as for a suspended stock, and TLKM does.
+  const source: PriceSource = {
+    ...fixturePriceSource,
+    fetchDailyHistory: (instrument, from, signal) =>
+      instrument.code === "TLKM"
+        ? fixturePriceSource.fetchDailyHistory(instrument, from, signal)
+        : Promise.resolve(succeed(buildDailyHistory(instrument, []))),
+  };
+  await updateHistory(database, source, {
+    at: mondayMorning,
+    instrumentsToTrack: [...instruments, tlkm],
+  });
+  expect(listDailyHistory(database, tlkm).closes).toEqual([]);
+  const { source: recording, requests } = recordingSource(source);
+  await updateHistory(database, recording, {
+    at: new Date("2026-11-02T03:01:00.000Z"),
+    instrumentsToTrack: [...instruments, tlkm],
+  });
+  expect(requests.map((request) => request.code)).toEqual([
+    "TLKM",
+    "IHSG",
+    "BBCA",
+    "BBRI",
+  ]);
+  expect(listDailyHistory(database, tlkm).closes.at(-1)?.date).toBe(
+    "2026-10-30",
   );
 });
 

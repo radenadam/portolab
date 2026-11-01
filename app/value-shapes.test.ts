@@ -3,6 +3,7 @@ import {
   describeValue,
   isRecord,
   isStringArray,
+  isValidDate,
   typeName,
 } from "./value-shapes";
 
@@ -24,6 +25,12 @@ test("describes a number as its text, because JSON shows Infinity and NaN as nul
 
 test("describes a date that holds no time as an invalid date", () => {
   expect(describeValue(new Date("not a date"))).toBe("an invalid date");
+});
+
+test("accepts a date that holds a time and rejects one that does not", () => {
+  expect(isValidDate(new Date("2026-10-30T09:14:55.000Z"))).toBe(true);
+  expect(isValidDate(new Date("not a date"))).toBe(false);
+  expect(isValidDate("2026-10-30")).toBe(false);
 });
 
 test("names a value that JSON cannot show by its class", () => {

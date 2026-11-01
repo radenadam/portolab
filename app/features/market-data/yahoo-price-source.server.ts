@@ -1,6 +1,6 @@
 import YahooFinance from "yahoo-finance2";
 import { errorMessage } from "~/error-message";
-import { describeValue, isRecord } from "~/value-shapes";
+import { describeValue, isRecord, isValidDate } from "~/value-shapes";
 import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
 import { isIndexPoints } from "~/units/index-points";
@@ -134,7 +134,7 @@ function parseYahooQuote(
       `${source} must have a positive regularMarketPreviousClose, but it is ${describeValue(regularMarketPreviousClose)}.`,
     );
   }
-  if (!(quotedAt instanceof Date)) {
+  if (!isValidDate(quotedAt)) {
     return fail(
       `${source} must have a time at regularMarketTime, but it is ${describeValue(quotedAt)}.`,
     );

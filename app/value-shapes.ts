@@ -40,6 +40,11 @@ function className(value: unknown): string | undefined {
     : undefined;
 }
 
+/** Whether a value is a date that holds a time, which a date made from text that is not a date does not. */
+export function isValidDate(value: unknown): value is Date {
+  return value instanceof Date && !Number.isNaN(value.getTime());
+}
+
 export function isStringArray(value: unknown): value is string[] {
   return (
     Array.isArray(value) && value.every((item) => typeof item === "string")

@@ -1,5 +1,6 @@
 import { expect, test } from "vitest";
 import { portfolioWeight } from "~/units/portfolio-weight";
+import { rupiah } from "~/units/rupiah";
 import { openDatabaseForTest } from "~/database/open-database-for-test.server";
 import type { Database } from "~/database/database.server";
 import { saveDailyHistory } from "~/features/market-data/history-store.server";
@@ -31,17 +32,21 @@ test("measures a stock from its stored closes and those of the IHSG", () => {
   );
 });
 
-test("measures a portfolio from the stored closes of its holdings", () => {
+test("measures a portfolio from the stored closes of its holdings, weighted by their share of its value with the cash", () => {
+  // Rp50 million in BBCA, Rp30 million in TLKM, and Rp20 million in cash give weights of 0.5 and 0.3.
   expect(
-    measureStoredPortfolio(databaseWithCloses(), [
-      { code: "BBCA", weight: 0.6 },
-      { code: "TLKM", weight: 0.4 },
-    ]),
+    measureStoredPortfolio(databaseWithCloses(), {
+      holdings: [
+        { code: "BBCA", value: rupiah(50_000_000) },
+        { code: "TLKM", value: rupiah(30_000_000) },
+      ],
+      cash: rupiah(20_000_000),
+    }),
   ).toEqual(
     measurePortfolio(
       [
-        { ...bbca, weight: portfolioWeight(0.6) },
-        { ...tlkm, weight: portfolioWeight(0.4) },
+        { ...bbca, weight: portfolioWeight(0.5) },
+        { ...tlkm, weight: portfolioWeight(0.3) },
       ],
       ihsg,
       defaultEstimationSettings,

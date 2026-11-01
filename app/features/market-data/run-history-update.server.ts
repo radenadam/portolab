@@ -42,7 +42,7 @@ interface HistoryRun {
 }
 
 /**
- * Brings the stored daily closes of the instruments up to date. After a trading day closes, it fetches the whole history of every instrument from the start date, because a source adjusts every earlier close after a split, sometimes days later. Between closes, it fetches again only the instruments that failed and the instruments without any stored close, once the wait after failures has passed. It stops after a few failures in a row and counts the instruments that it skipped as failed. It records the attempt when its last request has ended, with the instruments that it could not update and the latest final day that it asked for, so a later close that became final during a long run is still fetched. The state lives in the database, as decision 0009 asks, so a restart keeps waiting.
+ * Brings the stored daily closes of the instruments up to date. After a trading day closes, it fetches the whole history of every instrument from the start date, because a source adjusts every earlier close after a split, sometimes days later. Between closes, it fetches again only the instruments that failed and the instruments without any stored close, once the wait after failures has passed. It stops after a few failures in a row, counts the instruments that it skipped as failed, and asks for them first in the next retry. It records the attempt when its last request has ended, with the instruments that it could not update and the latest final day that it asked for, so a later close that became final during a long run is still fetched. The state lives in the database, as decision 0009 asks, so a restart keeps waiting.
  */
 export async function runHistoryUpdate(
   settings: PriceJobSettings,
@@ -83,7 +83,7 @@ export async function runHistoryUpdate(
       `The closes of ${String(failuresBeforeStopping)} instruments in a row could not be updated, so the history update skipped ${listOfWords(skippedCodes)}. It tries again once the wait after failures has passed.`,
     );
   }
-  const notUpdatedCodes = [...failedCodes, ...skippedCodes];
+  const notUpdatedCodes = [...skippedCodes, ...failedCodes];
   saveUpdateAttempt(settings.database, "history", {
     attemptedAt: clock(),
     succeeded: notUpdatedCodes.length < due.length,
@@ -120,12 +120,23 @@ function dueInstruments(
   if (latestAttempt.finalDate !== finalDay.date) {
     return settings.instruments;
   }
+  // The failed instruments come in the order of the attempt, which puts the ones that it skipped first, so instruments that keep failing at the front cannot hold back the others on every retry. Instruments without stored closes, such as a stock that a new period of the universe added, come after them.
+  const due: Instrument[] = [];
+  for (const code of latestAttempt.failedCodes) {
+    const instrument = settings.instruments.find(
+      (tracked) => tracked.code === code,
+    );
+    if (instrument !== undefined) {
+      due.push(instrument);
+    }
+  }
   const storedCodes = listCodesWithHistory(settings.database);
-  return settings.instruments.filter(
-    (instrument) =>
-      latestAttempt.failedCodes.includes(instrument.code) ||
-      !storedCodes.has(instrument.code),
-  );
+  for (const instrument of settings.instruments) {
+    if (!storedCodes.has(instrument.code) && !due.includes(instrument)) {
+      due.push(instrument);
+    }
+  }
+  return due;
 }
 
 // Returns whether the closes were stored, and logs why they were not. An expected failure is a warning, and a thrown error is an error with its stack, because it should never happen.
