@@ -1,9 +1,14 @@
 import { spawn } from "node:child_process";
-import { utimesSync } from "node:fs";
+import { readdirSync, readFileSync, utimesSync } from "node:fs";
 import { errorMessage } from "../app/error-message.ts";
 import { exitWithFailure } from "../app/exit-with-failure.server.ts";
-import { pageProblems, parseDevArguments } from "./dev-server-check.ts";
-import type { PageAnswer } from "./dev-server-check.ts";
+import {
+  isAppModule,
+  modulesToEdit,
+  pageProblems,
+  parseDevArguments,
+} from "./dev-server-check.ts";
+import type { PageAnswer, SourceModule } from "./dev-server-check.ts";
 import { readJsonFile } from "./json.ts";
 import { writeScriptFailure } from "./write-script-failure.ts";
 
@@ -13,17 +18,32 @@ const startupTimeoutSeconds = 60;
 // A request to a server that hangs ends after this, so the check names the failure and passes on the server's stderr instead of waiting until CI stops the job.
 const requestTimeoutSeconds = 10;
 const pages = ["/health", "/prices"];
-// The dev server reloads an edited module and every module that imports it. These modules hold the database and its schema, which once lost the connection on a reload.
-const editedModules = [
-  "app/database/database.server.ts",
-  "app/features/market-data/market-data.schema.ts",
-];
 const reloadSeconds = 2;
 
 // The check runs the dev script itself, through the same Node binary, so it tests exactly what contributors run.
 const devArguments = readJsonFile("package.json", parseDevArguments);
+
+// The dev server reloads an edited module and every module that imports it, so the check edits each module that holds a service, which the code itself names.
+const appModules: SourceModule[] = [];
+for (const entry of readdirSync("app", { recursive: true, encoding: "utf8" })) {
+  const path = `app/${entry.replaceAll("\\", "/")}`;
+  if (isAppModule(path)) {
+    appModules.push({ path, text: readFileSync(path, "utf8") });
+  }
+}
+const editedModules = modulesToEdit(appModules);
+
+const inputProblems: string[] = [];
 if (!devArguments.ok) {
-  exitWithFailure([devArguments.failure], writeScriptFailure);
+  inputProblems.push(devArguments.failure);
+}
+if (editedModules.length === 0) {
+  inputProblems.push(
+    "The check found no module in app/ that creates a context or holds a schema, so an edit would prove nothing about the services.",
+  );
+}
+if (!devArguments.ok || inputProblems.length > 0) {
+  exitWithFailure(inputProblems, writeScriptFailure);
 }
 
 const server = spawn(process.execPath, devArguments.value, {

@@ -45,3 +45,32 @@ export function pageProblems(
   }
   return problems;
 }
+
+/** A module of the app as the check reads it. */
+export interface SourceModule {
+  path: string;
+  text: string;
+}
+
+/** Whether a path names a module of the app that the check reads, which leaves out tests and the code that Paraglide generates. */
+export function isAppModule(path: string): boolean {
+  return (
+    /^app\/.+\.tsx?$/.test(path) &&
+    !/\.test\.tsx?$/.test(path) &&
+    !path.startsWith("app/paraglide/")
+  );
+}
+
+/** Chooses the modules that the check edits in the running dev server. These are each module that creates a context, through which the server hands a service to loaders, and each schema of the database, because a reload of such a module once lost a service. */
+export function modulesToEdit(modules: readonly SourceModule[]): string[] {
+  const chosen: string[] = [];
+  for (const module of modules) {
+    if (
+      module.path.endsWith(".schema.ts") ||
+      /\bcreateContext\s*[<(]/.test(module.text)
+    ) {
+      chosen.push(module.path);
+    }
+  }
+  return chosen;
+}

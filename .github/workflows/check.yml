@@ -30,7 +30,9 @@ jobs:
           TITLE: ${{ github.event.pull_request.title }}
         run: printf '%s\n' "$TITLE" | pnpm exec commitlint
       - name: Install the browser for end-to-end tests
-        run: pnpm exec playwright install --with-deps chromium
+        uses: ./.github/actions/install-browser
+        # The step ends long before the job does, so a stalled download fails here by name.
+        timeout-minutes: 10
       - name: Run every check
         run: pnpm check
       - name: Upload end-to-end test traces

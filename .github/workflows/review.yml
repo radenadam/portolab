@@ -83,7 +83,9 @@ jobs:
           require-lockfile: true
       - name: Install the browser for the product lens
         if: matrix.lens == 'product'
-        run: pnpm exec playwright install --with-deps chromium
+        uses: ./.github/actions/install-browser
+        # The step ends long before the job does, so a stalled download fails here by name.
+        timeout-minutes: 10
       # The agent gets exactly the tools that its definition lists.
       - name: Read the tools of the lens and the schema of its report
         id: definition
