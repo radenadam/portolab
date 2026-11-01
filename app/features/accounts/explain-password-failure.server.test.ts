@@ -14,13 +14,13 @@ const texts: Record<
 > = {
   id: {
     usernameBlocked:
-      "Portolab memblokir kata sandi untuk dosen sampai 10.15 WIB, karena menerima 10 kata sandi salah untuknya dalam 15 menit. Blokir ini menghentikan siapa pun yang mencoba menebak kata sandinya. Coba lagi setelah waktu tersebut.",
+      'Portolab memblokir kata sandi untuk "dosen" sampai 10.15 WIB, karena menerima 10 kata sandi salah untuknya dalam 15 menit. Blokir ini menghentikan siapa pun yang mencoba menebak kata sandinya. Coba lagi setelah waktu tersebut.',
     addressBlocked:
       "Portolab memblokir kata sandi dari jaringan Anda sampai 10.15 WIB, karena menerima 100 kata sandi salah dari jaringan itu dalam 15 menit. Blokir ini menghentikan siapa pun yang mencoba menebak kata sandi. Coba lagi setelah waktu tersebut.",
   },
   en: {
     usernameBlocked:
-      "Portolab blocks passwords for dosen until 10:15 AM WIB, because it received 10 wrong passwords for it within 15 minutes. The block stops anyone who tries to guess the password. Try again after that time.",
+      'Portolab blocks passwords for "dosen" until 10:15 AM WIB, because it received 10 wrong passwords for it within 15 minutes. The block stops anyone who tries to guess the password. Try again after that time.',
     addressBlocked:
       "Portolab blocks passwords from your network until 10:15 AM WIB, because it received 100 wrong passwords from it within 15 minutes. The block stops anyone who tries to guess passwords. Try again after that time.",
   },

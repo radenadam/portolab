@@ -55,7 +55,6 @@ export function TextField({
         autoComplete={autoComplete}
         autoCapitalize={capitalizesWords ? "words" : "none"}
         spellCheck={false}
-        required
         defaultValue={defaultValue}
         aria-invalid={failure !== undefined}
         aria-describedby={
@@ -90,7 +89,6 @@ export function CheckboxField({
           name={name}
           type="checkbox"
           value="yes"
-          required
           aria-invalid={failure !== undefined}
           aria-describedby={failure === undefined ? undefined : failureId}
           className={styles["box"]}

@@ -42,7 +42,7 @@
   "accounts_sign_in_label": "Masuk",
   "accounts_forgot_password_notice": "Lupa kata sandi? Minta orang yang menjalankan server Portolab ini untuk mengatur ulang kata sandi Anda.",
   "accounts_wrong_credentials_error": "Portolab tidak menemukan akun dengan nama pengguna dan kata sandi ini. Periksa keduanya, lalu coba lagi. Setelah {failures} percobaan salah dalam {minutes} menit, Portolab memblokir nama pengguna itu untuk sementara, agar tidak ada yang dapat menebak kata sandinya.",
-  "accounts_username_blocked_error": "Portolab memblokir kata sandi untuk {username} sampai {time} WIB, karena menerima {failures} kata sandi salah untuknya dalam {minutes} menit. Blokir ini menghentikan siapa pun yang mencoba menebak kata sandinya. Coba lagi setelah waktu tersebut.",
+  "accounts_username_blocked_error": "Portolab memblokir kata sandi untuk \"{username}\" sampai {time} WIB, karena menerima {failures} kata sandi salah untuknya dalam {minutes} menit. Blokir ini menghentikan siapa pun yang mencoba menebak kata sandinya. Coba lagi setelah waktu tersebut.",
   "accounts_address_blocked_error": "Portolab memblokir kata sandi dari jaringan Anda sampai {time} WIB, karena menerima {failures} kata sandi salah dari jaringan itu dalam {minutes} menit. Blokir ini menghentikan siapa pun yang mencoba menebak kata sandi. Coba lagi setelah waktu tersebut.",
   "accounts_first_setup_title": "Lengkapi akun Anda",
   "accounts_first_setup_body": "Selamat datang di Portolab. Isi nama Anda, pilih kata sandi Anda sendiri, dan setujui pemberitahuan privasi untuk melengkapi akun Anda.",

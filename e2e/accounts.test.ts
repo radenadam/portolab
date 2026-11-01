@@ -27,6 +27,7 @@ const texts: Record<
     signInButton: string;
     forgotNotice: string;
     wrongCredentials: string;
+    emptyFields: readonly [string, string];
     blocked: readonly [string, string, string];
     firstSetupTitle: string;
     firstSetupBody: string;
@@ -69,11 +70,12 @@ const texts: Record<
     signInButton: "Masuk",
     forgotNotice:
       "Lupa kata sandi? Minta orang yang menjalankan server Portolab ini untuk mengatur ulang kata sandi Anda.",
+    emptyFields: ['Isi kolom "Nama pengguna".', 'Isi kolom "Kata sandi".'],
     wrongCredentials:
       "Portolab tidak menemukan akun dengan nama pengguna dan kata sandi ini. Periksa keduanya, lalu coba lagi. Setelah 10 percobaan salah dalam 15 menit, Portolab memblokir nama pengguna itu untuk sementara, agar tidak ada yang dapat menebak kata sandinya.",
     blocked: [
-      "Portolab memblokir kata sandi untuk ",
-      " sampai ",
+      'Portolab memblokir kata sandi untuk "',
+      '" sampai ',
       " WIB, karena menerima 10 kata sandi salah untuknya dalam 15 menit. Blokir ini menghentikan siapa pun yang mencoba menebak kata sandinya. Coba lagi setelah waktu tersebut.",
     ],
     firstSetupTitle: "Lengkapi akun Anda",
@@ -126,11 +128,15 @@ const texts: Record<
     signInButton: "Sign in",
     forgotNotice:
       "Forgot your password? Ask the person who runs this Portolab server to reset it.",
+    emptyFields: [
+      'Fill in the field "Username".',
+      'Fill in the field "Password".',
+    ],
     wrongCredentials:
       "Portolab found no account with this username and password. Check both and try again. After 10 wrong attempts within 15 minutes, Portolab blocks the username for a while, so that nobody can guess its password.",
     blocked: [
-      "Portolab blocks passwords for ",
-      " until ",
+      'Portolab blocks passwords for "',
+      '" until ',
       " WIB, because it received 10 wrong passwords for it within 15 minutes. The block stops anyone who tries to guess the password. Try again after that time.",
     ],
     firstSetupTitle: "Finish your account",
@@ -273,10 +279,6 @@ for (const locale of locales) {
     ).toBeVisible();
     await expectAccessibleScreen(page);
 
-    // The browser checks the fields before it sends the form, so the test turns that off to see the checks of the server.
-    await page.locator("main form").evaluate((form) => {
-      form.setAttribute("novalidate", "");
-    });
     await page.getByLabel(text.nameLabel).fill(longName);
     await page.getByLabel(text.newPasswordLabel, { exact: true }).fill("short");
     await page.getByLabel(text.repeatedPasswordLabel).fill("short");
@@ -337,6 +339,11 @@ for (const locale of locales) {
     runAccountCommand("create-lecturer", username);
     await chooseLanguage(page, locale);
     await page.goto("/sign-in");
+    await submitMainForm(page, text.signInButton);
+    for (const failure of text.emptyFields) {
+      await expect(page.getByText(failure, { exact: true })).toBeVisible();
+    }
+    await expectAccessibleScreen(page);
     await submitSignIn(page, username, "a wrong password");
     await expect(page.getByRole("alert")).toHaveText(text.wrongCredentials);
     await expect(page.getByLabel(text.usernameLabel)).toHaveValue(username);

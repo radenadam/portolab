@@ -42,7 +42,7 @@
   "accounts_sign_in_label": "Sign in",
   "accounts_forgot_password_notice": "Forgot your password? Ask the person who runs this Portolab server to reset it.",
   "accounts_wrong_credentials_error": "Portolab found no account with this username and password. Check both and try again. After {failures} wrong attempts within {minutes} minutes, Portolab blocks the username for a while, so that nobody can guess its password.",
-  "accounts_username_blocked_error": "Portolab blocks passwords for {username} until {time} WIB, because it received {failures} wrong passwords for it within {minutes} minutes. The block stops anyone who tries to guess the password. Try again after that time.",
+  "accounts_username_blocked_error": "Portolab blocks passwords for \"{username}\" until {time} WIB, because it received {failures} wrong passwords for it within {minutes} minutes. The block stops anyone who tries to guess the password. Try again after that time.",
   "accounts_address_blocked_error": "Portolab blocks passwords from your network until {time} WIB, because it received {failures} wrong passwords from it within {minutes} minutes. The block stops anyone who tries to guess passwords. Try again after that time.",
   "accounts_first_setup_title": "Finish your account",
   "accounts_first_setup_body": "Welcome to Portolab. Give your name, choose your own password, and agree to the privacy notice to finish your account.",
