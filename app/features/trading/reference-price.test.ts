@@ -29,6 +29,20 @@ test("takes the stored close of the trading day before, rounded to a whole rupia
   ).toEqual({ ok: true, value: 5_000 });
 });
 
+test("takes the previous close that a quote of the trading day states before the stored close, because the source adjusts it for a split of that day", () => {
+  // A split of one share into two takes effect on Tuesday, and the stored close of Monday is not halved yet.
+  expect(
+    referencePrice(
+      "BBCA",
+      {
+        quote: quoteForTest("BBCA", 2_480, "2026-11-03T02:50:00Z"),
+        closes: buildDailyHistory(bbca, [["2026-11-02", 9_880]]),
+      },
+      day,
+    ),
+  ).toEqual({ ok: true, value: 4_940 });
+});
+
 test("takes the previous close that a quote of the trading day states while the history lacks the close", () => {
   expect(
     referencePrice(

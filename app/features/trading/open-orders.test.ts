@@ -5,6 +5,11 @@ import type { Rupiah } from "~/units/rupiah";
 import { shares } from "~/units/shares";
 import type { Order, OrderSide, OrderState } from "./order";
 import {
+  duringSessionForTest,
+  endOfMondayForTest,
+  lastMinuteOfMondayForTest,
+} from "./orders-for-test";
+import {
   cashSetAside,
   codesOfOpenSales,
   holdsFreeShares,
@@ -14,12 +19,9 @@ import {
 
 // The comment of each moment gives the time in WIB on Monday 2 November 2026.
 
-// 10:00.
-const placedAt = new Date("2026-11-02T03:00:00Z");
-// 16:25, the last minute before the prices of the day are final for a source that lags 10 minutes.
-const lastMinuteOfDay = new Date("2026-11-02T09:25:00Z");
-// 16:26.
-const endOfDay = new Date("2026-11-02T09:26:00Z");
+const placedAt = duringSessionForTest;
+const lastMinuteOfDay = lastMinuteOfMondayForTest;
+const endOfDay = endOfMondayForTest;
 
 // Only a purchase sets aside cash, and 1 lot at Rp4,980 with its fee sets aside Rp498,747.
 const setAsideCashOf: Record<OrderSide, Rupiah> = {

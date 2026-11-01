@@ -1,4 +1,5 @@
 import type { StockQuote } from "~/features/market-data/price-source.server";
+import { monthEndClosesForTest } from "~/features/measures/month-end-closes-for-test";
 import type { OrderLots } from "~/units/lots";
 import { successValueForTest } from "~/success-value-for-test";
 import { rupiah } from "~/units/rupiah";
@@ -6,6 +7,14 @@ import type { OpenOrder, OrderRequest } from "./order";
 import { placeOrder } from "./place-order";
 import type { AccountState, StockState } from "./place-order";
 import { parseOrderLots } from "./parse-order-lots";
+
+// The moments of Monday 2 November 2026, in WIB, for a source that lags 10 minutes behind the exchange.
+/** 10:00, in session I. */
+export const duringSessionForTest = new Date("2026-11-02T03:00:00Z");
+/** 16:25, the last minute before the prices of the day are final. */
+export const lastMinuteOfMondayForTest = new Date("2026-11-02T09:25:00Z");
+/** 16:26, when the prices of the day are final and the open orders of the day expire. */
+export const endOfMondayForTest = new Date("2026-11-02T09:26:00Z");
 
 /** A delayed quote of a stock whose previous close is Rp4,940, the close of BBCA on 30 October 2026. */
 export function quoteForTest(
@@ -45,4 +54,38 @@ export function orderLotsForTest(count: number): OrderLots {
     parseOrderLots(String(count), "Lots"),
     `${String(count)} lots are a valid order`,
   );
+}
+
+/** BBCA at 10:00 WIB on Monday 2 November 2026: its latest delayed quote, quoted at 09:50, the delay of 10 minutes, and the month-end closes of BBCA and the IHSG. */
+export const bbcaForTest: StockState & { quote: StockQuote } = {
+  quote: quoteForTest("BBCA", 4_980, "2026-11-02T02:50:00Z"),
+  delayMinutes: 10,
+  closes: monthEndClosesForTest("BBCA"),
+  marketCloses: monthEndClosesForTest("IHSG"),
+};
+
+/** A market purchase of 5 lots of BBCA at 10:00 WIB on Monday 2 November 2026, with the changes of a test. */
+export function purchaseForTest(
+  changes: Partial<OrderRequest> = {},
+): OrderRequest {
+  return {
+    code: "BBCA",
+    side: "buy",
+    lots: orderLotsForTest(5),
+    price: { kind: "market" },
+    placedAt: duringSessionForTest,
+    ...changes,
+  };
+}
+
+/** A market sale of 5 lots of BBCA at 10:00 WIB on Monday 2 November 2026, with the changes of a test. */
+export function saleForTest(changes: Partial<OrderRequest> = {}): OrderRequest {
+  return purchaseForTest({ side: "sell", ...changes });
+}
+
+/** An account with Rp100 million in cash, no holdings, and no orders, with the changes of a test. */
+export function accountForTest(
+  changes: Partial<AccountState> = {},
+): AccountState {
+  return { cash: rupiah(100_000_000), holdings: [], orders: [], ...changes };
 }

@@ -10,9 +10,16 @@ import { shares } from "~/units/shares";
 import type { OpenOrder, OrderRequest } from "./order";
 import {
   acceptedForTest,
+  accountForTest,
+  bbcaForTest,
+  duringSessionForTest,
+  endOfMondayForTest,
+  lastMinuteOfMondayForTest,
   limitForTest,
   orderLotsForTest,
+  purchaseForTest,
   quoteForTest,
+  saleForTest,
 } from "./orders-for-test";
 import { placeOrder } from "./place-order";
 import type { AccountState, StockState } from "./place-order";
@@ -20,41 +27,16 @@ import { rateLimit } from "./price-limits";
 
 // The money in the expected orders and failures was computed with the decimal module of Python, with a broker fee of 0.15% of the value rounded to a whole rupiah with ROUND_HALF_UP. The limits of prices come from the same computation as in accepted-prices.test.ts. The comment of each moment gives the time in WIB.
 
-const ihsg = monthEndClosesForTest("IHSG");
+const ihsg = bbcaForTest.marketCloses;
 
 // BBCA has the 60 monthly returns of the window, and its stored close of Friday 30 October 2026 is Rp4,980. AADI listed in December 2024, so it has 21 of the 24 returns that the measures need.
-const bbcaCloses = monthEndClosesForTest("BBCA");
+const bbcaCloses = bbcaForTest.closes;
 const aadiCloses = monthEndClosesForTest("AADI");
-
-// 10:00 on Monday 2 November 2026, in session I.
-const duringSession = new Date("2026-11-02T03:00:00Z");
-
-// The latest delayed quote at 10:00, quoted at 09:50, from a source that lags 10 minutes behind the exchange.
-const bbca: StockState = {
-  quote: quoteForTest("BBCA", 4_980, "2026-11-02T02:50:00Z"),
-  delayMinutes: 10,
-  closes: bbcaCloses,
-  marketCloses: ihsg,
-};
-
-function purchase(changes: Partial<OrderRequest> = {}): OrderRequest {
-  return {
-    code: "BBCA",
-    side: "buy",
-    lots: orderLotsForTest(5),
-    price: { kind: "market" },
-    placedAt: duringSession,
-    ...changes,
-  };
-}
-
-function sale(changes: Partial<OrderRequest> = {}): OrderRequest {
-  return purchase({ side: "sell", ...changes });
-}
-
-function account(changes: Partial<AccountState> = {}): AccountState {
-  return { cash: rupiah(100_000_000), holdings: [], orders: [], ...changes };
-}
+const bbca = bbcaForTest;
+const duringSession = duringSessionForTest;
+const purchase = purchaseForTest;
+const sale = saleForTest;
+const account = accountForTest;
 
 function accepted(
   request: OrderRequest,
@@ -103,7 +85,7 @@ test("accepts a market purchase of a stock with the monthly returns that the mea
 });
 
 test("accepts a limit purchase in the evening for the next trading day, against the limits of the stored close of the day", () => {
-  // At 20:00, Monday has closed at Rp5,000, which is the reference price of Tuesday. Its highest price is Rp6,250, while the close of Friday allows only Rp6,225 on Monday.
+  // At 20:00, Monday has closed at Rp5,000, which is the reference price of Tuesday. Its highest price is Rp6,250, while the previous close of Rp4,940 that the quote of Monday states allows only Rp6,175 on Monday.
   const request = purchase({
     lots: orderLotsForTest(1),
     price: limitForTest(6_250),
@@ -131,7 +113,7 @@ test("accepts a limit purchase in the evening for the next trading day, against 
     placeOrder({ ...request, placedAt: duringSession }, account(), bbca),
   ).toMatchObject({
     ok: false,
-    failure: { kind: "outsideLimits", reference: 4_980, highest: 6_225 },
+    failure: { kind: "outsideLimits", reference: 4_940, highest: 6_175 },
   });
 });
 
@@ -302,7 +284,7 @@ test("rejects an order of more lots than IDX accepts in one order", () => {
   });
 });
 
-test("rejects a limit price beyond the auto rejection limits of the stored close of the previous trading day", () => {
+test("rejects a limit price beyond the auto rejection limits of the previous close that the quote of the trading day states", () => {
   expect(
     placeOrder(purchase({ price: limitForTest(6_250) }), account(), bbca),
   ).toEqual({
@@ -312,9 +294,9 @@ test("rejects a limit price beyond the auto rejection limits of the stored close
       code: "BBCA",
       date: "2026-11-02",
       price: 6_250,
-      reference: 4_980,
-      lowest: 4_640,
-      highest: 6_225,
+      reference: 4_940,
+      lowest: 4_600,
+      highest: 6_175,
       upper: rateLimit(2_500),
       lower: rateLimit(700),
     },
@@ -368,9 +350,8 @@ test("rejects a purchase that costs more than the cash that other open orders le
   });
 });
 
-// 16:25, the last minute before the prices of Monday are final, and 16:26, when the open orders of Monday expire.
-const lastMinuteOfMonday = new Date("2026-11-02T09:25:00Z");
-const endOfMonday = new Date("2026-11-02T09:26:00Z");
+const lastMinuteOfMonday = lastMinuteOfMondayForTest;
+const endOfMonday = endOfMondayForTest;
 
 test("rejects a purchase while an open buy order of the day sets aside the cash, and accepts it once that order expires", () => {
   // The purchase of Monday sets aside Rp2,493,735 of the cash of Rp2,500,000 until 16:26, even before a check marks it expired.

@@ -254,9 +254,9 @@ const texts: Record<Locale, Record<FailureName, string>> = {
     tooManyLots:
       "BEI menerima paling banyak 50.000 lot dalam satu order, sedangkan order ini berisi 50.001 lot. Bagi order ini menjadi beberapa order yang masing-masing berisi paling banyak 50.000 lot.",
     limitsAsRates:
-      "BEI menolak harga Rp\u00a06.225 untuk BBCA pada 2 November 2026 karena batas auto rejection, yang mengizinkan harga paling jauh 25% di atas dan 7% di bawah harga acuan Rp\u00a04.940, yaitu harga penutupan terakhir BBCA sebelum hari itu. Pilih harga dari Rp\u00a04.600 sampai Rp\u00a06.175.",
+      "BEI menolak harga Rp\u00a06.225 untuk BBCA pada 2 November 2026 karena batas auto rejection, yang mengizinkan harga paling jauh 25% di atas dan 7% di bawah harga acuan Rp\u00a04.940, yang ditetapkan BEI dari harga penutupan terakhir BBCA sebelum hari itu. Pilih harga dari Rp\u00a04.600 sampai Rp\u00a06.175.",
     limitsAsAmounts:
-      "BEI menolak harga Rp\u00a012 untuk GOTO pada 2 November 2026 karena batas auto rejection, yang mengizinkan harga paling jauh Rp\u00a01 di atas dan Rp\u00a01 di bawah harga acuan Rp\u00a010, yaitu harga penutupan terakhir GOTO sebelum hari itu. Pilih harga dari Rp\u00a09 sampai Rp\u00a011.",
+      "BEI menolak harga Rp\u00a012 untuk GOTO pada 2 November 2026 karena batas auto rejection, yang mengizinkan harga paling jauh Rp\u00a01 di atas dan Rp\u00a01 di bawah harga acuan Rp\u00a010, yang ditetapkan BEI dari harga penutupan terakhir GOTO sebelum hari itu. Pilih harga dari Rp\u00a09 sampai Rp\u00a011.",
     offTick:
       "BEI hanya menerima harga dari Rp\u00a02.000 sampai di bawah Rp\u00a05.000 dalam kelipatan Rp\u00a010, yaitu fraksi harga rentang tersebut, sehingga Rp\u00a04.985 bukan harga yang sah. Pilih Rp\u00a04.980 atau Rp\u00a04.990, harga sah yang terdekat.",
     offTickOfTopBand:
@@ -310,9 +310,9 @@ const texts: Record<Locale, Record<FailureName, string>> = {
     tooManyLots:
       "IDX accepts at most 50,000 lots in one order, but this order has 50,001 lots. Split it into orders of at most 50,000 lots each.",
     limitsAsRates:
-      "IDX rejects a price of IDR\u00a06,225 for BBCA on November 2, 2026 by its auto rejection limits, which allow a price at most 25% above and 7% below the reference price of IDR\u00a04,940, the latest close of BBCA before that day. Choose a price from IDR\u00a04,600 to IDR\u00a06,175.",
+      "IDX rejects a price of IDR\u00a06,225 for BBCA on November 2, 2026 by its auto rejection limits, which allow a price at most 25% above and 7% below the reference price of IDR\u00a04,940, which IDX sets from the latest close of BBCA before that day. Choose a price from IDR\u00a04,600 to IDR\u00a06,175.",
     limitsAsAmounts:
-      "IDX rejects a price of IDR\u00a012 for GOTO on November 2, 2026 by its auto rejection limits, which allow a price at most IDR\u00a01 above and IDR\u00a01 below the reference price of IDR\u00a010, the latest close of GOTO before that day. Choose a price from IDR\u00a09 to IDR\u00a011.",
+      "IDX rejects a price of IDR\u00a012 for GOTO on November 2, 2026 by its auto rejection limits, which allow a price at most IDR\u00a01 above and IDR\u00a01 below the reference price of IDR\u00a010, which IDX sets from the latest close of GOTO before that day. Choose a price from IDR\u00a09 to IDR\u00a011.",
     offTick:
       "IDX accepts prices from IDR\u00a02,000 to below IDR\u00a05,000 only in steps of IDR\u00a010, the tick size of that range, so IDR\u00a04,985 is not a valid price. Choose IDR\u00a04,980 or IDR\u00a04,990, the nearest valid prices.",
     offTickOfTopBand:

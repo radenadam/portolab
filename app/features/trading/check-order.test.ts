@@ -1,21 +1,23 @@
 import { expect, test } from "vitest";
 import type { StockQuote } from "~/features/market-data/price-source.server";
-import { monthEndClosesForTest } from "~/features/measures/month-end-closes-for-test";
 import { rupiah } from "~/units/rupiah";
 import { shares } from "~/units/shares";
 import { checkOrder } from "./check-order";
 import type { OpenOrder, Order, OrderRequest } from "./order";
 import {
   acceptedForTest,
+  accountForTest,
+  bbcaForTest,
   limitForTest,
   orderLotsForTest,
+  purchaseForTest,
   quoteForTest,
 } from "./orders-for-test";
 
 // The money in the expected fills was computed with the decimal module of Python, with a broker fee of 0.15% and a tax of 0.1% of the value, each rounded to a whole rupiah with ROUND_HALF_UP. The comment of each moment gives the time in WIB on Monday 2 November 2026, unless it names another day.
 
 // 09:50.
-const latestAtTen = quoteForTest("BBCA", 4_980, "2026-11-02T02:50:00Z");
+const latestAtTen = bbcaForTest.quote;
 // 16:14 on Friday 30 October 2026.
 const closeOfFriday = quoteForTest("BBCA", 4_940, "2026-10-30T09:14:55Z");
 
@@ -24,27 +26,11 @@ function placed(
   latest: StockQuote = latestAtTen,
 ): OpenOrder {
   return acceptedForTest(
-    {
-      code: "BBCA",
-      side: "buy",
-      lots: orderLotsForTest(5),
-      price: { kind: "market" },
-      // 10:00.
-      placedAt: new Date("2026-11-02T03:00:00Z"),
-      ...changes,
-    },
-    {
-      cash: rupiah(100_000_000),
+    purchaseForTest(changes),
+    accountForTest({
       holdings: [{ code: "BBCA", shares: shares(500), cost: rupiah(0) }],
-      orders: [],
-    },
-    {
-      quote: latest,
-      // A source that lags 10 minutes behind the exchange, so the prices of a day are final from 16:26.
-      delayMinutes: 10,
-      closes: monthEndClosesForTest("BBCA"),
-      marketCloses: monthEndClosesForTest("IHSG"),
-    },
+    }),
+    { ...bbcaForTest, quote: latest },
   );
 }
 
