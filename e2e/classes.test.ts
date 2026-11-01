@@ -1,5 +1,4 @@
 import { expect, test } from "@playwright/test";
-import type { Browser, Page } from "@playwright/test";
 import { languageNames } from "../app/language-names.ts";
 import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
@@ -7,6 +6,7 @@ import {
   chosenPassword,
   createTestClass,
   joinAsNewStudent,
+  newDevice,
   signInAsNewLecturer,
   submitSignIn,
 } from "./accounts.ts";
@@ -120,8 +120,7 @@ const texts: Record<
       'Anda masuk dengan nama ini. Panjangnya 3 sampai 32 karakter dari a sampai z, 0 sampai 9, ".", "-", dan "_".',
     createAccountButton: "Buat akun dan gabung",
     existingAccountLink: "Masuk dengan akun yang sudah Anda miliki",
-    usernameTaken:
-      "Pilih yang lain, misalnya dengan angka di akhirnya.",
+    usernameTaken: "Pilih yang lain, misalnya dengan angka di akhirnya.",
     joinButton: "Gabung ke kelas",
     otherCodeLink: "Masukkan kode lain",
     resetTitle: "Atur ulang kata sandi",
@@ -209,13 +208,6 @@ const sentenceParts: Record<
   },
 };
 
-/** Opens a new page in the language of the test, as the device of another person. */
-async function newDevice(browser: Browser, locale: Locale): Promise<Page> {
-  const page = await browser.newPage();
-  await chooseLanguage(page, locale);
-  return page;
-}
-
 for (const locale of locales) {
   const text = texts[locale];
   const parts = sentenceParts[locale];
@@ -296,7 +288,9 @@ for (const locale of locales) {
 
     await student.locator('main input[name="name"]').fill(studentName);
     await student.locator('main input[name="username"]').fill(lecturerUsername);
-    await student.locator('main input[name="newPassword"]').fill(chosenPassword);
+    await student
+      .locator('main input[name="newPassword"]')
+      .fill(chosenPassword);
     await student
       .locator('main input[name="repeatedPassword"]')
       .fill(chosenPassword);
@@ -324,13 +318,15 @@ for (const locale of locales) {
     await student.goto("/classes");
     await expect(student.getByRole("link", { name: className })).toBeVisible();
     await expect(student.getByText(text.taughtBy)).toBeVisible();
-    await expect(student.getByRole("link", { name: text.joinLink })).toBeVisible();
+    await expect(
+      student.getByRole("link", { name: text.joinLink }),
+    ).toBeVisible();
     await expectAccessibleScreen(student);
     await student.goto("/");
     await expect(
       student.getByRole("link", { name: text.homeClassesLink }),
     ).toBeVisible();
-    await student.close();
+    await student.context().close();
 
     await page.goto("/classes");
     await expect(page.getByText(text.taughtClass)).toBeVisible();
@@ -382,7 +378,7 @@ for (const locale of locales) {
       student.getByRole("link", { name: text.otherCodeLink }),
     ).toBeVisible();
     await expectAccessibleScreen(student);
-    await student.close();
+    await student.context().close();
   });
 
   test(`lets a lecturer reset the password of a student, who then chooses a new one, in ${language}`, async ({
@@ -400,7 +396,7 @@ for (const locale of locales) {
     );
 
     await page.goto(testClass.path);
-    await expect(page.getByText(studentName)).toBeVisible();
+    await expect(page.getByText(studentName, { exact: true })).toBeVisible();
     await expect(
       page.getByText(`${username}${text.studentNotice[0]}`),
     ).toContainText(text.studentNotice[1]);
@@ -418,7 +414,9 @@ for (const locale of locales) {
     await expect(page.getByText(text.temporaryPassword)).toBeVisible();
     const temporaryPassword =
       (await page.locator("main p").nth(1).textContent()) ?? "";
-    expect(temporaryPassword).toMatch(/^[a-km-np-z2-9]{4}(-[a-km-np-z2-9]{4}){2}$/);
+    expect(temporaryPassword).toMatch(
+      /^[a-km-np-z2-9]{4}(-[a-km-np-z2-9]{4}){2}$/,
+    );
     await expectAccessibleScreen(page);
     await page.getByRole("link", { name: text.backLink }).click();
     await expect(page).toHaveURL(testClass.path);
@@ -437,7 +435,7 @@ for (const locale of locales) {
       .fill("a second long sentence");
     await student.locator("main form button[type=submit]").click();
     await expect(student).toHaveURL(testClass.path);
-    await student.close();
+    await student.context().close();
   });
 
   test(`shows a class and its students only to its lecturer and to its students in ${language}`, async ({
@@ -478,11 +476,13 @@ for (const locale of locales) {
 
     for (const path of ["/join", testClass.joinAddress]) {
       await otherLecturer.goto(path);
-      await expect(otherLecturer.getByText(text.lecturerCannotJoin)).toBeVisible();
+      await expect(
+        otherLecturer.getByText(text.lecturerCannotJoin),
+      ).toBeVisible();
     }
     await expectAccessibleScreen(otherLecturer);
     for (const device of [member, otherLecturer, outsider]) {
-      await device.close();
+      await device.context().close();
     }
   });
 
@@ -497,7 +497,7 @@ for (const locale of locales) {
     await joinAsNewStudent(student, testClass.joinAddress, studentName);
     await student.goto(testClass.joinAddress);
     await expect(student).toHaveURL(testClass.path);
-    await student.close();
+    await student.context().close();
     expect(text.noJoinedClasses).not.toBe("");
   });
 }

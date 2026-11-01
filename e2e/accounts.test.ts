@@ -5,6 +5,7 @@ import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
 import {
   chosenPassword,
+  newDevice,
   runAccountCommand,
   signInAsNewLecturer,
   submitSignIn,
@@ -68,7 +69,7 @@ const texts: Record<
     passwordLabel: "Kata sandi",
     signInButton: "Masuk",
     forgotNotice:
-      "Lupa kata sandi? Minta orang yang menjalankan server Portolab ini untuk mengatur ulang kata sandi Anda.",
+      "Lupa kata sandi? Mahasiswa meminta dosennya untuk mengatur ulang kata sandi, dan dosen meminta orang yang menjalankan server Portolab ini.",
     wrongCredentials:
       "Portolab tidak menemukan akun dengan nama pengguna dan kata sandi ini. Periksa keduanya, lalu coba lagi. Setelah 10 percobaan salah dalam 15 menit, Portolab memblokir nama pengguna itu untuk sementara, agar tidak ada yang dapat menebak kata sandinya.",
     blocked: [
@@ -125,7 +126,7 @@ const texts: Record<
     passwordLabel: "Password",
     signInButton: "Sign in",
     forgotNotice:
-      "Forgot your password? Ask the person who runs this Portolab server to reset it.",
+      "Forgot your password? A student asks the lecturer to reset it, and a lecturer asks the person who runs this Portolab server.",
     wrongCredentials:
       "Portolab found no account with this username and password. Check both and try again. After 10 wrong attempts within 15 minutes, Portolab blocks the username for a while, so that nobody can guess its password.",
     blocked: [
@@ -366,7 +367,7 @@ for (const locale of locales) {
   }) => {
     await chooseLanguage(page, locale);
     const username = await signInAsNewLecturer(page, longName);
-    const otherDevice = await browser.newPage();
+    const otherDevice = await newDevice(browser, locale);
     await otherDevice.goto("/sign-in");
     await submitSignIn(otherDevice, username, chosenPassword);
     await expect(otherDevice).toHaveURL("/classes");
@@ -386,7 +387,7 @@ for (const locale of locales) {
     await expect(otherDevice).toHaveURL("/sign-in?returnTo=%2Faccount");
     await submitSignIn(otherDevice, username, "a second long sentence");
     await expect(otherDevice).toHaveURL("/account");
-    await otherDevice.close();
+    await otherDevice.context().close();
   });
 
   test(`signs out, and signs in again to the page that asked for it, in ${language}`, async ({
