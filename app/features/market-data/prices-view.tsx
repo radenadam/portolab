@@ -135,7 +135,7 @@ function sentenceForCodes(
   time: string,
   messages: { one: CodesMessage; several: CodesMessage },
 ): string {
-  const inputs = { codes: formatList(codes), time };
+  const inputs = { codes: formatList(codes, "conjunction"), time };
   return codes.length === 1 ? messages.one(inputs) : messages.several(inputs);
 }
 

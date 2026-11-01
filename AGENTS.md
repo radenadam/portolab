@@ -51,7 +51,7 @@ These apply to all prose: docs, comments, commit messages, pull requests, issues
 - Every sentence is easy to parse for a reader with basic English or basic Bahasa Indonesia. This is about sentence structure only. It never means simpler ideas or padding.
 - Connect ideas with words such as "because", "so", "but", and "which means", or split them into separate sentences. A colon may introduce a list, an example, or code, or separate a label from its description. `pnpm check` reads every Markdown, TypeScript, CSS, and YAML file in the repository, including those in dot folders, and the messages. In prose, which means Markdown outside code spans and code blocks, issue templates, and messages, it rejects em dashes, en dashes, and semicolons. In TypeScript, CSS, and YAML, it rejects dashes on every line and semicolons in comments. It cannot see a dash in a code span in prose, a semicolon in a string that code generates, or a colon that joins two clauses, so watch for those.
 - Write plainly and directly. No marketing filler, no hedging, and no text that coaches the reader on what they already know.
-- Each fact lives in one place, and other places link to it. In code, that place is one named constant, such as the delay of prices or the offset of WIB, and a text that states the fact takes it as a placeholder.
+- Each fact lives in one place, and other places link to it. In code, that place is one named constant, such as the delay of prices, the offset of WIB, or the names of the languages, and a text that states a fact that can change takes it as a placeholder. The name of Portolab is part of its texts, because it does not change while the app runs.
 
 ### Interface text
 

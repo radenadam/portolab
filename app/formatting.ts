@@ -66,11 +66,12 @@ export function formatMarketClock(moment: Date): string {
   }).format(moment);
 }
 
-/** Joins items into a list for the active language, such as "BBRI, TLKM, and ASII" or "BBRI, TLKM, dan ASII". */
-export function formatList(items: readonly string[]): string {
-  return new Intl.ListFormat(intlLocale(), { type: "conjunction" }).format(
-    items,
-  );
+/** Joins items into a list for the active language, with "and" such as "BBRI, TLKM, and ASII", or with "or" for a choice, such as "BBRI, TLKM, or ASII". */
+export function formatList(
+  items: readonly string[],
+  type: "conjunction" | "disjunction",
+): string {
+  return new Intl.ListFormat(intlLocale(), { type }).format(items);
 }
 
 export function formatMarketTime(moment: Date): string {
