@@ -15,6 +15,7 @@ import { accountColumns } from "./account.ts";
 import type { Account } from "./account.ts";
 import { sessions, users } from "./accounts.schema.ts";
 import type { UserId } from "./accounts.schema.ts";
+import { dayMilliseconds, hourMilliseconds } from "../../time-units.ts";
 import { sessionInactivityDays } from "./account-limits.ts";
 
 /** The value of the session cookie, which names a session and holds its secret. */
@@ -22,9 +23,9 @@ export type SessionToken = string & { readonly brand: "SessionToken" };
 
 // Each part has 24 characters of five bits, which makes 120 random bits, as the guide of Lucia on sessions does.
 const tokenPartLength = 24;
-const inactivityMilliseconds = sessionInactivityDays * 24 * 60 * 60_000;
+const inactivityMilliseconds = sessionInactivityDays * dayMilliseconds;
 // Writing the time of every request would make every page wait for the one writer that SQLite allows, so the time is written at most once in this interval.
-const usageRecordMilliseconds = 60 * 60_000;
+const usageRecordMilliseconds = hourMilliseconds;
 
 /** The session that the token of a request names, with the account that it signs in. */
 export interface CurrentSession {

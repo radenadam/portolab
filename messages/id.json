@@ -31,7 +31,7 @@
   "market_data_several_missing_prices_notice": "Portolab belum memiliki harga {codes}, karena percobaan terakhir untuk mengambilnya pada {time} WIB gagal.",
   "market_data_next_attempt_notice": "Portolab mencoba lagi pada {nextTime} WIB.",
   "market_data_attempting_now_notice": "Portolab sedang mencoba lagi sekarang.",
-  "app_empty_field_error": "Isi kolom \"{field}\".",
+  "app_empty_field_error": "Kolom \"{field}\" kosong, padahal Portolab memerlukannya. Isi kolom itu.",
   "app_not_text_error": "Formulir mengirim nilai bertipe {type} di kolom \"{field}\", bukan teks. Muat ulang halaman, lalu isi formulir lagi.",
   "app_too_long_error": "Kolom \"{field}\" memuat paling banyak {maximum} karakter, tetapi isinya {length} karakter. Persingkat isinya.",
   "accounts_sign_in_link": "Masuk",

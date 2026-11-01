@@ -4,7 +4,7 @@ import { RouterContextProvider } from "react-router";
 import type { ServerBuild } from "react-router";
 import {
   clientAddressContext,
-  parseNetworkAddress,
+  parseClientNetwork,
 } from "~/client-address.server";
 import {
   closeDatabase,
@@ -99,8 +99,15 @@ export function createApp(services: Services): RequestHandler {
   });
 }
 
-// A proxy that forges its header gives the address of its own connection instead, which is a real address. Express knows no address only when the connection already closed, and such a request shares the limits of every other one like it.
+// A proxy that forges its header gives the network of its own connection instead, which is a real address. Express knows no address only when the connection already closed, and such a request shares the limits of every other one like it.
 function clientAddress(request: Request): string {
-  const forwarded = parseNetworkAddress(request.ip, "The address of a request");
-  return forwarded.ok ? forwarded.value : (request.socket.remoteAddress ?? "");
+  const forwarded = parseClientNetwork(request.ip, "The address of a request");
+  if (forwarded.ok) {
+    return forwarded.value;
+  }
+  const direct = parseClientNetwork(
+    request.socket.remoteAddress,
+    "The address of a connection",
+  );
+  return direct.ok ? direct.value : "";
 }

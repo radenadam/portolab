@@ -1,3 +1,4 @@
+import { dayMilliseconds, hourMilliseconds } from "~/time-units";
 import { expect, test } from "vitest";
 import { openDatabaseForTest } from "~/database/open-database-for-test.server";
 import { createTestLecturer } from "./accounts-for-test.server";
@@ -16,9 +17,6 @@ const start = new Date("2026-11-02T03:00:00.000Z");
 function later(milliseconds: number): Date {
   return new Date(start.getTime() + milliseconds);
 }
-
-const hour = 60 * 60_000;
-const day = 24 * hour;
 
 test("finds the session that a token names, with the account that it signs in", async () => {
   const database = openDatabaseForTest();
@@ -40,20 +38,30 @@ test("finds no session for a token whose secret differs", async () => {
   expect(resumeSession(database, forged, start)).toBeUndefined();
 });
 
-test("extends a session at most once an hour, and ends it after 14 days without a visit", async () => {
+test("extends a session at most once an hourMilliseconds, and ends it after 14 days without a visit", async () => {
   const database = openDatabaseForTest();
   const { account } = await createTestLecturer(database, "dosen");
   const token = createSession(database, account.id, start);
-  expect(resumeSession(database, token, later(hour - 1))?.wasExtended).toBe(
-    false,
-  );
-  expect(resumeSession(database, token, later(hour))?.wasExtended).toBe(true);
   expect(
-    resumeSession(database, token, later(hour + 14 * day - 1))?.wasExtended,
+    resumeSession(database, token, later(hourMilliseconds - 1))?.wasExtended,
+  ).toBe(false);
+  expect(
+    resumeSession(database, token, later(hourMilliseconds))?.wasExtended,
   ).toBe(true);
-  const lastVisit = later(hour + 14 * day - 1);
   expect(
-    resumeSession(database, token, new Date(lastVisit.getTime() + 14 * day)),
+    resumeSession(
+      database,
+      token,
+      later(hourMilliseconds + 14 * dayMilliseconds - 1),
+    )?.wasExtended,
+  ).toBe(true);
+  const lastVisit = later(hourMilliseconds + 14 * dayMilliseconds - 1);
+  expect(
+    resumeSession(
+      database,
+      token,
+      new Date(lastVisit.getTime() + 14 * dayMilliseconds),
+    ),
   ).toBeUndefined();
   expect(resumeSession(database, token, lastVisit)).toBeUndefined();
 });
@@ -62,10 +70,10 @@ test("deletes the sessions that were unused for 14 days, and keeps the others", 
   const database = openDatabaseForTest();
   const { account } = await createTestLecturer(database, "dosen");
   const unused = createSession(database, account.id, start);
-  const used = createSession(database, account.id, later(day));
-  deleteExpiredSessions(database, later(14 * day));
+  const used = createSession(database, account.id, later(dayMilliseconds));
+  deleteExpiredSessions(database, later(14 * dayMilliseconds));
   expect(resumeSession(database, unused, start)).toBeUndefined();
-  expect(resumeSession(database, used, later(day))).toBeDefined();
+  expect(resumeSession(database, used, later(dayMilliseconds))).toBeDefined();
 });
 
 test("ends one session, or every session of a person", async () => {

@@ -26,7 +26,8 @@ const texts: Record<
   }
 > = {
   id: {
-    empty: 'Isi kolom "Kode kelas".',
+    empty:
+      'Kolom "Kode kelas" kosong, padahal Portolab memerlukannya. Isi kolom itu.',
     malformed:
       'Kode kelas terdiri dari 8 huruf dan angka, tetapi "k7qm-4rx1" bukan kode seperti itu. Periksa kodenya dengan dosen Anda.',
     unknown:
@@ -37,7 +38,8 @@ const texts: Record<
     ],
   },
   en: {
-    empty: 'Fill in the field "Code of the class".',
+    empty:
+      'The field "Code of the class" is empty, but Portolab needs it. Fill it in.',
     malformed:
       'The code of a class has 8 letters and digits, but "k7qm-4rx1" is not such a code. Check the code with your lecturer.',
     unknown:

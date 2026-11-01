@@ -10,14 +10,15 @@ const failures: Record<
   { empty: string; notText: string; tooLong: string }
 > = {
   id: {
-    empty: 'Isi kolom "Nama Anda".',
+    empty:
+      'Kolom "Nama Anda" kosong, padahal Portolab memerlukannya. Isi kolom itu.',
     notText:
       'Formulir mengirim nilai bertipe File di kolom "Nama Anda", bukan teks. Muat ulang halaman, lalu isi formulir lagi.',
     tooLong:
       'Kolom "Nama Anda" memuat paling banyak 1.000 karakter, tetapi isinya 1.001 karakter. Persingkat isinya.',
   },
   en: {
-    empty: 'Fill in the field "Your name".',
+    empty: 'The field "Your name" is empty, but Portolab needs it. Fill it in.',
     notText:
       'The form sent a value of type File in the field "Your name" instead of text. Reload the page and fill in the form again.',
     tooLong:

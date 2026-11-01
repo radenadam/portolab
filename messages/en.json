@@ -31,7 +31,7 @@
   "market_data_several_missing_prices_notice": "Portolab has no prices for {codes} yet, because its latest attempt to fetch them at {time} WIB failed.",
   "market_data_next_attempt_notice": "Portolab tries again at {nextTime} WIB.",
   "market_data_attempting_now_notice": "Portolab is trying again now.",
-  "app_empty_field_error": "Fill in the field \"{field}\".",
+  "app_empty_field_error": "The field \"{field}\" is empty, but Portolab needs it. Fill it in.",
   "app_not_text_error": "The form sent a value of type {type} in the field \"{field}\" instead of text. Reload the page and fill in the form again.",
   "app_too_long_error": "The field \"{field}\" holds at most {maximum} characters, but it has {length}. Shorten it.",
   "accounts_sign_in_link": "Sign in",

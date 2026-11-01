@@ -19,6 +19,7 @@
     "app/features/accounts/session-store.server.ts",
     "app/features/accounts/username.ts",
     "app/random-text.server.ts",
+    "app/time-units.ts",
     "app/write-log.server.ts",
     "app/result.ts",
     "app/sentences.ts",

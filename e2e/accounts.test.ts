@@ -71,7 +71,10 @@ const texts: Record<
     signInButton: "Masuk",
     forgotNotice:
       "Lupa kata sandi? Mahasiswa meminta dosennya untuk mengatur ulang kata sandi, dan dosen meminta orang yang menjalankan server Portolab ini.",
-    emptyFields: ['Isi kolom "Nama pengguna".', 'Isi kolom "Kata sandi".'],
+    emptyFields: [
+      'Kolom "Nama pengguna" kosong, padahal Portolab memerlukannya. Isi kolom itu.',
+      'Kolom "Kata sandi" kosong, padahal Portolab memerlukannya. Isi kolom itu.',
+    ],
     wrongCredentials:
       "Portolab tidak menemukan akun dengan nama pengguna dan kata sandi ini. Periksa keduanya, lalu coba lagi. Setelah 10 percobaan salah dalam 15 menit, Portolab memblokir nama pengguna itu untuk sementara, agar tidak ada yang dapat menebak kata sandinya.",
     blocked: [
@@ -130,8 +133,8 @@ const texts: Record<
     forgotNotice:
       "Forgot your password? A student asks the lecturer to reset it, and a lecturer asks the person who runs this Portolab server.",
     emptyFields: [
-      'Fill in the field "Username".',
-      'Fill in the field "Password".',
+      'The field "Username" is empty, but Portolab needs it. Fill it in.',
+      'The field "Password" is empty, but Portolab needs it. Fill it in.',
     ],
     wrongCredentials:
       "Portolab found no account with this username and password. Check both and try again. After 10 wrong attempts within 15 minutes, Portolab blocks the username for a while, so that nobody can guess its password.",
