@@ -1,11 +1,12 @@
 import { expect, onTestFinished, test, vi } from "vitest";
 import { createAttemptLimiter } from "./create-attempt-limiter.server";
 import type { AttemptLimiter } from "./create-attempt-limiter.server";
+import { minuteMilliseconds, minutesAfter } from "./time-units";
 
 const start = new Date("2026-11-02T03:00:00.000Z");
 
 function minutesAfterStart(minutes: number): Date {
-  return new Date(start.getTime() + minutes * 60_000);
+  return minutesAfter(start, minutes);
 }
 
 /** Starts an attempt of the key "budi" at each minute after the start, and returns what each attempt answered. */
@@ -92,11 +93,11 @@ test("drops a key from memory once its last attempt leaves the window, even when
   });
   const limiter = createAttemptLimiter({ failures: 3, windowMinutes: 15 });
   limiter.startAttempt("budi", new Date());
-  vi.advanceTimersByTime(5 * 60_000);
+  vi.advanceTimersByTime(5 * minuteMilliseconds);
   limiter.startAttempt("budi", new Date());
-  vi.advanceTimersByTime(10 * 60_000);
+  vi.advanceTimersByTime(10 * minuteMilliseconds);
   expect(limiter.keyCount()).toBe(1);
-  vi.advanceTimersByTime(5 * 60_000);
+  vi.advanceTimersByTime(5 * minuteMilliseconds);
   expect(limiter.keyCount()).toBe(0);
 });
 

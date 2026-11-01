@@ -13,6 +13,7 @@ import type { Route } from "./+types/sign-in-page";
 import { readyUser } from "./account";
 import {
   currentSessionContext,
+  isSignedIn,
   pathReturningTo,
   startSession,
 } from "./current-session.server";
@@ -29,7 +30,7 @@ export function loader({ context, request }: Route.LoaderArgs): {
   returnTo: string;
 } {
   const returnTo = new URL(request.url).searchParams.get("returnTo");
-  if (context.get(currentSessionContext) !== undefined) {
+  if (isSignedIn(context)) {
     throw redirect(returnDestination(returnTo, request));
   }
   return { returnTo: returnTo ?? "" };
