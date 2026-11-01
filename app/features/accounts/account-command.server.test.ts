@@ -70,7 +70,7 @@ function printedPassword(result: Result<string, string>): string {
 test("creates a lecturer and prints the temporary password with what the lecturer does with it", async () => {
   const database = openTestDatabase();
   const create = command(["create-lecturer", "dosen"]);
-  const result = await runAccountCommand(database, create, now);
+  const result = await runAccountCommand(database, create);
   const temporaryPassword = printedPassword(result);
   expect(result).toEqual({
     ok: true,
@@ -85,13 +85,9 @@ Give it to the lecturer, who signs in with it, gives a name, chooses a new passw
 
 test("creates no lecturer for a username that is taken, and points to the reset", async () => {
   const database = openTestDatabase();
-  await runAccountCommand(database, command(["create-lecturer", "dosen"]), now);
+  await runAccountCommand(database, command(["create-lecturer", "dosen"]));
   expect(
-    await runAccountCommand(
-      database,
-      command(["create-lecturer", "dosen"]),
-      now,
-    ),
+    await runAccountCommand(database, command(["create-lecturer", "dosen"])),
   ).toEqual({
     ok: false,
     failure: `The username "dosen" is taken, so Portolab created no account. Choose another username, or give that account a new password with the action reset-password.`,
@@ -101,7 +97,7 @@ test("creates no lecturer for a username that is taken, and points to the reset"
 test("gives an account a temporary password, signs it out on every device, and prints the password", async () => {
   const database = openTestDatabase();
   const create = command(["create-lecturer", "dosen"]);
-  await runAccountCommand(database, create, now);
+  await runAccountCommand(database, create);
   const account = findAccountByUsername(database, create.username);
   if (account === undefined) {
     throw new Error("The command created no account.");
@@ -110,7 +106,6 @@ test("gives an account a temporary password, signs it out on every device, and p
   const result = await runAccountCommand(
     database,
     command(["reset-password", "dosen"]),
-    now,
   );
   const temporaryPassword = printedPassword(result);
   expect(result).toEqual({
@@ -128,11 +123,7 @@ Give it to the owner of the account, who signs in with it and chooses a new pass
 test("resets nothing for a username without an account, and points to the creation of a lecturer", async () => {
   const database = openTestDatabase();
   expect(
-    await runAccountCommand(
-      database,
-      command(["reset-password", "nobody"]),
-      now,
-    ),
+    await runAccountCommand(database, command(["reset-password", "nobody"])),
   ).toEqual({
     ok: false,
     failure: `Portolab has no account with the username "nobody". Check the username, or create a lecturer with the action create-lecturer.`,

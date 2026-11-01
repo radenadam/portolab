@@ -34,7 +34,7 @@ test("creates a lecturer with a temporary password and nothing that the lecturer
 test("creates no account for a username that is taken", async () => {
   const database = openTestDatabase();
   const { account } = await createTestLecturer(database, "dosen");
-  expect(await createLecturer(database, account.username, now)).toBeUndefined();
+  expect(await createLecturer(database, account.username)).toBeUndefined();
 });
 
 test("resets a password to a temporary one and signs the person out on every device", async () => {

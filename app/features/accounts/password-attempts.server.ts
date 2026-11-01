@@ -14,6 +14,7 @@ import { passwordLimits } from "./account-limits";
 import { hashPassword, verifyPassword } from "./password.server";
 import type { PasswordHash } from "./password.server";
 import { isUsername, normalizeUsername } from "./username";
+import type { Username } from "./username";
 
 export interface PasswordLimiters {
   byUsername: AttemptLimiter;
@@ -50,10 +51,12 @@ export async function signIn(
   limiters: PasswordLimiters,
   attempt: PasswordAttempt,
 ): Promise<Result<Account, PasswordFailure>> {
-  const username = normalizeUsername(attempt.username);
-  const found = isUsername(username)
-    ? findAccountWithPassword(database, username)
-    : undefined;
+  const typed = normalizeUsername(attempt.username);
+  const username = isUsername(typed) ? typed : undefined;
+  const found =
+    username === undefined
+      ? undefined
+      : findAccountWithPassword(database, username);
   const passwordHash = found?.passwordHash ?? (await hashForMissingAccount());
   return checkWithinLimits(limiters, { ...attempt, username }, async () => {
     const matches = await verifyPassword(attempt.password, passwordHash);
@@ -65,7 +68,7 @@ export async function signIn(
 export async function checkPassword(
   database: Database,
   limiters: PasswordLimiters,
-  attempt: PasswordAttempt & { userId: UserId },
+  attempt: PasswordAttempt & { userId: UserId; username: Username },
 ): Promise<Result<true, PasswordFailure>> {
   const passwordHash =
     findPasswordHash(database, attempt.userId) ??
@@ -76,18 +79,27 @@ export async function checkPassword(
   });
 }
 
+/** The keys that the limits count an attempt by. A text that is no username belongs to no account, so only its address counts, and the limits never keep a text of any length. */
+interface LimitKeys {
+  username: Username | undefined;
+  address: string;
+  now: Date;
+}
+
 /** Runs a check of a password unless the address or the username reached its limit. The check gives its value when the password is right, and undefined when it is wrong. */
 async function checkWithinLimits<Value>(
   limiters: PasswordLimiters,
-  attempt: PasswordAttempt,
+  { username, address, now }: LimitKeys,
   check: () => Promise<Value | undefined>,
 ): Promise<Result<Value, PasswordFailure>> {
-  const { username, address, now } = attempt;
   const addressBlockedUntil = limiters.byAddress.startAttempt(address, now);
   if (addressBlockedUntil !== undefined) {
     return fail({ kind: "addressBlocked", until: addressBlockedUntil });
   }
-  const usernameBlockedUntil = limiters.byUsername.startAttempt(username, now);
+  const usernameBlockedUntil =
+    username === undefined
+      ? undefined
+      : limiters.byUsername.startAttempt(username, now);
   if (usernameBlockedUntil !== undefined) {
     // The address made no attempt at a password, because the block of the username stopped it first.
     limiters.byAddress.takeBack(address, now);
@@ -98,7 +110,9 @@ async function checkWithinLimits<Value>(
     return fail({ kind: "wrongPassword" });
   }
   limiters.byAddress.takeBack(address, now);
-  limiters.byUsername.forget(username);
+  if (username !== undefined) {
+    limiters.byUsername.forget(username);
+  }
   return succeed(value);
 }
 

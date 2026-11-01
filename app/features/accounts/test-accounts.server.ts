@@ -19,11 +19,7 @@ export async function createTestLecturer(
   if (!username.ok) {
     throw new Error(username.failure);
   }
-  const temporaryPassword = await createLecturer(
-    database,
-    username.value,
-    new Date("2026-11-02T03:00:00.000Z"),
-  );
+  const temporaryPassword = await createLecturer(database, username.value);
   const account = findAccountByUsername(database, username.value);
   if (temporaryPassword === undefined || account === undefined) {
     throw new Error(`The test could not create the lecturer ${usernameText}.`);

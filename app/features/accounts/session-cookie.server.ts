@@ -12,7 +12,7 @@ const cookieOptions = {
   maxAge: sessionInactivityDays * 24 * 60 * 60,
 } as const;
 
-// A browser accepts a cookie with the prefix __Host- only from a secure page, and only for this host, so no other site under a shared domain can plant a session. A demonstration on a laptop serves phones over plain HTTP, where a browser drops a Secure cookie, so a request over HTTP gets a cookie without the prefix and without Secure.
+// Decision 0005 explains why a request over HTTPS gets a cookie that is Secure, with the prefix __Host-, and a request over plain HTTP gets one without either.
 const secureCookie = createCookie("__Host-portolab_session", {
   ...cookieOptions,
   secure: true,

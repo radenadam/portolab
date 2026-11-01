@@ -30,8 +30,8 @@
 
 /* A field takes the whole width of its form, so a long value stays visible on a phone. Its border has the muted color, because a thin line in the color of lines is too faint to show where a field is. */
 .input {
-  inline-size: 100%;
-  min-block-size: var(--size-touch-target);
+  width: 100%;
+  min-height: var(--size-touch-target);
   padding-inline: var(--space-2);
   border: var(--size-line) solid var(--color-muted);
   background: transparent;
@@ -53,8 +53,8 @@
 
 .box {
   flex: none;
-  inline-size: var(--size-touch-target);
-  block-size: var(--size-touch-target);
+  width: var(--size-touch-target);
+  height: var(--size-touch-target);
   margin: 0;
   accent-color: var(--color-signal);
 }
