@@ -7,7 +7,6 @@ import {
   parseAgentTools,
   parseCommitHash,
   parseJobResults,
-  parseLensName,
   parseLensNames,
   parsePullRequestNumber,
   parseRouterChoice,
@@ -72,7 +71,7 @@ test("names the source and the field when a verdict is invalid", () => {
   ).toEqual({
     ok: false,
     failure:
-      'verified.json: finding 1 must have one of confirmed, refuted, or duplicate at status, but status is "probably".',
+      'verified.json: finding 1 must have "confirmed", "refuted", or "duplicate" at status, but status is "probably".',
   });
 });
 
@@ -83,7 +82,7 @@ test("accepts a pull request number and rejects anything else", () => {
   });
   expect(parsePullRequestNumber("", "PULL_REQUEST")).toEqual({
     ok: false,
-    failure: 'PULL_REQUEST must be a pull request number, but it is "".',
+    failure: "PULL_REQUEST must be a pull request number, but it is empty.",
   });
 });
 
@@ -96,17 +95,6 @@ test("reads a list of lens names and rejects a value that is not a list", () => 
     ok: false,
     failure:
       'EXPECTED_LENSES must be a list of strings that is not empty, but it is "craft".',
-  });
-});
-
-test("accepts the name of a lens of the panel and rejects any other", () => {
-  expect(parseLensName("craft", "LENS", ["craft", "docs"])).toEqual({
-    ok: true,
-    value: "craft",
-  });
-  expect(parseLensName("style", "LENS", ["craft", "docs"])).toEqual({
-    ok: false,
-    failure: 'LENS must be one of craft or docs, but it is "style".',
   });
 });
 

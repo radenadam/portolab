@@ -1,5 +1,12 @@
 type LogLevel = "info" | "warning" | "error";
 
+// Warnings and errors go to stderr, so a process manager can keep them apart from ordinary events.
+const streams: Record<LogLevel, NodeJS.WriteStream> = {
+  info: process.stdout,
+  warning: process.stderr,
+  error: process.stderr,
+};
+
 /** Writes one JSON line per event, so that the server's logs can be searched and parsed. */
 export function writeLog(
   level: LogLevel,
@@ -12,6 +19,5 @@ export function writeLog(
     message,
     ...details,
   });
-  const stream = level === "info" ? process.stdout : process.stderr;
-  stream.write(`${line}\n`);
+  streams[level].write(`${line}\n`);
 }

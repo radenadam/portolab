@@ -8,6 +8,7 @@ import {
 
 test("describes a missing value as missing and any other value as JSON", () => {
   expect(describeValue(undefined)).toBe("missing");
+  expect(describeValue("")).toBe("empty");
   expect(describeValue("develop")).toBe('"develop"');
   expect(describeValue(["craft"])).toBe('["craft"]');
   expect(describeValue(null)).toBe("null");

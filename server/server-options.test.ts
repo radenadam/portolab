@@ -1,21 +1,11 @@
+import { readFileSync } from "node:fs";
 import { expect, test } from "vitest";
-import { parseCommandLine, parseMode, parsePort } from "./server-options.ts";
-
-test("accepts the development and production modes and rejects any other", () => {
-  expect(parseMode("development", "--mode")).toEqual({
-    ok: true,
-    value: "development",
-  });
-  expect(parseMode("production", "--mode")).toEqual({
-    ok: true,
-    value: "production",
-  });
-  expect(parseMode("develop", "--mode")).toEqual({
-    ok: false,
-    failure:
-      '--mode must be "development" or "production", but it is "develop".',
-  });
-});
+import {
+  parseCommandLine,
+  parseDatabasePath,
+  parsePort,
+  parsePriceSource,
+} from "./server-options.ts";
 
 test("reads the mode from the command line and uses production without it", () => {
   expect(parseCommandLine([], "The command line")).toEqual({
@@ -47,13 +37,78 @@ test("rejects an unknown option and keeps the reason that Node gives", () => {
   );
 });
 
+test("uses port 3000 without a port", () => {
+  expect(parsePort(undefined, "PORT")).toEqual({ ok: true, value: 3000 });
+});
+
 test("accepts a port from 1 to 65535 and rejects anything else", () => {
   expect(parsePort("1", "PORT")).toEqual({ ok: true, value: 1 });
   expect(parsePort("65535", "PORT")).toEqual({ ok: true, value: 65_535 });
-  for (const value of ["0", "65536", "3000.5", "-1", "", " 80"]) {
+  expect(parsePort("", "PORT")).toEqual({
+    ok: false,
+    failure: "PORT must be a whole number from 1 to 65535, but it is empty.",
+  });
+  for (const value of ["0", "65536", "3000.5", "-1", " 80"]) {
     expect(parsePort(value, "PORT")).toEqual({
       ok: false,
       failure: `PORT must be a whole number from 1 to 65535, but it is "${value}".`,
     });
   }
+});
+
+test("uses Yahoo Finance without a price source, and rejects an unknown one", () => {
+  expect(parsePriceSource(undefined, "PRICE_SOURCE")).toEqual({
+    ok: true,
+    value: "yahoo",
+  });
+  expect(parsePriceSource("fixture", "PRICE_SOURCE")).toEqual({
+    ok: true,
+    value: "fixture",
+  });
+  expect(parsePriceSource("google", "PRICE_SOURCE")).toEqual({
+    ok: false,
+    failure: 'PRICE_SOURCE must be "yahoo" or "fixture", but it is "google".',
+  });
+});
+
+test("uses the default database file without a path, and rejects an empty one", () => {
+  expect(parseDatabasePath(undefined, "DATABASE_PATH")).toEqual({
+    ok: true,
+    value: "data/portolab.sqlite",
+  });
+  expect(parseDatabasePath("/srv/portolab.sqlite", "DATABASE_PATH")).toEqual({
+    ok: true,
+    value: "/srv/portolab.sqlite",
+  });
+  expect(parseDatabasePath("", "DATABASE_PATH")).toEqual({
+    ok: false,
+    failure: "DATABASE_PATH must be the path of a file, but it is empty.",
+  });
+});
+
+/** Reads the table of environment variables in README.md, whose rows name a variable and its default, each in a code span. */
+function readmeDefaults(): Map<string, string> {
+  const defaults = new Map<string, string>();
+  for (const line of readFileSync("README.md", "utf8").split("\n")) {
+    const [, name, defaultValue] = line.split("|").map((cell) => cell.trim());
+    if (name?.startsWith("`") && defaultValue?.startsWith("`")) {
+      defaults.set(name.slice(1, -1), defaultValue.slice(1, -1));
+    }
+  }
+  return defaults;
+}
+
+test("lists in README.md each environment variable with the default that its parser uses", () => {
+  const parsedDefaults = new Map<string, string>();
+  for (const [name, parsed] of [
+    ["PORT", parsePort(undefined, "PORT")],
+    ["DATABASE_PATH", parseDatabasePath(undefined, "DATABASE_PATH")],
+    ["PRICE_SOURCE", parsePriceSource(undefined, "PRICE_SOURCE")],
+  ] as const) {
+    if (!parsed.ok) {
+      throw new Error(parsed.failure);
+    }
+    parsedDefaults.set(name, String(parsed.value));
+  }
+  expect(readmeDefaults()).toEqual(parsedDefaults);
 });

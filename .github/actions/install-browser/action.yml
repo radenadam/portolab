@@ -1,0 +1,12 @@
+name: Install the browser
+description: Installs Chromium for Playwright with the system packages that it needs, and limits the time of each request to a mirror of Ubuntu.
+runs:
+  using: composite
+  steps:
+    # A mirror of Ubuntu can stop answering in the middle of a download. A time limit on each request of apt, with retries, turns that into another attempt or a failure that names apt, instead of a step that waits until the job runs out of time.
+    - name: Limit the time of each request of apt
+      shell: bash
+      run: printf 'Acquire::http::Timeout "30";\nAcquire::https::Timeout "30";\nAcquire::Retries "3";\n' | sudo tee /etc/apt/apt.conf.d/99-request-timeouts > /dev/null
+    - name: Install Chromium and its system packages
+      shell: bash
+      run: pnpm exec playwright install --with-deps chromium

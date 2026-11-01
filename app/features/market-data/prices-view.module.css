@@ -1,0 +1,39 @@
+.notice {
+  color: var(--color-muted);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: var(--space-2) var(--space-1);
+  border-bottom: 1px solid var(--color-line);
+  text-align: left;
+}
+
+.table th:not(:first-child),
+.table .number,
+.table .time {
+  text-align: right;
+}
+
+.number,
+.time {
+  font-variant-numeric: tabular-nums;
+}
+
+.number {
+  white-space: nowrap;
+}
+
+/* The time cell may wrap the date of a price from another day, so the table fits the narrowest screen that AGENTS.md names with any font, while the time of day stays on one line. */
+.date {
+  display: block;
+}
+
+.clock {
+  white-space: nowrap;
+}

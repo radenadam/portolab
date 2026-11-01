@@ -3,7 +3,6 @@
   "minTokens": 50,
   "gitignore": true,
   "format": ["typescript", "tsx", "css"],
-  "ignore": ["**/*.test.ts"],
   "reporters": ["console"],
   "exitCode": 1
 }

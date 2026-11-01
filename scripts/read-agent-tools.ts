@@ -1,10 +1,10 @@
 import { exitWithFailure } from "../app/exit-with-failure.server.ts";
-import { parsePathArgument } from "./parse-path-argument.ts";
+import { parseFilePath } from "../app/value-parsers.ts";
 import { readTextFile } from "./read-text-file.ts";
 import { parseAgentTools } from "./review-inputs.ts";
 import { writeScriptFailure } from "./write-script-failure.ts";
 
-const definitionPath = parsePathArgument(
+const definitionPath = parseFilePath(
   process.argv[2],
   "The first argument of read-agent-tools.ts",
 );

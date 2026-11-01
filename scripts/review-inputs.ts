@@ -2,17 +2,17 @@ import { fail, succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
 import { describeValue, isRecord } from "../app/value-shapes.ts";
 import {
-  invalidField,
   notAnObject,
+  parseChoiceAt,
   parseListField,
-  parseStringField,
+  parseStringAt,
   parseStringsAt,
 } from "./json.ts";
 import { parseReportedFinding } from "./lens-reports.ts";
 import type { ReportedFinding } from "./lens-reports.ts";
-import { listOfWords, singularOrPlural } from "./sentences.ts";
+import { listOfWords, singularOrPlural } from "../app/sentences.ts";
 
-export const verdictStatuses = ["confirmed", "refuted", "duplicate"] as const;
+const verdictStatuses = ["confirmed", "refuted", "duplicate"] as const;
 
 export interface VerifiedFinding extends ReportedFinding {
   status: (typeof verdictStatuses)[number];
@@ -36,7 +36,7 @@ export function parseJobResults(
   }
   const results: Record<string, string> = {};
   for (const [job, details] of Object.entries(value)) {
-    const result = parseStringField(details, `${source}: job ${job}`, "result");
+    const result = parseStringAt(details, `${source}: job ${job}`, ["result"]);
     if (!result.ok) {
       return result;
     }
@@ -81,25 +81,23 @@ function parseVerdict(
   Pick<VerifiedFinding, "status" | "duplicateOf" | "evidence">,
   string
 > {
-  const status = isRecord(value) ? value["status"] : undefined;
-  const knownStatus = verdictStatuses.find((candidate) => candidate === status);
-  if (knownStatus === undefined) {
-    return invalidField(source, {
-      field: "status",
-      expected: `one of ${listOfWords(verdictStatuses, "disjunction")}`,
-      value: status,
-    });
+  const status = parseChoiceAt(value, source, {
+    name: "status",
+    choices: verdictStatuses,
+  });
+  if (!status.ok) {
+    return status;
   }
-  const duplicateOf = parseStringField(value, source, "duplicateOf");
+  const duplicateOf = parseStringAt(value, source, ["duplicateOf"]);
   if (!duplicateOf.ok) {
     return duplicateOf;
   }
-  const evidence = parseStringField(value, source, "evidence");
+  const evidence = parseStringAt(value, source, ["evidence"]);
   if (!evidence.ok) {
     return evidence;
   }
   return succeed({
-    status: knownStatus,
+    status: status.value,
     duplicateOf: duplicateOf.value,
     evidence: evidence.value,
   });
@@ -190,18 +188,5 @@ export function parseAgentTools(
     ? succeed(tools)
     : fail(
         `${source} must list its tools on one line that starts with "tools: ", separated by commas, but that list is ${describeValue(line)}.`,
-      );
-}
-
-/** Reads the name of one lens, which must be a lens that the router's schema names. */
-export function parseLensName(
-  value: unknown,
-  source: string,
-  knownLenses: readonly string[],
-): Result<string, string> {
-  return typeof value === "string" && knownLenses.includes(value)
-    ? succeed(value)
-    : fail(
-        `${source} must be one of ${listOfWords(knownLenses, "disjunction")}, but it is ${describeValue(value)}.`,
       );
 }

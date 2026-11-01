@@ -1,8 +1,9 @@
 import { readdirSync } from "node:fs";
 import { expect, test } from "vitest";
+import { listOfWords } from "../app/sentences.ts";
 import { parseJsonObject, parseStringsAt, readJsonFile } from "./json.ts";
 import { parseLensOutput } from "./lens-reports.ts";
-import { parseVerifiedFindings, verdictStatuses } from "./review-inputs.ts";
+import { parseVerifiedFindings } from "./review-inputs.ts";
 import { parseRouteSchemaLenses, reviewSchemaPaths } from "./review-schemas.ts";
 
 const finding = {
@@ -123,16 +124,36 @@ test("rejects a verdict that lacks any field its schema requires", () => {
 });
 
 test("accepts exactly the statuses that the verifier's schema allows", () => {
-  expect([...verdictStatuses].sort()).toEqual(
-    schemaStrings(reviewSchemaPaths.verifiedFindings, [
-      "properties",
-      "findings",
-      "items",
-      "properties",
-      "status",
-      "enum",
-    ]).sort(),
-  );
+  const statuses = schemaStrings(reviewSchemaPaths.verifiedFindings, [
+    "properties",
+    "findings",
+    "items",
+    "properties",
+    "status",
+    "enum",
+  ]);
+  for (const status of statuses) {
+    expect(
+      parseVerifiedFindings(
+        { findings: [{ ...verdict, status }] },
+        "VERIFIER_OUTPUT",
+      ).ok,
+      status,
+    ).toBe(true);
+  }
+  // The failure text lists every status that the parser accepts, so it shows that the parser accepts no status beyond the schema.
+  expect(
+    parseVerifiedFindings(
+      { findings: [{ ...verdict, status: "unsure" }] },
+      "VERIFIER_OUTPUT",
+    ),
+  ).toEqual({
+    ok: false,
+    failure: `VERIFIER_OUTPUT: finding 1 must have ${listOfWords(
+      statuses.map((status) => `"${status}"`),
+      "disjunction",
+    )} at status, but status is "unsure".`,
+  });
 });
 
 test("names the path of keys when a schema has no list there", () => {

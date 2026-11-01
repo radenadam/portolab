@@ -1,3 +1,5 @@
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { defineConfig, devices } from "@playwright/test";
 
 const port = 4173;
@@ -21,9 +23,16 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "node server/main.ts",
+    command: `node "${join(import.meta.dirname, "server", "main.ts")}"`,
+    // The server starts outside the repository, so a file that it finds from the working directory instead of from its code fails every browser test.
+    cwd: tmpdir(),
     url: `http://localhost:${String(port)}/health`,
-    env: { PORT: String(port) },
+    env: {
+      PORT: String(port),
+      // A database in memory starts empty for each run, so tests never see data from an earlier run, and it leaves no file behind.
+      DATABASE_PATH: ":memory:",
+      PRICE_SOURCE: "fixture",
+    },
     reuseExistingServer: false,
   },
 });

@@ -1,13 +1,21 @@
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { expect, test } from "vitest";
+import { expect, onTestFinished, test } from "vitest";
 import {
   parseLensOutput,
-  parseLensReport,
   readLensReports,
   toLensReport,
 } from "./lens-reports.ts";
+
+/** Creates an empty folder for one test, and removes it when the test finishes. */
+function temporaryDirectory(): string {
+  const directory = mkdtempSync(join(tmpdir(), "portolab-lens-reports-"));
+  onTestFinished(() => {
+    rmSync(directory, { recursive: true, force: true });
+  });
+  return directory;
+}
 
 const finding = {
   location: "app/root.tsx:12",
@@ -47,24 +55,26 @@ test("names the source, the position, and the field when a finding of a lens is 
 });
 
 test("rejects a saved report whose finding has no id", () => {
-  expect(
-    parseLensReport(
-      {
-        lens: "craft",
-        findings: [{ ...finding, lens: "craft" }],
-        candidateStandards: [],
-      },
-      "findings-craft.json",
-    ),
-  ).toEqual({
-    ok: false,
-    failure:
-      "findings-craft.json: finding 1 must have a string at id, but id is missing.",
+  const directory = temporaryDirectory();
+  const path = join(directory, "findings-craft.json");
+  writeFileSync(
+    path,
+    JSON.stringify({
+      lens: "craft",
+      findings: [{ ...finding, lens: "craft" }],
+      candidateStandards: [],
+    }),
+  );
+  expect(readLensReports(directory)).toEqual({
+    reports: [],
+    problems: [
+      `${path}: finding 1 must have a string at id, but id is missing.`,
+    ],
   });
 });
 
 test("reads every report in a directory and names each file that fails", () => {
-  const directory = mkdtempSync(join(tmpdir(), "portolab-lens-reports-"));
+  const directory = temporaryDirectory();
   const report = toLensReport("craft", {
     findings: [finding],
     candidateStandards: [],

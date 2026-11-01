@@ -2,15 +2,20 @@ import { expect, test } from "vitest";
 import { fail, succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
 import {
+  parseChoiceAt,
   parseJsonObject,
-  parseJsonText,
+  parseJsonWith,
   parseListField,
   parseStringsAt,
   readJsonFile,
 } from "./json.ts";
+import type { Parser } from "./json.ts";
+
+// Accepts any JSON content, so a test sees what parseJsonWith does with the text itself.
+const acceptAnyContent: Parser<unknown> = (value) => succeed(value);
 
 test("keeps the parser's reason when the text is not valid JSON", () => {
-  const result = parseJsonText("{bad", "PANEL_RESULTS");
+  const result = parseJsonWith("{bad", "PANEL_RESULTS", acceptAnyContent);
   expect(result.ok).toBe(false);
   expect(result.ok ? "" : result.failure).toMatch(
     /^PANEL_RESULTS must be valid JSON, but it is not\. The parser reported: \S/,
@@ -18,7 +23,9 @@ test("keeps the parser's reason when the text is not valid JSON", () => {
 });
 
 test("reads valid JSON", () => {
-  expect(parseJsonText('{"lens":"craft"}', "findings-craft.json")).toEqual({
+  expect(
+    parseJsonWith('{"lens":"craft"}', "findings-craft.json", acceptAnyContent),
+  ).toEqual({
     ok: true,
     value: { lens: "craft" },
   });
@@ -31,26 +38,26 @@ test("names the file as the source when its content fails to parse", () => {
 });
 
 test("fails when an environment variable that should hold JSON is empty or not set", () => {
-  expect(parseJsonText(undefined, "PANEL_RESULTS")).toEqual({
+  expect(parseJsonWith(undefined, "PANEL_RESULTS", acceptAnyContent)).toEqual({
     ok: false,
     failure: "PANEL_RESULTS must be JSON text, but it is missing.",
   });
-  expect(parseJsonText("", "PANEL_RESULTS")).toEqual({
+  expect(parseJsonWith("", "PANEL_RESULTS", acceptAnyContent)).toEqual({
     ok: false,
     failure: "PANEL_RESULTS must be JSON text, but it is empty.",
   });
 });
 
 test("rejects a value that is not text and describes it", () => {
-  expect(parseJsonText(42, "PANEL_RESULTS")).toEqual({
+  expect(parseJsonWith(42, "PANEL_RESULTS", acceptAnyContent)).toEqual({
     ok: false,
     failure: "PANEL_RESULTS must be JSON text, but it is 42.",
   });
-  expect(parseJsonText({}, "PANEL_RESULTS")).toEqual({
+  expect(parseJsonWith({}, "PANEL_RESULTS", acceptAnyContent)).toEqual({
     ok: false,
     failure: "PANEL_RESULTS must be JSON text, but it is {}.",
   });
-  expect(parseJsonText(null, "PANEL_RESULTS")).toEqual({
+  expect(parseJsonWith(null, "PANEL_RESULTS", acceptAnyContent)).toEqual({
     ok: false,
     failure: "PANEL_RESULTS must be JSON text, but it is null.",
   });
@@ -125,5 +132,25 @@ test("reads a list of strings at a path and names the path and the value when it
     ok: false,
     failure:
       "EXPECTED_LENSES must be a list of strings that is not empty, but it is [].",
+  });
+});
+
+test("reads a field that holds one of a fixed set of names, and names the field when it holds another", () => {
+  const field = { name: "status", choices: ["confirmed", "refuted"] as const };
+  expect(parseChoiceAt({ status: "refuted" }, "verified.json", field)).toEqual({
+    ok: true,
+    value: "refuted",
+  });
+  expect(parseChoiceAt({ status: "probably" }, "verified.json", field)).toEqual(
+    {
+      ok: false,
+      failure:
+        'verified.json must have "confirmed" or "refuted" at status, but status is "probably".',
+    },
+  );
+  expect(parseChoiceAt({}, "verified.json", field)).toEqual({
+    ok: false,
+    failure:
+      'verified.json must have "confirmed" or "refuted" at status, but status is missing.',
   });
 });

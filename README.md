@@ -6,7 +6,7 @@ Portolab is made for lecturers and students of portfolio management courses at I
 
 ## Status
 
-Portolab is in early development, and it cannot trade yet. The first release, planned for November 2026, serves the course sessions on CAPM and on portfolio return and risk. [`docs/product.md`](docs/product.md) describes what Portolab will do and what it deliberately will not do.
+Portolab is in early development. It shows delayed prices of a few IDX stocks and of the IHSG, but it cannot trade yet. The first release, planned for November 2026, serves the course sessions on CAPM and on portfolio return and risk. [`docs/product.md`](docs/product.md) describes what Portolab will do and what it deliberately will not do.
 
 ## Run it
 
@@ -27,6 +27,16 @@ pnpm start
 ```
 
 The server prints the addresses that phones on the network can open. On Windows, allow the connection when the firewall asks.
+
+## Configuration
+
+Portolab reads these environment variables when it starts, and it names every wrong one before it stops:
+
+| Variable        | Default                | Meaning                                                                                                                                                                                                                                      |
+| --------------- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PORT`          | `3000`                 | The port the server listens on.                                                                                                                                                                                                              |
+| `DATABASE_PATH` | `data/portolab.sqlite` | The SQLite database file. Portolab creates it, and its folder, when they do not exist. `:memory:` keeps the database in memory until the server stops, which the checks use. An empty value stops the server, because it would keep no data. |
+| `PRICE_SOURCE`  | `yahoo`                | Where prices come from. `yahoo` fetches delayed prices from Yahoo Finance. `fixture` returns recorded quotes for tests, which `app/features/market-data/fixture-price-source.server.ts` describes.                                           |
 
 ## Contributing
 

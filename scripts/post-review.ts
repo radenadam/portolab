@@ -1,7 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { existsSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { existsSync } from "node:fs";
 import { exitWithFailure } from "../app/exit-with-failure.server.ts";
 import { errorMessage } from "../app/error-message.ts";
 import { fail, failuresOf } from "../app/result.ts";
@@ -19,6 +17,9 @@ import {
 import type { VerifiedFinding } from "./review-inputs.ts";
 import { summarizeReview } from "./summarize-review.ts";
 import { writeScriptFailure } from "./write-script-failure.ts";
+
+// A request to GitHub that hangs ends after this, so the step fails with the reason before CI stops it.
+const githubTimeoutMilliseconds = 60_000;
 
 // Every input is parsed before the script stops, so the log names every problem at once.
 const pullRequest = parsePullRequestNumber(
@@ -80,13 +81,25 @@ const outcome = summarizeReview({
   verifiedFindings,
   inputProblems,
 });
-const bodyPath = join(tmpdir(), "review-body.md");
-writeFileSync(bodyPath, `${outcome.body}\n`);
-execFileSync(
-  "gh",
-  ["pr", "review", pullRequest.value, "--comment", "--body-file", bodyPath],
-  { stdio: "inherit" },
-);
+// gh reads the body from standard input, so the step leaves no file behind.
+try {
+  execFileSync(
+    "gh",
+    ["pr", "review", pullRequest.value, "--comment", "--body-file", "-"],
+    {
+      input: `${outcome.body}\n`,
+      stdio: ["pipe", "inherit", "inherit"],
+      timeout: githubTimeoutMilliseconds,
+    },
+  );
+} catch (error) {
+  exitWithFailure(
+    [
+      `gh could not post the review on pull request ${pullRequest.value}. It reported: ${errorMessage(error)}`,
+    ],
+    writeScriptFailure,
+  );
+}
 if (!outcome.passed) {
   exitWithFailure([outcome.verdict], writeScriptFailure);
 }
@@ -105,7 +118,7 @@ function readCurrentHead(pullRequestNumber: string): Result<string, string> {
         "--jq",
         ".headRefOid",
       ],
-      { encoding: "utf8" },
+      { encoding: "utf8", timeout: githubTimeoutMilliseconds },
     ).trim();
     return parseCommitHash(head, "The head of the pull request from gh");
   } catch (error) {

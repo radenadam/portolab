@@ -1,6 +1,7 @@
 import { errorMessage } from "../app/error-message.ts";
 import { fail, succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
+import { describeChoices, parseChoice } from "../app/value-parsers.ts";
 import { describeValue, isRecord, isStringArray } from "../app/value-shapes.ts";
 import { readTextFile } from "./read-text-file.ts";
 
@@ -10,14 +11,15 @@ export type Parser<Value> = (
   source: string,
 ) => Result<Value, string>;
 
-export function parseJsonText(
+function parseJsonText(
   value: unknown,
   source: string,
 ): Result<unknown, string> {
   // GitHub Actions sets an environment variable to an empty string when the expression behind it is empty, so an empty value means that the input never arrived.
   if (typeof value !== "string" || value === "") {
-    const given = value === "" ? "empty" : describeValue(value);
-    return fail(`${source} must be JSON text, but it is ${given}.`);
+    return fail(
+      `${source} must be JSON text, but it is ${describeValue(value)}.`,
+    );
   }
   try {
     const parsed: unknown = JSON.parse(value);
@@ -95,10 +97,7 @@ export function parseStringsAt(
   source: string,
   path: StringsPath,
 ): Result<string[], string> {
-  let current = value;
-  for (const key of path.keys) {
-    current = isRecord(current) ? current[key] : undefined;
-  }
+  const current = valueAt(value, path.keys);
   if (isStringArray(current) && (path.mayBeEmpty || current.length > 0)) {
     return succeed(current);
   }
@@ -139,7 +138,7 @@ interface FieldProblem {
   value: unknown;
 }
 
-export function invalidField(
+function invalidField(
   source: string,
   problem: FieldProblem,
 ): Result<never, string> {
@@ -148,14 +147,44 @@ export function invalidField(
   );
 }
 
-/** Reads a field of a JSON object that holds text. */
-export function parseStringField(
+/** Reads the text at a path of keys in a JSON value, such as the dev script in package.json. */
+export function parseStringAt(
   value: unknown,
   source: string,
-  field: string,
+  keys: readonly string[],
 ): Result<string, string> {
-  const fieldValue = isRecord(value) ? value[field] : undefined;
-  return typeof fieldValue === "string"
-    ? succeed(fieldValue)
-    : invalidField(source, { field, expected: "a string", value: fieldValue });
+  const found = valueAt(value, keys);
+  return typeof found === "string"
+    ? succeed(found)
+    : invalidField(source, {
+        field: keys.join("."),
+        expected: "a string",
+        value: found,
+      });
+}
+
+/** Reads a field of a JSON object that holds one of a fixed set of names. Its failure names the field, as the failures of the other fields of the object do. */
+export function parseChoiceAt<Choice extends string>(
+  value: unknown,
+  source: string,
+  field: { name: string; choices: readonly Choice[] },
+): Result<Choice, string> {
+  const found = valueAt(value, [field.name]);
+  const choice = parseChoice(found, source, field.choices);
+  return choice.ok
+    ? choice
+    : invalidField(source, {
+        field: field.name,
+        expected: describeChoices(field.choices),
+        value: found,
+      });
+}
+
+/** The value at a path of keys in a JSON value, or undefined when a key on the path is missing. */
+function valueAt(value: unknown, keys: readonly string[]): unknown {
+  let current = value;
+  for (const key of keys) {
+    current = isRecord(current) ? current[key] : undefined;
+  }
+  return current;
 }

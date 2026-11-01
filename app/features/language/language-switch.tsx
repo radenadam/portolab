@@ -1,10 +1,9 @@
 import type { ReactNode } from "react";
 import { Form, useLocation } from "react-router";
 import { m } from "~/paraglide/messages.js";
+import { languageNames } from "~/language-names";
 import { getLocale, locales } from "~/paraglide/runtime.js";
 import styles from "./language-switch.module.css";
-
-const languageNames = { id: "Bahasa Indonesia", en: "English" } as const;
 
 export function LanguageSwitch(): ReactNode {
   const location = useLocation();

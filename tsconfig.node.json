@@ -4,16 +4,19 @@
     "server/main.ts",
     "server/server-options.ts",
     "server/server-options.test.ts",
+    "app/database/migrations-folder-name.ts",
     "app/error-message.ts",
     "app/exit-with-failure.server.ts",
-    "app/log.server.ts",
+    "app/write-log.server.ts",
     "app/result.ts",
+    "app/sentences.ts",
+    "app/value-parsers.ts",
     "app/value-shapes.ts",
     "scripts/**/*.ts",
+    "lint/**/*.ts",
     "*.config.ts",
     "eslint.config.test.ts",
-    "project.inlang/paraglide.config.ts",
-    "e2e/**/*"
+    "project.inlang/paraglide.config.ts"
   ],
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.cache/tsconfig.node.tsbuildinfo",

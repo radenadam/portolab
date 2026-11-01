@@ -1,57 +1,63 @@
-import { afterEach, expect, test } from "vitest";
-import { getLocale, overwriteGetLocale } from "~/paraglide/runtime.js";
+import { expect, test } from "vitest";
+import { languageNames } from "~/language-names";
+import { locales } from "~/paraglide/runtime.js";
+import type { Locale } from "~/paraglide/runtime.js";
+import { switchLocaleForTest } from "~/switch-locale-for-test";
 import { parseLocale } from "./parse-locale";
 
-const defaultGetLocale = getLocale;
-
-afterEach(() => {
-  overwriteGetLocale(defaultGetLocale);
-});
+const failures: Record<
+  Locale,
+  { unknownLanguage: string; missingLanguage: string; notText: string }
+> = {
+  id: {
+    unknownLanguage:
+      'Formulir mengirim "fr" di kolom locale, tetapi Portolab hanya tersedia dalam Bahasa Indonesia dan English. Pilih salah satunya di pengalih bahasa.',
+    missingLanguage:
+      "Formulir tidak mengirim bahasa di kolom locale. Pilih Bahasa Indonesia atau English di pengalih bahasa.",
+    notText:
+      "Formulir mengirim nilai bertipe File di kolom locale, bukan teks. Pilih Bahasa Indonesia atau English di pengalih bahasa.",
+  },
+  en: {
+    unknownLanguage:
+      'The form sent "fr" in the field locale, but Portolab is only available in Bahasa Indonesia and English. Choose one of them in the language switch.',
+    missingLanguage:
+      "The form sent no language in the field locale. Choose Bahasa Indonesia or English in the language switch.",
+    notText:
+      "The form sent a value of type File in the field locale instead of text. Choose Bahasa Indonesia or English in the language switch.",
+  },
+};
 
 test("accepts each language that Portolab offers", () => {
-  expect(parseLocale("id", "locale")).toEqual({ ok: true, value: "id" });
-  expect(parseLocale("en", "locale")).toEqual({ ok: true, value: "en" });
+  for (const locale of locales) {
+    expect(parseLocale(locale, "locale")).toEqual({ ok: true, value: locale });
+  }
 });
 
-test("rejects an unknown language in Bahasa Indonesia and names the field and the value", () => {
-  expect(parseLocale("fr", "locale")).toEqual({
-    ok: false,
-    failure:
-      'Formulir mengirim "fr" di kolom locale, tetapi Portolab hanya tersedia dalam Bahasa Indonesia dan English. Pilih salah satunya di pengalih bahasa.',
-  });
-});
+for (const locale of locales) {
+  const failure = failures[locale];
+  const language = languageNames[locale];
 
-test("rejects a missing language in Bahasa Indonesia and names the field", () => {
-  expect(parseLocale(null, "locale")).toEqual({
-    ok: false,
-    failure:
-      "Formulir tidak mengirim bahasa di kolom locale. Pilih Bahasa Indonesia atau English di pengalih bahasa.",
+  test(`rejects an unknown language and names the field and the value in ${language}`, () => {
+    switchLocaleForTest(locale);
+    expect(parseLocale("fr", "locale")).toEqual({
+      ok: false,
+      failure: failure.unknownLanguage,
+    });
   });
-});
 
-test("rejects a field that holds a file instead of text in Bahasa Indonesia", () => {
-  expect(parseLocale(new File([], "locale.txt"), "locale")).toEqual({
-    ok: false,
-    failure:
-      "Formulir mengirim nilai bertipe File di kolom locale, bukan teks. Pilih Bahasa Indonesia atau English di pengalih bahasa.",
+  test(`rejects a missing language and names the field in ${language}`, () => {
+    switchLocaleForTest(locale);
+    expect(parseLocale(null, "locale")).toEqual({
+      ok: false,
+      failure: failure.missingLanguage,
+    });
   });
-});
 
-test("rejects an unknown or missing language in English", () => {
-  overwriteGetLocale(() => "en");
-  expect(parseLocale("fr", "locale")).toEqual({
-    ok: false,
-    failure:
-      'The form sent "fr" in the field locale, but Portolab is only available in Bahasa Indonesia and English. Choose one of them in the language switch.',
+  test(`rejects a field that holds a file instead of text in ${language}`, () => {
+    switchLocaleForTest(locale);
+    expect(parseLocale(new File([], "locale.txt"), "locale")).toEqual({
+      ok: false,
+      failure: failure.notText,
+    });
   });
-  expect(parseLocale(null, "locale")).toEqual({
-    ok: false,
-    failure:
-      "The form sent no language in the field locale. Choose Bahasa Indonesia or English in the language switch.",
-  });
-  expect(parseLocale(new File([], "locale.txt"), "locale")).toEqual({
-    ok: false,
-    failure:
-      "The form sent a value of type File in the field locale instead of text. Choose Bahasa Indonesia or English in the language switch.",
-  });
-});
+}

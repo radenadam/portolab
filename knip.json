@@ -1,5 +1,0 @@
-{
-  "$schema": "https://unpkg.com/knip@6/schema.json",
-  "entry": ["server/app.ts", "project.inlang/paraglide.config.ts"],
-  "ignoreDependencies": ["@inlang/plugin-message-format"]
-}

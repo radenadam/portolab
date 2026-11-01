@@ -5,7 +5,7 @@
 
 ## Context
 
-Prices arrive about 10 minutes late, during IDX trading sessions. The course calls for a simulator that behaves like the live market. Teaching research recommends decisions on fixed dates instead of constant trading, but a lecturer can still impose that through class rules. IDX changed its auto rejection limits twice in 2026 and lowered its minimum price in September 2026, so its rules change during a semester.
+Prices arrive late by the delay that decision 0001 records, during IDX trading sessions. The course calls for a simulator that behaves like the live market. Teaching research recommends decisions on fixed dates instead of constant trading, but a lecturer can still impose that through class rules. IDX changed its auto rejection limits twice in 2026 and lowered its minimum price in September 2026, so its rules change during a semester.
 
 ## Decision
 
@@ -22,6 +22,6 @@ Prices arrive about 10 minutes late, during IDX trading sessions. The course cal
 ## Consequences
 
 - Trading feels like a broker's app.
-- A fill can differ from what the exchange would give at the same moment, because the price is 10 minutes old and the simulator has no order book or liquidity limit. The interface explains this.
+- A fill can differ from what the exchange would give at the same moment, because the price is as old as that delay and the simulator has no order book or liquidity limit. The interface explains this.
 - The price job must run every minute during sessions.
 - A change in IDX rules is a data change with a start date, so past fills keep the rules that applied when they happened.
