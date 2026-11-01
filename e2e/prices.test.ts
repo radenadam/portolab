@@ -5,7 +5,7 @@ import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
 import { chooseLanguage } from "./choose-language.ts";
 
-// The server runs with the fixture price source, whose quotes fixture-price-source.server.ts describes.
+// The server runs with the fixture price source, and fixture-price-source.server.ts describes its quotes. ITMG has the highest price of the universe, and the quotes of GOTO and BMRI hold the widest change and a date from an earlier day, so the table holds the widest content of each column.
 
 const texts: Record<
   Locale,
@@ -17,6 +17,8 @@ const texts: Record<
     ihsg: readonly string[];
     tlkm: readonly string[];
     bmri: readonly string[];
+    goto: readonly string[];
+    itmg: readonly string[];
   }
 > = {
   id: {
@@ -28,6 +30,8 @@ const texts: Record<
     ihsg: ["5.057,05", "▼", "-0,80%", "16.00"],
     tlkm: ["1.980", "0,00%", "16.14"],
     bmri: ["3.720", "29 Okt 2026", "16.14"],
+    goto: ["24", "▲", "+33,33%", "16.14"],
+    itmg: ["24.900", "▲", "+1,22%", "16.10"],
   },
   en: {
     title: "Stock prices",
@@ -38,6 +42,8 @@ const texts: Record<
     ihsg: ["5,057.05", "▼", "-0.80%", "4:00 PM"],
     tlkm: ["IDR 1,980", "0.00%", "4:14 PM"],
     bmri: ["IDR 3,720", "Oct 29, 2026", "4:14 PM"],
+    goto: ["IDR 24", "▲", "+33.33%", "4:14 PM"],
+    itmg: ["IDR 24,900", "▲", "+1.22%", "4:10 PM"],
   },
 };
 
@@ -64,12 +70,16 @@ for (const locale of locales) {
       ["IHSG", text.ihsg],
       ["TLKM", text.tlkm],
       ["BMRI", text.bmri],
+      ["GOTO", text.goto],
+      ["ITMG", text.itmg],
     ] as const) {
       const row = page.getByRole("row", { name: new RegExp(code) });
       for (const cell of cells) {
         await expect(row, code).toContainText(cell);
       }
     }
+    // The header, the IHSG, and the 45 stocks of the universe.
+    await expect(page.getByRole("row")).toHaveCount(47);
     await expectAccessibleScreen(page);
   });
 }

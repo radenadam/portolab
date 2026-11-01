@@ -1,10 +1,12 @@
 import YahooFinance from "yahoo-finance2";
 import { errorMessage } from "~/error-message";
-import { describeValue, isRecord } from "~/value-shapes";
+import { describeValue, isRecord, isValidDate } from "~/value-shapes";
 import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
 import { isIndexPoints } from "~/units/index-points";
 import { isRupiah } from "~/units/rupiah";
+import { wibMoment } from "~/wib";
+import { parseYahooChart } from "./parse-yahoo-chart.server";
 import type {
   IndexCode,
   Instrument,
@@ -49,6 +51,24 @@ export function createYahooPriceSource(): PriceSource {
       } catch (error) {
         return fail(
           `Yahoo Finance did not answer with quotes that its client could read. The client reported: ${errorMessage(error)}`,
+        );
+      }
+    },
+    async fetchDailyHistory(instrument, from, signal) {
+      try {
+        const chart = await client.chart(
+          yahooSymbol(instrument),
+          { period1: wibMoment(from, 0), interval: "1d", return: "array" },
+          { fetchOptions: { signal } },
+        );
+        return parseYahooChart(
+          chart,
+          `The Yahoo Finance history of ${instrument.code}`,
+          instrument,
+        );
+      } catch (error) {
+        return fail(
+          `Yahoo Finance did not answer with a history of ${instrument.code} that its client could read. The client reported: ${errorMessage(error)}`,
         );
       }
     },
@@ -114,7 +134,7 @@ function parseYahooQuote(
       `${source} must have a positive regularMarketPreviousClose, but it is ${describeValue(regularMarketPreviousClose)}.`,
     );
   }
-  if (!(quotedAt instanceof Date)) {
+  if (!isValidDate(quotedAt)) {
     return fail(
       `${source} must have a time at regularMarketTime, but it is ${describeValue(quotedAt)}.`,
     );

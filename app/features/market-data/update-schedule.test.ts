@@ -1,5 +1,6 @@
 import { expect, test } from "vitest";
-import type { UpdateAttempt } from "./quote-store.server";
+import { minuteMilliseconds } from "~/time-units";
+import type { UpdateAttempt } from "./update-attempts.server";
 import {
   isUpdateMinute,
   nextAttemptTime,
@@ -29,7 +30,7 @@ test("doubles the wait after each failure in a row, up to 30 minutes", () => {
     const attempt = failedAttempt("2026-11-02T03:00:00.000Z", failures);
     waits.push(
       (nextAttemptTime(attempt).getTime() - attempt.attemptedAt.getTime()) /
-        60_000,
+        minuteMilliseconds,
     );
   }
   expect(waits).toEqual([1, 2, 4, 8, 16, 30, 30]);
