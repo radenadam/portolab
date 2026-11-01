@@ -170,7 +170,7 @@ function QuoteRow({
   quote: Quote;
   latestQuotedAt: Date;
 }): ReactNode {
-  const change = quoteChange(quote);
+  const change = formatSignedPercent(quoteChange(quote));
   return (
     <tr>
       <th scope="row">{quote.code}</th>
@@ -180,7 +180,8 @@ function QuoteRow({
           : formatIndexLevel(quote.level)}
       </td>
       <td className={styles["number"]}>
-        <ChangeArrow change={change} /> {formatSignedPercent(change)}
+        <ChangeArrow direction={change.direction} />
+        {change.text}
       </td>
       <td className={styles["number"]}>
         {isSameWibDay(quote.quotedAt, latestQuotedAt)
@@ -191,10 +192,17 @@ function QuoteRow({
   );
 }
 
-// The arrow repeats the sign of the change for sighted readers, so screen readers skip it.
-function ChangeArrow({ change }: { change: number }): ReactNode {
-  if (change === 0) {
-    return null;
-  }
-  return <span aria-hidden="true">{change > 0 ? "▲" : "▼"}</span>;
+const arrows = { rise: "▲", fall: "▼", none: undefined } as const;
+
+// The arrow repeats the sign that the change shows for sighted readers, so screen readers skip it.
+function ChangeArrow({
+  direction,
+}: {
+  direction: "rise" | "fall" | "none";
+}): ReactNode {
+  const arrow = arrows[direction];
+  // The space belongs to the arrow, so a change without an arrow starts with its number.
+  return arrow === undefined ? null : (
+    <span aria-hidden="true">{`${arrow} `}</span>
+  );
 }

@@ -253,9 +253,9 @@ const states = [
 ];
 
 for (const state of states) {
-  for (const language of locales) {
-    test(`says the right thing for ${state.name} in ${languageNames[language]}`, () => {
-      switchLocaleForTest(language);
+  for (const locale of locales) {
+    test(`says the right thing for ${state.name} in ${languageNames[locale]}`, () => {
+      switchLocaleForTest(locale);
       const html = renderToStaticMarkup(
         <PricesView
           quotes={state.quotes}
@@ -264,8 +264,8 @@ for (const state of states) {
           source={yahooFinance}
         />,
       );
-      expect(html).toContain(state.shows[language]);
-      expect(html).not.toContain(state.hides[language]);
+      expect(html).toContain(state.shows[locale]);
+      expect(html).not.toContain(state.hides[locale]);
     });
   }
 }
@@ -276,9 +276,9 @@ const quoteTimes = {
   en: { otherDay: ">Oct 16, 2026, 4:14 PM<", sameDay: ">4:14 PM<" },
 };
 
-for (const language of locales) {
-  test(`dates a price from another day than the newest one in ${languageNames[language]}`, () => {
-    switchLocaleForTest(language);
+for (const locale of locales) {
+  test(`dates a price from another day than the newest one in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
     const html = renderToStaticMarkup(
       <PricesView
         quotes={quotes}
@@ -287,8 +287,8 @@ for (const language of locales) {
         source={yahooFinance}
       />,
     );
-    expect(html).toContain(quoteTimes[language].otherDay);
-    expect(html).toContain(quoteTimes[language].sameDay);
+    expect(html).toContain(quoteTimes[locale].otherDay);
+    expect(html).toContain(quoteTimes[locale].sameDay);
   });
 }
 
@@ -364,9 +364,9 @@ const failureKinds = [
 
 for (const failureKind of failureKinds) {
   for (const scheduleState of scheduleStates) {
-    for (const language of locales) {
-      test(`says when the job tries again for ${failureKind.name} ${scheduleState.name} in ${languageNames[language]}`, () => {
-        switchLocaleForTest(language);
+    for (const locale of locales) {
+      test(`says when the job tries again for ${failureKind.name} ${scheduleState.name} in ${languageNames[locale]}`, () => {
+        switchLocaleForTest(locale);
         const html = renderToStaticMarkup(
           <PricesView
             quotes={failureKind.quotes}
@@ -381,9 +381,9 @@ for (const failureKind of failureKinds) {
           />,
         );
         const nextTime = failureKind.succeeded
-          ? scheduleState.afterMissingPrice[language]
-          : scheduleState.afterFailures[language];
-        expect(html).toContain(nextAttemptSentences[language](nextTime));
+          ? scheduleState.afterMissingPrice[locale]
+          : scheduleState.afterFailures[locale];
+        expect(html).toContain(nextAttemptSentences[locale](nextTime));
       });
     }
   }
@@ -399,9 +399,9 @@ const licensedDelayNotices = {
   en: "Prices are delayed by about 15 minutes and come from Data Berlisensi. The latest price was recorded at Oct 30, 2026, 4:14 PM WIB.",
 };
 
-for (const language of locales) {
-  test(`names the source of the prices and its delay in ${languageNames[language]}`, () => {
-    switchLocaleForTest(language);
+for (const locale of locales) {
+  test(`names the source of the prices and its delay in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
     const html = renderToStaticMarkup(
       <PricesView
         quotes={quotes}
@@ -410,6 +410,33 @@ for (const language of locales) {
         source={licensedSource}
       />,
     );
-    expect(html).toContain(licensedDelayNotices[language]);
+    expect(html).toContain(licensedDelayNotices[locale]);
+  });
+}
+
+// IHSG moved by 0.02 points, which rounds to a change of 0.00%.
+const roundedToZero: Quote = {
+  kind: "index",
+  code: "IHSG",
+  level: 5057.05,
+  previousLevel: 5057.03,
+  quotedAt: new Date("2026-10-30T09:00:05.000Z"),
+};
+const zeroChanges = { id: ">0,00%<", en: ">0.00%<" };
+
+for (const locale of locales) {
+  test(`shows no arrow and no sign for a change that rounds to zero in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    const html = renderToStaticMarkup(
+      <PricesView
+        quotes={[roundedToZero]}
+        latestAttempt={succeededAttempt}
+        now={halfMinuteAfterFailure}
+        source={yahooFinance}
+      />,
+    );
+    expect(html).toContain(zeroChanges[locale]);
+    expect(html).not.toContain("▲");
+    expect(html).not.toContain("▼");
   });
 }

@@ -27,14 +27,32 @@ export function formatIndexLevel(level: number): string {
   }).format(level);
 }
 
-/** Formats a fraction such as 0.0081 as a percentage with an explicit sign, such as +0.81%. */
-export function formatSignedPercent(fraction: number): string {
-  return new Intl.NumberFormat(intlLocale(), {
+/** A change as the page shows it, and the direction that its sign shows. */
+interface SignedPercent {
+  text: string;
+  direction: "rise" | "fall" | "none";
+}
+
+/** Formats a fraction such as 0.0081 as a percentage with an explicit sign, such as +0.81%. The direction comes from the sign that the text shows, so a change that rounds to zero has none. */
+export function formatSignedPercent(fraction: number): SignedPercent {
+  const parts = new Intl.NumberFormat(intlLocale(), {
     style: "percent",
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
     signDisplay: "exceptZero",
-  }).format(fraction);
+  }).formatToParts(fraction);
+  let text = "";
+  let direction: SignedPercent["direction"] = "none";
+  for (const part of parts) {
+    text += part.value;
+    if (part.type === "plusSign") {
+      direction = "rise";
+    }
+    if (part.type === "minusSign") {
+      direction = "fall";
+    }
+  }
+  return { text, direction };
 }
 
 /** Formats the time of day in WIB, such as 16.14, for a price of the same day as the newest one. */
