@@ -1,4 +1,5 @@
 import type { ChildProcess } from "node:child_process";
+import { secondMilliseconds } from "../app/time-units.ts";
 
 /** How the wait for a server ended: it answered, the process that runs it stopped for a reason, or the time ran out. */
 export type HealthWait =
@@ -21,7 +22,7 @@ export async function waitForHealth(
   healthUrl: string,
   options: HealthWaitOptions,
 ): Promise<HealthWait> {
-  const deadline = Date.now() + options.timeoutSeconds * 1000;
+  const deadline = Date.now() + options.timeoutSeconds * secondMilliseconds;
   for (;;) {
     const reason = options.stopReason();
     if (reason !== undefined) {
@@ -43,7 +44,7 @@ async function answersHealth(
 ): Promise<boolean> {
   try {
     const response = await fetch(healthUrl, {
-      signal: AbortSignal.timeout(requestTimeoutSeconds * 1000),
+      signal: AbortSignal.timeout(requestTimeoutSeconds * secondMilliseconds),
     });
     return response.ok;
   } catch {

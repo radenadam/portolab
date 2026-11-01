@@ -1,5 +1,8 @@
-/** The milliseconds in a minute, the unit of time of a JavaScript date. */
-export const minuteMilliseconds = 60 * 1000;
+/** The milliseconds in a second, the unit of time of a JavaScript date. */
+export const secondMilliseconds = 1000;
+
+/** The milliseconds in a minute. */
+export const minuteMilliseconds = 60 * secondMilliseconds;
 
 /** The milliseconds in an hour. */
 export const hourMilliseconds = 60 * minuteMilliseconds;

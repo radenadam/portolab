@@ -8,6 +8,7 @@ import {
 import type { AccountCommand } from "./account-command.server";
 import { findAccountByUsername } from "./account-store.server";
 import { expectPassword } from "./accounts-for-test.server";
+import { printedPasswordForTest } from "./printed-password-for-test";
 import { createSession, resumeSession } from "./session-store.server";
 
 const now = new Date("2026-11-02T03:00:00.000Z");
@@ -61,10 +62,9 @@ function command(commandLine: readonly string[]): AccountCommand {
   return parsed.value;
 }
 
-/** The temporary password that the command printed alone on an indented line. */
+/** The temporary password that a run of the command printed. */
 function printedPassword(result: Result<string, string>): string {
-  const match = result.ok ? /^ {2}(\S+)$/m.exec(result.value) : null;
-  return match?.[1] ?? "";
+  return (result.ok ? printedPasswordForTest(result.value) : undefined) ?? "";
 }
 
 test("creates a lecturer and prints the temporary password with what the lecturer does with it", async () => {

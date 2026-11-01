@@ -3,6 +3,8 @@ import { randomUUID } from "node:crypto";
 import { join } from "node:path";
 import { expect, test } from "@playwright/test";
 import type { Browser, Page } from "@playwright/test";
+import { secondMilliseconds } from "../app/time-units.ts";
+import { printedPasswordForTest } from "../app/features/accounts/printed-password-for-test.ts";
 import { parseFilePath } from "../app/value-parsers.ts";
 import type { Locale } from "../app/paraglide/runtime.js";
 import { chooseLanguage } from "./choose-language.ts";
@@ -37,11 +39,10 @@ export function runAccountCommand(
     {
       env: { ...process.env, DATABASE_PATH: databasePath.value },
       encoding: "utf8",
-      timeout: commandTimeoutSeconds * 1000,
+      timeout: commandTimeoutSeconds * secondMilliseconds,
     },
   );
-  // The command prints the temporary password alone on an indented line, so a person can copy it.
-  const temporaryPassword = /^ {2}(\S+)$/m.exec(output)?.[1];
+  const temporaryPassword = printedPasswordForTest(output);
   if (temporaryPassword === undefined) {
     throw new Error(
       `The account command printed no temporary password. It printed: ${output}`,
