@@ -24,7 +24,7 @@
     "check": "pnpm run format:check && pnpm run conventions && pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run test:dev && pnpm run unused && pnpm run duplicates && pnpm run build && pnpm run size && pnpm run test:e2e",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "conventions": "node scripts/check-punctuation.ts && node scripts/check-messages.ts && node scripts/check-migrations.ts",
+    "conventions": "node scripts/check-punctuation.ts && node scripts/check-messages.ts && node scripts/check-migrations.ts && node scripts/check-workflows.ts",
     "lint": "pnpm run generate && eslint --max-warnings=0 .",
     "typecheck": "pnpm run generate && tsc --build",
     "generate": "paraglide-js compile --project ./project.inlang && react-router typegen",

@@ -2,6 +2,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { expect, test } from "vitest";
 import { languageNames } from "~/language-names";
 import { locales } from "~/paraglide/runtime.js";
+import type { Locale } from "~/paraglide/runtime.js";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
 import { rupiah } from "~/units/rupiah";
 import type { PriceSourceDescription, Quote } from "./price-source.server";
@@ -76,26 +77,38 @@ const halfMinuteAfterPartialAttempt = new Date("2026-10-30T07:00:30.000Z");
 // The minute when the job makes the next attempt after the failure on Friday, plus ten seconds.
 const duringNextAttemptAfterFailure = new Date("2026-11-02T01:45:10.000Z");
 
-const tryingNow = {
+const tryingNow: Record<Locale, string> = {
   id: "Portolab sedang mencoba lagi sekarang.",
   en: "Portolab is trying again now.",
 };
-const nextMinute = {
+const nextMinute: Record<Locale, string> = {
   id: "Portolab mencoba lagi pada 30 Okt 2026, 14.01 WIB.",
   en: "Portolab tries again at Oct 30, 2026, 2:01 PM WIB.",
 };
-const nextMonday = {
+const nextMonday: Record<Locale, string> = {
   id: "Portolab mencoba lagi pada 2 Nov 2026, 08.45 WIB.",
   en: "Portolab tries again at Nov 2, 2026, 8:45 AM WIB.",
 };
-const staleSentences = {
+const staleSentences: Record<Locale, string> = {
   id: "di bawah adalah harga terakhir yang tersimpan",
   en: "below is the last one it stored",
 };
-const missingSentences = { id: "belum memiliki harga", en: "has no price" };
+const missingSentences: Record<Locale, string> = {
+  id: "belum memiliki harga",
+  en: "has no price",
+};
 
 // Every combination of stored prices and the latest attempt, with each failed price stored or missing, and the whole notice that each one shows.
-const states = [
+interface ScreenState {
+  name: string;
+  quotes: Quote[];
+  latestAttempt: UpdateAttempt | undefined;
+  now: Date;
+  shows: Record<Locale, string>;
+  hides: Record<Locale, string>;
+}
+
+const states: ScreenState[] = [
   {
     name: "stored prices after a failed attempt",
     quotes,
@@ -271,7 +284,7 @@ for (const state of states) {
 }
 
 // The BBRI price is from two weeks before the newest price, and the BBCA price is from its day.
-const quoteTimes = {
+const quoteTimes: Record<Locale, { otherDay: string; sameDay: string }> = {
   id: { otherDay: ">16 Okt 2026, 16.14<", sameDay: ">16.14<" },
   en: { otherDay: ">Oct 16, 2026, 4:14 PM<", sameDay: ">4:14 PM<" },
 };
@@ -292,13 +305,20 @@ for (const locale of locales) {
   });
 }
 
-const nextAttemptSentences = {
+const nextAttemptSentences: Record<Locale, (time: string) => string> = {
   id: (time: string) => `Portolab mencoba lagi pada ${time} WIB.`,
   en: (time: string) => `Portolab tries again at ${time} WIB.`,
 };
 
 // Each state of the schedule, with the time of the next attempt after an answer that lacked a price, which waits for the next minute of the price hours, and after three failures in a row, which wait four minutes first. Prices change from 08:45 to 16:25 WIB, which is 01:45 to 09:25 UTC.
-const scheduleStates = [
+interface ScheduleState {
+  name: string;
+  attemptedAt: string;
+  afterMissingPrice: Record<Locale, string>;
+  afterFailures: Record<Locale, string>;
+}
+
+const scheduleStates: ScheduleState[] = [
   {
     name: "during a session",
     attemptedAt: "2026-11-02T03:00:00.000Z",
@@ -394,7 +414,7 @@ const licensedSource: PriceSourceDescription = {
   name: "Data Berlisensi",
   delayMinutes: 15,
 };
-const licensedDelayNotices = {
+const licensedDelayNotices: Record<Locale, string> = {
   id: "Harga tertunda sekitar 15 menit dan berasal dari Data Berlisensi. Harga terakhir tercatat pada 30 Okt 2026, 16.14 WIB.",
   en: "Prices are delayed by about 15 minutes and come from Data Berlisensi. The latest price was recorded at Oct 30, 2026, 4:14 PM WIB.",
 };
@@ -422,7 +442,7 @@ const roundedToZero: Quote = {
   previousLevel: 5057.03,
   quotedAt: new Date("2026-10-30T09:00:05.000Z"),
 };
-const zeroChanges = { id: ">0,00%<", en: ">0.00%<" };
+const zeroChanges: Record<Locale, string> = { id: ">0,00%<", en: ">0.00%<" };
 
 for (const locale of locales) {
   test(`shows no arrow and no sign for a change that rounds to zero in ${languageNames[locale]}`, () => {

@@ -1,6 +1,7 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { readdirSync } from "node:fs";
 import { exitWithFailure } from "../app/exit-with-failure.server.ts";
 import { readJsonFile } from "./json.ts";
+import { readFilesIn } from "./read-files-in.ts";
 import {
   isInterfaceTest,
   messageKeyProblems,
@@ -23,14 +24,8 @@ const featureFolders = readdirSync("app/features", { withFileTypes: true })
 // Every text of the interface must appear in a test in each language, so the check reads the source of every test that can show one.
 const testSources: string[] = [];
 for (const folder of ["app", "e2e"]) {
-  for (const entry of readdirSync(folder, {
-    recursive: true,
-    encoding: "utf8",
-  })) {
-    const path = `${folder}/${entry.replaceAll("\\", "/")}`;
-    if (isInterfaceTest(path)) {
-      testSources.push(readFileSync(path, "utf8"));
-    }
+  for (const test of readFilesIn(folder, isInterfaceTest)) {
+    testSources.push(test.text);
   }
 }
 

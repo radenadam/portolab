@@ -18,6 +18,9 @@ import type { VerifiedFinding } from "./review-inputs.ts";
 import { summarizeReview } from "./summarize-review.ts";
 import { writeScriptFailure } from "./write-script-failure.ts";
 
+// A request to GitHub that hangs ends after this, so the step fails with the reason before CI stops it.
+const githubTimeoutMilliseconds = 60_000;
+
 // Every input is parsed before the script stops, so the log names every problem at once.
 const pullRequest = parsePullRequestNumber(
   process.env["PULL_REQUEST"],
@@ -79,11 +82,24 @@ const outcome = summarizeReview({
   inputProblems,
 });
 // gh reads the body from standard input, so the step leaves no file behind.
-execFileSync(
-  "gh",
-  ["pr", "review", pullRequest.value, "--comment", "--body-file", "-"],
-  { input: `${outcome.body}\n`, stdio: ["pipe", "inherit", "inherit"] },
-);
+try {
+  execFileSync(
+    "gh",
+    ["pr", "review", pullRequest.value, "--comment", "--body-file", "-"],
+    {
+      input: `${outcome.body}\n`,
+      stdio: ["pipe", "inherit", "inherit"],
+      timeout: githubTimeoutMilliseconds,
+    },
+  );
+} catch (error) {
+  exitWithFailure(
+    [
+      `gh could not post the review on pull request ${pullRequest.value}. It reported: ${errorMessage(error)}`,
+    ],
+    writeScriptFailure,
+  );
+}
 if (!outcome.passed) {
   exitWithFailure([outcome.verdict], writeScriptFailure);
 }
@@ -102,7 +118,7 @@ function readCurrentHead(pullRequestNumber: string): Result<string, string> {
         "--jq",
         ".headRefOid",
       ],
-      { encoding: "utf8" },
+      { encoding: "utf8", timeout: githubTimeoutMilliseconds },
     ).trim();
     return parseCommitHash(head, "The head of the pull request from gh");
   } catch (error) {

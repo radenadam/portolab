@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { readdirSync, readFileSync, utimesSync } from "node:fs";
+import { utimesSync } from "node:fs";
 import { errorMessage } from "../app/error-message.ts";
 import { exitWithFailure } from "../app/exit-with-failure.server.ts";
 import {
@@ -8,8 +8,9 @@ import {
   pageProblems,
   parseDevArguments,
 } from "./dev-server-check.ts";
-import type { PageAnswer, SourceModule } from "./dev-server-check.ts";
+import type { PageAnswer } from "./dev-server-check.ts";
 import { readJsonFile } from "./json.ts";
+import { readFilesIn } from "./read-files-in.ts";
 import { writeScriptFailure } from "./write-script-failure.ts";
 
 // Browser tests run the production build, so this check is what keeps `pnpm dev` working for contributors.
@@ -24,14 +25,7 @@ const reloadSeconds = 2;
 const devArguments = readJsonFile("package.json", parseDevArguments);
 
 // The dev server reloads an edited module and every module that imports it, so the check edits each module that holds a service, which the code itself names.
-const appModules: SourceModule[] = [];
-for (const entry of readdirSync("app", { recursive: true, encoding: "utf8" })) {
-  const path = `app/${entry.replaceAll("\\", "/")}`;
-  if (isAppModule(path)) {
-    appModules.push({ path, text: readFileSync(path, "utf8") });
-  }
-}
-const editedModules = modulesToEdit(appModules);
+const editedModules = modulesToEdit(readFilesIn("app", isAppModule));
 
 const inputProblems: string[] = [];
 if (!devArguments.ok) {

@@ -22,18 +22,22 @@ jobs:
       lenses: ${{ steps.lenses.outputs.lenses }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        timeout-minutes: 5
         with:
           fetch-depth: 0
       - uses: pnpm/setup@fa36a5ef7dcdefc3a7cb25655c122e00cf6e636e # v3.1.2
+        timeout-minutes: 10
         with:
           install: false
       # Each value is assigned on its own line, because a failure inside a command substitution within echo would not fail the step.
       - name: Read the schema of the router's answer
+        timeout-minutes: 2
         id: schema
         run: |
           schema=$(node scripts/print-schema.ts .github/review/route.schema.json)
           echo "schema=${schema}" >> "$GITHUB_OUTPUT"
       - name: Choose the lenses
+        timeout-minutes: 10
         id: router
         uses: anthropics/claude-code-action@6d5ae526d25ce88daa2200be073e1a373167f064 # v1.0.265
         with:
@@ -49,6 +53,7 @@ jobs:
             --allowedTools "Read,Grep,Glob,Bash"
             --json-schema '${{ steps.schema.outputs.schema }}'
       - name: Add the lenses that review every change
+        timeout-minutes: 2
         id: lenses
         env:
           ROUTER_OUTPUT: ${{ steps.router.outputs.structured_output }}
@@ -57,6 +62,7 @@ jobs:
           echo "lenses=${lenses}" >> "$GITHUB_OUTPUT"
       # An agent that failed or ran out of time is traced through its transcript. It stays for one day, because a public repository's artifacts are public.
       - name: Keep the transcript of a router that did not finish
+        timeout-minutes: 5
         if: (failure() || cancelled()) && steps.router.outputs.execution_file != ''
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -75,9 +81,11 @@ jobs:
         lens: ${{ fromJSON(needs.route.outputs.lenses) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        timeout-minutes: 5
         with:
           fetch-depth: 0
       - uses: pnpm/setup@fa36a5ef7dcdefc3a7cb25655c122e00cf6e636e # v3.1.2
+        timeout-minutes: 10
         with:
           cache: true
           require-lockfile: true
@@ -88,6 +96,7 @@ jobs:
         timeout-minutes: 10
       # The agent gets exactly the tools that its definition lists.
       - name: Read the tools of the lens and the schema of its report
+        timeout-minutes: 2
         id: definition
         env:
           DEFINITION: .claude/agents/review-${{ matrix.lens }}.md
@@ -100,6 +109,7 @@ jobs:
           echo "tools=${tools}" >> "$GITHUB_OUTPUT"
           echo "schema=${schema}" >> "$GITHUB_OUTPUT"
       - name: Review through the lens
+        timeout-minutes: 35
         id: lens
         uses: anthropics/claude-code-action@6d5ae526d25ce88daa2200be073e1a373167f064 # v1.0.265
         with:
@@ -115,16 +125,19 @@ jobs:
             --allowedTools "${{ steps.definition.outputs.tools }}"
             --json-schema '${{ steps.definition.outputs.schema }}'
       - name: Save the findings of the lens
+        timeout-minutes: 2
         env:
           LENS: ${{ matrix.lens }}
           LENS_OUTPUT: ${{ steps.lens.outputs.structured_output }}
         run: node scripts/save-lens-report.ts
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        timeout-minutes: 5
         with:
           name: findings-${{ matrix.lens }}
           path: findings-${{ matrix.lens }}.json
           retention-days: 1
       - name: Keep the transcript of a lens that did not finish
+        timeout-minutes: 5
         if: (failure() || cancelled()) && steps.lens.outputs.execution_file != ''
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -139,18 +152,22 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        timeout-minutes: 5
         with:
           fetch-depth: 0
       - uses: pnpm/setup@fa36a5ef7dcdefc3a7cb25655c122e00cf6e636e # v3.1.2
+        timeout-minutes: 10
         with:
           cache: true
           require-lockfile: true
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        timeout-minutes: 5
         with:
           pattern: findings-*
           path: findings
           merge-multiple: true
       - name: Count the findings and read the verifier's tools and schema
+        timeout-minutes: 2
         id: definition
         env:
           DEFINITION: .claude/agents/review-verifier.md
@@ -165,6 +182,7 @@ jobs:
           echo "total=${total}" >> "$GITHUB_OUTPUT"
           echo "schema=${schema}" >> "$GITHUB_OUTPUT"
       - name: Verify the findings
+        timeout-minutes: 25
         id: verifier
         if: steps.definition.outputs.total != '0'
         uses: anthropics/claude-code-action@6d5ae526d25ce88daa2200be073e1a373167f064 # v1.0.265
@@ -181,20 +199,24 @@ jobs:
             --allowedTools "${{ steps.definition.outputs.tools }}"
             --json-schema '${{ steps.definition.outputs.schema }}'
       - name: Save the verified findings
+        timeout-minutes: 2
         if: steps.definition.outputs.total != '0'
         env:
           VERIFIER_OUTPUT: ${{ steps.verifier.outputs.structured_output }}
         run: node scripts/save-verified-findings.ts
       # Without findings the verifier does not run, and an empty list of verdicts is the complete answer.
       - name: Record that no lens reported a finding
+        timeout-minutes: 2
         if: steps.definition.outputs.total == '0'
         run: echo '{"findings":[]}' > verified.json
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        timeout-minutes: 5
         with:
           name: verified
           path: verified.json
           retention-days: 1
       - name: Keep the transcript of a verifier that did not finish
+        timeout-minutes: 5
         if: (failure() || cancelled()) && steps.verifier.outputs.execution_file != ''
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -214,22 +236,27 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        timeout-minutes: 3
       - uses: pnpm/setup@fa36a5ef7dcdefc3a7cb25655c122e00cf6e636e # v3.1.2
+        timeout-minutes: 4
         with:
           install: false
       # An unfinished panel uploads no findings, and the next step reports that, so a missing artifact is not an error here.
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        timeout-minutes: 3
         continue-on-error: true
         with:
           pattern: findings-*
           path: review/findings
           merge-multiple: true
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        timeout-minutes: 3
         continue-on-error: true
         with:
           name: verified
           path: review
       - name: Post the review and give the verdict
+        timeout-minutes: 3
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PULL_REQUEST: ${{ github.event.pull_request.number }}
