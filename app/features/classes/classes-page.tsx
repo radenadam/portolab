@@ -167,7 +167,7 @@ function JoinedClasses({
 }: {
   classes: readonly JoinedClass[];
 }): ReactNode {
-  // A student joins a class when the account is created, so the list of a student is never empty.
+  // A student account exists only through joining a class, and nothing deletes a class yet, so the list of a student is never empty. Issue #27 adds deletion and with it the empty list.
   return (
     <ul className={styles["list"]}>
       {classes.map((joined) => (

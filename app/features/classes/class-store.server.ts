@@ -81,7 +81,7 @@ export function createClass(
   return created.id;
 }
 
-/** Lists the classes that a lecturer teaches, the newest first, with the number of students in each. */
+/** Lists the classes that a lecturer teaches, in the order in which the lecturer created them, with the number of students in each. */
 export function listTaughtClasses(
   database: Database,
   lecturerId: UserId,

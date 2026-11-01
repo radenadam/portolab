@@ -9,13 +9,12 @@ import {
   UsernameField,
 } from "~/features/accounts/account-form-fields";
 import { NewPasswordFields } from "~/features/accounts/new-password-fields";
-import { createStudent } from "~/features/accounts/account-store.server";
 import {
   findUser,
   startSession,
 } from "~/features/accounts/current-session.server";
 import { pathReturningTo } from "~/features/accounts/path-returning-to";
-import { SubmitButton } from "~/form";
+import { FormFailure, SubmitButton } from "~/form";
 import formStyles from "~/form.module.css";
 import { typedText } from "~/form-text";
 import { formatRupiah } from "~/formatting";
@@ -25,6 +24,7 @@ import type { Route } from "./+types/join-class-page";
 import { findJoinedClass, joinClass } from "./class-store.server";
 import type { ClassForStudents } from "./class-store.server";
 import styles from "./classes.module.css";
+import { createStudentWithinLimit } from "./create-student-within-limit.server";
 import { findClassWithCode } from "./find-class-with-code.server";
 
 /** What the page of a code shows: the class with the form that joins it, why the code opens no class, or why a lecturer cannot join. */
@@ -56,7 +56,7 @@ export function loader({
   }
   const found = findClassWithCode(context, params.code);
   if (!found.ok) {
-    return { kind: "failure", failure: found.failure };
+    return { kind: "failure", failure: found.failure.text };
   }
   const { joinedClass } = found.value;
   if (
@@ -74,7 +74,7 @@ export async function action({ context, request, params }: Route.ActionArgs) {
   const found = findClassWithCode(context, params.code);
   if (user?.role === "lecturer" || !found.ok) {
     // The page that the loader shows again explains the code or the role.
-    return { fields: undefined };
+    return { fields: undefined, failure: undefined };
   }
   const database = context.get(databaseContext);
   const { joinedClass } = found.value;
@@ -86,31 +86,51 @@ export async function action({ context, request, params }: Route.ActionArgs) {
   const form = await request.formData();
   const student = readNewStudent(form);
   if (!student.ok) {
-    return data({ fields: student.failure }, { status: 400 });
-  }
-  const studentId = await createStudent(database, student.value, now);
-  if (studentId === undefined) {
     return data(
-      {
-        fields: {
-          name: typedText(form.get("name")),
-          username: typedText(form.get("username")),
-          nameFailure: undefined,
-          usernameFailure: m.classes_username_taken_error({
-            username: student.value.username,
-          }),
-          newPasswordFailure: undefined,
-          repeatedPasswordFailure: undefined,
-          consentFailure: undefined,
-        },
-      },
+      { fields: student.failure, failure: undefined },
       { status: 400 },
     );
   }
-  joinClass(database, { classId: joinedClass.id, studentId }, now);
+  const created = await createStudentWithinLimit(context, student.value, now);
+  if (!created.ok) {
+    const typedFields = {
+      name: typedText(form.get("name")),
+      username: typedText(form.get("username")),
+      nameFailure: undefined,
+      usernameFailure: undefined,
+      newPasswordFailure: undefined,
+      repeatedPasswordFailure: undefined,
+      consentFailure: undefined,
+    };
+    switch (created.failure.kind) {
+      case "blocked":
+        return data(
+          { fields: typedFields, failure: created.failure.text },
+          { status: 429 },
+        );
+      case "usernameTaken":
+        return data(
+          {
+            fields: {
+              ...typedFields,
+              usernameFailure: m.classes_username_taken_error({
+                username: student.value.username,
+              }),
+            },
+            failure: undefined,
+          },
+          { status: 400 },
+        );
+    }
+  }
+  joinClass(
+    database,
+    { classId: joinedClass.id, studentId: created.value },
+    now,
+  );
   return redirect(`/classes/${String(joinedClass.id)}`, {
     headers: {
-      "Set-Cookie": await startSession(database, request, studentId),
+      "Set-Cookie": await startSession(database, request, created.value),
     },
   });
 }
@@ -143,6 +163,7 @@ export default function JoinClassPage({
           joinedClass={loaderData.joinedClass}
           isSignedIn={loaderData.isSignedIn}
           fields={actionData?.fields}
+          failure={actionData?.failure}
         />
       );
   }
@@ -152,10 +173,12 @@ function ClassToJoin({
   joinedClass,
   isSignedIn,
   fields,
+  failure,
 }: {
   joinedClass: ClassForStudents;
   isSignedIn: boolean;
   fields: AccountFormFailures | undefined;
+  failure: string | undefined;
 }): ReactNode {
   return (
     <>
@@ -171,7 +194,7 @@ function ClassToJoin({
           <SubmitButton label={m.classes_join_label()} />
         </Form>
       ) : (
-        <NewStudentForm fields={fields} />
+        <NewStudentForm fields={fields} failure={failure} />
       )}
     </>
   );
@@ -179,13 +202,17 @@ function ClassToJoin({
 
 function NewStudentForm({
   fields,
+  failure,
 }: {
   fields: AccountFormFailures | undefined;
+  /** Why the form created no account, apart from its fields. */
+  failure: string | undefined;
 }): ReactNode {
   return (
     <>
       <h2>{m.classes_new_account_title()}</h2>
       <Form method="post" className={formStyles["form"]}>
+        {failure !== undefined && <FormFailure text={failure} />}
         <NameField hint={m.classes_student_name_hint()} failures={fields} />
         <UsernameField failures={fields} />
         <NewPasswordFields failures={fields} />

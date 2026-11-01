@@ -20,12 +20,17 @@ export function formatRupiah(amount: Rupiah): string {
 
 /** The character that the active language writes between groups of digits, such as the dot in 100.000.000, so that a parser can read a number as a person writes it. */
 export function digitGroupSeparator(): string {
-  for (const part of new Intl.NumberFormat(intlLocale()).formatToParts(1000)) {
+  const locale = intlLocale();
+  // Some languages group the digits of a number only from five digits, so a million shows the separator in every language that has one.
+  const million = 1_000_000;
+  for (const part of new Intl.NumberFormat(locale).formatToParts(million)) {
     if (part.type === "group") {
       return part.value;
     }
   }
-  return "";
+  throw new Error(
+    `The number format of ${locale} writes a million without a separator of digit groups.`,
+  );
 }
 
 export function formatNumber(value: number): string {

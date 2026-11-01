@@ -122,7 +122,7 @@ const texts: Record<
     joinButton: "Gabung ke kelas",
     otherCodeLink: "Masukkan kode lain",
     resetTitle: "Atur ulang kata sandi",
-    resetBody: `Portolab memberi ${studentName} (`,
+    resetBody: `Portolab memberi ${studentName}, yang masuk sebagai "`,
     resetButton: "Atur ulang kata sandi",
     temporaryPassword: `Berikan kata sandi sementara ini kepada ${studentName}. Kata sandi ini berlaku sampai ia memilih kata sandi baru.`,
     backLink: `Kembali ke ${className}`,
@@ -179,7 +179,7 @@ const texts: Record<
     joinButton: "Join the class",
     otherCodeLink: "Enter another code",
     resetTitle: "Reset a password",
-    resetBody: `Portolab gives ${studentName} (`,
+    resetBody: `Portolab gives ${studentName}, who signs in as "`,
     resetButton: "Reset the password",
     temporaryPassword: `Give ${studentName} this temporary password. It works until they choose a new one.`,
     backLink: `Back to ${className}`,
@@ -196,12 +196,12 @@ const sentenceParts: Record<
   id: {
     usernameTaken: 'Nama pengguna "',
     resetBody:
-      ") kata sandi sementara dan mengeluarkannya dari semua perangkat. Saat masuk berikutnya, ia memilih kata sandi baru.",
+      '", kata sandi sementara dan mengeluarkannya dari semua perangkat. Saat masuk berikutnya, ia memilih kata sandi baru.',
   },
   en: {
     usernameTaken: 'The username "',
     resetBody:
-      ") a temporary password and signs them out on every device. At the next sign-in, they choose a new password.",
+      '", a temporary password and signs them out on every device. At the next sign-in, they choose a new password.',
   },
 };
 

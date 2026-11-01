@@ -81,7 +81,7 @@
   "accounts_privacy_classes_body": "The classes that you teach or joined, and your simulated work in them, such as your orders and your portfolio.",
   "accounts_privacy_consent_body": "The time when you agreed to this notice.",
   "accounts_privacy_session_body": "For each device where you are signed in, a cookie that keeps you signed in. Portolab stores only a hash of it, and the session ends after {days} days without a visit.",
-  "accounts_privacy_address_body": "The address of your network, in memory only, for {minutes} minutes after each wrong password from it, to stop anyone from guessing passwords.",
+  "accounts_privacy_address_body": "The address of your network, in memory only, for {minutes} minutes after each wrong password, wrong code of a class, or request for a new account from it, to stop anyone from guessing passwords and codes or from flooding a class with accounts.",
   "accounts_privacy_language_body": "A cookie with the language that you chose, which stays in your browser.",
   "accounts_privacy_not_stored_body": "Portolab stores no email address, no phone number, and nothing about your real finances. It uses no tracking and no advertising, and it gives your data to no one.",
   "accounts_privacy_access_title": "Who sees it",
@@ -117,7 +117,7 @@
   "classes_joined_notice": "You joined this class on {time} WIB.",
   "classes_starting_cash_notice": "You start with {cash} in virtual cash.",
   "classes_reset_title": "Reset a password",
-  "classes_reset_body": "Portolab gives {name} ({username}) a temporary password and signs them out on every device. At the next sign-in, they choose a new password.",
+  "classes_reset_body": "Portolab gives {name}, who signs in as \"{username}\", a temporary password and signs them out on every device. At the next sign-in, they choose a new password.",
   "classes_reset_label": "Reset the password",
   "classes_temporary_password_notice": "Give {name} this temporary password. It works until they choose a new one.",
   "classes_back_link": "Back to {class}",
@@ -140,5 +140,6 @@
   "classes_username_taken_error": "The username \"{username}\" is taken. Choose another one, for example with a number at its end.",
   "classes_taught_class_notice": "Students: {count}. Starting cash: {cash}.",
   "accounts_privacy_attempts_body": "A username that someone typed with a wrong password, in memory only, for {minutes} minutes after each wrong password for it, to stop anyone from guessing the password of an account.",
-  "accounts_character_range_label": "{first} to {last}"
+  "accounts_character_range_label": "{first} to {last}",
+  "classes_new_accounts_blocked_error": "Portolab creates no account from your network until {time} WIB, because it received {accounts} requests for a new account from it within {minutes} minutes. The limit stops anyone from flooding a class with accounts. Try again after that time, or join through another network, such as the mobile data of your phone."
 }

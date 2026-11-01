@@ -28,8 +28,8 @@ export async function action({ context, request }: Route.ActionArgs) {
   const found = findClassWithCode(context, form.get("code"));
   if (!found.ok) {
     return data(
-      { code: typedText(form.get("code")), codeFailure: found.failure },
-      { status: 400 },
+      { code: typedText(form.get("code")), codeFailure: found.failure.text },
+      { status: found.failure.status },
     );
   }
   const { joinCode, joinedClass } = found.value;

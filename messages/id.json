@@ -81,7 +81,7 @@
   "accounts_privacy_classes_body": "Kelas yang Anda ajar atau ikuti, dan pekerjaan simulasi Anda di dalamnya, seperti order dan portofolio Anda.",
   "accounts_privacy_consent_body": "Waktu ketika Anda menyetujui pemberitahuan ini.",
   "accounts_privacy_session_body": "Untuk setiap perangkat tempat Anda masuk, sebuah cookie yang membuat Anda tetap masuk. Portolab hanya menyimpan hash-nya, dan sesi berakhir setelah {days} hari tanpa kunjungan.",
-  "accounts_privacy_address_body": "Alamat jaringan Anda, hanya di memori, selama {minutes} menit setelah setiap kata sandi salah dari jaringan itu, untuk mencegah siapa pun menebak kata sandi.",
+  "accounts_privacy_address_body": "Alamat jaringan Anda, hanya di memori, selama {minutes} menit setelah setiap kata sandi salah, kode kelas yang salah, atau permintaan akun baru dari jaringan itu, untuk mencegah siapa pun menebak kata sandi dan kode atau membanjiri sebuah kelas dengan akun.",
   "accounts_privacy_language_body": "Sebuah cookie berisi bahasa yang Anda pilih, yang tersimpan di peramban Anda.",
   "accounts_privacy_not_stored_body": "Portolab tidak menyimpan alamat email, nomor telepon, atau apa pun tentang keuangan Anda yang sebenarnya. Portolab tidak memakai pelacakan maupun iklan, dan tidak memberikan data Anda kepada siapa pun.",
   "accounts_privacy_access_title": "Siapa yang melihatnya",
@@ -117,7 +117,7 @@
   "classes_joined_notice": "Anda bergabung ke kelas ini pada {time} WIB.",
   "classes_starting_cash_notice": "Anda mulai dengan uang virtual sebesar {cash}.",
   "classes_reset_title": "Atur ulang kata sandi",
-  "classes_reset_body": "Portolab memberi {name} ({username}) kata sandi sementara dan mengeluarkannya dari semua perangkat. Saat masuk berikutnya, ia memilih kata sandi baru.",
+  "classes_reset_body": "Portolab memberi {name}, yang masuk sebagai \"{username}\", kata sandi sementara dan mengeluarkannya dari semua perangkat. Saat masuk berikutnya, ia memilih kata sandi baru.",
   "classes_reset_label": "Atur ulang kata sandi",
   "classes_temporary_password_notice": "Berikan kata sandi sementara ini kepada {name}. Kata sandi ini berlaku sampai ia memilih kata sandi baru.",
   "classes_back_link": "Kembali ke {class}",
@@ -140,5 +140,6 @@
   "classes_username_taken_error": "Nama pengguna \"{username}\" sudah dipakai. Pilih yang lain, misalnya dengan angka di akhirnya.",
   "classes_taught_class_notice": "Mahasiswa: {count}. Modal awal: {cash}.",
   "accounts_privacy_attempts_body": "Nama pengguna yang diketik seseorang dengan kata sandi salah, hanya di memori, selama {minutes} menit setelah setiap kata sandi salah untuknya, untuk mencegah siapa pun menebak kata sandi sebuah akun.",
-  "accounts_character_range_label": "{first} sampai {last}"
+  "accounts_character_range_label": "{first} sampai {last}",
+  "classes_new_accounts_blocked_error": "Portolab tidak membuat akun dari jaringan Anda sampai {time} WIB, karena menerima {accounts} permintaan akun baru dari jaringan itu dalam {minutes} menit. Batas ini mencegah siapa pun membanjiri sebuah kelas dengan akun. Coba lagi setelah waktu tersebut, atau bergabunglah melalui jaringan lain, seperti data seluler ponsel Anda."
 }

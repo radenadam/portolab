@@ -18,11 +18,11 @@ import {
 } from "~/features/accounts/password-attempts.server";
 import type { PasswordLimiters } from "~/features/accounts/password-attempts.server";
 import { startSessionSweep } from "~/features/accounts/start-session-sweep.server";
-import type { AttemptLimiter } from "~/create-attempt-limiter.server";
 import {
-  createJoinLimiter,
-  joinLimiterContext,
-} from "~/features/classes/join-limiter.server";
+  createJoinLimiters,
+  joinLimitersContext,
+} from "~/features/classes/join-limiters.server";
+import type { JoinLimiters } from "~/features/classes/join-limiters.server";
 import { fixturePriceSource } from "~/features/market-data/fixture-price-source.server";
 import { startPriceJob } from "~/features/market-data/price-job.server";
 import { priceSourceContext } from "~/features/market-data/price-source-context.server";
@@ -46,11 +46,11 @@ export interface Services {
   database: Database;
   priceSource: PriceSource;
   passwordLimiters: PasswordLimiters;
-  joinLimiter: AttemptLimiter;
+  joinLimiters: JoinLimiters;
   stop: () => void;
 }
 
-/** Opens the database, starts the price job and the sweep of ended sessions, and creates the limits on passwords and on codes of classes, with the settings that the server read at startup. */
+/** Opens the database, starts the price job and the sweep of ended sessions, and creates the limits on passwords and on joining classes, with the settings that the server read at startup. */
 export function startServices(settings: ServiceSettings): Services {
   const database = openDatabase(
     settings.databasePath,
@@ -72,7 +72,7 @@ export function startServices(settings: ServiceSettings): Services {
     database,
     priceSource,
     passwordLimiters: createPasswordLimiters(),
-    joinLimiter: createJoinLimiter(),
+    joinLimiters: createJoinLimiters(),
     stop: () => {
       stopPriceJob();
       stopSessionSweep();
@@ -92,7 +92,7 @@ export function createApp(services: Services): RequestHandler {
       context.set(databaseContext, services.database);
       context.set(priceSourceContext, services.priceSource);
       context.set(passwordLimitersContext, services.passwordLimiters);
-      context.set(joinLimiterContext, services.joinLimiter);
+      context.set(joinLimitersContext, services.joinLimiters);
       context.set(clientAddressContext, clientAddress(request));
       return context;
     },
