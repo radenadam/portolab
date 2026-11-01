@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+import { portfolioWeight } from "~/units/portfolio-weight";
 import { closeToForTest } from "./close-to-for-test";
 import { defaultEstimationSettings } from "./estimation-settings";
 import { measurePortfolio } from "./measure-portfolio";
@@ -20,8 +21,8 @@ function measured(holdings: readonly Holding[]): PortfolioMeasures {
 
 test("measures each holding of a portfolio of two stocks over the latest 60 monthly returns", () => {
   const portfolio = measured([
-    { ...monthEndClosesForTest("BBCA"), weight: 0.6 },
-    { ...monthEndClosesForTest("TLKM"), weight: 0.4 },
+    { ...monthEndClosesForTest("BBCA"), weight: portfolioWeight(0.6) },
+    { ...monthEndClosesForTest("TLKM"), weight: portfolioWeight(0.4) },
   ]);
   expect(portfolio.market.returns).toHaveLength(60);
   expect(
@@ -73,8 +74,8 @@ test("measures each holding of a portfolio of two stocks over the latest 60 mont
 
 test("measures a portfolio of two stocks from the measures of its holdings", () => {
   const portfolio = measured([
-    { ...monthEndClosesForTest("BBCA"), weight: 0.6 },
-    { ...monthEndClosesForTest("TLKM"), weight: 0.4 },
+    { ...monthEndClosesForTest("BBCA"), weight: portfolioWeight(0.6) },
+    { ...monthEndClosesForTest("TLKM"), weight: portfolioWeight(0.4) },
   ]);
   const expectedReturns = portfolio.holdings.map(
     (holding) => holding.expectedReturn.value,
@@ -116,9 +117,9 @@ test("measures a portfolio of two stocks from the measures of its holdings", () 
 test("measures a portfolio with cash and a recent listing over the months that every holding shares", () => {
   // AMMN listed in July 2023, so the holdings share 38 monthly returns. A tenth of the value is cash, which earns nothing.
   const portfolio = measured([
-    { ...monthEndClosesForTest("BBCA"), weight: 0.5 },
-    { ...monthEndClosesForTest("TLKM"), weight: 0.2 },
-    { ...monthEndClosesForTest("AMMN"), weight: 0.2 },
+    { ...monthEndClosesForTest("BBCA"), weight: portfolioWeight(0.5) },
+    { ...monthEndClosesForTest("TLKM"), weight: portfolioWeight(0.2) },
+    { ...monthEndClosesForTest("AMMN"), weight: portfolioWeight(0.2) },
   ]);
   expect(portfolio.market.returns).toHaveLength(38);
   expect(portfolio.holdings.map((holding) => holding.returns.length)).toEqual([
@@ -205,8 +206,8 @@ test("fails for a portfolio whose holdings share fewer monthly returns than the 
   expect(
     measurePortfolio(
       [
-        { ...monthEndClosesForTest("BBCA"), weight: 0.5 },
-        { ...monthEndClosesForTest("AADI"), weight: 0.5 },
+        { ...monthEndClosesForTest("BBCA"), weight: portfolioWeight(0.5) },
+        { ...monthEndClosesForTest("AADI"), weight: portfolioWeight(0.5) },
       ],
       ihsg,
       defaultEstimationSettings,

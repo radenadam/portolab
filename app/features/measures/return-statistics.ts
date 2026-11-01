@@ -1,5 +1,9 @@
+import { correlation } from "~/units/correlation";
+import type { Correlation } from "~/units/correlation";
 import { monthlyReturn } from "~/units/monthly-return";
 import type { MonthlyReturn } from "~/units/monthly-return";
+import { monthlyVariance } from "~/units/monthly-variance";
+import type { MonthlyVariance } from "~/units/monthly-variance";
 import type { Measure } from "./measure";
 import type { ReturnMeasure } from "./aligned-returns";
 
@@ -12,20 +16,20 @@ type MeanMeasure = Measure<
 
 type VarianceMeasure = Measure<
   "sampleVariance",
-  number,
+  MonthlyVariance,
   { returns: readonly MonthlyReturn[]; mean: MonthlyReturn }
 >;
 
 export type StandardDeviationMeasure = Measure<
   "squareRoot",
   MonthlyReturn,
-  { variance: number }
+  { variance: MonthlyVariance }
 >;
 
 /** How the returns of two instruments, or of one instrument and the market, move together. */
 export type CovarianceMeasure = Measure<
   "sampleCovariance",
-  number,
+  MonthlyVariance,
   {
     firstReturns: readonly MonthlyReturn[];
     firstMean: MonthlyReturn;
@@ -36,9 +40,9 @@ export type CovarianceMeasure = Measure<
 
 export type CorrelationMeasure = Measure<
   "correlation",
-  number,
+  Correlation,
   {
-    covariance: number;
+    covariance: MonthlyVariance;
     firstStandardDeviation: MonthlyReturn;
     secondStandardDeviation: MonthlyReturn;
   }
@@ -84,7 +88,7 @@ export function measureSeries(
 
 /** Measures a standard deviation as the square root of a variance. */
 export function measureStandardDeviation(
-  variance: number,
+  variance: MonthlyVariance,
 ): StandardDeviationMeasure {
   return {
     formula: "squareRoot",
@@ -122,8 +126,9 @@ export function measureCorrelation(
   const secondStandardDeviation = second.standardDeviation.value;
   return {
     formula: "correlation",
-    value:
+    value: correlation(
       covariance.value / (firstStandardDeviation * secondStandardDeviation),
+    ),
     inputs: {
       covariance: covariance.value,
       firstStandardDeviation,
@@ -134,9 +139,9 @@ export function measureCorrelation(
 
 // Decision 0013 explains why the sum is divided by n - 1.
 function sampleCovariance(
-  first: { returns: readonly number[]; mean: number },
-  second: { returns: readonly number[]; mean: number },
-): number {
+  first: { returns: readonly MonthlyReturn[]; mean: MonthlyReturn },
+  second: { returns: readonly MonthlyReturn[]; mean: MonthlyReturn },
+): MonthlyVariance {
   let sumOfProducts = 0;
   for (const [index, firstReturn] of first.returns.entries()) {
     const secondReturn = second.returns[index];
@@ -151,5 +156,5 @@ function sampleCovariance(
     }
     sumOfProducts += (firstReturn - first.mean) * (secondReturn - second.mean);
   }
-  return sumOfProducts / (first.returns.length - 1);
+  return monthlyVariance(sumOfProducts / (first.returns.length - 1));
 }

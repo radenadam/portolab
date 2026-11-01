@@ -1,7 +1,10 @@
 import { succeed } from "~/result";
 import type { Result } from "~/result";
+import { beta as toBeta } from "~/units/beta";
+import type { Beta } from "~/units/beta";
 import { monthlyReturn } from "~/units/monthly-return";
 import type { MonthlyReturn } from "~/units/monthly-return";
+import type { MonthlyVariance } from "~/units/monthly-variance";
 import type { Measure, MeasureFailure } from "./measure";
 import { measureRiskFreeRate } from "./measure-risk-free-rate";
 import type { RiskFreeRateMeasure } from "./measure-risk-free-rate";
@@ -19,8 +22,8 @@ import type {
 
 type BetaMeasure = Measure<
   "beta",
-  number,
-  { covarianceWithMarket: number; marketVariance: number }
+  Beta,
+  { covarianceWithMarket: MonthlyVariance; marketVariance: MonthlyVariance }
 >;
 
 /** The return that CAPM requires for the risk that a beta measures. */
@@ -29,7 +32,7 @@ export type RequiredReturnMeasure = Measure<
   MonthlyReturn,
   {
     riskFreeRate: MonthlyReturn;
-    beta: number;
+    beta: Beta;
     marketExpectedReturn: MonthlyReturn;
   }
 >;
@@ -80,7 +83,7 @@ export function measureAgainstMarket(
   const covarianceWithMarket = measureCovariance(series, market);
   const beta: BetaMeasure = {
     formula: "beta",
-    value: covarianceWithMarket.value / market.variance.value,
+    value: toBeta(covarianceWithMarket.value / market.variance.value),
     inputs: {
       covarianceWithMarket: covarianceWithMarket.value,
       marketVariance: market.variance.value,
@@ -107,7 +110,7 @@ export function measureAgainstMarket(
 
 /** Measures the return that CAPM requires for a beta, with the risk-free rate and the expected return of the market. */
 export function measureRequiredReturn(
-  beta: number,
+  beta: Beta,
   market: MarketMeasures,
 ): RequiredReturnMeasure {
   const riskFreeRate = market.riskFreeRate.value;

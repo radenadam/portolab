@@ -2,6 +2,7 @@ import type { Database } from "~/database/database.server";
 import { listDailyHistory } from "~/features/market-data/history-store.server";
 import type { Instrument } from "~/features/market-data/price-source.server";
 import type { Result } from "~/result";
+import { portfolioWeight } from "~/units/portfolio-weight";
 import type { MarketMeasures, StockMeasures } from "./capm";
 import { defaultEstimationSettings } from "./estimation-settings";
 import type { MeasureFailure } from "./measure";
@@ -23,7 +24,7 @@ export function measureStoredStock(
   );
 }
 
-/** Measures a portfolio against the IHSG from the daily closes that the price job stored, with the settings that every measure uses. Each holding names a stock and its share of the value of the portfolio, and the rest of the value is cash. */
+/** Measures a portfolio against the IHSG from the daily closes that the price job stored, with the settings that every measure uses. Each holding names a stock and its share of the value of the portfolio as a fraction from 0 to 1, and the rest of the value is cash. */
 export function measureStoredPortfolio(
   database: Database,
   holdings: readonly { code: string; weight: number }[],
@@ -31,7 +32,7 @@ export function measureStoredPortfolio(
   return measurePortfolio(
     holdings.map((holding) => ({
       ...listDailyHistory(database, { kind: "stock", code: holding.code }),
-      weight: holding.weight,
+      weight: portfolioWeight(holding.weight),
     })),
     listDailyHistory(database, market),
     defaultEstimationSettings,

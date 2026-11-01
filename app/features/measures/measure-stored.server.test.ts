@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+import { portfolioWeight } from "~/units/portfolio-weight";
 import { openDatabaseForTest } from "~/database/open-database-for-test.server";
 import type { Database } from "~/database/database.server";
 import { saveDailyHistory } from "~/features/market-data/history-store.server";
@@ -39,8 +40,8 @@ test("measures a portfolio from the stored closes of its holdings", () => {
   ).toEqual(
     measurePortfolio(
       [
-        { ...bbca, weight: 0.6 },
-        { ...tlkm, weight: 0.4 },
+        { ...bbca, weight: portfolioWeight(0.6) },
+        { ...tlkm, weight: portfolioWeight(0.4) },
       ],
       ihsg,
       defaultEstimationSettings,

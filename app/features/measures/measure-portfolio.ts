@@ -1,7 +1,12 @@
 import { succeed } from "~/result";
 import type { Result } from "~/result";
+import { beta as toBeta } from "~/units/beta";
+import type { Beta } from "~/units/beta";
 import { monthlyReturn } from "~/units/monthly-return";
 import type { MonthlyReturn } from "~/units/monthly-return";
+import { monthlyVariance } from "~/units/monthly-variance";
+import type { MonthlyVariance } from "~/units/monthly-variance";
+import type { PortfolioWeight } from "~/units/portfolio-weight";
 import {
   measureAgainstMarket,
   measureMarket,
@@ -29,30 +34,30 @@ import type {
   StandardDeviationMeasure,
 } from "./return-statistics";
 
-/** A stock in a portfolio, with its share of the value of the portfolio as a fraction, such as 0.25. The rest of the value is cash, which earns nothing, so it adds nothing to the expected return, the variance, or the beta. */
+/** A stock in a portfolio, with its share of the value of the portfolio. The rest of the value is cash, which earns nothing, so it adds nothing to the expected return, the variance, or the beta. */
 export interface Holding extends InstrumentCloses {
-  weight: number;
+  weight: PortfolioWeight;
 }
 
 type WeightedSumMeasure<Value> = Measure<
   "weightedSum",
   Value,
-  { terms: readonly { code: string; weight: number; value: Value }[] }
+  { terms: readonly { code: string; weight: PortfolioWeight; value: Value }[] }
 >;
 
 type PortfolioVarianceMeasure = Measure<
   "portfolioVariance",
-  number,
+  MonthlyVariance,
   {
-    weights: readonly number[];
+    weights: readonly PortfolioWeight[];
     /** The covariance matrix of the holdings, in the order of the weights. */
-    covariances: readonly (readonly number[])[];
+    covariances: readonly (readonly MonthlyVariance[])[];
   }
 >;
 
 export interface PortfolioMeasures {
   /** The measures of each holding against the market, in the order of the holdings. */
-  holdings: (StockMeasures & { weight: number })[];
+  holdings: (StockMeasures & { weight: PortfolioWeight })[];
   market: MarketMeasures;
   /** The covariance of each pair of holdings, in the order of the holdings, with the variance of each holding on the diagonal. */
   covarianceMatrix: CovarianceMeasure[][];
@@ -60,7 +65,7 @@ export interface PortfolioMeasures {
   expectedReturn: WeightedSumMeasure<MonthlyReturn>;
   variance: PortfolioVarianceMeasure;
   standardDeviation: StandardDeviationMeasure;
-  beta: WeightedSumMeasure<number>;
+  beta: WeightedSumMeasure<Beta>;
   requiredReturn: RequiredReturnMeasure;
   securityMarketLine: SecurityMarketLineMeasure;
 }
@@ -116,7 +121,7 @@ export function measurePortfolio(
       weight: holding.weight,
       value: holding.beta.value,
     })),
-    (sum) => sum,
+    toBeta,
   );
   const requiredReturn = measureRequiredReturn(
     beta.value,
@@ -140,7 +145,7 @@ export function measurePortfolio(
 }
 
 function measureWeightedSum<Value extends number>(
-  terms: readonly { code: string; weight: number; value: Value }[],
+  terms: readonly { code: string; weight: PortfolioWeight; value: Value }[],
   toValue: (sum: number) => Value,
 ): WeightedSumMeasure<Value> {
   let sum = 0;
@@ -151,7 +156,7 @@ function measureWeightedSum<Value extends number>(
 }
 
 function measurePortfolioVariance(
-  holdings: readonly { weight: number }[],
+  holdings: readonly { weight: PortfolioWeight }[],
   covarianceMatrix: readonly (readonly CovarianceMeasure[])[],
 ): PortfolioVarianceMeasure {
   const weights = holdings.map((holding) => holding.weight);
@@ -166,7 +171,7 @@ function measurePortfolioVariance(
   }
   return {
     formula: "portfolioVariance",
-    value: variance,
+    value: monthlyVariance(variance),
     inputs: {
       weights,
       covariances: covarianceMatrix.map((row) => row.map((cell) => cell.value)),

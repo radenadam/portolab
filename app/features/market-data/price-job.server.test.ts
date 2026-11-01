@@ -1,4 +1,5 @@
 import { expect, test, vi } from "vitest";
+import { minuteMilliseconds } from "~/time-units";
 import type { Database } from "~/database/database.server";
 import { openDatabaseForTest } from "~/database/open-database-for-test.server";
 import { fail, succeed } from "~/result";
@@ -52,7 +53,7 @@ const trackedCodes = trackedInstruments.map((instrument) => instrument.code);
 const start = new Date("2026-11-02T03:00:00.000Z");
 
 function minutesAfterStart(minutes: number): Date {
-  return new Date(start.getTime() + minutes * 60_000);
+  return new Date(start.getTime() + minutes * minuteMilliseconds);
 }
 
 function jobSettings(
