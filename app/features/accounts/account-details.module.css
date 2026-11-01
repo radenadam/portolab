@@ -2,6 +2,11 @@
   display: grid;
   grid-template-columns: auto 1fr;
   gap: var(--space-1) var(--space-4);
+  margin: 0;
+}
+
+.details dt {
+  color: var(--color-muted);
 }
 
 .details dd {

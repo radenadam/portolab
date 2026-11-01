@@ -7,6 +7,7 @@
   --color-muted: #5e5e6c;
   --color-line: #e2e2ea;
   --color-signal: #3f3dc8;
+  --color-on-signal: #ffffff;
 
   --font-text:
     "IBM Plex Sans Variable", system-ui, -apple-system, "Segoe UI", Roboto,
@@ -16,6 +17,7 @@
 
   --text-small: 0.875rem;
   --text-body: 1rem;
+  --text-heading: 1.25rem;
   --text-title: 1.75rem;
 
   --space-1: 0.25rem;
@@ -40,6 +42,7 @@
     --color-muted: #9d9dac;
     --color-line: #2a2a34;
     --color-signal: #a9a8ff;
+    --color-on-signal: #15142b;
   }
 }
 
@@ -63,6 +66,14 @@ h1 {
   font-size: var(--text-title);
   font-weight: 600;
   line-height: 1.2;
+}
+
+/* A heading of a section has more space above it than the blocks of the page have between them, so it starts a new part. */
+h2 {
+  margin: var(--space-4) 0 0;
+  font-size: var(--text-heading);
+  font-weight: 600;
+  line-height: 1.3;
 }
 
 p {
