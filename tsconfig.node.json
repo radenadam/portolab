@@ -14,6 +14,7 @@
     "app/features/accounts/account-store.server.ts",
     "app/features/accounts/account.ts",
     "app/features/accounts/accounts.schema.ts",
+    "app/features/accounts/normalize-password.ts",
     "app/features/accounts/password.server.ts",
     "app/features/accounts/session-store.server.ts",
     "app/features/accounts/username.ts",

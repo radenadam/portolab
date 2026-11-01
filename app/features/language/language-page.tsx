@@ -10,7 +10,7 @@ import { parseLocale } from "./parse-locale";
 
 export async function action({ request }: Route.ActionArgs) {
   const form = await request.formData();
-  const locale = parseLocale(form.get("locale"), "locale");
+  const locale = parseLocale(form.get("locale"), m.language_switch_label());
   if (!locale.ok) {
     return data({ failure: locale.failure }, { status: 400 });
   }

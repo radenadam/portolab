@@ -33,13 +33,24 @@ export interface User {
   consentedAt: Date;
 }
 
-/** The person as every page serves them, or undefined while the account still needs a step before Portolab may serve them: a name, a password of their own, or their consent. */
+/** The steps that an account still needs before Portolab serves the person: a name, a password of their own, and their consent. */
+export interface MissingSteps {
+  name: boolean;
+  password: boolean;
+  consent: boolean;
+}
+
+export function missingSteps(account: Account): MissingSteps {
+  return {
+    name: account.name === null,
+    password: account.mustChangePassword,
+    consent: account.consentedAt === null,
+  };
+}
+
+/** The person as every page serves them, or undefined while the account still misses a step. */
 export function readyUser(account: Account): User | undefined {
-  if (
-    account.name === null ||
-    account.mustChangePassword ||
-    account.consentedAt === null
-  ) {
+  if (!isReady(account)) {
     return undefined;
   }
   return {
@@ -49,4 +60,11 @@ export function readyUser(account: Account): User | undefined {
     role: account.role,
     consentedAt: account.consentedAt,
   };
+}
+
+function isReady(
+  account: Account,
+): account is Account & { name: string; consentedAt: Date } {
+  const steps = missingSteps(account);
+  return !steps.name && !steps.password && !steps.consent;
 }
