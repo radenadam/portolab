@@ -5,8 +5,8 @@ import { describeValue } from "../../value-shapes.ts";
 /** The name that a person signs in with, in lowercase. */
 export type Username = string & { readonly brand: "Username" };
 
-// The failure text of parseUsername states these limits and characters, so a change here changes it too.
-const usernameLength = { minimum: 3, maximum: 32 } as const;
+// The failure text of parseUsername and the messages accounts_username_hint and accounts_username_error state these limits and characters, so a change here changes them too.
+export const usernameLength = { minimum: 3, maximum: 32 } as const;
 const usernamePattern = /^[a-z0-9._-]+$/;
 
 /** Puts what a person typed as a username into the form that Portolab stores. A username ignores case and the spaces around it, because a phone keyboard often capitalizes the first letter. */

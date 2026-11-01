@@ -3,14 +3,29 @@ import {
   checkMaximumLength,
   parseFilledText,
   parseShortText,
+  typedText,
 } from "~/form-text";
 import { formatNumber } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
-import { fail, succeed } from "~/result";
+import { fail, failureOf, succeed } from "~/result";
 import type { Result } from "~/result";
+import type { NewStudent } from "./account-store.server";
+import { isUsername, normalizeUsername, usernameLength } from "./username";
+import type { Username } from "./username";
 
 // A name rarely comes near this, and a longer one would not fit where a page shows it.
 const nameMaximumLength = 100;
+
+/** Why the fields of a form of an account were not accepted, and the text that the person typed in the fields that the form shows again. */
+export interface AccountFormFailures {
+  typedName: string;
+  typedUsername: string;
+  name: string | undefined;
+  username: string | undefined;
+  password: string | undefined;
+  repeatedPassword: string | undefined;
+  consent: string | undefined;
+}
 
 /** The limits of a password that a person chooses. NIST SP 800-63B asks for at least 15 characters when a password alone signs a person in, and for a maximum of at least 64. */
 export const passwordLength = { minimum: 15, maximum: 128 } as const;
@@ -65,4 +80,71 @@ export function parseConsent(
   return value === "yes"
     ? succeed(true)
     : fail(m.accounts_consent_missing_error({ field: source }));
+}
+
+/** Reads a username that a person chose for a new account. */
+export function parseNewUsername(
+  value: unknown,
+  source: string,
+): Result<Username, string> {
+  const text = parseFilledText(value, source);
+  if (!text.ok) {
+    return text;
+  }
+  const username = normalizeUsername(text.value);
+  return isUsername(username)
+    ? succeed(username)
+    : fail(
+        m.accounts_username_error({
+          field: source,
+          value: text.value.trim(),
+          minimum: formatNumber(usernameLength.minimum),
+          maximum: formatNumber(usernameLength.maximum),
+        }),
+      );
+}
+
+/** Reads the form with which a student creates an account: a name, a username, a password typed twice, and the agreement to the privacy notice. */
+export function readNewStudent(
+  form: FormData,
+): Result<NewStudent, AccountFormFailures> {
+  const name = parsePersonName(form.get("name"), m.accounts_name_label());
+  const username = parseNewUsername(
+    form.get("username"),
+    m.accounts_username_label(),
+  );
+  const password = parseNewPassword(
+    form.get("newPassword"),
+    m.accounts_new_password_label(),
+  );
+  const repeatedPassword = password.ok
+    ? parseRepeatedPassword(
+        form.get("repeatedPassword"),
+        m.accounts_repeated_password_label(),
+        password.value,
+      )
+    : succeed("");
+  const consent = parseConsent(form.get("consent"), m.accounts_consent_label());
+  if (
+    name.ok &&
+    username.ok &&
+    password.ok &&
+    repeatedPassword.ok &&
+    consent.ok
+  ) {
+    return succeed({
+      name: name.value,
+      username: username.value,
+      password: password.value,
+    });
+  }
+  return fail({
+    typedName: typedText(form.get("name")),
+    typedUsername: typedText(form.get("username")),
+    name: failureOf(name),
+    username: failureOf(username),
+    password: failureOf(password),
+    repeatedPassword: failureOf(repeatedPassword),
+    consent: failureOf(consent),
+  });
 }

@@ -11,11 +11,8 @@ import { m } from "~/paraglide/messages.js";
 import type { Route } from "./+types/account-page";
 import type { User } from "./account";
 import { AccountDetails } from "./account-details";
-import {
-  parseNewPassword,
-  parseRepeatedPassword,
-  passwordLength,
-} from "./account-fields";
+import { parseNewPassword, parseRepeatedPassword } from "./account-fields";
+import { NewPasswordFields } from "./account-form-fields";
 import { updateAccount } from "./account-store.server";
 import { requireUser, startSession } from "./current-session.server";
 import {
@@ -63,8 +60,8 @@ export async function action({ context, request }: Route.ActionArgs) {
         currentPasswordFailure: currentPassword.ok
           ? undefined
           : currentPassword.failure,
-        newPasswordFailure: newPassword.ok ? undefined : newPassword.failure,
-        repeatedPasswordFailure:
+        password: newPassword.ok ? undefined : newPassword.failure,
+        repeatedPassword:
           repeatedPassword?.ok === false ? repeatedPassword.failure : undefined,
       },
       { status: 400 },
@@ -95,8 +92,8 @@ export async function action({ context, request }: Route.ActionArgs) {
           }),
         ),
         currentPasswordFailure: undefined,
-        newPasswordFailure: undefined,
-        repeatedPasswordFailure: undefined,
+        password: undefined,
+        repeatedPassword: undefined,
       },
       { status: checked.failure.kind === "wrongPassword" ? 400 : 429 },
     );
@@ -108,8 +105,8 @@ export async function action({ context, request }: Route.ActionArgs) {
       savedAt: new Date().toISOString(),
       failure: undefined,
       currentPasswordFailure: undefined,
-      newPasswordFailure: undefined,
-      repeatedPasswordFailure: undefined,
+      password: undefined,
+      repeatedPassword: undefined,
     },
     {
       headers: {
@@ -152,23 +149,7 @@ export default function AccountPage({
           autoComplete="current-password"
           failure={actionData?.currentPasswordFailure}
         />
-        <TextField
-          name="newPassword"
-          label={m.accounts_new_password_label()}
-          type="password"
-          autoComplete="new-password"
-          hint={m.accounts_password_hint({
-            minimum: formatNumber(passwordLength.minimum),
-          })}
-          failure={actionData?.newPasswordFailure}
-        />
-        <TextField
-          name="repeatedPassword"
-          label={m.accounts_repeated_password_label()}
-          type="password"
-          autoComplete="new-password"
-          failure={actionData?.repeatedPasswordFailure}
-        />
+        <NewPasswordFields failures={actionData} />
         <SubmitButton label={m.accounts_change_password_label()} />
       </Form>
       <SignOutButton />

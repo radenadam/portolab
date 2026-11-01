@@ -73,6 +73,36 @@ export async function createLecturer(
   return created.length === 0 ? undefined : temporaryPassword;
 }
 
+/** What a student gives to create an account while joining a class. */
+export interface NewStudent {
+  username: Username;
+  name: string;
+  password: string;
+}
+
+/** Creates the account of a student, who agreed to the privacy notice and chose a password while joining a class, and returns its id, or returns undefined when the username is taken. */
+export async function createStudent(
+  database: Database,
+  student: NewStudent,
+  now: Date,
+): Promise<UserId | undefined> {
+  const [created] = database
+    .insert(users)
+    .values({
+      username: student.username,
+      name: student.name,
+      role: "student",
+      passwordHash: await hashPassword(student.password),
+      mustChangePassword: false,
+      consentedAt: now,
+      createdAt: now,
+    })
+    .onConflictDoNothing({ target: users.username })
+    .returning({ id: users.id })
+    .all();
+  return created?.id;
+}
+
 /** Gives an account a temporary password, which this returns, and signs the person out on every device. The person chooses a new password at the next sign-in. */
 export async function resetPassword(
   database: Database,

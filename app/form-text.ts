@@ -58,3 +58,8 @@ export function checkMaximumLength(
 export function characterCount(text: string): number {
   return Array.from(text).length;
 }
+
+/** The text that a person typed in a field, so that a form can show it again with the reason that it was not accepted. A field that holds no text shows empty. */
+export function typedText(value: unknown): string {
+  return typeof value === "string" ? value : "";
+}

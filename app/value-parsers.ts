@@ -36,3 +36,20 @@ export function parseFilePath(
     `${source} must be the path of a file, but it is ${describeValue(value)}.`,
   );
 }
+
+/** Reads the number that identifies a row of a table, such as a class in the address of its page, which is a positive whole number. The caller names the type of the id. */
+export function parseRecordId<Id extends number>(
+  value: unknown,
+  source: string,
+): Result<Id, string> {
+  if (typeof value === "string" && /^[1-9][0-9]{0,15}$/.test(value)) {
+    const id = Number(value);
+    if (Number.isSafeInteger(id)) {
+      // Every positive whole number can identify a row, so the number is an id of any table.
+      return succeed(id as Id);
+    }
+  }
+  return fail(
+    `${source} must be a positive whole number, but it is ${describeValue(value)}.`,
+  );
+}

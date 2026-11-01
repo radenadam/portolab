@@ -1,12 +1,12 @@
 import type { ReactNode } from "react";
 import { data, Form, redirect } from "react-router";
 import { databaseContext } from "~/database/database.server";
-import { CheckboxField, SubmitButton, TextField } from "~/form";
+import { SubmitButton } from "~/form";
 import formStyles from "~/form.module.css";
-import { formatNumber } from "~/formatting";
+import { typedText } from "~/form-text";
 import { pageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
-import { fail, succeed } from "~/result";
+import { fail, failureOf, succeed } from "~/result";
 import type { Result } from "~/result";
 import { returnDestination } from "~/return-destination.server";
 import type { Route } from "./+types/account-setup-page";
@@ -17,12 +17,16 @@ import {
   parseNewPassword,
   parsePersonName,
   parseRepeatedPassword,
-  passwordLength,
 } from "./account-fields";
+import type { AccountFormFailures } from "./account-fields";
+import {
+  ConsentField,
+  NameField,
+  NewPasswordFields,
+} from "./account-form-fields";
 import { updateAccount } from "./account-store.server";
 import type { AccountChanges } from "./account-store.server";
 import { requireSession, startSession } from "./current-session.server";
-import { PrivacyNotice } from "./privacy-notice";
 
 /** The steps that an account still needs before Portolab serves the person. */
 interface MissingSteps {
@@ -89,20 +93,11 @@ export async function action({ context, request }: Route.ActionArgs) {
   });
 }
 
-/** The reason that each field of the form was not accepted, and the name as the person typed it, so the form can show it again. */
-interface SetupFailures {
-  typedName: string;
-  name: string | undefined;
-  password: string | undefined;
-  repeatedPassword: string | undefined;
-  consent: string | undefined;
-}
-
 /** Reads each field that the account still lacks. */
 function readSetupForm(
   form: FormData,
   steps: MissingSteps,
-): Result<AccountChanges, SetupFailures> {
+): Result<AccountChanges, AccountFormFailures> {
   const name = readWhenMissing(steps.name, () =>
     parsePersonName(form.get("name"), m.accounts_name_label()),
   );
@@ -121,10 +116,11 @@ function readSetupForm(
     parseConsent(form.get("consent"), m.accounts_consent_label()),
   );
   if (!name.ok || !password.ok || !repeatedPassword.ok || !consent.ok) {
-    const typedName = form.get("name");
     return fail({
-      typedName: typeof typedName === "string" ? typedName : "",
+      typedName: typedText(form.get("name")),
+      typedUsername: "",
       name: failureOf(name),
+      username: undefined,
       password: failureOf(password),
       repeatedPassword: failureOf(repeatedPassword),
       consent: failureOf(consent),
@@ -142,10 +138,6 @@ function readWhenMissing<Value>(
   read: () => Result<Value, string>,
 ): Result<Value | undefined, string> {
   return isMissing ? read() : succeed(undefined);
-}
-
-function failureOf(result: Result<unknown, string>): string | undefined {
-  return result.ok ? undefined : result.failure;
 }
 
 export default function AccountSetupPage({
@@ -169,49 +161,13 @@ export default function AccountSetupPage({
       <Form method="post" className={formStyles["form"]}>
         <input type="hidden" name="returnTo" value={returnTo} />
         {steps.name && (
-          <TextField
-            name="name"
-            label={m.accounts_name_label()}
-            type="text"
-            autoComplete="name"
-            capitalizesWords
+          <NameField
             hint={m.accounts_lecturer_name_hint()}
-            failure={actionData?.name}
-            defaultValue={actionData?.typedName}
+            failures={actionData}
           />
         )}
-        {steps.password && (
-          <>
-            <TextField
-              name="newPassword"
-              label={m.accounts_new_password_label()}
-              type="password"
-              autoComplete="new-password"
-              hint={m.accounts_password_hint({
-                minimum: formatNumber(passwordLength.minimum),
-              })}
-              failure={actionData?.password}
-            />
-            <TextField
-              name="repeatedPassword"
-              label={m.accounts_repeated_password_label()}
-              type="password"
-              autoComplete="new-password"
-              failure={actionData?.repeatedPassword}
-            />
-          </>
-        )}
-        {/* The person agrees to the whole notice, so the page shows all of it before the box. */}
-        {steps.consent && (
-          <>
-            <PrivacyNotice />
-            <CheckboxField
-              name="consent"
-              label={m.accounts_consent_label()}
-              failure={actionData?.consent}
-            />
-          </>
-        )}
+        {steps.password && <NewPasswordFields failures={actionData} />}
+        {steps.consent && <ConsentField failures={actionData} />}
         <SubmitButton label={m.accounts_finish_label()} />
       </Form>
     </>

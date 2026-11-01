@@ -1,4 +1,4 @@
-import { createContext, redirect } from "react-router";
+import { createContext, data, redirect } from "react-router";
 import type { MiddlewareFunction, RouterContextProvider } from "react-router";
 import { databaseContext } from "~/database/database.server";
 import type { Database } from "~/database/database.server";
@@ -75,6 +75,28 @@ export function requireUser(
     throw redirect(pathReturningTo("/account/setup", currentPath(request)));
   }
   return user;
+}
+
+/** The lecturer who is signed in and finished setting up the account. A student gets the page for an address that does not exist, so a student learns nothing about the pages of lecturers. */
+export function requireLecturer(
+  context: Readonly<RouterContextProvider>,
+  request: Request,
+): User {
+  const user = requireUser(context, request);
+  if (user.role !== "lecturer") {
+    throw data(null, { status: 404 });
+  }
+  return user;
+}
+
+/** The person who is signed in and finished setting up the account, or undefined for a visitor who is not signed in, for a page that serves both. A person who still has to finish the account goes to that step first. */
+export function findUser(
+  context: Readonly<RouterContextProvider>,
+  request: Request,
+): User | undefined {
+  return context.get(currentSessionContext) === undefined
+    ? undefined
+    : requireUser(context, request);
 }
 
 /** The session of a person who is signed in, whether or not the account is ready, for the step that finishes it. A visitor who is not signed in goes to the sign-in page. */
