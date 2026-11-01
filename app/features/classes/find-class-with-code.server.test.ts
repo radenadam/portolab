@@ -32,9 +32,9 @@ const texts: Record<
     empty:
       'Kolom "Kode kelas" kosong, padahal Portolab memerlukannya. Isi kolom itu.',
     malformed:
-      'Kode kelas terdiri dari 8 huruf dan angka, tetapi "k7qm-4rx1" bukan kode seperti itu. Periksa kodenya dengan dosen Anda.',
+      'Kolom "Kode kelas" berisi kode kelas, yang terdiri dari 8 huruf dan angka, tetapi isinya "k7qm-4rx1". Periksa kodenya dengan dosen Anda.',
     unknown:
-      'Tidak ada kelas dengan kode "aaaa-aaaa". Periksa kodenya dengan dosen Anda, lalu coba lagi.',
+      'Kolom "Kode kelas" berisi kode "aaaa-aaaa", tetapi tidak ada kelas dengan kode ini. Periksa kodenya dengan dosen Anda, lalu coba lagi.',
     blocked:
       "Portolab memblokir kode dari jaringan Anda sampai 10.15 WIB, karena menerima 100 kode salah dari jaringan itu dalam 15 menit. Blokir ini menghentikan siapa pun yang mencoba menebak kode kelas. Coba lagi setelah waktu tersebut.",
   },
@@ -42,9 +42,9 @@ const texts: Record<
     empty:
       'The field "Code of the class" is empty, but Portolab needs it. Fill it in.',
     malformed:
-      'The code of a class has 8 letters and digits, but "k7qm-4rx1" is not such a code. Check the code with your lecturer.',
+      'The field "Code of the class" takes the code of a class, which has 8 letters and digits, but it holds "k7qm-4rx1". Check the code with your lecturer.',
     unknown:
-      'No class has the code "aaaa-aaaa". Check the code with your lecturer and try again.',
+      'The field "Code of the class" holds the code "aaaa-aaaa", but no class has this code. Check the code with your lecturer and try again.',
     blocked:
       "Portolab blocks codes from your network until 10:15 AM WIB, because it received 100 wrong codes from it within 15 minutes. The block stops anyone who tries to guess the code of a class. Try again after that time.",
   },
@@ -111,15 +111,15 @@ for (const locale of locales) {
     const context = contextFor(database);
     expect(findClassWithCode(context, "")).toEqual({
       ok: false,
-      failure: { text: text.empty, status: 400 },
+      failure: { kind: "wrongCode", text: text.empty, status: 400 },
     });
     expect(findClassWithCode(context, "k7qm-4rx1")).toEqual({
       ok: false,
-      failure: { text: text.malformed, status: 400 },
+      failure: { kind: "wrongCode", text: text.malformed, status: 400 },
     });
     expect(findClassWithCode(context, "AAAA AAAA")).toEqual({
       ok: false,
-      failure: { text: text.unknown, status: 400 },
+      failure: { kind: "wrongCode", text: text.unknown, status: 400 },
     });
   });
 
@@ -139,11 +139,11 @@ for (const locale of locales) {
     }
     expect(findClassWithCode(context, "aaaa-aaaa")).toEqual({
       ok: false,
-      failure: { text: text.unknown, status: 400 },
+      failure: { kind: "wrongCode", text: text.unknown, status: 400 },
     });
     expect(findClassWithCode(context, joinCode)).toEqual({
       ok: false,
-      failure: { text: text.blocked, status: 429 },
+      failure: { kind: "blocked", text: text.blocked, status: 429 },
     });
   });
 }

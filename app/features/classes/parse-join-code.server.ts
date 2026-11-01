@@ -21,6 +21,7 @@ export function parseJoinCode(
     ? succeed(code)
     : fail(
         m.classes_malformed_code_error({
+          field: source,
           code: text.value.trim(),
           length: formatNumber(joinCodeLength),
         }),

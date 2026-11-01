@@ -19,6 +19,7 @@ import {
   checkPassword,
   passwordLimitersContext,
 } from "./password-attempts.server";
+import type { PasswordFailure } from "./password-attempts.server";
 import { explainPasswordFailure } from "./explain-password-failure.server";
 import { SignOutButton } from "./sign-out-button";
 import styles from "./account-page.module.css";
@@ -79,8 +80,7 @@ export async function action({ context, request }: Route.ActionArgs) {
     return data(
       {
         savedAt: undefined,
-        failure: text,
-        currentPasswordFailure: undefined,
+        ...placePasswordFailure(checked.failure, text),
         newPasswordFailure: undefined,
         repeatedPasswordFailure: undefined,
       },
@@ -103,6 +103,20 @@ export async function action({ context, request }: Route.ActionArgs) {
       },
     },
   );
+}
+
+/** Puts the text of a failed check of the current password where it belongs: a wrong password at its field, and a block of the limit on wrong passwords above the form. */
+function placePasswordFailure(
+  failure: PasswordFailure,
+  text: string,
+): { failure: string | undefined; currentPasswordFailure: string | undefined } {
+  switch (failure.kind) {
+    case "wrongPassword":
+      return { failure: undefined, currentPasswordFailure: text };
+    case "usernameBlocked":
+    case "addressBlocked":
+      return { failure: text, currentPasswordFailure: undefined };
+  }
 }
 
 export default function AccountPage({

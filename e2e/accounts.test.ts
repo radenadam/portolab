@@ -384,7 +384,10 @@ for (const locale of locales) {
 
     await page.goto("/account");
     await changePassword(page, locale, "a wrong password");
-    await expect(page.getByRole("alert")).toHaveText(text.wrongCurrentPassword);
+    // A wrong password is about the value of its field, so it appears at the field.
+    await expect(
+      page.getByLabel(text.currentPasswordLabel),
+    ).toHaveAccessibleDescription(text.wrongCurrentPassword);
     await expectAccessibleScreen(page);
 
     await changePassword(page, locale, chosenPassword);

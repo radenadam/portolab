@@ -1,8 +1,8 @@
 import { and, asc, count, eq } from "drizzle-orm";
 import type { Database } from "~/database/database.server";
-import { users } from "~/features/accounts/accounts.schema";
 import type { UserId } from "~/features/accounts/accounts.schema";
-import type { Username } from "~/features/accounts/username";
+import { findPeople } from "~/features/accounts/account-store.server";
+import type { Person } from "~/features/accounts/account-store.server";
 import { randomReadableText } from "~/random-text.server";
 import type { Rupiah } from "~/units/rupiah";
 import { classes, memberships } from "./classes.schema";
@@ -34,10 +34,7 @@ export interface JoinedClass extends ClassForStudents {
 }
 
 /** A student in a class, as the lecturer of the class sees them. */
-export interface ClassStudent {
-  id: UserId;
-  name: string;
-  username: Username;
+export interface ClassStudent extends Person {
   joinedAt: Date;
 }
 
@@ -48,17 +45,16 @@ export interface NewClass {
   startingCash: Rupiah;
 }
 
+// The name of the lecturer comes from the accounts feature, which owns the table of people, so a query of classes selects the id of the lecturer and withLecturerNames adds the name.
 const classForStudentsColumns = {
   id: classes.id,
   name: classes.name,
-  lecturerName: users.name,
+  lecturerId: classes.lecturerId,
   startingCash: classes.startingCash,
 };
 
-const classStudentColumns = {
-  id: users.id,
-  name: users.name,
-  username: users.username,
+const membershipColumns = {
+  studentId: memberships.studentId,
   joinedAt: memberships.joinedAt,
 };
 
@@ -125,14 +121,13 @@ export function listStudents(
   database: Database,
   classId: ClassId,
 ): ClassStudent[] {
-  return database
-    .select(classStudentColumns)
+  const rows = database
+    .select(membershipColumns)
     .from(memberships)
-    .innerJoin(users, eq(users.id, memberships.studentId))
     .where(eq(memberships.classId, classId))
     .orderBy(asc(memberships.joinedAt), asc(memberships.id))
-    .all()
-    .map((student) => ({ ...student, name: nameOf(student) }));
+    .all();
+  return withStudents(database, rows);
 }
 
 /** Lists the classes that a student joined, in the order in which the student joined them. */
@@ -140,11 +135,11 @@ export function listJoinedClasses(
   database: Database,
   studentId: UserId,
 ): JoinedClass[] {
-  return selectJoinedClasses(database)
+  const rows = selectJoinedClasses(database)
     .where(eq(memberships.studentId, studentId))
     .orderBy(asc(memberships.joinedAt), asc(memberships.id))
-    .all()
-    .map(withLecturerName);
+    .all();
+  return withLecturerNames(database, rows);
 }
 
 /** Finds a class that a student joined, or undefined when the class does not exist or the student is not in it. */
@@ -161,7 +156,7 @@ export function findJoinedClass(
       ),
     )
     .get();
-  return row === undefined ? undefined : withLecturerName(row);
+  return row === undefined ? undefined : withLecturerNames(database, [row])[0];
 }
 
 /** Finds the class that a code opens, or undefined when no class has the code. */
@@ -172,10 +167,9 @@ export function findClassByJoinCode(
   const row = database
     .select(classForStudentsColumns)
     .from(classes)
-    .innerJoin(users, eq(users.id, classes.lecturerId))
     .where(eq(classes.joinCode, joinCode))
     .get();
-  return row === undefined ? undefined : withLecturerName(row);
+  return row === undefined ? undefined : withLecturerNames(database, [row])[0];
 }
 
 /** Adds a student to a class, and does nothing when the student is in it already. */
@@ -200,9 +194,8 @@ export function findClassStudent(
   studentId: UserId,
 ): ClassStudent | undefined {
   const row = database
-    .select(classStudentColumns)
+    .select(membershipColumns)
     .from(memberships)
-    .innerJoin(users, eq(users.id, memberships.studentId))
     .where(
       and(
         eq(memberships.classId, classId),
@@ -210,7 +203,7 @@ export function findClassStudent(
       ),
     )
     .get();
-  return row === undefined ? undefined : { ...row, name: nameOf(row) };
+  return row === undefined ? undefined : withStudents(database, [row])[0];
 }
 
 function selectJoinedClasses(database: Database) {
@@ -222,20 +215,44 @@ function selectJoinedClasses(database: Database) {
     })
     .from(memberships)
     .innerJoin(classes, eq(classes.id, memberships.classId))
-    .innerJoin(users, eq(users.id, classes.lecturerId))
     .$dynamic();
 }
 
-function withLecturerName<Row extends { lecturerName: string | null }>(
-  row: Row,
-): Row & { lecturerName: string } {
-  return { ...row, lecturerName: nameOf({ name: row.lecturerName }) };
+/** Replaces the id of the lecturer of each class with the name of the lecturer. */
+function withLecturerNames<Row extends { lecturerId: UserId }>(
+  database: Database,
+  rows: readonly Row[],
+): (Omit<Row, "lecturerId"> & { lecturerName: string })[] {
+  const lecturers = findPeople(
+    database,
+    rows.map((row) => row.lecturerId),
+  );
+  return rows.map(({ lecturerId, ...row }) => ({
+    ...row,
+    lecturerName: personWithId(lecturers, lecturerId).name,
+  }));
 }
 
-// Only a lecturer whom the server owner created lacks a name, until the first sign-in. Such a lecturer teaches no class, and every student gives a name when joining, so a member of a class without a name is a broken database.
-function nameOf({ name }: { name: string | null }): string {
-  if (name === null) {
-    throw new Error("A person in a class has no name.");
+/** Turns each membership into the student with the time when the student joined. */
+function withStudents(
+  database: Database,
+  rows: readonly { studentId: UserId; joinedAt: Date }[],
+): ClassStudent[] {
+  const students = findPeople(
+    database,
+    rows.map((row) => row.studentId),
+  );
+  return rows.map((row) => ({
+    ...personWithId(students, row.studentId),
+    joinedAt: row.joinedAt,
+  }));
+}
+
+// A class and a membership refer to their people through foreign keys, so a person that findPeople misses is a broken database.
+function personWithId(people: Map<UserId, Person>, id: UserId): Person {
+  const person = people.get(id);
+  if (person === undefined) {
+    throw new Error(`The account ${String(id)} of a class does not exist.`);
   }
-  return name;
+  return person;
 }

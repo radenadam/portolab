@@ -12,20 +12,20 @@ import type { JoinCode } from "./join-code";
 import { joinLimits, joinLimitersContext } from "./join-limiters.server";
 import { parseJoinCode } from "./parse-join-code.server";
 
-/** Why a code opens no class: a sentence for the reader in the current language, with the status of the answer, which is 429 when the network reached the limit on wrong codes. */
-export interface CodeFailure {
-  text: string;
-  status: 400 | 429;
-}
+/** Why a code opens no class, as a sentence for the reader in the current language with the status of the answer: the code in the field is wrong, or the network reached the limit on wrong codes. */
+export type CodeFailure =
+  | { kind: "wrongCode"; text: string; status: 400 }
+  | { kind: "blocked"; text: string; status: 429 };
 
-/** Finds the class that a code which a person typed opens, within the limit on wrong codes from the address of the request. */
+/** Finds the class that a code opens, within the limit on wrong codes from the address of the request. A person types the code in the field of the form for a code, or in an address, which then shows that form with the code in its field. */
 export function findClassWithCode(
   context: Readonly<RouterContextProvider>,
   value: unknown,
 ): Result<{ joinCode: JoinCode; joinedClass: ClassForStudents }, CodeFailure> {
-  const joinCode = parseJoinCode(value, m.classes_code_label());
+  const field = m.classes_code_label();
+  const joinCode = parseJoinCode(value, field);
   if (!joinCode.ok) {
-    return fail({ text: joinCode.failure, status: 400 });
+    return fail({ kind: "wrongCode", text: joinCode.failure, status: 400 });
   }
   const limiter = context.get(joinLimitersContext).wrongCodes;
   const address = context.get(clientAddressContext);
@@ -33,6 +33,7 @@ export function findClassWithCode(
   const blockedUntil = limiter.startAttempt(address, now);
   if (blockedUntil !== undefined) {
     return fail({
+      kind: "blocked",
       text: m.classes_join_blocked_error({
         time: formatMarketClock(blockedUntil),
         failures: formatNumber(joinLimits.wrongCodes.failures),
@@ -47,7 +48,9 @@ export function findClassWithCode(
   );
   if (joinedClass === undefined) {
     return fail({
+      kind: "wrongCode",
       text: m.classes_unknown_code_error({
+        field,
         code: formatJoinCode(joinCode.value),
       }),
       status: 400,

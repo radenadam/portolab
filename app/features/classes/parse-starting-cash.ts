@@ -16,15 +16,15 @@ export function parseStartingCash(
   if (!text.ok) {
     return text;
   }
-  const digits = text.value
-    .replaceAll(/\s/g, "")
-    .replaceAll(digitGroupSeparator(), "");
+  const separator = digitGroupSeparator();
+  const digits = text.value.replaceAll(/\s/g, "").replaceAll(separator, "");
   if (!/^\d+$/.test(digits)) {
     return fail(
       m.classes_starting_cash_error({
         field: source,
         value: text.value.trim(),
         example: formatNumber(defaultStartingCash),
+        separator,
       }),
     );
   }

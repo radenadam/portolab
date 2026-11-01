@@ -61,7 +61,6 @@ const texts: Record<
     existingAccountLink: string;
     usernameTaken: string;
     joinButton: string;
-    otherCodeLink: string;
     resetTitle: string;
     resetBody: string;
     resetButton: string;
@@ -83,7 +82,7 @@ const texts: Record<
       "Uang virtual dalam rupiah bulat yang dimiliki setiap mahasiswa di awal.",
     createButton: "Buat kelas",
     cashNotWhole:
-      'Kolom "Modal awal" berisi bilangan bulat rupiah, misalnya 100.000.000, tetapi isinya "seratus juta". Tulis jumlahnya dengan angka saja.',
+      'Kolom "Modal awal" berisi bilangan bulat rupiah, misalnya 100.000.000, tetapi isinya "seratus juta". Tulis jumlahnya dengan angka, dengan atau tanpa "." di antara kelompok angka.',
     taughtClass: "Mahasiswa: 1. Modal awal: Rp 100.000.000.",
     shareNotice:
       "Bagikan kode atau alamat ini kepada mahasiswa Anda. Setiap mahasiswa yang bergabung mulai dengan uang virtual sebesar Rp 100.000.000.",
@@ -104,9 +103,9 @@ const texts: Record<
     codeFieldLabel: "Kode kelas",
     continueButton: "Lanjutkan",
     malformedCode:
-      'Kode kelas terdiri dari 8 huruf dan angka, tetapi "abc" bukan kode seperti itu. Periksa kodenya dengan dosen Anda.',
+      'Kolom "Kode kelas" berisi kode kelas, yang terdiri dari 8 huruf dan angka, tetapi isinya "abc". Periksa kodenya dengan dosen Anda.',
     unknownCode:
-      'Tidak ada kelas dengan kode "aaaa-aaaa". Periksa kodenya dengan dosen Anda, lalu coba lagi.',
+      'Kolom "Kode kelas" berisi kode "aaaa-aaaa", tetapi tidak ada kelas dengan kode ini. Periksa kodenya dengan dosen Anda, lalu coba lagi.',
     lecturerCannotJoin:
       "Hanya mahasiswa yang bergabung ke kelas, dan Anda masuk sebagai dosen. Untuk bergabung sebagai mahasiswa, keluar terlebih dahulu.",
     joinClassTitle: `Gabung ke ${className}`,
@@ -118,9 +117,8 @@ const texts: Record<
     createAccountButton: "Buat akun dan gabung",
     existingAccountLink: "Masuk dengan akun yang sudah Anda miliki",
     usernameTaken:
-      '" sudah dipakai. Pilih yang lain, misalnya dengan angka di akhirnya.',
+      '", yang sudah dipakai akun lain. Pilih yang lain, misalnya dengan angka di akhirnya.',
     joinButton: "Gabung ke kelas",
-    otherCodeLink: "Masukkan kode lain",
     resetTitle: "Atur ulang kata sandi",
     resetBody: `Portolab memberi ${studentName}, yang masuk sebagai "`,
     resetButton: "Atur ulang kata sandi",
@@ -140,7 +138,7 @@ const texts: Record<
     cashHint: "The virtual cash in whole rupiah that each student starts with.",
     createButton: "Create the class",
     cashNotWhole:
-      'The field "Starting cash" takes a whole number of rupiah, such as 100,000,000, but it holds "seratus juta". Write the amount with digits only.',
+      'The field "Starting cash" takes a whole number of rupiah, such as 100,000,000, but it holds "seratus juta". Write the amount in digits, with or without "," between groups of digits.',
     taughtClass: "Students: 1. Starting cash: IDR 100,000,000.",
     shareNotice:
       "Share the code or the address with your students. Each student who joins starts with IDR 100,000,000 in virtual cash.",
@@ -161,9 +159,9 @@ const texts: Record<
     codeFieldLabel: "Code of the class",
     continueButton: "Continue",
     malformedCode:
-      'The code of a class has 8 letters and digits, but "abc" is not such a code. Check the code with your lecturer.',
+      'The field "Code of the class" takes the code of a class, which has 8 letters and digits, but it holds "abc". Check the code with your lecturer.',
     unknownCode:
-      'No class has the code "aaaa-aaaa". Check the code with your lecturer and try again.',
+      'The field "Code of the class" holds the code "aaaa-aaaa", but no class has this code. Check the code with your lecturer and try again.',
     lecturerCannotJoin:
       "Only students join a class, and you are signed in as a lecturer. To join as a student, sign out first.",
     joinClassTitle: `Join ${className}`,
@@ -175,9 +173,8 @@ const texts: Record<
     createAccountButton: "Create the account and join",
     existingAccountLink: "Sign in with the account that you have",
     usernameTaken:
-      '" is taken. Choose another one, for example with a number at its end.',
+      '", which another account has. Choose another one, for example with a number at its end.',
     joinButton: "Join the class",
-    otherCodeLink: "Enter another code",
     resetTitle: "Reset a password",
     resetBody: `Portolab gives ${studentName}, who signs in as "`,
     resetButton: "Reset the password",
@@ -194,12 +191,12 @@ const sentenceParts: Record<
   { usernameTaken: string; resetBody: string }
 > = {
   id: {
-    usernameTaken: 'Nama pengguna "',
+    usernameTaken: 'Kolom "Nama pengguna" berisi nama pengguna "',
     resetBody:
       '", kata sandi sementara dan mengeluarkannya dari semua perangkat. Saat masuk berikutnya, ia memilih kata sandi baru.',
   },
   en: {
-    usernameTaken: 'The username "',
+    usernameTaken: 'The field "Username" holds the username "',
     resetBody:
       '", a temporary password and signs them out on every device. At the next sign-in, they choose a new password.',
   },
@@ -369,12 +366,21 @@ for (const locale of locales) {
       .click();
     await expect(student).toHaveURL(second.path);
 
-    await student.goto("/join/aaaa-aaaa");
+    // A wrong code in an address shows the form for a code, which holds it, with the reason.
+    const response = await student.goto("/join/aaaa-aaaa");
+    expect(response?.status()).toBe(400);
+    await expect(student).toHaveTitle(`${text.joinTitle} | Portolab`);
     await expect(student.getByText(text.unknownCode)).toBeVisible();
-    await expect(
-      student.getByRole("link", { name: text.otherCodeLink }),
-    ).toBeVisible();
+    await expect(student.getByLabel(text.codeFieldLabel)).toHaveValue(
+      "aaaa-aaaa",
+    );
     await expectAccessibleScreen(student);
+    await student.getByLabel(text.codeFieldLabel).fill(first.joinCode);
+    await student
+      .getByRole("main")
+      .getByRole("button", { name: text.continueButton })
+      .click();
+    await expect(student).toHaveURL(first.path);
     await student.context().close();
   });
 
@@ -477,7 +483,8 @@ for (const locale of locales) {
     await expectAccessibleScreen(member);
 
     for (const path of ["/join", testClass.joinAddress]) {
-      await otherLecturer.goto(path);
+      const response = await otherLecturer.goto(path);
+      expect(response?.status(), path).toBe(403);
       await expect(
         otherLecturer.getByText(text.lecturerCannotJoin),
       ).toBeVisible();
