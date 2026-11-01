@@ -26,7 +26,7 @@ const database = openDatabase(
   databasePath.value,
   join(import.meta.dirname, "..", migrationsFolderName),
 );
-const result = await runAccountCommand(database, command.value, new Date());
+const result = await runAccountCommand(database, command.value);
 closeDatabase(database);
 if (!result.ok) {
   exitWithFailure([result.failure], writeFailure);

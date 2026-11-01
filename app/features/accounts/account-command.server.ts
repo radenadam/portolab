@@ -42,12 +42,11 @@ export function parseAccountCommand(
 export async function runAccountCommand(
   database: Database,
   command: AccountCommand,
-  now: Date,
 ): Promise<Result<string, string>> {
   const { username } = command;
   switch (command.action) {
     case "create-lecturer": {
-      const temporaryPassword = await createLecturer(database, username, now);
+      const temporaryPassword = await createLecturer(database, username);
       return temporaryPassword === undefined
         ? fail(
             `The username "${username}" is taken, so Portolab created no account. Choose another username, or give that account a new password with the action reset-password.`,

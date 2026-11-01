@@ -28,7 +28,6 @@ export const users = sqliteTable("users", {
     mode: "boolean",
   }).notNull(),
   consentedAt: integer("consented_at", { mode: "timestamp_ms" }),
-  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
 });
 
 /** Each device where a person is signed in. The cookie holds the id and a secret, and the table holds only a hash of the secret, so a copy of the database cannot sign anyone in. A session lives until the days of sessionInactivityDays pass without a visit, and the sweep of ended sessions then deletes it. */

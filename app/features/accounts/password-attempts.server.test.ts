@@ -53,6 +53,22 @@ test("signs in with the right password, whatever the case and the spaces around 
   ).toEqual({ ok: true, value: account });
 });
 
+test(
+  "counts a text that is no username against its address only, and keeps no such text",
+  async () => {
+    const database = openTestDatabase();
+    const limiters = createPasswordLimiters();
+    for (let failure = 0; failure < 11; failure += 1) {
+      expect(
+        await signIn(database, limiters, attempt("a b".repeat(1000), "wrong")),
+      ).toEqual(wrongPassword);
+    }
+    expect(limiters.byUsername.keyCount()).toBe(0);
+    expect(limiters.byAddress.keyCount()).toBe(1);
+  },
+  manyHashesTimeout,
+);
+
 test("fails in the same way for a wrong password and for a username without an account", async () => {
   const database = openTestDatabase();
   await createTestLecturer(database, "dosen");
@@ -144,6 +160,7 @@ test(
       checkPassword(database, limiters, {
         ...attempt(account.username, password),
         userId: account.id,
+        username: account.username,
       });
     expect(await check(temporaryPassword)).toEqual({ ok: true, value: true });
     for (let failure = 0; failure < 10; failure += 1) {

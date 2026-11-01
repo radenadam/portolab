@@ -15,8 +15,7 @@ CREATE TABLE `users` (
 	`role` text NOT NULL,
 	`password_hash` text NOT NULL,
 	`must_change_password` integer NOT NULL,
-	`consented_at` integer,
-	`created_at` integer NOT NULL
+	`consented_at` integer
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `users_username_unique` ON `users` (`username`);

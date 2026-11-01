@@ -36,10 +36,13 @@ export function createAttemptLimiter(limit: AttemptLimit): AttemptLimiter {
     }
   }
 
-  // The privacy notice promises that a key leaves memory when its last attempt leaves the window, so each attempt drops what is old once its own window ends, even when the key never tries again.
-  function dropWhenOld(key: string): void {
+  // The privacy notice promises that a key leaves memory when its last attempt leaves the window, so each attempt drops itself once its own window ends, even when the key never tries again. It drops itself by identity rather than by age, because the clock of a timer can run behind the clock of the dates.
+  function dropWhenOld(key: string, attempt: Date): void {
     setTimeout(() => {
-      keep(key, recentAttempts(key, new Date()));
+      keep(
+        key,
+        (attemptsByKey.get(key) ?? []).filter((kept) => kept !== attempt),
+      );
     }, windowMilliseconds).unref();
   }
 
@@ -52,8 +55,10 @@ export function createAttemptLimiter(limit: AttemptLimit): AttemptLimiter {
       if (recent.length >= limit.failures && blocking !== undefined) {
         return new Date(blocking.getTime() + windowMilliseconds);
       }
-      attemptsByKey.set(key, [...recent, now]);
-      dropWhenOld(key);
+      // Each attempt is its own date, so that its timer drops this attempt alone, even when another attempt has the same time.
+      const attempt = new Date(now);
+      attemptsByKey.set(key, [...recent, attempt]);
+      dropWhenOld(key, attempt);
       return undefined;
     },
     takeBack(key, startedAt) {

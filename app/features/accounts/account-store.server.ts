@@ -53,7 +53,6 @@ export function findPasswordHash(
 export async function createLecturer(
   database: Database,
   username: Username,
-  now: Date,
 ): Promise<string | undefined> {
   const temporaryPassword = makeTemporaryPassword();
   const created = database
@@ -65,7 +64,6 @@ export async function createLecturer(
       passwordHash: await hashPassword(temporaryPassword),
       mustChangePassword: true,
       consentedAt: null,
-      createdAt: now,
     })
     .onConflictDoNothing({ target: users.username })
     .returning({ id: users.id })
