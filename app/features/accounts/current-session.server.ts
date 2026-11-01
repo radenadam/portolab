@@ -5,6 +5,7 @@ import type { Database } from "~/database/database.server";
 import { readyUser } from "./account";
 import type { User } from "./account";
 import type { UserId } from "./accounts.schema";
+import { pathReturningTo } from "./path-returning-to";
 import {
   expiredSessionCookieHeader,
   readSessionToken,
@@ -114,11 +115,6 @@ export function requireSession(
 /** Whether the request comes from a person who is signed in, such as for the link to the account in the header. */
 export function isSignedIn(context: Readonly<RouterContextProvider>): boolean {
   return context.get(currentSessionContext) !== undefined;
-}
-
-/** A path of a step, such as the sign-in page, that returns to another path when it is done. */
-export function pathReturningTo(path: string, returnPath: string): string {
-  return `${path}?${new URLSearchParams({ returnTo: returnPath }).toString()}`;
 }
 
 function currentPath(request: Request): string {

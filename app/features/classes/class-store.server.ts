@@ -55,6 +55,13 @@ const classForStudentsColumns = {
   startingCash: classes.startingCash,
 };
 
+const classStudentColumns = {
+  id: users.id,
+  name: users.name,
+  username: users.username,
+  joinedAt: memberships.joinedAt,
+};
+
 /** Creates a class with a new code and returns its id. */
 export function createClass(
   database: Database,
@@ -119,12 +126,7 @@ export function listStudents(
   classId: ClassId,
 ): ClassStudent[] {
   return database
-    .select({
-      id: users.id,
-      name: users.name,
-      username: users.username,
-      joinedAt: memberships.joinedAt,
-    })
+    .select(classStudentColumns)
     .from(memberships)
     .innerJoin(users, eq(users.id, memberships.studentId))
     .where(eq(memberships.classId, classId))
@@ -179,8 +181,7 @@ export function findClassByJoinCode(
 /** Adds a student to a class, and does nothing when the student is in it already. */
 export function joinClass(
   database: Database,
-  classId: ClassId,
-  studentId: UserId,
+  { classId, studentId }: { classId: ClassId; studentId: UserId },
   now: Date,
 ): void {
   database
@@ -192,24 +193,24 @@ export function joinClass(
     .run();
 }
 
-/** Whether a student is in a class. */
-export function isInClass(
+/** Finds a student of a class, or undefined when the person is not a student of the class. */
+export function findClassStudent(
   database: Database,
   classId: ClassId,
   studentId: UserId,
-): boolean {
-  return (
-    database
-      .select({ id: memberships.id })
-      .from(memberships)
-      .where(
-        and(
-          eq(memberships.classId, classId),
-          eq(memberships.studentId, studentId),
-        ),
-      )
-      .get() !== undefined
-  );
+): ClassStudent | undefined {
+  const row = database
+    .select(classStudentColumns)
+    .from(memberships)
+    .innerJoin(users, eq(users.id, memberships.studentId))
+    .where(
+      and(
+        eq(memberships.classId, classId),
+        eq(memberships.studentId, studentId),
+      ),
+    )
+    .get();
+  return row === undefined ? undefined : { ...row, name: nameOf(row) };
 }
 
 function selectJoinedClasses(database: Database) {

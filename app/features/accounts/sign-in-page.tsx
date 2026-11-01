@@ -11,11 +11,8 @@ import { m } from "~/paraglide/messages.js";
 import { returnDestination } from "~/return-destination.server";
 import type { Route } from "./+types/sign-in-page";
 import { readyUser } from "./account";
-import {
-  currentSessionContext,
-  pathReturningTo,
-  startSession,
-} from "./current-session.server";
+import { currentSessionContext, startSession } from "./current-session.server";
+import { pathReturningTo } from "./path-returning-to";
 import { passwordLimitersContext, signIn } from "./password-attempts.server";
 import { passwordLimits } from "./account-limits";
 import { passwordFailureText } from "./password-failure-text.server";
@@ -33,7 +30,8 @@ export function loader({ context, request }: Route.LoaderArgs): {
   if (context.get(currentSessionContext) !== undefined) {
     throw redirect(returnDestination(returnTo, request));
   }
-  return { returnTo: returnTo ?? "" };
+  // A person who came to sign in without a page to return to goes to the classes, where every task starts.
+  return { returnTo: returnTo ?? "/classes" };
 }
 
 export async function action({ context, request }: Route.ActionArgs) {

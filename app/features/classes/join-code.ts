@@ -9,3 +9,8 @@ export function formatJoinCode(code: JoinCode): string {
   const half = joinCodeLength / 2;
   return `${code.slice(0, half)}-${code.slice(half)}`;
 }
+
+/** The address of the page with which a student joins a class, which a lecturer shares in a chat, so that the student needs not type the code. */
+export function joinPath(code: JoinCode): string {
+  return `/join/${formatJoinCode(code)}`;
+}

@@ -18,6 +18,16 @@ export function formatRupiah(amount: Rupiah): string {
   }).format(amount);
 }
 
+/** The character that the active language writes between groups of digits, such as the dot in 100.000.000, so that a parser can read a number as a person writes it. */
+export function digitGroupSeparator(): string {
+  for (const part of new Intl.NumberFormat(intlLocale()).formatToParts(1000)) {
+    if (part.type === "group") {
+      return part.value;
+    }
+  }
+  return "";
+}
+
 export function formatNumber(value: number): string {
   return new Intl.NumberFormat(intlLocale()).format(value);
 }
