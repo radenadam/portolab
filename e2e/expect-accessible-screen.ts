@@ -25,7 +25,7 @@ export async function expectAccessibleScreen(page: Page): Promise<void> {
       `Axe found violations in the ${colorScheme} theme.`,
     ).toEqual([]);
   }
-  // The test goes on in the theme that it started in.
+  // A caller may test more of the page after this check, and it expects the theme that it chose.
   await page.emulateMedia({ colorScheme: startColorScheme });
   // The styles size targets with the token in app/theme.css, so the token must hold the same height.
   const tokenHeight = await page.evaluate(() => {

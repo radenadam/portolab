@@ -70,7 +70,7 @@ These apply to all prose: docs, comments, commit messages, pull requests, issues
 - A page sets its title through its route `meta` export, unless the title depends on something that `meta` cannot see, such as the result of an action or an error. Such a page renders `PageTitle` from `app/page-title.tsx`.
 - A failure that a reader sees, including one from an action, appears on a page in the reader's language, through `app/error-page.tsx` or on the form that caused it, with the next step that its text offers. A bare text response is only for machines.
 - Gains and losses use the ink color, never red or green, as decision 0012 explains. A sign and an arrow carry the meaning, and they come from the value as the page shows it, so a mark never disagrees with a rounded number.
-- Every screen follows the look that decision 0012 sets. Its colors, fonts, spacing, and sizes, such as the smallest touch target, come from the tokens in `app/theme.css`.
+- Every screen follows the look that decision 0012 sets. Its colors, fonts, spacing, and sizes, such as the smallest touch target, come from the tokens in `app/theme.css`, and a state that every control shares, such as hover or focus, is styled once there, so no control drifts from its siblings.
 
 ### Code
 

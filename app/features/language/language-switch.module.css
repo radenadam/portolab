@@ -23,10 +23,6 @@
   cursor: pointer;
 }
 
-.option:hover {
-  color: var(--color-ink);
-}
-
 /* The chosen language is marked by its weight and by a line in the signal color, so it never depends on color alone. An inset shadow draws the line, because a border would push the text off the center of the button. */
 .option[aria-pressed="true"] {
   box-shadow: inset 0 calc(-1 * var(--size-mark)) 0 var(--color-signal);

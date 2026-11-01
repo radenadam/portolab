@@ -73,7 +73,8 @@ a {
   color: var(--color-signal);
 }
 
-a:hover {
+:is(a, button):hover {
+  text-decoration-line: underline;
   text-decoration-thickness: var(--size-mark);
 }
 
