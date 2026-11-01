@@ -68,6 +68,9 @@ const universePeriods: readonly UniversePeriod[] = [
   },
 ];
 
+/** The index that the measures take as the market, which Portolab always tracks. */
+export const marketIndex: Instrument = { kind: "index", code: "IHSG" };
+
 /** The instruments whose prices Portolab keeps current: the IHSG, and the stocks of every recorded period of the universe, each once and by code. */
 export const trackedInstruments: readonly Instrument[] =
   listTrackedInstruments();
@@ -79,7 +82,7 @@ function listTrackedInstruments(): Instrument[] {
       stockCodes.add(code);
     }
   }
-  const instruments: Instrument[] = [{ kind: "index", code: "IHSG" }];
+  const instruments: Instrument[] = [marketIndex];
   for (const code of [...stockCodes].sort()) {
     instruments.push({ kind: "stock", code });
   }

@@ -15,7 +15,7 @@ export function describeValue(value: unknown): string {
   if (typeof value === "number") {
     return String(value);
   }
-  if (value instanceof Date && Number.isNaN(value.getTime())) {
+  if (value instanceof Date && !isValidDate(value)) {
     return "an invalid date";
   }
   // JSON shows a class instance, such as a file from a form, as {}, so such a value is named by its class.

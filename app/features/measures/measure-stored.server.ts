@@ -1,6 +1,6 @@
 import type { Database } from "~/database/database.server";
 import { listDailyHistory } from "~/features/market-data/history-store.server";
-import type { Instrument } from "~/features/market-data/price-source.server";
+import { marketIndex } from "~/features/market-data/tracked-instruments";
 import type { Result } from "~/result";
 import { portfolioWeight } from "~/units/portfolio-weight";
 import { rupiah } from "~/units/rupiah";
@@ -12,8 +12,6 @@ import { measurePortfolio } from "./measure-portfolio";
 import type { PortfolioMeasures } from "./measure-portfolio";
 import { measureStock } from "./measure-stock";
 
-const market: Instrument = { kind: "index", code: "IHSG" };
-
 /** Measures a stock against the IHSG from the daily closes that the price job stored, with the settings that every measure uses. */
 export function measureStoredStock(
   database: Database,
@@ -21,7 +19,7 @@ export function measureStoredStock(
 ): Result<{ stock: StockMeasures; market: MarketMeasures }, MeasureFailure> {
   return measureStock(
     listDailyHistory(database, { kind: "stock", code }),
-    listDailyHistory(database, market),
+    listDailyHistory(database, marketIndex),
     defaultEstimationSettings,
   );
 }
@@ -43,7 +41,7 @@ export function measureStoredPortfolio(
       ...listDailyHistory(database, { kind: "stock", code: holding.code }),
       weight: portfolioWeight(holding.value / wholeValue),
     })),
-    listDailyHistory(database, market),
+    listDailyHistory(database, marketIndex),
     defaultEstimationSettings,
   );
 }

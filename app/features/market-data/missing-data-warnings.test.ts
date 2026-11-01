@@ -56,7 +56,7 @@ const warningStates: { name: string; moment: string; warnings: string[] }[] = [
 ];
 
 for (const state of warningStates) {
-  test(`warns about the missing data ${state.name}`, () => {
+  test(`${state.warnings.length > 0 ? "warns about the missing data" : "gives no warning"} ${state.name}`, () => {
     expect(missingDataWarnings(new Date(state.moment), delayMinutes)).toEqual(
       state.warnings,
     );
