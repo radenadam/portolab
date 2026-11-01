@@ -1,3 +1,5 @@
+import "@fontsource/ibm-plex-mono/400.css";
+import "@fontsource-variable/ibm-plex-sans/wght.css";
 import type { ReactNode } from "react";
 import {
   Link,

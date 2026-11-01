@@ -74,7 +74,7 @@ for (const locale of locales) {
   });
 }
 
-test("aligns every number and time of the table to the right", async ({
+test("aligns every number and time of the table to the right in the font for numbers", async ({
   page,
 }) => {
   await page.goto("/prices");
@@ -82,5 +82,30 @@ test("aligns every number and time of the table to the right", async ({
   await expect(cells).toHaveCount(3);
   for (const cell of await cells.all()) {
     await expect(cell).toHaveCSS("text-align", "right");
+    await expect(cell).toHaveCSS("font-family", /^"IBM Plex Mono",/);
   }
+});
+
+// Decision 0012 explains why Portolab serves its fonts itself.
+test("loads both fonts from Portolab itself", async ({ page }) => {
+  const requestedUrls: string[] = [];
+  page.on("request", (request) => {
+    requestedUrls.push(request.url());
+  });
+  await page.goto("/prices");
+  const loadedFamilies = await page.evaluate(async () => {
+    await document.fonts.ready;
+    const families = new Set<string>();
+    for (const face of document.fonts) {
+      if (face.status === "loaded") {
+        families.add(face.family);
+      }
+    }
+    return [...families].sort();
+  });
+  expect(loadedFamilies).toEqual(["IBM Plex Mono", "IBM Plex Sans Variable"]);
+  const pageOrigin = new URL(page.url()).origin;
+  expect(
+    requestedUrls.filter((url) => new URL(url).origin !== pageOrigin),
+  ).toEqual([]);
 });

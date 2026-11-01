@@ -5,10 +5,28 @@ import type { Page } from "@playwright/test";
 // The section "Interface behavior" of AGENTS.md sets this as the smallest touch target, and axe does not check it.
 const smallestTargetHeight = 44;
 
-/** Checks the screen with axe, checks that every visible link, button, and form field is at least as high as the smallest touch target, and checks that the page does not scroll sideways. */
+const colorSchemes = ["light", "dark"] as const;
+
+/** Checks the screen with axe in the light and the dark theme, checks that every visible link, button, and form field is at least as high as the smallest touch target, and checks that the page does not scroll sideways. */
 export async function expectAccessibleScreen(page: Page): Promise<void> {
-  const results = await new AxeBuilder({ page }).analyze();
-  expect(results.violations).toEqual([]);
+  // Until the fonts load, the browser draws text in a fallback font, whose widths differ.
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+  });
+  const startColorScheme = await page.evaluate(() =>
+    matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",
+  );
+  // Each theme has its own colors, so axe checks the contrast of each.
+  for (const colorScheme of colorSchemes) {
+    await page.emulateMedia({ colorScheme });
+    const results = await new AxeBuilder({ page }).analyze();
+    expect(
+      results.violations,
+      `Axe found violations in the ${colorScheme} theme.`,
+    ).toEqual([]);
+  }
+  // The test goes on in the theme that it started in.
+  await page.emulateMedia({ colorScheme: startColorScheme });
   // The styles size targets with the token in app/theme.css, so the token must hold the same height.
   const tokenHeight = await page.evaluate(() => {
     const probe = document.createElement("div");
