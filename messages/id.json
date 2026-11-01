@@ -139,7 +139,7 @@
   "classes_username_taken_error": "Kolom \"{field}\" berisi \"{username}\", tetapi akun lain sudah memakai nama pengguna ini. Pilih yang lain, misalnya dengan angka di akhirnya.",
   "classes_taught_class_notice": "Mahasiswa: {count}. Modal awal: {cash}.",
   "accounts_privacy_attempts_body": "Nama pengguna yang diketik seseorang dengan kata sandi salah, hanya di memori, selama {minutes} menit setelah setiap kata sandi salah untuknya, untuk mencegah siapa pun menebak kata sandi sebuah akun.",
-  "accounts_character_range_label": "{first} sampai {last}",
+  "accounts_character_range_part": "{first} sampai {last}",
   "classes_new_accounts_blocked_error": "Portolab tidak membuat akun dari jaringan Anda sampai {time} WIB, karena menerima {accounts} permintaan akun baru dari jaringan itu dalam {minutes} menit. Batas ini mencegah siapa pun membanjiri sebuah kelas dengan akun. Coba lagi setelah waktu tersebut, atau bergabunglah melalui jaringan lain, seperti data seluler ponsel Anda.",
   "classes_lecturer_only_error": "Hanya dosen yang membuat kelas, dan Anda masuk sebagai mahasiswa. Untuk mengajar kelas, mintalah akun dosen kepada orang yang menjalankan server Portolab ini."
 }

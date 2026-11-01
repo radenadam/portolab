@@ -1,14 +1,10 @@
 import { expect, test } from "vitest";
-import type { Database } from "~/database/database.server";
 import { openDatabaseForTest } from "~/database/open-database-for-test.server";
-import type { UserId } from "~/features/accounts/accounts.schema";
 import {
   createReadyTestLecturer,
   createTestStudent,
 } from "~/features/accounts/accounts-for-test.server";
-import { rupiah } from "~/units/rupiah";
 import {
-  createClass,
   findClassByJoinCode,
   findClassStudent,
   findJoinedClass,
@@ -18,22 +14,10 @@ import {
   listStudents,
   listTaughtClasses,
 } from "./class-store.server";
-import type { ClassId } from "./classes.schema";
+import { createClassForTest } from "./classes-for-test.server";
 
 const now = new Date("2026-11-02T03:00:00.000Z");
 const later = new Date("2026-11-02T04:00:00.000Z");
-
-function classOf(
-  database: Database,
-  lecturerId: UserId,
-  name: string,
-): ClassId {
-  return createClass(
-    database,
-    { lecturerId, name, startingCash: rupiah(100_000_000) },
-    now,
-  );
-}
 
 test("creates a class with a code of eight readable characters, which opens the class", async () => {
   const database = openDatabaseForTest();
@@ -42,7 +26,11 @@ test("creates a class with a code of eight readable characters, which opens the 
     "dosen",
     "Budi Santoso",
   );
-  const classId = classOf(database, lecturerId, "Manajemen Portofolio A");
+  const classId = createClassForTest(
+    database,
+    lecturerId,
+    "Manajemen Portofolio A",
+  ).classId;
   const taught = findTaughtClass(database, classId, lecturerId);
   expect(taught?.joinCode).toMatch(/^[a-km-np-z2-9]{8}$/);
   expect(
@@ -75,7 +63,11 @@ test("shows a class only to the lecturer who teaches it and to its students", as
     "eko",
     "Eko Prasetyo",
   );
-  const classId = classOf(database, lecturerId, "Manajemen Portofolio A");
+  const classId = createClassForTest(
+    database,
+    lecturerId,
+    "Manajemen Portofolio A",
+  ).classId;
   joinClass(database, { classId, studentId }, later);
   expect(findTaughtClass(database, classId, otherLecturerId)).toBeUndefined();
   expect(findJoinedClass(database, classId, otherStudentId)).toBeUndefined();
@@ -101,7 +93,11 @@ test("adds a student to a class once, however often the student joins", async ()
     "Budi Santoso",
   );
   const studentId = await createTestStudent(database, "sari", "Sari Wulandari");
-  const classId = classOf(database, lecturerId, "Manajemen Portofolio A");
+  const classId = createClassForTest(
+    database,
+    lecturerId,
+    "Manajemen Portofolio A",
+  ).classId;
   joinClass(database, { classId, studentId }, now);
   joinClass(database, { classId, studentId }, later);
   expect(listStudents(database, classId)).toEqual([
@@ -129,8 +125,16 @@ test("lists the classes of a lecturer with their students, and the classes of a 
     "eko",
     "Eko Prasetyo",
   );
-  const first = classOf(database, lecturerId, "Manajemen Portofolio A");
-  const second = classOf(database, lecturerId, "Manajemen Portofolio B");
+  const first = createClassForTest(
+    database,
+    lecturerId,
+    "Manajemen Portofolio A",
+  ).classId;
+  const second = createClassForTest(
+    database,
+    lecturerId,
+    "Manajemen Portofolio B",
+  ).classId;
   joinClass(database, { classId: second, studentId: firstStudent }, now);
   joinClass(database, { classId: first, studentId: firstStudent }, later);
   joinClass(database, { classId: first, studentId: secondStudent }, later);

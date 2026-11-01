@@ -43,7 +43,6 @@ export async function action({ context, request }: Route.ActionArgs) {
   const { joinCode, joinedClass } = found.value;
   switch (user?.role) {
     case "student":
-      // A student who is signed in joins at once.
       return joinAndOpenClass(
         context.get(databaseContext),
         { classId: joinedClass.id, studentId: user.id },

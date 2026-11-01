@@ -60,7 +60,7 @@ export async function action({ context, request }: Route.ActionArgs) {
     case "student":
       // The page of a student has no form for a class, so only a forged form comes here, and the page says why it refused.
       return data(
-        { fields: undefined, refusal: m.classes_lecturer_only_error() },
+        { fields: undefined, failure: m.classes_lecturer_only_error() },
         { status: 403 },
       );
   }
@@ -97,7 +97,7 @@ async function createClassFromForm(
       nameFailure: failureOf(name),
       startingCashFailure: failureOf(startingCash),
     };
-    return data({ fields, refusal: undefined }, { status: 400 });
+    return data({ fields, failure: undefined }, { status: 400 });
   }
   const classId = createClass(
     context.get(databaseContext),
@@ -125,8 +125,8 @@ export default function ClassesPage({
       return (
         <>
           <h1>{m.classes_title()}</h1>
-          {actionData?.refusal !== undefined && (
-            <FormFailure text={actionData.refusal} />
+          {actionData?.failure !== undefined && (
+            <FormFailure text={actionData.failure} />
           )}
           <JoinedClasses classes={loaderData.classes} />
           <Link to="/join" className={styles["link"]}>

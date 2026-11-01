@@ -6,7 +6,7 @@ import type { Locale } from "~/paraglide/runtime.js";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
 import type { User } from "./account";
 import { AccountDetails } from "./account-details";
-import { parseUsername } from "./username";
+import { usernameForTest } from "./username-for-test";
 
 const texts: Record<
   Locale,
@@ -39,12 +39,8 @@ const texts: Record<
 };
 
 function user(role: User["role"]): Omit<User, "id"> {
-  const username = parseUsername("sari", "The username of the test");
-  if (!username.ok) {
-    throw new Error(username.failure);
-  }
   return {
-    username: username.value,
+    username: usernameForTest("sari"),
     name: "Sari Wulandari",
     role,
     consentedAt: new Date("2026-11-02T03:15:00.000Z"),

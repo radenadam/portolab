@@ -14,9 +14,6 @@ import type { JoinCode } from "./join-code";
 /** The number that identifies a class. */
 export type ClassId = number & { readonly brand: "ClassId" };
 
-/** The number that identifies a student in a class, against which the portfolio of the student in that class is kept. */
-export type MembershipId = number & { readonly brand: "MembershipId" };
-
 /** Each class, which its lecturer teaches, with the cash that each of its students starts with and the code with which they join. A class lives until the person who runs the server deletes it, as the privacy notice states. */
 export const classes = sqliteTable(
   "classes",
@@ -38,7 +35,7 @@ export const classes = sqliteTable(
 export const memberships = sqliteTable(
   "memberships",
   {
-    id: integer("id").$type<MembershipId>().primaryKey({ autoIncrement: true }),
+    id: integer("id").primaryKey({ autoIncrement: true }),
     classId: integer("class_id")
       .$type<ClassId>()
       .notNull()

@@ -1,7 +1,4 @@
-import { RouterContextProvider } from "react-router";
 import { expect, test } from "vitest";
-import { clientAddressContext } from "~/client-address.server";
-import { databaseContext } from "~/database/database.server";
 import type { Database } from "~/database/database.server";
 import { openDatabaseForTest } from "~/database/open-database-for-test.server";
 import { createReadyTestLecturer } from "~/features/accounts/accounts-for-test.server";
@@ -9,15 +6,14 @@ import { languageNames } from "~/language-names";
 import { locales } from "~/paraglide/runtime.js";
 import type { Locale } from "~/paraglide/runtime.js";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
-import { rupiah } from "~/units/rupiah";
-import { createClass, findTaughtClass } from "./class-store.server";
+import {
+  createClassForTest,
+  joinContextForTest,
+} from "./classes-for-test.server";
 import { findClassWithCode } from "./find-class-with-code.server";
 import { formatJoinCode, joinPath } from "./join-code";
 import type { JoinCode } from "./join-code";
-import {
-  createJoinLimiters,
-  joinLimitersContext,
-} from "./join-limiters.server";
+import { joinLimits } from "./join-limiters.server";
 
 const texts: Record<
   Locale,
@@ -53,41 +49,20 @@ const texts: Record<
 // 10.00 WIB on Monday 2 November 2026, so a block that the first wrong code starts ends at 10.15 WIB.
 const now = new Date("2026-11-02T03:00:00.000Z");
 
-/** The context that the server gives to a loader, with the database, new limits on joining, and the address of one network. */
-function contextFor(database: Database): RouterContextProvider {
-  const context = new RouterContextProvider();
-  context.set(databaseContext, database);
-  context.set(joinLimitersContext, createJoinLimiters());
-  context.set(clientAddressContext, "192.0.2.1");
-  return context;
-}
-
 async function createTestClass(database: Database): Promise<JoinCode> {
   const lecturerId = await createReadyTestLecturer(
     database,
     "dosen",
     "Budi Santoso",
   );
-  const classId = createClass(
-    database,
-    {
-      lecturerId,
-      name: "Manajemen Portofolio A",
-      startingCash: rupiah(100_000_000),
-    },
-    new Date("2026-11-02T03:00:00.000Z"),
-  );
-  const taught = findTaughtClass(database, classId, lecturerId);
-  if (taught === undefined) {
-    throw new Error("The test could not create its class.");
-  }
-  return taught.joinCode;
+  return createClassForTest(database, lecturerId, "Manajemen Portofolio A")
+    .joinCode;
 }
 
 test("finds the class of a code whatever its case, its spaces, and its hyphen", async () => {
   const database = openDatabaseForTest();
   const joinCode = await createTestClass(database);
-  const context = contextFor(database);
+  const context = joinContextForTest(database);
   for (const typed of [
     joinCode,
     formatJoinCode(joinCode).toUpperCase(),
@@ -111,7 +86,7 @@ for (const locale of locales) {
     switchLocaleForTest(locale);
     const database = openDatabaseForTest();
     await createTestClass(database);
-    const context = contextFor(database);
+    const context = joinContextForTest(database);
     expect(findClassWithCode(context, "", now)).toEqual({
       ok: false,
       failure: { kind: "wrongCode", text: text.empty, status: 400 },
@@ -130,8 +105,13 @@ for (const locale of locales) {
     switchLocaleForTest(locale);
     const database = openDatabaseForTest();
     const joinCode = await createTestClass(database);
-    const context = contextFor(database);
-    for (let attempt = 0; attempt < 99; attempt += 1) {
+    const context = joinContextForTest(database);
+    // Every wrong code but the last one that the limit allows, each next to a right code, which counts nothing.
+    for (
+      let attempt = 1;
+      attempt < joinLimits.wrongCodes.failures;
+      attempt += 1
+    ) {
       findClassWithCode(context, "aaaa-aaaa", now);
       findClassWithCode(context, joinCode, now);
     }
