@@ -22,3 +22,10 @@ export function failuresOf<Failure>(
   }
   return failures;
 }
+
+/** The failure of a result, or undefined when it succeeded, such as for the field of a form that shows the reason next to it. */
+export function failureOf<Failure>(
+  result: Result<unknown, Failure>,
+): Failure | undefined {
+  return result.ok ? undefined : result.failure;
+}

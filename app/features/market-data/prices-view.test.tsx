@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { expect, test } from "vitest";
+import { secondMilliseconds } from "~/time-units";
 import { languageNames } from "~/language-names";
 import { locales } from "~/paraglide/runtime.js";
 import type { Locale } from "~/paraglide/runtime.js";
@@ -409,7 +410,11 @@ for (const failureKind of failureKinds) {
               consecutiveFailures: failureKind.succeeded ? 0 : 3,
               failedCodes: failureKind.failedCodes,
             }}
-            now={new Date(Date.parse(scheduleState.attemptedAt) + 30_000)}
+            now={
+              new Date(
+                Date.parse(scheduleState.attemptedAt) + 30 * secondMilliseconds,
+              )
+            }
             source={yahooFinance}
           />,
         );

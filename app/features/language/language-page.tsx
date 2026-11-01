@@ -2,29 +2,20 @@ import type { ReactNode } from "react";
 import { data, redirect } from "react-router";
 import { ErrorPage } from "~/error-page";
 import { PageTitle } from "~/page-title";
-import { writeLog } from "~/write-log.server";
+import { returnDestination } from "~/return-destination.server";
 import { m } from "~/paraglide/messages.js";
 import { cookieMaxAge, cookieName } from "~/paraglide/runtime.js";
 import type { Route } from "./+types/language-page";
 import { parseLocale } from "./parse-locale";
-import { parseReturnPath } from "./parse-return-path";
 
 export async function action({ request }: Route.ActionArgs) {
   const form = await request.formData();
-  const locale = parseLocale(form.get("locale"), "locale");
+  const locale = parseLocale(form.get("locale"), m.language_switch_label());
   if (!locale.ok) {
     return data({ failure: locale.failure }, { status: 400 });
   }
-  const returnPath = parseReturnPath(
-    form.get("returnTo"),
-    "returnTo",
-    new URL(request.url).origin,
-  );
-  // The language still changes, and the reader goes to the home page instead of a path that could lead to another site.
-  if (!returnPath.ok) {
-    writeLog("warning", returnPath.failure);
-  }
-  return redirect(returnPath.ok ? returnPath.value : "/", {
+  // The language still changes when the path could lead to another site, and the reader goes to the home page instead.
+  return redirect(returnDestination(form.get("returnTo"), request), {
     headers: {
       "Set-Cookie": `${cookieName}=${locale.value}; Path=/; Max-Age=${String(cookieMaxAge)}; SameSite=Lax`,
     },

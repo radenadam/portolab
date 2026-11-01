@@ -1,0 +1,73 @@
+/* A form fills the width of the page, so that its fields can, and it sets the space between its blocks as the frame of the page does. */
+.form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  align-self: stretch;
+  gap: var(--space-4);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+  gap: var(--space-1);
+}
+
+.label {
+  font-weight: 600;
+}
+
+.hint {
+  color: var(--color-muted);
+  font-size: var(--text-small);
+}
+
+/* A failure can quote a username, which is one word without a place to break, so the text breaks inside a word rather than widen the page. */
+.failure,
+.success {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+/* A field takes the whole width of its form, so a long value stays visible on a phone. Its border has the muted color, because a thin line in the color of lines is too faint to show where a field is. */
+.input {
+  width: 100%;
+  min-height: var(--size-touch-target);
+  padding-inline: var(--space-2);
+  border: var(--size-line) solid var(--color-muted);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+/* A field whose value was not accepted gets a thicker border, so the mark does not depend on color. */
+.input[aria-invalid="true"] {
+  border-width: var(--size-mark);
+  border-color: var(--color-ink);
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.box {
+  flex: none;
+  width: var(--size-touch-target);
+  height: var(--size-touch-target);
+  margin: 0;
+  accent-color: var(--color-signal);
+}
+
+.button {
+  min-height: var(--size-touch-target);
+  padding-inline: var(--space-4);
+  border: 0;
+  background: var(--color-signal);
+  color: var(--color-on-signal);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}

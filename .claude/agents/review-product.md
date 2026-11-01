@@ -12,9 +12,10 @@ A diff range, a set of paths, or a plan, with the intent behind it. In an audit,
 
 ## How to exercise the product
 
-1. Run `pnpm build`. Then start the server in the background with the environment variables `PORT=4180`, `PRICE_SOURCE=fixture`, and `DATABASE_PATH=:memory:` and the command `node server/main.ts`, so the review needs no network and leaves no database file behind, and wait until `http://localhost:4180/health` answers.
-2. Drive the app in a real browser with Playwright from `@playwright/test`, through a temporary script outside the repository. Use a phone viewport 360 pixels wide with touch, and a desktop viewport. Use both languages. The language comes from the `PARAGLIDE_LOCALE` cookie, which the language switch sets.
-3. Stop the server when you are done.
+1. Run `pnpm build`. Create a temporary folder outside the repository, and set `DATABASE_PATH` to a file in it. Then start the server in the background with that variable, `PORT=4180`, and `PRICE_SOURCE=fixture`, and the command `node server/main.ts`, so the review needs no network, and wait until `http://localhost:4180/health` answers.
+2. Create a lecturer with the account command that `README.md` describes, run with the same `DATABASE_PATH`. It prints a temporary password, with which the lecturer signs in and finishes the account.
+3. Drive the app in a real browser with Playwright from `@playwright/test`, through a temporary script outside the repository. Use a phone viewport 360 pixels wide with touch, and a desktop viewport. Use both languages. The language comes from the `PARAGLIDE_LOCALE` cookie, which the language switch sets.
+4. Stop the server and remove the temporary folder when you are done.
 
 ## Look for
 

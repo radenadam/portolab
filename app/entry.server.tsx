@@ -5,9 +5,10 @@ import { renderToPipeableStream } from "react-dom/server";
 import { isRouteErrorResponse, ServerRouter } from "react-router";
 import type { EntryContext, HandleErrorFunction } from "react-router";
 import { errorDetail } from "./error-message";
+import { secondMilliseconds } from "./time-units";
 import { writeLog } from "./write-log.server";
 
-export const streamTimeout = 5_000;
+export const streamTimeout = 5 * secondMilliseconds;
 
 // eslint-disable-next-line max-params -- React Router calls handleRequest with these four arguments.
 export default function handleRequest(
@@ -72,7 +73,7 @@ export default function handleRequest(
     // The extra second lets rejected boundaries flush before the stream aborts.
     timeoutId = setTimeout(() => {
       abort();
-    }, streamTimeout + 1000);
+    }, streamTimeout + secondMilliseconds);
   });
 }
 
