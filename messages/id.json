@@ -68,7 +68,7 @@
   "accounts_current_password_label": "Kata sandi saat ini",
   "accounts_change_password_label": "Ubah kata sandi",
   "accounts_password_changed_notice": "Portolab menyimpan kata sandi baru Anda dan mengeluarkan Anda dari semua perangkat lain.",
-  "accounts_wrong_current_password_error": "Kata sandi saat ini salah. Ketik lagi. Setelah {failures} percobaan salah dalam {minutes} menit, Portolab memblokir nama pengguna Anda untuk sementara, agar tidak ada yang dapat menebak kata sandinya.",
+  "accounts_wrong_current_password_error": "Kata sandi di kolom \"{field}\" salah. Ketik lagi. Setelah {failures} percobaan salah dalam {minutes} menit, Portolab memblokir nama pengguna Anda untuk sementara, agar tidak ada yang dapat menebak kata sandinya.",
   "accounts_sign_out_label": "Keluar",
   "accounts_refused_form_title": "Portolab menolak formulir",
   "accounts_refused_form_body": "Formulir ini datang dari situs lain, atau peramban tidak menyebutkan asalnya. Portolab menolak formulir seperti itu, agar tidak ada situs lain yang dapat bertindak atas nama Anda. Buka Portolab secara langsung, lalu kirim formulirnya lagi.",

@@ -68,7 +68,7 @@
   "accounts_current_password_label": "Current password",
   "accounts_change_password_label": "Change the password",
   "accounts_password_changed_notice": "Portolab saved your new password and signed you out on every other device.",
-  "accounts_wrong_current_password_error": "The current password is wrong. Type it again. After {failures} wrong attempts within {minutes} minutes, Portolab blocks your username for a while, so that nobody can guess its password.",
+  "accounts_wrong_current_password_error": "The password in the field \"{field}\" is wrong. Type it again. After {failures} wrong attempts within {minutes} minutes, Portolab blocks your username for a while, so that nobody can guess its password.",
   "accounts_sign_out_label": "Sign out",
   "accounts_refused_form_title": "Portolab refused the form",
   "accounts_refused_form_body": "The form came from another site, or the browser did not say where it came from. Portolab refuses such a form, so that no other site can act in your name. Open Portolab directly and send the form again.",
