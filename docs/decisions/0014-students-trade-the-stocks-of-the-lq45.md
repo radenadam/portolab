@@ -12,7 +12,7 @@ A student needs enough stocks from enough sectors to build a diversified portfol
 - The universe of stocks that students trade is the LQ45. Each period of the index is data with the dates it applies and the announcement of IDX that set it, as decision 0002 asks for IDX rules. A new period is added when IDX announces its review.
 - Portolab tracks the IHSG and every stock of every recorded period, so a stock that leaves the index keeps a current price.
 - The price job asks Yahoo Finance for the quotes of every tracked instrument in one request each minute during the price hours.
-- After each trading day closes, the job asks for the daily history of each tracked instrument from its latest stored close, one instrument at a time, with a pause between requests.
+- After each trading day closes, the job asks for the whole daily history that the measures need, one instrument at a time, with a pause between requests. Yahoo adjusts the earlier closes of a stock after a split, sometimes days later, so asking for the whole history each time brings that adjustment to every stored close. A run stops after three failures in a row, so an outage costs few requests.
 
 ## Alternatives
 

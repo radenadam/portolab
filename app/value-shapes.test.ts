@@ -22,6 +22,10 @@ test("describes a number as its text, because JSON shows Infinity and NaN as nul
   expect(describeValue(Number.NaN)).toBe("NaN");
 });
 
+test("describes a date that holds no time as an invalid date", () => {
+  expect(describeValue(new Date("not a date"))).toBe("an invalid date");
+});
+
 test("names a value that JSON cannot show by its class", () => {
   expect(describeValue(new File([], "return.txt"))).toBe(
     "a value of type File",

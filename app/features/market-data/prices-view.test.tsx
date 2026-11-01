@@ -8,7 +8,7 @@ import { indexPoints } from "~/units/index-points";
 import { rupiah } from "~/units/rupiah";
 import type { PriceSourceDescription, Quote } from "./price-source.server";
 import { PricesView } from "./prices-view";
-import type { UpdateAttempt } from "./quote-store.server";
+import type { UpdateAttempt } from "./update-attempts.server";
 
 // The closes of 30 October 2026, and a BBRI price that the source stopped sending two weeks earlier. Portolab has stored no price for TLKM and ASII.
 const quotes: Quote[] = [

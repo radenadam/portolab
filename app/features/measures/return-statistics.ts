@@ -1,24 +1,24 @@
-import { periodReturn } from "~/units/period-return";
-import type { PeriodReturn } from "~/units/period-return";
+import { monthlyReturn } from "~/units/monthly-return";
+import type { MonthlyReturn } from "~/units/monthly-return";
 import type { Measure } from "./measure";
-import type { ReturnMeasure } from "./period-returns";
+import type { ReturnMeasure } from "./aligned-returns";
 
 /** The expected return of an instrument, as the mean of its past returns. */
 type MeanMeasure = Measure<
   "mean",
-  PeriodReturn,
-  { returns: readonly PeriodReturn[] }
+  MonthlyReturn,
+  { returns: readonly MonthlyReturn[] }
 >;
 
 type VarianceMeasure = Measure<
   "sampleVariance",
   number,
-  { returns: readonly PeriodReturn[]; mean: PeriodReturn }
+  { returns: readonly MonthlyReturn[]; mean: MonthlyReturn }
 >;
 
 export type StandardDeviationMeasure = Measure<
   "squareRoot",
-  PeriodReturn,
+  MonthlyReturn,
   { variance: number }
 >;
 
@@ -27,10 +27,10 @@ export type CovarianceMeasure = Measure<
   "sampleCovariance",
   number,
   {
-    firstReturns: readonly PeriodReturn[];
-    firstMean: PeriodReturn;
-    secondReturns: readonly PeriodReturn[];
-    secondMean: PeriodReturn;
+    firstReturns: readonly MonthlyReturn[];
+    firstMean: MonthlyReturn;
+    secondReturns: readonly MonthlyReturn[];
+    secondMean: MonthlyReturn;
   }
 >;
 
@@ -39,8 +39,8 @@ export type CorrelationMeasure = Measure<
   number,
   {
     covariance: number;
-    firstStandardDeviation: PeriodReturn;
-    secondStandardDeviation: PeriodReturn;
+    firstStandardDeviation: MonthlyReturn;
+    secondStandardDeviation: MonthlyReturn;
   }
 >;
 
@@ -61,32 +61,39 @@ export function measureSeries(
   for (const value of values) {
     total += value;
   }
-  const expectedReturn: MeanMeasure = {
-    formula: "mean",
-    value: periodReturn(total / values.length),
-    inputs: { returns: values },
-  };
-  const variance: VarianceMeasure = {
-    formula: "sampleVariance",
-    value: sampleCovariance(
-      { returns: values, mean: expectedReturn.value },
-      { returns: values, mean: expectedReturn.value },
-    ),
-    inputs: { returns: values, mean: expectedReturn.value },
-  };
+  const mean = monthlyReturn(total / values.length);
+  const variance = sampleCovariance(
+    { returns: values, mean },
+    { returns: values, mean },
+  );
   return {
     returns,
-    expectedReturn,
-    variance,
-    standardDeviation: {
-      formula: "squareRoot",
-      value: periodReturn(Math.sqrt(variance.value)),
-      inputs: { variance: variance.value },
+    expectedReturn: {
+      formula: "mean",
+      value: mean,
+      inputs: { returns: values },
     },
+    variance: {
+      formula: "sampleVariance",
+      value: variance,
+      inputs: { returns: values, mean },
+    },
+    standardDeviation: measureStandardDeviation(variance),
   };
 }
 
-/** Measures the covariance of the returns of two instruments over the same periods. */
+/** Measures a standard deviation as the square root of a variance. */
+export function measureStandardDeviation(
+  variance: number,
+): StandardDeviationMeasure {
+  return {
+    formula: "squareRoot",
+    value: monthlyReturn(Math.sqrt(variance)),
+    inputs: { variance },
+  };
+}
+
+/** Measures the covariance of the returns of two instruments over the same months. */
 export function measureCovariance(
   first: SeriesMeasures,
   second: SeriesMeasures,
@@ -125,7 +132,7 @@ export function measureCorrelation(
   };
 }
 
-// The sum is divided by n - 1, because the returns are a sample of the returns of the instrument, as VAR.S and COVARIANCE.S do.
+// Decision 0013 explains why the sum is divided by n - 1.
 function sampleCovariance(
   first: { returns: readonly number[]; mean: number },
   second: { returns: readonly number[]; mean: number },
@@ -133,13 +140,13 @@ function sampleCovariance(
   let sumOfProducts = 0;
   for (const [index, firstReturn] of first.returns.entries()) {
     const secondReturn = second.returns[index];
-    // alignedReturns gives every instrument the same periods, so returns of different lengths are a defect.
+    // alignedReturns gives every instrument the same months, so returns of different lengths are a defect.
     if (
       secondReturn === undefined ||
       first.returns.length !== second.returns.length
     ) {
       throw new Error(
-        `A covariance needs returns over the same periods, but one instrument has ${String(first.returns.length)} returns and the other has ${String(second.returns.length)}.`,
+        `A covariance needs returns over the same months, but one instrument has ${String(first.returns.length)} returns and the other has ${String(second.returns.length)}.`,
       );
     }
     sumOfProducts += (firstReturn - first.mean) * (secondReturn - second.mean);

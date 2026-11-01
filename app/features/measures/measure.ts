@@ -7,7 +7,7 @@
  * - sampleCovariance: σ_AB = Σ(R_A - E(R_A))(R_B - E(R_B)) / (n - 1), which is COVARIANCE.S.
  * - correlation: ρ_AB = σ_AB / (σ_A σ_B), which is CORREL.
  * - beta: β = σ_iM / σ_M², which is SLOPE of the returns of the stock on those of the market.
- * - ratePerPeriod: R_f = the yearly rate / the periods in a year.
+ * - ratePerMonth: R_f = the yearly rate / 12.
  * - capm: the required return R_f + β(E(R_M) - R_f).
  * - securityMarketLineDistance: α = E(R) - the required return, which is positive above the line.
  * - weightedSum: Σ w_i x_i, which is SUMPRODUCT.
@@ -23,9 +23,9 @@ export interface Measure<Formula extends string, Value, Inputs> {
 export type MeasureFailure =
   | {
       kind: "tooFewReturns";
-      /** The instrument with the fewest returns in the window, which limits the periods that every instrument shares. */
+      /** The instrument with the fewest returns in the window, which limits the months that every instrument shares. */
       code: string;
-      /** The periods in the window in which every instrument has a return. */
+      /** The months in the window in which every instrument has a return. */
       count: number;
       minimum: number;
     }

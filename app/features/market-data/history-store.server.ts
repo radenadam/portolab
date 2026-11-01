@@ -1,48 +1,34 @@
-import { asc, desc as descending, eq, sql } from "drizzle-orm";
+import { asc, eq, sql } from "drizzle-orm";
 import type { Database } from "~/database/database.server";
 import { indexDailyCloses, stockDailyCloses } from "./market-data.schema";
-import type {
-  DailyClose,
-  DailyHistory,
-  Instrument,
-} from "./price-source.server";
+import type { DailyHistory, Instrument } from "./price-source.server";
 
-/** Stores the closes of a history. A close of a date that is stored already replaces the stored one, because each update asks again for the latest stored close. */
+/** Stores the closes of a history. A close of a date that is stored already replaces the stored one, because the source adjusts earlier closes after a split. */
 export function saveDailyHistory(
   database: Database,
   history: DailyHistory,
 ): void {
-  writeCloses(database, history, "keep");
+  const table = closesTable(history);
+  const rows = history.closes.map((close) => ({
+    code: history.code,
+    date: close.date,
+    close: close.close,
+  }));
+  // SQLite rejects an insert without rows.
+  if (rows.length === 0) {
+    return;
+  }
+  database
+    .insert(table)
+    .values(rows)
+    .onConflictDoUpdate({
+      target: [table.code, table.date],
+      set: { close: sql`excluded.close` },
+    })
+    .run();
 }
 
-/** Replaces every stored close of the instrument of a history with the closes of the history. A source adjusts every earlier close after a split, so the stored closes no longer fit its new ones. */
-export function replaceDailyHistory(
-  database: Database,
-  history: DailyHistory,
-): void {
-  writeCloses(database, history, "delete");
-}
-
-/** The latest stored close of an instrument, or undefined when Portolab has stored none. */
-export function readLatestClose(
-  database: Database,
-  instrument: Instrument,
-): DailyClose<number> | undefined {
-  const table = closesTable(instrument);
-  const [row] = database
-    .select({ date: table.date, close: table.close })
-    .from(table)
-    .where(eq(table.code, instrument.code))
-    .orderBy(descending(table.date))
-    .limit(1)
-    .all();
-  return row;
-}
-
-/**
- * Lists the stored closes of an instrument, oldest first, which the measures take as their input.
- * @internal Only tests read the stored closes so far, because the screens that show the measures are not built yet.
- */
+/** Lists the stored closes of an instrument, oldest first, which the measures take as their input. */
 export function listDailyHistory(
   database: Database,
   instrument: Instrument,
@@ -94,41 +80,12 @@ export function listCodesWithHistory(database: Database): Set<string> {
 }
 
 function closesTable(
-  instrument: Instrument,
+  history: DailyHistory,
 ): typeof stockDailyCloses | typeof indexDailyCloses {
-  switch (instrument.kind) {
+  switch (history.kind) {
     case "stock":
       return stockDailyCloses;
     case "index":
       return indexDailyCloses;
   }
-}
-
-function writeCloses(
-  database: Database,
-  history: DailyHistory,
-  storedCloses: "keep" | "delete",
-): void {
-  const table = closesTable(history);
-  const rows = history.closes.map((close) => ({
-    code: history.code,
-    date: close.date,
-    close: close.close,
-  }));
-  database.transaction((transaction) => {
-    if (storedCloses === "delete") {
-      transaction.delete(table).where(eq(table.code, history.code)).run();
-    }
-    // SQLite rejects an insert without rows.
-    if (rows.length > 0) {
-      transaction
-        .insert(table)
-        .values(rows)
-        .onConflictDoUpdate({
-          target: [table.code, table.date],
-          set: { close: sql`excluded.close` },
-        })
-        .run();
-    }
-  });
 }

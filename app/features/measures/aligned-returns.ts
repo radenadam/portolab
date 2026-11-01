@@ -1,23 +1,20 @@
-import { startOfMonth, startOfWeek } from "~/calendar-dates";
+import { startOfMonth } from "~/calendar-dates";
 import { priceChange } from "~/features/market-data/price-change";
-import type { DailyClose } from "~/features/market-data/price-source.server";
+import type {
+  ClosePrice,
+  DailyClose,
+} from "~/features/market-data/price-source.server";
 import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
-import type { IndexPoints } from "~/units/index-points";
-import { periodReturn } from "~/units/period-return";
-import type { PeriodReturn } from "~/units/period-return";
-import type { SplitAdjustedRupiah } from "~/units/split-adjusted-rupiah";
+import { monthlyReturn } from "~/units/monthly-return";
+import type { MonthlyReturn } from "~/units/monthly-return";
 import type { EstimationSettings } from "./estimation-settings";
-import type { ReturnFrequency } from "./return-frequency";
 import type { Measure, MeasureFailure } from "./measure";
 
-/** A close of a stock or of the market. */
-export type ClosePrice = SplitAdjustedRupiah | IndexPoints;
-
-/** The return of an instrument over one period, from its close on the last trading day of the previous period to its close on the last trading day of this period. */
+/** The return of an instrument over one month, from its close on the last trading day of the previous month to its close on the last trading day of this month. */
 export type ReturnMeasure = Measure<
   "priceChange",
-  PeriodReturn,
+  MonthlyReturn,
   {
     startDate: string;
     startClose: ClosePrice;
@@ -26,30 +23,22 @@ export type ReturnMeasure = Measure<
   }
 >;
 
-/** The daily closes of one instrument, oldest first, with the code that a failure names. */
+/** The daily closes of one instrument, oldest first, with the code that a failure names. The stored history of an instrument has this shape. */
 export interface InstrumentCloses {
   code: string;
   closes: readonly DailyClose<ClosePrice>[];
 }
 
-// A period is named by the date on which it starts, so every date of one period has the same name.
-const periodNames: Record<ReturnFrequency, (date: string) => string> = {
-  weekly: startOfWeek,
-  monthly: (date) => startOfMonth(date, 0),
-};
-
-/** The last trading day of each complete period of the closes of the market, oldest first. A period is complete once the market has a close in a later period, so the period of the latest close is left out. */
-export function periodEndDates(
+/** The last trading day of each complete month of the closes of the market, oldest first. A month is complete once the market has a close in a later month, so the month of the latest close is left out. */
+function monthEndDates(
   marketCloses: readonly DailyClose<ClosePrice>[],
-  frequency: ReturnFrequency,
 ): string[] {
-  const periodName = periodNames[frequency];
   const endDates: string[] = [];
   for (const [index, close] of marketCloses.entries()) {
     const next = marketCloses[index + 1];
     if (
       next !== undefined &&
-      periodName(next.date) !== periodName(close.date)
+      startOfMonth(next.date, 0) !== startOfMonth(close.date, 0)
     ) {
       endDates.push(close.date);
     }
@@ -57,8 +46,8 @@ export function periodEndDates(
   return endDates;
 }
 
-/** The returns of an instrument between each pair of consecutive dates, from its closes on exactly those dates. A date without a close of the instrument, such as one before its listing, gives no return for the periods on either side of it. */
-export function returnsBetween(
+/** The returns of an instrument between each pair of consecutive dates, from its closes on exactly those dates. A date without a close of the instrument, such as one before its listing, gives no return for the months on either side of it. */
+function returnsBetween(
   closes: readonly DailyClose<ClosePrice>[],
   dates: readonly string[],
 ): ReturnMeasure[] {
@@ -79,7 +68,7 @@ export function returnsBetween(
     ) {
       returns.push({
         formula: "priceChange",
-        value: periodReturn(priceChange(endClose, startClose)),
+        value: monthlyReturn(priceChange(endClose, startClose)),
         inputs: { startDate, startClose, endDate, endClose },
       });
     }
@@ -87,25 +76,25 @@ export function returnsBetween(
   return returns;
 }
 
-/** The returns of the market and of instruments over the periods that they all share. */
+/** The returns of the market and of instruments over the months that they all share. */
 export interface AlignedReturns<Instrument> {
   market: ReturnMeasure[];
   /** Each instrument with its returns, in the order of the instruments. */
   instruments: { instrument: Instrument; returns: ReturnMeasure[] }[];
-  /** The end date of the latest period, which ends the window. */
+  /** The end date of the latest month, which ends the window. */
   windowEnd: string;
 }
 
 /**
- * The returns of the market and of each instrument in the latest complete periods that the settings choose, kept only for the periods in which the market and every instrument have a return. So every measure of these instruments comes from one table of returns.
- * It fails when fewer periods remain than the settings require, and names the instrument with the fewest returns, or the market when no instrument has fewer.
+ * The returns of the market and of each instrument in the latest complete months that the settings choose, kept only for the months in which the market and every instrument have a return. So every measure of these instruments comes from one table of returns.
+ * It fails when fewer months remain than the settings require, and names the instrument with the fewest returns, or the market when no instrument has fewer.
  */
 export function alignedReturns<Instrument extends InstrumentCloses>(
   market: InstrumentCloses,
   instruments: readonly Instrument[],
   settings: EstimationSettings,
 ): Result<AlignedReturns<Instrument>, MeasureFailure> {
-  const window = periodEndDates(market.closes, settings.frequency).slice(
+  const window = monthEndDates(market.closes).slice(
     -(settings.returnCount + 1),
   );
   const marketReturns = returnsBetween(market.closes, window);

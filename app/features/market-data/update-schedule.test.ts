@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import type { UpdateAttempt } from "./quote-store.server";
+import type { UpdateAttempt } from "./update-attempts.server";
 import {
   isUpdateMinute,
   nextAttemptTime,

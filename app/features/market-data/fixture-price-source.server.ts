@@ -1,14 +1,8 @@
 import { fail, succeed } from "~/result";
 import { indexPoints } from "~/units/index-points";
 import { rupiah } from "~/units/rupiah";
-import { splitAdjustedRupiah } from "~/units/split-adjusted-rupiah";
-import type {
-  DailyClose,
-  DailyHistory,
-  Instrument,
-  PriceSource,
-  Quote,
-} from "./price-source.server";
+import { buildDailyHistory } from "./build-daily-history";
+import type { PriceSource, Quote } from "./price-source.server";
 import { yahooFinance } from "./yahoo-price-source.server";
 
 // The closing quotes of 30 October 2026, as Yahoo Finance returned them on 31 October and 1 November 2026, with two exceptions. BMRI keeps its quote of 29 October, as Yahoo does for a stock that did not trade, so the tests see a row from an earlier day. GOTO has a previous close of 18 instead of 23, so the tests see a change with two digits before the decimal point.
@@ -141,7 +135,7 @@ export const fixturePriceSource: PriceSource = {
       );
     }
     return Promise.resolve(
-      succeed(historyOf(instrument, datedCloses(closes, from))),
+      succeed(buildDailyHistory(instrument, datedCloses(closes, from))),
     );
   },
 };
@@ -163,42 +157,16 @@ function stockQuote(
 function datedCloses(
   closes: readonly number[],
   from: string,
-): DailyClose<number>[] {
-  const dated: DailyClose<number>[] = [];
+): [string, number][] {
+  const dated: [string, number][] = [];
   for (const [index, date] of fixtureDates.entries()) {
     const close = closes[index];
     if (close === undefined) {
       throw new Error(`The fixture has no close on ${date}.`);
     }
     if (date >= from) {
-      dated.push({ date, close });
+      dated.push([date, close]);
     }
   }
   return dated;
-}
-
-function historyOf(
-  instrument: Instrument,
-  closes: readonly DailyClose<number>[],
-): DailyHistory {
-  switch (instrument.kind) {
-    case "stock":
-      return {
-        kind: "stock",
-        code: instrument.code,
-        closes: closes.map(({ date, close }) => ({
-          date,
-          close: splitAdjustedRupiah(close),
-        })),
-      };
-    case "index":
-      return {
-        kind: "index",
-        code: instrument.code,
-        closes: closes.map(({ date, close }) => ({
-          date,
-          close: indexPoints(close),
-        })),
-      };
-  }
 }

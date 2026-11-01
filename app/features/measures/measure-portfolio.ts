@@ -1,9 +1,10 @@
 import { succeed } from "~/result";
 import type { Result } from "~/result";
-import { periodReturn } from "~/units/period-return";
-import type { PeriodReturn } from "~/units/period-return";
+import { monthlyReturn } from "~/units/monthly-return";
+import type { MonthlyReturn } from "~/units/monthly-return";
 import {
   measureAgainstMarket,
+  measureMarket,
   measureRequiredReturn,
   measureSecurityMarketLineDistance,
 } from "./capm";
@@ -15,15 +16,18 @@ import type {
 } from "./capm";
 import type { EstimationSettings } from "./estimation-settings";
 import type { Measure, MeasureFailure } from "./measure";
-import { alignedReturns } from "./period-returns";
-import type { InstrumentCloses } from "./period-returns";
-import { measureCorrelation, measureCovariance } from "./return-statistics";
+import { alignedReturns } from "./aligned-returns";
+import type { InstrumentCloses } from "./aligned-returns";
+import {
+  measureCorrelation,
+  measureCovariance,
+  measureStandardDeviation,
+} from "./return-statistics";
 import type {
   CorrelationMeasure,
   CovarianceMeasure,
   StandardDeviationMeasure,
 } from "./return-statistics";
-import { measureMarket } from "./stock-measures";
 
 /** A stock in a portfolio, with its share of the value of the portfolio as a fraction, such as 0.25. The rest of the value is cash, which earns nothing, so it adds nothing to the expected return, the variance, or the beta. */
 export interface Holding extends InstrumentCloses {
@@ -53,7 +57,7 @@ export interface PortfolioMeasures {
   /** The covariance of each pair of holdings, in the order of the holdings, with the variance of each holding on the diagonal. */
   covarianceMatrix: CovarianceMeasure[][];
   correlationMatrix: CorrelationMeasure[][];
-  expectedReturn: WeightedSumMeasure<PeriodReturn>;
+  expectedReturn: WeightedSumMeasure<MonthlyReturn>;
   variance: PortfolioVarianceMeasure;
   standardDeviation: StandardDeviationMeasure;
   beta: WeightedSumMeasure<number>;
@@ -61,7 +65,7 @@ export interface PortfolioMeasures {
   securityMarketLine: SecurityMarketLineMeasure;
 }
 
-/** Measures a portfolio and each of its holdings against the market, from the returns of the periods in the window of the settings in which the market and every holding have a return. */
+/** Measures a portfolio and each of its holdings against the market, from the returns of the months in the window of the settings in which the market and every holding have a return. */
 export function measurePortfolio(
   holdings: readonly Holding[],
   market: InstrumentCloses,
@@ -71,7 +75,7 @@ export function measurePortfolio(
   if (!returns.ok) {
     return returns;
   }
-  const marketMeasures = measureMarket(returns.value, settings);
+  const marketMeasures = measureMarket(returns.value);
   if (!marketMeasures.ok) {
     return marketMeasures;
   }
@@ -86,16 +90,14 @@ export function measurePortfolio(
     }),
   );
   const covarianceMatrix = holdingMeasures.map((row) =>
-    holdingMeasures.map((column) =>
-      measureCovariance(row.series, column.series),
-    ),
+    holdingMeasures.map((column) => measureCovariance(row, column)),
   );
   const correlationMatrix = holdingMeasures.map((row, rowIndex) =>
     holdingMeasures.map((column, columnIndex) =>
       measureCorrelation(
         matrixCell(covarianceMatrix, rowIndex, columnIndex),
-        row.series,
-        column.series,
+        row,
+        column,
       ),
     ),
   );
@@ -104,9 +106,9 @@ export function measurePortfolio(
     holdingMeasures.map((holding) => ({
       code: holding.code,
       weight: holding.weight,
-      value: holding.series.expectedReturn.value,
+      value: holding.expectedReturn.value,
     })),
-    periodReturn,
+    monthlyReturn,
   );
   const beta = measureWeightedSum(
     holdingMeasures.map((holding) => ({
@@ -127,11 +129,7 @@ export function measurePortfolio(
     correlationMatrix,
     expectedReturn,
     variance,
-    standardDeviation: {
-      formula: "squareRoot",
-      value: periodReturn(Math.sqrt(variance.value)),
-      inputs: { variance: variance.value },
-    },
+    standardDeviation: measureStandardDeviation(variance.value),
     beta,
     requiredReturn,
     securityMarketLine: measureSecurityMarketLineDistance(

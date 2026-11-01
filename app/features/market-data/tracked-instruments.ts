@@ -69,12 +69,22 @@ const universePeriods: readonly UniversePeriod[] = [
 ];
 
 /** The instruments whose prices Portolab keeps current: the IHSG, and the stocks of every recorded period of the universe, each once and by code. */
-export const trackedInstruments: readonly Instrument[] = [
-  { kind: "index", code: "IHSG" },
-  ...[...new Set(universePeriods.flatMap((period) => period.codes))]
-    .sort()
-    .map((code): Instrument => ({ kind: "stock", code })),
-];
+export const trackedInstruments: readonly Instrument[] =
+  listTrackedInstruments();
+
+function listTrackedInstruments(): Instrument[] {
+  const stockCodes = new Set<string>();
+  for (const period of universePeriods) {
+    for (const code of period.codes) {
+      stockCodes.add(code);
+    }
+  }
+  const instruments: Instrument[] = [{ kind: "index", code: "IHSG" }];
+  for (const code of [...stockCodes].sort()) {
+    instruments.push({ kind: "stock", code });
+  }
+  return instruments;
+}
 
 /** The codes of the stocks in the universe on a date, such as 2026-11-02. It fails for a date that no recorded period covers, so a missing review of IDX is noticed. */
 export function universeOn(date: string): Result<readonly string[], string> {

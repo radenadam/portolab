@@ -34,7 +34,7 @@ The first release serves the course sessions on CAPM and on portfolio return and
 - Each student starts with virtual cash, Rp100 million unless the lecturer sets another amount.
 - Students trade IDX stocks during IDX trading sessions at delayed prices, which decision 0001 describes. Orders follow IDX lots, tick sizes, auto rejection limits, fees, and the final tax on sales. Limit orders and market orders are supported.
 - A portfolio shows its holdings, cash, value, and return over time against the IHSG index.
-- For each stock and for the whole portfolio, Portolab shows the expected return, variance, standard deviation, covariances and correlations, beta against the IHSG, the return that CAPM requires, and the position on the security market line.
+- For each stock and for the whole portfolio, Portolab shows the expected return, variance, standard deviation, covariances and correlations, beta against the IHSG, the return that CAPM requires, and the position on the security market line. A stock gets them once it has the monthly returns that decision 0013 requires, and so does a portfolio that holds it.
 - The lecturer sees every portfolio and every measure, and can export them for grading.
 - Every screen works on a phone, a tablet, and a computer.
 - Every result is labelled as a simulation, and the price delay is always visible.

@@ -5,7 +5,7 @@ import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
 import { isIndexPoints } from "~/units/index-points";
 import { isRupiah } from "~/units/rupiah";
-import { startOfWibDate } from "~/wib";
+import { wibMoment } from "~/wib";
 import { parseYahooChart } from "./parse-yahoo-chart.server";
 import type {
   IndexCode,
@@ -58,7 +58,7 @@ export function createYahooPriceSource(): PriceSource {
       try {
         const chart = await client.chart(
           yahooSymbol(instrument),
-          { period1: startOfWibDate(from), interval: "1d", return: "array" },
+          { period1: wibMoment(from, 0), interval: "1d", return: "array" },
           { fetchOptions: { signal } },
         );
         return parseYahooChart(

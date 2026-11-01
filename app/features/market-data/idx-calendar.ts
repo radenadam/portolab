@@ -1,7 +1,7 @@
 import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
 import { addDays, dayOfWeek } from "~/calendar-dates";
-import { startOfWibDate, wibDateOf, wibMinuteOfDay } from "~/wib";
+import { wibDateOf, wibMinuteOfDay, wibMoment } from "~/wib";
 
 /** The trading days and hours of IDX for the dates from `from` to `until`, in WIB. */
 interface TradingCalendar {
@@ -77,8 +77,6 @@ const tradingCalendars: readonly TradingCalendar[] = [
   },
 ];
 
-const minuteMilliseconds = 60_000;
-
 /** Whether prices that lag behind the exchange by this many minutes can still change at this moment, so that fetching them is worthwhile. It fails for a date that no calendar covers, so a missing year is noticed instead of every weekday counting as a trading day. */
 export function isPriceUpdateTime(
   moment: Date,
@@ -118,10 +116,9 @@ export function latestClosedTradingDay(
     }
     if (isTradingDayIn(calendar.value, date)) {
       // The price hours include their last minute, so the closes are final from the minute after it.
-      const closedAt = new Date(
-        startOfWibDate(date).getTime() +
-          (lastPriceMinute(calendar.value, delayMinutes) + 1) *
-            minuteMilliseconds,
+      const closedAt = wibMoment(
+        date,
+        lastPriceMinute(calendar.value, delayMinutes) + 1,
       );
       if (closedAt <= moment) {
         return succeed({ date, closedAt });

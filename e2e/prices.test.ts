@@ -5,7 +5,7 @@ import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
 import { chooseLanguage } from "./choose-language.ts";
 
-// The server runs with the fixture price source, whose quotes fixture-price-source.server.ts describes. Its quotes hold the widest content of each column: the highest price of the universe, a change with two digits before the decimal point, and a date from an earlier day.
+// The server runs with the fixture price source, whose quotes fixture-price-source.server.ts describes. ITMG has the highest price of the universe, and the quotes of GOTO and BMRI hold the widest change and a date from an earlier day, so the table holds the widest content of each column.
 
 const texts: Record<
   Locale,

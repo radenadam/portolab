@@ -1,4 +1,4 @@
-/** A rate for one year as a fraction, such as 0.0475 for a BI-Rate of 4.75%. It is a different type from a return over one period, so a measure cannot use a yearly rate as a monthly one by mistake. */
+/** A rate for one year as a fraction, such as 0.0475 for a BI-Rate of 4.75%. It is a different type from a return over one month, so a measure cannot use a yearly rate as a monthly one by mistake. */
 export type AnnualRate = number & { readonly brand: "AnnualRate" };
 
 function isAnnualRate(value: number): value is AnnualRate {

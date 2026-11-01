@@ -26,18 +26,18 @@ What the sources do:
 
 ## Alternatives
 
-- **Weekly returns over two years,** as Bloomberg does. More observations and room for recent listings, but the betas of thinly traded stocks fall further, and few course materials use them.
+- **Weekly returns over two years.** Bloomberg uses them. More observations and room for recent listings, but the betas of thinly traded stocks fall further, and few course materials use them.
 - **Daily returns.** Plenty of data, but thin trading makes the betas meaningless without corrections such as those of Scholes and Williams or Dimson, which a student cannot reproduce easily.
 - **Total returns with dividends.** Closer to what an investor earns, but Portolab has no total return series of the IHSG, and comparing total returns of stocks with price returns of the market raises every alpha by the dividend yield of the market.
-- **Excess returns for beta,** as the regression of the textbook does. With a stable rate the beta barely changes, and raw returns need one column fewer in a spreadsheet.
-- **The yield of SPN with three months,** 6.25% at the auction of 13 October 2026. The closest match to the Treasury bill of the textbooks, but its yields come from auctions every two weeks that only news sites report in a form a reader can find.
-- **The yield of SUN with ten years,** 7.63% on 30 October 2026. The usual rate for valuation, but its price moves with long-term rates, so it is not free of risk over one month.
+- **Excess returns for beta.** The regression of the textbook uses them. With a stable rate the beta barely changes, and raw returns need one column fewer in a spreadsheet.
+- **The yield of SPN with three months.** It was 6.25% at the auction of 13 October 2026. It is the closest match to the Treasury bill of the textbooks, but its yields come from auctions every two weeks that only news sites report in a form a reader can find.
+- **The yield of SUN with ten years.** It was 7.63% on 30 October 2026. It is the usual rate for valuation, but its price moves with long-term rates, so it is not free of risk over one month.
 - **Compounding the yearly rate into a monthly one.** Exact, but no course material or paper that was checked does it, and the difference is under 0.01 percentage points a month.
 
 ## Consequences
 
 - A student can reproduce every measure from one table of month-end closes with `AVERAGE`, `VAR.S`, `STDEV.S`, `COVARIANCE.S`, `CORREL`, `SLOPE`, and `SUMPRODUCT`.
 - The history must reach 62 months back, and the price job keeps it current after each close.
-- Stocks that listed in the last two years, such as AADI in December 2024, get measures only once they have 24 monthly returns.
+- Stocks that listed in the last two years, such as AADI in December 2024, get measures only once they have 24 monthly returns. A portfolio that holds such a stock gets no measures until then either, because all its holdings share one table of returns, and the failure names the stock.
 - After each board meeting of Bank Indonesia that changes the BI-Rate, the new rate must be added to the data, or the measures keep the previous rate and show the date of its announcement. Issue #23 tracks a check that notices a missed change.
-- A lecturer should be able to choose another frequency, window, and risk-free rate for a class later, because the textbooks of the course differ. The measures already take the frequency and the window as settings, so that change needs the class settings and a screen for them, which issue #22 tracks.
+- A lecturer should be able to choose another frequency, window, and risk-free rate for a class later, because the textbooks of the course differ. The measures take the window and the minimum as settings already. Issue #22 tracks the rest: weekly returns, other rates, the class settings, and a screen for them.

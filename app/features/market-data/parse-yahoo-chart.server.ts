@@ -71,7 +71,7 @@ function parseCloses<Price extends number>(
     const date = isRecord(row) ? row["date"] : undefined;
     if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
       return fail(
-        `${source} must have a time in the date of each row, but row ${rowNumber} has ${describeValue(date)}.`,
+        `${source} must have a time in the date of each row, but the date of row ${rowNumber} is ${describeValue(date)}.`,
       );
     }
     const close = isRecord(row) ? row["close"] : undefined;
@@ -82,7 +82,7 @@ function parseCloses<Price extends number>(
       typeof close === "number" ? Math.round(close * 100) / 100 : Number.NaN;
     if (!isPrice(roundedClose)) {
       return fail(
-        `${source} must have a positive close or null in each row, but row ${rowNumber} has ${describeValue(close)}.`,
+        `${source} must have a positive close or null in each row, but the close of row ${rowNumber} is ${describeValue(close)}.`,
       );
     }
     closesByDate.set(wibDateOf(date), roundedClose);

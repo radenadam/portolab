@@ -1,18 +1,16 @@
 import { setTimeout as wait } from "node:timers/promises";
 import { Cron } from "croner";
 import { errorDetail } from "~/error-message";
-import { wibDateOf } from "~/wib";
 import { writeLog } from "~/write-log.server";
-import { isPriceUpdateTime } from "./idx-calendar";
+import { missingDataWarnings } from "./missing-data-warnings";
 import type { PriceJobSettings } from "./price-job-settings";
 import type { Quote } from "./price-source.server";
+import { saveQuotes } from "./quote-store.server";
+import { runHistoryUpdate } from "./run-history-update.server";
 import {
   readLatestUpdateAttempt,
-  saveQuotes,
   saveUpdateAttempt,
-} from "./quote-store.server";
-import { runHistoryUpdate } from "./run-history-update.server";
-import { universeOn } from "./tracked-instruments";
+} from "./update-attempts.server";
 import { isUpdateMinute, nextAttemptTime } from "./update-schedule";
 
 // Shorter than the minute between runs of the schedule, so a stalled request ends as a recorded failure before the next run.
@@ -21,62 +19,46 @@ const requestTimeoutMilliseconds = 20_000;
 // Decision 0001 asks for a low load on Yahoo, and with a second between requests the closes of the whole universe take about a minute.
 const historyRequestPauseMilliseconds = 1000;
 
-/** Fetches quotes and daily closes once at startup, so a fresh server shows the last close, then quotes every minute while prices can change and closes after each trading day closes. Returns a function that stops the job. */
+/** Fetches quotes and daily closes once at startup, so a fresh server shows the last close, then quotes every minute while prices can change and daily closes after each trading day closes. Returns a function that stops the job. */
 export function startPriceJob(settings: PriceJobSettings): () => void {
-  const warnAboutCalendar = createWarningLog();
-  const warnAboutUniverse = createWarningLog();
-  const updatePrices = serializeUpdates(
+  // The log asks once for each piece of missing data, such as the calendar of a year, instead of every minute.
+  const loggedWarnings = new Set<string>();
+  const updateQuotes = serializeUpdates(
     () =>
-      runPriceUpdate(
+      runQuoteUpdate(
         settings,
         new Date(),
         AbortSignal.timeout(requestTimeoutMilliseconds),
       ),
-    "The price job failed.",
+    "The quote update failed.",
   );
   const updateHistory = serializeUpdates(
     () =>
-      runHistoryUpdate(settings, new Date(), {
+      runHistoryUpdate(settings, () => new Date(), {
         requestSignal: () => AbortSignal.timeout(requestTimeoutMilliseconds),
         waitBetweenRequests: () => wait(historyRequestPauseMilliseconds),
       }),
-    "The history job failed.",
+    "The history update failed.",
   );
-  void updatePrices();
+  void updateQuotes();
   void updateHistory();
   const job = new Cron("* * * * *", async () => {
     const now = new Date();
     const { delayMinutes } = settings.priceSource;
-    const updateTime = isPriceUpdateTime(now, delayMinutes);
-    if (!updateTime.ok) {
-      warnAboutCalendar(updateTime.failure);
-    }
-    // The universe changes between trading days, so a missing period matters only while IDX trades.
-    if (updateTime.ok && updateTime.value) {
-      const universe = universeOn(wibDateOf(now));
-      if (!universe.ok) {
-        warnAboutUniverse(universe.failure);
+    for (const warning of missingDataWarnings(now, delayMinutes)) {
+      if (!loggedWarnings.has(warning)) {
+        loggedWarnings.add(warning);
+        writeLog("warning", warning);
       }
     }
-    // The history update decides by itself which closes are due, so asking every minute costs one read of the database when none is.
+    // The history update decides by itself which closes are due, which costs a few reads of the database when none is, so the schedule asks it every minute.
     void updateHistory();
     if (isUpdateMinute(now, delayMinutes)) {
-      await updatePrices();
+      await updateQuotes();
     }
   });
   return () => {
     job.stop();
-  };
-}
-
-// The log asks once for missing data, such as the calendar of a year, instead of every minute.
-function createWarningLog(): (warning: string) => void {
-  let lastWarning = "";
-  return (warning) => {
-    if (warning !== lastWarning) {
-      lastWarning = warning;
-      writeLog("warning", warning);
-    }
   };
 }
 
@@ -116,10 +98,10 @@ export function serializeUpdates(
 }
 
 /**
- * Fetches and stores prices unless the job still waits after failures, and records the attempt with its failures in a row and the instruments that it could not update. A request that outlasts the signal counts as a failure. The state lives in the database, as decision 0009 asks, so a restart keeps waiting.
+ * Fetches and stores quotes unless the job still waits after failures, and records the attempt with its failures in a row and the instruments that it could not update. A request that outlasts the signal counts as a failure. The state lives in the database, as decision 0009 asks, so a restart keeps waiting.
  * @internal Tests call it directly, because startPriceJob reaches it only with the real clock.
  */
-export async function runPriceUpdate(
+export async function runQuoteUpdate(
   settings: PriceJobSettings,
   now: Date,
   signal: AbortSignal,

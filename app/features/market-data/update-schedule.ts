@@ -1,10 +1,9 @@
+import { minuteMilliseconds } from "~/time-units";
 import { isPriceUpdateTime } from "./idx-calendar";
-import type { UpdateAttempt } from "./quote-store.server";
+import type { UpdateAttempt } from "./update-attempts.server";
 
 // Decision 0001 asks the job to back off when Yahoo fails, and this longest wait still updates the prices several times in a session.
 const longestDelayMinutes = 30;
-
-const minuteMilliseconds = 60_000;
 
 /** Whether the job tries to update prices with this delay in the minute of this moment. It tries whenever such prices can change, and also on a date that no IDX calendar covers, because a missing calendar must not stop the prices. */
 export function isUpdateMinute(moment: Date, delayMinutes: number): boolean {

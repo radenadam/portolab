@@ -1,15 +1,13 @@
 import { expect, test, vi } from "vitest";
 import type { Database } from "~/database/database.server";
-import { openTestDatabase } from "~/database/open-test-database.server";
+import { openDatabaseForTest } from "~/database/open-database-for-test.server";
 import { fail, succeed } from "~/result";
 import { fixturePriceSource } from "./fixture-price-source.server";
-import { runPriceUpdate, serializeUpdates } from "./price-job.server";
+import { runQuoteUpdate, serializeUpdates } from "./price-job.server";
 import type { PriceJobSettings } from "./price-job-settings";
 import type { PriceSource } from "./price-source.server";
-import {
-  listLatestQuotes,
-  readLatestUpdateAttempt,
-} from "./quote-store.server";
+import { listLatestQuotes } from "./quote-store.server";
+import { readLatestUpdateAttempt } from "./update-attempts.server";
 import { trackedInstruments } from "./tracked-instruments";
 
 const failingSource: PriceSource = {
@@ -75,7 +73,7 @@ function updateFrom(
   priceSource: PriceSource,
   options: { at: Date; signal?: AbortSignal },
 ): Promise<void> {
-  return runPriceUpdate(
+  return runQuoteUpdate(
     jobSettings(database, priceSource),
     options.at,
     options.signal ?? new AbortController().signal,
@@ -83,7 +81,7 @@ function updateFrom(
 }
 
 test("stores the quotes and records a success", async () => {
-  const database = openTestDatabase();
+  const database = openDatabaseForTest();
   await updateFrom(database, fixturePriceSource, { at: start });
   expect(listLatestQuotes(database)).toHaveLength(trackedInstruments.length);
   expect(readLatestUpdateAttempt(database, "quotes")).toEqual({
@@ -95,7 +93,7 @@ test("stores the quotes and records a success", async () => {
 });
 
 test("records the instruments that an answer lacks, without waiting before the next attempt", async () => {
-  const database = openTestDatabase();
+  const database = openDatabaseForTest();
   await updateFrom(database, partialSource, { at: start });
   expect(listLatestQuotes(database)).toHaveLength(
     trackedInstruments.length - 2,
@@ -109,7 +107,7 @@ test("records the instruments that an answer lacks, without waiting before the n
 });
 
 test("counts a failure, an answer without a usable quote, and a thrown error as failures in a row", async () => {
-  const database = openTestDatabase();
+  const database = openDatabaseForTest();
   await updateFrom(database, failingSource, { at: start });
   await updateFrom(database, emptySource, { at: minutesAfterStart(1) });
   await updateFrom(database, throwingSource, { at: minutesAfterStart(3) });
@@ -122,7 +120,7 @@ test("counts a failure, an answer without a usable quote, and a thrown error as 
 });
 
 test("records a failure when the job stops waiting for the price source", async () => {
-  const database = openTestDatabase();
+  const database = openDatabaseForTest();
   const stalledSource: PriceSource = {
     ...fixturePriceSource,
     fetchQuotes: (_instruments, signal) =>
@@ -148,7 +146,7 @@ test("records a failure when the job stops waiting for the price source", async 
 });
 
 test("waits after failures, and a later run of the job keeps waiting, because the state lives in the database", async () => {
-  const database = openTestDatabase();
+  const database = openDatabaseForTest();
   await updateFrom(database, failingSource, { at: start });
   await updateFrom(database, failingSource, { at: minutesAfterStart(1) });
   // After two failures in a row, the backoff in update-schedule.ts makes this attempt too early.
@@ -162,7 +160,7 @@ test("waits after failures, and a later run of the job keeps waiting, because th
 });
 
 test("runs one more update right after the current one when asked during it, and never two at once", async () => {
-  const database = openTestDatabase();
+  const database = openDatabaseForTest();
   const answers: (() => void)[] = [];
   let running = 0;
   let mostAtOnce = 0;
@@ -180,12 +178,12 @@ test("runs one more update right after the current one when asked during it, and
   };
   const updatePrices = serializeUpdates(
     () =>
-      runPriceUpdate(
+      runQuoteUpdate(
         jobSettings(database, slowSource),
         new Date(),
         new AbortController().signal,
       ),
-    "The price job failed.",
+    "The quote update failed.",
   );
   const first = updatePrices();
   // Two runs of the schedule arrive while the first update waits for its answer.

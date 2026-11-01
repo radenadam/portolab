@@ -137,27 +137,23 @@ test("rejects a chart that is not an object or has no list of quotes", () => {
 });
 
 test("rejects a row without a valid time and names the row", () => {
-  expect(
-    parseYahooChart(
-      chart([
-        row("2026-10-29T02:00:00.000Z", 4940),
-        { date: "2026-10-30", close: 4980 },
-      ]),
-      source,
-      bbca,
-    ),
-  ).toEqual({
-    ok: false,
-    failure:
-      'The Yahoo Finance history of BBCA must have a time in the date of each row, but row 2 has "2026-10-30".',
-  });
-  expect(
-    parseYahooChart(chart([row("not a date", 4980)]), source, bbca),
-  ).toEqual({
-    ok: false,
-    failure:
-      "The Yahoo Finance history of BBCA must have a time in the date of each row, but row 1 has a value of type Date.",
-  });
+  const dates: readonly [unknown, string][] = [
+    ["2026-10-30", '"2026-10-30"'],
+    [new Date("not a date"), "an invalid date"],
+    [undefined, "missing"],
+  ];
+  for (const [date, described] of dates) {
+    expect(
+      parseYahooChart(
+        chart([row("2026-10-29T02:00:00.000Z", 4940), { date, close: 4980 }]),
+        source,
+        bbca,
+      ),
+    ).toEqual({
+      ok: false,
+      failure: `The Yahoo Finance history of BBCA must have a time in the date of each row, but the date of row 2 is ${described}.`,
+    });
+  }
 });
 
 test("rejects a close that is not a positive finite number and names the row", () => {
@@ -167,6 +163,8 @@ test("rejects a close that is not a positive finite number and names the row", (
     [0.004, "0.004"],
     [Number.POSITIVE_INFINITY, "Infinity"],
     ["4980", '"4980"'],
+    ["", "empty"],
+    [undefined, "missing"],
   ];
   for (const [close, described] of closes) {
     expect(
@@ -177,7 +175,7 @@ test("rejects a close that is not a positive finite number and names the row", (
       ),
     ).toEqual({
       ok: false,
-      failure: `The Yahoo Finance history of BBCA must have a positive close or null in each row, but row 1 has ${described}.`,
+      failure: `The Yahoo Finance history of BBCA must have a positive close or null in each row, but the close of row 1 is ${described}.`,
     });
   }
 });

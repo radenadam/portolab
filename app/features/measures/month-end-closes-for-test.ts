@@ -1,9 +1,8 @@
-import { indexPoints } from "~/units/index-points";
-import { splitAdjustedRupiah } from "~/units/split-adjusted-rupiah";
-import type { InstrumentCloses } from "./period-returns";
+import { buildDailyHistory } from "~/features/market-data/build-daily-history";
+import type { DailyHistory } from "~/features/market-data/price-source.server";
 
 // The closes on the last trading day of each month from August 2021 to October 2026, as Yahoo Finance returned them on 1 November 2026, rounded to two decimals as the history job stores them. BBCA split each share into five on 13 October 2021, so its earlier closes are a fifth of the prices of that time. AMMN listed in July 2023 and AADI in December 2024, so their closes start later.
-const monthEndDates = [
+const recordedMonthEnds = [
   "2021-08-31",
   "2021-09-30",
   "2021-10-29",
@@ -138,19 +137,19 @@ const closesByCode = {
 /** The closes of an instrument on the last trading day of each month, oldest first, as the history store gives them. */
 export function monthEndClosesForTest(
   code: keyof typeof closesByCode,
-): InstrumentCloses {
+): DailyHistory {
   const { from, closes } = closesByCode[code];
-  const dates = monthEndDates.slice(monthEndDates.indexOf(from));
-  const instrumentCloses: InstrumentCloses["closes"][number][] = [];
+  const dates = recordedMonthEnds.slice(recordedMonthEnds.indexOf(from));
+  const datedCloses: [string, number][] = [];
   for (const [index, close] of closes.entries()) {
     const date = dates[index];
     if (date === undefined) {
       throw new Error(`${code} has more closes than there are month ends.`);
     }
-    instrumentCloses.push({
-      date,
-      close: code === "IHSG" ? indexPoints(close) : splitAdjustedRupiah(close),
-    });
+    datedCloses.push([date, close]);
   }
-  return { code, closes: instrumentCloses };
+  return buildDailyHistory(
+    code === "IHSG" ? { kind: "index", code } : { kind: "stock", code },
+    datedCloses,
+  );
 }

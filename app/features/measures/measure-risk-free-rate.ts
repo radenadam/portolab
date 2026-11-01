@@ -2,10 +2,9 @@ import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
 import { annualRate } from "~/units/annual-rate";
 import type { AnnualRate } from "~/units/annual-rate";
-import { periodReturn } from "~/units/period-return";
-import type { PeriodReturn } from "~/units/period-return";
+import { monthlyReturn } from "~/units/monthly-return";
+import type { MonthlyReturn } from "~/units/monthly-return";
 import type { Measure, MeasureFailure } from "./measure";
-import type { ReturnFrequency } from "./return-frequency";
 
 /** A BI-Rate that the Board of Governors of Bank Indonesia set. */
 interface PolicyRate {
@@ -104,29 +103,25 @@ const policyRates: readonly PolicyRate[] = [
   { announcedOn: "2026-06-18", rate: annualRate(0.0575), source: biRateTable },
 ];
 
-// A yearly rate is divided evenly over the periods of a year, as Indonesian courses and research do.
-const periodsPerYear: Record<ReturnFrequency, number> = {
-  weekly: 52,
-  monthly: 12,
-};
+// Decision 0013 explains why the rate of a month is the yearly rate divided by the months of a year.
+const monthsPerYear = 12;
 
-/** The risk-free rate of one period, from the BI-Rate on a date. */
+/** The risk-free rate of one month, from the BI-Rate on a date. */
 export type RiskFreeRateMeasure = Measure<
-  "ratePerPeriod",
-  PeriodReturn,
+  "ratePerMonth",
+  MonthlyReturn,
   {
     annualRate: AnnualRate;
-    periodsPerYear: number;
+    monthsPerYear: number;
     /** The day on which Bank Indonesia announced the BI-Rate. */
     announcedOn: string;
     source: string;
   }
 >;
 
-/** Measures the risk-free rate of one period of this frequency on a date, from the latest BI-Rate announced on or before it. It fails for a date before the first recorded BI-Rate. */
+/** Measures the risk-free rate of one month on a date, from the latest BI-Rate announced on or before it. It fails for a date before the first recorded BI-Rate. */
 export function measureRiskFreeRate(
   date: string,
-  frequency: ReturnFrequency,
 ): Result<RiskFreeRateMeasure, MeasureFailure> {
   let latestRate: PolicyRate | undefined;
   for (const policyRate of policyRates) {
@@ -138,11 +133,11 @@ export function measureRiskFreeRate(
     return fail({ kind: "noRiskFreeRate", date });
   }
   return succeed({
-    formula: "ratePerPeriod",
-    value: periodReturn(latestRate.rate / periodsPerYear[frequency]),
+    formula: "ratePerMonth",
+    value: monthlyReturn(latestRate.rate / monthsPerYear),
     inputs: {
       annualRate: latestRate.rate,
-      periodsPerYear: periodsPerYear[frequency],
+      monthsPerYear,
       announcedOn: latestRate.announcedOn,
       source: latestRate.source,
     },

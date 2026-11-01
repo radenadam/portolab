@@ -6,11 +6,9 @@ import type { Route } from "./+types/prices-page";
 import { priceSourceContext } from "./price-source-context.server";
 import type { PriceSourceDescription, Quote } from "./price-source.server";
 import { PricesView } from "./prices-view";
-import {
-  listLatestQuotes,
-  readLatestUpdateAttempt,
-} from "./quote-store.server";
-import type { UpdateAttempt } from "./quote-store.server";
+import { listLatestQuotes } from "./quote-store.server";
+import { readLatestUpdateAttempt } from "./update-attempts.server";
+import type { UpdateAttempt } from "./update-attempts.server";
 
 export function meta(): Route.MetaDescriptors {
   return [{ title: pageTitle(m.market_data_page_title()) }];
