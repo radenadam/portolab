@@ -6,7 +6,7 @@ import {
 } from "~/form-text";
 import { formatNumber } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
-import { fail, succeed } from "~/result";
+import { fail, failureOf, succeed } from "~/result";
 import type { Result } from "~/result";
 
 // A name rarely comes near this, and a longer one would not fit where a page shows it.
@@ -24,7 +24,7 @@ export function parsePersonName(
 }
 
 /** Reads a password that a person chose, in the normal form that the hash reads, so that its length counts what the hash reads. */
-export function parseNewPassword(
+function parseNewPassword(
   value: unknown,
   source: string,
 ): Result<string, string> {
@@ -47,7 +47,7 @@ export function parseNewPassword(
 }
 
 /** Reads the field that repeats a new password, which must hold the same password, so that a typing mistake never locks the person out. */
-export function parseRepeatedPassword(
+function parseRepeatedPassword(
   value: unknown,
   source: string,
   password: string,
@@ -65,4 +65,36 @@ export function parseConsent(
   return value === "yes"
     ? succeed(true)
     : fail(m.accounts_consent_missing_error({ field: source }));
+}
+
+/** Why the fields of a new password were not accepted. */
+export interface NewPasswordFailures {
+  newPasswordFailure: string | undefined;
+  repeatedPasswordFailure: string | undefined;
+}
+
+/** Reads a new password from the two fields of a form that hold it, which must match. */
+export function readNewPassword(
+  form: FormData,
+): Result<string, NewPasswordFailures> {
+  const password = parseNewPassword(
+    form.get("newPassword"),
+    m.accounts_new_password_label(),
+  );
+  const repeatedPassword = password.ok
+    ? parseRepeatedPassword(
+        form.get("repeatedPassword"),
+        m.accounts_repeated_password_label(),
+        password.value,
+      )
+    : password;
+  if (password.ok && repeatedPassword.ok) {
+    return succeed(password.value);
+  }
+  return fail({
+    newPasswordFailure: failureOf(password),
+    repeatedPasswordFailure: password.ok
+      ? failureOf(repeatedPassword)
+      : undefined,
+  });
 }

@@ -16,7 +16,7 @@ const roles = ["lecturer", "student"] as const;
 /** What a person does in Portolab. A lecturer teaches classes, and a student joins them. */
 export type Role = (typeof roles)[number];
 
-/** Every person who can sign in. A lecturer whom the server owner created has no name and no consent until the first sign-in, where the lecturer gives both. */
+/** Every person who can sign in. An account lives until the person who runs the server deletes it, as the privacy notice states. A lecturer whom the server owner created has no name and no consent until the first sign-in, where the lecturer gives both. */
 export const users = sqliteTable("users", {
   id: integer("id").$type<UserId>().primaryKey({ autoIncrement: true }),
   username: text("username").$type<Username>().notNull().unique(),
@@ -31,7 +31,7 @@ export const users = sqliteTable("users", {
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
 });
 
-/** Each device where a person is signed in. The cookie holds the id and a secret, and the table holds only a hash of the secret, so a copy of the database cannot sign anyone in. */
+/** Each device where a person is signed in. The cookie holds the id and a secret, and the table holds only a hash of the secret, so a copy of the database cannot sign anyone in. A session lives until the days of sessionInactivityDays pass without a visit, and the sweep of ended sessions then deletes it. */
 export const sessions = sqliteTable(
   "sessions",
   {

@@ -5,7 +5,6 @@ import { databaseContext } from "~/database/database.server";
 import { FormFailure, SubmitButton, TextField } from "~/form";
 import formStyles from "~/form.module.css";
 import { parseFilledText } from "~/form-text";
-import { formatNumber } from "~/formatting";
 import { pageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
 import { returnDestination } from "~/return-destination.server";
@@ -17,8 +16,7 @@ import {
   startSession,
 } from "./current-session.server";
 import { passwordLimitersContext, signIn } from "./password-attempts.server";
-import { passwordLimits } from "./account-limits";
-import { passwordFailureText } from "./password-failure-text.server";
+import { explainPasswordFailure } from "./explain-password-failure.server";
 import { deleteSession } from "./session-store.server";
 import { normalizeUsername } from "./username";
 
@@ -69,21 +67,19 @@ export async function action({ context, request }: Route.ActionArgs) {
     },
   );
   if (!signedIn.ok) {
+    const { text, status } = explainPasswordFailure(
+      signedIn.failure,
+      normalizeUsername(username.value),
+      m.accounts_wrong_credentials_error,
+    );
     return data(
       {
         username: username.value,
         usernameFailure: undefined,
         passwordFailure: undefined,
-        failure: passwordFailureText(
-          signedIn.failure,
-          normalizeUsername(username.value),
-          m.accounts_wrong_credentials_error({
-            failures: formatNumber(passwordLimits.byUsername.failures),
-            minutes: formatNumber(passwordLimits.byUsername.windowMinutes),
-          }),
-        ),
+        failure: text,
       },
-      { status: signedIn.failure.kind === "wrongPassword" ? 400 : 429 },
+      { status },
     );
   }
   // A session that the device still holds ends here, so it never stays behind for the next person on a shared computer.

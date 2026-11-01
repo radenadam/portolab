@@ -5,17 +5,27 @@ import type { Locale } from "~/paraglide/runtime.js";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
 import {
   parseConsent,
-  parseNewPassword,
   parsePersonName,
-  parseRepeatedPassword,
+  readNewPassword,
 } from "./account-fields";
+
+/** A form with a new password in its two fields, or null for a field that the form did not send. */
+function passwordForm(
+  newPassword: string,
+  repeatedPassword: string | null,
+): FormData {
+  const form = new FormData();
+  form.set("newPassword", newPassword);
+  if (repeatedPassword !== null) {
+    form.set("repeatedPassword", repeatedPassword);
+  }
+  return form;
+}
 
 const texts: Record<
   Locale,
   {
     name: string;
-    password: string;
-    repeated: string;
     consent: string;
     tooShort: string;
     tooLong: string;
@@ -26,8 +36,6 @@ const texts: Record<
 > = {
   id: {
     name: "Nama Anda",
-    password: "Kata sandi baru",
-    repeated: "Ulangi kata sandi baru",
     consent: "Saya menyetujui pemberitahuan privasi",
     tooShort:
       'Kolom "Kata sandi baru" perlu paling sedikit 15 karakter, tetapi isinya 14 karakter. Setiap karakter tambahan membuat kata sandi jauh lebih sulit ditebak, jadi pilih yang lebih panjang, misalnya kalimat pendek.',
@@ -42,8 +50,6 @@ const texts: Record<
   },
   en: {
     name: "Your name",
-    password: "New password",
-    repeated: "New password again",
     consent: "I agree to the privacy notice",
     tooShort:
       'The field "New password" needs at least 15 characters, but it has 14. Each extra character makes a password much harder to guess, so choose a longer one, such as a short sentence.',
@@ -64,7 +70,7 @@ test("accepts a password from 15 to 128 characters, counted in the normal form t
     "a".repeat(128),
     "\u00bd".repeat(5),
   ]) {
-    expect(parseNewPassword(password, "New password")).toEqual({
+    expect(readNewPassword(passwordForm(password, password))).toEqual({
       ok: true,
       value: password.normalize("NFKC"),
     });
@@ -73,10 +79,8 @@ test("accepts a password from 15 to 128 characters, counted in the normal form t
 
 test("accepts a repeated password in another normal form, and agreement only from the ticked box", () => {
   expect(
-    parseRepeatedPassword(
-      "kopi pagi di cafe\u0301",
-      "New password again",
-      "kopi pagi di caf\u00e9",
+    readNewPassword(
+      passwordForm("kopi pagi di caf\u00e9", "kopi pagi di cafe\u0301"),
     ),
   ).toEqual({ ok: true, value: "kopi pagi di caf\u00e9" });
   expect(parseConsent("yes", "I agree")).toEqual({ ok: true, value: true });
@@ -87,14 +91,19 @@ for (const locale of locales) {
 
   test(`rejects a password that is too short or too long, with both lengths, in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
-    expect(parseNewPassword("a".repeat(14), text.password)).toEqual({
-      ok: false,
-      failure: text.tooShort,
-    });
-    expect(parseNewPassword("a".repeat(129), text.password)).toEqual({
-      ok: false,
-      failure: text.tooLong,
-    });
+    for (const [length, failure] of [
+      [14, text.tooShort],
+      [129, text.tooLong],
+    ] as const) {
+      const password = "a".repeat(length);
+      expect(readNewPassword(passwordForm(password, password))).toEqual({
+        ok: false,
+        failure: {
+          newPasswordFailure: failure,
+          repeatedPasswordFailure: undefined,
+        },
+      });
+    }
   });
 
   test(`rejects a name that is too long in ${languageNames[locale]}`, () => {
@@ -107,10 +116,16 @@ for (const locale of locales) {
 
   test(`rejects a repeated password that differs in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
-    for (const value of ["kopi pagi di kampus!", null]) {
+    for (const repeated of ["kopi pagi di kampus!", null]) {
       expect(
-        parseRepeatedPassword(value, text.repeated, "kopi pagi di kampus"),
-      ).toEqual({ ok: false, failure: text.passwordsDiffer });
+        readNewPassword(passwordForm("kopi pagi di kampus", repeated)),
+      ).toEqual({
+        ok: false,
+        failure: {
+          newPasswordFailure: undefined,
+          repeatedPasswordFailure: text.passwordsDiffer,
+        },
+      });
     }
   });
 

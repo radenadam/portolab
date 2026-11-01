@@ -3,10 +3,10 @@ import { data, Form, redirect } from "react-router";
 import { databaseContext } from "~/database/database.server";
 import { CheckboxField, SubmitButton, TextField } from "~/form";
 import formStyles from "~/form.module.css";
-import { formatNumber } from "~/formatting";
+import { typedText } from "~/form-text";
 import { pageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
-import { fail, succeed } from "~/result";
+import { fail, failureOf, succeed } from "~/result";
 import type { Result } from "~/result";
 import { returnDestination } from "~/return-destination.server";
 import type { Route } from "./+types/account-setup-page";
@@ -14,11 +14,11 @@ import { readyUser } from "./account";
 import type { Account } from "./account";
 import {
   parseConsent,
-  parseNewPassword,
   parsePersonName,
-  parseRepeatedPassword,
-  passwordLength,
+  readNewPassword,
 } from "./account-fields";
+import type { NewPasswordFailures } from "./account-fields";
+import { NewPasswordFields } from "./new-password-fields";
 import { updateAccount } from "./account-store.server";
 import type { AccountChanges } from "./account-store.server";
 import { requireSession, startSession } from "./current-session.server";
@@ -93,11 +93,9 @@ export async function action({ context, request }: Route.ActionArgs) {
 }
 
 /** The reason that each field of the form was not accepted, and the name as the person typed it, so the form can show it again. */
-interface SetupFailures {
+interface SetupFailures extends NewPasswordFailures {
   name: string;
   nameFailure: string | undefined;
-  newPasswordFailure: string | undefined;
-  repeatedPasswordFailure: string | undefined;
   consentFailure: string | undefined;
 }
 
@@ -106,30 +104,19 @@ function readSetupForm(
   form: FormData,
   steps: MissingSteps,
 ): Result<AccountChanges, SetupFailures> {
-  const name = readWhenMissing(steps.name, () =>
-    parsePersonName(form.get("name"), m.accounts_name_label()),
-  );
-  const password = readWhenMissing(steps.password, () =>
-    parseNewPassword(form.get("newPassword"), m.accounts_new_password_label()),
-  );
-  const repeatedPassword =
-    password.ok && password.value !== undefined
-      ? parseRepeatedPassword(
-          form.get("repeatedPassword"),
-          m.accounts_repeated_password_label(),
-          password.value,
-        )
-      : succeed(undefined);
-  const consent = readWhenMissing(steps.consent, () =>
-    parseConsent(form.get("consent"), m.accounts_consent_label()),
-  );
-  if (!name.ok || !password.ok || !repeatedPassword.ok || !consent.ok) {
-    const typedName = form.get("name");
+  const name = steps.name
+    ? parsePersonName(form.get("name"), m.accounts_name_label())
+    : succeed(undefined);
+  const password = steps.password ? readNewPassword(form) : succeed(undefined);
+  const consent = steps.consent
+    ? parseConsent(form.get("consent"), m.accounts_consent_label())
+    : succeed(undefined);
+  if (!name.ok || !password.ok || !consent.ok) {
     return fail({
-      name: typeof typedName === "string" ? typedName : "",
+      name: typedText(form.get("name")),
       nameFailure: failureOf(name),
-      newPasswordFailure: failureOf(password),
-      repeatedPasswordFailure: failureOf(repeatedPassword),
+      newPasswordFailure: failureOf(password)?.newPasswordFailure,
+      repeatedPasswordFailure: failureOf(password)?.repeatedPasswordFailure,
       consentFailure: failureOf(consent),
     });
   }
@@ -138,17 +125,6 @@ function readSetupForm(
     ...(password.value === undefined ? {} : { password: password.value }),
     ...(consent.value === undefined ? {} : { consentedAt: new Date() }),
   });
-}
-
-function readWhenMissing<Value>(
-  isMissing: boolean,
-  read: () => Result<Value, string>,
-): Result<Value | undefined, string> {
-  return isMissing ? read() : succeed(undefined);
-}
-
-function failureOf(result: Result<unknown, string>): string | undefined {
-  return result.ok ? undefined : result.failure;
 }
 
 export default function AccountSetupPage({
@@ -183,27 +159,7 @@ export default function AccountSetupPage({
             defaultValue={actionData?.name}
           />
         )}
-        {steps.password && (
-          <>
-            <TextField
-              name="newPassword"
-              label={m.accounts_new_password_label()}
-              type="password"
-              autoComplete="new-password"
-              hint={m.accounts_password_hint({
-                minimum: formatNumber(passwordLength.minimum),
-              })}
-              failure={actionData?.newPasswordFailure}
-            />
-            <TextField
-              name="repeatedPassword"
-              label={m.accounts_repeated_password_label()}
-              type="password"
-              autoComplete="new-password"
-              failure={actionData?.repeatedPasswordFailure}
-            />
-          </>
-        )}
+        {steps.password && <NewPasswordFields failures={actionData} />}
         {/* The person agrees to the whole notice, so the page shows all of it before the box. */}
         {steps.consent && (
           <>
