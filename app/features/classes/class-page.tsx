@@ -23,7 +23,7 @@ export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
   return [{ title: pageTitle(loaderData.name) }];
 }
 
-export function loader({ context, params, request }: Route.LoaderArgs):
+export function loader({ context, params, url }: Route.LoaderArgs):
   | {
       role: "lecturer";
       id: ClassId;
@@ -34,7 +34,7 @@ export function loader({ context, params, request }: Route.LoaderArgs):
       students: ClassStudent[];
     }
   | ({ role: "student" } & JoinedClass) {
-  const user = requireUser(context, request);
+  const user = requireUser(context, url);
   const classId = parseRecordId<ClassId>(params.classId, "classId");
   const database = context.get(databaseContext);
   // A class that does not exist and a class that the person may not see answer alike, so a guessed address reveals nothing.
@@ -54,7 +54,7 @@ export function loader({ context, params, request }: Route.LoaderArgs):
         name: taught.name,
         startingCash: taught.startingCash,
         joinCode: formatJoinCode(taught.joinCode),
-        joinAddress: new URL(joinPath(taught.joinCode), request.url).href,
+        joinAddress: new URL(joinPath(taught.joinCode), url).href,
         students: listStudents(database, taught.id),
       };
     }

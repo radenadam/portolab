@@ -241,6 +241,18 @@ async function enterCode(
     .click();
 }
 
+/** Signs out in another tab of the same device, so the session of the page that a test holds ends without the page knowing. */
+async function signOutInAnotherTab(page: Page): Promise<void> {
+  const otherTab = await page.context().newPage();
+  await otherTab.goto("/account");
+  await otherTab
+    .getByRole("main")
+    .locator("form[action='/sign-out'] button")
+    .click();
+  await expect(otherTab).toHaveURL("/");
+  await otherTab.close();
+}
+
 /** Checks that a page shows the form for a code with a code that opens no class, in its field and in the error at that field. */
 async function expectUnknownCodeForm(
   page: Page,
@@ -466,11 +478,28 @@ for (const locale of locales) {
     await expect(otherDevice).toHaveTitle(`${text.joinClassTitle} | Portolab`);
     await expect(otherDevice.getByText(text.joinClassBody)).toBeVisible();
     await expectAccessibleScreen(otherDevice);
+
+    // A session can end between the load of the page and the tap on its button, such as through a sign-out in another tab, and the tap then asks the student to sign in again.
+    await signOutInAnotherTab(otherDevice);
+    await otherDevice
+      .getByRole("main")
+      .getByRole("button", { name: text.joinButton })
+      .click();
+    await expect(otherDevice).toHaveURL(
+      `/sign-in?returnTo=${encodeURIComponent(thirdJoinPath)}`,
+    );
+    await submitSignIn(otherDevice, username, chosenPassword);
+    await expect(otherDevice).toHaveURL(thirdJoinPath);
     await otherDevice
       .getByRole("main")
       .getByRole("button", { name: text.joinButton })
       .click();
     await expect(otherDevice).toHaveURL(third.path);
+
+    // A link inside the app asks for its page as data, and the sign-in page still returns to the page itself.
+    await signOutInAnotherTab(otherDevice);
+    await otherDevice.locator('header a[href="/account"]').click();
+    await expect(otherDevice).toHaveURL("/sign-in?returnTo=%2Faccount");
     await otherDevice.context().close();
   });
 

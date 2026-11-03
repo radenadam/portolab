@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { data, Form, Link, redirect, useLocation } from "react-router";
+import { data, redirect } from "react-router";
 import type { RouterContextProvider } from "react-router";
 import { databaseContext } from "~/database/database.server";
 import type { User } from "~/features/accounts/account";
@@ -9,19 +9,10 @@ import {
 } from "~/features/accounts/account-fields";
 import type { AccountFormFailures } from "~/features/accounts/account-fields";
 import {
-  ConsentField,
-  NameField,
-  UsernameField,
-} from "~/features/accounts/account-form-fields";
-import { NewPasswordFields } from "~/features/accounts/new-password-fields";
-import {
   findUser,
   startSession,
 } from "~/features/accounts/current-session.server";
 import { pathReturningTo } from "~/features/accounts/path-returning-to";
-import { FormFailure, SubmitButton } from "~/form";
-import formStyles from "~/form.module.css";
-import { formatRupiah } from "~/formatting";
 import { isLoadedByAnotherSite } from "~/is-loaded-by-another-site.server";
 import { PageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
@@ -29,7 +20,7 @@ import type { Route } from "./+types/join-class-page";
 import { classPath } from "./class-path";
 import { findJoinedClass } from "./class-store.server";
 import type { ClassForStudents } from "./class-store.server";
-import styles from "./classes.module.css";
+import { ClassToJoin } from "./class-to-join";
 import { CodeForm } from "./code-form";
 import { createStudentWithinLimit } from "./create-student-within-limit.server";
 import type { ClassId } from "./classes.schema";
@@ -44,12 +35,20 @@ type JoinState =
   | { kind: "codeForm"; code: string; failure: CodeFailure | undefined }
   | { kind: "lecturer" };
 
+/** The answer of the action to a form that it did not accept: why each field of a new account was not accepted, why the form was not accepted apart from its fields, and the state of the page when it changed since the page loaded. */
+interface JoinAnswer {
+  fields: AccountFormFailures | undefined;
+  failure: string | undefined;
+  state: JoinState | undefined;
+}
+
 export function loader({
   context,
   request,
   params,
+  url,
 }: Route.LoaderArgs): ReturnType<typeof data<JoinState>> {
-  const user = findUser(context, request);
+  const user = findUser(context, url);
   switch (user?.role) {
     case "lecturer":
       // The page explains that only students join, which refuses the lecturer.
@@ -106,17 +105,23 @@ function findJoinState(
   });
 }
 
-export async function action({ context, request, params }: Route.ActionArgs) {
+export async function action({
+  context,
+  request,
+  params,
+  url,
+}: Route.ActionArgs) {
   const now = new Date();
-  const user = findUser(context, request);
+  const user = findUser(context, url);
+  const form = await request.formData();
   const found = findClassWithCode(context, params.code, now);
   if (!found.ok) {
-    // The code opened the class when the page loaded, so the class went away or the network reached its limit since. React Router loads no page again after a refused form, so the answer carries the form for a code, which shows each reason in its place.
-    return data(
+    // The code opened the class when the page loaded, so the class went away or the network reached its limit since. React Router loads no page again after a refused form, so the answer carries the state of the page, the form for a code, which shows each reason in its place.
+    return data<JoinAnswer>(
       {
         fields: undefined,
         failure: undefined,
-        codeForm: { code: params.code, failure: found.failure },
+        state: { kind: "codeForm", code: params.code, failure: found.failure },
       },
       { status: found.failure.status },
     );
@@ -124,9 +129,9 @@ export async function action({ context, request, params }: Route.ActionArgs) {
   const { classToJoin } = found.value;
   switch (user?.role) {
     case "lecturer":
-      // The page of a lecturer has no form for joining, so only a forged form comes here, and the page that the loader shows explains why a lecturer cannot join.
-      return data(
-        { fields: undefined, failure: undefined, codeForm: undefined },
+      // The page of a lecturer has no form for joining, so a form comes here only from a page that loaded before a lecturer signed in, or from a forged one, and the answer explains why a lecturer cannot join.
+      return data<JoinAnswer>(
+        { fields: undefined, failure: undefined, state: { kind: "lecturer" } },
         { status: 403 },
       );
     case "student":
@@ -136,7 +141,12 @@ export async function action({ context, request, params }: Route.ActionArgs) {
         now,
       );
     case undefined:
+      // A student who was signed in when the page loaded sends the form with one button, so a session that ended since goes to the sign-in page, which returns here, as on every page that needs a session.
+      if (form.has("signedIn")) {
+        return redirect(pathReturningTo("/sign-in", url.pathname));
+      }
       return createStudentInClass(context, request, {
+        form,
         classId: classToJoin.id,
         now,
       });
@@ -147,14 +157,13 @@ export async function action({ context, request, params }: Route.ActionArgs) {
 async function createStudentInClass(
   context: Readonly<RouterContextProvider>,
   request: Request,
-  { classId, now }: { classId: ClassId; now: Date },
+  { form, classId, now }: { form: FormData; classId: ClassId; now: Date },
 ) {
   const database = context.get(databaseContext);
-  const form = await request.formData();
   const newStudent = readNewStudent(form);
   if (!newStudent.ok) {
-    return data(
-      { fields: newStudent.failure, failure: undefined, codeForm: undefined },
+    return data<JoinAnswer>(
+      { fields: newStudent.failure, failure: undefined, state: undefined },
       { status: 400 },
     );
   }
@@ -167,16 +176,16 @@ async function createStudentInClass(
     const typedFields = typedAccountForm(form);
     switch (created.failure.kind) {
       case "blocked":
-        return data(
+        return data<JoinAnswer>(
           {
             fields: typedFields,
             failure: created.failure.text,
-            codeForm: undefined,
+            state: undefined,
           },
           { status: 429 },
         );
       case "usernameTaken":
-        return data(
+        return data<JoinAnswer>(
           {
             fields: {
               ...typedFields,
@@ -186,7 +195,7 @@ async function createStudentInClass(
               }),
             },
             failure: undefined,
-            codeForm: undefined,
+            state: undefined,
           },
           { status: 400 },
         );
@@ -208,11 +217,7 @@ export default function JoinClassPage({
   loaderData,
   actionData,
 }: Route.ComponentProps): ReactNode {
-  const codeForm = actionData?.codeForm;
-  const state: JoinState =
-    codeForm === undefined
-      ? loaderData
-      : { kind: "codeForm", code: codeForm.code, failure: codeForm.failure };
+  const state: JoinState = actionData?.state ?? loaderData;
   switch (state.kind) {
     case "lecturer":
       return (
@@ -244,70 +249,4 @@ export default function JoinClassPage({
         </>
       );
   }
-}
-
-function ClassToJoin({
-  classToJoin,
-  isSignedIn,
-  fields,
-  failure,
-}: {
-  classToJoin: ClassForStudents;
-  isSignedIn: boolean;
-  fields: AccountFormFailures | undefined;
-  failure: string | undefined;
-}): ReactNode {
-  return (
-    <>
-      <h1>{m.classes_join_class_title({ class: classToJoin.name })}</h1>
-      <p>
-        {m.classes_join_class_body({
-          lecturer: classToJoin.lecturerName,
-          cash: formatRupiah(classToJoin.startingCash),
-        })}
-      </p>
-      {isSignedIn ? (
-        <Form method="post" className={formStyles["form"]}>
-          {failure !== undefined && <FormFailure text={failure} />}
-          <SubmitButton label={m.classes_join_label()} />
-        </Form>
-      ) : (
-        <NewStudentForm fields={fields} failure={failure} />
-      )}
-    </>
-  );
-}
-
-function NewStudentForm({
-  fields,
-  failure,
-}: {
-  fields: AccountFormFailures | undefined;
-  /** Why the form created no account, apart from its fields, such as a limit on attempts. */
-  failure: string | undefined;
-}): ReactNode {
-  return (
-    <>
-      <h2>{m.classes_new_account_title()}</h2>
-      <Form method="post" className={formStyles["form"]}>
-        {failure !== undefined && <FormFailure text={failure} />}
-        <NameField hint={m.classes_student_name_hint()} failures={fields} />
-        <UsernameField failures={fields} />
-        <NewPasswordFields failures={fields} />
-        <ConsentField failures={fields} />
-        <SubmitButton label={m.classes_create_account_label()} />
-      </Form>
-      <ExistingAccountLink />
-    </>
-  );
-}
-
-// The sign-in page returns to this page, where the student who signed in joins with one button.
-function ExistingAccountLink(): ReactNode {
-  const { pathname } = useLocation();
-  return (
-    <Link to={pathReturningTo("/sign-in", pathname)} className={styles["link"]}>
-      {m.classes_existing_account_link()}
-    </Link>
-  );
 }

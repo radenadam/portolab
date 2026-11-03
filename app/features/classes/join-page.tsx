@@ -26,9 +26,9 @@ export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
 
 export function loader({
   context,
-  request,
+  url,
 }: Route.LoaderArgs): ReturnType<typeof data<{ isLecturer: boolean }>> {
-  switch (findUser(context, request)?.role) {
+  switch (findUser(context, url)?.role) {
     case "lecturer":
       // The page explains that only students join, which refuses the lecturer.
       return data({ isLecturer: true }, { status: 403 });
@@ -38,9 +38,9 @@ export function loader({
   }
 }
 
-export async function action({ context, request }: Route.ActionArgs) {
+export async function action({ context, request, url }: Route.ActionArgs) {
   const now = new Date();
-  const user = findUser(context, request);
+  const user = findUser(context, url);
   const form = await request.formData();
   const found = findClassWithCode(context, form.get("code"), now);
   if (!found.ok) {

@@ -90,7 +90,10 @@ export async function submitNewPassword(
 }
 
 /** Types a new password in its field and again in the field that repeats it. */
-async function fillNewPassword(page: Page, password: string): Promise<void> {
+export async function fillNewPassword(
+  page: Page,
+  password: string,
+): Promise<void> {
   await page.locator('main input[name="newPassword"]').fill(password);
   await page.locator('main input[name="repeatedPassword"]').fill(password);
 }

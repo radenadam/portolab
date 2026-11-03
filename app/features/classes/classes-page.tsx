@@ -28,11 +28,11 @@ import { classNameMaximumLength, defaultStartingCash } from "./class-rules";
 
 export function loader({
   context,
-  request,
+  url,
 }: Route.LoaderArgs):
   | { role: "lecturer"; classes: TaughtClass[] }
   | { role: "student"; classes: JoinedClass[] } {
-  const user = requireUser(context, request);
+  const user = requireUser(context, url);
   const database = context.get(databaseContext);
   switch (user.role) {
     case "lecturer":
@@ -48,8 +48,8 @@ export function loader({
   }
 }
 
-export async function action({ context, request }: Route.ActionArgs) {
-  const user = requireUser(context, request);
+export async function action({ context, request, url }: Route.ActionArgs) {
+  const user = requireUser(context, url);
   switch (user.role) {
     case "lecturer":
       return createClassFromForm(context, request, {

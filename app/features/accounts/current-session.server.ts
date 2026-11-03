@@ -62,15 +62,15 @@ export async function startSession(
   return sessionCookieHeader(request, createSession(database, userId, now));
 }
 
-/** The person who is signed in and finished setting up the account. A visitor who is not signed in goes to the sign-in page, and a person who still has to finish the account goes to that step, and each returns to this page afterwards. */
+/** The person who is signed in and finished setting up the account. A visitor who is not signed in goes to the sign-in page, and a person who still has to finish the account goes to that step, and each returns to this page afterwards. The url is the one that React Router gives a loader or an action, because the url of the request ends in .data when the browser runs the app. */
 export function requireUser(
   context: Readonly<RouterContextProvider>,
-  request: Request,
+  url: URL,
 ): User {
-  const session = requireSession(context, request);
+  const session = requireSession(context, url);
   const user = readyUser(session.account);
   if (user === undefined) {
-    throw redirect(pathReturningTo("/account/setup", currentPath(request)));
+    throw redirect(pathReturningTo("/account/setup", currentPath(url)));
   }
   return user;
 }
@@ -78,9 +78,9 @@ export function requireUser(
 /** The lecturer who is signed in and finished setting up the account. A student gets the page for an address that does not exist, so a student learns nothing about the pages of lecturers. */
 export function requireLecturer(
   context: Readonly<RouterContextProvider>,
-  request: Request,
+  url: URL,
 ): User {
-  const user = requireUser(context, request);
+  const user = requireUser(context, url);
   if (user.role !== "lecturer") {
     throw data(null, { status: 404 });
   }
@@ -90,21 +90,21 @@ export function requireLecturer(
 /** The person who is signed in and finished setting up the account, or undefined for a visitor who is not signed in, for a page that serves both. A person who still has to finish the account goes to that step first. */
 export function findUser(
   context: Readonly<RouterContextProvider>,
-  request: Request,
+  url: URL,
 ): User | undefined {
   return context.get(currentSessionContext) === undefined
     ? undefined
-    : requireUser(context, request);
+    : requireUser(context, url);
 }
 
 /** The session of a person who is signed in, whether or not the account is ready, for the step that finishes it. A visitor who is not signed in goes to the sign-in page. */
 export function requireSession(
   context: Readonly<RouterContextProvider>,
-  request: Request,
+  url: URL,
 ): CurrentSession {
   const session = context.get(currentSessionContext);
   if (session === undefined) {
-    throw redirect(pathReturningTo("/sign-in", currentPath(request)));
+    throw redirect(pathReturningTo("/sign-in", currentPath(url)));
   }
   return session;
 }
@@ -114,7 +114,6 @@ export function isSignedIn(context: Readonly<RouterContextProvider>): boolean {
   return context.get(currentSessionContext) !== undefined;
 }
 
-function currentPath(request: Request): string {
-  const { pathname, search } = new URL(request.url);
-  return `${pathname}${search}`;
+function currentPath(url: URL): string {
+  return `${url.pathname}${url.search}`;
 }

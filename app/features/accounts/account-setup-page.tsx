@@ -41,21 +41,21 @@ export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
   ];
 }
 
-export function loader({ context, request }: Route.LoaderArgs): {
+export function loader({ context, request, url }: Route.LoaderArgs): {
   steps: MissingSteps;
   returnTo: string;
 } {
-  const session = requireSession(context, request);
-  const returnTo = new URL(request.url).searchParams.get("returnTo");
+  const session = requireSession(context, url);
+  const returnTo = url.searchParams.get("returnTo");
   if (readyUser(session.account) !== undefined) {
     throw redirect(returnDestination(returnTo, request));
   }
   return { steps: missingSteps(session.account), returnTo: returnTo ?? "" };
 }
 
-export async function action({ context, request }: Route.ActionArgs) {
+export async function action({ context, request, url }: Route.ActionArgs) {
   const now = new Date();
-  const session = requireSession(context, request);
+  const session = requireSession(context, url);
   const form = await request.formData();
   const destination = returnDestination(form.get("returnTo"), request);
   if (readyUser(session.account) !== undefined) {

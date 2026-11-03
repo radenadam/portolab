@@ -28,15 +28,15 @@ export function meta(): Route.MetaDescriptors {
   return [{ title: pageTitle(m.accounts_account_title()) }];
 }
 
-export function loader({ context, request }: Route.LoaderArgs): {
+export function loader({ context, url }: Route.LoaderArgs): {
   user: User;
 } {
-  return { user: requireUser(context, request) };
+  return { user: requireUser(context, url) };
 }
 
-export async function action({ context, request }: Route.ActionArgs) {
+export async function action({ context, request, url }: Route.ActionArgs) {
   const now = new Date();
-  const user = requireUser(context, request);
+  const user = requireUser(context, url);
   const form = await request.formData();
   const currentPassword = parseFilledText(
     form.get("currentPassword"),

@@ -24,10 +24,10 @@ export function meta(): Route.MetaDescriptors {
 /** The class and its student whose password the lecturer who is signed in may reset. A class of another lecturer, or a person who is not its student, answers as an address that does not exist, so a guessed address reveals nothing. */
 function requireStudentOfTaughtClass(
   context: Readonly<RouterContextProvider>,
-  request: Request,
+  url: URL,
   params: Route.LoaderArgs["params"],
 ): { classId: ClassId; className: string; student: ClassStudent } {
-  const lecturer = requireLecturer(context, request);
+  const lecturer = requireLecturer(context, url);
   const classId = parseRecordId<ClassId>(params.classId, "classId");
   const studentId = parseRecordId<UserId>(params.studentId, "studentId");
   const database = context.get(databaseContext);
@@ -44,16 +44,16 @@ function requireStudentOfTaughtClass(
   return { classId: taught.id, className: taught.name, student };
 }
 
-export function loader({ context, request, params }: Route.LoaderArgs): {
+export function loader({ context, url, params }: Route.LoaderArgs): {
   classId: ClassId;
   className: string;
   student: ClassStudent;
 } {
-  return requireStudentOfTaughtClass(context, request, params);
+  return requireStudentOfTaughtClass(context, url, params);
 }
 
-export async function action({ context, request, params }: Route.ActionArgs) {
-  const { student } = requireStudentOfTaughtClass(context, request, params);
+export async function action({ context, url, params }: Route.ActionArgs) {
+  const { student } = requireStudentOfTaughtClass(context, url, params);
   return { temporaryPassword: await resetForgottenPassword(context, student) };
 }
 

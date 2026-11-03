@@ -25,10 +25,10 @@ export function meta(): Route.MetaDescriptors {
   return [{ title: pageTitle(m.accounts_sign_in_title()) }];
 }
 
-export function loader({ context, request }: Route.LoaderArgs): {
+export function loader({ context, request, url }: Route.LoaderArgs): {
   returnTo: string;
 } {
-  const returnTo = new URL(request.url).searchParams.get("returnTo");
+  const returnTo = url.searchParams.get("returnTo");
   if (isSignedIn(context)) {
     throw redirect(returnDestination(returnTo, request));
   }

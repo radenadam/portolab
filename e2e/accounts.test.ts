@@ -6,8 +6,10 @@ import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
 import {
   chosenPassword,
+  fillNewPassword,
   runAccountCommand,
   signInAsNewLecturer,
+  submitNewPassword,
   submitSignIn,
   uniqueUsername,
 } from "./accounts.ts";
@@ -238,12 +240,7 @@ async function changePassword(
 ): Promise<void> {
   const text = texts[locale];
   await page.getByLabel(text.currentPasswordLabel).fill(currentPassword);
-  await page
-    .getByLabel(text.newPasswordLabel, { exact: true })
-    .fill("a second long sentence");
-  await page
-    .getByLabel(text.repeatedPasswordLabel)
-    .fill("a second long sentence");
+  await fillNewPassword(page, "a second long sentence");
   await submitMainForm(page, text.changePasswordButton);
 }
 
@@ -286,8 +283,7 @@ for (const locale of locales) {
     await expectAccessibleScreen(page);
 
     await page.getByLabel(text.nameLabel).fill(longName);
-    await page.getByLabel(text.newPasswordLabel, { exact: true }).fill("short");
-    await page.getByLabel(text.repeatedPasswordLabel).fill("short");
+    await fillNewPassword(page, "short");
     await submitMainForm(page, text.finishButton);
     await expect(page.getByText(text.tooShort)).toBeVisible();
     await expect(page.getByText(text.consentMissing)).toBeVisible();
@@ -304,10 +300,7 @@ for (const locale of locales) {
     await submitMainForm(page, text.finishButton);
     await expect(page.getByText(text.passwordsDiffer)).toBeVisible();
 
-    await page
-      .getByLabel(text.newPasswordLabel, { exact: true })
-      .fill(chosenPassword);
-    await page.getByLabel(text.repeatedPasswordLabel).fill(chosenPassword);
+    await fillNewPassword(page, chosenPassword);
     await page.getByLabel(text.consentLabel).check();
     await page
       .getByRole("main")
@@ -485,16 +478,7 @@ for (const locale of locales) {
     await expect(page.getByLabel(text.nameLabel)).toHaveCount(0);
     await expect(page.getByLabel(text.consentLabel)).toHaveCount(0);
     await expectAccessibleScreen(page);
-    await page
-      .getByLabel(text.newPasswordLabel, { exact: true })
-      .fill("a third long sentence");
-    await page
-      .getByLabel(text.repeatedPasswordLabel)
-      .fill("a third long sentence");
-    await page
-      .getByRole("main")
-      .getByRole("button", { name: text.finishButton })
-      .click();
+    await submitNewPassword(page, "a third long sentence");
     await expect(page).toHaveURL("/account");
   });
 }
