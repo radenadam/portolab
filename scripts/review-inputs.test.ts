@@ -3,10 +3,13 @@ import { expect, test } from "vitest";
 import { readTextFile } from "./read-text-file.ts";
 import {
   parseAgentTools,
+  parseBranchName,
   parseCommitHash,
   parseOptionalCommitHashAt,
   parsePullRequestNumber,
+  readLensTools,
 } from "./review-inputs.ts";
+import { lenses } from "./review-lenses.ts";
 
 const reviewedHead = "1".repeat(40);
 
@@ -74,4 +77,28 @@ test("reads a field that holds a commit or nothing, and names the field when it 
     failure:
       'plan.json: head must be the full hash of a commit, but it is "main".',
   });
+});
+
+test("accepts the name of a branch, with or without folders, and rejects anything else", () => {
+  for (const branch of ["main", "release/1.x", "fix/review-proves-coverage"]) {
+    expect(parseBranchName(branch, "BASE_REF")).toEqual({
+      ok: true,
+      value: branch,
+    });
+  }
+  for (const value of ["", "main; rm", "/main", "main/", undefined]) {
+    expect(parseBranchName(value, "BASE_REF").ok, String(value)).toBe(false);
+  }
+  expect(parseBranchName("main; rm", "BASE_REF")).toEqual({
+    ok: false,
+    failure: 'BASE_REF must be the name of a branch, but it is "main; rm".',
+  });
+});
+
+test("reads the tools of every lens of the panel as one list without repeats", () => {
+  expect(readLensTools(lenses)).toEqual({
+    ok: true,
+    value: "Read,Grep,Glob,Bash",
+  });
+  expect(readLensTools([])).toEqual({ ok: true, value: "" });
 });

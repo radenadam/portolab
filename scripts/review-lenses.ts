@@ -97,7 +97,7 @@ const architectureFiles = [
   "vite.config.ts",
 ];
 
-// Each rule follows the description of its lens. The product lens builds the app and drives a browser, which costs the most, so it reviews only the files that change what a reader sees.
+// These rules are the one statement of which changes each lens reviews, and each lens definition points here. The product lens builds the app and drives a browser, which costs the most, so it reviews only the files that change what a reader sees. The docs and reliability lenses read tests too, because comments and the section "Tests" of AGENTS.md apply to them.
 const lensApplies: Record<Lens, (file: ChangedFile) => boolean> = {
   architecture: (file) =>
     (file.change !== "modified" &&
@@ -108,7 +108,7 @@ const lensApplies: Record<Lens, (file: ChangedFile) => boolean> = {
     architectureFiles.includes(file.path),
   consistency: () => true,
   craft: (file) => !isMarkdown(file.path) && !isMessages(file.path),
-  docs: (file) => !isTest(file.path),
+  docs: () => true,
   product: (file) =>
     !isTest(file.path) &&
     (isMessages(file.path) ||
@@ -116,7 +116,6 @@ const lensApplies: Record<Lens, (file: ChangedFile) => boolean> = {
       file.path === "app/routes.ts" ||
       /^app\/.*\.(tsx|css)$/.test(file.path)),
   reliability: (file) =>
-    !isTest(file.path) &&
     !isMarkdown(file.path) &&
     !isMessages(file.path) &&
     !file.path.endsWith(".css"),

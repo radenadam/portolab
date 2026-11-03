@@ -1,15 +1,21 @@
-import { existsSync } from "node:fs";
 import { exitWithFailure } from "../app/exit-with-failure.server.ts";
-import { failuresOf } from "../app/result.ts";
+import { fail, failuresOf, succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
-import { describeAgentRun, parseAgentRun } from "./agent-run.ts";
-import { readJsonFile } from "./json.ts";
-import { parseFindingsToVerify, parseVerdicts } from "./review-findings.ts";
+import { parseChoice } from "../app/value-parsers.ts";
+import { readJsonFileIfWritten } from "./json.ts";
+import { parseRoundReport, parseVerdicts } from "./review-findings.ts";
 import { parseCommitHash, parsePullRequestNumber } from "./review-inputs.ts";
 import { parseReviewPlan } from "./review-plan.ts";
 import { stateMarker } from "./review-state.ts";
 import { runCommand } from "./run-command.ts";
-import { outsideIssue, summarizeReview } from "./summarize-review.ts";
+import {
+  jobResults,
+  oversizeProblem,
+  outsideIssue,
+  summarizeReview,
+  supersededRun,
+  unplannedReview,
+} from "./summarize-review.ts";
 import { writeScriptFailure } from "./write-script-failure.ts";
 
 // Every input is parsed before the script stops, so the log names every problem at once.
@@ -21,58 +27,71 @@ const reviewedHead = parseCommitHash(
   process.env["REVIEWED_HEAD"],
   "REVIEWED_HEAD",
 );
-// The plan step failed when it wrote no plan, and its log names the reason.
-const plan = readJsonFile("review/plan.json", parseReviewPlan);
-if (!pullRequest.ok || !reviewedHead.ok || !plan.ok) {
+const agentsResult = parseChoice(
+  process.env["AGENTS_RESULT"],
+  "AGENTS_RESULT",
+  jobResults,
+);
+if (!pullRequest.ok || !reviewedHead.ok || !agentsResult.ok) {
   exitWithFailure(
-    failuresOf([pullRequest, reviewedHead, plan]),
+    failuresOf([pullRequest, reviewedHead, agentsResult]),
     writeScriptFailure,
   );
 }
+if (agentsResult.value === "cancelled") {
+  const currentHead = readCurrentHead(pullRequest.value);
+  if (!currentHead.ok) {
+    exitWithFailure([currentHead.failure], writeScriptFailure);
+  }
+  const superseded = supersededRun(reviewedHead.value, currentHead.value);
+  if (superseded !== undefined) {
+    exitWithFailure([superseded], writeScriptFailure);
+  }
+}
 
 // A step that failed writes no file, so a missing file stays undefined, and the summary judges whether the plan needed it.
-const toVerify = readIfWritten("review/findings.json", (path) =>
-  readJsonFile(path, parseFindingsToVerify),
-);
-const verdicts = readIfWritten("review/verdicts.json", (path) =>
-  readJsonFile(path, parseVerdicts),
-);
+const plan = readJsonFileIfWritten("review/plan.json", parseReviewPlan);
+if (!plan?.ok) {
+  const unplanned = unplannedReview(
+    agentsResult.value,
+    plan?.ok === false ? plan.failure : undefined,
+  );
+  postReview(pullRequest.value, unplanned.body);
+  exitWithFailure([unplanned.verdict], writeScriptFailure);
+}
+const report = readJsonFileIfWritten("review/findings.json", parseRoundReport);
+const verdicts = readJsonFileIfWritten("review/verdicts.json", parseVerdicts);
 const inputProblems: string[] = [];
-for (const input of [toVerify, verdicts]) {
+for (const input of [report, verdicts]) {
   if (input?.ok === false) {
     inputProblems.push(input.failure);
   }
 }
-
 const outcome = summarizeReview({
   plan: plan.value,
   reviewedHead: reviewedHead.value,
-  toVerify: toVerify?.ok ? toVerify.value : undefined,
+  report: report?.ok ? report.value : undefined,
   verdicts: verdicts?.ok ? verdicts.value : undefined,
-  runs: [
-    measureRun("reviewer", process.env["REVIEWER_TRANSCRIPT"]),
-    measureRun("verifier", process.env["VERIFIER_TRANSCRIPT"]),
-  ].filter((sentence) => sentence !== ""),
+  // The job of the agents measures each agent that ran, and an agent that did not run leaves its sentence empty.
+  runs: [process.env["REVIEWER_RUN"], process.env["VERIFIER_RUN"]].filter(
+    (sentence): sentence is string => sentence !== undefined && sentence !== "",
+  ),
   inputProblems,
 });
 
-const issueProblems: string[] = [];
+const failures: string[] = [];
 const bodyParts = [outcome.body];
 const { outside } = outcome;
 if (outside.findings.length > 0 || outside.candidateStandards.length > 0) {
   const issue = outsideIssue(pullRequest.value, outside);
-  const created = runCommand(
-    "gh",
-    ["issue", "create", "--title", issue.title, "--body-file", "-"],
-    { input: `${issue.body}\n` },
-  );
+  const created = createIssue(issue.title, issue.body);
   if (created.ok) {
     bodyParts.push(
       "",
-      `The issue ${created.value.stdout.trim()} records what this round found outside the change.`,
+      `The issue ${created.value} records what this round found outside the change.`,
     );
   } else {
-    issueProblems.push(created.failure);
+    failures.push(created.failure);
     bodyParts.push(
       "",
       `gh could not open the issue for what this round found outside the change, so it follows here. Open the issue from it by hand. gh reported: ${created.failure}`,
@@ -84,17 +103,7 @@ if (outside.findings.length > 0 || outside.candidateStandards.length > 0) {
 if (outcome.state !== undefined) {
   bodyParts.push("", stateMarker(outcome.state));
 }
-const posted = runCommand(
-  "gh",
-  ["pr", "review", pullRequest.value, "--comment", "--body-file", "-"],
-  { input: `${bodyParts.join("\n")}\n` },
-);
-const failures = [...issueProblems];
-if (!posted.ok) {
-  failures.push(
-    `gh could not post the review on pull request ${pullRequest.value}. ${posted.failure}`,
-  );
-}
+postReview(pullRequest.value, bodyParts.join("\n"));
 if (!outcome.passed) {
   failures.push(outcome.verdict);
 }
@@ -102,20 +111,57 @@ if (failures.length > 0) {
   exitWithFailure(failures, writeScriptFailure);
 }
 
-function readIfWritten<Value>(
-  path: string,
-  read: (path: string) => Result<Value, string>,
-): Result<Value, string> | undefined {
-  return existsSync(path) ? read(path) : undefined;
+/** Posts the review, or stops with the reason. A review that is too long for GitHub goes to the log instead, so that no finding is lost. */
+function postReview(pullRequestNumber: string, body: string): void {
+  const tooLong = oversizeProblem("review", body);
+  if (tooLong !== undefined) {
+    process.stdout.write(`${body}\n`);
+    exitWithFailure([tooLong], writeScriptFailure);
+  }
+  const posted = runCommand(
+    "gh",
+    ["pr", "review", pullRequestNumber, "--comment", "--body-file", "-"],
+    { input: `${body}\n` },
+  );
+  if (!posted.ok) {
+    exitWithFailure(
+      [
+        `gh could not post the review on pull request ${pullRequestNumber}. ${posted.failure}`,
+      ],
+      writeScriptFailure,
+    );
+  }
 }
 
-/** One sentence about the minutes and the turns of an agent, or an empty one when the agent did not run. A transcript that cannot be read leaves the measure unknown but does not fail the review, which judges only the findings. */
-function measureRun(agent: string, transcriptPath: string | undefined): string {
-  if (transcriptPath === undefined || transcriptPath === "") {
-    return "";
+/** Opens an issue and returns its address, as gh prints it. */
+function createIssue(title: string, body: string): Result<string, string> {
+  const tooLong = oversizeProblem("issue", body);
+  if (tooLong !== undefined) {
+    return fail(tooLong);
   }
-  const run = readJsonFile(transcriptPath, parseAgentRun);
-  return run.ok
-    ? describeAgentRun(agent, run.value)
-    : `The run of the ${agent} could not be measured. ${run.failure}`;
+  const created = runCommand(
+    "gh",
+    ["issue", "create", "--title", title, "--body-file", "-"],
+    { input: `${body}\n` },
+  );
+  return created.ok ? succeed(created.value.stdout.trim()) : created;
+}
+
+/** Reads the head of the pull request as it is now, which differs from the reviewed head after a newer push. */
+function readCurrentHead(pullRequestNumber: string): Result<string, string> {
+  const head = runCommand("gh", [
+    "pr",
+    "view",
+    pullRequestNumber,
+    "--json",
+    "headRefOid",
+    "--jq",
+    ".headRefOid",
+  ]);
+  return head.ok
+    ? parseCommitHash(
+        head.value.stdout.trim(),
+        "The head of the pull request from gh",
+      )
+    : head;
 }

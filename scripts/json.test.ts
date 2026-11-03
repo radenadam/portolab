@@ -1,3 +1,6 @@
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { expect, test } from "vitest";
 import { fail, succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
@@ -7,7 +10,9 @@ import {
   parseJsonWith,
   parseListField,
   parseStringsAt,
+  parseTextAt,
   readJsonFile,
+  readJsonFileIfWritten,
 } from "./json.ts";
 import type { Parser } from "./json.ts";
 
@@ -153,4 +158,35 @@ test("reads a field that holds one of a fixed set of names, and names the field 
     failure:
       'verified.json must have "confirmed" or "refuted" at status, but status is missing.',
   });
+});
+
+test("reads text that says something, and rejects text that is empty, only spaces, or missing", () => {
+  expect(
+    parseTextAt({ evidence: "The test fails." }, "verdict", ["evidence"]),
+  ).toEqual({ ok: true, value: "The test fails." });
+  expect(parseTextAt({ evidence: "  " }, "verdict", ["evidence"])).toEqual({
+    ok: false,
+    failure:
+      'verdict must have text that is not empty at evidence, but evidence is "  ".',
+  });
+  expect(parseTextAt({}, "verdict", ["evidence"])).toEqual({
+    ok: false,
+    failure:
+      "verdict must have text that is not empty at evidence, but evidence is missing.",
+  });
+});
+
+test("reads a file that a step wrote, and gives undefined for a file that it did not write", () => {
+  const folder = mkdtempSync(join(tmpdir(), "json-"));
+  try {
+    const path = join(folder, "plan.json");
+    expect(readJsonFileIfWritten(path, parseJsonObject)).toBeUndefined();
+    writeFileSync(path, '{"kind":"pass"}');
+    expect(readJsonFileIfWritten(path, parseJsonObject)).toEqual({
+      ok: true,
+      value: { kind: "pass" },
+    });
+  } finally {
+    rmSync(folder, { recursive: true, force: true });
+  }
 });

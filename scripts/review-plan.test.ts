@@ -42,7 +42,7 @@ test("reviews the whole change in the first round", () => {
     round: 1,
     since: undefined,
     lenses: ["consistency", "docs", "standards"],
-    hasUnreviewedFiles: false,
+    files: ["docs/product.md"],
     previous: stateBeforeFirstRound,
   });
 });
@@ -56,57 +56,58 @@ test("reviews the files since the last reviewed head in a later round, up to the
   });
 });
 
-test("runs no agent when no file changed and no finding is open", () => {
+test("passes without an agent when no file changed and no finding is open", () => {
   const previous = stateAfter(1, []);
   expect(planReview(previous, head, [])).toEqual({
     kind: "pass",
     round: 1,
     since: head,
     lenses: [],
-    hasUnreviewedFiles: false,
+    files: [],
     previous,
   });
 });
 
-test("only checks the open findings when no file changed", () => {
+test("keeps the open findings without an agent when no file changed, because nothing could have fixed them", () => {
   const previous = stateAfter(1, [openFinding]);
   expect(planReview(previous, head, [])).toMatchObject({
-    kind: "check",
-    round: 2,
-    hasUnreviewedFiles: false,
+    kind: "unchanged",
+    round: 1,
   });
 });
 
-test("only checks the open findings after the review rounds, and says that the new files go unreviewed", () => {
-  const previous = stateAfter(reviewRoundLimit, [openFinding]);
-  expect(planReview(previous, head, [docs])).toMatchObject({
-    kind: "check",
-    round: reviewRoundLimit + 1,
-    lenses: [],
-    hasUnreviewedFiles: true,
-  });
-});
-
-test("passes without an agent after the review rounds when no finding is open, and says that the new files go unreviewed", () => {
-  const previous = stateAfter(reviewRoundLimit, []);
-  expect(planReview(previous, head, [docs])).toMatchObject({
-    kind: "pass",
-    round: reviewRoundLimit,
-    hasUnreviewedFiles: true,
-  });
-});
-
-test("checks the open findings up to the last check round, and then runs no agent", () => {
+test("checks only the open findings after the review rounds, up to the last check round", () => {
   const lastCheck = reviewRoundLimit + checkRoundLimit;
   expect(
-    planReview(stateAfter(lastCheck - 1, [openFinding]), head, []),
+    planReview(stateAfter(reviewRoundLimit, [openFinding]), head, [docs]),
+  ).toMatchObject({ kind: "check", round: reviewRoundLimit + 1, lenses: [] });
+  expect(
+    planReview(stateAfter(lastCheck - 1, [openFinding]), head, [docs]),
   ).toMatchObject({ kind: "check", round: lastCheck });
+});
+
+test("caps the rounds without an agent when findings stay open after the last check round", () => {
+  const lastCheck = reviewRoundLimit + checkRoundLimit;
   expect(
     planReview(stateAfter(lastCheck, [openFinding]), head, [docs]),
-  ).toMatchObject({
+  ).toMatchObject({ kind: "capped", round: lastCheck });
+});
+
+test("caps the rounds without an agent when files change after the review rounds while no finding is open", () => {
+  expect(
+    planReview(stateAfter(reviewRoundLimit, []), head, [docs]),
+  ).toMatchObject({ kind: "capped", round: reviewRoundLimit });
+});
+
+test("caps the rounds when every review round failed, so a change that no round finished reviewing never passes", () => {
+  const failedRounds: ReviewState = {
+    head: undefined,
+    round: reviewRoundLimit,
+    openFindings: [],
+  };
+  expect(planReview(failedRounds, undefined, [docs])).toMatchObject({
     kind: "capped",
-    round: lastCheck,
-    hasUnreviewedFiles: true,
+    round: reviewRoundLimit,
   });
 });
 
@@ -122,7 +123,7 @@ test("reads back the plan that the plan step writes, with and without a reviewed
   }
 });
 
-test("rejects a plan that names a lens outside the panel or no answer about unreviewed files", () => {
+test("rejects a plan that names a lens outside the panel or files that are not a list of paths", () => {
   const plan = planReview(stateBeforeFirstRound, undefined, [docs]);
   expect(
     parseReviewPlan({ ...plan, lenses: ["style"] }, "review/plan.json"),
@@ -132,17 +133,19 @@ test("rejects a plan that names a lens outside the panel or no answer about unre
       'review/plan.json: lens 1 must be "architecture", "consistency", "craft", "docs", "product", "reliability", or "standards", but it is "style".',
   });
   expect(
-    parseReviewPlan({ ...plan, hasUnreviewedFiles: "no" }, "review/plan.json"),
+    parseReviewPlan({ ...plan, files: "docs/product.md" }, "review/plan.json"),
   ).toEqual({
     ok: false,
     failure:
-      'review/plan.json must have true or false at hasUnreviewedFiles, but hasUnreviewedFiles is "no".',
+      'review/plan.json must have a list of strings at files, but files is "docs/product.md".',
   });
 });
 
-test("tells the reviewer whether the diff holds the whole change or what changed since a head", () => {
-  expect(describeReviewScope(undefined)).toBe("It holds the whole change.");
-  expect(describeReviewScope(head)).toBe(
-    `It holds what changed since ${head}, the head that the panel last reviewed. Earlier rounds reviewed the rest of the change.`,
+test("tells the reviewer whether the files hold the whole change or what changed since a head, and how to read the diff of one", () => {
+  expect(describeReviewScope(undefined, "origin/main")).toBe(
+    "They hold the whole change, and `git diff origin/main...HEAD -- <path>` shows what changed in one of them.",
+  );
+  expect(describeReviewScope(head, "origin/main")).toBe(
+    `They hold what changed since ${head}, the head that the panel last reviewed, because earlier rounds reviewed the rest of the change. \`git diff ${head} HEAD -- <path>\` shows what changed in one of them since then, and \`git diff origin/main...HEAD -- <path>\` shows its whole change.`,
   );
 });

@@ -18,12 +18,28 @@
               "standards"
             ]
           },
-          "location": { "type": "string" },
-          "claim": { "type": "string" },
-          "basis": { "type": "string" },
-          "siblings": { "type": "array", "items": { "type": "string" } },
-          "rootCause": { "type": "string" },
-          "scope": { "type": "string", "enum": ["change", "existing"] }
+          "location": {
+            "type": "string"
+          },
+          "claim": {
+            "type": "string"
+          },
+          "basis": {
+            "type": "string"
+          },
+          "siblings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "rootCause": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string",
+            "enum": ["change", "existing"]
+          }
         },
         "required": [
           "lens",
@@ -41,12 +57,46 @@
       "items": {
         "type": "object",
         "properties": {
-          "standard": { "type": "string" },
-          "incident": { "type": "string" }
+          "standard": {
+            "type": "string"
+          },
+          "incident": {
+            "type": "string"
+          }
         },
         "required": ["standard", "incident"]
       }
+    },
+    "readFiles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "lensChecks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "lens": {
+            "type": "string",
+            "enum": [
+              "architecture",
+              "consistency",
+              "craft",
+              "docs",
+              "product",
+              "reliability",
+              "standards"
+            ]
+          },
+          "checked": {
+            "type": "string"
+          }
+        },
+        "required": ["lens", "checked"]
+      }
     }
   },
-  "required": ["findings", "candidateStandards"]
+  "required": ["findings", "candidateStandards", "readFiles", "lensChecks"]
 }

@@ -2,7 +2,7 @@ import { writeFileSync } from "node:fs";
 import { exitWithFailure } from "../app/exit-with-failure.server.ts";
 import { parseJsonWith, readJsonFile } from "./json.ts";
 import { numberFindings, parseReviewerReport } from "./review-findings.ts";
-import type { FindingsToVerify } from "./review-findings.ts";
+import type { RoundReport } from "./review-findings.ts";
 import { parseReviewPlan } from "./review-plan.ts";
 import { writeScriptFailure } from "./write-script-failure.ts";
 
@@ -11,9 +11,11 @@ const plan = readJsonFile("review/plan.json", parseReviewPlan);
 if (!plan.ok) {
   exitWithFailure([plan.failure], writeScriptFailure);
 }
-const toVerify: FindingsToVerify = {
+const roundReport: RoundReport = {
   findings: [...plan.value.previous.openFindings],
   candidateStandards: [],
+  readFiles: [],
+  lensChecks: [],
 };
 if (plan.value.kind === "review") {
   const report = parseJsonWith(
@@ -24,10 +26,12 @@ if (plan.value.kind === "review") {
   if (!report.ok) {
     exitWithFailure([report.failure], writeScriptFailure);
   }
-  toVerify.findings.unshift(
+  roundReport.findings.unshift(
     ...numberFindings(plan.value.round, report.value.findings),
   );
-  toVerify.candidateStandards = report.value.candidateStandards;
+  roundReport.candidateStandards = report.value.candidateStandards;
+  roundReport.readFiles = report.value.readFiles;
+  roundReport.lensChecks = report.value.lensChecks;
 }
-writeFileSync("review/findings.json", JSON.stringify(toVerify, null, 2));
-process.stdout.write(`total=${String(toVerify.findings.length)}\n`);
+writeFileSync("review/findings.json", JSON.stringify(roundReport, null, 2));
+process.stdout.write(`total=${String(roundReport.findings.length)}\n`);

@@ -1,6 +1,8 @@
 import { fail, succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
 import { describeValue, isRecord } from "../app/value-shapes.ts";
+import { readTextFile } from "./read-text-file.ts";
+import type { Lens } from "./review-lenses.ts";
 
 /** Reads the number of the pull request that the review is posted on. */
 export function parsePullRequestNumber(
@@ -36,6 +38,39 @@ export function parseOptionalCommitHashAt(
   return hash === undefined
     ? succeed(undefined)
     : parseCommitHash(hash, `${source}: ${field}`);
+}
+
+/** Reads the name of a branch, such as the base branch of a pull request, which a command of git then names as a remote branch. */
+export function parseBranchName(
+  value: unknown,
+  source: string,
+): Result<string, string> {
+  return typeof value === "string" && /^[\w.-]+(\/[\w.-]+)*$/.test(value)
+    ? succeed(value)
+    : fail(
+        `${source} must be the name of a branch, but it is ${describeValue(value)}.`,
+      );
+}
+
+/** Reads the tools of every lens of a round, because the reviewer applies them all in one session, as one list for the agent. */
+export function readLensTools(
+  chosenLenses: readonly Lens[],
+): Result<string, string> {
+  const tools = new Set<string>();
+  for (const lens of chosenLenses) {
+    const path = `.claude/agents/review-${lens}.md`;
+    const definition = readTextFile(path);
+    const lensTools = definition.ok
+      ? parseAgentTools(definition.value, path)
+      : definition;
+    if (!lensTools.ok) {
+      return lensTools;
+    }
+    for (const tool of lensTools.value.split(",")) {
+      tools.add(tool);
+    }
+  }
+  return succeed([...tools].join(","));
 }
 
 /** Reads the tools that an agent definition lists on its line that starts with "tools: ". */

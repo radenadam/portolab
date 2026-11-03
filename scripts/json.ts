@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { errorMessage } from "../app/error-message.ts";
 import { fail, succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
@@ -48,6 +49,14 @@ export function readJsonFile<Value>(
 ): Result<Value, string> {
   const text = readTextFile(path);
   return text.ok ? parseJsonWith(text.value, path, parse) : text;
+}
+
+/** Reads a JSON file that a step writes only when it succeeds, so a missing file gives undefined, and the caller judges whether it needed the file. */
+export function readJsonFileIfWritten<Value>(
+  path: string,
+  parse: Parser<Value>,
+): Result<Value, string> | undefined {
+  return existsSync(path) ? readJsonFile(path, parse) : undefined;
 }
 
 interface ListField<Item> {
@@ -159,6 +168,22 @@ export function parseStringAt(
     : invalidField(source, {
         field: keys.join("."),
         expected: "a string",
+        value: found,
+      });
+}
+
+/** Reads text that must say something at a path of keys, such as the evidence of a verdict, because an empty text there would pass for work that was not done. */
+export function parseTextAt(
+  value: unknown,
+  source: string,
+  keys: readonly string[],
+): Result<string, string> {
+  const found = valueAt(value, keys);
+  return typeof found === "string" && found.trim() !== ""
+    ? succeed(found)
+    : invalidField(source, {
+        field: keys.join("."),
+        expected: "text that is not empty",
         value: found,
       });
 }

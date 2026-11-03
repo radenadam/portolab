@@ -8,6 +8,8 @@ interface CommandOptions {
   answerCodes?: readonly number[];
   /** The text that the command reads from its standard input. */
   input?: string;
+  /** The folder in which the command runs, when it is not the working directory of the script. */
+  cwd?: string | undefined;
 }
 
 // A request to GitHub or a command of git that hangs ends after this, so the step fails with the reason before CI stops it.
@@ -30,6 +32,7 @@ export function runCommand(
   const run = spawnSync(command, commandArguments, {
     encoding: "utf8",
     input: options.input,
+    cwd: options.cwd,
     maxBuffer: outputLimitBytes,
     timeout: commandTimeoutMilliseconds,
   });

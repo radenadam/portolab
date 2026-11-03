@@ -36,4 +36,4 @@ The section "Review panel" of `AGENTS.md` defines what counts as a finding and w
 - **Root cause**: what in the process let it through, when you can tell.
 - **Scope**: `change` or `existing`, as the section "Review panel" of `AGENTS.md` defines them.
 
-Then list candidate standards, each with the incident that suggests it. When there is nothing to report, return no findings and no candidate standards.
+Then list candidate standards, each with the incident that suggests it. When there is nothing to report, return no findings and no candidate standards. In every case, say in one to three sentences what you checked through this lens, so that the review shows its work.

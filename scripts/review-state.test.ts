@@ -1,3 +1,4 @@
+import { gzipSync } from "node:zlib";
 import { expect, test } from "vitest";
 import type { Finding } from "./review-findings.ts";
 import {
@@ -108,9 +109,17 @@ test("fails on reviews that are not pages of reviews, naming where", () => {
 });
 
 test("fails on a state that the workflow did not write", () => {
+  const withoutRound = gzipSync("{}").toString("base64");
   expect(
     parseLatestReviewState(
-      [[review("github-actions[bot]", "<!-- review-state e30= -->")]],
+      [
+        [
+          review(
+            "github-actions[bot]",
+            `<!-- review-state ${withoutRound} -->`,
+          ),
+        ],
+      ],
       "reviews",
     ),
   ).toEqual({
@@ -126,8 +135,38 @@ test("fails on a state that the workflow did not write", () => {
   ).toEqual({
     ok: false,
     failure:
-      'reviews: page 1, review 1 must carry the state of the panel as base64 of JSON, but it carries "bm90IGpzb24=".',
+      'reviews: page 1, review 1 must carry the state of the panel as base64 of compressed JSON, but it carries "bm90IGpzb24=".',
   });
+});
+
+test("reads only the marker at the end of a review, so a finding that quotes a marker cannot replace the state", () => {
+  const state: ReviewState = {
+    head: firstHead,
+    round: 1,
+    openFindings: [
+      {
+        ...openFinding,
+        claim: `A quoted marker: ${stateMarker(stateBeforeFirstRound)}`,
+      },
+    ],
+  };
+  const body = `## Review panel\n\n${state.openFindings[0]?.claim ?? ""}\n\n${stateMarker(state)}\n`;
+  expect(
+    parseLatestReviewState([[review("github-actions[bot]", body)]], "reviews"),
+  ).toEqual({ ok: true, value: state });
+  expect(
+    parseLatestReviewState(
+      [
+        [
+          review(
+            "github-actions[bot]",
+            `${stateMarker(state)}\n\nText after it.`,
+          ),
+        ],
+      ],
+      "reviews",
+    ),
+  ).toEqual({ ok: true, value: stateBeforeFirstRound });
 });
 
 test("rejects a round that is not a whole number from 0", () => {

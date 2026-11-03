@@ -1,7 +1,7 @@
 import { countOf, listOfWords, singularOrPlural } from "../app/sentences.ts";
 import { judgeReview } from "./judge-review.ts";
 import type { ReviewInput, VerifiedFinding } from "./judge-review.ts";
-import type { FindingsToVerify } from "./review-findings.ts";
+import type { RoundReport } from "./review-findings.ts";
 import { reviewRoundLimit } from "./review-plan.ts";
 import type { ReviewPlan } from "./review-plan.ts";
 import type { ReviewState } from "./review-state.ts";
@@ -10,7 +10,7 @@ import type { ReviewState } from "./review-state.ts";
 interface OutsideFindings {
   round: number;
   findings: VerifiedFinding[];
-  candidateStandards: FindingsToVerify["candidateStandards"];
+  candidateStandards: RoundReport["candidateStandards"];
 }
 
 export interface ReviewOutcome {
@@ -31,6 +31,7 @@ export function summarizeReview(input: ReviewInput): ReviewOutcome {
     `**${judgement.passed ? "Passed" : "Failed"}.** ${judgement.verdict}`,
     "",
     [scopeSentence(input.plan), ...input.runs].join(" "),
+    ...lensCheckSection(judgement.hasFinished ? input.report : undefined),
     ...blockingSection(judgement.blocking),
     ...fixedSection(judgement.fixed),
     ...dismissedSection(judgement.verified),
@@ -48,7 +49,7 @@ export function summarizeReview(input: ReviewInput): ReviewOutcome {
       ),
       // A round that did not finish runs again, and then it reports its candidate standards again.
       candidateStandards: judgement.hasFinished
-        ? (input.toVerify?.candidateStandards ?? [])
+        ? (input.report?.candidateStandards ?? [])
         : [],
     },
   };
@@ -59,24 +60,31 @@ function scopeSentence(plan: ReviewPlan): string {
     plan.since === undefined
       ? "the whole change"
       : `the commits since ${plan.since}`;
-  const unreviewed = plan.hasUnreviewedFiles
-    ? ` No agent reviewed ${commits}, because the panel has used its ${countOf(reviewRoundLimit, "review round", "review rounds")}.`
-    : "";
   switch (plan.kind) {
     case "review":
-      return `Round ${String(plan.round)} reviewed ${commits} through the ${listOfWords(plan.lenses)} ${singularOrPlural(plan.lenses.length, "lens", "lenses")}.`;
+      return `Round ${String(plan.round)} reviewed ${commits}, in ${countOf(plan.files.length, "file", "files")}, through the ${listOfWords(plan.lenses)} ${singularOrPlural(plan.lenses.length, "lens", "lenses")}.`;
     case "check":
-      return `Round ${String(plan.round)} only checked the open findings.${unreviewed}`;
+      return `Round ${String(plan.round)} only checked the open findings. No reviewer read ${commits}, because the panel has used its ${countOf(reviewRoundLimit, "review round", "review rounds")}.`;
     case "pass":
-      if (plan.hasUnreviewedFiles) {
-        return `No agent ran, because no finding is open.${unreviewed}`;
-      }
       return plan.since === undefined
         ? "No agent ran, because the pull request changes no file and no finding is open."
         : `No agent ran, because the commits since ${plan.since} changed no file of the pull request and no finding is open.`;
+    case "unchanged":
     case "capped":
-      return `No agent ran.${unreviewed}`;
+      return "No agent ran.";
   }
+}
+
+/** What the reviewer checked through each lens, so that the review shows its work. */
+function lensCheckSection(report: RoundReport | undefined): string[] {
+  if (report === undefined || report.lensChecks.length === 0) {
+    return [];
+  }
+  const lines = ["", "### What each lens checked", ""];
+  for (const check of report.lensChecks) {
+    lines.push(`- ${check.lens}: ${check.checked}`);
+  }
+  return lines;
 }
 
 /** The lines of one finding in a numbered list, which the review and the issue share. */
@@ -173,4 +181,56 @@ export function outsideIssue(
     title: `Fix what the review of pull request #${pullRequest} found outside it`,
     body: lines.join("\n"),
   };
+}
+
+/** The results that GitHub gives a job, which the review job reads for the job of the agents. */
+export const jobResults = [
+  "success",
+  "failure",
+  "cancelled",
+  "skipped",
+] as const;
+
+/** Returns a sentence when a newer push moved the head while this run reviewed an older one, so that the run for the newer head posts the review. GitHub also cancels a job that runs out of time, and then the head has not moved, so this run judges it. */
+export function supersededRun(
+  reviewedHead: string,
+  currentHead: string,
+): string | undefined {
+  return reviewedHead === currentHead
+    ? undefined
+    : `A newer push moved the pull request to ${currentHead} while this run reviewed ${reviewedHead}, so the run for the newer head posts the review.`;
+}
+
+/** The review of a run without a plan that can be read, so that the reader learns why nothing was reviewed. */
+export function unplannedReview(
+  agentsResult: (typeof jobResults)[number],
+  planProblem: string | undefined,
+): { verdict: string; body: string } {
+  const verdict =
+    planProblem === undefined
+      ? `The review job found no plan of the round, so this change has not been reviewed. The job of the agents ended with the result "${agentsResult}", and its log names the reason.`
+      : `The plan of the round cannot be read, so this change has not been reviewed. ${planProblem}`;
+  return {
+    verdict,
+    body: ["## Review panel", "", `**Failed.** ${verdict}`].join("\n"),
+  };
+}
+
+// GitHub refuses the body of a review or of an issue that is longer than this.
+const githubBodyLimit = 65_536;
+
+const oversizeOutcomes: Record<"review" | "issue", string> = {
+  review: "so it was not posted, and the log of this step holds it",
+  issue: "so it was not opened",
+};
+
+/** Returns a sentence when a text is too long for GitHub, so that the step fails with the reason instead of losing the text. */
+export function oversizeProblem(
+  kind: "review" | "issue",
+  text: string,
+): string | undefined {
+  const numbers = new Intl.NumberFormat("en");
+  return text.length > githubBodyLimit
+    ? `The ${kind} is ${numbers.format(text.length)} characters long, but GitHub takes at most ${numbers.format(githubBodyLimit)}, ${oversizeOutcomes[kind]}.`
+    : undefined;
 }

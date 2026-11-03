@@ -9,11 +9,12 @@ The review panel ran a router agent, an agent for each lens that applied, and a 
 
 ## Decision
 
-- **One job, one reviewer.** A script chooses the lenses from the paths of the changed files. One agent applies all of them in one session, and the verifier runs only when there is a finding to check. Both run on Claude Sonnet.
-- **Incremental rounds.** Each review records the head that it covered and the findings that stay open, in a marker that only the workflow's account can write. The next round reviews only what changed since that head, and the verifier checks whether each open finding is fixed. A push that changes no file of the pull request and leaves no finding open runs no agent.
+- **One reviewer.** A script chooses the lenses from the paths of the changed files. One agent applies all of them in one session, and the verifier runs only when there is a finding to check. Both run on Claude Sonnet, in a job whose token can only read, and a second job without an agent posts the review.
+- **Evidence.** The reviewer names each file under review that it read and says what it checked through each lens, and the round fails when one is missing. A reviewer on Sonnet once passed a diff of 195 KB after 9 seconds with an empty answer, which nothing told apart from a clean review.
+- **Incremental rounds.** Each review records the head that it covered and the findings that stay open, in a marker that only the workflow's account can write. The next round reviews only the files that the commits of the pull request changed since that head, and the verifier checks whether each open finding is fixed. A push that changes no file under review runs no agent.
 - **Scope.** A finding blocks the merge only when the change causes it or leaves it incomplete. The job opens an issue for the verified findings outside the change and for the candidate standards, and a pull request of their own handles them. The defect protocol sweeps every other instance in that pull request too.
-- **Caps.** After the review rounds that `scripts/review-plan.ts` allows, a round only checks the open findings. After the rounds that check, the job fails without an agent, and the pull request goes to a maintainer.
-- **Measure.** Each review states the minutes and the turns of each agent, from the transcript of the agent.
+- **Caps.** A round whose agent did not finish counts toward the review rounds that `scripts/review-plan.ts` allows. After them, a round only checks the open findings, and a change that no round may read fails. After the rounds that check, the job fails without an agent, and the pull request goes to a maintainer.
+- **Measure.** Each review states the duration and the turns of each agent, from the transcript of the agent.
 
 ## Alternatives
 
@@ -26,5 +27,5 @@ The review panel ran a router agent, an agent for each lens that applied, and a 
 
 - A round after the first reads a diff about the size of the fix, so it costs a fraction of a first round.
 - A finding that a lens would have reported on old code in a later round no longer appears, because no later round reads old code.
-- A push after the review rounds goes unreviewed by an agent. So after the cap, an author pushes only fixes of open findings and merges of `main`, as AGENTS.md says.
+- After the review rounds, a fix of an open finding is checked only by the verifier, and any other change fails the round. So after the cap, an author pushes only fixes of open findings and merges of `main`, as AGENTS.md says.
 - A sweep that a new standard needs lands in its own pull request, so `main` can hold old instances for a short time, and its issue names them.
