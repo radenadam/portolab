@@ -10,7 +10,7 @@ The VPS belongs to the lecturer, who deploys Portolab with the help of a coding 
 ## Decision
 
 - Docker Compose runs the app container, built on the server from the repository.
-- Caddy on the host serves HTTPS for the VPS hostname and forwards requests to the app.
+- Caddy on the host serves HTTPS for the VPS hostname and forwards requests to the app. It passes the hostname of each request on to the app, as it does by default, because the page of a class builds the address for joining from it. A hostname that only the server can open, such as localhost, would make that page show the addresses of the container instead, which no student can open.
 - `docs/deploy.md` covers installation, configuration, HTTPS, backups, and updates, step by step from a fresh Ubuntu server.
 - An update is a pull from the repository and a rebuild, run outside trading sessions.
 - CI never deploys.

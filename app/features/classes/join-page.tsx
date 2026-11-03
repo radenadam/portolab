@@ -9,7 +9,7 @@ import type { Route } from "./+types/join-page";
 import { CodeForm } from "./code-form";
 import { findClassWithCode } from "./find-class-with-code.server";
 import { joinAndOpenClass } from "./join-and-open-class.server";
-import { joinPath } from "./join-code";
+import { formatJoinCode, joinPath } from "./join-code";
 import { LecturerCannotJoin } from "./lecturer-cannot-join";
 
 export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
@@ -60,7 +60,7 @@ export async function action({ context, request, url }: Route.ActionArgs) {
     case "lecturer":
     case undefined:
       // A visitor first sees the class and creates an account on its page, and a lecturer sees there why a lecturer cannot join.
-      return redirect(joinPath(joinCode));
+      return redirect(joinPath(formatJoinCode(joinCode)));
   }
 }
 

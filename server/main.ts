@@ -1,10 +1,10 @@
-import { networkInterfaces } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import express from "express";
 import type { Express, RequestHandler } from "express";
 import { migrationsFolderName } from "../app/database/migrations-folder-name.ts";
 import { exitWithFailure } from "../app/exit-with-failure.server.ts";
+import { localNetworkAddresses } from "../app/local-network.server.ts";
 import { secondMilliseconds } from "../app/time-units.ts";
 import { writeLog } from "../app/write-log.server.ts";
 import { failuresOf } from "../app/result.ts";
@@ -70,11 +70,16 @@ server.set("trust proxy", ["loopback", "uniquelocal"]);
 const services = await serveApp[mode.value](server, settings);
 
 const listener = server.listen(port.value, () => {
-  writeLog("info", "Server started.", {
-    port: port.value,
-    mode: mode.value,
-    addresses: localNetworkAddresses(port.value),
-  });
+  const address = new URL(`http://localhost:${String(port.value)}/`);
+  writeLog(
+    "info",
+    "Server started. Open the address on this computer. During a demonstration on a laptop, phones on the same Wi-Fi network open one of the local network addresses.",
+    {
+      mode: mode.value,
+      address: address.href,
+      localNetworkAddresses: localNetworkAddresses(address),
+    },
+  );
 });
 
 for (const signal of ["SIGINT", "SIGTERM"] as const) {
@@ -151,19 +156,6 @@ async function serveBuiltApp(
   server.use(express.static(join(buildDirectory, "client"), { maxAge: "1h" }));
   server.use(build.createApp(services));
   return services;
-}
-
-// Phones on the same Wi-Fi network open one of these addresses during a demonstration.
-function localNetworkAddresses(port: number): string[] {
-  const addresses: string[] = [];
-  for (const entries of Object.values(networkInterfaces())) {
-    for (const entry of entries ?? []) {
-      if (entry.family === "IPv4" && !entry.internal) {
-        addresses.push(`http://${entry.address}:${String(port)}`);
-      }
-    }
-  }
-  return addresses;
 }
 
 function writeError(failure: string): void {
