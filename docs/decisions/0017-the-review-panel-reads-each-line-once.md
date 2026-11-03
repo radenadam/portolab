@@ -5,7 +5,7 @@
 
 ## Context
 
-The review panel ran a router agent, an agent for each lens that applied, and a verifier on every push, which was up to 9 agents on Claude Opus. Each of them read the whole diff of the pull request again. A later round re-reviewed code that an earlier round had passed and kept finding new small drift in it, and the defect protocol widened each fix into a sweep across the repository, which grew the diff for the next round. Pull requests took 13 to 29 rounds, and the panel used about a fifth of the maintainer's weekly usage in about a day. That usage is shared with other projects, so the cost of the process is a constraint, as issue #59 records.
+The review panel ran a router agent, an agent for each lens that applied, and a verifier on every push, which was up to 9 agents on Claude Opus. Each of them read the whole diff of the pull request again. A later round re-reviewed code that an earlier round had passed and kept finding new small drift in it, and the defect protocol widened each fix into a sweep across the repository, which grew the diff for the next round. Pull requests took 13 to 29 rounds, and the panel used about a fifth of the maintainer's weekly usage in about a day, as issue #59 records. Most rounds found one or two things for all that usage, and usage that is spent out of proportion to what it produces is waste at any budget.
 
 ## Decision
 
@@ -13,7 +13,7 @@ The review panel ran a router agent, an agent for each lens that applied, and a 
 - **Evidence.** The reviewer names each file under review that it read and says what it checked through each lens, and the round fails when one is missing. A reviewer on Sonnet once passed a diff of 195 KB after 9 seconds with an empty answer, which nothing told apart from a clean review.
 - **Incremental rounds.** Each review records the head that it covered and the findings that stay open, in a marker that only the workflow's account can write. The next round reviews only the files that the commits of the pull request changed since that head, and the verifier checks whether each open finding is fixed. A push that changes no file under review runs no agent.
 - **Scope.** A finding blocks the merge only when the change causes it or leaves it incomplete. The job opens an issue for the verified findings outside the change and for the candidate standards, and a pull request of their own handles them. The defect protocol sweeps every other instance in that pull request too.
-- **Caps.** A round whose agent did not finish counts toward the review rounds that `scripts/review-plan.ts` allows. After them, a round only checks the open findings, and a change that no round may read fails. After the rounds that check, the job fails without an agent, and the pull request goes to a maintainer.
+- **Caps.** A round whose agent did not finish counts toward the review rounds that `scripts/review-plan.ts` allows. After them, a round only checks the open findings, and a change that no round may read fails. After the rounds that check, the job fails without an agent, and the author decides how the change continues, for example in a new pull request, which starts with new rounds.
 - **Measure.** Each review states the duration and the turns of each agent, which the job of the agent reads from its transcript. An agent could change them, as it can change every later step of its job, so they serve to compare rounds. A measure that cannot be read fails the round, like any output of a job that cannot be read.
 
 ## Alternatives
