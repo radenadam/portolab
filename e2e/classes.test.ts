@@ -12,6 +12,8 @@ import {
   chosenPassword,
   joinAsNewStudent,
   signInAsNewLecturer,
+  submitAccountForm,
+  submitNewPassword,
   submitSignIn,
 } from "./accounts.ts";
 import { chooseLanguage } from "./choose-language.ts";
@@ -345,21 +347,12 @@ for (const locale of locales) {
     ).toBeVisible();
     await expectAccessibleScreen(student);
 
-    await student.locator('main input[name="name"]').fill(studentName);
     // The error quotes the username as the field shows it, and Portolab reads a username in lowercase.
     const typedUsername = lecturerUsername.toUpperCase();
-    await student.locator('main input[name="username"]').fill(typedUsername);
-    await student
-      .locator('main input[name="newPassword"]')
-      .fill(chosenPassword);
-    await student
-      .locator('main input[name="repeatedPassword"]')
-      .fill(chosenPassword);
-    await student.locator('main input[name="consent"]').check();
-    await student
-      .getByRole("main")
-      .getByRole("button", { name: text.createAccountButton })
-      .click();
+    await submitAccountForm(student, {
+      name: studentName,
+      username: typedUsername,
+    });
     await expect(
       student.getByText(
         `${text.usernameTaken[0]}${typedUsername}${text.usernameTaken[1]}`,
@@ -530,13 +523,7 @@ for (const locale of locales) {
     );
     await submitSignIn(student, username, temporaryPassword);
     await expect(student).toHaveTitle(`${text.newPasswordTitle} | Portolab`);
-    await student
-      .locator('main input[name="newPassword"]')
-      .fill("a second long sentence");
-    await student
-      .locator('main input[name="repeatedPassword"]')
-      .fill("a second long sentence");
-    await student.locator("main form button[type=submit]").click();
+    await submitNewPassword(student, "a second long sentence");
     await expect(student).toHaveURL(testClass.path);
     await student.context().close();
   });

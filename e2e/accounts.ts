@@ -67,7 +67,7 @@ export async function submitSignIn(
 }
 
 /** Fills the form that finishes or creates an account with a name, the username when the form asks for one, the chosen password twice, and consent, and sends it. */
-async function submitAccountForm(
+export async function submitAccountForm(
   page: Page,
   { name, username }: { name: string; username?: string },
 ): Promise<void> {
@@ -75,12 +75,24 @@ async function submitAccountForm(
   if (username !== undefined) {
     await page.locator('main input[name="username"]').fill(username);
   }
-  await page.locator('main input[name="newPassword"]').fill(chosenPassword);
-  await page
-    .locator('main input[name="repeatedPassword"]')
-    .fill(chosenPassword);
+  await fillNewPassword(page, chosenPassword);
   await page.locator('main input[name="consent"]').check();
   await page.locator("main form button[type=submit]").click();
+}
+
+/** Fills the form that asks a person with a temporary password for a new one, and sends it. */
+export async function submitNewPassword(
+  page: Page,
+  password: string,
+): Promise<void> {
+  await fillNewPassword(page, password);
+  await page.locator("main form button[type=submit]").click();
+}
+
+/** Types a new password in its field and again in the field that repeats it. */
+async function fillNewPassword(page: Page, password: string): Promise<void> {
+  await page.locator('main input[name="newPassword"]').fill(password);
+  await page.locator('main input[name="repeatedPassword"]').fill(password);
 }
 
 /** Creates a lecturer with the account command, signs in, and finishes the account with a name, a password, and consent, so that the page ends signed in on the classes of the lecturer. */
