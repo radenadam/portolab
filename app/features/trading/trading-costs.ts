@@ -1,5 +1,5 @@
-import { periodOf } from "~/period-covering";
-import type { DatePeriod } from "~/period-covering";
+import { periodOf } from "~/period-of";
+import type { DatePeriod } from "~/period-of";
 import { fail, failuresOf, succeed } from "~/result";
 import type { Result } from "~/result";
 import { listOfWords } from "~/sentences";
