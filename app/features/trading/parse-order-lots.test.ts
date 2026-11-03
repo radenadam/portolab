@@ -54,20 +54,20 @@ const failures: Record<
   }
 > = {
   id: {
-    zero: 'Kolom "Jumlah lot" perlu paling sedikit 1 lot, yaitu order terkecil, tetapi isinya "0". Masukkan paling sedikit 1 lot.',
+    zero: 'Kolom "Jumlah lot" perlu paling sedikit 1 lot, yaitu order terkecil, tetapi isinya "0". Pilih paling sedikit 1 lot.',
     tooMany:
-      'Kolom "Jumlah lot" memuat paling banyak 50.000 lot, yaitu order terbesar yang diterima BEI, tetapi isinya "99999999999999999". Masukkan paling banyak 50.000 lot, dan perdagangkan lot selebihnya dalam order berikutnya.',
+      'Kolom "Jumlah lot" memuat paling banyak 50.000 lot, yaitu order terbesar yang diterima BEI, tetapi isinya "99999999999999999". Pilih paling banyak 50.000 lot, dan perdagangkan lot selebihnya dalam order berikutnya.',
     tooManyForOneLot:
-      'Kolom "Jumlah lot" memuat paling banyak 1 lot, yaitu order terbesar yang diterima BEI, tetapi isinya "2". Masukkan paling banyak 1 lot, dan perdagangkan lot selebihnya dalam order berikutnya.',
+      'Kolom "Jumlah lot" memuat paling banyak 1 lot, yaitu order terbesar yang diterima BEI, tetapi isinya "2". Pilih paling banyak 1 lot, dan perdagangkan lot selebihnya dalam order berikutnya.',
     empty:
       'Kolom "Jumlah lot" kosong, padahal Portolab memerlukannya. Isi kolom itu.',
   },
   en: {
-    zero: 'The field "Lots" needs at least 1 lot, the smallest order, but it holds "0". Enter at least 1 lot.',
+    zero: 'The field "Lots" needs at least 1 lot, the smallest order, but it holds "0". Choose at least 1 lot.',
     tooMany:
-      'The field "Lots" holds at most 50,000 lots, the largest order that IDX accepts, but it holds "99999999999999999". Enter at most 50,000 lots, and trade more lots in further orders.',
+      'The field "Lots" holds at most 50,000 lots, the largest order that IDX accepts, but it holds "99999999999999999". Choose at most 50,000 lots, and trade more lots in further orders.',
     tooManyForOneLot:
-      'The field "Lots" holds at most 1 lot, the largest order that IDX accepts, but it holds "2". Enter at most 1 lot, and trade more lots in further orders.',
+      'The field "Lots" holds at most 1 lot, the largest order that IDX accepts, but it holds "2". Choose at most 1 lot, and trade more lots in further orders.',
     empty: 'The field "Lots" is empty, but Portolab needs it. Fill it in.',
   },
 };
