@@ -22,11 +22,11 @@ test("rejects a path longer than the field takes, just past the maximum or far p
   for (const [length, failure] of [
     [
       fieldMaximumLength + 1,
-      "returnTo must have at most 8000 characters, but it has 8001.",
+      "returnTo must be a path on this site, such as /prices, but it has 8001 characters, far more than any field takes.",
     ],
     [
       1_000_000,
-      "returnTo must have at most 8000 characters, but it has 1000000.",
+      "returnTo must be a path on this site, such as /prices, but it has 1000000 characters, far more than any field takes.",
     ],
   ] as const) {
     expect(

@@ -14,7 +14,9 @@ export function parseReturnPath(
   }
   const checked = checkFieldLength(value);
   if (!checked.ok) {
-    return fail(fieldLengthFailure(source, checked.failure));
+    return fail(
+      fieldLengthFailure(returnPathExpectation(source), checked.failure),
+    );
   }
   // The URL parser resolves the value the way a browser does, so a value that only looks like a local path, such as one with a tab after its slash, still fails.
   const url = URL.parse(value, siteOrigin);
@@ -34,7 +36,9 @@ function returnPathFailure(
 ): Result<never, string> {
   // A form gives null for a field that it did not send.
   const given = value === null ? "missing" : describeValue(value);
-  return fail(
-    `${source} must be a path on this site, such as /prices, but it is ${given}.`,
-  );
+  return fail(`${returnPathExpectation(source)}, but it is ${given}.`);
+}
+
+function returnPathExpectation(source: string): string {
+  return `${source} must be a path on this site, such as /prices`;
 }

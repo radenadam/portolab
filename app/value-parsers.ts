@@ -43,10 +43,11 @@ export function parseRecordId<Id extends number>(
   value: unknown,
   source: string,
 ): Result<Id, string> {
+  const expectation = `${source} must be a positive whole number`;
   if (typeof value === "string") {
     const checked = checkFieldLength(value);
     if (!checked.ok) {
-      return fail(fieldLengthFailure(source, checked.failure));
+      return fail(fieldLengthFailure(expectation, checked.failure));
     }
   }
   if (typeof value === "string" && /^[1-9][0-9]{0,15}$/.test(value)) {
@@ -56,7 +57,5 @@ export function parseRecordId<Id extends number>(
       return succeed(id as Id);
     }
   }
-  return fail(
-    `${source} must be a positive whole number, but it is ${describeValue(value)}.`,
-  );
+  return fail(`${expectation}, but it is ${describeValue(value)}.`);
 }

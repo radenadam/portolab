@@ -27,7 +27,7 @@ export const formSizeLimit: MiddlewareFunction<Response> = async (
   }
   const statedSize = parseContentLength(header, "The header Content-Length");
   if (!statedSize.ok) {
-    // Node lets only digits through in this header, so it fails to parse only when it has more digits than JavaScript holds exactly, which states a body far past the limit.
+    // Node lets only digits through in this header, so it fails to parse only with more digits than statedSizeMaximumDigits, which no browser sends, so the limit refuses the body without reading it.
     writeLog("warning", statedSize.failure, { url: request.url });
     refuseForm(request, undefined);
   }

@@ -20,7 +20,7 @@ function endlessBody(): ReadableStream<Uint8Array> {
   });
 }
 
-/** A form that the browser sends with a stated size, as every browser does, or a body that streams without one. A size is text when it has more digits than a JavaScript number holds exactly. */
+/** A form that the browser sends with a stated size, as every browser does, or a body that streams without one. A size can be text, because a size past statedSizeMaximumDigits can have more digits than a JavaScript number holds exactly. */
 function formRequest(
   body: string | ReadableStream<Uint8Array>,
   statedSize?: number | string,
@@ -125,7 +125,7 @@ test("refuses a body without a stated size at the first piece past the limit, so
   });
 });
 
-test("refuses a body that states more digits than JavaScript holds exactly, without reading it, and logs why", async () => {
+test("refuses a body that states a size of more digits than the limit reads, without reading it, and logs why", async () => {
   const warnings = captureStderrForTest();
   const statedSize = "9".repeat(statedSizeMaximumDigits + 1);
   const request = formRequest(endlessBody(), statedSize);
