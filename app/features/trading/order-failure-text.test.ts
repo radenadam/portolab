@@ -5,8 +5,11 @@ import type { Locale } from "~/paraglide/runtime.js";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
 import { lots } from "~/units/lots";
 import { rupiah } from "~/units/rupiah";
-import type { FillFailure, OrderFailure } from "./order";
-import { orderFailureText } from "./order-failure-text";
+import type { OrderFailure } from "./order";
+import { limitPriceFailureText, orderFailureText } from "./order-failure-text";
+
+// The failures that orderFailureText explains, which are every failure but those of the price of a limit order.
+type OtherFailure = Parameters<typeof orderFailureText>[0];
 import { orderLotsForTest } from "./orders-for-test";
 import { oneRupiahLimit, rateLimit } from "./price-limits";
 
@@ -107,46 +110,6 @@ const failures = {
     count: 1,
     minimum: 24,
     enoughAfterFirstTradingDayOf: "2028-09-01",
-  },
-  limitsAsRates: {
-    kind: "outsideLimits",
-    code: "BBCA",
-    date: "2026-11-02",
-    price: rupiah(6_250),
-    reference: rupiah(4_980),
-    lowest: rupiah(4_640),
-    highest: rupiah(6_225),
-    upper: rateLimit(2_500),
-    lower: rateLimit(700),
-  },
-  limitsAsAmounts: {
-    kind: "outsideLimits",
-    code: "GOTO",
-    date: "2026-11-02",
-    price: rupiah(12),
-    reference: rupiah(10),
-    lowest: rupiah(9),
-    highest: rupiah(11),
-    upper: oneRupiahLimit,
-    lower: oneRupiahLimit,
-  },
-  offTick: {
-    kind: "offTick",
-    price: rupiah(4_985),
-    tick: rupiah(10),
-    bandFrom: rupiah(2_000),
-    nextBandFrom: rupiah(5_000),
-    below: rupiah(4_980),
-    above: rupiah(4_990),
-  },
-  offTickOfTopBand: {
-    kind: "offTick",
-    price: rupiah(5_010),
-    tick: rupiah(25),
-    bandFrom: rupiah(5_000),
-    nextBandFrom: undefined,
-    below: rupiah(5_000),
-    above: rupiah(5_025),
   },
   cashSetAside,
   severalPurchasesSetAside: {
@@ -271,7 +234,7 @@ const failures = {
     tax: rupiah(0),
     availableCash: rupiah(500_000),
   },
-} satisfies Record<string, OrderFailure | FillFailure>;
+} satisfies Record<string, OtherFailure>;
 
 type FailureName = keyof typeof failures;
 
@@ -282,7 +245,7 @@ const texts: Record<Locale, Record<FailureName, string>> = {
     missingCosts:
       "Portolab belum dapat menerima order ini, karena tarif biaya broker atau pajak final atas penjualan untuk hari bursa order ini belum tercatat. Beri tahu dosen Anda agar tarif yang belum tercatat itu dapat ditambahkan.",
     missingUniverse:
-      "Portolab belum dapat menerima order beli ini, karena daftar saham LQ45 pada hari bursa order ini belum tercatat, dan di Portolab Anda hanya dapat membeli saham LQ45. Beri tahu dosen Anda agar daftar saham tersebut dapat ditambahkan.",
+      "Portolab belum dapat menerima order ini, karena daftar saham LQ45 pada hari bursa order ini belum tercatat, dan di Portolab Anda hanya dapat membeli saham LQ45. Beri tahu dosen Anda agar daftar saham tersebut dapat ditambahkan.",
     noPrice:
       "Portolab belum memiliki harga BBCA, sehingga belum dapat memeriksa order ini. Coba lagi setelah pembaruan harga berikutnya membawa harga BBCA.",
     outsideUniverse:
@@ -297,14 +260,6 @@ const texts: Record<Locale, Record<FailureName, string>> = {
       "AADI baru memiliki 21 imbal hasil bulanan, sedangkan Portolab menghitung ukuran portofolio hanya jika setiap sahamnya memiliki 24 imbal hasil bulanan. Jika AADI tetap memiliki harga penutupan di akhir setiap bulan dan tetap termasuk LQ45, Anda dapat membelinya setelah pembaruan riwayat harga yang menyimpan harga penutupan hari bursa pertama Januari 2027. Portolab juga harus sudah mencatat aturan BEI untuk hari pembelian itu.",
     oneReturn:
       "AADI baru memiliki 1 imbal hasil bulanan, sedangkan Portolab menghitung ukuran portofolio hanya jika setiap sahamnya memiliki 24 imbal hasil bulanan. Jika AADI tetap memiliki harga penutupan di akhir setiap bulan dan tetap termasuk LQ45, Anda dapat membelinya setelah pembaruan riwayat harga yang menyimpan harga penutupan hari bursa pertama September 2028. Portolab juga harus sudah mencatat aturan BEI untuk hari pembelian itu.",
-    limitsAsRates:
-      "BEI menolak harga Rp\u00a06.250 untuk BBCA pada 2 November 2026 karena batas auto rejection. Batas itu mengizinkan harga paling jauh 25% di atas dan 7% di bawah harga acuan Rp\u00a04.980, dan setiap ujung rentangnya adalah harga sah terdekat di dalam batas itu. BEI menetapkan harga acuan dari harga penutupan terakhir BBCA sebelum hari itu. Pilih harga dari Rp\u00a04.640 sampai Rp\u00a06.225.",
-    limitsAsAmounts:
-      "BEI menolak harga Rp\u00a012 untuk GOTO pada 2 November 2026 karena batas auto rejection. Batas itu mengizinkan harga paling jauh Rp\u00a01 di atas dan Rp\u00a01 di bawah harga acuan Rp\u00a010, dan setiap ujung rentangnya adalah harga sah terdekat di dalam batas itu. BEI menetapkan harga acuan dari harga penutupan terakhir GOTO sebelum hari itu. Pilih harga dari Rp\u00a09 sampai Rp\u00a011.",
-    offTick:
-      "BEI hanya menerima harga dari Rp\u00a02.000 sampai di bawah Rp\u00a05.000 dalam kelipatan Rp\u00a010, yaitu fraksi harga rentang tersebut, sehingga Rp\u00a04.985 bukan harga yang sah. Pilih Rp\u00a04.980 atau Rp\u00a04.990, harga sah terdekat.",
-    offTickOfTopBand:
-      "BEI hanya menerima harga Rp\u00a05.000 ke atas dalam kelipatan Rp\u00a025, yaitu fraksi harga rentang tersebut, sehingga Rp\u00a05.010 bukan harga yang sah. Pilih Rp\u00a05.000 atau Rp\u00a05.025, harga sah terdekat.",
     cashSetAside:
       "Membeli 5 lot BBCA pada harga Rp\u00a04.980 membutuhkan Rp\u00a02.493.735, yaitu Rp\u00a02.490.000 untuk saham dan Rp\u00a03.735 untuk biaya broker, sedangkan kas Anda yang tersedia hanya Rp\u00a02.001.253. Order beli Anda yang masih terbuka menyisihkan Rp\u00a0498.747 dari kas Anda sebesar Rp\u00a02.500.000, dan mengembalikan jumlah itu ke kas Anda yang tersedia jika order tersebut berakhir tanpa tereksekusi. Order terbesar yang dapat dibayar oleh kas Anda yang tersedia pada harga Rp\u00a04.980 adalah 4 lot.",
     severalPurchasesSetAside:
@@ -352,7 +307,7 @@ const texts: Record<Locale, Record<FailureName, string>> = {
     missingCosts:
       "Portolab cannot take this order yet, because it lacks a record of the broker fee or of the final tax on sales for the trading day of the order. Tell your lecturer, so that the missing rates can be added.",
     missingUniverse:
-      "Portolab cannot take this purchase yet, because it has not recorded which stocks are in the LQ45 on the trading day of the order, and it lets you buy only those stocks. Tell your lecturer, so that the stocks can be added.",
+      "Portolab cannot take this order yet, because it has not recorded which stocks are in the LQ45 on the trading day of the order, and Portolab lets you buy only the stocks of the LQ45. Tell your lecturer, so that the stocks can be added.",
     noPrice:
       "Portolab has no price for BBCA yet, so it cannot check the order. Try again after the next update of prices brings a price for BBCA.",
     outsideUniverse:
@@ -367,14 +322,6 @@ const texts: Record<Locale, Record<FailureName, string>> = {
       "AADI has 21 monthly returns, but Portolab computes the measures of a portfolio only when each of its stocks has 24 monthly returns. If AADI keeps a close at the end of every month and stays in the LQ45, you can buy it after the update of the price history that stores the close of the first trading day of January 2027. Portolab must also have recorded the rules of IDX for the day of the purchase.",
     oneReturn:
       "AADI has 1 monthly return, but Portolab computes the measures of a portfolio only when each of its stocks has 24 monthly returns. If AADI keeps a close at the end of every month and stays in the LQ45, you can buy it after the update of the price history that stores the close of the first trading day of September 2028. Portolab must also have recorded the rules of IDX for the day of the purchase.",
-    limitsAsRates:
-      "IDX rejects a price of IDR\u00a06,250 for BBCA on November 2, 2026 by its auto rejection limits. They allow a price at most 25% above and 7% below the reference price of IDR\u00a04,980, and each end of the range is the nearest valid price inside those limits. IDX sets the reference price from the latest close of BBCA before that day. Choose a price from IDR\u00a04,640 to IDR\u00a06,225.",
-    limitsAsAmounts:
-      "IDX rejects a price of IDR\u00a012 for GOTO on November 2, 2026 by its auto rejection limits. They allow a price at most IDR\u00a01 above and IDR\u00a01 below the reference price of IDR\u00a010, and each end of the range is the nearest valid price inside those limits. IDX sets the reference price from the latest close of GOTO before that day. Choose a price from IDR\u00a09 to IDR\u00a011.",
-    offTick:
-      "IDX accepts prices from IDR\u00a02,000 to below IDR\u00a05,000 only in steps of IDR\u00a010, the tick size of that range, so IDR\u00a04,985 is not a valid price. Choose IDR\u00a04,980 or IDR\u00a04,990, the nearest valid prices.",
-    offTickOfTopBand:
-      "IDX accepts prices of IDR\u00a05,000 and above only in steps of IDR\u00a025, the tick size of that range, so IDR\u00a05,010 is not a valid price. Choose IDR\u00a05,000 or IDR\u00a05,025, the nearest valid prices.",
     cashSetAside:
       "Buying 5 lots of BBCA at IDR\u00a04,980 costs IDR\u00a02,493,735, which is IDR\u00a02,490,000 for the shares and IDR\u00a03,735 for the broker fee, but your available cash is IDR\u00a02,001,253. Your open buy order sets aside IDR\u00a0498,747 of your cash of IDR\u00a02,500,000, and it returns that amount to your available cash if it ends without filling. The largest order that your available cash pays for at IDR\u00a04,980 is 4 lots.",
     severalPurchasesSetAside:
@@ -418,6 +365,95 @@ const texts: Record<Locale, Record<FailureName, string>> = {
   },
 };
 
+// The failures of the price of a limit order, with the price as the field of each language shows what a student typed.
+const priceFailures = {
+  limitsAsRates: {
+    kind: "outsideLimits",
+    code: "BBCA",
+    date: "2026-11-02",
+    reference: rupiah(4_980),
+    lowest: rupiah(4_640),
+    highest: rupiah(6_225),
+    upper: rateLimit(2_500),
+    lower: rateLimit(700),
+  },
+  limitsAsAmounts: {
+    kind: "outsideLimits",
+    code: "GOTO",
+    date: "2026-11-02",
+    reference: rupiah(10),
+    lowest: rupiah(9),
+    highest: rupiah(11),
+    upper: oneRupiahLimit,
+    lower: oneRupiahLimit,
+  },
+  offTick: {
+    kind: "offTick",
+    tick: rupiah(10),
+    bandFrom: rupiah(2_000),
+    nextBandFrom: rupiah(5_000),
+    below: rupiah(4_980),
+    above: rupiah(4_990),
+  },
+  offTickOfTopBand: {
+    kind: "offTick",
+    tick: rupiah(25),
+    bandFrom: rupiah(5_000),
+    nextBandFrom: undefined,
+    below: rupiah(5_000),
+    above: rupiah(5_025),
+  },
+} satisfies Record<string, OrderFailure>;
+
+type PriceFailureName = keyof typeof priceFailures;
+
+const priceLabels: Record<Locale, string> = {
+  id: "Harga limit",
+  en: "Limit price",
+};
+
+const priceTexts: Record<
+  Locale,
+  Record<PriceFailureName, { written: string; text: string }>
+> = {
+  id: {
+    limitsAsRates: {
+      written: "6.250",
+      text: 'Kolom "Harga limit" berisi "6.250", tetapi BEI menolak harga itu untuk BBCA pada 2 November 2026 karena batas auto rejection. Batas itu mengizinkan harga paling jauh 25% di atas dan 7% di bawah harga acuan Rp\u00a04.980, dan setiap ujung rentangnya adalah harga sah terdekat di dalam batas itu. BEI menetapkan harga acuan dari harga penutupan terakhir BBCA sebelum hari itu. Pilih harga dari Rp\u00a04.640 sampai Rp\u00a06.225.',
+    },
+    limitsAsAmounts: {
+      written: "12",
+      text: 'Kolom "Harga limit" berisi "12", tetapi BEI menolak harga itu untuk GOTO pada 2 November 2026 karena batas auto rejection. Batas itu mengizinkan harga paling jauh Rp\u00a01 di atas dan Rp\u00a01 di bawah harga acuan Rp\u00a010, dan setiap ujung rentangnya adalah harga sah terdekat di dalam batas itu. BEI menetapkan harga acuan dari harga penutupan terakhir GOTO sebelum hari itu. Pilih harga dari Rp\u00a09 sampai Rp\u00a011.',
+    },
+    offTick: {
+      written: "4.985",
+      text: 'Kolom "Harga limit" berisi "4.985", tetapi BEI hanya menerima harga dari Rp\u00a02.000 sampai di bawah Rp\u00a05.000 dalam kelipatan Rp\u00a010, yaitu fraksi harga rentang tersebut. Pilih Rp\u00a04.980 atau Rp\u00a04.990, harga sah terdekat.',
+    },
+    offTickOfTopBand: {
+      written: "5.010",
+      text: 'Kolom "Harga limit" berisi "5.010", tetapi BEI hanya menerima harga Rp\u00a05.000 ke atas dalam kelipatan Rp\u00a025, yaitu fraksi harga rentang tersebut. Pilih Rp\u00a05.000 atau Rp\u00a05.025, harga sah terdekat.',
+    },
+  },
+  en: {
+    limitsAsRates: {
+      written: "6,250",
+      text: 'The field "Limit price" holds "6,250", but IDX rejects that price for BBCA on November 2, 2026 by its auto rejection limits. They allow a price at most 25% above and 7% below the reference price of IDR\u00a04,980, and each end of the range is the nearest valid price inside those limits. IDX sets the reference price from the latest close of BBCA before that day. Choose a price from IDR\u00a04,640 to IDR\u00a06,225.',
+    },
+    limitsAsAmounts: {
+      written: "12",
+      text: 'The field "Limit price" holds "12", but IDX rejects that price for GOTO on November 2, 2026 by its auto rejection limits. They allow a price at most IDR\u00a01 above and IDR\u00a01 below the reference price of IDR\u00a010, and each end of the range is the nearest valid price inside those limits. IDX sets the reference price from the latest close of GOTO before that day. Choose a price from IDR\u00a09 to IDR\u00a011.',
+    },
+    offTick: {
+      written: "4,985",
+      text: 'The field "Limit price" holds "4,985", but IDX accepts prices from IDR\u00a02,000 to below IDR\u00a05,000 only in steps of IDR\u00a010, the tick size of that range. Choose IDR\u00a04,980 or IDR\u00a04,990, the nearest valid prices.',
+    },
+    offTickOfTopBand: {
+      written: "5,010",
+      text: 'The field "Limit price" holds "5,010", but IDX accepts prices of IDR\u00a05,000 and above only in steps of IDR\u00a025, the tick size of that range. Choose IDR\u00a05,000 or IDR\u00a05,025, the nearest valid prices.',
+    },
+  },
+};
+
 for (const locale of locales) {
   for (const [name, text] of Object.entries(texts[locale])) {
     test(`explains the failure ${name} with its numbers, its rule, and a next step in ${languageNames[locale]}`, () => {
@@ -427,7 +463,29 @@ for (const locale of locales) {
   }
 }
 
-function failureNamed(name: string): OrderFailure | FillFailure {
+const priceFailureNames = [
+  "limitsAsRates",
+  "limitsAsAmounts",
+  "offTick",
+  "offTickOfTopBand",
+] as const satisfies readonly PriceFailureName[];
+
+for (const locale of locales) {
+  for (const name of priceFailureNames) {
+    test(`explains the failure ${name} of a limit price with the field, its numbers, its rule, and a next step in ${languageNames[locale]}`, () => {
+      switchLocaleForTest(locale);
+      const expected = priceTexts[locale][name];
+      expect(
+        limitPriceFailureText(priceFailures[name], {
+          label: priceLabels[locale],
+          written: expected.written,
+        }),
+      ).toBe(expected.text);
+    });
+  }
+}
+
+function failureNamed(name: string): OtherFailure {
   for (const [candidate, failure] of Object.entries(failures)) {
     if (candidate === name) {
       return failure;

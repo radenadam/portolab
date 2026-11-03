@@ -17,16 +17,31 @@ import { purchaseCost } from "./trading-costs";
 
 type Failure = OrderFailure | FillFailure;
 
+/** A failure of the price of a limit order, which concerns the value that the student typed in the field of the price. */
+type LimitPriceFailure = Extract<
+  Failure,
+  { kind: "outsideLimits" | "offTick" }
+>;
+
+/** A failure that concerns the order as a whole, or a fill that a check rejected. */
+type OtherFailure = Exclude<Failure, LimitPriceFailure>;
+
 /** A purchase that the available cash does not pay for. */
 type Shortfall = Extract<Failure, { kind: "notEnoughCash" | "priceRose" }>;
 
 type NotEnoughCash = Extract<Failure, { kind: "notEnoughCash" }>;
 
 type FailureTexts = {
-  [Kind in Failure["kind"]]: (
-    failure: Extract<Failure, { kind: Kind }>,
+  [Kind in OtherFailure["kind"]]: (
+    failure: Extract<OtherFailure, { kind: Kind }>,
   ) => string;
 };
+
+/** The field of the price of a limit order as the order form shows it: the label that the reader sees, and what the field holds, without the spaces around it. */
+export interface PriceField {
+  label: string;
+  written: string;
+}
 
 function formatLimit(limit: PriceLimit): string {
   switch (limit.kind) {
@@ -148,32 +163,6 @@ const failureTexts: FailureTexts = {
       minimum: monthlyReturnCount(failure.minimum),
       month: formatMonth(failure.enoughAfterFirstTradingDayOf),
     }),
-  outsideLimits: (failure) =>
-    m.trading_outside_limits_error({
-      price: formatRupiah(failure.price),
-      code: failure.code,
-      date: formatCalendarDate(failure.date),
-      upper: formatLimit(failure.upper),
-      lower: formatLimit(failure.lower),
-      reference: formatRupiah(failure.reference),
-      lowest: formatRupiah(failure.lowest),
-      highest: formatRupiah(failure.highest),
-    }),
-  offTick: (failure) => {
-    const prices = {
-      from: formatRupiah(failure.bandFrom),
-      tick: formatRupiah(failure.tick),
-      price: formatRupiah(failure.price),
-      below: formatRupiah(failure.below),
-      above: formatRupiah(failure.above),
-    };
-    return failure.nextBandFrom === undefined
-      ? m.trading_off_tick_top_error(prices)
-      : m.trading_off_tick_error({
-          ...prices,
-          to: formatRupiah(failure.nextBandFrom),
-        });
-  },
   notEnoughCash: (failure) => {
     const sentences: string[] = [
       m.trading_purchase_cost_error(purchaseAmounts(failure)),
@@ -244,15 +233,51 @@ const failureTexts: FailureTexts = {
     ].join(" "),
 };
 
-/** The text that tells a student why Portolab rejected an order, in the active language, with the numbers of the failure, the rule behind it, and a next step. */
-export function orderFailureText(failure: Failure): string {
+/** The text that tells a student why Portolab rejected an order, in the active language, with the numbers of the failure, the rule behind it, and a next step. A failure of the price of a limit order takes limitPriceFailureText instead, because it names the field of the price. */
+export function orderFailureText(failure: OtherFailure): string {
   return textOf(failure.kind, failure);
 }
 
 // Passing the kind on its own lets TypeScript match the text of each kind to the failures of that kind.
-function textOf<Kind extends Failure["kind"]>(
+function textOf<Kind extends OtherFailure["kind"]>(
   kind: Kind,
-  failure: Extract<Failure, { kind: Kind }>,
+  failure: Extract<OtherFailure, { kind: Kind }>,
 ): string {
   return failureTexts[kind](failure);
+}
+
+/** The text that tells a student why IDX rejects the price of a limit order, in the active language. It names the field of the price by its label and quotes what the field holds, gives the rule with its numbers, and offers the prices that IDX accepts. */
+export function limitPriceFailureText(
+  failure: LimitPriceFailure,
+  field: PriceField,
+): string {
+  const typed = { field: field.label, value: field.written };
+  switch (failure.kind) {
+    case "outsideLimits":
+      return m.trading_outside_limits_error({
+        ...typed,
+        code: failure.code,
+        date: formatCalendarDate(failure.date),
+        upper: formatLimit(failure.upper),
+        lower: formatLimit(failure.lower),
+        reference: formatRupiah(failure.reference),
+        lowest: formatRupiah(failure.lowest),
+        highest: formatRupiah(failure.highest),
+      });
+    case "offTick": {
+      const prices = {
+        ...typed,
+        from: formatRupiah(failure.bandFrom),
+        tick: formatRupiah(failure.tick),
+        below: formatRupiah(failure.below),
+        above: formatRupiah(failure.above),
+      };
+      return failure.nextBandFrom === undefined
+        ? m.trading_off_tick_top_error(prices)
+        : m.trading_off_tick_error({
+            ...prices,
+            to: formatRupiah(failure.nextBandFrom),
+          });
+    }
+  }
 }

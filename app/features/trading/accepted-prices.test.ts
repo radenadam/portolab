@@ -166,7 +166,7 @@ test("rejects a limit price beyond either end of the range, with the range", () 
   for (const price of [4_590, 6_200]) {
     expect(checkLimitPrice(rupiah(price), rangeOf4940, november)).toEqual({
       ok: false,
-      failure: { kind: "outsideLimits", price, ...rangeOf4940 },
+      failure: { kind: "outsideLimits", ...rangeOf4940 },
     });
   }
 });
@@ -175,7 +175,7 @@ test("rejects a limit price inside the limit at its rate but beyond the nearest 
   // Rp4,595 is 6.98% below Rp4,940, inside the limit of 7% at Rp4,594.20, but the nearest valid price inside that limit is Rp4,600.
   expect(checkLimitPrice(rupiah(4_595), rangeOf4940, november)).toEqual({
     ok: false,
-    failure: { kind: "outsideLimits", price: 4_595, ...rangeOf4940 },
+    failure: { kind: "outsideLimits", ...rangeOf4940 },
   });
 });
 
@@ -184,7 +184,6 @@ test("rejects a limit price between two steps of its band, with the valid prices
     ok: false,
     failure: {
       kind: "offTick",
-      price: 4_985,
       tick: 10,
       bandFrom: 2_000,
       nextBandFrom: 5_000,
@@ -202,7 +201,6 @@ test("rejects a limit price between two steps of its band, with the valid prices
     ok: false,
     failure: {
       kind: "offTick",
-      price: 5_010,
       tick: 25,
       bandFrom: 5_000,
       nextBandFrom: undefined,
@@ -218,7 +216,6 @@ test("gives the start of the next band as the valid price above a price at the t
     ok: false,
     failure: {
       kind: "offTick",
-      price: 1_998,
       tick: 5,
       bandFrom: 500,
       nextBandFrom: 2_000,

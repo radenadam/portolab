@@ -377,7 +377,6 @@ test("rejects a limit price beyond the auto rejection limits of the reference pr
       kind: "outsideLimits",
       code: "BBCA",
       date: "2026-11-02",
-      price: 6_250,
       reference: 4_980,
       lowest: 4_640,
       highest: 6_225,
@@ -394,7 +393,6 @@ test("rejects a limit price between two steps of its band", () => {
     ok: false,
     failure: {
       kind: "offTick",
-      price: 4_985,
       tick: 10,
       bandFrom: 2_000,
       nextBandFrom: 5_000,

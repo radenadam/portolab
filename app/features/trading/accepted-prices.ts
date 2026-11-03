@@ -25,10 +25,9 @@ export interface PriceRange {
 
 /** Why IDX would reject the price of a limit order. */
 export type PriceFailure =
-  | ({ kind: "outsideLimits"; price: Rupiah } & PriceRange)
+  | ({ kind: "outsideLimits" } & PriceRange)
   | {
       kind: "offTick";
-      price: Rupiah;
       tick: Rupiah;
       bandFrom: Rupiah;
       nextBandFrom: Rupiah | undefined;
@@ -145,7 +144,7 @@ export function checkLimitPrice(
   rules: IdxRules,
 ): Result<Rupiah, PriceFailure> {
   if (price < range.lowest || price > range.highest) {
-    return fail({ kind: "outsideLimits", price, ...range });
+    return fail({ kind: "outsideLimits", ...range });
   }
   const { band, nextFrom } = tickBandOf(price, rules.tickBands);
   if (price % band.tick === 0) {
@@ -153,7 +152,6 @@ export function checkLimitPrice(
   }
   return fail({
     kind: "offTick",
-    price,
     tick: band.tick,
     bandFrom: band.from,
     nextBandFrom: nextFrom,
