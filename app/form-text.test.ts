@@ -1,6 +1,7 @@
 import { expect, test } from "vitest";
 import { fieldMaximumLength } from "./form-size";
-import { characterCount, parseFilledText, parseShortText } from "./form-text";
+import { characterCount } from "./character-count";
+import { parseFilledText, parseShortText } from "./form-text";
 import { languageNames } from "./language-names";
 import { locales } from "./paraglide/runtime.js";
 import type { Locale } from "./paraglide/runtime.js";
@@ -24,9 +25,9 @@ const failures: Record<
     tooLong:
       'Kolom "Nama Anda" memuat paling banyak 1.000 karakter, tetapi isinya 1.001 karakter. Persingkat isinya.',
     longerThanAnyField:
-      'Kolom "Nama Anda" memuat paling banyak 8.000 karakter, tetapi isinya 8.001 karakter. Persingkat isinya.',
+      'Kolom "Nama Anda" berisi 8.001 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
     farLongerThanAnyField:
-      'Kolom "Nama Anda" memuat paling banyak 8.000 karakter, tetapi isinya 1.000.000 karakter. Persingkat isinya.',
+      'Kolom "Nama Anda" berisi 1.000.000 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
   },
   en: {
     empty: 'The field "Your name" is empty, but Portolab needs it. Fill it in.',
@@ -35,9 +36,9 @@ const failures: Record<
     tooLong:
       'The field "Your name" holds at most 1,000 characters, but it has 1,001. Shorten it.',
     longerThanAnyField:
-      'The field "Your name" holds at most 8,000 characters, but it has 8,001. Shorten it.',
+      'The field "Your name" has 8,001 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
     farLongerThanAnyField:
-      'The field "Your name" holds at most 8,000 characters, but it has 1,000,000. Shorten it.',
+      'The field "Your name" has 1,000,000 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
   },
 };
 

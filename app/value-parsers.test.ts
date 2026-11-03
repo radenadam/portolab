@@ -1,5 +1,6 @@
 import { expect, test } from "vitest";
-import { parseChoice, parseFilePath } from "./value-parsers";
+import { fieldMaximumLength } from "./form-size";
+import { parseChoice, parseFilePath, parseRecordId } from "./value-parsers";
 
 test("accepts one of the choices and names them all when the value is another", () => {
   expect(parseChoice("yahoo", "PRICE_SOURCE", ["yahoo", "fixture"])).toEqual({
@@ -33,4 +34,23 @@ test("accepts a path and rejects a missing or empty one", () => {
     ok: false,
     failure: "DATABASE_PATH must be the path of a file, but it is empty.",
   });
+});
+
+test("reads the id of a row and quotes any other value up to the maximum of any field", () => {
+  expect(parseRecordId("42", "classId")).toEqual({ ok: true, value: 42 });
+  for (const value of ["0", "abc", "a".repeat(fieldMaximumLength)]) {
+    expect(parseRecordId(value, "classId"), value.slice(0, 10)).toEqual({
+      ok: false,
+      failure: `classId must be a positive whole number, but it is "${value}".`,
+    });
+  }
+});
+
+test("rejects a value past the maximum of any field, just or far, by its length without quoting it", () => {
+  for (const length of [fieldMaximumLength + 1, 1_000_000]) {
+    expect(parseRecordId("a".repeat(length), "classId")).toEqual({
+      ok: false,
+      failure: `classId must be a positive whole number, but it has ${String(length)} characters.`,
+    });
+  }
 });

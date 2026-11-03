@@ -1,5 +1,5 @@
+import { characterCount } from "~/character-count";
 import {
-  characterCount,
   checkFieldLength,
   checkMaximumLength,
   parseFilledText,

@@ -1,5 +1,5 @@
 import { fieldMaximumLength } from "~/form-size";
-import { characterCount } from "~/form-text";
+import { characterCount } from "~/character-count";
 import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
 import { describeValue } from "~/value-shapes";

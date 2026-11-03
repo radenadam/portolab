@@ -1,3 +1,4 @@
+import { characterCount } from "~/character-count";
 import { fieldMaximumLength } from "~/form-size";
 import { formatNumber } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
@@ -32,7 +33,16 @@ export function checkFieldLength(
   text: string,
   source: string,
 ): Result<string, string> {
-  return checkMaximumLength(text, source, fieldMaximumLength);
+  const length = characterCount(text);
+  // The rule of each field allows far less, so the error states no maximum, which would not be the one of the field.
+  return length > fieldMaximumLength
+    ? fail(
+        m.app_far_too_long_error({
+          field: source,
+          length: formatNumber(length),
+        }),
+      )
+    : succeed(text);
 }
 
 /** Reads a short text that a person typed, such as a name, without the spaces around it and with each run of spaces inside it as one space. */
@@ -65,11 +75,6 @@ export function checkMaximumLength(
         }),
       )
     : succeed(text);
-}
-
-/** Counts the characters of a text as a reader counts them. A letter outside the basic plane of Unicode takes two units of a JavaScript string, but it is one character. */
-export function characterCount(text: string): number {
-  return Array.from(text).length;
 }
 
 /** The text that a person typed in a field, so that a form can show it again with the reason that it was not accepted. A field that holds no text shows empty. */

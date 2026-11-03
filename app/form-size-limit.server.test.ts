@@ -16,10 +16,10 @@ function endlessBody(): ReadableStream<Uint8Array> {
   });
 }
 
-/** A form that the browser sends with a stated size, as every browser does, or a body that streams without one. */
+/** A form that the browser sends with a stated size, as every browser does, or a body that streams without one. A size is text when it has more digits than a JavaScript number holds exactly. */
 function formRequest(
   body: string | ReadableStream<Uint8Array>,
-  statedSize?: number,
+  statedSize?: number | string,
 ): Request {
   // Node needs the option duplex for a body that streams, which the type of the options of a request lacks.
   const options: RequestInit & { duplex: "half" } = {
@@ -81,14 +81,29 @@ test("refuses a form that states a size larger than the limit, names the size, a
   });
 });
 
-test("refuses a body that states a size larger than it reads and throws away, without reading it", async () => {
+test("reads and throws away a form that states the most bytes that it throws away, and refuses it", async () => {
   captureStderrForTest();
-  const request = formRequest(endlessBody(), discardMaximumBytes + 1);
+  const request = formRequest(
+    "a".repeat(discardMaximumBytes),
+    discardMaximumBytes,
+  );
   await expect(runLimit(request)).rejects.toMatchObject({
-    data: discardMaximumBytes + 1,
+    data: discardMaximumBytes,
     init: { status: 413 },
   });
-  expect(request.bodyUsed).toBe(false);
+  expect(request.bodyUsed).toBe(true);
+});
+
+test("refuses a body that states a size past what it reads and throws away, just or far, without reading it", async () => {
+  captureStderrForTest();
+  for (const statedSize of [discardMaximumBytes + 1, 1_000_000_000_000]) {
+    const request = formRequest(endlessBody(), statedSize);
+    await expect(runLimit(request)).rejects.toMatchObject({
+      data: statedSize,
+      init: { status: 413 },
+    });
+    expect(request.bodyUsed).toBe(false);
+  }
 });
 
 test("refuses a body without a stated size at the first piece past the limit, so a body without end costs no more", async () => {
@@ -102,13 +117,7 @@ test("refuses a body without a stated size at the first piece past the limit, so
 test("refuses a body that states more digits than JavaScript holds exactly, without reading it, and logs why", async () => {
   const warnings = captureStderrForTest();
   const statedSize = "1234567890123456789";
-  const options: RequestInit & { duplex: "half" } = {
-    method: "POST",
-    body: endlessBody(),
-    duplex: "half",
-    headers: { "Content-Length": statedSize },
-  };
-  const request = new Request(formAddress, options);
+  const request = formRequest(endlessBody(), statedSize);
   await expect(runLimit(request)).rejects.toMatchObject({
     data: null,
     init: { status: 413 },

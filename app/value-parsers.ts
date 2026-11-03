@@ -1,3 +1,5 @@
+import { characterCount } from "./character-count.ts";
+import { fieldMaximumLength } from "./form-size.ts";
 import { fail, succeed } from "./result.ts";
 import type { Result } from "./result.ts";
 import { listOfWords } from "./sentences.ts";
@@ -42,6 +44,13 @@ export function parseRecordId<Id extends number>(
   value: unknown,
   source: string,
 ): Result<Id, string> {
+  const failure = `${source} must be a positive whole number`;
+  if (typeof value === "string") {
+    const length = characterCount(value);
+    if (length > fieldMaximumLength) {
+      return fail(`${failure}, but it has ${String(length)} characters.`);
+    }
+  }
   if (typeof value === "string" && /^[1-9][0-9]{0,15}$/.test(value)) {
     const id = Number(value);
     if (Number.isSafeInteger(id)) {
@@ -49,7 +58,5 @@ export function parseRecordId<Id extends number>(
       return succeed(id as Id);
     }
   }
-  return fail(
-    `${source} must be a positive whole number, but it is ${describeValue(value)}.`,
-  );
+  return fail(`${failure}, but it is ${describeValue(value)}.`);
 }

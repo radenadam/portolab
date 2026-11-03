@@ -35,7 +35,11 @@ const texts: Record<
     nameTooLong: string;
     passwordsDiffer: string;
     consentMissing: string;
-    longerThanAnyField: readonly [string, string];
+    atAnyFieldMaximum: string;
+    pastAnyFieldMaximum: Record<
+      "justPast" | "farPast",
+      readonly [newPassword: string, repeatedPassword: string]
+    >;
   }
 > = {
   id: {
@@ -53,10 +57,18 @@ const texts: Record<
       'Kolom "Ulangi kata sandi baru" berbeda dari kata sandi baru. Ketik kata sandi yang sama di kedua kolom.',
     consentMissing:
       'Portolab hanya menyimpan data Anda dengan persetujuan Anda. Baca pemberitahuan privasi, lalu centang "Saya menyetujui pemberitahuan privasi".',
-    longerThanAnyField: [
-      'Kolom "Kata sandi baru" memuat paling banyak 8.000 karakter, tetapi isinya 8.019 karakter. Persingkat isinya.',
-      'Kolom "Ulangi kata sandi baru" memuat paling banyak 8.000 karakter, tetapi isinya 8.019 karakter. Persingkat isinya.',
-    ],
+    atAnyFieldMaximum:
+      'Kolom "Kata sandi baru" memuat paling banyak 128 karakter, tetapi isinya 8.000 karakter. Persingkat isinya.',
+    pastAnyFieldMaximum: {
+      justPast: [
+        'Kolom "Kata sandi baru" berisi 8.001 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
+        'Kolom "Ulangi kata sandi baru" berisi 8.001 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
+      ],
+      farPast: [
+        'Kolom "Kata sandi baru" berisi 1.000.000 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
+        'Kolom "Ulangi kata sandi baru" berisi 1.000.000 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
+      ],
+    },
   },
   en: {
     name: "Your name",
@@ -73,10 +85,18 @@ const texts: Record<
       'The field "New password again" differs from the new password. Type the same password in both fields.',
     consentMissing:
       'Portolab stores your data only with your agreement. Read the privacy notice, then tick "I agree to the privacy notice".',
-    longerThanAnyField: [
-      'The field "New password" holds at most 8,000 characters, but it has 8,019. Shorten it.',
-      'The field "New password again" holds at most 8,000 characters, but it has 8,019. Shorten it.',
-    ],
+    atAnyFieldMaximum:
+      'The field "New password" holds at most 128 characters, but it has 8,000. Shorten it.',
+    pastAnyFieldMaximum: {
+      justPast: [
+        'The field "New password" has 8,001 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
+        'The field "New password again" has 8,001 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
+      ],
+      farPast: [
+        'The field "New password" has 1,000,000 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
+        'The field "New password again" has 1,000,000 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
+      ],
+    },
   },
 };
 
@@ -189,19 +209,38 @@ for (const locale of locales) {
     }
   });
 
-  test(`rejects a new password or its repetition longer than any field takes, counted with the spaces around it, before it normalizes it, in ${languageNames[locale]}`, () => {
+  test(`rejects a new password or its repetition at the maximum of any field by the rule of its field, and past that maximum by its length before it normalizes it, in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     const password = "kopi pagi di kampus";
-    const padded = `${password}${" ".repeat(fieldMaximumLength)}`;
-    const [newPasswordFailure, repeatedPasswordFailure] =
-      text.longerThanAnyField;
-    expect(readNewPassword(passwordForm(padded, padded))).toEqual({
+    const atMaximum = password.padEnd(fieldMaximumLength);
+    expect(readNewPassword(passwordForm(atMaximum, atMaximum))).toEqual({
       ok: false,
-      failure: { newPasswordFailure, repeatedPasswordFailure: undefined },
+      failure: {
+        newPasswordFailure: text.atAnyFieldMaximum,
+        repeatedPasswordFailure: undefined,
+      },
     });
-    expect(readNewPassword(passwordForm(password, padded))).toEqual({
+    expect(readNewPassword(passwordForm(password, atMaximum))).toEqual({
       ok: false,
-      failure: { newPasswordFailure: undefined, repeatedPasswordFailure },
+      failure: {
+        newPasswordFailure: undefined,
+        repeatedPasswordFailure: text.passwordsDiffer,
+      },
     });
+    for (const [length, failures] of [
+      [fieldMaximumLength + 1, text.pastAnyFieldMaximum.justPast],
+      [1_000_000, text.pastAnyFieldMaximum.farPast],
+    ] as const) {
+      const padded = password.padEnd(length);
+      const [newPasswordFailure, repeatedPasswordFailure] = failures;
+      expect(readNewPassword(passwordForm(padded, padded))).toEqual({
+        ok: false,
+        failure: { newPasswordFailure, repeatedPasswordFailure: undefined },
+      });
+      expect(readNewPassword(passwordForm(password, padded))).toEqual({
+        ok: false,
+        failure: { newPasswordFailure: undefined, repeatedPasswordFailure },
+      });
+    }
   });
 }
