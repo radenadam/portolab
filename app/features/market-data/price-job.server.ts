@@ -20,19 +20,22 @@ const requestTimeoutMilliseconds = 20 * secondMilliseconds;
 // Decision 0001 asks for a low load on Yahoo, and with a second between requests the closes of the whole universe take about a minute.
 const historyRequestPauseMilliseconds = secondMilliseconds;
 
-/** Fetches quotes and daily closes once at startup, so a fresh server shows the last close, then quotes every minute while prices can change and daily closes after each trading day closes. Returns a function that stops the job. */
-export function startPriceJob(settings: PriceJobSettings): () => void {
+/** Fetches quotes and daily closes once at startup, so a fresh server shows the last close, then quotes every minute while prices can change and daily closes after each trading day closes. After each run of the quote update, it hands the moment when the run ended to afterQuoteUpdate, such as the check of open orders. Returns a function that stops the job. */
+export function startPriceJob(
+  settings: PriceJobSettings,
+  afterQuoteUpdate: (now: Date) => void,
+): () => void {
   // The log asks once for each piece of missing data, such as the calendar of a year, instead of every minute.
   const loggedWarnings = new Set<string>();
-  const updateQuotes = serializeUpdates(
-    () =>
-      runQuoteUpdate(
-        settings,
-        new Date(),
-        AbortSignal.timeout(requestTimeoutMilliseconds),
-      ),
-    "The quote update failed.",
-  );
+  const updateQuotes = serializeUpdates(async () => {
+    await runQuoteUpdate(
+      settings,
+      new Date(),
+      AbortSignal.timeout(requestTimeoutMilliseconds),
+    );
+    // A request that the server answered during the fetch can have placed an order, so the moment after the update comes after that order.
+    afterQuoteUpdate(new Date());
+  }, "The quote update failed.");
   const updateHistory = serializeUpdates(
     () =>
       runHistoryUpdate(settings, () => new Date(), {

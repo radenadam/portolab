@@ -5,14 +5,17 @@ import {
   text,
   uniqueIndex,
 } from "drizzle-orm/sqlite-core";
-// drizzle-kit loads the schemas without the aliases of the app, so a table that another schema holds comes through a relative path.
-import { users } from "../accounts/accounts.schema";
-import type { UserId } from "../accounts/accounts.schema";
-import type { Rupiah } from "~/units/rupiah";
-import type { JoinCode } from "./join-code";
+// drizzle-kit and the browser tests load the schemas without the aliases of the app, so every import is a relative path.
+import { users } from "../accounts/accounts.schema.ts";
+import type { UserId } from "../accounts/accounts.schema.ts";
+import type { Rupiah } from "../../units/rupiah.ts";
+import type { JoinCode } from "./join-code.ts";
 
 /** The number that identifies a class. */
 export type ClassId = number & { readonly brand: "ClassId" };
+
+/** The number that identifies the place of a student in a class. */
+export type MembershipId = number & { readonly brand: "MembershipId" };
 
 /** Each class, which its lecturer teaches, with the cash that each of its students starts with and the code with which they join. A class lives until the person who runs the server deletes it, as the privacy notice states. */
 export const classes = sqliteTable(
@@ -35,7 +38,7 @@ export const classes = sqliteTable(
 export const memberships = sqliteTable(
   "memberships",
   {
-    id: integer("id").primaryKey({ autoIncrement: true }),
+    id: integer("id").$type<MembershipId>().primaryKey({ autoIncrement: true }),
     classId: integer("class_id")
       .$type<ClassId>()
       .notNull()

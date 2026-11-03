@@ -1,8 +1,8 @@
-import { periodOf } from "~/period-of";
-import type { DatePeriod } from "~/period-of";
-import { fail, succeed } from "~/result";
-import type { Result } from "~/result";
-import type { Instrument } from "./price-source.server";
+import { periodOf } from "../../period-of.ts";
+import type { DatePeriod } from "../../period-of.ts";
+import { fail, succeed } from "../../result.ts";
+import type { Result } from "../../result.ts";
+import type { Instrument } from "./price-source.server.ts";
 
 /** The stocks of the LQ45 index of IDX from `from` to `until`, which decision 0014 makes the universe of stocks that students trade in that period. */
 interface UniversePeriod extends DatePeriod {
@@ -70,24 +70,28 @@ const universePeriods: readonly UniversePeriod[] = [
 ];
 
 /** The index that the measures take as the market, which Portolab always tracks. */
-export const marketIndex: Instrument = { kind: "index", code: "IHSG" };
+export const marketIndex: Extract<Instrument, { kind: "index" }> = {
+  kind: "index",
+  code: "IHSG",
+};
+
+/** The codes of the stocks of every recorded period of the universe, each once and in order, whose prices Portolab keeps current. A student can sell a holding of any of them, also after it left the universe. */
+export const trackedStockCodes: readonly string[] = listTrackedStockCodes();
 
 /** The instruments whose prices Portolab keeps current: the IHSG, and the stocks of every recorded period of the universe, each once and by code. */
-export const trackedInstruments: readonly Instrument[] =
-  listTrackedInstruments();
+export const trackedInstruments: readonly Instrument[] = [
+  marketIndex,
+  ...trackedStockCodes.map((code): Instrument => ({ kind: "stock", code })),
+];
 
-function listTrackedInstruments(): Instrument[] {
+function listTrackedStockCodes(): string[] {
   const stockCodes = new Set<string>();
   for (const period of universePeriods) {
     for (const code of period.codes) {
       stockCodes.add(code);
     }
   }
-  const instruments: Instrument[] = [marketIndex];
-  for (const code of [...stockCodes].sort()) {
-    instruments.push({ kind: "stock", code });
-  }
-  return instruments;
+  return [...stockCodes].sort();
 }
 
 /** The codes of the stocks in the universe on a date, such as 2026-11-02. It fails for a date that no recorded period covers, so a missing review of IDX is noticed. */

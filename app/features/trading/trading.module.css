@@ -1,0 +1,52 @@
+.link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--size-touch-target);
+  overflow-wrap: anywhere;
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-1) var(--space-4);
+  align-self: stretch;
+  margin: 0;
+}
+
+.summary dt {
+  color: var(--color-muted);
+}
+
+/* The amounts line up on the right in the font for numbers, as the numbers of the table of prices do. */
+.summary dd {
+  margin: 0;
+  font-family: var(--font-numbers);
+  text-align: right;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  padding-block: var(--space-3);
+  border-block-end: var(--size-line) solid var(--color-line);
+}
+
+.title {
+  font-weight: 600;
+}
+
+.details {
+  color: var(--color-muted);
+  font-size: var(--text-small);
+}

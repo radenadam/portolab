@@ -3,7 +3,7 @@ import { data, Form, Link } from "react-router";
 import type { RouterContextProvider } from "react-router";
 import { databaseContext } from "~/database/database.server";
 import type { UserId } from "~/features/accounts/accounts.schema";
-import { requireLecturer } from "~/features/accounts/current-session.server";
+import { requireRole } from "~/features/accounts/current-session.server";
 import { resetForgottenPassword } from "~/features/accounts/reset-forgotten-password.server";
 import { FormSuccess, SubmitButton } from "~/form";
 import formStyles from "~/form.module.css";
@@ -27,7 +27,7 @@ function requireStudentOfTaughtClass(
   url: URL,
   params: Route.LoaderArgs["params"],
 ): { classId: ClassId; className: string; student: ClassStudent } {
-  const lecturer = requireLecturer(context, url);
+  const lecturer = requireRole(context, url, "lecturer");
   const classId = parseRecordId<ClassId>(params.classId, "classId");
   const studentId = parseRecordId<UserId>(params.studentId, "studentId");
   const database = context.get(databaseContext);

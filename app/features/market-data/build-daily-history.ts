@@ -1,6 +1,6 @@
-import { indexPoints } from "~/units/index-points";
-import { splitAdjustedRupiah } from "~/units/split-adjusted-rupiah";
-import type { DailyHistory, Instrument } from "./price-source.server";
+import { indexPoints } from "../../units/index-points.ts";
+import { splitAdjustedRupiah } from "../../units/split-adjusted-rupiah.ts";
+import type { DailyHistory, Instrument } from "./price-source.server.ts";
 
 /** Builds the daily history of an instrument from closes that the program holds, such as answers of a source that it recorded, each a date in WIB and a close. */
 export function buildDailyHistory(

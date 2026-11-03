@@ -39,14 +39,21 @@ export interface Order extends OrderRequest {
  * Where an order stands:
  * - waiting: accepted, and it has met no price of its sessions yet.
  * - resting: a limit order that met a price of its sessions that did not reach its limit, so it waits at its limit, as an order in the book of the exchange does.
- * - filled, expired, or rejected: done, and nothing changes it any more.
+ * - filled, expired, rejected, or cancelled: done, and nothing changes it any more. A student cancels an order only while it is open.
  */
 export type OrderState =
   | { kind: "waiting" }
   | { kind: "resting" }
   | { kind: "filled"; fill: Fill }
   | { kind: "expired"; expiredAt: Date }
-  | { kind: "rejected"; rejectedAt: Date; failure: FillFailure };
+  | {
+      kind: "rejected";
+      rejectedAt: Date;
+      /** When the delayed price that reached the order was quoted. */
+      quotedAt: Date;
+      failure: FillFailure;
+    }
+  | { kind: "cancelled"; cancelledAt: Date };
 
 /** An order that is waiting or resting, which the texts for students call open. It can fill until it expires. */
 export type OpenOrder = Order & {
@@ -167,8 +174,17 @@ export type OrderFailure =
     };
 
 /** Why Portolab rejected an order that it had accepted, when a price could fill it. */
-export type FillFailure = {
-  kind: "priceRose";
-  /** The latest delayed price when the student placed the order. */
-  checkedPrice: Rupiah;
-} & CashShortfall;
+export type FillFailure =
+  | ({
+      kind: "priceRose";
+      /** The latest delayed price when the student placed the order. */
+      checkedPrice: Rupiah;
+    } & CashShortfall)
+  | {
+      /** A sale whose holding no longer has the shares that the sale set aside. Every fill and every sale keeps them, so only a deletion of the holding by hand, by the person who runs the server, leads here. */
+      kind: "sharesGone";
+      code: string;
+      lots: Lots;
+      /** The lots of the stock that the account held beyond what its other open sell orders set aside, when the price came. */
+      availableLots: Lots;
+    };

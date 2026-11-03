@@ -1,21 +1,33 @@
 import { isContinuousTradingTime } from "~/features/market-data/idx-calendar";
 import type { StockQuote } from "~/features/market-data/price-source.server";
+import { lots } from "~/units/lots";
 import { rupiah } from "~/units/rupiah";
 import type { Rupiah } from "~/units/rupiah";
+import type { Shares } from "~/units/shares";
 import { wibDateOf } from "~/wib";
 import { checkCashForPurchase } from "./check-cash-for-purchase";
-import type { OpenOrder, Order, OrderSide, OrderState, Trade } from "./order";
+import { idxRulesOn } from "./idx-rules-on";
+import type {
+  FillFailure,
+  OpenOrder,
+  Order,
+  OrderSide,
+  OrderState,
+  Trade,
+} from "./order";
 import { cashChange, costRatesOn, tradeWithCosts } from "./trading-costs";
 
 /** What Portolab knows when it checks an order. */
 export interface OrderCheck {
   /** An order in the state waiting or resting, which hasOpenState finds among the orders of an account, also after its expiry, so that the check marks it expired. */
   order: OpenOrder;
-  /** The latest delayed quote of the stock of the order. */
-  quote: StockQuote;
+  /** The latest delayed quote of the stock of the order that a check may fill it with, or undefined when there is none, so that the order can only expire. */
+  quote: StockQuote | undefined;
   moment: Date;
   /** For a purchase, the cash of the account less what its other open orders set aside. */
   availableCash: Rupiah;
+  /** For a sale, the shares of its stock that the account holds less what its other open sell orders set aside. */
+  availableShares: Shares;
 }
 
 /** The state of an open order after Portolab checked it against the latest delayed quote of its stock at a moment, by the rules of decision 0016. */
@@ -25,12 +37,12 @@ export function checkOrder(check: OrderCheck): OrderState {
   if (moment >= order.expiresAt) {
     return { kind: "expired", expiredAt: moment };
   }
-  if (!isPriceOfOrder(order, quote.quotedAt)) {
+  if (quote === undefined || !isPriceOfOrder(order, quote.quotedAt)) {
     return order.state;
   }
   const price = fillPrice(order, quote.price);
   if (price !== undefined) {
-    return fillAt(price, check);
+    return fillAt(price, { ...check, quote });
   }
   switch (order.state.kind) {
     case "waiting":
@@ -83,7 +95,10 @@ function reachesLimit(side: OrderSide, price: Rupiah, limit: Rupiah): boolean {
   }
 }
 
-function fillAt(price: Rupiah, check: OrderCheck): OrderState {
+/** A check whose quote reaches the order. */
+type FillingCheck = OrderCheck & { quote: StockQuote };
+
+function fillAt(price: Rupiah, check: FillingCheck): OrderState {
   const { order } = check;
   const rates = costRatesOn(order.tradingDay);
   if (!rates.ok) {
@@ -99,19 +114,25 @@ function fillAt(price: Rupiah, check: OrderCheck): OrderState {
         rates.value,
       );
       if (!paid.ok) {
-        return {
-          kind: "rejected",
-          rejectedAt: check.moment,
-          failure: {
-            kind: "priceRose",
-            checkedPrice: order.checkedPrice,
-            ...paid.failure,
-          },
-        };
+        return rejected(check, {
+          kind: "priceRose",
+          checkedPrice: order.checkedPrice,
+          ...paid.failure,
+        });
       }
       return filled(check, price, paid.value);
     }
     case "sell":
+      if (check.availableShares < order.shares) {
+        return rejected(check, {
+          kind: "sharesGone",
+          code: order.code,
+          lots: order.lots,
+          availableLots: lots(
+            Math.floor(check.availableShares / lotSharesOf(order)),
+          ),
+        });
+      }
       return filled(
         check,
         price,
@@ -120,7 +141,26 @@ function fillAt(price: Rupiah, check: OrderCheck): OrderState {
   }
 }
 
-function filled(check: OrderCheck, price: Rupiah, trade: Trade): OrderState {
+function lotSharesOf(order: Order): Shares {
+  const rules = idxRulesOn(order.tradingDay);
+  if (!rules.ok) {
+    throw new Error(
+      `placeOrder found the rules of the trading day ${order.tradingDay}, so they are recorded, but ${rules.failure}`,
+    );
+  }
+  return rules.value.lotShares;
+}
+
+function rejected(check: FillingCheck, failure: FillFailure): OrderState {
+  return {
+    kind: "rejected",
+    rejectedAt: check.moment,
+    quotedAt: check.quote.quotedAt,
+    failure,
+  };
+}
+
+function filled(check: FillingCheck, price: Rupiah, trade: Trade): OrderState {
   return {
     kind: "filled",
     fill: {

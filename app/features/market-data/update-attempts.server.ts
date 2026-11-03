@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import type { Database } from "~/database/database.server";
+import type { Database, DatabaseWriter } from "~/database/database.server";
 import { priceUpdates } from "./market-data.schema";
 
 /** The jobs that update prices: the latest quotes during trading sessions, and the daily closes after each close. */
@@ -39,7 +39,7 @@ export function saveUpdateAttempt(
 }
 
 export function readLatestUpdateAttempt(
-  database: Database,
+  database: DatabaseWriter,
   job: UpdateJob,
 ): UpdateAttempt | undefined {
   const [row] = database

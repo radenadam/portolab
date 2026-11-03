@@ -18,6 +18,7 @@ const isOpenState: Record<OrderState["kind"], boolean> = {
   filled: false,
   expired: false,
   rejected: false,
+  cancelled: false,
 };
 
 const setsAsideShares: Record<OrderSide, boolean> = {
@@ -89,7 +90,12 @@ export function openSales(orders: readonly Order[], moment: Date): OpenSales {
 
 /** Whether the state of an order is waiting or resting, which makes it an order that checkOrder still has to fill or mark expired, even after its expiry. */
 export function hasOpenState(order: Order): order is OpenOrder {
-  return isOpenState[order.state.kind];
+  return isOpenStateKind(order.state.kind);
+}
+
+/** Whether a state of an order is waiting or resting, as hasOpenState judges an order. */
+export function isOpenStateKind(kind: OrderState["kind"]): boolean {
+  return isOpenState[kind];
 }
 
 /** Whether an order is open at a moment: waiting or resting, and not past its expiry. An order whose trading day has ended keeps the state waiting or resting until checkOrder marks it expired, so the moment decides whether it still sets aside cash or shares. */

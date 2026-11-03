@@ -1,5 +1,9 @@
 import { expect, test } from "vitest";
-import { trackedInstruments, universeOn } from "./tracked-instruments";
+import {
+  trackedInstruments,
+  trackedStockCodes,
+  universeOn,
+} from "./tracked-instruments";
 
 test("tracks the IHSG and each stock of the universe once, by code", () => {
   const codes = trackedInstruments.map((instrument) => instrument.code);
@@ -7,6 +11,7 @@ test("tracks the IHSG and each stock of the universe once, by code", () => {
   expect(new Set(codes).size).toBe(codes.length);
   const stockCodes = codes.slice(1);
   expect(stockCodes).toEqual([...stockCodes].sort());
+  expect(trackedStockCodes).toEqual(stockCodes);
 });
 
 test("gives the 45 stocks of the LQ45 from the first to the last trading day of a period", () => {

@@ -222,7 +222,7 @@ const failureTexts: FailureTexts = {
     );
     return sentences.join(" ");
   },
-  // A check records this rejection while nobody watches, and the student may read it days later, so its step holds whenever it is read.
+  // A check records these rejections while nobody watches, and the student may read them days later, so their steps hold whenever they are read.
   priceRose: (failure) =>
     [
       m.trading_price_rose_error({
@@ -231,6 +231,12 @@ const failureTexts: FailureTexts = {
       }),
       m.trading_new_order_error({ code: failure.code }),
     ].join(" "),
+  sharesGone: (failure) =>
+    m.trading_shares_gone_error({
+      lots: lotCount(failure.lots),
+      code: failure.code,
+      available: lotCount(failure.availableLots),
+    }),
 };
 
 /** The text that tells a student why Portolab rejected an order, in the active language, with the numbers of the failure, the rule behind it, and a next step. A failure of the price of a limit order takes limitPriceFailureText instead, because it names the field of the price. */

@@ -29,6 +29,7 @@ import { priceSourceContext } from "~/features/market-data/price-source-context.
 import type { PriceSource } from "~/features/market-data/price-source.server";
 import { trackedInstruments } from "~/features/market-data/tracked-instruments";
 import { createYahooPriceSource } from "~/features/market-data/yahoo-price-source.server";
+import { checkAllOpenOrders } from "~/features/trading/check-open-orders.server";
 import {
   defaultEstimationSettings,
   earliestCloseDate,
@@ -50,23 +51,28 @@ export interface Services {
   stop: () => void;
 }
 
-/** Opens the database, starts the price job and the sweep of ended sessions, and creates the limits on passwords and on joining classes, with the settings that the server read at startup. */
+/** Opens the database, starts the price job, which checks the open orders after each update of quotes, and the sweep of ended sessions, and creates the limits on passwords and on joining classes, with the settings that the server read at startup. */
 export function startServices(settings: ServiceSettings): Services {
   const database = openDatabase(
     settings.databasePath,
     settings.migrationsFolder,
   );
   const priceSource = priceSources[settings.priceSource]();
-  const stopPriceJob = startPriceJob({
-    database,
-    priceSource,
-    instruments: trackedInstruments,
-    // The date comes from the day the server starts, which is earlier than the measures need on every later day.
-    historyStartDate: earliestCloseDate(
-      defaultEstimationSettings,
-      wibDateOf(new Date()),
-    ),
-  });
+  const stopPriceJob = startPriceJob(
+    {
+      database,
+      priceSource,
+      instruments: trackedInstruments,
+      // The date comes from the day the server starts, which is earlier than the measures need on every later day.
+      historyStartDate: earliestCloseDate(
+        defaultEstimationSettings,
+        wibDateOf(new Date()),
+      ),
+    },
+    (now) => {
+      checkAllOpenOrders(database, now);
+    },
+  );
   const stopSessionSweep = startSessionSweep(database);
   return {
     database,

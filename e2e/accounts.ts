@@ -7,9 +7,7 @@ import { secondMilliseconds } from "../app/time-units.ts";
 import { printedPasswordForTest } from "../app/features/accounts/printed-password-for-test.ts";
 import type { AccountAction } from "../app/features/accounts/account-actions.ts";
 import { usernameLength } from "../app/features/accounts/username.ts";
-import { successValueForTest } from "../app/success-value-for-test.ts";
-import { parseFilePath } from "../app/value-parsers.ts";
-import { databasePathVariable } from "./test-server.ts";
+import { testDatabasePath } from "./test-database-path.ts";
 
 const accountCommand = join(import.meta.dirname, "..", "server", "account.ts");
 const commandTimeoutSeconds = 30;
@@ -28,10 +26,7 @@ export function runAccountCommand(
   action: AccountAction,
   username: string,
 ): string {
-  const databasePath = successValueForTest(
-    parseFilePath(process.env[databasePathVariable], databasePathVariable),
-    `The test server sets ${databasePathVariable}`,
-  );
+  const databasePath = testDatabasePath();
   const output = execFileSync(
     process.execPath,
     [accountCommand, action, username],

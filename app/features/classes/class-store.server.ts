@@ -6,7 +6,7 @@ import type { Person } from "~/features/accounts/account-store.server";
 import { randomReadableText } from "~/random-text.server";
 import type { Rupiah } from "~/units/rupiah";
 import { classes, memberships } from "./classes.schema";
-import type { ClassId } from "./classes.schema";
+import type { ClassId, MembershipId } from "./classes.schema";
 import { joinCodeLength } from "./join-code";
 import type { JoinCode } from "./join-code";
 
@@ -27,8 +27,9 @@ export interface ClassForStudents {
   startingCash: Rupiah;
 }
 
-/** A class that a student joined, with the time when the student joined it. */
+/** A class that a student joined, with the place of the student in it, to which the portfolio of the student in the class belongs, and the time when the student joined it. */
 export interface JoinedClass extends ClassForStudents {
+  membershipId: MembershipId;
   joinedAt: Date;
 }
 
@@ -209,6 +210,7 @@ function selectJoinedClasses(database: Database) {
   return database
     .select({
       ...classForStudentsColumns,
+      membershipId: memberships.id,
       joinedAt: memberships.joinedAt,
     })
     .from(memberships)

@@ -9,6 +9,7 @@ import type { OpenOrder, Order, OrderRequest } from "./order";
 import {
   acceptedForTest,
   accountForTest,
+  bbcaCloseOfFridayForTest,
   bbcaForTest,
   limitForTest,
   orderLotsForTest,
@@ -19,14 +20,8 @@ import {
 
 // 09:50.
 const latestAtTen = bbcaForTest.quote;
-// 16:14 on Friday 30 October 2026, the close of Rp4,980 after the close of Rp4,940 on Thursday.
-const closeOfFriday = stockQuote(
-  "BBCA",
-  [4_980, 4_940],
-  "2026-10-30T09:14:55Z",
-);
 // The close of Friday, which every quote of Monday states as its previous close.
-const closeOfFridayPrice = closeOfFriday.price;
+const closeOfFridayPrice = bbcaCloseOfFridayForTest.price;
 
 function placed(
   changes: Partial<OrderRequest>,
@@ -62,17 +57,18 @@ function selectedForCheck(order: Order): OpenOrder {
   return order;
 }
 
-/** The state of an order after a check at a moment, with the cash that the other open orders of the account leave, which is Rp100 million unless the test gives another. */
+/** The state of an order after a check at a moment, with the cash and the shares of BBCA that the other open orders of the account leave, which are Rp100 million and the 500 shares of the account of placed unless the test gives others. */
 function checkedWith(
   order: Order,
-  latest: StockQuote,
-  at: { moment: string; availableCash: number },
+  latest: StockQuote | undefined,
+  at: { moment: string; availableCash?: number; availableShares?: number },
 ): Order["state"] {
   return checkOrder({
     order: selectedForCheck(order),
     quote: latest,
     moment: new Date(at.moment),
-    availableCash: rupiah(at.availableCash),
+    availableCash: rupiah(at.availableCash ?? 100_000_000),
+    availableShares: shares(at.availableShares ?? 500),
   });
 }
 
@@ -81,7 +77,7 @@ function checked(
   latest: StockQuote,
   moment: string,
 ): Order["state"] {
-  return checkedWith(order, latest, { moment, availableCash: 100_000_000 });
+  return checkedWith(order, latest, { moment });
 }
 
 test("fills a market purchase placed during a session at once, at the latest delayed price", () => {
@@ -120,9 +116,11 @@ test("keeps an order placed before the market opens waiting while the latest pri
   // 08:50, when the latest quote is the close of Friday.
   const order = placed(
     { placedAt: new Date("2026-11-02T01:50:00Z") },
-    closeOfFriday,
+    bbcaCloseOfFridayForTest,
   );
-  expect(checked(order, closeOfFriday, "2026-11-02T02:05:00Z")).toEqual({
+  expect(
+    checked(order, bbcaCloseOfFridayForTest, "2026-11-02T02:05:00Z"),
+  ).toEqual({
     kind: "waiting",
   });
   // Quoted at 09:00:30 and checked at 09:10, with a fee of Rp3,742.50 that rounds up.
@@ -323,6 +321,7 @@ test("rejects a market purchase whose price rose beyond the cash while it waited
   ).toEqual({
     kind: "rejected",
     rejectedAt: new Date("2026-11-03T02:10:00Z"),
+    quotedAt: firstOfTuesday.quotedAt,
     failure: {
       kind: "priceRose",
       code: "BBCA",
@@ -385,4 +384,44 @@ test("expires an order at its expiry even when a price of its sessions that a ch
     kind: "expired",
     expiredAt: new Date("2026-11-02T09:30:00Z"),
   });
+});
+
+test("keeps an order open without a quote that a check may fill it with, and expires it once the prices of its trading day are final", () => {
+  const order = restingPurchase;
+  expect(
+    checkedWith(order, undefined, { moment: "2026-11-02T09:25:00Z" }),
+  ).toEqual({ kind: "resting" });
+  expect(
+    checkedWith(order, undefined, { moment: "2026-11-02T09:26:00Z" }),
+  ).toEqual({
+    kind: "expired",
+    expiredAt: new Date("2026-11-02T09:26:00Z"),
+  });
+});
+
+test("rejects a sale whose holding no longer has the shares that it set aside when a price reaches it, with the lots that remain beyond other open sales", () => {
+  const order = placed({ side: "sell" });
+  // Of the 500 shares that the sale set aside, a deletion by hand left 250 that no other open sale sets aside, which are 2 whole lots.
+  expect(
+    checkedWith(order, latestAtTen, {
+      moment: "2026-11-02T03:00:00Z",
+      availableShares: 250,
+    }),
+  ).toEqual({
+    kind: "rejected",
+    rejectedAt: new Date("2026-11-02T03:00:00Z"),
+    quotedAt: latestAtTen.quotedAt,
+    failure: {
+      kind: "sharesGone",
+      code: "BBCA",
+      lots: 5,
+      availableLots: 2,
+    },
+  });
+  expect(
+    checkedWith(order, latestAtTen, {
+      moment: "2026-11-02T03:00:00Z",
+      availableShares: 500,
+    }),
+  ).toMatchObject({ kind: "filled" });
 });
