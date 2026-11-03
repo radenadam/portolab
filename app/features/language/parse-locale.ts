@@ -1,3 +1,4 @@
+import { checkFieldLengthForReader } from "~/form-text";
 import { formatList } from "~/formatting";
 import { languageNames } from "~/language-names";
 import { m } from "~/paraglide/messages.js";
@@ -18,6 +19,10 @@ export function parseLocale(
   // The messages name every language that Portolab offers, so a new language reaches them by itself.
   const names = locales.map((locale) => languageNames[locale]);
   if (typeof value === "string") {
+    const text = checkFieldLengthForReader(value, source);
+    if (!text.ok) {
+      return text;
+    }
     return fail(
       m.language_unknown_error({
         field: source,

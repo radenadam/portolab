@@ -1,5 +1,6 @@
 import { getLocale } from "~/paraglide/runtime.js";
 import { listOfWords } from "~/sentences";
+import type { Bytes } from "~/units/bytes";
 import type { IndexPoints } from "~/units/index-points";
 import type { Rupiah } from "~/units/rupiah";
 import { wibTimeZone } from "~/wib";
@@ -43,6 +44,15 @@ export function digitGrouping(): { separator: string; size: number } {
 
 export function formatNumber(value: number): string {
   return new Intl.NumberFormat(intlLocale()).format(value);
+}
+
+/** Formats a size in bytes, such as 128,000 bytes. */
+export function formatBytes(size: Bytes): string {
+  return new Intl.NumberFormat(intlLocale(), {
+    style: "unit",
+    unit: "byte",
+    unitDisplay: "long",
+  }).format(size);
 }
 
 export function formatIndexLevel(level: IndexPoints): string {

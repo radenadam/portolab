@@ -1,3 +1,5 @@
+import { checkFieldLength } from "~/check-field-length";
+import { fieldMaximumLength } from "~/form-size";
 import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
 import { describeValue } from "~/value-shapes";
@@ -10,6 +12,13 @@ export function parseReturnPath(
 ): Result<string, string> {
   if (typeof value !== "string") {
     return returnPathFailure(value, source);
+  }
+  const checked = checkFieldLength(value);
+  // An address is the longest text that a field takes, so the maximum of any field is the maximum of this one.
+  if (!checked.ok) {
+    return fail(
+      `${source} must be a path on this site of at most ${String(fieldMaximumLength)} characters, but it has ${String(checked.failure)}.`,
+    );
   }
   // The URL parser resolves the value the way a browser does, so a value that only looks like a local path, such as one with a tab after its slash, still fails.
   const url = URL.parse(value, siteOrigin);

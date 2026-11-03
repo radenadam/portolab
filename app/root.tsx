@@ -24,16 +24,26 @@ import {
   RefusedFormPage,
 } from "./features/accounts/refused-form";
 import { LanguageSwitch } from "./features/language/language-switch";
+import { formSizeLimit } from "./form-size-limit.server";
 import { m } from "./paraglide/messages.js";
 import { getLocale } from "./paraglide/runtime.js";
 import { paraglideMiddleware } from "./paraglide/server.js";
 import styles from "./root.module.css";
 import "./theme.css";
+import { isTooLargeForm, TooLargeFormPage } from "./too-large-form";
 
-// The language comes first, so that a refused form and every later step speak the language of the reader.
+// The language comes first, so that a refused form and every later step speak the language of the reader. A form from another site is refused before its body is read. Paraglide copies the request that it gets but reads only its address and headers, so it gets a request without the body, of which its copy would otherwise keep everything that the server reads.
 export const middleware: Route.MiddlewareFunction[] = [
-  ({ request }, next) => paraglideMiddleware(request, () => next()),
+  ({ request }, next) =>
+    paraglideMiddleware(
+      new Request(request.url, {
+        method: request.method,
+        headers: request.headers,
+      }),
+      () => next(),
+    ),
   crossSiteProtection,
+  formSizeLimit,
   sessionMiddleware,
 ];
 
@@ -83,6 +93,9 @@ export default function Root(): ReactNode {
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): ReactNode {
   if (isRefusedForm(error)) {
     return <RefusedFormPage />;
+  }
+  if (isTooLargeForm(error)) {
+    return <TooLargeFormPage refusal={error} />;
   }
   // A loader answers an address that a person may not see as one that does not exist, so a guessed address reveals nothing.
   if (isRouteErrorResponse(error) && error.status === 404) {

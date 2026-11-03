@@ -1,25 +1,48 @@
+import { characterCount } from "~/character-count";
+import { checkFieldLength } from "~/check-field-length";
 import { formatNumber } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
 import { typeName } from "~/value-shapes";
 
-/** Reads the text of a field that a person must fill in, as the person typed it. The source is the label of the field, and the failure is a sentence for the reader in the current language. */
+/** Reads the text of a field that a person must fill in, as the person typed it. It refuses a text longer than any field takes before any other work on the text, because that work grows with the length of the text. The source is the label of the field, and the failure is a sentence for the reader in the current language. */
 export function parseFilledText(
   value: unknown,
   source: string,
 ): Result<string, string> {
-  if (typeof value === "string") {
-    return value.trim() === ""
-      ? fail(m.app_empty_field_error({ field: source }))
-      : succeed(value);
+  if (typeof value !== "string") {
+    // A form gives null for a field that it did not send, and only a forged form sends a file in a field of text.
+    return fail(
+      value === null || value === undefined
+        ? m.app_empty_field_error({ field: source })
+        : m.app_not_text_error({ field: source, type: typeName(value) }),
+    );
   }
-  // A form gives null for a field that it did not send, and only a forged form sends a file in a field of text.
-  return fail(
-    value === null || value === undefined
-      ? m.app_empty_field_error({ field: source })
-      : m.app_not_text_error({ field: source, type: typeName(value) }),
-  );
+  const text = checkFieldLengthForReader(value, source);
+  if (!text.ok) {
+    return text;
+  }
+  return value.trim() === ""
+    ? fail(m.app_empty_field_error({ field: source }))
+    : succeed(value);
+}
+
+/** Accepts the text of a field as checkFieldLength does, with a failure that is a sentence for the reader in the current language. */
+export function checkFieldLengthForReader(
+  text: string,
+  source: string,
+): Result<string, string> {
+  const checked = checkFieldLength(text);
+  // The rule of every field that a person fills in allows far less, so the error states no maximum, which would not be the one of the field.
+  return checked.ok
+    ? checked
+    : fail(
+        m.app_far_too_long_error({
+          field: source,
+          length: formatNumber(checked.failure),
+        }),
+      );
 }
 
 /** Reads a short text that a person typed, such as a name, without the spaces around it and with each run of spaces inside it as one space. */
@@ -52,11 +75,6 @@ export function checkMaximumLength(
         }),
       )
     : succeed(text);
-}
-
-/** Counts the characters of a text as a reader counts them. A letter outside the basic plane of Unicode takes two units of a JavaScript string, but it is one character. */
-export function characterCount(text: string): number {
-  return Array.from(text).length;
 }
 
 /** The text that a person typed in a field, so that a form can show it again with the reason that it was not accepted. A field that holds no text shows empty. */
