@@ -66,6 +66,20 @@ export async function submitSignIn(
   await form.locator("button[type=submit]").click();
 }
 
+/** Signs in on the sign-in page that a page sent the reader to, and checks that the sign-in page got the path of that page and returns there. */
+export async function signInAndReturn(
+  page: Page,
+  {
+    path,
+    username,
+    password,
+  }: { path: string; username: string; password: string },
+): Promise<void> {
+  await expect(page).toHaveURL(`/sign-in?returnTo=${encodeURIComponent(path)}`);
+  await submitSignIn(page, username, password);
+  await expect(page).toHaveURL(path);
+}
+
 /** Fills the form that finishes or creates an account with a name, the username when the form asks for one, the chosen password twice, and consent, and sends it. */
 export async function submitAccountForm(
   page: Page,

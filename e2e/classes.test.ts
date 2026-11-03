@@ -12,6 +12,7 @@ import type { Locale } from "../app/paraglide/runtime.js";
 import {
   chosenPassword,
   joinAsNewStudent,
+  signInAndReturn,
   signInAsNewLecturer,
   submitAccountForm,
   submitNewPassword,
@@ -257,16 +258,6 @@ async function enterCode(
     .getByRole("main")
     .getByRole("button", { name: text.continueButton })
     .click();
-}
-
-/** Signs in with the chosen password on the sign-in page that a page sent the reader to, and checks that the sign-in page got the path of that page and returns there. */
-async function signInAndReturn(
-  page: Page,
-  { path, username }: { path: string; username: string },
-): Promise<void> {
-  await expect(page).toHaveURL(`/sign-in?returnTo=${encodeURIComponent(path)}`);
-  await submitSignIn(page, username, chosenPassword);
-  await expect(page).toHaveURL(path);
 }
 
 /** Signs out in another tab of the same device, so the session of the page that a test holds ends without the page knowing. */
@@ -575,7 +566,11 @@ for (const locale of locales) {
     await otherDevice
       .getByRole("link", { name: text.existingAccountLink })
       .click();
-    await signInAndReturn(otherDevice, { path: third.joinPath, username });
+    await signInAndReturn(otherDevice, {
+      path: third.joinPath,
+      username,
+      password: chosenPassword,
+    });
     await expect(otherDevice).toHaveTitle(`${text.joinClassTitle} | Portolab`);
     await expect(otherDevice.getByText(text.joinClassBody)).toBeVisible();
     await expectAccessibleScreen(otherDevice);
@@ -586,7 +581,11 @@ for (const locale of locales) {
       .getByRole("main")
       .getByRole("button", { name: text.joinButton })
       .click();
-    await signInAndReturn(otherDevice, { path: third.joinPath, username });
+    await signInAndReturn(otherDevice, {
+      path: third.joinPath,
+      username,
+      password: chosenPassword,
+    });
     await otherDevice
       .getByRole("main")
       .getByRole("button", { name: text.joinButton })
