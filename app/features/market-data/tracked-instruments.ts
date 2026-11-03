@@ -1,5 +1,5 @@
-import { periodCovering } from "~/period-covering";
-import type { DatePeriod } from "~/period-covering";
+import { periodOf } from "~/period-of";
+import type { DatePeriod } from "~/period-of";
 import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
 import type { Instrument } from "./price-source.server";
@@ -92,15 +92,15 @@ function listTrackedInstruments(): Instrument[] {
 
 /** The codes of the stocks in the universe on a date, such as 2026-11-02. It fails for a date that no recorded period covers, so a missing review of IDX is noticed. */
 export function universeOn(date: string): Result<readonly string[], string> {
-  const period = periodCovering(
-    universePeriods,
+  const file = "tracked-instruments.ts";
+  const period = periodOf(
+    { name: "the LQ45", file, periods: universePeriods },
     date,
-    "the LQ45 in tracked-instruments.ts",
   );
-  if (period !== undefined) {
-    return succeed(period.codes);
+  if (!period.ok) {
+    return fail(
+      `No recorded period of the LQ45 covers ${date}, so add the stocks of the latest review of IDX to ${file}.`,
+    );
   }
-  return fail(
-    `No recorded period of the LQ45 covers ${date}, so add the stocks of the latest review of IDX to tracked-instruments.ts.`,
-  );
+  return succeed(period.value.codes);
 }

@@ -1,8 +1,8 @@
 import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
 import { addDays, dayOfWeek } from "~/calendar-dates";
-import { periodCovering } from "~/period-covering";
-import type { DatePeriod } from "~/period-covering";
+import { periodOf } from "~/period-of";
+import type { DatePeriod } from "~/period-of";
 import { wibDateOf, wibMinuteOfDay, wibMoment } from "~/wib";
 
 /** The trading days and hours of IDX for the dates from `from` to `until`, in WIB. */
@@ -262,17 +262,17 @@ function isTradingDayIn(calendar: TradingCalendar, date: string): boolean {
 }
 
 function calendarFor(date: string): Result<TradingCalendar, string> {
-  const calendar = periodCovering(
-    tradingCalendars,
+  const file = "idx-calendar.ts";
+  const calendar = periodOf(
+    { name: "the trading calendars", file, periods: tradingCalendars },
     date,
-    "the trading calendars in idx-calendar.ts",
   );
-  if (calendar !== undefined) {
-    return succeed(calendar);
+  if (!calendar.ok) {
+    return fail(
+      `No IDX trading calendar covers ${date}, so add the holidays and trading hours of that year to ${file}.`,
+    );
   }
-  return fail(
-    `No IDX trading calendar covers ${date}, so add the holidays and trading hours of that year to idx-calendar.ts.`,
-  );
+  return calendar;
 }
 
 /** Whether two moments fall on the same calendar day in WIB. */
