@@ -18,7 +18,7 @@ import type { ReviewState } from "./review-state.ts";
 /** The rounds in which the reviewer reads what changed, counting the rounds whose agent did not finish. Later rounds only check that the open findings are fixed, so a pull request that keeps drawing new findings still ends. */
 export const reviewRoundLimit = 3;
 
-/** The rounds after the review rounds that check the open findings. After them the panel runs no agent, and a maintainer decides how the pull request continues. */
+/** The rounds after the review rounds that check the open findings. After them the panel runs no agent, and the author decides how the change continues. */
 export const checkRoundLimit = 2;
 
 const planKinds = ["review", "check", "pass", "unchanged", "capped"] as const;

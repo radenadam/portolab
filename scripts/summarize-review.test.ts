@@ -373,7 +373,7 @@ test("fails without an agent and leaves the state as it was when no file changed
 });
 
 const nextStep =
-  "A maintainer decides how this pull request continues, and a new pull request with the same commits starts with new rounds.";
+  "The author decides how the change continues, for example in a new pull request with the same commits, which starts with new rounds.";
 
 test("fails without an agent after every round while one finding or several stay open, and leaves the state as it was", () => {
   const lastCheck = reviewRoundLimit + checkRoundLimit;
