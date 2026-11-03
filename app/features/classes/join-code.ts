@@ -10,7 +10,7 @@ export function formatJoinCode(code: JoinCode): string {
   return `${code.slice(0, half)}-${code.slice(half)}`;
 }
 
-/** The address of the page with which a student joins a class, which a lecturer shares in a chat, so that the student does not need to type the code. */
-export function joinPath(code: JoinCode): string {
-  return `/join/${formatJoinCode(code)}`;
+/** The address of the page with which a student joins a class, which a lecturer shares in a chat, so that the student does not need to type the code. It takes the code as a page shows it, such as k7qm-4rxt, so a browser test that reads the code from a page finds the same address. */
+export function joinPath(shownCode: string): string {
+  return `/join/${shownCode}`;
 }

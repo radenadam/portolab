@@ -3,6 +3,7 @@
   "include": [
     "e2e/**/*",
     "app/language-names.ts",
+    "app/local-network.server.ts",
     "app/paraglide/runtime.d.ts",
     "app/result.ts",
     "app/sentences.ts",
@@ -17,6 +18,7 @@
     "app/features/accounts/account-limits.ts",
     "app/features/accounts/username.ts",
     "app/features/classes/class-rules.ts",
+    "app/features/classes/join-code.ts",
     "app/form-size.ts",
     "app/units/bytes.ts",
     "app/units/rupiah.ts"

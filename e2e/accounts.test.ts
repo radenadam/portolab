@@ -9,6 +9,7 @@ import {
   chosenPassword,
   fillNewPassword,
   runAccountCommand,
+  signInAndReturn,
   signInAsNewLecturer,
   submitNewPassword,
   submitSignIn,
@@ -435,9 +436,11 @@ for (const locale of locales) {
     await expect(page).toHaveURL("/account");
 
     await otherDevice.goto("/account");
-    await expect(otherDevice).toHaveURL("/sign-in?returnTo=%2Faccount");
-    await submitSignIn(otherDevice, username, "a second long sentence");
-    await expect(otherDevice).toHaveURL("/account");
+    await signInAndReturn(otherDevice, {
+      path: "/account",
+      username,
+      password: "a second long sentence",
+    });
     await otherDevice.context().close();
   });
 
@@ -465,9 +468,11 @@ for (const locale of locales) {
     ).toBeVisible();
 
     await page.goto("/account");
-    await expect(page).toHaveURL("/sign-in?returnTo=%2Faccount");
-    await submitSignIn(page, username, chosenPassword);
-    await expect(page).toHaveURL("/account");
+    await signInAndReturn(page, {
+      path: "/account",
+      username,
+      password: chosenPassword,
+    });
   });
 
   test(`refuses a form that another site sent in ${language}`, async ({

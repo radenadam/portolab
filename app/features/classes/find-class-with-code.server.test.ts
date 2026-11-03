@@ -9,7 +9,7 @@ import {
   joinContextForTest,
 } from "./classes-for-test.server";
 import { findClassWithCode } from "./find-class-with-code.server";
-import { formatJoinCode, joinPath } from "./join-code";
+import { formatJoinCode } from "./join-code";
 import { joinLimits } from "./join-limiters.server";
 
 const texts: Record<
@@ -64,7 +64,6 @@ test("finds the class of a code whatever its case, its spaces, and its hyphen", 
       value: { joinCode, classToJoin: { name: "Manajemen Portofolio A" } },
     });
   }
-  expect(joinPath(joinCode)).toBe(`/join/${formatJoinCode(joinCode)}`);
   expect(formatJoinCode(joinCode)).toMatch(
     /^[a-km-np-z2-9]{4}-[a-km-np-z2-9]{4}$/,
   );
