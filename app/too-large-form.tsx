@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { isRouteErrorResponse, useLocation } from "react-router";
+import type { ErrorResponse } from "react-router";
 import { ErrorPage, NextStepLink } from "./error-page";
 import { formMaximumBytes } from "./form-size";
 import { formatBytes } from "./formatting";
@@ -11,17 +12,19 @@ import { isBytes } from "./units/bytes";
 export const tooLargeFormStatus = 413;
 
 /** Whether an error is the refusal of a body larger than formMaximumBytes. */
-export function isTooLargeForm(error: unknown): boolean {
+export function isTooLargeForm(error: unknown): error is ErrorResponse {
   return isRouteErrorResponse(error) && error.status === tooLargeFormStatus;
 }
 
 /** The page that explains why Portolab refused a form larger than its limit, with a link that opens the address of the form again. The refusal holds the size of the form when the request stated it. */
-export function TooLargeFormPage({ refusal }: { refusal: unknown }): ReactNode {
+export function TooLargeFormPage({
+  refusal,
+}: {
+  refusal: ErrorResponse;
+}): ReactNode {
   const { pathname, search } = useLocation();
   const maximum = formatBytes(formMaximumBytes);
-  const size: unknown = isRouteErrorResponse(refusal)
-    ? refusal.data
-    : undefined;
+  const size: unknown = refusal.data;
   const body = isBytes(size)
     ? m.app_too_large_form_body({ size: formatBytes(size), maximum })
     : m.app_too_large_unstated_form_body({ maximum });

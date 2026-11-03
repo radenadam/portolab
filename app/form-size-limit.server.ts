@@ -1,6 +1,10 @@
 import { data } from "react-router";
 import type { MiddlewareFunction } from "react-router";
-import { discardMaximumBytes, formMaximumBytes } from "./form-size";
+import {
+  discardMaximumBytes,
+  formMaximumBytes,
+  statedSizeMaximumDigits,
+} from "./form-size";
 import { fail, succeed } from "./result";
 import type { Result } from "./result";
 import { tooLargeFormStatus } from "./too-large-form";
@@ -41,15 +45,16 @@ function parseContentLength(
   value: unknown,
   source: string,
 ): Result<Bytes, string> {
-  // Fifteen digits stay below the largest whole number that JavaScript holds exactly.
   const size =
-    typeof value === "string" && /^\d{1,15}$/.test(value)
+    typeof value === "string" &&
+    value.length <= statedSizeMaximumDigits &&
+    /^\d+$/.test(value)
       ? Number(value)
       : undefined;
   return isBytes(size)
     ? succeed(size)
     : fail(
-        `${source} must be a whole number of bytes with at most 15 digits, but it is ${describeValue(value)}.`,
+        `${source} must be a whole number of bytes with at most ${String(statedSizeMaximumDigits)} digits, but it is ${describeValue(value)}.`,
       );
 }
 

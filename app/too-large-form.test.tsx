@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { createRoutesStub } from "react-router";
 import { expect, test } from "vitest";
+import { statedSizeMaximumDigits } from "./form-size";
 import { languageNames } from "./language-names";
 import { locales } from "./paraglide/runtime.js";
 import type { Locale } from "./paraglide/runtime.js";
@@ -66,8 +67,8 @@ for (const locale of locales) {
     switchLocaleForTest(locale);
     for (const [statedSize, body] of [
       [128_040, text.stated],
-      // The limit reads a stated size of at most fifteen digits, so this is the widest size that the page shows.
-      [999_999_999_999_999, text.widest],
+      // The limit reads a stated size of at most statedSizeMaximumDigits digits, so this is the widest size that the page shows.
+      [Number("9".repeat(statedSizeMaximumDigits)), text.widest],
       [null, text.unstated],
     ] as const) {
       const html = renderTooLargeFormPage(statedSize);

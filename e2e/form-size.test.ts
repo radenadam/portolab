@@ -6,7 +6,11 @@ import {
   nameMaximumLength,
   passwordLength,
 } from "../app/features/accounts/account-limits.ts";
-import { fieldMaximumLength, formMaximumBytes } from "../app/form-size.ts";
+import {
+  fieldMaximumLength,
+  formMaximumBytes,
+  statedSizeMaximumDigits,
+} from "../app/form-size.ts";
 import { languageNames } from "../app/language-names.ts";
 import { secondMilliseconds } from "../app/time-units.ts";
 import { locales } from "../app/paraglide/runtime.js";
@@ -72,7 +76,7 @@ const signInPath = "/sign-in?returnTo=%2Fclasses";
 
 const forgedRequestTimeoutSeconds = 10;
 
-/** Sends a form as a forged request that states a size of fifteen digits, the widest that the limit reads, without a body of that size, and returns the answer of the server, which refuses the form before it reads the body. */
+/** Sends a form as a forged request that states a size of statedSizeMaximumDigits digits, the widest that the limit reads, without a body of that size, and returns the answer of the server, which refuses the form before it reads the body. */
 function sendWithWidestStatedSize(
   url: string,
   headers: Record<string, string>,
@@ -82,7 +86,10 @@ function sendWithWidestStatedSize(
       url,
       {
         method: "POST",
-        headers: { ...headers, "content-length": "9".repeat(15) },
+        headers: {
+          ...headers,
+          "content-length": "9".repeat(statedSizeMaximumDigits),
+        },
         agent: false,
         timeout: forgedRequestTimeoutSeconds * secondMilliseconds,
       },

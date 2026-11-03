@@ -13,8 +13,7 @@ const failures: Record<
     empty: string;
     notText: string;
     tooLong: string;
-    longerThanAnyField: string;
-    farLongerThanAnyField: string;
+    pastAnyFieldMaximum: Record<"justPast" | "farPast", string>;
   }
 > = {
   id: {
@@ -24,10 +23,12 @@ const failures: Record<
       'Formulir mengirim nilai bertipe File di kolom "Nama Anda", bukan teks. Muat ulang halaman, lalu isi formulirnya lagi.',
     tooLong:
       'Kolom "Nama Anda" memuat paling banyak 1.000 karakter, tetapi isinya 1.001 karakter. Persingkat isinya.',
-    longerThanAnyField:
-      'Kolom "Nama Anda" berisi 8.001 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
-    farLongerThanAnyField:
-      'Kolom "Nama Anda" berisi 1.000.000 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
+    pastAnyFieldMaximum: {
+      justPast:
+        'Kolom "Nama Anda" berisi 8.001 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
+      farPast:
+        'Kolom "Nama Anda" berisi 1.000.000 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
+    },
   },
   en: {
     empty: 'The field "Your name" is empty, but Portolab needs it. Fill it in.',
@@ -35,10 +36,12 @@ const failures: Record<
       'The form sent a value of type File in the field "Your name" instead of text. Reload the page and fill in the form again.',
     tooLong:
       'The field "Your name" holds at most 1,000 characters, but it has 1,001. Shorten it.',
-    longerThanAnyField:
-      'The field "Your name" has 8,001 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
-    farLongerThanAnyField:
-      'The field "Your name" has 1,000,000 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
+    pastAnyFieldMaximum: {
+      justPast:
+        'The field "Your name" has 8,001 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
+      farPast:
+        'The field "Your name" has 1,000,000 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
+    },
   },
 };
 
@@ -113,12 +116,12 @@ for (const locale of locales) {
     ]) {
       expect(parsed).toEqual({
         ok: false,
-        failure: failure.longerThanAnyField,
+        failure: failure.pastAnyFieldMaximum.justPast,
       });
     }
     expect(parseFilledText("a".repeat(1_000_000), label)).toEqual({
       ok: false,
-      failure: failure.farLongerThanAnyField,
+      failure: failure.pastAnyFieldMaximum.farPast,
     });
   });
 }

@@ -1,7 +1,11 @@
 import { RouterContextProvider } from "react-router";
 import { expect, test } from "vitest";
 import { captureStderrForTest } from "./capture-stderr-for-test";
-import { discardMaximumBytes, formMaximumBytes } from "./form-size";
+import {
+  discardMaximumBytes,
+  formMaximumBytes,
+  statedSizeMaximumDigits,
+} from "./form-size";
 import { formSizeLimit } from "./form-size-limit.server";
 
 const formAddress = new URL("http://localhost:3000/sign-in");
@@ -123,7 +127,7 @@ test("refuses a body without a stated size at the first piece past the limit, so
 
 test("refuses a body that states more digits than JavaScript holds exactly, without reading it, and logs why", async () => {
   const warnings = captureStderrForTest();
-  const statedSize = "1234567890123456789";
+  const statedSize = "9".repeat(statedSizeMaximumDigits + 1);
   const request = formRequest(endlessBody(), statedSize);
   await expect(runLimit(request)).rejects.toMatchObject({
     data: null,
@@ -132,6 +136,6 @@ test("refuses a body that states more digits than JavaScript holds exactly, with
   expect(request.bodyUsed).toBe(false);
   expect(JSON.parse(warnings[0] ?? "")).toMatchObject({
     level: "warning",
-    message: `The header Content-Length must be a whole number of bytes with at most 15 digits, but it is "${statedSize}".`,
+    message: `The header Content-Length must be a whole number of bytes with at most ${String(statedSizeMaximumDigits)} digits, but it is "${statedSize}".`,
   });
 });
