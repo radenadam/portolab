@@ -1,6 +1,7 @@
 import { readdirSync } from "node:fs";
 import { expect, test } from "vitest";
 import { listOfWords } from "../app/sentences.ts";
+import { successValueForTest } from "../app/success-value-for-test.ts";
 import { parseJsonObject, parseStringsAt, readJsonFile } from "./json.ts";
 import { parseLensOutput } from "./lens-reports.ts";
 import { parseVerifiedFindings } from "./review-inputs.ts";
@@ -25,13 +26,12 @@ const verdict = {
 
 /** Reads the list of strings at a path of keys in one of the schemas, which a test needs to compare against. */
 function schemaStrings(schemaPath: string, keys: readonly string[]): string[] {
-  const strings = readJsonFile(schemaPath, (value, source) =>
-    parseStringsAt(value, source, { keys, mayBeEmpty: false }),
+  return successValueForTest(
+    readJsonFile(schemaPath, (value, source) =>
+      parseStringsAt(value, source, { keys, mayBeEmpty: false }),
+    ),
+    `The schema ${schemaPath} lists strings at ${keys.join(".")}`,
   );
-  if (!strings.ok) {
-    throw new Error(strings.failure);
-  }
-  return strings.value;
 }
 
 function withoutField(

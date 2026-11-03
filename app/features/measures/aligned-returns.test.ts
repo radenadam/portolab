@@ -1,10 +1,13 @@
 import { expect, test } from "vitest";
+import { successValueForTest } from "~/success-value-for-test";
 import { buildDailyHistory } from "~/features/market-data/build-daily-history";
+import { datedClosesForTest } from "~/features/market-data/history-for-test";
 import { splitAdjustedRupiah } from "~/units/split-adjusted-rupiah";
 import { closeToForTest } from "./close-to-for-test";
 import { defaultEstimationSettings } from "./estimation-settings";
+import { marketWithoutCompleteMonthForTest } from "./market-without-complete-month-for-test";
 import { monthEndClosesForTest } from "./month-end-closes-for-test";
-import { alignedReturns } from "./aligned-returns";
+import { alignedReturns, countReturns } from "./aligned-returns";
 import type { AlignedReturns, InstrumentCloses } from "./aligned-returns";
 
 // The closes of the IHSG and BBCA around the ends of the months from June to October 2026, as Yahoo Finance returned them on 1 November 2026, and an invented close on Monday 2 November 2026, a day that has not come yet. The expected returns were computed with the decimal module of Python at 50 significant digits.
@@ -21,17 +24,10 @@ function aligned(
   instruments: readonly InstrumentCloses[],
   settings = defaultEstimationSettings,
 ): AlignedReturns<InstrumentCloses> {
-  const returns = alignedReturns(
-    monthEndClosesForTest("IHSG"),
-    instruments,
-    settings,
+  return successValueForTest(
+    alignedReturns(monthEndClosesForTest("IHSG"), instruments, settings),
+    "The instruments have enough returns",
   );
-  if (!returns.ok) {
-    throw new Error(
-      `The instruments have enough returns, but the returns failed with ${JSON.stringify(returns.failure)}.`,
-    );
-  }
-  return returns.value;
 }
 
 const twoReturns = { returnCount: 2, minimumReturnCount: 2 };
@@ -81,7 +77,7 @@ test("gives no return for the months on either side of a month end without a clo
   const market = buildDailyHistory({ kind: "index", code: "IHSG" }, [
     ["2026-06-30", 5643.19],
     ["2026-07-31", 6236.13],
-    ...ihsg.closes.map((close): [string, number] => [close.date, close.close]),
+    ...datedClosesForTest(ihsg),
   ]);
   const bbcaCloses: [string, number][] = [
     ["2026-06-30", 5550],
@@ -188,4 +184,44 @@ test("fails for an instrument whose returns are the same in every month, and nam
       defaultEstimationSettings,
     ),
   ).toEqual({ ok: false, failure: { kind: "noVariation", code: "IHSG" } });
+});
+
+test("counts the monthly returns of a stock with a full history in the window of the settings", () => {
+  expect(
+    countReturns(
+      monthEndClosesForTest("BBCA"),
+      monthEndClosesForTest("IHSG"),
+      defaultEstimationSettings,
+    ),
+  ).toEqual({ count: 60, minimum: 24, windowEnd: "2026-09-30" });
+});
+
+test("counts as many monthly returns of a stock that listed recently as the measures share with the market", () => {
+  const aadi = monthEndClosesForTest("AADI");
+  const market = monthEndClosesForTest("IHSG");
+  const counted = countReturns(aadi, market, defaultEstimationSettings);
+  expect(counted).toEqual({
+    count: 21,
+    minimum: 24,
+    windowEnd: "2026-09-30",
+  });
+  expect(alignedReturns(market, [aadi], defaultEstimationSettings)).toEqual({
+    ok: false,
+    failure: {
+      kind: "tooFewReturns",
+      code: "AADI",
+      count: counted.count,
+      minimum: counted.minimum,
+    },
+  });
+});
+
+test("counts no returns and no window while the market has no complete month", () => {
+  expect(
+    countReturns(
+      monthEndClosesForTest("BBCA"),
+      marketWithoutCompleteMonthForTest(),
+      defaultEstimationSettings,
+    ),
+  ).toEqual({ count: 0, minimum: 24, windowEnd: undefined });
 });

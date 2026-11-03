@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+import { successValueForTest } from "~/success-value-for-test";
 import { splitAdjustedRupiah } from "~/units/split-adjusted-rupiah";
 import type { MarketMeasures, StockMeasures } from "./capm";
 import { closeToForTest } from "./close-to-for-test";
@@ -13,17 +14,10 @@ function measured(code: "BBCA" | "AMMN"): {
   stock: StockMeasures;
   market: MarketMeasures;
 } {
-  const measures = measureStock(
-    monthEndClosesForTest(code),
-    ihsg,
-    defaultEstimationSettings,
+  return successValueForTest(
+    measureStock(monthEndClosesForTest(code), ihsg, defaultEstimationSettings),
+    `${code} has enough monthly returns`,
   );
-  if (!measures.ok) {
-    throw new Error(
-      `${code} has enough monthly returns, but its measures failed with ${JSON.stringify(measures.failure)}.`,
-    );
-  }
-  return measures.value;
 }
 
 test("measures a stock against the IHSG over the latest 60 monthly returns", () => {

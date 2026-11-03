@@ -1,6 +1,6 @@
 # 0002. Orders fill at delayed prices during trading sessions
 
-- Status: Accepted
+- Status: Accepted. [Decision 0016](0016-orders-last-one-trading-day-and-fill-as-the-order-book-would.md) changes four of its rules: which sessions count as trading sessions for a fill, which delayed price fills a market order, when a limit order fills at once, and how long an order waits before it expires.
 - Date: 2026-10-31
 
 ## Context

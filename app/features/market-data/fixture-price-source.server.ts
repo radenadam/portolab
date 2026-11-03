@@ -1,7 +1,7 @@
 import { fail, succeed } from "~/result";
 import { indexPoints } from "~/units/index-points";
-import { rupiah } from "~/units/rupiah";
 import { buildDailyHistory } from "./build-daily-history";
+import { stockQuote } from "./stock-quote";
 import type { PriceSource, Quote } from "./price-source.server";
 import { yahooFinance } from "./yahoo-price-source.server";
 
@@ -139,20 +139,6 @@ export const fixturePriceSource: PriceSource = {
     );
   },
 };
-
-function stockQuote(
-  code: string,
-  [price, previousClose]: [number, number],
-  quotedAt: string,
-): Quote {
-  return {
-    kind: "stock",
-    code,
-    price: rupiah(price),
-    previousClose: rupiah(previousClose),
-    quotedAt: new Date(quotedAt),
-  };
-}
 
 function datedCloses(
   closes: readonly number[],

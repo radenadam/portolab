@@ -1,6 +1,7 @@
 import { expect, test } from "vitest";
 import { openDatabaseForTest } from "~/database/open-database-for-test.server";
 import type { Result } from "~/result";
+import { successValueForTest } from "~/success-value-for-test";
 import {
   parseAccountCommand,
   runAccountCommand,
@@ -55,11 +56,10 @@ test("names every wrong part of the command line at once", () => {
 
 /** Reads a command line as the account command does. */
 function command(commandLine: readonly string[]): AccountCommand {
-  const parsed = parseAccountCommand(commandLine, "The command line");
-  if (!parsed.ok) {
-    throw new Error(parsed.failure);
-  }
-  return parsed.value;
+  return successValueForTest(
+    parseAccountCommand(commandLine, "The command line"),
+    `The command line ${JSON.stringify(commandLine)} is valid`,
+  );
 }
 
 /** The temporary password that a run of the command printed. */

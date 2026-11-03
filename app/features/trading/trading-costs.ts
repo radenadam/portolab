@@ -1,0 +1,117 @@
+import { periodOf } from "~/period-of";
+import type { DatePeriod } from "~/period-of";
+import { fail, failuresOf, succeed } from "~/result";
+import type { Result } from "~/result";
+import { listOfWords } from "~/sentences";
+import { basisPoints, basisPointsPerWhole } from "~/units/basis-points";
+import type { BasisPoints } from "~/units/basis-points";
+import { rupiah } from "~/units/rupiah";
+import type { Rupiah } from "~/units/rupiah";
+import type { OrderSide, Trade } from "./order";
+import { roundedShare } from "./rounded-share";
+
+interface FeeSchedule extends DatePeriod {
+  buyFee: BasisPoints;
+  sellFee: BasisPoints;
+  /** The broker whose fees these are, and where they were read. */
+  source: string;
+}
+
+interface SalesTaxRule extends DatePeriod {
+  rate: BasisPoints;
+  /** The regulation that sets the rate. */
+  source: string;
+}
+
+// Decision 0016 explains why Portolab charges the fees of one typical broker. A broker's fee includes the levy of IDX, KPEI, and KSEI and the value added tax on its commission.
+const feeSchedules: readonly FeeSchedule[] = [
+  {
+    from: "2026-11-01",
+    buyFee: basisPoints(15),
+    sellFee: basisPoints(15),
+    source:
+      "the help center of Stockbit Sekuritas on 1 November 2026, which lists 0.15% for a purchase and 0.25% for a sale, and the home page of Stockbit, which says that the fee of a sale includes the final tax on sales",
+  },
+];
+
+const salesTaxRules: readonly SalesTaxRule[] = [
+  {
+    from: "1997-05-29",
+    rate: basisPoints(10),
+    source:
+      "article 1 paragraph 2a of Peraturan Pemerintah 41/1994, as Peraturan Pemerintah 14/1997 of 29 May 1997 amended it, which article 244 of PMK 81/2024 restates",
+  },
+];
+
+/** The rates of the costs of the trades of one day. */
+export interface CostRates {
+  buyFee: BasisPoints;
+  sellFee: BasisPoints;
+  salesTax: BasisPoints;
+}
+
+/** The rates of the costs of the trades of a day. It fails for a date that the fees or the tax have no record for, and names each of them. */
+export function costRatesOn(date: string): Result<CostRates, string> {
+  const file = "trading-costs.ts";
+  const fees = periodOf(
+    { name: "the broker fee", file, periods: feeSchedules },
+    date,
+  );
+  const tax = periodOf(
+    { name: "the final tax on sales", file, periods: salesTaxRules },
+    date,
+  );
+  if (!fees.ok || !tax.ok) {
+    return fail(
+      `No record of ${listOfWords(failuresOf([fees, tax]))} covers ${date}, so add the rates for that day to ${file}.`,
+    );
+  }
+  return succeed({
+    buyFee: fees.value.buyFee,
+    sellFee: fees.value.sellFee,
+    salesTax: tax.value.rate,
+  });
+}
+
+/** A trade of a value with the broker fee and the final tax on sales. Each cost is its rate of the value, rounded to the nearest whole rupiah with halves up, as ROUND does in a spreadsheet, and a purchase pays no tax. */
+export function tradeWithCosts(
+  side: OrderSide,
+  value: Rupiah,
+  rates: CostRates,
+): Trade {
+  switch (side) {
+    case "buy":
+      return { value, fee: amountAtRate(value, rates.buyFee), tax: rupiah(0) };
+    case "sell":
+      return {
+        value,
+        fee: amountAtRate(value, rates.sellFee),
+        tax: amountAtRate(value, rates.salesTax),
+      };
+  }
+}
+
+/** What a purchase pays out: its value and the costs that tradeWithCosts gives it. */
+export function purchaseCost(trade: Trade): Rupiah {
+  return rupiah(trade.value + trade.fee + trade.tax);
+}
+
+/** The change of the cash of an account from a trade: a purchase pays out its cost, and a sale pays in its value less its costs. */
+export function cashChange(side: OrderSide, trade: Trade): Rupiah {
+  switch (side) {
+    case "buy":
+      return rupiah(0 - purchaseCost(trade));
+    case "sell":
+      return rupiah(trade.value - trade.fee - trade.tax);
+  }
+}
+
+function amountAtRate(value: Rupiah, rate: BasisPoints): Rupiah {
+  return rupiah(
+    roundedShare(
+      value,
+      { numerator: rate, denominator: basisPointsPerWhole },
+      "halfUp",
+    ),
+  );
+}

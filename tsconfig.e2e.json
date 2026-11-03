@@ -7,6 +7,7 @@
     "app/paraglide/runtime.d.ts",
     "app/result.ts",
     "app/sentences.ts",
+    "app/success-value-for-test.ts",
     "app/value-parsers.ts",
     "app/character-count.ts",
     "app/check-field-length.ts",

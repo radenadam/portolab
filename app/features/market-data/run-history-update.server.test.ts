@@ -5,6 +5,7 @@ import { fail, succeed } from "~/result";
 import { writeLog } from "~/write-log.server";
 import { buildDailyHistory } from "./build-daily-history";
 import { fixturePriceSource } from "./fixture-price-source.server";
+import { withClosesForTest } from "./history-for-test";
 import { listDailyHistory } from "./history-store.server";
 import type { Instrument, PriceSource } from "./price-source.server";
 import { runHistoryUpdate } from "./run-history-update.server";
@@ -83,15 +84,12 @@ function sourceWithLaterCloses(dates: readonly string[]): PriceSource {
       if (!history.ok) {
         return history;
       }
-      const closes: [string, number][] = [];
-      for (const close of history.value.closes) {
-        closes.push([close.date, close.close]);
-      }
-      const lastClose = closes.at(-1)?.[1] ?? 0;
+      const lastClose = history.value.closes.at(-1)?.close ?? 0;
+      const laterCloses: [string, number][] = [];
       for (const date of dates) {
-        closes.push([date, lastClose]);
+        laterCloses.push([date, lastClose]);
       }
-      return succeed(buildDailyHistory(instrument, closes));
+      return succeed(withClosesForTest(history.value, laterCloses));
     },
   };
 }

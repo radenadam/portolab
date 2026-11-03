@@ -1,5 +1,6 @@
 import { readdirSync } from "node:fs";
 import { expect, test } from "vitest";
+import { successValueForTest } from "../app/success-value-for-test.ts";
 import { readJsonFile } from "./json.ts";
 import { readTextFile } from "./read-text-file.ts";
 import {
@@ -29,11 +30,10 @@ const verdict = {
 };
 
 function routeSchemaLenses(): string[] {
-  const lenses = readJsonFile(reviewSchemaPaths.route, parseRouteSchemaLenses);
-  if (!lenses.ok) {
-    throw new Error(lenses.failure);
-  }
-  return lenses.value;
+  return successValueForTest(
+    readJsonFile(reviewSchemaPaths.route, parseRouteSchemaLenses),
+    "The schema of the route lists its lenses",
+  );
 }
 
 test("reads job results and refuses an empty needs context", () => {
