@@ -9,18 +9,25 @@ import type { OrderLots } from "~/units/lots";
 import { successValueForTest } from "~/success-value-for-test";
 import { rupiah } from "~/units/rupiah";
 import type { OpenOrder, OrderRequest } from "./order";
+import { orderTradingDay } from "./order-trading-day";
 import { placeOrder } from "./place-order";
 import type { AccountState, StockState } from "./place-order";
 import { parseOrderLots } from "./parse-order-lots";
-import { idxRulesForTest } from "./rules-for-test";
 
 // The moments of Monday 2 November 2026, in WIB, for a source that lags 10 minutes behind the exchange.
+const delayMinutes = 10;
 /** 10:00, in session I. */
 export const duringSessionForTest = new Date("2026-11-02T03:00:00Z");
 /** 16:25, the last minute before the prices of the day are final. */
 export const lastMinuteOfMondayForTest = new Date("2026-11-02T09:25:00Z");
 /** 16:26, when the prices of the day are final and the open orders of the day expire. */
 export const endOfMondayForTest = new Date("2026-11-02T09:26:00Z");
+
+/** The trading day that orderTradingDay gives to an order placed at 10:00 WIB on Monday 2 November 2026, which is that Monday with its rules and costs. */
+export const mondayTradingDayForTest = successValueForTest(
+  orderTradingDay(duringSessionForTest, delayMinutes),
+  "Monday 2 November 2026 has recorded rules and costs",
+);
 
 /** The price of a limit order. */
 export function limitForTest(limit: number): OrderRequest["price"] {
@@ -45,7 +52,7 @@ export function orderLotsForTest(count: number): OrderLots {
     parseOrderLots(
       String(count),
       "Lots",
-      idxRulesForTest("2026-11-02").maximumLots,
+      mondayTradingDayForTest.rules.maximumLots,
     ),
     `${String(count)} lots are a valid order`,
   );
@@ -54,7 +61,7 @@ export function orderLotsForTest(count: number): OrderLots {
 /** BBCA at 10:00 WIB on Monday 2 November 2026: its latest delayed quote, quoted at 09:50, the delay of 10 minutes, and the month-end closes of BBCA and the IHSG, whose last close of BBCA is the Rp4,980 of Friday 30 October 2026 that the quote states. */
 export const bbcaForTest: StockState & { quote: StockQuote } = {
   quote: stockQuote("BBCA", [4_980, 4_980], "2026-11-02T02:50:00Z"),
-  delayMinutes: 10,
+  delayMinutes,
   closes: stockHistoryForTest(monthEndClosesForTest("BBCA")),
   marketCloses: indexHistoryForTest(monthEndClosesForTest("IHSG")),
 };

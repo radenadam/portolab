@@ -4,11 +4,11 @@ import { locales } from "~/paraglide/runtime.js";
 import type { Locale } from "~/paraglide/runtime.js";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
 import { lots } from "~/units/lots";
+import { mondayTradingDayForTest } from "./orders-for-test";
 import { parseOrderLots } from "./parse-order-lots";
-import { idxRulesForTest } from "./rules-for-test";
 
-// The largest order that the rules of IDX give for Monday 2 November 2026, which is 50,000 lots.
-const { maximumLots } = idxRulesForTest("2026-11-02");
+// The largest order of Monday 2 November 2026, which orderTradingDay gives with the rules of that day, is 50,000 lots.
+const { maximumLots } = mondayTradingDayForTest.rules;
 
 // An exponent is no digit in either language.
 const notWholeInEveryLanguage = ["1e3"];
@@ -21,6 +21,7 @@ const texts: Record<
     accepted: readonly (readonly [string, number])[];
     notWholeInputs: readonly string[];
     notWhole: readonly [string, string];
+    notWholeForOneLot: string;
     tooManyInputs: readonly string[];
     tooMany: readonly [string, string];
     tooManyForOneLot: string;
@@ -50,6 +51,8 @@ const texts: Record<
       'Kolom "Jumlah lot" menerima bilangan bulat jumlah lot, misalnya 1.000, tetapi isinya "',
       '". Tulis jumlahnya dengan angka, dengan atau tanpa "." di antara kelompok angka seperti pada contoh.',
     ],
+    notWholeForOneLot:
+      'Kolom "Jumlah lot" menerima bilangan bulat jumlah lot, misalnya 1, tetapi isinya "1e3". Tulis jumlahnya dengan angka, dengan atau tanpa "." di antara kelompok angka seperti pada contoh.',
     tooManyInputs: ["50001", "50.001", "99999999999999999"],
     tooMany: [
       'Kolom "Jumlah lot" menerima paling banyak 50.000 lot, yaitu order terbesar yang diterima BEI, tetapi isinya "',
@@ -86,6 +89,8 @@ const texts: Record<
       'The field "Lots" takes a whole number of lots, such as 1,000, but it holds "',
       '". Write the number in digits, with or without "," between groups of digits as the example shows.',
     ],
+    notWholeForOneLot:
+      'The field "Lots" takes a whole number of lots, such as 1, but it holds "1e3". Write the number in digits, with or without "," between groups of digits as the example shows.',
     tooManyInputs: ["50001", "50,001", "99999999999999999"],
     tooMany: [
       'The field "Lots" takes at most 50,000 lots, the largest order that IDX accepts, but it holds "',
@@ -127,6 +132,14 @@ for (const locale of locales) {
         },
       );
     }
+  });
+
+  test(`gives an order that the field accepts as the example of the form when the largest order is below 1,000 lots, in ${language}`, () => {
+    switchLocaleForTest(locale);
+    expect(parseOrderLots("1e3", text.label, lots(1))).toEqual({
+      ok: false,
+      failure: text.notWholeForOneLot,
+    });
   });
 
   test(`rejects a number of lots beyond the largest order of the trading day, and names that order, in ${language}`, () => {

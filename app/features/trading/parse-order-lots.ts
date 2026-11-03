@@ -16,7 +16,8 @@ export function parseOrderLots(
   maximumLots: Lots,
 ): Result<OrderLots, string> {
   const number = parseWrittenWholeNumber(value, source, {
-    example: 1_000,
+    // The example shows a group of digits, but it must also be an order that the field accepts, so a largest order below 1,000 lots is the example instead.
+    example: Math.min(1_000, maximumLots),
     message: m.trading_lots_not_whole_error,
   });
   if (!number.ok) {
