@@ -302,9 +302,9 @@ const texts: Record<Locale, Record<FailureName, string>> = {
     limitsAsAmounts:
       "BEI menolak harga Rp\u00a012 untuk GOTO pada 2 November 2026 karena batas auto rejection. Batas itu mengizinkan harga paling jauh Rp\u00a01 di atas dan Rp\u00a01 di bawah harga acuan Rp\u00a010, dan setiap ujung rentangnya adalah harga sah terdekat di dalam batas itu. BEI menetapkan harga acuan dari harga penutupan terakhir GOTO sebelum hari itu. Pilih harga dari Rp\u00a09 sampai Rp\u00a011.",
     offTick:
-      "BEI hanya menerima harga dari Rp\u00a02.000 sampai di bawah Rp\u00a05.000 dalam kelipatan Rp\u00a010, yaitu fraksi harga rentang tersebut, sehingga Rp\u00a04.985 bukan harga yang sah. Pilih Rp\u00a04.980 atau Rp\u00a04.990, harga sah yang terdekat.",
+      "BEI hanya menerima harga dari Rp\u00a02.000 sampai di bawah Rp\u00a05.000 dalam kelipatan Rp\u00a010, yaitu fraksi harga rentang tersebut, sehingga Rp\u00a04.985 bukan harga yang sah. Pilih Rp\u00a04.980 atau Rp\u00a04.990, harga sah terdekat.",
     offTickOfTopBand:
-      "BEI hanya menerima harga Rp\u00a05.000 ke atas dalam kelipatan Rp\u00a025, yaitu fraksi harga rentang tersebut, sehingga Rp\u00a05.010 bukan harga yang sah. Pilih Rp\u00a05.000 atau Rp\u00a05.025, harga sah yang terdekat.",
+      "BEI hanya menerima harga Rp\u00a05.000 ke atas dalam kelipatan Rp\u00a025, yaitu fraksi harga rentang tersebut, sehingga Rp\u00a05.010 bukan harga yang sah. Pilih Rp\u00a05.000 atau Rp\u00a05.025, harga sah terdekat.",
     cashSetAside:
       "Membeli 5 lot BBCA pada harga Rp\u00a04.980 membutuhkan Rp\u00a02.493.735, yaitu Rp\u00a02.490.000 untuk saham dan Rp\u00a03.735 untuk biaya broker, sedangkan kas Anda yang tersedia hanya Rp\u00a02.001.253. Order beli Anda yang masih terbuka menyisihkan Rp\u00a0498.747 dari kas Anda sebesar Rp\u00a02.500.000, dan mengembalikan jumlah itu ke kas Anda yang tersedia jika order tersebut berakhir tanpa tereksekusi. Order terbesar yang dapat dibayar oleh kas Anda yang tersedia pada harga Rp\u00a04.980 adalah 4 lot.",
     severalPurchasesSetAside:
