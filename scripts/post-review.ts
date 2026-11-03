@@ -1,6 +1,7 @@
 import { exitWithFailure } from "../app/exit-with-failure.server.ts";
 import { fail, failuresOf, succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
+import { describeAgentRun, parseAgentRun } from "./agent-run.ts";
 import { parseJsonWith, parseOptionalJsonWith } from "./json.ts";
 import { parseReviewerReport, parseVerdicts } from "./review-findings.ts";
 import {
@@ -20,7 +21,7 @@ import {
 } from "./summarize-review.ts";
 import { writeScriptFailure } from "./write-script-failure.ts";
 
-// Every input is parsed before the script stops, so the log names every problem at once. Each input is an output of a job, so no agent could change it after its job gave it.
+// Every input is parsed before the script stops, so the log names every problem at once. Each input is an output of a job, and an agent can change only the outputs of its own job, so each of those is parsed like any output of an agent.
 const pullRequest = parsePullRequestNumber(
   process.env["PULL_REQUEST"],
   "PULL_REQUEST",
@@ -79,8 +80,31 @@ const verdicts = parseOptionalJsonWith(
   "VERIFIER_OUTPUT",
   parseVerdicts,
 );
-const inputProblems = failuresOf([reviewerReport, verdicts]);
+const reviewerRun = parseOptionalJsonWith(
+  process.env["REVIEWER_RUN"],
+  "REVIEWER_RUN",
+  parseAgentRun,
+);
+const verifierRun = parseOptionalJsonWith(
+  process.env["VERIFIER_RUN"],
+  "VERIFIER_RUN",
+  parseAgentRun,
+);
+const inputProblems = failuresOf([
+  reviewerReport,
+  verdicts,
+  reviewerRun,
+  verifierRun,
+]);
 const reviewerAnswer = reviewerReport.ok ? reviewerReport.value : undefined;
+// An agent that did not run leaves its measure empty.
+const runs: string[] = [];
+if (reviewerRun.ok && reviewerRun.value !== undefined) {
+  runs.push(describeAgentRun("reviewer", reviewerRun.value));
+}
+if (verifierRun.ok && verifierRun.value !== undefined) {
+  runs.push(describeAgentRun("verifier", verifierRun.value));
+}
 const outcome = summarizeReview({
   plan: plan.value,
   reviewedHead: reviewedHead.value,
@@ -90,10 +114,8 @@ const outcome = summarizeReview({
       ? buildRoundReport(plan.value, reviewerAnswer)
       : undefined,
   verdicts: verdicts.ok ? verdicts.value : undefined,
-  // The job of each agent measures it, and an agent that did not run leaves its sentence empty.
-  runs: [process.env["REVIEWER_RUN"], process.env["VERIFIER_RUN"]].filter(
-    (sentence): sentence is string => sentence !== undefined && sentence !== "",
-  ),
+  jobResults: jobResults.value,
+  runs,
   inputProblems,
 });
 

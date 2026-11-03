@@ -12,7 +12,9 @@ export interface ReviewInput {
   report: RoundReport | undefined;
   /** The verifier's verdicts, or undefined when its job gave none. */
   verdicts: Verdict[] | undefined;
-  /** One sentence for each agent that ran, about its minutes and turns or about why they are unknown. */
+  /** The result of each job of the panel, such as "success" or "failure". */
+  jobResults: Record<string, string>;
+  /** One sentence for each agent that ran, about its duration and its turns. */
   runs: string[];
   /** Inputs that could not be read, each as one sentence. */
   inputProblems: string[];
@@ -41,7 +43,7 @@ export interface Judgement {
 
 const passedVerdict = "No verified finding in the change remains.";
 
-/** Decides from the plan and the files that the steps wrote whether the change passes, and what the next round reads. */
+/** Decides from the plan, the outputs of the jobs, and their results whether the change passes, and what the next round reads. */
 export function judgeReview(input: ReviewInput): Judgement {
   const { plan } = input;
   const failureWithoutAgent = verdictWithoutAgent(plan);
@@ -108,6 +110,10 @@ function unfinishedReason(input: ReviewInput): string | undefined {
   if (input.inputProblems.length > 0) {
     return input.inputProblems.join(" ");
   }
+  const failedJobs = unsuccessfulJobs(input.plan, input.jobResults);
+  if (failedJobs !== undefined) {
+    return failedJobs;
+  }
   const reportGap = reportProblem(input);
   if (reportGap !== undefined) {
     return reportGap;
@@ -117,6 +123,30 @@ function unfinishedReason(input: ReviewInput): string | undefined {
     return "The verifier's verdicts are missing, so no finding has been verified. The log of the verifier's job names the reason.";
   }
   return coverageProblem(findings, input.verdicts ?? []);
+}
+
+// The jobs that a kind of plan needs. A job of an agent can fail after its agent answered, such as in its measure, so its answer counts only when the job succeeded.
+const expectedJobs: Record<ReviewPlan["kind"], string[]> = {
+  review: ["plan", "reviewer", "verifier"],
+  check: ["plan", "verifier"],
+  pass: ["plan"],
+  unchanged: ["plan"],
+  capped: ["plan"],
+};
+
+/** Returns a sentence that names every job that the plan needs and that did not succeed, with its result. */
+function unsuccessfulJobs(
+  plan: ReviewPlan,
+  jobResults: Record<string, string>,
+): string | undefined {
+  const failed = expectedJobs[plan.kind].filter(
+    (job) => jobResults[job] !== "success",
+  );
+  if (failed.length === 0) {
+    return undefined;
+  }
+  const results = failed.map((job) => `"${jobResults[job] ?? "missing"}"`);
+  return `The ${listOfWords(failed)} ${singularOrPlural(failed.length, "job", "jobs")} ended with the ${singularOrPlural(failed.length, "result", "results")} ${listOfWords(results)}, so this round has not finished. ${singularOrPlural(failed.length, "Its log names", "Their logs name")} the reason.`;
 }
 
 /** Returns a sentence when a round that runs an agent has no report, or when the reviewer's report does not account for its work. */

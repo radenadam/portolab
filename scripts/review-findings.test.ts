@@ -105,14 +105,15 @@ test("names exactly the lenses of .claude/agents in the code and in the reviewer
     .map((file) => file.replace(/^review-/, "").replace(/\.md$/, ""))
     .sort();
   expect([...lenses].sort()).toEqual(lensFiles);
-  expect(
-    schemaStrings(findingsSchemaPath, [
-      ...findingKeys,
-      "properties",
-      "lens",
-      "enum",
-    ]).sort(),
-  ).toEqual(lensFiles);
+  for (const keys of [
+    [...findingKeys, "properties", "lens", "enum"],
+    ["properties", "lensChecks", "items", "properties", "lens", "enum"],
+  ]) {
+    expect(
+      schemaStrings(findingsSchemaPath, keys).sort(),
+      keys.join("."),
+    ).toEqual(lensFiles);
+  }
 });
 
 test("rejects a reviewer's answer that lacks any field of a finding that its schema requires", () => {

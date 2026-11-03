@@ -92,9 +92,23 @@ function input(
         ? undefined
         : { findings, candidateStandards: [], ...coverageOf(plan) },
     verdicts,
+    jobResults: finishedJobs(plan),
     runs: ["The reviewer ran for 6 minutes in 41 turns."],
     inputProblems: [],
   };
+}
+
+/** The results that GitHub gives the jobs of a round that finished, where a job that the plan does not need is skipped. */
+function finishedJobs(plan: ReviewPlan): Record<string, string> {
+  const agentResults: Record<ReviewPlan["kind"], [string, string]> = {
+    review: ["success", "success"],
+    check: ["skipped", "success"],
+    pass: ["skipped", "skipped"],
+    unchanged: ["skipped", "skipped"],
+    capped: ["skipped", "skipped"],
+  };
+  const [reviewer, verifier] = agentResults[plan.kind];
+  return { plan: "success", reviewer, verifier };
 }
 
 const firstReview = planReview(stateBeforeFirstRound, undefined, [docs]);
@@ -571,4 +585,32 @@ test("refuses a review or an issue just past the length that GitHub takes, and a
   expect(oversizeProblem("issue", `${atLimit}a`)).toBe(
     "The issue is 65,537 characters long, but GitHub takes at most 65,536, so it was not opened.",
   );
+});
+
+test("fails a round when several jobs or one job that the plan needs did not succeed, even after an answer", () => {
+  const review = planReview(stateBeforeFirstRound, undefined, [docs]);
+  const several = summarizeReview({
+    ...input(review, [], undefined),
+    jobResults: { plan: "success", reviewer: "failure", verifier: "skipped" },
+  });
+  expect(several.passed).toBe(false);
+  expect(several.verdict).toBe(
+    'The reviewer and verifier jobs ended with the results "failure" and "skipped", so this round has not finished. Their logs name the reason.',
+  );
+  const check = planReview(
+    stateAfter(reviewRoundLimit, [finding("1.1")]),
+    earlierHead,
+    [docs],
+  );
+  const one = summarizeReview({
+    ...input(check, [finding("1.1")], [verdict("1.1", "refuted")]),
+    jobResults: { plan: "success", reviewer: "skipped", verifier: "failure" },
+  });
+  expect(one.verdict).toBe(
+    'The verifier job ended with the result "failure", so this round has not finished. Its log names the reason.',
+  );
+  expect(one.state).toEqual({
+    ...stateAfter(reviewRoundLimit, [finding("1.1")]),
+    round: reviewRoundLimit + 1,
+  });
 });

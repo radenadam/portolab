@@ -3,19 +3,15 @@ import type { Result } from "../app/result.ts";
 import { countOf } from "../app/sentences.ts";
 import { minuteMilliseconds, secondMilliseconds } from "../app/time-units.ts";
 import { describeValue, isRecord } from "../app/value-shapes.ts";
-import { readJsonFile } from "./json.ts";
 
 /** What one agent of the panel used, so that a change to the panel can be measured against the last one. */
-interface AgentRun {
+export interface AgentRun {
   milliseconds: number;
   turns: number;
 }
 
-/** The agents of the panel, whose transcripts the workflow measures. */
-export const panelAgents = ["reviewer", "verifier"] as const;
-
 /** Reads the transcript that Claude Code's GitHub Action writes, a list of messages whose last message of type "result" holds the duration and the turns of the run. */
-function parseAgentRun(
+export function parseTranscriptRun(
   value: unknown,
   source: string,
 ): Result<AgentRun, string> {
@@ -32,23 +28,45 @@ function parseAgentRun(
       `${source} must hold a message of type "result", but it has none.`,
     );
   }
-  const duration = result["duration_ms"];
-  const turns = result["num_turns"];
-  if (typeof duration !== "number" || duration < 0) {
+  return runFromNumbers(result["duration_ms"], result["num_turns"], source);
+}
+
+/** Reads the measure that the job of an agent gives as its output. The agent could change it, as it can change every later step of its job, so the review job parses it like any output of an agent. */
+export function parseAgentRun(
+  value: unknown,
+  source: string,
+): Result<AgentRun, string> {
+  return isRecord(value)
+    ? runFromNumbers(value["milliseconds"], value["turns"], source)
+    : fail(
+        `${source} must be a JSON object, but it is ${describeValue(value)}.`,
+      );
+}
+
+function runFromNumbers(
+  milliseconds: unknown,
+  turns: unknown,
+  source: string,
+): Result<AgentRun, string> {
+  if (
+    typeof milliseconds !== "number" ||
+    !Number.isInteger(milliseconds) ||
+    milliseconds < 0
+  ) {
     return fail(
-      `${source} must have a duration in milliseconds at duration_ms of its result, but it is ${describeValue(duration)}.`,
+      `${source} must give the duration as a whole number of milliseconds from 0, but it is ${describeValue(milliseconds)}.`,
     );
   }
   if (typeof turns !== "number" || !Number.isInteger(turns) || turns < 0) {
     return fail(
-      `${source} must have a whole number at num_turns of its result, but it is ${describeValue(turns)}.`,
+      `${source} must give the turns as a whole number from 0, but it is ${describeValue(turns)}.`,
     );
   }
-  return succeed({ milliseconds: duration, turns });
+  return succeed({ milliseconds, turns });
 }
 
 /** One sentence about the run of an agent, such as "The reviewer ran for 6 minutes in 41 turns." A run shorter than a minute is given in seconds, because a review of seconds shows that the agent read almost nothing. Each part is rounded up, so no run reads as free. */
-function describeAgentRun(agent: string, run: AgentRun): string {
+export function describeAgentRun(agent: string, run: AgentRun): string {
   const duration =
     run.milliseconds < minuteMilliseconds
       ? countOf(
@@ -62,12 +80,4 @@ function describeAgentRun(agent: string, run: AgentRun): string {
           "minutes",
         );
   return `The ${agent} ran for ${duration} in ${countOf(run.turns, "turn", "turns")}.`;
-}
-
-/** One sentence about the run of an agent from its transcript, or about why the run could not be measured. The measure does not decide the review, so a transcript that cannot be read leaves it unknown instead of failing the round. */
-export function measureAgentRun(agent: string, transcriptPath: string): string {
-  const run = readJsonFile(transcriptPath, parseAgentRun);
-  return run.ok
-    ? describeAgentRun(agent, run.value)
-    : `The run of the ${agent} could not be measured. ${run.failure}`;
 }

@@ -12,7 +12,7 @@ permissions:
   contents: read
   pull-requests: read
 
-# Each agent runs in a job of its own whose token can only read, because a diff can carry instructions for it. Jobs pass data only through their outputs, so an agent cannot change what another job reads. The review job runs no agent: it rebuilds the report of the round from those outputs, posts the review, and gives the verdict in code, which no agent can skip. scripts/review-plan.ts caps the rounds, and at the cap the plan runs no agent and the review fails with the next step. AGENTS.md describes the panel.
+# Each agent runs in a job of its own whose token can only read, because a diff can carry instructions for it. Jobs pass data only through their outputs, so an agent can change only the outputs of its own job, such as its answer and its measure, and the review job parses each of them. The review job runs no agent: it rebuilds the report of the round from those outputs, posts the review, and gives the verdict in code, which no agent can skip. scripts/review-plan.ts caps the rounds, and at the cap the plan runs no agent and the review fails with the next step. AGENTS.md describes the panel.
 jobs:
   plan:
     name: plan
@@ -55,7 +55,7 @@ jobs:
     timeout-minutes: 75
     outputs:
       answer: ${{ steps.reviewer.outputs.structured_output }}
-      run: ${{ steps.measure.outputs.sentence }}
+      run: ${{ steps.measure.outputs.run }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         timeout-minutes: 5
@@ -73,15 +73,17 @@ jobs:
         uses: ./.github/actions/install-browser
         # The step ends long before the job does, so a stalled download fails here by name.
         timeout-minutes: 10
-      # Each value is assigned on its own line, because a failure inside a command substitution within echo would not fail the step.
+      # Each value is assigned on its own line, because a failure inside a command substitution within echo would not fail the step. The inputs are independent, so every script runs before the step stops, and the log names every failure.
       - name: Read the schema of the answer and write the files under review
         timeout-minutes: 2
         id: definitions
         env:
           PLAN: ${{ needs.plan.outputs.plan }}
         run: |
-          schema=$(node scripts/print-schema.ts .github/review/findings.schema.json)
-          node scripts/write-review-files.ts
+          failed=0
+          schema=$(node scripts/print-schema.ts .github/review/findings.schema.json) || failed=1
+          node scripts/write-review-files.ts || failed=1
+          if [ "$failed" -ne 0 ]; then exit 1; fi
           echo "schema=${schema}" >> "$GITHUB_OUTPUT"
       - name: Review the change
         timeout-minutes: 45
@@ -110,8 +112,8 @@ jobs:
         env:
           TRANSCRIPT: ${{ steps.reviewer.outputs.execution_file }}
         run: |
-          sentence=$(node scripts/describe-agent-run.ts reviewer "$TRANSCRIPT")
-          echo "sentence=${sentence}" >> "$GITHUB_OUTPUT"
+          run=$(node scripts/measure-agent-run.ts "$TRANSCRIPT")
+          echo "run=${run}" >> "$GITHUB_OUTPUT"
 
   verifier:
     name: verifier
@@ -122,7 +124,7 @@ jobs:
     timeout-minutes: 45
     outputs:
       answer: ${{ steps.verifier.outputs.structured_output }}
-      run: ${{ steps.measure.outputs.sentence }}
+      run: ${{ steps.measure.outputs.run }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         timeout-minutes: 5
@@ -175,8 +177,8 @@ jobs:
         env:
           TRANSCRIPT: ${{ steps.verifier.outputs.execution_file }}
         run: |
-          sentence=$(node scripts/describe-agent-run.ts verifier "$TRANSCRIPT")
-          echo "sentence=${sentence}" >> "$GITHUB_OUTPUT"
+          run=$(node scripts/measure-agent-run.ts "$TRANSCRIPT")
+          echo "run=${run}" >> "$GITHUB_OUTPUT"
 
   review:
     name: review

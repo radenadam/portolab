@@ -5,7 +5,7 @@ export default {
   entry: [
     "server/app.ts!",
     "server/account.ts!",
-    "scripts/{check-dev-server,check-messages,check-migrations,check-punctuation,check-workflows,describe-agent-run,plan-review,post-review,print-schema,read-agent-tools,save-findings,write-review-files}.ts!",
+    "scripts/{check-dev-server,check-messages,check-migrations,check-punctuation,check-workflows,measure-agent-run,plan-review,post-review,print-schema,read-agent-tools,save-findings,write-review-files}.ts!",
     "project.inlang/paraglide.config.ts",
     // The screens of issues #8 and #9 will call measureStoredStock and measureStoredPortfolio, which landed before them because the plan of the first release builds the calculations first. Remove this entry when those screens import the module.
     "app/features/measures/measure-stored.server.ts!",
