@@ -33,7 +33,7 @@ export function digitGroupSeparator(): string {
   );
 }
 
-export function formatNumber(value: number): string {
+export function formatNumber(value: number | bigint): string {
   return new Intl.NumberFormat(intlLocale()).format(value);
 }
 

@@ -15,8 +15,8 @@ import { createJoinLimiters, joinLimits } from "./join-limiters.server";
 const now = new Date("2026-11-02T03:00:00.000Z");
 
 const blockedTexts: Record<Locale, string> = {
-  id: "Portolab tidak membuat akun dari jaringan Anda sampai 10.15 WIB, karena menerima 200 permintaan akun baru dari jaringan itu dalam 15 menit. Batas ini mencegah siapa pun membanjiri sebuah kelas dengan akun. Coba lagi setelah waktu tersebut, atau bergabunglah melalui jaringan lain, seperti data seluler ponsel Anda.",
-  en: "Portolab creates no account from your network until 10:15 AM WIB, because it received 200 requests for a new account from it within 15 minutes. The limit stops anyone from flooding a class with accounts. Try again after that time, or join through another network, such as the mobile data of your phone.",
+  id: "Portolab tidak membuat akun dari jaringan Anda sampai 10.15 WIB, karena menerima 200 permintaan akun baru dari jaringan itu dalam 15 menit. Batas ini menghentikan siapa pun yang mencoba membanjiri sebuah kelas dengan akun. Coba lagi setelah waktu tersebut, atau bergabunglah melalui jaringan lain, misalnya data seluler ponsel Anda.",
+  en: "Portolab creates no account from your network until 10:15 AM WIB, because it received 200 requests for a new account from it within 15 minutes. The limit stops anyone who tries to flood a class with accounts. Try again after that time, or join through another network, such as the mobile data of your phone.",
 };
 
 function newStudent(username: string): NewStudent {

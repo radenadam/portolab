@@ -86,12 +86,12 @@ const texts: Record<
     cashHint:
       "Uang virtual dalam rupiah bulat yang dimiliki setiap mahasiswa di awal.",
     createButton: "Buat kelas",
-    typedCash: "100.000.000",
+    typedCash: "1.000.000.000.000",
     cashNotWhole:
-      'Kolom "Modal awal" menerima bilangan bulat rupiah, misalnya 100.000.000, tetapi isinya "seratus juta". Tulis jumlahnya dengan angka, dengan atau tanpa "." di antara kelompok angka.',
-    taughtClass: "Mahasiswa: 1. Modal awal: Rp 100.000.000.",
+      'Kolom "Modal awal" menerima bilangan bulat rupiah, misalnya 100.000.000, tetapi isinya "seratus juta". Tulis jumlahnya dengan angka, dengan atau tanpa "." di antara kelompok angka seperti pada contoh.',
+    taughtClass: "Mahasiswa: 1. Modal awal: Rp 1.000.000.000.000.",
     shareNotice:
-      "Bagikan kode atau alamat ini kepada mahasiswa Anda. Setiap mahasiswa yang bergabung mulai dengan uang virtual sebesar Rp 100.000.000.",
+      "Bagikan kode atau alamat ini kepada mahasiswa Anda. Setiap mahasiswa yang bergabung mulai dengan uang virtual sebesar Rp 1.000.000.000.000.",
     codeLabel: "Kode untuk bergabung",
     addressLabel: "Alamat untuk bergabung",
     studentsTitle: "Mahasiswa",
@@ -99,7 +99,8 @@ const texts: Record<
     studentNotice: ['Masuk sebagai "', '". Bergabung pada ', " WIB."],
     resetLink: `Atur ulang kata sandi ${studentName}`,
     taughtBy: `${lecturerName} mengajar kelas ini.`,
-    startingCash: "Anda mulai dengan uang virtual sebesar Rp 100.000.000.",
+    startingCash:
+      "Anda mulai dengan uang virtual sebesar Rp 1.000.000.000.000.",
     joinedNotice: ["Anda bergabung ke kelas ini pada ", " WIB."],
     joinLink: "Gabung ke kelas dengan kodenya",
     homeJoinLink: "Gabung ke kelas dengan kodenya",
@@ -117,7 +118,7 @@ const texts: Record<
     lecturerOnly:
       "Hanya dosen yang membuat kelas, dan Anda masuk sebagai mahasiswa. Untuk mengajar kelas, mintalah akun dosen kepada orang yang menjalankan server Portolab ini.",
     joinClassTitle: `Gabung ke ${className}`,
-    joinClassBody: `${lecturerName} mengajar kelas ini. Setiap mahasiswa mulai dengan uang virtual sebesar Rp 100.000.000.`,
+    joinClassBody: `${lecturerName} mengajar kelas ini. Setiap mahasiswa mulai dengan uang virtual sebesar Rp 1.000.000.000.000.`,
     newAccountTitle: "Buat akun mahasiswa Anda",
     studentNameHint: "Dosen Anda melihat nama ini di samping pekerjaan Anda.",
     usernameHint:
@@ -126,7 +127,7 @@ const texts: Record<
     existingAccountLink: "Masuk dengan akun yang sudah Anda miliki",
     usernameTaken: [
       'Kolom "Nama pengguna" berisi "',
-      '", tetapi akun lain sudah memakai nama pengguna ini. Pilih yang lain, misalnya dengan angka di akhirnya.',
+      '", tetapi akun lain sudah memakai nama pengguna ini. Pilih yang lain, misalnya nama ini dengan angka di akhirnya.',
     ],
     joinButton: "Gabung ke kelas",
     resetTitle: "Atur ulang kata sandi",
@@ -150,12 +151,12 @@ const texts: Record<
     cashLabel: "Starting cash",
     cashHint: "The virtual cash in whole rupiah that each student starts with.",
     createButton: "Create the class",
-    typedCash: "100,000,000",
+    typedCash: "1,000,000,000,000",
     cashNotWhole:
-      'The field "Starting cash" takes a whole number of rupiah, such as 100,000,000, but it holds "seratus juta". Write the amount in digits, with or without "," between groups of digits.',
-    taughtClass: "Students: 1. Starting cash: IDR 100,000,000.",
+      'The field "Starting cash" takes a whole number of rupiah, such as 100,000,000, but it holds "seratus juta". Write the amount in digits, with or without "," between groups of digits as the example shows.',
+    taughtClass: "Students: 1. Starting cash: IDR 1,000,000,000,000.",
     shareNotice:
-      "Share the code or the address with your students. Each student who joins starts with IDR 100,000,000 in virtual cash.",
+      "Share the code or the address with your students. Each student who joins starts with IDR 1,000,000,000,000 in virtual cash.",
     codeLabel: "Code for joining",
     addressLabel: "Address for joining",
     studentsTitle: "Students",
@@ -163,7 +164,7 @@ const texts: Record<
     studentNotice: ['Signs in as "', '". Joined on ', " WIB."],
     resetLink: `Reset the password of ${studentName}`,
     taughtBy: `${lecturerName} teaches this class.`,
-    startingCash: "You start with IDR 100,000,000 in virtual cash.",
+    startingCash: "You start with IDR 1,000,000,000,000 in virtual cash.",
     joinedNotice: ["You joined this class on ", " WIB."],
     joinLink: "Join a class with its code",
     homeJoinLink: "Join a class with its code",
@@ -181,7 +182,7 @@ const texts: Record<
     lecturerOnly:
       "Only a lecturer creates a class, and you are signed in as a student. To teach a class, ask the person who runs this Portolab server for a lecturer account.",
     joinClassTitle: `Join ${className}`,
-    joinClassBody: `${lecturerName} teaches this class. Each student starts with IDR 100,000,000 in virtual cash.`,
+    joinClassBody: `${lecturerName} teaches this class. Each student starts with IDR 1,000,000,000,000 in virtual cash.`,
     newAccountTitle: "Create your student account",
     studentNameHint: "Your lecturer sees this name next to your work.",
     usernameHint:
@@ -190,7 +191,7 @@ const texts: Record<
     existingAccountLink: "Sign in with the account that you have",
     usernameTaken: [
       'The field "Username" holds "',
-      '", but another account has this username. Choose another one, for example with a number at its end.',
+      '", but another account has this username. Choose another one, such as this one with a number at its end.',
     ],
     joinButton: "Join the class",
     resetTitle: "Reset a password",

@@ -7,6 +7,7 @@ import { secondMilliseconds } from "../app/time-units.ts";
 import { printedPasswordForTest } from "../app/features/accounts/printed-password-for-test.ts";
 import type { AccountAction } from "../app/features/accounts/account-actions.ts";
 import { usernameLength } from "../app/features/accounts/username.ts";
+import { startingCashLimits } from "../app/features/classes/class-rules.ts";
 import { parseFilePath } from "../app/value-parsers.ts";
 import type { Locale } from "../app/paraglide/runtime.js";
 import { chooseLanguage } from "./choose-language.ts";
@@ -104,13 +105,16 @@ export interface TestClass {
   joinAddress: string;
 }
 
-/** Creates a class from the classes page of a lecturer who is signed in, and returns it from its page. */
+/** Creates a class from the classes page of a lecturer who is signed in, and returns it from its page. The class has the most starting cash that Portolab accepts, so each screen that shows the amount is checked with its widest content. */
 export async function createTestClass(
   page: Page,
   name: string,
 ): Promise<TestClass> {
   await page.goto("/classes");
   await page.locator('main input[name="name"]').fill(name);
+  await page
+    .locator('main input[name="startingCash"]')
+    .fill(String(startingCashLimits.maximum));
   await page.locator("main form button[type=submit]").click();
   await expect(page).toHaveURL(/\/classes\/\d+$/);
   const shared = page.locator("main dd");
