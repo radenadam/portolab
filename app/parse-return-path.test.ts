@@ -18,7 +18,7 @@ test("accepts a path of the most characters that the field takes", () => {
   });
 });
 
-test("rejects a path longer than the field takes, just past the maximum or far past it, and names both lengths", () => {
+test("rejects a path longer than any field takes, just past the maximum or far past it, and names its length", () => {
   for (const [length, failure] of [
     [
       fieldMaximumLength + 1,
