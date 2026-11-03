@@ -7,6 +7,7 @@ import {
   parseConsent,
   parsePersonName,
   readNewPassword,
+  readNewStudent,
 } from "./account-fields";
 
 /** A form with a new password in its two fields, or null for a field that the form did not send. */
@@ -27,6 +28,7 @@ const texts: Record<
   {
     name: string;
     consent: string;
+    usernameMalformed: string;
     tooShort: string;
     tooLong: string;
     nameTooLong: string;
@@ -37,6 +39,8 @@ const texts: Record<
   id: {
     name: "Nama Anda",
     consent: "Saya menyetujui pemberitahuan privasi",
+    usernameMalformed:
+      'Kolom "Nama pengguna" menerima 3 sampai 32 karakter dari a sampai z, 0 sampai 9, ".", "-", dan "_", tetapi isinya "budi santoso". Pilih nama pengguna, misalnya budi.santoso.',
     tooShort:
       'Kolom "Kata sandi baru" perlu paling sedikit 15 karakter, tetapi isinya 14 karakter. Setiap karakter tambahan membuat kata sandi jauh lebih sulit ditebak, jadi pilih yang lebih panjang, misalnya kalimat pendek.',
     tooLong:
@@ -44,13 +48,15 @@ const texts: Record<
     nameTooLong:
       'Kolom "Nama Anda" memuat paling banyak 100 karakter, tetapi isinya 101 karakter. Persingkat isinya.',
     passwordsDiffer:
-      'Isi kolom "Ulangi kata sandi baru" berbeda dari kata sandi baru. Ketik kata sandi yang sama di kedua kolom.',
+      'Kolom "Ulangi kata sandi baru" berbeda dari kata sandi baru. Ketik kata sandi yang sama di kedua kolom.',
     consentMissing:
       'Portolab hanya menyimpan data Anda dengan persetujuan Anda. Baca pemberitahuan privasi, lalu centang "Saya menyetujui pemberitahuan privasi".',
   },
   en: {
     name: "Your name",
     consent: "I agree to the privacy notice",
+    usernameMalformed:
+      'The field "Username" takes 3 to 32 characters from a to z, 0 to 9, ".", "-", and "_", but it holds "budi santoso". Choose a username, such as budi.santoso.',
     tooShort:
       'The field "New password" needs at least 15 characters, but it has 14. Each extra character makes a password much harder to guess, so choose a longer one, such as a short sentence.',
     tooLong:
@@ -64,7 +70,7 @@ const texts: Record<
   },
 };
 
-test("accepts a password from 15 to 128 characters, counted in the normal form that the hash reads", () => {
+test("accepts a password from its shortest to its longest length, counted in the normal form that the hash reads", () => {
   for (const password of [
     "a".repeat(15),
     "a".repeat(128),
@@ -86,8 +92,42 @@ test("accepts a repeated password in another normal form, and agreement only fro
   expect(parseConsent("yes", "I agree")).toEqual({ ok: true, value: true });
 });
 
+test("reads the account of a new student, with the username in lowercase", () => {
+  const form = passwordForm("teh sore di taman", "teh sore di taman");
+  form.set("name", "  Sari   Wulandari ");
+  form.set("username", " Sari ");
+  form.set("consent", "yes");
+  expect(readNewStudent(form)).toEqual({
+    ok: true,
+    value: {
+      name: "Sari Wulandari",
+      username: "sari",
+      password: "teh sore di taman",
+    },
+  });
+});
+
 for (const locale of locales) {
   const text = texts[locale];
+
+  test(`rejects a username of other characters, and shows every field of a new student with its failure, in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    const form = passwordForm("short", "short");
+    form.set("name", "Sari");
+    form.set("username", "budi santoso");
+    expect(readNewStudent(form)).toEqual({
+      ok: false,
+      failure: {
+        name: "Sari",
+        username: "budi santoso",
+        nameFailure: undefined,
+        usernameFailure: text.usernameMalformed,
+        newPasswordFailure: text.tooShort.replace("14", "5"),
+        repeatedPasswordFailure: undefined,
+        consentFailure: text.consentMissing,
+      },
+    });
+  });
 
   test(`rejects a password that is too short or too long, with both lengths, in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);

@@ -1,5 +1,6 @@
 import { useId } from "react";
 import type { ReactNode } from "react";
+import { useNavigation } from "react-router";
 import styles from "./form.module.css";
 
 interface TextFieldProps {
@@ -10,6 +11,8 @@ interface TextFieldProps {
   autoComplete: string;
   /** Whether a phone keyboard starts each word with a capital letter, which a name wants and a username or a password does not. */
   capitalizesWords?: boolean;
+  /** The keyboard that a phone shows, such as the one with digits for an amount. */
+  inputMode?: "text" | "numeric";
   hint?: string | undefined;
   /** Why the value that the form sent was not accepted. */
   failure?: string | undefined;
@@ -23,6 +26,7 @@ export function TextField({
   type,
   autoComplete,
   capitalizesWords = false,
+  inputMode = "text",
   hint,
   failure,
   defaultValue,
@@ -54,6 +58,7 @@ export function TextField({
         type={type}
         autoComplete={autoComplete}
         autoCapitalize={capitalizesWords ? "words" : "none"}
+        inputMode={inputMode}
         spellCheck={false}
         defaultValue={defaultValue}
         aria-invalid={failure !== undefined}
@@ -101,9 +106,12 @@ export function CheckboxField({
   );
 }
 
+/** The button that sends its form. Once the app runs in the browser, the button waits while the page changes, because a second tap on a slow network would ask again for what the first one asked, such as a new account. */
 export function SubmitButton({ label }: { label: string }): ReactNode {
+  // After the answer, the next page still loads, and a tap then would send the form again too.
+  const isWaiting = useNavigation().state !== "idle";
   return (
-    <button type="submit" className={styles["button"]}>
+    <button type="submit" disabled={isWaiting} className={styles["button"]}>
       {label}
     </button>
   );

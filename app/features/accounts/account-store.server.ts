@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import type { Database } from "../../database/database.server.ts";
 import { randomReadableText } from "../../random-text.server.ts";
 import { accountColumns } from "./account.ts";
@@ -69,6 +69,65 @@ export async function createLecturer(
     .returning({ id: users.id })
     .all();
   return created.length === 0 ? undefined : temporaryPassword;
+}
+
+/** A person as the other people of a class see them. */
+export interface Person {
+  id: UserId;
+  name: string;
+  username: Username;
+}
+
+/** Finds the people with these ids, such as the students of a class or the lecturers of classes, by id. Other features show a person through this, so the rules of the table of accounts stay in this feature. */
+export function findPeople(
+  database: Database,
+  ids: readonly UserId[],
+): Map<UserId, Person> {
+  const people = new Map<UserId, Person>();
+  const rows = database
+    .select({ id: users.id, name: users.name, username: users.username })
+    .from(users)
+    .where(inArray(users.id, [...ids]))
+    .all();
+  for (const row of rows) {
+    // Only a lecturer whom the server owner created has no name, until the first sign-in finishes the account. Such a lecturer has no class yet, and every student gives a name when joining, so a person whom others see without a name is a broken database.
+    if (row.name === null) {
+      throw new Error(
+        `The account "${row.username}" appears to other people but has no name.`,
+      );
+    }
+    people.set(row.id, { id: row.id, name: row.name, username: row.username });
+  }
+  return people;
+}
+
+/** What a student gives to create an account while joining a class. */
+export interface NewStudent {
+  username: Username;
+  name: string;
+  password: string;
+}
+
+/** Creates the account of a student, who agreed to the privacy notice and chose a password while joining a class, and returns its id, or returns undefined when the username is taken. */
+export async function createStudent(
+  database: Database,
+  student: NewStudent,
+  now: Date,
+): Promise<UserId | undefined> {
+  const [created] = database
+    .insert(users)
+    .values({
+      username: student.username,
+      name: student.name,
+      role: "student",
+      passwordHash: await hashPassword(student.password),
+      mustChangePassword: false,
+      consentedAt: now,
+    })
+    .onConflictDoNothing({ target: users.username })
+    .returning({ id: users.id })
+    .all();
+  return created?.id;
 }
 
 /** Gives an account a temporary password, which this returns, and signs the person out on every device. The person chooses a new password at the next sign-in. */

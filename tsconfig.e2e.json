@@ -11,7 +11,11 @@
     "scripts/wait-for-health.ts",
     "app/time-units.ts",
     "app/features/accounts/printed-password-for-test.ts",
-    "app/features/accounts/account-actions.ts"
+    "app/features/accounts/account-actions.ts",
+    "app/features/accounts/account-limits.ts",
+    "app/features/accounts/username.ts",
+    "app/features/classes/class-rules.ts",
+    "app/units/rupiah.ts"
   ],
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.cache/tsconfig.e2e.tsbuildinfo",

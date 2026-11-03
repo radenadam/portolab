@@ -14,29 +14,30 @@ import { readyUser } from "./account";
 import {
   currentSessionContext,
   isSignedIn,
-  pathReturningTo,
   startSession,
 } from "./current-session.server";
+import { pathReturningTo } from "./path-returning-to";
 import { passwordLimitersContext, signIn } from "./password-attempts.server";
 import { explainPasswordFailure } from "./explain-password-failure.server";
 import { deleteSession } from "./session-store.server";
-import { normalizeUsername } from "./username";
 
 export function meta(): Route.MetaDescriptors {
   return [{ title: pageTitle(m.accounts_sign_in_title()) }];
 }
 
-export function loader({ context, request }: Route.LoaderArgs): {
+export function loader({ context, request, url }: Route.LoaderArgs): {
   returnTo: string;
 } {
-  const returnTo = new URL(request.url).searchParams.get("returnTo");
+  const returnTo = url.searchParams.get("returnTo");
   if (isSignedIn(context)) {
     throw redirect(returnDestination(returnTo, request));
   }
-  return { returnTo: returnTo ?? "" };
+  // A person who came to sign in without a page to return to goes to the classes, where every task starts.
+  return { returnTo: returnTo ?? "/classes" };
 }
 
 export async function action({ context, request }: Route.ActionArgs) {
+  const now = new Date();
   const form = await request.formData();
   const username = parseFilledText(
     form.get("username"),
@@ -65,13 +66,14 @@ export async function action({ context, request }: Route.ActionArgs) {
       username: username.value,
       password: password.value,
       address: context.get(clientAddressContext),
-      now: new Date(),
+      now,
     },
   );
   if (!signedIn.ok) {
     const { text, status } = explainPasswordFailure(
       signedIn.failure,
-      normalizeUsername(username.value),
+      // The error quotes the username as the field shows it, although the limit counts it in lowercase.
+      username.value.trim(),
       m.accounts_wrong_credentials_error,
     );
     return data(
@@ -96,7 +98,10 @@ export async function action({ context, request }: Route.ActionArgs) {
       : destination,
     {
       headers: {
-        "Set-Cookie": await startSession(database, request, signedIn.value.id),
+        "Set-Cookie": await startSession(database, request, {
+          userId: signedIn.value.id,
+          now,
+        }),
       },
     },
   );

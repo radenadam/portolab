@@ -26,7 +26,7 @@ export function messageKeys(messages: Record<string, unknown>): string[] {
   return Object.keys(messages).filter((key) => key !== "$schema");
 }
 
-// The kinds of text in the interface, so that a reader can find every text of one kind by its key.
+// The kinds of text in the interface, so that a reader can find every text of one kind by its key. A part is a piece of a sentence that code joins into another text, such as a range of characters.
 const messageKinds = [
   "title",
   "body",
@@ -36,6 +36,7 @@ const messageKinds = [
   "error",
   "link",
   "name",
+  "part",
 ];
 
 /** Returns one sentence for each key that a language lacks, that does not start with a feature folder or with app, or that does not end with a kind of text. */
