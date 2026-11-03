@@ -5,7 +5,7 @@
 
 ## Context
 
-The review panel ran a router agent, an agent for each lens that applied, and a verifier on every push, which was up to 9 agents on Claude Opus. Each of them read the whole diff of the pull request again. A later round re-reviewed code that an earlier round had passed and kept finding new small drift in it, and the defect protocol widened each fix into a sweep across the repository, which grew the diff for the next round. Pull requests took 13 to 29 rounds, and the panel used about a fifth of the maintainer's weekly usage in about a day. Most rounds found one or two things for all that usage, and usage that is spent out of proportion to what it produces is waste at any budget, as issue #59 records.
+The review panel ran a router agent, an agent for each lens that applied, and a verifier on every push, which was up to 9 agents on Claude Opus. Each of them read the whole diff of the pull request again. A later round re-reviewed code that an earlier round had passed and kept finding new small drift in it, and the defect protocol widened each fix into a sweep across the repository, which grew the diff for the next round. Pull requests took 13 to 29 rounds, and the panel used about a fifth of the maintainer's weekly usage in about a day, as issue #59 records. Most rounds found one or two things for all that usage, and usage that is spent out of proportion to what it produces is waste at any budget.
 
 ## Decision
 
