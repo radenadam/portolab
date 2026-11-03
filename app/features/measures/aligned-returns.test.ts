@@ -1,6 +1,7 @@
 import { expect, test } from "vitest";
 import { successValueForTest } from "~/success-value-for-test";
 import { buildDailyHistory } from "~/features/market-data/build-daily-history";
+import { datedClosesForTest } from "~/features/market-data/history-for-test";
 import { splitAdjustedRupiah } from "~/units/split-adjusted-rupiah";
 import { closeToForTest } from "./close-to-for-test";
 import { defaultEstimationSettings } from "./estimation-settings";
@@ -76,7 +77,7 @@ test("gives no return for the months on either side of a month end without a clo
   const market = buildDailyHistory({ kind: "index", code: "IHSG" }, [
     ["2026-06-30", 5643.19],
     ["2026-07-31", 6236.13],
-    ...ihsg.closes.map((close): [string, number] => [close.date, close.close]),
+    ...datedClosesForTest(ihsg),
   ]);
   const bbcaCloses: [string, number][] = [
     ["2026-06-30", 5550],

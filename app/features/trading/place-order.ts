@@ -6,7 +6,7 @@ import {
 import type { StockQuote } from "~/features/market-data/price-source.server";
 import { fail, failuresOf, succeed } from "~/result";
 import type { Result } from "~/result";
-import { lots } from "~/units/lots";
+import { lots, smallestOrderLots } from "~/units/lots";
 import type { OrderLots } from "~/units/lots";
 import { rupiah } from "~/units/rupiah";
 import type { Rupiah } from "~/units/rupiah";
@@ -284,9 +284,13 @@ function checkCash(
         day.rates,
       ),
     ),
-    // Each rupiah of the price of 1 lot adds the shares of a lot to its value, so the count of such rupiah that the cash pays for is the highest price of 1 lot.
+    // Each rupiah of the price of the smallest order adds its shares to its value, so the count of such rupiah that the cash pays for is the highest price of that order.
     highestLotPrice: rupiah(
-      largestAffordableCount(availableCash, rupiah(lotShares), day.rates),
+      largestAffordableCount(
+        availableCash,
+        rupiah(smallestOrderLots * lotShares),
+        day.rates,
+      ),
     ),
     minimumPrice,
     holdsFreeShares: holdsFreeShares(account, account.moment),

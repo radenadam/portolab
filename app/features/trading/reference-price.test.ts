@@ -1,23 +1,13 @@
 import { expect, test } from "vitest";
 import { stockQuote } from "~/features/market-data/stock-quote";
-import { buildDailyHistory } from "~/features/market-data/build-daily-history";
-import { stockHistoryForTest } from "~/features/market-data/history-kinds-for-test";
-import type { StockHistory } from "~/features/market-data/price-source.server";
+import { stockClosesForTest } from "~/features/market-data/history-for-test";
 import { referencePrice } from "./reference-price";
 
 // An order that trades on Tuesday 3 November 2026, whose trading day before is Monday 2 November 2026. The comment of each quote gives its time in WIB.
 const day = { date: "2026-11-03", previousDate: "2026-11-02" };
 
-function bbcaCloses(
-  closes: readonly (readonly [string, number])[],
-): StockHistory {
-  return stockHistoryForTest(
-    buildDailyHistory({ kind: "stock", code: "BBCA" }, closes),
-  );
-}
-
 // The stored closes end with the close of Rp4,980 of Friday 30 October 2026, after the close of Rp4,940 of Thursday.
-const closesBeforeMonday = bbcaCloses([["2026-10-30", 4980]]);
+const closesBeforeMonday = stockClosesForTest("BBCA", [["2026-10-30", 4980]]);
 // 16:14 on Monday 2 November 2026, the close of Rp5,000.
 const quoteOfMonday = stockQuote(
   "BBCA",
@@ -38,17 +28,17 @@ const quoteOfTuesday = stockQuote(
 );
 
 test("takes the stored close of the trading day before, rounded to a whole rupiah", () => {
-  // A later split can leave a fraction of a rupiah in an adjusted close, and 4,999.6 rounds to Rp5,000.
+  // A split of one share into three takes effect on Tuesday, and the source has already adjusted the close of Rp5,000 of Monday to Rp1,666.67 before the first quote of Tuesday, which rounds to Rp1,667.
   expect(
     referencePrice(
       "BBCA",
       {
         quote: quoteOfMonday,
-        closes: bbcaCloses([["2026-11-02", 4999.6]]),
+        closes: stockClosesForTest("BBCA", [["2026-11-02", 1666.67]]),
       },
       day,
     ),
-  ).toEqual({ ok: true, value: 5_000 });
+  ).toEqual({ ok: true, value: 1_667 });
 });
 
 test("takes the previous close that a quote of the trading day states before the stored close, because the source adjusts it for a split of that day", () => {
@@ -58,7 +48,7 @@ test("takes the previous close that a quote of the trading day states before the
       "BBCA",
       {
         quote: stockQuote("BBCA", [4_950, 4_940], "2026-11-03T02:50:00Z"),
-        closes: bbcaCloses([["2026-11-02", 9_880]]),
+        closes: stockClosesForTest("BBCA", [["2026-11-02", 9_880]]),
       },
       day,
     ),

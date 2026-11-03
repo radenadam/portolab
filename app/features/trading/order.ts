@@ -53,14 +53,18 @@ export type OpenOrder = Order & {
   state: Extract<OrderState, { kind: "waiting" | "resting" }>;
 };
 
-/** How an order filled, and how much cash it moved. */
-export interface Fill {
-  price: Rupiah;
-  /** The price times the shares of the order. */
+/** A trade of a value with its costs, which tradeWithCosts gives. */
+export interface Trade {
+  /** The price times the shares of the trade. */
   value: Rupiah;
   fee: Rupiah;
   /** The final tax on a sale, which a purchase does not pay. */
   tax: Rupiah;
+}
+
+/** How an order filled, and how much cash it moved. */
+export interface Fill extends Trade {
+  price: Rupiah;
   /** The change of the cash of the account, which cashChange gives: the cost of a purchase paid out, or the value of a sale less its costs paid in. */
   cashChange: Rupiah;
   /** When the delayed price was quoted, which is the moment of the market at which the order filled. */
@@ -70,14 +74,10 @@ export interface Fill {
 }
 
 /** A purchase and its cost at a price, against the cash that it can use. */
-export interface CashShortfall {
+export interface CashShortfall extends Trade {
   code: string;
   lots: Lots;
   price: Rupiah;
-  value: Rupiah;
-  fee: Rupiah;
-  /** The tax that tradeCosts sets for a purchase, which is part of its cost. */
-  tax: Rupiah;
   /** The cash that the order can use: the cash of the account less what other open orders set aside. */
   availableCash: Rupiah;
 }
@@ -127,7 +127,7 @@ export type OrderFailure =
       code: string;
       count: number;
       minimum: number;
-      /** The first day of the month whose first trading day brings the last missing return once it closes, if the stock keeps trading every month. */
+      /** The first day of the month whose first trading day brings the last missing return, once the update of the price history stores its close, if the stock keeps a close at the end of every month and stays in the LQ45. */
       enoughAfterFirstTradingDayOf: string;
     }
   | {
@@ -149,7 +149,7 @@ export type OrderFailure =
       setAside: SetAside<Rupiah>;
       /** The most lots that the available cash pays for at the price, with the costs, which can be 0. */
       largestLots: Lots;
-      /** The highest price at which the available cash pays for 1 lot with its costs, which the text gives when the cash does not pay for 1 lot at the price of the order. */
+      /** The highest price at which the available cash pays for the smallest order with its costs, which the text gives when the cash does not pay for that order at the price of the order. */
       highestLotPrice: Rupiah;
       /** The lowest price that IDX accepts on the trading day, which the text gives when the highest price of 1 lot is below it. */
       minimumPrice: Rupiah;

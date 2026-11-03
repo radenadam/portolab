@@ -24,32 +24,45 @@ const placedAt = duringSessionForTest;
 const lastMinuteOfDay = lastMinuteOfMondayForTest;
 const endOfDay = endOfMondayForTest;
 
-// Only a purchase sets aside cash, and 1 lot at Rp4,980 with its fee sets aside Rp498,747, so two such purchases set aside Rp997,494.
-const setAsideCashOf: Record<OrderSide, Rupiah> = {
-  buy: rupiah(498_747),
-  sell: rupiah(0),
+// Each order is a limit order of 1 lot that stays open beside the price of Rp4,980, as a purchase at Rp4,950 or a sale at Rp5,050. Only a purchase sets aside cash, and 1 lot at Rp4,950 with its fee sets aside Rp495,743, so two such purchases set aside Rp991,486.
+const limits: Record<OrderSide, { limit: Rupiah; setAsideCash: Rupiah }> = {
+  buy: { limit: rupiah(4_950), setAsideCash: rupiah(495_743) },
+  sell: { limit: rupiah(5_050), setAsideCash: rupiah(0) },
 };
 
 function order(side: OrderSide, code: string, state: OrderState): Order {
+  const { limit, setAsideCash } = limits[side];
   return {
     code,
     side,
     lots: orderLotsForTest(1),
-    price: { kind: "market" },
+    price: { kind: "limit", limit },
     placedAt,
     shares: shares(100),
     tradingDay: "2026-11-02",
     tradesFrom: new Date("2026-11-02T02:00:00Z"),
     expiresAt: endOfDay,
-    checkedPrice: rupiah(4_980),
-    setAsideCash: setAsideCashOf[side],
+    checkedPrice: limit,
+    setAsideCash,
     state,
   };
 }
 
 const waiting: OrderState = { kind: "waiting" };
 const resting: OrderState = { kind: "resting" };
-const expired: OrderState = { kind: "expired", expiredAt: placedAt };
+// 16:26 on Friday 30 October 2026, when the open orders of that day expired.
+const endOfFriday = new Date("2026-10-30T09:26:00Z");
+
+/** An order placed at 10:00 on Friday 30 October 2026 that a check marked expired at the end of that day. */
+function expiredOrder(side: OrderSide, code: string): Order {
+  return {
+    ...order(side, code, { kind: "expired", expiredAt: endOfFriday }),
+    placedAt: new Date("2026-10-30T03:00:00Z"),
+    tradingDay: "2026-10-30",
+    tradesFrom: new Date("2026-10-30T02:00:00Z"),
+    expiresAt: endOfFriday,
+  };
+}
 
 test("counts the cash that open purchases set aside, and none of orders that are done or of sales", () => {
   expect(
@@ -57,12 +70,12 @@ test("counts the cash that open purchases set aside, and none of orders that are
       [
         order("buy", "BBCA", waiting),
         order("buy", "TLKM", resting),
-        order("buy", "BBCA", expired),
+        expiredOrder("buy", "BBCA"),
         order("sell", "BBCA", waiting),
       ],
       placedAt,
     ),
-  ).toEqual({ amount: 997_494, orders: 2 });
+  ).toEqual({ amount: 991_486, orders: 2 });
 });
 
 test("counts the shares of a stock that open sales set aside, and none of other stocks, of purchases, or of orders that are done", () => {
@@ -71,7 +84,7 @@ test("counts the shares of a stock that open sales set aside, and none of other 
       [
         order("sell", "BBCA", waiting),
         order("sell", "BBCA", resting),
-        order("sell", "BBCA", expired),
+        expiredOrder("sell", "BBCA"),
         order("sell", "TLKM", waiting),
         order("buy", "BBCA", waiting),
       ],
@@ -88,7 +101,7 @@ test("counts an order as open while it is waiting or resting, until its expiry",
   expect(isOpenOrder(order("buy", "BBCA", resting), lastMinuteOfDay)).toBe(
     true,
   );
-  expect(isOpenOrder(order("buy", "BBCA", expired), placedAt)).toBe(false);
+  expect(isOpenOrder(expiredOrder("buy", "BBCA"), placedAt)).toBe(false);
 });
 
 test("counts an order that is still waiting as closed from its expiry, so it sets aside nothing", () => {
@@ -107,7 +120,7 @@ test("selects an order that is waiting or resting for the check also after its e
   expect(hasOpenState(purchase)).toBe(true);
   expect(hasOpenState(order("buy", "BBCA", resting))).toBe(true);
   expect(isOpenOrder(purchase, endOfDay)).toBe(false);
-  expect(hasOpenState(order("buy", "BBCA", expired))).toBe(false);
+  expect(hasOpenState(expiredOrder("buy", "BBCA"))).toBe(false);
 });
 
 test("finds free shares only in a holding that open sell orders do not set aside completely", () => {
@@ -126,7 +139,7 @@ test("lists each stock of the open sell orders once and counts the orders, and n
         order("sell", "TLKM", waiting),
         order("sell", "BBCA", resting),
         order("sell", "BBCA", waiting),
-        order("sell", "ASII", expired),
+        expiredOrder("sell", "ASII"),
         order("buy", "BMRI", waiting),
       ],
       placedAt,

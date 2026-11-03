@@ -62,17 +62,26 @@ function selectedForCheck(order: Order): OpenOrder {
   return order;
 }
 
+/** The state of an order after a check at a moment, with the cash that the other open orders of the account leave, which is Rp100 million unless the test gives another. */
+function checkedWith(
+  order: Order,
+  latest: StockQuote,
+  at: { moment: string; availableCash: number },
+): Order["state"] {
+  return checkOrder({
+    order: selectedForCheck(order),
+    quote: latest,
+    moment: new Date(at.moment),
+    availableCash: rupiah(at.availableCash),
+  });
+}
+
 function checked(
   order: Order,
   latest: StockQuote,
   moment: string,
 ): Order["state"] {
-  return checkOrder({
-    order: selectedForCheck(order),
-    quote: latest,
-    moment: new Date(moment),
-    availableCash: rupiah(100_000_000),
-  });
+  return checkedWith(order, latest, { moment, availableCash: 100_000_000 });
 }
 
 test("fills a market purchase placed during a session at once, at the latest delayed price", () => {
@@ -307,11 +316,9 @@ test("rejects a market purchase whose price rose beyond the cash while it waited
     "2026-11-03T02:00:30Z",
   );
   expect(
-    checkOrder({
-      order: selectedForCheck(order),
-      quote: firstOfTuesday,
-      moment: new Date("2026-11-03T02:10:00Z"),
-      availableCash: rupiah(10_000_000),
+    checkedWith(order, firstOfTuesday, {
+      moment: "2026-11-03T02:10:00Z",
+      availableCash: 10_000_000,
     }),
   ).toEqual({
     kind: "rejected",
@@ -332,34 +339,36 @@ test("rejects a market purchase whose price rose beyond the cash while it waited
 
 test("keeps an order placed on a weekend waiting until a price of the next trading day", () => {
   // Placed at 10:00 WIB on Saturday 7 November 2026, when the latest quote is the close of Friday 6 November at the price of Thursday, and checked on Sunday 8 November.
-  const closeOfFriday = stockQuote(
+  const closeOfFridaySixNovember = stockQuote(
     "BBCA",
     [4_980, 4_980],
     "2026-11-06T09:14:55Z",
   );
   const order = placed(
     { placedAt: new Date("2026-11-07T03:00:00Z") },
-    closeOfFriday,
+    closeOfFridaySixNovember,
   );
   expect(order.tradingDay).toBe("2026-11-09");
-  expect(checked(order, closeOfFriday, "2026-11-08T03:00:00Z")).toEqual({
+  expect(
+    checked(order, closeOfFridaySixNovember, "2026-11-08T03:00:00Z"),
+  ).toEqual({
     kind: "waiting",
   });
 });
 
 test("keeps an order waiting through holidays until the next trading day", () => {
-  // Placed at 16:00 WIB on Wednesday 23 December 2026 at the price of Tuesday, and checked at 10:00 WIB on Thursday 24 December, a holiday.
-  const closeOfWednesday = stockQuote(
+  // Placed at 16:00 WIB on Wednesday 23 December 2026, when the latest delayed price is from 15:49 at the price of Tuesday, and checked at 10:00 WIB on Thursday 24 December, a holiday.
+  const lastOfWednesday = stockQuote(
     "BBCA",
     [4_980, 4_980],
-    "2026-12-23T09:14:55Z",
+    "2026-12-23T08:49:00Z",
   );
   const order = placed(
     { placedAt: new Date("2026-12-23T09:00:00Z") },
-    closeOfWednesday,
+    lastOfWednesday,
   );
   expect(order.tradingDay).toBe("2026-12-28");
-  expect(checked(order, closeOfWednesday, "2026-12-24T03:00:00Z")).toEqual({
+  expect(checked(order, lastOfWednesday, "2026-12-24T03:00:00Z")).toEqual({
     kind: "waiting",
   });
 });

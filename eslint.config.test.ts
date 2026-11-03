@@ -196,7 +196,7 @@ test(
 );
 
 test(
-  "rejects a second import of values or of types from one module, and accepts one import of each",
+  "rejects a second import of values or of types that repeats the specifier of an earlier import, with the alias, a relative path, and a path that climbs out of its folder, and accepts one import of each",
   async () => {
     for (const code of [
       `import { fail } from "../app/result.ts";
@@ -205,9 +205,18 @@ export const both = [fail, succeed];`,
       `import type { Result } from "../app/result.ts";
 import type { Result as Outcome } from "../app/result.ts";
 export type Both = [Result<1, 2>, Outcome<1, 2>];`,
+      `import { parseJsonObject } from "./json.ts";
+import { readJsonFile } from "./json.ts";
+export const both = [parseJsonObject, readJsonFile];`,
+      `import type { Parser } from "./json.ts";
+import type { Parser as Reader } from "./json.ts";
+export type Both = [Parser<string>, Reader<number>];`,
       `import { parseUsername } from "~/features/accounts/username";
 import { isUsername } from "~/features/accounts/username";
 export const both = [parseUsername, isUsername];`,
+      `import type { Username } from "~/features/accounts/username";
+import type { Username as Name } from "~/features/accounts/username";
+export type Both = [Username, Name];`,
     ]) {
       expect(await rulesReporting(code), code).toContain(
         "no-duplicate-imports",

@@ -1,14 +1,12 @@
 import { expect, test } from "vitest";
 import { stockQuote } from "~/features/market-data/stock-quote";
-import { buildDailyHistory } from "~/features/market-data/build-daily-history";
 import {
   indexHistoryForTest,
+  stockClosesForTest,
   stockHistoryForTest,
-} from "~/features/market-data/history-kinds-for-test";
-import type {
-  IndexHistory,
-  StockHistory,
-} from "~/features/market-data/price-source.server";
+  withClosesForTest,
+} from "~/features/market-data/history-for-test";
+import type { StockHistory } from "~/features/market-data/price-source.server";
 import { marketWithoutCompleteMonthForTest } from "~/features/measures/market-without-complete-month-for-test";
 import { monthEndClosesForTest } from "~/features/measures/month-end-closes-for-test";
 import { rupiah } from "~/units/rupiah";
@@ -50,42 +48,18 @@ function accepted(
   return acceptedForTest(request, state, bbca);
 }
 
-/** The closes of a history and the closes that a later update of the price history adds to it, each a date and a close. */
-function datedCloses(
-  history: StockHistory | IndexHistory,
-  added: readonly (readonly [string, number])[],
-): (readonly [string, number])[] {
-  return [
-    ...history.closes.map((dated): [string, number] => [
-      dated.date,
-      dated.close,
-    ]),
-    ...added,
-  ];
-}
-
-function withStockCloses(
-  history: StockHistory,
-  added: readonly (readonly [string, number])[],
-): StockHistory {
-  return stockHistoryForTest(
-    buildDailyHistory(
-      { kind: "stock", code: history.code },
-      datedCloses(history, added),
+/** BBCA at 10:00 on Tuesday 3 November 2026, once the update of the price history has stored the closes of Monday 2 November, with the closes of BBCA before Monday that a test gives. */
+function bbcaOfTuesday(closesBeforeMonday: StockHistory): StockState {
+  return {
+    ...bbca,
+    quote: stockQuote("BBCA", [4_980, 4_980], "2026-11-03T02:50:00Z"),
+    closes: stockHistoryForTest(
+      withClosesForTest(closesBeforeMonday, [["2026-11-02", 4_980]]),
     ),
-  );
-}
-
-function withIndexLevels(
-  history: IndexHistory,
-  added: readonly (readonly [string, number])[],
-): IndexHistory {
-  return indexHistoryForTest(
-    buildDailyHistory(
-      { kind: "index", code: history.code },
-      datedCloses(history, added),
+    marketCloses: indexHistoryForTest(
+      withClosesForTest(ihsg, [["2026-11-02", 5_100]]),
     ),
-  );
+  };
 }
 
 test("accepts a market purchase of a stock with the monthly returns that the measures need, and sets aside its value and fee at the latest delayed price", () => {
@@ -120,7 +94,9 @@ test("accepts a limit purchase in the evening for the next trading day, against 
   const closedMonday: StockState = {
     ...bbca,
     quote: stockQuote("BBCA", [5_000, 4_980], "2026-11-02T09:14:55Z"),
-    closes: withStockCloses(bbcaCloses, [["2026-11-02", 5_000]]),
+    closes: stockHistoryForTest(
+      withClosesForTest(bbcaCloses, [["2026-11-02", 5_000]]),
+    ),
   };
   expect(placeOrder(request, account(), closedMonday)).toEqual({
     ok: true,
@@ -161,7 +137,12 @@ test("rejects a limit order for the next trading day until the close of the day 
     placeOrder(
       { ...limitOrder, placedAt: new Date("2026-11-02T09:26:00Z") },
       account(),
-      { ...bbca, closes: withStockCloses(bbcaCloses, [["2026-11-02", 4_980]]) },
+      {
+        ...bbca,
+        closes: stockHistoryForTest(
+          withClosesForTest(bbcaCloses, [["2026-11-02", 4_980]]),
+        ),
+      },
     ),
   ).toMatchObject({ ok: true, value: { tradingDay: "2026-11-03" } });
 });
@@ -191,11 +172,7 @@ test("accepts a sale of a stock outside the universe, which a holding keeps from
       {
         ...bbca,
         quote: stockQuote("BREN", [7_250, 7_200], "2026-11-02T02:50:00Z"),
-        closes: stockHistoryForTest(
-          buildDailyHistory({ kind: "stock", code: "BREN" }, [
-            ["2026-10-30", 7_200],
-          ]),
-        ),
+        closes: stockClosesForTest("BREN", [["2026-10-30", 7_200]]),
       },
     ),
   ).toMatchObject({
@@ -267,12 +244,7 @@ test("accepts a purchase of a stock once the update of the price history stores 
     placeOrder(
       purchase({ placedAt: new Date("2026-11-03T03:00:00Z") }),
       account(),
-      {
-        ...bbca,
-        quote: stockQuote("BBCA", [4_980, 4_980], "2026-11-03T02:50:00Z"),
-        closes: withStockCloses(shortHistory, [["2026-11-02", 4_980]]),
-        marketCloses: withIndexLevels(ihsg, [["2026-11-02", 5_100]]),
-      },
+      bbcaOfTuesday(shortHistory),
     ),
   ).toMatchObject({ ok: true, value: { tradingDay: "2026-11-03" } });
 });
@@ -305,12 +277,7 @@ test("names the month that brings enough returns to a stock whose window loses a
     placeOrder(
       purchase({ placedAt: new Date("2026-11-03T03:00:00Z") }),
       account(),
-      {
-        ...bbca,
-        quote: stockQuote("BBCA", [4_980, 4_980], "2026-11-03T02:50:00Z"),
-        closes: withStockCloses(gapHistory, [["2026-11-02", 4_980]]),
-        marketCloses: withIndexLevels(ihsg, [["2026-11-02", 5_100]]),
-      },
+      bbcaOfTuesday(gapHistory),
     ),
   ).toEqual(rejection);
   const closesUntilNovember: [string, number][] = [
@@ -329,8 +296,12 @@ test("names the month that brings enough returns to a stock whose window loses a
       {
         ...bbca,
         quote: stockQuote("BBCA", [5_000, 5_000], "2026-12-01T09:14:55Z"),
-        closes: withStockCloses(gapHistory, closesUntilNovember),
-        marketCloses: withIndexLevels(ihsg, levelsUntilNovember),
+        closes: stockHistoryForTest(
+          withClosesForTest(gapHistory, closesUntilNovember),
+        ),
+        marketCloses: indexHistoryForTest(
+          withClosesForTest(ihsg, levelsUntilNovember),
+        ),
       },
     ),
   ).toEqual(rejection);
@@ -342,14 +313,18 @@ test("names the month that brings enough returns to a stock whose window loses a
       {
         ...bbca,
         quote: stockQuote("BBCA", [5_000, 5_000], "2026-12-02T02:50:00Z"),
-        closes: withStockCloses(gapHistory, [
-          ...closesUntilNovember,
-          ["2026-12-01", 5_000],
-        ]),
-        marketCloses: withIndexLevels(ihsg, [
-          ...levelsUntilNovember,
-          ["2026-12-01", 5_160],
-        ]),
+        closes: stockHistoryForTest(
+          withClosesForTest(gapHistory, [
+            ...closesUntilNovember,
+            ["2026-12-01", 5_000],
+          ]),
+        ),
+        marketCloses: indexHistoryForTest(
+          withClosesForTest(ihsg, [
+            ...levelsUntilNovember,
+            ["2026-12-01", 5_160],
+          ]),
+        ),
       },
     ),
   ).toMatchObject({ ok: true, value: { tradingDay: "2026-12-02" } });
@@ -465,10 +440,10 @@ const lastMinuteOfMonday = lastMinuteOfMondayForTest;
 const endOfMonday = endOfMondayForTest;
 
 test("rejects a purchase while an open buy order of the day sets aside the cash, and accepts it once that order expires", () => {
-  // The purchase of Monday sets aside Rp2,493,735 of the cash of Rp2,500,000 until 16:26, even before a check marks it expired.
+  // The limit purchase of Monday at Rp4,950 stays open below the price of Rp4,980, and it sets aside Rp2,478,713 of the cash of Rp2,500,000 until 16:26, even before a check marks it expired.
   const state = account({
     cash: rupiah(2_500_000),
-    orders: [accepted(purchase())],
+    orders: [accepted(purchase({ price: limitForTest(4_950) }))],
   });
   expect(
     placeOrder(purchase({ placedAt: lastMinuteOfMonday }), state, bbca),
@@ -476,7 +451,7 @@ test("rejects a purchase while an open buy order of the day sets aside the cash,
     ok: false,
     failure: {
       kind: "notEnoughCash",
-      setAside: { amount: 2_493_735, orders: 1 },
+      setAside: { amount: 2_478_713, orders: 1 },
     },
   });
   expect(
@@ -554,10 +529,13 @@ test("offers no sale for cash when open sell orders set aside every share that t
 });
 
 test("rejects a sale while an open sell order of the day sets aside the shares, and accepts it once that order expires", () => {
+  // The limit sale of Monday at Rp5,050 stays open above the price of Rp4,980 until 16:26.
   const holdings = [{ code: "BBCA", shares: shares(500), cost: rupiah(0) }];
   const state = account({
     holdings,
-    orders: [accepted(sale(), account({ holdings }))],
+    orders: [
+      accepted(sale({ price: limitForTest(5_050) }), account({ holdings })),
+    ],
   });
   expect(
     placeOrder(sale({ placedAt: lastMinuteOfMonday }), state, bbca),

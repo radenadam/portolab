@@ -9,9 +9,10 @@ import {
   formatRupiah,
   formatSignedPercent,
 } from "~/formatting";
+import { countedText } from "~/counted-text";
+import type { CountedMessages } from "~/counted-text";
 import type { ChangeDirection } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
-import { singularOrPlural } from "~/sentences";
 import { isSameWibDay } from "./idx-calendar";
 import type { PriceSourceDescription, Quote } from "./price-source.server";
 import styles from "./prices-view.module.css";
@@ -129,20 +130,15 @@ function failedPriceSentences(
   return sentences;
 }
 
-type CodesMessage = (inputs: { codes: string; time: string }) => string;
-
-// A sentence that names prices has one form for a single code and another for several, because English changes its grammar between them.
 function sentenceForCodes(
   codes: readonly string[],
   time: string,
-  messages: { one: CodesMessage; several: CodesMessage },
+  messages: CountedMessages<{ codes: string; time: string }>,
 ): string {
-  const message = singularOrPlural(
-    codes.length,
-    messages.one,
-    messages.several,
-  );
-  return message({ codes: formatList(codes, "conjunction"), time });
+  return countedText(codes.length, messages, {
+    codes: formatList(codes, "conjunction"),
+    time,
+  });
 }
 
 // The time comes from the schedule that the job follows, so the page never promises an attempt that the job does not make. Once that time has come, the job is making the attempt, because the page shows the latest attempt that the job finished.

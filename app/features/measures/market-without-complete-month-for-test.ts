@@ -1,5 +1,5 @@
 import { buildDailyHistory } from "~/features/market-data/build-daily-history";
-import { indexHistoryForTest } from "~/features/market-data/history-kinds-for-test";
+import { indexHistoryForTest } from "~/features/market-data/history-for-test";
 import type { IndexHistory } from "~/features/market-data/price-source.server";
 
 /** The closes of the IHSG on two days of October 2026, the only month of the history, which no close of a later month completes. */

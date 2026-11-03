@@ -11,7 +11,7 @@ import type { OrderFailure } from "./order";
 
 /**
  * The reference price of the auto rejection limits of a trading day, which IDX sets from the latest close of the stock before that day. It comes from one of two sources that are final for that day. During the trading day it is the previous close that a quote of that day states, which the source adjusts for a split that takes effect that day. Before the first quote of the day it is the stored close of the trading day before, which the source adjusts for such a split only later, as issue #39 tracks.
- * It fails while neither exists. That lasts until the next update of the price history stores the close of a stock that traded on the trading day before, or until a stock that did not trade then, such as a suspended one, trades again during a session.
+ * It fails while neither exists. For a stock that traded on the trading day before, that ends when an update of the price history stores its close or when a quote of the trading day arrives. For a stock that did not trade then, such as a suspended one, it ends when a quote of the trading day arrives.
  */
 export function referencePrice(
   code: string,

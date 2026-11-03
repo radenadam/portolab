@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { rupiah } from "~/units/rupiah";
-import { costRatesOn, tradeCosts } from "./trading-costs";
+import { costRatesOn, tradeWithCosts } from "./trading-costs";
 import { costRatesForTest } from "./rules-for-test";
 
 const november = costRatesForTest("2026-11-02");
@@ -49,11 +49,13 @@ const trades: {
 
 for (const { name, value, buyFee, sellFee, tax } of trades) {
   test(`charges a purchase the broker fee and a sale the fee and the tax on a value ${name}`, () => {
-    expect(tradeCosts("buy", rupiah(value), november)).toEqual({
+    expect(tradeWithCosts("buy", rupiah(value), november)).toEqual({
+      value,
       fee: buyFee,
       tax: 0,
     });
-    expect(tradeCosts("sell", rupiah(value), november)).toEqual({
+    expect(tradeWithCosts("sell", rupiah(value), november)).toEqual({
+      value,
       fee: sellFee,
       tax,
     });

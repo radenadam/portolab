@@ -14,18 +14,12 @@ export interface Holding {
   cost: Rupiah;
 }
 
-/** A holding after a fill, and the cost of the shares that a sale took out of it, which a purchase leaves at 0. */
-export interface HoldingAfterFill {
-  holding: Holding;
-  soldCost: Rupiah;
-}
-
 /** The holding of the stock of an order after the order filled, by the rules of decision 0016. A purchase into a stock that the account does not hold starts from an empty holding. */
 export function holdingAfterFill(
   holding: Holding | undefined,
   order: Pick<Order, "code" | "side" | "shares">,
   fill: Fill,
-): HoldingAfterFill {
+): Holding {
   switch (order.side) {
     case "buy": {
       const before = holding ?? {
@@ -34,12 +28,9 @@ export function holdingAfterFill(
         cost: rupiah(0),
       };
       return {
-        holding: {
-          code: order.code,
-          shares: shares(before.shares + order.shares),
-          cost: rupiah(before.cost + purchaseCost(fill)),
-        },
-        soldCost: rupiah(0),
+        code: order.code,
+        shares: shares(before.shares + order.shares),
+        cost: rupiah(before.cost + purchaseCost(fill)),
       };
     }
     case "sell": {
@@ -56,12 +47,9 @@ export function holdingAfterFill(
         ),
       );
       return {
-        holding: {
-          code: order.code,
-          shares: shares(holding.shares - order.shares),
-          cost: rupiah(holding.cost - soldCost),
-        },
-        soldCost,
+        code: order.code,
+        shares: shares(holding.shares - order.shares),
+        cost: rupiah(holding.cost - soldCost),
       };
     }
   }

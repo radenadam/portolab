@@ -1,15 +1,14 @@
+import { countedText } from "~/counted-text";
 import {
   formatCalendarDate,
   formatList,
   formatMonth,
-  formatNumber,
   formatPercent,
   formatRupiah,
 } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
-import { singularOrPlural } from "~/sentences";
 import { basisPointsPerWhole } from "~/units/basis-points";
-import { lots } from "~/units/lots";
+import { lots, smallestOrderLots } from "~/units/lots";
 import { rupiah } from "~/units/rupiah";
 import { lotCount, monthlyReturnCount } from "./count-phrases";
 import type { PriceLimit } from "./price-limits";
@@ -22,8 +21,6 @@ type Failure = OrderFailure | FillFailure;
 type Shortfall = Extract<Failure, { kind: "notEnoughCash" | "priceRose" }>;
 
 type NotEnoughCash = Extract<Failure, { kind: "notEnoughCash" }>;
-
-type NotEnoughShares = Extract<Failure, { kind: "notEnoughShares" }>;
 
 type FailureTexts = {
   [Kind in Failure["kind"]]: (
@@ -69,34 +66,34 @@ function largestPurchaseText(failure: NotEnoughCash): string {
 }
 
 function setAsideCashText(failure: NotEnoughCash): string {
-  const amounts = {
-    setAside: formatRupiah(failure.setAside.amount),
-    cash: formatRupiah(failure.cash),
-  };
-  const message = singularOrPlural(
+  return countedText(
     failure.setAside.orders,
-    () => m.trading_one_purchase_sets_aside_cash_error(amounts),
-    () =>
-      m.trading_several_purchases_set_aside_cash_error({
-        ...amounts,
-        count: formatNumber(failure.setAside.orders),
-      }),
+    {
+      one: m.trading_one_purchase_sets_aside_cash_error,
+      several: m.trading_several_purchases_set_aside_cash_error,
+    },
+    {
+      setAside: formatRupiah(failure.setAside.amount),
+      cash: formatRupiah(failure.cash),
+    },
   );
-  return message();
 }
 
-/** The highest price at which the available cash pays for 1 lot, which tells the student which prices are within reach, or the lowest price of IDX when even that is beyond the cash. */
+/** The highest price at which the available cash pays for the smallest order, which tells the student which prices are within reach, or the lowest price of IDX when even that is beyond the cash. */
 function lotPriceText(failure: NotEnoughCash): string {
+  const smallestOrder = lotCount(smallestOrderLots);
   return failure.highestLotPrice >= failure.minimumPrice
     ? m.trading_highest_lot_price_error({
+        smallestOrder,
         highest: formatRupiah(failure.highestLotPrice),
       })
     : m.trading_below_minimum_price_error({
+        smallestOrder,
         minimum: formatRupiah(failure.minimumPrice),
       });
 }
 
-/** The steps that add to the available cash of an account that does not pay for 1 lot, each only in a state of the account where the student can take it or wait for it. The text about open buy orders already says when their cash comes back. */
+/** The steps that add to the available cash of an account that does not pay for the smallest order, each only in a state of the account where the student can take it or wait for it. The text about open buy orders already says when their cash comes back. */
 function stepsWithoutAffordableLot(failure: NotEnoughCash): string[] {
   const steps: string[] = [];
   if (failure.holdsFreeShares) {
@@ -110,45 +107,18 @@ function stepsWithoutAffordableLot(failure: NotEnoughCash): string[] {
   }
   const { sales } = failure;
   if (sales.orders > 0) {
-    const codes = formatList(sales.codes, "conjunction");
-    const message = singularOrPlural(
-      sales.orders,
-      () => m.trading_one_sale_adds_cash_error({ codes }),
-      () =>
-        m.trading_several_sales_add_cash_error({
-          codes,
-          count: formatNumber(sales.orders),
-        }),
+    steps.push(
+      countedText(
+        sales.orders,
+        {
+          one: m.trading_one_sale_adds_cash_error,
+          several: m.trading_several_sales_add_cash_error,
+        },
+        { codes: formatList(sales.codes, "conjunction") },
+      ),
     );
-    steps.push(message());
   }
   return steps;
-}
-
-function setAsideSharesText(failure: NotEnoughShares): string {
-  const amounts = {
-    setAside: lotCount(failure.setAside.amount),
-    code: failure.code,
-  };
-  const message = singularOrPlural(
-    failure.setAside.orders,
-    () => m.trading_one_sale_sets_aside_shares_error(amounts),
-    () =>
-      m.trading_several_sales_set_aside_shares_error({
-        ...amounts,
-        count: formatNumber(failure.setAside.orders),
-      }),
-  );
-  return message();
-}
-
-function freedSharesText(failure: NotEnoughShares): string {
-  const message = singularOrPlural(
-    failure.setAside.orders,
-    m.trading_one_sale_frees_shares_error,
-    m.trading_several_sales_free_shares_error,
-  );
-  return message({ code: failure.code });
 }
 
 const failureTexts: FailureTexts = {
@@ -242,12 +212,28 @@ const failureTexts: FailureTexts = {
       }),
     ];
     if (failure.setAside.orders > 0) {
-      sentences.push(setAsideSharesText(failure));
+      sentences.push(
+        countedText(
+          failure.setAside.orders,
+          {
+            one: m.trading_one_sale_sets_aside_shares_error,
+            several: m.trading_several_sales_set_aside_shares_error,
+          },
+          { setAside: lotCount(failure.setAside.amount), code: failure.code },
+        ),
+      );
     }
     const freeLots = lots(failure.heldLots - failure.setAside.amount);
     sentences.push(
       freeLots === 0
-        ? freedSharesText(failure)
+        ? countedText(
+            failure.setAside.orders,
+            {
+              one: m.trading_one_sale_frees_shares_error,
+              several: m.trading_several_sales_free_shares_error,
+            },
+            { code: failure.code },
+          )
         : m.trading_largest_sale_error({ free: lotCount(freeLots) }),
     );
     return sentences.join(" ");

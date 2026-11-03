@@ -21,7 +21,7 @@ function after(
   holding: Holding | undefined,
   order: { side: OrderSide; shares: number },
   fill: Fill,
-): ReturnType<typeof holdingAfterFill> {
+): Holding {
   return holdingAfterFill(
     holding,
     { code: "BBCA", side: order.side, shares: shares(order.shares) },
@@ -42,14 +42,11 @@ test("adds the shares of a purchase and its value with the fee to the cost of a 
       cashChange: rupiah(-2_493_735),
     }),
   );
-  expect(first).toEqual({
-    holding: { code: "BBCA", shares: 500, cost: 2_493_735 },
-    soldCost: 0,
-  });
+  expect(first).toEqual({ code: "BBCA", shares: 500, cost: 2_493_735 });
   // 3 lots at Rp5,000.
   expect(
     after(
-      first.holding,
+      first,
       { side: "buy", shares: 300 },
       filled({
         price: rupiah(5_000),
@@ -59,14 +56,11 @@ test("adds the shares of a purchase and its value with the fee to the cost of a 
         cashChange: rupiah(-1_502_250),
       }),
     ),
-  ).toEqual({
-    holding: { code: "BBCA", shares: 800, cost: 3_995_985 },
-    soldCost: 0,
-  });
+  ).toEqual({ code: "BBCA", shares: 800, cost: 3_995_985 });
 });
 
 test("takes the average cost of the shares of a sale out of a holding, rounded to a whole rupiah", () => {
-  // 3 of 8 lots at Rp5,100. Their cost is 3,995,985 × 300 / 800, which is 1,498,494.375.
+  // 3 of 8 lots at Rp5,100. Their cost is 3,995,985 × 300 / 800, which is 1,498,494.375, so Rp1,498,494 leaves the holding.
   const holding = {
     code: "BBCA",
     shares: shares(800),
@@ -83,14 +77,11 @@ test("takes the average cost of the shares of a sale out of a holding, rounded t
       cashChange: rupiah(1_526_175),
     }),
   );
-  expect(sold).toEqual({
-    holding: { code: "BBCA", shares: 500, cost: 2_497_491 },
-    soldCost: 1_498_494,
-  });
+  expect(sold).toEqual({ code: "BBCA", shares: 500, cost: 2_497_491 });
   // The other 5 lots at Rp5,050 take out the rest of the cost.
   expect(
     after(
-      sold.holding,
+      sold,
       { side: "sell", shares: 500 },
       filled({
         price: rupiah(5_050),
@@ -100,8 +91,5 @@ test("takes the average cost of the shares of a sale out of a holding, rounded t
         cashChange: rupiah(2_518_687),
       }),
     ),
-  ).toEqual({
-    holding: { code: "BBCA", shares: 0, cost: 0 },
-    soldCost: 2_497_491,
-  });
+  ).toEqual({ code: "BBCA", shares: 0, cost: 0 });
 });

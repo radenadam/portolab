@@ -13,7 +13,7 @@ A diff range, a set of paths, or a plan, with the intent behind it. In an audit,
 ## Look for
 
 - The rules of the section "Code" of `AGENTS.md` that only a reader can judge: names, explicit code, abstractions, comments, parsing at boundaries, failure texts, and defensive checks.
-- Code that duplicates something already in the repository, in a form that `pnpm check` cannot detect, such as a copy shorter than the 50 tokens that jscpd needs or a copy with renamed variables. Compare each new function and each new test fixture with its neighbours in the same module and with the helpers of its feature.
+- Code that duplicates something already in the repository, in a form that `pnpm check` cannot detect, such as a copy shorter than the `minTokens` of `.jscpd.json` or a copy with renamed variables. Compare each new function and each new test fixture with its neighbors in the same module and with the helpers of its feature.
 - Departures from the idioms of the stack: React Router route modules, loaders, actions, and forms, Paraglide message functions, Drizzle queries, and CSS modules.
 
 ## Findings

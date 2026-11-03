@@ -193,6 +193,12 @@ const continuousTradingMoments: {
     moment: "2026-11-02T05:00:00Z",
     isContinuous: false,
   },
+  // 13:29 WIB.
+  {
+    name: "until the last minute of the break from Monday to Thursday",
+    moment: "2026-11-02T06:29:00Z",
+    isContinuous: false,
+  },
   // 13:30 WIB.
   {
     name: "from the start of session II from Monday to Thursday",
@@ -314,11 +320,23 @@ const sessionStarts: { name: string; moment: string; start: string }[] = [
     moment: "2026-11-02T01:50:00Z",
     start: "2026-11-02T02:00:00.000Z",
   },
+  // 12:00 WIB, when the break starts, gives 13:30 WIB.
+  {
+    name: "session II when the break from Monday to Thursday starts",
+    moment: "2026-11-02T05:00:00Z",
+    start: "2026-11-02T06:30:00.000Z",
+  },
   // 12:30 WIB gives 13:30 WIB.
   {
     name: "session II in the break",
     moment: "2026-11-02T05:30:00Z",
     start: "2026-11-02T06:30:00.000Z",
+  },
+  // 08:50 WIB on Friday 6 November 2026 gives 09:00 WIB of that day.
+  {
+    name: "session I of a Friday before the market opens",
+    moment: "2026-11-06T01:50:00Z",
+    start: "2026-11-06T02:00:00.000Z",
   },
   // 10:00 WIB on Friday 6 November 2026 gives 09:00 WIB of that day.
   {
@@ -342,6 +360,12 @@ const sessionStarts: { name: string; moment: string; start: string }[] = [
   {
     name: "the later session II in the break of a Friday",
     moment: "2026-11-06T05:00:00Z",
+    start: "2026-11-06T07:00:00.000Z",
+  },
+  // 14:30 WIB on Friday 6 November 2026 gives 14:00 WIB.
+  {
+    name: "the open session II of a Friday",
+    moment: "2026-11-06T07:30:00Z",
     start: "2026-11-06T07:00:00.000Z",
   },
   // 15:49 WIB on Friday 6 November 2026, the last minute of session II, gives 14:00 WIB.

@@ -4,8 +4,8 @@ import { rupiah } from "~/units/rupiah";
 import type { Rupiah } from "~/units/rupiah";
 import { wibDateOf } from "~/wib";
 import { checkCashForPurchase } from "./check-cash-for-purchase";
-import type { Fill, OpenOrder, Order, OrderSide, OrderState } from "./order";
-import { cashChange, costRatesOn, tradeCosts } from "./trading-costs";
+import type { OpenOrder, Order, OrderSide, OrderState, Trade } from "./order";
+import { cashChange, costRatesOn, tradeWithCosts } from "./trading-costs";
 
 /** What Portolab knows when it checks an order. */
 export interface OrderCheck {
@@ -109,28 +109,24 @@ function fillAt(price: Rupiah, check: OrderCheck): OrderState {
           },
         };
       }
-      return filled(check, { price, ...paid.value });
+      return filled(check, price, paid.value);
     }
-    case "sell": {
-      const value = rupiah(price * order.shares);
-      return filled(check, {
+    case "sell":
+      return filled(
+        check,
         price,
-        value,
-        ...tradeCosts("sell", value, rates.value),
-      });
-    }
+        tradeWithCosts("sell", rupiah(price * order.shares), rates.value),
+      );
   }
 }
 
-function filled(
-  check: OrderCheck,
-  amounts: Pick<Fill, "price" | "value" | "fee" | "tax">,
-): OrderState {
+function filled(check: OrderCheck, price: Rupiah, trade: Trade): OrderState {
   return {
     kind: "filled",
     fill: {
-      ...amounts,
-      cashChange: cashChange(check.order.side, amounts),
+      price,
+      ...trade,
+      cashChange: cashChange(check.order.side, trade),
       quotedAt: check.quote.quotedAt,
       filledAt: check.moment,
     },

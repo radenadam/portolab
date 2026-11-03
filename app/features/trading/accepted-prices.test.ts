@@ -148,14 +148,15 @@ for (const { date, reference, lowest, highest, upper, lower } of ranges) {
 }
 
 const november = idxRulesForTest("2026-11-02");
-const bbcaRange = acceptedPriceRange(rupiah(4_940), november);
+// The range of a reference price of Rp4,940 on Monday 2 November 2026, from Rp4,600 to Rp6,175.
+const rangeOf4940 = acceptedPriceRange(rupiah(4_940), november);
 
 test("accepts a limit price at either end of the range", () => {
-  expect(checkLimitPrice(rupiah(4_600), bbcaRange, november)).toEqual({
+  expect(checkLimitPrice(rupiah(4_600), rangeOf4940, november)).toEqual({
     ok: true,
     value: 4_600,
   });
-  expect(checkLimitPrice(rupiah(6_175), bbcaRange, november)).toEqual({
+  expect(checkLimitPrice(rupiah(6_175), rangeOf4940, november)).toEqual({
     ok: true,
     value: 6_175,
   });
@@ -163,15 +164,23 @@ test("accepts a limit price at either end of the range", () => {
 
 test("rejects a limit price beyond either end of the range, with the range", () => {
   for (const price of [4_590, 6_200]) {
-    expect(checkLimitPrice(rupiah(price), bbcaRange, november)).toEqual({
+    expect(checkLimitPrice(rupiah(price), rangeOf4940, november)).toEqual({
       ok: false,
-      failure: { kind: "outsideLimits", price, ...bbcaRange },
+      failure: { kind: "outsideLimits", price, ...rangeOf4940 },
     });
   }
 });
 
+test("rejects a limit price inside the limit at its rate but beyond the nearest valid price inside that limit", () => {
+  // Rp4,595 is 6.98% below Rp4,940, inside the limit of 7% at Rp4,594.20, but the nearest valid price inside that limit is Rp4,600.
+  expect(checkLimitPrice(rupiah(4_595), rangeOf4940, november)).toEqual({
+    ok: false,
+    failure: { kind: "outsideLimits", price: 4_595, ...rangeOf4940 },
+  });
+});
+
 test("rejects a limit price between two steps of its band, with the valid prices on either side", () => {
-  expect(checkLimitPrice(rupiah(4_985), bbcaRange, november)).toEqual({
+  expect(checkLimitPrice(rupiah(4_985), rangeOf4940, november)).toEqual({
     ok: false,
     failure: {
       kind: "offTick",
@@ -183,7 +192,7 @@ test("rejects a limit price between two steps of its band, with the valid prices
       above: 4_990,
     },
   });
-  expect(checkLimitPrice(rupiah(5_010), bbcaRange, november)).toEqual({
+  expect(checkLimitPrice(rupiah(5_010), rangeOf4940, november)).toEqual({
     ok: false,
     failure: {
       kind: "offTick",

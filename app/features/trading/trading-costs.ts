@@ -7,7 +7,7 @@ import { basisPoints, basisPointsPerWhole } from "~/units/basis-points";
 import type { BasisPoints } from "~/units/basis-points";
 import { rupiah } from "~/units/rupiah";
 import type { Rupiah } from "~/units/rupiah";
-import type { OrderSide } from "./order";
+import type { OrderSide, Trade } from "./order";
 import { roundedShare } from "./rounded-share";
 
 interface FeeSchedule extends DatePeriod {
@@ -81,39 +81,31 @@ export function costRatesOn(date: string): Result<CostRates, string> {
   });
 }
 
-/** What a trade costs on top of its value. */
-export interface TradeCosts {
-  fee: Rupiah;
-  tax: Rupiah;
-}
-
-/** The broker fee and the final tax on sales of a trade of a value. Each is its rate of the value, rounded to the nearest whole rupiah with halves up, as ROUND does in a spreadsheet, and a purchase pays no tax. */
-export function tradeCosts(
+/** A trade of a value with the broker fee and the final tax on sales. Each cost is its rate of the value, rounded to the nearest whole rupiah with halves up, as ROUND does in a spreadsheet, and a purchase pays no tax. */
+export function tradeWithCosts(
   side: OrderSide,
   value: Rupiah,
   rates: CostRates,
-): TradeCosts {
+): Trade {
   switch (side) {
     case "buy":
-      return { fee: amountAtRate(value, rates.buyFee), tax: rupiah(0) };
+      return { value, fee: amountAtRate(value, rates.buyFee), tax: rupiah(0) };
     case "sell":
       return {
+        value,
         fee: amountAtRate(value, rates.sellFee),
         tax: amountAtRate(value, rates.salesTax),
       };
   }
 }
 
-/** What a purchase pays out: its value and the costs that tradeCosts gives it. */
-export function purchaseCost(trade: TradeCosts & { value: Rupiah }): Rupiah {
+/** What a purchase pays out: its value and the costs that tradeWithCosts gives it. */
+export function purchaseCost(trade: Trade): Rupiah {
   return rupiah(trade.value + trade.fee + trade.tax);
 }
 
 /** The change of the cash of an account from a trade: a purchase pays out its cost, and a sale pays in its value less its costs. */
-export function cashChange(
-  side: OrderSide,
-  trade: TradeCosts & { value: Rupiah },
-): Rupiah {
+export function cashChange(side: OrderSide, trade: Trade): Rupiah {
   switch (side) {
     case "buy":
       return rupiah(0 - purchaseCost(trade));
