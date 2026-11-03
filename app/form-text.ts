@@ -1,5 +1,5 @@
 import { characterCount } from "~/character-count";
-import { checkFieldLength } from "~/field-length";
+import { checkFieldLength } from "~/check-field-length";
 import { formatNumber } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { fail, succeed } from "~/result";
@@ -34,7 +34,7 @@ export function checkFieldLengthForReader(
   source: string,
 ): Result<string, string> {
   const checked = checkFieldLength(text);
-  // The rule of each field allows far less, so the error states no maximum, which would not be the one of the field.
+  // The rule of every field that a person fills in allows far less, so the error states no maximum, which would not be the one of the field.
   return checked.ok
     ? checked
     : fail(

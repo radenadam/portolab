@@ -1,4 +1,4 @@
-import { checkFieldLength, fieldLengthFailure } from "./field-length.ts";
+import { checkFieldLength } from "./check-field-length.ts";
 import { fail, succeed } from "./result.ts";
 import type { Result } from "./result.ts";
 import { listOfWords } from "./sentences.ts";
@@ -46,8 +46,11 @@ export function parseRecordId<Id extends number>(
   const expectation = `${source} must be a positive whole number`;
   if (typeof value === "string") {
     const checked = checkFieldLength(value);
+    // The rule of an id allows far fewer characters, so the failure states no maximum, which would not be the one of the id.
     if (!checked.ok) {
-      return fail(fieldLengthFailure(expectation, checked.failure));
+      return fail(
+        `${expectation}, but it has ${String(checked.failure)} characters, far more than any field takes.`,
+      );
     }
   }
   if (typeof value === "string" && /^[1-9][0-9]{0,15}$/.test(value)) {

@@ -15,10 +15,19 @@ import { languageNames } from "../app/language-names.ts";
 import { secondMilliseconds } from "../app/time-units.ts";
 import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
-import { runAccountCommand, submitSignIn, uniqueUsername } from "./accounts.ts";
+import {
+  runAccountCommand,
+  signInAsNewLecturer,
+  submitAccountForm,
+  submitSignIn,
+  uniqueUsername,
+} from "./accounts.ts";
 import { chooseLanguage } from "./choose-language.ts";
+import { createTestClass } from "./create-test-class.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
+import { newDevice } from "./new-device.ts";
 import { baseUrl } from "./test-server.ts";
+import { wideWord } from "./wide-word.ts";
 
 // A text of one byte more than the limit, and a text far larger than the buffers of a connection hold, which the browser can send in full only when the server reads all of it.
 const pastedTexts = {
@@ -38,6 +47,7 @@ const texts: Record<
     tooLargeTitle: string;
     tooLargeBodies: Record<PastedText | "widestStatedSize", string>;
     openFormLink: string;
+    widestFieldErrors: Record<WidestField, string>;
   }
 > = {
   id: {
@@ -54,6 +64,17 @@ const texts: Record<
         "Formulir ini berukuran 999.999.999.999.999 byte, tetapi Portolab menerima formulir paling besar 128.000 byte. Hal ini terjadi jika teks yang sangat panjang ditempel ke sebuah kolom. Buka formulirnya lagi, lalu isi setiap kolom dengan teks yang lebih pendek.",
     },
     openFormLink: "Buka formulirnya lagi",
+    widestFieldErrors: {
+      username:
+        'Kolom "Nama pengguna" berisi 100.000 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
+      code: 'Kolom "Kode kelas" berisi 100.000 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
+      personName:
+        'Kolom "Nama Anda" berisi 100.000 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
+      currentPassword:
+        'Kolom "Kata sandi saat ini" berisi 100.000 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
+      className:
+        'Kolom "Nama kelas" berisi 100.000 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
+    },
   },
   en: {
     signInTitle: "Sign in",
@@ -69,10 +90,44 @@ const texts: Record<
         "This form has 999,999,999,999,999 bytes, but Portolab accepts a form of at most 128,000 bytes. This happens when a very long text is pasted into a field. Open the form again and fill in each field with a shorter text.",
     },
     openFormLink: "Open the form again",
+    widestFieldErrors: {
+      username:
+        'The field "Username" has 100,000 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
+      code: 'The field "Code of the class" has 100,000 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
+      personName:
+        'The field "Your name" has 100,000 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
+      currentPassword:
+        'The field "Current password" has 100,000 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
+      className:
+        'The field "Name of the class" has 100,000 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
+    },
   },
 };
 
 const signInPath = "/sign-in?returnTo=%2Fclasses";
+
+/** The fields whose error of the maximum of any field the tests show, one on each form that a person fills in. */
+type WidestField =
+  "username" | "code" | "personName" | "currentPassword" | "className";
+
+// The smallest number with as many digits as the limit of a form, so a field of this length still fits in a form, and its error shows the length at its widest.
+const widestFieldLength = 10 ** (String(formMaximumBytes).length - 1);
+
+/** Fills a field of the form in the main part of the page far past the maximum of any field, at the widest length that a form holds, sends the form, and checks the error at the field on a screen that passes the checks of accessibility. */
+async function expectWidestFieldError(
+  page: Page,
+  fieldName: string,
+  error: string,
+): Promise<void> {
+  const fieldSelector = `input[name="${fieldName}"]`;
+  const form = page
+    .locator("main form")
+    .filter({ has: page.locator(fieldSelector) });
+  await form.locator(fieldSelector).fill(wideWord("W", widestFieldLength));
+  await form.locator("button[type=submit]").click();
+  await expect(page.getByText(error, { exact: true })).toBeVisible();
+  await expectAccessibleScreen(page);
+}
 
 const forgedRequestTimeoutSeconds = 10;
 
@@ -212,6 +267,61 @@ for (const locale of locales) {
       page.getByText(text.tooLargeBodies.widestStatedSize),
     ).toBeVisible();
     await expectAccessibleScreen(page);
+  });
+
+  test(`shows the error of the maximum of any field at its widest on each form of a visitor, in ${language}`, async ({
+    page,
+    browser,
+  }) => {
+    await chooseLanguage(page, locale);
+    await signInAsNewLecturer(page, "Dosen Uji");
+    const testClass = await createTestClass(page, "Manajemen Portofolio A");
+    const visitor = await newDevice(browser, locale);
+    await visitor.goto("/sign-in");
+    await expectWidestFieldError(
+      visitor,
+      "username",
+      text.widestFieldErrors.username,
+    );
+    await visitor.goto("/join");
+    await expectWidestFieldError(visitor, "code", text.widestFieldErrors.code);
+    await visitor.goto(testClass.joinPath);
+    await expectWidestFieldError(
+      visitor,
+      "name",
+      text.widestFieldErrors.personName,
+    );
+    await visitor.context().close();
+  });
+
+  test(`shows the error of the maximum of any field at its widest on each form of a lecturer, in ${language}`, async ({
+    page,
+  }) => {
+    await chooseLanguage(page, locale);
+    const username = uniqueUsername("dosen");
+    const temporaryPassword = runAccountCommand("create-lecturer", username);
+    await page.goto("/sign-in");
+    await submitSignIn(page, username, temporaryPassword);
+    await expect(page).toHaveURL(/^[^?]*\/account\/setup/);
+    await expectWidestFieldError(
+      page,
+      "name",
+      text.widestFieldErrors.personName,
+    );
+    await submitAccountForm(page, { name: "Dosen Uji" });
+    await expect(page).toHaveURL("/classes");
+    await page.goto("/account");
+    await expectWidestFieldError(
+      page,
+      "currentPassword",
+      text.widestFieldErrors.currentPassword,
+    );
+    await page.goto("/classes");
+    await expectWidestFieldError(
+      page,
+      "name",
+      text.widestFieldErrors.className,
+    );
   });
 
   test.describe(`before JavaScript loads in ${language}`, () => {

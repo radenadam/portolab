@@ -35,10 +35,7 @@ const texts: Record<
     forgotNotice: string;
     wrongCredentials: string;
     emptyFields: readonly [string, string];
-    pastAnyFieldMaximum: Record<
-      "justPast" | "farPast",
-      readonly [username: string, password: string]
-    >;
+    pastAnyFieldMaximum: readonly [username: string, password: string];
     blocked: readonly [string, string, string];
     firstSetupTitle: string;
     firstSetupBody: string;
@@ -85,16 +82,10 @@ const texts: Record<
       'Kolom "Nama pengguna" kosong, padahal Portolab memerlukannya. Isi kolom itu.',
       'Kolom "Kata sandi" kosong, padahal Portolab memerlukannya. Isi kolom itu.',
     ],
-    pastAnyFieldMaximum: {
-      justPast: [
-        'Kolom "Nama pengguna" berisi 8.001 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
-        'Kolom "Kata sandi" berisi 8.001 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
-      ],
-      farPast: [
-        'Kolom "Nama pengguna" berisi 60.000 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
-        'Kolom "Kata sandi" berisi 60.000 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
-      ],
-    },
+    pastAnyFieldMaximum: [
+      'Kolom "Nama pengguna" berisi 8.001 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
+      'Kolom "Kata sandi" berisi 8.001 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
+    ],
     wrongCredentials:
       "Portolab tidak menemukan akun dengan nama pengguna dan kata sandi ini. Periksa keduanya, lalu coba lagi. Setelah 10 percobaan salah dalam 15 menit, Portolab memblokir nama pengguna itu untuk sementara. Blokir ini menghentikan siapa pun yang mencoba menebak kata sandinya.",
     blocked: [
@@ -156,16 +147,10 @@ const texts: Record<
       'The field "Username" is empty, but Portolab needs it. Fill it in.',
       'The field "Password" is empty, but Portolab needs it. Fill it in.',
     ],
-    pastAnyFieldMaximum: {
-      justPast: [
-        'The field "Username" has 8,001 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
-        'The field "Password" has 8,001 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
-      ],
-      farPast: [
-        'The field "Username" has 60,000 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
-        'The field "Password" has 60,000 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
-      ],
-    },
+    pastAnyFieldMaximum: [
+      'The field "Username" has 8,001 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
+      'The field "Password" has 8,001 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
+    ],
     wrongCredentials:
       "Portolab found no account with this username and password. Check both and try again. After 10 wrong attempts within 15 minutes, Portolab blocks the username for a while. The block stops anyone who tries to guess the password.",
     blocked: [
@@ -375,16 +360,13 @@ for (const locale of locales) {
     const atMaximum = "a".repeat(fieldMaximumLength);
     await submitSignIn(page, atMaximum, atMaximum);
     await expect(page.getByRole("alert")).toHaveText(text.wrongCredentials);
-    // The form refuses a field past that maximum before it checks a password, so these attempts count against no limit. The field far past it still fits in the limit of a request body.
-    for (const [length, failures] of [
-      [fieldMaximumLength + 1, text.pastAnyFieldMaximum.justPast],
-      [60_000, text.pastAnyFieldMaximum.farPast],
-    ] as const) {
-      await submitSignIn(page, "a".repeat(length), "a".repeat(length));
-      for (const failure of failures) {
-        await expect(page.getByText(failure, { exact: true })).toBeVisible();
-      }
+    // The form refuses a field past that maximum before it checks a password, so this attempt counts against no limit. e2e/form-size.test.ts sends a field far past it.
+    const pastMaximum = "a".repeat(fieldMaximumLength + 1);
+    await submitSignIn(page, pastMaximum, pastMaximum);
+    for (const failure of text.pastAnyFieldMaximum) {
+      await expect(page.getByText(failure, { exact: true })).toBeVisible();
     }
+    await expectAccessibleScreen(page);
     await submitSignIn(page, typedUsername, "a wrong password");
     await expect(page.getByRole("alert")).toHaveText(text.wrongCredentials);
     await expect(page.getByLabel(text.usernameLabel)).toHaveValue(

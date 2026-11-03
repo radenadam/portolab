@@ -1,4 +1,5 @@
-import { checkFieldLength, fieldLengthFailure } from "~/field-length";
+import { checkFieldLength } from "~/check-field-length";
+import { fieldMaximumLength } from "~/form-size";
 import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
 import { describeValue } from "~/value-shapes";
@@ -13,9 +14,10 @@ export function parseReturnPath(
     return returnPathFailure(value, source);
   }
   const checked = checkFieldLength(value);
+  // An address is the longest text that a field takes, so the maximum of any field is the maximum of this one.
   if (!checked.ok) {
     return fail(
-      fieldLengthFailure(returnPathExpectation(source), checked.failure),
+      `${source} must be a path on this site of at most ${String(fieldMaximumLength)} characters, but it has ${String(checked.failure)}.`,
     );
   }
   // The URL parser resolves the value the way a browser does, so a value that only looks like a local path, such as one with a tab after its slash, still fails.
@@ -36,9 +38,7 @@ function returnPathFailure(
 ): Result<never, string> {
   // A form gives null for a field that it did not send.
   const given = value === null ? "missing" : describeValue(value);
-  return fail(`${returnPathExpectation(source)}, but it is ${given}.`);
-}
-
-function returnPathExpectation(source: string): string {
-  return `${source} must be a path on this site, such as /prices`;
+  return fail(
+    `${source} must be a path on this site, such as /prices, but it is ${given}.`,
+  );
 }

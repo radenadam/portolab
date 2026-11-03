@@ -8,11 +8,3 @@ export function checkFieldLength(text: string): Result<string, number> {
   const length = characterCount(text);
   return length > fieldMaximumLength ? fail(length) : succeed(text);
 }
-
-/** The failure text of a parser for the log or for another program, when its value is longer than fieldMaximumLength. It starts with what the source must be, such as "classId must be a positive whole number", and states the length of the value instead of quoting it. The rule of each field allows far less, so it states no maximum, which would not be the one of the field. */
-export function fieldLengthFailure(
-  expectation: string,
-  length: number,
-): string {
-  return `${expectation}, but it has ${String(length)} characters, far more than any field takes.`;
-}
