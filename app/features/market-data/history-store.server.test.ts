@@ -4,6 +4,7 @@ import { buildDailyHistory } from "./build-daily-history";
 import {
   listCodesWithHistory,
   listDailyHistory,
+  listStockHistory,
   saveDailyHistory,
 } from "./history-store.server";
 import type { Instrument } from "./price-source.server";
@@ -59,4 +60,22 @@ test("has no history for an instrument without stored closes, and stores nothing
   expect(listDailyHistory(database, bbca)).toEqual(buildDailyHistory(bbca, []));
   saveDailyHistory(database, buildDailyHistory(bbca, []));
   expect(listCodesWithHistory(database)).toEqual(new Set());
+});
+
+test("lists the closes of a stock from a date, which includes the close of that date", () => {
+  const database = openDatabaseForTest();
+  saveDailyHistory(
+    database,
+    buildDailyHistory(bbca, [
+      ["2026-10-28", 5275],
+      ["2026-10-29", 4940],
+      ["2026-10-30", 4980],
+    ]),
+  );
+  expect(listStockHistory(database, "BBCA", "2026-10-29")).toEqual(
+    buildDailyHistory(bbca, [
+      ["2026-10-29", 4940],
+      ["2026-10-30", 4980],
+    ]),
+  );
 });

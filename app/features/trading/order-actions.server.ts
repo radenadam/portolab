@@ -30,7 +30,7 @@ export interface OrdersAnswer {
 /** A form that a student sent to the orders of a class at a moment. */
 export interface OrdersForm {
   form: FormData;
-  place: StudentPlace;
+  place: Pick<StudentPlace, "classId" | "owner">;
   now: Date;
 }
 

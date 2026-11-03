@@ -35,6 +35,7 @@
     "app/features/accounts/normalize-password.ts",
     "app/features/classes/classes.schema.ts",
     "app/features/market-data/build-daily-history.ts",
+    "app/features/market-data/fixture-history.ts",
     "app/features/market-data/history-store.server.ts",
     "app/features/market-data/market-data.schema.ts",
     "app/features/market-data/price-source.server.ts",

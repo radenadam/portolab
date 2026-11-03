@@ -1,4 +1,4 @@
-import { asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, gte, sql } from "drizzle-orm";
 import type { Database } from "../../database/database.server.ts";
 import { indexDailyCloses, stockDailyCloses } from "./market-data.schema.ts";
 import type {
@@ -47,10 +47,11 @@ export function listDailyHistory(
   }
 }
 
-/** Lists the stored closes of a stock, oldest first. */
+/** Lists the stored closes of a stock, oldest first, from a date in WIB such as 2026-10-26 when the caller gives one. */
 export function listStockHistory(
   database: Database,
   code: string,
+  from?: string,
 ): StockHistory {
   return {
     kind: "stock",
@@ -58,7 +59,12 @@ export function listStockHistory(
     closes: database
       .select({ date: stockDailyCloses.date, close: stockDailyCloses.close })
       .from(stockDailyCloses)
-      .where(eq(stockDailyCloses.code, code))
+      .where(
+        and(
+          eq(stockDailyCloses.code, code),
+          from === undefined ? undefined : gte(stockDailyCloses.date, from),
+        ),
+      )
       .orderBy(asc(stockDailyCloses.date))
       .all(),
   };

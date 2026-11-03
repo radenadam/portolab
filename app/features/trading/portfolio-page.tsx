@@ -1,0 +1,79 @@
+import type { ReactNode } from "react";
+import { Link } from "react-router";
+import { databaseContext } from "~/database/database.server";
+import { classPath } from "~/features/classes/class-path";
+import type { ClassId } from "~/features/classes/classes.schema";
+import { priceSourceContext } from "~/features/market-data/price-source-context.server";
+import type { PriceSourceDescription } from "~/features/market-data/price-source.server";
+import { pageTitle } from "~/page-title";
+import { m } from "~/paraglide/messages.js";
+import type { Route } from "./+types/portfolio-page";
+import { findStudentPlace } from "./find-student-place.server";
+import { ordersPath } from "./orders-path";
+import { readPortfolioReport } from "./read-portfolio-report.server";
+import type { PortfolioReport } from "./read-portfolio-report.server";
+import { PortfolioView } from "./portfolio-view";
+import { readCurrentPortfolio } from "./read-current-portfolio.server";
+import styles from "./trading.module.css";
+
+export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
+  return [
+    {
+      title: pageTitle(
+        m.trading_portfolio_page_title({ class: loaderData.className }),
+      ),
+    },
+  ];
+}
+
+export function loader({ context, request, params, url }: Route.LoaderArgs): {
+  classId: ClassId;
+  className: string;
+  report: PortfolioReport;
+  now: Date;
+  source: PriceSourceDescription;
+} {
+  const now = new Date();
+  const place = findStudentPlace(context, url, params.classId);
+  const database = context.get(databaseContext);
+  const { name, delayMinutes } = context.get(priceSourceContext);
+  return {
+    classId: place.classId,
+    className: place.className,
+    report: readPortfolioReport(
+      database,
+      {
+        portfolio: readCurrentPortfolio(database, place.owner, {
+          request,
+          now,
+        }),
+        startingCash: place.owner.startingCash,
+        joinedAt: place.joinedAt,
+      },
+      { now, delayMinutes },
+    ),
+    now,
+    source: { name, delayMinutes },
+  };
+}
+
+export default function PortfolioPage({
+  loaderData,
+}: Route.ComponentProps): ReactNode {
+  return (
+    <>
+      <h1>{m.trading_portfolio_page_title({ class: loaderData.className })}</h1>
+      <Link to={classPath(loaderData.classId)} className={styles["link"]}>
+        {m.trading_back_link({ class: loaderData.className })}
+      </Link>
+      <Link to={ordersPath(loaderData.classId)} className={styles["link"]}>
+        {m.trading_orders_link()}
+      </Link>
+      <PortfolioView
+        report={loaderData.report}
+        now={loaderData.now}
+        source={loaderData.source}
+      />
+    </>
+  );
+}

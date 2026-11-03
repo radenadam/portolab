@@ -3,52 +3,7 @@
   font-size: var(--text-small);
 }
 
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: var(--text-small);
-}
-
-.table th,
-.table td {
-  padding: var(--space-3) 0;
-  border-block-end: var(--size-line) solid var(--color-line);
-  text-align: left;
-  vertical-align: baseline;
-}
-
-/* The space sits only between cells, so the table starts and ends where the text above it does. It is wider than a space of the font for numbers, so two columns never read as one run of text. */
-.table :is(th, td) + :is(th, td) {
-  padding-inline-start: var(--space-3);
-}
-
-.table thead th {
-  padding-block: 0 var(--space-2);
-  color: var(--color-muted);
-  font-weight: 500;
-  vertical-align: bottom;
-}
-
-.table tbody th {
-  font-weight: 600;
-}
-
-.table th:not(:first-child),
-.table .number,
-.table .time {
-  text-align: right;
-}
-
-.number,
-.time {
-  font-family: var(--font-numbers);
-}
-
-.number {
-  white-space: nowrap;
-}
-
-/* The time cell may wrap the date of a price from another day, so the table fits the narrowest screen that AGENTS.md names with any font, while the time of day stays on one line. */
+/* The time cell wraps the date of a price from another day onto a line of its own, while the time of day stays on one line. */
 .date {
   display: block;
 }

@@ -1,6 +1,5 @@
 import { expect, test } from "@playwright/test";
 import type { Browser, Page } from "@playwright/test";
-import { nameMaximumLength } from "../app/features/accounts/account-limits.ts";
 import {
   classNameMaximumLength,
   startingCashLimits,
@@ -25,12 +24,11 @@ import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 import { newDevice } from "./new-device.ts";
 import { publicServerUrl } from "./test-server.ts";
 import { wideWord } from "./wide-word.ts";
+import { widestClassNames } from "./widest-class-names.ts";
 
 // The longest names that Portolab accepts, each one word, so each screen that shows a name is checked with its widest content.
-const className = wideWord("Kelas", classNameMaximumLength);
+const { className, lecturerName, studentName } = widestClassNames;
 const otherClassName = wideWord("KelasLain", classNameMaximumLength);
-const lecturerName = wideWord("Dosen", nameMaximumLength);
-const studentName = wideWord("Mahasiswa", nameMaximumLength);
 
 const texts: Record<
   Locale,

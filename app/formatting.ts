@@ -12,12 +12,14 @@ function intlLocale(): string {
   return intlLocales[getLocale()];
 }
 
+const rupiahOptions: Intl.NumberFormatOptions = {
+  style: "currency",
+  currency: "IDR",
+  maximumFractionDigits: 0,
+};
+
 export function formatRupiah(amount: Rupiah): string {
-  return new Intl.NumberFormat(intlLocale(), {
-    style: "currency",
-    currency: "IDR",
-    maximumFractionDigits: 0,
-  }).format(amount);
+  return new Intl.NumberFormat(intlLocale(), rupiahOptions).format(amount);
 }
 
 /** How the active language groups the digits of a whole number: the character between groups, such as the dot in 100.000.000, and the number of digits in each group after the first, so that a parser can read a number as a person writes it. */
@@ -71,11 +73,31 @@ export function formatPercent(fraction: number): string {
   }).format(fraction);
 }
 
-/** Formats a calendar date such as 2026-11-02 as a date in words, such as 2 November 2026. */
-export function formatCalendarDate(date: string): string {
+/** Formats a calendar date such as 2026-11-02 as a date in words, such as 2 November 2026 in a sentence, or with the short month of a table, such as 2 Nov 2026. */
+export function formatCalendarDate(
+  date: string,
+  dateStyle: "long" | "medium" = "long",
+): string {
   // A calendar date names a day without a time zone, and startOfUtcDate gives the start of that day in UTC, so the date is formatted in UTC.
   return new Intl.DateTimeFormat(intlLocale(), {
-    dateStyle: "long",
+    dateStyle,
+    timeZone: "UTC",
+  }).format(startOfUtcDate(date));
+}
+
+/** Formats one part of a calendar date such as 2026-10-30, which a mark on a time axis shows: the year, such as 2026, the month, such as Okt, or the day, such as 30. */
+export function formatCalendarDatePart(
+  date: string,
+  part: "year" | "month" | "day",
+): string {
+  const options: Record<typeof part, Intl.DateTimeFormatOptions> = {
+    year: { year: "numeric" },
+    month: { month: "short" },
+    day: { day: "numeric" },
+  };
+  // The part is formatted in UTC for the same reason as a calendar date.
+  return new Intl.DateTimeFormat(intlLocale(), {
+    ...options[part],
     timeZone: "UTC",
   }).format(startOfUtcDate(date));
 }
@@ -94,19 +116,36 @@ export function formatMonth(date: string): string {
 export type ChangeDirection = "rise" | "fall" | "none";
 
 /** A change as the page shows it, and the direction that its sign shows. */
-interface SignedPercent {
+export interface SignedChange {
   text: string;
   direction: ChangeDirection;
 }
 
 /** Formats a fraction such as 0.0081 as a percentage with an explicit sign, such as +0.81%. The direction comes from the sign that the text shows, so a change that rounds to zero has none. */
-export function formatSignedPercent(fraction: number): SignedPercent {
+export function formatSignedPercent(fraction: number): SignedChange {
+  return signedChange(
+    {
+      style: "percent",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    },
+    fraction,
+  );
+}
+
+/** Formats an amount such as a gain or a loss with an explicit sign, such as +Rp 8.521.000.000, and the direction that the sign shows. */
+export function formatSignedRupiah(amount: Rupiah): SignedChange {
+  return signedChange(rupiahOptions, amount);
+}
+
+function signedChange(
+  options: Intl.NumberFormatOptions,
+  value: number,
+): SignedChange {
   const parts = new Intl.NumberFormat(intlLocale(), {
-    style: "percent",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    ...options,
     signDisplay: "exceptZero",
-  }).formatToParts(fraction);
+  }).formatToParts(value);
   let text = "";
   let direction: ChangeDirection = "none";
   for (const part of parts) {

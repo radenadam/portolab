@@ -28,6 +28,8 @@
   --space-8: 2rem;
 
   --width-reading: 40rem;
+  /* A chart takes about a third of the screen of a phone held upright, so the text around it stays in view. */
+  --size-chart: 16rem;
   /* Thin lines separate the parts of a page, as decision 0012 sets. A mark, such as focus, hover, or the current choice, must stand out from them. */
   --size-line: 1px;
   --size-mark: 2px;
@@ -91,7 +93,7 @@ a {
   color: var(--color-signal);
 }
 
-:is(a, button):hover {
+:is(a, button, summary):hover {
   text-decoration-line: underline;
   text-decoration-thickness: var(--size-mark);
 }

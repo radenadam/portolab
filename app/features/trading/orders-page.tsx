@@ -9,14 +9,12 @@ import type { PriceSourceDescription } from "~/features/market-data/price-source
 import { trackedStockCodes } from "~/features/market-data/tracked-instruments";
 import { FormFailure, FormSuccess } from "~/form";
 import { formatNumber } from "~/formatting";
-import { isLoadedByAnotherSite } from "~/is-loaded-by-another-site.server";
 import { pageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
 import { succeed } from "~/result";
 import type { Result } from "~/result";
 import { parseRecordId } from "~/value-parsers";
 import type { Route } from "./+types/orders-page";
-import { checkPortfolioOrders } from "./check-open-orders.server";
 import { findStudentPlace } from "./find-student-place.server";
 import { cancelFromForm, placeFromForm } from "./order-actions.server";
 import type { OrdersAnswer } from "./order-actions.server";
@@ -24,9 +22,10 @@ import { orderDayOf } from "./order-form";
 import type { OrderDay } from "./order-form";
 import { OpenOrderList, PastOrderList } from "./order-list";
 import { PlaceOrderSection } from "./place-order-section";
+import { portfolioPath } from "./portfolio-path";
 import { orderTradingDay } from "./order-trading-day";
 import type { TradingDayFailure } from "./order-trading-day";
-import { readPortfolio } from "./portfolio-store.server";
+import { readCurrentPortfolio } from "./read-current-portfolio.server";
 import type { Portfolio } from "./portfolio-store.server";
 import { CashSummary, HoldingList } from "./portfolio-summary";
 import styles from "./trading.module.css";
@@ -49,14 +48,11 @@ export function loader({ context, request, params, url }: Route.LoaderArgs): {
 } {
   const now = new Date();
   const place = findStudentPlace(context, url, params.classId);
-  const database = context.get(databaseContext);
-  // A page of another site can make a browser load this address without the student opening it, so only a visit of the student checks the orders.
-  if (!isLoadedByAnotherSite(request)) {
-    database.transaction((transaction) => {
-      checkPortfolioOrders(transaction, place.owner.membershipId, now);
-    });
-  }
-  const portfolio = readPortfolio(database, place.owner);
+  const portfolio = readCurrentPortfolio(
+    context.get(databaseContext),
+    place.owner,
+    { request, now },
+  );
   const { name, delayMinutes } = context.get(priceSourceContext);
   const day = orderTradingDay(now, delayMinutes);
   const placed = parseRecordId<OrderId>(
@@ -111,6 +107,9 @@ export default function OrdersPage({
       <h1>{m.trading_page_title({ class: loaderData.className })}</h1>
       <Link to={classPath(loaderData.classId)} className={styles["link"]}>
         {m.trading_back_link({ class: loaderData.className })}
+      </Link>
+      <Link to={portfolioPath(loaderData.classId)} className={styles["link"]}>
+        {m.trading_portfolio_link()}
       </Link>
       {loaderData.isPlaced && <FormSuccess text={m.trading_placed_notice()} />}
       <p>

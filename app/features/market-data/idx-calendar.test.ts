@@ -6,6 +6,7 @@ import {
   isSameWibDay,
   latestClosedTradingDay,
   pricesFinalAt,
+  tradingDayAfter,
   tradingDayBefore,
 } from "./idx-calendar";
 
@@ -459,6 +460,31 @@ for (const { name, date, before } of previousTradingDays) {
     expect(tradingDayBefore(date)).toEqual({ ok: true, value: before });
   });
 }
+
+// Each case gives a date and the trading day after it.
+const nextTradingDays: { name: string; date: string; after: string }[] = [
+  { name: "a weekday", date: "2026-11-02", after: "2026-11-03" },
+  { name: "a Friday", date: "2026-11-06", after: "2026-11-09" },
+  // 24 and 25 December 2026 are holidays.
+  { name: "holidays and a weekend", date: "2026-12-23", after: "2026-12-28" },
+  // 31 December 2026 and 1 January 2027 are holidays.
+  { name: "the turn of the year", date: "2026-12-30", after: "2027-01-04" },
+];
+
+for (const { name, date, after } of nextTradingDays) {
+  test(`finds the trading day after ${name}`, () => {
+    expect(tradingDayAfter(date)).toEqual({ ok: true, value: after });
+  });
+}
+
+test("fails when the search for the trading day after a date reaches a date that no calendar covers", () => {
+  // 31 December 2027 is a holiday, so the search goes on into 2028.
+  expect(tradingDayAfter("2027-12-30")).toEqual({
+    ok: false,
+    failure:
+      "No IDX trading calendar covers 2028-01-01, so add the holidays and trading hours of that year to idx-calendar.ts.",
+  });
+});
 
 test("fails when the search for the trading day before a date reaches a date that no calendar covers", () => {
   // 1 January 2026 is a holiday, so the search goes back into 2025.
