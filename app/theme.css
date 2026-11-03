@@ -96,8 +96,9 @@ a {
   text-decoration-thickness: var(--size-mark);
 }
 
-/* A button that waits for the answer to its form keeps its look, so the pointer shows the wait. */
+/* A button that waits for the answer to its form turns muted, so a reader on a touch screen sees the wait too, which the pointer shows on a mouse. */
 button:disabled {
+  background: var(--color-muted);
   cursor: progress;
 }
 
