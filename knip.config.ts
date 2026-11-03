@@ -9,7 +9,7 @@ export default {
     "project.inlang/paraglide.config.ts",
     // The screens of issues #8 and #9 will call measureStoredStock and measureStoredPortfolio, which landed before them because the plan of the first release builds the calculations first. Remove this entry when those screens import the module.
     "app/features/measures/measure-stored.server.ts!",
-    // The order screens and the check of orders of issue #7 will call orderTradingDay, parseOrderLots, placeOrder, isOpenOrder, hasOpenState, checkOrder, holdingAfterFill, orderFailureText, and limitPriceFailureText, which landed before them because the accounts and classes that store orders were not done yet. Remove this entry when those screens and that check import the modules.
+    // The order screens and the check of orders of issue #7 will call orderTradingDay, parseOrderLots, placeOrder, isOpenOrder, hasOpenState, checkOrder, holdingAfterFill, orderFailureText, and limitPriceFailureText, which landed before them because this change settles the rules and the texts of orders before a table stores orders. Remove this entry when those screens and that check import the modules.
     "app/features/trading/{order-trading-day,place-order,parse-order-lots,check-order,holding-after-fill,order-failure-text,open-orders}.ts!",
   ],
   // Helpers of tests, browser tests, and lint rules are not production code, so the production run leaves them out.

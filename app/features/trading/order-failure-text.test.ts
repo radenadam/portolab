@@ -7,11 +7,11 @@ import { lots } from "~/units/lots";
 import { rupiah } from "~/units/rupiah";
 import type { OrderFailure } from "./order";
 import { limitPriceFailureText, orderFailureText } from "./order-failure-text";
+import { orderLotsForTest } from "./orders-for-test";
+import { oneRupiahLimit, rateLimit } from "./price-limits";
 
 // The failures that orderFailureText explains, which are every failure but those of the price of a limit order.
 type OtherFailure = Parameters<typeof orderFailureText>[0];
-import { orderLotsForTest } from "./orders-for-test";
-import { oneRupiahLimit, rateLimit } from "./price-limits";
 
 // Each failure in the states that shape its sentences: one and several lots or returns, a limit as a rate and as an amount of rupiah, a band of tick sizes with and without an end, one and several open orders that set aside cash or shares, or none, an account with or without shares that it can still sell, one and several open sell orders that add cash, or none, and cash that pays for 1 lot at some price or at none. Intl puts a no-break space after the currency, which the texts write as \u00a0.
 // The amounts of money were computed with the decimal module of Python, with a broker fee of 0.15% of the value rounded to a whole rupiah with ROUND_HALF_UP. The highest price of 1 lot is the highest whole price at which 100 shares with their fee cost at most the available cash.
@@ -273,11 +273,11 @@ const texts: Record<Locale, Record<FailureName, string>> = {
     allCashSetAside:
       "Membeli 1 lot BBCA pada harga Rp\u00a04.980 membutuhkan Rp\u00a0498.747, yaitu Rp\u00a0498.000 untuk saham dan Rp\u00a0747 untuk biaya broker, sedangkan kas Anda yang tersedia hanya Rp\u00a01.253. Order beli Anda yang masih terbuka menyisihkan Rp\u00a0498.747 dari kas Anda sebesar Rp\u00a0500.000, dan mengembalikan jumlah itu ke kas Anda yang tersedia jika order tersebut berakhir tanpa tereksekusi. Kas Anda yang tersedia hanya cukup untuk membayar 1 lot saham pada harga paling tinggi Rp\u00a012.",
     sharesAndCashSetAside:
-      "Membeli 1 lot BBCA pada harga Rp\u00a04.980 membutuhkan Rp\u00a0498.747, yaitu Rp\u00a0498.000 untuk saham dan Rp\u00a0747 untuk biaya broker, sedangkan kas Anda yang tersedia hanya Rp\u00a01.253. Order beli Anda yang masih terbuka menyisihkan Rp\u00a0498.747 dari kas Anda sebesar Rp\u00a0500.000, dan mengembalikan jumlah itu ke kas Anda yang tersedia jika order tersebut berakhir tanpa tereksekusi. Kas Anda yang tersedia hanya cukup untuk membayar 1 lot saham pada harga paling tinggi Rp\u00a012. Order ini masih kurang Rp\u00a0497.494 dari kas Anda yang tersedia, dan menjual saham yang Anda pegang menambah kas itu.",
+      "Membeli 1 lot BBCA pada harga Rp\u00a04.980 membutuhkan Rp\u00a0498.747, yaitu Rp\u00a0498.000 untuk saham dan Rp\u00a0747 untuk biaya broker, sedangkan kas Anda yang tersedia hanya Rp\u00a01.253. Order beli Anda yang masih terbuka menyisihkan Rp\u00a0498.747 dari kas Anda sebesar Rp\u00a0500.000, dan mengembalikan jumlah itu ke kas Anda yang tersedia jika order tersebut berakhir tanpa tereksekusi. Kas Anda yang tersedia hanya cukup untuk membayar 1 lot saham pada harga paling tinggi Rp\u00a012. Kas Anda yang tersedia masih kurang Rp\u00a0497.494 untuk order ini, dan menjual saham yang Anda pegang menambah kas itu.",
     oneSaleAddsCash:
       "Membeli 1 lot BBCA pada harga Rp\u00a04.980 membutuhkan Rp\u00a0498.747, yaitu Rp\u00a0498.000 untuk saham dan Rp\u00a0747 untuk biaya broker, sedangkan kas Anda yang tersedia hanya Rp\u00a01.253. Kas Anda yang tersedia hanya cukup untuk membayar 1 lot saham pada harga paling tinggi Rp\u00a012. Order jual BBCA Anda yang masih terbuka membawa kas saat tereksekusi.",
     freeSharesAndSale:
-      "Membeli 1 lot BBCA pada harga Rp\u00a04.980 membutuhkan Rp\u00a0498.747, yaitu Rp\u00a0498.000 untuk saham dan Rp\u00a0747 untuk biaya broker, sedangkan kas Anda yang tersedia hanya Rp\u00a01.253. Kas Anda yang tersedia hanya cukup untuk membayar 1 lot saham pada harga paling tinggi Rp\u00a012. Order ini masih kurang Rp\u00a0497.494 dari kas Anda yang tersedia, dan menjual saham yang Anda pegang menambah kas itu. Order jual BBCA Anda yang masih terbuka membawa kas saat tereksekusi.",
+      "Membeli 1 lot BBCA pada harga Rp\u00a04.980 membutuhkan Rp\u00a0498.747, yaitu Rp\u00a0498.000 untuk saham dan Rp\u00a0747 untuk biaya broker, sedangkan kas Anda yang tersedia hanya Rp\u00a01.253. Kas Anda yang tersedia hanya cukup untuk membayar 1 lot saham pada harga paling tinggi Rp\u00a012. Kas Anda yang tersedia masih kurang Rp\u00a0497.494 untuk order ini, dan menjual saham yang Anda pegang menambah kas itu. Order jual BBCA Anda yang masih terbuka membawa kas saat tereksekusi.",
     severalSalesAddCash:
       "Membeli 1 lot BBCA pada harga Rp\u00a04.980 membutuhkan Rp\u00a0498.747, yaitu Rp\u00a0498.000 untuk saham dan Rp\u00a0747 untuk biaya broker, sedangkan kas Anda yang tersedia hanya Rp\u00a01.253. Kas Anda yang tersedia hanya cukup untuk membayar 1 lot saham pada harga paling tinggi Rp\u00a012. Sebanyak 2 order jual BBCA dan TLKM Anda yang masih terbuka membawa kas saat tereksekusi.",
     oneSaleSetsAsideShares:

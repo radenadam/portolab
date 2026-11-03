@@ -44,11 +44,11 @@ const texts: Record<
     ],
     tooManyInputs: ["50001", "50.001", "99999999999999999"],
     tooMany: [
-      'Kolom "Jumlah lot" memuat paling banyak 50.000 lot, yaitu order terbesar yang diterima BEI, tetapi isinya "',
+      'Kolom "Jumlah lot" menerima paling banyak 50.000 lot, yaitu order terbesar yang diterima BEI, tetapi isinya "',
       '". Pilih paling banyak 50.000 lot, dan perdagangkan lot selebihnya dalam order berikutnya.',
     ],
     tooManyForOneLot:
-      'Kolom "Jumlah lot" memuat paling banyak 1 lot, yaitu order terbesar yang diterima BEI, tetapi isinya "2". Pilih paling banyak 1 lot, dan perdagangkan lot selebihnya dalam order berikutnya.',
+      'Kolom "Jumlah lot" menerima paling banyak 1 lot, yaitu order terbesar yang diterima BEI, tetapi isinya "2". Pilih paling banyak 1 lot, dan perdagangkan lot selebihnya dalam order berikutnya.',
     tooFew: [
       'Kolom "Jumlah lot" perlu paling sedikit 1 lot, yaitu order terkecil, tetapi isinya "',
       '". Pilih paling sedikit 1 lot.',
@@ -72,11 +72,11 @@ const texts: Record<
     ],
     tooManyInputs: ["50001", "50,001", "99999999999999999"],
     tooMany: [
-      'The field "Lots" holds at most 50,000 lots, the largest order that IDX accepts, but it holds "',
+      'The field "Lots" takes at most 50,000 lots, the largest order that IDX accepts, but it holds "',
       '". Choose at most 50,000 lots, and trade more lots in further orders.',
     ],
     tooManyForOneLot:
-      'The field "Lots" holds at most 1 lot, the largest order that IDX accepts, but it holds "2". Choose at most 1 lot, and trade more lots in further orders.',
+      'The field "Lots" takes at most 1 lot, the largest order that IDX accepts, but it holds "2". Choose at most 1 lot, and trade more lots in further orders.',
     tooFew: [
       'The field "Lots" needs at least 1 lot, the smallest order, but it holds "',
       '". Choose at least 1 lot.',
