@@ -407,49 +407,53 @@ const priceFailures = {
 
 type PriceFailureName = keyof typeof priceFailures;
 
-const priceLabels: Record<Locale, string> = {
-  id: "Harga limit",
-  en: "Limit price",
-};
-
 const priceTexts: Record<
   Locale,
-  Record<PriceFailureName, { written: string; text: string }>
+  {
+    label: string;
+    failures: Record<PriceFailureName, { written: string; text: string }>;
+  }
 > = {
   id: {
-    limitsAsRates: {
-      written: "6.250",
-      text: 'Kolom "Harga limit" berisi "6.250", tetapi BEI menolak harga itu untuk BBCA pada 2 November 2026 karena batas auto rejection. Batas itu mengizinkan harga paling jauh 25% di atas dan 7% di bawah harga acuan Rp\u00a04.980, dan setiap ujung rentangnya adalah harga sah terdekat di dalam batas itu. BEI menetapkan harga acuan dari harga penutupan terakhir BBCA sebelum hari itu. Pilih harga dari Rp\u00a04.640 sampai Rp\u00a06.225.',
-    },
-    limitsAsAmounts: {
-      written: "12",
-      text: 'Kolom "Harga limit" berisi "12", tetapi BEI menolak harga itu untuk GOTO pada 2 November 2026 karena batas auto rejection. Batas itu mengizinkan harga paling jauh Rp\u00a01 di atas dan Rp\u00a01 di bawah harga acuan Rp\u00a010, dan setiap ujung rentangnya adalah harga sah terdekat di dalam batas itu. BEI menetapkan harga acuan dari harga penutupan terakhir GOTO sebelum hari itu. Pilih harga dari Rp\u00a09 sampai Rp\u00a011.',
-    },
-    offTick: {
-      written: "4.985",
-      text: 'Kolom "Harga limit" berisi "4.985", tetapi BEI hanya menerima harga dari Rp\u00a02.000 sampai di bawah Rp\u00a05.000 dalam kelipatan Rp\u00a010, yaitu fraksi harga rentang tersebut. Pilih Rp\u00a04.980 atau Rp\u00a04.990, harga sah terdekat.',
-    },
-    offTickOfTopBand: {
-      written: "5.010",
-      text: 'Kolom "Harga limit" berisi "5.010", tetapi BEI hanya menerima harga Rp\u00a05.000 ke atas dalam kelipatan Rp\u00a025, yaitu fraksi harga rentang tersebut. Pilih Rp\u00a05.000 atau Rp\u00a05.025, harga sah terdekat.',
+    label: "Harga limit",
+    failures: {
+      limitsAsRates: {
+        written: "6.250",
+        text: 'Kolom "Harga limit" berisi "6.250", tetapi BEI menolak harga itu untuk BBCA pada 2 November 2026 karena batas auto rejection. Batas itu mengizinkan harga paling jauh 25% di atas dan 7% di bawah harga acuan Rp\u00a04.980, dan setiap ujung rentangnya adalah harga sah terdekat di dalam batas itu. BEI menetapkan harga acuan dari harga penutupan terakhir BBCA sebelum hari itu. Pilih harga dari Rp\u00a04.640 sampai Rp\u00a06.225.',
+      },
+      limitsAsAmounts: {
+        written: "12",
+        text: 'Kolom "Harga limit" berisi "12", tetapi BEI menolak harga itu untuk GOTO pada 2 November 2026 karena batas auto rejection. Batas itu mengizinkan harga paling jauh Rp\u00a01 di atas dan Rp\u00a01 di bawah harga acuan Rp\u00a010, dan setiap ujung rentangnya adalah harga sah terdekat di dalam batas itu. BEI menetapkan harga acuan dari harga penutupan terakhir GOTO sebelum hari itu. Pilih harga dari Rp\u00a09 sampai Rp\u00a011.',
+      },
+      offTick: {
+        written: "4.985",
+        text: 'Kolom "Harga limit" berisi "4.985", tetapi BEI hanya menerima harga dari Rp\u00a02.000 sampai di bawah Rp\u00a05.000 dalam kelipatan Rp\u00a010, yaitu fraksi harga rentang tersebut. Pilih Rp\u00a04.980 atau Rp\u00a04.990, harga sah terdekat.',
+      },
+      offTickOfTopBand: {
+        written: "5.010",
+        text: 'Kolom "Harga limit" berisi "5.010", tetapi BEI hanya menerima harga Rp\u00a05.000 ke atas dalam kelipatan Rp\u00a025, yaitu fraksi harga rentang tersebut. Pilih Rp\u00a05.000 atau Rp\u00a05.025, harga sah terdekat.',
+      },
     },
   },
   en: {
-    limitsAsRates: {
-      written: "6,250",
-      text: 'The field "Limit price" holds "6,250", but IDX rejects that price for BBCA on November 2, 2026 by its auto rejection limits. They allow a price at most 25% above and 7% below the reference price of IDR\u00a04,980, and each end of the range is the nearest valid price inside those limits. IDX sets the reference price from the latest close of BBCA before that day. Choose a price from IDR\u00a04,640 to IDR\u00a06,225.',
-    },
-    limitsAsAmounts: {
-      written: "12",
-      text: 'The field "Limit price" holds "12", but IDX rejects that price for GOTO on November 2, 2026 by its auto rejection limits. They allow a price at most IDR\u00a01 above and IDR\u00a01 below the reference price of IDR\u00a010, and each end of the range is the nearest valid price inside those limits. IDX sets the reference price from the latest close of GOTO before that day. Choose a price from IDR\u00a09 to IDR\u00a011.',
-    },
-    offTick: {
-      written: "4,985",
-      text: 'The field "Limit price" holds "4,985", but IDX accepts prices from IDR\u00a02,000 to below IDR\u00a05,000 only in steps of IDR\u00a010, the tick size of that range. Choose IDR\u00a04,980 or IDR\u00a04,990, the nearest valid prices.',
-    },
-    offTickOfTopBand: {
-      written: "5,010",
-      text: 'The field "Limit price" holds "5,010", but IDX accepts prices of IDR\u00a05,000 and above only in steps of IDR\u00a025, the tick size of that range. Choose IDR\u00a05,000 or IDR\u00a05,025, the nearest valid prices.',
+    label: "Limit price",
+    failures: {
+      limitsAsRates: {
+        written: "6,250",
+        text: 'The field "Limit price" holds "6,250", but IDX rejects that price for BBCA on November 2, 2026 by its auto rejection limits. They allow a price at most 25% above and 7% below the reference price of IDR\u00a04,980, and each end of the range is the nearest valid price inside those limits. IDX sets the reference price from the latest close of BBCA before that day. Choose a price from IDR\u00a04,640 to IDR\u00a06,225.',
+      },
+      limitsAsAmounts: {
+        written: "12",
+        text: 'The field "Limit price" holds "12", but IDX rejects that price for GOTO on November 2, 2026 by its auto rejection limits. They allow a price at most IDR\u00a01 above and IDR\u00a01 below the reference price of IDR\u00a010, and each end of the range is the nearest valid price inside those limits. IDX sets the reference price from the latest close of GOTO before that day. Choose a price from IDR\u00a09 to IDR\u00a011.',
+      },
+      offTick: {
+        written: "4,985",
+        text: 'The field "Limit price" holds "4,985", but IDX accepts prices from IDR\u00a02,000 to below IDR\u00a05,000 only in steps of IDR\u00a010, the tick size of that range. Choose IDR\u00a04,980 or IDR\u00a04,990, the nearest valid prices.',
+      },
+      offTickOfTopBand: {
+        written: "5,010",
+        text: 'The field "Limit price" holds "5,010", but IDX accepts prices of IDR\u00a05,000 and above only in steps of IDR\u00a025, the tick size of that range. Choose IDR\u00a05,000 or IDR\u00a05,025, the nearest valid prices.',
+      },
     },
   },
 };
@@ -474,10 +478,11 @@ for (const locale of locales) {
   for (const name of priceFailureNames) {
     test(`explains the failure ${name} of a limit price with the field, its numbers, its rule, and a next step in ${languageNames[locale]}`, () => {
       switchLocaleForTest(locale);
-      const expected = priceTexts[locale][name];
+      const { label, failures: expectedTexts } = priceTexts[locale];
+      const expected = expectedTexts[name];
       expect(
         limitPriceFailureText(priceFailures[name], {
-          label: priceLabels[locale],
+          label,
           written: expected.written,
         }),
       ).toBe(expected.text);

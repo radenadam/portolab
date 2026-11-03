@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { periodCovering } from "./period-covering";
+import { periodCovering, periodOf } from "./period-covering";
 
 const source = "the calendars in calendars.ts";
 
@@ -40,4 +40,16 @@ test("throws when two periods with ends cover one date, and names the end of eac
   expect(() => periodCovering(overlapping, "2026-07-01", source)).toThrow(
     "Only one period of the calendars in calendars.ts may cover a date, but 2 periods cover 2026-07-01: the one from 2026-01-01 to 2026-12-31 and the one from 2026-06-01 to 2027-05-31. End each period before the next one starts.",
   );
+});
+
+test("gives the period of a table that covers a date, or else the name of the table", () => {
+  const table = { name: "the calendars", file: "calendars.ts", periods };
+  expect(periodOf(table, "2026-06-30")).toEqual({
+    ok: true,
+    value: periods[0],
+  });
+  expect(periodOf(table, "2025-12-31")).toEqual({
+    ok: false,
+    failure: "the calendars",
+  });
 });

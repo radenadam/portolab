@@ -1,6 +1,6 @@
-import { periodCovering } from "~/period-covering";
+import { periodOf } from "~/period-covering";
 import type { DatePeriod } from "~/period-covering";
-import { fail, succeed } from "~/result";
+import { fail, failuresOf, succeed } from "~/result";
 import type { Result } from "~/result";
 import { listOfWords } from "~/sentences";
 import { lots } from "~/units/lots";
@@ -146,54 +146,34 @@ const autoRejectionRules: readonly AutoRejectionRule[] = [
 
 /** The rules of IDX for the orders of a trading day. It fails for a date that some rule has no record for, and names every such rule. */
 export function idxRulesOn(date: string): Result<IdxRules, string> {
-  const orderSize = periodCovering(
-    orderSizeRules,
+  const file = "idx-rules-on.ts";
+  const orderSize = periodOf(
+    { name: "the order sizes", file, periods: orderSizeRules },
     date,
-    "the order sizes in idx-rules-on.ts",
   );
-  const ticks = periodCovering(
-    tickRules,
+  const ticks = periodOf(
+    { name: "the tick sizes", file, periods: tickRules },
     date,
-    "the tick sizes in idx-rules-on.ts",
   );
-  const minimumPrice = periodCovering(
-    minimumPriceRules,
+  const minimumPrice = periodOf(
+    { name: "the minimum price", file, periods: minimumPriceRules },
     date,
-    "the minimum prices in idx-rules-on.ts",
   );
-  const autoRejection = periodCovering(
-    autoRejectionRules,
+  const autoRejection = periodOf(
+    { name: "the auto rejection limits", file, periods: autoRejectionRules },
     date,
-    "the auto rejection limits in idx-rules-on.ts",
   );
-  const missing: string[] = [];
-  if (orderSize === undefined) {
-    missing.push("the order sizes");
-  }
-  if (ticks === undefined) {
-    missing.push("the tick sizes");
-  }
-  if (minimumPrice === undefined) {
-    missing.push("the minimum price");
-  }
-  if (autoRejection === undefined) {
-    missing.push("the auto rejection limits");
-  }
-  if (
-    orderSize === undefined ||
-    ticks === undefined ||
-    minimumPrice === undefined ||
-    autoRejection === undefined
-  ) {
+  if (!orderSize.ok || !ticks.ok || !minimumPrice.ok || !autoRejection.ok) {
+    const missing = failuresOf([orderSize, ticks, minimumPrice, autoRejection]);
     return fail(
-      `No recorded IDX rule for ${listOfWords(missing)} covers ${date}, so add the rules that IDX set for that day to idx-rules-on.ts.`,
+      `No recorded IDX rule for ${listOfWords(missing)} covers ${date}, so add the rules that IDX set for that day to ${file}.`,
     );
   }
   return succeed({
-    lotShares: orderSize.lotShares,
-    maximumLots: orderSize.maximumLots,
-    tickBands: ticks.bands,
-    minimumPrice: minimumPrice.price,
-    autoRejectionBands: autoRejection.bands,
+    lotShares: orderSize.value.lotShares,
+    maximumLots: orderSize.value.maximumLots,
+    tickBands: ticks.value.bands,
+    minimumPrice: minimumPrice.value.price,
+    autoRejectionBands: autoRejection.value.bands,
   });
 }

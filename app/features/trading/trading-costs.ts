@@ -1,6 +1,6 @@
-import { periodCovering } from "~/period-covering";
+import { periodOf } from "~/period-covering";
 import type { DatePeriod } from "~/period-covering";
-import { fail, succeed } from "~/result";
+import { fail, failuresOf, succeed } from "~/result";
 import type { Result } from "~/result";
 import { listOfWords } from "~/sentences";
 import { basisPoints, basisPointsPerWhole } from "~/units/basis-points";
@@ -52,32 +52,24 @@ export interface CostRates {
 
 /** The rates of the costs of the trades of a day. It fails for a date that the fees or the tax have no record for, and names each of them. */
 export function costRatesOn(date: string): Result<CostRates, string> {
-  const fees = periodCovering(
-    feeSchedules,
+  const file = "trading-costs.ts";
+  const fees = periodOf(
+    { name: "the broker fee", file, periods: feeSchedules },
     date,
-    "the broker fees in trading-costs.ts",
   );
-  const tax = periodCovering(
-    salesTaxRules,
+  const tax = periodOf(
+    { name: "the final tax on sales", file, periods: salesTaxRules },
     date,
-    "the final tax on sales in trading-costs.ts",
   );
-  const missing: string[] = [];
-  if (fees === undefined) {
-    missing.push("the broker fee");
-  }
-  if (tax === undefined) {
-    missing.push("the final tax on sales");
-  }
-  if (fees === undefined || tax === undefined) {
+  if (!fees.ok || !tax.ok) {
     return fail(
-      `No record of ${listOfWords(missing)} covers ${date}, so add the rates for that day to trading-costs.ts.`,
+      `No record of ${listOfWords(failuresOf([fees, tax]))} covers ${date}, so add the rates for that day to ${file}.`,
     );
   }
   return succeed({
-    buyFee: fees.buyFee,
-    sellFee: fees.sellFee,
-    salesTax: tax.rate,
+    buyFee: fees.value.buyFee,
+    sellFee: fees.value.sellFee,
+    salesTax: tax.value.rate,
   });
 }
 

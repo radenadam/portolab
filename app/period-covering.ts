@@ -1,3 +1,5 @@
+import { fail, succeed } from "~/result";
+import type { Result } from "~/result";
 import { listOfWords } from "~/sentences";
 
 /** A span of calendar dates in WIB in which some data applies, such as the year of a trading calendar or the rules of IDX. */
@@ -25,6 +27,26 @@ export function periodCovering<Period extends DatePeriod>(
     );
   }
   return covering[0];
+}
+
+/** A table of dated periods, with the name that a failure gives it, such as "the tick sizes", and the file that holds it. */
+export interface PeriodTable<Period extends DatePeriod> {
+  name: string;
+  file: string;
+  periods: readonly Period[];
+}
+
+/** The period of a table that covers a date, or else the name of the table, which its caller names together with the other tables that lack a period for the date. */
+export function periodOf<Period extends DatePeriod>(
+  table: PeriodTable<Period>,
+  date: string,
+): Result<Period, string> {
+  const period = periodCovering(
+    table.periods,
+    date,
+    `${table.name} in ${table.file}`,
+  );
+  return period === undefined ? fail(table.name) : succeed(period);
 }
 
 function describePeriod(period: DatePeriod): string {
