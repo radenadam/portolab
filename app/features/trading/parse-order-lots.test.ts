@@ -14,14 +14,22 @@ const labels: Record<Locale, string> = { id: "Jumlah lot", en: "Lots" };
 
 const failures: Record<
   Locale,
-  { notWhole: string; zero: string; tooMany: string; empty: string }
+  {
+    notWhole: string;
+    zero: string;
+    tooMany: string;
+    beyondOneLot: string;
+    empty: string;
+  }
 > = {
   id: {
     notWhole:
       'Kolom "Jumlah lot" berisi "2,5", tetapi jumlah lot harus bilangan bulat mulai dari 1, misalnya 5. Masukkan jumlah lot order ini.',
     zero: 'Kolom "Jumlah lot" berisi "0", tetapi jumlah lot harus bilangan bulat mulai dari 1, misalnya 5. Masukkan jumlah lot order ini.',
     tooMany:
-      'Kolom "Jumlah lot" berisi "99999999999999999", padahal BEI menerima paling banyak 50.000 lot dalam satu order. Masukkan jumlah lot dari 1 sampai 50.000.',
+      'Kolom "Jumlah lot" berisi "99999999999999999", padahal BEI menerima paling banyak 50.000 lot dalam satu order. Masukkan paling banyak 50.000 lot.',
+    beyondOneLot:
+      'Kolom "Jumlah lot" berisi "2", padahal BEI menerima paling banyak 1 lot dalam satu order. Masukkan paling banyak 1 lot.',
     empty:
       'Kolom "Jumlah lot" kosong, padahal Portolab memerlukannya. Isi kolom itu.',
   },
@@ -30,7 +38,9 @@ const failures: Record<
       'The field "Lots" holds "2,5", but the number of lots must be a whole number from 1, such as 5. Enter the number of lots of the order.',
     zero: 'The field "Lots" holds "0", but the number of lots must be a whole number from 1, such as 5. Enter the number of lots of the order.',
     tooMany:
-      'The field "Lots" holds "99999999999999999", but IDX accepts at most 50,000 lots in one order. Enter a number of lots from 1 to 50,000.',
+      'The field "Lots" holds "99999999999999999", but IDX accepts at most 50,000 lots in one order. Enter at most 50,000 lots.',
+    beyondOneLot:
+      'The field "Lots" holds "2", but IDX accepts at most 1 lot in one order. Enter at most 1 lot.',
     empty: 'The field "Lots" is empty, but Portolab needs it. Fill it in.',
   },
 };
@@ -78,6 +88,14 @@ for (const locale of locales) {
     });
     expect(parseOrderLots("50001", label, maximumLots)).toMatchObject({
       ok: false,
+    });
+  });
+
+  test(`rejects a number of lots beyond a largest order of 1 lot, and names that order in the singular, in ${language}`, () => {
+    switchLocaleForTest(locale);
+    expect(parseOrderLots("2", label, lots(1))).toEqual({
+      ok: false,
+      failure: failure.beyondOneLot,
     });
   });
 

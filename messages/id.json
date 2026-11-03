@@ -36,6 +36,8 @@
   "trading_one_monthly_return_phrase": "{count} imbal hasil bulanan",
   "trading_several_monthly_returns_phrase": "{count} imbal hasil bulanan",
   "trading_missing_rules_error": "Portolab belum dapat menerima order ini, karena aturan BEI untuk hari bursa order ini belum tercatat. Beri tahu dosen Anda agar aturan tersebut dapat ditambahkan.",
+  "trading_missing_costs_error": "Portolab belum dapat menerima order ini, karena tarif biaya broker atau pajak final atas penjualan untuk hari bursa order ini belum tercatat. Beri tahu dosen Anda agar tarif yang belum tercatat itu dapat ditambahkan.",
+  "trading_missing_universe_error": "Portolab belum dapat menerima order beli ini, karena daftar saham LQ45 pada hari bursa order ini belum tercatat, padahal di Portolab Anda hanya dapat membeli saham LQ45. Beri tahu dosen Anda agar daftar saham tersebut dapat ditambahkan.",
   "trading_no_price_error": "Portolab belum memiliki harga {code}, sehingga belum dapat memeriksa order ini. Coba lagi setelah pembaruan harga berikutnya membawa harga {code}.",
   "trading_outside_universe_error": "{code} tidak termasuk LQ45 pada {date}, dan di Portolab Anda hanya dapat membeli saham LQ45 pada hari bursa tersebut. Pilih saham yang termasuk LQ45 pada hari itu.",
   "trading_too_few_returns_error": "{code} baru memiliki {returns}, sedangkan Portolab menghitung ukuran sebuah portofolio hanya jika setiap sahamnya memiliki {minimum}. Jika {code} tetap memiliki harga penutupan di akhir setiap bulan dan tetap termasuk LQ45, Anda dapat membelinya setelah pembaruan riwayat harga yang menyimpan harga penutupan hari bursa pertama {month}.",
@@ -120,7 +122,7 @@
   "accounts_sign_out_title": "Keluar",
   "accounts_sign_out_body": "Keluar dari Portolab di perangkat ini.",
   "accounts_privacy_attempts_body": "Nama pengguna yang diketik seseorang dengan kata sandi salah, hanya di memori, selama {minutes} menit setelah setiap kata sandi salah untuknya, untuk mencegah siapa pun menebak kata sandi sebuah akun.",
-  "trading_lots_too_many_error": "Kolom \"{field}\" berisi \"{value}\", padahal BEI menerima paling banyak {maximum} lot dalam satu order. Masukkan jumlah lot dari 1 sampai {maximum}.",
+  "trading_lots_too_many_error": "Kolom \"{field}\" berisi \"{value}\", padahal BEI menerima paling banyak {maximum} dalam satu order. Masukkan paling banyak {maximum}.",
   "trading_wait_for_sales_error": "Order jual {codes} Anda yang masih terbuka menambah kas Anda yang tersedia saat tereksekusi.",
   "trading_new_order_error": "Pasang order baru jika Anda masih menginginkan {code}, dan Portolab memeriksanya pada harga dan kas saat itu."
 }

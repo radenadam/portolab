@@ -3,9 +3,7 @@ import type { Result } from "~/result";
 import type { OrderLots } from "~/units/lots";
 import { rupiah } from "~/units/rupiah";
 import type { Rupiah } from "~/units/rupiah";
-import { shares } from "~/units/shares";
 import type { Shares } from "~/units/shares";
-import { largestAffordableLots } from "./largest-affordable-lots";
 import type { CashShortfall } from "./order";
 import { purchaseCost, tradeCosts } from "./trading-costs";
 import type { CostRates } from "./trading-costs";
@@ -18,7 +16,7 @@ interface Purchase {
   price: Rupiah;
 }
 
-/** Checks that the cash that a purchase can use pays for its value and its broker fee, and gives both. The failure gives the amounts and the largest order that the cash pays for at the price. */
+/** Checks that the cash that a purchase can use pays for its value and its broker fee, and gives both. The failure gives the amounts of the purchase and the cash. */
 export function checkCashForPurchase(
   purchase: Purchase,
   availableCash: Rupiah,
@@ -36,13 +34,5 @@ export function checkCashForPurchase(
     value,
     fee,
     availableCash,
-    largestLots: largestAffordableLots(
-      availableCash,
-      {
-        price: purchase.price,
-        shares: shares(purchase.shares / purchase.lots),
-      },
-      rates,
-    ),
   });
 }

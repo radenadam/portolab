@@ -2,15 +2,13 @@ import {
   formatCalendarDate,
   formatList,
   formatMonth,
-  formatNumber,
   formatPercent,
   formatRupiah,
 } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
-import { singularOrPlural } from "~/sentences";
 import { basisPointsPerWhole } from "~/units/basis-points";
 import { lots } from "~/units/lots";
-import type { Lots } from "~/units/lots";
+import { lotCount, monthlyReturnCount } from "./count-phrases";
 import type { PriceLimit } from "./price-limits";
 import type { FillFailure, OrderFailure } from "./order";
 import { purchaseCost } from "./trading-costs";
@@ -20,36 +18,13 @@ type Failure = OrderFailure | FillFailure;
 /** A purchase that the available cash does not pay for. */
 type Shortfall = Extract<Failure, { kind: "notEnoughCash" | "priceRose" }>;
 
+type NotEnoughCash = Extract<Failure, { kind: "notEnoughCash" }>;
+
 type FailureTexts = {
   [Kind in Failure["kind"]]: (
     failure: Extract<Failure, { kind: Kind }>,
   ) => string;
 };
-
-type CountMessage = (inputs: { count: string }) => string;
-
-// A count has one form for 1 and another for several, because English changes its grammar between them.
-function countText(
-  count: number,
-  messages: { one: CountMessage; several: CountMessage },
-): string {
-  const message = singularOrPlural(count, messages.one, messages.several);
-  return message({ count: formatNumber(count) });
-}
-
-function lotCount(count: Lots): string {
-  return countText(count, {
-    one: m.trading_one_lot_phrase,
-    several: m.trading_several_lots_phrase,
-  });
-}
-
-function monthlyReturnCount(count: number): string {
-  return countText(count, {
-    one: m.trading_one_monthly_return_phrase,
-    several: m.trading_several_monthly_returns_phrase,
-  });
-}
 
 function formatLimit(limit: PriceLimit): string {
   switch (limit.kind) {
@@ -81,7 +56,7 @@ function purchaseAmounts(failure: Shortfall): {
   };
 }
 
-function largestPurchaseText(failure: Shortfall): string {
+function largestPurchaseText(failure: NotEnoughCash): string {
   return m.trading_largest_purchase_error({
     price: formatRupiah(failure.price),
     lots: lotCount(failure.largestLots),
@@ -89,9 +64,7 @@ function largestPurchaseText(failure: Shortfall): string {
 }
 
 /** The steps that add to the available cash of an account that does not pay for 1 lot, each only in a state of the account where the student can take it or wait for it. A lower price or another stock helps only with enough cash, so it is the step only when no sale and no open order can add to the cash. */
-function stepsWithoutAffordableLot(
-  failure: Extract<Failure, { kind: "notEnoughCash" }>,
-): string[] {
+function stepsWithoutAffordableLot(failure: NotEnoughCash): string[] {
   const steps: string[] = [];
   if (failure.holdsFreeShares) {
     steps.push(
@@ -124,6 +97,8 @@ function stepsWithoutAffordableLot(
 
 const failureTexts: FailureTexts = {
   missingRules: () => m.trading_missing_rules_error(),
+  missingCosts: () => m.trading_missing_costs_error(),
+  missingUniverse: () => m.trading_missing_universe_error(),
   noPrice: (failure) => m.trading_no_price_error({ code: failure.code }),
   outsideUniverse: (failure) =>
     m.trading_outside_universe_error({

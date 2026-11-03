@@ -238,7 +238,7 @@ test("expires an order that has not filled once the prices of its trading day ar
   });
 });
 
-test("rejects a market purchase whose price rose beyond the cash while it waited, and gives the largest that the cash pays for", () => {
+test("rejects a market purchase whose price rose beyond the cash while it waited, with the price that it was checked at and the cost at the new price", () => {
   // Placed at 20:00 at the close of Rp4,980, which sets aside Rp9,974,940, and checked at 09:10 on Tuesday 3 November 2026 against a price of Rp5,025 that costs Rp10,065,075.
   const closeOfMonday = quoteForTest("BBCA", 4_980, "2026-11-02T09:14:55Z");
   const order = placed(
@@ -266,7 +266,6 @@ test("rejects a market purchase whose price rose beyond the cash while it waited
       value: 10_050_000,
       fee: 15_075,
       availableCash: 10_000_000,
-      largestLots: 19,
     },
   });
 });

@@ -24,6 +24,7 @@ import { referencePrice } from "./reference-price";
 import type { Holding } from "./holding-after-fill";
 import { idxRulesOn } from "./idx-rules-on";
 import type { IdxRules } from "./idx-rules-on";
+import { largestAffordableLots } from "./largest-affordable-lots";
 import type {
   OpenOrder,
   Order,
@@ -149,11 +150,15 @@ function tradingDayOf(
   const previousDate = tradingDayBefore(date);
   const rules = idxRulesOn(date);
   const rates = costRatesOn(date);
-  if (!expiresAt.ok || !previousDate.ok || !rules.ok || !rates.ok) {
+  // A failure has one text, and the texts of missing rules and missing costs offer the same step, so when both lack a record the student reads about the rules, and the reason for the log names both.
+  if (!expiresAt.ok || !previousDate.ok || !rules.ok) {
     return fail({
       kind: "missingRules",
       reason: failuresOf([expiresAt, previousDate, rules, rates]).join(" "),
     });
+  }
+  if (!rates.ok) {
+    return fail({ kind: "missingCosts", reason: rates.failure });
   }
   return succeed({
     date,
@@ -186,7 +191,7 @@ function checkBuyable(
 ): Result<undefined, OrderFailure> {
   const universe = universeOn(date);
   if (!universe.ok) {
-    return fail({ kind: "missingRules", reason: universe.failure });
+    return fail({ kind: "missingUniverse", reason: universe.failure });
   }
   if (!universe.value.includes(code)) {
     return fail({ kind: "outsideUniverse", code, date });
@@ -238,10 +243,16 @@ function checkedPrice(
       }
       const range = acceptedPriceRange(reference.value, day.rules);
       const price = checkLimitPrice(request.price.limit, range, day.rules);
-      if (!price.ok) {
-        return fail({ ...price.failure, code: request.code, date: day.date });
+      if (price.ok) {
+        return price;
       }
-      return price;
+      // The limits come from the close of the stock before the trading day, so their text names both, but the tick size of a price is the same for every stock.
+      switch (price.failure.kind) {
+        case "outsideLimits":
+          return fail({ ...price.failure, code: request.code, date: day.date });
+        case "offTick":
+          return fail(price.failure);
+      }
     }
   }
 }
@@ -255,11 +266,8 @@ function checkFunds(
   switch (order.side) {
     case "buy": {
       const setAside = cashSetAside(account.orders, account.moment);
-      const paid = checkCashForPurchase(
-        order,
-        rupiah(account.cash - setAside),
-        day.rates,
-      );
+      const availableCash = rupiah(account.cash - setAside);
+      const paid = checkCashForPurchase(order, availableCash, day.rates);
       if (!paid.ok) {
         return fail({
           kind: "notEnoughCash",
@@ -267,6 +275,11 @@ function checkFunds(
           setAsideCash: setAside,
           holdsFreeShares: holdsFreeShares(account, account.moment),
           sellingCodes: codesOfOpenSales(account.orders, account.moment),
+          largestLots: largestAffordableLots(
+            availableCash,
+            { price: order.price, shares: day.rules.lotShares },
+            day.rates,
+          ),
           ...paid.failure,
         });
       }

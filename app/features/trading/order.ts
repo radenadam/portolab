@@ -78,15 +78,26 @@ export interface CashShortfall {
   fee: Rupiah;
   /** The cash that the order can use: the cash of the account less what other open orders set aside. */
   availableCash: Rupiah;
-  /** The most lots that the available cash pays for at the price, with the fee, which can be 0. */
-  largestLots: Lots;
 }
 
 /** Why Portolab cannot accept an order. Each failure holds the numbers that its text gives to the student. */
 export type OrderFailure =
   | {
+      /** The trading calendar or another rule of IDX has no record for a date that the order needs. */
       kind: "missingRules";
-      /** The text for the log, which names the data to add and the date that it must cover. */
+      /** The text for the log, which names the data to add and the date that it must cover, and also the costs when they lack a record too. */
+      reason: string;
+    }
+  | {
+      /** The broker fee or the final tax on sales has no record for the trading day of the order. */
+      kind: "missingCosts";
+      /** The text for the log, which names the rates to add and the date that they must cover. */
+      reason: string;
+    }
+  | {
+      /** No period of the LQ45 covers the trading day of a purchase. */
+      kind: "missingUniverse";
+      /** The text for the log, which names the stocks to add and the date that they must cover. */
       reason: string;
     }
   | { kind: "noPrice"; code: string }
@@ -112,11 +123,17 @@ export type OrderFailure =
       date: string;
     }
   | { kind: "tooManyLots"; lots: Lots; maximumLots: Lots }
-  | (PriceFailure & { code: string; date: string })
+  | (Extract<PriceFailure, { kind: "outsideLimits" }> & {
+      code: string;
+      date: string;
+    })
+  | Extract<PriceFailure, { kind: "offTick" }>
   | ({
       kind: "notEnoughCash";
       cash: Rupiah;
       setAsideCash: Rupiah;
+      /** The most lots that the available cash pays for at the price, with the fee, which can be 0. */
+      largestLots: Lots;
       /** Whether the account holds shares that no open sell order sets aside, which it could sell to add to its cash. */
       holdsFreeShares: boolean;
       /** The stocks of the open sell orders of the account, which add to its cash when they fill. */

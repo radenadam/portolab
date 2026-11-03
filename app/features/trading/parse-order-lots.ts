@@ -1,10 +1,10 @@
-import { formatNumber } from "~/formatting";
 import { parseFilledText } from "~/form-text";
 import { m } from "~/paraglide/messages.js";
 import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
 import { isOrderLots } from "~/units/lots";
 import type { Lots, OrderLots } from "~/units/lots";
+import { lotCount } from "./count-phrases";
 
 /** Reads the number of lots that the order form sent, which is a whole number from 1 to the largest order of IDX, written in digits, such as "5". The source is the label of the field, the largest order is the one that idxRulesOn gives for the trading day of the order, and the failure is a sentence for the reader in the current language. */
 export function parseOrderLots(
@@ -28,7 +28,7 @@ export function parseOrderLots(
       m.trading_lots_too_many_error({
         field: source,
         value: text.value,
-        maximum: formatNumber(maximumLots),
+        maximum: lotCount(maximumLots),
       }),
     );
   }

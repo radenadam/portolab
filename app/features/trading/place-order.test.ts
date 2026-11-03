@@ -310,8 +310,6 @@ test("rejects a limit price between two steps of its band", () => {
     ok: false,
     failure: {
       kind: "offTick",
-      code: "BBCA",
-      date: "2026-11-02",
       price: 4_985,
       tick: 10,
       bandFrom: 2_000,
@@ -469,6 +467,42 @@ test("rejects an order for a trading day that some rule has no record for, with 
       kind: "missingRules",
       reason:
         "No recorded IDX rule for the auto rejection limits covers 2027-01-04, so add the rules that IDX set for that day to idx-rules-on.ts.",
+    },
+  });
+});
+
+test("rejects an order for a trading day that the costs have no record for, with the reason for the log", () => {
+  // 10:00 on Friday 30 October 2026, before the first recorded fee schedule.
+  expect(
+    placeOrder(
+      purchase({ placedAt: new Date("2026-10-30T03:00:00Z") }),
+      account(),
+      bbca,
+    ),
+  ).toEqual({
+    ok: false,
+    failure: {
+      kind: "missingCosts",
+      reason:
+        "No record of the broker fee covers 2026-10-30, so add the rates for that day to trading-costs.ts.",
+    },
+  });
+});
+
+test("rejects an order for a trading day that both some rule and the costs have no record for as missing rules, and names both in the reason for the log", () => {
+  // 10:00 on Tuesday 1 September 2026, before the minimum price and the limits of September 2026.
+  expect(
+    placeOrder(
+      purchase({ placedAt: new Date("2026-09-01T03:00:00Z") }),
+      account(),
+      bbca,
+    ),
+  ).toEqual({
+    ok: false,
+    failure: {
+      kind: "missingRules",
+      reason:
+        "No recorded IDX rule for the minimum price and the auto rejection limits covers 2026-09-01, so add the rules that IDX set for that day to idx-rules-on.ts. No record of the broker fee covers 2026-09-01, so add the rates for that day to trading-costs.ts.",
     },
   });
 });

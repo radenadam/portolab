@@ -32,6 +32,14 @@ const failures = {
     kind: "missingRules",
     reason: "No recorded IDX rule covers 2027-01-04.",
   },
+  missingCosts: {
+    kind: "missingCosts",
+    reason: "No record of the broker fee covers 2026-10-30.",
+  },
+  missingUniverse: {
+    kind: "missingUniverse",
+    reason: "No recorded period of the LQ45 covers 2027-02-01.",
+  },
   noPrice: { kind: "noPrice", code: "BBCA" },
   outsideUniverse: {
     kind: "outsideUniverse",
@@ -96,8 +104,6 @@ const failures = {
   },
   offTick: {
     kind: "offTick",
-    code: "BBCA",
-    date: "2026-11-02",
     price: rupiah(4_985),
     tick: rupiah(10),
     bandFrom: rupiah(2_000),
@@ -107,8 +113,6 @@ const failures = {
   },
   offTickOfTopBand: {
     kind: "offTick",
-    code: "BBCA",
-    date: "2026-11-02",
     price: rupiah(5_010),
     tick: rupiah(25),
     bandFrom: rupiah(5_000),
@@ -202,7 +206,6 @@ const failures = {
     value: rupiah(10_050_000),
     fee: rupiah(15_075),
     availableCash: rupiah(10_000_000),
-    largestLots: lots(19),
   },
   priceRoseByOneLot: {
     kind: "priceRose",
@@ -213,7 +216,6 @@ const failures = {
     value: rupiah(502_500),
     fee: rupiah(754),
     availableCash: rupiah(500_000),
-    largestLots: lots(0),
   },
   oneFreeLot: {
     kind: "notEnoughShares",
@@ -237,6 +239,10 @@ const texts: Record<Locale, Record<FailureName, string>> = {
   id: {
     missingRules:
       "Portolab belum dapat menerima order ini, karena aturan BEI untuk hari bursa order ini belum tercatat. Beri tahu dosen Anda agar aturan tersebut dapat ditambahkan.",
+    missingCosts:
+      "Portolab belum dapat menerima order ini, karena tarif biaya broker atau pajak final atas penjualan untuk hari bursa order ini belum tercatat. Beri tahu dosen Anda agar tarif yang belum tercatat itu dapat ditambahkan.",
+    missingUniverse:
+      "Portolab belum dapat menerima order beli ini, karena daftar saham LQ45 pada hari bursa order ini belum tercatat, padahal di Portolab Anda hanya dapat membeli saham LQ45. Beri tahu dosen Anda agar daftar saham tersebut dapat ditambahkan.",
     noPrice:
       "Portolab belum memiliki harga BBCA, sehingga belum dapat memeriksa order ini. Coba lagi setelah pembaruan harga berikutnya membawa harga BBCA.",
     outsideUniverse:
@@ -293,6 +299,10 @@ const texts: Record<Locale, Record<FailureName, string>> = {
   en: {
     missingRules:
       "Portolab cannot take this order yet, because it has not recorded the IDX rules for the trading day of the order. Tell your lecturer, so that the rules can be added.",
+    missingCosts:
+      "Portolab cannot take this order yet, because it lacks a record of the broker fee or of the final tax on sales for the trading day of the order. Tell your lecturer, so that the missing rates can be added.",
+    missingUniverse:
+      "Portolab cannot take this purchase yet, because it has not recorded which stocks are in the LQ45 on the trading day of the order, and it lets you buy only those stocks. Tell your lecturer, so that the stocks can be added.",
     noPrice:
       "Portolab has no price for BBCA yet, so it cannot check the order. Try again after the next update of prices brings a price for BBCA.",
     outsideUniverse:
