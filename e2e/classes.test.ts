@@ -430,12 +430,17 @@ for (const locale of locales) {
 
     // On another device, the student opens the address of a third class, signs in from it, and joins with one button.
     const otherDevice = await newDevice(browser, locale);
-    await otherDevice.goto(third.joinAddress);
+    const thirdJoinPath = new URL(third.joinAddress).pathname;
+    await otherDevice.goto(thirdJoinPath);
     await otherDevice
       .getByRole("link", { name: text.existingAccountLink })
       .click();
+    // The join page has a field for a username too, so the test waits for the sign-in page before it fills one.
+    await expect(otherDevice).toHaveURL(
+      `/sign-in?returnTo=${encodeURIComponent(thirdJoinPath)}`,
+    );
     await submitSignIn(otherDevice, username, chosenPassword);
-    await expect(otherDevice).toHaveURL(new URL(third.joinAddress).pathname);
+    await expect(otherDevice).toHaveURL(thirdJoinPath);
     await expect(otherDevice).toHaveTitle(`${text.joinClassTitle} | Portolab`);
     await expect(otherDevice.getByText(text.joinClassBody)).toBeVisible();
     await expectAccessibleScreen(otherDevice);
