@@ -2,6 +2,13 @@ import { spawn } from "node:child_process";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import {
+  closeDatabase,
+  openDatabase,
+} from "../app/database/database.server.ts";
+import { migrationsFolderName } from "../app/database/migrations-folder-name.ts";
+import { saveDailyHistory } from "../app/features/market-data/history-store.server.ts";
+import { monthEndClosesForTest } from "../app/features/measures/month-end-closes-for-test.ts";
 import { waitForHealth, watchExit } from "../scripts/wait-for-health.ts";
 import { baseUrl, databasePathVariable, serverPort } from "./test-server.ts";
 
@@ -25,6 +32,12 @@ export default async function globalSetup(): Promise<() => Promise<void>> {
   }
   const folder = mkdtempSync(join(tmpdir(), "portolab-e2e-"));
   const databasePath = join(folder, "portolab.sqlite");
+  try {
+    storeMonthEndCloses(databasePath);
+  } catch (error) {
+    rmSync(folder, { recursive: true, force: true });
+    throw error;
+  }
   // The server starts outside the repository, so a file that it finds from the working directory instead of from its code fails every browser test.
   const server = spawn(process.execPath, [serverMain], {
     cwd: tmpdir(),
@@ -64,4 +77,16 @@ export default async function globalSetup(): Promise<() => Promise<void>> {
         `The server of the browser tests did not answer on /health within ${String(startupTimeoutSeconds)} seconds.`,
       );
   }
+}
+
+/** Stores the recorded month-end closes of the IHSG, of BBCA, which has the monthly returns that a purchase needs, and of AADI, which has too few. The history job of the server asks the fixture source for the closes of the latest trading day, which its closes of October 2026 lack, so it stores none, and a purchase needs these. */
+function storeMonthEndCloses(databasePath: string): void {
+  const database = openDatabase(
+    databasePath,
+    join(import.meta.dirname, "..", migrationsFolderName),
+  );
+  for (const code of ["IHSG", "BBCA", "AADI"] as const) {
+    saveDailyHistory(database, monthEndClosesForTest(code));
+  }
+  closeDatabase(database);
 }

@@ -1,8 +1,20 @@
 import { expect, test } from "vitest";
 import { openDatabaseForTest } from "~/database/open-database-for-test.server";
+import { minutesAfter } from "~/time-units";
 import { indexPoints } from "~/units/index-points";
 import { rupiah } from "~/units/rupiah";
-import { listLatestQuotes, saveQuotes } from "./quote-store.server";
+import {
+  findStockQuote,
+  listFreshStockQuotes,
+  listLatestQuotes,
+  saveQuotes,
+} from "./quote-store.server";
+import {
+  failingSourceForTest,
+  sourceAnsweringForTest,
+  updateQuotesForTest,
+} from "./quote-updates-for-test.server";
+import { stockQuote } from "./stock-quote";
 
 test("keeps only the latest quote of each instrument, the indices first", () => {
   const database = openDatabaseForTest();
@@ -56,4 +68,46 @@ test("keeps only the latest quote of each instrument, the indices first", () => 
       quotedAt,
     },
   ]);
+});
+
+// The closing quotes of BBCA and TLKM of Friday 30 October 2026, as fixture-price-source.server.ts records them.
+const bbcaClose = stockQuote("BBCA", [4_980, 4_940], "2026-10-30T09:14:55Z");
+const tlkmClose = stockQuote("TLKM", [1_980, 1_980], "2026-10-30T09:14:51Z");
+// 16:20 WIB on Friday 30 October 2026, and the minutes after it.
+const afterClose = new Date("2026-10-30T09:20:00Z");
+
+test("finds the latest quote of a stock, and none for a stock without a stored quote", () => {
+  const database = openDatabaseForTest();
+  saveQuotes(database, [bbcaClose], afterClose);
+  expect(findStockQuote(database, "BBCA")).toEqual(bbcaClose);
+  expect(findStockQuote(database, "BREN")).toBeUndefined();
+});
+
+test("gives the quotes that the latest attempt fetched, without a stock that it could not update, whose stored quote is older", async () => {
+  const database = openDatabaseForTest();
+  await updateQuotesForTest(
+    database,
+    sourceAnsweringForTest([bbcaClose, tlkmClose]),
+    { at: afterClose },
+  );
+  await updateQuotesForTest(database, sourceAnsweringForTest([bbcaClose]), {
+    at: minutesAfter(afterClose, 1),
+  });
+  expect(findStockQuote(database, "TLKM")).toEqual(tlkmClose);
+  expect(listFreshStockQuotes(database)).toEqual(
+    new Map([["BBCA", bbcaClose]]),
+  );
+});
+
+test("gives no quote while the latest attempt failed or before the first attempt", async () => {
+  const database = openDatabaseForTest();
+  expect(listFreshStockQuotes(database)).toEqual(new Map());
+  await updateQuotesForTest(database, sourceAnsweringForTest([bbcaClose]), {
+    at: afterClose,
+  });
+  await updateQuotesForTest(database, failingSourceForTest, {
+    at: minutesAfter(afterClose, 1),
+  });
+  expect(findStockQuote(database, "BBCA")).toEqual(bbcaClose);
+  expect(listFreshStockQuotes(database)).toEqual(new Map());
 });

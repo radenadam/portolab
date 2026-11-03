@@ -32,26 +32,8 @@ export function TextField({
   defaultValue,
 }: TextFieldProps): ReactNode {
   const id = useId();
-  const hintId = `${id}-hint`;
-  const failureId = `${id}-failure`;
-  const describedBy: string[] = [];
-  if (hint !== undefined) {
-    describedBy.push(hintId);
-  }
-  if (failure !== undefined) {
-    describedBy.push(failureId);
-  }
   return (
-    <div className={styles["field"]}>
-      <label htmlFor={id} className={styles["label"]}>
-        {label}
-      </label>
-      {hint !== undefined && (
-        <p id={hintId} className={styles["hint"]}>
-          {hint}
-        </p>
-      )}
-      <FieldFailure id={failureId} text={failure} />
+    <DescribedField id={id} label={label} hint={hint} failure={failure}>
       <input
         id={id}
         name={name}
@@ -62,12 +44,10 @@ export function TextField({
         spellCheck={false}
         defaultValue={defaultValue}
         aria-invalid={failure !== undefined}
-        aria-describedby={
-          describedBy.length === 0 ? undefined : describedBy.join(" ")
-        }
+        aria-describedby={describedBy(id, { hint, failure })}
         className={styles["input"]}
       />
-    </div>
+    </DescribedField>
   );
 }
 
@@ -84,7 +64,7 @@ export function CheckboxField({
   failure,
 }: CheckboxFieldProps): ReactNode {
   const id = useId();
-  const failureId = `${id}-failure`;
+  const failureId = failureIdOf(id);
   return (
     <div className={styles["field"]}>
       <FieldFailure id={failureId} text={failure} />
@@ -103,6 +83,97 @@ export function CheckboxField({
         </label>
       </div>
     </div>
+  );
+}
+
+/** An option of a field that offers a choice, with the value that the form sends and the label that the reader sees. */
+export interface FieldOption<Value extends string = string> {
+  value: Value;
+  label: string;
+}
+
+interface SelectFieldProps {
+  name: string;
+  label: string;
+  /** The label of the first option, which chooses nothing, so that the reader makes the choice. */
+  placeholder: string;
+  options: readonly FieldOption[];
+  hint?: string | undefined;
+  failure?: string | undefined;
+  defaultValue?: string | undefined;
+}
+
+/** A list to choose one value from, with its label, a hint, and the reason its value was not accepted, which a screen reader reads with it. */
+export function SelectField({
+  name,
+  label,
+  placeholder,
+  options,
+  hint,
+  failure,
+  defaultValue,
+}: SelectFieldProps): ReactNode {
+  const id = useId();
+  return (
+    <DescribedField id={id} label={label} hint={hint} failure={failure}>
+      <select
+        id={id}
+        name={name}
+        defaultValue={defaultValue ?? ""}
+        aria-invalid={failure !== undefined}
+        aria-describedby={describedBy(id, { hint, failure })}
+        className={styles["input"]}
+      >
+        <option value="">{placeholder}</option>
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </DescribedField>
+  );
+}
+
+interface ChoiceFieldProps {
+  name: string;
+  label: string;
+  options: readonly FieldOption[];
+  failure?: string | undefined;
+  defaultValue?: string | undefined;
+}
+
+/** A group of options of which the reader chooses one, with the label of the group and the reason that the choice was not accepted, which a screen reader reads with the group. */
+export function ChoiceField({
+  name,
+  label,
+  options,
+  failure,
+  defaultValue,
+}: ChoiceFieldProps): ReactNode {
+  const id = useId();
+  const failureId = failureIdOf(id);
+  return (
+    <fieldset
+      aria-describedby={failure === undefined ? undefined : failureId}
+      className={styles["choices"]}
+    >
+      <legend className={styles["label"]}>{label}</legend>
+      <FieldFailure id={failureId} text={failure} />
+      {options.map((option) => (
+        <div key={option.value} className={styles["checkbox"]}>
+          <input
+            id={`${id}-${option.value}`}
+            name={name}
+            type="radio"
+            value={option.value}
+            defaultChecked={option.value === defaultValue}
+            className={styles["box"]}
+          />
+          <label htmlFor={`${id}-${option.value}`}>{option.label}</label>
+        </div>
+      ))}
+    </fieldset>
   );
 }
 
@@ -133,6 +204,63 @@ export function FormSuccess({ text }: { text: string }): ReactNode {
       {text}
     </p>
   );
+}
+
+interface DescribedFieldProps {
+  /** The id of the control of the field, from which the ids of the hint and the reason follow. */
+  id: string;
+  label: string;
+  hint: string | undefined;
+  failure: string | undefined;
+  /** The control, which describedBy gives the ids of the hint and the reason. */
+  children: ReactNode;
+}
+
+/** A field with its label, its hint, and the reason that its value was not accepted, above its control. */
+function DescribedField({
+  id,
+  label,
+  hint,
+  failure,
+  children,
+}: DescribedFieldProps): ReactNode {
+  return (
+    <div className={styles["field"]}>
+      <label htmlFor={id} className={styles["label"]}>
+        {label}
+      </label>
+      {hint !== undefined && (
+        <p id={hintIdOf(id)} className={styles["hint"]}>
+          {hint}
+        </p>
+      )}
+      <FieldFailure id={failureIdOf(id)} text={failure} />
+      {children}
+    </div>
+  );
+}
+
+/** The ids of the hint and the reason that describe the control of a field, so a screen reader reads them with it. */
+function describedBy(
+  id: string,
+  { hint, failure }: { hint: string | undefined; failure: string | undefined },
+): string | undefined {
+  const ids: string[] = [];
+  if (hint !== undefined) {
+    ids.push(hintIdOf(id));
+  }
+  if (failure !== undefined) {
+    ids.push(failureIdOf(id));
+  }
+  return ids.length === 0 ? undefined : ids.join(" ");
+}
+
+function hintIdOf(id: string): string {
+  return `${id}-hint`;
+}
+
+function failureIdOf(id: string): string {
+  return `${id}-failure`;
 }
 
 function FieldFailure({

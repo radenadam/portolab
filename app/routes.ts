@@ -11,6 +11,7 @@ export default [
   route("privacy", "features/accounts/privacy-page.tsx"),
   route("classes", "features/classes/classes-page.tsx"),
   route("classes/:classId", "features/classes/class-page.tsx"),
+  route("classes/:classId/orders", "features/trading/orders-page.tsx"),
   route(
     "classes/:classId/students/:studentId/password",
     "features/classes/reset-password-page.tsx",

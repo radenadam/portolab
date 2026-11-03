@@ -2,6 +2,7 @@ import { expect, test } from "vitest";
 import { stockQuote } from "~/features/market-data/stock-quote";
 import { stockClosesForTest } from "~/features/market-data/history-for-test";
 import { referencePrice } from "./reference-price";
+import { bbcaCloseOfFridayForTest } from "./orders-for-test";
 
 // An order that trades on Tuesday 3 November 2026, whose trading day before is Monday 2 November 2026. The comment of each quote gives its time in WIB.
 const day = { date: "2026-11-03", previousDate: "2026-11-02" };
@@ -13,12 +14,6 @@ const quoteOfMonday = stockQuote(
   "BBCA",
   [5_000, 4_980],
   "2026-11-02T09:14:55Z",
-);
-// 16:14 on Friday 30 October 2026, the latest quote of a stock that did not trade on Monday.
-const quoteOfFriday = stockQuote(
-  "BBCA",
-  [4_980, 4_940],
-  "2026-10-30T09:14:55Z",
 );
 // 09:50 on Tuesday 3 November 2026, after the close of Rp5,000 on Monday.
 const quoteOfTuesday = stockQuote(
@@ -82,7 +77,7 @@ test("fails for a stock that did not trade on the trading day before until it tr
   expect(
     referencePrice(
       "BBCA",
-      { quote: quoteOfFriday, closes: closesBeforeMonday },
+      { quote: bbcaCloseOfFridayForTest, closes: closesBeforeMonday },
       day,
     ),
   ).toEqual({

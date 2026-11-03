@@ -58,6 +58,13 @@ export function orderLotsForTest(count: number): OrderLots {
   );
 }
 
+/** The close of BBCA of Friday 30 October 2026, which fixture-price-source.server.ts records, quoted at 16:14 WIB after the close of Rp4,940 on Thursday. It is the latest quote of BBCA until the session of Monday 2 November 2026 opens. */
+export const bbcaCloseOfFridayForTest = stockQuote(
+  "BBCA",
+  [4_980, 4_940],
+  "2026-10-30T09:14:55Z",
+);
+
 /** BBCA at 10:00 WIB on Monday 2 November 2026: its latest delayed quote, quoted at 09:50, the delay of 10 minutes, and the month-end closes of BBCA and the IHSG, whose last close of BBCA is the Rp4,980 of Friday 30 October 2026 that the quote states. */
 export const bbcaForTest: StockState & { quote: StockQuote } = {
   quote: stockQuote("BBCA", [4_980, 4_980], "2026-11-02T02:50:00Z"),

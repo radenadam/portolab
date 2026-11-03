@@ -1,7 +1,13 @@
 import { asc, eq, sql } from "drizzle-orm";
-import type { Database } from "~/database/database.server";
-import { indexDailyCloses, stockDailyCloses } from "./market-data.schema";
-import type { DailyHistory, Instrument } from "./price-source.server";
+import type { Database } from "../../database/database.server.ts";
+import { indexDailyCloses, stockDailyCloses } from "./market-data.schema.ts";
+import type {
+  DailyHistory,
+  IndexCode,
+  IndexHistory,
+  Instrument,
+  StockHistory,
+} from "./price-source.server.ts";
 
 /** Stores the closes of a history. A close of a date that is stored already replaces the stored one, because the source adjusts earlier closes after a split. */
 export function saveDailyHistory(
@@ -35,34 +41,44 @@ export function listDailyHistory(
 ): DailyHistory {
   switch (instrument.kind) {
     case "stock":
-      return {
-        kind: "stock",
-        code: instrument.code,
-        closes: database
-          .select({
-            date: stockDailyCloses.date,
-            close: stockDailyCloses.close,
-          })
-          .from(stockDailyCloses)
-          .where(eq(stockDailyCloses.code, instrument.code))
-          .orderBy(asc(stockDailyCloses.date))
-          .all(),
-      };
+      return listStockHistory(database, instrument.code);
     case "index":
-      return {
-        kind: "index",
-        code: instrument.code,
-        closes: database
-          .select({
-            date: indexDailyCloses.date,
-            close: indexDailyCloses.close,
-          })
-          .from(indexDailyCloses)
-          .where(eq(indexDailyCloses.code, instrument.code))
-          .orderBy(asc(indexDailyCloses.date))
-          .all(),
-      };
+      return listIndexHistory(database, instrument.code);
   }
+}
+
+/** Lists the stored closes of a stock, oldest first. */
+export function listStockHistory(
+  database: Database,
+  code: string,
+): StockHistory {
+  return {
+    kind: "stock",
+    code,
+    closes: database
+      .select({ date: stockDailyCloses.date, close: stockDailyCloses.close })
+      .from(stockDailyCloses)
+      .where(eq(stockDailyCloses.code, code))
+      .orderBy(asc(stockDailyCloses.date))
+      .all(),
+  };
+}
+
+/** Lists the stored levels of an index at its closes, oldest first. */
+export function listIndexHistory(
+  database: Database,
+  code: IndexCode,
+): IndexHistory {
+  return {
+    kind: "index",
+    code,
+    closes: database
+      .select({ date: indexDailyCloses.date, close: indexDailyCloses.close })
+      .from(indexDailyCloses)
+      .where(eq(indexDailyCloses.code, code))
+      .orderBy(asc(indexDailyCloses.date))
+      .all(),
+  };
 }
 
 /** The codes of the instruments that have at least one stored close. */

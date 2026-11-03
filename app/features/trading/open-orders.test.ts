@@ -50,6 +50,11 @@ function order(side: OrderSide, code: string, state: OrderState): Order {
 
 const waiting: OrderState = { kind: "waiting" };
 const resting: OrderState = { kind: "resting" };
+// 10:30, when the student cancelled an order of the day.
+const cancelled: OrderState = {
+  kind: "cancelled",
+  cancelledAt: new Date("2026-11-02T03:30:00Z"),
+};
 // 16:26 on Friday 30 October 2026, when the open orders of that day expired.
 const endOfFriday = new Date("2026-10-30T09:26:00Z");
 
@@ -71,9 +76,10 @@ test("counts the cash that open purchases set aside, and none of orders that are
         order("buy", "BBCA", waiting),
         order("buy", "TLKM", resting),
         expiredOrder("buy", "BBCA"),
+        order("buy", "ASII", cancelled),
         order("sell", "BBCA", waiting),
       ],
-      placedAt,
+      lastMinuteOfDay,
     ),
   ).toEqual({ amount: 991_486, orders: 2 });
 });
@@ -85,6 +91,7 @@ test("counts the shares of a stock that open sales set aside, and none of other 
         order("sell", "BBCA", waiting),
         order("sell", "BBCA", resting),
         expiredOrder("sell", "BBCA"),
+        order("sell", "BBCA", cancelled),
         order("sell", "TLKM", waiting),
         order("buy", "BBCA", waiting),
       ],
@@ -121,6 +128,7 @@ test("selects an order that is waiting or resting for the check also after its e
   expect(hasOpenState(order("buy", "BBCA", resting))).toBe(true);
   expect(isOpenOrder(purchase, endOfDay)).toBe(false);
   expect(hasOpenState(expiredOrder("buy", "BBCA"))).toBe(false);
+  expect(hasOpenState(order("buy", "BBCA", cancelled))).toBe(false);
 });
 
 test("finds free shares only in a holding that open sell orders do not set aside completely", () => {

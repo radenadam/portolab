@@ -4,7 +4,7 @@ import { databaseContext } from "~/database/database.server";
 import type { Database } from "~/database/database.server";
 import { readyUser } from "./account";
 import type { User } from "./account";
-import type { UserId } from "./accounts.schema";
+import type { Role, UserId } from "./accounts.schema";
 import { pathReturningTo } from "./path-returning-to";
 import {
   expiredSessionCookieHeader,
@@ -75,13 +75,14 @@ export function requireUser(
   return user;
 }
 
-/** The lecturer who is signed in and finished setting up the account. A student gets the page for an address that does not exist, so a student learns nothing about the pages of lecturers. */
-export function requireLecturer(
+/** The person who is signed in with a role and finished setting up the account, such as the lecturer on a page for lecturers. A person with the other role gets the page for an address that does not exist, so they learn nothing about the pages of the role. */
+export function requireRole(
   context: Readonly<RouterContextProvider>,
   url: URL,
+  role: Role,
 ): User {
   const user = requireUser(context, url);
-  if (user.role !== "lecturer") {
+  if (user.role !== role) {
     throw data(null, { status: 404 });
   }
   return user;

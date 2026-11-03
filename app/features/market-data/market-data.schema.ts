@@ -5,10 +5,11 @@ import {
   sqliteTable,
   text,
 } from "drizzle-orm/sqlite-core";
-import type { IndexPoints } from "~/units/index-points";
-import type { Rupiah } from "~/units/rupiah";
-import type { SplitAdjustedRupiah } from "~/units/split-adjusted-rupiah";
-import type { IndexCode } from "./price-source.server";
+// drizzle-kit and the browser tests load the schemas without the aliases of the app, so every import is a relative path.
+import type { IndexPoints } from "../../units/index-points.ts";
+import type { Rupiah } from "../../units/rupiah.ts";
+import type { SplitAdjustedRupiah } from "../../units/split-adjusted-rupiah.ts";
+import type { IndexCode } from "./price-source.server.ts";
 
 /** The latest delayed quote of each tracked stock, in whole rupiah. */
 export const stockQuotes = sqliteTable("stock_quotes", {

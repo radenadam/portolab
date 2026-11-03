@@ -23,11 +23,17 @@ export interface OrderTradingDay {
   rates: CostRates;
 }
 
+/** Why Portolab cannot check an order placed at a moment against its trading day, which is a record of that day that Portolab lacks. */
+export type TradingDayFailure = Extract<
+  OrderFailure,
+  { kind: "missingRules" | "missingCosts" }
+>;
+
 /** The trading day of an order placed at a moment, which is the day of the session of continuous trading that is open then or opens next, with the rules of IDX and the costs of that day. It fails when a record that the day needs is missing. The order form reads the largest order from its rules before it parses the lots, and placeOrder checks the order against the same day. */
 export function orderTradingDay(
   placedAt: Date,
   delayMinutes: number,
-): Result<OrderTradingDay, OrderFailure> {
+): Result<OrderTradingDay, TradingDayFailure> {
   const tradesFrom = currentOrNextSessionStart(placedAt);
   if (!tradesFrom.ok) {
     return fail({ kind: "missingRules", reason: tradesFrom.failure });

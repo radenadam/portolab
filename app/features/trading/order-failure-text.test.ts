@@ -13,7 +13,7 @@ import { oneRupiahLimit, rateLimit } from "./price-limits";
 // The failures that orderFailureText explains, which are every failure but those of the price of a limit order.
 type OtherFailure = Parameters<typeof orderFailureText>[0];
 
-// Each failure in the states that shape its sentences: one and several lots or returns, a limit as a rate and as an amount of rupiah, a band of tick sizes with and without an end, one and several open orders that set aside cash or shares, or none, an account with or without shares that it can still sell, one and several open sell orders that add cash, or none, and cash that pays for 1 lot at some price or at none. Intl puts a no-break space after the currency, which the texts write as \u00a0.
+// Each failure in the states that shape its sentences: one and several lots or returns, a limit as a rate and as an amount of rupiah, a band of tick sizes with and without an end, one and several open orders that set aside cash or shares, or none, an account with or without shares that it can still sell, one and several open sell orders that add cash, or none, cash that pays for 1 lot at some price or at none, and a sale whose shares are gone while no other open sale, one, or several set aside shares. Intl puts a no-break space after the currency, which the texts write as \u00a0.
 // The amounts of money were computed with the decimal module of Python, with a broker fee of 0.15% of the value rounded to a whole rupiah with ROUND_HALF_UP. The highest price of 1 lot is the highest whole price at which 100 shares with their fee cost at most the available cash.
 
 const noSales = { codes: [], orders: 0 };
@@ -234,6 +234,27 @@ const failures = {
     tax: rupiah(0),
     availableCash: rupiah(500_000),
   },
+  sharesGoneWithoutShares: {
+    kind: "sharesGone",
+    code: "BBCA",
+    lots: orderLotsForTest(5),
+    heldLots: lots(0),
+    setAside: { amount: lots(0), orders: 0 },
+  },
+  sharesGoneToOtherSale: {
+    kind: "sharesGone",
+    code: "BBCA",
+    lots: orderLotsForTest(1),
+    heldLots: lots(1),
+    setAside: { amount: lots(1), orders: 1 },
+  },
+  sharesGoneToOtherSales: {
+    kind: "sharesGone",
+    code: "BBCA",
+    lots: orderLotsForTest(5),
+    heldLots: lots(6),
+    setAside: { amount: lots(3), orders: 2 },
+  },
 } satisfies Record<string, OtherFailure>;
 
 type FailureName = keyof typeof failures;
@@ -261,9 +282,9 @@ const texts: Record<Locale, Record<FailureName, string>> = {
     oneReturn:
       "AADI baru memiliki 1 imbal hasil bulanan, sedangkan Portolab menghitung ukuran portofolio hanya jika setiap sahamnya memiliki 24 imbal hasil bulanan. Jika AADI tetap memiliki harga penutupan di akhir setiap bulan dan tetap termasuk LQ45, Anda dapat membelinya setelah pembaruan riwayat harga yang menyimpan harga penutupan hari bursa pertama September 2028. Portolab juga harus sudah mencatat aturan BEI dan daftar saham LQ45 untuk hari pembelian itu.",
     cashSetAside:
-      "Membeli 5 lot BBCA pada harga Rp\u00a04.980 membutuhkan Rp\u00a02.493.735, yaitu Rp\u00a02.490.000 untuk saham dan Rp\u00a03.735 untuk biaya broker, sedangkan kas Anda yang tersedia hanya Rp\u00a02.001.253. Order beli Anda yang masih terbuka menyisihkan Rp\u00a0498.747 dari kas Anda sebesar Rp\u00a02.500.000, dan mengembalikan jumlah itu ke kas Anda yang tersedia jika order tersebut berakhir tanpa tereksekusi. Order terbesar yang dapat dibayar oleh kas Anda yang tersedia pada harga Rp\u00a04.980 adalah 4 lot.",
+      "Membeli 5 lot BBCA pada harga Rp\u00a04.980 membutuhkan Rp\u00a02.493.735, yaitu Rp\u00a02.490.000 untuk saham dan Rp\u00a03.735 untuk biaya broker, sedangkan kas Anda yang tersedia hanya Rp\u00a02.001.253. Order beli Anda yang masih terbuka menyisihkan Rp\u00a0498.747 dari kas Anda sebesar Rp\u00a02.500.000, dan mengembalikan jumlah itu ke kas Anda yang tersedia jika Anda membatalkannya atau order tersebut berakhir tanpa tereksekusi. Order terbesar yang dapat dibayar oleh kas Anda yang tersedia pada harga Rp\u00a04.980 adalah 4 lot.",
     severalPurchasesSetAside:
-      "Membeli 5 lot BBCA pada harga Rp\u00a04.980 membutuhkan Rp\u00a02.493.735, yaitu Rp\u00a02.490.000 untuk saham dan Rp\u00a03.735 untuk biaya broker, sedangkan kas Anda yang tersedia hanya Rp\u00a01.502.506. Sebanyak 2 order beli Anda yang masih terbuka menyisihkan Rp\u00a0997.494 dari kas Anda sebesar Rp\u00a02.500.000, dan masing-masing mengembalikan bagiannya ke kas Anda yang tersedia jika order tersebut berakhir tanpa tereksekusi. Order terbesar yang dapat dibayar oleh kas Anda yang tersedia pada harga Rp\u00a04.980 adalah 3 lot.",
+      "Membeli 5 lot BBCA pada harga Rp\u00a04.980 membutuhkan Rp\u00a02.493.735, yaitu Rp\u00a02.490.000 untuk saham dan Rp\u00a03.735 untuk biaya broker, sedangkan kas Anda yang tersedia hanya Rp\u00a01.502.506. Sebanyak 2 order beli Anda yang masih terbuka menyisihkan Rp\u00a0997.494 dari kas Anda sebesar Rp\u00a02.500.000, dan masing-masing mengembalikan bagiannya ke kas Anda yang tersedia jika Anda membatalkannya atau order tersebut berakhir tanpa tereksekusi. Order terbesar yang dapat dibayar oleh kas Anda yang tersedia pada harga Rp\u00a04.980 adalah 3 lot.",
     noAffordableLot:
       "Membeli 1 lot BBCA pada harga Rp\u00a04.980 membutuhkan Rp\u00a0498.747, yaitu Rp\u00a0498.000 untuk saham dan Rp\u00a0747 untuk biaya broker, sedangkan kas Anda yang tersedia hanya Rp\u00a0400.000. Kas Anda yang tersedia hanya cukup untuk membayar 1 lot saham pada harga paling tinggi Rp\u00a03.994.",
     belowMinimumPrice:
@@ -271,9 +292,9 @@ const texts: Record<Locale, Record<FailureName, string>> = {
     oneAffordableLot:
       "Membeli 2 lot BBCA pada harga Rp\u00a04.980 membutuhkan Rp\u00a0997.494, yaitu Rp\u00a0996.000 untuk saham dan Rp\u00a01.494 untuk biaya broker, sedangkan kas Anda yang tersedia hanya Rp\u00a0600.000. Order terbesar yang dapat dibayar oleh kas Anda yang tersedia pada harga Rp\u00a04.980 adalah 1 lot.",
     allCashSetAside:
-      "Membeli 1 lot BBCA pada harga Rp\u00a04.980 membutuhkan Rp\u00a0498.747, yaitu Rp\u00a0498.000 untuk saham dan Rp\u00a0747 untuk biaya broker, sedangkan kas Anda yang tersedia hanya Rp\u00a01.253. Order beli Anda yang masih terbuka menyisihkan Rp\u00a0498.747 dari kas Anda sebesar Rp\u00a0500.000, dan mengembalikan jumlah itu ke kas Anda yang tersedia jika order tersebut berakhir tanpa tereksekusi. Kas Anda yang tersedia hanya cukup untuk membayar 1 lot saham pada harga paling tinggi Rp\u00a012.",
+      "Membeli 1 lot BBCA pada harga Rp\u00a04.980 membutuhkan Rp\u00a0498.747, yaitu Rp\u00a0498.000 untuk saham dan Rp\u00a0747 untuk biaya broker, sedangkan kas Anda yang tersedia hanya Rp\u00a01.253. Order beli Anda yang masih terbuka menyisihkan Rp\u00a0498.747 dari kas Anda sebesar Rp\u00a0500.000, dan mengembalikan jumlah itu ke kas Anda yang tersedia jika Anda membatalkannya atau order tersebut berakhir tanpa tereksekusi. Kas Anda yang tersedia hanya cukup untuk membayar 1 lot saham pada harga paling tinggi Rp\u00a012.",
     sharesAndCashSetAside:
-      "Membeli 1 lot BBCA pada harga Rp\u00a04.980 membutuhkan Rp\u00a0498.747, yaitu Rp\u00a0498.000 untuk saham dan Rp\u00a0747 untuk biaya broker, sedangkan kas Anda yang tersedia hanya Rp\u00a01.253. Order beli Anda yang masih terbuka menyisihkan Rp\u00a0498.747 dari kas Anda sebesar Rp\u00a0500.000, dan mengembalikan jumlah itu ke kas Anda yang tersedia jika order tersebut berakhir tanpa tereksekusi. Kas Anda yang tersedia hanya cukup untuk membayar 1 lot saham pada harga paling tinggi Rp\u00a012. Kas Anda yang tersedia masih kurang Rp\u00a0497.494 untuk order ini, dan menjual saham yang Anda pegang menambah kas itu.",
+      "Membeli 1 lot BBCA pada harga Rp\u00a04.980 membutuhkan Rp\u00a0498.747, yaitu Rp\u00a0498.000 untuk saham dan Rp\u00a0747 untuk biaya broker, sedangkan kas Anda yang tersedia hanya Rp\u00a01.253. Order beli Anda yang masih terbuka menyisihkan Rp\u00a0498.747 dari kas Anda sebesar Rp\u00a0500.000, dan mengembalikan jumlah itu ke kas Anda yang tersedia jika Anda membatalkannya atau order tersebut berakhir tanpa tereksekusi. Kas Anda yang tersedia hanya cukup untuk membayar 1 lot saham pada harga paling tinggi Rp\u00a012. Kas Anda yang tersedia masih kurang Rp\u00a0497.494 untuk order ini, dan menjual saham yang Anda pegang menambah kas itu.",
     oneSaleAddsCash:
       "Membeli 1 lot BBCA pada harga Rp\u00a04.980 membutuhkan Rp\u00a0498.747, yaitu Rp\u00a0498.000 untuk saham dan Rp\u00a0747 untuk biaya broker, sedangkan kas Anda yang tersedia hanya Rp\u00a01.253. Kas Anda yang tersedia hanya cukup untuk membayar 1 lot saham pada harga paling tinggi Rp\u00a012. Order jual BBCA Anda yang masih terbuka membawa kas saat tereksekusi.",
     freeSharesAndSale:
@@ -281,25 +302,31 @@ const texts: Record<Locale, Record<FailureName, string>> = {
     severalSalesAddCash:
       "Membeli 1 lot BBCA pada harga Rp\u00a04.980 membutuhkan Rp\u00a0498.747, yaitu Rp\u00a0498.000 untuk saham dan Rp\u00a0747 untuk biaya broker, sedangkan kas Anda yang tersedia hanya Rp\u00a01.253. Kas Anda yang tersedia hanya cukup untuk membayar 1 lot saham pada harga paling tinggi Rp\u00a012. Sebanyak 2 order jual BBCA dan TLKM Anda yang masih terbuka membawa kas saat tereksekusi.",
     oneSaleSetsAsideShares:
-      "Order ini menjual 3 lot BBCA, dan Anda memegang 5 lot. Order jual Anda yang masih terbuka menyisihkan 3 lot BBCA sampai order tersebut tereksekusi atau kedaluwarsa. Anda dapat menjual paling banyak 2 lot.",
+      "Order ini menjual 3 lot BBCA, dan Anda memegang 5 lot. Order jual Anda yang masih terbuka menyisihkan 3 lot BBCA sampai order tersebut tereksekusi, kedaluwarsa, atau Anda batalkan. Anda dapat menjual paling banyak 2 lot.",
     severalSalesSetAsideShares:
-      "Order ini menjual 3 lot BBCA, dan Anda memegang 5 lot. Sebanyak 2 order jual Anda yang masih terbuka menyisihkan 3 lot BBCA sampai order tersebut tereksekusi atau kedaluwarsa. Anda dapat menjual paling banyak 2 lot.",
+      "Order ini menjual 3 lot BBCA, dan Anda memegang 5 lot. Sebanyak 2 order jual Anda yang masih terbuka menyisihkan 3 lot BBCA sampai order tersebut tereksekusi, kedaluwarsa, atau Anda batalkan. Anda dapat menjual paling banyak 2 lot.",
     fewerShares:
       "Order ini menjual 6 lot BBCA, dan Anda memegang 5 lot. Anda dapat menjual paling banyak 5 lot.",
     noFreeShares:
-      "Order ini menjual 1 lot BBCA, dan Anda memegang 1 lot. Order jual Anda yang masih terbuka menyisihkan 1 lot BBCA sampai order tersebut tereksekusi atau kedaluwarsa. Anda dapat menjual lebih banyak saham BBCA setelah order tersebut kedaluwarsa.",
+      "Order ini menjual 1 lot BBCA, dan Anda memegang 1 lot. Order jual Anda yang masih terbuka menyisihkan 1 lot BBCA sampai order tersebut tereksekusi, kedaluwarsa, atau Anda batalkan. Anda dapat menjual lebih banyak saham BBCA setelah Anda membatalkan order tersebut atau order tersebut kedaluwarsa.",
     noFreeSharesOfSeveralSales:
-      "Order ini menjual 1 lot BBCA, dan Anda memegang 2 lot. Sebanyak 2 order jual Anda yang masih terbuka menyisihkan 2 lot BBCA sampai order tersebut tereksekusi atau kedaluwarsa. Anda dapat menjual lebih banyak saham BBCA setelah salah satu order tersebut kedaluwarsa.",
+      "Order ini menjual 1 lot BBCA, dan Anda memegang 2 lot. Sebanyak 2 order jual Anda yang masih terbuka menyisihkan 2 lot BBCA sampai order tersebut tereksekusi, kedaluwarsa, atau Anda batalkan. Anda dapat menjual lebih banyak saham BBCA setelah Anda membatalkan salah satu order tersebut atau salah satunya kedaluwarsa.",
     noShares:
       "Order ini menjual 5 lot BBCA, sedangkan Anda tidak memegang saham BBCA, dan Anda hanya dapat menjual saham yang Anda pegang. Periksa kembali sahamnya, dan apakah Anda bermaksud membelinya.",
     oneFreeLot:
-      "Order ini menjual 2 lot BBCA, dan Anda memegang 3 lot. Order jual Anda yang masih terbuka menyisihkan 2 lot BBCA sampai order tersebut tereksekusi atau kedaluwarsa. Anda dapat menjual paling banyak 1 lot.",
+      "Order ini menjual 2 lot BBCA, dan Anda memegang 3 lot. Order jual Anda yang masih terbuka menyisihkan 2 lot BBCA sampai order tersebut tereksekusi, kedaluwarsa, atau Anda batalkan. Anda dapat menjual paling banyak 1 lot.",
     noSharesForOneLot:
       "Order ini menjual 1 lot BBCA, sedangkan Anda tidak memegang saham BBCA, dan Anda hanya dapat menjual saham yang Anda pegang. Periksa kembali sahamnya, dan apakah Anda bermaksud membelinya.",
     priceRose:
       "Portolab tidak mengeksekusi order harga pasar Anda untuk membeli 20 lot BBCA, karena harganya naik dari Rp\u00a04.980 menjadi Rp\u00a05.025 selama order menunggu. Pada harga Rp\u00a05.025, order tersebut membutuhkan Rp\u00a010.065.075, yaitu Rp\u00a010.050.000 untuk saham dan Rp\u00a015.075 untuk biaya broker, sedangkan kas Anda yang tersedia hanya Rp\u00a010.000.000. Pasang order baru jika Anda masih menginginkan BBCA, dan Portolab memeriksanya pada harga dan kas saat itu.",
     priceRoseByOneLot:
       "Portolab tidak mengeksekusi order harga pasar Anda untuk membeli 1 lot BBCA, karena harganya naik dari Rp\u00a04.980 menjadi Rp\u00a05.025 selama order menunggu. Pada harga Rp\u00a05.025, order tersebut membutuhkan Rp\u00a0503.254, yaitu Rp\u00a0502.500 untuk saham dan Rp\u00a0754 untuk biaya broker, sedangkan kas Anda yang tersedia hanya Rp\u00a0500.000. Pasang order baru jika Anda masih menginginkan BBCA, dan Portolab memeriksanya pada harga dan kas saat itu.",
+    sharesGoneWithoutShares:
+      "Portolab tidak mengeksekusi order Anda untuk menjual 5 lot BBCA, karena saat sebuah harga mencapainya, Anda memegang 0 lot BBCA. Periksa saham yang Anda pegang sekarang di daftar saham Anda di atas sebelum menjual lagi.",
+    sharesGoneToOtherSale:
+      "Portolab tidak mengeksekusi order Anda untuk menjual 1 lot BBCA, karena saat sebuah harga mencapainya, Anda memegang 1 lot BBCA. Saat itu, order jual Anda yang lain yang masih terbuka menyisihkan 1 lot BBCA. Periksa saham yang Anda pegang sekarang di daftar saham Anda di atas sebelum menjual lagi.",
+    sharesGoneToOtherSales:
+      "Portolab tidak mengeksekusi order Anda untuk menjual 5 lot BBCA, karena saat sebuah harga mencapainya, Anda memegang 6 lot BBCA. Saat itu, sebanyak 2 order jual Anda yang lain yang masih terbuka menyisihkan 3 lot BBCA. Periksa saham yang Anda pegang sekarang di daftar saham Anda di atas sebelum menjual lagi.",
   },
   en: {
     missingRules:
@@ -323,9 +350,9 @@ const texts: Record<Locale, Record<FailureName, string>> = {
     oneReturn:
       "AADI has 1 monthly return, but Portolab computes the measures of a portfolio only when each of its stocks has 24 monthly returns. If AADI keeps a close at the end of every month and stays in the LQ45, you can buy it after the update of the price history that stores the close of the first trading day of September 2028. Portolab must also have recorded the rules of IDX and which stocks are in the LQ45 for the day of the purchase.",
     cashSetAside:
-      "Buying 5 lots of BBCA at IDR\u00a04,980 costs IDR\u00a02,493,735, which is IDR\u00a02,490,000 for the shares and IDR\u00a03,735 for the broker fee, but your available cash is IDR\u00a02,001,253. Your open buy order sets aside IDR\u00a0498,747 of your cash of IDR\u00a02,500,000, and it returns that amount to your available cash if it ends without filling. The largest order that your available cash pays for at IDR\u00a04,980 is 4 lots.",
+      "Buying 5 lots of BBCA at IDR\u00a04,980 costs IDR\u00a02,493,735, which is IDR\u00a02,490,000 for the shares and IDR\u00a03,735 for the broker fee, but your available cash is IDR\u00a02,001,253. Your open buy order sets aside IDR\u00a0498,747 of your cash of IDR\u00a02,500,000, and it returns that amount to your available cash if you cancel it or it ends without filling. The largest order that your available cash pays for at IDR\u00a04,980 is 4 lots.",
     severalPurchasesSetAside:
-      "Buying 5 lots of BBCA at IDR\u00a04,980 costs IDR\u00a02,493,735, which is IDR\u00a02,490,000 for the shares and IDR\u00a03,735 for the broker fee, but your available cash is IDR\u00a01,502,506. Your 2 open buy orders set aside IDR\u00a0997,494 of your cash of IDR\u00a02,500,000, and each returns its part to your available cash if it ends without filling. The largest order that your available cash pays for at IDR\u00a04,980 is 3 lots.",
+      "Buying 5 lots of BBCA at IDR\u00a04,980 costs IDR\u00a02,493,735, which is IDR\u00a02,490,000 for the shares and IDR\u00a03,735 for the broker fee, but your available cash is IDR\u00a01,502,506. Your 2 open buy orders set aside IDR\u00a0997,494 of your cash of IDR\u00a02,500,000, and each returns its part to your available cash if you cancel it or it ends without filling. The largest order that your available cash pays for at IDR\u00a04,980 is 3 lots.",
     noAffordableLot:
       "Buying 1 lot of BBCA at IDR\u00a04,980 costs IDR\u00a0498,747, which is IDR\u00a0498,000 for the shares and IDR\u00a0747 for the broker fee, but your available cash is IDR\u00a0400,000. Your available cash pays for 1 lot of a stock only at a price of at most IDR\u00a03,994.",
     belowMinimumPrice:
@@ -333,9 +360,9 @@ const texts: Record<Locale, Record<FailureName, string>> = {
     oneAffordableLot:
       "Buying 2 lots of BBCA at IDR\u00a04,980 costs IDR\u00a0997,494, which is IDR\u00a0996,000 for the shares and IDR\u00a01,494 for the broker fee, but your available cash is IDR\u00a0600,000. The largest order that your available cash pays for at IDR\u00a04,980 is 1 lot.",
     allCashSetAside:
-      "Buying 1 lot of BBCA at IDR\u00a04,980 costs IDR\u00a0498,747, which is IDR\u00a0498,000 for the shares and IDR\u00a0747 for the broker fee, but your available cash is IDR\u00a01,253. Your open buy order sets aside IDR\u00a0498,747 of your cash of IDR\u00a0500,000, and it returns that amount to your available cash if it ends without filling. Your available cash pays for 1 lot of a stock only at a price of at most IDR\u00a012.",
+      "Buying 1 lot of BBCA at IDR\u00a04,980 costs IDR\u00a0498,747, which is IDR\u00a0498,000 for the shares and IDR\u00a0747 for the broker fee, but your available cash is IDR\u00a01,253. Your open buy order sets aside IDR\u00a0498,747 of your cash of IDR\u00a0500,000, and it returns that amount to your available cash if you cancel it or it ends without filling. Your available cash pays for 1 lot of a stock only at a price of at most IDR\u00a012.",
     sharesAndCashSetAside:
-      "Buying 1 lot of BBCA at IDR\u00a04,980 costs IDR\u00a0498,747, which is IDR\u00a0498,000 for the shares and IDR\u00a0747 for the broker fee, but your available cash is IDR\u00a01,253. Your open buy order sets aside IDR\u00a0498,747 of your cash of IDR\u00a0500,000, and it returns that amount to your available cash if it ends without filling. Your available cash pays for 1 lot of a stock only at a price of at most IDR\u00a012. This order needs IDR\u00a0497,494 more than your available cash, and selling shares that you hold adds to that cash.",
+      "Buying 1 lot of BBCA at IDR\u00a04,980 costs IDR\u00a0498,747, which is IDR\u00a0498,000 for the shares and IDR\u00a0747 for the broker fee, but your available cash is IDR\u00a01,253. Your open buy order sets aside IDR\u00a0498,747 of your cash of IDR\u00a0500,000, and it returns that amount to your available cash if you cancel it or it ends without filling. Your available cash pays for 1 lot of a stock only at a price of at most IDR\u00a012. This order needs IDR\u00a0497,494 more than your available cash, and selling shares that you hold adds to that cash.",
     oneSaleAddsCash:
       "Buying 1 lot of BBCA at IDR\u00a04,980 costs IDR\u00a0498,747, which is IDR\u00a0498,000 for the shares and IDR\u00a0747 for the broker fee, but your available cash is IDR\u00a01,253. Your available cash pays for 1 lot of a stock only at a price of at most IDR\u00a012. Your open sell order of BBCA brings cash when it fills.",
     freeSharesAndSale:
@@ -343,25 +370,31 @@ const texts: Record<Locale, Record<FailureName, string>> = {
     severalSalesAddCash:
       "Buying 1 lot of BBCA at IDR\u00a04,980 costs IDR\u00a0498,747, which is IDR\u00a0498,000 for the shares and IDR\u00a0747 for the broker fee, but your available cash is IDR\u00a01,253. Your available cash pays for 1 lot of a stock only at a price of at most IDR\u00a012. Your 2 open sell orders of BBCA and TLKM bring cash when they fill.",
     oneSaleSetsAsideShares:
-      "This order sells 3 lots of BBCA, and you hold 5 lots. Your open sell order sets aside 3 lots of BBCA until it fills or expires. You can sell at most 2 lots.",
+      "This order sells 3 lots of BBCA, and you hold 5 lots. Your open sell order sets aside 3 lots of BBCA until it fills, expires, or you cancel it. You can sell at most 2 lots.",
     severalSalesSetAsideShares:
-      "This order sells 3 lots of BBCA, and you hold 5 lots. Your 2 open sell orders set aside 3 lots of BBCA until they fill or expire. You can sell at most 2 lots.",
+      "This order sells 3 lots of BBCA, and you hold 5 lots. Your 2 open sell orders set aside 3 lots of BBCA until they fill, expire, or you cancel them. You can sell at most 2 lots.",
     fewerShares:
       "This order sells 6 lots of BBCA, and you hold 5 lots. You can sell at most 5 lots.",
     noFreeShares:
-      "This order sells 1 lot of BBCA, and you hold 1 lot. Your open sell order sets aside 1 lot of BBCA until it fills or expires. You can sell more shares of BBCA once that order expires.",
+      "This order sells 1 lot of BBCA, and you hold 1 lot. Your open sell order sets aside 1 lot of BBCA until it fills, expires, or you cancel it. You can sell more shares of BBCA once you cancel that order or it expires.",
     noFreeSharesOfSeveralSales:
-      "This order sells 1 lot of BBCA, and you hold 2 lots. Your 2 open sell orders set aside 2 lots of BBCA until they fill or expire. You can sell more shares of BBCA once one of those orders expires.",
+      "This order sells 1 lot of BBCA, and you hold 2 lots. Your 2 open sell orders set aside 2 lots of BBCA until they fill, expire, or you cancel them. You can sell more shares of BBCA once you cancel one of those orders or one of them expires.",
     noShares:
       "This order sells 5 lots of BBCA, but you hold no shares of BBCA, and you can sell only shares that you hold. Check the stock, and whether you meant to buy it.",
     oneFreeLot:
-      "This order sells 2 lots of BBCA, and you hold 3 lots. Your open sell order sets aside 2 lots of BBCA until it fills or expires. You can sell at most 1 lot.",
+      "This order sells 2 lots of BBCA, and you hold 3 lots. Your open sell order sets aside 2 lots of BBCA until it fills, expires, or you cancel it. You can sell at most 1 lot.",
     noSharesForOneLot:
       "This order sells 1 lot of BBCA, but you hold no shares of BBCA, and you can sell only shares that you hold. Check the stock, and whether you meant to buy it.",
     priceRose:
       "Portolab did not fill your market order to buy 20 lots of BBCA, because the price rose from IDR\u00a04,980 to IDR\u00a05,025 while the order waited. At IDR\u00a05,025 the order costs IDR\u00a010,065,075, which is IDR\u00a010,050,000 for the shares and IDR\u00a015,075 for the broker fee, but your available cash was IDR\u00a010,000,000. Place a new order if you still want BBCA, and Portolab checks it at the price and with the cash of that moment.",
     priceRoseByOneLot:
       "Portolab did not fill your market order to buy 1 lot of BBCA, because the price rose from IDR\u00a04,980 to IDR\u00a05,025 while the order waited. At IDR\u00a05,025 the order costs IDR\u00a0503,254, which is IDR\u00a0502,500 for the shares and IDR\u00a0754 for the broker fee, but your available cash was IDR\u00a0500,000. Place a new order if you still want BBCA, and Portolab checks it at the price and with the cash of that moment.",
+    sharesGoneWithoutShares:
+      "Portolab did not fill your order to sell 5 lots of BBCA, because when a price reached it, you held 0 lots of BBCA. Check the shares that you hold now in your holdings above before you sell again.",
+    sharesGoneToOtherSale:
+      "Portolab did not fill your order to sell 1 lot of BBCA, because when a price reached it, you held 1 lot of BBCA. Your other open sell order set aside 1 lot of BBCA then. Check the shares that you hold now in your holdings above before you sell again.",
+    sharesGoneToOtherSales:
+      "Portolab did not fill your order to sell 5 lots of BBCA, because when a price reached it, you held 6 lots of BBCA. Your 2 other open sell orders set aside 3 lots of BBCA then. Check the shares that you hold now in your holdings above before you sell again.",
   },
 };
 

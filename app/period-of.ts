@@ -1,6 +1,6 @@
-import { fail, succeed } from "~/result";
-import type { Result } from "~/result";
-import { listOfWords } from "~/sentences";
+import { fail, succeed } from "./result.ts";
+import type { Result } from "./result.ts";
+import { listOfWords } from "./sentences.ts";
 
 /** A span of calendar dates in WIB in which some data applies, such as the year of a trading calendar or the rules of IDX. */
 export interface DatePeriod {

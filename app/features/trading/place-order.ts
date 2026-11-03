@@ -28,7 +28,8 @@ import {
   cashSetAside,
   holdsFreeShares,
   openSales,
-  sharesSetAside,
+  sharesInLots,
+  sharesOfStock,
 } from "./open-orders";
 import { purchaseCost } from "./trading-costs";
 
@@ -141,23 +142,15 @@ function checkShares(
   account: AccountAtMoment,
   rules: IdxRules,
 ): Result<undefined, OrderFailure> {
-  const held =
-    account.holdings.find((holding) => holding.code === order.code)?.shares ??
-    0;
-  const setAside = sharesSetAside(account.orders, order.code, account.moment);
-  if (order.shares <= held - setAside.amount) {
+  const stock = sharesOfStock(account, order.code, account.moment);
+  if (order.shares <= stock.held - stock.setAside.amount) {
     return succeed(undefined);
   }
-  const { lotShares } = rules;
   return fail({
     kind: "notEnoughShares",
     code: order.code,
     lots: order.lots,
-    heldLots: lots(Math.floor(held / lotShares)),
-    setAside: {
-      amount: lots(Math.floor(setAside.amount / lotShares)),
-      orders: setAside.orders,
-    },
+    ...sharesInLots(stock, rules.lotShares),
   });
 }
 

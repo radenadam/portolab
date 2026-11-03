@@ -1,7 +1,7 @@
-import type { Result } from "~/result";
-import type { IndexPoints } from "~/units/index-points";
-import type { Rupiah } from "~/units/rupiah";
-import type { SplitAdjustedRupiah } from "~/units/split-adjusted-rupiah";
+import type { Result } from "../../result.ts";
+import type { IndexPoints } from "../../units/index-points.ts";
+import type { Rupiah } from "../../units/rupiah.ts";
+import type { SplitAdjustedRupiah } from "../../units/split-adjusted-rupiah.ts";
 
 /** The indices that Portolab tracks, by the code that IDX uses. */
 export type IndexCode = "IHSG";

@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+import { formDataForTest } from "~/form-data-for-test";
 import { languageNames } from "~/language-names";
 import { locales } from "~/paraglide/runtime.js";
 import type { Locale } from "~/paraglide/runtime.js";
@@ -16,12 +17,11 @@ function passwordForm(
   newPassword: string,
   repeatedPassword: string | null,
 ): FormData {
-  const form = new FormData();
-  form.set("newPassword", newPassword);
-  if (repeatedPassword !== null) {
-    form.set("repeatedPassword", repeatedPassword);
-  }
-  return form;
+  return formDataForTest(
+    repeatedPassword === null
+      ? { newPassword }
+      : { newPassword, repeatedPassword },
+  );
 }
 
 const texts: Record<
