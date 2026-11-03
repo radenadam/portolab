@@ -81,14 +81,10 @@ export default function ClassPage({
       return (
         <>
           <h1>{loaderData.name}</h1>
-          <p>
-            {m.classes_share_notice({
-              cash: formatRupiah(loaderData.startingCash),
-            })}
-          </p>
           <JoinDetails
             joinCode={loaderData.joinCode}
             joinAddresses={loaderData.joinAddresses}
+            startingCash={loaderData.startingCash}
           />
           <h2>{m.classes_students_title()}</h2>
           <Students classId={loaderData.id} students={loaderData.students} />

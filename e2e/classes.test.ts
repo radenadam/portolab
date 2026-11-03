@@ -112,7 +112,7 @@ const texts: Record<
     severalNetworksNotice:
       "Komputer ini terhubung ke beberapa jaringan, sehingga halaman ini menampilkan alamat di setiap jaringan, di bawah nama koneksinya. Berikan kepada mahasiswa Anda alamat di jaringan yang dipakai ponsel mereka.",
     noNetworkNotice:
-      'Ponsel belum dapat membuka Portolab, karena Anda membukanya di "localhost", yang hanya dapat dibuka oleh komputer ini, dan komputer ini tidak terhubung ke jaringan mana pun. Hubungkan komputer ini ke jaringan Wi-Fi kelas, lalu muat ulang halaman ini.',
+      'Ponsel belum dapat membuka Portolab, karena Anda membukanya di "localhost", yang hanya dapat dibuka oleh komputer ini, dan komputer ini tidak terhubung ke jaringan mana pun. Hubungkan komputer ini ke jaringan Wi-Fi kelas, lalu muat ulang halaman ini untuk melihat alamat yang dipakai mahasiswa Anda untuk bergabung. Setiap mahasiswa yang bergabung mulai dengan uang virtual sebesar Rp 1.000.000.000.000.',
     studentsTitle: "Mahasiswa",
     noStudents: "Belum ada mahasiswa yang bergabung.",
     studentNotice: ['Masuk sebagai "', '". Bergabung pada ', " WIB."],
@@ -189,7 +189,7 @@ const texts: Record<
     severalNetworksNotice:
       "This computer is on several networks, so the page shows the address on each, under the name of its connection. Give your students the address on the network that their phones use.",
     noNetworkNotice:
-      'Phones cannot open Portolab yet, because you opened it at "localhost", which only this computer can open, and this computer is on no network. Connect it to the Wi-Fi network of the class, then reload this page.',
+      'Phones cannot open Portolab yet, because you opened it at "localhost", which only this computer can open, and this computer is on no network. Connect it to the Wi-Fi network of the class, then reload this page for the address that your students join with. Each student who joins starts with IDR 1,000,000,000,000 in virtual cash.',
     studentsTitle: "Students",
     noStudents: "No student has joined yet.",
     studentNotice: ['Signs in as "', '". Joined on ', " WIB."],
@@ -310,12 +310,15 @@ async function expectAddressesForPhones(
         `The test opened ${page.url()}, which other devices can open as well, so it cannot check the addresses on the local network.`,
       );
     case "noNetwork":
-      await expect(page.locator("main dd")).toHaveText([
-        testClass.joinCode,
-        text.noNetworkNotice,
-      ]);
+      await expect(page.getByText(text.noNetworkNotice)).toBeVisible();
+      await expect(page.getByText(text.shareNotice)).toHaveCount(0);
+      await expect(page.locator("main dd")).toHaveText([testClass.joinCode]);
       return;
     case "onLocalNetwork": {
+      await expect(page.getByText(text.shareNotice)).toBeVisible();
+      await expect(
+        page.getByText(text.addressLabel, { exact: true }),
+      ).toBeVisible();
       await expect(page.getByText(text.localNetworkNotice)).toBeVisible();
       await expect(page.getByText(text.severalNetworksNotice)).toHaveCount(
         forOthers.addresses.length > 1 ? 1 : 0,
@@ -394,12 +397,8 @@ for (const locale of locales) {
     await expect(
       page.getByRole("heading", { level: 1, name: className }),
     ).toBeVisible();
-    await expect(page.getByText(text.shareNotice)).toBeVisible();
     await expect(
       page.getByText(text.codeFieldLabel, { exact: true }),
-    ).toBeVisible();
-    await expect(
-      page.getByText(text.addressLabel, { exact: true }),
     ).toBeVisible();
     await expect(page.locator("main dd").nth(0)).toHaveText(
       /^[a-km-np-z2-9]{4}-[a-km-np-z2-9]{4}$/,
@@ -423,6 +422,10 @@ for (const locale of locales) {
     const testClass = await createTestClass(lecturer, className);
     // A public server keeps the address that the lecturer opened, which the phone of a student opens as well.
     const joinAddress = new URL(testClass.joinPath, publicServerUrl).href;
+    await expect(lecturer.getByText(text.shareNotice)).toBeVisible();
+    await expect(
+      lecturer.getByText(text.addressLabel, { exact: true }),
+    ).toBeVisible();
     await expect(lecturer.locator("main dd")).toHaveText([
       testClass.joinCode,
       joinAddress,
