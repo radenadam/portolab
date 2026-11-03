@@ -23,7 +23,7 @@ import { FormFailure, SubmitButton } from "~/form";
 import formStyles from "~/form.module.css";
 import { formatRupiah } from "~/formatting";
 import { isLoadedByAnotherSite } from "~/is-loaded-by-another-site.server";
-import { pageTitle } from "~/page-title";
+import { PageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
 import type { Route } from "./+types/join-class-page";
 import { classPath } from "./class-path";
@@ -43,23 +43,6 @@ type JoinState =
   | { kind: "class"; classToJoin: ClassForStudents; isSignedIn: boolean }
   | { kind: "codeForm"; code: string; failure: CodeFailure | undefined }
   | { kind: "lecturer" };
-
-export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
-  switch (loaderData.kind) {
-    case "class":
-      return [
-        {
-          title: pageTitle(
-            m.classes_join_class_title({ class: loaderData.classToJoin.name }),
-          ),
-        },
-      ];
-    case "codeForm":
-      return [{ title: pageTitle(m.classes_join_title()) }];
-    case "lecturer":
-      return [{ title: pageTitle(m.classes_lecturer_join_title()) }];
-  }
-}
 
 export function loader({
   context,
@@ -128,9 +111,13 @@ export async function action({ context, request, params }: Route.ActionArgs) {
   const user = findUser(context, request);
   const found = findClassWithCode(context, params.code, now);
   if (!found.ok) {
-    // The code opened the class when the page loaded, so the class went away or the network reached its limit since, and the page shows why above its form.
+    // The code opened the class when the page loaded, so the class went away or the network reached its limit since. React Router loads no page again after a refused form, so the answer carries the form for a code, which shows each reason in its place.
     return data(
-      { fields: undefined, failure: found.failure.text },
+      {
+        fields: undefined,
+        failure: undefined,
+        codeForm: { code: params.code, failure: found.failure },
+      },
       { status: found.failure.status },
     );
   }
@@ -138,7 +125,10 @@ export async function action({ context, request, params }: Route.ActionArgs) {
   switch (user?.role) {
     case "lecturer":
       // The page of a lecturer has no form for joining, so only a forged form comes here, and the page that the loader shows explains why a lecturer cannot join.
-      return data({ fields: undefined, failure: undefined }, { status: 403 });
+      return data(
+        { fields: undefined, failure: undefined, codeForm: undefined },
+        { status: 403 },
+      );
     case "student":
       return joinAndOpenClass(
         context.get(databaseContext),
@@ -164,7 +154,7 @@ async function createStudentInClass(
   const newStudent = readNewStudent(form);
   if (!newStudent.ok) {
     return data(
-      { fields: newStudent.failure, failure: undefined },
+      { fields: newStudent.failure, failure: undefined, codeForm: undefined },
       { status: 400 },
     );
   }
@@ -178,7 +168,11 @@ async function createStudentInClass(
     switch (created.failure.kind) {
       case "blocked":
         return data(
-          { fields: typedFields, failure: created.failure.text },
+          {
+            fields: typedFields,
+            failure: created.failure.text,
+            codeForm: undefined,
+          },
           { status: 429 },
         );
       case "usernameTaken":
@@ -192,6 +186,7 @@ async function createStudentInClass(
               }),
             },
             failure: undefined,
+            codeForm: undefined,
           },
           { status: 400 },
         );
@@ -213,24 +208,40 @@ export default function JoinClassPage({
   loaderData,
   actionData,
 }: Route.ComponentProps): ReactNode {
-  switch (loaderData.kind) {
+  const codeForm = actionData?.codeForm;
+  const state: JoinState =
+    codeForm === undefined
+      ? loaderData
+      : { kind: "codeForm", code: codeForm.code, failure: codeForm.failure };
+  switch (state.kind) {
     case "lecturer":
-      return <LecturerCannotJoin />;
+      return (
+        <>
+          <PageTitle text={m.classes_lecturer_join_title()} />
+          <LecturerCannotJoin />
+        </>
+      );
     case "codeForm":
       return (
         <>
+          <PageTitle text={m.classes_join_title()} />
           <h1>{m.classes_join_title()}</h1>
-          <CodeForm code={loaderData.code} failure={loaderData.failure} />
+          <CodeForm code={state.code} failure={state.failure} />
         </>
       );
     case "class":
       return (
-        <ClassToJoin
-          classToJoin={loaderData.classToJoin}
-          isSignedIn={loaderData.isSignedIn}
-          fields={actionData?.fields}
-          failure={actionData?.failure}
-        />
+        <>
+          <PageTitle
+            text={m.classes_join_class_title({ class: state.classToJoin.name })}
+          />
+          <ClassToJoin
+            classToJoin={state.classToJoin}
+            isSignedIn={state.isSignedIn}
+            fields={actionData?.fields}
+            failure={actionData?.failure}
+          />
+        </>
       );
   }
 }

@@ -239,6 +239,21 @@ async function enterCode(
     .click();
 }
 
+/** Checks that a page shows the form for a code with a code that opens no class, in its field and in the error at that field. */
+async function expectUnknownCodeForm(
+  page: Page,
+  locale: Locale,
+  code: string,
+): Promise<void> {
+  const text = texts[locale];
+  await expect(page).toHaveTitle(`${text.joinTitle} | Portolab`);
+  await expect(
+    page.getByText(`${text.unknownCode[0]}${code}${text.unknownCode[1]}`),
+  ).toBeVisible();
+  await expect(page.getByLabel(text.codeFieldLabel)).toHaveValue(code);
+  await expectAccessibleScreen(page);
+}
+
 for (const locale of locales) {
   const text = texts[locale];
   const language = languageNames[locale];
@@ -352,6 +367,26 @@ for (const locale of locales) {
     ).toBeVisible();
     await expectAccessibleScreen(student);
 
+    // A class can go away between the load of its page and the form, such as when the person who runs the server deletes it. The test sends the form to a code of no class to stand for that.
+    const joinPath = new URL(testClass.joinAddress).pathname;
+    const isFormToJoin = (url: URL): boolean =>
+      url.pathname.startsWith(joinPath);
+    await student.route(isFormToJoin, async (route) => {
+      if (route.request().method() !== "POST") {
+        await route.fallback();
+        return;
+      }
+      await route.continue({
+        url: route.request().url().replace(joinPath, "/join/aaaa-aaaa"),
+      });
+    });
+    await student
+      .getByRole("main")
+      .getByRole("button", { name: text.createAccountButton })
+      .click();
+    await expectUnknownCodeForm(student, locale, "aaaa-aaaa");
+    await student.unroute(isFormToJoin);
+
     await joinAsNewStudent(student, testClass.joinAddress, studentName);
     await expect(student).toHaveTitle(`${className} | Portolab`);
     await expect(student.getByText(text.taughtBy)).toBeVisible();
@@ -419,16 +454,7 @@ for (const locale of locales) {
 
     const response = await student.goto("/join/aaaa-aaaa");
     expect(response?.status()).toBe(400);
-    await expect(student).toHaveTitle(`${text.joinTitle} | Portolab`);
-    await expect(
-      student.getByText(
-        `${text.unknownCode[0]}aaaa-aaaa${text.unknownCode[1]}`,
-      ),
-    ).toBeVisible();
-    await expect(student.getByLabel(text.codeFieldLabel)).toHaveValue(
-      "aaaa-aaaa",
-    );
-    await expectAccessibleScreen(student);
+    await expectUnknownCodeForm(student, locale, "aaaa-aaaa");
     await enterCode(student, locale, first.joinCode);
     await expect(student).toHaveURL(first.path);
     await student.context().close();

@@ -2,14 +2,14 @@ import type { ReactNode } from "react";
 import { data, Form, Link, redirect } from "react-router";
 import type { RouterContextProvider } from "react-router";
 import { databaseContext } from "~/database/database.server";
-import type { UserId } from "~/features/accounts/accounts.schema";
+import type { Role, UserId } from "~/features/accounts/accounts.schema";
 import { requireUser } from "~/features/accounts/current-session.server";
 import { ErrorPage } from "~/error-page";
 import { SubmitButton, TextField } from "~/form";
 import formStyles from "~/form.module.css";
 import { parseShortText, typedText } from "~/form-text";
 import { formatNumber, formatRupiah } from "~/formatting";
-import { pageTitle, PageTitle } from "~/page-title";
+import { PageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
 import { failureOf } from "~/result";
 import type { Route } from "./+types/classes-page";
@@ -21,13 +21,10 @@ import {
 import type { JoinedClass, TaughtClass } from "./class-store.server";
 import { classPath } from "./class-path";
 import { ClassList } from "./class-list";
+import type { ListedClass } from "./class-list";
 import styles from "./classes.module.css";
 import { parseStartingCash } from "./parse-starting-cash";
 import { classNameMaximumLength, defaultStartingCash } from "./class-rules";
-
-export function meta(): Route.MetaDescriptors {
-  return [{ title: pageTitle(m.classes_page_title()) }];
-}
 
 export function loader({
   context,
@@ -113,55 +110,72 @@ export default function ClassesPage({
   loaderData,
   actionData,
 }: Route.ComponentProps): ReactNode {
+  // Only the forged form of a student gets a failure above the form, so the page explains the refusal instead of the list.
+  if (actionData?.failure !== undefined) {
+    return (
+      <>
+        <PageTitle text={m.classes_lecturer_only_title()} />
+        <ErrorPage
+          title={m.classes_lecturer_only_title()}
+          body={actionData.failure}
+        />
+      </>
+    );
+  }
+  return (
+    <>
+      <PageTitle text={m.classes_page_title()} />
+      <h1>{m.classes_page_title()}</h1>
+      <ClassList role={loaderData.role} classes={listedClasses(loaderData)} />
+      <NextStep role={loaderData.role} fields={actionData?.fields} />
+    </>
+  );
+}
+
+/** The classes of the page, each with the details that its reader needs: the students and the starting cash for a lecturer, and the lecturer for a student. */
+function listedClasses(
+  loaderData: Route.ComponentProps["loaderData"],
+): ListedClass[] {
   switch (loaderData.role) {
+    case "lecturer":
+      return loaderData.classes.map((taught) => ({
+        id: taught.id,
+        name: taught.name,
+        details: m.classes_taught_class_notice({
+          count: formatNumber(taught.studentCount),
+          cash: formatRupiah(taught.startingCash),
+        }),
+      }));
+    case "student":
+      return loaderData.classes.map((joined) => ({
+        id: joined.id,
+        name: joined.name,
+        details: m.classes_taught_by_notice({ name: joined.lecturerName }),
+      }));
+  }
+}
+
+/** What a person does next on the page: a lecturer creates a class, and a student joins one. */
+function NextStep({
+  role,
+  fields,
+}: {
+  role: Role;
+  fields: NewClassFailures | undefined;
+}): ReactNode {
+  switch (role) {
     case "lecturer":
       return (
         <>
-          <h1>{m.classes_page_title()}</h1>
-          <ClassList
-            role={loaderData.role}
-            classes={loaderData.classes.map((taught) => ({
-              id: taught.id,
-              name: taught.name,
-              details: m.classes_taught_class_notice({
-                count: formatNumber(taught.studentCount),
-                cash: formatRupiah(taught.startingCash),
-              }),
-            }))}
-          />
           <h2>{m.classes_create_title()}</h2>
-          <NewClassForm fields={actionData?.fields} />
+          <NewClassForm fields={fields} />
         </>
       );
     case "student":
-      if (actionData?.failure !== undefined) {
-        return (
-          <>
-            <PageTitle text={m.classes_lecturer_only_title()} />
-            <ErrorPage
-              title={m.classes_lecturer_only_title()}
-              body={actionData.failure}
-            />
-          </>
-        );
-      }
       return (
-        <>
-          <h1>{m.classes_page_title()}</h1>
-          <ClassList
-            role={loaderData.role}
-            classes={loaderData.classes.map((joined) => ({
-              id: joined.id,
-              name: joined.name,
-              details: m.classes_taught_by_notice({
-                name: joined.lecturerName,
-              }),
-            }))}
-          />
-          <Link to="/join" className={styles["link"]}>
-            {m.classes_join_link()}
-          </Link>
-        </>
+        <Link to="/join" className={styles["link"]}>
+          {m.classes_join_link()}
+        </Link>
       );
   }
 }
