@@ -50,6 +50,17 @@ export function readJsonFile<Value>(
   return text.ok ? parseJsonWith(text.value, path, parse) : text;
 }
 
+/** Parses JSON text that a job may leave empty, such as the output of a job that did not finish, so empty text gives undefined, and the caller judges whether it needed the value. */
+export function parseOptionalJsonWith<Value>(
+  value: unknown,
+  source: string,
+  parse: Parser<Value>,
+): Result<Value | undefined, string> {
+  return value === undefined || value === ""
+    ? succeed(undefined)
+    : parseJsonWith(value, source, parse);
+}
+
 interface ListField<Item> {
   field: string;
   /** What one item is called in a failure text, such as "finding". */
@@ -159,6 +170,22 @@ export function parseStringAt(
     : invalidField(source, {
         field: keys.join("."),
         expected: "a string",
+        value: found,
+      });
+}
+
+/** Reads text that must say something at a path of keys, such as the evidence of a verdict, because an empty text there would pass for work that was not done. */
+export function parseTextAt(
+  value: unknown,
+  source: string,
+  keys: readonly string[],
+): Result<string, string> {
+  const found = valueAt(value, keys);
+  return typeof found === "string" && found.trim() !== ""
+    ? succeed(found)
+    : invalidField(source, {
+        field: keys.join("."),
+        expected: "text that is not empty",
         value: found,
       });
 }

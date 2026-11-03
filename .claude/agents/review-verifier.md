@@ -13,8 +13,8 @@ For each finding, check four things:
 - The listed siblings share the problem. Search for siblings that the lens missed, and add them.
 - The scope is right, as the section "Review panel" of `AGENTS.md` defines it. Give the right scope in the verdict.
 
-A finding from an earlier round was confirmed at an earlier head. Refute it when the head fixes it, and give the fix as the evidence.
+A finding from an earlier round was confirmed at an earlier head. Refute it only when you verified that the head fixes it, and give the fix as the evidence. When you cannot settle whether the head fixes it, confirm it, because a refuted earlier finding counts as fixed.
 
-Give each finding one verdict. A finding is **confirmed** when you verified it, with the evidence you checked. It is **refuted** when it does not hold, with the reason. When you cannot settle a finding, refute it and say what would settle it.
+Give each finding one verdict. A finding is **confirmed** when you verified it, with the evidence you checked. It is **refuted** when it does not hold, with the reason. When you cannot settle a new finding, refute it and say what would settle it.
 
 Lenses overlap, so two findings can describe the same defect. Confirm the one with the strongest basis, merge the siblings of the others into it, and give each of the others the verdict **duplicate** of the confirmed one.

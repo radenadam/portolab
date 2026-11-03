@@ -4,12 +4,7 @@ import { listOfWords } from "../app/sentences.ts";
 import { successValueForTest } from "../app/success-value-for-test.ts";
 import { parseJsonObject, parseStringsAt, readJsonFile } from "./json.ts";
 import { readTextFile } from "./read-text-file.ts";
-import {
-  numberFindings,
-  parseFindingsToVerify,
-  parseReviewerReport,
-  parseVerdicts,
-} from "./review-findings.ts";
+import { parseReviewerReport, parseVerdicts } from "./review-findings.ts";
 import { lenses } from "./review-lenses.ts";
 
 // The workflow gives these schemas to the reviewer and the verifier, which answer in their shape.
@@ -40,21 +35,9 @@ const report = {
   candidateStandards: [
     { standard: "The standard.", incident: "The incident." },
   ],
+  readFiles: ["app/root.tsx", "README.md"],
+  lensChecks: [{ lens: "craft", checked: "The names and the comments." }],
 };
-
-test("numbers the findings of a round after the round, and reads them back for the verifier", () => {
-  const parsed = parseReviewerReport(report, "REVIEWER_OUTPUT");
-  expect(parsed.ok).toBe(true);
-  const findings = parsed.ok ? numberFindings(3, parsed.value.findings) : [];
-  expect(findings.map(({ id }) => id)).toEqual(["3.1", "3.2"]);
-  const toVerify = { findings, candidateStandards: report.candidateStandards };
-  expect(
-    parseFindingsToVerify(
-      JSON.parse(JSON.stringify(toVerify)),
-      "review/findings.json",
-    ),
-  ).toEqual({ ok: true, value: toVerify });
-});
 
 test("names the finding and the field when a lens is not one of the panel", () => {
   expect(
@@ -72,19 +55,6 @@ test("names the finding and the field when a lens is not one of the panel", () =
   });
 });
 
-test("rejects a finding for the verifier without its id", () => {
-  expect(
-    parseFindingsToVerify(
-      { findings: [report.findings[0]], candidateStandards: [] },
-      "review/findings.json",
-    ),
-  ).toEqual({
-    ok: false,
-    failure:
-      "review/findings.json: finding 1 must have a string at id, but id is missing.",
-  });
-});
-
 const finding = {
   lens: "craft",
   location: "app/root.tsx:12",
@@ -95,6 +65,7 @@ const finding = {
   scope: "change",
 };
 const candidate = { standard: "The standard.", incident: "The incident." };
+const coverage = { readFiles: [], lensChecks: [] };
 const verdict = {
   id: "1.1",
   status: "confirmed",
@@ -134,20 +105,21 @@ test("names exactly the lenses of .claude/agents in the code and in the reviewer
     .map((file) => file.replace(/^review-/, "").replace(/\.md$/, ""))
     .sort();
   expect([...lenses].sort()).toEqual(lensFiles);
-  expect(
-    schemaStrings(findingsSchemaPath, [
-      ...findingKeys,
-      "properties",
-      "lens",
-      "enum",
-    ]).sort(),
-  ).toEqual(lensFiles);
+  for (const keys of [
+    [...findingKeys, "properties", "lens", "enum"],
+    ["properties", "lensChecks", "items", "properties", "lens", "enum"],
+  ]) {
+    expect(
+      schemaStrings(findingsSchemaPath, keys).sort(),
+      keys.join("."),
+    ).toEqual(lensFiles);
+  }
 });
 
 test("rejects a reviewer's answer that lacks any field of a finding that its schema requires", () => {
   expect(
     parseReviewerReport(
-      { findings: [finding], candidateStandards: [] },
+      { ...coverage, findings: [finding], candidateStandards: [] },
       "REVIEWER_OUTPUT",
     ).ok,
   ).toBe(true);
@@ -157,7 +129,38 @@ test("rejects a reviewer's answer that lacks any field of a finding that its sch
   ])) {
     expect(
       parseReviewerReport(
-        { findings: [withoutField(finding, field)], candidateStandards: [] },
+        {
+          ...coverage,
+          findings: [withoutField(finding, field)],
+          candidateStandards: [],
+        },
+        "REVIEWER_OUTPUT",
+      ).ok,
+      field,
+    ).toBe(false);
+  }
+});
+
+test("rejects a reviewer's answer that lacks any field that its schema requires", () => {
+  const answer = { ...report };
+  for (const field of schemaStrings(findingsSchemaPath, ["required"])) {
+    expect(
+      parseReviewerReport(withoutField(answer, field), "REVIEWER_OUTPUT").ok,
+      field,
+    ).toBe(false);
+  }
+  for (const field of schemaStrings(findingsSchemaPath, [
+    "properties",
+    "lensChecks",
+    "items",
+    "required",
+  ])) {
+    expect(
+      parseReviewerReport(
+        {
+          ...answer,
+          lensChecks: [withoutField(answer.lensChecks[0] ?? {}, field)],
+        },
         "REVIEWER_OUTPUT",
       ).ok,
       field,
@@ -168,7 +171,7 @@ test("rejects a reviewer's answer that lacks any field of a finding that its sch
 test("rejects a reviewer's answer that lacks any field of a candidate standard that its schema requires", () => {
   expect(
     parseReviewerReport(
-      { findings: [], candidateStandards: [candidate] },
+      { ...coverage, findings: [], candidateStandards: [candidate] },
       "REVIEWER_OUTPUT",
     ).ok,
   ).toBe(true);
@@ -180,7 +183,11 @@ test("rejects a reviewer's answer that lacks any field of a candidate standard t
   ])) {
     expect(
       parseReviewerReport(
-        { findings: [], candidateStandards: [withoutField(candidate, field)] },
+        {
+          ...coverage,
+          findings: [],
+          candidateStandards: [withoutField(candidate, field)],
+        },
         "REVIEWER_OUTPUT",
       ).ok,
       field,
@@ -249,7 +256,11 @@ test("accepts exactly the scopes that the reviewer's schema allows", () => {
   for (const scope of scopes) {
     expect(
       parseReviewerReport(
-        { findings: [{ ...finding, scope }], candidateStandards: [] },
+        {
+          ...coverage,
+          findings: [{ ...finding, scope }],
+          candidateStandards: [],
+        },
         "REVIEWER_OUTPUT",
       ).ok,
       scope,
@@ -257,7 +268,11 @@ test("accepts exactly the scopes that the reviewer's schema allows", () => {
   }
   expect(
     parseReviewerReport(
-      { findings: [{ ...finding, scope: "nearby" }], candidateStandards: [] },
+      {
+        ...coverage,
+        findings: [{ ...finding, scope: "nearby" }],
+        candidateStandards: [],
+      },
       "REVIEWER_OUTPUT",
     ),
   ).toEqual({
@@ -290,4 +305,27 @@ test("reads every schema of the review as an object, and the workflow passes eac
       true,
     );
   }
+});
+
+test("rejects a verdict without evidence and a lens check that says nothing, because empty text passes for work that was not done", () => {
+  expect(
+    parseVerdicts(
+      { verdicts: [{ ...verdict, evidence: "" }] },
+      "VERIFIER_OUTPUT",
+    ),
+  ).toEqual({
+    ok: false,
+    failure:
+      "VERIFIER_OUTPUT: verdict 1 must have text that is not empty at evidence, but evidence is empty.",
+  });
+  expect(
+    parseReviewerReport(
+      { ...report, lensChecks: [{ lens: "craft", checked: " " }] },
+      "REVIEWER_OUTPUT",
+    ),
+  ).toEqual({
+    ok: false,
+    failure:
+      'REVIEWER_OUTPUT: lens check 1 must have text that is not empty at checked, but checked is " ".',
+  });
 });

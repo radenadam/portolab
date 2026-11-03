@@ -7,8 +7,8 @@ import {
   parseListField,
   parseStringAt,
   parseStringsAt,
+  parseTextAt,
 } from "./json.ts";
-import type { Parser } from "./json.ts";
 import { lenses } from "./review-lenses.ts";
 import type { Lens } from "./review-lenses.ts";
 
@@ -38,14 +38,27 @@ interface CandidateStandard {
   incident: string;
 }
 
+/** What the reviewer says it checked through one lens. */
+interface LensCheck {
+  lens: Lens;
+  checked: string;
+}
+
+/** What the reviewer says it did, so that an answer without findings can be told apart from a review that never happened. */
+interface ReviewerCoverage {
+  /** The files under review whose diff the reviewer read. */
+  readFiles: string[];
+  lensChecks: LensCheck[];
+}
+
 /** The answer of the reviewer, in the shape that `.github/review/findings.schema.json` defines. */
-export interface ReviewerReport {
+export interface ReviewerReport extends ReviewerCoverage {
   findings: FindingContent[];
   candidateStandards: CandidateStandard[];
 }
 
-/** What the verifier checks: the findings of this round and the open findings of earlier rounds, with the candidate standards of this round. */
-export interface FindingsToVerify {
+/** What a round reported: the findings that the verifier checks, which are those of this round and the open findings of earlier rounds, with the candidate standards and the coverage of this round. A round without a reviewer has none of its own. */
+export interface RoundReport extends ReviewerCoverage {
   findings: Finding[];
   candidateStandards: CandidateStandard[];
 }
@@ -63,21 +76,6 @@ export interface Verdict {
   /** The id of the confirmed finding that a duplicate repeats, or an empty string. */
   duplicateOf: string;
   evidence: string;
-}
-
-export function parseReviewerReport(
-  value: unknown,
-  source: string,
-): Result<ReviewerReport, string> {
-  return parseFindingsAndCandidates(value, source, parseFindingContent);
-}
-
-/** Reads the file of findings that the save step writes for the verifier. */
-export function parseFindingsToVerify(
-  value: unknown,
-  source: string,
-): Result<FindingsToVerify, string> {
-  return parseFindingsAndCandidates(value, source, parseFinding);
 }
 
 /** Gives each finding of a round its id, such as 2.1, so that the review can check that the verifier answered every finding exactly once, and a later round can name it. */
@@ -136,7 +134,7 @@ function parseVerdict(value: unknown, source: string): Result<Verdict, string> {
   if (!duplicateOf.ok) {
     return duplicateOf;
   }
-  const evidence = parseStringAt(value, source, ["evidence"]);
+  const evidence = parseTextAt(value, source, ["evidence"]);
   if (!evidence.ok) {
     return evidence;
   }
@@ -163,22 +161,17 @@ export function parseFinding(
   return content.ok ? succeed({ ...content.value, id: id.value }) : content;
 }
 
-/** Reads the findings and the candidate standards that both the reviewer's answer and the file for the verifier hold. Only the shape of one finding differs between them. */
-function parseFindingsAndCandidates<Item>(
+export function parseReviewerReport(
   value: unknown,
   source: string,
-  parseItem: Parser<Item>,
-): Result<
-  { findings: Item[]; candidateStandards: CandidateStandard[] },
-  string
-> {
+): Result<ReviewerReport, string> {
   if (!isRecord(value)) {
     return notAnObject(source, value);
   }
   const findings = parseListField(value, source, {
     field: "findings",
     itemName: "finding",
-    parseItem,
+    parseItem: parseFindingContent,
   });
   if (!findings.ok) {
     return findings;
@@ -191,10 +184,41 @@ function parseFindingsAndCandidates<Item>(
   if (!candidateStandards.ok) {
     return candidateStandards;
   }
+  const readFiles = parseStringsAt(value, source, {
+    keys: ["readFiles"],
+    mayBeEmpty: true,
+  });
+  if (!readFiles.ok) {
+    return readFiles;
+  }
+  const lensChecks = parseListField(value, source, {
+    field: "lensChecks",
+    itemName: "lens check",
+    parseItem: parseLensCheck,
+  });
+  if (!lensChecks.ok) {
+    return lensChecks;
+  }
   return succeed({
     findings: findings.value,
     candidateStandards: candidateStandards.value,
+    readFiles: readFiles.value,
+    lensChecks: lensChecks.value,
   });
+}
+
+function parseLensCheck(
+  value: unknown,
+  source: string,
+): Result<LensCheck, string> {
+  const lens = parseChoiceAt(value, source, { name: "lens", choices: lenses });
+  if (!lens.ok) {
+    return lens;
+  }
+  const checked = parseTextAt(value, source, ["checked"]);
+  return checked.ok
+    ? succeed({ lens: lens.value, checked: checked.value })
+    : checked;
 }
 
 function parseFindingContent(

@@ -10,17 +10,22 @@ concurrency:
 
 permissions:
   contents: read
+  pull-requests: read
 
-# One job runs the whole panel, so a newer push cancels all of it, and GitHub counts the cancelled job as a failed check for the older head. Each agent writes its answer to a file only when it finished, and the last step judges in code which files the plan needed, which no agent can skip. AGENTS.md describes the panel.
+# Each agent runs in a job of its own whose token can only read, because a diff can carry instructions for it. Jobs pass data only through their outputs, so an agent can change only the outputs of its own job, such as its answer and its measure, and the review job parses each of them. The review job runs no agent: it rebuilds the report of the round from those outputs, posts the review, and gives the verdict in code, which no agent can skip. scripts/review-plan.ts caps the rounds, and at the cap the plan runs no agent and the review fails with the next step. AGENTS.md describes the panel.
 jobs:
-  review:
-    name: review
+  plan:
+    name: plan
     runs-on: ubuntu-latest
-    timeout-minutes: 120
-    permissions:
-      contents: read
-      issues: write
-      pull-requests: write
+    timeout-minutes: 15
+    outputs:
+      plan: ${{ steps.plan.outputs.plan }}
+      kind: ${{ steps.plan.outputs.kind }}
+      round: ${{ steps.plan.outputs.round }}
+      lenses: ${{ steps.plan.outputs.lenses }}
+      tools: ${{ steps.plan.outputs.tools }}
+      product: ${{ steps.plan.outputs.product }}
+      scope: ${{ steps.plan.outputs.scope }}
     steps:
       # The head of the pull request itself, not its merge with the base branch, is what the state of the panel records and what the agents are told is checked out.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -28,42 +33,61 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
+          persist-credentials: false
       - uses: pnpm/setup@fa36a5ef7dcdefc3a7cb25655c122e00cf6e636e # v3.1.2
-        timeout-minutes: 10
-        with:
-          cache: true
-          require-lockfile: true
-      - name: Plan the round
         timeout-minutes: 5
+        with:
+          install: false
+      - name: Plan the round
+        timeout-minutes: 3
         id: plan
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PULL_REQUEST: ${{ github.event.pull_request.number }}
           BASE_REF: ${{ github.base_ref }}
         run: node scripts/plan-review.ts >> "$GITHUB_OUTPUT"
+
+  reviewer:
+    name: reviewer
+    needs: plan
+    if: needs.plan.outputs.kind == 'review'
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    outputs:
+      answer: ${{ steps.reviewer.outputs.structured_output }}
+      run: ${{ steps.measure.outputs.run }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        timeout-minutes: 5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: pnpm/setup@fa36a5ef7dcdefc3a7cb25655c122e00cf6e636e # v3.1.2
+        timeout-minutes: 10
+        with:
+          cache: true
+          require-lockfile: true
       - name: Install the browser for the product lens
-        if: steps.plan.outputs.product == 'true'
+        if: needs.plan.outputs.product == 'true'
         uses: ./.github/actions/install-browser
         # The step ends long before the job does, so a stalled download fails here by name.
         timeout-minutes: 10
       # Each value is assigned on its own line, because a failure inside a command substitution within echo would not fail the step. The inputs are independent, so every script runs before the step stops, and the log names every failure.
-      - name: Read the schemas of the answers and the tools of the verifier
+      - name: Read the schema of the answer and write the files under review
         timeout-minutes: 2
         id: definitions
-        if: steps.plan.outputs.kind == 'review' || steps.plan.outputs.kind == 'check'
+        env:
+          PLAN: ${{ needs.plan.outputs.plan }}
         run: |
           failed=0
-          findings=$(node scripts/print-schema.ts .github/review/findings.schema.json) || failed=1
-          verdicts=$(node scripts/print-schema.ts .github/review/verdicts.schema.json) || failed=1
-          tools=$(node scripts/read-agent-tools.ts .claude/agents/review-verifier.md) || failed=1
+          schema=$(node scripts/print-schema.ts .github/review/findings.schema.json) || failed=1
+          node scripts/write-review-files.ts || failed=1
           if [ "$failed" -ne 0 ]; then exit 1; fi
-          echo "findings=${findings}" >> "$GITHUB_OUTPUT"
-          echo "verdicts=${verdicts}" >> "$GITHUB_OUTPUT"
-          echo "tools=${tools}" >> "$GITHUB_OUTPUT"
+          echo "schema=${schema}" >> "$GITHUB_OUTPUT"
       - name: Review the change
-        timeout-minutes: 40
+        timeout-minutes: 45
         id: reviewer
-        if: steps.plan.outputs.kind == 'review'
         uses: anthropics/claude-code-action@6d5ae526d25ce88daa2200be073e1a373167f064 # v1.0.265
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
@@ -72,71 +96,120 @@ jobs:
           prompt: |
             You review pull request #${{ github.event.pull_request.number }} in ${{ github.repository }} for the review panel that the section "Review panel" of AGENTS.md describes. The head of the pull request is checked out, and its dependencies are installed.
 
-            `review/scope.diff` holds the diff to review. ${{ steps.plan.outputs.scope }} `git diff origin/${{ github.base_ref }}...HEAD` shows the whole change.
+            `review/files.txt` lists the files under review, one on each line. ${{ needs.plan.outputs.scope }} Bash shows only the start of an output longer than about 30,000 characters, and it saves the whole output to a file whose path it names.
 
-            Apply each of these lenses: ${{ steps.plan.outputs.lenses }}. The file `.claude/agents/review-<lens>.md` defines each lens. Playwright's Chromium is installed when the product lens is among them.
+            Apply each of these lenses: ${{ needs.plan.outputs.lenses }}. The file `.claude/agents/review-<lens>.md` defines each lens. Playwright's Chromium is installed when the product lens is among them.
 
-            Return the findings and the candidate standards as the structured output. Each finding names its lens and its scope, which the section "Review panel" of AGENTS.md defines. When there is nothing to report, both lists are empty.
+            Return the structured output. Each finding names its lens and its scope, which the section "Review panel" of AGENTS.md defines. `readFiles` names each file under review whose whole diff you read, and `lensChecks` says for each lens what you checked through it. The job rejects an answer that misses a file under review or a lens, and the round then counts as not done. When there is nothing to report, the lists of findings and candidate standards are empty.
           claude_args: |
-            --model claude-sonnet-5-5
-            --allowedTools "${{ steps.plan.outputs.tools }}"
-            --json-schema '${{ steps.definitions.outputs.findings }}'
-      - name: Save the findings for the verifier
+            --model claude-opus-5-5
+            --allowedTools "${{ needs.plan.outputs.tools }}"
+            --json-schema '${{ steps.definitions.outputs.schema }}'
+      - name: Measure the reviewer
         timeout-minutes: 2
-        id: findings
-        if: steps.plan.outputs.kind == 'review' || steps.plan.outputs.kind == 'check'
+        id: measure
+        if: always() && steps.reviewer.outputs.execution_file != ''
         env:
-          REVIEWER_OUTPUT: ${{ steps.reviewer.outputs.structured_output }}
-        run: node scripts/save-findings.ts >> "$GITHUB_OUTPUT"
+          TRANSCRIPT: ${{ steps.reviewer.outputs.execution_file }}
+        run: |
+          run=$(node scripts/measure-agent-run.ts "$TRANSCRIPT")
+          echo "run=${run}" >> "$GITHUB_OUTPUT"
+
+  verifier:
+    name: verifier
+    needs: [plan, reviewer]
+    # A round that checks has no reviewer, so this job runs after a skipped reviewer too, but never after a cancelled run, which would spend an agent on a superseded head.
+    if: ${{ !cancelled() && needs.plan.result == 'success' && (needs.plan.outputs.kind == 'check' || (needs.plan.outputs.kind == 'review' && needs.reviewer.result == 'success')) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    outputs:
+      answer: ${{ steps.verifier.outputs.structured_output }}
+      run: ${{ steps.measure.outputs.run }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        timeout-minutes: 5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: pnpm/setup@fa36a5ef7dcdefc3a7cb25655c122e00cf6e636e # v3.1.2
+        timeout-minutes: 10
+        with:
+          cache: true
+          require-lockfile: true
+      # Each value is assigned on its own line, because a failure inside a command substitution within echo would not fail the step. The inputs are independent, so every script runs before the step stops, and the log names every failure.
+      - name: Save the findings and read the schema and the tools of the verifier
+        timeout-minutes: 2
+        id: definitions
+        env:
+          PLAN: ${{ needs.plan.outputs.plan }}
+          REVIEWER_OUTPUT: ${{ needs.reviewer.outputs.answer }}
+        run: |
+          failed=0
+          findings=$(node scripts/save-findings.ts) || failed=1
+          schema=$(node scripts/print-schema.ts .github/review/verdicts.schema.json) || failed=1
+          tools=$(node scripts/read-agent-tools.ts .claude/agents/review-verifier.md) || failed=1
+          if [ "$failed" -ne 0 ]; then exit 1; fi
+          echo "${findings}" >> "$GITHUB_OUTPUT"
+          echo "schema=${schema}" >> "$GITHUB_OUTPUT"
+          echo "tools=${tools}" >> "$GITHUB_OUTPUT"
       - name: Verify the findings
-        timeout-minutes: 25
+        timeout-minutes: 30
         id: verifier
-        if: steps.findings.outputs.total != '' && steps.findings.outputs.total != '0'
+        if: steps.definitions.outputs.total != '0'
         uses: anthropics/claude-code-action@6d5ae526d25ce88daa2200be073e1a373167f064 # v1.0.265
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           allowed_bots: "dependabot[bot]"
           prompt: |
-            You verify the findings of the review panel for pull request #${{ github.event.pull_request.number }} in ${{ github.repository }}. The file `.claude/agents/review-verifier.md` defines your task. `review/findings.json` holds the findings, each with an id. The number before the dot of an id is the round that reported the finding, and this is round ${{ steps.plan.outputs.round }}. The head of the pull request is checked out, and `git diff origin/${{ github.base_ref }}...HEAD` shows the whole change.
+            You verify the findings of the review panel for pull request #${{ github.event.pull_request.number }} in ${{ github.repository }}. The file `.claude/agents/review-verifier.md` defines your task. `review/findings.json` holds the findings, each with an id. The number before the dot of an id is the round that reported the finding, and this is round ${{ needs.plan.outputs.round }}. The head of the pull request is checked out, and `git diff origin/${{ github.base_ref }}...HEAD` shows the whole change.
 
             Return exactly one verdict for each finding in the structured output, under the finding's id, with its status, its scope, all of its siblings, and the evidence you checked. `duplicateOf` holds the id of the confirmed finding that a duplicate repeats, and it is empty for any other status.
           claude_args: |
-            --model claude-sonnet-5-5
+            --model claude-opus-5-5
             --allowedTools "${{ steps.definitions.outputs.tools }}"
-            --json-schema '${{ steps.definitions.outputs.verdicts }}'
-      - name: Save the verdicts
+            --json-schema '${{ steps.definitions.outputs.schema }}'
+      - name: Measure the verifier
         timeout-minutes: 2
-        id: verdicts
-        if: steps.findings.outputs.total != '' && steps.findings.outputs.total != '0'
+        id: measure
+        if: always() && steps.verifier.outputs.execution_file != ''
         env:
-          VERIFIER_OUTPUT: ${{ steps.verifier.outputs.structured_output }}
-        run: node scripts/save-verdicts.ts
-      # A run that a newer push cancelled posts nothing, because the run for the newer head reviews it.
+          TRANSCRIPT: ${{ steps.verifier.outputs.execution_file }}
+        run: |
+          run=$(node scripts/measure-agent-run.ts "$TRANSCRIPT")
+          echo "run=${run}" >> "$GITHUB_OUTPUT"
+
+  review:
+    name: review
+    needs: [plan, reviewer, verifier]
+    # GitHub counts a skipped required check as passed, so this job always runs. When a newer push superseded the run, it fails without posting a review, and otherwise it names every input that is missing.
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        timeout-minutes: 3
+        with:
+          persist-credentials: false
+      - uses: pnpm/setup@fa36a5ef7dcdefc3a7cb25655c122e00cf6e636e # v3.1.2
+        timeout-minutes: 4
+        with:
+          install: false
       - name: Post the review and give the verdict
-        timeout-minutes: 5
-        if: ${{ !cancelled() }}
+        timeout-minutes: 3
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PULL_REQUEST: ${{ github.event.pull_request.number }}
           REVIEWED_HEAD: ${{ github.event.pull_request.head.sha }}
-          REVIEWER_TRANSCRIPT: ${{ steps.reviewer.outputs.execution_file }}
-          VERIFIER_TRANSCRIPT: ${{ steps.verifier.outputs.execution_file }}
+          PANEL_RESULTS: ${{ toJSON(needs) }}
+          PLAN: ${{ needs.plan.outputs.plan }}
+          REVIEWER_OUTPUT: ${{ needs.reviewer.outputs.answer }}
+          VERIFIER_OUTPUT: ${{ needs.verifier.outputs.answer }}
+          REVIEWER_RUN: ${{ needs.reviewer.outputs.run }}
+          VERIFIER_RUN: ${{ needs.verifier.outputs.run }}
         run: node scripts/post-review.ts
-      # An agent that failed, ran out of time, or gave an answer that could not be read is traced through its transcript. It stays for one day, because a public repository's artifacts are public.
-      - name: Keep the transcript of a reviewer without an answer
-        timeout-minutes: 5
-        if: always() && steps.reviewer.outputs.execution_file != '' && (steps.reviewer.outcome != 'success' || steps.findings.outcome == 'failure')
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: transcript-reviewer
-          path: ${{ steps.reviewer.outputs.execution_file }}
-          retention-days: 1
-      - name: Keep the transcript of a verifier without an answer
-        timeout-minutes: 5
-        if: always() && steps.verifier.outputs.execution_file != '' && (steps.verifier.outcome != 'success' || steps.verdicts.outcome == 'failure')
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: transcript-verifier
-          path: ${{ steps.verifier.outputs.execution_file }}
-          retention-days: 1

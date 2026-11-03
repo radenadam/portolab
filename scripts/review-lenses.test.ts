@@ -61,13 +61,16 @@ const expectedLenses: [ChangedFile, Lens[]][] = [
   ],
   [
     modified("app/features/trading/order.test.ts"),
-    ["consistency", "craft", "standards"],
+    ["consistency", "craft", "docs", "reliability", "standards"],
   ],
   [
     modified("app/features/measures/month-end-closes-for-test.ts"),
-    ["consistency", "craft", "standards"],
+    ["consistency", "craft", "docs", "reliability", "standards"],
   ],
-  [modified("e2e/prices.test.ts"), ["consistency", "craft", "standards"]],
+  [
+    modified("e2e/prices.test.ts"),
+    ["consistency", "craft", "docs", "reliability", "standards"],
+  ],
   [
     { path: "app/features/trading/order-book.ts", change: "added" },
     [

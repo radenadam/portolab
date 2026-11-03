@@ -3,10 +3,14 @@ import { expect, test } from "vitest";
 import { readTextFile } from "./read-text-file.ts";
 import {
   parseAgentTools,
+  parseBranchName,
   parseCommitHash,
+  parseJobResults,
   parseOptionalCommitHashAt,
   parsePullRequestNumber,
+  readLensTools,
 } from "./review-inputs.ts";
+import { lenses } from "./review-lenses.ts";
 
 const reviewedHead = "1".repeat(40);
 
@@ -73,5 +77,52 @@ test("reads a field that holds a commit or nothing, and names the field when it 
     ok: false,
     failure:
       'plan.json: head must be the full hash of a commit, but it is "main".',
+  });
+});
+
+test("accepts the name of a branch, with or without folders, and rejects anything else", () => {
+  for (const branch of ["main", "release/1.x", "fix/review-proves-coverage"]) {
+    expect(parseBranchName(branch, "BASE_REF")).toEqual({
+      ok: true,
+      value: branch,
+    });
+  }
+  for (const value of ["", "main; rm", "/main", "main/", undefined]) {
+    expect(parseBranchName(value, "BASE_REF").ok, String(value)).toBe(false);
+  }
+  expect(parseBranchName("main; rm", "BASE_REF")).toEqual({
+    ok: false,
+    failure: 'BASE_REF must be the name of a branch, but it is "main; rm".',
+  });
+});
+
+test("reads the tools of every lens of the panel as one list without repeats", () => {
+  expect(readLensTools(lenses)).toEqual({
+    ok: true,
+    value: "Read,Grep,Glob,Bash",
+  });
+  expect(readLensTools([])).toEqual({ ok: true, value: "" });
+});
+
+test("reads the result of each job, and refuses an empty needs context or a job without a result", () => {
+  expect(
+    parseJobResults(
+      { plan: { result: "success" }, reviewer: { result: "cancelled" } },
+      "PANEL_RESULTS",
+    ),
+  ).toEqual({ ok: true, value: { plan: "success", reviewer: "cancelled" } });
+  expect(parseJobResults({}, "PANEL_RESULTS")).toEqual({
+    ok: false,
+    failure: "PANEL_RESULTS must name at least one job, but it is {}.",
+  });
+  expect(
+    parseJobResults(
+      { plan: { result: "success" }, reviewer: {} },
+      "PANEL_RESULTS",
+    ),
+  ).toEqual({
+    ok: false,
+    failure:
+      "PANEL_RESULTS: job reviewer must have a string at result, but result is missing.",
   });
 });

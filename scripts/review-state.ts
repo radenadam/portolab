@@ -1,3 +1,4 @@
+import { gunzipSync, gzipSync } from "node:zlib";
 import { fail, succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
 import { describeValue, isRecord } from "../app/value-shapes.ts";
@@ -25,13 +26,13 @@ const stateBeforeFirstRound: ReviewState = {
 // Only the workflow posts as this account, so a person who comments on the pull request cannot write the state of the panel.
 const workflowAccount = "github-actions[bot]";
 
-// The state is base64 inside an HTML comment, so no text of a finding can end the comment early, and GitHub does not show it.
-const markerPattern = /<!-- review-state ([A-Za-z0-9+/=]+) -->/;
+// The state is compressed JSON in base64 inside an HTML comment, so no text of a finding can end the comment early, GitHub does not show it, and open findings take little of the length that GitHub allows a review. Only the end of a review counts, because the text of a finding above it can quote a marker.
+const markerPattern = /<!-- review-state ([A-Za-z0-9+/=]+) -->\s*$/;
 
 /** The text that a review ends with, so that the next round reads the state from it. */
 export function stateMarker(state: ReviewState): string {
   const json = JSON.stringify(state);
-  return `<!-- review-state ${Buffer.from(json).toString("base64")} -->`;
+  return `<!-- review-state ${gzipSync(json).toString("base64")} -->`;
 }
 
 /** Reads the state from the newest review that the workflow posted with a state, from the pages that `gh api --paginate --slurp` prints for the reviews of a pull request. */
@@ -87,10 +88,12 @@ function parseReviewStateOf(
   }
   let decoded: unknown;
   try {
-    decoded = JSON.parse(Buffer.from(encoded, "base64").toString("utf8"));
+    decoded = JSON.parse(
+      gunzipSync(Buffer.from(encoded, "base64")).toString("utf8"),
+    );
   } catch {
     return fail(
-      `${source} must carry the state of the panel as base64 of JSON, but it carries ${describeValue(encoded)}.`,
+      `${source} must carry the state of the panel as base64 of compressed JSON, but it carries ${describeValue(encoded)}.`,
     );
   }
   return parseReviewState(decoded, `${source}: the state of the panel`);

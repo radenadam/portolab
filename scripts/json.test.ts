@@ -6,7 +6,9 @@ import {
   parseJsonObject,
   parseJsonWith,
   parseListField,
+  parseOptionalJsonWith,
   parseStringsAt,
+  parseTextAt,
   readJsonFile,
 } from "./json.ts";
 import type { Parser } from "./json.ts";
@@ -153,4 +155,35 @@ test("reads a field that holds one of a fixed set of names, and names the field 
     failure:
       'verified.json must have "confirmed" or "refuted" at status, but status is missing.',
   });
+});
+
+test("reads text that says something, and rejects text that is empty, only spaces, or missing", () => {
+  expect(
+    parseTextAt({ evidence: "The test fails." }, "verdict", ["evidence"]),
+  ).toEqual({ ok: true, value: "The test fails." });
+  expect(parseTextAt({ evidence: "  " }, "verdict", ["evidence"])).toEqual({
+    ok: false,
+    failure:
+      'verdict must have text that is not empty at evidence, but evidence is "  ".',
+  });
+  expect(parseTextAt({}, "verdict", ["evidence"])).toEqual({
+    ok: false,
+    failure:
+      "verdict must have text that is not empty at evidence, but evidence is missing.",
+  });
+});
+
+test("reads JSON that a job gave, and gives undefined for empty or missing text", () => {
+  expect(parseOptionalJsonWith("", "PLAN", parseJsonObject)).toEqual({
+    ok: true,
+    value: undefined,
+  });
+  expect(parseOptionalJsonWith(undefined, "PLAN", parseJsonObject)).toEqual({
+    ok: true,
+    value: undefined,
+  });
+  expect(
+    parseOptionalJsonWith('{"kind":"pass"}', "PLAN", parseJsonObject),
+  ).toEqual({ ok: true, value: { kind: "pass" } });
+  expect(parseOptionalJsonWith("[", "PLAN", parseJsonObject).ok).toBe(false);
 });

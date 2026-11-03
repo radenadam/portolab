@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import type { Finding, Verdict } from "./review-findings.ts";
-import type { ChangedFile } from "./review-lenses.ts";
+import type { ChangedFile, Lens } from "./review-lenses.ts";
 import {
   checkRoundLimit,
   planReview,
@@ -11,7 +11,13 @@ import { parseLatestReviewState } from "./review-state.ts";
 import type { ReviewState } from "./review-state.ts";
 import { successValueForTest } from "../app/success-value-for-test.ts";
 import type { ReviewInput } from "./judge-review.ts";
-import { outsideIssue, summarizeReview } from "./summarize-review.ts";
+import {
+  oversizeProblem,
+  outsideIssue,
+  summarizeReview,
+  supersededRun,
+  unplannedReview,
+} from "./summarize-review.ts";
 
 // planReview takes the state that parseLatestReviewState reads, which holds no round before any review carries a state.
 const stateBeforeFirstRound = successValueForTest(
@@ -59,6 +65,20 @@ function stateAfter(round: number, openFindings: Finding[]): ReviewState {
   return { head: earlierHead, round, openFindings };
 }
 
+/** The coverage of a reviewer that read every file under review and checked through every lens. */
+function coverageOf(plan: ReviewPlan): {
+  readFiles: string[];
+  lensChecks: { lens: Lens; checked: string }[];
+} {
+  return {
+    readFiles: plan.files,
+    lensChecks: plan.lenses.map((lens) => ({
+      lens,
+      checked: "What the lens checked.",
+    })),
+  };
+}
+
 function input(
   plan: ReviewPlan,
   findings: Finding[] | undefined,
@@ -67,12 +87,28 @@ function input(
   return {
     plan,
     reviewedHead,
-    toVerify:
-      findings === undefined ? undefined : { findings, candidateStandards: [] },
+    report:
+      findings === undefined
+        ? undefined
+        : { findings, candidateStandards: [], ...coverageOf(plan) },
     verdicts,
+    jobResults: finishedJobs(plan),
     runs: ["The reviewer ran for 6 minutes in 41 turns."],
     inputProblems: [],
   };
+}
+
+/** The results that GitHub gives the jobs of a round that finished, where a job that the plan does not need is skipped. */
+function finishedJobs(plan: ReviewPlan): Record<string, string> {
+  const agentResults: Record<ReviewPlan["kind"], [string, string]> = {
+    review: ["success", "success"],
+    check: ["skipped", "success"],
+    pass: ["skipped", "skipped"],
+    unchanged: ["skipped", "skipped"],
+    capped: ["skipped", "skipped"],
+  };
+  const [reviewer, verifier] = agentResults[plan.kind];
+  return { plan: "success", reviewer, verifier };
 }
 
 const firstReview = planReview(stateBeforeFirstRound, undefined, [docs]);
@@ -87,7 +123,13 @@ test("passes a first round without findings and records the reviewed head", () =
       "",
       "**Passed.** No verified finding in the change remains.",
       "",
-      "Round 1 reviewed the whole change through the consistency, docs, and standards lenses. The reviewer ran for 6 minutes in 41 turns.",
+      "Round 1 reviewed the whole change, in 1 file, through the consistency, docs, and standards lenses. The reviewer ran for 6 minutes in 41 turns.",
+      "",
+      "### What each lens checked",
+      "",
+      "- consistency: What the lens checked.",
+      "- docs: What the lens checked.",
+      "- standards: What the lens checked.",
     ].join("\n"),
     state: { head: reviewedHead, round: 1, openFindings: [] },
     outside: { round: 1, findings: [], candidateStandards: [] },
@@ -97,7 +139,7 @@ test("passes a first round without findings and records the reviewed head", () =
 test("names one lens in the singular", () => {
   const plan: ReviewPlan = { ...firstReview, lenses: ["docs"] };
   expect(summarizeReview(input(plan, [], undefined)).body).toContain(
-    "Round 1 reviewed the whole change through the docs lens.",
+    "Round 1 reviewed the whole change, in 1 file, through the docs lens.",
   );
 });
 
@@ -113,7 +155,13 @@ test("fails on a confirmed finding in the change, shows it with the verifier's s
       "",
       "**Failed.** 1 verified finding in the change remains.",
       "",
-      "Round 1 reviewed the whole change through the consistency, docs, and standards lenses. The reviewer ran for 6 minutes in 41 turns.",
+      "Round 1 reviewed the whole change, in 1 file, through the consistency, docs, and standards lenses. The reviewer ran for 6 minutes in 41 turns.",
+      "",
+      "### What each lens checked",
+      "",
+      "- consistency: What the lens checked.",
+      "- docs: What the lens checked.",
+      "- standards: What the lens checked.",
       "",
       "### Verified findings in the change",
       "",
@@ -150,11 +198,12 @@ test("passes with a confirmed finding outside the change and the candidate stand
       [finding("1.1", "change")],
       [verdict("1.1", "confirmed", { scope: "existing" })],
     ),
-    toVerify: {
+    report: {
       findings: [finding("1.1", "change")],
       candidateStandards: [
         { standard: "The standard.", incident: "The incident." },
       ],
+      ...coverageOf(firstReview),
     },
   });
   expect(outcome.passed).toBe(true);
@@ -208,7 +257,13 @@ test("lists the open findings that the verifier found fixed, apart from the refu
       "",
       "**Passed.** No verified finding in the change remains.",
       "",
-      `Round 2 reviewed the commits since ${earlierHead} through the consistency, docs, and standards lenses. The reviewer ran for 6 minutes in 41 turns.`,
+      `Round 2 reviewed the commits since ${earlierHead}, in 1 file, through the consistency, docs, and standards lenses. The reviewer ran for 6 minutes in 41 turns.`,
+      "",
+      "### What each lens checked",
+      "",
+      "- consistency: What the lens checked.",
+      "- docs: What the lens checked.",
+      "- standards: What the lens checked.",
       "",
       "### Fixed since the last round",
       "",
@@ -239,37 +294,23 @@ test("counts several refuted and duplicate findings in the plural", () => {
   );
 });
 
-test("says when a round only checks the open findings, and when it leaves files unreviewed", () => {
-  const checkOnly = planReview(
-    stateAfter(1, [finding("1.1")]),
-    earlierHead,
-    [],
-  );
-  const verifierRun = ["The verifier ran for 2 minutes in 9 turns."];
-  expect(
-    summarizeReview({
-      ...input(checkOnly, [finding("1.1")], [verdict("1.1", "refuted")]),
-      runs: verifierRun,
-    }).body,
-  ).toContain(
-    "Round 2 only checked the open findings. The verifier ran for 2 minutes in 9 turns.",
-  );
-  const afterReviews = planReview(
+test("says that a round after the review rounds only checked the open findings, and that no reviewer read the new commits", () => {
+  const plan = planReview(
     stateAfter(reviewRoundLimit, [finding("1.1")]),
     earlierHead,
     [docs],
   );
   expect(
     summarizeReview({
-      ...input(afterReviews, [finding("1.1")], [verdict("1.1", "refuted")]),
-      runs: verifierRun,
+      ...input(plan, [finding("1.1")], [verdict("1.1", "refuted")]),
+      runs: ["The verifier ran for 2 minutes in 9 turns."],
     }).body,
   ).toContain(
-    `Round 4 only checked the open findings. No agent reviewed the commits since ${earlierHead}, because the panel has used its 3 review rounds.`,
+    `Round 4 only checked the open findings. No reviewer read the commits since ${earlierHead}, because the panel has used its 3 review rounds. The verifier ran for 2 minutes in 9 turns.`,
   );
 });
 
-test("passes without an agent and says why, for each reason", () => {
+test("passes without an agent when no file changed and no finding is open, with and without a reviewed head", () => {
   const sentences: [ReviewPlan, string][] = [
     [
       planReview(stateBeforeFirstRound, undefined, []),
@@ -278,10 +319,6 @@ test("passes without an agent and says why, for each reason", () => {
     [
       planReview(stateAfter(1, []), earlierHead, []),
       `No agent ran, because the commits since ${earlierHead} changed no file of the pull request and no finding is open.`,
-    ],
-    [
-      planReview(stateAfter(reviewRoundLimit, []), earlierHead, [docs]),
-      `No agent ran, because no finding is open. No agent reviewed the commits since ${earlierHead}, because the panel has used its 3 review rounds.`,
     ],
   ];
   for (const [plan, sentence] of sentences) {
@@ -299,58 +336,122 @@ test("passes without an agent and says why, for each reason", () => {
   }
 });
 
-test("fails without an agent after every round, shows the open findings, and leaves the state as it was", () => {
-  const plan = planReview(
-    stateAfter(reviewRoundLimit + checkRoundLimit, [
-      finding("1.1"),
-      finding("1.2"),
-    ]),
-    earlierHead,
-    [],
-  );
+/** Checks that a plan fails without an agent with this verdict, shows each open finding, and leaves the state as it was. */
+function expectFailureWithoutAgent(plan: ReviewPlan, verdict: string): void {
   const outcome = summarizeReview({
     ...input(plan, undefined, undefined),
     runs: [],
   });
   expect(outcome.passed).toBe(false);
-  expect(outcome.verdict).toBe(
-    "The panel has used its 3 review rounds and its 2 rounds that check open findings, and 2 findings stay open, so it ran no agent. A maintainer decides how this pull request continues.",
-  );
-  expect(outcome.body).toContain("1. `docs/product.md:3` (docs, finding 1.1)");
+  expect(outcome.verdict).toBe(verdict);
+  expect(outcome.body).toContain(`**Failed.** ${verdict}`);
+  for (const finding of plan.previous.openFindings) {
+    expect(outcome.body).toContain(
+      `\`${finding.location}\` (${finding.lens}, finding ${finding.id})`,
+    );
+  }
   expect(outcome.state).toBeUndefined();
+}
+
+test("fails without an agent and leaves the state as it was when no file changed while one finding or several stay open", () => {
+  const cases: [Finding[], string][] = [
+    [
+      [finding("1.1")],
+      "1 verified finding in the change remains, and no file of the pull request changed since the last finished round, so no agent ran. Push the fixes to start the next round.",
+    ],
+    [
+      [finding("1.1"), finding("1.2")],
+      "2 verified findings in the change remain, and no file of the pull request changed since the last finished round, so no agent ran. Push the fixes to start the next round.",
+    ],
+  ];
+  for (const [openFindings, sentence] of cases) {
+    expectFailureWithoutAgent(
+      planReview(stateAfter(1, openFindings), earlierHead, []),
+      sentence,
+    );
+  }
+});
+
+const nextStep =
+  "A maintainer decides how this pull request continues, and a new pull request with the same commits starts with new rounds.";
+
+test("fails without an agent after every round while one finding or several stay open, and leaves the state as it was", () => {
+  const lastCheck = reviewRoundLimit + checkRoundLimit;
+  const cases: [Finding[], string][] = [
+    [
+      [finding("1.1")],
+      `The panel has used its 3 review rounds and its 2 rounds that check open findings, and 1 finding stays open, so it ran no agent. ${nextStep}`,
+    ],
+    [
+      [finding("1.1"), finding("1.2")],
+      `The panel has used its 3 review rounds and its 2 rounds that check open findings, and 2 findings stay open, so it ran no agent. ${nextStep}`,
+    ],
+  ];
+  for (const [openFindings, sentence] of cases) {
+    expectFailureWithoutAgent(
+      planReview(stateAfter(lastCheck, openFindings), earlierHead, [docs]),
+      sentence,
+    );
+  }
+});
+
+test("fails without an agent when files change after the review rounds while no finding is open, and when no round finished reviewing the change", () => {
+  const cases: [ReviewPlan, string][] = [
+    [
+      planReview(stateAfter(reviewRoundLimit, []), earlierHead, [docs]),
+      `The panel has used its 3 review rounds, and the commits since ${earlierHead} changed files of the pull request while no finding was open, so no round may read them and no agent ran. ${nextStep}`,
+    ],
+    [
+      planReview(
+        { head: undefined, round: reviewRoundLimit, openFindings: [] },
+        undefined,
+        [docs],
+      ),
+      `The panel has used its 3 review rounds, and no round finished reviewing the change, so no round may read them and no agent ran. ${nextStep}`,
+    ],
+  ];
+  for (const [plan, sentence] of cases) {
+    expectFailureWithoutAgent(plan, sentence);
+  }
 });
 
 test("counts a round whose agent did not finish, but keeps the head and the open findings of the last finished round", () => {
-  const previous = stateAfter(1, [finding("1.1")]);
-  const plan = planReview(previous, earlierHead, [order]);
-  const unfinished: [ReviewInput, string][] = [
+  const afterOneRound = stateAfter(1, [finding("1.1")]);
+  const afterReviews = stateAfter(reviewRoundLimit, [finding("1.1")]);
+  const review = planReview(afterOneRound, earlierHead, [order]);
+  const check = planReview(afterReviews, earlierHead, [order]);
+  const unfinished: [ReviewInput, ReviewState, string][] = [
     [
-      input(plan, undefined, undefined),
-      "The reviewer's report is missing, so this change has not been reviewed. The log of the run names the reason.",
+      input(review, undefined, undefined),
+      afterOneRound,
+      "The reviewer's report is missing, so this change has not been reviewed. The log of the reviewer's job names the reason.",
     ],
     [
-      input(planReview(previous, earlierHead, []), undefined, undefined),
-      "The open findings were not saved for the verifier, so none has been checked. The log of the run names the reason.",
+      input(check, [finding("1.1")], undefined),
+      afterReviews,
+      "The verifier's verdicts are missing, so no finding has been verified. The log of the verifier's job names the reason.",
     ],
     [
-      input(plan, [finding("2.1"), finding("1.1")], undefined),
-      "The verifier's verdicts are missing, so no finding has been verified. The log of the run names the reason.",
+      input(review, [finding("2.1"), finding("1.1")], undefined),
+      afterOneRound,
+      "The verifier's verdicts are missing, so no finding has been verified. The log of the verifier's job names the reason.",
     ],
     [
       {
-        ...input(plan, [], undefined),
+        ...input(review, [], undefined),
         inputProblems: ["The first problem.", "The second problem."],
       },
+      afterOneRound,
       "The first problem. The second problem.",
     ],
   ];
-  for (const [unfinishedInput, verdictSentence] of unfinished) {
+  for (const [unfinishedInput, previous, verdictSentence] of unfinished) {
     const outcome = summarizeReview(unfinishedInput);
     expect(outcome.passed).toBe(false);
     expect(outcome.verdict).toBe(verdictSentence);
-    expect(outcome.state).toEqual({ ...previous, round: 2 });
+    expect(outcome.state).toEqual({ ...previous, round: previous.round + 1 });
     expect(outcome.outside).toEqual({
-      round: 2,
+      round: previous.round + 1,
       findings: [],
       candidateStandards: [],
     });
@@ -402,4 +503,117 @@ test("fails when one duplicate or several repeat no confirmed finding", () => {
   expect(several.verdict).toBe(
     "A duplicate must repeat a confirmed finding, but 1.1 and 1.2 repeat none.",
   );
+});
+
+test("fails a review whose report does not name a file under review as read, or one lens as checked", () => {
+  const plan = planReview(stateBeforeFirstRound, undefined, [docs]);
+  const outcome = summarizeReview({
+    ...input(plan, [], undefined),
+    report: {
+      findings: [],
+      candidateStandards: [],
+      readFiles: [],
+      lensChecks: [
+        { lens: "docs", checked: "What the lens checked." },
+        { lens: "standards", checked: "What the lens checked." },
+      ],
+    },
+  });
+  expect(outcome.passed).toBe(false);
+  expect(outcome.verdict).toBe(
+    "The reviewer's report cannot be trusted, because it does not name the file docs/product.md as read and it does not say what it checked through the consistency lens. So this change has not been fully reviewed.",
+  );
+  expect(outcome.body).not.toContain("### What each lens checked");
+  expect(outcome.state).toEqual({ ...stateBeforeFirstRound, round: 1 });
+});
+
+test("names several unread files and several unchecked lenses in the plural", () => {
+  const plan = planReview(stateBeforeFirstRound, undefined, [docs, order]);
+  const outcome = summarizeReview({
+    ...input(plan, [], undefined),
+    report: {
+      findings: [],
+      candidateStandards: [],
+      readFiles: [],
+      lensChecks: [],
+    },
+  });
+  expect(outcome.verdict).toBe(
+    "The reviewer's report cannot be trusted, because it does not name the files docs/product.md and app/features/trading/order.ts as read and it does not say what it checked through the consistency, craft, docs, reliability, and standards lenses. So this change has not been fully reviewed.",
+  );
+});
+
+test("calls a cancelled run superseded only when the head moved, because a timeout also cancels a job", () => {
+  const cancelled = { plan: "success", reviewer: "cancelled" };
+  expect(supersededRun(cancelled, earlierHead, reviewedHead)).toBe(
+    `A newer push moved the pull request to ${reviewedHead} while this run reviewed ${earlierHead}, so the run for the newer head posts the review.`,
+  );
+  expect(supersededRun(cancelled, reviewedHead, reviewedHead)).toBeUndefined();
+  expect(
+    supersededRun(
+      { plan: "success", reviewer: "failure" },
+      earlierHead,
+      reviewedHead,
+    ),
+  ).toBeUndefined();
+});
+
+test("explains a round without a plan, whether the plan is missing or cannot be read", () => {
+  expect(unplannedReview("failure", undefined)).toEqual({
+    verdict:
+      'The review job found no plan of the round, so this change has not been reviewed. The plan job ended with the result "failure", and its log names the reason.',
+    body: [
+      "## Review panel",
+      "",
+      '**Failed.** The review job found no plan of the round, so this change has not been reviewed. The plan job ended with the result "failure", and its log names the reason.',
+    ].join("\n"),
+  });
+  expect(
+    unplannedReview("success", "PLAN must be a JSON object, but it is 7.")
+      .verdict,
+  ).toBe(
+    "The plan of the round cannot be read, so this change has not been reviewed. PLAN must be a JSON object, but it is 7.",
+  );
+});
+
+test("refuses a review or an issue just past the length that GitHub takes, and accepts one at that length", () => {
+  const atLimit = "a".repeat(65_536);
+  expect(oversizeProblem("review", atLimit)).toBeUndefined();
+  expect(oversizeProblem("review", `${atLimit}a`)).toBe(
+    "The review is 65,537 characters long, but GitHub takes at most 65,536, so it was not posted, and the log of this step holds it.",
+  );
+  expect(oversizeProblem("issue", `${atLimit}a`)).toBe(
+    "The issue is 65,537 characters long, but GitHub takes at most 65,536, so it was not opened.",
+  );
+});
+
+test("fails a round when a job that the plan needs did not succeed, even after an answer, and points only at the logs of the jobs that ran", () => {
+  const review = planReview(stateBeforeFirstRound, undefined, [docs]);
+  const cases: [Record<string, string>, string][] = [
+    [
+      { plan: "success", reviewer: "success", verifier: "failure" },
+      'In this round, the verifier job ended with the result "failure", so the round has not finished. The log of the verifier job names the reason.',
+    ],
+    [
+      { plan: "success", reviewer: "failure", verifier: "skipped" },
+      'In this round, the reviewer job ended with the result "failure" and the verifier job was skipped, so the round has not finished. The log of the reviewer job names the reason.',
+    ],
+    [
+      { plan: "success", reviewer: "failure", verifier: "cancelled" },
+      'In this round, the reviewer job ended with the result "failure" and the verifier job ended with the result "cancelled", so the round has not finished. The logs of the reviewer and verifier jobs name the reason.',
+    ],
+    [
+      { plan: "success", reviewer: "skipped" },
+      "In this round, the reviewer job was skipped and the verifier job has no result, so the round has not finished.",
+    ],
+  ];
+  for (const [jobResults, sentence] of cases) {
+    const outcome = summarizeReview({
+      ...input(review, [], undefined),
+      jobResults,
+    });
+    expect(outcome.passed).toBe(false);
+    expect(outcome.verdict).toBe(sentence);
+    expect(outcome.state).toEqual({ ...stateBeforeFirstRound, round: 1 });
+  }
 });
