@@ -10,9 +10,9 @@ import {
 import type { AccountFormFailures } from "~/features/accounts/account-fields";
 import {
   findUser,
+  requireSession,
   startSession,
 } from "~/features/accounts/current-session.server";
-import { pathReturningTo } from "~/features/accounts/path-returning-to";
 import { isLoadedByAnotherSite } from "~/is-loaded-by-another-site.server";
 import { PageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
@@ -143,7 +143,7 @@ export async function action({
     case undefined:
       // A student who was signed in when the page loaded sends the form with one button, so a session that ended since goes to the sign-in page, which returns here, as on every page that needs a session.
       if (form.has("signedIn")) {
-        return redirect(pathReturningTo("/sign-in", url.pathname));
+        requireSession(context, url);
       }
       return createStudentInClass(context, request, {
         form,

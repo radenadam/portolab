@@ -57,7 +57,7 @@ export async function action({ context, request, url }: Route.ActionArgs) {
         now: new Date(),
       });
     case "student":
-      // The page of a student has no form for a class, so only a forged form comes here, and the page says why it refused.
+      // The page of a student has no form for a class, so a form comes here only from a page that loaded before a student signed in, or from a forged one, and the page says why it refused.
       return data(
         { fields: undefined, failure: m.classes_lecturer_only_error() },
         { status: 403 },
@@ -110,7 +110,7 @@ export default function ClassesPage({
   loaderData,
   actionData,
 }: Route.ComponentProps): ReactNode {
-  // Only the forged form of a student gets a failure above the form, so the page explains the refusal instead of the list.
+  // Only a student gets a failure above the form, from a page that loaded for a lecturer or from a forged form, so the page explains the refusal instead of the list.
   if (actionData?.failure !== undefined) {
     return (
       <>
