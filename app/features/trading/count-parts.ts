@@ -7,8 +7,8 @@ export function lotCount(count: Lots): string {
   return countedText(
     count,
     {
-      one: m.trading_one_lot_phrase,
-      several: m.trading_several_lots_phrase,
+      one: m.trading_one_lot_part,
+      several: m.trading_several_lots_part,
     },
     {},
   );
@@ -19,8 +19,8 @@ export function monthlyReturnCount(count: number): string {
   return countedText(
     count,
     {
-      one: m.trading_one_monthly_return_phrase,
-      several: m.trading_several_monthly_returns_phrase,
+      one: m.trading_one_monthly_return_part,
+      several: m.trading_several_monthly_returns_part,
     },
     {},
   );

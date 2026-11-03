@@ -80,6 +80,13 @@ p {
   margin: 0;
 }
 
+/* A name that a person typed can be one long word, which would push the page sideways on a phone, so text breaks inside a word when the word does not fit. */
+h1,
+h2,
+p {
+  overflow-wrap: anywhere;
+}
+
 a {
   color: var(--color-signal);
 }
@@ -87,6 +94,12 @@ a {
 :is(a, button):hover {
   text-decoration-line: underline;
   text-decoration-thickness: var(--size-mark);
+}
+
+/* A button that waits for the answer to its form turns muted, so a reader on a touch screen sees the wait too, which the pointer shows on a mouse. */
+button:disabled {
+  background: var(--color-muted);
+  cursor: progress;
 }
 
 :focus-visible {

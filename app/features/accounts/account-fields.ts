@@ -3,15 +3,22 @@ import {
   checkMaximumLength,
   parseFilledText,
   parseShortText,
+  typedText,
 } from "~/form-text";
-import { formatNumber } from "~/formatting";
+import { formatList, formatNumber } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { fail, failureOf, succeed } from "~/result";
 import type { Result } from "~/result";
+import type { NewStudent } from "./account-store.server";
+import {
+  describeUsernameCharacters,
+  isUsername,
+  normalizeUsername,
+  usernameLength,
+} from "./username";
+import type { Username } from "./username";
+import { nameMaximumLength } from "./account-limits";
 import { normalizePassword } from "./normalize-password";
-
-// A name rarely comes near this, and a longer one would not fit where a page shows it.
-const nameMaximumLength = 100;
 
 /** The limits of a password that a person chooses. NIST SP 800-63B asks for at least 15 characters when a password alone signs a person in, and for a maximum of at least 64. */
 export const passwordLength = { minimum: 15, maximum: 128 } as const;
@@ -98,4 +105,93 @@ export function readNewPassword(
       ? failureOf(repeatedPassword)
       : undefined,
   });
+}
+
+/** Why the fields of the form that creates an account were not accepted, with the name and the username as the person typed them, so the form can show them again. */
+export interface AccountFormFailures extends NewPasswordFailures {
+  name: string;
+  username: string;
+  nameFailure: string | undefined;
+  usernameFailure: string | undefined;
+  consentFailure: string | undefined;
+}
+
+/** Reads a username that a person chose for a new account. */
+function parseNewUsername(
+  value: unknown,
+  source: string,
+): Result<Username, string> {
+  const text = parseFilledText(value, source);
+  if (!text.ok) {
+    return text;
+  }
+  const username = normalizeUsername(text.value);
+  return isUsername(username)
+    ? succeed(username)
+    : fail(
+        m.accounts_username_error({
+          field: source,
+          value: text.value.trim(),
+          ...usernameRule(),
+        }),
+      );
+}
+
+/** Reads the form with which a student creates an account: a name, a username, a password typed twice, and the agreement to the privacy notice. */
+export function readNewStudent(
+  form: FormData,
+): Result<NewStudent, AccountFormFailures> {
+  const name = parsePersonName(form.get("name"), m.accounts_name_label());
+  const username = parseNewUsername(
+    form.get("username"),
+    m.accounts_username_label(),
+  );
+  const password = readNewPassword(form);
+  const consent = parseConsent(form.get("consent"), m.accounts_consent_label());
+  if (name.ok && username.ok && password.ok && consent.ok) {
+    return succeed({
+      name: name.value,
+      username: username.value,
+      password: password.value,
+    });
+  }
+  return fail({
+    ...typedAccountForm(form),
+    nameFailure: failureOf(name),
+    usernameFailure: failureOf(username),
+    newPasswordFailure: failureOf(password)?.newPasswordFailure,
+    repeatedPasswordFailure: failureOf(password)?.repeatedPasswordFailure,
+    consentFailure: failureOf(consent),
+  });
+}
+
+/** The fields of the form that creates an account as the person typed them, without a failure, for a check after the form was read, such as whether the username is taken. */
+export function typedAccountForm(form: FormData): AccountFormFailures {
+  return {
+    name: typedText(form.get("name")),
+    username: typedText(form.get("username")),
+    nameFailure: undefined,
+    usernameFailure: undefined,
+    newPasswordFailure: undefined,
+    repeatedPasswordFailure: undefined,
+    consentFailure: undefined,
+  };
+}
+
+/** The length and the characters of a username, in the words of the active language, for the texts that state the rule. */
+export function usernameRule(): {
+  minimum: string;
+  maximum: string;
+  characters: string;
+} {
+  return {
+    minimum: formatNumber(usernameLength.minimum),
+    maximum: formatNumber(usernameLength.maximum),
+    characters: formatList(
+      describeUsernameCharacters((first, last) =>
+        m.accounts_character_range_part({ first, last }),
+      ),
+      "conjunction",
+    ),
+  };
 }

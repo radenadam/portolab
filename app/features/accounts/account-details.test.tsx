@@ -3,11 +3,10 @@ import { expect, test } from "vitest";
 import { languageNames } from "~/language-names";
 import { locales } from "~/paraglide/runtime.js";
 import type { Locale } from "~/paraglide/runtime.js";
-import { successValueForTest } from "~/success-value-for-test";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
 import type { User } from "./account";
 import { AccountDetails } from "./account-details";
-import { parseUsername } from "./username";
+import { usernameForTest } from "./username-for-test";
 
 const texts: Record<
   Locale,
@@ -41,10 +40,7 @@ const texts: Record<
 
 function user(role: User["role"]): Omit<User, "id"> {
   return {
-    username: successValueForTest(
-      parseUsername("sari", "The username of the test"),
-      "The username sari is valid",
-    ),
+    username: usernameForTest("sari"),
     name: "Sari Wulandari",
     role,
     consentedAt: new Date("2026-11-02T03:15:00.000Z"),

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { data } from "react-router";
-import { ErrorPage } from "./error-page";
+import { MissingPageContent } from "./error-page";
 import type { Route } from "./+types/not-found-page";
 import { pageTitle } from "./page-title";
 import { m } from "./paraglide/messages.js";
@@ -15,7 +15,5 @@ export function meta(): Route.MetaDescriptors {
 }
 
 export default function NotFoundPage(): ReactNode {
-  return (
-    <ErrorPage title={m.app_not_found_title()} body={m.app_not_found_body()} />
-  );
+  return <MissingPageContent />;
 }

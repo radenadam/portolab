@@ -362,7 +362,7 @@ const texts: Record<Locale, Record<FailureName, string>> = {
   },
   en: {
     missingRules:
-      "Portolab cannot take this order yet, because it has not recorded the IDX rules for the trading day of the order. Tell your lecturer, so that the rules can be added.",
+      "Portolab cannot take this order yet, because it has not recorded the rules of IDX for the trading day of the order. Tell your lecturer, so that the rules can be added.",
     missingCosts:
       "Portolab cannot take this order yet, because it lacks a record of the broker fee or of the final tax on sales for the trading day of the order. Tell your lecturer, so that the missing rates can be added.",
     missingUniverse:

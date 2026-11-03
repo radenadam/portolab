@@ -11,10 +11,25 @@ const labels: Record<Locale, string> = { id: "Jumlah lot", en: "Lots" };
 // A count as formatNumber writes it in each language, the same digits in the groups of the other language, which read as a fraction there, and digits that the separator of the language splits into a group that is not of three.
 const writtenCounts: Record<
   Locale,
-  { grouped: string; otherGroups: string; brokenGroups: string }
+  {
+    grouped: string;
+    otherGroups: string;
+    brokenGroups: string;
+    decimalBeyondCount: string;
+  }
 > = {
-  id: { grouped: "50.000", otherGroups: "50,000", brokenGroups: "5.0000" },
-  en: { grouped: "50,000", otherGroups: "50.000", brokenGroups: "5,0000" },
+  id: {
+    grouped: "50.000",
+    otherGroups: "50,000",
+    brokenGroups: "5.0000",
+    decimalBeyondCount: "90071992547409920,5",
+  },
+  en: {
+    grouped: "50,000",
+    otherGroups: "50.000",
+    brokenGroups: "5,0000",
+    decimalBeyondCount: "90071992547409920.5",
+  },
 };
 
 const failures: Record<
@@ -24,6 +39,7 @@ const failures: Record<
     exponent: string;
     otherGroups: string;
     brokenGroups: string;
+    decimalBeyondCount: string;
     zero: string;
     beyondCount: string;
     empty: string;
@@ -31,31 +47,35 @@ const failures: Record<
 > = {
   id: {
     notWhole:
-      'Kolom "Jumlah lot" berisi "2,5", tetapi jumlah lot harus bilangan bulat paling sedikit 1 yang ditulis dengan angka, misalnya 1.000. Masukkan jumlah lot order ini.',
+      'Kolom "Jumlah lot" menerima bilangan bulat jumlah lot paling sedikit 1 yang ditulis dengan angka, misalnya 1.000, tetapi isinya "2,5". Masukkan jumlah lot order ini.',
     exponent:
-      'Kolom "Jumlah lot" berisi "1e3", tetapi jumlah lot harus bilangan bulat paling sedikit 1 yang ditulis dengan angka, misalnya 1.000. Masukkan jumlah lot order ini.',
+      'Kolom "Jumlah lot" menerima bilangan bulat jumlah lot paling sedikit 1 yang ditulis dengan angka, misalnya 1.000, tetapi isinya "1e3". Masukkan jumlah lot order ini.',
     otherGroups:
-      'Kolom "Jumlah lot" berisi "50,000", tetapi jumlah lot harus bilangan bulat paling sedikit 1 yang ditulis dengan angka, misalnya 1.000. Masukkan jumlah lot order ini.',
+      'Kolom "Jumlah lot" menerima bilangan bulat jumlah lot paling sedikit 1 yang ditulis dengan angka, misalnya 1.000, tetapi isinya "50,000". Masukkan jumlah lot order ini.',
     brokenGroups:
-      'Kolom "Jumlah lot" berisi "5.0000", tetapi jumlah lot harus bilangan bulat paling sedikit 1 yang ditulis dengan angka, misalnya 1.000. Masukkan jumlah lot order ini.',
-    zero: 'Kolom "Jumlah lot" berisi "0", tetapi jumlah lot harus bilangan bulat paling sedikit 1 yang ditulis dengan angka, misalnya 1.000. Masukkan jumlah lot order ini.',
+      'Kolom "Jumlah lot" menerima bilangan bulat jumlah lot paling sedikit 1 yang ditulis dengan angka, misalnya 1.000, tetapi isinya "5.0000". Masukkan jumlah lot order ini.',
+    decimalBeyondCount:
+      'Kolom "Jumlah lot" menerima bilangan bulat jumlah lot paling sedikit 1 yang ditulis dengan angka, misalnya 1.000, tetapi isinya "90071992547409920,5". Masukkan jumlah lot order ini.',
+    zero: 'Kolom "Jumlah lot" menerima bilangan bulat jumlah lot paling sedikit 1 yang ditulis dengan angka, misalnya 1.000, tetapi isinya "0". Masukkan jumlah lot order ini.',
     beyondCount:
-      'Kolom "Jumlah lot" berisi "9007199254740992", tetapi Portolab hanya dapat menghitung jumlah lot sampai 9.007.199.254.740.991. Masukkan jumlah lot order ini.',
+      'Kolom "Jumlah lot" memuat paling banyak 9.007.199.254.740.991 lot, jumlah terbesar yang dapat dihitung Portolab, tetapi isinya "9007199254740992". Masukkan jumlah lot order ini.',
     empty:
       'Kolom "Jumlah lot" kosong, padahal Portolab memerlukannya. Isi kolom itu.',
   },
   en: {
     notWhole:
-      'The field "Lots" holds "2,5", but the number of lots must be a whole number of at least 1, written in digits, such as 1,000. Enter the number of lots of the order.',
+      'The field "Lots" takes a whole number of lots of at least 1, written in digits, such as 1,000, but it holds "2,5". Enter the number of lots of the order.',
     exponent:
-      'The field "Lots" holds "1e3", but the number of lots must be a whole number of at least 1, written in digits, such as 1,000. Enter the number of lots of the order.',
+      'The field "Lots" takes a whole number of lots of at least 1, written in digits, such as 1,000, but it holds "1e3". Enter the number of lots of the order.',
     otherGroups:
-      'The field "Lots" holds "50.000", but the number of lots must be a whole number of at least 1, written in digits, such as 1,000. Enter the number of lots of the order.',
+      'The field "Lots" takes a whole number of lots of at least 1, written in digits, such as 1,000, but it holds "50.000". Enter the number of lots of the order.',
     brokenGroups:
-      'The field "Lots" holds "5,0000", but the number of lots must be a whole number of at least 1, written in digits, such as 1,000. Enter the number of lots of the order.',
-    zero: 'The field "Lots" holds "0", but the number of lots must be a whole number of at least 1, written in digits, such as 1,000. Enter the number of lots of the order.',
+      'The field "Lots" takes a whole number of lots of at least 1, written in digits, such as 1,000, but it holds "5,0000". Enter the number of lots of the order.',
+    decimalBeyondCount:
+      'The field "Lots" takes a whole number of lots of at least 1, written in digits, such as 1,000, but it holds "90071992547409920.5". Enter the number of lots of the order.',
+    zero: 'The field "Lots" takes a whole number of lots of at least 1, written in digits, such as 1,000, but it holds "0". Enter the number of lots of the order.',
     beyondCount:
-      'The field "Lots" holds "9007199254740992", but Portolab counts lots only up to 9,007,199,254,740,991. Enter the number of lots of the order.',
+      'The field "Lots" holds at most 9,007,199,254,740,991 lots, the most that Portolab can count, but it holds "9007199254740992". Enter the number of lots of the order.',
     empty: 'The field "Lots" is empty, but Portolab needs it. Fill it in.',
   },
 };
@@ -96,9 +116,9 @@ for (const locale of locales) {
     });
   });
 
-  test(`rejects a number of lots that is not whole, and names the field and the value in ${language}`, () => {
+  test(`rejects a number of lots that is not whole, and names the field and the value without the spaces around it in ${language}`, () => {
     switchLocaleForTest(locale);
-    expect(parseOrderLots("2,5", label)).toEqual({
+    expect(parseOrderLots(" 2,5 ", label)).toEqual({
       ok: false,
       failure: failure.notWhole,
     });
@@ -117,6 +137,14 @@ for (const locale of locales) {
     expect(parseOrderLots(written.brokenGroups, label)).toEqual({
       ok: false,
       failure: failure.brokenGroups,
+    });
+  });
+
+  test(`rejects a decimal mark in a number with more digits than the largest count for its form before its count in ${language}`, () => {
+    switchLocaleForTest(locale);
+    expect(parseOrderLots(written.decimalBeyondCount, label)).toEqual({
+      ok: false,
+      failure: failure.decimalBeyondCount,
     });
   });
 

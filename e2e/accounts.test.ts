@@ -1,20 +1,25 @@
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
+import { nameMaximumLength } from "../app/features/accounts/account-limits.ts";
 import { languageNames } from "../app/language-names.ts";
 import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
 import {
   chosenPassword,
+  fillNewPassword,
   runAccountCommand,
   signInAsNewLecturer,
+  submitNewPassword,
   submitSignIn,
   uniqueUsername,
 } from "./accounts.ts";
 import { chooseLanguage } from "./choose-language.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
+import { newDevice } from "./new-device.ts";
+import { wideWord } from "./wide-word.ts";
 
-// The longest name that a test gives, so each screen that shows a name is checked with wide content.
-const longName = "Kusumawardhani Prameswari Wicaksono Hadiningrat Setyaningrum";
+// The longest name that Portolab accepts, as one word, so each screen that shows a name is checked with its widest content.
+const longName = wideWord("Kusumawardhani", nameMaximumLength);
 
 const texts: Record<
   Locale,
@@ -69,13 +74,13 @@ const texts: Record<
     passwordLabel: "Kata sandi",
     signInButton: "Masuk",
     forgotNotice:
-      "Lupa kata sandi? Minta orang yang menjalankan server Portolab ini untuk mengatur ulang kata sandi Anda.",
+      "Lupa kata sandi? Mahasiswa meminta dosennya untuk mengatur ulang kata sandi, dan dosen meminta orang yang menjalankan server Portolab ini.",
     emptyFields: [
       'Kolom "Nama pengguna" kosong, padahal Portolab memerlukannya. Isi kolom itu.',
       'Kolom "Kata sandi" kosong, padahal Portolab memerlukannya. Isi kolom itu.',
     ],
     wrongCredentials:
-      "Portolab tidak menemukan akun dengan nama pengguna dan kata sandi ini. Periksa keduanya, lalu coba lagi. Setelah 10 percobaan salah dalam 15 menit, Portolab memblokir nama pengguna itu untuk sementara, agar tidak ada yang dapat menebak kata sandinya.",
+      "Portolab tidak menemukan akun dengan nama pengguna dan kata sandi ini. Periksa keduanya, lalu coba lagi. Setelah 10 percobaan salah dalam 15 menit, Portolab memblokir nama pengguna itu untuk sementara. Blokir ini menghentikan siapa pun yang mencoba menebak kata sandinya.",
     blocked: [
       'Portolab memblokir kata sandi untuk "',
       '" sampai ',
@@ -97,7 +102,7 @@ const texts: Record<
     tooShort:
       'Kolom "Kata sandi baru" perlu paling sedikit 15 karakter, tetapi isinya 5 karakter. Setiap karakter tambahan membuat kata sandi jauh lebih sulit ditebak, jadi pilih yang lebih panjang, misalnya kalimat pendek.',
     passwordsDiffer:
-      'Isi kolom "Ulangi kata sandi baru" berbeda dari kata sandi baru. Ketik kata sandi yang sama di kedua kolom.',
+      'Kolom "Ulangi kata sandi baru" berbeda dari kata sandi baru. Ketik kata sandi yang sama di kedua kolom.',
     privacyStoredTitle: "Apa yang disimpan Portolab",
     consentLabel: "Saya menyetujui pemberitahuan privasi",
     consentMissing:
@@ -114,7 +119,7 @@ const texts: Record<
     passwordChanged:
       "Portolab menyimpan kata sandi baru Anda dan mengeluarkan Anda dari semua perangkat lain.",
     wrongCurrentPassword:
-      'Kata sandi di kolom "Kata sandi saat ini" salah. Ketik lagi. Setelah 10 percobaan salah dalam 15 menit, Portolab memblokir nama pengguna Anda untuk sementara, agar tidak ada yang dapat menebak kata sandinya.',
+      'Kata sandi di kolom "Kata sandi saat ini" salah. Ketik lagi. Setelah 10 percobaan salah dalam 15 menit, Portolab memblokir nama pengguna Anda untuk sementara. Blokir ini menghentikan siapa pun yang mencoba menebak kata sandinya.',
     signOutButton: "Keluar",
     signOutTitle: "Keluar",
     signOutBody: "Keluar dari Portolab di perangkat ini.",
@@ -130,13 +135,13 @@ const texts: Record<
     passwordLabel: "Password",
     signInButton: "Sign in",
     forgotNotice:
-      "Forgot your password? Ask the person who runs this Portolab server to reset it.",
+      "Forgot your password? A student asks the lecturer to reset it, and a lecturer asks the person who runs this Portolab server.",
     emptyFields: [
       'The field "Username" is empty, but Portolab needs it. Fill it in.',
       'The field "Password" is empty, but Portolab needs it. Fill it in.',
     ],
     wrongCredentials:
-      "Portolab found no account with this username and password. Check both and try again. After 10 wrong attempts within 15 minutes, Portolab blocks the username for a while, so that nobody can guess its password.",
+      "Portolab found no account with this username and password. Check both and try again. After 10 wrong attempts within 15 minutes, Portolab blocks the username for a while. The block stops anyone who tries to guess the password.",
     blocked: [
       'Portolab blocks passwords for "',
       '" until ',
@@ -175,7 +180,7 @@ const texts: Record<
     passwordChanged:
       "Portolab saved your new password and signed you out on every other device.",
     wrongCurrentPassword:
-      'The password in the field "Current password" is wrong. Type it again. After 10 wrong attempts within 15 minutes, Portolab blocks your username for a while, so that nobody can guess its password.',
+      'The password in the field "Current password" is wrong. Type it again. After 10 wrong attempts within 15 minutes, Portolab blocks your username for a while. The block stops anyone who tries to guess the password.',
     signOutButton: "Sign out",
     signOutTitle: "Sign out",
     signOutBody: "Sign out of Portolab on this device.",
@@ -235,12 +240,7 @@ async function changePassword(
 ): Promise<void> {
   const text = texts[locale];
   await page.getByLabel(text.currentPasswordLabel).fill(currentPassword);
-  await page
-    .getByLabel(text.newPasswordLabel, { exact: true })
-    .fill("a second long sentence");
-  await page
-    .getByLabel(text.repeatedPasswordLabel)
-    .fill("a second long sentence");
+  await fillNewPassword(page, "a second long sentence");
   await submitMainForm(page, text.changePasswordButton);
 }
 
@@ -283,8 +283,7 @@ for (const locale of locales) {
     await expectAccessibleScreen(page);
 
     await page.getByLabel(text.nameLabel).fill(longName);
-    await page.getByLabel(text.newPasswordLabel, { exact: true }).fill("short");
-    await page.getByLabel(text.repeatedPasswordLabel).fill("short");
+    await fillNewPassword(page, "short");
     await submitMainForm(page, text.finishButton);
     await expect(page.getByText(text.tooShort)).toBeVisible();
     await expect(page.getByText(text.consentMissing)).toBeVisible();
@@ -301,16 +300,13 @@ for (const locale of locales) {
     await submitMainForm(page, text.finishButton);
     await expect(page.getByText(text.passwordsDiffer)).toBeVisible();
 
-    await page
-      .getByLabel(text.newPasswordLabel, { exact: true })
-      .fill(chosenPassword);
-    await page.getByLabel(text.repeatedPasswordLabel).fill(chosenPassword);
+    await fillNewPassword(page, chosenPassword);
     await page.getByLabel(text.consentLabel).check();
     await page
       .getByRole("main")
       .getByRole("button", { name: text.finishButton })
       .click();
-    await expect(page).toHaveURL("/");
+    await expect(page).toHaveURL("/classes");
 
     await page.getByRole("link", { name: text.accountLink }).click();
     await expect(page).toHaveTitle(`${text.accountTitle} | Portolab`);
@@ -340,6 +336,8 @@ for (const locale of locales) {
   }) => {
     const username = uniqueUsername("dosen");
     runAccountCommand("create-lecturer", username);
+    // A username in capitals reaches the same account, and the errors quote it as the field shows it.
+    const typedUsername = username.toUpperCase();
     await chooseLanguage(page, locale);
     await page.goto("/sign-in");
     await submitMainForm(page, text.signInButton);
@@ -347,9 +345,11 @@ for (const locale of locales) {
       await expect(page.getByText(failure, { exact: true })).toBeVisible();
     }
     await expectAccessibleScreen(page);
-    await submitSignIn(page, username, "a wrong password");
+    await submitSignIn(page, typedUsername, "a wrong password");
     await expect(page.getByRole("alert")).toHaveText(text.wrongCredentials);
-    await expect(page.getByLabel(text.usernameLabel)).toHaveValue(username);
+    await expect(page.getByLabel(text.usernameLabel)).toHaveValue(
+      typedUsername,
+    );
     await expectAccessibleScreen(page);
     for (let attempt = 2; attempt <= 10; attempt += 1) {
       await page
@@ -363,7 +363,7 @@ for (const locale of locales) {
     await submitMainForm(page, text.signInButton);
     await expect(page.getByRole("alert")).toHaveText(
       sentencePattern([
-        `${text.blocked[0]}${username}${text.blocked[1]}`,
+        `${text.blocked[0]}${typedUsername}${text.blocked[1]}`,
         text.blocked[2],
       ]),
     );
@@ -376,14 +376,17 @@ for (const locale of locales) {
   }) => {
     await chooseLanguage(page, locale);
     const username = await signInAsNewLecturer(page, longName);
-    const otherDevice = await browser.newPage();
+    const otherDevice = await newDevice(browser, locale);
     await otherDevice.goto("/sign-in");
     await submitSignIn(otherDevice, username, chosenPassword);
-    await expect(otherDevice).toHaveURL("/");
+    await expect(otherDevice).toHaveURL("/classes");
 
     await page.goto("/account");
     await changePassword(page, locale, "a wrong password");
-    await expect(page.getByRole("alert")).toHaveText(text.wrongCurrentPassword);
+    // A wrong password is about the value of its field, so it appears at the field.
+    await expect(
+      page.getByLabel(text.currentPasswordLabel),
+    ).toHaveAccessibleDescription(text.wrongCurrentPassword);
     await expectAccessibleScreen(page);
 
     await changePassword(page, locale, chosenPassword);
@@ -396,7 +399,7 @@ for (const locale of locales) {
     await expect(otherDevice).toHaveURL("/sign-in?returnTo=%2Faccount");
     await submitSignIn(otherDevice, username, "a second long sentence");
     await expect(otherDevice).toHaveURL("/account");
-    await otherDevice.close();
+    await otherDevice.context().close();
   });
 
   test(`signs out, and signs in again to the page that asked for it, in ${language}`, async ({
@@ -475,16 +478,7 @@ for (const locale of locales) {
     await expect(page.getByLabel(text.nameLabel)).toHaveCount(0);
     await expect(page.getByLabel(text.consentLabel)).toHaveCount(0);
     await expectAccessibleScreen(page);
-    await page
-      .getByLabel(text.newPasswordLabel, { exact: true })
-      .fill("a third long sentence");
-    await page
-      .getByLabel(text.repeatedPasswordLabel)
-      .fill("a third long sentence");
-    await page
-      .getByRole("main")
-      .getByRole("button", { name: text.finishButton })
-      .click();
+    await submitNewPassword(page, "a third long sentence");
     await expect(page).toHaveURL("/account");
   });
 }

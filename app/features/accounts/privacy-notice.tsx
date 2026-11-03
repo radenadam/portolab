@@ -1,7 +1,11 @@
 import type { ReactNode } from "react";
 import { formatNumber } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
-import { passwordLimits, sessionInactivityDays } from "./account-limits";
+import {
+  addressWindowMinutes,
+  passwordLimits,
+  sessionInactivityDays,
+} from "./account-limits";
 import styles from "./privacy-notice.module.css";
 
 /** What Portolab stores about a person, who sees it, and the rights of the person, which a person agrees to before Portolab serves them. */
@@ -28,7 +32,7 @@ export function PrivacyNotice(): ReactNode {
         </li>
         <li>
           {m.accounts_privacy_address_body({
-            minutes: formatNumber(passwordLimits.byAddress.windowMinutes),
+            minutes: formatNumber(addressWindowMinutes),
           })}
         </li>
         <li>{m.accounts_privacy_language_body()}</li>

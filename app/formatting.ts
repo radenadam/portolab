@@ -19,20 +19,31 @@ export function formatRupiah(amount: Rupiah): string {
   }).format(amount);
 }
 
-export function formatNumber(value: number): string {
-  return new Intl.NumberFormat(intlLocale()).format(value);
-}
-
-/** The character with which formatNumber separates groups of three digits in the active language, such as "." in "50.000" in Bahasa Indonesia, so that a parser accepts a number written as Portolab writes it. */
-export function digitGroupSeparator(): string {
-  const parts = new Intl.NumberFormat(intlLocale()).formatToParts(10_000);
-  const group = parts.find((part) => part.type === "group");
-  if (group === undefined) {
+/** How the active language groups the digits of a whole number: the character between groups, such as the dot in 100.000.000, and the number of digits in each group after the first, so that a parser can read a number as a person writes it. */
+export function digitGrouping(): { separator: string; size: number } {
+  const locale = intlLocale();
+  // Some languages group the digits of a number only from five digits, so a million shows the groups in every language that has them.
+  const million = 1_000_000;
+  let separator: string | undefined;
+  let lastGroup = "";
+  for (const part of new Intl.NumberFormat(locale).formatToParts(million)) {
+    if (part.type === "group") {
+      separator = part.value;
+    }
+    if (part.type === "integer") {
+      lastGroup = part.value;
+    }
+  }
+  if (separator === undefined) {
     throw new Error(
-      `Intl writes 10000 in ${intlLocale()} without a group separator, but every language of Portolab groups digits.`,
+      `The number format of ${locale} writes a million without a separator of digit groups.`,
     );
   }
-  return group.value;
+  return { separator, size: lastGroup.length };
+}
+
+export function formatNumber(value: number): string {
+  return new Intl.NumberFormat(intlLocale()).format(value);
 }
 
 export function formatIndexLevel(level: IndexPoints): string {
