@@ -1,12 +1,13 @@
 import { expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import { startingCashLimits } from "../app/features/classes/class-rules.ts";
+import { joinPath } from "../app/features/classes/join-code.ts";
 
-/** A class that a test created, with the path of its page and what its lecturer shares. */
+/** A class that a test created, with the path of its page, the code that its lecturer shares, and the path that joins it on the site that the test opened. */
 export interface TestClass {
   path: string;
   joinCode: string;
-  joinAddress: string;
+  joinPath: string;
 }
 
 /** Creates a class from the classes page of a lecturer who is signed in, and returns it from its page. The class has the most starting cash that Portolab accepts, so each screen that shows the amount is checked with its widest content. */
@@ -20,11 +21,17 @@ export async function createTestClass(
     .locator('main input[name="startingCash"]')
     .fill(String(startingCashLimits.maximum));
   await page.locator("main form button[type=submit]").click();
+  return readTestClass(page);
+}
+
+/** Reads a class from its page, which its lecturer opened. */
+export async function readTestClass(page: Page): Promise<TestClass> {
   await expect(page).toHaveURL(/\/classes\/\d+$/);
-  const shared = page.locator("main dd");
+  const joinCode = await page.locator("main dd").first().innerText();
+  // The address that the page shows depends on the host that the lecturer opened, which the tests of that address check, so the other tests join at the path on the site that they opened.
   return {
     path: new URL(page.url()).pathname,
-    joinCode: await shared.nth(0).innerText(),
-    joinAddress: await shared.nth(1).innerText(),
+    joinCode,
+    joinPath: joinPath(joinCode),
   };
 }
