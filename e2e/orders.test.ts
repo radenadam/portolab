@@ -1,27 +1,20 @@
 import { expect, test } from "@playwright/test";
 import type { Browser, Page } from "@playwright/test";
-import { nameMaximumLength } from "../app/features/accounts/account-limits.ts";
-import { classNameMaximumLength } from "../app/features/classes/class-rules.ts";
 import type { ClassId } from "../app/features/classes/classes.schema.ts";
 import { languageNames } from "../app/language-names.ts";
 import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
-import { successValueForTest } from "../app/success-value-for-test.ts";
 import { rupiah } from "../app/units/rupiah.ts";
 import { shares } from "../app/units/shares.ts";
-import { parseRecordId } from "../app/value-parsers.ts";
-import { joinAsNewStudent, signInAsNewLecturer } from "./accounts.ts";
-import { chooseLanguage } from "./choose-language.ts";
-import { createTestClass } from "./create-test-class.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
-import { newDevice } from "./new-device.ts";
+import { expectMissingPage } from "./expect-missing-page.ts";
+import { expectPageHeadings } from "./expect-page-headings.ts";
 import { storeTestHolding } from "./store-test-holding.ts";
-import { wideWord } from "./wide-word.ts";
+import { studentOfNewClass } from "./student-of-new-class.ts";
+import { widestClassNames } from "./widest-class-names.ts";
 
 // The server runs with the fixture price source, whose quotes are the closes of Friday 30 October 2026, which fixture-price-source.server.ts records. They are from no session of the trading day of an order that a test places, so every order waits. The global setup stores the month-end closes that give BBCA enough monthly returns and AADI too few. The class has the most starting cash that Portolab accepts, and the purchase has the largest order that IDX accepts at the highest price of the stocks that a student can buy, so the screens show their widest amounts. A text with a part that the test cannot know in advance, such as the time of an order, is the tuple of its other parts.
-const className = wideWord("Kelas", classNameMaximumLength);
-const lecturerName = wideWord("Dosen", nameMaximumLength);
-const studentName = wideWord("Mahasiswa", nameMaximumLength);
+const { className } = widestClassNames;
 
 // The fixture records GOTO at Rp24, at which the starting cash of Rp1,000,000,000,000 buys at most 416,042,602 lots with the broker fee of 0.15%, which costs Rp999,999,998,167 and leaves Rp1,833, as the decimal module of Python computed with ROUND_HALF_UP. It is the largest holding, in shares and in cost, that the cash of a class can buy at a price of the fixture.
 const widestHolding = {
@@ -261,18 +254,15 @@ async function openOrdersOfNewStudent(
   browser: Browser,
   locale: Locale,
 ): Promise<{ student: Page; classId: ClassId; classPath: string }> {
-  await chooseLanguage(page, locale);
-  await signInAsNewLecturer(page, lecturerName);
-  const testClass = await createTestClass(page, className);
-  const student = await newDevice(browser, locale);
-  await joinAsNewStudent(student, testClass.joinPath, studentName);
-  await student.getByRole("link", { name: texts[locale].ordersLink }).click();
-  await expect(student).toHaveURL(`${testClass.path}/orders`);
-  const classId = successValueForTest(
-    parseRecordId<ClassId>(testClass.path.split("/").at(-1), "classId"),
-    "The address of the class ends in its id",
-  );
-  return { student, classId, classPath: testClass.path };
+  const joined = await studentOfNewClass(page, browser, {
+    locale,
+    ...widestClassNames,
+  });
+  await joined.student
+    .getByRole("link", { name: texts[locale].ordersLink })
+    .click();
+  await expect(joined.student).toHaveURL(`${joined.classPath}/orders`);
+  return joined;
 }
 
 /** Fills the order form with the fields that a test gives and sends it. The form chooses a market order until the test chooses a limit order. */
@@ -325,15 +315,10 @@ for (const locale of locales) {
     browser,
   }) => {
     const { student } = await openOrdersOfNewStudent(page, browser, locale);
-    await expect(student).toHaveTitle(`${text.title} | Portolab`);
-    await expect(
-      student.getByRole("heading", { level: 1, name: text.title }),
-    ).toBeVisible();
-    for (const heading of text.headings) {
-      await expect(
-        student.getByRole("heading", { level: 2, name: heading, exact: true }),
-      ).toBeVisible();
-    }
+    await expectPageHeadings(student, {
+      title: text.title,
+      headings: text.headings,
+    });
     await expect(
       student.getByRole("link", { name: text.backLink }),
     ).toBeVisible();
@@ -457,9 +442,7 @@ for (const locale of locales) {
       [page, `${classPath}/orders`],
       [student, "/classes/999999999/orders"],
     ] as const) {
-      const answer = await reader.goto(path);
-      expect(answer?.status()).toBe(404);
-      await expect(reader).toHaveTitle(`${text.notFoundTitle} | Portolab`);
+      await expectMissingPage(reader, path, text.notFoundTitle);
     }
     await student.context().close();
   });

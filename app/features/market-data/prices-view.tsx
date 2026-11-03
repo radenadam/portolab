@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
+import { ChangeText } from "~/change-text";
+import tableStyles from "~/data-table.module.css";
 import {
   formatIndexLevel,
-  formatList,
   formatMarketClock,
   formatMarketTime,
   formatMarketTimeParts,
@@ -9,16 +10,13 @@ import {
   formatRupiah,
   formatSignedPercent,
 } from "~/formatting";
-import { countedText } from "~/counted-text";
-import type { CountedMessages } from "~/counted-text";
-import type { ChangeDirection } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { isSameWibDay } from "./idx-calendar";
 import type { PriceSourceDescription, Quote } from "./price-source.server";
 import styles from "./prices-view.module.css";
 import { quoteChange } from "./quote-change";
+import { nextAttemptSentence, quoteFailureText } from "./quote-failure-text";
 import type { UpdateAttempt } from "./update-attempts.server";
-import { nextScheduledAttempt } from "./update-schedule";
 
 interface PricesViewProps {
   quotes: readonly Quote[];
@@ -36,6 +34,10 @@ export function PricesView({
   source,
 }: PricesViewProps): ReactNode {
   const latestQuotedAt = latestQuoteTime(quotes);
+  const failure = quoteFailureText(latestAttempt, quotes, {
+    now,
+    delayMinutes: source.delayMinutes,
+  });
   return (
     <>
       <h1>{m.market_data_page_title()}</h1>
@@ -52,15 +54,9 @@ export function PricesView({
         </p>
       ) : (
         <>
-          {latestAttempt !== undefined &&
-            latestAttempt.failedCodes.length > 0 && (
-              <p className={styles["notice"]}>
-                {[
-                  ...failedPriceSentences(latestAttempt, quotes),
-                  nextAttemptSentence(latestAttempt, now, source.delayMinutes),
-                ].join(" ")}
-              </p>
-            )}
+          {failure !== undefined && (
+            <p className={styles["notice"]}>{failure}</p>
+          )}
           <p className={styles["notice"]}>
             {m.market_data_delay_notice({
               minutes: formatNumber(source.delayMinutes),
@@ -68,7 +64,7 @@ export function PricesView({
               time: formatMarketTime(latestQuotedAt),
             })}
           </p>
-          <table className={styles["table"]}>
+          <table className={tableStyles["table"]}>
             <thead>
               <tr>
                 <th scope="col">{m.market_data_code_label()}</th>
@@ -93,68 +89,6 @@ export function PricesView({
   );
 }
 
-// A sentence that calls the price below an older one would be false for a price that Portolab never stored, because that price has no row.
-function failedPriceSentences(
-  attempt: UpdateAttempt,
-  quotes: readonly Quote[],
-): string[] {
-  const time = formatMarketTime(attempt.attemptedAt);
-  const staleCodes: string[] = [];
-  const missingCodes: string[] = [];
-  for (const code of attempt.failedCodes) {
-    if (quotes.some((quote) => quote.code === code)) {
-      staleCodes.push(code);
-    } else {
-      missingCodes.push(code);
-    }
-  }
-  const sentences: string[] = [];
-  if (!attempt.succeeded) {
-    sentences.push(m.market_data_update_failed_notice({ time }));
-  } else if (staleCodes.length > 0) {
-    sentences.push(
-      sentenceForCodes(staleCodes, time, {
-        one: m.market_data_one_stale_price_notice,
-        several: m.market_data_several_stale_prices_notice,
-      }),
-    );
-  }
-  if (missingCodes.length > 0) {
-    sentences.push(
-      sentenceForCodes(missingCodes, time, {
-        one: m.market_data_one_missing_price_notice,
-        several: m.market_data_several_missing_prices_notice,
-      }),
-    );
-  }
-  return sentences;
-}
-
-function sentenceForCodes(
-  codes: readonly string[],
-  time: string,
-  messages: CountedMessages<{ codes: string; time: string }>,
-): string {
-  return countedText(codes.length, messages, {
-    codes: formatList(codes, "conjunction"),
-    time,
-  });
-}
-
-// The time comes from the schedule that the job follows, so the page never promises an attempt that the job does not make. Once that time has come, the job is making the attempt, because the page shows the latest attempt that the job finished.
-function nextAttemptSentence(
-  attempt: UpdateAttempt,
-  now: Date,
-  delayMinutes: number,
-): string {
-  const nextAttempt = nextScheduledAttempt(attempt, delayMinutes);
-  return nextAttempt <= now
-    ? m.market_data_attempting_now_notice()
-    : m.market_data_next_attempt_notice({
-        nextTime: formatMarketTime(nextAttempt),
-      });
-}
-
 function latestQuoteTime(quotes: readonly Quote[]): Date | undefined {
   let latest: Date | undefined;
   for (const quote of quotes) {
@@ -173,20 +107,18 @@ function QuoteRow({
   quote: Quote;
   latestQuotedAt: Date;
 }): ReactNode {
-  const change = formatSignedPercent(quoteChange(quote));
   return (
     <tr>
       <th scope="row">{quote.code}</th>
-      <td className={styles["number"]}>
+      <td className={tableStyles["number"]}>
         {quote.kind === "stock"
           ? formatRupiah(quote.price)
           : formatIndexLevel(quote.level)}
       </td>
-      <td className={styles["number"]}>
-        <ChangeArrow direction={change.direction} />
-        {change.text}
+      <td className={tableStyles["number"]}>
+        <ChangeText change={formatSignedPercent(quoteChange(quote))} />
       </td>
-      <td className={styles["time"]}>
+      <td className={tableStyles["wrappingNumber"]}>
         <QuoteTime
           quotedAt={quote.quotedAt}
           isNewestDay={isSameWibDay(quote.quotedAt, latestQuotedAt)}
@@ -215,20 +147,5 @@ function QuoteTime({
       <span className={styles["date"]}>{date}</span>
       <span className={styles["clock"]}>{clock}</span>
     </>
-  );
-}
-
-const arrows: Record<ChangeDirection, string | undefined> = {
-  rise: "▲",
-  fall: "▼",
-  none: undefined,
-};
-
-// The arrow repeats the sign that the change shows for sighted readers, so screen readers skip it.
-function ChangeArrow({ direction }: { direction: ChangeDirection }): ReactNode {
-  const arrow = arrows[direction];
-  // The space belongs to the arrow, so a change without an arrow starts with its number.
-  return arrow === undefined ? null : (
-    <span aria-hidden="true">{`${arrow} `}</span>
   );
 }

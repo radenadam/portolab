@@ -83,7 +83,7 @@ async function studentRequestForTest(): Promise<{
     database,
     request: (fields, now) => ({
       form: formDataForTest(fields),
-      place: { classId, className: "A", owner },
+      place: { classId, owner },
       now,
     }),
   };

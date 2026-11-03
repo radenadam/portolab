@@ -10,6 +10,7 @@ import { m } from "~/paraglide/messages.js";
 import type { Rupiah } from "~/units/rupiah";
 import { parseRecordId } from "~/value-parsers";
 import { ordersPath } from "~/features/trading/orders-path";
+import { portfolioPath } from "~/features/trading/portfolio-path";
 import type { Route } from "./+types/class-page";
 import {
   findJoinedClass,
@@ -106,6 +107,9 @@ export default function ClassPage({
               time: formatMarketTime(loaderData.joinedAt),
             })}
           </p>
+          <Link to={portfolioPath(loaderData.id)} className={styles["link"]}>
+            {m.classes_portfolio_link()}
+          </Link>
           <Link to={ordersPath(loaderData.id)} className={styles["link"]}>
             {m.classes_orders_link()}
           </Link>

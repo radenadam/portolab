@@ -7,7 +7,9 @@ import {
   openDatabase,
 } from "../app/database/database.server.ts";
 import { migrationsFolderName } from "../app/database/migrations-folder-name.ts";
+import { fixtureHistory } from "../app/features/market-data/fixture-history.ts";
 import { saveDailyHistory } from "../app/features/market-data/history-store.server.ts";
+import { marketIndex } from "../app/features/market-data/tracked-instruments.ts";
 import { monthEndClosesForTest } from "../app/features/measures/month-end-closes-for-test.ts";
 import { waitForHealth, watchExit } from "../scripts/wait-for-health.ts";
 import { baseUrl, databasePathVariable, serverPort } from "./test-server.ts";
@@ -33,7 +35,7 @@ export default async function globalSetup(): Promise<() => Promise<void>> {
   const folder = mkdtempSync(join(tmpdir(), "portolab-e2e-"));
   const databasePath = join(folder, "portolab.sqlite");
   try {
-    storeMonthEndCloses(databasePath);
+    storeClosesOfTests(databasePath);
   } catch (error) {
     rmSync(folder, { recursive: true, force: true });
     throw error;
@@ -79,14 +81,24 @@ export default async function globalSetup(): Promise<() => Promise<void>> {
   }
 }
 
-/** Stores the recorded month-end closes of the IHSG, of BBCA, which has the monthly returns that a purchase needs, and of AADI, which has too few. The history job of the server asks the fixture source for the closes of the latest trading day, which its closes of October 2026 lack, so it stores none, and a purchase needs these. */
-function storeMonthEndCloses(databasePath: string): void {
+/** Stores the recorded month-end closes of the IHSG, of BBCA, which has the monthly returns that a purchase needs, and of AADI, which has too few, and the closes of the IHSG and ITMG in the last week of October 2026 that the fixture source records, which the chart of a portfolio needs. The history job of the server asks the fixture source for the closes of the latest trading day, which its closes of October 2026 lack, so it stores none. The closes of October leave that month without a later close of the IHSG, so the count of monthly returns stays as the month-end closes give it. */
+function storeClosesOfTests(databasePath: string): void {
   const database = openDatabase(
     databasePath,
     join(import.meta.dirname, "..", migrationsFolderName),
   );
   for (const code of ["IHSG", "BBCA", "AADI"] as const) {
     saveDailyHistory(database, monthEndClosesForTest(code));
+  }
+  for (const instrument of [
+    marketIndex,
+    { kind: "stock", code: "ITMG" },
+  ] as const) {
+    const history = fixtureHistory(instrument, "2026-10-26");
+    if (history === undefined) {
+      throw new Error(`The fixture records no closes of ${instrument.code}.`);
+    }
+    saveDailyHistory(database, history);
   }
   closeDatabase(database);
 }

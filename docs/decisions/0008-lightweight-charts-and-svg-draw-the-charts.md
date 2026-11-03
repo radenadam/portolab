@@ -1,6 +1,6 @@
 # 0008. Lightweight Charts and SVG draw the charts
 
-- Status: Accepted
+- Status: Accepted. [Decision 0019](0019-a-table-of-points-makes-a-time-chart-accessible.md) changes one of its rules: how a chart with time on its horizontal axis is accessible.
 - Date: 2026-10-31
 
 ## Context

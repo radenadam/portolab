@@ -42,16 +42,13 @@ export function HoldingList({
   orders,
   now,
 }: Omit<PortfolioAtMoment, "cash">): ReactNode {
-  if (holdings.length === 0) {
-    return <p>{m.trading_no_holdings_body()}</p>;
-  }
   return (
-    <ul className={styles["list"]}>
-      {holdings.map((holding) => {
+    <HoldingItems
+      holdings={holdings}
+      details={(holding) => {
         const setAside = sharesSetAside(orders, holding.code, now);
         return (
-          <li key={holding.code} className={styles["item"]}>
-            <p className={styles["title"]}>{holding.code}</p>
+          <>
             <p className={styles["details"]}>
               {m.trading_holding_notice({
                 shares: shareCount(holding.shares),
@@ -70,9 +67,32 @@ export function HoldingList({
                 )}
               </p>
             )}
-          </li>
+          </>
         );
-      })}
+      }}
+    />
+  );
+}
+
+/** The holdings of a portfolio, each under its code with the details that a page shows of it, or the sentence that the portfolio holds no shares. */
+export function HoldingItems<Item extends { code: string }>({
+  holdings,
+  details,
+}: {
+  holdings: readonly Item[];
+  details: (holding: Item) => ReactNode;
+}): ReactNode {
+  if (holdings.length === 0) {
+    return <p>{m.trading_no_holdings_body()}</p>;
+  }
+  return (
+    <ul className={styles["list"]}>
+      {holdings.map((holding) => (
+        <li key={holding.code} className={styles["item"]}>
+          <p className={styles["title"]}>{holding.code}</p>
+          {details(holding)}
+        </li>
+      ))}
     </ul>
   );
 }

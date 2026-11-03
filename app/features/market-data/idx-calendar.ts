@@ -169,7 +169,16 @@ function finalAt(
 
 /** The trading day before a date, such as 2026-10-30 for Monday 2026-11-02. It fails when the search reaches a date that no calendar covers. */
 export function tradingDayBefore(date: string): Result<string, string> {
-  return searchDays(addDays(date, -1), -1, (calendar, candidate) =>
+  return nextTradingDay(date, -1);
+}
+
+/** The trading day after a date, such as 2026-11-02 for Friday 2026-10-30. It fails when the search reaches a date that no calendar covers. */
+export function tradingDayAfter(date: string): Result<string, string> {
+  return nextTradingDay(date, 1);
+}
+
+function nextTradingDay(date: string, step: 1 | -1): Result<string, string> {
+  return searchDays(addDays(date, step), step, (calendar, candidate) =>
     isTradingDayIn(calendar, candidate) ? candidate : undefined,
   );
 }

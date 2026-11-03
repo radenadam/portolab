@@ -6,7 +6,7 @@ Portolab is made for lecturers and students of portfolio management courses at I
 
 ## Status
 
-Portolab is in early development. It shows delayed prices of the stocks in the LQ45 index and of the IHSG, and it keeps their daily closes for the measures of the course. Lecturers create classes, and students join them with a code. In a class, a student places market and limit orders under the rules of IDX, which fill at delayed prices, and sees the cash and the holdings that the orders leave. Portolab does not yet show a portfolio over time or its measures. The first release, planned for November 2026, serves the course sessions on CAPM and on portfolio return and risk. [`docs/product.md`](docs/product.md) describes what Portolab will do and what it deliberately will not do.
+Portolab is in early development. It shows delayed prices of the stocks in the LQ45 index and of the IHSG, and it keeps their daily closes for the measures of the course. Lecturers create classes, and students join them with a code. In a class, a student places market and limit orders under the rules of IDX, which fill at delayed prices, and sees the value of the portfolio that they leave and its return against the IHSG at each daily close. Portolab does not yet show the measures of a portfolio. The first release, planned for November 2026, serves the course sessions on CAPM and on portfolio return and risk. [`docs/product.md`](docs/product.md) describes what Portolab will do and what it deliberately will not do.
 
 ## Run it
 

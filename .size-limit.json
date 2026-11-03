@@ -1,8 +1,17 @@
 [
   {
     "name": "Client JavaScript",
-    "path": "build/client/assets/*.js",
+    "path": [
+      "build/client/assets/*.js",
+      "!build/client/assets/lightweight-charts.*.js"
+    ],
     "limit": "200 kB",
+    "gzip": true
+  },
+  {
+    "name": "Chart library",
+    "path": "build/client/assets/lightweight-charts.*.js",
+    "limit": "65 kB",
     "gzip": true
   },
   {

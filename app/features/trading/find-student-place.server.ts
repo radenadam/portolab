@@ -7,11 +7,12 @@ import type { ClassId } from "~/features/classes/classes.schema";
 import { parseRecordId } from "~/value-parsers";
 import type { PortfolioOwner } from "./portfolio-store.server";
 
-/** A class that the student who is signed in joined, with the portfolio of the student in it. */
+/** A class that the student who is signed in joined, with the portfolio of the student in it and the time when the student joined, from which the return of the portfolio counts. */
 export interface StudentPlace {
   classId: ClassId;
   className: string;
   owner: PortfolioOwner;
+  joinedAt: Date;
 }
 
 /** The class of an address and the portfolio of the student who is signed in. A lecturer, a class that does not exist, and a class that the student did not join answer as an address that does not exist, so a guessed address reveals nothing. The url is the one that React Router gives a loader or an action. */
@@ -41,5 +42,6 @@ export function findStudentPlace(
       membershipId: joined.membershipId,
       startingCash: joined.startingCash,
     },
+    joinedAt: joined.joinedAt,
   };
 }
