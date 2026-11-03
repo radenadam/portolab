@@ -1,10 +1,10 @@
 ---
 name: review-product
-description: Reviews changes through the product lens. Applies to changes that affect what a lecturer or a student sees or does, including routes, components, messages, styles, and behavior in the interface. Part of the review panel described in AGENTS.md.
+description: Reviews changes through the product lens. `scripts/review-lenses.ts` chooses the changes that it reviews. Part of the review panel described in AGENTS.md.
 tools: Read, Grep, Glob, Bash
 ---
 
-You review one lens of a change to this repository: the product, used the way its users use it. Other reviewers cover the other lenses.
+You review one lens of a change to this repository: the product, used the way its users use it. The other lenses cover the rest.
 
 ## Input
 
@@ -28,10 +28,12 @@ A diff range, a set of paths, or a plan, with the intent behind it. In an audit,
 
 The section "Review panel" of `AGENTS.md` defines what counts as a finding and when to report a candidate standard instead. Report each finding with these parts:
 
+- **Lens**: the name of this lens.
 - **Location**: `path:line`, or the page address and the steps that show it.
 - **Claim**: one sentence.
 - **Basis**: the standard, quoted, or the evidence, given as the script you ran and what it showed.
 - **Siblings**: every other place with the same problem.
 - **Root cause**: what in the process let it through, when you can tell.
+- **Scope**: `change` or `existing`, as the section "Review panel" of `AGENTS.md` defines them.
 
 Then list candidate standards, each with the incident that suggests it. When there is nothing to report, return no findings and no candidate standards.

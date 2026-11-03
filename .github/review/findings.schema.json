@@ -6,13 +6,34 @@
       "items": {
         "type": "object",
         "properties": {
+          "lens": {
+            "type": "string",
+            "enum": [
+              "architecture",
+              "consistency",
+              "craft",
+              "docs",
+              "product",
+              "reliability",
+              "standards"
+            ]
+          },
           "location": { "type": "string" },
           "claim": { "type": "string" },
           "basis": { "type": "string" },
           "siblings": { "type": "array", "items": { "type": "string" } },
-          "rootCause": { "type": "string" }
+          "rootCause": { "type": "string" },
+          "scope": { "type": "string", "enum": ["change", "existing"] }
         },
-        "required": ["location", "claim", "basis", "siblings", "rootCause"]
+        "required": [
+          "lens",
+          "location",
+          "claim",
+          "basis",
+          "siblings",
+          "rootCause",
+          "scope"
+        ]
       }
     },
     "candidateStandards": {
