@@ -1,18 +1,18 @@
 import { writeFileSync } from "node:fs";
 import { exitWithFailure } from "../app/exit-with-failure.server.ts";
 import { parseJsonWith } from "./json.ts";
-import { parseVerifiedFindings } from "./review-inputs.ts";
+import { parseVerdicts } from "./review-findings.ts";
 import { writeScriptFailure } from "./write-script-failure.ts";
 
-const verified = parseJsonWith(
+const verdicts = parseJsonWith(
   process.env["VERIFIER_OUTPUT"],
   "VERIFIER_OUTPUT",
-  parseVerifiedFindings,
+  parseVerdicts,
 );
-if (!verified.ok) {
-  exitWithFailure([verified.failure], writeScriptFailure);
+if (!verdicts.ok) {
+  exitWithFailure([verdicts.failure], writeScriptFailure);
 }
 writeFileSync(
-  "verified.json",
-  JSON.stringify({ findings: verified.value }, null, 2),
+  "review/verdicts.json",
+  JSON.stringify({ verdicts: verdicts.value }, null, 2),
 );

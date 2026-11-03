@@ -1,16 +1,16 @@
-import type { LensReport } from "./lens-reports.ts";
-import type { VerifiedFinding } from "./review-inputs.ts";
 import { countOf, listOfWords, singularOrPlural } from "../app/sentences.ts";
+import { judgeReview } from "./judge-review.ts";
+import type { ReviewInput, VerifiedFinding } from "./judge-review.ts";
+import type { FindingsToVerify } from "./review-findings.ts";
+import { reviewRoundLimit } from "./review-plan.ts";
+import type { ReviewPlan } from "./review-plan.ts";
+import type { ReviewState } from "./review-state.ts";
 
-export interface ReviewInput {
-  /** The result of each job of the panel, such as "success" or "failure". */
-  jobResults: Record<string, string>;
-  /** The lenses that the router chose, each of which must have reported. */
-  expectedLenses: string[];
-  reports: LensReport[];
-  verifiedFindings: VerifiedFinding[] | undefined;
-  /** Inputs that could not be read, each as one sentence. */
-  inputProblems: string[];
+/** What a round found outside the change, which an issue records. */
+interface OutsideFindings {
+  round: number;
+  findings: VerifiedFinding[];
+  candidateStandards: FindingsToVerify["candidateStandards"];
 }
 
 export interface ReviewOutcome {
@@ -18,156 +18,159 @@ export interface ReviewOutcome {
   /** One sentence that says why the review passed or failed. */
   verdict: string;
   body: string;
+  /** The state that the next round reads, or undefined when this run leaves the state as it was. */
+  state: ReviewState | undefined;
+  outside: OutsideFindings;
 }
 
-const passedVerdict = "No verified finding remains.";
-
 export function summarizeReview(input: ReviewInput): ReviewOutcome {
-  const verifiedFindings = input.verifiedFindings ?? [];
-  const confirmed = verifiedFindings.filter(
-    (finding) => finding.status === "confirmed",
-  );
-  const verdict = verdictSentence(input, confirmed.length);
-  const passed = verdict === passedVerdict;
-  const lenses = input.reports.map((report) => report.lens).join(", ");
+  const judgement = judgeReview(input);
   const body = [
     "## Review panel",
     "",
-    `**${passed ? "Passed" : "Failed"}.** ${verdict}`,
+    `**${judgement.passed ? "Passed" : "Failed"}.** ${judgement.verdict}`,
     "",
-    `Lenses that ran: ${lenses === "" ? "none" : lenses}.`,
-    ...confirmedSection(confirmed),
-    ...dismissedSection(verifiedFindings),
-    ...candidateSection(input.reports),
+    [scopeSentence(input.plan), ...input.runs].join(" "),
+    ...blockingSection(judgement.blocking),
+    ...fixedSection(judgement.fixed),
+    ...dismissedSection(judgement.verified),
   ].join("\n");
-  return { passed, verdict, body };
+  return {
+    passed: judgement.passed,
+    verdict: judgement.verdict,
+    body,
+    state: judgement.state,
+    outside: {
+      round: input.plan.round,
+      findings: judgement.verified.filter(
+        (finding) =>
+          finding.status === "confirmed" && finding.scope === "existing",
+      ),
+      // A round that did not finish runs again, and then it reports its candidate standards again.
+      candidateStandards: judgement.hasFinished
+        ? (input.toVerify?.candidateStandards ?? [])
+        : [],
+    },
+  };
 }
 
-function verdictSentence(input: ReviewInput, confirmedCount: number): string {
-  const unfinishedJobs = Object.entries(input.jobResults)
-    .filter(([, result]) => result !== "success")
-    .map(([job]) => job);
-  if (unfinishedJobs.length > 0) {
-    return `The ${listOfWords(unfinishedJobs)} ${singularOrPlural(unfinishedJobs.length, "job", "jobs")} of the panel did not finish, so this change has not been reviewed.`;
+function scopeSentence(plan: ReviewPlan): string {
+  const commits =
+    plan.since === undefined
+      ? "the whole change"
+      : `the commits since ${plan.since}`;
+  const unreviewed = plan.hasUnreviewedFiles
+    ? ` No agent reviewed ${commits}, because the panel has used its ${countOf(reviewRoundLimit, "review round", "review rounds")}.`
+    : "";
+  switch (plan.kind) {
+    case "review":
+      return `Round ${String(plan.round)} reviewed ${commits} through the ${listOfWords(plan.lenses)} ${singularOrPlural(plan.lenses.length, "lens", "lenses")}.`;
+    case "check":
+      return `Round ${String(plan.round)} only checked the open findings.${unreviewed}`;
+    case "pass":
+      if (plan.hasUnreviewedFiles) {
+        return `No agent ran, because no finding is open.${unreviewed}`;
+      }
+      return plan.since === undefined
+        ? "No agent ran, because the pull request changes no file and no finding is open."
+        : `No agent ran, because the commits since ${plan.since} changed no file of the pull request and no finding is open.`;
+    case "capped":
+      return `No agent ran.${unreviewed}`;
   }
-  // Each input problem is a whole sentence, so all of them reach the review and the log of the run.
-  if (input.inputProblems.length > 0) {
-    return input.inputProblems.join(" ");
-  }
-  // A missing input is a failure, never an empty one, because a silent failure to download it would otherwise pass the gate.
-  const silentLenses = input.expectedLenses.filter(
-    (lens) => !input.reports.some((report) => report.lens === lens),
-  );
-  if (silentLenses.length > 0) {
-    return `The panel has no report from the ${listOfWords(silentLenses)} ${singularOrPlural(silentLenses.length, "lens", "lenses")}.`;
-  }
-  if (input.verifiedFindings === undefined) {
-    return "The verifier's output is missing, so no finding has been verified.";
-  }
-  const coverage = coverageProblem(input.reports, input.verifiedFindings);
-  if (coverage !== undefined) {
-    return coverage;
-  }
-  if (confirmedCount > 0) {
-    return `${countOf(confirmedCount, "verified finding remains", "verified findings remain")}.`;
-  }
-  return passedVerdict;
 }
 
-/** Returns a sentence when the verifier did not give exactly one verdict for each reported finding, or when a duplicate points at no confirmed finding. */
-function coverageProblem(
-  reports: LensReport[],
-  verifiedFindings: VerifiedFinding[],
-): string | undefined {
-  const reportedIds = new Set<string>();
-  for (const report of reports) {
-    for (const finding of report.findings) {
-      reportedIds.add(finding.id);
-    }
+/** The lines of one finding in a numbered list, which the review and the issue share. */
+function findingLines(finding: VerifiedFinding, position: number): string[] {
+  const lines = [
+    "",
+    `${String(position)}. \`${finding.location}\` (${finding.lens}, finding ${finding.id}): ${finding.claim}`,
+    `   - Basis: ${finding.basis}`,
+    `   - Evidence: ${finding.evidence}`,
+  ];
+  if (finding.siblings.length > 0) {
+    lines.push(`   - Siblings: ${finding.siblings.join(", ")}`);
   }
-  const verdictIds = verifiedFindings.map((finding) => finding.id);
-  const missing = [...reportedIds].filter((id) => !verdictIds.includes(id));
-  const unknown = verdictIds.filter((id) => !reportedIds.has(id));
-  const repeated = verdictIds.filter(
-    (id, index) => verdictIds.indexOf(id) !== index,
-  );
-  if (missing.length > 0 || unknown.length > 0 || repeated.length > 0) {
-    return `The verifier must give exactly one verdict for each reported finding, so its answer cannot be trusted. Missing: ${listOrNone(missing)}. Unknown: ${listOrNone(unknown)}. Repeated: ${listOrNone(repeated)}.`;
-  }
-  const confirmedIds = new Set(
-    verifiedFindings
-      .filter((finding) => finding.status === "confirmed")
-      .map((finding) => finding.id),
-  );
-  const orphans = verifiedFindings.filter(
-    (finding) =>
-      finding.status === "duplicate" && !confirmedIds.has(finding.duplicateOf),
-  );
-  if (orphans.length > 0) {
-    const orphanIds = orphans.map((finding) => finding.id);
-    return `A duplicate must repeat a confirmed finding, but ${listOfWords(orphanIds)} ${singularOrPlural(orphans.length, "repeats", "repeat")} none.`;
-  }
-  return undefined;
-}
-
-function confirmedSection(confirmed: VerifiedFinding[]): string[] {
-  if (confirmed.length === 0) {
-    return [];
-  }
-  const lines = ["", "### Verified findings"];
-  for (const [index, finding] of confirmed.entries()) {
-    lines.push(
-      "",
-      `${String(index + 1)}. \`${finding.location}\` (${finding.lens}): ${finding.claim}`,
-      `   - Basis: ${finding.basis}`,
-      `   - Evidence: ${finding.evidence}`,
-    );
-    if (finding.siblings.length > 0) {
-      lines.push(`   - Siblings: ${finding.siblings.join(", ")}`);
-    }
-    if (finding.rootCause !== "") {
-      lines.push(`   - Root cause: ${finding.rootCause}`);
-    }
+  if (finding.rootCause !== "") {
+    lines.push(`   - Root cause: ${finding.rootCause}`);
   }
   return lines;
 }
 
-function dismissedSection(verifiedFindings: VerifiedFinding[]): string[] {
-  const refutedCount = verifiedFindings.filter(
+function numberedFindings(findings: readonly VerifiedFinding[]): string[] {
+  const lines: string[] = [];
+  for (const [index, finding] of findings.entries()) {
+    lines.push(...findingLines(finding, index + 1));
+  }
+  return lines;
+}
+
+function blockingSection(blocking: readonly VerifiedFinding[]): string[] {
+  return blocking.length === 0
+    ? []
+    : [
+        "",
+        "### Verified findings in the change",
+        ...numberedFindings(blocking),
+      ];
+}
+
+function fixedSection(fixed: readonly VerifiedFinding[]): string[] {
+  if (fixed.length === 0) {
+    return [];
+  }
+  const lines = ["", "### Fixed since the last round", ""];
+  for (const finding of fixed) {
+    lines.push(
+      `- Finding ${finding.id}, \`${finding.location}\`: ${finding.evidence}`,
+    );
+  }
+  return lines;
+}
+
+function dismissedSection(verified: readonly VerifiedFinding[]): string[] {
+  const refutedCount = verified.filter(
     (finding) => finding.status === "refuted",
   ).length;
-  const duplicateCount = verifiedFindings.filter(
+  const duplicateCount = verified.filter(
     (finding) => finding.status === "duplicate",
   ).length;
-  const confirmedCount = verifiedFindings.filter(
-    (finding) => finding.status === "confirmed",
-  ).length;
-  const lines: string[] = [];
+  const sentences: string[] = [];
   if (refutedCount > 0) {
-    lines.push(
+    sentences.push(
       `The verifier refuted ${countOf(refutedCount, "finding", "findings")}.`,
     );
   }
   if (duplicateCount > 0) {
-    lines.push(
-      `The verifier merged ${countOf(duplicateCount, "duplicate finding", "duplicate findings")} into ${singularOrPlural(confirmedCount, "the finding", "the findings")} above.`,
+    sentences.push(
+      `The verifier merged ${countOf(duplicateCount, "duplicate finding", "duplicate findings")} into the findings that they repeat.`,
     );
   }
-  return lines.length > 0 ? ["", ...lines] : [];
+  return sentences.length > 0 ? ["", sentences.join(" ")] : [];
 }
 
-function candidateSection(reports: LensReport[]): string[] {
-  const lines: string[] = [];
-  for (const report of reports) {
-    for (const candidate of report.candidateStandards) {
-      lines.push(
-        `- ${candidate.standard} Suggested by the ${report.lens} lens, because of this incident: ${candidate.incident}`,
-      );
+/** The title and the body of the issue that records what a round found outside the change. */
+export function outsideIssue(
+  pullRequest: string,
+  outside: OutsideFindings,
+): { title: string; body: string } {
+  const lines = [
+    `The review panel found these in round ${String(outside.round)} of pull request #${pullRequest}. They lie outside its change, so they did not block it. A pull request of their own fixes each finding and adopts or declines each candidate standard.`,
+  ];
+  if (outside.findings.length > 0) {
+    lines.push(
+      "",
+      "## Verified findings",
+      ...numberedFindings(outside.findings),
+    );
+  }
+  if (outside.candidateStandards.length > 0) {
+    lines.push("", "## Candidate standards", "");
+    for (const candidate of outside.candidateStandards) {
+      lines.push(`- ${candidate.standard} Incident: ${candidate.incident}`);
     }
   }
-  return lines.length > 0 ? ["", "### Candidate standards", "", ...lines] : [];
-}
-
-function listOrNone(ids: string[]): string {
-  return ids.length > 0 ? ids.join(", ") : "none";
+  return {
+    title: `Fix what the review of pull request #${pullRequest} found outside it`,
+    body: lines.join("\n"),
+  };
 }

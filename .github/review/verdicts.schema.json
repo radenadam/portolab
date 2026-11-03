@@ -1,39 +1,31 @@
 {
   "type": "object",
   "properties": {
-    "findings": {
+    "verdicts": {
       "type": "array",
       "items": {
         "type": "object",
         "properties": {
           "id": { "type": "string" },
-          "lens": { "type": "string" },
-          "location": { "type": "string" },
-          "claim": { "type": "string" },
-          "basis": { "type": "string" },
-          "siblings": { "type": "array", "items": { "type": "string" } },
-          "rootCause": { "type": "string" },
           "status": {
             "type": "string",
             "enum": ["confirmed", "refuted", "duplicate"]
           },
+          "scope": { "type": "string", "enum": ["change", "existing"] },
+          "siblings": { "type": "array", "items": { "type": "string" } },
           "duplicateOf": { "type": "string" },
           "evidence": { "type": "string" }
         },
         "required": [
           "id",
-          "lens",
-          "location",
-          "claim",
-          "basis",
-          "siblings",
-          "rootCause",
           "status",
+          "scope",
+          "siblings",
           "duplicateOf",
           "evidence"
         ]
       }
     }
   },
-  "required": ["findings"]
+  "required": ["verdicts"]
 }

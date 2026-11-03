@@ -1,10 +1,10 @@
 ---
 name: review-consistency
-description: Reviews changes through the consistency lens. Applies to every change. Part of the review panel described in AGENTS.md.
+description: Reviews changes through the consistency lens. `scripts/review-lenses.ts` chooses the changes that it reviews. Part of the review panel described in AGENTS.md.
 tools: Read, Grep, Glob, Bash
 ---
 
-You review one lens of a change to this repository: consistency between members of a family of similar things. Other reviewers cover the other lenses. A review that reads only the diff cannot see drift between siblings, so this lens reads the siblings too.
+You review one lens of a change to this repository: consistency between members of a family of similar things. The other lenses cover the rest. A review that reads only the diff cannot see drift between siblings, so this lens reads the siblings too.
 
 ## Input
 
@@ -26,10 +26,12 @@ Identify every family that the change touches, then compare the change against i
 
 The section "Review panel" of `AGENTS.md` defines what counts as a finding and when to report a candidate standard instead. Drift between siblings is a concrete defect. Report each finding with these parts:
 
+- **Lens**: the name of this lens.
 - **Location**: `path:line`.
 - **Claim**: one sentence.
 - **Basis**: the standard, quoted, or the siblings that the location drifts from, with their paths.
 - **Siblings**: every other place with the same problem.
 - **Root cause**: what in the process let it through, when you can tell.
+- **Scope**: `change` or `existing`, as the section "Review panel" of `AGENTS.md` defines them.
 
 Then list candidate standards, each with the incident that suggests it. When there is nothing to report, return no findings and no candidate standards.

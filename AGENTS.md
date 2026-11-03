@@ -11,19 +11,24 @@ Every change, however small:
 1. Branch from an up-to-date `main` as `<type>/<summary-in-kebab-case>`. One coherent change goes on each branch. An improvement noticed along the way gets its own branch or a GitHub issue.
 2. Make the change complete: code, tests, and every doc, example, and standard that it affects. Nothing is left for a follow-up.
 3. Run `pnpm check`. It passes before every commit.
-4. Commit using Conventional Commits, push, and open a pull request titled with the final commit message. Its description explains why the change is needed, because it becomes the body of the squashed commit, so update it whenever a push changes what the pull request does. Before each push, compare it with `git diff origin/main...HEAD`, so that it names every change to a standard, a message, or a check, each in short sentences. Enable auto-merge with `gh pr merge --auto --squash`. The pull request merges when CI's check job and review job both pass. When the review job fails, fix each verified finding through the defect protocol and push again.
+4. Commit using Conventional Commits, push, and open a pull request titled with the final commit message. Its description explains why the change is needed, because it becomes the body of the squashed commit, so update it whenever a push changes what the pull request does. Before each push, compare it with `git diff origin/main...HEAD`, so that it names every change to a standard, a message, or a check, each in short sentences. Enable auto-merge with `gh pr merge --auto --squash`. The pull request merges when CI's check job and review job both pass. When the review job fails, fix each verified finding in the change through the defect protocol, and push all the fixes at once, because each push starts a round of the panel.
 
 Work that is noticed but not done becomes a GitHub issue: a flaw that is parked, an open question, or an idea. Nothing about the state of the project lives only in a conversation or in a comment in the code.
 
 ## Review panel
 
-The reviewers are in `.claude/agents/`. Each `review-*` file is one lens, and its description says which changes it applies to. `review-verifier` tries to refute each finding.
+The reviewers are in `.claude/agents/`. Each `review-*` file is one lens, and `scripts/review-lenses.ts` chooses the changes that each lens reviews. `review-verifier` tries to refute each finding.
 
-While working, call any lens whenever its view would help: on a plan before writing code, partway through a change, or before opening the pull request. Locally the choice is yours, and the gate is CI.
+The panel spends usage that other projects share, so it reads each line of a change once, as decision 0017 explains. Locally, call a lens only on a plan before code exists, because CI reviews every push.
 
-On every push to a pull request, the review workflow in CI runs the panel. A fresh agent, the router, picks the lenses: every lens whose description covers what the change touches, and every lens it is unsure about. `review-standards` and `review-consistency` always run. Each lens then runs as its own job with a fresh agent, the verifier checks every finding, and the `review` job posts one review on the pull request. The `review` job fails while any verified finding remains. It also fails when any part of the panel did not finish, because an unfinished lens has reviewed nothing, and when the verifier did not give exactly one verdict for each reported finding.
+On every push to a pull request, the `review` job in CI runs one round of the panel:
 
-A finding counts only when it names a standard in this repository or demonstrates a concrete defect, because preference without a standard behind it creates churn instead of quality. Every verified finding is fixed before merge, and there is no lower tier to defer. A lens that believes a standard is missing reports a candidate standard. Adopt it when it would have prevented a real defect, and take candidates that turn on taste to a maintainer. When a defect reaches `main` past the gate, the router or a lens missed it, so trace which one and fix it. An agent without subagents runs each lens file as a separate pass.
+- The first round reviews the whole change. A later round reviews only what changed since the head that the last finished round reviewed, and the verifier checks whether each open finding of the earlier rounds is fixed.
+- One reviewer agent applies every lens that applies to the files under review. The verifier runs only when there is a finding to check, and no agent runs when a push changed no file of the change and no finding is open.
+- `scripts/review-plan.ts` caps the review rounds. After them, a round only checks the open findings, so a later push carries only fixes of open findings and merges of `main`. After the rounds that check, the job fails without an agent, and the pull request goes to a maintainer.
+- The review states the minutes and the turns of each agent, so that a change to the panel is measured against the last one.
+
+A finding counts only when it names a standard in this repository or demonstrates a concrete defect, because preference without a standard behind it creates churn instead of quality. Its scope is `change` when the change causes it or leaves it incomplete, such as a document that the change made false, and `existing` when it lies in what the change neither touched nor needed to touch. The `review` job fails while a verified finding in the change remains. It also fails when an agent did not finish, because an unfinished review has reviewed nothing, and when the verifier did not give exactly one verdict for each finding. It opens an issue for the verified findings outside the change and for the candidate standards, and a pull request of their own handles them. A lens that believes a standard is missing reports a candidate standard. Adopt it when it would have prevented a real defect, and take candidates that turn on taste to a maintainer. When a defect reaches `main` past the gate, the choice of lenses or a lens missed it, so trace which one and fix it.
 
 A lens definition links to the standards in this file instead of restating them, so that sharpening a standard leaves no stale copy behind. An agent definition describes its task and what each part of its answer means. The schemas in `.github/review/` and the prompts in `.github/workflows/review.yml` alone define the shape of that answer in CI, so the definition and the workflow never disagree about it.
 
@@ -33,7 +38,7 @@ A defect is evidence about the process that produced it, wherever it surfaces: i
 
 1. **Trace.** Find what let it through: a standard that was never written or is too vague, a missing check, a lens that was not looking, or a wrong pattern.
 2. **Fix the process.** Write or sharpen the standard, add the check, or sharpen the lens.
-3. **Redo everything the flawed process produced**, not only the instance found. The root cause sets how far that reaches. A new or sharpened standard reaches every existing file that it now covers, in the same change.
+3. **Redo everything the flawed process produced**, not only the instance found. The root cause sets how far that reaches. The instances in what the pull request changes are fixed in it. Every other instance, including each existing file that a new or sharpened standard now covers, goes into one issue, and a pull request of its own fixes them right after, so that a round of review never grows with the size of the repository.
 4. **Record.** The commit message states the root cause and the scope. Write a decision record only when a real alternative was weighed and the choice has lasting consequences.
 
 Fixing only the instance leaves in place the process that produced it.
@@ -121,6 +126,7 @@ These apply to all prose: docs, comments, commit messages, pull requests, issues
 
 ### CI
 
+- A step that spends usage, such as an agent, never repeats work that an earlier step or run already did, so a repeated review sees only what changed. Every loop of such steps has a cap, and the workflow states what happens when the cap is reached.
 - Code that decides a gate checks that every expected input arrived, and treats a missing input as a failure, never as an empty one.
 - A job that is a required check always runs and never ends as skipped, because GitHub counts a skipped required check as passed.
 - Code that decides a gate from the results of jobs treats every result other than success as a failure that it names. It treats a cancelled job as superseded only when it can show the newer run, such as a newer head of the pull request, because GitHub also cancels a job that runs out of time.

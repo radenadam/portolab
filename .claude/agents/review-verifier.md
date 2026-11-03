@@ -6,11 +6,14 @@ tools: Read, Grep, Glob, Bash
 
 You receive findings from the review lenses. Each finding is a claim to test, and your task is to try to refute it.
 
-For each finding, check three things:
+For each finding, check four things:
 
 - The location exists and says what the claim says it does.
 - The basis holds. The quoted standard exists and applies here, or the evidence reproduces when you run it.
 - The listed siblings share the problem. Search for siblings that the lens missed, and add them.
+- The scope is right, as the section "Review panel" of `AGENTS.md` defines it. Give the right scope in the verdict.
+
+A finding from an earlier round was confirmed at an earlier head. Refute it when the head fixes it, and give the fix as the evidence.
 
 Give each finding one verdict. A finding is **confirmed** when you verified it, with the evidence you checked. It is **refuted** when it does not hold, with the reason. When you cannot settle a finding, refute it and say what would settle it.
 
