@@ -13,7 +13,7 @@ import { oneRupiahLimit, rateLimit } from "./price-limits";
 // The failures that orderFailureText explains, which are every failure but those of the price of a limit order.
 type OtherFailure = Parameters<typeof orderFailureText>[0];
 
-// Each failure in the states that shape its sentences: one and several lots or returns, a limit as a rate and as an amount of rupiah, a band of tick sizes with and without an end, one and several open orders that set aside cash or shares, or none, an account with or without shares that it can still sell, one and several open sell orders that add cash, or none, and cash that pays for 1 lot at some price or at none. Intl puts a no-break space after the currency, which the texts write as \u00a0.
+// Each failure in the states that shape its sentences: one and several lots or returns, a limit as a rate and as an amount of rupiah, a band of tick sizes with and without an end, one and several open orders that set aside cash or shares, or none, an account with or without shares that it can still sell, one and several open sell orders that add cash, or none, cash that pays for 1 lot at some price or at none, and a sale whose shares are gone while no other open sale, one, or several set aside shares. Intl puts a no-break space after the currency, which the texts write as \u00a0.
 // The amounts of money were computed with the decimal module of Python, with a broker fee of 0.15% of the value rounded to a whole rupiah with ROUND_HALF_UP. The highest price of 1 lot is the highest whole price at which 100 shares with their fee cost at most the available cash.
 
 const noSales = { codes: [], orders: 0 };
@@ -234,17 +234,26 @@ const failures = {
     tax: rupiah(0),
     availableCash: rupiah(500_000),
   },
-  sharesGone: {
+  sharesGoneWithoutShares: {
     kind: "sharesGone",
     code: "BBCA",
     lots: orderLotsForTest(5),
-    availableLots: lots(2),
+    heldLots: lots(0),
+    setAside: { amount: lots(0), orders: 0 },
   },
-  sharesGoneToOneLot: {
+  sharesGoneToOtherSale: {
     kind: "sharesGone",
     code: "BBCA",
     lots: orderLotsForTest(1),
-    availableLots: lots(1),
+    heldLots: lots(1),
+    setAside: { amount: lots(1), orders: 1 },
+  },
+  sharesGoneToOtherSales: {
+    kind: "sharesGone",
+    code: "BBCA",
+    lots: orderLotsForTest(5),
+    heldLots: lots(6),
+    setAside: { amount: lots(3), orders: 2 },
   },
 } satisfies Record<string, OtherFailure>;
 
@@ -312,10 +321,12 @@ const texts: Record<Locale, Record<FailureName, string>> = {
       "Portolab tidak mengeksekusi order harga pasar Anda untuk membeli 20 lot BBCA, karena harganya naik dari Rp\u00a04.980 menjadi Rp\u00a05.025 selama order menunggu. Pada harga Rp\u00a05.025, order tersebut membutuhkan Rp\u00a010.065.075, yaitu Rp\u00a010.050.000 untuk saham dan Rp\u00a015.075 untuk biaya broker, sedangkan kas Anda yang tersedia hanya Rp\u00a010.000.000. Pasang order baru jika Anda masih menginginkan BBCA, dan Portolab memeriksanya pada harga dan kas saat itu.",
     priceRoseByOneLot:
       "Portolab tidak mengeksekusi order harga pasar Anda untuk membeli 1 lot BBCA, karena harganya naik dari Rp\u00a04.980 menjadi Rp\u00a05.025 selama order menunggu. Pada harga Rp\u00a05.025, order tersebut membutuhkan Rp\u00a0503.254, yaitu Rp\u00a0502.500 untuk saham dan Rp\u00a0754 untuk biaya broker, sedangkan kas Anda yang tersedia hanya Rp\u00a0500.000. Pasang order baru jika Anda masih menginginkan BBCA, dan Portolab memeriksanya pada harga dan kas saat itu.",
-    sharesGone:
-      "Portolab tidak mengeksekusi order Anda untuk menjual 5 lot BBCA, karena saat sebuah harga mencapainya, Anda hanya memegang 2 lot BBCA di luar yang disisihkan order jual Anda lainnya yang masih terbuka. Pasang order baru jika Anda masih ingin menjual BBCA, dan Portolab memeriksanya dengan saham yang Anda pegang saat itu.",
-    sharesGoneToOneLot:
-      "Portolab tidak mengeksekusi order Anda untuk menjual 1 lot BBCA, karena saat sebuah harga mencapainya, Anda hanya memegang 1 lot BBCA di luar yang disisihkan order jual Anda lainnya yang masih terbuka. Pasang order baru jika Anda masih ingin menjual BBCA, dan Portolab memeriksanya dengan saham yang Anda pegang saat itu.",
+    sharesGoneWithoutShares:
+      "Portolab tidak mengeksekusi order Anda untuk menjual 5 lot BBCA, karena saat sebuah harga mencapainya, Anda memegang 0 lot BBCA. Periksa saham yang Anda pegang sekarang di daftar saham Anda di atas sebelum menjual lagi.",
+    sharesGoneToOtherSale:
+      "Portolab tidak mengeksekusi order Anda untuk menjual 1 lot BBCA, karena saat sebuah harga mencapainya, Anda memegang 1 lot BBCA. Saat itu, order jual Anda yang lain yang masih terbuka menyisihkan 1 lot BBCA. Periksa saham yang Anda pegang sekarang di daftar saham Anda di atas sebelum menjual lagi.",
+    sharesGoneToOtherSales:
+      "Portolab tidak mengeksekusi order Anda untuk menjual 5 lot BBCA, karena saat sebuah harga mencapainya, Anda memegang 6 lot BBCA. Saat itu, sebanyak 2 order jual Anda yang lain yang masih terbuka menyisihkan 3 lot BBCA. Periksa saham yang Anda pegang sekarang di daftar saham Anda di atas sebelum menjual lagi.",
   },
   en: {
     missingRules:
@@ -378,10 +389,12 @@ const texts: Record<Locale, Record<FailureName, string>> = {
       "Portolab did not fill your market order to buy 20 lots of BBCA, because the price rose from IDR\u00a04,980 to IDR\u00a05,025 while the order waited. At IDR\u00a05,025 the order costs IDR\u00a010,065,075, which is IDR\u00a010,050,000 for the shares and IDR\u00a015,075 for the broker fee, but your available cash was IDR\u00a010,000,000. Place a new order if you still want BBCA, and Portolab checks it at the price and with the cash of that moment.",
     priceRoseByOneLot:
       "Portolab did not fill your market order to buy 1 lot of BBCA, because the price rose from IDR\u00a04,980 to IDR\u00a05,025 while the order waited. At IDR\u00a05,025 the order costs IDR\u00a0503,254, which is IDR\u00a0502,500 for the shares and IDR\u00a0754 for the broker fee, but your available cash was IDR\u00a0500,000. Place a new order if you still want BBCA, and Portolab checks it at the price and with the cash of that moment.",
-    sharesGone:
-      "Portolab did not fill your order to sell 5 lots of BBCA, because when a price reached it, you held only 2 lots of BBCA beyond what your other open sell orders set aside. Place a new order if you still want to sell BBCA, and Portolab checks it with the shares that you hold at that moment.",
-    sharesGoneToOneLot:
-      "Portolab did not fill your order to sell 1 lot of BBCA, because when a price reached it, you held only 1 lot of BBCA beyond what your other open sell orders set aside. Place a new order if you still want to sell BBCA, and Portolab checks it with the shares that you hold at that moment.",
+    sharesGoneWithoutShares:
+      "Portolab did not fill your order to sell 5 lots of BBCA, because when a price reached it, you held 0 lots of BBCA. Check the shares that you hold now in your holdings above before you sell again.",
+    sharesGoneToOtherSale:
+      "Portolab did not fill your order to sell 1 lot of BBCA, because when a price reached it, you held 1 lot of BBCA. Your other open sell order set aside 1 lot of BBCA then. Check the shares that you hold now in your holdings above before you sell again.",
+    sharesGoneToOtherSales:
+      "Portolab did not fill your order to sell 5 lots of BBCA, because when a price reached it, you held 6 lots of BBCA. Your 2 other open sell orders set aside 3 lots of BBCA then. Check the shares that you hold now in your holdings above before you sell again.",
   },
 };
 

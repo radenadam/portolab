@@ -92,7 +92,7 @@ const texts: Record<
     startingCash: [
       "Kas",
       "Rp\u00a01.000.000.000.000",
-      "Disisihkan order beli yang masih terbuka",
+      "Kas yang disisihkan",
       "Rp\u00a00",
       "Kas yang tersedia",
       "Rp\u00a01.000.000.000.000",
@@ -181,7 +181,7 @@ const texts: Record<
     startingCash: [
       "Cash",
       "IDR\u00a01,000,000,000,000",
-      "Set aside by open buy orders",
+      "Cash set aside",
       "IDR\u00a00",
       "Available cash",
       "IDR\u00a01,000,000,000,000",

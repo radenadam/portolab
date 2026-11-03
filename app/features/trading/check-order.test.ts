@@ -5,6 +5,7 @@ import { rupiah } from "~/units/rupiah";
 import { shares } from "~/units/shares";
 import { checkOrder } from "./check-order";
 import { hasOpenState } from "./open-orders";
+import type { SharesOfStock } from "./open-orders";
 import type { OpenOrder, Order, OrderRequest } from "./order";
 import {
   acceptedForTest,
@@ -57,18 +58,25 @@ function selectedForCheck(order: Order): OpenOrder {
   return order;
 }
 
-/** The state of an order after a check at a moment, with the cash and the shares of BBCA that the other open orders of the account leave, which are Rp100 million and the 500 shares of the account of placed unless the test gives others. */
+/** The state of an order after a check at a moment, with the cash that the other open orders of the account leave, which is Rp100 million unless the test gives another, and the shares of BBCA that the account holds, which are the 500 shares of the account of placed that no other order sets aside unless the test gives others. */
 function checkedWith(
   order: Order,
   latest: StockQuote | undefined,
-  at: { moment: string; availableCash?: number; availableShares?: number },
+  at: {
+    moment: string;
+    availableCash?: number;
+    sharesOfStock?: SharesOfStock;
+  },
 ): Order["state"] {
   return checkOrder({
     order: selectedForCheck(order),
     quote: latest,
     moment: new Date(at.moment),
     availableCash: rupiah(at.availableCash ?? 100_000_000),
-    availableShares: shares(at.availableShares ?? 500),
+    sharesOfStock: at.sharesOfStock ?? {
+      held: shares(500),
+      setAside: { amount: shares(0), orders: 0 },
+    },
   });
 }
 
@@ -399,29 +407,53 @@ test("keeps an order open without a quote that a check may fill it with, and exp
   });
 });
 
-test("rejects a sale whose holding no longer has the shares that it set aside when a price reaches it, with the lots that remain beyond other open sales", () => {
+test("rejects a sale whose holding no longer has the shares that it set aside when a price reaches it, with the whole lots that the holding and the other open sales had", () => {
   const order = placed({ side: "sell" });
-  // Of the 500 shares that the sale set aside, a deletion by hand left 250 that no other open sale sets aside, which are 2 whole lots.
+  const moment = "2026-11-02T03:00:00Z";
+  const rejected = {
+    kind: "rejected",
+    rejectedAt: new Date(moment),
+    quotedAt: latestAtTen.quotedAt,
+  };
+  // Of the 500 shares that the sale set aside, a deletion by hand left 250, which are 2 whole lots.
   expect(
     checkedWith(order, latestAtTen, {
-      moment: "2026-11-02T03:00:00Z",
-      availableShares: 250,
+      moment,
+      sharesOfStock: {
+        held: shares(250),
+        setAside: { amount: shares(0), orders: 0 },
+      },
     }),
   ).toEqual({
-    kind: "rejected",
-    rejectedAt: new Date("2026-11-02T03:00:00Z"),
-    quotedAt: latestAtTen.quotedAt,
+    ...rejected,
     failure: {
       kind: "sharesGone",
       code: "BBCA",
       lots: 5,
-      availableLots: 2,
+      heldLots: 2,
+      setAside: { amount: 0, orders: 0 },
     },
   });
+  // A deletion by hand left the 500 shares, of which another open sale sets aside 300, which are 3 whole lots.
   expect(
     checkedWith(order, latestAtTen, {
-      moment: "2026-11-02T03:00:00Z",
-      availableShares: 500,
+      moment,
+      sharesOfStock: {
+        held: shares(500),
+        setAside: { amount: shares(300), orders: 1 },
+      },
     }),
-  ).toMatchObject({ kind: "filled" });
+  ).toEqual({
+    ...rejected,
+    failure: {
+      kind: "sharesGone",
+      code: "BBCA",
+      lots: 5,
+      heldLots: 5,
+      setAside: { amount: 3, orders: 1 },
+    },
+  });
+  expect(checkedWith(order, latestAtTen, { moment })).toMatchObject({
+    kind: "filled",
+  });
 });

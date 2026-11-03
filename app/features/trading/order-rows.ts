@@ -20,7 +20,9 @@ type StateColumns = Pick<
   | "tradeTax"
   | "failure"
   | "availableCash"
-  | "availableLots"
+  | "heldLots"
+  | "setAsideLots"
+  | "setAsideOrders"
 >;
 
 const noEnd = {
@@ -32,7 +34,9 @@ const noEnd = {
   tradeTax: null,
   failure: null,
   availableCash: null,
-  availableLots: null,
+  heldLots: null,
+  setAsideLots: null,
+  setAsideOrders: null,
 } satisfies Omit<StateColumns, "state">;
 
 /** The limit of the price of an order, or null for a market order, as the column of the limit holds it. */
@@ -122,7 +126,11 @@ function failureOf(row: OrderRow): FillFailure {
         kind: "sharesGone",
         code: row.code,
         lots: row.lots,
-        availableLots: column(row, "availableLots"),
+        heldLots: column(row, "heldLots"),
+        setAside: {
+          amount: column(row, "setAsideLots"),
+          orders: column(row, "setAsideOrders"),
+        },
       };
   }
 }
@@ -173,7 +181,12 @@ function failureColumns(failure: FillFailure): Partial<StateColumns> {
         availableCash: failure.availableCash,
       };
     case "sharesGone":
-      return { failure: failure.kind, availableLots: failure.availableLots };
+      return {
+        failure: failure.kind,
+        heldLots: failure.heldLots,
+        setAsideLots: failure.setAside.amount,
+        setAsideOrders: failure.setAside.orders,
+      };
   }
 }
 

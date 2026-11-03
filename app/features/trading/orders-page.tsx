@@ -12,6 +12,7 @@ import { formatNumber } from "~/formatting";
 import { isLoadedByAnotherSite } from "~/is-loaded-by-another-site.server";
 import { pageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
+import { succeed } from "~/result";
 import type { Result } from "~/result";
 import { parseRecordId } from "~/value-parsers";
 import type { Route } from "./+types/orders-page";
@@ -19,10 +20,10 @@ import { checkPortfolioOrders } from "./check-open-orders.server";
 import { findStudentPlace } from "./find-student-place.server";
 import { cancelFromForm, placeFromForm } from "./order-actions.server";
 import type { OrdersAnswer } from "./order-actions.server";
-import { orderFailureText } from "./order-failure-text";
-import { OrderForm } from "./order-form";
+import { orderDayOf } from "./order-form";
 import type { OrderDay } from "./order-form";
 import { OpenOrderList, PastOrderList } from "./order-list";
+import { PlaceOrderSection } from "./place-order-section";
 import { orderTradingDay } from "./order-trading-day";
 import type { TradingDayFailure } from "./order-trading-day";
 import { readPortfolio } from "./portfolio-store.server";
@@ -68,18 +69,7 @@ export function loader({ context, request, params, url }: Route.LoaderArgs): {
     portfolio,
     now,
     source: { name, delayMinutes },
-    day: day.ok
-      ? {
-          ok: true,
-          value: {
-            date: day.value.date,
-            tradesFrom: day.value.tradesFrom,
-            expiresAt: day.value.expiresAt,
-            lotShares: day.value.rules.lotShares,
-            maximumLots: day.value.rules.maximumLots,
-          },
-        }
-      : day,
+    day: day.ok ? succeed(orderDayOf(day.value)) : day,
     // The notice confirms only an order of this portfolio, so an address with another number shows the orders without it.
     isPlaced:
       placed.ok && portfolio.orders.some((order) => order.id === placed.value),
@@ -141,16 +131,12 @@ export default function OrdersPage({
         now={now}
       />
       <h2>{m.trading_place_title()}</h2>
-      {day.ok ? (
-        <OrderForm
-          codes={trackedStockCodes}
-          day={day.value}
-          fields={actionData?.fields}
-          failure={actionData?.failure}
-        />
-      ) : (
-        <p>{orderFailureText(day.failure)}</p>
-      )}
+      <PlaceOrderSection
+        day={day}
+        codes={trackedStockCodes}
+        fields={actionData?.fields}
+        failure={actionData?.failure}
+      />
       <h2>{m.trading_open_orders_title()}</h2>
       {actionData?.cancelFailure !== undefined && (
         <FormFailure text={actionData.cancelFailure} />

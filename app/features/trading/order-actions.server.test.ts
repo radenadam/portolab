@@ -38,7 +38,7 @@ const texts: Record<
 > = {
   id: {
     missingOrder:
-      "Portolab tidak menyimpan order tersebut di antara order Anda, sehingga tidak ada yang dibatalkan. Batalkan order dari daftar order Anda yang masih terbuka di bawah.",
+      "Portolab tidak menyimpan order tersebut di antara order Anda, sehingga tidak ada yang dibatalkan. Daftar di bawah menunjukkan setiap order yang masih terbuka dan dapat Anda batalkan.",
     endedOrder:
       "Order Anda atas 5 lot BBCA yang dipasang pada 2 Nov 2026, 10.00 WIB tidak lagi terbuka, sehingga Portolab tidak dapat membatalkannya. Daftar order sebelumnya di bawah menunjukkan bagaimana order itu berakhir.",
     noReferenceClose:
@@ -50,7 +50,7 @@ const texts: Record<
   },
   en: {
     missingOrder:
-      "Portolab holds no such order among your orders, so it cancelled nothing. Cancel an order from the list of your open orders below.",
+      "Portolab holds no such order among your orders, so it cancelled nothing. The list below shows each open order that you can cancel.",
     endedOrder:
       "Your order of 5 lots of BBCA placed on Nov 2, 2026, 10:00 AM WIB is no longer open, so Portolab cannot cancel it. Your past orders below show how it ended.",
     noReferenceClose:

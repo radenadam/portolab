@@ -185,6 +185,8 @@ export type FillFailure =
       kind: "sharesGone";
       code: string;
       lots: Lots;
-      /** The lots of the stock that the account held beyond what its other open sell orders set aside, when the price came. */
-      availableLots: Lots;
+      /** The lots of the stock that the account held when the price came. */
+      heldLots: Lots;
+      /** The lots of the stock that the other open sell orders set aside then. */
+      setAside: SetAside<Lots>;
     };

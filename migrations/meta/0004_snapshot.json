@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "cb2430cc-711b-4262-bb23-38306a4c7e4e",
+  "id": "a5d3b2c1-7860-4484-9b05-ce24af4d94d8",
   "prevId": "a3100f9c-16a5-4ce9-a1a4-3fe54c243944",
   "tables": {
     "sessions": {
@@ -693,8 +693,22 @@
           "notNull": false,
           "autoincrement": false
         },
-        "available_lots": {
-          "name": "available_lots",
+        "held_lots": {
+          "name": "held_lots",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "set_aside_lots": {
+          "name": "set_aside_lots",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "set_aside_orders": {
+          "name": "set_aside_orders",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,

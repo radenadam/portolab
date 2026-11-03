@@ -1,3 +1,4 @@
+import type { FieldOption } from "~/form";
 import { checkFieldLengthForReader, typedText } from "~/form-text";
 import { formatList } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
@@ -13,12 +14,6 @@ import { parseOrderLots } from "./parse-order-lots";
 
 /** The kind of the price of an order: the delayed price when it fills, or a limit that the price must reach. */
 export type PriceKind = OrderRequest["price"]["kind"];
-
-/** An option of a field of the order form, with the value that the form sends and the label that the reader sees. */
-export interface FormOption<Value extends string> {
-  value: Value;
-  label: string;
-}
 
 /** The fields of the order form as the student filled them in, so that the form can show them again, with the reason that each was not accepted. */
 export interface OrderFormFields {
@@ -38,7 +33,7 @@ export interface OrderFormFields {
 const limitExample = 1_000;
 
 /** The options of the side of an order, in the active language. */
-export function sideOptions(): FormOption<OrderSide>[] {
+export function sideOptions(): FieldOption<OrderSide>[] {
   return [
     { value: "buy", label: m.trading_buy_label() },
     { value: "sell", label: m.trading_sell_label() },
@@ -46,7 +41,7 @@ export function sideOptions(): FormOption<OrderSide>[] {
 }
 
 /** The options of the kind of price of an order, in the active language. */
-export function priceKindOptions(): FormOption<PriceKind>[] {
+export function priceKindOptions(): FieldOption<PriceKind>[] {
   return [
     { value: "market", label: m.trading_market_order_label() },
     { value: "limit", label: m.trading_limit_order_label() },
@@ -174,7 +169,7 @@ function parseStockCode(
 function parseOrderChoice<Value extends string>(
   value: unknown,
   source: string,
-  options: readonly FormOption<Value>[],
+  options: readonly FieldOption<Value>[],
 ): Result<Value, string> {
   const chosen = parseChosenText(value, source);
   if (!chosen.ok) {

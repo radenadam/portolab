@@ -4,19 +4,12 @@ import { renderInRouterForTest } from "~/render-in-router-for-test";
 import { locales } from "~/paraglide/runtime.js";
 import type { Locale } from "~/paraglide/runtime.js";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
-import { OrderForm } from "./order-form";
-import type { OrderDay } from "./order-form";
+import { OrderForm, orderDayOf } from "./order-form";
 import { blankOrderForm } from "./order-form-fields";
 import { mondayTradingDayForTest } from "./orders-for-test";
 
-// The trading day of an order placed at 10:00 WIB on Monday 2 November 2026, as orderTradingDay gives it.
-const monday: OrderDay = {
-  date: mondayTradingDayForTest.date,
-  tradesFrom: mondayTradingDayForTest.tradesFrom,
-  expiresAt: mondayTradingDayForTest.expiresAt,
-  lotShares: mondayTradingDayForTest.rules.lotShares,
-  maximumLots: mondayTradingDayForTest.rules.maximumLots,
-};
+// The trading day of an order placed at 10:00 WIB on Monday 2 November 2026.
+const monday = orderDayOf(mondayTradingDayForTest);
 
 const texts: Record<
   Locale,

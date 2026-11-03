@@ -30,7 +30,9 @@ CREATE TABLE `orders` (
 	`trade_tax` integer,
 	`failure` text,
 	`available_cash` integer,
-	`available_lots` integer,
+	`held_lots` integer,
+	`set_aside_lots` integer,
+	`set_aside_orders` integer,
 	FOREIGN KEY (`membership_id`) REFERENCES `portfolios`(`membership_id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint

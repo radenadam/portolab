@@ -1,12 +1,13 @@
 import { isContinuousTradingTime } from "~/features/market-data/idx-calendar";
 import type { StockQuote } from "~/features/market-data/price-source.server";
-import { lots } from "~/units/lots";
 import { rupiah } from "~/units/rupiah";
 import type { Rupiah } from "~/units/rupiah";
 import type { Shares } from "~/units/shares";
 import { wibDateOf } from "~/wib";
 import { checkCashForPurchase } from "./check-cash-for-purchase";
 import { idxRulesOn } from "./idx-rules-on";
+import { sharesInLots } from "./open-orders";
+import type { SharesOfStock } from "./open-orders";
 import type {
   FillFailure,
   OpenOrder,
@@ -26,8 +27,8 @@ export interface OrderCheck {
   moment: Date;
   /** For a purchase, the cash of the account less what its other open orders set aside. */
   availableCash: Rupiah;
-  /** For a sale, the shares of its stock that the account holds less what its other open sell orders set aside. */
-  availableShares: Shares;
+  /** For a sale, the shares of its stock that the account holds, and what its other open sell orders set aside of them. */
+  sharesOfStock: SharesOfStock;
 }
 
 /** The state of an open order after Portolab checked it against the latest delayed quote of its stock at a moment, by the rules of decision 0016. */
@@ -122,15 +123,14 @@ function fillAt(price: Rupiah, check: FillingCheck): OrderState {
       }
       return filled(check, price, paid.value);
     }
-    case "sell":
-      if (check.availableShares < order.shares) {
+    case "sell": {
+      const stock = check.sharesOfStock;
+      if (stock.held - stock.setAside.amount < order.shares) {
         return rejected(check, {
           kind: "sharesGone",
           code: order.code,
           lots: order.lots,
-          availableLots: lots(
-            Math.floor(check.availableShares / lotSharesOf(order)),
-          ),
+          ...sharesInLots(stock, lotSharesOf(order)),
         });
       }
       return filled(
@@ -138,6 +138,7 @@ function fillAt(price: Rupiah, check: FillingCheck): OrderState {
         price,
         tradeWithCosts("sell", rupiah(price * order.shares), rates.value),
       );
+    }
   }
 }
 

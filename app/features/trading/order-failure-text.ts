@@ -231,12 +231,29 @@ const failureTexts: FailureTexts = {
       }),
       m.trading_new_order_error({ code: failure.code }),
     ].join(" "),
-  sharesGone: (failure) =>
-    m.trading_shares_gone_error({
-      lots: lotCount(failure.lots),
-      code: failure.code,
-      available: lotCount(failure.availableLots),
-    }),
+  sharesGone: (failure) => {
+    const sentences: string[] = [
+      m.trading_shares_gone_error({
+        lots: lotCount(failure.lots),
+        code: failure.code,
+        held: lotCount(failure.heldLots),
+      }),
+    ];
+    if (failure.setAside.orders > 0) {
+      sentences.push(
+        countedText(
+          failure.setAside.orders,
+          {
+            one: m.trading_one_other_sale_set_aside_error,
+            several: m.trading_several_other_sales_set_aside_error,
+          },
+          { setAside: lotCount(failure.setAside.amount), code: failure.code },
+        ),
+      );
+    }
+    sentences.push(m.trading_check_holdings_error());
+    return sentences.join(" ");
+  },
 };
 
 /** The text that tells a student why Portolab rejected an order, in the active language, with the numbers of the failure, the rule behind it, and a next step. A failure of the price of a limit order takes limitPriceFailureText instead, because it names the field of the price. */

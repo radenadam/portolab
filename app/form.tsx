@@ -87,8 +87,8 @@ export function CheckboxField({
 }
 
 /** An option of a field that offers a choice, with the value that the form sends and the label that the reader sees. */
-interface FieldOption {
-  value: string;
+export interface FieldOption<Value extends string = string> {
+  value: Value;
   label: string;
 }
 

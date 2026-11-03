@@ -1,4 +1,6 @@
 import { rupiah } from "~/units/rupiah";
+import { lots } from "~/units/lots";
+import type { Lots } from "~/units/lots";
 import type { Rupiah } from "~/units/rupiah";
 import { shares } from "~/units/shares";
 import type { Shares } from "~/units/shares";
@@ -61,6 +63,40 @@ export function sharesSetAside(
     }
   }
   return { amount: shares(amount), orders: count };
+}
+
+/** The shares of one stock that an account holds, and what its open sell orders set aside of them. */
+export interface SharesOfStock {
+  held: Shares;
+  setAside: SetAside<Shares>;
+}
+
+/** The shares of a stock that an account holds, and what its open sell orders set aside of them at a moment. */
+export function sharesOfStock(
+  account: { holdings: readonly Holding[]; orders: readonly Order[] },
+  code: string,
+  moment: Date,
+): SharesOfStock {
+  return {
+    held:
+      account.holdings.find((holding) => holding.code === code)?.shares ??
+      shares(0),
+    setAside: sharesSetAside(account.orders, code, moment),
+  };
+}
+
+/** The shares of a stock that an account holds and that its open sell orders set aside, in whole lots of a trading day, as the texts about a sale give them. */
+export function sharesInLots(
+  stock: SharesOfStock,
+  lotShares: Shares,
+): { heldLots: Lots; setAside: SetAside<Lots> } {
+  return {
+    heldLots: lots(Math.floor(stock.held / lotShares)),
+    setAside: {
+      amount: lots(Math.floor(stock.setAside.amount / lotShares)),
+      orders: stock.setAside.orders,
+    },
+  };
 }
 
 /** Whether an account holds shares of any stock beyond what its open sell orders set aside at a moment, which it could sell. */

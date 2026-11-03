@@ -82,10 +82,13 @@ export const orders = sqliteTable(
     tradeValue: integer("trade_value").$type<Rupiah>(),
     tradeFee: integer("trade_fee").$type<Rupiah>(),
     tradeTax: integer("trade_tax").$type<Rupiah>(),
-    /** Why a check rejected the order, with the cash or the lots that it found. */
+    /** Why a check rejected the order, with the cash or the shares that it found. */
     failure: text("failure", { enum: fillFailures }),
     availableCash: integer("available_cash").$type<Rupiah>(),
-    availableLots: integer("available_lots").$type<Lots>(),
+    heldLots: integer("held_lots").$type<Lots>(),
+    /** The lots that the other open sell orders of a rejected sale set aside, and how many orders they were. */
+    setAsideLots: integer("set_aside_lots").$type<Lots>(),
+    setAsideOrders: integer("set_aside_orders"),
   },
   (table) => [
     index("orders_membership_id_index").on(table.membershipId),

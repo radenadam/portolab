@@ -20,6 +20,7 @@ import {
   sideOptions,
 } from "./order-form-fields";
 import type { OrderFormFields } from "./order-form-fields";
+import type { OrderTradingDay } from "./order-trading-day";
 
 /** What the order form tells about the trading day of an order placed now, which orderTradingDay gives. */
 export interface OrderDay {
@@ -28,6 +29,17 @@ export interface OrderDay {
   expiresAt: Date;
   lotShares: Shares;
   maximumLots: Lots;
+}
+
+/** What the order form tells about a trading day that orderTradingDay gives. */
+export function orderDayOf(day: OrderTradingDay): OrderDay {
+  return {
+    date: day.date,
+    tradesFrom: day.tradesFrom,
+    expiresAt: day.expiresAt,
+    lotShares: day.rules.lotShares,
+    maximumLots: day.rules.maximumLots,
+  };
 }
 
 interface OrderFormProps {

@@ -2,11 +2,10 @@ import type { Database, DatabaseWriter } from "~/database/database.server";
 import type { MembershipId } from "~/features/classes/classes.schema";
 import { listFreshStockQuotes } from "~/features/market-data/quote-store.server";
 import { rupiah } from "~/units/rupiah";
-import { shares } from "~/units/shares";
 import { checkOrder } from "./check-order";
 import { holdingAfterFill } from "./holding-after-fill";
 import type { Holding } from "./holding-after-fill";
-import { cashSetAside, hasOpenState, sharesSetAside } from "./open-orders";
+import { cashSetAside, hasOpenState, sharesOfStock } from "./open-orders";
 import {
   listPortfoliosWithOpenOrders,
   readStoredPortfolio,
@@ -37,15 +36,15 @@ export function checkPortfolioOrders(
       continue;
     }
     const others = orders.filter((other) => other.id !== order.id);
-    const held = holdings.get(order.code)?.shares ?? 0;
     const state = checkOrder({
       order,
       quote: quotes.get(order.code),
       moment: now,
       availableCash: rupiah(cash - cashSetAside(others, now).amount),
-      // Open sales never set aside more than the holding has, unless someone deleted the holding by hand, and then no shares are left for this sale.
-      availableShares: shares(
-        Math.max(0, held - sharesSetAside(others, order.code, now).amount),
+      sharesOfStock: sharesOfStock(
+        { holdings: [...holdings.values()], orders: others },
+        order.code,
+        now,
       ),
     });
     if (state.kind === order.state.kind) {
