@@ -1,5 +1,7 @@
-import type { StockQuote } from "~/features/market-data/price-source.server";
-import type { InstrumentCloses } from "~/features/measures/aligned-returns";
+import type {
+  StockHistory,
+  StockQuote,
+} from "~/features/market-data/price-source.server";
 import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
 import { rupiah } from "~/units/rupiah";
@@ -13,7 +15,7 @@ import type { OrderFailure } from "./order";
  */
 export function referencePrice(
   code: string,
-  sources: { quote: StockQuote; closes: InstrumentCloses },
+  sources: { quote: StockQuote; closes: StockHistory },
   day: { date: string; previousDate: string },
 ): Result<Rupiah, OrderFailure> {
   if (wibDateOf(sources.quote.quotedAt) === day.date) {

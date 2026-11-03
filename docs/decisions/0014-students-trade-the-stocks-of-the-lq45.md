@@ -1,6 +1,6 @@
 # 0014. Students trade the stocks of the LQ45
 
-- Status: Accepted. [Decision 0015](0015-students-buy-only-stocks-that-the-measures-can-use.md) changes two of its rules for trading. A student buys only the stocks of the universe that have the monthly returns that the measures need, and a student can sell the shares of a holding even after its stock leaves the universe.
+- Status: Accepted. [Decision 0015](0015-students-buy-only-stocks-that-the-measures-can-use.md) changes two of its rules for trading: which stocks of the universe a student can buy, and whether a student can sell a holding after its stock leaves the universe.
 - Date: 2026-11-01
 
 ## Context

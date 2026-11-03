@@ -2,12 +2,15 @@ import {
   formatCalendarDate,
   formatList,
   formatMonth,
+  formatNumber,
   formatPercent,
   formatRupiah,
 } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
+import { singularOrPlural } from "~/sentences";
 import { basisPointsPerWhole } from "~/units/basis-points";
 import { lots } from "~/units/lots";
+import { rupiah } from "~/units/rupiah";
 import { lotCount, monthlyReturnCount } from "./count-phrases";
 import type { PriceLimit } from "./price-limits";
 import type { FillFailure, OrderFailure } from "./order";
@@ -19,6 +22,8 @@ type Failure = OrderFailure | FillFailure;
 type Shortfall = Extract<Failure, { kind: "notEnoughCash" | "priceRose" }>;
 
 type NotEnoughCash = Extract<Failure, { kind: "notEnoughCash" }>;
+
+type NotEnoughShares = Extract<Failure, { kind: "notEnoughShares" }>;
 
 type FailureTexts = {
   [Kind in Failure["kind"]]: (
@@ -63,36 +68,87 @@ function largestPurchaseText(failure: NotEnoughCash): string {
   });
 }
 
-/** The steps that add to the available cash of an account that does not pay for 1 lot, each only in a state of the account where the student can take it or wait for it. A lower price or another stock helps only with enough cash, so it is the step only when no sale and no open order can add to the cash. */
+function setAsideCashText(failure: NotEnoughCash): string {
+  const amounts = {
+    setAside: formatRupiah(failure.setAside.amount),
+    cash: formatRupiah(failure.cash),
+  };
+  const message = singularOrPlural(
+    failure.setAside.orders,
+    () => m.trading_one_purchase_sets_aside_cash_error(amounts),
+    () =>
+      m.trading_several_purchases_set_aside_cash_error({
+        ...amounts,
+        count: formatNumber(failure.setAside.orders),
+      }),
+  );
+  return message();
+}
+
+/** The highest price at which the available cash pays for 1 lot, which tells the student which prices are within reach, or the lowest price of IDX when even that is beyond the cash. */
+function lotPriceText(failure: NotEnoughCash): string {
+  return failure.highestLotPrice >= failure.minimumPrice
+    ? m.trading_highest_lot_price_error({
+        highest: formatRupiah(failure.highestLotPrice),
+      })
+    : m.trading_below_minimum_price_error({
+        minimum: formatRupiah(failure.minimumPrice),
+      });
+}
+
+/** The steps that add to the available cash of an account that does not pay for 1 lot, each only in a state of the account where the student can take it or wait for it. The text about open buy orders already says when their cash comes back. */
 function stepsWithoutAffordableLot(failure: NotEnoughCash): string[] {
   const steps: string[] = [];
   if (failure.holdsFreeShares) {
     steps.push(
       m.trading_sell_for_cash_error({
-        available: formatRupiah(failure.availableCash),
+        shortfall: formatRupiah(
+          rupiah(purchaseCost(failure) - failure.availableCash),
+        ),
       }),
     );
   }
-  if (failure.sellingCodes.length > 0) {
-    steps.push(
-      m.trading_wait_for_sales_error({
-        codes: formatList(failure.sellingCodes, "conjunction"),
-      }),
+  const { sales } = failure;
+  if (sales.orders > 0) {
+    const codes = formatList(sales.codes, "conjunction");
+    const message = singularOrPlural(
+      sales.orders,
+      () => m.trading_one_sale_adds_cash_error({ codes }),
+      () =>
+        m.trading_several_sales_add_cash_error({
+          codes,
+          count: formatNumber(sales.orders),
+        }),
     );
-  }
-  if (failure.setAsideCash > 0) {
-    steps.push(
-      m.trading_wait_for_cash_error({
-        setAside: formatRupiah(failure.setAsideCash),
-      }),
-    );
-  }
-  if (steps.length === 0) {
-    steps.push(
-      m.trading_lower_price_error({ price: formatRupiah(failure.price) }),
-    );
+    steps.push(message());
   }
   return steps;
+}
+
+function setAsideSharesText(failure: NotEnoughShares): string {
+  const amounts = {
+    setAside: lotCount(failure.setAside.amount),
+    code: failure.code,
+  };
+  const message = singularOrPlural(
+    failure.setAside.orders,
+    () => m.trading_one_sale_sets_aside_shares_error(amounts),
+    () =>
+      m.trading_several_sales_set_aside_shares_error({
+        ...amounts,
+        count: formatNumber(failure.setAside.orders),
+      }),
+  );
+  return message();
+}
+
+function freedSharesText(failure: NotEnoughShares): string {
+  const message = singularOrPlural(
+    failure.setAside.orders,
+    m.trading_one_sale_frees_shares_error,
+    m.trading_several_sales_free_shares_error,
+  );
+  return message({ code: failure.code });
 }
 
 const failureTexts: FailureTexts = {
@@ -157,21 +213,14 @@ const failureTexts: FailureTexts = {
     const sentences: string[] = [
       m.trading_purchase_cost_error(purchaseAmounts(failure)),
     ];
-    if (failure.setAsideCash > 0) {
-      sentences.push(
-        m.trading_set_aside_cash_error({
-          setAside: formatRupiah(failure.setAsideCash),
-          cash: formatRupiah(failure.cash),
-        }),
-      );
+    if (failure.setAside.orders > 0) {
+      sentences.push(setAsideCashText(failure));
     }
     if (failure.largestLots > 0) {
       sentences.push(largestPurchaseText(failure));
     } else {
       sentences.push(
-        m.trading_no_affordable_lot_error({
-          price: formatRupiah(failure.price),
-        }),
+        lotPriceText(failure),
         ...stepsWithoutAffordableLot(failure),
       );
     }
@@ -192,17 +241,13 @@ const failureTexts: FailureTexts = {
         held: lotCount(failure.heldLots),
       }),
     ];
-    if (failure.setAsideLots > 0) {
-      sentences.push(
-        m.trading_set_aside_shares_error({
-          setAside: lotCount(failure.setAsideLots),
-        }),
-      );
+    if (failure.setAside.orders > 0) {
+      sentences.push(setAsideSharesText(failure));
     }
-    const freeLots = lots(failure.heldLots - failure.setAsideLots);
+    const freeLots = lots(failure.heldLots - failure.setAside.amount);
     sentences.push(
       freeLots === 0
-        ? m.trading_no_free_shares_error({ code: failure.code })
+        ? freedSharesText(failure)
         : m.trading_largest_sale_error({ free: lotCount(freeLots) }),
     );
     return sentences.join(" ");

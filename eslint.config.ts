@@ -142,6 +142,8 @@ export default defineConfig(
       ],
       "max-params": ["error", 3],
       "no-console": "error",
+      // A type import stays on its own line, as consistent-type-imports writes it.
+      "no-duplicate-imports": ["error", { allowSeparateTypeImports: true }],
       "no-param-reassign": "error",
       "no-restricted-syntax": ["error", ...restrictedSyntax],
       "no-warning-comments": "error",

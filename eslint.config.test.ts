@@ -196,6 +196,33 @@ test(
 );
 
 test(
+  "rejects a second import of values or of types from one module, and accepts one import of each",
+  async () => {
+    for (const code of [
+      `import { fail } from "../app/result.ts";
+import { succeed } from "../app/result.ts";
+export const both = [fail, succeed];`,
+      `import type { Result } from "../app/result.ts";
+import type { Result as Outcome } from "../app/result.ts";
+export type Both = [Result<1, 2>, Outcome<1, 2>];`,
+      `import { parseUsername } from "~/features/accounts/username";
+import { isUsername } from "~/features/accounts/username";
+export const both = [parseUsername, isUsername];`,
+    ]) {
+      expect(await rulesReporting(code), code).toContain(
+        "no-duplicate-imports",
+      );
+    }
+    expect(
+      await rulesReporting(
+        `${imports}export function parseName(value: unknown): Result<string, string> { return typeof value === "string" ? succeed(value) : fail("no name"); }`,
+      ),
+    ).not.toContain("no-duplicate-imports");
+  },
+  minuteMilliseconds,
+);
+
+test(
   "rejects reduce in every way to reach it, and accepts a plain loop",
   async () => {
     for (const code of [

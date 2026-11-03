@@ -92,7 +92,11 @@ function listTrackedInstruments(): Instrument[] {
 
 /** The codes of the stocks in the universe on a date, such as 2026-11-02. It fails for a date that no recorded period covers, so a missing review of IDX is noticed. */
 export function universeOn(date: string): Result<readonly string[], string> {
-  const period = periodCovering(universePeriods, date);
+  const period = periodCovering(
+    universePeriods,
+    date,
+    "the LQ45 in tracked-instruments.ts",
+  );
   if (period !== undefined) {
     return succeed(period.codes);
   }

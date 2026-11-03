@@ -23,7 +23,7 @@ export type ReturnMeasure = Measure<
   }
 >;
 
-/** The daily closes of one instrument, oldest first, with the code that a failure names. The stored history of an instrument has this shape. */
+/** The daily closes of one instrument, oldest first, with the code that a failure names. The measures take a stock and an index alike, so code that reads a close as rupiah or as points takes the history of market data, whose kinds keep the two apart. */
 export interface InstrumentCloses {
   code: string;
   closes: readonly DailyClose<ClosePrice>[];
@@ -86,7 +86,6 @@ function windowEndDates(
 
 /** How many monthly returns an instrument has for the measures, against how many they need. */
 export interface ReturnCount {
-  code: string;
   /** The returns of the instrument in the window of the settings. The market has a return in every month of the window, so these are the months that the instrument shares with the market. */
   count: number;
   /** The fewest returns that the measures accept. */
@@ -103,7 +102,6 @@ export function countReturns(
 ): ReturnCount {
   const window = windowEndDates(market.closes, settings);
   return {
-    code: instrument.code,
     count: returnsBetween(instrument.closes, window).length,
     minimum: settings.minimumReturnCount,
     windowEnd: window.at(-1),

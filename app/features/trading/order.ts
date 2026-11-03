@@ -30,7 +30,7 @@ export interface Order extends OrderRequest {
   expiresAt: Date;
   /** The price at which Portolab checked the order: its limit, or the latest delayed price for a market order. */
   checkedPrice: Rupiah;
-  /** The cash that a buy order holds back from other orders: the value of its shares at the checked price with the broker fee. A sell order holds back none. */
+  /** The cash that a buy order holds back from other orders: the cost of its shares at the checked price, which purchaseCost gives. A sell order holds back none. */
   setAsideCash: Rupiah;
   state: OrderState;
 }
@@ -61,7 +61,7 @@ export interface Fill {
   fee: Rupiah;
   /** The final tax on a sale, which a purchase does not pay. */
   tax: Rupiah;
-  /** The change of the cash of the account: the value and the fee paid out for a purchase, or the value less the fee and the tax paid in for a sale. */
+  /** The change of the cash of the account, which cashChange gives: the cost of a purchase paid out, or the value of a sale less its costs paid in. */
   cashChange: Rupiah;
   /** When the delayed price was quoted, which is the moment of the market at which the order filled. */
   quotedAt: Date;
@@ -76,8 +76,22 @@ export interface CashShortfall {
   price: Rupiah;
   value: Rupiah;
   fee: Rupiah;
+  /** The tax that tradeCosts sets for a purchase, which is part of its cost. */
+  tax: Rupiah;
   /** The cash that the order can use: the cash of the account less what other open orders set aside. */
   availableCash: Rupiah;
+}
+
+/** What the orders that are open at a moment set aside, and how many orders they are. */
+export interface SetAside<Amount> {
+  amount: Amount;
+  orders: number;
+}
+
+/** The sell orders that are open at a moment, which add cash when they fill: the stocks that they sell, each once, and how many orders they are. */
+export interface OpenSales {
+  codes: string[];
+  orders: number;
 }
 
 /** Why Portolab cannot accept an order. Each failure holds the numbers that its text gives to the student. */
@@ -131,13 +145,17 @@ export type OrderFailure =
   | ({
       kind: "notEnoughCash";
       cash: Rupiah;
-      setAsideCash: Rupiah;
-      /** The most lots that the available cash pays for at the price, with the fee, which can be 0. */
+      /** The cash that the open buy orders of the account set aside. */
+      setAside: SetAside<Rupiah>;
+      /** The most lots that the available cash pays for at the price, with the costs, which can be 0. */
       largestLots: Lots;
+      /** The highest price at which the available cash pays for 1 lot with its costs, which the text gives when the cash does not pay for 1 lot at the price of the order. */
+      highestLotPrice: Rupiah;
+      /** The lowest price that IDX accepts on the trading day, which the text gives when the highest price of 1 lot is below it. */
+      minimumPrice: Rupiah;
       /** Whether the account holds shares that no open sell order sets aside, which it could sell to add to its cash. */
       holdsFreeShares: boolean;
-      /** The stocks of the open sell orders of the account, which add to its cash when they fill. */
-      sellingCodes: readonly string[];
+      sales: OpenSales;
     } & CashShortfall)
   | {
       kind: "notEnoughShares";
@@ -145,8 +163,8 @@ export type OrderFailure =
       lots: Lots;
       /** The lots of the stock that the account holds. */
       heldLots: Lots;
-      /** The lots of the stock in open sell orders. */
-      setAsideLots: Lots;
+      /** The lots of the stock that open sell orders set aside. */
+      setAside: SetAside<Lots>;
     };
 
 /** Why Portolab rejected an order that it had accepted, when a price could fill it. */

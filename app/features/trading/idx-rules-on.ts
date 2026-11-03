@@ -146,10 +146,26 @@ const autoRejectionRules: readonly AutoRejectionRule[] = [
 
 /** The rules of IDX for the orders of a trading day. It fails for a date that some rule has no record for, and names every such rule. */
 export function idxRulesOn(date: string): Result<IdxRules, string> {
-  const orderSize = periodCovering(orderSizeRules, date);
-  const ticks = periodCovering(tickRules, date);
-  const minimumPrice = periodCovering(minimumPriceRules, date);
-  const autoRejection = periodCovering(autoRejectionRules, date);
+  const orderSize = periodCovering(
+    orderSizeRules,
+    date,
+    "the order sizes in idx-rules-on.ts",
+  );
+  const ticks = periodCovering(
+    tickRules,
+    date,
+    "the tick sizes in idx-rules-on.ts",
+  );
+  const minimumPrice = periodCovering(
+    minimumPriceRules,
+    date,
+    "the minimum prices in idx-rules-on.ts",
+  );
+  const autoRejection = periodCovering(
+    autoRejectionRules,
+    date,
+    "the auto rejection limits in idx-rules-on.ts",
+  );
   const missing: string[] = [];
   if (orderSize === undefined) {
     missing.push("the order sizes");

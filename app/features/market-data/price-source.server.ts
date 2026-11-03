@@ -53,10 +53,22 @@ export interface DailyClose<Price> {
 /** A close of a stock, adjusted for its later splits, or of an index. */
 export type ClosePrice = SplitAdjustedRupiah | IndexPoints;
 
-/** The daily closes of one instrument, oldest first. A stock's closes are adjusted for its later splits, so a split never shows as a fall in price, and an index's closes are its levels. */
-export type DailyHistory =
-  | { kind: "stock"; code: string; closes: DailyClose<SplitAdjustedRupiah>[] }
-  | { kind: "index"; code: IndexCode; closes: DailyClose<IndexPoints>[] };
+/** The daily closes of a stock, oldest first, adjusted for its later splits, so a split never shows as a fall in price. */
+export interface StockHistory {
+  kind: "stock";
+  code: string;
+  closes: DailyClose<SplitAdjustedRupiah>[];
+}
+
+/** The daily levels of an index at its closes, oldest first. */
+export interface IndexHistory {
+  kind: "index";
+  code: IndexCode;
+  closes: DailyClose<IndexPoints>[];
+}
+
+/** The daily closes of one instrument. */
+export type DailyHistory = StockHistory | IndexHistory;
 
 /** What the prices page tells about the source of its prices. */
 export interface PriceSourceDescription {

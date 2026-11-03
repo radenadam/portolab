@@ -9,7 +9,7 @@ import { cashChange, costRatesOn, tradeCosts } from "./trading-costs";
 
 /** What Portolab knows when it checks an order. */
 export interface OrderCheck {
-  /** An open order, which isOpenOrder finds among the orders of an account. */
+  /** An order in the state waiting or resting, which hasOpenState finds among the orders of an account, also after its expiry, so that the check marks it expired. */
   order: OpenOrder;
   /** The latest delayed quote of the stock of the order. */
   quote: StockQuote;
@@ -109,7 +109,7 @@ function fillAt(price: Rupiah, check: OrderCheck): OrderState {
           },
         };
       }
-      return filled(check, { price, ...paid.value, tax: rupiah(0) });
+      return filled(check, { price, ...paid.value });
     }
     case "sell": {
       const value = rupiah(price * order.shares);

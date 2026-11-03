@@ -1,5 +1,10 @@
 import { expect, test } from "vitest";
-import { formatMarketTime, formatMarketTimeParts } from "./formatting";
+import {
+  digitGroupSeparator,
+  formatMarketTime,
+  formatMarketTimeParts,
+  formatNumber,
+} from "./formatting";
 import { languageNames } from "./language-names";
 import { locales } from "./paraglide/runtime.js";
 import type { Locale } from "./paraglide/runtime.js";
@@ -19,5 +24,16 @@ for (const locale of locales) {
     const split = formatMarketTimeParts(quotedAt);
     expect(split).toEqual(parts[locale]);
     expect(split.date + split.clock).toBe(formatMarketTime(quotedAt));
+  });
+}
+
+const groupSeparators: Record<Locale, string> = { id: ".", en: "," };
+
+for (const locale of locales) {
+  test(`gives the separator of digit groups that formatNumber writes in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    const separator = digitGroupSeparator();
+    expect(separator).toBe(groupSeparators[locale]);
+    expect(formatNumber(50_000)).toBe(`50${separator}000`);
   });
 }

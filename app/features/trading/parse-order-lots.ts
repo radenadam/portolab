@@ -1,4 +1,5 @@
 import { parseFilledText } from "~/form-text";
+import { digitGroupSeparator, formatNumber } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
@@ -6,7 +7,7 @@ import { isOrderLots } from "~/units/lots";
 import type { Lots, OrderLots } from "~/units/lots";
 import { lotCount } from "./count-phrases";
 
-/** Reads the number of lots that the order form sent, which is a whole number from 1 to the largest order of IDX, written in digits, such as "5". The source is the label of the field, the largest order is the one that idxRulesOn gives for the trading day of the order, and the failure is a sentence for the reader in the current language. */
+/** Reads the number of lots that the order form sent, which is a whole number from 1 to the largest order of IDX. It is written in digits, either alone, such as "5000", or in groups of three as formatNumber writes it in the active language, such as "5.000" in Bahasa Indonesia. The source is the label of the field, the largest order is the one that idxRulesOn gives for the trading day of the order, and the failure is a sentence for the reader in the current language. */
 export function parseOrderLots(
   value: unknown,
   source: string,
@@ -16,11 +17,15 @@ export function parseOrderLots(
   if (!text.ok) {
     return text;
   }
-  const digits = text.value.trim();
-  const count = Number(digits);
-  if (!/^\d+$/.test(digits) || count < 1) {
+  const digits = digitsOf(text.value.trim());
+  const count = digits === undefined ? 0 : Number(digits);
+  if (count < 1) {
     return fail(
-      m.trading_lots_not_whole_error({ field: source, value: text.value }),
+      m.trading_lots_not_whole_error({
+        field: source,
+        value: text.value,
+        example: formatNumber(1_000),
+      }),
     );
   }
   if (count > maximumLots || !isOrderLots(count)) {
@@ -33,4 +38,19 @@ export function parseOrderLots(
     );
   }
   return succeed(count);
+}
+
+/** The digits of a whole number that is written in digits alone or in groups of three with the separator of the active language, or undefined for any other text. */
+function digitsOf(written: string): string | undefined {
+  const groups = written.split(digitGroupSeparator());
+  for (const [index, group] of groups.entries()) {
+    const isDigits = /^\d+$/.test(group);
+    const fitsGroups =
+      groups.length === 1 ||
+      (index === 0 ? group.length <= 3 : group.length === 3);
+    if (!isDigits || !fitsGroups) {
+      return undefined;
+    }
+  }
+  return groups.join("");
 }

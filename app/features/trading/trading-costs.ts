@@ -52,8 +52,16 @@ export interface CostRates {
 
 /** The rates of the costs of the trades of a day. It fails for a date that the fees or the tax have no record for, and names each of them. */
 export function costRatesOn(date: string): Result<CostRates, string> {
-  const fees = periodCovering(feeSchedules, date);
-  const tax = periodCovering(salesTaxRules, date);
+  const fees = periodCovering(
+    feeSchedules,
+    date,
+    "the broker fees in trading-costs.ts",
+  );
+  const tax = periodCovering(
+    salesTaxRules,
+    date,
+    "the final tax on sales in trading-costs.ts",
+  );
   const missing: string[] = [];
   if (fees === undefined) {
     missing.push("the broker fee");
@@ -74,7 +82,7 @@ export function costRatesOn(date: string): Result<CostRates, string> {
 }
 
 /** What a trade costs on top of its value. */
-interface TradeCosts {
+export interface TradeCosts {
   fee: Rupiah;
   tax: Rupiah;
 }
@@ -96,12 +104,12 @@ export function tradeCosts(
   }
 }
 
-/** What a purchase pays out: its value and its broker fee. */
-export function purchaseCost(trade: { value: Rupiah; fee: Rupiah }): Rupiah {
-  return rupiah(trade.value + trade.fee);
+/** What a purchase pays out: its value and the costs that tradeCosts gives it. */
+export function purchaseCost(trade: TradeCosts & { value: Rupiah }): Rupiah {
+  return rupiah(trade.value + trade.fee + trade.tax);
 }
 
-/** The change of the cash of an account from a trade: a purchase pays out its cost, and a sale pays in its value less its broker fee and the final tax on sales. */
+/** The change of the cash of an account from a trade: a purchase pays out its cost, and a sale pays in its value less its costs. */
 export function cashChange(
   side: OrderSide,
   trade: TradeCosts & { value: Rupiah },

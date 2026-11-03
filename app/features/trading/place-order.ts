@@ -1,14 +1,9 @@
-import { startOfMonth } from "~/calendar-dates";
 import {
   currentOrNextSessionStart,
   pricesFinalAt,
   tradingDayBefore,
 } from "~/features/market-data/idx-calendar";
 import type { StockQuote } from "~/features/market-data/price-source.server";
-import { universeOn } from "~/features/market-data/tracked-instruments";
-import { countReturns } from "~/features/measures/aligned-returns";
-import type { InstrumentCloses } from "~/features/measures/aligned-returns";
-import { defaultEstimationSettings } from "~/features/measures/estimation-settings";
 import { fail, failuresOf, succeed } from "~/result";
 import type { Result } from "~/result";
 import { lots } from "~/units/lots";
@@ -19,12 +14,14 @@ import { shares } from "~/units/shares";
 import type { Shares } from "~/units/shares";
 import { wibDateOf } from "~/wib";
 import { acceptedPriceRange, checkLimitPrice } from "./accepted-prices";
+import { checkBuyable } from "./check-buyable";
+import type { StockHistories } from "./check-buyable";
 import { checkCashForPurchase } from "./check-cash-for-purchase";
 import { referencePrice } from "./reference-price";
 import type { Holding } from "./holding-after-fill";
 import { idxRulesOn } from "./idx-rules-on";
 import type { IdxRules } from "./idx-rules-on";
-import { largestAffordableLots } from "./largest-affordable-lots";
+import { largestAffordableCount } from "./largest-affordable-count";
 import type {
   OpenOrder,
   Order,
@@ -34,8 +31,8 @@ import type {
 } from "./order";
 import {
   cashSetAside,
-  codesOfOpenSales,
   holdsFreeShares,
+  openSales,
   sharesSetAside,
 } from "./open-orders";
 import { costRatesOn, purchaseCost } from "./trading-costs";
@@ -50,14 +47,11 @@ export interface AccountState {
 }
 
 /** What Portolab knows of the stock of an order and of the market. */
-export interface StockState {
-  /** The latest delayed quote of the stock, or undefined while Portolab has none. */
+export interface StockState extends StockHistories {
+  /** The latest delayed quote of the stock, or undefined while Portolab has none, such as before the first update of prices after the stock joins the stocks that Portolab tracks. */
   quote: StockQuote | undefined;
   /** How many minutes the quotes lag behind the exchange, which sets when the prices of a day are final. */
   delayMinutes: number;
-  /** The stored final daily closes of the stock and of the market. They give the monthly returns that the measures can use, and with the quote the reference price of the auto rejection limits. */
-  closes: InstrumentCloses;
-  marketCloses: InstrumentCloses;
 }
 
 /** The trading day of an order and its rules. */
@@ -65,20 +59,27 @@ interface TradingDay {
   date: string;
   tradesFrom: Date;
   expiresAt: Date;
-  /** The trading day before it, whose close is the reference price. */
+  /** The trading day before it. Before the first quote of the trading day, the stored close of this day is the reference price. */
   previousDate: string;
   rules: IdxRules;
   rates: CostRates;
 }
 
-/** An order with its shares and the price at which Portolab checks it. */
-interface CheckedOrder {
+/** An order with the shares of its lots. */
+interface SizedOrder {
   code: string;
   side: OrderSide;
   lots: OrderLots;
   shares: Shares;
+}
+
+/** An order with its shares and the price at which Portolab checks it. */
+interface CheckedOrder extends SizedOrder {
   price: Rupiah;
 }
+
+/** An account at the moment when the student places an order. */
+type AccountAtMoment = AccountState & { moment: Date };
 
 /** Checks an order against the rules of IDX of its trading day and against the account, by the rules of decisions 0015 and 0016, and accepts it as waiting. The caller then checks it against the latest quote with checkOrder, as after every new quote, so an order placed during a session can fill at once. */
 export function placeOrder(
@@ -90,14 +91,6 @@ export function placeOrder(
   if (!day.ok) {
     return day;
   }
-  const { quote } = stock;
-  if (quote === undefined) {
-    return fail({ kind: "noPrice", code: request.code });
-  }
-  const tradable = checkStock(request, day.value.date, stock);
-  if (!tradable.ok) {
-    return tradable;
-  }
   const { rules } = day.value;
   if (request.lots > rules.maximumLots) {
     return fail({
@@ -106,22 +99,31 @@ export function placeOrder(
       maximumLots: rules.maximumLots,
     });
   }
-  const price = checkedPrice(request, { ...stock, quote }, day.value);
-  if (!price.ok) {
-    return price;
-  }
-  const order: CheckedOrder = {
+  const sized: SizedOrder = {
     code: request.code,
     side: request.side,
     lots: request.lots,
     shares: shares(request.lots * rules.lotShares),
-    price: price.value,
   };
-  const setAside = checkFunds(
-    order,
-    { ...account, moment: request.placedAt },
+  const atMoment: AccountAtMoment = { ...account, moment: request.placedAt };
+  const tradable = checkBeforePrice(
+    sized,
+    { account: atMoment, stock },
     day.value,
   );
+  if (!tradable.ok) {
+    return tradable;
+  }
+  const { quote } = stock;
+  if (quote === undefined) {
+    return fail({ kind: "noPrice", code: request.code });
+  }
+  const price = checkedPrice(request, { ...stock, quote }, day.value);
+  if (!price.ok) {
+    return price;
+  }
+  const order: CheckedOrder = { ...sized, price: price.value };
+  const setAside = cashToSetAside(order, atMoment, day.value);
   if (!setAside.ok) {
     return setAside;
   }
@@ -170,62 +172,50 @@ function tradingDayOf(
   });
 }
 
-/** Checks that the stock of a purchase can be bought on its trading day. A sale needs only the shares, which a holding keeps even after its stock leaves the universe. */
-function checkStock(
-  request: OrderRequest,
-  date: string,
-  stock: StockState,
+/** What Portolab knows of the account and of the stock when it checks an order. */
+interface OrderContext {
+  account: AccountAtMoment;
+  stock: StockState;
+}
+
+/** Checks what an order needs before its price. A purchase needs a stock that can be bought on its trading day. A sale needs shares that no other open sell order sets aside, which a holding keeps even after its stock leaves the universe. Portolab fetches quotes only for the stocks that it tracks, so these checks come before the quote, and a stock without a quote that fails them gets their text instead of a wait for a price that never comes. */
+function checkBeforePrice(
+  order: SizedOrder,
+  context: OrderContext,
+  day: TradingDay,
 ): Result<undefined, OrderFailure> {
-  switch (request.side) {
+  switch (order.side) {
     case "buy":
-      return checkBuyable(request.code, date, stock);
+      return checkBuyable(order.code, day.date, context.stock);
     case "sell":
-      return succeed(undefined);
+      return checkShares(order, context.account, day.rules);
   }
 }
 
-function checkBuyable(
-  code: string,
-  date: string,
-  stock: StockState,
+/** Checks that the account holds the shares of a sale beyond what its other open sell orders set aside. */
+function checkShares(
+  order: SizedOrder,
+  account: AccountAtMoment,
+  rules: IdxRules,
 ): Result<undefined, OrderFailure> {
-  const universe = universeOn(date);
-  if (!universe.ok) {
-    return fail({ kind: "missingUniverse", reason: universe.failure });
+  const held =
+    account.holdings.find((holding) => holding.code === order.code)?.shares ??
+    0;
+  const setAside = sharesSetAside(account.orders, order.code, account.moment);
+  if (order.shares <= held - setAside.amount) {
+    return succeed(undefined);
   }
-  if (!universe.value.includes(code)) {
-    return fail({ kind: "outsideUniverse", code, date });
-  }
-  const returns = countReturns(
-    stock.closes,
-    stock.marketCloses,
-    defaultEstimationSettings,
-  );
-  if (returns.windowEnd === undefined) {
-    return fail({
-      kind: "noPriceHistory",
-      code,
-      instrument: stock.marketCloses.code,
-    });
-  }
-  if (stock.closes.closes.length === 0) {
-    return fail({ kind: "noPriceHistory", code, instrument: code });
-  }
-  if (returns.count < returns.minimum) {
-    // The return of a month counts once the market has a close in the next month, so the last missing return arrives when the first trading day after its month closes.
-    const missing = returns.minimum - returns.count;
-    return fail({
-      kind: "tooFewReturns",
-      code,
-      count: returns.count,
-      minimum: returns.minimum,
-      enoughAfterFirstTradingDayOf: startOfMonth(
-        returns.windowEnd,
-        missing + 1,
-      ),
-    });
-  }
-  return succeed(undefined);
+  const { lotShares } = rules;
+  return fail({
+    kind: "notEnoughShares",
+    code: order.code,
+    lots: order.lots,
+    heldLots: lots(Math.floor(held / lotShares)),
+    setAside: {
+      amount: lots(Math.floor(setAside.amount / lotShares)),
+      orders: setAside.orders,
+    },
+  });
 }
 
 function checkedPrice(
@@ -257,54 +247,50 @@ function checkedPrice(
   }
 }
 
-/** Checks that the account can pay for a purchase, or holds the shares of a sale, beyond what its other orders set aside, and gives the cash that the order sets aside. */
-function checkFunds(
+/** The cash that an order sets aside: none for a sale, and the cost of a purchase at its checked price, which the cash that other open orders leave must pay for. */
+function cashToSetAside(
   order: CheckedOrder,
-  account: AccountState & { moment: Date },
+  account: AccountAtMoment,
   day: TradingDay,
 ): Result<Rupiah, OrderFailure> {
   switch (order.side) {
-    case "buy": {
-      const setAside = cashSetAside(account.orders, account.moment);
-      const availableCash = rupiah(account.cash - setAside);
-      const paid = checkCashForPurchase(order, availableCash, day.rates);
-      if (!paid.ok) {
-        return fail({
-          kind: "notEnoughCash",
-          cash: account.cash,
-          setAsideCash: setAside,
-          holdsFreeShares: holdsFreeShares(account, account.moment),
-          sellingCodes: codesOfOpenSales(account.orders, account.moment),
-          largestLots: largestAffordableLots(
-            availableCash,
-            { price: order.price, shares: day.rules.lotShares },
-            day.rates,
-          ),
-          ...paid.failure,
-        });
-      }
-      return succeed(purchaseCost(paid.value));
-    }
-    case "sell": {
-      const held =
-        account.holdings.find((holding) => holding.code === order.code)
-          ?.shares ?? 0;
-      const setAside = sharesSetAside(
-        account.orders,
-        order.code,
-        account.moment,
-      );
-      if (order.shares <= held - setAside) {
-        return succeed(rupiah(0));
-      }
-      const { lotShares } = day.rules;
-      return fail({
-        kind: "notEnoughShares",
-        code: order.code,
-        lots: order.lots,
-        heldLots: lots(Math.floor(held / lotShares)),
-        setAsideLots: lots(Math.floor(setAside / lotShares)),
-      });
-    }
+    case "buy":
+      return checkCash(order, account, day);
+    case "sell":
+      return succeed(rupiah(0));
   }
+}
+
+function checkCash(
+  order: CheckedOrder,
+  account: AccountAtMoment,
+  day: TradingDay,
+): Result<Rupiah, OrderFailure> {
+  const setAside = cashSetAside(account.orders, account.moment);
+  const availableCash = rupiah(account.cash - setAside.amount);
+  const paid = checkCashForPurchase(order, availableCash, day.rates);
+  if (paid.ok) {
+    return succeed(purchaseCost(paid.value));
+  }
+  const { lotShares, minimumPrice } = day.rules;
+  return fail({
+    kind: "notEnoughCash",
+    cash: account.cash,
+    setAside,
+    largestLots: lots(
+      largestAffordableCount(
+        availableCash,
+        rupiah(order.price * lotShares),
+        day.rates,
+      ),
+    ),
+    // Each rupiah of the price of 1 lot adds the shares of a lot to its value, so the count of such rupiah that the cash pays for is the highest price of 1 lot.
+    highestLotPrice: rupiah(
+      largestAffordableCount(availableCash, rupiah(lotShares), day.rates),
+    ),
+    minimumPrice,
+    holdsFreeShares: holdsFreeShares(account, account.moment),
+    sales: openSales(account.orders, account.moment),
+    ...paid.failure,
+  });
 }

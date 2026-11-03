@@ -23,6 +23,18 @@ export function formatNumber(value: number): string {
   return new Intl.NumberFormat(intlLocale()).format(value);
 }
 
+/** The character with which formatNumber separates groups of three digits in the active language, such as "." in "50.000" in Bahasa Indonesia, so that a parser accepts a number written as Portolab writes it. */
+export function digitGroupSeparator(): string {
+  const parts = new Intl.NumberFormat(intlLocale()).formatToParts(10_000);
+  const group = parts.find((part) => part.type === "group");
+  if (group === undefined) {
+    throw new Error(
+      `Intl writes 10000 in ${intlLocale()} without a group separator, but every language of Portolab groups digits.`,
+    );
+  }
+  return group.value;
+}
+
 export function formatIndexLevel(level: IndexPoints): string {
   return new Intl.NumberFormat(intlLocale(), {
     minimumFractionDigits: 2,

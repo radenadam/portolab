@@ -192,7 +192,7 @@ test("counts the monthly returns of a stock with a full history in the window of
       monthEndClosesForTest("IHSG"),
       defaultEstimationSettings,
     ),
-  ).toEqual({ code: "BBCA", count: 60, minimum: 24, windowEnd: "2026-09-30" });
+  ).toEqual({ count: 60, minimum: 24, windowEnd: "2026-09-30" });
 });
 
 test("counts as many monthly returns of a stock that listed recently as the measures share with the market", () => {
@@ -200,7 +200,6 @@ test("counts as many monthly returns of a stock that listed recently as the meas
   const market = monthEndClosesForTest("IHSG");
   const counted = countReturns(aadi, market, defaultEstimationSettings);
   expect(counted).toEqual({
-    code: "AADI",
     count: 21,
     minimum: 24,
     windowEnd: "2026-09-30",
@@ -223,5 +222,5 @@ test("counts no returns and no window while the market has no complete month", (
       marketWithoutCompleteMonthForTest(),
       defaultEstimationSettings,
     ),
-  ).toEqual({ code: "BBCA", count: 0, minimum: 24, windowEnd: undefined });
+  ).toEqual({ count: 0, minimum: 24, windowEnd: undefined });
 });

@@ -138,21 +138,12 @@ export function latestClosedTradingDay(
   moment: Date,
   delayMinutes: number,
 ): Result<string, string> {
-  let date = wibDateOf(moment);
-  // Each calendar covers whole years, so going back day by day reaches either a trading day that has closed or a date that no calendar covers.
-  for (;;) {
-    const calendar = calendarFor(date);
-    if (!calendar.ok) {
-      return calendar;
-    }
-    if (
-      isTradingDayIn(calendar.value, date) &&
-      finalAt(calendar.value, date, delayMinutes) <= moment
-    ) {
-      return succeed(date);
-    }
-    date = addDays(date, -1);
-  }
+  return searchDays(wibDateOf(moment), -1, (calendar, date) =>
+    isTradingDayIn(calendar, date) &&
+    finalAt(calendar, date, delayMinutes) <= moment
+      ? date
+      : undefined,
+  );
 }
 
 /** The moment from which the prices of a trading day with this delay can no longer change, which makes its closes final. It fails for a date that no calendar covers. */
@@ -178,18 +169,9 @@ function finalAt(
 
 /** The trading day before a date, such as 2026-10-30 for Monday 2026-11-02. It fails when the search reaches a date that no calendar covers. */
 export function tradingDayBefore(date: string): Result<string, string> {
-  let candidate = addDays(date, -1);
-  // Each calendar covers whole years, so going back day by day reaches either a trading day or a date that no calendar covers.
-  for (;;) {
-    const calendar = calendarFor(candidate);
-    if (!calendar.ok) {
-      return calendar;
-    }
-    if (isTradingDayIn(calendar.value, candidate)) {
-      return succeed(candidate);
-    }
-    candidate = addDays(candidate, -1);
-  }
+  return searchDays(addDays(date, -1), -1, (calendar, candidate) =>
+    isTradingDayIn(calendar, candidate) ? candidate : undefined,
+  );
 }
 
 /** Whether a moment falls in a session of continuous trading of a trading day, which is session I or session II. It fails for a date that no calendar covers. */
@@ -213,18 +195,29 @@ export function isContinuousTradingTime(moment: Date): Result<boolean, string> {
 
 /** The start of the session of continuous trading that is open at a moment, or else of the next one to open, which is when an order placed at that moment starts to trade. It fails when the search reaches a date that no calendar covers. */
 export function currentOrNextSessionStart(moment: Date): Result<Date, string> {
-  let date = wibDateOf(moment);
-  // Each calendar covers whole years, so going forward day by day reaches either a session that has not ended or a date that no calendar covers.
+  return searchDays(wibDateOf(moment), 1, (calendar, date) =>
+    startOfFirstSessionEndingAfter(calendar, date, moment),
+  );
+}
+
+/** The first value that a test finds on the dates from a start, going one day at a time in the direction of the step. It fails when the search reaches a date that no calendar covers. */
+function searchDays<Found>(
+  start: string,
+  step: 1 | -1,
+  find: (calendar: TradingCalendar, date: string) => Found | undefined,
+): Result<Found, string> {
+  let date = start;
+  // Each calendar covers whole years, so going day by day reaches either a date where the test finds its value or a date that no calendar covers.
   for (;;) {
     const calendar = calendarFor(date);
     if (!calendar.ok) {
       return calendar;
     }
-    const start = startOfFirstSessionEndingAfter(calendar.value, date, moment);
-    if (start !== undefined) {
-      return succeed(start);
+    const found = find(calendar.value, date);
+    if (found !== undefined) {
+      return succeed(found);
     }
-    date = addDays(date, 1);
+    date = addDays(date, step);
   }
 }
 
@@ -269,7 +262,11 @@ function isTradingDayIn(calendar: TradingCalendar, date: string): boolean {
 }
 
 function calendarFor(date: string): Result<TradingCalendar, string> {
-  const calendar = periodCovering(tradingCalendars, date);
+  const calendar = periodCovering(
+    tradingCalendars,
+    date,
+    "the trading calendars in idx-calendar.ts",
+  );
   if (calendar !== undefined) {
     return succeed(calendar);
   }

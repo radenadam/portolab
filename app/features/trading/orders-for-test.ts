@@ -1,4 +1,9 @@
+import {
+  indexHistoryForTest,
+  stockHistoryForTest,
+} from "~/features/market-data/history-kinds-for-test";
 import type { StockQuote } from "~/features/market-data/price-source.server";
+import { stockQuote } from "~/features/market-data/stock-quote";
 import { monthEndClosesForTest } from "~/features/measures/month-end-closes-for-test";
 import { lots } from "~/units/lots";
 import type { OrderLots } from "~/units/lots";
@@ -16,21 +21,6 @@ export const duringSessionForTest = new Date("2026-11-02T03:00:00Z");
 export const lastMinuteOfMondayForTest = new Date("2026-11-02T09:25:00Z");
 /** 16:26, when the prices of the day are final and the open orders of the day expire. */
 export const endOfMondayForTest = new Date("2026-11-02T09:26:00Z");
-
-/** A delayed quote of a stock whose previous close is Rp4,940, the close of BBCA on 30 October 2026. */
-export function quoteForTest(
-  code: string,
-  price: number,
-  quotedAt: string,
-): StockQuote {
-  return {
-    kind: "stock",
-    code,
-    price: rupiah(price),
-    previousClose: rupiah(4_940),
-    quotedAt: new Date(quotedAt),
-  };
-}
 
 /** The price of a limit order. */
 export function limitForTest(limit: number): OrderRequest["price"] {
@@ -57,12 +47,12 @@ export function orderLotsForTest(count: number): OrderLots {
   );
 }
 
-/** BBCA at 10:00 WIB on Monday 2 November 2026: its latest delayed quote, quoted at 09:50, the delay of 10 minutes, and the month-end closes of BBCA and the IHSG. */
+/** BBCA at 10:00 WIB on Monday 2 November 2026: its latest delayed quote, quoted at 09:50, the delay of 10 minutes, and the month-end closes of BBCA and the IHSG, whose last close of BBCA is the Rp4,980 of Friday 30 October 2026 that the quote states. */
 export const bbcaForTest: StockState & { quote: StockQuote } = {
-  quote: quoteForTest("BBCA", 4_980, "2026-11-02T02:50:00Z"),
+  quote: stockQuote("BBCA", [4_980, 4_980], "2026-11-02T02:50:00Z"),
   delayMinutes: 10,
-  closes: monthEndClosesForTest("BBCA"),
-  marketCloses: monthEndClosesForTest("IHSG"),
+  closes: stockHistoryForTest(monthEndClosesForTest("BBCA")),
+  marketCloses: indexHistoryForTest(monthEndClosesForTest("IHSG")),
 };
 
 /** A market purchase of 5 lots of BBCA at 10:00 WIB on Monday 2 November 2026, with the changes of a test. */

@@ -1,5 +1,4 @@
 import { expect, test } from "vitest";
-import { orderLotsForTest } from "./orders-for-test";
 import { rupiah } from "~/units/rupiah";
 import type { Rupiah } from "~/units/rupiah";
 import { shares } from "~/units/shares";
@@ -8,22 +7,24 @@ import {
   duringSessionForTest,
   endOfMondayForTest,
   lastMinuteOfMondayForTest,
+  orderLotsForTest,
 } from "./orders-for-test";
 import {
   cashSetAside,
-  codesOfOpenSales,
+  hasOpenState,
   holdsFreeShares,
   isOpenOrder,
+  openSales,
   sharesSetAside,
 } from "./open-orders";
 
-// The comment of each moment gives the time in WIB on Monday 2 November 2026.
+// The comment of each moment gives the time in WIB on Monday 2 November 2026. The amount that a purchase sets aside was computed with the decimal module of Python, with a broker fee of 0.15% of the value rounded to a whole rupiah with ROUND_HALF_UP.
 
 const placedAt = duringSessionForTest;
 const lastMinuteOfDay = lastMinuteOfMondayForTest;
 const endOfDay = endOfMondayForTest;
 
-// Only a purchase sets aside cash, and 1 lot at Rp4,980 with its fee sets aside Rp498,747.
+// Only a purchase sets aside cash, and 1 lot at Rp4,980 with its fee sets aside Rp498,747, so two such purchases set aside Rp997,494.
 const setAsideCashOf: Record<OrderSide, Rupiah> = {
   buy: rupiah(498_747),
   sell: rupiah(0),
@@ -61,7 +62,7 @@ test("counts the cash that open purchases set aside, and none of orders that are
       ],
       placedAt,
     ),
-  ).toBe(2 * 498_747);
+  ).toEqual({ amount: 997_494, orders: 2 });
 });
 
 test("counts the shares of a stock that open sales set aside, and none of other stocks, of purchases, or of orders that are done", () => {
@@ -77,7 +78,7 @@ test("counts the shares of a stock that open sales set aside, and none of other 
       "BBCA",
       placedAt,
     ),
-  ).toBe(200);
+  ).toEqual({ amount: 200, orders: 2 });
 });
 
 test("counts an order as open while it is waiting or resting, until its expiry", () => {
@@ -94,8 +95,19 @@ test("counts an order that is still waiting as closed from its expiry, so it set
   const purchase = order("buy", "BBCA", waiting);
   const sale = order("sell", "BBCA", waiting);
   expect(isOpenOrder(purchase, endOfDay)).toBe(false);
-  expect(cashSetAside([purchase], endOfDay)).toBe(0);
-  expect(sharesSetAside([sale], "BBCA", endOfDay)).toBe(0);
+  expect(cashSetAside([purchase], endOfDay)).toEqual({ amount: 0, orders: 0 });
+  expect(sharesSetAside([sale], "BBCA", endOfDay)).toEqual({
+    amount: 0,
+    orders: 0,
+  });
+});
+
+test("selects an order that is waiting or resting for the check also after its expiry, so the check can mark it expired", () => {
+  const purchase = order("buy", "BBCA", waiting);
+  expect(hasOpenState(purchase)).toBe(true);
+  expect(hasOpenState(order("buy", "BBCA", resting))).toBe(true);
+  expect(isOpenOrder(purchase, endOfDay)).toBe(false);
+  expect(hasOpenState(order("buy", "BBCA", expired))).toBe(false);
 });
 
 test("finds free shares only in a holding that open sell orders do not set aside completely", () => {
@@ -107,9 +119,9 @@ test("finds free shares only in a holding that open sell orders do not set aside
   expect(holdsFreeShares({ holdings: [], orders: [] }, placedAt)).toBe(false);
 });
 
-test("lists each stock of the open sell orders once, and none of purchases or of orders that are done", () => {
+test("lists each stock of the open sell orders once and counts the orders, and none of purchases or of orders that are done", () => {
   expect(
-    codesOfOpenSales(
+    openSales(
       [
         order("sell", "TLKM", waiting),
         order("sell", "BBCA", resting),
@@ -119,8 +131,9 @@ test("lists each stock of the open sell orders once, and none of purchases or of
       ],
       placedAt,
     ),
-  ).toEqual(["BBCA", "TLKM"]);
-  expect(codesOfOpenSales([order("sell", "BBCA", waiting)], endOfDay)).toEqual(
-    [],
-  );
+  ).toEqual({ codes: ["BBCA", "TLKM"], orders: 3 });
+  expect(openSales([order("sell", "BBCA", waiting)], endOfDay)).toEqual({
+    codes: [],
+    orders: 0,
+  });
 });
