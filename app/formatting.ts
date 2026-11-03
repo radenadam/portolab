@@ -7,9 +7,6 @@ import { wibTimeZone } from "~/wib";
 
 const intlLocales = { id: "id-ID", en: "en-US" } as const;
 
-// The unit "kilobyte" of Intl names 1,000 bytes, as the SI prefix kilo does.
-const bytesInKilobyte = 1000;
-
 function intlLocale(): string {
   return intlLocales[getLocale()];
 }
@@ -49,12 +46,13 @@ export function formatNumber(value: number): string {
   return new Intl.NumberFormat(intlLocale()).format(value);
 }
 
-/** Formats a size in kilobytes, such as 64 kB. */
-export function formatKilobytes(size: Bytes): string {
+/** Formats a size in bytes, such as 128,000 bytes. */
+export function formatBytes(size: Bytes): string {
   return new Intl.NumberFormat(intlLocale(), {
     style: "unit",
-    unit: "kilobyte",
-  }).format(size / bytesInKilobyte);
+    unit: "byte",
+    unitDisplay: "long",
+  }).format(size);
 }
 
 export function formatIndexLevel(level: IndexPoints): string {

@@ -1,5 +1,6 @@
 import {
   characterCount,
+  checkFieldLength,
   checkMaximumLength,
   parseFilledText,
   parseShortText,
@@ -33,7 +34,7 @@ function parseNewPassword(
   value: unknown,
   source: string,
 ): Result<string, string> {
-  const text = parseFilledText(value, source, passwordLength.maximum);
+  const text = parseFilledText(value, source);
   if (!text.ok) {
     return text;
   }
@@ -57,8 +58,14 @@ function parseRepeatedPassword(
   source: string,
   password: string,
 ): Result<string, string> {
-  const text = parseFilledText(value, source, passwordLength.maximum);
-  return text.ok && normalizePassword(text.value) === password
+  if (typeof value !== "string") {
+    return fail(m.accounts_passwords_differ_error({ field: source }));
+  }
+  const text = checkFieldLength(value, source);
+  if (!text.ok) {
+    return text;
+  }
+  return normalizePassword(text.value) === password
     ? succeed(password)
     : fail(m.accounts_passwords_differ_error({ field: source }));
 }
@@ -119,7 +126,7 @@ function parseNewUsername(
   value: unknown,
   source: string,
 ): Result<Username, string> {
-  const text = parseFilledText(value, source, usernameLength.maximum);
+  const text = parseFilledText(value, source);
   if (!text.ok) {
     return text;
   }

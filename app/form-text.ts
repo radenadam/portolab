@@ -1,14 +1,14 @@
+import { fieldMaximumLength } from "~/form-size";
 import { formatNumber } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
 import { typeName } from "~/value-shapes";
 
-/** Reads the text of a field that a person must fill in, as the person typed it, with at most the maximum number of characters of its field. The parser of every field calls it before any other work on the text, because that work grows with the length of the text. The source is the label of the field, and the failure is a sentence for the reader in the current language. */
+/** Reads the text of a field that a person must fill in, as the person typed it. It refuses a text longer than any field takes before any other work on the text, because that work grows with the length of the text. The source is the label of the field, and the failure is a sentence for the reader in the current language. */
 export function parseFilledText(
   value: unknown,
   source: string,
-  maximumLength: number,
 ): Result<string, string> {
   if (typeof value !== "string") {
     // A form gives null for a field that it did not send, and only a forged form sends a file in a field of text.
@@ -18,13 +18,21 @@ export function parseFilledText(
         : m.app_not_text_error({ field: source, type: typeName(value) }),
     );
   }
-  // The spaces around a text do not count, because a phone keyboard adds one after a word. A parser that keeps them, such as the one of a password, counts them in its own rule.
-  const content = value.trim();
-  if (content === "") {
-    return fail(m.app_empty_field_error({ field: source }));
+  const text = checkFieldLength(value, source);
+  if (!text.ok) {
+    return text;
   }
-  const checked = checkMaximumLength(content, source, maximumLength);
-  return checked.ok ? succeed(value) : checked;
+  return value.trim() === ""
+    ? fail(m.app_empty_field_error({ field: source }))
+    : succeed(value);
+}
+
+/** Accepts the text of a field as the form sent it, with the spaces around it, when it has at most the characters that any field takes. A parser calls it before any other work on the text, such as trimming, normalizing, or hashing it. */
+export function checkFieldLength(
+  text: string,
+  source: string,
+): Result<string, string> {
+  return checkMaximumLength(text, source, fieldMaximumLength);
 }
 
 /** Reads a short text that a person typed, such as a name, without the spaces around it and with each run of spaces inside it as one space. */
@@ -33,12 +41,11 @@ export function parseShortText(
   source: string,
   maximumLength: number,
 ): Result<string, string> {
-  const text = parseFilledText(value, source, maximumLength);
+  const text = parseFilledText(value, source);
   if (!text.ok) {
     return text;
   }
   const tidied = text.value.trim().replace(/\s+/g, " ").normalize("NFC");
-  // Normal form C writes a few characters as two, so the tidied text can be longer than the text that the person typed.
   return checkMaximumLength(tidied, source, maximumLength);
 }
 

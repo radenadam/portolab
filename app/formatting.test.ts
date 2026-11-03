@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import {
-  formatKilobytes,
+  formatBytes,
   formatMarketTime,
   formatMarketTimeParts,
 } from "./formatting";
@@ -13,7 +13,10 @@ import { bytes } from "./units/bytes";
 // 09:14:56 UTC on 16 October 2026 is 16:14 WIB.
 const quotedAt = new Date("2026-10-16T09:14:56.000Z");
 
-const sizes: Record<Locale, string> = { id: "1.500 kB", en: "1,500 kB" };
+const sizes: Record<Locale, string> = {
+  id: "128.040 byte",
+  en: "128,040 bytes",
+};
 
 const parts: Record<Locale, { date: string; clock: string }> = {
   id: { date: "16 Okt 2026, ", clock: "16.14" },
@@ -30,8 +33,8 @@ for (const locale of locales) {
 }
 
 for (const locale of locales) {
-  test(`formats a size in kilobytes of 1,000 bytes in ${languageNames[locale]}`, () => {
+  test(`formats a size in bytes in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
-    expect(formatKilobytes(bytes(1_500_000))).toBe(sizes[locale]);
+    expect(formatBytes(bytes(128_040))).toBe(sizes[locale]);
   });
 }

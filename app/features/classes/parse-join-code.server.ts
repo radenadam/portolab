@@ -7,15 +7,12 @@ import type { Result } from "~/result";
 import { joinCodeLength } from "./join-code";
 import type { JoinCode } from "./join-code";
 
-// The letters and digits of a code have one gap fewer than their number, and the field takes a space or a hyphen in each gap, which covers every way that a person copies a code.
-const typedCodeMaximumLength = joinCodeLength + (joinCodeLength - 1);
-
 /** Reads the code of a class as a person typed it. A code ignores case, spaces, and hyphens, because a person copies it from a projector or a chat. */
 export function parseJoinCode(
   value: unknown,
   source: string,
 ): Result<JoinCode, string> {
-  const text = parseFilledText(value, source, typedCodeMaximumLength);
+  const text = parseFilledText(value, source);
   if (!text.ok) {
     return text;
   }

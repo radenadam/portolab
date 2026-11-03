@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+import { fieldMaximumLength } from "./form-size";
 import { characterCount, parseFilledText, parseShortText } from "./form-text";
 import { languageNames } from "./language-names";
 import { locales } from "./paraglide/runtime.js";
@@ -11,21 +12,21 @@ const failures: Record<
     empty: string;
     notText: string;
     tooLong: string;
-    tooLongAsTyped: string;
-    tooLongWhenTidied: string;
+    longerThanAnyField: string;
+    farLongerThanAnyField: string;
   }
 > = {
   id: {
     empty:
       'Kolom "Nama Anda" kosong, padahal Portolab memerlukannya. Isi kolom itu.',
     notText:
-      'Formulir mengirim nilai bertipe File di kolom "Nama Anda", bukan teks. Muat ulang halaman, lalu isi formulir lagi.',
+      'Formulir mengirim nilai bertipe File di kolom "Nama Anda", bukan teks. Muat ulang halaman, lalu isi formulirnya lagi.',
     tooLong:
       'Kolom "Nama Anda" memuat paling banyak 1.000 karakter, tetapi isinya 1.001 karakter. Persingkat isinya.',
-    tooLongAsTyped:
-      'Kolom "Nama Anda" memuat paling banyak 100 karakter, tetapi isinya 202 karakter. Persingkat isinya.',
-    tooLongWhenTidied:
-      'Kolom "Nama Anda" memuat paling banyak 100 karakter, tetapi isinya 120 karakter. Persingkat isinya.',
+    longerThanAnyField:
+      'Kolom "Nama Anda" memuat paling banyak 8.000 karakter, tetapi isinya 8.001 karakter. Persingkat isinya.',
+    farLongerThanAnyField:
+      'Kolom "Nama Anda" memuat paling banyak 8.000 karakter, tetapi isinya 1.000.000 karakter. Persingkat isinya.',
   },
   en: {
     empty: 'The field "Your name" is empty, but Portolab needs it. Fill it in.',
@@ -33,29 +34,19 @@ const failures: Record<
       'The form sent a value of type File in the field "Your name" instead of text. Reload the page and fill in the form again.',
     tooLong:
       'The field "Your name" holds at most 1,000 characters, but it has 1,001. Shorten it.',
-    tooLongAsTyped:
-      'The field "Your name" holds at most 100 characters, but it has 202. Shorten it.',
-    tooLongWhenTidied:
-      'The field "Your name" holds at most 100 characters, but it has 120. Shorten it.',
+    longerThanAnyField:
+      'The field "Your name" holds at most 8,000 characters, but it has 8,001. Shorten it.',
+    farLongerThanAnyField:
+      'The field "Your name" holds at most 8,000 characters, but it has 1,000,000. Shorten it.',
   },
 };
 
 const labels: Record<Locale, string> = { id: "Nama Anda", en: "Your name" };
 
-// Normal form C writes this Devanagari letter as two characters.
-const letterThatNormalizationDoubles = "\u0958";
-
 test("reads a filled field as the person typed it", () => {
-  expect(parseFilledText(" kopi pagi ", "Kata sandi", 100)).toEqual({
+  expect(parseFilledText(" kopi pagi ", "Kata sandi")).toEqual({
     ok: true,
     value: " kopi pagi ",
-  });
-});
-
-test("leaves the spaces around a text out of its length", () => {
-  expect(parseFilledText("  kopi pagi ", "Kata sandi", 9)).toEqual({
-    ok: true,
-    value: "  kopi pagi ",
   });
 });
 
@@ -63,6 +54,14 @@ test("reads a short text without the spaces around it, with one space between wo
   expect(
     parseShortText("  Budi \t  Santoso\u00a0 Cafe\u0301 ", "Nama Anda", 100),
   ).toEqual({ ok: true, value: "Budi Santoso Caf\u00e9" });
+});
+
+test("reads a field of the most characters that any field takes", () => {
+  const longest = "a".repeat(fieldMaximumLength);
+  expect(parseFilledText(longest, "Kata sandi")).toEqual({
+    ok: true,
+    value: longest,
+  });
 });
 
 test("counts a letter outside the basic plane as one character", () => {
@@ -80,7 +79,7 @@ for (const locale of locales) {
   test(`rejects an empty or missing field and names its label in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     for (const value of ["", "   ", null, undefined]) {
-      expect(parseFilledText(value, label, 100)).toEqual({
+      expect(parseFilledText(value, label)).toEqual({
         ok: false,
         failure: failure.empty,
       });
@@ -103,18 +102,22 @@ for (const locale of locales) {
     });
   });
 
-  test(`rejects a text that is longer than its field as typed, before it tidies the text, in ${languageNames[locale]}`, () => {
+  test(`rejects a field longer than any field takes, counted with the spaces around it, before any other work, in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
-    expect(parseShortText(`a${" ".repeat(200)}b`, label, 100)).toEqual({
+    // Trimmed, the text would be one letter, so only a count of the text as sent refuses it.
+    const padded = `a${" ".repeat(fieldMaximumLength)}`;
+    for (const parsed of [
+      parseFilledText(padded, label),
+      parseShortText(padded, label, 100),
+    ]) {
+      expect(parsed).toEqual({
+        ok: false,
+        failure: failure.longerThanAnyField,
+      });
+    }
+    expect(parseFilledText("a".repeat(1_000_000), label)).toEqual({
       ok: false,
-      failure: failure.tooLongAsTyped,
+      failure: failure.farLongerThanAnyField,
     });
-  });
-
-  test(`rejects a text that normal form C makes longer than its field in ${languageNames[locale]}`, () => {
-    switchLocaleForTest(locale);
-    expect(
-      parseShortText(letterThatNormalizationDoubles.repeat(60), label, 100),
-    ).toEqual({ ok: false, failure: failure.tooLongWhenTidied });
   });
 }

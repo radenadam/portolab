@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+import { fieldMaximumLength } from "~/form-size";
 import { languageNames } from "~/language-names";
 import { locales } from "~/paraglide/runtime.js";
 import type { Locale } from "~/paraglide/runtime.js";
@@ -10,6 +11,7 @@ const failures: Record<
   {
     label: string;
     unknownLanguage: string;
+    tooLong: string;
     missingLanguage: string;
     notText: string;
   }
@@ -18,6 +20,8 @@ const failures: Record<
     label: "Bahasa",
     unknownLanguage:
       'Formulir mengirim "fr" di kolom "Bahasa", tetapi Portolab hanya tersedia dalam Bahasa Indonesia dan English. Pilih salah satunya di pengalih bahasa.',
+    tooLong:
+      'Kolom "Bahasa" memuat paling banyak 8.000 karakter, tetapi isinya 8.001 karakter. Persingkat isinya.',
     missingLanguage:
       'Formulir tidak mengirim bahasa di kolom "Bahasa". Pilih Bahasa Indonesia atau English di pengalih bahasa.',
     notText:
@@ -27,6 +31,8 @@ const failures: Record<
     label: "Language",
     unknownLanguage:
       'The form sent "fr" in the field "Language", but Portolab is only available in Bahasa Indonesia and English. Choose one of them in the language switch.',
+    tooLong:
+      'The field "Language" holds at most 8,000 characters, but it has 8,001. Shorten it.',
     missingLanguage:
       'The form sent no language in the field "Language". Choose Bahasa Indonesia or English in the language switch.',
     notText:
@@ -50,6 +56,13 @@ for (const locale of locales) {
       ok: false,
       failure: failure.unknownLanguage,
     });
+  });
+
+  test(`rejects a language longer than any field takes by its length, without quoting it, in ${language}`, () => {
+    switchLocaleForTest(locale);
+    expect(
+      parseLocale("a".repeat(fieldMaximumLength + 1), failure.label),
+    ).toEqual({ ok: false, failure: failure.tooLong });
   });
 
   test(`rejects a missing language and names the field in ${language}`, () => {

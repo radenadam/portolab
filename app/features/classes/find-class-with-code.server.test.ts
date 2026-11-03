@@ -16,7 +16,6 @@ const texts: Record<
   Locale,
   {
     empty: string;
-    tooLong: string;
     malformed: string;
     unknown: readonly [string, string];
     blocked: string;
@@ -25,8 +24,6 @@ const texts: Record<
   id: {
     empty:
       'Kolom "Kode kelas" kosong, padahal Portolab memerlukannya. Isi kolom itu.',
-    tooLong:
-      'Kolom "Kode kelas" memuat paling banyak 15 karakter, tetapi isinya 16 karakter. Persingkat isinya.',
     malformed:
       'Kolom "Kode kelas" menerima kode kelas, yang terdiri dari 8 huruf dan angka tanpa "l", "o", "0", atau "1", tetapi isinya "k7qm-4rx1". Periksa kodenya dengan dosen Anda.',
     unknown: [
@@ -39,8 +36,6 @@ const texts: Record<
   en: {
     empty:
       'The field "Code of the class" is empty, but Portolab needs it. Fill it in.',
-    tooLong:
-      'The field "Code of the class" holds at most 15 characters, but it has 16. Shorten it.',
     malformed:
       'The field "Code of the class" takes the code of a class, which has 8 letters and digits without "l", "o", "0", or "1", but it holds "k7qm-4rx1". Check the code with your lecturer.',
     unknown: [
@@ -55,7 +50,7 @@ const texts: Record<
 // 10.00 WIB on Monday 2 November 2026, so a block that the first wrong code starts ends at 10.15 WIB.
 const now = new Date("2026-11-02T03:00:00.000Z");
 
-test("finds the class of a code whatever its case, its spaces, and its hyphens", async () => {
+test("finds the class of a code whatever its case, its spaces, and its hyphen", async () => {
   const database = openDatabaseForTest();
   const { joinCode } = await createLecturerWithClassForTest(database);
   const context = joinContextForTest(database);
@@ -63,7 +58,6 @@ test("finds the class of a code whatever its case, its spaces, and its hyphens",
     joinCode,
     formatJoinCode(joinCode).toUpperCase(),
     ` ${joinCode.slice(0, 4)} ${joinCode.slice(4)} `,
-    Array.from(joinCode).join("-"),
   ]) {
     expect(findClassWithCode(context, typed, now), typed).toMatchObject({
       ok: true,
@@ -79,7 +73,7 @@ test("finds the class of a code whatever its case, its spaces, and its hyphens",
 for (const locale of locales) {
   const text = texts[locale];
 
-  test(`explains a code that is empty, too long, malformed, or opens no class in ${languageNames[locale]}`, async () => {
+  test(`explains a code that is empty, malformed, or opens no class in ${languageNames[locale]}`, async () => {
     switchLocaleForTest(locale);
     const database = openDatabaseForTest();
     await createLecturerWithClassForTest(database);
@@ -87,10 +81,6 @@ for (const locale of locales) {
     expect(findClassWithCode(context, "", now)).toEqual({
       ok: false,
       failure: { kind: "wrongCode", text: text.empty, status: 400 },
-    });
-    expect(findClassWithCode(context, "kode kelas: k7qm", now)).toEqual({
-      ok: false,
-      failure: { kind: "wrongCode", text: text.tooLong, status: 400 },
     });
     expect(findClassWithCode(context, "k7qm-4rx1", now)).toEqual({
       ok: false,

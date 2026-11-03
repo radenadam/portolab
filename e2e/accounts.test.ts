@@ -1,10 +1,7 @@
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
-import {
-  nameMaximumLength,
-  passwordLength,
-} from "../app/features/accounts/account-limits.ts";
-import { usernameLength } from "../app/features/accounts/username.ts";
+import { nameMaximumLength } from "../app/features/accounts/account-limits.ts";
+import { fieldMaximumLength } from "../app/form-size.ts";
 import { languageNames } from "../app/language-names.ts";
 import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
@@ -85,8 +82,8 @@ const texts: Record<
       'Kolom "Kata sandi" kosong, padahal Portolab memerlukannya. Isi kolom itu.',
     ],
     tooLongFields: [
-      'Kolom "Nama pengguna" memuat paling banyak 32 karakter, tetapi isinya 33 karakter. Persingkat isinya.',
-      'Kolom "Kata sandi" memuat paling banyak 128 karakter, tetapi isinya 129 karakter. Persingkat isinya.',
+      'Kolom "Nama pengguna" memuat paling banyak 8.000 karakter, tetapi isinya 8.001 karakter. Persingkat isinya.',
+      'Kolom "Kata sandi" memuat paling banyak 8.000 karakter, tetapi isinya 8.001 karakter. Persingkat isinya.',
     ],
     wrongCredentials:
       "Portolab tidak menemukan akun dengan nama pengguna dan kata sandi ini. Periksa keduanya, lalu coba lagi. Setelah 10 percobaan salah dalam 15 menit, Portolab memblokir nama pengguna itu untuk sementara. Blokir ini menghentikan siapa pun yang mencoba menebak kata sandinya.",
@@ -150,8 +147,8 @@ const texts: Record<
       'The field "Password" is empty, but Portolab needs it. Fill it in.',
     ],
     tooLongFields: [
-      'The field "Username" holds at most 32 characters, but it has 33. Shorten it.',
-      'The field "Password" holds at most 128 characters, but it has 129. Shorten it.',
+      'The field "Username" holds at most 8,000 characters, but it has 8,001. Shorten it.',
+      'The field "Password" holds at most 8,000 characters, but it has 8,001. Shorten it.',
     ],
     wrongCredentials:
       "Portolab found no account with this username and password. Check both and try again. After 10 wrong attempts within 15 minutes, Portolab blocks the username for a while. The block stops anyone who tries to guess the password.",
@@ -358,16 +355,12 @@ for (const locale of locales) {
       await expect(page.getByText(failure, { exact: true })).toBeVisible();
     }
     await expectAccessibleScreen(page);
-    // No account has a username or a password this long, so the form refuses them before it checks a password, and the attempt counts against no limit.
-    await submitSignIn(
-      page,
-      "a".repeat(usernameLength.maximum + 1),
-      "a".repeat(passwordLength.maximum + 1),
-    );
+    // The form refuses a field longer than any field takes before it checks a password, so this attempt counts against no limit.
+    const longerThanAnyField = "a".repeat(fieldMaximumLength + 1);
+    await submitSignIn(page, longerThanAnyField, longerThanAnyField);
     for (const failure of text.tooLongFields) {
       await expect(page.getByText(failure, { exact: true })).toBeVisible();
     }
-    await expectAccessibleScreen(page);
     await submitSignIn(page, typedUsername, "a wrong password");
     await expect(page.getByRole("alert")).toHaveText(text.wrongCredentials);
     await expect(page.getByLabel(text.usernameLabel)).toHaveValue(

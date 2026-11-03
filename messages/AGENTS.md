@@ -17,6 +17,7 @@ Each phrase that recurs in errors has one translation in each language, so that 
 | ... a value of type T in the field "X" instead of text.      | ... nilai bertipe T di kolom "X", bukan teks.          | A value of a form that is not text.                                         |
 | ... in the language switch.                                  | ... di pengalih bahasa.                                | The control that chooses the language.                                      |
 | ... and try again.                                           | ..., lalu coba lagi.                                   | A step before the next attempt.                                             |
+| ... the form again.                                          | ... formulirnya lagi.                                  | A step that opens, fills in, or sends a form once more.                     |
 | the code of a class                                          | kode kelas                                             | The code with which a student joins a class.                                |
 | this username                                                | nama pengguna ini                                      | The username that the error is about.                                       |
 | Check the code with your lecturer                            | Periksa kodenya dengan dosen Anda                      | A code of a class that is wrong.                                            |

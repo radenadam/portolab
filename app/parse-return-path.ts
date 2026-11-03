@@ -1,13 +1,8 @@
+import { fieldMaximumLength } from "~/form-size";
 import { characterCount } from "~/form-text";
 import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
 import { describeValue } from "~/value-shapes";
-
-/**
- * The most characters of a path to return to. RFC 9110 recommends that every part of HTTP supports addresses of at least 8,000 octets, and no path of this site comes near that, so a longer path comes only from a forged link.
- * @internal Tests build the longest path from it, because only parseReturnPath reads it.
- */
-export const returnPathMaximumLength = 8000;
 
 /** Reads the path to send the reader back to. A value that leads to another site fails, so a forged link never redirects the reader away. */
 export function parseReturnPath(
@@ -19,9 +14,9 @@ export function parseReturnPath(
     return returnPathFailure(value, source);
   }
   const length = characterCount(value);
-  if (length > returnPathMaximumLength) {
+  if (length > fieldMaximumLength) {
     return fail(
-      `${source} must be a path on this site of at most ${String(returnPathMaximumLength)} characters, but it has ${String(length)}.`,
+      `${source} must be a path on this site of at most ${String(fieldMaximumLength)} characters, but it has ${String(length)}.`,
     );
   }
   // The URL parser resolves the value the way a browser does, so a value that only looks like a local path, such as one with a tab after its slash, still fails.

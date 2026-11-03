@@ -15,6 +15,8 @@
     "app/features/accounts/account-limits.ts",
     "app/features/accounts/username.ts",
     "app/features/classes/class-rules.ts",
+    "app/form-size.ts",
+    "app/units/bytes.ts",
     "app/units/rupiah.ts"
   ],
   "compilerOptions": {

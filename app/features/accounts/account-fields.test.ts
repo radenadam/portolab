@@ -2,6 +2,7 @@ import { expect, test } from "vitest";
 import { languageNames } from "~/language-names";
 import { locales } from "~/paraglide/runtime.js";
 import type { Locale } from "~/paraglide/runtime.js";
+import { fieldMaximumLength } from "~/form-size";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
 import {
   parseConsent,
@@ -29,14 +30,12 @@ const texts: Record<
     name: string;
     consent: string;
     usernameMalformed: string;
-    usernameTooLong: string;
     tooShort: string;
     tooLong: string;
-    tooLongAsTyped: string;
-    tooLongWhenNormalized: string;
     nameTooLong: string;
     passwordsDiffer: string;
     consentMissing: string;
+    longerThanAnyField: readonly [string, string];
   }
 > = {
   id: {
@@ -44,44 +43,40 @@ const texts: Record<
     consent: "Saya menyetujui pemberitahuan privasi",
     usernameMalformed:
       'Kolom "Nama pengguna" menerima 3 sampai 32 karakter dari a sampai z, 0 sampai 9, ".", "-", dan "_", tetapi isinya "budi santoso". Pilih nama pengguna, misalnya budi.santoso.',
-    usernameTooLong:
-      'Kolom "Nama pengguna" memuat paling banyak 32 karakter, tetapi isinya 33 karakter. Persingkat isinya.',
     tooShort:
       'Kolom "Kata sandi baru" perlu paling sedikit 15 karakter, tetapi isinya 14 karakter. Setiap karakter tambahan membuat kata sandi jauh lebih sulit ditebak, jadi pilih yang lebih panjang, misalnya kalimat pendek.',
     tooLong:
       'Kolom "Kata sandi baru" memuat paling banyak 128 karakter, tetapi isinya 129 karakter. Persingkat isinya.',
-    tooLongAsTyped:
-      'Kolom "Kata sandi baru" memuat paling banyak 128 karakter, tetapi isinya 130 karakter. Persingkat isinya.',
-    tooLongWhenNormalized:
-      'Kolom "Kata sandi baru" memuat paling banyak 128 karakter, tetapi isinya 150 karakter. Persingkat isinya.',
     nameTooLong:
       'Kolom "Nama Anda" memuat paling banyak 100 karakter, tetapi isinya 101 karakter. Persingkat isinya.',
     passwordsDiffer:
       'Kolom "Ulangi kata sandi baru" berbeda dari kata sandi baru. Ketik kata sandi yang sama di kedua kolom.',
     consentMissing:
       'Portolab hanya menyimpan data Anda dengan persetujuan Anda. Baca pemberitahuan privasi, lalu centang "Saya menyetujui pemberitahuan privasi".',
+    longerThanAnyField: [
+      'Kolom "Kata sandi baru" memuat paling banyak 8.000 karakter, tetapi isinya 8.019 karakter. Persingkat isinya.',
+      'Kolom "Ulangi kata sandi baru" memuat paling banyak 8.000 karakter, tetapi isinya 8.019 karakter. Persingkat isinya.',
+    ],
   },
   en: {
     name: "Your name",
     consent: "I agree to the privacy notice",
     usernameMalformed:
       'The field "Username" takes 3 to 32 characters from a to z, 0 to 9, ".", "-", and "_", but it holds "budi santoso". Choose a username, such as budi.santoso.',
-    usernameTooLong:
-      'The field "Username" holds at most 32 characters, but it has 33. Shorten it.',
     tooShort:
       'The field "New password" needs at least 15 characters, but it has 14. Each extra character makes a password much harder to guess, so choose a longer one, such as a short sentence.',
     tooLong:
       'The field "New password" holds at most 128 characters, but it has 129. Shorten it.',
-    tooLongAsTyped:
-      'The field "New password" holds at most 128 characters, but it has 130. Shorten it.',
-    tooLongWhenNormalized:
-      'The field "New password" holds at most 128 characters, but it has 150. Shorten it.',
     nameTooLong:
       'The field "Your name" holds at most 100 characters, but it has 101. Shorten it.',
     passwordsDiffer:
       'The field "New password again" differs from the new password. Type the same password in both fields.',
     consentMissing:
       'Portolab stores your data only with your agreement. Read the privacy notice, then tick "I agree to the privacy notice".',
+    longerThanAnyField: [
+      'The field "New password" holds at most 8,000 characters, but it has 8,019. Shorten it.',
+      'The field "New password again" holds at most 8,000 characters, but it has 8,019. Shorten it.',
+    ],
   },
 };
 
@@ -144,16 +139,13 @@ for (const locale of locales) {
     });
   });
 
-  test(`rejects a password that is too short or too long, as typed or in the normal form that the hash reads, with both lengths, in ${languageNames[locale]}`, () => {
+  test(`rejects a password that is too short or too long, with both lengths, in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
-    for (const [password, failure] of [
-      ["a".repeat(14), text.tooShort],
-      ["a".repeat(129), text.tooLong],
-      // Each accented letter is typed as two characters, which the normal form joins into one, so only the text as typed is too long.
-      ["é".repeat(65), text.tooLongAsTyped],
-      // The normal form writes each fraction as three characters.
-      ["½".repeat(50), text.tooLongWhenNormalized],
+    for (const [length, failure] of [
+      [14, text.tooShort],
+      [129, text.tooLong],
     ] as const) {
+      const password = "a".repeat(length);
       expect(readNewPassword(passwordForm(password, password))).toEqual({
         ok: false,
         failure: {
@@ -162,18 +154,6 @@ for (const locale of locales) {
         },
       });
     }
-  });
-
-  test(`rejects a username longer than its field, and names both lengths, in ${languageNames[locale]}`, () => {
-    switchLocaleForTest(locale);
-    const form = passwordForm("teh sore di taman", "teh sore di taman");
-    form.set("name", "Sari");
-    form.set("username", "a".repeat(33));
-    form.set("consent", "yes");
-    expect(readNewStudent(form)).toMatchObject({
-      ok: false,
-      failure: { usernameFailure: text.usernameTooLong },
-    });
   });
 
   test(`rejects a name that is too long in ${languageNames[locale]}`, () => {
@@ -186,13 +166,10 @@ for (const locale of locales) {
 
   test(`rejects a repeated password that differs in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
-    // The last repeated password has the normal form of the first one, but as typed it is longer than any password, so its field refuses it before it normalizes it.
-    for (const [password, repeated] of [
-      ["kopi pagi di kampus", "kopi pagi di kampus!"],
-      ["kopi pagi di kampus", null],
-      ["é".repeat(100), "é".repeat(100)],
-    ] as const) {
-      expect(readNewPassword(passwordForm(password, repeated))).toEqual({
+    for (const repeated of ["kopi pagi di kampus!", null]) {
+      expect(
+        readNewPassword(passwordForm("kopi pagi di kampus", repeated)),
+      ).toEqual({
         ok: false,
         failure: {
           newPasswordFailure: undefined,
@@ -210,5 +187,21 @@ for (const locale of locales) {
         failure: text.consentMissing,
       });
     }
+  });
+
+  test(`rejects a new password or its repetition longer than any field takes, counted with the spaces around it, before it normalizes it, in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    const password = "kopi pagi di kampus";
+    const padded = `${password}${" ".repeat(fieldMaximumLength)}`;
+    const [newPasswordFailure, repeatedPasswordFailure] =
+      text.longerThanAnyField;
+    expect(readNewPassword(passwordForm(padded, padded))).toEqual({
+      ok: false,
+      failure: { newPasswordFailure, repeatedPasswordFailure: undefined },
+    });
+    expect(readNewPassword(passwordForm(password, padded))).toEqual({
+      ok: false,
+      failure: { newPasswordFailure: undefined, repeatedPasswordFailure },
+    });
   });
 }

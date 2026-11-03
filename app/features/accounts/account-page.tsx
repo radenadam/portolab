@@ -12,7 +12,6 @@ import type { Route } from "./+types/account-page";
 import type { User } from "./account";
 import { AccountDetails } from "./account-details";
 import { readNewPassword } from "./account-fields";
-import { passwordLength } from "./account-limits";
 import { NewPasswordFields } from "./new-password-fields";
 import { updateAccount } from "./account-store.server";
 import { requireUser, startSession } from "./current-session.server";
@@ -42,7 +41,6 @@ export async function action({ context, request, url }: Route.ActionArgs) {
   const currentPassword = parseFilledText(
     form.get("currentPassword"),
     m.accounts_current_password_label(),
-    passwordLength.maximum,
   );
   const newPassword = readNewPassword(form);
   if (!currentPassword.ok || !newPassword.ok) {
