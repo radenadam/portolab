@@ -26,6 +26,7 @@
     "app/sentences.ts",
     "app/value-parsers.ts",
     "app/character-count.ts",
+    "app/field-length.ts",
     "app/form-size.ts",
     "app/units/bytes.ts",
     "app/value-shapes.ts",

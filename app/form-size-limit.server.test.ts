@@ -106,6 +106,13 @@ test("refuses a body that states a size past what it reads and throws away, just
   }
 });
 
+test("refuses a body without a stated size one byte past the limit", async () => {
+  captureStderrForTest();
+  await expect(
+    runLimit(formRequest("a".repeat(formMaximumBytes + 1))),
+  ).rejects.toMatchObject({ data: null, init: { status: 413 } });
+});
+
 test("refuses a body without a stated size at the first piece past the limit, so a body without end costs no more", async () => {
   captureStderrForTest();
   await expect(runLimit(formRequest(endlessBody()))).rejects.toMatchObject({

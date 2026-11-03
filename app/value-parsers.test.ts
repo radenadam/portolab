@@ -50,7 +50,7 @@ test("rejects a value past the maximum of any field, just or far, by its length 
   for (const length of [fieldMaximumLength + 1, 1_000_000]) {
     expect(parseRecordId("a".repeat(length), "classId")).toEqual({
       ok: false,
-      failure: `classId must be a positive whole number, but it has ${String(length)} characters.`,
+      failure: `classId must have at most 8000 characters, but it has ${String(length)}.`,
     });
   }
 });

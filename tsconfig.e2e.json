@@ -8,6 +8,7 @@
     "app/sentences.ts",
     "app/value-parsers.ts",
     "app/character-count.ts",
+    "app/field-length.ts",
     "app/value-shapes.ts",
     "scripts/wait-for-health.ts",
     "app/time-units.ts",

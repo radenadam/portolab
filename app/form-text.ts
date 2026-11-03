@@ -1,5 +1,5 @@
 import { characterCount } from "~/character-count";
-import { fieldMaximumLength } from "~/form-size";
+import { checkFieldLength } from "~/field-length";
 import { formatNumber } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { fail, succeed } from "~/result";
@@ -19,7 +19,7 @@ export function parseFilledText(
         : m.app_not_text_error({ field: source, type: typeName(value) }),
     );
   }
-  const text = checkFieldLength(value, source);
+  const text = checkFieldLengthForReader(value, source);
   if (!text.ok) {
     return text;
   }
@@ -28,21 +28,21 @@ export function parseFilledText(
     : succeed(value);
 }
 
-/** Accepts the text of a field as the form sent it, with the spaces around it, when it has at most the characters that any field takes. A parser calls it before any other work on the text, such as trimming, normalizing, or hashing it. */
-export function checkFieldLength(
+/** Accepts the text of a field as checkFieldLength does, with a failure that is a sentence for the reader in the current language. */
+export function checkFieldLengthForReader(
   text: string,
   source: string,
 ): Result<string, string> {
-  const length = characterCount(text);
+  const checked = checkFieldLength(text);
   // The rule of each field allows far less, so the error states no maximum, which would not be the one of the field.
-  return length > fieldMaximumLength
-    ? fail(
+  return checked.ok
+    ? checked
+    : fail(
         m.app_far_too_long_error({
           field: source,
-          length: formatNumber(length),
+          length: formatNumber(checked.failure),
         }),
-      )
-    : succeed(text);
+      );
 }
 
 /** Reads a short text that a person typed, such as a name, without the spaces around it and with each run of spaces inside it as one space. */

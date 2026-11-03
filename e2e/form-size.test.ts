@@ -1,3 +1,5 @@
+import { request as sendRequest } from "node:http";
+import type { IncomingHttpHeaders } from "node:http";
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import {
@@ -6,6 +8,7 @@ import {
 } from "../app/features/accounts/account-limits.ts";
 import { fieldMaximumLength, formMaximumBytes } from "../app/form-size.ts";
 import { languageNames } from "../app/language-names.ts";
+import { secondMilliseconds } from "../app/time-units.ts";
 import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
 import { runAccountCommand, submitSignIn, uniqueUsername } from "./accounts.ts";
@@ -29,7 +32,7 @@ const texts: Record<
     passwordLabel: string;
     signInButton: string;
     tooLargeTitle: string;
-    tooLargeBodies: Record<PastedText, string>;
+    tooLargeBodies: Record<PastedText | "widestStatedSize", string>;
     openFormLink: string;
   }
 > = {
@@ -43,6 +46,8 @@ const texts: Record<
         "Formulir ini berukuran 128.040 byte, tetapi Portolab menerima formulir paling besar 128.000 byte. Hal ini terjadi jika teks yang sangat panjang ditempel ke sebuah kolom. Buka formulirnya lagi, lalu isi setiap kolom dengan teks yang lebih pendek.",
       farPastLimit:
         "Formulir ini berukuran 2.000.039 byte, tetapi Portolab menerima formulir paling besar 128.000 byte. Hal ini terjadi jika teks yang sangat panjang ditempel ke sebuah kolom. Buka formulirnya lagi, lalu isi setiap kolom dengan teks yang lebih pendek.",
+      widestStatedSize:
+        "Formulir ini berukuran 999.999.999.999.999 byte, tetapi Portolab menerima formulir paling besar 128.000 byte. Hal ini terjadi jika teks yang sangat panjang ditempel ke sebuah kolom. Buka formulirnya lagi, lalu isi setiap kolom dengan teks yang lebih pendek.",
     },
     openFormLink: "Buka formulirnya lagi",
   },
@@ -56,12 +61,75 @@ const texts: Record<
         "This form has 128,040 bytes, but Portolab accepts a form of at most 128,000 bytes. This happens when a very long text is pasted into a field. Open the form again and fill in each field with a shorter text.",
       farPastLimit:
         "This form has 2,000,039 bytes, but Portolab accepts a form of at most 128,000 bytes. This happens when a very long text is pasted into a field. Open the form again and fill in each field with a shorter text.",
+      widestStatedSize:
+        "This form has 999,999,999,999,999 bytes, but Portolab accepts a form of at most 128,000 bytes. This happens when a very long text is pasted into a field. Open the form again and fill in each field with a shorter text.",
     },
     openFormLink: "Open the form again",
   },
 };
 
 const signInPath = "/sign-in?returnTo=%2Fclasses";
+
+const forgedRequestTimeoutSeconds = 10;
+
+/** Sends a form as a forged request that states a size of fifteen digits, the widest that the limit reads, without a body of that size, and returns the answer of the server, which refuses the form before it reads the body. */
+function sendWithWidestStatedSize(
+  url: string,
+  headers: Record<string, string>,
+): Promise<{ status: number; headers: Record<string, string>; body: Buffer }> {
+  return new Promise((resolve, reject) => {
+    const forged = sendRequest(
+      url,
+      {
+        method: "POST",
+        headers: { ...headers, "content-length": "9".repeat(15) },
+        agent: false,
+        timeout: forgedRequestTimeoutSeconds * secondMilliseconds,
+      },
+      (answer) => {
+        const pieces: Buffer[] = [];
+        answer.on("data", (piece: Buffer) => {
+          pieces.push(piece);
+        });
+        answer.on("end", () => {
+          // The server still waits for the body that the request stated, so the test closes the connection.
+          forged.destroy();
+          resolve({
+            status: answer.statusCode ?? 0,
+            headers: answerHeaders(answer.headers),
+            body: Buffer.concat(pieces),
+          });
+        });
+      },
+    );
+    forged.on("timeout", () => {
+      forged.destroy(
+        new Error(
+          `The server did not answer the forged form within ${String(forgedRequestTimeoutSeconds)} seconds.`,
+        ),
+      );
+    });
+    forged.on("error", reject);
+    forged.flushHeaders();
+  });
+}
+
+/** The headers of an answer that the browser reads, such as the one that marks the data of React Router, without those of the connection, which the browser sets for the answer that the test gives it. */
+function answerHeaders(headers: IncomingHttpHeaders): Record<string, string> {
+  const connectionHeaders = [
+    "connection",
+    "keep-alive",
+    "transfer-encoding",
+    "content-length",
+  ];
+  const kept: Record<string, string> = {};
+  for (const [name, value] of Object.entries(headers)) {
+    if (value !== undefined && !connectionHeaders.includes(name)) {
+      kept[name] = Array.isArray(value) ? value.join(", ") : value;
+    }
+  }
+  return kept;
+}
 
 /** Pastes a text into the password of the sign-in form, sends the form, and checks that the page explains the refusal with the size of the form and the status of a body too large. */
 async function sendTooLargeSignIn(
@@ -106,6 +174,37 @@ for (const locale of locales) {
       page.getByRole("heading", { level: 1, name: text.signInTitle }),
     ).toBeVisible();
     await sendTooLargeSignIn(page, locale, "farPastLimit");
+  });
+
+  test(`shows the widest size that the limit reads on the page of a form that is too large, in ${language}`, async ({
+    page,
+  }) => {
+    await chooseLanguage(page, locale);
+    // A browser states the true size of its form, and so does the client of Playwright, so the test sends the form itself with the widest size that the limit reads, as a forged request can.
+    await page.route("**/sign-in*", async (route) => {
+      if (route.request().method() !== "POST") {
+        await route.fallback();
+        return;
+      }
+      await route.fulfill(
+        await sendWithWidestStatedSize(
+          route.request().url(),
+          route.request().headers(),
+        ),
+      );
+    });
+    await page.goto(signInPath);
+    await page
+      .getByLabel(text.passwordLabel, { exact: true })
+      .fill("a wrong password");
+    await page
+      .getByRole("main")
+      .getByRole("button", { name: text.signInButton })
+      .click();
+    await expect(
+      page.getByText(text.tooLargeBodies.widestStatedSize),
+    ).toBeVisible();
+    await expectAccessibleScreen(page);
   });
 
   test.describe(`before JavaScript loads in ${language}`, () => {

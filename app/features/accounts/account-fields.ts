@@ -1,6 +1,6 @@
 import { characterCount } from "~/character-count";
 import {
-  checkFieldLength,
+  checkFieldLengthForReader,
   checkMaximumLength,
   parseFilledText,
   parseShortText,
@@ -61,7 +61,7 @@ function parseRepeatedPassword(
   if (typeof value !== "string") {
     return fail(m.accounts_passwords_differ_error({ field: source }));
   }
-  const text = checkFieldLength(value, source);
+  const text = checkFieldLengthForReader(value, source);
   if (!text.ok) {
     return text;
   }
