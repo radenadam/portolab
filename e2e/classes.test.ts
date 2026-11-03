@@ -418,7 +418,7 @@ for (const locale of locales) {
     browser,
   }) => {
     const lecturer = await newDevice(browser, locale, publicServerUrl);
-    const lecturerUsername = await signInAsNewLecturer(lecturer, lecturerName);
+    await signInAsNewLecturer(lecturer, lecturerName);
     const testClass = await createTestClass(lecturer, className);
     // A public server keeps the address that the lecturer opened, which the phone of a student opens as well.
     const joinAddress = new URL(testClass.joinPath, publicServerUrl).href;
@@ -449,6 +449,44 @@ for (const locale of locales) {
       student.getByRole("link", { name: text.existingAccountLink }),
     ).toBeVisible();
     await expectAccessibleScreen(student);
+
+    await joinAsNewStudent(student, joinAddress, studentName);
+    await expect(student).toHaveTitle(`${className} | Portolab`);
+    await expect(student.getByText(text.taughtBy)).toBeVisible();
+    await expect(student.getByText(text.startingCash)).toBeVisible();
+    await expect(
+      student.getByText(text.joinedNotice[0], { exact: false }),
+    ).toContainText(text.joinedNotice[1]);
+    await expectAccessibleScreen(student);
+
+    await student.goto("/classes");
+    await expect(student.getByRole("link", { name: className })).toBeVisible();
+    await expect(student.getByText(text.taughtBy)).toBeVisible();
+    await expect(
+      student.getByRole("link", { name: text.joinLink }),
+    ).toBeVisible();
+    await expectAccessibleScreen(student);
+    await student.goto("/");
+    await expect(
+      student.getByRole("link", { name: text.homeClassesLink }),
+    ).toBeVisible();
+    await student.context().close();
+
+    await lecturer.goto("/classes");
+    await expect(lecturer.getByText(text.taughtClass)).toBeVisible();
+    await expectAccessibleScreen(lecturer);
+    await lecturer.context().close();
+  });
+
+  test(`explains a taken username and a class that went away on the page that joins a class in ${language}`, async ({
+    page,
+    browser,
+  }) => {
+    await chooseLanguage(page, locale);
+    const lecturerUsername = await signInAsNewLecturer(page, lecturerName);
+    const testClass = await createTestClass(page, className);
+    const student = await newDevice(browser, locale);
+    await student.goto(testClass.joinPath);
 
     // The error quotes the username as the field shows it, and Portolab reads a username in lowercase.
     const typedUsername = lecturerUsername.toUpperCase();
@@ -484,33 +522,7 @@ for (const locale of locales) {
       .click();
     await expectUnknownCodeForm(student, locale, "aaaa-aaaa");
     await student.unroute(isFormToJoin);
-
-    await joinAsNewStudent(student, joinAddress, studentName);
-    await expect(student).toHaveTitle(`${className} | Portolab`);
-    await expect(student.getByText(text.taughtBy)).toBeVisible();
-    await expect(student.getByText(text.startingCash)).toBeVisible();
-    await expect(
-      student.getByText(text.joinedNotice[0], { exact: false }),
-    ).toContainText(text.joinedNotice[1]);
-    await expectAccessibleScreen(student);
-
-    await student.goto("/classes");
-    await expect(student.getByRole("link", { name: className })).toBeVisible();
-    await expect(student.getByText(text.taughtBy)).toBeVisible();
-    await expect(
-      student.getByRole("link", { name: text.joinLink }),
-    ).toBeVisible();
-    await expectAccessibleScreen(student);
-    await student.goto("/");
-    await expect(
-      student.getByRole("link", { name: text.homeClassesLink }),
-    ).toBeVisible();
     await student.context().close();
-
-    await lecturer.goto("/classes");
-    await expect(lecturer.getByText(text.taughtClass)).toBeVisible();
-    await expectAccessibleScreen(lecturer);
-    await lecturer.context().close();
   });
 
   test(`lets a student who is signed in join with a code, and explains a wrong code, in ${language}`, async ({

@@ -61,16 +61,28 @@ const laptopInterfaces = {
   "Wi-Fi": [ipv6("fe80::2", 64), ipv4("192.0.2.20", 24)],
 };
 
+// The WHATWG URL standard reads a host in each of these forms, such as an IPv4 address in hexadecimal, in octal, in fewer than four parts, or as one number, and a name with percent-encoding, so a reader may type any of them.
 const thisComputerPages = [
   "http://localhost:3000/join/k7qm-4rxt",
   "http://LOCALHOST.:3000/join/k7qm-4rxt",
+  "http://local%68ost:3000/join/k7qm-4rxt",
   "http://portolab.localhost:3000/join/k7qm-4rxt",
   "http://127.0.0.1:3000/join/k7qm-4rxt",
   "http://127.1.2.3:3000/join/k7qm-4rxt",
+  "http://0x7f.1:3000/join/k7qm-4rxt",
+  "http://0X7F000001:3000/join/k7qm-4rxt",
+  "http://0177.0.0.1:3000/join/k7qm-4rxt",
+  "http://127.1:3000/join/k7qm-4rxt",
+  "http://127.0.1:3000/join/k7qm-4rxt",
+  "http://2130706433:3000/join/k7qm-4rxt",
   "http://[::1]:3000/join/k7qm-4rxt",
+  "http://[0:0:0:0:0:0:0:1]:3000/join/k7qm-4rxt",
   "http://[::ffff:127.0.0.1]:3000/join/k7qm-4rxt",
+  "http://[::ffff:7f00:1]:3000/join/k7qm-4rxt",
   "http://0.0.0.0:3000/join/k7qm-4rxt",
   "http://0:3000/join/k7qm-4rxt",
+  "http://0x0:3000/join/k7qm-4rxt",
+  "http://00:3000/join/k7qm-4rxt",
   "http://0.1.2.3:3000/join/k7qm-4rxt",
   "http://[::]:3000/join/k7qm-4rxt",
   "http://[0:0:0:0:0:0:0:0]:3000/join/k7qm-4rxt",
