@@ -1,5 +1,7 @@
 import { expect, test } from "vitest";
-import { characterCount, parseFilledText, parseShortText } from "./form-text";
+import { fieldMaximumLength } from "./form-size";
+import { characterCount } from "./character-count";
+import { parseFilledText, parseShortText } from "./form-text";
 import { languageNames } from "./language-names";
 import { locales } from "./paraglide/runtime.js";
 import type { Locale } from "./paraglide/runtime.js";
@@ -7,15 +9,26 @@ import { switchLocaleForTest } from "./switch-locale-for-test";
 
 const failures: Record<
   Locale,
-  { empty: string; notText: string; tooLong: string }
+  {
+    empty: string;
+    notText: string;
+    tooLong: string;
+    pastAnyFieldMaximum: Record<"justPast" | "farPast", string>;
+  }
 > = {
   id: {
     empty:
       'Kolom "Nama Anda" kosong, padahal Portolab memerlukannya. Isi kolom itu.',
     notText:
-      'Formulir mengirim nilai bertipe File di kolom "Nama Anda", bukan teks. Muat ulang halaman, lalu isi formulir lagi.',
+      'Formulir mengirim nilai bertipe File di kolom "Nama Anda", bukan teks. Muat ulang halaman, lalu isi formulirnya lagi.',
     tooLong:
       'Kolom "Nama Anda" memuat paling banyak 1.000 karakter, tetapi isinya 1.001 karakter. Persingkat isinya.',
+    pastAnyFieldMaximum: {
+      justPast:
+        'Kolom "Nama Anda" berisi 8.001 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
+      farPast:
+        'Kolom "Nama Anda" berisi 1.000.000 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
+    },
   },
   en: {
     empty: 'The field "Your name" is empty, but Portolab needs it. Fill it in.',
@@ -23,6 +36,12 @@ const failures: Record<
       'The form sent a value of type File in the field "Your name" instead of text. Reload the page and fill in the form again.',
     tooLong:
       'The field "Your name" holds at most 1,000 characters, but it has 1,001. Shorten it.',
+    pastAnyFieldMaximum: {
+      justPast:
+        'The field "Your name" has 8,001 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
+      farPast:
+        'The field "Your name" has 1,000,000 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
+    },
   },
 };
 
@@ -39,6 +58,14 @@ test("reads a short text without the spaces around it, with one space between wo
   expect(
     parseShortText("  Budi \t  Santoso\u00a0 Cafe\u0301 ", "Nama Anda", 100),
   ).toEqual({ ok: true, value: "Budi Santoso Caf\u00e9" });
+});
+
+test("reads a field of the most characters that any field takes", () => {
+  const longest = "a".repeat(fieldMaximumLength);
+  expect(parseFilledText(longest, "Kata sandi")).toEqual({
+    ok: true,
+    value: longest,
+  });
 });
 
 test("counts a letter outside the basic plane as one character", () => {
@@ -76,6 +103,25 @@ for (const locale of locales) {
     expect(parseShortText("a".repeat(1001), label, 1000)).toEqual({
       ok: false,
       failure: failure.tooLong,
+    });
+  });
+
+  test(`rejects a field longer than any field takes, counted with the spaces around it, before any other work, in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    // Trimmed, the text would be one letter, so only a count of the text as sent refuses it.
+    const padded = `a${" ".repeat(fieldMaximumLength)}`;
+    for (const parsed of [
+      parseFilledText(padded, label),
+      parseShortText(padded, label, 100),
+    ]) {
+      expect(parsed).toEqual({
+        ok: false,
+        failure: failure.pastAnyFieldMaximum.justPast,
+      });
+    }
+    expect(parseFilledText("a".repeat(1_000_000), label)).toEqual({
+      ok: false,
+      failure: failure.pastAnyFieldMaximum.farPast,
     });
   });
 }

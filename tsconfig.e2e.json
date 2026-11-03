@@ -9,6 +9,8 @@
     "app/sentences.ts",
     "app/success-value-for-test.ts",
     "app/value-parsers.ts",
+    "app/character-count.ts",
+    "app/check-field-length.ts",
     "app/value-shapes.ts",
     "scripts/wait-for-health.ts",
     "app/time-units.ts",
@@ -18,6 +20,8 @@
     "app/features/accounts/username.ts",
     "app/features/classes/class-rules.ts",
     "app/features/classes/join-code.ts",
+    "app/form-size.ts",
+    "app/units/bytes.ts",
     "app/units/rupiah.ts"
   ],
   "compilerOptions": {

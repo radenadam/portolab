@@ -21,12 +21,23 @@ export function ErrorPage({
     <>
       <h1>{title}</h1>
       <p>{body}</p>
-      {nextStep ?? (
-        <Link to="/" className={styles["backHome"]}>
-          {m.app_back_home_link()}
-        </Link>
-      )}
+      {nextStep ?? <NextStepLink to="/" label={m.app_back_home_link()} />}
     </>
+  );
+}
+
+/** A link to the next step that an error page offers, such as the way back to the home page. */
+export function NextStepLink({
+  to,
+  label,
+}: {
+  to: string;
+  label: string;
+}): ReactNode {
+  return (
+    <Link to={to} className={styles["nextStepLink"]}>
+      {label}
+    </Link>
   );
 }
 
