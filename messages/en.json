@@ -275,13 +275,13 @@
   "trading_gain_return_label": "Return on the cost",
   "trading_unpriced_notice": "Portolab has no delayed price of {code} yet.",
   "trading_return_title": "Your return against the {index}",
-  "trading_chart_notice": "The chart and the table below compare the return of your portfolio with the return of the {index} since the close of {date}, the last close before you could trade. Each of their returns uses the final closes of its day.",
+  "trading_chart_notice": "The chart and the table below compare the return of your portfolio with the return of the {index} since the close of {date}, before you could trade. Each of their returns uses the final closes of its day.",
   "trading_portfolio_series_label": "Your portfolio",
   "trading_trading_day_label": "Trading day",
   "trading_returns_table_label": "The return at each close",
-  "trading_chart_not_final_notice": "The chart adds the close of {date} once the prices of that day become final at {time} WIB and an update of the price history stores them.",
-  "trading_one_missing_close_notice": "Portolab has not stored the close of {codes} on {date} yet. The chart adds that day once an update of the price history stores that close.",
-  "trading_several_missing_closes_notice": "Portolab has not stored the closes of {codes} on {date} yet. The chart adds that day once an update of the price history stores those closes.",
+  "trading_chart_not_final_notice": "The prices of {date} become final at {time} WIB, and the chart goes on once an update of the price history stores closes of that day or of a later day.",
+  "trading_one_missing_close_notice": "Portolab has not stored the close of {codes} on {date} yet. The chart goes on once an update of the price history stores a close of {codes} on that day or on a later day.",
+  "trading_several_missing_closes_notice": "Portolab has not stored the closes of {codes} on {date} yet. The chart goes on once an update of the price history stores a close of each of them on that day or on a later day.",
   "trading_chart_calendar_missing_notice": "Portolab cannot add the next day to the chart, because it has not recorded the trading calendar of IDX for that day. Tell your lecturer, so that the calendar can be added.",
   "trading_chart_credit_link": "Chart: {notice}"
 }

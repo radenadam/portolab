@@ -70,11 +70,10 @@ export function listStockHistory(
   };
 }
 
-/** Lists the stored levels of an index at its closes, oldest first, from a date in WIB such as 2026-10-26 when the caller gives one. */
+/** Lists the stored levels of an index at its closes, oldest first. */
 export function listIndexHistory(
   database: Database,
   code: IndexCode,
-  from?: string,
 ): IndexHistory {
   return {
     kind: "index",
@@ -82,12 +81,7 @@ export function listIndexHistory(
     closes: database
       .select({ date: indexDailyCloses.date, close: indexDailyCloses.close })
       .from(indexDailyCloses)
-      .where(
-        and(
-          eq(indexDailyCloses.code, code),
-          from === undefined ? undefined : gte(indexDailyCloses.date, from),
-        ),
-      )
+      .where(eq(indexDailyCloses.code, code))
       .orderBy(asc(indexDailyCloses.date))
       .all(),
   };

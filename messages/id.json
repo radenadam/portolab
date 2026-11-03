@@ -275,13 +275,13 @@
   "trading_gain_return_label": "Imbal hasil atas biaya",
   "trading_unpriced_notice": "Portolab belum memiliki harga tertunda {code}.",
   "trading_return_title": "Imbal hasil Anda dibandingkan {index}",
-  "trading_chart_notice": "Grafik dan tabel di bawah membandingkan imbal hasil portofolio Anda dengan imbal hasil {index} sejak penutupan {date}, yaitu penutupan terakhir sebelum Anda dapat bertransaksi. Setiap imbal hasilnya memakai harga penutupan final pada harinya.",
+  "trading_chart_notice": "Grafik dan tabel di bawah membandingkan imbal hasil portofolio Anda dengan imbal hasil {index} sejak penutupan {date}, sebelum Anda dapat bertransaksi. Setiap imbal hasilnya memakai harga penutupan final pada harinya.",
   "trading_portfolio_series_label": "Portofolio Anda",
   "trading_trading_day_label": "Hari bursa",
   "trading_returns_table_label": "Imbal hasil pada setiap penutupan",
-  "trading_chart_not_final_notice": "Grafik menambahkan penutupan {date} setelah harga hari itu menjadi final pada pukul {time} WIB dan pembaruan riwayat harga menyimpannya.",
-  "trading_one_missing_close_notice": "Portolab belum menyimpan harga penutupan {codes} pada {date}. Grafik menambahkan hari itu setelah pembaruan riwayat harga menyimpan harga penutupan tersebut.",
-  "trading_several_missing_closes_notice": "Portolab belum menyimpan harga penutupan {codes} pada {date}. Grafik menambahkan hari itu setelah pembaruan riwayat harga menyimpan semua harga penutupan tersebut.",
+  "trading_chart_not_final_notice": "Harga tanggal {date} menjadi final pada pukul {time} WIB, dan grafik berlanjut setelah pembaruan riwayat harga menyimpan harga penutupan hari itu atau hari sesudahnya.",
+  "trading_one_missing_close_notice": "Portolab belum menyimpan harga penutupan {codes} pada {date}. Grafik berlanjut setelah pembaruan riwayat harga menyimpan harga penutupan {codes} pada hari itu atau hari sesudahnya.",
+  "trading_several_missing_closes_notice": "Portolab belum menyimpan harga penutupan {codes} pada {date}. Grafik berlanjut setelah pembaruan riwayat harga menyimpan harga penutupan masing-masing pada hari itu atau hari sesudahnya.",
   "trading_chart_calendar_missing_notice": "Portolab belum dapat menambahkan hari berikutnya ke grafik, karena kalender perdagangan BEI untuk hari itu belum tercatat. Beri tahu dosen Anda agar kalender tersebut dapat ditambahkan.",
   "trading_chart_credit_link": "Grafik: {notice}"
 }

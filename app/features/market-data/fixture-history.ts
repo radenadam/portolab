@@ -58,7 +58,7 @@ const fixtureCloses: Record<string, readonly number[]> = {
   WIFI: [1040, 970, 1005, 935, 910],
 };
 
-/** The closes of an instrument from a date in WIB that the fixture source records, or undefined when it records none of the instrument. The browser tests store some of them before the server starts, because the history job of the server stores none: it asks for the closes of the latest trading day, which the fixture lacks. */
+/** The closes of an instrument from a date in WIB that the fixture source records, or undefined when it records none of the instrument. The browser tests store some of them before the server starts, because the history job of the server asks for the closes of the latest trading day, which the fixture lacks, so it stores none. */
 export function fixtureHistory(
   instrument: Instrument,
   from: string,

@@ -58,11 +58,8 @@ export function readPortfolioReport(
             startingCash,
             startDate: startDate.value,
             orders: portfolio.orders,
-            market: listIndexHistory(
-              database,
-              marketIndex.code,
-              startDate.value,
-            ),
+            // The returns of the IHSG can count from a close before the start, when the source left out the close of the start.
+            market: listIndexHistory(database, marketIndex.code),
             stocks: filledCodes(portfolio).map((code) =>
               listStockHistory(database, code, startDate.value),
             ),

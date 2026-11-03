@@ -48,7 +48,7 @@ const missingCalendar: MissingCalendar = { kind: "missingCalendar" };
 
 /** The returns of a portfolio and of the IHSG at each final close since the start, as decision 0018 explains. */
 export interface PortfolioHistory {
-  /** The returns at the close of the start and of each later trading day, oldest first. It is empty while the close of the start is missing or not final. */
+  /** The returns at the close of the base, which is the close of the IHSG on the start or the latest one before it, and of each later trading day, oldest first. It is empty while the close of the start is not final, or while neither it nor a later close of the IHSG is stored. */
   points: ReturnPoint[];
   end: HistoryEnd;
 }
@@ -82,26 +82,44 @@ export function portfolioHistory(input: HistoryInput): PortfolioHistory {
     code: input.market.code,
     closes: closesByDate(input.market.closes),
   };
+  const startEnd = unfinishedEnd(input.startDate, input);
+  if (startEnd !== undefined) {
+    return { points: [], end: startEnd };
+  }
+  const base = baseClose(market.closes, input.startDate);
+  if (base === undefined) {
+    return {
+      points: [],
+      end: {
+        kind: "missingCloses",
+        date: input.startDate,
+        codes: [market.code],
+      },
+    };
+  }
   const stocks = new Map<string, Map<string, SplitAdjustedRupiah>>();
   for (const stock of input.stocks) {
     stocks.set(stock.code, closesByDate(stock.closes));
   }
   const holdingsAt = replayFills(input.startingCash, input.orders);
-  const points: ReturnPoint[] = [];
-  let startLevel: IndexPoints | undefined;
+  // At the close of the base the portfolio held only its starting cash.
+  const points: ReturnPoint[] = [
+    {
+      date: base.date,
+      portfolio: cumulativeReturn(0),
+      market: cumulativeReturn(0),
+    },
+  ];
   let date = input.startDate;
   for (;;) {
+    const next = tradingDayAfter(date);
+    if (!next.ok) {
+      return { points, end: missingCalendar };
+    }
+    date = next.value;
     const end = unfinishedEnd(date, input);
     if (end !== undefined) {
       return { points, end };
-    }
-    // The returns count from the close of the IHSG on the start, at which the portfolio held only its starting cash, so no later day has a return without it.
-    startLevel ??= market.closes.get(date);
-    if (startLevel === undefined) {
-      return {
-        points,
-        end: { kind: "missingCloses", date, codes: [market.code] },
-      };
     }
     const day = valueOnDay(date, { ...holdingsAt(date), market, stocks });
     switch (day.kind) {
@@ -118,16 +136,32 @@ export function portfolioHistory(input: HistoryInput): PortfolioHistory {
           portfolio: cumulativeReturn(
             priceChange(day.value, input.startingCash),
           ),
-          market: cumulativeReturn(priceChange(day.level, startLevel)),
+          market: cumulativeReturn(priceChange(day.level, base.level)),
         });
         break;
     }
-    const next = tradingDayAfter(date);
-    if (!next.ok) {
-      return { points, end: missingCalendar };
-    }
-    date = next.value;
   }
+}
+
+/** The close of the IHSG from which the returns count: its close on the start, or its latest close before the start when the source left out the close of the start, because a later close is stored. The portfolio held only its starting cash at either close. It is undefined while the close of the start is not stored, nor any later one. */
+function baseClose(
+  closes: ReadonlyMap<string, IndexPoints>,
+  startDate: string,
+): { date: string; level: IndexPoints } | undefined {
+  const level = closes.get(startDate);
+  if (level !== undefined) {
+    return { date: startDate, level };
+  }
+  if (!hasLaterClose(closes, startDate)) {
+    return undefined;
+  }
+  let latest: { date: string; level: IndexPoints } | undefined;
+  for (const [date, close] of closes) {
+    if (date < startDate && (latest === undefined || date > latest.date)) {
+      latest = { date, level: close };
+    }
+  }
+  return latest;
 }
 
 // A day whose prices are not final yet ends the history before it, and so does a day that no IDX calendar covers.

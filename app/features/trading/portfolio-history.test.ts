@@ -191,6 +191,23 @@ test("waits over a weekend for the first trading day after the start", () => {
   });
 });
 
+test("waits over holidays for the first trading day after them", () => {
+  // A close of the IHSG on a day that has not come yet, invented for this test. A student who joined after session II on Wednesday 23 December 2026 holds only cash at its close, and on Saturday the history waits over the holidays of 24 and 25 December for Monday 28 December.
+  const christmasIhsg = indexHistoryForTest(
+    buildDailyHistory({ kind: "index", code: "IHSG" }, [["2026-12-23", 5000]]),
+  );
+  expect(
+    cashHistory("2026-12-23T09:05:00Z", "2026-12-26T03:00:00Z", christmasIhsg),
+  ).toEqual({
+    points: [{ ...startPoint, date: "2026-12-23" }],
+    end: {
+      kind: "notFinal",
+      date: "2026-12-28",
+      finalAt: new Date("2026-12-28T09:26:00Z"),
+    },
+  });
+});
+
 test("has no return while the prices of the start are not final", () => {
   // A student who joined at 16:05 on Friday 30 October 2026, which the history sees at 16:10.
   expect(cashHistory("2026-10-30T09:05:00Z", "2026-10-30T09:10:00Z")).toEqual({
@@ -230,12 +247,41 @@ test("ends at the first final day whose close of the IHSG or of a stock that the
   });
 });
 
-test("has no return while the close of the IHSG on the start is not stored, even when later closes are", async () => {
+test("counts from the latest close of the IHSG before the start when the source left out the close of the start", async () => {
+  // The source left out the close of Friday 30 October 2026, so the returns of the IHSG count from its close of Thursday, 5,098.06.
   expect(
     await history({
       now: new Date("2026-11-04T03:00:00Z"),
       market: recordedIhsgForTest(["2026-10-30"]),
     }),
+  ).toEqual({
+    points: [
+      { ...startPoint, date: "2026-10-29" },
+      {
+        ...mondayPoint,
+        market: closeToForTest(-0.0002412682471371463, 15),
+      },
+      {
+        ...tuesdayPoint,
+        market: closeToForTest(-0.03800857581119092, 15),
+      },
+    ],
+    end: {
+      kind: "notFinal",
+      date: "2026-11-04",
+      finalAt: new Date("2026-11-04T09:26:00Z"),
+    },
+  });
+});
+
+test("has no return while neither the close of the IHSG on the start nor a later one is stored", () => {
+  // A student who joined after session II on Friday 30 October 2026, whose close the history job has not stored on Saturday.
+  expect(
+    cashHistory(
+      "2026-10-30T09:05:00Z",
+      "2026-10-31T03:00:00Z",
+      recordedIhsgForTest(["2026-10-30", "2026-11-02", "2026-11-03"]),
+    ),
   ).toEqual({
     points: [],
     end: { kind: "missingCloses", date: "2026-10-30", codes: ["IHSG"] },

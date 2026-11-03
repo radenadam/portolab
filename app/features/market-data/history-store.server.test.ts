@@ -4,7 +4,6 @@ import { buildDailyHistory } from "./build-daily-history";
 import {
   listCodesWithHistory,
   listDailyHistory,
-  listIndexHistory,
   listStockHistory,
   saveDailyHistory,
 } from "./history-store.server";
@@ -63,7 +62,7 @@ test("has no history for an instrument without stored closes, and stores nothing
   expect(listCodesWithHistory(database)).toEqual(new Set());
 });
 
-test("lists the closes of a stock and of an index from a date, which includes the close of that date", () => {
+test("lists the closes of a stock from a date, which includes the close of that date", () => {
   const database = openDatabaseForTest();
   saveDailyHistory(
     database,
@@ -73,24 +72,10 @@ test("lists the closes of a stock and of an index from a date, which includes th
       ["2026-10-30", 4980],
     ]),
   );
-  saveDailyHistory(
-    database,
-    buildDailyHistory(ihsg, [
-      ["2026-10-28", 5282.31],
-      ["2026-10-29", 5098.06],
-      ["2026-10-30", 5057.05],
-    ]),
-  );
   expect(listStockHistory(database, "BBCA", "2026-10-29")).toEqual(
     buildDailyHistory(bbca, [
       ["2026-10-29", 4940],
       ["2026-10-30", 4980],
-    ]),
-  );
-  expect(listIndexHistory(database, "IHSG", "2026-10-29")).toEqual(
-    buildDailyHistory(ihsg, [
-      ["2026-10-29", 5098.06],
-      ["2026-10-30", 5057.05],
     ]),
   );
 });

@@ -30,14 +30,16 @@ import {
 /** 10:00 WIB on Tuesday 3 November 2026, in session I. */
 const tuesdaySessionForTest = new Date("2026-11-03T03:00:00Z");
 
-/** The closes of Friday 30 October, Monday 2 November, and Tuesday 3 November 2026, as Yahoo Finance returned them on 3 November 2026, rounded to two decimals as the history job stores them. */
+/** The closes of Thursday 29 October, Friday 30 October, Monday 2 November, and Tuesday 3 November 2026, as Yahoo Finance returned them on 3 November 2026, rounded to two decimals as the history job stores them. */
 const recordedClosesForTest = {
   IHSG: [
+    ["2026-10-29", 5098.06],
     ["2026-10-30", 5057.05],
     ["2026-11-02", 5096.83],
     ["2026-11-03", 4904.29],
   ],
   BBCA: [
+    ["2026-10-29", 4940],
     ["2026-10-30", 4980],
     ["2026-11-02", 4980],
     ["2026-11-03", 4840],

@@ -244,20 +244,20 @@ const texts: Record<
       "Portofolio Anda adalah simulasi dengan uang virtual. Portolab menilai setiap saham yang Anda pegang pada harga tertunda terakhir dari Yahoo Finance, sekitar 10 menit di belakang BEI, sehingga nilainya dapat berbeda dari nilai di bursa pada saat yang sama.",
     returnTitle: "<h2>Imbal hasil Anda dibandingkan IHSG</h2>",
     chartNotice:
-      "Grafik dan tabel di bawah membandingkan imbal hasil portofolio Anda dengan imbal hasil IHSG sejak penutupan 30 Oktober 2026, yaitu penutupan terakhir sebelum Anda dapat bertransaksi. Setiap imbal hasilnya memakai harga penutupan final pada harinya.",
+      "Grafik dan tabel di bawah membandingkan imbal hasil portofolio Anda dengan imbal hasil IHSG sejak penutupan 30 Oktober 2026, sebelum Anda dapat bertransaksi. Setiap imbal hasilnya memakai harga penutupan final pada harinya.",
     waiting:
-      "Grafik menambahkan penutupan 4 November 2026 setelah harga hari itu menjadi final pada pukul 16.26 WIB dan pembaruan riwayat harga menyimpannya.",
+      "Harga tanggal 4 November 2026 menjadi final pada pukul 16.26 WIB, dan grafik berlanjut setelah pembaruan riwayat harga menyimpan harga penutupan hari itu atau hari sesudahnya.",
     credit: "Grafik: TradingView Lightweight Charts™ © 2025 TradingView, Inc.",
     noHoldings: "Anda belum memegang saham.",
     missingStart:
-      "Portolab belum menyimpan harga penutupan IHSG pada 30 Oktober 2026. Grafik menambahkan hari itu setelah pembaruan riwayat harga menyimpan harga penutupan tersebut.",
+      "Portolab belum menyimpan harga penutupan IHSG pada 30 Oktober 2026. Grafik berlanjut setelah pembaruan riwayat harga menyimpan harga penutupan IHSG pada hari itu atau hari sesudahnya.",
     oneUnpriced:
       "Portolab menampilkan nilai total dan imbal hasil setelah pembaruan harga berikutnya membawa harga tertunda TLKM.",
     severalUnpriced:
       "Portolab menampilkan nilai total dan imbal hasil setelah pembaruan harga berikutnya membawa harga tertunda BBCA dan TLKM.",
     unpricedHolding: "Portolab belum memiliki harga tertunda TLKM.",
     severalMissingCloses:
-      "Portolab belum menyimpan harga penutupan IHSG dan BBCA pada 4 November 2026. Grafik menambahkan hari itu setelah pembaruan riwayat harga menyimpan semua harga penutupan tersebut.",
+      "Portolab belum menyimpan harga penutupan IHSG dan BBCA pada 4 November 2026. Grafik berlanjut setelah pembaruan riwayat harga menyimpan harga penutupan masing-masing pada hari itu atau hari sesudahnya.",
     calendarMissing:
       "Portolab belum dapat menambahkan hari berikutnya ke grafik, karena kalender perdagangan BEI untuk hari itu belum tercatat. Beri tahu dosen Anda agar kalender tersebut dapat ditambahkan.",
     quoteFailure:
@@ -268,20 +268,20 @@ const texts: Record<
       "Your portfolio is a simulation with virtual cash. Portolab values each holding at the latest delayed price from Yahoo Finance, about 10 minutes behind IDX, so a value can differ from the value on the exchange at the same moment.",
     returnTitle: "<h2>Your return against the IHSG</h2>",
     chartNotice:
-      "The chart and the table below compare the return of your portfolio with the return of the IHSG since the close of October 30, 2026, the last close before you could trade. Each of their returns uses the final closes of its day.",
+      "The chart and the table below compare the return of your portfolio with the return of the IHSG since the close of October 30, 2026, before you could trade. Each of their returns uses the final closes of its day.",
     waiting:
-      "The chart adds the close of November 4, 2026 once the prices of that day become final at 4:26 PM WIB and an update of the price history stores them.",
+      "The prices of November 4, 2026 become final at 4:26 PM WIB, and the chart goes on once an update of the price history stores closes of that day or of a later day.",
     credit: "Chart: TradingView Lightweight Charts™ © 2025 TradingView, Inc.",
     noHoldings: "You hold no shares yet.",
     missingStart:
-      "Portolab has not stored the close of IHSG on October 30, 2026 yet. The chart adds that day once an update of the price history stores that close.",
+      "Portolab has not stored the close of IHSG on October 30, 2026 yet. The chart goes on once an update of the price history stores a close of IHSG on that day or on a later day.",
     oneUnpriced:
       "Portolab shows the total value and the return once the next update of prices brings a delayed price of TLKM.",
     severalUnpriced:
       "Portolab shows the total value and the return once the next update of prices brings the delayed prices of BBCA and TLKM.",
     unpricedHolding: "Portolab has no delayed price of TLKM yet.",
     severalMissingCloses:
-      "Portolab has not stored the closes of IHSG and BBCA on November 4, 2026 yet. The chart adds that day once an update of the price history stores those closes.",
+      "Portolab has not stored the closes of IHSG and BBCA on November 4, 2026 yet. The chart goes on once an update of the price history stores a close of each of them on that day or on a later day.",
     calendarMissing:
       "Portolab cannot add the next day to the chart, because it has not recorded the trading calendar of IDX for that day. Tell your lecturer, so that the calendar can be added.",
     quoteFailure:
