@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { isLoadedByAnotherSite } from "./cross-site-protection.server";
+import { isLoadedByAnotherSite } from "./is-loaded-by-another-site.server";
 
 function requestWith(headers: Record<string, string>): Request {
   return new Request("http://localhost/join/aaaa-aaaa", { headers });

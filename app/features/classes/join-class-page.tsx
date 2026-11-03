@@ -18,11 +18,11 @@ import {
   findUser,
   startSession,
 } from "~/features/accounts/current-session.server";
-import { isLoadedByAnotherSite } from "~/features/accounts/cross-site-protection.server";
 import { pathReturningTo } from "~/features/accounts/path-returning-to";
 import { FormFailure, SubmitButton } from "~/form";
 import formStyles from "~/form.module.css";
 import { formatRupiah } from "~/formatting";
+import { isLoadedByAnotherSite } from "~/is-loaded-by-another-site.server";
 import { pageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
 import type { Route } from "./+types/join-class-page";
