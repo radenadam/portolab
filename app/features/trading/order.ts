@@ -136,7 +136,6 @@ export type OrderFailure =
       /** The trading day before the trading day of the order, whose final close of the stock is missing. */
       date: string;
     }
-  | { kind: "tooManyLots"; lots: Lots; maximumLots: Lots }
   | (Extract<PriceFailure, { kind: "outsideLimits" }> & {
       code: string;
       date: string;

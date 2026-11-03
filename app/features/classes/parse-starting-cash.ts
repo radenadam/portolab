@@ -1,10 +1,12 @@
-import { parseFilledText } from "~/form-text";
-import { digitGrouping, formatNumber, formatRupiah } from "~/formatting";
+import { formatRupiah } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
 import { isRupiah } from "~/units/rupiah";
-import { writtenWholeNumberDigits } from "~/written-whole-number-digits";
+import {
+  hasMoreDigitsThan,
+  parseWrittenWholeNumber,
+} from "~/written-whole-number";
 import type { Rupiah } from "~/units/rupiah";
 import { defaultStartingCash, startingCashLimits } from "./class-rules";
 
@@ -13,29 +15,17 @@ export function parseStartingCash(
   value: unknown,
   source: string,
 ): Result<Rupiah, string> {
-  const text = parseFilledText(value, source);
-  if (!text.ok) {
-    return text;
+  const number = parseWrittenWholeNumber(value, source, {
+    example: defaultStartingCash,
+    message: m.classes_starting_cash_error,
+  });
+  if (!number.ok) {
+    return number;
   }
-  const written = text.value.trim();
-  const digits = writtenWholeNumberDigits(written);
-  if (digits === undefined) {
-    return fail(
-      m.classes_starting_cash_error({
-        field: source,
-        value: written,
-        example: formatNumber(defaultStartingCash),
-        separator: digitGrouping().separator,
-      }),
-    );
-  }
-  // A JavaScript number holds only so many digits exactly, so the parser counts the digits before it reads the amount. An amount with more digits than the maximum is above it.
-  const isAboveMaximum =
-    digits.replace(/^0+/, "").length >
-    String(startingCashLimits.maximum).length;
+  const { written, digits } = number.value;
   const amount = Number(digits);
   if (
-    isAboveMaximum ||
+    hasMoreDigitsThan(digits, startingCashLimits.maximum) ||
     !isRupiah(amount) ||
     amount < startingCashLimits.minimum ||
     amount > startingCashLimits.maximum

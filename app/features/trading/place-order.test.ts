@@ -360,15 +360,9 @@ test("rejects an order for a stock that has no delayed price yet", () => {
   ).toEqual({ ok: false, failure: { kind: "noPrice", code: "BBCA" } });
 });
 
-test("rejects an order of more lots than IDX accepts in one order, and accepts the largest order that the failure names", () => {
+test("accepts an order of the largest number of lots that IDX accepts in one order", () => {
   // 50,000 lots at Rp4,980 cost Rp24,900,000,000 with a fee of Rp37,350,000, which is Rp24,937,350,000.
   const state = account({ cash: rupiah(24_937_350_000) });
-  expect(
-    placeOrder(purchase({ lots: orderLotsForTest(50_001) }), state, bbca),
-  ).toEqual({
-    ok: false,
-    failure: { kind: "tooManyLots", lots: 50_001, maximumLots: 50_000 },
-  });
   expect(
     placeOrder(purchase({ lots: orderLotsForTest(50_000) }), state, bbca),
   ).toMatchObject({ ok: true, value: { setAsideCash: 24_937_350_000 } });

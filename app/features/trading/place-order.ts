@@ -1,10 +1,5 @@
-import {
-  currentOrNextSessionStart,
-  pricesFinalAt,
-  tradingDayBefore,
-} from "~/features/market-data/idx-calendar";
 import type { StockQuote } from "~/features/market-data/price-source.server";
-import { fail, failuresOf, succeed } from "~/result";
+import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
 import { lots, smallestOrderLots } from "~/units/lots";
 import type { OrderLots } from "~/units/lots";
@@ -12,16 +7,16 @@ import { rupiah } from "~/units/rupiah";
 import type { Rupiah } from "~/units/rupiah";
 import { shares } from "~/units/shares";
 import type { Shares } from "~/units/shares";
-import { wibDateOf } from "~/wib";
 import { acceptedPriceRange, checkLimitPrice } from "./accepted-prices";
 import { checkBuyable } from "./check-buyable";
 import type { StockHistories } from "./check-buyable";
 import { checkCashForPurchase } from "./check-cash-for-purchase";
 import { referencePrice } from "./reference-price";
 import type { Holding } from "./holding-after-fill";
-import { idxRulesOn } from "./idx-rules-on";
 import type { IdxRules } from "./idx-rules-on";
 import { largestAffordableCount } from "./largest-affordable-count";
+import { orderTradingDay } from "./order-trading-day";
+import type { OrderTradingDay } from "./order-trading-day";
 import type {
   OpenOrder,
   Order,
@@ -35,8 +30,7 @@ import {
   openSales,
   sharesSetAside,
 } from "./open-orders";
-import { costRatesOn, purchaseCost } from "./trading-costs";
-import type { CostRates } from "./trading-costs";
+import { purchaseCost } from "./trading-costs";
 
 /** What an account holds when a student places an order. */
 export interface AccountState {
@@ -52,17 +46,6 @@ export interface StockState extends StockHistories {
   quote: StockQuote | undefined;
   /** How many minutes the quotes lag behind the exchange, which sets when the prices of a day are final. */
   delayMinutes: number;
-}
-
-/** The trading day of an order and its rules. */
-interface TradingDay {
-  date: string;
-  tradesFrom: Date;
-  expiresAt: Date;
-  /** The trading day before it. Before the first quote of the trading day, the stored close of this day is the reference price. */
-  previousDate: string;
-  rules: IdxRules;
-  rates: CostRates;
 }
 
 /** An order with the shares of its lots. */
@@ -81,24 +64,17 @@ interface CheckedOrder extends SizedOrder {
 /** An account at the moment when the student places an order. */
 type AccountAtMoment = AccountState & { moment: Date };
 
-/** Checks an order against the rules of IDX of its trading day and against the account, by the rules of decisions 0015 and 0016, and accepts it as waiting. The caller then checks it against the latest quote with checkOrder, as after every new quote, so an order placed during a session can fill at once. */
+/** Checks an order against the rules of IDX of its trading day and against the account, by the rules of decisions 0015 and 0016, and accepts it as waiting. Its lots come from parseOrderLots with the largest order of the same trading day, which orderTradingDay gives. The caller then checks it against the latest quote with checkOrder, as after every new quote, so an order placed during a session can fill at once. */
 export function placeOrder(
   request: OrderRequest,
   account: AccountState,
   stock: StockState,
 ): Result<OpenOrder, OrderFailure> {
-  const day = tradingDayOf(request.placedAt, stock.delayMinutes);
+  const day = orderTradingDay(request.placedAt, stock.delayMinutes);
   if (!day.ok) {
     return day;
   }
   const { rules } = day.value;
-  if (request.lots > rules.maximumLots) {
-    return fail({
-      kind: "tooManyLots",
-      lots: request.lots,
-      maximumLots: rules.maximumLots,
-    });
-  }
   const sized: SizedOrder = {
     code: request.code,
     side: request.side,
@@ -139,39 +115,6 @@ export function placeOrder(
   });
 }
 
-function tradingDayOf(
-  placedAt: Date,
-  delayMinutes: number,
-): Result<TradingDay, OrderFailure> {
-  const tradesFrom = currentOrNextSessionStart(placedAt);
-  if (!tradesFrom.ok) {
-    return fail({ kind: "missingRules", reason: tradesFrom.failure });
-  }
-  const date = wibDateOf(tradesFrom.value);
-  const expiresAt = pricesFinalAt(date, delayMinutes);
-  const previousDate = tradingDayBefore(date);
-  const rules = idxRulesOn(date);
-  const rates = costRatesOn(date);
-  // A failure has one text, and the texts of missing rules and missing costs offer the same step, so when both lack a record the student reads about the rules, and the reason for the log names both.
-  if (!expiresAt.ok || !previousDate.ok || !rules.ok) {
-    return fail({
-      kind: "missingRules",
-      reason: failuresOf([expiresAt, previousDate, rules, rates]).join(" "),
-    });
-  }
-  if (!rates.ok) {
-    return fail({ kind: "missingCosts", reason: rates.failure });
-  }
-  return succeed({
-    date,
-    tradesFrom: tradesFrom.value,
-    expiresAt: expiresAt.value,
-    previousDate: previousDate.value,
-    rules: rules.value,
-    rates: rates.value,
-  });
-}
-
 /** What Portolab knows of the account and of the stock when it checks an order. */
 interface OrderContext {
   account: AccountAtMoment;
@@ -182,7 +125,7 @@ interface OrderContext {
 function checkBeforePrice(
   order: SizedOrder,
   context: OrderContext,
-  day: TradingDay,
+  day: OrderTradingDay,
 ): Result<undefined, OrderFailure> {
   switch (order.side) {
     case "buy":
@@ -221,7 +164,7 @@ function checkShares(
 function checkedPrice(
   request: OrderRequest,
   stock: StockState & { quote: StockQuote },
-  day: TradingDay,
+  day: OrderTradingDay,
 ): Result<Rupiah, OrderFailure> {
   switch (request.price.kind) {
     case "market":
@@ -251,7 +194,7 @@ function checkedPrice(
 function cashToSetAside(
   order: CheckedOrder,
   account: AccountAtMoment,
-  day: TradingDay,
+  day: OrderTradingDay,
 ): Result<Rupiah, OrderFailure> {
   switch (order.side) {
     case "buy":
@@ -264,7 +207,7 @@ function cashToSetAside(
 function checkCash(
   order: CheckedOrder,
   account: AccountAtMoment,
-  day: TradingDay,
+  day: OrderTradingDay,
 ): Result<Rupiah, OrderFailure> {
   const setAside = cashSetAside(account.orders, account.moment);
   const availableCash = rupiah(account.cash - setAside.amount);

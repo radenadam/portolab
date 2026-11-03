@@ -108,16 +108,6 @@ const failures = {
     minimum: 24,
     enoughAfterFirstTradingDayOf: "2028-09-01",
   },
-  tooManyLots: {
-    kind: "tooManyLots",
-    lots: orderLotsForTest(50_001),
-    maximumLots: lots(50_000),
-  },
-  tooManyLotsForOneLot: {
-    kind: "tooManyLots",
-    lots: orderLotsForTest(2),
-    maximumLots: lots(1),
-  },
   limitsAsRates: {
     kind: "outsideLimits",
     code: "BBCA",
@@ -307,10 +297,6 @@ const texts: Record<Locale, Record<FailureName, string>> = {
       "AADI baru memiliki 21 imbal hasil bulanan, sedangkan Portolab menghitung ukuran portofolio hanya jika setiap sahamnya memiliki 24 imbal hasil bulanan. Jika AADI tetap memiliki harga penutupan di akhir setiap bulan dan tetap termasuk LQ45, Anda dapat membelinya setelah pembaruan riwayat harga yang menyimpan harga penutupan hari bursa pertama Januari 2027. Portolab juga harus sudah mencatat aturan BEI untuk hari pembelian itu.",
     oneReturn:
       "AADI baru memiliki 1 imbal hasil bulanan, sedangkan Portolab menghitung ukuran portofolio hanya jika setiap sahamnya memiliki 24 imbal hasil bulanan. Jika AADI tetap memiliki harga penutupan di akhir setiap bulan dan tetap termasuk LQ45, Anda dapat membelinya setelah pembaruan riwayat harga yang menyimpan harga penutupan hari bursa pertama September 2028. Portolab juga harus sudah mencatat aturan BEI untuk hari pembelian itu.",
-    tooManyLots:
-      "BEI menerima paling banyak 50.000 lot dalam satu order, sedangkan order ini berisi 50.001 lot. Bagi order ini menjadi beberapa order yang masing-masing berisi paling banyak 50.000 lot.",
-    tooManyLotsForOneLot:
-      "BEI menerima paling banyak 1 lot dalam satu order, sedangkan order ini berisi 2 lot. Bagi order ini menjadi beberapa order yang masing-masing berisi paling banyak 1 lot.",
     limitsAsRates:
       "BEI menolak harga Rp\u00a06.250 untuk BBCA pada 2 November 2026 karena batas auto rejection. Batas itu mengizinkan harga paling jauh 25% di atas dan 7% di bawah harga acuan Rp\u00a04.980, dan setiap ujung rentangnya adalah harga sah terdekat di dalam batas itu. BEI menetapkan harga acuan dari harga penutupan terakhir BBCA sebelum hari itu. Pilih harga dari Rp\u00a04.640 sampai Rp\u00a06.225.",
     limitsAsAmounts:
@@ -381,10 +367,6 @@ const texts: Record<Locale, Record<FailureName, string>> = {
       "AADI has 21 monthly returns, but Portolab computes the measures of a portfolio only when each of its stocks has 24 monthly returns. If AADI keeps a close at the end of every month and stays in the LQ45, you can buy it after the update of the price history that stores the close of the first trading day of January 2027. Portolab must also have recorded the rules of IDX for the day of the purchase.",
     oneReturn:
       "AADI has 1 monthly return, but Portolab computes the measures of a portfolio only when each of its stocks has 24 monthly returns. If AADI keeps a close at the end of every month and stays in the LQ45, you can buy it after the update of the price history that stores the close of the first trading day of September 2028. Portolab must also have recorded the rules of IDX for the day of the purchase.",
-    tooManyLots:
-      "IDX accepts at most 50,000 lots in one order, but this order has 50,001 lots. Split it into orders of at most 50,000 lots each.",
-    tooManyLotsForOneLot:
-      "IDX accepts at most 1 lot in one order, but this order has 2 lots. Split it into orders of at most 1 lot each.",
     limitsAsRates:
       "IDX rejects a price of IDR\u00a06,250 for BBCA on November 2, 2026 by its auto rejection limits. They allow a price at most 25% above and 7% below the reference price of IDR\u00a04,980, and each end of the range is the nearest valid price inside those limits. IDX sets the reference price from the latest close of BBCA before that day. Choose a price from IDR\u00a04,640 to IDR\u00a06,225.",
     limitsAsAmounts:

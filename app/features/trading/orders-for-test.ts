@@ -12,6 +12,7 @@ import type { OpenOrder, OrderRequest } from "./order";
 import { placeOrder } from "./place-order";
 import type { AccountState, StockState } from "./place-order";
 import { parseOrderLots } from "./parse-order-lots";
+import { idxRulesForTest } from "./rules-for-test";
 
 // The moments of Monday 2 November 2026, in WIB, for a source that lags 10 minutes behind the exchange.
 /** 10:00, in session I. */
@@ -38,10 +39,14 @@ export function acceptedForTest(
   );
 }
 
-/** The size of an order as the order form gives it, from a whole number of lots. */
+/** The size of an order as the order form gives it, from a whole number of lots up to the largest order of Monday 2 November 2026. */
 export function orderLotsForTest(count: number): OrderLots {
   return successValueForTest(
-    parseOrderLots(String(count), "Lots"),
+    parseOrderLots(
+      String(count),
+      "Lots",
+      idxRulesForTest("2026-11-02").maximumLots,
+    ),
     `${String(count)} lots are a valid order`,
   );
 }

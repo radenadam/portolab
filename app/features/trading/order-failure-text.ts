@@ -148,11 +148,6 @@ const failureTexts: FailureTexts = {
       minimum: monthlyReturnCount(failure.minimum),
       month: formatMonth(failure.enoughAfterFirstTradingDayOf),
     }),
-  tooManyLots: (failure) =>
-    m.trading_too_many_lots_error({
-      lots: lotCount(failure.lots),
-      maximum: lotCount(failure.maximumLots),
-    }),
   outsideLimits: (failure) =>
     m.trading_outside_limits_error({
       price: formatRupiah(failure.price),
