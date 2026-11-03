@@ -179,7 +179,7 @@ test("rejects a limit price inside the limit at its rate but beyond the nearest 
   });
 });
 
-test("rejects a limit price between two steps of its band, with the valid prices on either side", () => {
+test("rejects a limit price between two steps of its band, with the valid prices on either side, and accepts those prices", () => {
   expect(checkLimitPrice(rupiah(4_985), rangeOf4940, november)).toEqual({
     ok: false,
     failure: {
@@ -192,6 +192,12 @@ test("rejects a limit price between two steps of its band, with the valid prices
       above: 4_990,
     },
   });
+  for (const price of [4_980, 4_990]) {
+    expect(checkLimitPrice(rupiah(price), rangeOf4940, november)).toEqual({
+      ok: true,
+      value: price,
+    });
+  }
   expect(checkLimitPrice(rupiah(5_010), rangeOf4940, november)).toEqual({
     ok: false,
     failure: {

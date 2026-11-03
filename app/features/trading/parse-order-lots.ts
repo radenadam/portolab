@@ -1,5 +1,5 @@
 import { parseFilledText } from "~/form-text";
-import { formatNumber } from "~/formatting";
+import { digitGrouping, formatNumber } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
@@ -35,6 +35,7 @@ export function parseOrderLots(
         value: written,
         minimum: formatNumber(smallestOrderLots),
         example: formatNumber(1_000),
+        separator: digitGrouping().separator,
       }),
     );
   }

@@ -304,9 +304,9 @@ const texts: Record<Locale, Record<FailureName, string>> = {
     noReferenceClose:
       "BEI menetapkan rentang harga order limit dari harga penutupan terakhir BBCA sebelum hari bursa order ini, tetapi Portolab belum memiliki harga penutupan final BBCA untuk 2 November 2026. Order limit dapat dipasang setelah pembaruan riwayat harga menyimpan harga penutupan itu, jika BBCA diperdagangkan pada 2 November 2026, atau setelah Portolab memiliki harga BBCA dari hari bursa order ini. Order harga pasar tidak membutuhkan limit.",
     severalReturns:
-      "AADI baru memiliki 21 imbal hasil bulanan, sedangkan Portolab menghitung ukuran sebuah portofolio hanya jika setiap sahamnya memiliki 24 imbal hasil bulanan. Jika AADI tetap memiliki harga penutupan di akhir setiap bulan dan tetap termasuk LQ45, Anda dapat membelinya setelah pembaruan riwayat harga yang menyimpan harga penutupan hari bursa pertama Januari 2027. Portolab juga harus sudah mencatat aturan BEI untuk hari pembelian itu.",
+      "AADI baru memiliki 21 imbal hasil bulanan, sedangkan Portolab menghitung ukuran portofolio hanya jika setiap sahamnya memiliki 24 imbal hasil bulanan. Jika AADI tetap memiliki harga penutupan di akhir setiap bulan dan tetap termasuk LQ45, Anda dapat membelinya setelah pembaruan riwayat harga yang menyimpan harga penutupan hari bursa pertama Januari 2027. Portolab juga harus sudah mencatat aturan BEI untuk hari pembelian itu.",
     oneReturn:
-      "AADI baru memiliki 1 imbal hasil bulanan, sedangkan Portolab menghitung ukuran sebuah portofolio hanya jika setiap sahamnya memiliki 24 imbal hasil bulanan. Jika AADI tetap memiliki harga penutupan di akhir setiap bulan dan tetap termasuk LQ45, Anda dapat membelinya setelah pembaruan riwayat harga yang menyimpan harga penutupan hari bursa pertama September 2028. Portolab juga harus sudah mencatat aturan BEI untuk hari pembelian itu.",
+      "AADI baru memiliki 1 imbal hasil bulanan, sedangkan Portolab menghitung ukuran portofolio hanya jika setiap sahamnya memiliki 24 imbal hasil bulanan. Jika AADI tetap memiliki harga penutupan di akhir setiap bulan dan tetap termasuk LQ45, Anda dapat membelinya setelah pembaruan riwayat harga yang menyimpan harga penutupan hari bursa pertama September 2028. Portolab juga harus sudah mencatat aturan BEI untuk hari pembelian itu.",
     tooManyLots:
       "BEI menerima paling banyak 50.000 lot dalam satu order, sedangkan order ini berisi 50.001 lot. Bagi order ini menjadi beberapa order yang masing-masing berisi paling banyak 50.000 lot.",
     tooManyLotsForOneLot:
@@ -372,9 +372,9 @@ const texts: Record<Locale, Record<FailureName, string>> = {
     outsideUniverse:
       "BREN is not in the LQ45 on November 2, 2026, and Portolab lets you buy only the stocks of the LQ45 of the trading day. Choose a stock that is in the LQ45 on that day.",
     noHistoryOfMarket:
-      "Portolab has not stored a complete month of the price history of IHSG yet, so it cannot count whether BBCA has the monthly returns that the measures need. Try again after the next update of the price history stores it.",
+      "Portolab has not stored a complete month of the price history of IHSG yet, so it cannot count whether BBCA has the monthly returns that the measures of a portfolio need. Try again after the next update of the price history stores it.",
     noHistoryOfStock:
-      "Portolab has not stored a complete month of the price history of BBCA yet, so it cannot count whether BBCA has the monthly returns that the measures need. Try again after the next update of the price history stores it.",
+      "Portolab has not stored a complete month of the price history of BBCA yet, so it cannot count whether BBCA has the monthly returns that the measures of a portfolio need. Try again after the next update of the price history stores it.",
     noReferenceClose:
       "IDX sets the range of prices of a limit order from the latest close of BBCA before the trading day of the order, but Portolab has no final close of BBCA for November 2, 2026 yet. A limit order becomes possible once an update of the price history stores that close, if BBCA traded on November 2, 2026, or once Portolab has a price of BBCA from the trading day of the order. A market order needs no limit.",
     severalReturns:

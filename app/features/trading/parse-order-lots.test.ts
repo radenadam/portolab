@@ -47,16 +47,16 @@ const failures: Record<
 > = {
   id: {
     notWhole:
-      'Kolom "Jumlah lot" menerima bilangan bulat jumlah lot paling sedikit 1 yang ditulis dengan angka, misalnya 1.000, tetapi isinya "2,5". Masukkan jumlah lot order ini.',
+      'Kolom "Jumlah lot" menerima bilangan bulat jumlah lot paling sedikit 1, misalnya 1.000, tetapi isinya "2,5". Tulis jumlahnya dengan angka, dengan atau tanpa "." di antara kelompok angka seperti pada contoh.',
     exponent:
-      'Kolom "Jumlah lot" menerima bilangan bulat jumlah lot paling sedikit 1 yang ditulis dengan angka, misalnya 1.000, tetapi isinya "1e3". Masukkan jumlah lot order ini.',
+      'Kolom "Jumlah lot" menerima bilangan bulat jumlah lot paling sedikit 1, misalnya 1.000, tetapi isinya "1e3". Tulis jumlahnya dengan angka, dengan atau tanpa "." di antara kelompok angka seperti pada contoh.',
     otherGroups:
-      'Kolom "Jumlah lot" menerima bilangan bulat jumlah lot paling sedikit 1 yang ditulis dengan angka, misalnya 1.000, tetapi isinya "50,000". Masukkan jumlah lot order ini.',
+      'Kolom "Jumlah lot" menerima bilangan bulat jumlah lot paling sedikit 1, misalnya 1.000, tetapi isinya "50,000". Tulis jumlahnya dengan angka, dengan atau tanpa "." di antara kelompok angka seperti pada contoh.',
     brokenGroups:
-      'Kolom "Jumlah lot" menerima bilangan bulat jumlah lot paling sedikit 1 yang ditulis dengan angka, misalnya 1.000, tetapi isinya "5.0000". Masukkan jumlah lot order ini.',
+      'Kolom "Jumlah lot" menerima bilangan bulat jumlah lot paling sedikit 1, misalnya 1.000, tetapi isinya "5.0000". Tulis jumlahnya dengan angka, dengan atau tanpa "." di antara kelompok angka seperti pada contoh.',
     decimalBeyondCount:
-      'Kolom "Jumlah lot" menerima bilangan bulat jumlah lot paling sedikit 1 yang ditulis dengan angka, misalnya 1.000, tetapi isinya "90071992547409920,5". Masukkan jumlah lot order ini.',
-    zero: 'Kolom "Jumlah lot" menerima bilangan bulat jumlah lot paling sedikit 1 yang ditulis dengan angka, misalnya 1.000, tetapi isinya "0". Masukkan jumlah lot order ini.',
+      'Kolom "Jumlah lot" menerima bilangan bulat jumlah lot paling sedikit 1, misalnya 1.000, tetapi isinya "90071992547409920,5". Tulis jumlahnya dengan angka, dengan atau tanpa "." di antara kelompok angka seperti pada contoh.',
+    zero: 'Kolom "Jumlah lot" menerima bilangan bulat jumlah lot paling sedikit 1, misalnya 1.000, tetapi isinya "0". Tulis jumlahnya dengan angka, dengan atau tanpa "." di antara kelompok angka seperti pada contoh.',
     beyondCount:
       'Kolom "Jumlah lot" memuat paling banyak 9.007.199.254.740.991 lot, jumlah terbesar yang dapat dihitung Portolab, tetapi isinya "9007199254740992". Masukkan jumlah lot order ini.',
     empty:
@@ -64,16 +64,16 @@ const failures: Record<
   },
   en: {
     notWhole:
-      'The field "Lots" takes a whole number of lots of at least 1, written in digits, such as 1,000, but it holds "2,5". Enter the number of lots of the order.',
+      'The field "Lots" takes a whole number of lots of at least 1, such as 1,000, but it holds "2,5". Write the number in digits, with or without "," between groups of digits as the example shows.',
     exponent:
-      'The field "Lots" takes a whole number of lots of at least 1, written in digits, such as 1,000, but it holds "1e3". Enter the number of lots of the order.',
+      'The field "Lots" takes a whole number of lots of at least 1, such as 1,000, but it holds "1e3". Write the number in digits, with or without "," between groups of digits as the example shows.',
     otherGroups:
-      'The field "Lots" takes a whole number of lots of at least 1, written in digits, such as 1,000, but it holds "50.000". Enter the number of lots of the order.',
+      'The field "Lots" takes a whole number of lots of at least 1, such as 1,000, but it holds "50.000". Write the number in digits, with or without "," between groups of digits as the example shows.',
     brokenGroups:
-      'The field "Lots" takes a whole number of lots of at least 1, written in digits, such as 1,000, but it holds "5,0000". Enter the number of lots of the order.',
+      'The field "Lots" takes a whole number of lots of at least 1, such as 1,000, but it holds "5,0000". Write the number in digits, with or without "," between groups of digits as the example shows.',
     decimalBeyondCount:
-      'The field "Lots" takes a whole number of lots of at least 1, written in digits, such as 1,000, but it holds "90071992547409920.5". Enter the number of lots of the order.',
-    zero: 'The field "Lots" takes a whole number of lots of at least 1, written in digits, such as 1,000, but it holds "0". Enter the number of lots of the order.',
+      'The field "Lots" takes a whole number of lots of at least 1, such as 1,000, but it holds "90071992547409920.5". Write the number in digits, with or without "," between groups of digits as the example shows.',
+    zero: 'The field "Lots" takes a whole number of lots of at least 1, such as 1,000, but it holds "0". Write the number in digits, with or without "," between groups of digits as the example shows.',
     beyondCount:
       'The field "Lots" holds at most 9,007,199,254,740,991 lots, the most that Portolab can count, but it holds "9007199254740992". Enter the number of lots of the order.',
     empty: 'The field "Lots" is empty, but Portolab needs it. Fill it in.',

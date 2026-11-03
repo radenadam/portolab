@@ -360,13 +360,18 @@ test("rejects an order for a stock that has no delayed price yet", () => {
   ).toEqual({ ok: false, failure: { kind: "noPrice", code: "BBCA" } });
 });
 
-test("rejects an order of more lots than IDX accepts in one order", () => {
+test("rejects an order of more lots than IDX accepts in one order, and accepts the largest order that the failure names", () => {
+  // 50,000 lots at Rp4,980 cost Rp24,900,000,000 with a fee of Rp37,350,000, which is Rp24,937,350,000.
+  const state = account({ cash: rupiah(24_937_350_000) });
   expect(
-    placeOrder(purchase({ lots: orderLotsForTest(50_001) }), account(), bbca),
+    placeOrder(purchase({ lots: orderLotsForTest(50_001) }), state, bbca),
   ).toEqual({
     ok: false,
     failure: { kind: "tooManyLots", lots: 50_001, maximumLots: 50_000 },
   });
+  expect(
+    placeOrder(purchase({ lots: orderLotsForTest(50_000) }), state, bbca),
+  ).toMatchObject({ ok: true, value: { setAsideCash: 24_937_350_000 } });
 });
 
 test("rejects a limit price beyond the auto rejection limits of the reference price", () => {
@@ -405,16 +410,14 @@ test("rejects a limit price between two steps of its band", () => {
   });
 });
 
-test("rejects a purchase that costs more than the cash that other open orders leave, and gives the largest that it pays for", () => {
-  // The waiting purchase of 1 lot at Rp4,980 sets aside Rp498,747 of the cash of Rp2,500,000.
+test("rejects a purchase that costs more than the cash that other open orders leave, and accepts the largest order that the failure names", () => {
+  // The waiting purchase of 1 lot at Rp4,980 sets aside Rp498,747 of the cash of Rp2,500,000. The 4 lots that the failure names cost Rp1,994,988 of the Rp2,001,253 that it leaves.
   const earlierPurchase = accepted(purchase({ lots: orderLotsForTest(1) }));
-  expect(
-    placeOrder(
-      purchase(),
-      account({ cash: rupiah(2_500_000), orders: [earlierPurchase] }),
-      bbca,
-    ),
-  ).toEqual({
+  const state = account({
+    cash: rupiah(2_500_000),
+    orders: [earlierPurchase],
+  });
+  expect(placeOrder(purchase(), state, bbca)).toEqual({
     ok: false,
     failure: {
       kind: "notEnoughCash",
@@ -434,6 +437,9 @@ test("rejects a purchase that costs more than the cash that other open orders le
       minimumPrice: 1,
     },
   });
+  expect(
+    placeOrder(purchase({ lots: orderLotsForTest(4) }), state, bbca),
+  ).toMatchObject({ ok: true, value: { setAsideCash: 1_994_988 } });
 });
 
 const lastMinuteOfMonday = lastMinuteOfMondayForTest;
@@ -552,19 +558,14 @@ test("rejects a sale while an open sell order of the day sets aside the shares, 
   ).toMatchObject({ ok: true, value: { side: "sell" } });
 });
 
-test("rejects a sale of more lots than the holding has beyond other open sell orders", () => {
+test("rejects a sale of more lots than the holding has beyond other open sell orders, and accepts the largest sale that the failure names", () => {
   const holdings = [{ code: "BBCA", shares: shares(500), cost: rupiah(0) }];
   const earlierSale = accepted(
     sale({ lots: orderLotsForTest(3) }),
     account({ holdings }),
   );
-  expect(
-    placeOrder(
-      sale({ lots: orderLotsForTest(3) }),
-      account({ holdings, orders: [earlierSale] }),
-      bbca,
-    ),
-  ).toEqual({
+  const state = account({ holdings, orders: [earlierSale] });
+  expect(placeOrder(sale({ lots: orderLotsForTest(3) }), state, bbca)).toEqual({
     ok: false,
     failure: {
       kind: "notEnoughShares",
@@ -574,6 +575,9 @@ test("rejects a sale of more lots than the holding has beyond other open sell or
       setAside: { amount: 3, orders: 1 },
     },
   });
+  expect(
+    placeOrder(sale({ lots: orderLotsForTest(2) }), state, bbca),
+  ).toMatchObject({ ok: true, value: { side: "sell", lots: 2 } });
 });
 
 test("rejects a sale of a stock that the account does not hold", () => {
