@@ -19,10 +19,12 @@ export type AddressesForOthers =
     }
   | { kind: "noNetwork"; openedHost: string };
 
-// RFC 6761 reserves the name localhost and every name under it for this computer, and RFC 1122 and RFC 4291 reserve these addresses for it.
-const loopbackAddresses = new BlockList();
-loopbackAddresses.addSubnet("127.0.0.0", 8, "ipv4");
-loopbackAddresses.addAddress("::1", "ipv6");
+// RFC 6761 reserves the name localhost and every name under it for this computer. RFC 1122 reserves 127.0.0.0/8 for its loopback and 0.0.0.0/8 for this host, and RFC 4291 reserves ::1 for its loopback and :: for no address, which a browser that opens it at all opens on this computer.
+const thisComputerAddresses = new BlockList();
+thisComputerAddresses.addSubnet("127.0.0.0", 8, "ipv4");
+thisComputerAddresses.addSubnet("0.0.0.0", 8, "ipv4");
+thisComputerAddresses.addAddress("::1", "ipv6");
+thisComputerAddresses.addAddress("::", "ipv6");
 
 // A mask of 32 bits makes a network of one address, such as the tunnel of a VPN, which no other device can be on.
 const singleAddressMask = "255.255.255.255";
@@ -32,7 +34,7 @@ export function addressesForOthers(
   url: URL,
   interfaces: NetworkInterfaces = networkInterfaces(),
 ): AddressesForOthers {
-  if (!isLoopbackHost(url.hostname)) {
+  if (!opensOnThisComputerOnly(url.hostname)) {
     return { kind: "asOpened", address: url.href };
   }
   const addresses = localNetworkAddresses(url, interfaces);
@@ -64,7 +66,7 @@ export function localNetworkAddresses(
 }
 
 /** Whether only the computer that opens a host can reach it, as the URL parser writes the host. */
-function isLoopbackHost(hostname: string): boolean {
+function opensOnThisComputerOnly(hostname: string): boolean {
   // A name may end in the dot of the root of DNS, which leads to the same host.
   const name = hostname.endsWith(".") ? hostname.slice(0, -1) : hostname;
   if (name === "localhost" || name.endsWith(".localhost")) {
@@ -74,9 +76,9 @@ function isLoopbackHost(hostname: string): boolean {
   const address = name.replace(/^\[(.*)\]$/, "$1");
   switch (isIP(address)) {
     case 4:
-      return loopbackAddresses.check(address, "ipv4");
+      return thisComputerAddresses.check(address, "ipv4");
     case 6:
-      return loopbackAddresses.check(address, "ipv6");
+      return thisComputerAddresses.check(address, "ipv6");
   }
   // Portolab cannot see where another name leads on the devices of others, so it keeps the name that the reader opened.
   return false;

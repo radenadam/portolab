@@ -61,7 +61,7 @@ const laptopInterfaces = {
   "Wi-Fi": [ipv6("fe80::2", 64), ipv4("192.0.2.20", 24)],
 };
 
-const loopbackPages = [
+const thisComputerPages = [
   "http://localhost:3000/join/k7qm-4rxt",
   "http://LOCALHOST.:3000/join/k7qm-4rxt",
   "http://portolab.localhost:3000/join/k7qm-4rxt",
@@ -69,6 +69,12 @@ const loopbackPages = [
   "http://127.1.2.3:3000/join/k7qm-4rxt",
   "http://[::1]:3000/join/k7qm-4rxt",
   "http://[::ffff:127.0.0.1]:3000/join/k7qm-4rxt",
+  "http://0.0.0.0:3000/join/k7qm-4rxt",
+  "http://0:3000/join/k7qm-4rxt",
+  "http://0.1.2.3:3000/join/k7qm-4rxt",
+  "http://[::]:3000/join/k7qm-4rxt",
+  "http://[0:0:0:0:0:0:0:0]:3000/join/k7qm-4rxt",
+  "http://[::ffff:0.0.0.0]:3000/join/k7qm-4rxt",
 ];
 
 test("lists the page at each IPv4 address of this computer on a network that other devices can be on, with the name of its connection", () => {
@@ -104,7 +110,7 @@ test("keeps the address that the reader opened when other devices can open its h
 });
 
 test("moves a page on a host that only this computer can open to each address of this computer on its networks", () => {
-  for (const page of loopbackPages) {
+  for (const page of thisComputerPages) {
     const url = new URL(page);
     expect(addressesForOthers(url, laptopInterfaces), page).toEqual({
       kind: "onLocalNetwork",
@@ -129,7 +135,7 @@ test("finds no address for others when only this computer can open the host and 
       laptopInterfaces["Loopback Pseudo-Interface 1"],
     VPN: laptopInterfaces.VPN,
   };
-  for (const page of loopbackPages) {
+  for (const page of thisComputerPages) {
     const url = new URL(page);
     expect(addressesForOthers(url, offline), page).toEqual({
       kind: "noNetwork",

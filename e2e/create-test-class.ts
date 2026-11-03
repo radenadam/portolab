@@ -1,6 +1,7 @@
 import { expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import { startingCashLimits } from "../app/features/classes/class-rules.ts";
+import { joinPath } from "../app/features/classes/join-code.ts";
 
 /** A class that a test created, with the path of its page, the code that its lecturer shares, and the path that joins it on the site that the test opened. */
 export interface TestClass {
@@ -31,6 +32,6 @@ export async function readTestClass(page: Page): Promise<TestClass> {
   return {
     path: new URL(page.url()).pathname,
     joinCode,
-    joinPath: `/join/${joinCode}`,
+    joinPath: joinPath(joinCode),
   };
 }

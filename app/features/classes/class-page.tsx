@@ -51,16 +51,15 @@ export function loader({ context, params, url }: Route.LoaderArgs):
       if (taught === undefined) {
         throw notFound;
       }
+      const joinCode = formatJoinCode(taught.joinCode);
       return {
         role: user.role,
         id: taught.id,
         name: taught.name,
         startingCash: taught.startingCash,
-        joinCode: formatJoinCode(taught.joinCode),
+        joinCode,
         // The host comes from the request, so a forged Host header shows the addresses of the server on its networks only to the lecturer of the class, who reaches the server already.
-        joinAddresses: addressesForOthers(
-          new URL(joinPath(taught.joinCode), url),
-        ),
+        joinAddresses: addressesForOthers(new URL(joinPath(joinCode), url)),
         students: listStudents(database, taught.id),
       };
     }
