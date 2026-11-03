@@ -22,6 +22,7 @@ const texts: Record<
     outside: readonly string[];
     notWhole: readonly [string, string];
     outOfRange: readonly [string, string];
+    tooLong: readonly [string, string];
   }
 > = {
   // Intl puts a space that does not break between the symbol of the currency and the amount.
@@ -44,9 +45,9 @@ const texts: Record<
       "100.000.000.",
       "100..000.000",
       "100000000000.00",
-      "1.0000.000.000.0000",
+      "1.0000.000.0000",
     ],
-    outside: ["999.999", "1.000.000.000.001", "99.999.999.999.999.999.999"],
+    outside: ["999.999", "1.000.000.000.001", "99999999999999999"],
     notWhole: [
       'Kolom "Modal awal" menerima bilangan bulat rupiah, misalnya 100.000.000, tetapi isinya "',
       '". Tulis jumlahnya dengan angka, dengan atau tanpa "." di antara kelompok angka seperti pada contoh.',
@@ -54,6 +55,10 @@ const texts: Record<
     outOfRange: [
       'Kolom "Modal awal" menerima Rp 1.000.000 sampai Rp 1.000.000.000.000, tetapi isinya "',
       '". Uang yang lebih sedikit hanya cukup untuk sedikit lot, dan batas atas menjaga setiap jumlah dalam sebuah kelas tetap tepat. Pilih jumlah di antara keduanya.',
+    ],
+    tooLong: [
+      "1.000.000.000.000.000",
+      'Kolom "Modal awal" memuat paling banyak 17 karakter, tetapi isinya 21 karakter. Persingkat isinya.',
     ],
   },
   en: {
@@ -75,9 +80,9 @@ const texts: Record<
       "100,000,000,",
       "100,,000,000",
       "100000000000,00",
-      "1,0000,000,000,0000",
+      "1,0000,000,0000",
     ],
-    outside: ["999,999", "1,000,000,000,001", "99,999,999,999,999,999,999"],
+    outside: ["999,999", "1,000,000,000,001", "99999999999999999"],
     notWhole: [
       'The field "Starting cash" takes a whole number of rupiah, such as 100,000,000, but it holds "',
       '". Write the amount in digits, with or without "," between groups of digits as the example shows.',
@@ -85,6 +90,10 @@ const texts: Record<
     outOfRange: [
       'The field "Starting cash" takes IDR 1,000,000 to IDR 1,000,000,000,000, but it holds "',
       '". Less cash buys too few lots for a portfolio, and the maximum keeps every sum in a class exact. Choose an amount between the two.',
+    ],
+    tooLong: [
+      "1,000,000,000,000,000",
+      'The field "Starting cash" holds at most 17 characters, but it has 21. Shorten it.',
     ],
   },
 };
@@ -121,5 +130,14 @@ for (const locale of locales) {
         failure: `${text.outOfRange[0]}${written}${text.outOfRange[1]}`,
       });
     }
+  });
+
+  test(`rejects an amount longer than the maximum written with the separators of ${language}, before it reads the amount`, () => {
+    switchLocaleForTest(locale);
+    const [written, failure] = text.tooLong;
+    expect(parseStartingCash(written, text.label)).toEqual({
+      ok: false,
+      failure,
+    });
   });
 }

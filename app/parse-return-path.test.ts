@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { parseReturnPath } from "./parse-return-path";
+import { parseReturnPath, returnPathMaximumLength } from "./parse-return-path";
 
 const siteOrigin = "http://localhost:3000";
 
@@ -7,6 +7,28 @@ test("accepts a path on this site with its query and fragment", () => {
   expect(
     parseReturnPath("/portfolio?tab=risk#beta", "returnTo", siteOrigin),
   ).toEqual({ ok: true, value: "/portfolio?tab=risk#beta" });
+});
+
+test("accepts a path of the most characters that the field takes", () => {
+  const path = `/${"a".repeat(returnPathMaximumLength - 1)}`;
+  expect(parseReturnPath(path, "returnTo", siteOrigin)).toEqual({
+    ok: true,
+    value: path,
+  });
+});
+
+test("rejects a path longer than the field takes, and names both lengths", () => {
+  expect(
+    parseReturnPath(
+      `/${"a".repeat(returnPathMaximumLength)}`,
+      "returnTo",
+      siteOrigin,
+    ),
+  ).toEqual({
+    ok: false,
+    failure:
+      "returnTo must be a path on this site of at most 8000 characters, but it has 8001.",
+  });
 });
 
 test("rejects a missing path and names the field", () => {

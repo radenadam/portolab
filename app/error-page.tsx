@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router";
 import styles from "./error-page.module.css";
+import { formMaximumBytes } from "./form-size";
+import { formatKilobytes } from "./formatting";
 import { PageTitle } from "./page-title";
 import { m } from "./paraglide/messages.js";
 
@@ -21,12 +23,17 @@ export function ErrorPage({
     <>
       <h1>{title}</h1>
       <p>{body}</p>
-      {nextStep ?? (
-        <Link to="/" className={styles["backHome"]}>
-          {m.app_back_home_link()}
-        </Link>
-      )}
+      {nextStep ?? <NextStepLink to="/" label={m.app_back_home_link()} />}
     </>
+  );
+}
+
+/** A link to the next step that an error page offers, such as the way back to the home page. */
+function NextStepLink({ to, label }: { to: string; label: string }): ReactNode {
+  return (
+    <Link to={to} className={styles["nextStepLink"]}>
+      {label}
+    </Link>
   );
 }
 
@@ -55,6 +62,28 @@ export function UnexpectedErrorPage(): ReactNode {
       <ErrorPage
         title={m.app_unexpected_error_title()}
         body={m.app_unexpected_error_body()}
+      />
+    </>
+  );
+}
+
+/** The page for a form larger than the limit of a request body, with a link that opens the address of the form again. */
+export function TooLargeFormPage(): ReactNode {
+  const { pathname, search } = useLocation();
+  return (
+    <>
+      <PageTitle text={m.app_too_large_form_title()} />
+      <ErrorPage
+        title={m.app_too_large_form_title()}
+        body={m.app_too_large_form_body({
+          maximum: formatKilobytes(formMaximumBytes),
+        })}
+        nextStep={
+          <NextStepLink
+            to={`${pathname}${search}`}
+            label={m.app_open_form_again_link()}
+          />
+        }
       />
     </>
   );

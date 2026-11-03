@@ -17,11 +17,8 @@ import {
   usernameLength,
 } from "./username";
 import type { Username } from "./username";
-import { nameMaximumLength } from "./account-limits";
+import { nameMaximumLength, passwordLength } from "./account-limits";
 import { normalizePassword } from "./normalize-password";
-
-/** The limits of a password that a person chooses. NIST SP 800-63B asks for at least 15 characters when a password alone signs a person in, and for a maximum of at least 64. */
-export const passwordLength = { minimum: 15, maximum: 128 } as const;
 
 /** Reads the name of a person, as the class should know it. */
 export function parsePersonName(
@@ -36,7 +33,7 @@ function parseNewPassword(
   value: unknown,
   source: string,
 ): Result<string, string> {
-  const text = parseFilledText(value, source);
+  const text = parseFilledText(value, source, passwordLength.maximum);
   if (!text.ok) {
     return text;
   }
@@ -60,7 +57,8 @@ function parseRepeatedPassword(
   source: string,
   password: string,
 ): Result<string, string> {
-  return typeof value === "string" && normalizePassword(value) === password
+  const text = parseFilledText(value, source, passwordLength.maximum);
+  return text.ok && normalizePassword(text.value) === password
     ? succeed(password)
     : fail(m.accounts_passwords_differ_error({ field: source }));
 }
@@ -121,7 +119,7 @@ function parseNewUsername(
   value: unknown,
   source: string,
 ): Result<Username, string> {
-  const text = parseFilledText(value, source);
+  const text = parseFilledText(value, source, usernameLength.maximum);
   if (!text.ok) {
     return text;
   }

@@ -1,10 +1,14 @@
 import { getLocale } from "~/paraglide/runtime.js";
 import { listOfWords } from "~/sentences";
+import type { Bytes } from "~/units/bytes";
 import type { IndexPoints } from "~/units/index-points";
 import type { Rupiah } from "~/units/rupiah";
 import { wibTimeZone } from "~/wib";
 
 const intlLocales = { id: "id-ID", en: "en-US" } as const;
+
+// The unit "kilobyte" of Intl names 1,000 bytes, as the SI prefix kilo does.
+const bytesInKilobyte = 1000;
 
 function intlLocale(): string {
   return intlLocales[getLocale()];
@@ -43,6 +47,14 @@ export function digitGrouping(): { separator: string; size: number } {
 
 export function formatNumber(value: number): string {
   return new Intl.NumberFormat(intlLocale()).format(value);
+}
+
+/** Formats a size in kilobytes, such as 64 kB. */
+export function formatKilobytes(size: Bytes): string {
+  return new Intl.NumberFormat(intlLocale(), {
+    style: "unit",
+    unit: "kilobyte",
+  }).format(size / bytesInKilobyte);
 }
 
 export function formatIndexLevel(level: IndexPoints): string {

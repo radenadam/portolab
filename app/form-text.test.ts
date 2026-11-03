@@ -7,7 +7,13 @@ import { switchLocaleForTest } from "./switch-locale-for-test";
 
 const failures: Record<
   Locale,
-  { empty: string; notText: string; tooLong: string }
+  {
+    empty: string;
+    notText: string;
+    tooLong: string;
+    tooLongAsTyped: string;
+    tooLongWhenTidied: string;
+  }
 > = {
   id: {
     empty:
@@ -16,6 +22,10 @@ const failures: Record<
       'Formulir mengirim nilai bertipe File di kolom "Nama Anda", bukan teks. Muat ulang halaman, lalu isi formulir lagi.',
     tooLong:
       'Kolom "Nama Anda" memuat paling banyak 1.000 karakter, tetapi isinya 1.001 karakter. Persingkat isinya.',
+    tooLongAsTyped:
+      'Kolom "Nama Anda" memuat paling banyak 100 karakter, tetapi isinya 202 karakter. Persingkat isinya.',
+    tooLongWhenTidied:
+      'Kolom "Nama Anda" memuat paling banyak 100 karakter, tetapi isinya 120 karakter. Persingkat isinya.',
   },
   en: {
     empty: 'The field "Your name" is empty, but Portolab needs it. Fill it in.',
@@ -23,15 +33,29 @@ const failures: Record<
       'The form sent a value of type File in the field "Your name" instead of text. Reload the page and fill in the form again.',
     tooLong:
       'The field "Your name" holds at most 1,000 characters, but it has 1,001. Shorten it.',
+    tooLongAsTyped:
+      'The field "Your name" holds at most 100 characters, but it has 202. Shorten it.',
+    tooLongWhenTidied:
+      'The field "Your name" holds at most 100 characters, but it has 120. Shorten it.',
   },
 };
 
 const labels: Record<Locale, string> = { id: "Nama Anda", en: "Your name" };
 
+// Normal form C writes this Devanagari letter as two characters.
+const letterThatNormalizationDoubles = "\u0958";
+
 test("reads a filled field as the person typed it", () => {
-  expect(parseFilledText(" kopi pagi ", "Kata sandi")).toEqual({
+  expect(parseFilledText(" kopi pagi ", "Kata sandi", 100)).toEqual({
     ok: true,
     value: " kopi pagi ",
+  });
+});
+
+test("leaves the spaces around a text out of its length", () => {
+  expect(parseFilledText("  kopi pagi ", "Kata sandi", 9)).toEqual({
+    ok: true,
+    value: "  kopi pagi ",
   });
 });
 
@@ -56,7 +80,7 @@ for (const locale of locales) {
   test(`rejects an empty or missing field and names its label in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     for (const value of ["", "   ", null, undefined]) {
-      expect(parseFilledText(value, label)).toEqual({
+      expect(parseFilledText(value, label, 100)).toEqual({
         ok: false,
         failure: failure.empty,
       });
@@ -77,5 +101,20 @@ for (const locale of locales) {
       ok: false,
       failure: failure.tooLong,
     });
+  });
+
+  test(`rejects a text that is longer than its field as typed, before it tidies the text, in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    expect(parseShortText(`a${" ".repeat(200)}b`, label, 100)).toEqual({
+      ok: false,
+      failure: failure.tooLongAsTyped,
+    });
+  });
+
+  test(`rejects a text that normal form C makes longer than its field in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    expect(
+      parseShortText(letterThatNormalizationDoubles.repeat(60), label, 100),
+    ).toEqual({ ok: false, failure: failure.tooLongWhenTidied });
   });
 }

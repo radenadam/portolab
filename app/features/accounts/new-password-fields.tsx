@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { TextField } from "~/form";
 import { formatNumber } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
-import { passwordLength } from "./account-fields";
+import { passwordLength } from "./account-limits";
 import type { NewPasswordFailures } from "./account-fields";
 
 /** The fields of a new password, which a person types twice, so that a typing mistake never locks the person out. */

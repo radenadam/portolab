@@ -1,4 +1,4 @@
-import { parseFilledText } from "~/form-text";
+import { characterCount, parseFilledText } from "~/form-text";
 import { digitGrouping, formatNumber, formatRupiah } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { fail, succeed } from "~/result";
@@ -12,7 +12,12 @@ export function parseStartingCash(
   value: unknown,
   source: string,
 ): Result<Rupiah, string> {
-  const text = parseFilledText(value, source);
+  // The longest amount that the field takes is the maximum, written with the separators of its digit groups.
+  const text = parseFilledText(
+    value,
+    source,
+    characterCount(formatNumber(startingCashLimits.maximum)),
+  );
   if (!text.ok) {
     return text;
   }

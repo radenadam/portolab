@@ -12,7 +12,11 @@ import {
   useRouteLoaderData,
 } from "react-router";
 import type { Route } from "./+types/root";
-import { MissingPage, UnexpectedErrorPage } from "./error-page";
+import {
+  MissingPage,
+  TooLargeFormPage,
+  UnexpectedErrorPage,
+} from "./error-page";
 import { AccountLink } from "./features/accounts/account-link";
 import { crossSiteProtection } from "./features/accounts/cross-site-protection.server";
 import {
@@ -24,16 +28,19 @@ import {
   RefusedFormPage,
 } from "./features/accounts/refused-form";
 import { LanguageSwitch } from "./features/language/language-switch";
+import { tooLargeFormStatus } from "./form-size";
+import { formSizeLimit } from "./form-size-limit.server";
 import { m } from "./paraglide/messages.js";
 import { getLocale } from "./paraglide/runtime.js";
 import { paraglideMiddleware } from "./paraglide/server.js";
 import styles from "./root.module.css";
 import "./theme.css";
 
-// The language comes first, so that a refused form and every later step speak the language of the reader.
+// The language comes first, so that a refused form and every later step speak the language of the reader. A form from another site is refused before its body is read.
 export const middleware: Route.MiddlewareFunction[] = [
   ({ request }, next) => paraglideMiddleware(request, () => next()),
   crossSiteProtection,
+  formSizeLimit,
   sessionMiddleware,
 ];
 
@@ -83,6 +90,9 @@ export default function Root(): ReactNode {
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): ReactNode {
   if (isRefusedForm(error)) {
     return <RefusedFormPage />;
+  }
+  if (isRouteErrorResponse(error) && error.status === tooLargeFormStatus) {
+    return <TooLargeFormPage />;
   }
   // A loader answers an address that a person may not see as one that does not exist, so a guessed address reveals nothing.
   if (isRouteErrorResponse(error) && error.status === 404) {

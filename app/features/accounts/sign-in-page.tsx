@@ -11,6 +11,7 @@ import { m } from "~/paraglide/messages.js";
 import { returnDestination } from "~/return-destination.server";
 import type { Route } from "./+types/sign-in-page";
 import { readyUser } from "./account";
+import { passwordLength } from "./account-limits";
 import {
   currentSessionContext,
   isSignedIn,
@@ -20,6 +21,7 @@ import { pathReturningTo } from "./path-returning-to";
 import { passwordLimitersContext, signIn } from "./password-attempts.server";
 import { explainPasswordFailure } from "./explain-password-failure.server";
 import { deleteSession } from "./session-store.server";
+import { usernameLength } from "./username";
 
 export function meta(): Route.MetaDescriptors {
   return [{ title: pageTitle(m.accounts_sign_in_title()) }];
@@ -42,10 +44,12 @@ export async function action({ context, request }: Route.ActionArgs) {
   const username = parseFilledText(
     form.get("username"),
     m.accounts_username_label(),
+    usernameLength.maximum,
   );
   const password = parseFilledText(
     form.get("password"),
     m.accounts_password_label(),
+    passwordLength.maximum,
   );
   if (!username.ok || !password.ok) {
     return data(
