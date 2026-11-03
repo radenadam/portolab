@@ -37,7 +37,15 @@ const texts: Record<
       ["5.000", 5_000],
       ["0001", 1],
     ],
-    notWholeInputs: ["2,5", " 2,5 ", "50,000", "5.0000", "500000,5"],
+    notWholeInputs: [
+      "2,5",
+      " 2,5 ",
+      "50,000",
+      "5.0000",
+      "500000,5",
+      "5.00000",
+      "1.0000.000.000",
+    ],
     notWhole: [
       'Kolom "Jumlah lot" menerima bilangan bulat jumlah lot, misalnya 1.000, tetapi isinya "',
       '". Tulis jumlahnya dengan angka, dengan atau tanpa "." di antara kelompok angka seperti pada contoh.',
@@ -65,7 +73,15 @@ const texts: Record<
       ["5,000", 5_000],
       ["0001", 1],
     ],
-    notWholeInputs: ["2.5", " 2.5 ", "50.000", "5,0000", "500000.5"],
+    notWholeInputs: [
+      "2.5",
+      " 2.5 ",
+      "50.000",
+      "5,0000",
+      "500000.5",
+      "5,00000",
+      "1,0000,000,000",
+    ],
     notWhole: [
       'The field "Lots" takes a whole number of lots, such as 1,000, but it holds "',
       '". Write the number in digits, with or without "," between groups of digits as the example shows.',
@@ -98,7 +114,7 @@ for (const locale of locales) {
     }
   });
 
-  test(`rejects a number of lots that is not whole or has a separator where ${language} writes none, and quotes it without the spaces around it`, () => {
+  test(`rejects a number of lots that is not whole or has a separator where ${language} writes none, also with more digits than the largest order, and quotes it without the spaces around it`, () => {
     switchLocaleForTest(locale);
     for (const written of [
       ...notWholeInEveryLanguage,
