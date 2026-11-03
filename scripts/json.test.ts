@@ -1,6 +1,3 @@
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
 import { expect, test } from "vitest";
 import { fail, succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
@@ -9,10 +6,10 @@ import {
   parseJsonObject,
   parseJsonWith,
   parseListField,
+  parseOptionalJsonWith,
   parseStringsAt,
   parseTextAt,
   readJsonFile,
-  readJsonFileIfWritten,
 } from "./json.ts";
 import type { Parser } from "./json.ts";
 
@@ -176,17 +173,17 @@ test("reads text that says something, and rejects text that is empty, only space
   });
 });
 
-test("reads a file that a step wrote, and gives undefined for a file that it did not write", () => {
-  const folder = mkdtempSync(join(tmpdir(), "json-"));
-  try {
-    const path = join(folder, "plan.json");
-    expect(readJsonFileIfWritten(path, parseJsonObject)).toBeUndefined();
-    writeFileSync(path, '{"kind":"pass"}');
-    expect(readJsonFileIfWritten(path, parseJsonObject)).toEqual({
-      ok: true,
-      value: { kind: "pass" },
-    });
-  } finally {
-    rmSync(folder, { recursive: true, force: true });
-  }
+test("reads JSON that a job gave, and gives undefined for empty or missing text", () => {
+  expect(parseOptionalJsonWith("", "PLAN", parseJsonObject)).toEqual({
+    ok: true,
+    value: undefined,
+  });
+  expect(parseOptionalJsonWith(undefined, "PLAN", parseJsonObject)).toEqual({
+    ok: true,
+    value: undefined,
+  });
+  expect(
+    parseOptionalJsonWith('{"kind":"pass"}', "PLAN", parseJsonObject),
+  ).toEqual({ ok: true, value: { kind: "pass" } });
+  expect(parseOptionalJsonWith("[", "PLAN", parseJsonObject).ok).toBe(false);
 });

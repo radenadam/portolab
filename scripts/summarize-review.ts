@@ -183,32 +183,26 @@ export function outsideIssue(
   };
 }
 
-/** The results that GitHub gives a job, which the review job reads for the job of the agents. */
-export const jobResults = [
-  "success",
-  "failure",
-  "cancelled",
-  "skipped",
-] as const;
-
-/** Returns a sentence when a newer push moved the head while this run reviewed an older one, so that the run for the newer head posts the review. GitHub also cancels a job that runs out of time, and then the head has not moved, so this run judges it. */
+/** Returns a sentence when a newer push cancelled the run, so that the run for the newer head posts the review. GitHub also cancels a job that runs out of time, and then the head has not moved, so this run judges it. */
 export function supersededRun(
+  jobResults: Record<string, string>,
   reviewedHead: string,
   currentHead: string,
 ): string | undefined {
-  return reviewedHead === currentHead
-    ? undefined
-    : `A newer push moved the pull request to ${currentHead} while this run reviewed ${reviewedHead}, so the run for the newer head posts the review.`;
+  const wasCancelled = Object.values(jobResults).includes("cancelled");
+  return wasCancelled && reviewedHead !== currentHead
+    ? `A newer push moved the pull request to ${currentHead} while this run reviewed ${reviewedHead}, so the run for the newer head posts the review.`
+    : undefined;
 }
 
 /** The review of a run without a plan that can be read, so that the reader learns why nothing was reviewed. */
 export function unplannedReview(
-  agentsResult: (typeof jobResults)[number],
+  planResult: string,
   planProblem: string | undefined,
 ): { verdict: string; body: string } {
   const verdict =
     planProblem === undefined
-      ? `The review job found no plan of the round, so this change has not been reviewed. The job of the agents ended with the result "${agentsResult}", and its log names the reason.`
+      ? `The review job found no plan of the round, so this change has not been reviewed. The plan job ended with the result "${planResult}", and its log names the reason.`
       : `The plan of the round cannot be read, so this change has not been reviewed. ${planProblem}`;
   return {
     verdict,

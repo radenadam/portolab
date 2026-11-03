@@ -7,6 +7,8 @@ import {
   parseListField,
   parseStringsAt,
 } from "./json.ts";
+import { numberFindings } from "./review-findings.ts";
+import type { ReviewerReport, RoundReport } from "./review-findings.ts";
 import { parseOptionalCommitHashAt } from "./review-inputs.ts";
 import { chooseLenses, parseLens } from "./review-lenses.ts";
 import type { ChangedFile, Lens } from "./review-lenses.ts";
@@ -147,4 +149,26 @@ export function parseReviewPlan(
     files: files.value,
     previous: previous.value,
   });
+}
+
+/** Builds the report of a round from its plan and the reviewer's answer: the findings of the round, numbered after it, then the open findings of earlier rounds. A round without a reviewer has only the open findings. The verifier's job and the review job both build it, so the review never trusts a file that an agent could change. */
+export function buildRoundReport(
+  plan: ReviewPlan,
+  reviewerReport: ReviewerReport | undefined,
+): RoundReport {
+  if (reviewerReport === undefined) {
+    return {
+      findings: [...plan.previous.openFindings],
+      candidateStandards: [],
+      readFiles: [],
+      lensChecks: [],
+    };
+  }
+  return {
+    ...reviewerReport,
+    findings: [
+      ...numberFindings(plan.round, reviewerReport.findings),
+      ...plan.previous.openFindings,
+    ],
+  };
 }

@@ -177,3 +177,16 @@ test("rejects a round that is not a whole number from 0", () => {
     false,
   );
 });
+
+test("rejects an open finding without its id, because the verifier answers each finding by its id", () => {
+  const withoutId = Object.fromEntries(
+    Object.entries(openFinding).filter(([field]) => field !== "id"),
+  );
+  expect(
+    parseReviewState({ round: 1, openFindings: [withoutId] }, "state"),
+  ).toEqual({
+    ok: false,
+    failure:
+      "state: open finding 1 must have a string at id, but id is missing.",
+  });
+});

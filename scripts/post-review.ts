@@ -1,15 +1,17 @@
 import { exitWithFailure } from "../app/exit-with-failure.server.ts";
 import { fail, failuresOf, succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
-import { parseChoice } from "../app/value-parsers.ts";
-import { readJsonFileIfWritten } from "./json.ts";
-import { parseRoundReport, parseVerdicts } from "./review-findings.ts";
-import { parseCommitHash, parsePullRequestNumber } from "./review-inputs.ts";
-import { parseReviewPlan } from "./review-plan.ts";
+import { parseJsonWith, parseOptionalJsonWith } from "./json.ts";
+import { parseReviewerReport, parseVerdicts } from "./review-findings.ts";
+import {
+  parseCommitHash,
+  parseJobResults,
+  parsePullRequestNumber,
+} from "./review-inputs.ts";
+import { buildRoundReport, parseReviewPlan } from "./review-plan.ts";
 import { stateMarker } from "./review-state.ts";
 import { runCommand } from "./run-command.ts";
 import {
-  jobResults,
   oversizeProblem,
   outsideIssue,
   summarizeReview,
@@ -18,7 +20,7 @@ import {
 } from "./summarize-review.ts";
 import { writeScriptFailure } from "./write-script-failure.ts";
 
-// Every input is parsed before the script stops, so the log names every problem at once.
+// Every input is parsed before the script stops, so the log names every problem at once. Each input is an output of a job, so no agent could change it after its job gave it.
 const pullRequest = parsePullRequestNumber(
   process.env["PULL_REQUEST"],
   "PULL_REQUEST",
@@ -27,52 +29,68 @@ const reviewedHead = parseCommitHash(
   process.env["REVIEWED_HEAD"],
   "REVIEWED_HEAD",
 );
-const agentsResult = parseChoice(
-  process.env["AGENTS_RESULT"],
-  "AGENTS_RESULT",
-  jobResults,
+const jobResults = parseJsonWith(
+  process.env["PANEL_RESULTS"],
+  "PANEL_RESULTS",
+  parseJobResults,
 );
-if (!pullRequest.ok || !reviewedHead.ok || !agentsResult.ok) {
+if (!pullRequest.ok || !reviewedHead.ok || !jobResults.ok) {
   exitWithFailure(
-    failuresOf([pullRequest, reviewedHead, agentsResult]),
+    failuresOf([pullRequest, reviewedHead, jobResults]),
     writeScriptFailure,
   );
 }
-if (agentsResult.value === "cancelled") {
+if (Object.values(jobResults.value).includes("cancelled")) {
   const currentHead = readCurrentHead(pullRequest.value);
   if (!currentHead.ok) {
     exitWithFailure([currentHead.failure], writeScriptFailure);
   }
-  const superseded = supersededRun(reviewedHead.value, currentHead.value);
+  const superseded = supersededRun(
+    jobResults.value,
+    reviewedHead.value,
+    currentHead.value,
+  );
   if (superseded !== undefined) {
     exitWithFailure([superseded], writeScriptFailure);
   }
 }
 
-// A step that failed writes no file, so a missing file stays undefined, and the summary judges whether the plan needed it.
-const plan = readJsonFileIfWritten("review/plan.json", parseReviewPlan);
-if (!plan?.ok) {
+// A job that did not finish gives an empty output, which stays undefined, and the summary judges whether the plan needed it.
+const plan = parseOptionalJsonWith(
+  process.env["PLAN"],
+  "PLAN",
+  parseReviewPlan,
+);
+if (!plan.ok || plan.value === undefined) {
   const unplanned = unplannedReview(
-    agentsResult.value,
-    plan?.ok === false ? plan.failure : undefined,
+    jobResults.value["plan"] ?? "missing",
+    plan.ok ? undefined : plan.failure,
   );
   postReview(pullRequest.value, unplanned.body);
   exitWithFailure([unplanned.verdict], writeScriptFailure);
 }
-const report = readJsonFileIfWritten("review/findings.json", parseRoundReport);
-const verdicts = readJsonFileIfWritten("review/verdicts.json", parseVerdicts);
-const inputProblems: string[] = [];
-for (const input of [report, verdicts]) {
-  if (input?.ok === false) {
-    inputProblems.push(input.failure);
-  }
-}
+const reviewerReport = parseOptionalJsonWith(
+  process.env["REVIEWER_OUTPUT"],
+  "REVIEWER_OUTPUT",
+  parseReviewerReport,
+);
+const verdicts = parseOptionalJsonWith(
+  process.env["VERIFIER_OUTPUT"],
+  "VERIFIER_OUTPUT",
+  parseVerdicts,
+);
+const inputProblems = failuresOf([reviewerReport, verdicts]);
+const reviewerAnswer = reviewerReport.ok ? reviewerReport.value : undefined;
 const outcome = summarizeReview({
   plan: plan.value,
   reviewedHead: reviewedHead.value,
-  report: report?.ok ? report.value : undefined,
-  verdicts: verdicts?.ok ? verdicts.value : undefined,
-  // The job of the agents measures each agent that ran, and an agent that did not run leaves its sentence empty.
+  // A round that checks has a report without a reviewer, but a review round has none until the reviewer answers.
+  report:
+    plan.value.kind !== "review" || reviewerAnswer !== undefined
+      ? buildRoundReport(plan.value, reviewerAnswer)
+      : undefined,
+  verdicts: verdicts.ok ? verdicts.value : undefined,
+  // The job of each agent measures it, and an agent that did not run leaves its sentence empty.
   runs: [process.env["REVIEWER_RUN"], process.env["VERIFIER_RUN"]].filter(
     (sentence): sentence is string => sentence !== undefined && sentence !== "",
   ),

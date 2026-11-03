@@ -410,17 +410,17 @@ test("counts a round whose agent did not finish, but keeps the head and the open
     [
       input(review, undefined, undefined),
       afterOneRound,
-      "The reviewer's report is missing, so this change has not been reviewed. The log of the run names the reason.",
+      "The reviewer's report is missing, so this change has not been reviewed. The log of the reviewer's job names the reason.",
     ],
     [
-      input(check, undefined, undefined),
+      input(check, [finding("1.1")], undefined),
       afterReviews,
-      "The open findings were not saved for the verifier, so none has been checked. The log of the run names the reason.",
+      "The verifier's verdicts are missing, so no finding has been verified. The log of the verifier's job names the reason.",
     ],
     [
       input(review, [finding("2.1"), finding("1.1")], undefined),
       afterOneRound,
-      "The verifier's verdicts are missing, so no finding has been verified. The log of the run names the reason.",
+      "The verifier's verdicts are missing, so no finding has been verified. The log of the verifier's job names the reason.",
     ],
     [
       {
@@ -529,30 +529,36 @@ test("names several unread files and several unchecked lenses in the plural", ()
   );
 });
 
-test("calls a run superseded only when the head moved, because a timeout also cancels a job", () => {
-  expect(supersededRun(earlierHead, reviewedHead)).toBe(
+test("calls a cancelled run superseded only when the head moved, because a timeout also cancels a job", () => {
+  const cancelled = { plan: "success", reviewer: "cancelled" };
+  expect(supersededRun(cancelled, earlierHead, reviewedHead)).toBe(
     `A newer push moved the pull request to ${reviewedHead} while this run reviewed ${earlierHead}, so the run for the newer head posts the review.`,
   );
-  expect(supersededRun(reviewedHead, reviewedHead)).toBeUndefined();
+  expect(supersededRun(cancelled, reviewedHead, reviewedHead)).toBeUndefined();
+  expect(
+    supersededRun(
+      { plan: "success", reviewer: "failure" },
+      earlierHead,
+      reviewedHead,
+    ),
+  ).toBeUndefined();
 });
 
 test("explains a round without a plan, whether the plan is missing or cannot be read", () => {
   expect(unplannedReview("failure", undefined)).toEqual({
     verdict:
-      'The review job found no plan of the round, so this change has not been reviewed. The job of the agents ended with the result "failure", and its log names the reason.',
+      'The review job found no plan of the round, so this change has not been reviewed. The plan job ended with the result "failure", and its log names the reason.',
     body: [
       "## Review panel",
       "",
-      '**Failed.** The review job found no plan of the round, so this change has not been reviewed. The job of the agents ended with the result "failure", and its log names the reason.',
+      '**Failed.** The review job found no plan of the round, so this change has not been reviewed. The plan job ended with the result "failure", and its log names the reason.',
     ].join("\n"),
   });
   expect(
-    unplannedReview(
-      "success",
-      "review/plan.json must be a JSON object, but it is 7.",
-    ).verdict,
+    unplannedReview("success", "PLAN must be a JSON object, but it is 7.")
+      .verdict,
   ).toBe(
-    "The plan of the round cannot be read, so this change has not been reviewed. review/plan.json must be a JSON object, but it is 7.",
+    "The plan of the round cannot be read, so this change has not been reviewed. PLAN must be a JSON object, but it is 7.",
   );
 });
 

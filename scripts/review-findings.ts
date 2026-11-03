@@ -9,7 +9,6 @@ import {
   parseStringsAt,
   parseTextAt,
 } from "./json.ts";
-import type { Parser } from "./json.ts";
 import { lenses } from "./review-lenses.ts";
 import type { Lens } from "./review-lenses.ts";
 
@@ -77,21 +76,6 @@ export interface Verdict {
   /** The id of the confirmed finding that a duplicate repeats, or an empty string. */
   duplicateOf: string;
   evidence: string;
-}
-
-export function parseReviewerReport(
-  value: unknown,
-  source: string,
-): Result<ReviewerReport, string> {
-  return parseReportWith(value, source, parseFindingContent);
-}
-
-/** Reads the report of a round that the save step writes for the verifier and the review. */
-export function parseRoundReport(
-  value: unknown,
-  source: string,
-): Result<RoundReport, string> {
-  return parseReportWith(value, source, parseFinding);
 }
 
 /** Gives each finding of a round its id, such as 2.1, so that the review can check that the verifier answered every finding exactly once, and a later round can name it. */
@@ -177,25 +161,17 @@ export function parseFinding(
   return content.ok ? succeed({ ...content.value, id: id.value }) : content;
 }
 
-/** Reads what both the reviewer's answer and the report of a round hold. Only the shape of one finding differs between them. */
-function parseReportWith<Item>(
+export function parseReviewerReport(
   value: unknown,
   source: string,
-  parseItem: Parser<Item>,
-): Result<
-  ReviewerCoverage & {
-    findings: Item[];
-    candidateStandards: CandidateStandard[];
-  },
-  string
-> {
+): Result<ReviewerReport, string> {
   if (!isRecord(value)) {
     return notAnObject(source, value);
   }
   const findings = parseListField(value, source, {
     field: "findings",
     itemName: "finding",
-    parseItem,
+    parseItem: parseFindingContent,
   });
   if (!findings.ok) {
     return findings;

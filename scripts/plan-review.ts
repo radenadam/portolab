@@ -1,4 +1,3 @@
-import { mkdirSync, writeFileSync } from "node:fs";
 import { exitWithFailure } from "../app/exit-with-failure.server.ts";
 import { failuresOf, succeed } from "../app/result.ts";
 import { listOfWords } from "../app/sentences.ts";
@@ -65,16 +64,17 @@ if (!files.ok) {
 }
 const plan = planReview(previous.value, since.value, files.value);
 
-// The later steps read the plan and the files under review from this folder of the workspace, where the agents can read them too, and the job of the review receives it as an artifact.
-mkdirSync("review", { recursive: true });
-writeFileSync("review/plan.json", JSON.stringify(plan, null, 2));
-const outputs = [`kind=${plan.kind}`, `round=${String(plan.round)}`];
+// The later jobs take the plan from this output, which no agent can change, and the JSON has no line breaks, as an output needs.
+const outputs = [
+  `plan=${JSON.stringify(plan)}`,
+  `kind=${plan.kind}`,
+  `round=${String(plan.round)}`,
+];
 if (plan.kind === "review") {
   const tools = readLensTools(plan.lenses);
   if (!tools.ok) {
     exitWithFailure([tools.failure], writeScriptFailure);
   }
-  writeFileSync("review/files.txt", `${plan.files.join("\n")}\n`);
   outputs.push(
     `lenses=${listOfWords(plan.lenses)}`,
     `tools=${tools.value}`,

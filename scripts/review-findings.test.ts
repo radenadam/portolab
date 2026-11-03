@@ -4,12 +4,7 @@ import { listOfWords } from "../app/sentences.ts";
 import { successValueForTest } from "../app/success-value-for-test.ts";
 import { parseJsonObject, parseStringsAt, readJsonFile } from "./json.ts";
 import { readTextFile } from "./read-text-file.ts";
-import {
-  numberFindings,
-  parseRoundReport,
-  parseReviewerReport,
-  parseVerdicts,
-} from "./review-findings.ts";
+import { parseReviewerReport, parseVerdicts } from "./review-findings.ts";
 import { lenses } from "./review-lenses.ts";
 
 // The workflow gives these schemas to the reviewer and the verifier, which answer in their shape.
@@ -44,20 +39,6 @@ const report = {
   lensChecks: [{ lens: "craft", checked: "The names and the comments." }],
 };
 
-test("numbers the findings of a round after the round, and reads them back for the verifier", () => {
-  const parsed = parseReviewerReport(report, "REVIEWER_OUTPUT");
-  expect(parsed.ok).toBe(true);
-  const findings = parsed.ok ? numberFindings(3, parsed.value.findings) : [];
-  expect(findings.map(({ id }) => id)).toEqual(["3.1", "3.2"]);
-  const toVerify = { ...report, findings };
-  expect(
-    parseRoundReport(
-      JSON.parse(JSON.stringify(toVerify)),
-      "review/findings.json",
-    ),
-  ).toEqual({ ok: true, value: toVerify });
-});
-
 test("names the finding and the field when a lens is not one of the panel", () => {
   expect(
     parseReviewerReport(
@@ -71,19 +52,6 @@ test("names the finding and the field when a lens is not one of the panel", () =
     ok: false,
     failure:
       'REVIEWER_OUTPUT: finding 1 must have "architecture", "consistency", "craft", "docs", "product", "reliability", or "standards" at lens, but lens is "style".',
-  });
-});
-
-test("rejects a finding for the verifier without its id", () => {
-  expect(
-    parseRoundReport(
-      { ...report, findings: [report.findings[0]] },
-      "review/findings.json",
-    ),
-  ).toEqual({
-    ok: false,
-    failure:
-      "review/findings.json: finding 1 must have a string at id, but id is missing.",
   });
 });
 

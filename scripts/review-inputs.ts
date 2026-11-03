@@ -1,6 +1,7 @@
 import { fail, succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
 import { describeValue, isRecord } from "../app/value-shapes.ts";
+import { notAnObject, parseStringAt } from "./json.ts";
 import { readTextFile } from "./read-text-file.ts";
 import type { Lens } from "./review-lenses.ts";
 
@@ -86,4 +87,28 @@ export function parseAgentTools(
     : fail(
         `${source} must list its tools on one line that starts with "tools: ", separated by commas, but that list is ${describeValue(line)}.`,
       );
+}
+
+/** Reads the result of each job from the needs context of the workflow. */
+export function parseJobResults(
+  value: unknown,
+  source: string,
+): Result<Record<string, string>, string> {
+  if (!isRecord(value)) {
+    return notAnObject(source, value);
+  }
+  if (Object.keys(value).length === 0) {
+    return fail(
+      `${source} must name at least one job, but it is ${describeValue(value)}.`,
+    );
+  }
+  const results: Record<string, string> = {};
+  for (const [job, details] of Object.entries(value)) {
+    const result = parseStringAt(details, `${source}: job ${job}`, ["result"]);
+    if (!result.ok) {
+      return result;
+    }
+    results[job] = result.value;
+  }
+  return succeed(results);
 }

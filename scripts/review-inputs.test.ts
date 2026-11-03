@@ -5,6 +5,7 @@ import {
   parseAgentTools,
   parseBranchName,
   parseCommitHash,
+  parseJobResults,
   parseOptionalCommitHashAt,
   parsePullRequestNumber,
   readLensTools,
@@ -101,4 +102,27 @@ test("reads the tools of every lens of the panel as one list without repeats", (
     value: "Read,Grep,Glob,Bash",
   });
   expect(readLensTools([])).toEqual({ ok: true, value: "" });
+});
+
+test("reads the result of each job, and refuses an empty needs context or a job without a result", () => {
+  expect(
+    parseJobResults(
+      { plan: { result: "success" }, reviewer: { result: "cancelled" } },
+      "PANEL_RESULTS",
+    ),
+  ).toEqual({ ok: true, value: { plan: "success", reviewer: "cancelled" } });
+  expect(parseJobResults({}, "PANEL_RESULTS")).toEqual({
+    ok: false,
+    failure: "PANEL_RESULTS must name at least one job, but it is {}.",
+  });
+  expect(
+    parseJobResults(
+      { plan: { result: "success" }, reviewer: {} },
+      "PANEL_RESULTS",
+    ),
+  ).toEqual({
+    ok: false,
+    failure:
+      "PANEL_RESULTS: job reviewer must have a string at result, but result is missing.",
+  });
 });

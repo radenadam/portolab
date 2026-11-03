@@ -21,7 +21,7 @@ The reviewers are in `.claude/agents/`. Each `review-*` file is one lens, and `s
 
 The panel spends usage that other projects share, so it reads each line of a change once, as decision 0017 explains. Locally, call a lens only on a plan before code exists, because CI reviews every push.
 
-On every push to a pull request, the review workflow in CI runs one round of the panel. The agents run in the `agents` job, whose token can only read, and the `review` job posts the review and gives the verdict:
+On every push to a pull request, the review workflow in CI runs one round of the panel. Each agent runs in a job of its own whose token can only read, and jobs pass data only through their outputs. The `review` job runs no agent. It rebuilds the round from those outputs, posts the review, and gives the verdict:
 
 - The first round reviews the whole change. A later round reviews only the files that the commits of the pull request changed since the head that the last finished round reviewed, and the verifier checks whether each open finding of the earlier rounds is fixed. A merge of `main` adds only the files whose conflicts it resolved.
 - One reviewer agent applies every lens that applies to the files under review. It names each file under review that it read and says what it checked through each lens, and the round fails when a file or a lens is missing, because an answer without findings would otherwise pass for a review that never happened. The verifier runs only when there is a finding to check. A push that changes no file under review runs no agent, and it passes only when no finding is open.
@@ -127,7 +127,7 @@ These apply to all prose: docs, comments, commit messages, pull requests, issues
 ### CI
 
 - A step that spends usage, such as an agent, never repeats work that an earlier step or run already did, so a repeated review sees only what changed. Every loop of such steps has a cap, and the workflow states what happens when the cap is reached.
-- An agent in CI runs in a job whose token can only read, because the content that it reads, such as a diff, can carry instructions. A separate job without an agent writes, such as a review or an issue.
+- An agent in CI runs in a job of its own whose token can only read, because the content that it reads, such as a diff, can carry instructions, and an agent can change the files and the environment of every later step of its job. Another job takes from it only its outputs, and a job without an agent writes, such as a review or an issue.
 - Code that decides a gate checks that every expected input arrived, and treats a missing input as a failure, never as an empty one. An answer of an agent arrives only when it accounts for every item that the agent had to judge, such as each file under review, because an empty answer looks like a clean one.
 - A job that is a required check always runs and never ends as skipped, because GitHub counts a skipped required check as passed.
 - Code that decides a gate from the results of jobs treats every result other than success as a failure that it names. It treats a cancelled job as superseded only when it can show the newer run, such as a newer head of the pull request, because GitHub also cancels a job that runs out of time.

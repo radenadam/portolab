@@ -9,7 +9,7 @@ The review panel ran a router agent, an agent for each lens that applied, and a 
 
 ## Decision
 
-- **One reviewer.** A script chooses the lenses from the paths of the changed files. One agent applies all of them in one session, and the verifier runs only when there is a finding to check. Both run on Claude Sonnet, in a job whose token can only read, and a second job without an agent posts the review.
+- **One reviewer.** A script chooses the lenses from the paths of the changed files. One agent applies all of them in one session, and the verifier runs only when there is a finding to check. Both run on Claude Opus, each in a job of its own whose token can only read. A job without an agent rebuilds the round from the outputs of their jobs and posts the review.
 - **Evidence.** The reviewer names each file under review that it read and says what it checked through each lens, and the round fails when one is missing. A reviewer on Sonnet once passed a diff of 195 KB after 9 seconds with an empty answer, which nothing told apart from a clean review.
 - **Incremental rounds.** Each review records the head that it covered and the findings that stay open, in a marker that only the workflow's account can write. The next round reviews only the files that the commits of the pull request changed since that head, and the verifier checks whether each open finding is fixed. A push that changes no file under review runs no agent.
 - **Scope.** A finding blocks the merge only when the change causes it or leaves it incomplete. The job opens an issue for the verified findings outside the change and for the candidate standards, and a pull request of their own handles them. The defect protocol sweeps every other instance in that pull request too.
@@ -19,7 +19,7 @@ The review panel ran a router agent, an agent for each lens that applied, and a 
 ## Alternatives
 
 - **Keep an agent for each lens, but review only the new commits.** This removes the repeated reading, but each round still starts up to 9 agents, each of which reads AGENTS.md and the code around the change.
-- **Keep Opus for the verifier.** The verifier decides what blocks, so a stronger model would refute more false findings. It runs only when there are findings, and the measure in each review shows whether Sonnet confirms findings that a later round has to reverse.
+- **Run the agents on Claude Sonnet.** Tried on #65 and #66. The reviewer answered after 9 to 21 seconds, saw only the start of each long diff, and never opened the lens definitions, while a separate review of #65 found 14 defects in it. The saving of this decision comes from one agent and from incremental rounds, so the agents keep the model that reads the whole change.
 - **Review only once, on the first push.** The cheapest choice, but a fix could then introduce a defect that nobody reads.
 - **Drop the agents and keep only `pnpm check`.** Most standards in AGENTS.md need a reader, so the gate would no longer check them.
 

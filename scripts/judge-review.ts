@@ -8,9 +8,9 @@ export interface ReviewInput {
   plan: ReviewPlan;
   /** The head of the pull request that this run reviewed. */
   reviewedHead: string;
-  /** The report of the round that the save step wrote, or undefined when it wrote none. */
+  /** The report of the round, built from the plan and the reviewer's answer, or undefined when a review round has no answer. */
   report: RoundReport | undefined;
-  /** The verdicts that the save step wrote, or undefined when it wrote none. */
+  /** The verifier's verdicts, or undefined when its job gave none. */
   verdicts: Verdict[] | undefined;
   /** One sentence for each agent that ran, about its minutes and turns or about why they are unknown. */
   runs: string[];
@@ -114,25 +114,20 @@ function unfinishedReason(input: ReviewInput): string | undefined {
   }
   const findings = input.report?.findings ?? [];
   if (findings.length > 0 && input.verdicts === undefined) {
-    return "The verifier's verdicts are missing, so no finding has been verified. The log of the run names the reason.";
+    return "The verifier's verdicts are missing, so no finding has been verified. The log of the verifier's job names the reason.";
   }
   return coverageProblem(findings, input.verdicts ?? []);
 }
 
 /** Returns a sentence when a round that runs an agent has no report, or when the reviewer's report does not account for its work. */
 function reportProblem(input: ReviewInput): string | undefined {
-  if (!runsAgent(input.plan)) {
+  if (input.plan.kind !== "review") {
     return undefined;
   }
-  // A missing input is a failure, never an empty one, because a step that failed writes no file.
-  if (input.report === undefined) {
-    return input.plan.kind === "review"
-      ? "The reviewer's report is missing, so this change has not been reviewed. The log of the run names the reason."
-      : "The open findings were not saved for the verifier, so none has been checked. The log of the run names the reason.";
-  }
-  return input.plan.kind === "review"
-    ? coverageGap(input.plan, input.report)
-    : undefined;
+  // A missing input is a failure, never an empty one, because a job that did not finish gives no output.
+  return input.report === undefined
+    ? "The reviewer's report is missing, so this change has not been reviewed. The log of the reviewer's job names the reason."
+    : coverageGap(input.plan, input.report);
 }
 
 function finished(input: ReviewInput): Judgement {

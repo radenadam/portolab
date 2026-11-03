@@ -1,4 +1,3 @@
-import { existsSync } from "node:fs";
 import { errorMessage } from "../app/error-message.ts";
 import { fail, succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
@@ -51,12 +50,15 @@ export function readJsonFile<Value>(
   return text.ok ? parseJsonWith(text.value, path, parse) : text;
 }
 
-/** Reads a JSON file that a step writes only when it succeeds, so a missing file gives undefined, and the caller judges whether it needed the file. */
-export function readJsonFileIfWritten<Value>(
-  path: string,
+/** Parses JSON text that a job may leave empty, such as the output of a job that did not finish, so empty text gives undefined, and the caller judges whether it needed the value. */
+export function parseOptionalJsonWith<Value>(
+  value: unknown,
+  source: string,
   parse: Parser<Value>,
-): Result<Value, string> | undefined {
-  return existsSync(path) ? readJsonFile(path, parse) : undefined;
+): Result<Value | undefined, string> {
+  return value === undefined || value === ""
+    ? succeed(undefined)
+    : parseJsonWith(value, source, parse);
 }
 
 interface ListField<Item> {
