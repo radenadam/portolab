@@ -1,5 +1,6 @@
 import { useId } from "react";
 import type { ReactNode } from "react";
+import { useNavigation } from "react-router";
 import styles from "./form.module.css";
 
 interface TextFieldProps {
@@ -105,9 +106,12 @@ export function CheckboxField({
   );
 }
 
+/** The button that sends its form. Once the app runs in the browser, the button waits while the page changes, because a second tap on a slow network would ask again for what the first one asked, such as a new account. */
 export function SubmitButton({ label }: { label: string }): ReactNode {
+  // After the answer, the next page still loads, and a tap then would send the form again too.
+  const isWaiting = useNavigation().state !== "idle";
   return (
-    <button type="submit" className={styles["button"]}>
+    <button type="submit" disabled={isWaiting} className={styles["button"]}>
       {label}
     </button>
   );

@@ -5,7 +5,7 @@ import {
   randomReadableText,
 } from "./random-text.server";
 
-test("makes text of the asked length from lowercase letters and digits without l, o, 0, and 1", () => {
+test("makes text of the asked length from lowercase letters and digits that a reader cannot mistake for each other", () => {
   const seen = new Set<string>();
   for (let sample = 0; sample < 200; sample += 1) {
     const text = randomReadableText(24);

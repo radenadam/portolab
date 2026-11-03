@@ -18,6 +18,7 @@ import {
   findUser,
   startSession,
 } from "~/features/accounts/current-session.server";
+import { isLoadedByAnotherSite } from "~/features/accounts/cross-site-protection.server";
 import { pathReturningTo } from "~/features/accounts/path-returning-to";
 import { FormFailure, SubmitButton } from "~/form";
 import formStyles from "~/form.module.css";
@@ -35,11 +36,12 @@ import type { ClassId } from "./classes.schema";
 import { findClassWithCode } from "./find-class-with-code.server";
 import type { CodeFailure } from "./find-class-with-code.server";
 import { joinAndOpenClass } from "./join-and-open-class.server";
+import { LecturerCannotJoin } from "./lecturer-cannot-join";
 
-/** What the address of a code shows: the class with the form that joins it, the form for a code with the code from the address and why it opens no class, or why a lecturer cannot join. */
+/** What the address of a code shows: the class with the form that joins it, the form for a code with the code from the address and why it opens no class, if the page checked the code, or why a lecturer cannot join. */
 type JoinState =
-  | { kind: "class"; joinedClass: ClassForStudents; isSignedIn: boolean }
-  | { kind: "wrongCode"; code: string; failure: CodeFailure }
+  | { kind: "class"; classToJoin: ClassForStudents; isSignedIn: boolean }
+  | { kind: "codeForm"; code: string; failure: CodeFailure | undefined }
   | { kind: "lecturer" };
 
 export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
@@ -48,11 +50,11 @@ export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
       return [
         {
           title: pageTitle(
-            m.classes_join_class_title({ class: loaderData.joinedClass.name }),
+            m.classes_join_class_title({ class: loaderData.classToJoin.name }),
           ),
         },
       ];
-    case "wrongCode":
+    case "codeForm":
     case "lecturer":
       return [{ title: pageTitle(m.classes_join_title()) }];
   }
@@ -70,7 +72,15 @@ export function loader({
       return data<JoinState>({ kind: "lecturer" }, { status: 403 });
     case "student":
     case undefined:
-      return classToJoin(context, {
+      // A page of another site can make a browser load this address without the reader opening it, such as through an image. Its code would count against the limit on wrong codes of the whole network of the reader, so the page shows the form for a code without checking the code.
+      if (isLoadedByAnotherSite(request)) {
+        return data<JoinState>({
+          kind: "codeForm",
+          code: params.code,
+          failure: undefined,
+        });
+      }
+      return findJoinState(context, {
         code: params.code,
         student: user,
         now: new Date(),
@@ -78,8 +88,8 @@ export function loader({
   }
 }
 
-/** The class that the code of the address opens for a student who is signed in or for a visitor, or the form for a code with the reason why it opens none. A student who joined the class already goes to it. */
-function classToJoin(
+/** Finds what the address of a code shows to a student who is signed in or to a visitor: the class that the code opens, or the form for a code with the reason why it opens none. A student who joined the class already goes to it. */
+function findJoinState(
   context: Readonly<RouterContextProvider>,
   {
     code,
@@ -90,24 +100,24 @@ function classToJoin(
   const found = findClassWithCode(context, code, now);
   if (!found.ok) {
     return data<JoinState>(
-      { kind: "wrongCode", code, failure: found.failure },
+      { kind: "codeForm", code, failure: found.failure },
       { status: found.failure.status },
     );
   }
-  const { joinedClass } = found.value;
+  const { classToJoin } = found.value;
   if (
     student !== undefined &&
     findJoinedClass(
       context.get(databaseContext),
-      joinedClass.id,
+      classToJoin.id,
       student.id,
     ) !== undefined
   ) {
-    throw redirect(classPath(joinedClass.id));
+    throw redirect(classPath(classToJoin.id));
   }
   return data<JoinState>({
     kind: "class",
-    joinedClass,
+    classToJoin,
     isSignedIn: student !== undefined,
   });
 }
@@ -123,7 +133,7 @@ export async function action({ context, request, params }: Route.ActionArgs) {
       { status: found.failure.status },
     );
   }
-  const { joinedClass } = found.value;
+  const { classToJoin } = found.value;
   switch (user?.role) {
     case "lecturer":
       // The page of a lecturer has no form for joining, so only a forged form comes here, and the page that the loader shows explains why a lecturer cannot join.
@@ -131,12 +141,12 @@ export async function action({ context, request, params }: Route.ActionArgs) {
     case "student":
       return joinAndOpenClass(
         context.get(databaseContext),
-        { classId: joinedClass.id, studentId: user.id },
+        { classId: classToJoin.id, studentId: user.id },
         now,
       );
     case undefined:
       return createStudentInClass(context, request, {
-        classId: joinedClass.id,
+        classId: classToJoin.id,
         now,
       });
   }
@@ -177,7 +187,7 @@ async function createStudentInClass(
               ...typedFields,
               usernameFailure: m.classes_username_taken_error({
                 field: m.accounts_username_label(),
-                username: newStudent.value.username,
+                username: typedFields.username.trim(),
               }),
             },
             failure: undefined,
@@ -204,13 +214,8 @@ export default function JoinClassPage({
 }: Route.ComponentProps): ReactNode {
   switch (loaderData.kind) {
     case "lecturer":
-      return (
-        <>
-          <h1>{m.classes_join_title()}</h1>
-          <p>{m.classes_lecturer_join_error()}</p>
-        </>
-      );
-    case "wrongCode":
+      return <LecturerCannotJoin />;
+    case "codeForm":
       return (
         <>
           <h1>{m.classes_join_title()}</h1>
@@ -220,7 +225,7 @@ export default function JoinClassPage({
     case "class":
       return (
         <ClassToJoin
-          joinedClass={loaderData.joinedClass}
+          classToJoin={loaderData.classToJoin}
           isSignedIn={loaderData.isSignedIn}
           fields={actionData?.fields}
           failure={actionData?.failure}
@@ -230,23 +235,23 @@ export default function JoinClassPage({
 }
 
 function ClassToJoin({
-  joinedClass,
+  classToJoin,
   isSignedIn,
   fields,
   failure,
 }: {
-  joinedClass: ClassForStudents;
+  classToJoin: ClassForStudents;
   isSignedIn: boolean;
   fields: AccountFormFailures | undefined;
   failure: string | undefined;
 }): ReactNode {
   return (
     <>
-      <h1>{m.classes_join_class_title({ class: joinedClass.name })}</h1>
+      <h1>{m.classes_join_class_title({ class: classToJoin.name })}</h1>
       <p>
         {m.classes_join_class_body({
-          lecturer: joinedClass.lecturerName,
-          cash: formatRupiah(joinedClass.startingCash),
+          lecturer: classToJoin.lecturerName,
+          cash: formatRupiah(classToJoin.startingCash),
         })}
       </p>
       {isSignedIn ? (

@@ -10,6 +10,7 @@ import { CodeForm } from "./code-form";
 import { findClassWithCode } from "./find-class-with-code.server";
 import { joinAndOpenClass } from "./join-and-open-class.server";
 import { joinPath } from "./join-code";
+import { LecturerCannotJoin } from "./lecturer-cannot-join";
 
 export function meta(): Route.MetaDescriptors {
   return [{ title: pageTitle(m.classes_join_title()) }];
@@ -40,12 +41,12 @@ export async function action({ context, request }: Route.ActionArgs) {
       { status: found.failure.status },
     );
   }
-  const { joinCode, joinedClass } = found.value;
+  const { joinCode, classToJoin } = found.value;
   switch (user?.role) {
     case "student":
       return joinAndOpenClass(
         context.get(databaseContext),
-        { classId: joinedClass.id, studentId: user.id },
+        { classId: classToJoin.id, studentId: user.id },
         now,
       );
     case "lecturer":
@@ -59,14 +60,12 @@ export default function JoinPage({
   loaderData,
   actionData,
 }: Route.ComponentProps): ReactNode {
-  return (
+  return loaderData.isLecturer ? (
+    <LecturerCannotJoin />
+  ) : (
     <>
       <h1>{m.classes_join_title()}</h1>
-      {loaderData.isLecturer ? (
-        <p>{m.classes_lecturer_join_error()}</p>
-      ) : (
-        <CodeForm code={actionData?.code} failure={actionData?.failure} />
-      )}
+      <CodeForm code={actionData?.code} failure={actionData?.failure} />
     </>
   );
 }

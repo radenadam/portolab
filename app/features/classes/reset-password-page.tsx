@@ -5,7 +5,7 @@ import { databaseContext } from "~/database/database.server";
 import type { UserId } from "~/features/accounts/accounts.schema";
 import { requireLecturer } from "~/features/accounts/current-session.server";
 import { resetForgottenPassword } from "~/features/accounts/reset-forgotten-password.server";
-import { SubmitButton } from "~/form";
+import { FormSuccess, SubmitButton } from "~/form";
 import formStyles from "~/form.module.css";
 import { pageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
@@ -79,9 +79,9 @@ export default function ResetPasswordPage({
         </>
       ) : (
         <>
-          <p role="status">
-            {m.classes_temporary_password_notice({ name: student.name })}
-          </p>
+          <FormSuccess
+            text={m.classes_temporary_password_notice({ name: student.name })}
+          />
           <p className={styles["code"]}>{actionData.temporaryPassword}</p>
         </>
       )}

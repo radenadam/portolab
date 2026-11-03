@@ -5,6 +5,7 @@ import { requireUser } from "~/features/accounts/current-session.server";
 import { formatMarketTime, formatRupiah } from "~/formatting";
 import { pageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
+import type { Rupiah } from "~/units/rupiah";
 import { parseRecordId } from "~/value-parsers";
 import type { Route } from "./+types/class-page";
 import {
@@ -27,7 +28,7 @@ export function loader({ context, params, request }: Route.LoaderArgs):
       role: "lecturer";
       id: ClassId;
       name: string;
-      startingCash: JoinedClass["startingCash"];
+      startingCash: Rupiah;
       joinCode: string;
       joinAddress: string;
       students: ClassStudent[];
@@ -81,7 +82,7 @@ export default function ClassPage({
             })}
           </p>
           <dl className={styles["share"]}>
-            <dt>{m.classes_join_code_label()}</dt>
+            <dt>{m.classes_code_label()}</dt>
             <dd className={styles["code"]}>{loaderData.joinCode}</dd>
             <dt>{m.classes_join_address_label()}</dt>
             <dd className={styles["address"]}>{loaderData.joinAddress}</dd>

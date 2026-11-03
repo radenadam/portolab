@@ -7,17 +7,25 @@ import { m } from "./paraglide/messages.js";
 interface ErrorPageProps {
   title: string;
   body: string;
+  /** The control for the next step that the body offers, such as a button that signs out, in place of the way back to the home page. */
+  nextStep?: ReactNode;
 }
 
-/** The content of a page that explains why the reader cannot see what they asked for, with a way back to the home page. Its caller sets the title of the page. */
-export function ErrorPage({ title, body }: ErrorPageProps): ReactNode {
+/** The content of a page that explains why the reader cannot see what they asked for, with a way back to the home page or the next step that its body offers. Its caller sets the title of the page. */
+export function ErrorPage({
+  title,
+  body,
+  nextStep,
+}: ErrorPageProps): ReactNode {
   return (
     <>
       <h1>{title}</h1>
       <p>{body}</p>
-      <Link to="/" className={styles["backHome"]}>
-        {m.app_back_home_link()}
-      </Link>
+      {nextStep ?? (
+        <Link to="/" className={styles["backHome"]}>
+          {m.app_back_home_link()}
+        </Link>
+      )}
     </>
   );
 }
@@ -29,7 +37,7 @@ export function MissingPageContent(): ReactNode {
   );
 }
 
-/** The page for an address that a loader refused, which sets its own title, because route meta cannot see the error. */
+/** The page for an address that a loader refused, which sets its own title as every page of the error boundary does. */
 export function MissingPage(): ReactNode {
   return (
     <>

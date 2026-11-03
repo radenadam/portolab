@@ -1,19 +1,23 @@
 import { expect, test } from "@playwright/test";
+import type { Page } from "@playwright/test";
 import { nameMaximumLength } from "../app/features/accounts/account-limits.ts";
-import { classNameMaximumLength } from "../app/features/classes/class-rules.ts";
+import {
+  classNameMaximumLength,
+  startingCashLimits,
+} from "../app/features/classes/class-rules.ts";
 import { languageNames } from "../app/language-names.ts";
 import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
 import {
   chosenPassword,
-  createTestClass,
   joinAsNewStudent,
-  newDevice,
   signInAsNewLecturer,
   submitSignIn,
 } from "./accounts.ts";
 import { chooseLanguage } from "./choose-language.ts";
+import { createTestClass } from "./create-test-class.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
+import { newDevice } from "./new-device.ts";
 import { wideWord } from "./wide-word.ts";
 
 // The longest names that Portolab accepts, each one word, so each screen that shows a name is checked with its widest content.
@@ -37,7 +41,6 @@ const texts: Record<
     cashNotWhole: string;
     taughtClass: string;
     shareNotice: string;
-    codeLabel: string;
     addressLabel: string;
     studentsTitle: string;
     noStudents: string;
@@ -53,8 +56,8 @@ const texts: Record<
     joinBody: string;
     codeFieldLabel: string;
     continueButton: string;
-    malformedCode: string;
-    unknownCode: string;
+    malformedCode: readonly [string, string];
+    unknownCode: readonly [string, string];
     lecturerCannotJoin: string;
     lecturerOnly: string;
     joinClassTitle: string;
@@ -66,6 +69,7 @@ const texts: Record<
     existingAccountLink: string;
     usernameTaken: readonly [string, string];
     joinButton: string;
+    signOutButton: string;
     resetTitle: string;
     resetBody: readonly [string, string];
     resetButton: string;
@@ -92,7 +96,6 @@ const texts: Record<
     taughtClass: "Mahasiswa: 1. Modal awal: Rp 1.000.000.000.000.",
     shareNotice:
       "Bagikan kode atau alamat ini kepada mahasiswa Anda. Setiap mahasiswa yang bergabung mulai dengan uang virtual sebesar Rp 1.000.000.000.000.",
-    codeLabel: "Kode untuk bergabung",
     addressLabel: "Alamat untuk bergabung",
     studentsTitle: "Mahasiswa",
     noStudents: "Belum ada mahasiswa yang bergabung.",
@@ -109,10 +112,14 @@ const texts: Record<
     joinBody: "Masukkan kode yang diberikan dosen Anda.",
     codeFieldLabel: "Kode kelas",
     continueButton: "Lanjutkan",
-    malformedCode:
-      'Kolom "Kode kelas" menerima kode kelas, yang terdiri dari 8 huruf dan angka tanpa "l", "o", "0", atau "1", tetapi isinya "abc". Periksa kodenya dengan dosen Anda.',
-    unknownCode:
-      'Kolom "Kode kelas" berisi "aaaa-aaaa", tetapi tidak ada kelas dengan kode ini. Periksa kodenya dengan dosen Anda, lalu coba lagi.',
+    malformedCode: [
+      'Kolom "Kode kelas" menerima kode kelas, yang terdiri dari 8 huruf dan angka tanpa "l", "o", "0", atau "1", tetapi isinya "',
+      '". Periksa kodenya dengan dosen Anda.',
+    ],
+    unknownCode: [
+      'Kolom "Kode kelas" berisi "',
+      '", tetapi tidak ada kelas dengan kode ini. Periksa kodenya dengan dosen Anda, lalu coba lagi.',
+    ],
     lecturerCannotJoin:
       "Hanya mahasiswa yang bergabung ke kelas, dan Anda masuk sebagai dosen. Untuk bergabung sebagai mahasiswa, keluar terlebih dahulu.",
     lecturerOnly:
@@ -127,9 +134,10 @@ const texts: Record<
     existingAccountLink: "Masuk dengan akun yang sudah Anda miliki",
     usernameTaken: [
       'Kolom "Nama pengguna" berisi "',
-      '", tetapi akun lain sudah memakai nama pengguna ini. Pilih yang lain, misalnya nama ini dengan angka di akhirnya.',
+      '", tetapi akun lain sudah memakai nama pengguna ini. Pilih yang lain, misalnya nama pengguna ini dengan angka di akhirnya.',
     ],
     joinButton: "Gabung ke kelas",
+    signOutButton: "Keluar",
     resetTitle: "Atur ulang kata sandi",
     resetBody: [
       `Portolab memberi ${studentName}, yang masuk sebagai "`,
@@ -157,7 +165,6 @@ const texts: Record<
     taughtClass: "Students: 1. Starting cash: IDR 1,000,000,000,000.",
     shareNotice:
       "Share the code or the address with your students. Each student who joins starts with IDR 1,000,000,000,000 in virtual cash.",
-    codeLabel: "Code for joining",
     addressLabel: "Address for joining",
     studentsTitle: "Students",
     noStudents: "No student has joined yet.",
@@ -173,14 +180,18 @@ const texts: Record<
     joinBody: "Enter the code that your lecturer gave you.",
     codeFieldLabel: "Code of the class",
     continueButton: "Continue",
-    malformedCode:
-      'The field "Code of the class" takes the code of a class, which has 8 letters and digits without "l", "o", "0", or "1", but it holds "abc". Check the code with your lecturer.',
-    unknownCode:
-      'The field "Code of the class" holds "aaaa-aaaa", but no class has this code. Check the code with your lecturer and try again.',
+    malformedCode: [
+      'The field "Code of the class" takes the code of a class, which has 8 letters and digits without "l", "o", "0", or "1", but it holds "',
+      '". Check the code with your lecturer.',
+    ],
+    unknownCode: [
+      'The field "Code of the class" holds "',
+      '", but no class has this code. Check the code with your lecturer and try again.',
+    ],
     lecturerCannotJoin:
       "Only students join a class, and you are signed in as a lecturer. To join as a student, sign out first.",
     lecturerOnly:
-      "Only a lecturer creates a class, and you are signed in as a student. To teach a class, ask the person who runs this Portolab server for a lecturer account.",
+      "Only lecturers create a class, and you are signed in as a student. To teach a class, ask the person who runs this Portolab server for a lecturer account.",
     joinClassTitle: `Join ${className}`,
     joinClassBody: `${lecturerName} teaches this class. Each student starts with IDR 1,000,000,000,000 in virtual cash.`,
     newAccountTitle: "Create your student account",
@@ -191,9 +202,10 @@ const texts: Record<
     existingAccountLink: "Sign in with the account that you have",
     usernameTaken: [
       'The field "Username" holds "',
-      '", but another account has this username. Choose another one, such as this one with a number at its end.',
+      '", but another account has this username. Choose another one, such as this username with a number at its end.',
     ],
     joinButton: "Join the class",
+    signOutButton: "Sign out",
     resetTitle: "Reset a password",
     resetBody: [
       `Portolab gives ${studentName}, who signs in as "`,
@@ -206,6 +218,20 @@ const texts: Record<
     newPasswordTitle: "Choose a new password",
   },
 };
+
+/** Types a code in the form for a code and sends it. */
+async function enterCode(
+  page: Page,
+  locale: Locale,
+  code: string,
+): Promise<void> {
+  const text = texts[locale];
+  await page.getByLabel(text.codeFieldLabel).fill(code);
+  await page
+    .getByRole("main")
+    .getByRole("button", { name: text.continueButton })
+    .click();
+}
 
 for (const locale of locales) {
   const text = texts[locale];
@@ -235,17 +261,33 @@ for (const locale of locales) {
     await expect(page.getByLabel(text.nameLabel)).toHaveValue(className);
     await expectAccessibleScreen(page);
 
+    // The lecturer types the most cash that Portolab accepts, so the screens below show their widest amount.
+    expect(Number(text.typedCash.replaceAll(/\D/g, ""))).toBe(
+      startingCashLimits.maximum,
+    );
     await page.getByLabel(text.cashLabel).fill(text.typedCash);
-    await page
+    // The test holds the answer to the form, as a slow network would, so that it can see the button wait instead of sending the form a second time.
+    const { promise: heldAnswer, resolve: releaseAnswer } =
+      Promise.withResolvers<undefined>();
+    await page.route(/\.data(\?|$)/, async (route) => {
+      await heldAnswer;
+      await route.fallback();
+    });
+    const createButton = page
       .getByRole("main")
-      .getByRole("button", { name: text.createButton })
-      .click();
+      .getByRole("button", { name: text.createButton });
+    await createButton.click();
+    await expect(createButton).toBeDisabled();
+    releaseAnswer(undefined);
     await expect(page).toHaveTitle(`${className} | Portolab`);
+    await page.unroute(/\.data(\?|$)/);
     await expect(
       page.getByRole("heading", { level: 1, name: className }),
     ).toBeVisible();
     await expect(page.getByText(text.shareNotice)).toBeVisible();
-    await expect(page.getByText(text.codeLabel)).toBeVisible();
+    await expect(
+      page.getByText(text.codeFieldLabel, { exact: true }),
+    ).toBeVisible();
     await expect(page.getByText(text.addressLabel)).toBeVisible();
     await expect(page.locator("main dd").nth(0)).toHaveText(
       /^[a-km-np-z2-9]{4}-[a-km-np-z2-9]{4}$/,
@@ -283,7 +325,9 @@ for (const locale of locales) {
     await expectAccessibleScreen(student);
 
     await student.locator('main input[name="name"]').fill(studentName);
-    await student.locator('main input[name="username"]').fill(lecturerUsername);
+    // The error quotes the username as the field shows it, and Portolab reads a username in lowercase.
+    const typedUsername = lecturerUsername.toUpperCase();
+    await student.locator('main input[name="username"]').fill(typedUsername);
     await student
       .locator('main input[name="newPassword"]')
       .fill(chosenPassword);
@@ -297,7 +341,7 @@ for (const locale of locales) {
       .click();
     await expect(
       student.getByText(
-        `${text.usernameTaken[0]}${lecturerUsername}${text.usernameTaken[1]}`,
+        `${text.usernameTaken[0]}${typedUsername}${text.usernameTaken[1]}`,
       ),
     ).toBeVisible();
     await expectAccessibleScreen(student);
@@ -337,6 +381,7 @@ for (const locale of locales) {
     await signInAsNewLecturer(page, lecturerName);
     const first = await createTestClass(page, className);
     const second = await createTestClass(page, otherClassName);
+    const third = await createTestClass(page, className);
 
     const student = await newDevice(browser, locale);
     await student.goto("/classes");
@@ -345,7 +390,11 @@ for (const locale of locales) {
     await expect(
       student.getByRole("link", { name: text.homeJoinLink }),
     ).toBeVisible();
-    await joinAsNewStudent(student, first.joinAddress, studentName);
+    const username = await joinAsNewStudent(
+      student,
+      first.joinAddress,
+      studentName,
+    );
     await student.goto("/join");
     await expect(student).toHaveTitle(`${text.joinTitle} | Portolab`);
     await expect(student.getByText(text.joinBody)).toBeVisible();
@@ -353,37 +402,49 @@ for (const locale of locales) {
       ["abc", text.malformedCode],
       ["AAAA AAAA", text.unknownCode],
     ] as const) {
-      await student.getByLabel(text.codeFieldLabel).fill(code);
-      await student
-        .getByRole("main")
-        .getByRole("button", { name: text.continueButton })
-        .click();
-      await expect(student.getByText(failure)).toBeVisible();
+      await enterCode(student, locale, code);
+      await expect(
+        student.getByText(`${failure[0]}${code}${failure[1]}`),
+      ).toBeVisible();
     }
     await expectAccessibleScreen(student);
-    await student.getByLabel(text.codeFieldLabel).fill(second.joinCode);
-    await student
-      .getByRole("main")
-      .getByRole("button", { name: text.continueButton })
-      .click();
+    await enterCode(student, locale, second.joinCode);
     await expect(student).toHaveURL(second.path);
 
     // A wrong code in an address shows the form for a code, which holds it, with the reason.
     const response = await student.goto("/join/aaaa-aaaa");
     expect(response?.status()).toBe(400);
     await expect(student).toHaveTitle(`${text.joinTitle} | Portolab`);
-    await expect(student.getByText(text.unknownCode)).toBeVisible();
+    await expect(
+      student.getByText(
+        `${text.unknownCode[0]}aaaa-aaaa${text.unknownCode[1]}`,
+      ),
+    ).toBeVisible();
     await expect(student.getByLabel(text.codeFieldLabel)).toHaveValue(
       "aaaa-aaaa",
     );
     await expectAccessibleScreen(student);
-    await student.getByLabel(text.codeFieldLabel).fill(first.joinCode);
-    await student
-      .getByRole("main")
-      .getByRole("button", { name: text.continueButton })
-      .click();
+    await enterCode(student, locale, first.joinCode);
     await expect(student).toHaveURL(first.path);
     await student.context().close();
+
+    // On another device, the student opens the address of a third class, signs in from it, and joins with one button.
+    const otherDevice = await newDevice(browser, locale);
+    await otherDevice.goto(third.joinAddress);
+    await otherDevice
+      .getByRole("link", { name: text.existingAccountLink })
+      .click();
+    await submitSignIn(otherDevice, username, chosenPassword);
+    await expect(otherDevice).toHaveURL(new URL(third.joinAddress).pathname);
+    await expect(otherDevice).toHaveTitle(`${text.joinClassTitle} | Portolab`);
+    await expect(otherDevice.getByText(text.joinClassBody)).toBeVisible();
+    await expectAccessibleScreen(otherDevice);
+    await otherDevice
+      .getByRole("main")
+      .getByRole("button", { name: text.joinButton })
+      .click();
+    await expect(otherDevice).toHaveURL(third.path);
+    await otherDevice.context().close();
   });
 
   test(`lets a lecturer reset the password of a student, who then chooses a new one, in ${language}`, async ({
@@ -422,8 +483,7 @@ for (const locale of locales) {
       .getByRole("button", { name: text.resetButton })
       .click();
     await expect(page.getByText(text.temporaryPassword)).toBeVisible();
-    const temporaryPassword =
-      (await page.locator("main p").nth(1).textContent()) ?? "";
+    const temporaryPassword = await page.locator("main p").nth(1).innerText();
     expect(temporaryPassword).toMatch(
       /^[a-km-np-z2-9]{4}(-[a-km-np-z2-9]{4}){2}$/,
     );
@@ -458,10 +518,14 @@ for (const locale of locales) {
     const member = await newDevice(browser, locale);
     await joinAsNewStudent(member, testClass.joinAddress, studentName);
     await page.goto(testClass.path);
-    const resetPath =
-      (await page
-        .getByRole("link", { name: text.resetLink })
-        .getAttribute("href")) ?? "";
+    const resetPath = await page
+      .getByRole("link", { name: text.resetLink })
+      .getAttribute("href");
+    if (resetPath === null) {
+      throw new Error(
+        "The link that resets the password of a student has no address.",
+      );
+    }
 
     const otherLecturer = await newDevice(browser, locale);
     await signInAsNewLecturer(otherLecturer, lecturerName);
@@ -498,11 +562,11 @@ for (const locale of locales) {
       for (const [name, value] of [
         ["name", "Kelas Palsu"],
         ["startingCash", "100000000"],
-      ]) {
+      ] as const) {
         const input = document.createElement("input");
         input.type = "hidden";
-        input.name = name ?? "";
-        input.value = value ?? "";
+        input.name = name;
+        input.value = value;
         form.append(input);
       }
       document.body.append(form);
@@ -520,6 +584,19 @@ for (const locale of locales) {
       ).toBeVisible();
     }
     await expectAccessibleScreen(otherLecturer);
+    // The page offers the next step that its text names, and after it the lecturer sees the form of a visitor.
+    await otherLecturer
+      .getByRole("main")
+      .getByRole("button", { name: text.signOutButton })
+      .click();
+    await expect(otherLecturer).toHaveURL("/");
+    await otherLecturer.goto(testClass.joinAddress);
+    await expect(
+      otherLecturer.getByRole("heading", {
+        level: 2,
+        name: text.newAccountTitle,
+      }),
+    ).toBeVisible();
     for (const device of [member, otherLecturer, outsider]) {
       await device.context().close();
     }

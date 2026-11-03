@@ -6,7 +6,6 @@ import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
 import {
   chosenPassword,
-  newDevice,
   runAccountCommand,
   signInAsNewLecturer,
   submitSignIn,
@@ -14,6 +13,7 @@ import {
 } from "./accounts.ts";
 import { chooseLanguage } from "./choose-language.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
+import { newDevice } from "./new-device.ts";
 import { wideWord } from "./wide-word.ts";
 
 // The longest name that Portolab accepts, as one word, so each screen that shows a name is checked with its widest content.
@@ -78,7 +78,7 @@ const texts: Record<
       'Kolom "Kata sandi" kosong, padahal Portolab memerlukannya. Isi kolom itu.',
     ],
     wrongCredentials:
-      "Portolab tidak menemukan akun dengan nama pengguna dan kata sandi ini. Periksa keduanya, lalu coba lagi. Setelah 10 percobaan salah dalam 15 menit, Portolab memblokir nama pengguna itu untuk sementara, agar tidak ada yang dapat menebak kata sandinya.",
+      "Portolab tidak menemukan akun dengan nama pengguna dan kata sandi ini. Periksa keduanya, lalu coba lagi. Setelah 10 percobaan salah dalam 15 menit, Portolab memblokir nama pengguna itu untuk sementara. Blokir ini menghentikan siapa pun yang mencoba menebak kata sandinya.",
     blocked: [
       'Portolab memblokir kata sandi untuk "',
       '" sampai ',
@@ -100,7 +100,7 @@ const texts: Record<
     tooShort:
       'Kolom "Kata sandi baru" perlu paling sedikit 15 karakter, tetapi isinya 5 karakter. Setiap karakter tambahan membuat kata sandi jauh lebih sulit ditebak, jadi pilih yang lebih panjang, misalnya kalimat pendek.',
     passwordsDiffer:
-      'Isi kolom "Ulangi kata sandi baru" berbeda dari kata sandi baru. Ketik kata sandi yang sama di kedua kolom.',
+      'Kolom "Ulangi kata sandi baru" berbeda dari kata sandi baru. Ketik kata sandi yang sama di kedua kolom.',
     privacyStoredTitle: "Apa yang disimpan Portolab",
     consentLabel: "Saya menyetujui pemberitahuan privasi",
     consentMissing:
@@ -117,7 +117,7 @@ const texts: Record<
     passwordChanged:
       "Portolab menyimpan kata sandi baru Anda dan mengeluarkan Anda dari semua perangkat lain.",
     wrongCurrentPassword:
-      'Kata sandi di kolom "Kata sandi saat ini" salah. Ketik lagi. Setelah 10 percobaan salah dalam 15 menit, Portolab memblokir nama pengguna Anda untuk sementara, agar tidak ada yang dapat menebak kata sandinya.',
+      'Kata sandi di kolom "Kata sandi saat ini" salah. Ketik lagi. Setelah 10 percobaan salah dalam 15 menit, Portolab memblokir nama pengguna Anda untuk sementara. Blokir ini menghentikan siapa pun yang mencoba menebak kata sandinya.',
     signOutButton: "Keluar",
     signOutTitle: "Keluar",
     signOutBody: "Keluar dari Portolab di perangkat ini.",
@@ -139,7 +139,7 @@ const texts: Record<
       'The field "Password" is empty, but Portolab needs it. Fill it in.',
     ],
     wrongCredentials:
-      "Portolab found no account with this username and password. Check both and try again. After 10 wrong attempts within 15 minutes, Portolab blocks the username for a while, so that nobody can guess its password.",
+      "Portolab found no account with this username and password. Check both and try again. After 10 wrong attempts within 15 minutes, Portolab blocks the username for a while. The block stops anyone who tries to guess its password.",
     blocked: [
       'Portolab blocks passwords for "',
       '" until ',
@@ -178,7 +178,7 @@ const texts: Record<
     passwordChanged:
       "Portolab saved your new password and signed you out on every other device.",
     wrongCurrentPassword:
-      'The password in the field "Current password" is wrong. Type it again. After 10 wrong attempts within 15 minutes, Portolab blocks your username for a while, so that nobody can guess its password.',
+      'The password in the field "Current password" is wrong. Type it again. After 10 wrong attempts within 15 minutes, Portolab blocks your username for a while. The block stops anyone who tries to guess its password.',
     signOutButton: "Sign out",
     signOutTitle: "Sign out",
     signOutBody: "Sign out of Portolab on this device.",

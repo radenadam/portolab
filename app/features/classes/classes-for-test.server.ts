@@ -3,6 +3,10 @@ import { clientAddressContext } from "~/client-address.server";
 import { databaseContext } from "~/database/database.server";
 import type { Database } from "~/database/database.server";
 import type { UserId } from "~/features/accounts/accounts.schema";
+import {
+  createReadyTestLecturer,
+  setVisitorForTest,
+} from "~/features/accounts/accounts-for-test.server";
 import { defaultStartingCash } from "./class-rules";
 import { createClass, findTaughtClass } from "./class-store.server";
 import type { ClassId } from "./classes.schema";
@@ -16,7 +20,7 @@ import type { JoinLimiters } from "./join-limiters.server";
 /** The address of the one network from which the requests of a test come. */
 export const networkForTest = "192.0.2.1";
 
-/** The context that the server gives to a loader or an action, with the database, limits on joining, and the address of one network. A test passes the limiters when it fills them itself. */
+/** The context that the server gives to a loader or an action of a visitor who is not signed in, with the database, limits on joining, and the address of one network. A test passes the limiters when it fills them itself. */
 export function joinContextForTest(
   database: Database,
   limiters: JoinLimiters = createJoinLimiters(),
@@ -25,6 +29,7 @@ export function joinContextForTest(
   context.set(databaseContext, database);
   context.set(joinLimitersContext, limiters);
   context.set(clientAddressContext, networkForTest);
+  setVisitorForTest(context);
   return context;
 }
 
@@ -44,4 +49,19 @@ export function createClassForTest(
     throw new Error(`The test could not create the class ${name}.`);
   }
   return { classId, joinCode: taught.joinCode };
+}
+
+/** Creates the ready lecturer Budi Santoso, who signs in as dosen, with the class Manajemen Portofolio A, which most tests of classes need, and returns the ids of both and the code of the class. */
+export async function createLecturerWithClassForTest(
+  database: Database,
+): Promise<{ lecturerId: UserId; classId: ClassId; joinCode: JoinCode }> {
+  const lecturerId = await createReadyTestLecturer(
+    database,
+    "dosen",
+    "Budi Santoso",
+  );
+  return {
+    lecturerId,
+    ...createClassForTest(database, lecturerId, "Manajemen Portofolio A"),
+  };
 }

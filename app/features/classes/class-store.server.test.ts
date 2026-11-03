@@ -14,23 +14,18 @@ import {
   listStudents,
   listTaughtClasses,
 } from "./class-store.server";
-import { createClassForTest } from "./classes-for-test.server";
+import {
+  createClassForTest,
+  createLecturerWithClassForTest,
+} from "./classes-for-test.server";
 
 const now = new Date("2026-11-02T03:00:00.000Z");
 const later = new Date("2026-11-02T04:00:00.000Z");
 
-test("creates a class with a code of eight readable characters, which opens the class", async () => {
+test("creates a class with a code of readable characters, which opens the class", async () => {
   const database = openDatabaseForTest();
-  const lecturerId = await createReadyTestLecturer(
-    database,
-    "dosen",
-    "Budi Santoso",
-  );
-  const classId = createClassForTest(
-    database,
-    lecturerId,
-    "Manajemen Portofolio A",
-  ).classId;
+  const { lecturerId, classId } =
+    await createLecturerWithClassForTest(database);
   const taught = findTaughtClass(database, classId, lecturerId);
   expect(taught?.joinCode).toMatch(/^[a-km-np-z2-9]{8}$/);
   expect(
@@ -47,11 +42,7 @@ test("creates a class with a code of eight readable characters, which opens the 
 
 test("shows a class only to the lecturer who teaches it and to its students", async () => {
   const database = openDatabaseForTest();
-  const lecturerId = await createReadyTestLecturer(
-    database,
-    "dosen",
-    "Budi Santoso",
-  );
+  const { classId } = await createLecturerWithClassForTest(database);
   const otherLecturerId = await createReadyTestLecturer(
     database,
     "dosen2",
@@ -63,11 +54,6 @@ test("shows a class only to the lecturer who teaches it and to its students", as
     "eko",
     "Eko Prasetyo",
   );
-  const classId = createClassForTest(
-    database,
-    lecturerId,
-    "Manajemen Portofolio A",
-  ).classId;
   joinClass(database, { classId, studentId }, later);
   expect(findTaughtClass(database, classId, otherLecturerId)).toBeUndefined();
   expect(findJoinedClass(database, classId, otherStudentId)).toBeUndefined();
@@ -87,17 +73,9 @@ test("shows a class only to the lecturer who teaches it and to its students", as
 
 test("adds a student to a class once, however often the student joins", async () => {
   const database = openDatabaseForTest();
-  const lecturerId = await createReadyTestLecturer(
-    database,
-    "dosen",
-    "Budi Santoso",
-  );
+  const { lecturerId, classId } =
+    await createLecturerWithClassForTest(database);
   const studentId = await createTestStudent(database, "sari", "Sari Wulandari");
-  const classId = createClassForTest(
-    database,
-    lecturerId,
-    "Manajemen Portofolio A",
-  ).classId;
   joinClass(database, { classId, studentId }, now);
   joinClass(database, { classId, studentId }, later);
   expect(listStudents(database, classId)).toEqual([
@@ -110,11 +88,8 @@ test("adds a student to a class once, however often the student joins", async ()
 
 test("lists the classes of a lecturer with their students, and the classes of a student, in the order they began", async () => {
   const database = openDatabaseForTest();
-  const lecturerId = await createReadyTestLecturer(
-    database,
-    "dosen",
-    "Budi Santoso",
-  );
+  const { lecturerId, classId: first } =
+    await createLecturerWithClassForTest(database);
   const firstStudent = await createTestStudent(
     database,
     "sari",
@@ -125,11 +100,6 @@ test("lists the classes of a lecturer with their students, and the classes of a 
     "eko",
     "Eko Prasetyo",
   );
-  const first = createClassForTest(
-    database,
-    lecturerId,
-    "Manajemen Portofolio A",
-  ).classId;
   const second = createClassForTest(
     database,
     lecturerId,

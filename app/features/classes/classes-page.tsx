@@ -19,12 +19,13 @@ import {
 } from "./class-store.server";
 import type { JoinedClass, TaughtClass } from "./class-store.server";
 import { classPath } from "./class-path";
+import { ClassList } from "./class-list";
 import styles from "./classes.module.css";
 import { parseStartingCash } from "./parse-starting-cash";
 import { classNameMaximumLength, defaultStartingCash } from "./class-rules";
 
 export function meta(): Route.MetaDescriptors {
-  return [{ title: pageTitle(m.classes_title()) }];
+  return [{ title: pageTitle(m.classes_page_title()) }];
 }
 
 export function loader({
@@ -115,8 +116,18 @@ export default function ClassesPage({
     case "lecturer":
       return (
         <>
-          <h1>{m.classes_title()}</h1>
-          <TaughtClasses classes={loaderData.classes} />
+          <h1>{m.classes_page_title()}</h1>
+          <ClassList
+            role={loaderData.role}
+            classes={loaderData.classes.map((taught) => ({
+              id: taught.id,
+              name: taught.name,
+              details: m.classes_taught_class_notice({
+                count: formatNumber(taught.studentCount),
+                cash: formatRupiah(taught.startingCash),
+              }),
+            }))}
+          />
           <h2>{m.classes_create_title()}</h2>
           <NewClassForm fields={actionData?.fields} />
         </>
@@ -124,11 +135,20 @@ export default function ClassesPage({
     case "student":
       return (
         <>
-          <h1>{m.classes_title()}</h1>
+          <h1>{m.classes_page_title()}</h1>
           {actionData?.failure !== undefined && (
             <FormFailure text={actionData.failure} />
           )}
-          <JoinedClasses classes={loaderData.classes} />
+          <ClassList
+            role={loaderData.role}
+            classes={loaderData.classes.map((joined) => ({
+              id: joined.id,
+              name: joined.name,
+              details: m.classes_taught_by_notice({
+                name: joined.lecturerName,
+              }),
+            }))}
+          />
           <Link to="/join" className={styles["link"]}>
             {m.classes_join_link()}
           </Link>
@@ -167,54 +187,5 @@ function NewClassForm({
       />
       <SubmitButton label={m.classes_create_label()} />
     </Form>
-  );
-}
-
-function TaughtClasses({
-  classes,
-}: {
-  classes: readonly TaughtClass[];
-}): ReactNode {
-  if (classes.length === 0) {
-    return <p>{m.classes_no_taught_classes_body()}</p>;
-  }
-  return (
-    <ul className={styles["list"]}>
-      {classes.map((taught) => (
-        <li key={taught.id} className={styles["item"]}>
-          <Link to={classPath(taught.id)} className={styles["link"]}>
-            {taught.name}
-          </Link>
-          <p className={styles["details"]}>
-            {m.classes_taught_class_notice({
-              count: formatNumber(taught.studentCount),
-              cash: formatRupiah(taught.startingCash),
-            })}
-          </p>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-function JoinedClasses({
-  classes,
-}: {
-  classes: readonly JoinedClass[];
-}): ReactNode {
-  // A student account exists only through joining a class, and nothing deletes a class yet, so the list of a student is never empty. Issue #27 adds deletion and with it the empty list.
-  return (
-    <ul className={styles["list"]}>
-      {classes.map((joined) => (
-        <li key={joined.id} className={styles["item"]}>
-          <Link to={classPath(joined.id)} className={styles["link"]}>
-            {joined.name}
-          </Link>
-          <p className={styles["details"]}>
-            {m.classes_taught_by_notice({ name: joined.lecturerName })}
-          </p>
-        </li>
-      ))}
-    </ul>
   );
 }

@@ -96,6 +96,11 @@ a {
   text-decoration-thickness: var(--size-mark);
 }
 
+/* A button that waits for the answer to its form keeps its look, so the pointer shows the wait. */
+button:disabled {
+  cursor: progress;
+}
+
 :focus-visible {
   outline: var(--size-mark) solid var(--color-signal);
   outline-offset: var(--size-mark);

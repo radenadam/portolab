@@ -1,13 +1,13 @@
 import type { RouterContextProvider } from "react-router";
 import { clientAddressContext } from "~/client-address.server";
 import { databaseContext } from "~/database/database.server";
+import { typedText } from "~/form-text";
 import { formatMarketClock, formatNumber } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
 import { findClassByJoinCode } from "./class-store.server";
 import type { ClassForStudents } from "./class-store.server";
-import { formatJoinCode } from "./join-code";
 import type { JoinCode } from "./join-code";
 import { joinLimits, joinLimitersContext } from "./join-limiters.server";
 import { parseJoinCode } from "./parse-join-code.server";
@@ -22,7 +22,7 @@ export function findClassWithCode(
   context: Readonly<RouterContextProvider>,
   value: unknown,
   now: Date,
-): Result<{ joinCode: JoinCode; joinedClass: ClassForStudents }, CodeFailure> {
+): Result<{ joinCode: JoinCode; classToJoin: ClassForStudents }, CodeFailure> {
   const field = m.classes_code_label();
   const joinCode = parseJoinCode(value, field);
   if (!joinCode.ok) {
@@ -42,20 +42,20 @@ export function findClassWithCode(
       status: 429,
     });
   }
-  const joinedClass = findClassByJoinCode(
+  const classToJoin = findClassByJoinCode(
     context.get(databaseContext),
     joinCode.value,
   );
-  if (joinedClass === undefined) {
+  if (classToJoin === undefined) {
     return fail({
       kind: "wrongCode",
       text: m.classes_unknown_code_error({
         field,
-        code: formatJoinCode(joinCode.value),
+        code: typedText(value).trim(),
       }),
       status: 400,
     });
   }
   limiter.takeBack(address, now);
-  return succeed({ joinCode: joinCode.value, joinedClass });
+  return succeed({ joinCode: joinCode.value, classToJoin });
 }

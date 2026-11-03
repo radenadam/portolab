@@ -48,7 +48,7 @@ const texts: Record<
     nameTooLong:
       'Kolom "Nama Anda" memuat paling banyak 100 karakter, tetapi isinya 101 karakter. Persingkat isinya.',
     passwordsDiffer:
-      'Isi kolom "Ulangi kata sandi baru" berbeda dari kata sandi baru. Ketik kata sandi yang sama di kedua kolom.',
+      'Kolom "Ulangi kata sandi baru" berbeda dari kata sandi baru. Ketik kata sandi yang sama di kedua kolom.',
     consentMissing:
       'Portolab hanya menyimpan data Anda dengan persetujuan Anda. Baca pemberitahuan privasi, lalu centang "Saya menyetujui pemberitahuan privasi".',
   },
@@ -70,7 +70,7 @@ const texts: Record<
   },
 };
 
-test("accepts a password from 15 to 128 characters, counted in the normal form that the hash reads", () => {
+test("accepts a password from its shortest to its longest length, counted in the normal form that the hash reads", () => {
   for (const password of [
     "a".repeat(15),
     "a".repeat(128),

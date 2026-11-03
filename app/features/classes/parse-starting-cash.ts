@@ -19,34 +19,44 @@ export function parseStartingCash(
   const written = text.value.trim();
   const separator = digitGroupSeparator();
   const digits = written.replaceAll(separator, "");
-  // Removing a separator from where Intl writes none, such as the decimal mark of the other language, would change the amount without any error, so such a text fails. A bigint keeps every digit of an amount above the limits, so such an amount fails on its range instead.
+  if (!/^\d+$/.test(digits)) {
+    return fail(notWhole(source, written, separator));
+  }
+  // An amount with more digits than the maximum is above it, so a long text fails before work that grows with its length.
   if (
-    !/^\d+$/.test(digits) ||
-    (written !== digits && written !== formatNumber(BigInt(digits)))
+    digits.replace(/^0+/, "").length > String(startingCashLimits.maximum).length
   ) {
-    return fail(
-      m.classes_starting_cash_error({
-        field: source,
-        value: written,
-        example: formatNumber(defaultStartingCash),
-        separator,
-      }),
-    );
+    return fail(outOfRange(source, written));
   }
   const amount = Number(digits);
+  // Removing a separator from where Intl writes none, such as the decimal mark of the other language, would change the amount without any error, so such a text fails.
+  if (written !== digits && written !== formatNumber(amount)) {
+    return fail(notWhole(source, written, separator));
+  }
   if (
     !isRupiah(amount) ||
     amount < startingCashLimits.minimum ||
     amount > startingCashLimits.maximum
   ) {
-    return fail(
-      m.classes_starting_cash_range_error({
-        field: source,
-        value: written,
-        minimum: formatRupiah(startingCashLimits.minimum),
-        maximum: formatRupiah(startingCashLimits.maximum),
-      }),
-    );
+    return fail(outOfRange(source, written));
   }
   return succeed(amount);
+}
+
+function notWhole(source: string, written: string, separator: string): string {
+  return m.classes_starting_cash_error({
+    field: source,
+    value: written,
+    example: formatNumber(defaultStartingCash),
+    separator,
+  });
+}
+
+function outOfRange(source: string, written: string): string {
+  return m.classes_starting_cash_range_error({
+    field: source,
+    value: written,
+    minimum: formatRupiah(startingCashLimits.minimum),
+    maximum: formatRupiah(startingCashLimits.maximum),
+  });
 }

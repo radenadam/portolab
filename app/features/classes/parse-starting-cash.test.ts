@@ -32,6 +32,7 @@ const texts: Record<
       ["100000000", 100_000_000],
       [" 100.000.000 ", 100_000_000],
       ["1.000.000", 1_000_000],
+      ["00001000000", 1_000_000],
       ["1.000.000.000.000", 1_000_000_000_000],
     ],
     misplaced: [
@@ -50,7 +51,7 @@ const texts: Record<
     ],
     outOfRange: [
       'Kolom "Modal awal" menerima Rp 1.000.000 sampai Rp 1.000.000.000.000, tetapi isinya "',
-      '". Uang yang lebih sedikit hanya cukup untuk sedikit lot, dan Portolab menjaga jumlah dalam sebuah kelas tetap tepat hanya sampai batas atas. Pilih jumlah di antara keduanya.',
+      '". Uang yang lebih sedikit hanya cukup untuk sedikit lot, dan batas atas menjaga setiap jumlah dalam sebuah kelas tetap tepat. Pilih jumlah di antara keduanya.',
     ],
   },
   en: {
@@ -60,6 +61,7 @@ const texts: Record<
       ["100000000", 100_000_000],
       [" 100,000,000 ", 100_000_000],
       ["1,000,000", 1_000_000],
+      ["00001000000", 1_000_000],
       ["1,000,000,000,000", 1_000_000_000_000],
     ],
     misplaced: [
@@ -78,7 +80,7 @@ const texts: Record<
     ],
     outOfRange: [
       'The field "Starting cash" takes IDR 1,000,000 to IDR 1,000,000,000,000, but it holds "',
-      '". Less cash buys too few lots for a portfolio, and Portolab keeps the sums of a class exact only up to the maximum. Choose an amount between the two.',
+      '". Less cash buys too few lots for a portfolio, and the maximum keeps every sum in a class exact. Choose an amount between the two.',
     ],
   },
 };

@@ -1,3 +1,4 @@
+import type { RouterContextProvider } from "react-router";
 import { expect } from "vitest";
 import type { Database } from "~/database/database.server";
 import type { Account } from "./account";
@@ -9,6 +10,7 @@ import {
   findAccountWithPassword,
   updateAccount,
 } from "./account-store.server";
+import { currentSessionContext } from "./current-session.server";
 import { verifyPassword } from "./password.server";
 import type { Username } from "./username";
 import { usernameForTest } from "./username-for-test";
@@ -69,4 +71,9 @@ export async function expectPassword(
   expect(
     found !== undefined && (await verifyPassword(password, found.passwordHash)),
   ).toBe(true);
+}
+
+/** Gives the context of a test the session of a visitor who is not signed in, as the session middleware does for a request without a session. */
+export function setVisitorForTest(context: RouterContextProvider): void {
+  context.set(currentSessionContext, undefined);
 }

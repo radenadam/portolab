@@ -47,7 +47,9 @@ test("counts every request against the limit of the network, also one whose user
   const limiters = createJoinLimiters();
   const context = joinContextForTest(database, limiters);
   await createStudentWithinLimit(context, newStudent("sari"), now);
-  await createStudentWithinLimit(context, newStudent("sari"), now);
+  expect(
+    await createStudentWithinLimit(context, newStudent("sari"), now),
+  ).toEqual({ ok: false, failure: { kind: "usernameTaken" } });
   // The test counts the other requests directly, because creating each account would take the time of a hash. Two requests came before, and one more account fits.
   for (
     let request = 2;
