@@ -103,7 +103,7 @@ const texts: Record<
       ["30 Okt 2026", "0,00%", "▼ -5,88%"],
     ],
     missingCloses:
-      "Portolab belum menyimpan harga penutupan IHSG dan ITMG pada 2 November 2026. Grafik berlanjut setelah pembaruan riwayat harga menyimpan harga penutupan masing-masing pada hari itu atau hari sesudahnya.",
+      "Portolab belum menyimpan harga penutupan IHSG dan ITMG pada 2 November 2026. Portolab menampilkan imbal hasil mulai hari itu setelah pembaruan riwayat harga menyimpan harga penutupan masing-masing pada hari itu atau hari sesudahnya.",
     credit: "Grafik: TradingView Lightweight Charts™ © 2025 TradingView, Inc.",
     notFoundTitle: "Halaman tidak ditemukan",
   },
@@ -173,7 +173,7 @@ const texts: Record<
       ["Oct 30, 2026", "0.00%", "▼ -5.88%"],
     ],
     missingCloses:
-      "Portolab has not stored the closes of IHSG and ITMG on November 2, 2026 yet. The chart goes on once an update of the price history stores a close of each of them on that day or on a later day.",
+      "Portolab has not stored the closes of IHSG and ITMG on November 2, 2026 yet. It shows the returns from that day on once an update of the price history stores a close of each of them on that day or on a later day.",
     credit: "Chart: TradingView Lightweight Charts™ © 2025 TradingView, Inc.",
     notFoundTitle: "Page not found",
   },

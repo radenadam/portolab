@@ -246,20 +246,20 @@ const texts: Record<
     chartNotice:
       "Grafik dan tabel di bawah membandingkan imbal hasil portofolio Anda dengan imbal hasil IHSG sejak penutupan 30 Oktober 2026, sebelum Anda dapat bertransaksi. Setiap imbal hasilnya memakai harga penutupan final pada harinya.",
     waiting:
-      "Harga tanggal 4 November 2026 menjadi final pada pukul 16.26 WIB, dan grafik berlanjut setelah pembaruan riwayat harga menyimpan harga penutupan hari itu atau hari sesudahnya.",
+      "Harga tanggal 4 November 2026 menjadi final pada pukul 16.26 WIB, dan Portolab menampilkan imbal hasil mulai hari itu setelah pembaruan riwayat harga menyimpan harga penutupan hari itu atau hari sesudahnya.",
     credit: "Grafik: TradingView Lightweight Charts™ © 2025 TradingView, Inc.",
     noHoldings: "Anda belum memegang saham.",
     missingStart:
-      "Portolab belum menyimpan harga penutupan IHSG pada 30 Oktober 2026. Grafik berlanjut setelah pembaruan riwayat harga menyimpan harga penutupan IHSG pada hari itu atau hari sesudahnya.",
+      "Portolab belum menyimpan harga penutupan IHSG pada 30 Oktober 2026. Portolab menampilkan imbal hasil mulai hari itu setelah pembaruan riwayat harga menyimpan harga penutupan IHSG pada hari itu atau hari sesudahnya.",
     oneUnpriced:
       "Portolab menampilkan nilai total dan imbal hasil setelah pembaruan harga berikutnya membawa harga tertunda TLKM.",
     severalUnpriced:
       "Portolab menampilkan nilai total dan imbal hasil setelah pembaruan harga berikutnya membawa harga tertunda BBCA dan TLKM.",
     unpricedHolding: "Portolab belum memiliki harga tertunda TLKM.",
     severalMissingCloses:
-      "Portolab belum menyimpan harga penutupan IHSG dan BBCA pada 4 November 2026. Grafik berlanjut setelah pembaruan riwayat harga menyimpan harga penutupan masing-masing pada hari itu atau hari sesudahnya.",
+      "Portolab belum menyimpan harga penutupan IHSG dan BBCA pada 4 November 2026. Portolab menampilkan imbal hasil mulai hari itu setelah pembaruan riwayat harga menyimpan harga penutupan masing-masing pada hari itu atau hari sesudahnya.",
     calendarMissing:
-      "Portolab belum dapat menambahkan hari berikutnya ke grafik, karena kalender perdagangan BEI untuk hari itu belum tercatat. Beri tahu dosen Anda agar kalender tersebut dapat ditambahkan.",
+      "Portolab belum dapat menampilkan imbal hasil hari bursa berikutnya, karena kalender perdagangan BEI untuk hari itu belum tercatat. Beri tahu dosen Anda agar kalender tersebut dapat ditambahkan.",
     quoteFailure:
       "Portolab tidak dapat memperbarui harga BBCA pada 3 Nov 2026, 10.30 WIB, jadi harganya di bawah adalah harga terakhir yang tersimpan. Portolab mencoba lagi pada 3 Nov 2026, 10.31 WIB.",
   },
@@ -270,20 +270,20 @@ const texts: Record<
     chartNotice:
       "The chart and the table below compare the return of your portfolio with the return of the IHSG since the close of October 30, 2026, before you could trade. Each of their returns uses the final closes of its day.",
     waiting:
-      "The prices of November 4, 2026 become final at 4:26 PM WIB, and the chart goes on once an update of the price history stores closes of that day or of a later day.",
+      "The prices of November 4, 2026 become final at 4:26 PM WIB, and Portolab shows the returns from that day on once an update of the price history stores closes of that day or of a later day.",
     credit: "Chart: TradingView Lightweight Charts™ © 2025 TradingView, Inc.",
     noHoldings: "You hold no shares yet.",
     missingStart:
-      "Portolab has not stored the close of IHSG on October 30, 2026 yet. The chart goes on once an update of the price history stores a close of IHSG on that day or on a later day.",
+      "Portolab has not stored the close of IHSG on October 30, 2026 yet. It shows the returns from that day on once an update of the price history stores a close of IHSG on that day or on a later day.",
     oneUnpriced:
       "Portolab shows the total value and the return once the next update of prices brings a delayed price of TLKM.",
     severalUnpriced:
       "Portolab shows the total value and the return once the next update of prices brings the delayed prices of BBCA and TLKM.",
     unpricedHolding: "Portolab has no delayed price of TLKM yet.",
     severalMissingCloses:
-      "Portolab has not stored the closes of IHSG and BBCA on November 4, 2026 yet. The chart goes on once an update of the price history stores a close of each of them on that day or on a later day.",
+      "Portolab has not stored the closes of IHSG and BBCA on November 4, 2026 yet. It shows the returns from that day on once an update of the price history stores a close of each of them on that day or on a later day.",
     calendarMissing:
-      "Portolab cannot add the next day to the chart, because it has not recorded the trading calendar of IDX for that day. Tell your lecturer, so that the calendar can be added.",
+      "Portolab cannot show the return of the next trading day, because it has not recorded the trading calendar of IDX for that day. Tell your lecturer, so that the calendar can be added.",
     quoteFailure:
       "Portolab could not update the price of BBCA at Nov 3, 2026, 10:30 AM WIB, so the BBCA price below is the last one it stored. Portolab tries again at Nov 3, 2026, 10:31 AM WIB.",
   },
@@ -424,6 +424,26 @@ for (const locale of locales) {
     );
     expect(withoutChart).toContain(text.calendarMissing);
     expect(withoutChart).not.toContain(text.chartNotice);
+  });
+
+  test(`shows each end of the returns, also before the first return, without a chart, in ${language}`, () => {
+    switchLocaleForTest(locale);
+    const ends: [HistoryEnd, string][] = [
+      [waitingForWednesday, text.waiting],
+      [
+        { kind: "missingCloses", date: "2026-11-04", codes: ["IHSG", "BBCA"] },
+        text.severalMissingCloses,
+      ],
+      [{ kind: "missingCalendar" }, text.calendarMissing],
+    ];
+    for (const [end, sentence] of ends) {
+      const html = render(
+        reportForTest({ history: succeed({ points: [], end }) }),
+      );
+      expect(html).toContain(`<p>${sentence}</p>`);
+      expect(html).not.toContain(text.chartNotice);
+      expect(html).not.toContain(label.returnsTable);
+    }
   });
 
   test(`names the price of a holding that the latest update of prices could not fetch, in ${language}`, () => {

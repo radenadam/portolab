@@ -279,9 +279,9 @@
   "trading_portfolio_series_label": "Your portfolio",
   "trading_trading_day_label": "Trading day",
   "trading_returns_table_label": "The return at each close",
-  "trading_chart_not_final_notice": "The prices of {date} become final at {time} WIB, and the chart goes on once an update of the price history stores closes of that day or of a later day.",
-  "trading_one_missing_close_notice": "Portolab has not stored the close of {codes} on {date} yet. The chart goes on once an update of the price history stores a close of {codes} on that day or on a later day.",
-  "trading_several_missing_closes_notice": "Portolab has not stored the closes of {codes} on {date} yet. The chart goes on once an update of the price history stores a close of each of them on that day or on a later day.",
-  "trading_chart_calendar_missing_notice": "Portolab cannot add the next day to the chart, because it has not recorded the trading calendar of IDX for that day. Tell your lecturer, so that the calendar can be added.",
+  "trading_chart_not_final_notice": "The prices of {date} become final at {time} WIB, and Portolab shows the returns from that day on once an update of the price history stores closes of that day or of a later day.",
+  "trading_one_missing_close_notice": "Portolab has not stored the close of {codes} on {date} yet. It shows the returns from that day on once an update of the price history stores a close of {codes} on that day or on a later day.",
+  "trading_several_missing_closes_notice": "Portolab has not stored the closes of {codes} on {date} yet. It shows the returns from that day on once an update of the price history stores a close of each of them on that day or on a later day.",
+  "trading_chart_calendar_missing_notice": "Portolab cannot show the return of the next trading day, because it has not recorded the trading calendar of IDX for that day. Tell your lecturer, so that the calendar can be added.",
   "trading_chart_credit_link": "Chart: {notice}"
 }
