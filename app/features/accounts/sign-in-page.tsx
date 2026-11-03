@@ -20,7 +20,6 @@ import { pathReturningTo } from "./path-returning-to";
 import { passwordLimitersContext, signIn } from "./password-attempts.server";
 import { explainPasswordFailure } from "./explain-password-failure.server";
 import { deleteSession } from "./session-store.server";
-import { normalizeUsername } from "./username";
 
 export function meta(): Route.MetaDescriptors {
   return [{ title: pageTitle(m.accounts_sign_in_title()) }];
@@ -73,7 +72,8 @@ export async function action({ context, request }: Route.ActionArgs) {
   if (!signedIn.ok) {
     const { text, status } = explainPasswordFailure(
       signedIn.failure,
-      normalizeUsername(username.value),
+      // The error quotes the username as the field shows it, although the limit counts it in lowercase.
+      username.value.trim(),
       m.accounts_wrong_credentials_error,
     );
     return data(

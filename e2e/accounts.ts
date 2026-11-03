@@ -52,15 +52,18 @@ export function runAccountCommand(
   return temporaryPassword;
 }
 
-/** Fills the sign-in form, which a test reaches by any path, and sends it. */
+/** Fills the sign-in form, which a test reaches by any path, and sends it. The helper finds the form by its field for a password, which no other page has, so it waits for the sign-in page and never fills a field of the page before, such as the username on a join page. */
 export async function submitSignIn(
   page: Page,
   username: string,
   password: string,
 ): Promise<void> {
-  await page.locator('main input[name="username"]').fill(username);
-  await page.locator('main input[name="password"]').fill(password);
-  await page.locator("main form button[type=submit]").click();
+  const form = page
+    .locator("main form")
+    .filter({ has: page.locator('input[name="password"]') });
+  await form.locator('input[name="username"]').fill(username);
+  await form.locator('input[name="password"]').fill(password);
+  await form.locator("button[type=submit]").click();
 }
 
 /** Fills the form that finishes or creates an account with a name, the username when the form asks for one, the chosen password twice, and consent, and sends it. */

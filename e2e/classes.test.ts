@@ -59,7 +59,9 @@ const texts: Record<
     malformedCode: readonly [string, string];
     unknownCode: readonly [string, string];
     lecturerCannotJoin: string;
+    lecturerJoinTitle: string;
     lecturerOnly: string;
+    lecturerOnlyTitle: string;
     joinClassTitle: string;
     joinClassBody: string;
     newAccountTitle: string;
@@ -122,6 +124,8 @@ const texts: Record<
     ],
     lecturerCannotJoin:
       "Hanya mahasiswa yang bergabung ke kelas, dan Anda masuk sebagai dosen. Untuk bergabung sebagai mahasiswa, keluar terlebih dahulu.",
+    lecturerJoinTitle: "Dosen tidak dapat bergabung ke kelas",
+    lecturerOnlyTitle: "Mahasiswa tidak dapat membuat kelas",
     lecturerOnly:
       "Hanya dosen yang membuat kelas, dan Anda masuk sebagai mahasiswa. Untuk mengajar kelas, mintalah akun dosen kepada orang yang menjalankan server Portolab ini.",
     joinClassTitle: `Gabung ke ${className}`,
@@ -190,6 +194,8 @@ const texts: Record<
     ],
     lecturerCannotJoin:
       "Only students join a class, and you are signed in as a lecturer. To join as a student, sign out first.",
+    lecturerJoinTitle: "A lecturer cannot join a class",
+    lecturerOnlyTitle: "A student cannot create a class",
     lecturerOnly:
       "Only lecturers create a class, and you are signed in as a student. To teach a class, ask the person who runs this Portolab server for a lecturer account.",
     joinClassTitle: `Join ${className}`,
@@ -411,7 +417,6 @@ for (const locale of locales) {
     await enterCode(student, locale, second.joinCode);
     await expect(student).toHaveURL(second.path);
 
-    // A wrong code in an address shows the form for a code, which holds it, with the reason.
     const response = await student.goto("/join/aaaa-aaaa");
     expect(response?.status()).toBe(400);
     await expect(student).toHaveTitle(`${text.joinTitle} | Portolab`);
@@ -428,14 +433,12 @@ for (const locale of locales) {
     await expect(student).toHaveURL(first.path);
     await student.context().close();
 
-    // On another device, the student opens the address of a third class, signs in from it, and joins with one button.
     const otherDevice = await newDevice(browser, locale);
     const thirdJoinPath = new URL(third.joinAddress).pathname;
     await otherDevice.goto(thirdJoinPath);
     await otherDevice
       .getByRole("link", { name: text.existingAccountLink })
       .click();
-    // The join page has a field for a username too, so the test waits for the sign-in page before it fills one.
     await expect(otherDevice).toHaveURL(
       `/sign-in?returnTo=${encodeURIComponent(thirdJoinPath)}`,
     );
@@ -465,7 +468,6 @@ for (const locale of locales) {
       testClass.joinAddress,
       studentName,
     );
-    // A student who opens the address of a class again goes to the class.
     await student.goto(testClass.joinAddress);
     await expect(student).toHaveURL(testClass.path);
 
@@ -578,18 +580,30 @@ for (const locale of locales) {
       form.submit();
     });
     expect((await refused).status()).toBe(403);
-    await expect(member.getByRole("alert")).toHaveText(text.lecturerOnly);
+    await expect(member).toHaveTitle(`${text.lecturerOnlyTitle} | Portolab`);
+    await expect(
+      member.getByRole("heading", { level: 1, name: text.lecturerOnlyTitle }),
+    ).toBeVisible();
+    await expect(member.getByText(text.lecturerOnly)).toBeVisible();
     await expectAccessibleScreen(member);
 
     for (const path of ["/join", testClass.joinAddress]) {
       const response = await otherLecturer.goto(path);
       expect(response?.status(), path).toBe(403);
+      await expect(otherLecturer).toHaveTitle(
+        `${text.lecturerJoinTitle} | Portolab`,
+      );
+      await expect(
+        otherLecturer.getByRole("heading", {
+          level: 1,
+          name: text.lecturerJoinTitle,
+        }),
+      ).toBeVisible();
       await expect(
         otherLecturer.getByText(text.lecturerCannotJoin),
       ).toBeVisible();
     }
     await expectAccessibleScreen(otherLecturer);
-    // The page offers the next step that its text names, and after it the lecturer sees the form of a visitor.
     await otherLecturer
       .getByRole("main")
       .getByRole("button", { name: text.signOutButton })

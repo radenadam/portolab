@@ -12,8 +12,16 @@ import { joinAndOpenClass } from "./join-and-open-class.server";
 import { joinPath } from "./join-code";
 import { LecturerCannotJoin } from "./lecturer-cannot-join";
 
-export function meta(): Route.MetaDescriptors {
-  return [{ title: pageTitle(m.classes_join_title()) }];
+export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
+  return [
+    {
+      title: pageTitle(
+        loaderData.isLecturer
+          ? m.classes_lecturer_join_title()
+          : m.classes_join_title(),
+      ),
+    },
+  ];
 }
 
 export function loader({

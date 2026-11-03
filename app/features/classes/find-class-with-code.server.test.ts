@@ -102,7 +102,7 @@ for (const locale of locales) {
     const database = openDatabaseForTest();
     const { joinCode } = await createLecturerWithClassForTest(database);
     const context = joinContextForTest(database);
-    // Every wrong code but the last one that the limit allows, each next to a right code, which counts nothing.
+    // A right code after each wrong one shows that a right code counts nothing against the limit.
     for (
       let attempt = 1;
       attempt < joinLimits.wrongCodes.failures;

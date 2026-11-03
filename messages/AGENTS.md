@@ -29,4 +29,5 @@ Each phrase that recurs in errors has one translation in each language, so that 
 | ... from your network ... from it ...                        | ... dari jaringan Anda ... dari jaringan itu ...       | The network that a block or a limit counts.                                 |
 | The block stops anyone who tries to ...                      | Blokir ini menghentikan siapa pun yang mencoba ...     | Why a block exists.                                                         |
 | The limit stops anyone who tries to ...                      | Batas ini menghentikan siapa pun yang mencoba ...      | Why a limit exists.                                                         |
+| ... guess the password.                                      | ... menebak kata sandinya.                             | What a block on passwords stops.                                            |
 | Try again after that time.                                   | Coba lagi setelah waktu tersebut.                      | The next step after a block or a limit.                                     |

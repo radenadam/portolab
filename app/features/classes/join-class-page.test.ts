@@ -48,6 +48,7 @@ test("checks no code that another site makes a browser load, so such a site cann
       "Sec-Fetch-Site": "cross-site",
       "Sec-Fetch-Mode": "navigate",
       "Sec-Fetch-Dest": "document",
+      "Sec-Fetch-User": "?1",
     }).data,
   ).toMatchObject({
     kind: "class",

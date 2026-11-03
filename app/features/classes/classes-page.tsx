@@ -4,11 +4,12 @@ import type { RouterContextProvider } from "react-router";
 import { databaseContext } from "~/database/database.server";
 import type { UserId } from "~/features/accounts/accounts.schema";
 import { requireUser } from "~/features/accounts/current-session.server";
-import { FormFailure, SubmitButton, TextField } from "~/form";
+import { ErrorPage } from "~/error-page";
+import { SubmitButton, TextField } from "~/form";
 import formStyles from "~/form.module.css";
 import { parseShortText, typedText } from "~/form-text";
 import { formatNumber, formatRupiah } from "~/formatting";
-import { pageTitle } from "~/page-title";
+import { pageTitle, PageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
 import { failureOf } from "~/result";
 import type { Route } from "./+types/classes-page";
@@ -133,12 +134,20 @@ export default function ClassesPage({
         </>
       );
     case "student":
+      if (actionData?.failure !== undefined) {
+        return (
+          <>
+            <PageTitle text={m.classes_lecturer_only_title()} />
+            <ErrorPage
+              title={m.classes_lecturer_only_title()}
+              body={actionData.failure}
+            />
+          </>
+        );
+      }
       return (
         <>
           <h1>{m.classes_page_title()}</h1>
-          {actionData?.failure !== undefined && (
-            <FormFailure text={actionData.failure} />
-          )}
           <ClassList
             role={loaderData.role}
             classes={loaderData.classes.map((joined) => ({

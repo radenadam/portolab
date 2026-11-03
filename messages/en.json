@@ -41,7 +41,7 @@
   "accounts_password_label": "Password",
   "accounts_sign_in_label": "Sign in",
   "accounts_forgot_password_notice": "Forgot your password? A student asks the lecturer to reset it, and a lecturer asks the person who runs this Portolab server.",
-  "accounts_wrong_credentials_error": "Portolab found no account with this username and password. Check both and try again. After {failures} wrong attempts within {minutes} minutes, Portolab blocks the username for a while. The block stops anyone who tries to guess its password.",
+  "accounts_wrong_credentials_error": "Portolab found no account with this username and password. Check both and try again. After {failures} wrong attempts within {minutes} minutes, Portolab blocks the username for a while. The block stops anyone who tries to guess the password.",
   "accounts_username_blocked_error": "Portolab blocks passwords for \"{username}\" until {time} WIB, because it received {failures} wrong passwords for it within {minutes} minutes. The block stops anyone who tries to guess the password. Try again after that time.",
   "accounts_address_blocked_error": "Portolab blocks passwords from your network until {time} WIB, because it received {failures} wrong passwords from it within {minutes} minutes. The block stops anyone who tries to guess passwords. Try again after that time.",
   "accounts_first_setup_title": "Finish your account",
@@ -68,7 +68,7 @@
   "accounts_current_password_label": "Current password",
   "accounts_change_password_label": "Change the password",
   "accounts_password_changed_notice": "Portolab saved your new password and signed you out on every other device.",
-  "accounts_wrong_current_password_error": "The password in the field \"{field}\" is wrong. Type it again. After {failures} wrong attempts within {minutes} minutes, Portolab blocks your username for a while. The block stops anyone who tries to guess its password.",
+  "accounts_wrong_current_password_error": "The password in the field \"{field}\" is wrong. Type it again. After {failures} wrong attempts within {minutes} minutes, Portolab blocks your username for a while. The block stops anyone who tries to guess the password.",
   "accounts_sign_out_label": "Sign out",
   "accounts_refused_form_title": "Portolab refused the form",
   "accounts_refused_form_body": "The form came from another site, or the browser did not say where it came from. Portolab refuses such a form, so that no other site can act in your name. Open Portolab directly and send the form again.",
@@ -129,6 +129,7 @@
   "classes_unknown_code_error": "The field \"{field}\" holds \"{code}\", but no class has this code. Check the code with your lecturer and try again.",
   "classes_join_blocked_error": "Portolab blocks codes from your network until {time} WIB, because it received {failures} wrong codes from it within {minutes} minutes. The block stops anyone who tries to guess the code of a class. Try again after that time.",
   "classes_lecturer_join_error": "Only students join a class, and you are signed in as a lecturer. To join as a student, sign out first.",
+  "classes_lecturer_join_title": "A lecturer cannot join a class",
   "classes_join_class_title": "Join {class}",
   "classes_join_class_body": "{lecturer} teaches this class. Each student starts with {cash} in virtual cash.",
   "classes_new_account_title": "Create your student account",
@@ -141,5 +142,6 @@
   "accounts_privacy_attempts_body": "A username that someone typed with a wrong password, in memory only, for {minutes} minutes after each wrong password for it, to stop anyone from guessing the password of an account.",
   "accounts_character_range_part": "{first} to {last}",
   "classes_new_accounts_blocked_error": "Portolab creates no account from your network until {time} WIB, because it received {accounts} requests for a new account from it within {minutes} minutes. The limit stops anyone who tries to flood a class with accounts. Try again after that time, or join through another network, such as the mobile data of your phone.",
-  "classes_lecturer_only_error": "Only lecturers create a class, and you are signed in as a student. To teach a class, ask the person who runs this Portolab server for a lecturer account."
+  "classes_lecturer_only_error": "Only lecturers create a class, and you are signed in as a student. To teach a class, ask the person who runs this Portolab server for a lecturer account.",
+  "classes_lecturer_only_title": "A student cannot create a class"
 }

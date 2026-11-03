@@ -139,7 +139,7 @@ const texts: Record<
       'The field "Password" is empty, but Portolab needs it. Fill it in.',
     ],
     wrongCredentials:
-      "Portolab found no account with this username and password. Check both and try again. After 10 wrong attempts within 15 minutes, Portolab blocks the username for a while. The block stops anyone who tries to guess its password.",
+      "Portolab found no account with this username and password. Check both and try again. After 10 wrong attempts within 15 minutes, Portolab blocks the username for a while. The block stops anyone who tries to guess the password.",
     blocked: [
       'Portolab blocks passwords for "',
       '" until ',
@@ -178,7 +178,7 @@ const texts: Record<
     passwordChanged:
       "Portolab saved your new password and signed you out on every other device.",
     wrongCurrentPassword:
-      'The password in the field "Current password" is wrong. Type it again. After 10 wrong attempts within 15 minutes, Portolab blocks your username for a while. The block stops anyone who tries to guess its password.',
+      'The password in the field "Current password" is wrong. Type it again. After 10 wrong attempts within 15 minutes, Portolab blocks your username for a while. The block stops anyone who tries to guess the password.',
     signOutButton: "Sign out",
     signOutTitle: "Sign out",
     signOutBody: "Sign out of Portolab on this device.",
@@ -343,6 +343,8 @@ for (const locale of locales) {
   }) => {
     const username = uniqueUsername("dosen");
     runAccountCommand("create-lecturer", username);
+    // A username in capitals reaches the same account, and the errors quote it as the field shows it.
+    const typedUsername = username.toUpperCase();
     await chooseLanguage(page, locale);
     await page.goto("/sign-in");
     await submitMainForm(page, text.signInButton);
@@ -350,9 +352,11 @@ for (const locale of locales) {
       await expect(page.getByText(failure, { exact: true })).toBeVisible();
     }
     await expectAccessibleScreen(page);
-    await submitSignIn(page, username, "a wrong password");
+    await submitSignIn(page, typedUsername, "a wrong password");
     await expect(page.getByRole("alert")).toHaveText(text.wrongCredentials);
-    await expect(page.getByLabel(text.usernameLabel)).toHaveValue(username);
+    await expect(page.getByLabel(text.usernameLabel)).toHaveValue(
+      typedUsername,
+    );
     await expectAccessibleScreen(page);
     for (let attempt = 2; attempt <= 10; attempt += 1) {
       await page
@@ -366,7 +370,7 @@ for (const locale of locales) {
     await submitMainForm(page, text.signInButton);
     await expect(page.getByRole("alert")).toHaveText(
       sentencePattern([
-        `${text.blocked[0]}${username}${text.blocked[1]}`,
+        `${text.blocked[0]}${typedUsername}${text.blocked[1]}`,
         text.blocked[2],
       ]),
     );

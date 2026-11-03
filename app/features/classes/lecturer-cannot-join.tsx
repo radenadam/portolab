@@ -7,7 +7,7 @@ import { m } from "~/paraglide/messages.js";
 export function LecturerCannotJoin(): ReactNode {
   return (
     <ErrorPage
-      title={m.classes_join_title()}
+      title={m.classes_lecturer_join_title()}
       body={m.classes_lecturer_join_error()}
       nextStep={<SignOutButton />}
     />

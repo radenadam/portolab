@@ -129,6 +129,7 @@
   "classes_unknown_code_error": "Kolom \"{field}\" berisi \"{code}\", tetapi tidak ada kelas dengan kode ini. Periksa kodenya dengan dosen Anda, lalu coba lagi.",
   "classes_join_blocked_error": "Portolab memblokir kode dari jaringan Anda sampai {time} WIB, karena menerima {failures} kode salah dari jaringan itu dalam {minutes} menit. Blokir ini menghentikan siapa pun yang mencoba menebak kode kelas. Coba lagi setelah waktu tersebut.",
   "classes_lecturer_join_error": "Hanya mahasiswa yang bergabung ke kelas, dan Anda masuk sebagai dosen. Untuk bergabung sebagai mahasiswa, keluar terlebih dahulu.",
+  "classes_lecturer_join_title": "Dosen tidak dapat bergabung ke kelas",
   "classes_join_class_title": "Gabung ke {class}",
   "classes_join_class_body": "{lecturer} mengajar kelas ini. Setiap mahasiswa mulai dengan uang virtual sebesar {cash}.",
   "classes_new_account_title": "Buat akun mahasiswa Anda",
@@ -141,5 +142,6 @@
   "accounts_privacy_attempts_body": "Nama pengguna yang diketik seseorang dengan kata sandi salah, hanya di memori, selama {minutes} menit setelah setiap kata sandi salah untuknya, untuk mencegah siapa pun menebak kata sandi sebuah akun.",
   "accounts_character_range_part": "{first} sampai {last}",
   "classes_new_accounts_blocked_error": "Portolab tidak membuat akun dari jaringan Anda sampai {time} WIB, karena menerima {accounts} permintaan akun baru dari jaringan itu dalam {minutes} menit. Batas ini menghentikan siapa pun yang mencoba membanjiri sebuah kelas dengan akun. Coba lagi setelah waktu tersebut, atau bergabunglah melalui jaringan lain, misalnya data seluler ponsel Anda.",
-  "classes_lecturer_only_error": "Hanya dosen yang membuat kelas, dan Anda masuk sebagai mahasiswa. Untuk mengajar kelas, mintalah akun dosen kepada orang yang menjalankan server Portolab ini."
+  "classes_lecturer_only_error": "Hanya dosen yang membuat kelas, dan Anda masuk sebagai mahasiswa. Untuk mengajar kelas, mintalah akun dosen kepada orang yang menjalankan server Portolab ini.",
+  "classes_lecturer_only_title": "Mahasiswa tidak dapat membuat kelas"
 }

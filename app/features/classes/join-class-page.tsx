@@ -55,8 +55,9 @@ export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
         },
       ];
     case "codeForm":
-    case "lecturer":
       return [{ title: pageTitle(m.classes_join_title()) }];
+    case "lecturer":
+      return [{ title: pageTitle(m.classes_lecturer_join_title()) }];
   }
 }
 

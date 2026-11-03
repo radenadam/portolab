@@ -5,32 +5,43 @@ function requestWith(headers: Record<string, string>): Request {
   return new Request("http://localhost/join/aaaa-aaaa", { headers });
 }
 
-test("finds an address that another site makes a browser load, such as through an image or a frame", () => {
-  for (const [site, mode, destination] of [
-    ["cross-site", "no-cors", "image"],
-    ["cross-site", "navigate", "iframe"],
-    ["same-site", "no-cors", "script"],
-  ] as const) {
+const navigationFromAnotherSite = {
+  "Sec-Fetch-Site": "cross-site",
+  "Sec-Fetch-Mode": "navigate",
+  "Sec-Fetch-Dest": "document",
+};
+
+const openedFromAnotherSite = {
+  ...navigationFromAnotherSite,
+  "Sec-Fetch-User": "?1",
+};
+
+test("finds a request that another site makes a browser send, such as for an image, a frame, a window that it steers, or a prefetch", () => {
+  for (const headers of [
+    {
+      "Sec-Fetch-Site": "cross-site",
+      "Sec-Fetch-Mode": "no-cors",
+      "Sec-Fetch-Dest": "image",
+    },
+    { ...openedFromAnotherSite, "Sec-Fetch-Dest": "iframe" },
+    navigationFromAnotherSite,
+    { ...openedFromAnotherSite, "Sec-Purpose": "prefetch" },
+    {
+      "Sec-Fetch-Site": "same-site",
+      "Sec-Fetch-Mode": "no-cors",
+      "Sec-Fetch-Dest": "script",
+    },
+  ]) {
     expect(
-      isLoadedByAnotherSite(
-        requestWith({
-          "Sec-Fetch-Site": site,
-          "Sec-Fetch-Mode": mode,
-          "Sec-Fetch-Dest": destination,
-        }),
-      ),
-      `${site} ${mode} ${destination}`,
+      isLoadedByAnotherSite(requestWith(headers)),
+      JSON.stringify(headers),
     ).toBe(true);
   }
 });
 
-test("accepts an address that the reader opens, from this site, from another site, or without the headers of a browser", () => {
+test("accepts a page that the reader opens from another site or from this one, and a request without the headers of a browser", () => {
   for (const headers of [
-    {
-      "Sec-Fetch-Site": "cross-site",
-      "Sec-Fetch-Mode": "navigate",
-      "Sec-Fetch-Dest": "document",
-    },
+    openedFromAnotherSite,
     {
       "Sec-Fetch-Site": "same-origin",
       "Sec-Fetch-Mode": "cors",
