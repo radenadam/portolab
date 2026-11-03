@@ -3,6 +3,8 @@ import { data, Link } from "react-router";
 import { databaseContext } from "~/database/database.server";
 import { requireUser } from "~/features/accounts/current-session.server";
 import { formatMarketTime, formatRupiah } from "~/formatting";
+import { addressesForOthers } from "~/local-network.server";
+import type { AddressesForOthers } from "~/local-network.server";
 import { pageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
 import type { Rupiah } from "~/units/rupiah";
@@ -18,6 +20,7 @@ import type { ClassId } from "./classes.schema";
 import { classPath } from "./class-path";
 import styles from "./classes.module.css";
 import { formatJoinCode, joinPath } from "./join-code";
+import { JoinDetails } from "./join-details";
 
 export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
   return [{ title: pageTitle(loaderData.name) }];
@@ -30,7 +33,7 @@ export function loader({ context, params, url }: Route.LoaderArgs):
       name: string;
       startingCash: Rupiah;
       joinCode: string;
-      joinAddress: string;
+      joinAddresses: AddressesForOthers;
       students: ClassStudent[];
     }
   | ({ role: "student" } & JoinedClass) {
@@ -54,7 +57,10 @@ export function loader({ context, params, url }: Route.LoaderArgs):
         name: taught.name,
         startingCash: taught.startingCash,
         joinCode: formatJoinCode(taught.joinCode),
-        joinAddress: new URL(joinPath(taught.joinCode), url).href,
+        // The host comes from the request, so a forged Host header shows the addresses of the server on its networks only to the lecturer of the class, who reaches the server already.
+        joinAddresses: addressesForOthers(
+          new URL(joinPath(taught.joinCode), url),
+        ),
         students: listStudents(database, taught.id),
       };
     }
@@ -81,12 +87,10 @@ export default function ClassPage({
               cash: formatRupiah(loaderData.startingCash),
             })}
           </p>
-          <dl className={styles["share"]}>
-            <dt>{m.classes_code_label()}</dt>
-            <dd className={styles["code"]}>{loaderData.joinCode}</dd>
-            <dt>{m.classes_join_address_label()}</dt>
-            <dd className={styles["address"]}>{loaderData.joinAddress}</dd>
-          </dl>
+          <JoinDetails
+            joinCode={loaderData.joinCode}
+            joinAddresses={loaderData.joinAddresses}
+          />
           <h2>{m.classes_students_title()}</h2>
           <Students classId={loaderData.id} students={loaderData.students} />
         </>

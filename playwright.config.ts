@@ -1,5 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
-import { baseUrl } from "./e2e/test-server.ts";
+import { baseUrl, publicServerResolverRule } from "./e2e/test-server.ts";
 
 const isContinuousIntegration = process.env["CI"] === "true";
 
@@ -14,6 +14,8 @@ export default defineConfig({
   use: {
     baseURL: baseUrl,
     trace: "retain-on-failure",
+    // The address for joining a class depends on whether the lecturer opened Portolab at localhost or at a domain, so a test opens it at both.
+    launchOptions: { args: [publicServerResolverRule] },
   },
   projects: [
     { name: "desktop", use: { ...devices["Desktop Chrome"] } },

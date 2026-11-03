@@ -26,7 +26,7 @@ pnpm build
 pnpm start
 ```
 
-The server prints the addresses that phones on the network can open. On Windows, allow the connection when the firewall asks.
+Open http://localhost:3000 on the laptop as before. The page of each class then shows its address for joining on each network of the laptop, because a phone cannot open localhost. The server also prints the address of the laptop on each network when it starts. On Windows, allow the connection when the firewall asks.
 
 ## Accounts
 

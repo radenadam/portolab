@@ -1,11 +1,12 @@
 import { expect, test } from "@playwright/test";
-import type { Page } from "@playwright/test";
+import type { Browser, Page } from "@playwright/test";
 import { nameMaximumLength } from "../app/features/accounts/account-limits.ts";
 import {
   classNameMaximumLength,
   startingCashLimits,
 } from "../app/features/classes/class-rules.ts";
 import { languageNames } from "../app/language-names.ts";
+import { addressesForOthers } from "../app/local-network.server.ts";
 import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
 import {
@@ -17,9 +18,11 @@ import {
   submitSignIn,
 } from "./accounts.ts";
 import { chooseLanguage } from "./choose-language.ts";
-import { createTestClass } from "./create-test-class.ts";
+import { createTestClass, readTestClass } from "./create-test-class.ts";
+import type { TestClass } from "./create-test-class.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 import { newDevice } from "./new-device.ts";
+import { publicServerUrl } from "./test-server.ts";
 import { wideWord } from "./wide-word.ts";
 
 // The longest names that Portolab accepts, each one word, so each screen that shows a name is checked with its widest content.
@@ -44,6 +47,9 @@ const texts: Record<
     taughtClass: string;
     shareNotice: string;
     addressLabel: string;
+    localNetworkNotice: string;
+    severalNetworksNotice: string;
+    noNetworkNotice: string;
     studentsTitle: string;
     noStudents: string;
     studentNotice: readonly [string, string, string];
@@ -101,6 +107,12 @@ const texts: Record<
     shareNotice:
       "Bagikan kode atau alamat ini kepada mahasiswa Anda. Setiap mahasiswa yang bergabung mulai dengan uang virtual sebesar Rp 1.000.000.000.000.",
     addressLabel: "Alamat untuk bergabung",
+    localNetworkNotice:
+      'Anda membuka Portolab di "localhost", yang hanya dapat dibuka oleh komputer ini. Karena itu, alamat untuk bergabung mengarah ke komputer ini di jaringannya, yang dapat dibuka oleh ponsel di jaringan Wi-Fi yang sama. Jika ponsel tidak dapat membukanya, firewall komputer ini atau jaringan Wi-Fi itu memblokir koneksinya. Izinkan koneksi itu di firewall, atau gunakan jaringan yang membolehkan perangkat saling terhubung, misalnya hotspot ponsel.',
+    severalNetworksNotice:
+      "Komputer ini terhubung ke beberapa jaringan, sehingga halaman ini menampilkan alamat di setiap jaringan, di bawah nama koneksinya. Berikan kepada mahasiswa Anda alamat di jaringan yang dipakai ponsel mereka.",
+    noNetworkNotice:
+      'Ponsel belum dapat membuka Portolab, karena Anda membukanya di "localhost", yang hanya dapat dibuka oleh komputer ini, dan komputer ini tidak terhubung ke jaringan mana pun. Hubungkan komputer ini ke jaringan Wi-Fi kelas, lalu muat ulang halaman ini.',
     studentsTitle: "Mahasiswa",
     noStudents: "Belum ada mahasiswa yang bergabung.",
     studentNotice: ['Masuk sebagai "', '". Bergabung pada ', " WIB."],
@@ -172,6 +184,12 @@ const texts: Record<
     shareNotice:
       "Share the code or the address with your students. Each student who joins starts with IDR 1,000,000,000,000 in virtual cash.",
     addressLabel: "Address for joining",
+    localNetworkNotice:
+      'You opened Portolab at "localhost", which only this computer can open. So the address for joining leads to this computer on its network, which phones on the same Wi-Fi network can open. When a phone cannot open it, the firewall of this computer or the Wi-Fi network blocks the connection. Allow the connection in the firewall, or use a network that lets devices reach each other, such as the hotspot of a phone.',
+    severalNetworksNotice:
+      "This computer is on several networks, so the page shows the address on each, under the name of its connection. Give your students the address on the network that their phones use.",
+    noNetworkNotice:
+      'Phones cannot open Portolab yet, because you opened it at "localhost", which only this computer can open, and this computer is on no network. Connect it to the Wi-Fi network of the class, then reload this page.',
     studentsTitle: "Students",
     noStudents: "No student has joined yet.",
     studentNotice: ['Signs in as "', '". Joined on ', " WIB."],
@@ -241,6 +259,16 @@ async function enterCode(
     .click();
 }
 
+/** Signs in with the chosen password on the sign-in page that a page sent the reader to, and checks that the sign-in page got the path of that page and returns there. */
+async function signInAndReturn(
+  page: Page,
+  { path, username }: { path: string; username: string },
+): Promise<void> {
+  await expect(page).toHaveURL(`/sign-in?returnTo=${encodeURIComponent(path)}`);
+  await submitSignIn(page, username, chosenPassword);
+  await expect(page).toHaveURL(path);
+}
+
 /** Signs out in another tab of the same device, so the session of the page that a test holds ends without the page knowing. */
 async function signOutInAnotherTab(page: Page): Promise<void> {
   const otherTab = await page.context().newPage();
@@ -268,12 +296,59 @@ async function expectUnknownCodeForm(
   await expectAccessibleScreen(page);
 }
 
+/** Checks the page of a class that its lecturer opened at localhost. It shows the address for joining on each network of this computer, which runs the test server, and a device of a student opens each at the page that joins the class. A computer on no network gets the notice that tells the lecturer to connect it instead. */
+async function expectAddressesForPhones(
+  page: Page,
+  browser: Browser,
+  { locale, testClass }: { locale: Locale; testClass: TestClass },
+): Promise<void> {
+  const text = texts[locale];
+  const forOthers = addressesForOthers(new URL(testClass.joinPath, page.url()));
+  switch (forOthers.kind) {
+    case "asOpened":
+      throw new Error(
+        `The test opened ${page.url()}, which other devices can open as well, so it cannot check the addresses on the local network.`,
+      );
+    case "noNetwork":
+      await expect(page.locator("main dd")).toHaveText([
+        testClass.joinCode,
+        text.noNetworkNotice,
+      ]);
+      return;
+    case "onLocalNetwork": {
+      await expect(page.getByText(text.localNetworkNotice)).toBeVisible();
+      await expect(page.getByText(text.severalNetworksNotice)).toHaveCount(
+        forOthers.addresses.length > 1 ? 1 : 0,
+      );
+      // The first value is the code, and an address for each network follows it.
+      const values = page.locator("main dd");
+      await expect(values).toHaveCount(1 + forOthers.addresses.length);
+      const student = await newDevice(browser, locale);
+      for (const [
+        index,
+        { connectionName, address },
+      ] of forOthers.addresses.entries()) {
+        const shown = values.nth(1 + index);
+        await expect(shown).toContainText(connectionName);
+        await expect(shown).toContainText(address);
+        await student.goto(address);
+        await expect(
+          student.getByRole("heading", { level: 1 }),
+          address,
+        ).toContainText(className);
+      }
+      await student.context().close();
+    }
+  }
+}
+
 for (const locale of locales) {
   const text = texts[locale];
   const language = languageNames[locale];
 
-  test(`creates a class, which shows the code and the address that students join with, in ${language}`, async ({
+  test(`creates a class, which shows the code and the addresses on the local network that phones join with, in ${language}`, async ({
     page,
+    browser,
   }) => {
     await chooseLanguage(page, locale);
     await signInAsNewLecturer(page, lecturerName);
@@ -323,7 +398,9 @@ for (const locale of locales) {
     await expect(
       page.getByText(text.codeFieldLabel, { exact: true }),
     ).toBeVisible();
-    await expect(page.getByText(text.addressLabel)).toBeVisible();
+    await expect(
+      page.getByText(text.addressLabel, { exact: true }),
+    ).toBeVisible();
     await expect(page.locator("main dd").nth(0)).toHaveText(
       /^[a-km-np-z2-9]{4}-[a-km-np-z2-9]{4}$/,
     );
@@ -332,18 +409,29 @@ for (const locale of locales) {
     ).toBeVisible();
     await expect(page.getByText(text.noStudents)).toBeVisible();
     await expectAccessibleScreen(page);
+    await expectAddressesForPhones(page, browser, {
+      locale,
+      testClass: await readTestClass(page),
+    });
   });
 
-  test(`lets a visitor join a class with its address by creating a student account in ${language}`, async ({
-    page,
+  test(`lets a visitor join a class on a public server with the address that its lecturer shares by creating a student account in ${language}`, async ({
     browser,
   }) => {
-    await chooseLanguage(page, locale);
-    const lecturerUsername = await signInAsNewLecturer(page, lecturerName);
-    const testClass = await createTestClass(page, className);
+    const lecturer = await newDevice(browser, locale, publicServerUrl);
+    const lecturerUsername = await signInAsNewLecturer(lecturer, lecturerName);
+    const testClass = await createTestClass(lecturer, className);
+    // A public server keeps the address that the lecturer opened, which the phone of a student opens as well.
+    const joinAddress = new URL(testClass.joinPath, publicServerUrl).href;
+    await expect(lecturer.locator("main dd")).toHaveText([
+      testClass.joinCode,
+      joinAddress,
+    ]);
+    await expect(lecturer.getByText(text.localNetworkNotice)).toHaveCount(0);
+    await expectAccessibleScreen(lecturer);
 
-    const student = await newDevice(browser, locale);
-    await student.goto(testClass.joinAddress);
+    const student = await newDevice(browser, locale, publicServerUrl);
+    await student.goto(joinAddress);
     await expect(student).toHaveTitle(`${text.joinClassTitle} | Portolab`);
     await expect(
       student.getByRole("heading", { level: 1, name: text.joinClassTitle }),
@@ -373,16 +461,18 @@ for (const locale of locales) {
     await expectAccessibleScreen(student);
 
     // A class can go away between the load of its page and the form, such as when the person who runs the server deletes it. The test sends the form to a code of no class to stand for that.
-    const joinPath = new URL(testClass.joinAddress).pathname;
     const isFormToJoin = (url: URL): boolean =>
-      url.pathname.startsWith(joinPath);
+      url.pathname.startsWith(testClass.joinPath);
     await student.route(isFormToJoin, async (route) => {
       if (route.request().method() !== "POST") {
         await route.fallback();
         return;
       }
       await route.continue({
-        url: route.request().url().replace(joinPath, "/join/aaaa-aaaa"),
+        url: route
+          .request()
+          .url()
+          .replace(testClass.joinPath, "/join/aaaa-aaaa"),
       });
     });
     await student
@@ -392,7 +482,7 @@ for (const locale of locales) {
     await expectUnknownCodeForm(student, locale, "aaaa-aaaa");
     await student.unroute(isFormToJoin);
 
-    await joinAsNewStudent(student, testClass.joinAddress, studentName);
+    await joinAsNewStudent(student, joinAddress, studentName);
     await expect(student).toHaveTitle(`${className} | Portolab`);
     await expect(student.getByText(text.taughtBy)).toBeVisible();
     await expect(student.getByText(text.startingCash)).toBeVisible();
@@ -414,9 +504,10 @@ for (const locale of locales) {
     ).toBeVisible();
     await student.context().close();
 
-    await page.goto("/classes");
-    await expect(page.getByText(text.taughtClass)).toBeVisible();
-    await expectAccessibleScreen(page);
+    await lecturer.goto("/classes");
+    await expect(lecturer.getByText(text.taughtClass)).toBeVisible();
+    await expectAccessibleScreen(lecturer);
+    await lecturer.context().close();
   });
 
   test(`lets a student who is signed in join with a code, and explains a wrong code, in ${language}`, async ({
@@ -438,7 +529,7 @@ for (const locale of locales) {
     ).toBeVisible();
     const username = await joinAsNewStudent(
       student,
-      first.joinAddress,
+      first.joinPath,
       studentName,
     );
     await student.goto("/join");
@@ -465,16 +556,11 @@ for (const locale of locales) {
     await student.context().close();
 
     const otherDevice = await newDevice(browser, locale);
-    const thirdJoinPath = new URL(third.joinAddress).pathname;
-    await otherDevice.goto(thirdJoinPath);
+    await otherDevice.goto(third.joinPath);
     await otherDevice
       .getByRole("link", { name: text.existingAccountLink })
       .click();
-    await expect(otherDevice).toHaveURL(
-      `/sign-in?returnTo=${encodeURIComponent(thirdJoinPath)}`,
-    );
-    await submitSignIn(otherDevice, username, chosenPassword);
-    await expect(otherDevice).toHaveURL(thirdJoinPath);
+    await signInAndReturn(otherDevice, { path: third.joinPath, username });
     await expect(otherDevice).toHaveTitle(`${text.joinClassTitle} | Portolab`);
     await expect(otherDevice.getByText(text.joinClassBody)).toBeVisible();
     await expectAccessibleScreen(otherDevice);
@@ -485,11 +571,7 @@ for (const locale of locales) {
       .getByRole("main")
       .getByRole("button", { name: text.joinButton })
       .click();
-    await expect(otherDevice).toHaveURL(
-      `/sign-in?returnTo=${encodeURIComponent(thirdJoinPath)}`,
-    );
-    await submitSignIn(otherDevice, username, chosenPassword);
-    await expect(otherDevice).toHaveURL(thirdJoinPath);
+    await signInAndReturn(otherDevice, { path: third.joinPath, username });
     await otherDevice
       .getByRole("main")
       .getByRole("button", { name: text.joinButton })
@@ -513,10 +595,10 @@ for (const locale of locales) {
     const student = await newDevice(browser, locale);
     const username = await joinAsNewStudent(
       student,
-      testClass.joinAddress,
+      testClass.joinPath,
       studentName,
     );
-    await student.goto(testClass.joinAddress);
+    await student.goto(testClass.joinPath);
     await expect(student).toHaveURL(testClass.path);
 
     await page.goto(testClass.path);
@@ -565,7 +647,7 @@ for (const locale of locales) {
     await signInAsNewLecturer(page, lecturerName);
     const testClass = await createTestClass(page, className);
     const member = await newDevice(browser, locale);
-    await joinAsNewStudent(member, testClass.joinAddress, studentName);
+    await joinAsNewStudent(member, testClass.joinPath, studentName);
     await page.goto(testClass.path);
     const resetPath = await page
       .getByRole("link", { name: text.resetLink })
@@ -580,7 +662,7 @@ for (const locale of locales) {
     await signInAsNewLecturer(otherLecturer, lecturerName);
     const otherClass = await createTestClass(otherLecturer, otherClassName);
     const outsider = await newDevice(browser, locale);
-    await joinAsNewStudent(outsider, otherClass.joinAddress, studentName);
+    await joinAsNewStudent(outsider, otherClass.joinPath, studentName);
 
     for (const [device, path] of [
       [otherLecturer, testClass.path],
@@ -629,7 +711,7 @@ for (const locale of locales) {
     await expect(member.getByText(text.lecturerOnly)).toBeVisible();
     await expectAccessibleScreen(member);
 
-    for (const path of ["/join", testClass.joinAddress]) {
+    for (const path of ["/join", testClass.joinPath]) {
       const response = await otherLecturer.goto(path);
       expect(response?.status(), path).toBe(403);
       await expect(otherLecturer).toHaveTitle(
@@ -651,7 +733,7 @@ for (const locale of locales) {
       .getByRole("button", { name: text.signOutButton })
       .click();
     await expect(otherLecturer).toHaveURL("/");
-    await otherLecturer.goto(testClass.joinAddress);
+    await otherLecturer.goto(testClass.joinPath);
     await expect(
       otherLecturer.getByRole("heading", {
         level: 2,

@@ -3,6 +3,7 @@
   "include": [
     "e2e/**/*",
     "app/language-names.ts",
+    "app/local-network.server.ts",
     "app/paraglide/runtime.d.ts",
     "app/result.ts",
     "app/sentences.ts",
