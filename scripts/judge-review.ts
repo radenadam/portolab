@@ -134,19 +134,35 @@ const expectedJobs: Record<ReviewPlan["kind"], string[]> = {
   capped: ["plan"],
 };
 
-/** Returns a sentence that names every job that the plan needs and that did not succeed, with its result. */
+/** Returns a sentence that says what happened to every job that the plan needs and that did not succeed. Only a job that ran has a log with the reason, because GitHub skips a job after a job that it needs did not succeed. */
 function unsuccessfulJobs(
   plan: ReviewPlan,
   jobResults: Record<string, string>,
 ): string | undefined {
-  const failed = expectedJobs[plan.kind].filter(
+  const unsuccessful = expectedJobs[plan.kind].filter(
     (job) => jobResults[job] !== "success",
   );
-  if (failed.length === 0) {
+  if (unsuccessful.length === 0) {
     return undefined;
   }
-  const results = failed.map((job) => `"${jobResults[job] ?? "missing"}"`);
-  return `The ${listOfWords(failed)} ${singularOrPlural(failed.length, "job", "jobs")} ended with the ${singularOrPlural(failed.length, "result", "results")} ${listOfWords(results)}, so this round has not finished. ${singularOrPlural(failed.length, "Its log names", "Their logs name")} the reason.`;
+  const outcomes: string[] = [];
+  const withLogs: string[] = [];
+  for (const job of unsuccessful) {
+    const result = jobResults[job];
+    if (result === undefined) {
+      outcomes.push(`the ${job} job has no result`);
+    } else if (result === "skipped") {
+      outcomes.push(`the ${job} job was skipped`);
+    } else {
+      outcomes.push(`the ${job} job ended with the result "${result}"`);
+      withLogs.push(job);
+    }
+  }
+  const nextStep =
+    withLogs.length === 0
+      ? ""
+      : ` The ${singularOrPlural(withLogs.length, "log", "logs")} of the ${listOfWords(withLogs)} ${singularOrPlural(withLogs.length, "job names", "jobs name")} the reason.`;
+  return `In this round, ${listOfWords(outcomes)}, so the round has not finished.${nextStep}`;
 }
 
 /** Returns a sentence when a round that runs an agent has no report, or when the reviewer's report does not account for its work. */

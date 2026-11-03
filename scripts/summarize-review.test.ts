@@ -587,30 +587,33 @@ test("refuses a review or an issue just past the length that GitHub takes, and a
   );
 });
 
-test("fails a round when several jobs or one job that the plan needs did not succeed, even after an answer", () => {
+test("fails a round when a job that the plan needs did not succeed, even after an answer, and points only at the logs of the jobs that ran", () => {
   const review = planReview(stateBeforeFirstRound, undefined, [docs]);
-  const several = summarizeReview({
-    ...input(review, [], undefined),
-    jobResults: { plan: "success", reviewer: "failure", verifier: "skipped" },
-  });
-  expect(several.passed).toBe(false);
-  expect(several.verdict).toBe(
-    'The reviewer and verifier jobs ended with the results "failure" and "skipped", so this round has not finished. Their logs name the reason.',
-  );
-  const check = planReview(
-    stateAfter(reviewRoundLimit, [finding("1.1")]),
-    earlierHead,
-    [docs],
-  );
-  const one = summarizeReview({
-    ...input(check, [finding("1.1")], [verdict("1.1", "refuted")]),
-    jobResults: { plan: "success", reviewer: "skipped", verifier: "failure" },
-  });
-  expect(one.verdict).toBe(
-    'The verifier job ended with the result "failure", so this round has not finished. Its log names the reason.',
-  );
-  expect(one.state).toEqual({
-    ...stateAfter(reviewRoundLimit, [finding("1.1")]),
-    round: reviewRoundLimit + 1,
-  });
+  const cases: [Record<string, string>, string][] = [
+    [
+      { plan: "success", reviewer: "success", verifier: "failure" },
+      'In this round, the verifier job ended with the result "failure", so the round has not finished. The log of the verifier job names the reason.',
+    ],
+    [
+      { plan: "success", reviewer: "failure", verifier: "skipped" },
+      'In this round, the reviewer job ended with the result "failure" and the verifier job was skipped, so the round has not finished. The log of the reviewer job names the reason.',
+    ],
+    [
+      { plan: "success", reviewer: "failure", verifier: "cancelled" },
+      'In this round, the reviewer job ended with the result "failure" and the verifier job ended with the result "cancelled", so the round has not finished. The logs of the reviewer and verifier jobs name the reason.',
+    ],
+    [
+      { plan: "success", reviewer: "skipped" },
+      "In this round, the reviewer job was skipped and the verifier job has no result, so the round has not finished.",
+    ],
+  ];
+  for (const [jobResults, sentence] of cases) {
+    const outcome = summarizeReview({
+      ...input(review, [], undefined),
+      jobResults,
+    });
+    expect(outcome.passed).toBe(false);
+    expect(outcome.verdict).toBe(sentence);
+    expect(outcome.state).toEqual({ ...stateBeforeFirstRound, round: 1 });
+  }
 });

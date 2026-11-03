@@ -14,7 +14,7 @@ The review panel ran a router agent, an agent for each lens that applied, and a 
 - **Incremental rounds.** Each review records the head that it covered and the findings that stay open, in a marker that only the workflow's account can write. The next round reviews only the files that the commits of the pull request changed since that head, and the verifier checks whether each open finding is fixed. A push that changes no file under review runs no agent.
 - **Scope.** A finding blocks the merge only when the change causes it or leaves it incomplete. The job opens an issue for the verified findings outside the change and for the candidate standards, and a pull request of their own handles them. The defect protocol sweeps every other instance in that pull request too.
 - **Caps.** A round whose agent did not finish counts toward the review rounds that `scripts/review-plan.ts` allows. After them, a round only checks the open findings, and a change that no round may read fails. After the rounds that check, the job fails without an agent, and the pull request goes to a maintainer.
-- **Measure.** Each review states the duration and the turns of each agent, which the job of the agent reads from its transcript. An agent could change them, as it can change every later step of its job, so they serve to compare rounds and never decide the verdict.
+- **Measure.** Each review states the duration and the turns of each agent, which the job of the agent reads from its transcript. An agent could change them, as it can change every later step of its job, so they serve to compare rounds. A measure that cannot be read fails the round, like any output of a job that cannot be read.
 
 ## Alternatives
 
