@@ -14,10 +14,12 @@ import { switchLocaleForTest } from "~/switch-locale-for-test";
 import { cumulativeReturn } from "~/units/cumulative-return";
 import { rupiah } from "~/units/rupiah";
 import { shares } from "~/units/shares";
+import type { ClassId } from "~/features/classes/classes.schema";
 import type { Holding } from "./holding-after-fill";
 import type { HistoryEnd, ReturnPoint } from "./portfolio-history";
 import { PortfolioView } from "./portfolio-view";
 import type { PortfolioReport } from "./read-portfolio-report.server";
+import type { PortfolioReader } from "./text-for-reader";
 import { valuePortfolio } from "./value-portfolio";
 
 // The portfolio that tradedPortfolioForTest leaves on Tuesday 3 November 2026, valued at the delayed price of Rp4,840 quoted at 09:55 WIB, and its returns at the closes of 30 October, 2 November, and 3 November, which the tests of portfolio-history.ts give with the values of the decimal module of Python. Intl puts a no-break space after the currency, which the texts write as \u00a0.
@@ -83,10 +85,25 @@ function reportForTest(changes: Partial<PortfolioReport>): PortfolioReport {
   };
 }
 
+// The student who owns the portfolio reads about "your" portfolio, and the lecturer of the class reads about the portfolio of the student by name.
+const readers: Record<PortfolioReader["kind"], PortfolioReader> = {
+  owner: { kind: "owner", classId: 7 as ClassId },
+  lecturer: { kind: "lecturer", studentName: "Siti Rahayu" },
+};
+
 // The names of the classes of CSS modules carry a hash, so the texts compare the markup without them.
-function render(report: PortfolioReport, now = wednesday): string {
+function renderView(
+  report: PortfolioReport,
+  reader: PortfolioReader,
+  now = wednesday,
+): string {
   return renderToStaticMarkup(
-    <PortfolioView report={report} now={now} source={yahooFinance} />,
+    <PortfolioView
+      report={report}
+      reader={reader}
+      now={now}
+      source={yahooFinance}
+    />,
   ).replaceAll(/ class="[^"]*"/g, "");
 }
 
@@ -103,9 +120,7 @@ function definitions(pairs: readonly (readonly [string, string])[]): string {
 const labels: Record<
   Locale,
   {
-    valueTitle: string;
     cash: string;
-    holdingsValue: string;
     totalValue: string;
     startingCash: string;
     return: string;
@@ -116,15 +131,12 @@ const labels: Record<
     value: string;
     gain: string;
     gainReturn: string;
-    portfolioSeries: string;
     tradingDay: string;
     returnsTable: string;
   }
 > = {
   id: {
-    valueTitle: "Nilai portofolio Anda",
     cash: "Kas",
-    holdingsValue: "Nilai saham yang Anda pegang",
     totalValue: "Nilai total",
     startingCash: "Kas awal",
     return: "Imbal hasil sejak awal",
@@ -135,14 +147,11 @@ const labels: Record<
     value: "Nilai",
     gain: "Untung atau rugi",
     gainReturn: "Imbal hasil atas biaya",
-    portfolioSeries: "Portofolio Anda",
     tradingDay: "Hari bursa",
     returnsTable: "Imbal hasil pada setiap penutupan",
   },
   en: {
-    valueTitle: "Value of your portfolio",
     cash: "Cash",
-    holdingsValue: "Value of your holdings",
     totalValue: "Total value",
     startingCash: "Starting cash",
     return: "Return since the start",
@@ -153,7 +162,6 @@ const labels: Record<
     value: "Value",
     gain: "Gain or loss",
     gainReturn: "Return on the cost",
-    portfolioSeries: "Your portfolio",
     tradingDay: "Trading day",
     returnsTable: "The return at each close",
   },
@@ -224,31 +232,20 @@ const values: Record<
 const texts: Record<
   Locale,
   {
-    valuationNotice: string;
-    returnTitle: string;
-    chartNotice: string;
     waiting: string;
     credit: string;
-    noHoldings: string;
     missingStart: string;
     oneUnpriced: string;
     severalUnpriced: string;
     unpricedHolding: string;
     severalMissingCloses: string;
-    calendarMissing: string;
     quoteFailure: string;
   }
 > = {
   id: {
-    valuationNotice:
-      "Portofolio Anda adalah simulasi dengan uang virtual. Portolab menilai setiap saham yang Anda pegang pada harga tertunda terakhir dari Yahoo Finance, sekitar 10 menit di belakang BEI, sehingga nilainya dapat berbeda dari nilai di bursa pada saat yang sama.",
-    returnTitle: "<h2>Imbal hasil Anda dibandingkan IHSG</h2>",
-    chartNotice:
-      "Grafik dan tabel di bawah membandingkan imbal hasil portofolio Anda dengan imbal hasil IHSG sejak penutupan 30 Oktober 2026, sebelum Anda dapat bertransaksi. Setiap imbal hasilnya memakai harga penutupan final pada harinya.",
     waiting:
       "Harga tanggal 4 November 2026 menjadi final pada pukul 16.26 WIB, dan Portolab menampilkan imbal hasil mulai hari itu setelah pembaruan riwayat harga menyimpan harga penutupan hari itu atau hari sesudahnya.",
     credit: "Grafik: TradingView Lightweight Charts™ © 2025 TradingView, Inc.",
-    noHoldings: "Anda belum memegang saham.",
     missingStart:
       "Portolab belum menyimpan harga penutupan IHSG pada 30 Oktober 2026. Portolab menampilkan imbal hasil mulai hari itu setelah pembaruan riwayat harga menyimpan harga penutupan IHSG pada hari itu atau hari sesudahnya.",
     oneUnpriced:
@@ -258,21 +255,13 @@ const texts: Record<
     unpricedHolding: "Portolab belum memiliki harga tertunda TLKM.",
     severalMissingCloses:
       "Portolab belum menyimpan harga penutupan IHSG dan BBCA pada 4 November 2026. Portolab menampilkan imbal hasil mulai hari itu setelah pembaruan riwayat harga menyimpan harga penutupan masing-masing pada hari itu atau hari sesudahnya.",
-    calendarMissing:
-      "Portolab belum dapat menampilkan imbal hasil hari bursa berikutnya, karena kalender perdagangan BEI untuk hari itu belum tercatat. Beri tahu dosen Anda agar kalender tersebut dapat ditambahkan.",
     quoteFailure:
-      "Portolab tidak dapat memperbarui harga BBCA pada 3 Nov 2026, 10.30 WIB, jadi harganya di bawah adalah harga terakhir yang tersimpan. Portolab mencoba lagi pada 3 Nov 2026, 10.31 WIB.",
+      "Portolab tidak dapat memperbarui harga BBCA pada 3 Nov 2026, 10.30 WIB, jadi Portolab memakai harga terakhir BBCA yang tersimpan. Portolab mencoba lagi pada 3 Nov 2026, 10.31 WIB.",
   },
   en: {
-    valuationNotice:
-      "Your portfolio is a simulation with virtual cash. Portolab values each holding at the latest delayed price from Yahoo Finance, about 10 minutes behind IDX, so a value can differ from the value on the exchange at the same moment.",
-    returnTitle: "<h2>Your return against the IHSG</h2>",
-    chartNotice:
-      "The chart and the table below compare the return of your portfolio with the return of the IHSG since the close of October 30, 2026, before you could trade. Each of their returns uses the final closes of its day.",
     waiting:
       "The prices of November 4, 2026 become final at 4:26 PM WIB, and Portolab shows the returns from that day on once an update of the price history stores closes of that day or of a later day.",
     credit: "Chart: TradingView Lightweight Charts™ © 2025 TradingView, Inc.",
-    noHoldings: "You hold no shares yet.",
     missingStart:
       "Portolab has not stored the close of IHSG on October 30, 2026 yet. It shows the returns from that day on once an update of the price history stores a close of IHSG on that day or on a later day.",
     oneUnpriced:
@@ -282,184 +271,272 @@ const texts: Record<
     unpricedHolding: "Portolab has no delayed price of TLKM yet.",
     severalMissingCloses:
       "Portolab has not stored the closes of IHSG and BBCA on November 4, 2026 yet. It shows the returns from that day on once an update of the price history stores a close of each of them on that day or on a later day.",
-    calendarMissing:
-      "Portolab cannot show the return of the next trading day, because it has not recorded the trading calendar of IDX for that day. Tell your lecturer, so that the calendar can be added.",
     quoteFailure:
-      "Portolab could not update the price of BBCA at Nov 3, 2026, 10:30 AM WIB, so the BBCA price below is the last one it stored. Portolab tries again at Nov 3, 2026, 10:31 AM WIB.",
+      "Portolab could not update the price of BBCA at Nov 3, 2026, 10:30 AM WIB, so it uses the last price of BBCA that it stored. Portolab tries again at Nov 3, 2026, 10:31 AM WIB.",
+  },
+};
+
+// The texts that differ between the readers of the portfolio.
+const readerTexts: Record<
+  Locale,
+  Record<
+    PortfolioReader["kind"],
+    {
+      valuationNotice: string;
+      valueTitle: string;
+      holdingsValue: string;
+      holdingsTitle: string;
+      noHoldings: string;
+      returnTitle: string;
+      chartNotice: string;
+      portfolioSeries: string;
+      calendarMissing: string;
+    }
+  >
+> = {
+  id: {
+    owner: {
+      valuationNotice:
+        "Portofolio Anda adalah simulasi dengan uang virtual. Portolab menilai setiap saham yang Anda pegang pada harga tertunda terakhir dari Yahoo Finance, sekitar 10 menit di belakang BEI, sehingga nilainya dapat berbeda dari nilai di bursa pada saat yang sama.",
+      valueTitle: "Nilai portofolio Anda",
+      holdingsValue: "Nilai saham yang Anda pegang",
+      holdingsTitle: "Saham yang Anda pegang",
+      noHoldings: "Anda belum memegang saham.",
+      returnTitle: "Imbal hasil Anda dibandingkan IHSG",
+      chartNotice:
+        "Grafik dan tabel di bawah membandingkan imbal hasil portofolio Anda dengan imbal hasil IHSG sejak penutupan 30 Oktober 2026, sebelum Anda dapat bertransaksi. Setiap imbal hasilnya memakai harga penutupan final pada harinya.",
+      portfolioSeries: "Portofolio Anda",
+      calendarMissing:
+        "Portolab belum dapat menampilkan imbal hasil hari bursa berikutnya, karena kalender perdagangan BEI untuk hari itu belum tercatat. Beri tahu dosen Anda agar kalender tersebut dapat ditambahkan.",
+    },
+    lecturer: {
+      valuationNotice:
+        "Portofolio Siti Rahayu adalah simulasi dengan uang virtual. Portolab menilai setiap saham yang dipegangnya pada harga tertunda terakhir dari Yahoo Finance, sekitar 10 menit di belakang BEI, sehingga nilainya dapat berbeda dari nilai di bursa pada saat yang sama.",
+      valueTitle: "Nilai portofolio",
+      holdingsValue: "Nilai saham yang dipegang",
+      holdingsTitle: "Saham yang dipegang",
+      noHoldings: "Siti Rahayu belum memegang saham.",
+      returnTitle: "Imbal hasil dibandingkan IHSG",
+      chartNotice:
+        "Grafik dan tabel di bawah membandingkan imbal hasil portofolio Siti Rahayu dengan imbal hasil IHSG sejak penutupan 30 Oktober 2026, sebelum Siti Rahayu dapat bertransaksi. Setiap imbal hasilnya memakai harga penutupan final pada harinya.",
+      portfolioSeries: "Portofolio",
+      calendarMissing:
+        "Portolab belum dapat menampilkan imbal hasil hari bursa berikutnya, karena kalender perdagangan BEI untuk hari itu belum tercatat. Beri tahu orang yang menjalankan server Portolab ini agar kalender tersebut dapat ditambahkan.",
+    },
+  },
+  en: {
+    owner: {
+      valuationNotice:
+        "Your portfolio is a simulation with virtual cash. Portolab values each holding at the latest delayed price from Yahoo Finance, about 10 minutes behind IDX, so a value can differ from the value on the exchange at the same moment.",
+      valueTitle: "Value of your portfolio",
+      holdingsValue: "Value of your holdings",
+      holdingsTitle: "Your holdings",
+      noHoldings: "You hold no shares yet.",
+      returnTitle: "Your return against the IHSG",
+      chartNotice:
+        "The chart and the table below compare the return of your portfolio with the return of the IHSG since the close of October 30, 2026, before you could trade. Each of their returns uses the final closes of its day.",
+      portfolioSeries: "Your portfolio",
+      calendarMissing:
+        "Portolab cannot show the return of the next trading day, because it has not recorded the trading calendar of IDX for that day. Tell your lecturer, so that the calendar can be added.",
+    },
+    lecturer: {
+      valuationNotice:
+        "The portfolio of Siti Rahayu is a simulation with virtual cash. Portolab values each holding at the latest delayed price from Yahoo Finance, about 10 minutes behind IDX, so a value can differ from the value on the exchange at the same moment.",
+      valueTitle: "Value of the portfolio",
+      holdingsValue: "Value of the holdings",
+      holdingsTitle: "Holdings",
+      noHoldings: "Siti Rahayu holds no shares yet.",
+      returnTitle: "Return against the IHSG",
+      chartNotice:
+        "The chart and the table below compare the return of the portfolio of Siti Rahayu with the return of the IHSG since the close of October 30, 2026, before Siti Rahayu could trade. Each of their returns uses the final closes of its day.",
+      portfolioSeries: "Portfolio",
+      calendarMissing:
+        "Portolab cannot show the return of the next trading day, because it has not recorded the trading calendar of IDX for that day. Tell the person who runs this Portolab server, so that the calendar can be added.",
+    },
   },
 };
 
 for (const locale of locales) {
-  const text = texts[locale];
-  const label = labels[locale];
-  const value = values[locale];
-  const language = languageNames[locale];
+  for (const [readerKind, reader] of Object.entries(readers)) {
+    const text = texts[locale];
+    const label = labels[locale];
+    const value = values[locale];
+    const readerText = readerTexts[locale][reader.kind];
+    const language = `${languageNames[locale]}, for the ${readerKind}`;
+    const render = (report: PortfolioReport, now?: Date): string =>
+      renderView(report, reader, now);
 
-  test(`shows the value of each holding at its delayed price, the return since the start, and the returns of the portfolio and the IHSG at each close, in ${language}`, () => {
-    switchLocaleForTest(locale);
-    const html = render(reportForTest({}));
-    for (const part of [
-      `<p>${text.valuationNotice}</p>`,
-      `<h2>${label.valueTitle}</h2>`,
-      definitions([
-        [label.cash, value.cash],
-        [label.holdingsValue, value.holdingsValue],
-        [label.totalValue, value.totalValue],
-        [label.startingCash, value.startingCash],
-        [label.return, value.return],
-      ]),
-      ">BBCA</p>",
-      definitions([
-        [label.shares, value.shares],
-        [label.cost, value.cost],
-        [label.delayedPrice, value.delayedPrice],
-        [label.quotedAt, value.quotedAt],
-        [label.value, value.holdingsValue],
-        [label.gain, value.gain],
-        [label.gainReturn, value.gainReturn],
-      ]),
-      text.returnTitle,
-      text.chartNotice,
-      `<li>${label.portfolioSeries}</li><li>IHSG</li>`,
-      `<summary>${label.returnsTable}</summary>`,
-      `<tr><th scope="col">${label.tradingDay}</th><th scope="col">${label.portfolioSeries}</th><th scope="col">IHSG</th></tr>`,
-      ...value.rows.map(
-        ([date, portfolio, market]) =>
-          `<tr><th scope="row">${date}</th><td>${portfolio}</td><td>${market}</td></tr>`,
-      ),
-      text.waiting,
-      `<a href="https://www.tradingview.com/">${text.credit}</a>`,
-    ]) {
-      expect(html).toContain(part);
-    }
-    expect(html).not.toContain(text.quoteFailure);
-  });
-
-  test(`shows a portfolio of cash alone, and no chart while the close of the IHSG at the start is not stored, in ${language}`, () => {
-    switchLocaleForTest(locale);
-    const html = render(
-      reportForTest({
-        valuation: valuePortfolio(
-          { cash: startingCash, holdings: [] },
-          startingCash,
-          quotesByCode([]),
+    test(`shows the value of each holding at its delayed price, the return since the start, and the returns of the portfolio and the IHSG at each close, in ${language}`, () => {
+      switchLocaleForTest(locale);
+      const html = render(reportForTest({}));
+      for (const part of [
+        `<p>${readerText.valuationNotice}</p>`,
+        `<h2>${readerText.valueTitle}</h2>`,
+        definitions([
+          [label.cash, value.cash],
+          [readerText.holdingsValue, value.holdingsValue],
+          [label.totalValue, value.totalValue],
+          [label.startingCash, value.startingCash],
+          [label.return, value.return],
+        ]),
+        `<h2>${readerText.holdingsTitle}</h2>`,
+        ">BBCA</p>",
+        definitions([
+          [label.shares, value.shares],
+          [label.cost, value.cost],
+          [label.delayedPrice, value.delayedPrice],
+          [label.quotedAt, value.quotedAt],
+          [label.value, value.holdingsValue],
+          [label.gain, value.gain],
+          [label.gainReturn, value.gainReturn],
+        ]),
+        `<h2>${readerText.returnTitle}</h2>`,
+        readerText.chartNotice,
+        `<li>${readerText.portfolioSeries}</li><li>IHSG</li>`,
+        `<summary>${label.returnsTable}</summary>`,
+        `<tr><th scope="col">${label.tradingDay}</th><th scope="col">${readerText.portfolioSeries}</th><th scope="col">IHSG</th></tr>`,
+        ...value.rows.map(
+          ([date, portfolio, market]) =>
+            `<tr><th scope="row">${date}</th><td>${portfolio}</td><td>${market}</td></tr>`,
         ),
-        history: succeed({
-          points: [],
-          end: { kind: "missingCloses", date: "2026-10-30", codes: ["IHSG"] },
-        }),
-      }),
-    );
-    expect(html).toContain(
-      definitions([
-        [label.cash, value.startingCash],
-        [label.holdingsValue, value.noHoldingsValue],
-        [label.totalValue, value.startingCash],
-        [label.startingCash, value.startingCash],
-        [label.return, value.noReturn],
-      ]),
-    );
-    expect(html).toContain(`<p>${text.noHoldings}</p>`);
-    expect(html).toContain(text.missingStart);
-    expect(html).not.toContain(text.chartNotice);
-    expect(html).not.toContain(label.returnsTable);
-    expect(html).not.toContain(text.credit);
-  });
+        text.waiting,
+        `<a href="https://www.tradingview.com/">${text.credit}</a>`,
+      ]) {
+        expect(html).toContain(part);
+      }
+      expect(html).not.toContain(text.quoteFailure);
+    });
 
-  test(`shows no total while one holding or several have no delayed price, in ${language}`, () => {
-    switchLocaleForTest(locale);
-    const withOne = render(
-      reportForTest({
-        valuation: valuePortfolio(
-          { cash: rupiah(48_529_600), holdings: [bbcaHolding, tlkmHolding] },
-          startingCash,
-          quotesByCode([bbcaQuote]),
-        ),
-      }),
-    );
-    expect(withOne).toContain(
-      `<dl>${definitions([
-        [label.cash, value.cash],
-        [label.startingCash, value.startingCash],
-      ])}</dl><p>${text.oneUnpriced}</p>`,
-    );
-    expect(withOne).toContain(text.unpricedHolding);
-    const withSeveral = render(
-      reportForTest({
-        valuation: valuePortfolio(
-          { cash: rupiah(48_529_600), holdings: [bbcaHolding, tlkmHolding] },
-          startingCash,
-          quotesByCode([]),
-        ),
-      }),
-    );
-    expect(withSeveral).toContain(`<p>${text.severalUnpriced}</p>`);
-  });
-
-  test(`names the closes that end the chart, and a missing calendar after the chart or before it, in ${language}`, () => {
-    switchLocaleForTest(locale);
-    expect(
-      render(
+    test(`shows a portfolio of cash alone, and no chart while the close of the IHSG at the start is not stored, in ${language}`, () => {
+      switchLocaleForTest(locale);
+      const html = render(
         reportForTest({
+          valuation: valuePortfolio(
+            { cash: startingCash, holdings: [] },
+            startingCash,
+            quotesByCode([]),
+          ),
           history: succeed({
-            points,
-            end: {
-              kind: "missingCloses",
-              date: "2026-11-04",
-              codes: ["IHSG", "BBCA"],
-            },
+            points: [],
+            end: { kind: "missingCloses", date: "2026-10-30", codes: ["IHSG"] },
           }),
         }),
-      ),
-    ).toContain(text.severalMissingCloses);
-    const afterChart = render(
-      reportForTest({
-        history: succeed({ points, end: { kind: "missingCalendar" } }),
-      }),
-    );
-    expect(afterChart).toContain(text.chartNotice);
-    expect(afterChart).toContain(text.calendarMissing);
-    const withoutChart = render(
-      reportForTest({ history: fail({ kind: "missingCalendar" }) }),
-    );
-    expect(withoutChart).toContain(text.calendarMissing);
-    expect(withoutChart).not.toContain(text.chartNotice);
-  });
-
-  test(`shows each end of the returns, also before the first return, without a chart, in ${language}`, () => {
-    switchLocaleForTest(locale);
-    const ends: [HistoryEnd, string][] = [
-      [waitingForWednesday, text.waiting],
-      [
-        { kind: "missingCloses", date: "2026-11-04", codes: ["IHSG", "BBCA"] },
-        text.severalMissingCloses,
-      ],
-      [{ kind: "missingCalendar" }, text.calendarMissing],
-    ];
-    for (const [end, sentence] of ends) {
-      const html = render(
-        reportForTest({ history: succeed({ points: [], end }) }),
       );
-      expect(html).toContain(`<p>${sentence}</p>`);
-      expect(html).not.toContain(text.chartNotice);
+      expect(html).toContain(
+        definitions([
+          [label.cash, value.startingCash],
+          [readerText.holdingsValue, value.noHoldingsValue],
+          [label.totalValue, value.startingCash],
+          [label.startingCash, value.startingCash],
+          [label.return, value.noReturn],
+        ]),
+      );
+      expect(html).toContain(`<p>${readerText.noHoldings}</p>`);
+      expect(html).toContain(text.missingStart);
+      expect(html).not.toContain(readerText.chartNotice);
       expect(html).not.toContain(label.returnsTable);
-    }
-  });
+      expect(html).not.toContain(text.credit);
+    });
 
-  test(`names the price of a holding that the latest update of prices could not fetch, in ${language}`, () => {
-    switchLocaleForTest(locale);
-    // A partial update at 10:30 WIB on Tuesday 3 November 2026, seen half a minute later.
-    const attempt: UpdateAttempt = {
-      attemptedAt: new Date("2026-11-03T03:30:00Z"),
-      succeeded: true,
-      consecutiveFailures: 0,
-      failedCodes: ["BBCA"],
-    };
-    expect(
-      render(
-        reportForTest({ quoteAttempt: attempt }),
-        new Date("2026-11-03T03:30:30Z"),
-      ),
-    ).toContain(text.quoteFailure);
-  });
+    test(`shows no total while one holding or several have no delayed price, in ${language}`, () => {
+      switchLocaleForTest(locale);
+      const withOne = render(
+        reportForTest({
+          valuation: valuePortfolio(
+            { cash: rupiah(48_529_600), holdings: [bbcaHolding, tlkmHolding] },
+            startingCash,
+            quotesByCode([bbcaQuote]),
+          ),
+        }),
+      );
+      expect(withOne).toContain(
+        `<dl>${definitions([
+          [label.cash, value.cash],
+          [label.startingCash, value.startingCash],
+        ])}</dl><p>${text.oneUnpriced}</p>`,
+      );
+      expect(withOne).toContain(text.unpricedHolding);
+      const withSeveral = render(
+        reportForTest({
+          valuation: valuePortfolio(
+            { cash: rupiah(48_529_600), holdings: [bbcaHolding, tlkmHolding] },
+            startingCash,
+            quotesByCode([]),
+          ),
+        }),
+      );
+      expect(withSeveral).toContain(`<p>${text.severalUnpriced}</p>`);
+    });
+
+    test(`names the closes that end the chart, and a missing calendar after the chart or before it, in ${language}`, () => {
+      switchLocaleForTest(locale);
+      expect(
+        render(
+          reportForTest({
+            history: succeed({
+              points,
+              end: {
+                kind: "missingCloses",
+                date: "2026-11-04",
+                codes: ["IHSG", "BBCA"],
+              },
+            }),
+          }),
+        ),
+      ).toContain(text.severalMissingCloses);
+      const afterChart = render(
+        reportForTest({
+          history: succeed({ points, end: { kind: "missingCalendar" } }),
+        }),
+      );
+      expect(afterChart).toContain(readerText.chartNotice);
+      expect(afterChart).toContain(readerText.calendarMissing);
+      const withoutChart = render(
+        reportForTest({ history: fail({ kind: "missingCalendar" }) }),
+      );
+      expect(withoutChart).toContain(readerText.calendarMissing);
+      expect(withoutChart).not.toContain(readerText.chartNotice);
+    });
+
+    test(`shows each end of the returns, also before the first return, without a chart, in ${language}`, () => {
+      switchLocaleForTest(locale);
+      const ends: [HistoryEnd, string][] = [
+        [waitingForWednesday, text.waiting],
+        [
+          {
+            kind: "missingCloses",
+            date: "2026-11-04",
+            codes: ["IHSG", "BBCA"],
+          },
+          text.severalMissingCloses,
+        ],
+        [{ kind: "missingCalendar" }, readerText.calendarMissing],
+      ];
+      for (const [end, sentence] of ends) {
+        const html = render(
+          reportForTest({ history: succeed({ points: [], end }) }),
+        );
+        expect(html).toContain(`<p>${sentence}</p>`);
+        expect(html).not.toContain(readerText.chartNotice);
+        expect(html).not.toContain(label.returnsTable);
+      }
+    });
+
+    test(`names the price of a holding that the latest update of prices could not fetch, in ${language}`, () => {
+      switchLocaleForTest(locale);
+      // A partial update at 10:30 WIB on Tuesday 3 November 2026, seen half a minute later.
+      const attempt: UpdateAttempt = {
+        attemptedAt: new Date("2026-11-03T03:30:00Z"),
+        succeeded: true,
+        consecutiveFailures: 0,
+        failedCodes: ["BBCA"],
+      };
+      expect(
+        render(
+          reportForTest({ quoteAttempt: attempt }),
+          new Date("2026-11-03T03:30:30Z"),
+        ),
+      ).toContain(text.quoteFailure);
+    });
+  }
 }

@@ -271,7 +271,7 @@ for (const locale of locales) {
     await expectMissingClassPages(page, browser, {
       locale,
       notFoundTitle: text.notFoundTitle,
-      addresses: (classPath) => [
+      addresses: ({ classPath }) => [
         { reader: "lecturer", path: `${classPath}/portfolio` },
         { reader: "student", path: "/classes/999999999/portfolio" },
       ],

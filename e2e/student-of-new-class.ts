@@ -1,8 +1,6 @@
 import type { Browser, Page } from "@playwright/test";
 import type { ClassId } from "../app/features/classes/classes.schema.ts";
 import type { Locale } from "../app/paraglide/runtime.js";
-import { successValueForTest } from "../app/success-value-for-test.ts";
-import { parseRecordId } from "../app/value-parsers.ts";
 import { joinAsNewStudent, signInAsNewLecturer } from "./accounts.ts";
 import { chooseLanguage } from "./choose-language.ts";
 import { createTestClass } from "./create-test-class.ts";
@@ -29,9 +27,5 @@ export async function studentOfNewClass(
   const testClass = await createTestClass(page, className);
   const student = await newDevice(browser, locale);
   await joinAsNewStudent(student, testClass.joinPath, studentName);
-  const classId = successValueForTest(
-    parseRecordId<ClassId>(testClass.path.split("/").at(-1), "classId"),
-    "The address of the class ends in its id",
-  );
-  return { student, classId, classPath: testClass.path };
+  return { student, classId: testClass.id, classPath: testClass.path };
 }

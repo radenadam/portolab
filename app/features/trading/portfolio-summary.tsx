@@ -46,6 +46,7 @@ export function HoldingList({
   return (
     <HoldingItems
       holdings={holdings}
+      emptyText={m.trading_no_holdings_body()}
       details={(holding) => {
         const setAside = sharesSetAside(orders, holding.code, now);
         return (
@@ -78,13 +79,16 @@ export function HoldingList({
 /** The holdings of a portfolio, each under its code with the details that a page shows of it, or the sentence that the portfolio holds no shares. */
 export function HoldingItems<Item extends { code: string }>({
   holdings,
+  emptyText,
   details,
 }: {
   holdings: readonly Item[];
+  /** The sentence for the reader of the page that the portfolio holds no shares. */
+  emptyText: string;
   details: (holding: Item) => ReactNode;
 }): ReactNode {
   if (holdings.length === 0) {
-    return <p>{m.trading_no_holdings_body()}</p>;
+    return <p>{emptyText}</p>;
   }
   return (
     <ul className={styles["list"]}>

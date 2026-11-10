@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import type { ClassId } from "~/features/classes/classes.schema";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
 import {
   formatBeta,
@@ -9,6 +8,7 @@ import {
   formatRupiah,
   formatVariance,
 } from "~/formatting";
+import type { PortfolioReader } from "~/features/trading/text-for-reader";
 import { m } from "~/paraglide/messages.js";
 import { portfolioWeight } from "~/units/portfolio-weight";
 import type { PortfolioWeight } from "~/units/portfolio-weight";
@@ -67,13 +67,13 @@ export function WeightTable({
   );
 }
 
-/** The weight, the expected return, and the beta of each stock of a portfolio over the months of the portfolio, each stock with a link to its own page. */
+/** The weight, the expected return, and the beta of each stock of a portfolio over the months of the portfolio. For the owner, each stock links to its own page, which only a student of the class opens. */
 export function HoldingTable({
-  classId,
   portfolio,
+  reader,
 }: {
-  classId: ClassId;
   portfolio: PortfolioSummary;
+  reader: PortfolioReader;
 }): ReactNode {
   return (
     <MeasureTable
@@ -85,7 +85,7 @@ export function HoldingTable({
       ]}
       rows={portfolio.holdings.map((holding) => ({
         key: holding.code,
-        name: <StockLink classId={classId} code={holding.code} />,
+        name: stockName(holding.code, reader),
         cells: {
           kind: "numbers",
           values: [
@@ -97,6 +97,15 @@ export function HoldingTable({
       }))}
     />
   );
+}
+
+function stockName(code: string, reader: PortfolioReader): ReactNode {
+  switch (reader.kind) {
+    case "owner":
+      return <StockLink classId={reader.classId} code={code} />;
+    case "lecturer":
+      return code;
+  }
 }
 
 /** The covariance and the correlation of each pair of stocks of a portfolio, and of each stock with itself. */

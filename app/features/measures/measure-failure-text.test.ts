@@ -3,6 +3,8 @@ import { languageNames } from "~/language-names";
 import { locales } from "~/paraglide/runtime.js";
 import type { Locale } from "~/paraglide/runtime.js";
 import { fail, succeed } from "~/result";
+import type { ClassId } from "~/features/classes/classes.schema";
+import type { PortfolioReader } from "~/features/trading/text-for-reader";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
 import {
   measureFailureText,
@@ -45,16 +47,25 @@ const failures = {
   noRiskFreeRate: { kind: "noRiskFreeRate", date: "2020-12-31" },
 } satisfies Record<string, StoredMeasureFailure>;
 
+const owner: PortfolioReader = { kind: "owner", classId: 7 as ClassId };
+const lecturer: PortfolioReader = {
+  kind: "lecturer",
+  studentName: "Siti Rahayu",
+};
+
 const texts: Record<
   Locale,
   {
     aadi: string;
     withoutHistory: string;
     oneReturnOfPortfolio: string;
+    oneReturnForLecturer: string;
     marketWithoutHistoryOfPortfolio: string;
+    marketWithoutHistoryForLecturer: string;
     noVariation: string;
     marketWithoutVariation: string;
     noRiskFreeRate: string;
+    noRiskFreeRateForLecturer: string;
     shortTooFewReturns: string;
     shortNoVariation: string;
     shortMarketWithoutVariation: string;
@@ -67,6 +78,10 @@ const texts: Record<
       "ADMR dan IHSG baru sama-sama memiliki 0 imbal hasil bulanan dalam 60 bulan lengkap terakhir, sedangkan Portolab menghitung ukuran suatu saham hanya dari paling sedikit 24 imbal hasil bulanan. Portolab belum menyimpan riwayat harga ADMR selama satu bulan penuh, sehingga belum dapat memperkirakan kapan ukurannya tersedia. Portolab dapat memperkirakannya setelah pembaruan riwayat harga berikutnya menyimpan riwayat tersebut.",
     oneReturnOfPortfolio:
       "Saham Anda dan IHSG baru sama-sama memiliki 1 imbal hasil bulanan dalam 60 bulan lengkap terakhir, dan ITMG memiliki imbal hasil paling sedikit, sedangkan Portolab menghitung ukuran portofolio hanya dari paling sedikit 24 imbal hasil bulanan. Jika IHSG dan setiap saham Anda tetap memiliki harga penutupan di akhir setiap bulan, Portolab menghitung ukuran portofolio Anda setelah pembaruan riwayat harga yang menyimpan harga penutupan hari bursa pertama Agustus 2028.",
+    oneReturnForLecturer:
+      "Saham Siti Rahayu dan IHSG baru sama-sama memiliki 1 imbal hasil bulanan dalam 60 bulan lengkap terakhir, dan ITMG memiliki imbal hasil paling sedikit, sedangkan Portolab menghitung ukuran portofolio hanya dari paling sedikit 24 imbal hasil bulanan. Jika IHSG dan setiap saham Siti Rahayu tetap memiliki harga penutupan di akhir setiap bulan, Portolab menghitung ukuran portofolio Siti Rahayu setelah pembaruan riwayat harga yang menyimpan harga penutupan hari bursa pertama Agustus 2028.",
+    marketWithoutHistoryForLecturer:
+      "Saham Siti Rahayu dan IHSG baru sama-sama memiliki 0 imbal hasil bulanan dalam 60 bulan lengkap terakhir, dan IHSG memiliki imbal hasil paling sedikit, sedangkan Portolab menghitung ukuran portofolio hanya dari paling sedikit 24 imbal hasil bulanan. Portolab belum menyimpan riwayat harga IHSG selama satu bulan penuh, sehingga belum dapat memperkirakan kapan ukurannya tersedia. Portolab dapat memperkirakannya setelah pembaruan riwayat harga berikutnya menyimpan riwayat tersebut.",
     marketWithoutHistoryOfPortfolio:
       "Saham Anda dan IHSG baru sama-sama memiliki 0 imbal hasil bulanan dalam 60 bulan lengkap terakhir, dan IHSG memiliki imbal hasil paling sedikit, sedangkan Portolab menghitung ukuran portofolio hanya dari paling sedikit 24 imbal hasil bulanan. Portolab belum menyimpan riwayat harga IHSG selama satu bulan penuh, sehingga belum dapat memperkirakan kapan ukurannya tersedia. Portolab dapat memperkirakannya setelah pembaruan riwayat harga berikutnya menyimpan riwayat tersebut.",
     noVariation:
@@ -75,6 +90,8 @@ const texts: Record<
       "Imbal hasil IHSG sama di setiap bulan ukuran ini, sehingga variansnya nol, dan korelasi dengannya akan membagi dengan nol. Portolab menghitung ukurannya setelah pembaruan riwayat harga menyimpan harga penutupan suatu bulan yang memberi IHSG imbal hasil lain.",
     noRiskFreeRate:
       "BI-Rate pada atau sebelum 31 Desember 2020, akhir bulan terakhir dari imbal hasil tersebut, belum tercatat di Portolab, sehingga ukurannya belum memiliki suku bunga bebas risiko. Beri tahu dosen Anda agar BI-Rate hari itu dapat ditambahkan.",
+    noRiskFreeRateForLecturer:
+      "BI-Rate pada atau sebelum 31 Desember 2020, akhir bulan terakhir dari imbal hasil tersebut, belum tercatat di Portolab, sehingga ukurannya belum memiliki suku bunga bebas risiko. Beri tahu orang yang menjalankan server Portolab ini agar BI-Rate hari itu dapat ditambahkan.",
     shortTooFewReturns: "21 dari 24 imbal hasil bulanan yang dibutuhkan ukuran",
     shortNoVariation: "Imbal hasil BBCA sama di setiap bulan",
     shortMarketWithoutVariation: "Imbal hasil IHSG sama di setiap bulan",
@@ -87,6 +104,10 @@ const texts: Record<
       "ADMR and the IHSG share 0 monthly returns in the latest 60 complete months, but Portolab computes the measures of a stock only from at least 24 monthly returns. Portolab has not stored a complete month of the price history of ADMR yet, so it cannot tell when the measures come. It can tell once the next update of the price history stores that history.",
     oneReturnOfPortfolio:
       "Your stocks and the IHSG share 1 monthly return in the latest 60 complete months, and ITMG has the fewest returns, but Portolab computes the measures of a portfolio only from at least 24 monthly returns. If the IHSG and each of your stocks keep a close at the end of every month, Portolab computes the measures of your portfolio after the update of the price history that stores the close of the first trading day of August 2028.",
+    oneReturnForLecturer:
+      "The stocks of Siti Rahayu and the IHSG share 1 monthly return in the latest 60 complete months, and ITMG has the fewest returns, but Portolab computes the measures of a portfolio only from at least 24 monthly returns. If the IHSG and each stock of Siti Rahayu keep a close at the end of every month, Portolab computes the measures of the portfolio of Siti Rahayu after the update of the price history that stores the close of the first trading day of August 2028.",
+    marketWithoutHistoryForLecturer:
+      "The stocks of Siti Rahayu and the IHSG share 0 monthly returns in the latest 60 complete months, and the IHSG has the fewest returns, but Portolab computes the measures of a portfolio only from at least 24 monthly returns. Portolab has not stored a complete month of the price history of the IHSG yet, so it cannot tell when the measures come. It can tell once the next update of the price history stores that history.",
     marketWithoutHistoryOfPortfolio:
       "Your stocks and the IHSG share 0 monthly returns in the latest 60 complete months, and the IHSG has the fewest returns, but Portolab computes the measures of a portfolio only from at least 24 monthly returns. Portolab has not stored a complete month of the price history of the IHSG yet, so it cannot tell when the measures come. It can tell once the next update of the price history stores that history.",
     noVariation:
@@ -95,6 +116,8 @@ const texts: Record<
       "The returns of the IHSG are the same in every month of the measures, so their variance is zero, and a correlation with them would divide by zero. Portolab computes the measures after an update of the price history stores the close of a month that gives the IHSG another return.",
     noRiskFreeRate:
       "Portolab has not recorded a BI-Rate on or before December 31, 2020, the end of the last month of the returns, so the measures have no risk-free rate. Tell your lecturer, so that the BI-Rate of that day can be added.",
+    noRiskFreeRateForLecturer:
+      "Portolab has not recorded a BI-Rate on or before December 31, 2020, the end of the last month of the returns, so the measures have no risk-free rate. Tell the person who runs this Portolab server, so that the BI-Rate of that day can be added.",
     shortTooFewReturns: "21 of the 24 monthly returns that the measures need",
     shortNoVariation: "The returns of BBCA are the same in every month",
     shortMarketWithoutVariation:
@@ -121,21 +144,34 @@ for (const locale of locales) {
     ).toBe(text.withoutHistory);
   });
 
-  test(`explains too few returns of a portfolio, names the instrument with the fewest, and gives the month that brings enough, or says that the IHSG has no stored history, in ${language}`, () => {
+  test(`explains too few returns of a portfolio to its owner and to the lecturer, names the instrument with the fewest, and gives the month that brings enough, or says that the IHSG has no stored history, in ${language}`, () => {
     switchLocaleForTest(locale);
-    expect(measureFailureText(failures.oneReturn, { kind: "portfolio" })).toBe(
-      text.oneReturnOfPortfolio,
-    );
-    expect(
-      measureFailureText(failures.marketWithoutHistory, { kind: "portfolio" }),
-    ).toBe(text.marketWithoutHistoryOfPortfolio);
+    for (const [reader, oneReturn, marketWithoutHistory] of [
+      [owner, text.oneReturnOfPortfolio, text.marketWithoutHistoryOfPortfolio],
+      [
+        lecturer,
+        text.oneReturnForLecturer,
+        text.marketWithoutHistoryForLecturer,
+      ],
+    ] as const) {
+      expect(
+        measureFailureText(failures.oneReturn, { kind: "portfolio", reader }),
+      ).toBe(oneReturn);
+      expect(
+        measureFailureText(failures.marketWithoutHistory, {
+          kind: "portfolio",
+          reader,
+        }),
+      ).toBe(marketWithoutHistory);
+    }
   });
 
-  test(`explains returns without variation of a stock or of the IHSG, and a missing BI-Rate, alike for a stock and a portfolio, in ${language}`, () => {
+  test(`explains returns without variation of a stock or of the IHSG alike for a stock and a portfolio, and a missing BI-Rate with the step of the student or of the lecturer, in ${language}`, () => {
     switchLocaleForTest(locale);
-    for (const subject of [
-      { kind: "stock", code: "BBCA" },
-      { kind: "portfolio" },
+    for (const [subject, noRiskFreeRate] of [
+      [{ kind: "stock", code: "BBCA" }, text.noRiskFreeRate],
+      [{ kind: "portfolio", reader: owner }, text.noRiskFreeRate],
+      [{ kind: "portfolio", reader: lecturer }, text.noRiskFreeRateForLecturer],
     ] as const) {
       expect(measureFailureText(failures.noVariation, subject)).toBe(
         text.noVariation,
@@ -144,7 +180,7 @@ for (const locale of locales) {
         text.marketWithoutVariation,
       );
       expect(measureFailureText(failures.noRiskFreeRate, subject)).toBe(
-        text.noRiskFreeRate,
+        noRiskFreeRate,
       );
     }
   });

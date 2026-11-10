@@ -41,7 +41,8 @@
     "app/features/market-data/price-source.server.ts",
     "app/features/market-data/tracked-instruments.ts",
     "app/features/measures/month-end-closes-for-test.ts",
-    "app/features/trading/trading.schema.ts"
+    "app/features/trading/trading.schema.ts",
+    "app/workbook/read-zip-for-test.server.ts"
   ],
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.cache/tsconfig.e2e.tsbuildinfo",

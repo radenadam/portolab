@@ -9,6 +9,7 @@ import { pageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
 import type { Rupiah } from "~/units/rupiah";
 import { parseRecordId } from "~/value-parsers";
+import { classPortfoliosPath } from "~/features/grading/grading-paths";
 import { measuresPath } from "~/features/measures/measures-path";
 import { ordersPath } from "~/features/trading/orders-path";
 import { portfolioPath } from "~/features/trading/portfolio-path";
@@ -90,6 +91,12 @@ export default function ClassPage({
             startingCash={loaderData.startingCash}
           />
           <h2>{m.classes_students_title()}</h2>
+          <Link
+            to={classPortfoliosPath(loaderData.id)}
+            className={styles["link"]}
+          >
+            {m.classes_portfolios_link()}
+          </Link>
           <Students classId={loaderData.id} students={loaderData.students} />
         </>
       );

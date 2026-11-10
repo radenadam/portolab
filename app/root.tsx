@@ -6,13 +6,12 @@ import {
   Links,
   Meta,
   Outlet,
-  isRouteErrorResponse,
   Scripts,
   ScrollRestoration,
   useRouteLoaderData,
 } from "react-router";
 import type { Route } from "./+types/root";
-import { MissingPage, UnexpectedErrorPage } from "./error-page";
+import { RouteErrorPage } from "./error-page";
 import { AccountLink } from "./features/accounts/account-link";
 import { crossSiteProtection } from "./features/accounts/cross-site-protection.server";
 import {
@@ -97,9 +96,5 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): ReactNode {
   if (isTooLargeForm(error)) {
     return <TooLargeFormPage refusal={error} />;
   }
-  // A loader answers an address that a person may not see as one that does not exist, so a guessed address reveals nothing.
-  if (isRouteErrorResponse(error) && error.status === 404) {
-    return <MissingPage />;
-  }
-  return <UnexpectedErrorPage />;
+  return <RouteErrorPage error={error} />;
 }

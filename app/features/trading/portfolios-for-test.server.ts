@@ -14,10 +14,13 @@ import {
 } from "~/features/market-data/quote-updates-for-test.server";
 import { monthEndClosesForTest } from "~/features/measures/month-end-closes-for-test";
 import { successValueForTest } from "~/success-value-for-test";
+import type { Rupiah } from "~/units/rupiah";
+import type { Holding } from "./holding-after-fill";
 import type { OrderRequest } from "./order";
 import { bbcaForTest, duringSessionForTest } from "./orders-for-test";
 import { placePortfolioOrder } from "./place-portfolio-order.server";
 import type { PortfolioOwner } from "./portfolio-store.server";
+import { holdings, portfolios } from "./trading.schema";
 import type { OrderId } from "./trading.schema";
 
 /** Creates a student who joined the class of the test, which has the default starting cash, at 10:00 WIB on Monday 2 November 2026, and returns the portfolio of the student, which holds that cash and nothing else. A test that needs a second student gives another username. */
@@ -56,6 +59,24 @@ export async function studentWithQuotesForTest(
     at: fetchedAt,
   });
   return { database, owner };
+}
+
+/** Gives the portfolio of a student the cash and the holdings that fills of earlier orders would leave, without the orders, for a test of what reads a portfolio and not its orders. */
+export function storeHoldingsForTest(
+  database: Database,
+  owner: PortfolioOwner,
+  portfolio: { cash: Rupiah; holdings: readonly Holding[] },
+): void {
+  database
+    .insert(portfolios)
+    .values({ membershipId: owner.membershipId, cash: portfolio.cash })
+    .run();
+  for (const holding of portfolio.holdings) {
+    database
+      .insert(holdings)
+      .values({ membershipId: owner.membershipId, ...holding })
+      .run();
+  }
 }
 
 /** Places an order that the test knows Portolab accepts, with the delay of the source of the tests of orders, and returns its number. */

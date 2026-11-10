@@ -92,8 +92,8 @@ const nextMonday: Record<Locale, string> = {
   en: "Portolab tries again at Nov 2, 2026, 8:45 AM WIB.",
 };
 const staleSentences: Record<Locale, string> = {
-  id: "di bawah adalah harga terakhir yang tersimpan",
-  en: "below is the last one it stored",
+  id: "tidak dapat memperbarui harga",
+  en: "could not update the price",
 };
 const missingSentences: Record<Locale, string> = {
   id: "belum memiliki harga",
@@ -117,8 +117,8 @@ const states: ScreenState[] = [
     latestAttempt: failedAttempt(["IHSG", "BBCA", "BBRI", "BMRI"]),
     now: halfMinuteAfterFailure,
     shows: {
-      id: `Portolab tidak dapat memperbarui harga pada 30 Okt 2026, 16.30 WIB, jadi harga di bawah adalah harga terakhir yang tersimpan. ${nextMonday.id}`,
-      en: `Portolab could not update the prices at Oct 30, 2026, 4:30 PM WIB, so the prices below are the last ones it stored. ${nextMonday.en}`,
+      id: `Portolab tidak dapat memperbarui harga pada 30 Okt 2026, 16.30 WIB, jadi Portolab memakai harga terakhir yang tersimpan. ${nextMonday.id}`,
+      en: `Portolab could not update the prices at Oct 30, 2026, 4:30 PM WIB, so it uses the last prices that it stored. ${nextMonday.en}`,
     },
     hides: missingSentences,
   },
@@ -128,8 +128,8 @@ const states: ScreenState[] = [
     latestAttempt: failedAttempt(["IHSG", "BBCA", "BBRI", "BMRI", "TLKM"]),
     now: halfMinuteAfterFailure,
     shows: {
-      id: `Portolab tidak dapat memperbarui harga pada 30 Okt 2026, 16.30 WIB, jadi harga di bawah adalah harga terakhir yang tersimpan. Portolab belum memiliki harga TLKM, karena percobaan terakhir untuk mengambilnya pada 30 Okt 2026, 16.30 WIB gagal. ${nextMonday.id}`,
-      en: `Portolab could not update the prices at Oct 30, 2026, 4:30 PM WIB, so the prices below are the last ones it stored. Portolab has no price for TLKM yet, because its latest attempt to fetch it at Oct 30, 2026, 4:30 PM WIB failed. ${nextMonday.en}`,
+      id: `Portolab tidak dapat memperbarui harga pada 30 Okt 2026, 16.30 WIB, jadi Portolab memakai harga terakhir yang tersimpan. Portolab belum memiliki harga TLKM, karena percobaan terakhir untuk mengambilnya pada 30 Okt 2026, 16.30 WIB gagal. ${nextMonday.id}`,
+      en: `Portolab could not update the prices at Oct 30, 2026, 4:30 PM WIB, so it uses the last prices that it stored. Portolab has no price for TLKM yet, because its latest attempt to fetch it at Oct 30, 2026, 4:30 PM WIB failed. ${nextMonday.en}`,
     },
     hides: { id: "tidak dapat memperbarui harga TLKM", en: "price of TLKM" },
   },
@@ -150,8 +150,8 @@ const states: ScreenState[] = [
     latestAttempt: partialAttempt(["BBRI"]),
     now: halfMinuteAfterPartialAttempt,
     shows: {
-      id: `Portolab tidak dapat memperbarui harga BBRI pada 30 Okt 2026, 14.00 WIB, jadi harganya di bawah adalah harga terakhir yang tersimpan. ${nextMinute.id}`,
-      en: `Portolab could not update the price of BBRI at Oct 30, 2026, 2:00 PM WIB, so the BBRI price below is the last one it stored. ${nextMinute.en}`,
+      id: `Portolab tidak dapat memperbarui harga BBRI pada 30 Okt 2026, 14.00 WIB, jadi Portolab memakai harga terakhir BBRI yang tersimpan. ${nextMinute.id}`,
+      en: `Portolab could not update the price of BBRI at Oct 30, 2026, 2:00 PM WIB, so it uses the last price of BBRI that it stored. ${nextMinute.en}`,
     },
     hides: missingSentences,
   },
@@ -161,8 +161,8 @@ const states: ScreenState[] = [
     latestAttempt: partialAttempt(["BBRI", "BMRI"]),
     now: halfMinuteAfterPartialAttempt,
     shows: {
-      id: `Portolab tidak dapat memperbarui harga BBRI dan BMRI pada 30 Okt 2026, 14.00 WIB, jadi harganya di bawah adalah harga terakhir yang tersimpan. ${nextMinute.id}`,
-      en: `Portolab could not update the prices of BBRI and BMRI at Oct 30, 2026, 2:00 PM WIB, so their prices below are the last ones it stored. ${nextMinute.en}`,
+      id: `Portolab tidak dapat memperbarui harga BBRI dan BMRI pada 30 Okt 2026, 14.00 WIB, jadi Portolab memakai harga terakhir masing-masing yang tersimpan. ${nextMinute.id}`,
+      en: `Portolab could not update the prices of BBRI and BMRI at Oct 30, 2026, 2:00 PM WIB, so it uses the last price of each that it stored. ${nextMinute.en}`,
     },
     hides: missingSentences,
   },
@@ -172,8 +172,8 @@ const states: ScreenState[] = [
     latestAttempt: partialAttempt(["BBCA", "BBRI", "BMRI"]),
     now: halfMinuteAfterPartialAttempt,
     shows: {
-      id: `Portolab tidak dapat memperbarui harga BBCA, BBRI, dan BMRI pada 30 Okt 2026, 14.00 WIB, jadi harganya di bawah adalah harga terakhir yang tersimpan. ${nextMinute.id}`,
-      en: `Portolab could not update the prices of BBCA, BBRI, and BMRI at Oct 30, 2026, 2:00 PM WIB, so their prices below are the last ones it stored. ${nextMinute.en}`,
+      id: `Portolab tidak dapat memperbarui harga BBCA, BBRI, dan BMRI pada 30 Okt 2026, 14.00 WIB, jadi Portolab memakai harga terakhir masing-masing yang tersimpan. ${nextMinute.id}`,
+      en: `Portolab could not update the prices of BBCA, BBRI, and BMRI at Oct 30, 2026, 2:00 PM WIB, so it uses the last price of each that it stored. ${nextMinute.en}`,
     },
     hides: missingSentences,
   },
@@ -205,8 +205,8 @@ const states: ScreenState[] = [
     latestAttempt: partialAttempt(["BBRI", "TLKM"]),
     now: halfMinuteAfterPartialAttempt,
     shows: {
-      id: `Portolab tidak dapat memperbarui harga BBRI pada 30 Okt 2026, 14.00 WIB, jadi harganya di bawah adalah harga terakhir yang tersimpan. Portolab belum memiliki harga TLKM, karena percobaan terakhir untuk mengambilnya pada 30 Okt 2026, 14.00 WIB gagal. ${nextMinute.id}`,
-      en: `Portolab could not update the price of BBRI at Oct 30, 2026, 2:00 PM WIB, so the BBRI price below is the last one it stored. Portolab has no price for TLKM yet, because its latest attempt to fetch it at Oct 30, 2026, 2:00 PM WIB failed. ${nextMinute.en}`,
+      id: `Portolab tidak dapat memperbarui harga BBRI pada 30 Okt 2026, 14.00 WIB, jadi Portolab memakai harga terakhir BBRI yang tersimpan. Portolab belum memiliki harga TLKM, karena percobaan terakhir untuk mengambilnya pada 30 Okt 2026, 14.00 WIB gagal. ${nextMinute.id}`,
+      en: `Portolab could not update the price of BBRI at Oct 30, 2026, 2:00 PM WIB, so it uses the last price of BBRI that it stored. Portolab has no price for TLKM yet, because its latest attempt to fetch it at Oct 30, 2026, 2:00 PM WIB failed. ${nextMinute.en}`,
     },
     hides: { id: "harga BBRI dan TLKM", en: "BBRI and TLKM" },
   },
@@ -227,8 +227,8 @@ const states: ScreenState[] = [
     latestAttempt: failedAttempt(["IHSG", "BBCA", "BBRI", "BMRI"]),
     now: duringNextAttemptAfterFailure,
     shows: {
-      id: `Portolab tidak dapat memperbarui harga pada 30 Okt 2026, 16.30 WIB, jadi harga di bawah adalah harga terakhir yang tersimpan. ${tryingNow.id}`,
-      en: `Portolab could not update the prices at Oct 30, 2026, 4:30 PM WIB, so the prices below are the last ones it stored. ${tryingNow.en}`,
+      id: `Portolab tidak dapat memperbarui harga pada 30 Okt 2026, 16.30 WIB, jadi Portolab memakai harga terakhir yang tersimpan. ${tryingNow.id}`,
+      en: `Portolab could not update the prices at Oct 30, 2026, 4:30 PM WIB, so it uses the last prices that it stored. ${tryingNow.en}`,
     },
     hides: { id: "Portolab mencoba lagi pada", en: "Portolab tries again at" },
   },
@@ -238,8 +238,8 @@ const states: ScreenState[] = [
     latestAttempt: partialAttempt(["BBRI"]),
     now: new Date("2026-10-30T07:01:05.000Z"),
     shows: {
-      id: `Portolab tidak dapat memperbarui harga BBRI pada 30 Okt 2026, 14.00 WIB, jadi harganya di bawah adalah harga terakhir yang tersimpan. ${tryingNow.id}`,
-      en: `Portolab could not update the price of BBRI at Oct 30, 2026, 2:00 PM WIB, so the BBRI price below is the last one it stored. ${tryingNow.en}`,
+      id: `Portolab tidak dapat memperbarui harga BBRI pada 30 Okt 2026, 14.00 WIB, jadi Portolab memakai harga terakhir BBRI yang tersimpan. ${tryingNow.id}`,
+      en: `Portolab could not update the price of BBRI at Oct 30, 2026, 2:00 PM WIB, so it uses the last price of BBRI that it stored. ${tryingNow.en}`,
     },
     hides: { id: "Portolab mencoba lagi pada", en: "Portolab tries again at" },
   },

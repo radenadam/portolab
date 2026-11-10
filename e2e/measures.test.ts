@@ -1,6 +1,5 @@
 import { expect, test } from "@playwright/test";
 import type { Browser, Locator, Page } from "@playwright/test";
-import type { ClassId } from "../app/features/classes/classes.schema.ts";
 import { languageNames } from "../app/language-names.ts";
 import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
@@ -11,7 +10,8 @@ import { expectPageHeadings } from "./expect-page-headings.ts";
 import { itmgPortfolio } from "./itmg-portfolio.ts";
 import { storeTestHolding } from "./store-test-holding.ts";
 import { storeTestPurchases } from "./store-test-purchases.ts";
-import { studentOfNewClass } from "./student-of-new-class.ts";
+import { studentWithPortfolio } from "./student-with-portfolio.ts";
+import type { PortfolioOfTest } from "./student-with-portfolio.ts";
 import { widestClassNames } from "./widest-class-names.ts";
 
 // The server runs with the fixture price source, whose quotes are the closes of Friday 30 October 2026, and the global setup stores the month-end closes that give BBCA 60 monthly returns and AADI 21, and no closes of ADMR. bbca-holding.ts describes the portfolio of the student, in which BBCA has a weight of 0.496382. The measures of the portfolio follow from those of BBCA that the decimal module of Python computed, as measure-stock.test.ts gives them: an expected return of -0.000508, a variance of 0.000673, a standard deviation of 0.025947, a beta of 0.342192, a required return of 0.003308, and a distance of -0.003816 from the security market line.
@@ -251,18 +251,16 @@ const texts: Record<
 async function openMeasures(
   page: Page,
   browser: Browser,
-  {
-    locale,
-    givePortfolio,
-  }: { locale: Locale; givePortfolio?: (classId: ClassId) => void },
+  portfolio: PortfolioOfTest,
 ): Promise<{ student: Page; main: Locator; classPath: string }> {
-  const { student, classId, classPath } = await studentOfNewClass(
+  const { student, classPath } = await studentWithPortfolio(
     page,
     browser,
-    { locale, ...widestClassNames },
+    portfolio,
   );
-  givePortfolio?.(classId);
-  await student.getByRole("link", { name: texts[locale].classLink }).click();
+  await student
+    .getByRole("link", { name: texts[portfolio.locale].classLink })
+    .click();
   await expect(student).toHaveURL(`${classPath}/measures`);
   return { student, main: student.getByRole("main"), classPath };
 }
@@ -407,7 +405,7 @@ for (const locale of locales) {
     await expectMissingClassPages(page, browser, {
       locale,
       notFoundTitle: text.notFoundTitle,
-      addresses: (classPath) => [
+      addresses: ({ classPath }) => [
         { reader: "lecturer", path: `${classPath}/measures` },
         { reader: "lecturer", path: `${classPath}/measures/BBCA` },
         { reader: "student", path: "/classes/999999999/measures" },

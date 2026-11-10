@@ -58,7 +58,8 @@ test("shows a class only to the lecturer who teaches it and to its students", as
   expect(findTaughtClass(database, classId, otherLecturerId)).toBeUndefined();
   expect(findJoinedClass(database, classId, otherStudentId)).toBeUndefined();
   expect(findClassStudent(database, classId, otherStudentId)).toBeUndefined();
-  expect(findJoinedClass(database, classId, studentId)).toMatchObject({
+  const joined = findJoinedClass(database, classId, studentId);
+  expect(joined).toMatchObject({
     id: classId,
     lecturerName: "Budi Santoso",
     joinedAt: later,
@@ -67,6 +68,7 @@ test("shows a class only to the lecturer who teaches it and to its students", as
     id: studentId,
     name: "Sari Wulandari",
     username: "sari",
+    membershipId: joined?.membershipId,
     joinedAt: later,
   });
 });
@@ -79,7 +81,13 @@ test("adds a student to a class once, however often the student joins", async ()
   joinClass(database, { classId, studentId }, now);
   joinClass(database, { classId, studentId }, later);
   expect(listStudents(database, classId)).toEqual([
-    { id: studentId, name: "Sari Wulandari", username: "sari", joinedAt: now },
+    {
+      id: studentId,
+      name: "Sari Wulandari",
+      username: "sari",
+      membershipId: findJoinedClass(database, classId, studentId)?.membershipId,
+      joinedAt: now,
+    },
   ]);
   expect(listTaughtClasses(database, lecturerId)).toMatchObject([
     { id: classId, studentCount: 1 },

@@ -80,9 +80,9 @@ export default function MeasuresPage({
       <MethodNotice />
       <h2>{m.measures_portfolio_title()}</h2>
       <PortfolioMeasuresView
-        classId={classId}
+        reader={{ kind: "owner", classId }}
         report={loaderData.portfolio}
-        quoteFailure={holdingQuoteFailureText(loaderData.valuation, {
+        quoteFailure={holdingQuoteFailureText([loaderData.valuation], {
           now: loaderData.now,
           delayMinutes: source.delayMinutes,
         })}

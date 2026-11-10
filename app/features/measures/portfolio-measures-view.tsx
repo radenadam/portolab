@@ -1,16 +1,16 @@
 import type { ReactNode } from "react";
-import { countedText } from "~/counted-text";
-import type { ClassId } from "~/features/classes/classes.schema";
 import type { PriceSourceDescription } from "~/features/market-data/price-source.server";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
+import { textForReader } from "~/features/trading/text-for-reader";
+import type { PortfolioReader } from "~/features/trading/text-for-reader";
 import {
   formatBeta,
-  formatList,
   formatNumber,
   formatPercent,
   formatVariance,
 } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
+import { explainPortfolioMeasures } from "./explain-portfolio-measures";
 import {
   BetaFormula,
   CorrelationFormula,
@@ -21,7 +21,6 @@ import {
   WeightedSumFormula,
 } from "./formulas";
 import { MarketSection } from "./market-section";
-import { measureFailureText } from "./measure-failure-text";
 import {
   capmRows,
   MarketLinePosition,
@@ -35,66 +34,55 @@ import type { PortfolioMeasuresReport } from "./read-measures.server";
 import { ReturnTables } from "./return-tables";
 
 interface PortfolioMeasuresProps {
-  classId: ClassId;
   report: PortfolioMeasuresReport;
+  reader: PortfolioReader;
   /** The sentences that name the delayed prices of the holdings that the latest attempt of the quote job could not update, or undefined when it updated all of them. */
   quoteFailure: string | undefined;
   source: PriceSourceDescription;
 }
 
-/** The measures of the portfolio of a student, each with its formula and its inputs, or why it has none. */
+/** The measures of the portfolio of a student, each with its formula and its inputs, or why it has none, for the student or for the lecturer of the class. */
 export function PortfolioMeasuresView({
-  classId,
   report,
+  reader,
   quoteFailure,
   source,
 }: PortfolioMeasuresProps): ReactNode {
-  switch (report.kind) {
-    case "noHoldings":
-      return <p>{m.measures_no_holdings_notice()}</p>;
-    case "unpriced":
-      return (
-        <>
-          {quoteFailure !== undefined && (
-            <p className={styles["details"]}>{quoteFailure}</p>
-          )}
-          <p>
-            {countedText(
-              report.codes.length,
-              {
-                one: m.measures_one_unpriced_holding_notice,
-                several: m.measures_several_unpriced_holdings_notice,
-              },
-              { codes: formatList(report.codes, "conjunction") },
-            )}
-          </p>
-        </>
-      );
-    case "measured":
-      return report.measures.ok ? (
-        <MeasuredPortfolio
-          classId={classId}
-          portfolio={report.measures.value}
-          quoteFailure={quoteFailure}
-          source={source}
-        />
-      ) : (
-        <p>
-          {measureFailureText(report.measures.failure, { kind: "portfolio" })}
-        </p>
-      );
+  const measures = explainPortfolioMeasures(report, reader);
+  if (measures.ok) {
+    return (
+      <MeasuredPortfolio
+        portfolio={measures.value}
+        reader={reader}
+        quoteFailure={quoteFailure}
+        source={source}
+      />
+    );
   }
+  return (
+    <>
+      {/* A holding without a delayed price keeps the measures away, so the prices that the quote job could not update explain it. */}
+      {report.kind === "unpriced" && quoteFailure !== undefined && (
+        <p className={styles["details"]}>{quoteFailure}</p>
+      )}
+      <p>{measures.failure}</p>
+    </>
+  );
 }
 
 function MeasuredPortfolio({
-  classId,
   portfolio,
+  reader,
   quoteFailure,
   source,
 }: Omit<PortfolioMeasuresProps, "report"> & {
   portfolio: PortfolioSummary;
 }): ReactNode {
   const index = marketIndex.code;
+  const delay = {
+    source: source.name,
+    minutes: formatNumber(source.delayMinutes),
+  };
   return (
     <>
       <MonthsNotice returns={portfolio.market.returns} />
@@ -126,27 +114,48 @@ function MeasuredPortfolio({
         ]}
       />
       <MarketLinePosition distance={portfolio.securityMarketLine.value} />
-      <h2>{m.measures_weights_title()}</h2>
+      <h2>
+        {textForReader(reader, {
+          owner: () => m.measures_weights_title(),
+          lecturer: () => m.measures_lecturer_weights_title(),
+        })}
+      </h2>
       <p>
-        {m.measures_weights_notice({
-          source: source.name,
-          minutes: formatNumber(source.delayMinutes),
+        {textForReader(reader, {
+          owner: () => m.measures_weights_notice(delay),
+          lecturer: (name) =>
+            m.measures_lecturer_weights_notice({ ...delay, name }),
         })}
       </p>
       {quoteFailure !== undefined && (
         <p className={styles["details"]}>{quoteFailure}</p>
       )}
       <WeightTable portfolio={portfolio} />
-      <h2>{m.measures_holdings_title()}</h2>
-      <p>{m.measures_holdings_notice()}</p>
-      <HoldingTable classId={classId} portfolio={portfolio} />
+      <h2>
+        {textForReader(reader, {
+          owner: () => m.measures_holdings_title(),
+          lecturer: () => m.measures_lecturer_holdings_title(),
+        })}
+      </h2>
+      <p>
+        {textForReader(reader, {
+          owner: () => m.measures_holdings_notice(),
+          lecturer: () => m.measures_lecturer_holdings_notice(),
+        })}
+      </p>
+      <HoldingTable portfolio={portfolio} reader={reader} />
       <p className={styles["details"]}>
         <MeanFormula of="i" count={portfolio.market.returns.length} />
       </p>
       <p className={styles["details"]}>
         <BetaFormula beta={undefined} />
       </p>
-      <h2>{m.measures_pairs_title()}</h2>
+      <h2>
+        {textForReader(reader, {
+          owner: () => m.measures_pairs_title(),
+          lecturer: () => m.measures_lecturer_pairs_title(),
+        })}
+      </h2>
       <p>{m.measures_pairs_notice()}</p>
       <PairTable portfolio={portfolio} />
       <p className={styles["details"]}>
