@@ -33,23 +33,36 @@ const recordedPrices = `services:
 const repository = parseRunArguments(process.argv.slice(2), "The command line");
 const guide = readTextFile(guidePath);
 const releaseText = readTextFile("/etc/os-release");
-if (!repository.ok || !guide.ok || !releaseText.ok) {
-  exitWithFailure(
-    failuresOf([repository, guide, releaseText]),
-    writeScriptFailure,
+const release = releaseText.ok
+  ? parseSystemRelease(releaseText.value, "/etc/os-release")
+  : releaseText;
+const failures = failuresOf([repository, guide, release]);
+// The blocks need the guide and the repository, and the check of the system needs the guide and the release, so each runs once its own inputs are read, whatever else failed.
+let blocks: ServerBlock[] = [];
+if (guide.ok && repository.ok) {
+  const parsedBlocks = parseServerBlocks(
+    guide.value,
+    guidePath,
+    repository.value,
   );
+  if (parsedBlocks.ok) {
+    blocks = parsedBlocks.value;
+  } else {
+    failures.push(parsedBlocks.failure);
+  }
 }
-const blocks = parseServerBlocks(guide.value, guidePath, repository.value);
-const release = parseSystemRelease(releaseText.value, "/etc/os-release");
-const named = release.ok
-  ? checkSystemNamed(guide.value, release.value)
-  : release;
-if (!blocks.ok || !named.ok) {
-  exitWithFailure(failuresOf([blocks, named]), writeScriptFailure);
+if (guide.ok && release.ok) {
+  const named = checkSystemNamed(guide.value, release.value);
+  if (!named.ok) {
+    failures.push(named.failure);
+  }
+}
+if (failures.length > 0) {
+  exitWithFailure(failures, writeScriptFailure);
 }
 
 const folder = mkdtempSync(join(tmpdir(), "portolab-deployment-"));
-const failure = followGuide(blocks.value, folder);
+const failure = followGuide(blocks, folder);
 rmSync(folder, { recursive: true, force: true });
 if (failure !== undefined) {
   exitWithFailure([failure], writeScriptFailure);
