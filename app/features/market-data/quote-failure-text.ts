@@ -21,7 +21,7 @@ export function quoteFailureText(
   ].join(" ");
 }
 
-// A sentence that calls the price below an older one would be false for a price that Portolab never stored, because that price has no row.
+// A sentence that says that Portolab uses the last price that it stored would be false for a price that Portolab never stored, because that price has no row.
 function failedPriceSentences(
   attempt: UpdateAttempt,
   quotes: readonly Quote[],
