@@ -16,7 +16,7 @@ import styles from "./measures.module.css";
 import type { PointLabel } from "./point-labels";
 import type {
   ChartedLine,
-  PortfolioLine,
+  LinePoint,
   StockOnLine,
 } from "./read-measures.server";
 
@@ -42,11 +42,15 @@ interface PortfolioNames {
 export function MarketLineFigure({
   line,
   portfolio,
+  holdings,
   otherStocks,
   names,
 }: {
   line: ChartedLine;
-  portfolio: PortfolioLine | undefined;
+  /** The portfolio, or undefined while it has no measures. */
+  portfolio: LinePoint | undefined;
+  /** The stocks of the portfolio that lie against the line. */
+  holdings: readonly StockOnLine[];
   otherStocks: readonly StockOnLine[];
   names: PortfolioNames;
 }): ReactNode {
@@ -79,9 +83,10 @@ export function MarketLineFigure({
   const points = [
     ...anchors,
     ...portfolioPoints(portfolio, names),
+    ...holdings.map((stock) => stockPoint(stock, "holding")),
     ...otherStocks.map((stock) => stockPoint(stock, "otherStock")),
   ];
-  const legend = legendItems(portfolio, otherStocks, names);
+  const legend = legendItems({ portfolio, holdings, otherStocks }, names);
   return (
     <>
       <p>{m.measures_line_notice({ index })}</p>
@@ -113,7 +118,7 @@ interface TablePoint extends ChartPoint {
 }
 
 function portfolioPoints(
-  portfolio: PortfolioLine | undefined,
+  portfolio: LinePoint | undefined,
   names: PortfolioNames,
 ): TablePoint[] {
   if (portfolio === undefined) {
@@ -121,13 +126,12 @@ function portfolioPoints(
   }
   return [
     {
-      ...portfolio.portfolio,
+      ...portfolio,
       name: "portfolio",
       kind: "portfolio",
       label: portfolioLabel,
       title: <PointName name={names.portfolio} label={portfolioLabel} />,
     },
-    ...portfolio.holdings.map((holding) => stockPoint(holding, "holding")),
   ];
 }
 
@@ -170,19 +174,26 @@ function distanceText(distance: MonthlyReturn): ReactNode {
 }
 
 function legendItems(
-  portfolio: PortfolioLine | undefined,
-  otherStocks: readonly StockOnLine[],
+  {
+    portfolio,
+    holdings,
+    otherStocks,
+  }: {
+    portfolio: LinePoint | undefined;
+    holdings: readonly StockOnLine[];
+    otherStocks: readonly StockOnLine[];
+  },
   names: PortfolioNames,
 ): { kind: PointKind; name: ReactNode }[] {
   const items: { kind: PointKind; name: ReactNode }[] = [];
   if (portfolio !== undefined) {
-    items.push(
-      {
-        kind: "portfolio",
-        name: <PointName name={names.portfolio} label={portfolioLabel} />,
-      },
-      { kind: "holding", name: names.holdings },
-    );
+    items.push({
+      kind: "portfolio",
+      name: <PointName name={names.portfolio} label={portfolioLabel} />,
+    });
+  }
+  if (holdings.length > 0) {
+    items.push({ kind: "holding", name: names.holdings });
   }
   if (otherStocks.length > 0) {
     items.push({

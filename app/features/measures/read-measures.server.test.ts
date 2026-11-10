@@ -3,13 +3,13 @@ import { openDatabaseForTest } from "~/database/open-database-for-test.server";
 import { indexHistoryForTest } from "~/features/market-data/history-for-test";
 import { saveDailyHistory } from "~/features/market-data/history-store.server";
 import { trackedStockCodes } from "~/features/market-data/tracked-instruments";
-import { valuePortfolio } from "~/features/trading/value-portfolio";
-import { rupiah } from "~/units/rupiah";
 import { closeToForTest } from "./close-to-for-test";
 import {
   aadiValuationForTest,
   ammnValuationForTest,
+  cashValuationForTest,
   databaseWithClosesForTest,
+  studentLineForTest,
   valuationForTest,
 } from "./measures-for-test.server";
 import { monthEndClosesForTest } from "./month-end-closes-for-test";
@@ -18,7 +18,6 @@ import {
   readPortfolioMeasures,
   readStockMeasures,
   readStockRows,
-  readStudentLine,
 } from "./read-measures.server";
 
 // The expected values were computed with the decimal module of Python at 50 significant digits, as measure-stock.test.ts and measure-portfolio.test.ts give them. The measures of the portfolio with weights of 0.5 and 0.3 follow from those of BBCA and TLKM: the expected return and the beta are the sums of each measure times its weight, and the variance is 0.25 times the variance of BBCA, plus 0.09 times that of TLKM, plus 0.3 times their covariance.
@@ -111,14 +110,7 @@ test("measures a portfolio of BBCA, TLKM, and cash, weighted by their shares of 
 
 test("measures no portfolio that holds no shares", () => {
   expect(
-    readPortfolioMeasures(
-      databaseWithClosesForTest(),
-      valuePortfolio(
-        { cash: rupiah(100_000_000), holdings: [] },
-        rupiah(100_000_000),
-        new Map(),
-      ),
-    ),
+    readPortfolioMeasures(databaseWithClosesForTest(), cashValuationForTest()),
   ).toEqual({ kind: "noHoldings" });
 });
 
@@ -225,11 +217,7 @@ test("gives the line of the months of a portfolio with measures, with the portfo
   for (const valuation of [
     valuationForTest(["BBCA"]),
     aadiValuationForTest(),
-    valuePortfolio(
-      { cash: rupiah(100_000_000), holdings: [] },
-      rupiah(100_000_000),
-      new Map(),
-    ),
+    cashValuationForTest(),
   ]) {
     expect(
       readPortfolioLine(readPortfolioMeasures(database, valuation)),
@@ -239,27 +227,19 @@ test("gives the line of the months of a portfolio with measures, with the portfo
 
 test("draws the line of the months of a portfolio for its student, with each stock that it does not hold on that line, the stocks on other lines, and whether a stock has no measures", () => {
   const database = databaseWithClosesForTest();
-  const stocks = readStockRows(database);
-  const portfolio = readPortfolioMeasures(
-    database,
-    valuationForTest(["BBCA", "TLKM"]),
-  );
-  expect(readStudentLine(database, portfolio, stocks)).toEqual({
+  const valuation = valuationForTest(["BBCA", "TLKM"]);
+  expect(studentLineForTest(database, valuation)).toEqual({
     ok: true,
     value: {
       kind: "portfolio",
-      portfolioLine: readPortfolioLine(portfolio),
+      portfolioLine: readPortfolioLine(
+        readPortfolioMeasures(database, valuation),
+      ),
       others: { onLine: [], otherLineCodes: ["AMMN"], hasUnmeasured: true },
     },
   });
   // A portfolio of AMMN has the line of the 38 months that AMMN shares with the IHSG, and the stocks with five years of returns lie against another line.
-  expect(
-    readStudentLine(
-      database,
-      readPortfolioMeasures(database, ammnValuationForTest()),
-      stocks,
-    ),
-  ).toMatchObject({
+  expect(studentLineForTest(database, ammnValuationForTest())).toMatchObject({
     ok: true,
     value: {
       kind: "portfolio",
@@ -280,44 +260,55 @@ test("draws the line of the months of a portfolio for its student, with each sto
   });
 });
 
-test("draws the line of the latest complete months of the IHSG with every stock on it while the portfolio has no measures, for any reason", () => {
+test("draws the line of the latest complete months of the IHSG while the portfolio has no measures, with the stocks that it holds apart from the other stocks on the line", () => {
   const database = databaseWithClosesForTest();
-  const stocks = readStockRows(database);
-  for (const valuation of [
-    valuePortfolio(
-      { cash: rupiah(100_000_000), holdings: [] },
-      rupiah(100_000_000),
-      new Map(),
+  const latest = (
+    holdings: readonly unknown[],
+    onLine: readonly unknown[],
+  ): unknown => ({
+    ok: true,
+    value: {
+      kind: "latest",
+      line: { ...fiveYearLine, months: fiveYearMonths },
+      holdings,
+      others: { onLine, otherLineCodes: ["AMMN"], hasUnmeasured: true },
+    },
+  });
+  // A portfolio of cash and one of AADI hold no stock on the line. The portfolio of BBCA and TLKM lacks a delayed price of TLKM, so it has no measures, but it still holds both stocks.
+  expect(studentLineForTest(database, cashValuationForTest())).toEqual(
+    latest([], stocksOnFiveYearLine),
+  );
+  expect(studentLineForTest(database, aadiValuationForTest())).toEqual(
+    latest([], stocksOnFiveYearLine),
+  );
+  expect(studentLineForTest(database, valuationForTest(["BBCA"]))).toEqual(
+    latest(stocksOnFiveYearLine, []),
+  );
+  expect(
+    studentLineForTest(
+      database,
+      cashValuationForTest(),
+      readStockRows(database).filter(({ measures }) => measures.ok),
     ),
-    valuationForTest(["BBCA"]),
-    aadiValuationForTest(),
-  ]) {
-    expect(
-      readStudentLine(
-        database,
-        readPortfolioMeasures(database, valuation),
-        stocks,
-      ),
-    ).toEqual({
+  ).toMatchObject({ ok: true, value: { others: { hasUnmeasured: false } } });
+});
+
+test("names a stock that the portfolio holds on another line or without measures among the stocks that are not on the line of the latest months", () => {
+  // AMMN listed in July 2023 and AADI in December 2024, so AMMN lies against the line of its own 38 months and AADI has no measures, whether the portfolio holds them or not.
+  const database = databaseWithClosesForTest();
+  const stocks = readStockRows(database).filter(
+    ({ code }) => code === "AMMN" || code === "AADI",
+  );
+  for (const valuation of [aadiValuationForTest(), cashValuationForTest()]) {
+    expect(studentLineForTest(database, valuation, stocks)).toMatchObject({
       ok: true,
       value: {
         kind: "latest",
-        line: { ...fiveYearLine, months: fiveYearMonths },
-        others: {
-          onLine: stocksOnFiveYearLine,
-          otherLineCodes: ["AMMN"],
-          hasUnmeasured: true,
-        },
+        holdings: [],
+        others: { onLine: [], otherLineCodes: ["AMMN"], hasUnmeasured: true },
       },
     });
   }
-  expect(
-    readStudentLine(
-      database,
-      { kind: "noHoldings" },
-      stocks.filter(({ measures }) => measures.ok),
-    ),
-  ).toMatchObject({ ok: true, value: { others: { hasUnmeasured: false } } });
 });
 
 test("fails to draw the line while the IHSG has too few complete months, with the month that brings enough", () => {
@@ -325,9 +316,7 @@ test("fails to draw the line while the IHSG has too few complete months, with th
   const database = openDatabaseForTest();
   const ihsg = indexHistoryForTest(monthEndClosesForTest("IHSG"));
   saveDailyHistory(database, { ...ihsg, closes: ihsg.closes.slice(-14) });
-  expect(
-    readStudentLine(database, { kind: "noHoldings" }, readStockRows(database)),
-  ).toEqual({
+  expect(studentLineForTest(database, cashValuationForTest())).toEqual({
     ok: false,
     failure: {
       kind: "tooFewReturns",

@@ -5,9 +5,17 @@ import type { StockQuote } from "~/features/market-data/price-source.server";
 import { stockQuote } from "~/features/market-data/stock-quote";
 import { valuePortfolio } from "~/features/trading/value-portfolio";
 import type { PortfolioValuation } from "~/features/trading/value-portfolio";
+import type { Result } from "~/result";
 import { rupiah } from "~/units/rupiah";
 import { shares } from "~/units/shares";
+import type { StoredMeasureFailure } from "./measure-stored.server";
 import { monthEndClosesForTest } from "./month-end-closes-for-test";
+import {
+  readPortfolioMeasures,
+  readStockRows,
+  readStudentLine,
+} from "./read-measures.server";
+import type { StockRow, StudentLine } from "./read-measures.server";
 
 /** A database with the recorded month-end closes of the IHSG, BBCA, TLKM, AMMN, and AADI. */
 export function databaseWithClosesForTest(): Database {
@@ -71,5 +79,27 @@ export function ammnValuationForTest(): PortfolioValuation {
     new Map([
       ["AMMN", stockQuote("AMMN", [3_650, 3_740], "2026-10-30T09:14:16.000Z")],
     ]),
+  );
+}
+
+/** A portfolio of the starting cash of Rp100,000,000 alone, which holds no shares. */
+export function cashValuationForTest(): PortfolioValuation {
+  return valuePortfolio(
+    { cash: rupiah(100_000_000), holdings: [] },
+    rupiah(100_000_000),
+    new Map(),
+  );
+}
+
+/** The line that the page of the measures of a student draws for a portfolio, from the measures of its valuation as the loader of the page reads them, against every stock that Portolab tracks or the stocks that a test gives. */
+export function studentLineForTest(
+  database: Database,
+  valuation: PortfolioValuation,
+  stocks: readonly StockRow[] = readStockRows(database),
+): Result<StudentLine, StoredMeasureFailure> {
+  return readStudentLine(
+    database,
+    { valuation, report: readPortfolioMeasures(database, valuation) },
+    stocks,
   );
 }

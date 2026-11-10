@@ -72,7 +72,11 @@ export function loader({ context, request, params, url }: Route.LoaderArgs): {
     className: place.className,
     valuation,
     portfolio: portfolioMeasures,
-    marketLine: readStudentLine(database, portfolioMeasures, stocks),
+    marketLine: readStudentLine(
+      database,
+      { valuation: valuation.valuation, report: portfolioMeasures },
+      stocks,
+    ),
     stocks,
     now,
     source,

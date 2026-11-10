@@ -10,8 +10,10 @@ import type { StoredMeasureFailure } from "./measure-stored.server";
 import { monthSpanInputs } from "./month-span";
 import type {
   ChartedLine,
+  LinePoint,
   OtherStocks,
   PortfolioLine,
+  StockOnLine,
   StudentLine,
 } from "./read-measures.server";
 
@@ -29,7 +31,9 @@ export function StudentMarketLine({
       </>
     );
   }
-  const { notice, line, portfolio, others } = studentPlot(marketLine.value);
+  const { notice, line, portfolio, holdings, others } = studentPlot(
+    marketLine.value,
+  );
   return (
     <>
       <h2>{m.measures_line_title()}</h2>
@@ -37,6 +41,7 @@ export function StudentMarketLine({
       <MarketLineFigure
         line={line}
         portfolio={portfolio}
+        holdings={holdings}
         otherStocks={others.onLine}
         names={{
           portfolio: m.measures_line_portfolio_label(),
@@ -67,7 +72,8 @@ export function LecturerMarketLine({
       </p>
       <MarketLineFigure
         line={portfolioLine.line}
-        portfolio={portfolioLine}
+        portfolio={portfolioLine.portfolio}
+        holdings={portfolioLine.holdings}
         otherStocks={[]}
         names={{
           portfolio: m.measures_lecturer_line_portfolio_label(),
@@ -78,11 +84,12 @@ export function LecturerMarketLine({
   );
 }
 
-/** The text that says what the chart of a student places against which line, with the line, the portfolio if it has measures, and the other stocks. */
+/** The text that says what the chart of a student places against which line, with the line, the portfolio if it has measures, its stocks on the line, and the other stocks. */
 function studentPlot(plot: StudentLine): {
   notice: string;
   line: ChartedLine;
-  portfolio: PortfolioLine | undefined;
+  portfolio: LinePoint | undefined;
+  holdings: readonly StockOnLine[];
   others: OtherStocks;
 } {
   switch (plot.kind) {
@@ -92,7 +99,8 @@ function studentPlot(plot: StudentLine): {
           monthSpanInputs(plot.portfolioLine.line.months),
         ),
         line: plot.portfolioLine.line,
-        portfolio: plot.portfolioLine,
+        portfolio: plot.portfolioLine.portfolio,
+        holdings: plot.portfolioLine.holdings,
         others: plot.others,
       };
     case "latest":
@@ -103,6 +111,7 @@ function studentPlot(plot: StudentLine): {
         }),
         line: plot.line,
         portfolio: undefined,
+        holdings: plot.holdings,
         others: plot.others,
       };
   }

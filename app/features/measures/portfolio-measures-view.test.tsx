@@ -3,18 +3,17 @@ import type { ClassId } from "~/features/classes/classes.schema";
 import type { PriceSourceDescription } from "~/features/market-data/price-source.server";
 import { holdingQuoteFailureText } from "~/features/trading/holding-quote-failure-text";
 import type { PortfolioReader } from "~/features/trading/text-for-reader";
-import { valuePortfolio } from "~/features/trading/value-portfolio";
 import { languageNames } from "~/language-names";
 import { locales } from "~/paraglide/runtime.js";
 import type { Locale } from "~/paraglide/runtime.js";
 import { renderInRouterForTest } from "~/render-in-router-for-test";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
-import { rupiah } from "~/units/rupiah";
 import { measureDefinitionsForTest } from "./measure-definitions-for-test";
 import { measureFailureText } from "./measure-failure-text";
 import { measureTableForTest } from "./measure-table-for-test";
 import {
   aadiValuationForTest,
+  cashValuationForTest,
   databaseWithClosesForTest,
   valuationForTest,
 } from "./measures-for-test.server";
@@ -394,11 +393,7 @@ for (const locale of locales) {
       switchLocaleForTest(locale);
       const report = readPortfolioMeasures(
         databaseWithClosesForTest(),
-        valuePortfolio(
-          { cash: rupiah(100_000_000), holdings: [] },
-          rupiah(100_000_000),
-          new Map(),
-        ),
+        cashValuationForTest(),
       );
       expect(render(report, undefined)).toBe(`<p>${readerText.noHoldings}</p>`);
     });

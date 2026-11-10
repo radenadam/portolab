@@ -12,14 +12,15 @@ import type { StoredMeasureFailure } from "./measure-stored.server";
 import { measureTableForTest } from "./measure-table-for-test";
 import {
   ammnValuationForTest,
+  cashValuationForTest,
   databaseWithClosesForTest,
+  studentLineForTest,
   valuationForTest,
 } from "./measures-for-test.server";
 import {
   readPortfolioLine,
   readPortfolioMeasures,
   readStockRows,
-  readStudentLine,
 } from "./read-measures.server";
 
 // The portfolio of measures-for-test.server.ts holds BBCA, TLKM, and cash, and read-measures.server.test.ts gives the line of its 60 months and the measures of the portfolio and of its stocks, which the decimal module of Python computed. The portfolio of AMMN has a weight of 3,650,000 / 13,650,000 in AMMN, so Python gives it a beta of 0.296989, an expected return of 0.007546, and a distance of 0.004775 from the line of the 38 months of AMMN, whose IHSG has an expected return of -0.002012.
@@ -206,17 +207,11 @@ for (const locale of locales) {
 
   test(`draws the line of the months of a portfolio with the portfolio and its stocks, lists every point with its distance from the line, and names the stock on another line and the stocks without measures, for its student, in ${language}`, () => {
     switchLocaleForTest(locale);
-    const database = databaseWithClosesForTest();
-    const portfolio = readPortfolioMeasures(
-      database,
-      valuationForTest(["BBCA", "TLKM"]),
-    );
     const html = render(
       <StudentMarketLine
-        marketLine={readStudentLine(
-          database,
-          portfolio,
-          readStockRows(database),
+        marketLine={studentLineForTest(
+          databaseWithClosesForTest(),
+          valuationForTest(["BBCA", "TLKM"]),
         )}
       />,
     );
@@ -262,13 +257,11 @@ for (const locale of locales) {
 
   test(`draws the line of the fewer months of a portfolio of a recent listing and names the several stocks on other lines, in ${language}`, () => {
     switchLocaleForTest(locale);
-    const database = databaseWithClosesForTest();
     const html = render(
       <StudentMarketLine
-        marketLine={readStudentLine(
-          database,
-          readPortfolioMeasures(database, ammnValuationForTest()),
-          readStockRows(database),
+        marketLine={studentLineForTest(
+          databaseWithClosesForTest(),
+          ammnValuationForTest(),
         )}
       />,
     );
@@ -297,51 +290,71 @@ for (const locale of locales) {
     );
   });
 
-  test(`draws the line of the latest complete months of the IHSG with every stock on it while the portfolio has no measures, and says nothing about stocks off the chart when every stock lies on it, in ${language}`, () => {
+  test(`draws the line of the latest complete months of the IHSG with every stock on it while the portfolio has no measures, labels the stocks that the portfolio holds, and says nothing about stocks off the chart when every stock lies on it, in ${language}`, () => {
     switchLocaleForTest(locale);
     const database = databaseWithClosesForTest();
-    const stocks = readStockRows(database);
-    const latest = sectionWithoutChart(
-      {
-        notice: text.latestNotice,
-        lineNotice: text.lineNotice,
-        legend: legend([[marks.otherStock, text.otherStocksName]]),
-        formula: text.formula,
-        pointsLabel: text.pointsLabel,
-        table: measureTableForTest(text.header, [
-          text.riskFreeRow,
-          text.marketRow,
-          ...text.stockRows,
-        ]),
-      },
-      text.title,
+    const latest = (
+      legendItems: readonly [string, string][],
+      rows: readonly (readonly string[])[],
+    ): string =>
+      sectionWithoutChart(
+        {
+          notice: text.latestNotice,
+          lineNotice: text.lineNotice,
+          legend: legend(legendItems),
+          formula: text.formula,
+          pointsLabel: text.pointsLabel,
+          table: measureTableForTest(text.header, [
+            text.riskFreeRow,
+            text.marketRow,
+            ...rows,
+          ]),
+        },
+        text.title,
+      );
+    const offTheChart = `<p>${text.oneOtherLine}</p><p>${text.unmeasured}</p>`;
+    expect(
+      withoutChart(
+        render(
+          <StudentMarketLine
+            marketLine={studentLineForTest(database, cashValuationForTest())}
+          />,
+        ),
+      ),
+    ).toBe(
+      latest([[marks.otherStock, text.otherStocksName]], text.stockRows) +
+        offTheChart,
     );
+    // The portfolio of BBCA and TLKM lacks a delayed price of TLKM, so it has no measures, but the chart labels the stocks that it holds.
+    const held = render(
+      <StudentMarketLine
+        marketLine={studentLineForTest(database, valuationForTest(["BBCA"]))}
+      />,
+    );
+    expect(withoutChart(held)).toBe(
+      latest([[marks.holding, text.holdingsName]], text.stockRows) +
+        offTheChart,
+    );
+    for (const label of ["BBCA", "TLKM"]) {
+      expect(held).toMatch(
+        new RegExp(`<text x="[^"]+" y="[^"]+">${label}</text>`),
+      );
+    }
     expect(
       withoutChart(
         render(
           <StudentMarketLine
-            marketLine={readStudentLine(
+            marketLine={studentLineForTest(
               database,
-              { kind: "noHoldings" },
-              stocks,
+              cashValuationForTest(),
+              readStockRows(database).filter(
+                ({ code }) => code === "BBCA" || code === "TLKM",
+              ),
             )}
           />,
         ),
       ),
-    ).toBe(`${latest}<p>${text.oneOtherLine}</p><p>${text.unmeasured}</p>`);
-    expect(
-      withoutChart(
-        render(
-          <StudentMarketLine
-            marketLine={readStudentLine(
-              database,
-              { kind: "noHoldings" },
-              stocks.filter(({ code }) => code === "BBCA" || code === "TLKM"),
-            )}
-          />,
-        ),
-      ),
-    ).toBe(latest);
+    ).toBe(latest([[marks.otherStock, text.otherStocksName]], text.stockRows));
   });
 
   test(`draws the line of the months of the portfolio of a student for the lecturer, with the portfolio and its stocks, in ${language}`, () => {

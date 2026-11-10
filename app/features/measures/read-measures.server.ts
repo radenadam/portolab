@@ -104,7 +104,7 @@ export function readStockMeasures(
 }
 
 /** A stock or a portfolio that a chart of the security market line places, with how far its expected return lies above the line, or below it when negative, which is α. */
-interface LinePoint {
+export interface LinePoint {
   beta: Beta;
   expectedReturn: MonthlyReturn;
   distance: MonthlyReturn;
@@ -127,9 +127,9 @@ export interface PortfolioLine {
   holdings: StockOnLine[];
 }
 
-/** The stocks that a portfolio does not hold, against the line of a chart. */
+/** The stocks that a portfolio does not hold against the line of a chart, and every stock that is not on the chart. */
 export interface OtherStocks {
-  /** The stocks whose measures use the months of the line, in the order of every stock. */
+  /** The stocks that the portfolio does not hold whose measures use the months of the line, in the order of every stock. */
   onLine: StockOnLine[];
   /** The stocks whose measures use other months, which give another line. */
   otherLineCodes: string[];
@@ -137,10 +137,16 @@ export interface OtherStocks {
   hasUnmeasured: boolean;
 }
 
-/** What the chart of the page of a student draws: the line of the months of the portfolio with the portfolio and its stocks, or the line of the latest complete months of the IHSG while the portfolio has no measures, each with the other stocks against it. */
+/** What the chart of the page of a student draws: the line of the months of the portfolio with the portfolio and its stocks, or the line of the latest complete months of the IHSG while the portfolio has no measures, with the stocks of the portfolio whose own measures use those months. Each comes with the other stocks against the line. */
 export type StudentLine =
   | { kind: "portfolio"; portfolioLine: PortfolioLine; others: OtherStocks }
-  | { kind: "latest"; line: ChartedLine; others: OtherStocks };
+  | {
+      kind: "latest";
+      line: ChartedLine;
+      /** In the order of every stock. */
+      holdings: StockOnLine[];
+      others: OtherStocks;
+    };
 
 /** The line of the months of a portfolio with its stocks, or undefined while the portfolio has no measures. */
 export function readPortfolioLine(
@@ -168,21 +174,25 @@ export function readPortfolioLine(
   };
 }
 
-/** The line that the chart of the page of a student draws, with the portfolio and the stocks that Portolab tracks against it, or why the stored closes give no line. */
+/** The line that the chart of the page of a student draws, with the portfolio, its stocks, and the other stocks that Portolab tracks against it, or why the stored closes give no line. The measures of the portfolio are those of its valuation. */
 export function readStudentLine(
   database: Database,
-  portfolio: PortfolioMeasuresReport,
+  portfolio: { valuation: PortfolioValuation; report: PortfolioMeasuresReport },
   stocks: readonly StockRow[],
 ): Result<StudentLine, StoredMeasureFailure> {
-  const portfolioLine = readPortfolioLine(portfolio);
+  // A portfolio without measures still holds its stocks, such as one without a delayed price, so the chart tells them apart from the other stocks in every state.
+  const heldCodes = new Set(
+    portfolio.valuation.holdings.map(({ code }) => code),
+  );
+  const isHeld = ({ code }: { code: string }): boolean => heldCodes.has(code);
+  const portfolioLine = readPortfolioLine(portfolio.report);
   if (portfolioLine !== undefined) {
-    const heldCodes = new Set(portfolioLine.holdings.map(({ code }) => code));
     return succeed({
       kind: "portfolio",
       portfolioLine,
       others: againstLine(
         portfolioLine.line,
-        stocks.filter(({ code }) => !heldCodes.has(code)),
+        stocks.filter((stock) => !isHeld(stock)),
       ),
     });
   }
@@ -191,7 +201,16 @@ export function readStudentLine(
     return market;
   }
   const line = chartedLine(summarizeMarket(market.value));
-  return succeed({ kind: "latest", line, others: againstLine(line, stocks) });
+  const against = againstLine(line, stocks);
+  return succeed({
+    kind: "latest",
+    line,
+    holdings: against.onLine.filter(isHeld),
+    others: {
+      ...against,
+      onLine: against.onLine.filter((stock) => !isHeld(stock)),
+    },
+  });
 }
 
 function chartedLine(market: MarketSummary): ChartedLine {
