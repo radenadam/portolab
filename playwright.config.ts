@@ -8,6 +8,8 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: isContinuousIntegration,
   retries: 0,
+  // Every test shares one server, and the slowest ones hash passwords and scan each screen in two themes, so their time grows with the tests that run beside them. Alone they take about 13 seconds, and eight at once took 30 seconds on a machine with 16 cores, so the limit leaves twice that, while a test that hangs still fails by name.
+  timeout: 60_000,
   reporter: isContinuousIntegration ? [["github"], ["list"]] : "list",
   // The global setup starts the server, because the tests need its database in a file, and only a teardown of its own can remove that file after the server stops.
   globalSetup: "./e2e/global-setup.ts",
