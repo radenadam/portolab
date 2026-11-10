@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 import { parseDependabotTitle } from "./parse-dependabot-title.ts";
 
-test("writes the subject of a title of Dependabot in lowercase and drops the phrase about one directory", () => {
+test("writes the subject of a title of Dependabot in lowercase and drops the phrase about one directory wherever it stands", () => {
   expect(
     parseDependabotTitle(
       "chore(deps): Bump anthropics/claude-code-action from 1.0.265 to 1.0.269 in the actions group across 1 directory",
@@ -14,12 +14,12 @@ test("writes the subject of a title of Dependabot in lowercase and drops the phr
   });
   expect(
     parseDependabotTitle(
-      "chore(deps-dev): Bump the dependencies group with 4 updates",
+      "chore(deps-dev): Bump the dependencies group across 1 directory with 6 updates",
       "TITLE",
     ),
   ).toEqual({
     ok: true,
-    value: "chore(deps-dev): bump the dependencies group with 4 updates",
+    value: "chore(deps-dev): bump the dependencies group with 6 updates",
   });
 });
 
