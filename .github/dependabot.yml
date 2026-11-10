@@ -1,3 +1,4 @@
+# Without a commit-message setting, Dependabot follows the Conventional Commits of the history, with a subject in lowercase, which the check of titles accepts. A prefix makes it write "Bump" with a capital, which that check rejects.
 version: 2
 updates:
   - package-ecosystem: npm
@@ -10,9 +11,10 @@ updates:
       dependencies:
         patterns: ["*"]
         update-types: [minor, patch]
-    commit-message:
-      prefix: chore
-      include: scope
+    ignore:
+      # Paraglide JS 3 needs a migration, which issue #81 describes and which waits until after the first release.
+      - dependency-name: "@inlang/paraglide-js"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
@@ -22,5 +24,3 @@ updates:
     groups:
       actions:
         patterns: ["*"]
-    commit-message:
-      prefix: ci
