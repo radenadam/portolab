@@ -18,6 +18,6 @@ export function parseDependabotTitle(
   }
   const [, prefix = "", first = "", rest = ""] = match;
   return succeed(
-    `${prefix}: ${first.toLowerCase()}${rest.replace(/ across 1 directory$/, "")}`,
+    `${prefix}: ${first.toLowerCase()}${rest.replace(" across 1 directory", "")}`,
   );
 }
