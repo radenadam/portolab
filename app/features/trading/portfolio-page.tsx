@@ -73,6 +73,7 @@ export default function PortfolioPage({
       </Link>
       <PortfolioView
         report={loaderData.report}
+        reader={{ kind: "owner", classId: loaderData.classId }}
         now={loaderData.now}
         source={loaderData.source}
       />

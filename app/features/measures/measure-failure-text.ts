@@ -1,4 +1,6 @@
 import { marketIndex } from "~/features/market-data/tracked-instruments";
+import { textForReader } from "~/features/trading/text-for-reader";
+import type { PortfolioReader } from "~/features/trading/text-for-reader";
 import { formatCalendarDate, formatMonth, formatNumber } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import type { Result } from "~/result";
@@ -7,13 +9,14 @@ import { instrumentName } from "./instrument-name";
 import type { StoredMeasureFailure } from "./measure-stored.server";
 import { monthlyReturnCount } from "./monthly-return-count";
 
-/** What a set of measures belongs to: one stock, or the portfolio of the reader. */
+/** What a set of measures belongs to: one stock, which a student reads, or a portfolio, which its owner or the lecturer of the class reads. */
 export type MeasuredSubject =
-  { kind: "stock"; code: string } | { kind: "portfolio" };
+  | { kind: "stock"; code: string }
+  | { kind: "portfolio"; reader: PortfolioReader };
 
 type TooFewReturns = Extract<StoredMeasureFailure, { kind: "tooFewReturns" }>;
 
-/** The text that tells a student why a stock or the portfolio of the student has no measures, with the numbers of the failure, the rule behind it, and when the stored closes give the measures. */
+/** The text that tells its reader why a stock or a portfolio has no measures, with the numbers of the failure, the rule behind it, and when the stored closes give the measures. */
 export function measureFailureText(
   failure: StoredMeasureFailure,
   subject: MeasuredSubject,
@@ -29,9 +32,7 @@ export function measureFailureText(
         code: instrumentName(failure.code),
       });
     case "noRiskFreeRate":
-      return m.measures_no_risk_free_rate_notice({
-        date: formatCalendarDate(failure.date),
-      });
+      return noRiskFreeRateText(formatCalendarDate(failure.date), subject);
   }
 }
 
@@ -70,11 +71,19 @@ function tooFewReturnsText(
         ...counts,
         code: subject.code,
       });
-    case "portfolio":
-      return m.measures_portfolio_too_few_returns_notice({
-        ...counts,
-        code: instrumentName(failure.code),
+    case "portfolio": {
+      const code = instrumentName(failure.code);
+      return textForReader(subject.reader, {
+        owner: () =>
+          m.measures_portfolio_too_few_returns_notice({ ...counts, code }),
+        lecturer: (name) =>
+          m.measures_lecturer_too_few_returns_notice({
+            ...counts,
+            code,
+            name,
+          }),
       });
+    }
   }
 }
 
@@ -87,18 +96,36 @@ function forecastText(
       instrument: instrumentName(forecast.failure.code),
     });
   }
-  const month = formatMonth(forecast.value);
+  const forecastInputs = {
+    index: marketIndex.code,
+    month: formatMonth(forecast.value),
+  };
   switch (subject.kind) {
     case "stock":
       return m.measures_stock_enough_returns_notice({
+        ...forecastInputs,
         code: subject.code,
-        index: marketIndex.code,
-        month,
       });
     case "portfolio":
-      return m.measures_portfolio_enough_returns_notice({
-        index: marketIndex.code,
-        month,
+      return textForReader(subject.reader, {
+        owner: () => m.measures_portfolio_enough_returns_notice(forecastInputs),
+        lecturer: (name) =>
+          m.measures_lecturer_enough_returns_notice({
+            ...forecastInputs,
+            name,
+          }),
+      });
+  }
+}
+
+function noRiskFreeRateText(date: string, subject: MeasuredSubject): string {
+  switch (subject.kind) {
+    case "stock":
+      return m.measures_no_risk_free_rate_notice({ date });
+    case "portfolio":
+      return textForReader(subject.reader, {
+        owner: () => m.measures_no_risk_free_rate_notice({ date }),
+        lecturer: () => m.measures_lecturer_no_risk_free_rate_notice({ date }),
       });
   }
 }

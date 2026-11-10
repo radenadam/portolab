@@ -10,7 +10,7 @@ export function readCurrentPortfolio(
   owner: PortfolioOwner,
   { request, now }: { request: Request; now: Date },
 ): Portfolio {
-  // A page of another site can make a browser load this address without the student opening it, so only a visit of the student checks the orders.
+  // A page of another site can make a browser load this address without its reader opening it, so only a visit of the reader, the student or the lecturer of the class, checks the orders.
   if (!isLoadedByAnotherSite(request)) {
     database.transaction((transaction) => {
       checkPortfolioOrders(transaction, owner.membershipId, now);

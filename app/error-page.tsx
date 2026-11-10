@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Link } from "react-router";
+import { isRouteErrorResponse, Link } from "react-router";
 import styles from "./error-page.module.css";
 import { PageTitle } from "./page-title";
 import { m } from "./paraglide/messages.js";
@@ -49,7 +49,7 @@ export function MissingPageContent(): ReactNode {
 }
 
 /** The page for an address that a loader refused, which sets its own title as every page of the error boundary does. */
-export function MissingPage(): ReactNode {
+function MissingPage(): ReactNode {
   return (
     <>
       <PageTitle text={m.app_not_found_title()} />
@@ -59,7 +59,7 @@ export function MissingPage(): ReactNode {
 }
 
 /** The page for a failure that no route expected. */
-export function UnexpectedErrorPage(): ReactNode {
+function UnexpectedErrorPage(): ReactNode {
   return (
     <>
       <PageTitle text={m.app_unexpected_error_title()} />
@@ -69,4 +69,13 @@ export function UnexpectedErrorPage(): ReactNode {
       />
     </>
   );
+}
+
+/** The page for a failure that a route threw: the page for an address that does not exist after a refusal, or the page for a failure that no route expected. */
+export function RouteErrorPage({ error }: { error: unknown }): ReactNode {
+  // A loader answers an address that a person may not see as one that does not exist, so a guessed address reveals nothing.
+  if (isRouteErrorResponse(error) && error.status === 404) {
+    return <MissingPage />;
+  }
+  return <UnexpectedErrorPage />;
 }

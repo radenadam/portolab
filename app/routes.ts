@@ -19,6 +19,22 @@ export default [
     "features/measures/stock-measures-page.tsx",
   ),
   route(
+    "classes/:classId/portfolios",
+    "features/grading/class-portfolios-page.tsx",
+  ),
+  route(
+    "classes/:classId/portfolios/export",
+    "features/grading/workbook-route.tsx",
+  ),
+  route(
+    "classes/:classId/students/:studentId/portfolio",
+    "features/grading/student-portfolio-page.tsx",
+  ),
+  route(
+    "classes/:classId/students/:studentId/measures",
+    "features/grading/student-measures-page.tsx",
+  ),
+  route(
     "classes/:classId/students/:studentId/password",
     "features/classes/reset-password-page.tsx",
   ),

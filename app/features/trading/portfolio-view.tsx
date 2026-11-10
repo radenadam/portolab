@@ -1,14 +1,11 @@
 import type { ReactNode } from "react";
 import { ChangeText } from "~/change-text";
 import { countedText } from "~/counted-text";
-import tableStyles from "~/data-table.module.css";
 import definitionStyles from "~/definition-list.module.css";
 import type { PriceSourceDescription } from "~/features/market-data/price-source.server";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
 import {
-  formatCalendarDate,
   formatList,
-  formatMarketClock,
   formatMarketTime,
   formatNumber,
   formatRupiah,
@@ -17,24 +14,23 @@ import {
 } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { holdingQuoteFailureText } from "./holding-quote-failure-text";
-import type { HistoryEnd, ReturnPoint } from "./portfolio-history";
 import type { PortfolioReport } from "./read-portfolio-report.server";
 import type { PortfolioValuation, ValuedHolding } from "./value-portfolio";
 import { HoldingItems } from "./portfolio-summary";
-import { ReturnChart } from "./return-chart";
+import { missingCalendarText, ReturnSection } from "./return-section";
+import { textForReader } from "./text-for-reader";
+import type { PortfolioReader } from "./text-for-reader";
 import styles from "./trading.module.css";
 
-// The license of Lightweight Charts asks every page that shows a chart for the attribution notice of its NOTICE file and a link to TradingView. The notice names the library and its owner, so it reads the same in every language.
-const chartNotice = "TradingView Lightweight Charts™ © 2025 TradingView, Inc.";
-const chartNoticeAddress = "https://www.tradingview.com/";
-
-/** The value of a portfolio at delayed prices, its holdings, and its return against the IHSG at each final close, which the page of the portfolio shows below its title. */
+/** The value of a portfolio at delayed prices, its holdings, and its return against the IHSG at each final close, which the page of the portfolio shows below its title to its owner or to the lecturer of the class. */
 export function PortfolioView({
   report,
+  reader,
   now,
   source,
 }: {
   report: PortfolioReport;
+  reader: PortfolioReader;
   /** The moment that the page shows, which decides whether the next attempt of the quote job is still to come. */
   now: Date;
   source: PriceSourceDescription;
@@ -44,27 +40,49 @@ export function PortfolioView({
     now,
     delayMinutes: source.delayMinutes,
   });
+  const delay = {
+    source: source.name,
+    minutes: formatNumber(source.delayMinutes),
+  };
+  const index = marketIndex.code;
   return (
     <>
       <p>
-        {m.trading_valuation_notice({
-          source: source.name,
-          minutes: formatNumber(source.delayMinutes),
+        {textForReader(reader, {
+          owner: () => m.trading_valuation_notice(delay),
+          lecturer: (name) =>
+            m.trading_lecturer_valuation_notice({ ...delay, name }),
         })}
       </p>
       {failure !== undefined && <p className={styles["details"]}>{failure}</p>}
-      <h2>{m.trading_value_title()}</h2>
-      <ValueSummary valuation={valuation} />
-      <h2>{m.trading_holdings_title()}</h2>
-      <HoldingValueList holdings={valuation.holdings} />
-      <h2>{m.trading_return_title({ index: marketIndex.code })}</h2>
+      <h2>
+        {textForReader(reader, {
+          owner: () => m.trading_value_title(),
+          lecturer: () => m.trading_lecturer_value_title(),
+        })}
+      </h2>
+      <ValueSummary valuation={valuation} reader={reader} />
+      <h2>
+        {textForReader(reader, {
+          owner: () => m.trading_holdings_title(),
+          lecturer: () => m.trading_lecturer_holdings_title(),
+        })}
+      </h2>
+      <HoldingValueList holdings={valuation.holdings} reader={reader} />
+      <h2>
+        {textForReader(reader, {
+          owner: () => m.trading_return_title({ index }),
+          lecturer: () => m.trading_lecturer_return_title({ index }),
+        })}
+      </h2>
       {report.history.ok ? (
         <ReturnSection
           points={report.history.value.points}
           end={report.history.value.end}
+          reader={reader}
         />
       ) : (
-        <p>{m.trading_chart_calendar_missing_notice()}</p>
+        <p>{missingCalendarText(reader)}</p>
       )}
     </>
   );
@@ -72,8 +90,10 @@ export function PortfolioView({
 
 function ValueSummary({
   valuation,
+  reader,
 }: {
   valuation: PortfolioValuation;
+  reader: PortfolioReader;
 }): ReactNode {
   const { total } = valuation;
   return (
@@ -83,7 +103,12 @@ function ValueSummary({
         <dd>{formatRupiah(valuation.cash)}</dd>
         {total !== undefined && (
           <>
-            <dt>{m.trading_holdings_value_label()}</dt>
+            <dt>
+              {textForReader(reader, {
+                owner: () => m.trading_holdings_value_label(),
+                lecturer: () => m.trading_lecturer_holdings_value_label(),
+              })}
+            </dt>
             <dd>{formatRupiah(total.holdingsValue)}</dd>
             <dt>{m.trading_total_value_label()}</dt>
             <dd>{formatRupiah(total.value)}</dd>
@@ -118,12 +143,18 @@ function ValueSummary({
 
 function HoldingValueList({
   holdings,
+  reader,
 }: {
   holdings: readonly ValuedHolding[];
+  reader: PortfolioReader;
 }): ReactNode {
   return (
     <HoldingItems
       holdings={holdings}
+      emptyText={textForReader(reader, {
+        owner: () => m.trading_no_holdings_body(),
+        lecturer: (name) => m.trading_lecturer_no_holdings_body({ name }),
+      })}
       details={(holding) => {
         const cost = (
           <>
@@ -179,103 +210,4 @@ function HoldingValue({
       </dd>
     </>
   );
-}
-
-function ReturnSection({
-  points,
-  end,
-}: {
-  points: readonly ReturnPoint[];
-  end: HistoryEnd;
-}): ReactNode {
-  const start = points[0];
-  return (
-    <>
-      {start !== undefined && (
-        <>
-          <p>
-            {m.trading_chart_notice({
-              index: marketIndex.code,
-              date: formatCalendarDate(start.date),
-            })}
-          </p>
-          {/* The legend names the lines of the chart, which screen readers skip, as they do the chart. */}
-          <ul className={styles["legend"]} aria-hidden>
-            <li className={styles["portfolioSeries"]}>
-              {m.trading_portfolio_series_label()}
-            </li>
-            <li className={styles["marketSeries"]}>{marketIndex.code}</li>
-          </ul>
-          <ReturnChart points={points} />
-          <details className={styles["returns"]}>
-            <summary>{m.trading_returns_table_label()}</summary>
-            <ReturnTable points={points} />
-          </details>
-        </>
-      )}
-      <p className={styles["details"]}>{historyEndText(end)}</p>
-      {start !== undefined && (
-        <p className={styles["details"]}>
-          <a href={chartNoticeAddress} className={styles["link"]}>
-            {m.trading_chart_credit_link({ notice: chartNotice })}
-          </a>
-        </p>
-      )}
-    </>
-  );
-}
-
-function ReturnTable({
-  points,
-}: {
-  points: readonly ReturnPoint[];
-}): ReactNode {
-  return (
-    <table className={tableStyles["table"]}>
-      <thead>
-        <tr>
-          <th scope="col">{m.trading_trading_day_label()}</th>
-          <th scope="col">{m.trading_portfolio_series_label()}</th>
-          <th scope="col">{marketIndex.code}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {points.map((point) => (
-          <tr key={point.date}>
-            <th scope="row">{formatCalendarDate(point.date, "medium")}</th>
-            <td className={tableStyles["number"]}>
-              <ChangeText change={formatSignedPercent(point.portfolio)} />
-            </td>
-            <td className={tableStyles["number"]}>
-              <ChangeText change={formatSignedPercent(point.market)} />
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-}
-
-function historyEndText(end: HistoryEnd): string {
-  switch (end.kind) {
-    case "notFinal":
-      return m.trading_chart_not_final_notice({
-        date: formatCalendarDate(end.date),
-        time: formatMarketClock(end.finalAt),
-      });
-    case "missingCloses":
-      return countedText(
-        end.codes.length,
-        {
-          one: m.trading_one_missing_close_notice,
-          several: m.trading_several_missing_closes_notice,
-        },
-        {
-          codes: formatList(end.codes, "conjunction"),
-          date: formatCalendarDate(end.date),
-        },
-      );
-    case "missingCalendar":
-      return m.trading_chart_calendar_missing_notice();
-  }
 }

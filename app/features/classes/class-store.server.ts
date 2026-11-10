@@ -33,8 +33,9 @@ export interface JoinedClass extends ClassForStudents {
   joinedAt: Date;
 }
 
-/** A student in a class, as the lecturer of the class sees them. */
+/** A student in a class, as the lecturer of the class sees them, with the place of the student in the class, to which the portfolio of the student in the class belongs. */
 export interface ClassStudent extends Person {
+  membershipId: MembershipId;
   joinedAt: Date;
 }
 
@@ -54,6 +55,7 @@ const classForStudentsColumns = {
 };
 
 const membershipColumns = {
+  membershipId: memberships.id,
   studentId: memberships.studentId,
   joinedAt: memberships.joinedAt,
 };
@@ -233,10 +235,14 @@ function withLecturerNames<Row extends { lecturerId: UserId }>(
   }));
 }
 
-/** Turns each membership into the student with the time when the student joined. */
+/** Turns each membership into the student with the place of the student in the class and the time when the student joined. */
 function withStudents(
   database: Database,
-  rows: readonly { studentId: UserId; joinedAt: Date }[],
+  rows: readonly {
+    membershipId: MembershipId;
+    studentId: UserId;
+    joinedAt: Date;
+  }[],
 ): ClassStudent[] {
   const students = findPeople(
     database,
@@ -244,6 +250,7 @@ function withStudents(
   );
   return rows.map((row) => ({
     ...personWithId(students, row.studentId),
+    membershipId: row.membershipId,
     joinedAt: row.joinedAt,
   }));
 }

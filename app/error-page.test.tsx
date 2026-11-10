@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { createRoutesStub } from "react-router";
 import { expect, test } from "vitest";
-import { UnexpectedErrorPage } from "./error-page";
+import { RouteErrorPage } from "./error-page";
 import { languageNames } from "./language-names";
 import { locales } from "./paraglide/runtime.js";
 import type { Locale } from "./paraglide/runtime.js";
@@ -23,10 +23,15 @@ const texts: Record<
   },
 };
 
-/** Renders the page for an unexpected failure inside a router, because its link needs one. */
+/** Renders the page for a failure that a route threw inside a router, because its link needs one. */
 function renderUnexpectedErrorPage(): string {
   const Stub = createRoutesStub([
-    { path: "/", Component: UnexpectedErrorPage },
+    {
+      path: "/",
+      Component: () => (
+        <RouteErrorPage error={new Error("The test failed on purpose.")} />
+      ),
+    },
   ]);
   return renderToStaticMarkup(<Stub />);
 }
