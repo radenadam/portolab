@@ -19,5 +19,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PULL_REQUEST_URL: ${{ github.event.pull_request.html_url }}
-          COMMIT_BODY: Dependabot updates the dependencies that the title names. The check job and the review panel passed the update, and the pull request holds the release notes.
+          # The lines stay within the length that commitlint allows in a body, which scripts/dependabot-commit-body.test.ts checks.
+          COMMIT_BODY: |-
+            Dependabot updates the dependencies that the title names. The check job and the review
+            panel passed the update, and the pull request holds the release notes.
         run: gh pr merge --auto --squash --body "$COMMIT_BODY" "$PULL_REQUEST_URL"
