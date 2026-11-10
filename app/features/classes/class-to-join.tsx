@@ -61,7 +61,7 @@ function NewStudentForm({
       <h2>{m.classes_new_account_title()}</h2>
       <Form method="post" className={formStyles["form"]}>
         {failure !== undefined && <FormFailure text={failure} />}
-        <NameField hint={m.classes_student_name_hint()} failures={fields} />
+        <NameField accountRole="student" failures={fields} />
         <UsernameField failures={fields} />
         <NewPasswordFields failures={fields} />
         <ConsentField failures={fields} />

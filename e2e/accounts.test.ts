@@ -18,10 +18,13 @@ import {
 import { chooseLanguage } from "./choose-language.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 import { newDevice } from "./new-device.ts";
+import { studentOfNewClass } from "./student-of-new-class.ts";
 import { wideWord } from "./wide-word.ts";
+import { widestClassNames } from "./widest-class-names.ts";
 
-// The longest name that Portolab accepts, as one word, so each screen that shows a name is checked with its widest content.
+// The longest names that Portolab accepts, each as one word, so each screen that shows a name is checked with its widest content.
 const longName = wideWord("Kusumawardhani", nameMaximumLength);
+const correctedName = wideWord("Koreksi", nameMaximumLength);
 
 const texts: Record<
   Locale,
@@ -43,6 +46,8 @@ const texts: Record<
     newPasswordBody: string;
     nameLabel: string;
     lecturerNameHint: string;
+    studentNameHint: string;
+    nameTooLong: string;
     newPasswordLabel: string;
     passwordHint: string;
     repeatedPasswordLabel: string;
@@ -57,6 +62,9 @@ const texts: Record<
     lecturerRole: string;
     consented: readonly [string, string];
     privacyLink: string;
+    changeNameTitle: string;
+    changeNameButton: string;
+    nameChanged: string;
     changePasswordTitle: string;
     currentPasswordLabel: string;
     changePasswordButton: string;
@@ -102,6 +110,9 @@ const texts: Record<
     nameLabel: "Nama Anda",
     lecturerNameHint:
       "Mahasiswa Anda melihat nama ini di setiap kelas yang Anda ajar.",
+    studentNameHint: "Dosen Anda melihat nama ini di samping pekerjaan Anda.",
+    nameTooLong:
+      'Kolom "Nama Anda" memuat paling banyak 100 karakter, tetapi isinya 101 karakter. Persingkat isinya.',
     newPasswordLabel: "Kata sandi baru",
     passwordHint:
       "Paling sedikit 15 karakter. Kalimat pendek yang hanya Anda ketahui cukup panjang dan mudah diingat.",
@@ -120,6 +131,9 @@ const texts: Record<
     lecturerRole: "Dosen",
     consented: ["Anda menyetujui pemberitahuan privasi pada ", " WIB."],
     privacyLink: "Baca pemberitahuan privasi",
+    changeNameTitle: "Ubah nama Anda",
+    changeNameButton: "Ubah nama",
+    nameChanged: "Portolab menyimpan nama Anda.",
     changePasswordTitle: "Ubah kata sandi Anda",
     currentPasswordLabel: "Kata sandi saat ini",
     changePasswordButton: "Ubah kata sandi",
@@ -167,6 +181,9 @@ const texts: Record<
     nameLabel: "Your name",
     lecturerNameHint:
       "Your students see this name on each class that you teach.",
+    studentNameHint: "Your lecturer sees this name next to your work.",
+    nameTooLong:
+      'The field "Your name" holds at most 100 characters, but it has 101. Shorten it.',
     newPasswordLabel: "New password",
     passwordHint:
       "At least 15 characters. A short sentence that only you know is long enough and easy to remember.",
@@ -185,6 +202,9 @@ const texts: Record<
     lecturerRole: "Lecturer",
     consented: ["You agreed to the privacy notice on ", " WIB."],
     privacyLink: "Read the privacy notice",
+    changeNameTitle: "Change your name",
+    changeNameButton: "Change the name",
+    nameChanged: "Portolab saved your name.",
     changePasswordTitle: "Change your password",
     currentPasswordLabel: "Current password",
     changePasswordButton: "Change the password",
@@ -336,6 +356,13 @@ for (const locale of locales) {
       page.getByRole("link", { name: text.privacyLink }),
     ).toBeVisible();
     await expect(
+      page.getByRole("heading", { level: 2, name: text.changeNameTitle }),
+    ).toBeVisible();
+    await expect(page.getByLabel(text.nameLabel)).toHaveValue(longName);
+    await expect(page.getByLabel(text.nameLabel)).toHaveAccessibleDescription(
+      text.lecturerNameHint,
+    );
+    await expect(
       page.getByRole("heading", { level: 2, name: text.changePasswordTitle }),
     ).toBeVisible();
     await expect(page.getByLabel(text.currentPasswordLabel)).toBeVisible();
@@ -426,6 +453,49 @@ for (const locale of locales) {
     await otherDevice.context().close();
   });
 
+  test(`changes the name of a student by the rule of every name, and the lecturer of the class sees the new name, in ${language}`, async ({
+    page,
+    browser,
+  }) => {
+    const { student, classPath } = await studentOfNewClass(page, browser, {
+      locale,
+      ...widestClassNames,
+    });
+    await student.goto("/account");
+    await expect(
+      student.getByRole("heading", { level: 2, name: text.changeNameTitle }),
+    ).toBeVisible();
+    const nameField = student.getByLabel(text.nameLabel);
+    const details = student.getByRole("main").locator("dl");
+    await expect(nameField).toHaveValue(widestClassNames.studentName);
+    await expect(nameField).toHaveAccessibleDescription(text.studentNameHint);
+    await expectAccessibleScreen(student);
+
+    const tooLongName = wideWord("Koreksi", nameMaximumLength + 1);
+    await nameField.fill(tooLongName);
+    await submitMainForm(student, text.changeNameButton);
+    // A name is the value of its field, so the reason appears at the field, after the hint.
+    await expect(nameField).toHaveAccessibleDescription(
+      `${text.studentNameHint} ${text.nameTooLong}`,
+    );
+    await expect(nameField).toHaveValue(tooLongName);
+    await expect(details).toContainText(widestClassNames.studentName);
+    await expectAccessibleScreen(student);
+
+    await nameField.fill(`  ${correctedName}  `);
+    await submitMainForm(student, text.changeNameButton);
+    await expect(student.getByRole("status")).toHaveText(text.nameChanged);
+    await expect(nameField).toHaveValue(correctedName);
+    await expect(details).toContainText(correctedName);
+    await expectAccessibleScreen(student);
+
+    await page.goto(classPath);
+    await expect(
+      page.getByRole("main").getByText(correctedName, { exact: true }),
+    ).toBeVisible();
+    await student.context().close();
+  });
+
   test(`signs out, and signs in again to the page that asked for it, in ${language}`, async ({
     page,
   }) => {
@@ -472,7 +542,7 @@ for (const locale of locales) {
     // Axe runs in the page, so the screens are checked in the tests with JavaScript, and these tests check that each form works without it.
     test.use({ javaScriptEnabled: false });
 
-    test("signs in, finishes the account, and refuses a form from another site", async ({
+    test("signs in, finishes the account, changes the name, and refuses a form from another site", async ({
       page,
     }) => {
       await chooseLanguage(page, locale);
@@ -481,6 +551,16 @@ for (const locale of locales) {
       await expect(
         page.getByRole("heading", { level: 1, name: text.accountTitle }),
       ).toBeVisible();
+      await page.getByLabel(text.nameLabel).fill(correctedName);
+      await page
+        .getByRole("main")
+        .getByRole("button", { name: text.changeNameButton })
+        .click();
+      await expect(page.getByRole("status")).toHaveText(text.nameChanged);
+      await expect(page.getByLabel(text.nameLabel)).toHaveValue(correctedName);
+      await expect(page.getByRole("main").locator("dl")).toContainText(
+        correctedName,
+      );
       await expectRefusedSignOutFromAnotherSite(page, locale);
       await page.goto("/account");
       await expect(page).toHaveURL("/account");

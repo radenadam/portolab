@@ -30,7 +30,7 @@ const texts: Record<
       "Portolab tidak menyimpan alamat email, nomor telepon, atau apa pun tentang keuangan Anda yang sebenarnya. Portolab tidak memakai pelacakan maupun iklan, dan tidak memberikan data Anda kepada siapa pun.",
       "Dosen sebuah kelas melihat nama, nama pengguna, dan pekerjaan setiap mahasiswa di kelas itu, dan dapat mengunduhnya dalam spreadsheet untuk penilaian. Mahasiswa tidak melihat data mahasiswa lain.",
       "Orang yang menjalankan server Portolab ini dapat membaca semua yang disimpannya, karena mereka menyimpan basis datanya.",
-      "Undang-Undang Nomor 27 Tahun 2022 tentang Pelindungan Data Pribadi memberi Anda hak untuk melihat, memperbaiki, dan menghapus data Anda, serta menarik persetujuan Anda. Portolab menyimpan data Anda sampai orang yang menjalankan server ini menghapusnya, jadi mintalah hal-hal tersebut kepada mereka.",
+      "Undang-Undang Nomor 27 Tahun 2022 tentang Pelindungan Data Pribadi memberi Anda hak untuk melihat, memperbaiki, dan menghapus data Anda, serta menarik persetujuan Anda. Anda dapat mengubah nama Anda di halaman akun Anda. Portolab menyimpan data Anda sampai orang yang menjalankan server ini menghapusnya, jadi mintalah salinan semua data Anda atau penghapusannya kepada mereka. Untuk menarik persetujuan Anda, mintalah mereka menghapus data Anda, karena Portolab hanya menyimpan data Anda dengan persetujuan Anda.",
     ],
   },
   en: {
@@ -50,7 +50,7 @@ const texts: Record<
       "Portolab stores no email address, no phone number, and nothing about your real finances. It uses no tracking and no advertising, and it gives your data to no one.",
       "The lecturer of a class sees the name, the username, and the work of each student in it, and can download them in a spreadsheet for grading. Students do not see the data of other students.",
       "The person who runs this Portolab server can read everything that it stores, because they keep its database.",
-      "Indonesia's Law Number 27 of 2022 on Personal Data Protection gives you the right to see, correct, and delete your data, and to withdraw your agreement. Portolab keeps your data until the person who runs this server deletes it, so ask them for any of these.",
+      "Indonesia's Law Number 27 of 2022 on Personal Data Protection gives you the right to see, correct, and delete your data, and to withdraw your agreement. You can change your name on the page of your account. Portolab keeps your data until the person who runs this server deletes it, so ask them for a copy of all your data or for its deletion. To withdraw your agreement, ask them to delete your data, because Portolab stores your data only with your agreement.",
     ],
   },
 };

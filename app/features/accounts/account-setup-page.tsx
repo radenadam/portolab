@@ -12,6 +12,7 @@ import { returnDestination } from "~/return-destination.server";
 import type { Route } from "./+types/account-setup-page";
 import { missingSteps, readyUser } from "./account";
 import type { MissingSteps } from "./account";
+import type { Role } from "./accounts.schema";
 import {
   parseConsent,
   parsePersonName,
@@ -43,6 +44,7 @@ export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
 
 export function loader({ context, request, url }: Route.LoaderArgs): {
   steps: MissingSteps;
+  role: Role;
   returnTo: string;
 } {
   const session = requireSession(context, url);
@@ -50,7 +52,11 @@ export function loader({ context, request, url }: Route.LoaderArgs): {
   if (readyUser(session.account) !== undefined) {
     throw redirect(returnDestination(returnTo, request));
   }
-  return { steps: missingSteps(session.account), returnTo: returnTo ?? "" };
+  return {
+    steps: missingSteps(session.account),
+    role: session.account.role,
+    returnTo: returnTo ?? "",
+  };
 }
 
 export async function action({ context, request, url }: Route.ActionArgs) {
@@ -117,7 +123,7 @@ export default function AccountSetupPage({
   loaderData,
   actionData,
 }: Route.ComponentProps): ReactNode {
-  const { steps, returnTo } = loaderData;
+  const { steps, role, returnTo } = loaderData;
   const firstSetup = isFirstSetup(steps);
   return (
     <>
@@ -133,12 +139,7 @@ export default function AccountSetupPage({
       </p>
       <Form method="post" className={formStyles["form"]}>
         <input type="hidden" name="returnTo" value={returnTo} />
-        {steps.name && (
-          <NameField
-            hint={m.accounts_lecturer_name_hint()}
-            failures={actionData}
-          />
-        )}
+        {steps.name && <NameField accountRole={role} failures={actionData} />}
         {steps.password && <NewPasswordFields failures={actionData} />}
         {steps.consent && <ConsentField failures={actionData} />}
         <SubmitButton label={m.accounts_finish_label()} />
