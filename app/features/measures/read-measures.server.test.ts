@@ -3,9 +3,6 @@ import { openDatabaseForTest } from "~/database/open-database-for-test.server";
 import { indexHistoryForTest } from "~/features/market-data/history-for-test";
 import { saveDailyHistory } from "~/features/market-data/history-store.server";
 import { trackedStockCodes } from "~/features/market-data/tracked-instruments";
-import { valuePortfolio } from "~/features/trading/value-portfolio";
-import { rupiah } from "~/units/rupiah";
-import { shares } from "~/units/shares";
 import { closeToForTest } from "./close-to-for-test";
 import {
   aadiValuationForTest,
@@ -13,6 +10,7 @@ import {
   cashValuationForTest,
   databaseWithClosesForTest,
   studentLineForTest,
+  unpricedListingsValuationForTest,
   valuationForTest,
 } from "./measures-for-test.server";
 import { monthEndClosesForTest } from "./month-end-closes-for-test";
@@ -307,19 +305,9 @@ test("draws the line of the latest complete months of the IHSG while the portfol
 });
 
 test("names a stock that the portfolio holds on another line or without measures among the stocks that are not on the line of the latest months", () => {
-  // AMMN listed in July 2023 and AADI in December 2024, so AMMN lies against the line of its own 38 months and AADI has no measures, whether the portfolio holds them or not. The portfolio of both stocks has no delayed price of either, so it has no measures, and the chart draws the line of the latest months. Each holding cost what measures-for-test.server.ts gives for it.
+  // AMMN listed in July 2023 and AADI in December 2024, so AMMN lies against the line of its own 38 months and AADI has no measures, whether the portfolio holds them or not. The portfolio of both stocks has no delayed price of either, so it has no measures, and the chart draws the line of the latest months.
   const database = databaseWithClosesForTest();
-  const heldValuation = valuePortfolio(
-    {
-      cash: rupiah(10_000_000),
-      holdings: [
-        { code: "AMMN", shares: shares(1_000), cost: rupiah(3_655_475) },
-        { code: "AADI", shares: shares(1_000), cost: rupiah(11_492_213) },
-      ],
-    },
-    rupiah(25_147_688),
-    new Map(),
-  );
+  const heldValuation = unpricedListingsValuationForTest();
   expect(readPortfolioMeasures(database, heldValuation)).toEqual({
     kind: "unpriced",
     codes: ["AMMN", "AADI"],
