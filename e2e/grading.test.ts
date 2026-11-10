@@ -395,6 +395,14 @@ for (const locale of locales) {
       },
     });
     const main = await openPortfolios(page, locale, classPath);
+    // Every portfolio of the class has measures, so the page has no list of portfolios without them.
+    await expectPageHeadings(page, {
+      title: text.title,
+      headings: [text.rankedTitle],
+    });
+    await expect(
+      main.getByRole("heading", { name: text.unmeasuredTitle }),
+    ).toHaveCount(0);
     await main
       .getByRole("link", { name: text.measuresLink(studentName), exact: true })
       .click();
