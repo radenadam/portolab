@@ -1,6 +1,9 @@
 name: Dependabot auto-merge
 
-on: pull_request
+# The check of titles runs on the same events, so the merge takes the subject of every title that the check judged.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
 
 permissions:
   contents: write
