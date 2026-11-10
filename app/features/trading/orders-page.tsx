@@ -1,12 +1,11 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import type { data, ShouldRevalidateFunctionArgs } from "react-router";
-import { databaseContext } from "~/database/database.server";
 import { classPath } from "~/features/classes/class-path";
 import type { ClassId } from "~/features/classes/classes.schema";
-import { priceSourceContext } from "~/features/market-data/price-source-context.server";
 import type { PriceSourceDescription } from "~/features/market-data/price-source.server";
 import { trackedStockCodes } from "~/features/market-data/tracked-instruments";
+import { measuresPath } from "~/features/measures/measures-path";
 import { FormFailure, FormSuccess } from "~/form";
 import { formatNumber } from "~/formatting";
 import { pageTitle } from "~/page-title";
@@ -25,8 +24,8 @@ import { PlaceOrderSection } from "./place-order-section";
 import { portfolioPath } from "./portfolio-path";
 import { orderTradingDay } from "./order-trading-day";
 import type { TradingDayFailure } from "./order-trading-day";
-import { readCurrentPortfolio } from "./read-current-portfolio.server";
 import type { Portfolio } from "./portfolio-store.server";
+import { readStudentPortfolio } from "./read-student-portfolio.server";
 import { CashSummary, HoldingList } from "./portfolio-summary";
 import styles from "./trading.module.css";
 import type { OrderId } from "./trading.schema";
@@ -47,14 +46,13 @@ export function loader({ context, request, params, url }: Route.LoaderArgs): {
   isPlaced: boolean;
 } {
   const now = new Date();
-  const place = findStudentPlace(context, url, params.classId);
-  const portfolio = readCurrentPortfolio(
-    context.get(databaseContext),
-    place.owner,
-    { request, now },
-  );
-  const { name, delayMinutes } = context.get(priceSourceContext);
-  const day = orderTradingDay(now, delayMinutes);
+  const { place, portfolio, source } = readStudentPortfolio(context, {
+    request,
+    url,
+    classId: params.classId,
+    now,
+  });
+  const day = orderTradingDay(now, source.delayMinutes);
   const placed = parseRecordId<OrderId>(
     url.searchParams.get("placed"),
     "placed",
@@ -64,7 +62,7 @@ export function loader({ context, request, params, url }: Route.LoaderArgs): {
     className: place.className,
     portfolio,
     now,
-    source: { name, delayMinutes },
+    source,
     day: day.ok ? succeed(orderDayOf(day.value)) : day,
     // The notice confirms only an order of this portfolio, so an address with another number shows the orders without it.
     isPlaced:
@@ -110,6 +108,9 @@ export default function OrdersPage({
       </Link>
       <Link to={portfolioPath(loaderData.classId)} className={styles["link"]}>
         {m.trading_portfolio_link()}
+      </Link>
+      <Link to={measuresPath(loaderData.classId)} className={styles["link"]}>
+        {m.trading_measures_link()}
       </Link>
       {loaderData.isPlaced && <FormSuccess text={m.trading_placed_notice()} />}
       <p>

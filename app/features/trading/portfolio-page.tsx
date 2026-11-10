@@ -3,17 +3,16 @@ import { Link } from "react-router";
 import { databaseContext } from "~/database/database.server";
 import { classPath } from "~/features/classes/class-path";
 import type { ClassId } from "~/features/classes/classes.schema";
-import { priceSourceContext } from "~/features/market-data/price-source-context.server";
 import type { PriceSourceDescription } from "~/features/market-data/price-source.server";
+import { measuresPath } from "~/features/measures/measures-path";
 import { pageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
 import type { Route } from "./+types/portfolio-page";
-import { findStudentPlace } from "./find-student-place.server";
 import { ordersPath } from "./orders-path";
 import { readPortfolioReport } from "./read-portfolio-report.server";
 import type { PortfolioReport } from "./read-portfolio-report.server";
 import { PortfolioView } from "./portfolio-view";
-import { readCurrentPortfolio } from "./read-current-portfolio.server";
+import { readStudentPortfolio } from "./read-student-portfolio.server";
 import styles from "./trading.module.css";
 
 export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
@@ -34,26 +33,26 @@ export function loader({ context, request, params, url }: Route.LoaderArgs): {
   source: PriceSourceDescription;
 } {
   const now = new Date();
-  const place = findStudentPlace(context, url, params.classId);
-  const database = context.get(databaseContext);
-  const { name, delayMinutes } = context.get(priceSourceContext);
+  const { place, portfolio, source } = readStudentPortfolio(context, {
+    request,
+    url,
+    classId: params.classId,
+    now,
+  });
   return {
     classId: place.classId,
     className: place.className,
     report: readPortfolioReport(
-      database,
+      context.get(databaseContext),
       {
-        portfolio: readCurrentPortfolio(database, place.owner, {
-          request,
-          now,
-        }),
+        portfolio,
         startingCash: place.owner.startingCash,
         joinedAt: place.joinedAt,
       },
-      { now, delayMinutes },
+      { now, delayMinutes: source.delayMinutes },
     ),
     now,
-    source: { name, delayMinutes },
+    source,
   };
 }
 
@@ -68,6 +67,9 @@ export default function PortfolioPage({
       </Link>
       <Link to={ordersPath(loaderData.classId)} className={styles["link"]}>
         {m.trading_orders_link()}
+      </Link>
+      <Link to={measuresPath(loaderData.classId)} className={styles["link"]}>
+        {m.trading_measures_link()}
       </Link>
       <PortfolioView
         report={loaderData.report}

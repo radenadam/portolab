@@ -13,6 +13,11 @@ export default [
   route("classes/:classId", "features/classes/class-page.tsx"),
   route("classes/:classId/orders", "features/trading/orders-page.tsx"),
   route("classes/:classId/portfolio", "features/trading/portfolio-page.tsx"),
+  route("classes/:classId/measures", "features/measures/measures-page.tsx"),
+  route(
+    "classes/:classId/measures/:code",
+    "features/measures/stock-measures-page.tsx",
+  ),
   route(
     "classes/:classId/students/:studentId/password",
     "features/classes/reset-password-page.tsx",

@@ -1,0 +1,192 @@
+import type { Beta } from "~/units/beta";
+import type { Correlation } from "~/units/correlation";
+import type { MonthlyReturn } from "~/units/monthly-return";
+import type { MonthlyVariance } from "~/units/monthly-variance";
+import type { PortfolioWeight } from "~/units/portfolio-weight";
+import type { Rupiah } from "~/units/rupiah";
+import type { ReturnMeasure } from "./aligned-returns";
+import type {
+  MarketMeasures,
+  RequiredReturnMeasure,
+  SecurityMarketLineMeasure,
+  StockMeasures,
+} from "./capm";
+import type { RiskFreeRateMeasure } from "./measure-risk-free-rate";
+import type { StoredPortfolioMeasures } from "./measure-stored.server";
+import type { CorrelationMeasure } from "./return-statistics";
+
+// A measure holds its inputs, so the returns of an instrument recur in the mean, the variance, and each covariance. A page shows each return once, in the table of its instrument, so these summaries keep the returns once and the other measures by their values, which keeps a page small on mobile data.
+
+/** The measures of the market that a page shows, over the months of the stock or the portfolio beside it. */
+export interface MarketSummary {
+  returns: readonly ReturnMeasure[];
+  expectedReturn: MonthlyReturn;
+  variance: MonthlyVariance;
+  standardDeviation: MonthlyReturn;
+  riskFreeRate: RiskFreeRateMeasure;
+}
+
+/** The measures of one stock against the market that its page shows. */
+export interface StockSummary {
+  code: string;
+  returns: readonly ReturnMeasure[];
+  expectedReturn: MonthlyReturn;
+  variance: MonthlyVariance;
+  standardDeviation: MonthlyReturn;
+  covarianceWithMarket: MonthlyVariance;
+  correlationWithMarket: CorrelationMeasure;
+  beta: StockMeasures["beta"];
+  requiredReturn: RequiredReturnMeasure;
+  securityMarketLine: SecurityMarketLineMeasure;
+  market: MarketSummary;
+}
+
+/** The measures of a stock that a table of every stock shows. */
+export interface StockRowSummary {
+  expectedReturn: MonthlyReturn;
+  standardDeviation: MonthlyReturn;
+  beta: Beta;
+}
+
+/** A stock of a portfolio with its value, its weight, and the measures that the table of the stocks of the portfolio shows. */
+interface HoldingSummary {
+  code: string;
+  value: Rupiah;
+  weight: PortfolioWeight;
+  expectedReturn: MonthlyReturn;
+  beta: Beta;
+  returns: readonly ReturnMeasure[];
+}
+
+/** The covariance and the correlation of two stocks of a portfolio, or of one stock with itself, whose covariance is its variance. */
+interface PairSummary {
+  first: string;
+  second: string;
+  covariance: MonthlyVariance;
+  correlation: Correlation;
+}
+
+/** The measures of a portfolio that its page shows. */
+export interface PortfolioSummary {
+  expectedReturn: MonthlyReturn;
+  variance: MonthlyVariance;
+  standardDeviation: MonthlyReturn;
+  beta: Beta;
+  requiredReturn: RequiredReturnMeasure;
+  securityMarketLine: SecurityMarketLineMeasure;
+  cash: { value: Rupiah; weight: PortfolioWeight };
+  /** The value of the holdings and the cash, of which each weight is a share. */
+  totalValue: Rupiah;
+  /** In the order of the portfolio. */
+  holdings: HoldingSummary[];
+  /** Each pair of stocks once, in the order of the portfolio, each stock first with itself. */
+  pairs: PairSummary[];
+  market: MarketSummary;
+}
+
+function summarizeMarket(market: MarketMeasures): MarketSummary {
+  return {
+    returns: market.returns,
+    expectedReturn: market.expectedReturn.value,
+    variance: market.variance.value,
+    standardDeviation: market.standardDeviation.value,
+    riskFreeRate: market.riskFreeRate,
+  };
+}
+
+export function summarizeStock({
+  stock,
+  market,
+}: {
+  stock: StockMeasures;
+  market: MarketMeasures;
+}): StockSummary {
+  return {
+    code: stock.code,
+    returns: stock.returns,
+    expectedReturn: stock.expectedReturn.value,
+    variance: stock.variance.value,
+    standardDeviation: stock.standardDeviation.value,
+    covarianceWithMarket: stock.covarianceWithMarket.value,
+    correlationWithMarket: stock.correlationWithMarket,
+    beta: stock.beta,
+    requiredReturn: stock.requiredReturn,
+    securityMarketLine: stock.securityMarketLine,
+    market: summarizeMarket(market),
+  };
+}
+
+export function summarizeStockRow(stock: StockMeasures): StockRowSummary {
+  return {
+    expectedReturn: stock.expectedReturn.value,
+    standardDeviation: stock.standardDeviation.value,
+    beta: stock.beta.value,
+  };
+}
+
+/** Summarizes the measures of a portfolio with the values from which measureStoredPortfolio weighed its holdings and its cash. */
+export function summarizePortfolio(
+  measures: StoredPortfolioMeasures,
+  values: {
+    holdings: readonly { code: string; value: Rupiah }[];
+    cash: Rupiah;
+    total: Rupiah;
+  },
+): PortfolioSummary {
+  const pairs: PairSummary[] = [];
+  for (const [rowIndex, row] of measures.holdings.entries()) {
+    for (const [columnIndex, column] of measures.holdings.entries()) {
+      if (columnIndex < rowIndex) {
+        continue;
+      }
+      const covariance = measures.covarianceMatrix[rowIndex]?.[columnIndex];
+      const correlation = measures.correlationMatrix[rowIndex]?.[columnIndex];
+      // measurePortfolio gives each matrix a row and a column for each holding, so a missing cell is a defect.
+      if (covariance === undefined || correlation === undefined) {
+        throw new Error(
+          `The matrices of the portfolio have no cell for ${row.code} and ${column.code}.`,
+        );
+      }
+      pairs.push({
+        first: row.code,
+        second: column.code,
+        covariance: covariance.value,
+        correlation: correlation.value,
+      });
+    }
+  }
+  return {
+    expectedReturn: measures.expectedReturn.value,
+    variance: measures.variance.value,
+    standardDeviation: measures.standardDeviation.value,
+    beta: measures.beta.value,
+    requiredReturn: measures.requiredReturn,
+    securityMarketLine: measures.securityMarketLine,
+    cash: { value: values.cash, weight: measures.cashWeight },
+    totalValue: values.total,
+    holdings: measures.holdings.map((holding) => ({
+      code: holding.code,
+      value: valueOf(holding.code, values.holdings),
+      weight: holding.weight,
+      expectedReturn: holding.expectedReturn.value,
+      beta: holding.beta.value,
+      returns: holding.returns,
+    })),
+    pairs,
+    market: summarizeMarket(measures.market),
+  };
+}
+
+// measureStoredPortfolio measures exactly the holdings whose values it receives, so a holding without a value is a defect.
+function valueOf(
+  code: string,
+  holdings: readonly { code: string; value: Rupiah }[],
+): Rupiah {
+  const holding = holdings.find((candidate) => candidate.code === code);
+  if (holding === undefined) {
+    throw new Error(
+      `The portfolio has measures of ${code} but no value of it.`,
+    );
+  }
+  return holding.value;
+}

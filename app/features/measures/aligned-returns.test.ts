@@ -189,7 +189,7 @@ test("fails for an instrument whose returns are the same in every month, and nam
 test("counts the monthly returns of a stock with a full history in the window of the settings", () => {
   expect(
     countReturns(
-      monthEndClosesForTest("BBCA"),
+      [monthEndClosesForTest("BBCA")],
       monthEndClosesForTest("IHSG"),
       defaultEstimationSettings,
     ),
@@ -199,7 +199,7 @@ test("counts the monthly returns of a stock with a full history in the window of
 test("counts as many monthly returns of a stock that listed recently as the measures share with the market", () => {
   const aadi = monthEndClosesForTest("AADI");
   const market = monthEndClosesForTest("IHSG");
-  const counted = countReturns(aadi, market, defaultEstimationSettings);
+  const counted = countReturns([aadi], market, defaultEstimationSettings);
   expect(counted).toEqual({
     count: 21,
     minimum: 24,
@@ -219,9 +219,27 @@ test("counts as many monthly returns of a stock that listed recently as the meas
 test("counts no returns and no window while the market has no complete month", () => {
   expect(
     countReturns(
-      monthEndClosesForTest("BBCA"),
+      [monthEndClosesForTest("BBCA")],
       marketWithoutCompleteMonthForTest(),
       defaultEstimationSettings,
     ),
   ).toEqual({ count: 0, minimum: 24, windowEnd: undefined });
+});
+
+test("counts the months in which the market and every instrument have a return, as many as alignedReturns keeps", () => {
+  // AMMN listed in July 2023 and AADI in December 2024, so the months that they share with BBCA and the IHSG are the 21 of AADI.
+  const instruments = [
+    monthEndClosesForTest("BBCA"),
+    monthEndClosesForTest("AMMN"),
+    monthEndClosesForTest("AADI"),
+  ];
+  const market = monthEndClosesForTest("IHSG");
+  const counted = countReturns(instruments, market, defaultEstimationSettings);
+  expect(counted).toEqual({ count: 21, minimum: 24, windowEnd: "2026-09-30" });
+  expect(
+    alignedReturns(market, instruments, {
+      returnCount: 60,
+      minimumReturnCount: counted.count,
+    }),
+  ).toMatchObject({ ok: true, value: { market: { length: counted.count } } });
 });

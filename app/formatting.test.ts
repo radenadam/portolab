@@ -1,17 +1,24 @@
 import { expect, test } from "vitest";
 import {
+  formatBeta,
   formatBytes,
   formatCalendarDate,
   formatCalendarDatePart,
+  formatCorrelation,
   formatMarketTime,
   formatMarketTimeParts,
+  formatPercent,
   formatSignedRupiah,
+  formatVariance,
 } from "./formatting";
 import { languageNames } from "./language-names";
 import { locales } from "./paraglide/runtime.js";
 import type { Locale } from "./paraglide/runtime.js";
 import { switchLocaleForTest } from "./switch-locale-for-test";
+import { beta } from "./units/beta";
 import { bytes } from "./units/bytes";
+import { correlation } from "./units/correlation";
+import { monthlyVariance } from "./units/monthly-variance";
 import { rupiah } from "./units/rupiah";
 
 // 09:14:56 UTC on 16 October 2026 is 16:14 WIB.
@@ -105,5 +112,51 @@ for (const locale of locales) {
     expect(formatCalendarDatePart("2026-10-30", "year")).toBe(text.year);
     expect(formatCalendarDatePart("2026-10-30", "month")).toBe(text.month);
     expect(formatCalendarDatePart("2026-10-30", "day")).toBe(text.day);
+  });
+}
+
+const measureValues: Record<
+  Locale,
+  {
+    upToTwo: string;
+    two: string;
+    variance: string;
+    smallVariance: string;
+    beta: string;
+    correlation: string;
+  }
+> = {
+  id: {
+    upToTwo: "0,1%",
+    two: "-0,10%",
+    variance: "0,002732",
+    smallVariance: "-0,00007039",
+    beta: "0,69",
+    correlation: "-0,25",
+  },
+  en: {
+    upToTwo: "0.1%",
+    two: "-0.10%",
+    variance: "0.002732",
+    smallVariance: "-0.00007039",
+    beta: "0.69",
+    correlation: "-0.25",
+  },
+};
+
+for (const locale of locales) {
+  test(`formats a percentage with up to two decimals or exactly two, a variance with four significant digits, and a beta and a correlation with two decimals, in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    const text = measureValues[locale];
+    expect(formatPercent(0.001)).toBe(text.upToTwo);
+    expect(formatPercent(-0.0010226485841997692, "two")).toBe(text.two);
+    expect(formatVariance(monthlyVariance(0.0027323758291948595))).toBe(
+      text.variance,
+    );
+    expect(formatVariance(monthlyVariance(-7.03867487764213e-5))).toBe(
+      text.smallVariance,
+    );
+    expect(formatBeta(beta(0.6893713956004657))).toBe(text.beta);
+    expect(formatCorrelation(correlation(-0.2501))).toBe(text.correlation);
   });
 }

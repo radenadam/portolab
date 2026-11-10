@@ -17,21 +17,23 @@ import type { Portfolio } from "./portfolio-store.server";
 import { valuePortfolio } from "./value-portfolio";
 import type { PortfolioValuation } from "./value-portfolio";
 
-/** A portfolio of a student in a class as its page shows it at a moment. */
-export interface PortfolioReport {
+/** A portfolio of a student in a class at the latest delayed prices of its holdings. */
+export interface ValuationReport {
   valuation: PortfolioValuation;
   /** The latest attempt of the quote job, with only the codes of the holdings among the prices that it could not update. */
   quoteAttempt: UpdateAttempt | undefined;
-  history: Result<PortfolioHistory, MissingCalendar>;
 }
 
-/** Values a portfolio at the latest delayed prices, and replays its return since the start at the stored closes, for a student who joined the class at a moment with its starting cash. */
-export function readPortfolioReport(
+/** A portfolio of a student in a class as its page shows it at a moment. */
+export type PortfolioReport = ValuationReport & {
+  history: Result<PortfolioHistory, MissingCalendar>;
+};
+
+/** Values a portfolio at the latest delayed prices of its holdings, against the starting cash of its class. */
+export function readPortfolioValuation(
   database: Database,
-  member: { portfolio: Portfolio; startingCash: Rupiah; joinedAt: Date },
-  { now, delayMinutes }: { now: Date; delayMinutes: number },
-): PortfolioReport {
-  const { portfolio, startingCash } = member;
+  { portfolio, startingCash }: { portfolio: Portfolio; startingCash: Rupiah },
+): ValuationReport {
   const quotes = new Map<string, StockQuote>();
   for (const holding of portfolio.holdings) {
     const quote = findStockQuote(database, holding.code);
@@ -40,7 +42,6 @@ export function readPortfolioReport(
     }
   }
   const attempt = readLatestUpdateAttempt(database, "quotes");
-  const startDate = historyStartDate(member.joinedAt);
   return {
     valuation: valuePortfolio(portfolio, startingCash, quotes),
     quoteAttempt:
@@ -52,6 +53,19 @@ export function readPortfolioReport(
               portfolio.holdings.some((holding) => holding.code === code),
             ),
           },
+  };
+}
+
+/** Values a portfolio at the latest delayed prices, and replays its return since the start at the stored closes, for a student who joined the class at a moment with its starting cash. */
+export function readPortfolioReport(
+  database: Database,
+  member: { portfolio: Portfolio; startingCash: Rupiah; joinedAt: Date },
+  { now, delayMinutes }: { now: Date; delayMinutes: number },
+): PortfolioReport {
+  const { portfolio, startingCash } = member;
+  const startDate = historyStartDate(member.joinedAt);
+  return {
+    ...readPortfolioValuation(database, { portfolio, startingCash }),
     history: startDate.ok
       ? succeed(
           portfolioHistory({

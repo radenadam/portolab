@@ -26,15 +26,3 @@ export function shareCount(count: Shares): string {
     {},
   );
 }
-
-/** A number of monthly returns with its noun in the active language, such as "1 monthly return" or "24 monthly returns". */
-export function monthlyReturnCount(count: number): string {
-  return countedText(
-    count,
-    {
-      one: m.trading_one_monthly_return_part,
-      several: m.trading_several_monthly_returns_part,
-    },
-    {},
-  );
-}
