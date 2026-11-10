@@ -5,6 +5,11 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, edited]
 
+# A push and a new title of Dependabot start two runs, and each reads the title of its own event. Only the latest run may set the subject, as only the latest run of the check judges the title.
+concurrency:
+  group: dependabot-merge-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 permissions:
   contents: write
   pull-requests: write
