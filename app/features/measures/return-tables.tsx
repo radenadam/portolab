@@ -9,6 +9,7 @@ import {
 import { m } from "~/paraglide/messages.js";
 import type { MonthlyReturn } from "~/units/monthly-return";
 import type { ReturnMeasure } from "./aligned-returns";
+import { instrumentName } from "./instrument-name";
 import { MeasureTable } from "./measure-table";
 import styles from "./measures.module.css";
 
@@ -31,7 +32,9 @@ export function ReturnTables({
       <p>{m.measures_returns_notice()}</p>
       {instruments.map(({ code, returns }) => (
         <details key={code} className={styles["returns"]}>
-          <summary>{m.measures_returns_table_label({ code })}</summary>
+          <summary>
+            {m.measures_returns_table_label({ code: instrumentName(code) })}
+          </summary>
           <MeasureTable
             header={[
               m.measures_close_date_label(),

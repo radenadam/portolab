@@ -89,7 +89,7 @@ const texts: Record<
     title: "Monthly returns",
     notice:
       "Each table lists the closes on the last trading day of the months and the return of each month that the measures use, so you can reproduce every measure in a spreadsheet with the functions that the formulas name. A close without a return is the start of the return in the row below it.",
-    summaries: ["Monthly returns of IHSG", "Monthly returns of BBCA"],
+    summaries: ["Monthly returns of the IHSG", "Monthly returns of BBCA"],
     header: ["Month end", "Close", "Return"],
     ihsgRows: [
       ["Sep 30, 2021", "6,286.94", ""],

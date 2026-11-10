@@ -3,6 +3,7 @@ import { formatCalendarDate, formatMonth, formatNumber } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import type { Result } from "~/result";
 import { defaultEstimationSettings } from "./estimation-settings";
+import { instrumentName } from "./instrument-name";
 import type { StoredMeasureFailure } from "./measure-stored.server";
 import { monthlyReturnCount } from "./monthly-return-count";
 
@@ -24,7 +25,9 @@ export function measureFailureText(
         forecastText(failure.enoughAfterFirstTradingDayOf, subject),
       ].join(" ");
     case "noVariation":
-      return m.measures_no_variation_notice({ code: failure.code });
+      return m.measures_no_variation_notice({
+        code: instrumentName(failure.code),
+      });
     case "noRiskFreeRate":
       return m.measures_no_risk_free_rate_notice({
         date: formatCalendarDate(failure.date),
@@ -41,7 +44,9 @@ export function shortMeasureFailureText(failure: StoredMeasureFailure): string {
         minimum: formatNumber(failure.minimum),
       });
     case "noVariation":
-      return m.measures_short_no_variation_notice({ code: failure.code });
+      return m.measures_short_no_variation_notice({
+        code: instrumentName(failure.code),
+      });
     case "noRiskFreeRate":
       return m.measures_short_no_risk_free_rate_notice({
         date: formatCalendarDate(failure.date),
@@ -68,7 +73,7 @@ function tooFewReturnsText(
     case "portfolio":
       return m.measures_portfolio_too_few_returns_notice({
         ...counts,
-        code: failure.code,
+        code: instrumentName(failure.code),
       });
   }
 }
@@ -79,7 +84,7 @@ function forecastText(
 ): string {
   if (!forecast.ok) {
     return m.measures_no_price_history_notice({
-      instrument: forecast.failure.code,
+      instrument: instrumentName(forecast.failure.code),
     });
   }
   const month = formatMonth(forecast.value);

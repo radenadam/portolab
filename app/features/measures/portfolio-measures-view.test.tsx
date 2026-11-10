@@ -263,7 +263,7 @@ const texts: Record<
       "<p>σ<sub>ij</sub> = Σ(R<sub>i</sub> − E(R<sub>i</sub>))(R<sub>j</sub> − E(R<sub>j</sub>)) / (n − 1) (COVARIANCE.S)</p><p>ρ<sub>ij</sub> = σ<sub>ij</sub> / (σ<sub>i</sub> σ<sub>j</sub>) (CORREL)</p>",
     summaries: [
       "<h2>The IHSG and the risk-free rate</h2>",
-      "<summary>Monthly returns of IHSG</summary>",
+      "<summary>Monthly returns of the IHSG</summary>",
       "<summary>Monthly returns of BBCA</summary>",
       "<summary>Monthly returns of TLKM</summary>",
     ],

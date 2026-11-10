@@ -1,6 +1,6 @@
 import type { RouterContextProvider } from "react-router";
 import { databaseContext } from "~/database/database.server";
-import { priceSourceContext } from "~/features/market-data/price-source-context.server";
+import { readPriceSourceDescription } from "~/features/market-data/price-source-context.server";
 import type { PriceSourceDescription } from "~/features/market-data/price-source.server";
 import { findStudentPlace } from "./find-student-place.server";
 import type { StudentPlace } from "./find-student-place.server";
@@ -25,13 +25,12 @@ export function readStudentPortfolio(
   }: { request: Request; url: URL; classId: string; now: Date },
 ): StudentPortfolio {
   const place = findStudentPlace(context, url, classId);
-  const { name, delayMinutes } = context.get(priceSourceContext);
   return {
     place,
     portfolio: readCurrentPortfolio(context.get(databaseContext), place.owner, {
       request,
       now,
     }),
-    source: { name, delayMinutes },
+    source: readPriceSourceDescription(context),
   };
 }

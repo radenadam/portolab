@@ -197,7 +197,7 @@ const texts: Record<
     ],
     holding: ["BBCA", "49.64%", "-0.10%", "0.69"],
     pair: ["BBCA", "0.002732", "1.00"],
-    summaries: ["Monthly returns of IHSG", "Monthly returns of BBCA"],
+    summaries: ["Monthly returns of the IHSG", "Monthly returns of BBCA"],
     stocksNotice:
       "The table lists every stock of the LQ45 that Portolab records, so it covers every stock that you can buy or sell. Each stock uses the months in which it and the IHSG have a return, and its page shows every formula and every return, or the whole reason why it has no measures yet.",
     stocks: [
