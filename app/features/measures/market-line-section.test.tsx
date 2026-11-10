@@ -326,6 +326,9 @@ for (const locale of locales) {
         offTheChart,
     );
     // The portfolio of BBCA and TLKM lacks a delayed price of TLKM, so it has no measures, but the chart labels the stocks that it holds.
+    expect(readPortfolioMeasures(database, valuationForTest(["BBCA"]))).toEqual(
+      { kind: "unpriced", codes: ["TLKM"] },
+    );
     const held = render(
       <StudentMarketLine
         marketLine={studentLineForTest(database, valuationForTest(["BBCA"]))}
