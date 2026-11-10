@@ -11,6 +11,10 @@ updates:
       dependencies:
         patterns: ["*"]
         update-types: [minor, patch]
+    ignore:
+      # Paraglide JS 3 needs a migration, which issue #81 describes and which waits until after the first release.
+      - dependency-name: "@inlang/paraglide-js"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
