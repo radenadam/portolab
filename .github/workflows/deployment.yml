@@ -1,0 +1,127 @@
+name: Deployment
+
+# Decision 0010 asks that a change which affects the deployment includes a run of the guide on a fresh Ubuntu system. The job follows docs/deploy.md for each pull request that touches the deployment or its test, which scripts/deployment-guide.ts decides. Docker, Caddy, and Ubuntu also change outside the repository, so the job follows the guide every week as well. Every pull request requires this check, and GitHub counts a skipped check as passed, so the job runs for every pull request and ends at once when the guide does not need to run.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  schedule:
+    - cron: "0 18 * * 0"
+  workflow_dispatch:
+
+concurrency:
+  group: deployment-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deployment:
+    name: deployment (Ubuntu ${{ matrix.ubuntu }})
+    strategy:
+      fail-fast: false
+      matrix:
+        ubuntu: ["24.04", "26.04"]
+    runs-on: ubuntu-${{ matrix.ubuntu }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        timeout-minutes: 5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      # The decision needs no package, so a pull request that does not touch the deployment ends without an install.
+      - uses: pnpm/setup@fa36a5ef7dcdefc3a7cb25655c122e00cf6e636e # v3.1.2
+        timeout-minutes: 5
+        with:
+          install: false
+      - name: Decide whether the job follows the guide
+        id: plan
+        timeout-minutes: 2
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: node scripts/plan-deployment-test.ts >> "$GITHUB_OUTPUT"
+      # The runner comes with Docker, which a fresh server lacks, so the guide installs it as it would on a fresh server.
+      - name: Remove Docker from the runner
+        if: steps.plan.outputs.run == 'true'
+        timeout-minutes: 5
+        run: |
+          sudo systemctl stop docker.socket docker.service containerd.service
+          sudo apt-get purge --yes docker-ce docker-ce-cli containerd.io
+          sudo rm -rf /usr/libexec/docker /var/lib/docker /var/lib/containerd /etc/docker
+      # The guide clones the main branch, so the commit under test becomes the main branch of a repository that root owns, as git asks of a repository that root clones.
+      - name: Offer the commit under test as the repository of the guide
+        if: steps.plan.outputs.run == 'true'
+        timeout-minutes: 2
+        run: |
+          git checkout -B main
+          git clone --bare . "$RUNNER_TEMP/portolab.git"
+          sudo chown -R root:root "$RUNNER_TEMP/portolab.git"
+      - name: Follow the guide
+        if: steps.plan.outputs.run == 'true'
+        timeout-minutes: 20
+        run: sudo env "PATH=$PATH" node scripts/run-deployment-guide.ts --repository "$RUNNER_TEMP/portolab.git"
+      - name: Install the packages of the tests of the server and generate their messages
+        if: steps.plan.outputs.run == 'true'
+        timeout-minutes: 10
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm run generate
+      - name: Install the browser for the tests of the server
+        if: steps.plan.outputs.run == 'true'
+        uses: ./.github/actions/install-browser
+        timeout-minutes: 10
+      # Caddy serves the domain of the test with a certificate of its own authority, which the browser then trusts as a browser trusts Let's Encrypt.
+      - name: Trust the certificate authority of Caddy in the browser
+        if: steps.plan.outputs.run == 'true'
+        timeout-minutes: 3
+        run: |
+          sudo cat /var/lib/caddy/.local/share/caddy/pki/authorities/local/root.crt > "$RUNNER_TEMP/caddy-root.crt"
+          sudo apt-get install --yes libnss3-tools
+          mkdir --parents "$HOME/.pki/nssdb"
+          certutil -d "sql:$HOME/.pki/nssdb" -N --empty-password
+          certutil -d "sql:$HOME/.pki/nssdb" -A -t "C,," -n "Caddy Local Authority" -i "$RUNNER_TEMP/caddy-root.crt"
+      - name: Test the server in the browser
+        if: steps.plan.outputs.run == 'true'
+        timeout-minutes: 5
+        run: pnpm exec playwright test --config e2e/deployment/playwright.config.ts
+      - name: Show the logs of the server
+        if: failure() && steps.plan.outputs.run == 'true'
+        timeout-minutes: 2
+        run: |
+          for container in $(sudo docker ps --all --quiet); do
+            sudo docker logs "$container"
+          done
+          sudo journalctl --unit caddy --no-pager
+      - name: Upload the traces of the browser tests
+        if: failure() && steps.plan.outputs.run == 'true'
+        timeout-minutes: 5
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: deployment-test-results-${{ matrix.ubuntu }}
+          path: test-results/
+          retention-days: 7
+
+  # Nobody watches a run on a schedule, so a run that did not succeed becomes an issue, unless an open issue already records it. A job of its own holds the right to write issues, so the steps that run the code under test never hold it.
+  report:
+    name: report
+    needs: deployment
+    if: always() && github.event_name == 'schedule' && needs.deployment.result != 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+    steps:
+      - name: Open an issue for the run
+        timeout-minutes: 3
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TITLE: The deployment guide no longer runs on a fresh server
+          RESULT: ${{ needs.deployment.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          open=$(gh issue list --state open --search "in:title $TITLE" --json title --jq "[.[] | select(.title == env.TITLE)] | length")
+          if [ "$open" = "0" ]; then
+            gh issue create --title "$TITLE" --body "The scheduled run $RUN_URL of the deployment test ended with $RESULT. Its log names the system, the step, and the command that failed."
+          fi

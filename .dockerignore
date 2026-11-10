@@ -1,0 +1,15 @@
+# The image installs and builds everything itself, so it takes only the sources of the repository.
+.git
+node_modules
+build
+.react-router
+app/paraglide
+data
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+.env
+coverage
+playwright-report
+test-results
+blob-report

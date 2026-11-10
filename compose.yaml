@@ -1,0 +1,29 @@
+# Decision 0010 runs Portolab in one container that the server builds from the repository, behind Caddy on the host. docs/deploy.md runs this file.
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    environment:
+      DATABASE_PATH: /app/data/portolab.sqlite
+    volumes:
+      - data:/app/data
+    # Decision 0005 explains why only this computer may reach the port.
+    ports:
+      - 127.0.0.1:3000:3000
+    # docs/deploy.md starts Portolab with --wait, which returns once the server answers, so the next command finds the database ready.
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - --eval
+        - "const response = await fetch('http://127.0.0.1:3000/health')\nprocess.exitCode = response.ok ? 0 : 1"
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      start_interval: 1s
+    # The default log of Docker grows without a limit, which would fill the disk of the server over a semester, and this driver rotates its files.
+    logging:
+      driver: local
+
+volumes:
+  data:

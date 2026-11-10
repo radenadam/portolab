@@ -9,7 +9,12 @@ import type { AccountAction } from "../app/features/accounts/account-actions.ts"
 import { usernameLength } from "../app/features/accounts/username.ts";
 import { testDatabasePath } from "./test-database-path.ts";
 
-const accountCommand = join(import.meta.dirname, "..", "server", "account.ts");
+const accountCommandPath = join(
+  import.meta.dirname,
+  "..",
+  "server",
+  "account.ts",
+);
 const commandTimeoutSeconds = 30;
 
 /** A password that every test account chooses, long enough for the rule of passwords. */
@@ -21,17 +26,33 @@ export function uniqueUsername(prefix: string): string {
   return `${prefix}${"w".repeat(usernameLength.maximum - prefix.length - unique.length)}${unique}`;
 }
 
-/** Runs the account command on the database of the test server, as the person who runs a server would, and returns the temporary password that it prints. */
+/** How a test runs the account command of a server, without the action and the username that each run adds. */
+export interface AccountCommand {
+  file: string;
+  arguments: readonly string[];
+  environment: NodeJS.ProcessEnv;
+}
+
+/** The account command on the database of the test server, which the global setup started. */
+function testServerAccountCommand(): AccountCommand {
+  return {
+    file: process.execPath,
+    arguments: [accountCommandPath],
+    environment: { ...process.env, DATABASE_PATH: testDatabasePath() },
+  };
+}
+
+/** Runs the account command, as the person who runs a server would, on the test server unless the test names another server, and returns the temporary password that it prints. */
 export function runAccountCommand(
   action: AccountAction,
   username: string,
+  command: AccountCommand = testServerAccountCommand(),
 ): string {
-  const databasePath = testDatabasePath();
   const output = execFileSync(
-    process.execPath,
-    [accountCommand, action, username],
+    command.file,
+    [...command.arguments, action, username],
     {
-      env: { ...process.env, DATABASE_PATH: databasePath },
+      env: command.environment,
       encoding: "utf8",
       timeout: commandTimeoutSeconds * secondMilliseconds,
     },
@@ -105,13 +126,18 @@ export async function fillNewPassword(
   await page.locator('main input[name="repeatedPassword"]').fill(password);
 }
 
-/** Creates a lecturer with the account command, signs in, and finishes the account with a name, a password, and consent, so that the page ends signed in on the classes of the lecturer. */
+/** Creates a lecturer with the account command of the test server, or of the server that the test names, signs in, and finishes the account with a name, a password, and consent, so that the page ends signed in on the classes of the lecturer. */
 export async function signInAsNewLecturer(
   page: Page,
   name: string,
+  command?: AccountCommand,
 ): Promise<string> {
   const username = uniqueUsername("dosen");
-  const temporaryPassword = runAccountCommand("create-lecturer", username);
+  const temporaryPassword = runAccountCommand(
+    "create-lecturer",
+    username,
+    command,
+  );
   await page.goto("/sign-in");
   await submitSignIn(page, username, temporaryPassword);
   await expect(page).toHaveURL(/\/account\/setup/);

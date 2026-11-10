@@ -15,6 +15,20 @@ updates:
       # Paraglide JS 3 needs a migration, which issue #81 describes and which waits until after the first release.
       - dependency-name: "@inlang/paraglide-js"
         update-types: ["version-update:semver-major"]
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 3
+    groups:
+      # The build and the server of the Dockerfile run the same version of Node, because the build compiles better-sqlite3 for it.
+      node:
+        patterns: ["node"]
+    ignore:
+      # A new major version of Node changes the version that package.json requires, which Dependabot does not update with it.
+      - dependency-name: node
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule:

@@ -54,7 +54,7 @@ Each later release serves the next course topic, in teaching order: futures and 
 ## Constraints
 
 - **Platforms**: current browsers on phones, tablets, and computers, from a screen 360 pixels wide.
-- **Hosting**: one Linux VPS that the lecturer owns. Its owner deploys and updates Portolab from the public repository by following the deployment guide, so the guide must work step by step on a fresh server. Demonstrations also run on a laptop and serve phones on the same Wi-Fi network. The project uses no paid service.
+- **Hosting**: one Linux VPS that the lecturer owns. Its owner deploys and updates Portolab from the public repository by following [the deployment guide](deploy.md), so the guide must work step by step on a fresh server. Demonstrations also run on a laptop and serve phones on the same Wi-Fi network. The project uses no paid service.
 - **Market data**: delayed prices come from Yahoo Finance, which has no license for this use and limits automated requests. The source sits behind one interface, every price is cached, and the app keeps working with the last known prices when the source fails. A licensed source can replace it without changes elsewhere.
 - **Privacy**: Indonesia's personal data protection law applies. Portolab stores only what a class needs, asks for explicit consent, and holds no real financial data.
 - **Regulation**: OJK rules on financial information allow simulations that are labelled as simulations and that make no recommendations.

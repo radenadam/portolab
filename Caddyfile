@@ -1,0 +1,5 @@
+# The Caddyfile of the server imports this file with its domain, as docs/deploy.md shows, so an update of the repository reaches Caddy when it reloads.
+# Decision 0010 explains why Caddy passes the host of each request on to Portolab, which it does by default.
+{args[0]} {
+	reverse_proxy 127.0.0.1:3000
+}

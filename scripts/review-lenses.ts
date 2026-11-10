@@ -87,10 +87,14 @@ function isTest(path: string): boolean {
   );
 }
 
-// The files that set how the app is composed, served, and built, and which packages it depends on.
+// The files that set how the app is composed, served, built, and deployed, and which packages it depends on.
 const architectureFiles = [
+  ".dockerignore",
+  "Caddyfile",
+  "Dockerfile",
   "app/root.tsx",
   "app/routes.ts",
+  "compose.yaml",
   "package.json",
   "pnpm-workspace.yaml",
   "react-router.config.ts",
