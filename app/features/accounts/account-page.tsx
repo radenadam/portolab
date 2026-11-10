@@ -34,10 +34,10 @@ import { explainPasswordFailure } from "./explain-password-failure.server";
 import { SignOutButton } from "./sign-out-button";
 import styles from "./account-page.module.css";
 
-/** The answer to the form of the name: whether Portolab saved the name, or the name as the person typed it with the reason that it does not follow the rule of names. */
+/** The answer to the form of the name: when Portolab saved the name, so that the form starts over, and the field as the form then shows it, which holds the name as the rule of names saved it, or the name as the person typed it with the reason that it does not follow the rule. */
 interface NameAnswer {
-  isSaved: boolean;
-  failures: Pick<AccountFormFailures, "name" | "nameFailure"> | undefined;
+  savedAt: string | undefined;
+  field: Pick<AccountFormFailures, "name" | "nameFailure">;
 }
 
 /** The answer to the form of the password: when Portolab saved the password, so that the form starts over without it, or the reason that each field or the whole form was not accepted. */
@@ -88,15 +88,15 @@ export async function action({
 async function changeName(
   context: Readonly<RouterContextProvider>,
   url: URL,
-  { user, form }: AccountForm,
+  { user, form, now }: AccountForm,
 ): Promise<ReturnType<typeof data<AccountAnswer>>> {
   const name = parsePersonName(form.get("name"), m.accounts_name_label());
   if (!name.ok) {
     return data(
       {
         name: {
-          isSaved: false,
-          failures: {
+          savedAt: undefined,
+          field: {
             name: typedText(form.get("name")),
             nameFailure: name.failure,
           },
@@ -111,7 +111,10 @@ async function changeName(
   });
   reloadSessionAccount(context, url);
   return data({
-    name: { isSaved: true, failures: undefined },
+    name: {
+      savedAt: now.toISOString(),
+      field: { name: name.value, nameFailure: undefined },
+    },
     password: undefined,
   });
 }
@@ -248,16 +251,18 @@ function NameForm({
   answer: NameAnswer | undefined;
 }): ReactNode {
   return (
-    // The form starts over when the stored name changes, so that the field shows the name as the rule of names saved it.
-    <Form key={user.name} method="post" className={formStyles["form"]}>
-      {answer?.isSaved === true && (
+    // The form starts over with each save, also when the rule of names saved the stored name again, such as without the spaces around it. React Router gives the page the answer before the loaders read the account again, so the field takes the saved name from the answer.
+    <Form
+      key={answer?.savedAt ?? "unsaved"}
+      method="post"
+      className={formStyles["form"]}
+    >
+      {answer?.savedAt !== undefined && (
         <FormSuccess text={m.accounts_name_changed_notice()} />
       )}
       <NameField
         accountRole={user.role}
-        failures={
-          answer?.failures ?? { name: user.name, nameFailure: undefined }
-        }
+        failures={answer?.field ?? { name: user.name, nameFailure: undefined }}
       />
       <SubmitButton label={m.accounts_change_name_label()} />
     </Form>

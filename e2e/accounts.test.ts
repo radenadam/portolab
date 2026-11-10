@@ -489,6 +489,12 @@ for (const locale of locales) {
     await expect(details).toContainText(correctedName);
     await expectAccessibleScreen(student);
 
+    // The rule of names turns this text into the stored name, so the save leaves the stored name as it was, and the form starts over all the same.
+    await nameField.fill(` ${correctedName} `);
+    await submitMainForm(student, text.changeNameButton);
+    await expect(nameField).toHaveValue(correctedName);
+    await expect(student.getByRole("status")).toHaveText(text.nameChanged);
+
     await page.goto(classPath);
     await expect(
       page.getByRole("main").getByText(correctedName, { exact: true }),
