@@ -26,12 +26,19 @@ jobs:
         with:
           cache: true
           require-lockfile: true
+      # Dependabot writes "Bump" with a capital, so for its pull requests the check reads the subject that the merge gives the squash commit.
       - name: Check the pull request title
         timeout-minutes: 2
         if: github.event_name == 'pull_request'
         env:
           TITLE: ${{ github.event.pull_request.title }}
-        run: printf '%s\n' "$TITLE" | pnpm exec commitlint
+          AUTHOR: ${{ github.event.pull_request.user.login }}
+        run: |
+          subject="$TITLE"
+          if [ "$AUTHOR" = "dependabot[bot]" ]; then
+            subject=$(node scripts/print-dependabot-subject.ts)
+          fi
+          printf '%s\n' "$subject" | pnpm exec commitlint
       - name: Install the browser for end-to-end tests
         uses: ./.github/actions/install-browser
         # The step ends long before the job does, so a stalled download fails here by name.

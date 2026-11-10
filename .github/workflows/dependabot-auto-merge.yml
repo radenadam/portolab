@@ -13,14 +13,29 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      # The body of a squash commit is the description of its pull request, which Dependabot fills with release notes in its own style. The merge replaces it with this text, and the release notes stay on the pull request.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        timeout-minutes: 3
+        with:
+          persist-credentials: false
+      - uses: pnpm/setup@fa36a5ef7dcdefc3a7cb25655c122e00cf6e636e # v3.1.2
+        timeout-minutes: 4
+        with:
+          install: false
+      # A squash commit takes the title and the description of its pull request, which Dependabot writes in its own style, with release notes in the description. The merge gives the commit the subject that the check of titles read and this body, and the release notes stay on the pull request. Each push of Dependabot can change the title, so the merge is set again for every push.
       - name: Merge once every required check passes
         timeout-minutes: 3
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PULL_REQUEST_URL: ${{ github.event.pull_request.html_url }}
+          TITLE: ${{ github.event.pull_request.title }}
           # The lines stay within the length that commitlint allows in a body, which scripts/dependabot-commit-body.test.ts checks.
           COMMIT_BODY: |-
             Dependabot updates the dependencies that the title names. The check job and the review
             panel passed the update, and the pull request holds the release notes.
-        run: gh pr merge --auto --squash --body "$COMMIT_BODY" "$PULL_REQUEST_URL"
+        run: |
+          subject=$(node scripts/print-dependabot-subject.ts)
+          enabled=$(gh pr view "$PULL_REQUEST_URL" --json autoMergeRequest --jq '.autoMergeRequest != null')
+          if [ "$enabled" = "true" ]; then
+            gh pr merge --disable-auto "$PULL_REQUEST_URL"
+          fi
+          gh pr merge --auto --squash --subject "$subject" --body "$COMMIT_BODY" "$PULL_REQUEST_URL"
