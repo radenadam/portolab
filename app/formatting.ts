@@ -1,8 +1,11 @@
 import { startOfUtcDate } from "~/calendar-dates";
 import { getLocale } from "~/paraglide/runtime.js";
 import { listOfWords } from "~/sentences";
+import type { Beta } from "~/units/beta";
 import type { Bytes } from "~/units/bytes";
+import type { Correlation } from "~/units/correlation";
 import type { IndexPoints } from "~/units/index-points";
+import type { MonthlyVariance } from "~/units/monthly-variance";
 import type { Rupiah } from "~/units/rupiah";
 import { wibTimeZone } from "~/wib";
 
@@ -65,12 +68,48 @@ export function formatIndexLevel(level: IndexPoints): string {
   }).format(level);
 }
 
-/** Formats a fraction such as 0.07 as a percentage without a sign, such as 7%, with at most two decimals. */
-export function formatPercent(fraction: number): string {
+/** How many decimals a percentage shows: at most two, or exactly two, so that the values of a column of measures line up. */
+type PercentDecimals = "upToTwo" | "two";
+
+const fewestPercentDecimals: Record<PercentDecimals, number> = {
+  upToTwo: 0,
+  two: 2,
+};
+
+/** Formats a fraction such as 0.07 as a percentage without a plus sign, such as 7% with at most two decimals or 7.00% with exactly two. */
+export function formatPercent(
+  fraction: number,
+  decimals: PercentDecimals = "upToTwo",
+): string {
   return new Intl.NumberFormat(intlLocale(), {
     style: "percent",
+    minimumFractionDigits: fewestPercentDecimals[decimals],
     maximumFractionDigits: 2,
   }).format(fraction);
+}
+
+/** Formats a variance or a covariance of monthly returns with four significant digits, such as 0.002732, because it is a square of returns and too small for a percentage. */
+export function formatVariance(variance: MonthlyVariance): string {
+  return new Intl.NumberFormat(intlLocale(), {
+    maximumSignificantDigits: 4,
+  }).format(variance);
+}
+
+/** Formats a beta with two decimals, such as 0.69. */
+export function formatBeta(beta: Beta): string {
+  return formatTwoDecimals(beta);
+}
+
+/** Formats a correlation with two decimals, such as -0.25. */
+export function formatCorrelation(correlation: Correlation): string {
+  return formatTwoDecimals(correlation);
+}
+
+function formatTwoDecimals(value: number): string {
+  return new Intl.NumberFormat(intlLocale(), {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
 }
 
 /** Formats a calendar date such as 2026-11-02 as a date in words, such as 2 November 2026 in a sentence, or with the short month of a table, such as 2 Nov 2026. */

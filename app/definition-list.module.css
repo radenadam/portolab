@@ -1,0 +1,19 @@
+/* A list of terms and their values, such as the amounts of a portfolio or the measures of a stock, with each value beside its term. */
+.list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-1) var(--space-4);
+  align-self: stretch;
+  margin: 0;
+}
+
+.list dt {
+  color: var(--color-muted);
+}
+
+/* The values line up on the right in the font for numbers, as the numbers of the table of prices do. */
+.list dd {
+  margin: 0;
+  font-family: var(--font-numbers);
+  text-align: right;
+}

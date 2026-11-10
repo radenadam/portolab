@@ -1,4 +1,5 @@
 import { countedText } from "~/counted-text";
+import { monthlyReturnCount } from "~/features/measures/monthly-return-count";
 import {
   formatCalendarDate,
   formatList,
@@ -10,7 +11,7 @@ import { m } from "~/paraglide/messages.js";
 import { basisPointsPerWhole } from "~/units/basis-points";
 import { lots, smallestOrderLots } from "~/units/lots";
 import { rupiah } from "~/units/rupiah";
-import { lotCount, monthlyReturnCount } from "./count-parts";
+import { lotCount } from "./count-parts";
 import type { PriceLimit } from "./price-limits";
 import type { FillFailure, OrderFailure } from "./order";
 import { purchaseCost } from "./trading-costs";

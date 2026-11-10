@@ -2,11 +2,8 @@ import type { ReactNode } from "react";
 import { ChangeText } from "~/change-text";
 import { countedText } from "~/counted-text";
 import tableStyles from "~/data-table.module.css";
-import type {
-  PriceSourceDescription,
-  StockQuote,
-} from "~/features/market-data/price-source.server";
-import { quoteFailureText } from "~/features/market-data/quote-failure-text";
+import definitionStyles from "~/definition-list.module.css";
+import type { PriceSourceDescription } from "~/features/market-data/price-source.server";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
 import {
   formatCalendarDate,
@@ -19,6 +16,7 @@ import {
   formatSignedRupiah,
 } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
+import { holdingQuoteFailureText } from "./holding-quote-failure-text";
 import type { HistoryEnd, ReturnPoint } from "./portfolio-history";
 import type { PortfolioReport } from "./read-portfolio-report.server";
 import type { PortfolioValuation, ValuedHolding } from "./value-portfolio";
@@ -42,11 +40,10 @@ export function PortfolioView({
   source: PriceSourceDescription;
 }): ReactNode {
   const { valuation } = report;
-  const failure = quoteFailureText(
-    report.quoteAttempt,
-    pricedQuotes(valuation.holdings),
-    { now, delayMinutes: source.delayMinutes },
-  );
+  const failure = holdingQuoteFailureText(report, {
+    now,
+    delayMinutes: source.delayMinutes,
+  });
   return (
     <>
       <p>
@@ -73,16 +70,6 @@ export function PortfolioView({
   );
 }
 
-function pricedQuotes(holdings: readonly ValuedHolding[]): StockQuote[] {
-  const quotes: StockQuote[] = [];
-  for (const holding of holdings) {
-    if (holding.kind === "priced") {
-      quotes.push(holding.quote);
-    }
-  }
-  return quotes;
-}
-
 function ValueSummary({
   valuation,
 }: {
@@ -91,7 +78,7 @@ function ValueSummary({
   const { total } = valuation;
   return (
     <>
-      <dl className={styles["summary"]}>
+      <dl className={definitionStyles["list"]}>
         <dt>{m.trading_cash_label()}</dt>
         <dd>{formatRupiah(valuation.cash)}</dd>
         {total !== undefined && (
@@ -149,7 +136,7 @@ function HoldingValueList({
         switch (holding.kind) {
           case "priced":
             return (
-              <dl className={styles["summary"]}>
+              <dl className={definitionStyles["list"]}>
                 {cost}
                 <HoldingValue holding={holding} />
               </dl>
@@ -157,7 +144,7 @@ function HoldingValueList({
           case "unpriced":
             return (
               <>
-                <dl className={styles["summary"]}>{cost}</dl>
+                <dl className={definitionStyles["list"]}>{cost}</dl>
                 <p className={styles["details"]}>
                   {m.trading_unpriced_notice({ code: holding.code })}
                 </p>
@@ -221,9 +208,7 @@ function ReturnSection({
           </ul>
           <ReturnChart points={points} />
           <details className={styles["returns"]}>
-            <summary className={styles["returnsLabel"]}>
-              {m.trading_returns_table_label()}
-            </summary>
+            <summary>{m.trading_returns_table_label()}</summary>
             <ReturnTable points={points} />
           </details>
         </>

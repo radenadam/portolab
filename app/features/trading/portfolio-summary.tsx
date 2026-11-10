@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { countedText } from "~/counted-text";
+import definitionStyles from "~/definition-list.module.css";
 import { formatRupiah } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { rupiah } from "~/units/rupiah";
@@ -25,7 +26,7 @@ export function CashSummary({
 }: Omit<PortfolioAtMoment, "holdings">): ReactNode {
   const setAside = cashSetAside(orders, now).amount;
   return (
-    <dl className={styles["summary"]}>
+    <dl className={definitionStyles["list"]}>
       <dt>{m.trading_cash_label()}</dt>
       <dd>{formatRupiah(cash)}</dd>
       <dt>{m.trading_set_aside_label()}</dt>

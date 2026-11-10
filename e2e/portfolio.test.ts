@@ -4,7 +4,7 @@ import { languageNames } from "../app/language-names.ts";
 import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
-import { expectMissingPage } from "./expect-missing-page.ts";
+import { expectMissingClassPages } from "./expect-missing-class-pages.ts";
 import { expectPageHeadings } from "./expect-page-headings.ts";
 import { itmgPortfolio } from "./itmg-portfolio.ts";
 import { storeTestPurchases } from "./store-test-purchases.ts";
@@ -268,16 +268,13 @@ for (const locale of locales) {
     page,
     browser,
   }) => {
-    const { student, classPath } = await studentOfNewClass(page, browser, {
+    await expectMissingClassPages(page, browser, {
       locale,
-      ...widestClassNames,
+      notFoundTitle: text.notFoundTitle,
+      addresses: (classPath) => [
+        { reader: "lecturer", path: `${classPath}/portfolio` },
+        { reader: "student", path: "/classes/999999999/portfolio" },
+      ],
     });
-    for (const [reader, path] of [
-      [page, `${classPath}/portfolio`],
-      [student, "/classes/999999999/portfolio"],
-    ] as const) {
-      await expectMissingPage(reader, path, text.notFoundTitle);
-    }
-    await student.context().close();
   });
 }

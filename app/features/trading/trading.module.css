@@ -5,25 +5,6 @@
   overflow-wrap: anywhere;
 }
 
-.summary {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: var(--space-1) var(--space-4);
-  align-self: stretch;
-  margin: 0;
-}
-
-.summary dt {
-  color: var(--color-muted);
-}
-
-/* The amounts line up on the right in the font for numbers, as the numbers of the table of prices do. */
-.summary dd {
-  margin: 0;
-  font-family: var(--font-numbers);
-  text-align: right;
-}
-
 .list {
   display: flex;
   flex-direction: column;
@@ -86,12 +67,4 @@
 
 .returns {
   align-self: stretch;
-}
-
-/* The label opens the table, so it has the color of a link and the height of a touch target, and it keeps the marker that shows whether the table is open. */
-.returnsLabel {
-  min-height: var(--size-touch-target);
-  color: var(--color-signal);
-  line-height: var(--size-touch-target);
-  cursor: pointer;
 }

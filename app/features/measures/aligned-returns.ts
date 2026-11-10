@@ -84,9 +84,9 @@ function windowEndDates(
   return monthEndDates(marketCloses).slice(-(settings.returnCount + 1));
 }
 
-/** How many monthly returns an instrument has for the measures, against how many they need. */
+/** How many monthly returns instruments share for the measures, against how many they need. */
 export interface ReturnCount {
-  /** The returns of the instrument in the window of the settings. The market has a return in every month of the window, so these are the months that the instrument shares with the market. */
+  /** The months in the window of the settings in which the market and every instrument have a return. The market has a return in every month of the window, so for one instrument these are its returns in the window. */
   count: number;
   /** The fewest returns that the measures accept. */
   minimum: number;
@@ -94,17 +94,54 @@ export interface ReturnCount {
   windowEnd: string | undefined;
 }
 
-/** Counts the monthly returns of an instrument in the window of the settings, which are the returns that alignedReturns gives for the instrument and the market alone. */
+/** Counts the months in the window of the settings in which the market and every instrument have a return, which are the months whose returns alignedReturns keeps. */
 export function countReturns(
-  instrument: InstrumentCloses,
+  instruments: readonly InstrumentCloses[],
   market: InstrumentCloses,
   settings: EstimationSettings,
 ): ReturnCount {
-  const window = windowEndDates(market.closes, settings);
+  const window = returnsInWindow(market, instruments, settings);
   return {
-    count: returnsBetween(instrument.closes, window).length,
+    count: window.sharedEndDates.size,
     minimum: settings.minimumReturnCount,
-    windowEnd: window.at(-1),
+    windowEnd: window.endDates.at(-1),
+  };
+}
+
+/** The returns of the market and of each instrument in the window of the settings, the end dates of the months in which all of them have a return, and the instrument with the fewest returns, or the market when no instrument has fewer. */
+function returnsInWindow<Instrument extends InstrumentCloses>(
+  market: InstrumentCloses,
+  instruments: readonly Instrument[],
+  settings: EstimationSettings,
+): {
+  endDates: string[];
+  marketReturns: ReturnMeasure[];
+  instrumentReturns: AlignedReturns<Instrument>["instruments"];
+  sharedEndDates: Set<string>;
+  shortest: { code: string; count: number };
+} {
+  const endDates = windowEndDates(market.closes, settings);
+  const marketReturns = returnsBetween(market.closes, endDates);
+  let sharedEndDates = endDatesOf(marketReturns);
+  let shortest = { code: market.code, count: marketReturns.length };
+  const instrumentReturns: AlignedReturns<Instrument>["instruments"] = [];
+  for (const instrument of instruments) {
+    const returns = returnsBetween(instrument.closes, endDates);
+    instrumentReturns.push({ instrument, returns });
+    const instrumentEndDates = endDatesOf(returns);
+    sharedEndDates = new Set(
+      [...sharedEndDates].filter((endDate) => instrumentEndDates.has(endDate)),
+    );
+    if (returns.length < shortest.count) {
+      shortest = { code: instrument.code, count: returns.length };
+    }
+  }
+  return {
+    endDates,
+    marketReturns,
+    instrumentReturns,
+    sharedEndDates,
+    shortest,
   };
 }
 
@@ -126,22 +163,8 @@ export function alignedReturns<Instrument extends InstrumentCloses>(
   instruments: readonly Instrument[],
   settings: EstimationSettings,
 ): Result<AlignedReturns<Instrument>, MeasureFailure> {
-  const window = windowEndDates(market.closes, settings);
-  const marketReturns = returnsBetween(market.closes, window);
-  let sharedEndDates = endDatesOf(marketReturns);
-  let shortest = { code: market.code, count: marketReturns.length };
-  const instrumentReturns: AlignedReturns<Instrument>["instruments"] = [];
-  for (const instrument of instruments) {
-    const returns = returnsBetween(instrument.closes, window);
-    instrumentReturns.push({ instrument, returns });
-    const endDates = endDatesOf(returns);
-    sharedEndDates = new Set(
-      [...sharedEndDates].filter((endDate) => endDates.has(endDate)),
-    );
-    if (returns.length < shortest.count) {
-      shortest = { code: instrument.code, count: returns.length };
-    }
-  }
+  const { marketReturns, instrumentReturns, sharedEndDates, shortest } =
+    returnsInWindow(market, instruments, settings);
   if (sharedEndDates.size < settings.minimumReturnCount) {
     return fail({
       kind: "tooFewReturns",

@@ -93,6 +93,14 @@ a {
   color: var(--color-signal);
 }
 
+/* The label of a part that opens, such as a table of returns, has the color of a link and the height of a touch target, and it keeps the marker that shows whether the part is open. */
+summary {
+  min-height: var(--size-touch-target);
+  color: var(--color-signal);
+  line-height: var(--size-touch-target);
+  cursor: pointer;
+}
+
 :is(a, button, summary):hover {
   text-decoration-line: underline;
   text-decoration-thickness: var(--size-mark);

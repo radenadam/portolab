@@ -1,0 +1,419 @@
+import { expect, test } from "@playwright/test";
+import type { Browser, Locator, Page } from "@playwright/test";
+import type { ClassId } from "../app/features/classes/classes.schema.ts";
+import { languageNames } from "../app/language-names.ts";
+import { locales } from "../app/paraglide/runtime.js";
+import type { Locale } from "../app/paraglide/runtime.js";
+import { bbcaHolding } from "./bbca-holding.ts";
+import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
+import { expectMissingClassPages } from "./expect-missing-class-pages.ts";
+import { expectPageHeadings } from "./expect-page-headings.ts";
+import { itmgPortfolio } from "./itmg-portfolio.ts";
+import { storeTestHolding } from "./store-test-holding.ts";
+import { storeTestPurchases } from "./store-test-purchases.ts";
+import { studentOfNewClass } from "./student-of-new-class.ts";
+import { widestClassNames } from "./widest-class-names.ts";
+
+// The server runs with the fixture price source, whose quotes are the closes of Friday 30 October 2026, and the global setup stores the month-end closes that give BBCA 60 monthly returns and AADI 21, and no closes of ADMR. bbca-holding.ts describes the portfolio of the student, in which BBCA has a weight of 0.496382. The measures of the portfolio follow from those of BBCA that the decimal module of Python computed, as measure-stock.test.ts gives them: an expected return of -0.000508, a variance of 0.000673, a standard deviation of 0.025947, a beta of 0.342192, a required return of 0.003308, and a distance of -0.003816 from the security market line.
+const { className } = widestClassNames;
+
+const texts: Record<
+  Locale,
+  {
+    classLink: string;
+    title: string;
+    backLink: string;
+    portfolioLink: string;
+    ordersLink: string;
+    measuresLink: string;
+    methodNotice: string;
+    headings: readonly string[];
+    months: string;
+    measures: string;
+    below: string;
+    weights: readonly (readonly string[])[];
+    holding: readonly string[];
+    pair: readonly string[];
+    summaries: readonly string[];
+    stocksNotice: string;
+    stocks: readonly (readonly [string, ...string[]])[];
+    noHoldings: string;
+    itmgFailure: string;
+    stockTitle: string;
+    allMeasuresLink: string;
+    stockHeadings: readonly string[];
+    stockMeasures: string;
+    aadiTitle: string;
+    aadiFailure: string;
+    admrFailure: string;
+    notFoundTitle: string;
+  }
+> = {
+  id: {
+    classLink: "Imbal hasil dan risiko portofolio Anda dan setiap saham",
+    title: `Imbal hasil dan risiko di ${className}`,
+    backLink: `Kembali ke ${className}`,
+    portfolioLink: "Lihat nilai dan imbal hasil portofolio Anda",
+    ordersLink: "Pasang dan pantau order Anda",
+    measuresLink:
+      "Lihat imbal hasil dan risiko portofolio Anda dan setiap saham",
+    methodNotice:
+      "Ukuran ini adalah simulasi dari harga penutupan masa lalu. Setiap imbal hasil bulanan adalah perubahan harga penutupan final dari hari bursa terakhir suatu bulan ke hari bursa terakhir bulan berikutnya, tanpa dividen. Ukuran suatu saham atau portofolio memakai bulan-bulan di antara 60 bulan lengkap terakhir yang di dalamnya IHSG dan setiap sahamnya memiliki imbal hasil, dan memerlukan paling sedikit 24 imbal hasil bulanan. Setiap nilai berlaku per bulan.",
+    headings: [
+      "Ukuran portofolio Anda",
+      "Bobot portofolio Anda",
+      "Saham Anda pada bulan-bulan ini",
+      "Kovarians dan korelasi saham Anda",
+      "IHSG dan suku bunga bebas risiko",
+      "Imbal hasil bulanan",
+      "Ukuran setiap saham",
+    ],
+    months:
+      "Ukuran di bawah memakai 60 imbal hasil bulanan dari Oktober 2021 sampai September 2026.",
+    measures: [
+      "Imbal hasil yang diharapkan",
+      "-0,05%",
+      "E(Rp) = Σ wi E(Ri) (SUMPRODUCT)",
+      "Varians",
+      "0,0006732",
+      "σ²p = Σi Σj wi wj σij (MMULT)",
+      "Simpangan baku",
+      "2,59%",
+      "σp = √σ²p = √0,0006732",
+      "Beta terhadap IHSG",
+      "0,34",
+      "βp = Σ wi βi (SUMPRODUCT)",
+      "Imbal hasil yang disyaratkan CAPM",
+      "0,33%",
+      "kp = Rf + βp(E(RM) − Rf) = 0,48% + 0,34 × (0,05% − 0,48%)",
+      "Jarak dari garis pasar sekuritas",
+      "▼ -0,38%",
+      "αp = E(Rp) − kp = -0,05% − 0,33%",
+    ].join(""),
+    below:
+      "Imbal hasil yang diharapkan berada di bawah garis pasar sekuritas, sehingga lebih rendah daripada imbal hasil yang disyaratkan CAPM untuk betanya.",
+    weights: [
+      ["BBCA", "Rp\u00a0498.000.000.000", "49,64%"],
+      ["Kas", "Rp\u00a0505.259.000.000", "50,36%"],
+      ["Total", "Rp\u00a01.003.259.000.000", "100,00%"],
+    ],
+    holding: ["BBCA", "49,64%", "-0,10%", "0,69"],
+    pair: ["BBCA", "0,002732", "1,00"],
+    summaries: ["Imbal hasil bulanan IHSG", "Imbal hasil bulanan BBCA"],
+    stocksNotice:
+      "Tabel ini memuat setiap saham LQ45 yang dicatat Portolab, sehingga mencakup setiap saham yang dapat Anda beli atau jual. Setiap saham memakai bulan-bulan yang di dalamnya saham itu dan IHSG memiliki imbal hasil, dan halamannya menunjukkan setiap rumus dan setiap imbal hasil, atau alasan lengkap mengapa saham itu belum memiliki ukuran.",
+    stocks: [
+      ["AADI", "21 dari 24 imbal hasil bulanan yang dibutuhkan ukuran"],
+      ["ADMR", "0 dari 24 imbal hasil bulanan yang dibutuhkan ukuran"],
+      ["BBCA", "-0,10%", "5,23%", "0,69"],
+    ],
+    noHoldings:
+      "Anda belum memegang saham, sehingga portofolio Anda hanya berisi kas, yang tidak menghasilkan imbal hasil di Portolab. Portolab menghitung ukuran portofolio Anda setelah order beli Anda tereksekusi.",
+    itmgFailure:
+      "Saham Anda dan IHSG baru sama-sama memiliki 0 imbal hasil bulanan dalam 60 bulan lengkap terakhir, dan ITMG memiliki imbal hasil paling sedikit, sedangkan Portolab menghitung ukuran portofolio hanya dari paling sedikit 24 imbal hasil bulanan. Jika IHSG dan setiap saham Anda tetap memiliki harga penutupan di akhir setiap bulan, Portolab menghitung ukuran portofolio Anda setelah pembaruan riwayat harga yang menyimpan harga penutupan hari bursa pertama November 2028.",
+    stockTitle: "Imbal hasil dan risiko BBCA",
+    allMeasuresLink: `Kembali ke imbal hasil dan risiko di ${className}`,
+    stockHeadings: ["IHSG dan suku bunga bebas risiko", "Imbal hasil bulanan"],
+    stockMeasures: [
+      "Imbal hasil yang diharapkan",
+      "-0,10%",
+      "E(Ri) = ΣRi / n, n = 60 (AVERAGE)",
+      "Varians",
+      "0,002732",
+      "σ²i = Σ(Ri − E(Ri))² / (n − 1) (VAR.S)",
+      "Simpangan baku",
+      "5,23%",
+      "σi = √σ²i = √0,002732 (STDEV.S)",
+      "Kovarians dengan IHSG",
+      "0,001413",
+      "σiM = Σ(Ri − E(Ri))(RM − E(RM)) / (n − 1) (COVARIANCE.S)",
+      "Korelasi dengan IHSG",
+      "0,60",
+      "ρiM = σiM / (σi σM) = 0,001413 / (5,23% × 4,53%) (CORREL)",
+      "Beta terhadap IHSG",
+      "0,69",
+      "βi = σiM / σ²M = 0,001413 / 0,002049 (SLOPE)",
+      "Imbal hasil yang disyaratkan CAPM",
+      "0,18%",
+      "ki = Rf + βi(E(RM) − Rf) = 0,48% + 0,69 × (0,05% − 0,48%)",
+      "Jarak dari garis pasar sekuritas",
+      "▼ -0,28%",
+      "αi = E(Ri) − ki = -0,10% − 0,18%",
+    ].join(""),
+    aadiTitle: "Imbal hasil dan risiko AADI",
+    aadiFailure:
+      "AADI dan IHSG baru sama-sama memiliki 21 imbal hasil bulanan dalam 60 bulan lengkap terakhir, sedangkan Portolab menghitung ukuran suatu saham hanya dari paling sedikit 24 imbal hasil bulanan. Jika AADI dan IHSG tetap memiliki harga penutupan di akhir setiap bulan, Portolab menghitung ukuran AADI setelah pembaruan riwayat harga yang menyimpan harga penutupan hari bursa pertama Januari 2027.",
+    admrFailure:
+      "ADMR dan IHSG baru sama-sama memiliki 0 imbal hasil bulanan dalam 60 bulan lengkap terakhir, sedangkan Portolab menghitung ukuran suatu saham hanya dari paling sedikit 24 imbal hasil bulanan. Portolab belum menyimpan riwayat harga ADMR selama satu bulan penuh, sehingga belum dapat memperkirakan kapan ukurannya tersedia. Portolab dapat memperkirakannya setelah pembaruan riwayat harga berikutnya menyimpan riwayat tersebut.",
+    notFoundTitle: "Halaman tidak ditemukan",
+  },
+  en: {
+    classLink: "Return and risk of your portfolio and of each stock",
+    title: `Return and risk in ${className}`,
+    backLink: `Back to ${className}`,
+    portfolioLink: "See the value and the return of your portfolio",
+    ordersLink: "Place and follow your orders",
+    measuresLink:
+      "See the return and the risk of your portfolio and of each stock",
+    methodNotice:
+      "These measures are a simulation from past closes. Each monthly return is the change of the final close from the last trading day of one month to the last trading day of the next, without dividends. The measures of a stock or of a portfolio use the months, among the latest 60 complete months, in which the IHSG and each of its stocks have a return, and they need at least 24 monthly returns. Every value is per month.",
+    headings: [
+      "Measures of your portfolio",
+      "Weights of your portfolio",
+      "Your stocks in these months",
+      "Covariances and correlations of your stocks",
+      "The IHSG and the risk-free rate",
+      "Monthly returns",
+      "Measures of each stock",
+    ],
+    months:
+      "The measures below use 60 monthly returns from October 2021 to September 2026.",
+    measures: [
+      "Expected return",
+      "-0.05%",
+      "E(Rp) = Σ wi E(Ri) (SUMPRODUCT)",
+      "Variance",
+      "0.0006732",
+      "σ²p = Σi Σj wi wj σij (MMULT)",
+      "Standard deviation",
+      "2.59%",
+      "σp = √σ²p = √0.0006732",
+      "Beta against the IHSG",
+      "0.34",
+      "βp = Σ wi βi (SUMPRODUCT)",
+      "Return that CAPM requires",
+      "0.33%",
+      "kp = Rf + βp(E(RM) − Rf) = 0.48% + 0.34 × (0.05% − 0.48%)",
+      "Distance from the security market line",
+      "▼ -0.38%",
+      "αp = E(Rp) − kp = -0.05% − 0.33%",
+    ].join(""),
+    below:
+      "The expected return lies below the security market line, so it is lower than the return that CAPM requires for its beta.",
+    weights: [
+      ["BBCA", "IDR\u00a0498,000,000,000", "49.64%"],
+      ["Cash", "IDR\u00a0505,259,000,000", "50.36%"],
+      ["Total", "IDR\u00a01,003,259,000,000", "100.00%"],
+    ],
+    holding: ["BBCA", "49.64%", "-0.10%", "0.69"],
+    pair: ["BBCA", "0.002732", "1.00"],
+    summaries: ["Monthly returns of IHSG", "Monthly returns of BBCA"],
+    stocksNotice:
+      "The table lists every stock of the LQ45 that Portolab records, so it covers every stock that you can buy or sell. Each stock uses the months in which it and the IHSG have a return, and its page shows every formula and every return, or the whole reason why it has no measures yet.",
+    stocks: [
+      ["AADI", "21 of the 24 monthly returns that the measures need"],
+      ["ADMR", "0 of the 24 monthly returns that the measures need"],
+      ["BBCA", "-0.10%", "5.23%", "0.69"],
+    ],
+    noHoldings:
+      "You hold no shares yet, so your portfolio is cash alone, which earns no return in Portolab. Portolab computes the measures of your portfolio once a purchase of yours fills.",
+    itmgFailure:
+      "Your stocks and the IHSG share 0 monthly returns in the latest 60 complete months, and ITMG has the fewest returns, but Portolab computes the measures of a portfolio only from at least 24 monthly returns. If the IHSG and each of your stocks keep a close at the end of every month, Portolab computes the measures of your portfolio after the update of the price history that stores the close of the first trading day of November 2028.",
+    stockTitle: "Return and risk of BBCA",
+    allMeasuresLink: `Back to return and risk in ${className}`,
+    stockHeadings: ["The IHSG and the risk-free rate", "Monthly returns"],
+    stockMeasures: [
+      "Expected return",
+      "-0.10%",
+      "E(Ri) = ΣRi / n, n = 60 (AVERAGE)",
+      "Variance",
+      "0.002732",
+      "σ²i = Σ(Ri − E(Ri))² / (n − 1) (VAR.S)",
+      "Standard deviation",
+      "5.23%",
+      "σi = √σ²i = √0.002732 (STDEV.S)",
+      "Covariance with the IHSG",
+      "0.001413",
+      "σiM = Σ(Ri − E(Ri))(RM − E(RM)) / (n − 1) (COVARIANCE.S)",
+      "Correlation with the IHSG",
+      "0.60",
+      "ρiM = σiM / (σi σM) = 0.001413 / (5.23% × 4.53%) (CORREL)",
+      "Beta against the IHSG",
+      "0.69",
+      "βi = σiM / σ²M = 0.001413 / 0.002049 (SLOPE)",
+      "Return that CAPM requires",
+      "0.18%",
+      "ki = Rf + βi(E(RM) − Rf) = 0.48% + 0.69 × (0.05% − 0.48%)",
+      "Distance from the security market line",
+      "▼ -0.28%",
+      "αi = E(Ri) − ki = -0.10% − 0.18%",
+    ].join(""),
+    aadiTitle: "Return and risk of AADI",
+    aadiFailure:
+      "AADI and the IHSG share 21 monthly returns in the latest 60 complete months, but Portolab computes the measures of a stock only from at least 24 monthly returns. If AADI and the IHSG keep a close at the end of every month, Portolab computes the measures of AADI after the update of the price history that stores the close of the first trading day of January 2027.",
+    admrFailure:
+      "ADMR and the IHSG share 0 monthly returns in the latest 60 complete months, but Portolab computes the measures of a stock only from at least 24 monthly returns. Portolab has not stored a complete month of the price history of ADMR yet, so it cannot tell when the measures come. It can tell once the next update of the price history stores that history.",
+    notFoundTitle: "Page not found",
+  },
+};
+
+/** Creates a lecturer with a class and a student who joined it, lets a test give the student a portfolio, or none, and opens the measures from the page of the class. */
+async function openMeasures(
+  page: Page,
+  browser: Browser,
+  {
+    locale,
+    givePortfolio,
+  }: { locale: Locale; givePortfolio?: (classId: ClassId) => void },
+): Promise<{ student: Page; main: Locator; classPath: string }> {
+  const { student, classId, classPath } = await studentOfNewClass(
+    page,
+    browser,
+    { locale, ...widestClassNames },
+  );
+  givePortfolio?.(classId);
+  await student.getByRole("link", { name: texts[locale].classLink }).click();
+  await expect(student).toHaveURL(`${classPath}/measures`);
+  return { student, main: student.getByRole("main"), classPath };
+}
+
+/** Checks the cells of a row of a table, each a header or a data cell. */
+async function expectRow(
+  row: Locator,
+  cells: readonly string[],
+): Promise<void> {
+  await expect(row.locator("th, td")).toHaveText(cells);
+}
+
+/** Opens every table of monthly returns, so that a check sees the screen with its widest content. */
+async function openReturnTables(page: Page): Promise<void> {
+  for (const summary of await page.getByRole("main").locator("summary").all()) {
+    await summary.click();
+  }
+}
+
+for (const locale of locales) {
+  const text = texts[locale];
+  const language = languageNames[locale];
+
+  test(`shows the measures of a portfolio with every formula and input, and the measures of each stock, in ${language}`, async ({
+    page,
+    browser,
+  }) => {
+    const { student, main, classPath } = await openMeasures(page, browser, {
+      locale,
+      givePortfolio: (classId) => {
+        storeTestHolding(classId, bbcaHolding);
+      },
+    });
+    await expectPageHeadings(student, {
+      title: text.title,
+      headings: text.headings,
+    });
+    for (const [name, path] of [
+      [text.backLink, classPath],
+      [text.portfolioLink, `${classPath}/portfolio`],
+      [text.ordersLink, `${classPath}/orders`],
+    ] as const) {
+      await expect(main.getByRole("link", { name })).toHaveAttribute(
+        "href",
+        path,
+      );
+    }
+    for (const notice of [text.methodNotice, text.months, text.below]) {
+      await expect(main).toContainText(notice);
+    }
+    await expect(main.locator("dl").first()).toHaveText(text.measures);
+    const tables = main.locator("table");
+    const weightRows = tables.nth(0).locator("tbody tr");
+    await expect(weightRows).toHaveCount(text.weights.length);
+    for (const [index, cells] of text.weights.entries()) {
+      await expectRow(weightRows.nth(index), cells);
+    }
+    await expectRow(tables.nth(1).locator("tbody tr"), text.holding);
+    await expectRow(tables.nth(2).locator("tbody tr"), text.pair);
+    await expect(main.locator("summary")).toHaveText(text.summaries);
+    await openReturnTables(student);
+    // 60 returns and the close that starts the first of them.
+    await expect(tables.nth(4).locator("tbody tr")).toHaveCount(61);
+    await expect(main).toContainText(text.stocksNotice);
+    const stockTable = tables.last();
+    for (const cells of text.stocks) {
+      const [code] = cells;
+      await expectRow(
+        stockTable.locator("tbody tr").filter({
+          has: student.getByRole("link", { name: code, exact: true }),
+        }),
+        cells,
+      );
+    }
+    await expectAccessibleScreen(student);
+    await student.context().close();
+  });
+
+  test(`shows each measure of a stock with its formula and its inputs, and why a stock has none, in ${language}`, async ({
+    page,
+    browser,
+  }) => {
+    const { student, main, classPath } = await openMeasures(page, browser, {
+      locale,
+    });
+    await main.getByRole("link", { name: "BBCA", exact: true }).click();
+    await expect(student).toHaveURL(`${classPath}/measures/BBCA`);
+    await expectPageHeadings(student, {
+      title: text.stockTitle,
+      headings: text.stockHeadings,
+    });
+    await expect(main).toContainText(text.methodNotice);
+    await expect(main.locator("dl").first()).toHaveText(text.stockMeasures);
+    await openReturnTables(student);
+    await expectAccessibleScreen(student);
+    await main.getByRole("link", { name: text.allMeasuresLink }).click();
+    await expect(student).toHaveURL(`${classPath}/measures`);
+    await main.getByRole("link", { name: "AADI", exact: true }).click();
+    await expectPageHeadings(student, { title: text.aadiTitle, headings: [] });
+    await expect(main).toContainText(text.aadiFailure);
+    await expectAccessibleScreen(student);
+    await student.goto(`${classPath}/measures/ADMR`);
+    await expect(main).toContainText(text.admrFailure);
+    await student.context().close();
+  });
+
+  test(`says why a portfolio has no measures, and leads between the class, the portfolio, the orders, and the measures, in ${language}`, async ({
+    page,
+    browser,
+  }) => {
+    const { student, main, classPath } = await openMeasures(page, browser, {
+      locale,
+    });
+    await expect(main).toContainText(text.noHoldings);
+    await expectAccessibleScreen(student);
+    for (const path of [`${classPath}/portfolio`, `${classPath}/orders`]) {
+      await student.goto(path);
+      await main.getByRole("link", { name: text.measuresLink }).click();
+      await expect(student).toHaveURL(`${classPath}/measures`);
+    }
+    await student.context().close();
+  });
+
+  test(`explains when a portfolio of a stock with too few monthly returns gets its measures, in ${language}`, async ({
+    page,
+    browser,
+  }) => {
+    const { student, main } = await openMeasures(page, browser, {
+      locale,
+      givePortfolio: (classId) => {
+        storeTestPurchases(classId, itmgPortfolio);
+      },
+    });
+    await expect(main).toContainText(text.itmgFailure);
+    await student.context().close();
+  });
+
+  test(`answers a lecturer, a student who is not in the class, and a stock that Portolab does not track at the addresses of the measures as addresses that do not exist, in ${language}`, async ({
+    page,
+    browser,
+  }) => {
+    await expectMissingClassPages(page, browser, {
+      locale,
+      notFoundTitle: text.notFoundTitle,
+      addresses: (classPath) => [
+        { reader: "lecturer", path: `${classPath}/measures` },
+        { reader: "lecturer", path: `${classPath}/measures/BBCA` },
+        { reader: "student", path: "/classes/999999999/measures" },
+        { reader: "student", path: "/classes/999999999/measures/BBCA" },
+        { reader: "student", path: `${classPath}/measures/BREN` },
+      ],
+    });
+  });
+}

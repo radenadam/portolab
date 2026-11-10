@@ -9,6 +9,7 @@ import { pageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
 import type { Rupiah } from "~/units/rupiah";
 import { parseRecordId } from "~/value-parsers";
+import { measuresPath } from "~/features/measures/measures-path";
 import { ordersPath } from "~/features/trading/orders-path";
 import { portfolioPath } from "~/features/trading/portfolio-path";
 import type { Route } from "./+types/class-page";
@@ -112,6 +113,9 @@ export default function ClassPage({
           </Link>
           <Link to={ordersPath(loaderData.id)} className={styles["link"]}>
             {m.classes_orders_link()}
+          </Link>
+          <Link to={measuresPath(loaderData.id)} className={styles["link"]}>
+            {m.classes_measures_link()}
           </Link>
         </>
       );
