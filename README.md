@@ -30,7 +30,7 @@ Open http://localhost:3000 on the laptop as before. The page of each class then 
 
 ## Deploy it
 
-[`docs/deploy.md`](docs/deploy.md) takes a fresh Ubuntu server to Portolab, served over HTTPS at a domain of your own, one command at a time. It also covers backups, updates, the deletion of personal data, and what to do when prices stop updating.
+[`docs/deploy.md`](docs/deploy.md) takes a fresh Ubuntu server to Portolab, served over HTTPS at a domain of your own, one command at a time. It also covers backups, updates, what to do when prices stop updating, and how to answer a person who asks to see, correct, or delete their data.
 
 ## Accounts
 

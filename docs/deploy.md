@@ -197,7 +197,50 @@ Portolab needs data of IDX that the repository adds over time, such as the tradi
 
 The privacy notice at `https://portolab.example.com/privacy` tells each person what Portolab stores about them, how long it keeps each record, and that you keep the database. Portolab deletes each record by itself when the notice gives the record a time. It keeps every other record, which means the accounts, the classes, and the work of the students, until you delete it. The daily backups keep a copy of each record until each backup is 14 days old.
 
-The law on personal data protection of Indonesia gives each person the right to have their data deleted. When a person asks for it, run these commands with their username in place of `mahasiswa1`. The deletion of a lecturer also deletes the classes of the lecturer and the work of every student in them, because a class cannot exist without its lecturer.
+The law on personal data protection of Indonesia gives each person the right to see, correct, and delete their data, and to withdraw their agreement to the privacy notice. A person changes their own name in Portolab, and the notice sends every other request to you, so the next sections show how to answer each one.
+
+### See the data of a person
+
+A person sees their name, their username, their role, and the time of their agreement on the page of their account, and their work on the pages of each class. When a person asks for a copy of all their data, run these commands with their username in place of `mahasiswa1`. They write every record about the person from the database, as Portolab stores it, into the file `portolab-mahasiswa1.txt` in the home folder of root. The file names each table before its records, and it leaves out the hashes of the password and of the sessions, because a copy outside the server must not help anyone sign in as the person.
+
+<!-- The option --no-TTY keeps the line ends that sqlite3 writes. Without it, Docker gives the command a terminal, which ends each line of the file with a carriage return as well. -->
+
+```sh
+cd /opt/portolab
+docker compose exec --no-TTY app sqlite3 "file:/app/data/portolab.sqlite?mode=rw" ".timeout 10000" ".mode json" \
+  "CREATE TEMP TABLE person AS SELECT id FROM users WHERE username = 'mahasiswa1'" \
+  "CREATE TEMP TABLE places AS SELECT id FROM memberships WHERE student_id IN person" \
+  ".print users" "SELECT id, username, name, role, must_change_password, consented_at FROM users WHERE id IN person" \
+  ".print sessions" "SELECT id, user_id, last_used_at FROM sessions WHERE user_id IN person" \
+  ".print classes" "SELECT * FROM classes WHERE lecturer_id IN person OR id IN (SELECT class_id FROM memberships WHERE id IN places)" \
+  ".print memberships" "SELECT * FROM memberships WHERE id IN places" \
+  ".print portfolios" "SELECT * FROM portfolios WHERE membership_id IN places" \
+  ".print holdings" "SELECT * FROM holdings WHERE membership_id IN places" \
+  ".print orders" "SELECT * FROM orders WHERE membership_id IN places" \
+  > ~/portolab-mahasiswa1.txt
+```
+
+When no account has that username, the file holds only the names of the tables.
+
+To copy the file to your computer, run this command on your computer with the address of your server. Then send the copy to the person.
+
+```text
+scp root@203.0.113.10:portolab-mahasiswa1.txt .
+```
+
+The file holds the personal data of the person, so delete it from the server once you have the copy, and delete the copy on your computer once you sent it:
+
+```sh
+rm ~/portolab-mahasiswa1.txt
+```
+
+### Correct the data of a person
+
+A person changes their name on the page of their account, at `https://portolab.example.com/account` with your domain, by the same rule as when they gave it. A person who cannot sign in first gets a temporary password, which a student gets from the lecturer of the class, and a lecturer from you with the action `reset-password` of [section 7](#7-create-the-first-lecturer-account). Portolab corrects no other record, as [decision 0024](decisions/0024-a-person-changes-their-own-name-on-the-page-of-the-account.md) explains.
+
+### Delete the data of a person
+
+When a person asks for the deletion of their data, or withdraws their agreement, run these commands with their username in place of `mahasiswa1`. The deletion of a lecturer also deletes the classes of the lecturer and the work of every student in them, because a class cannot exist without its lecturer.
 
 ```sh
 cd /opt/portolab

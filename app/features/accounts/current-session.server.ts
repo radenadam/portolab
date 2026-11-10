@@ -4,6 +4,7 @@ import { databaseContext } from "~/database/database.server";
 import type { Database } from "~/database/database.server";
 import { readyUser } from "./account";
 import type { User } from "./account";
+import { findAccountByUsername } from "./account-store.server";
 import type { Role, UserId } from "./accounts.schema";
 import { pathReturningTo } from "./path-returning-to";
 import {
@@ -108,6 +109,22 @@ export function requireSession(
     throw redirect(pathReturningTo("/sign-in", currentPath(url)));
   }
   return session;
+}
+
+/** Reads the account of the session again after an action changed it, so that the loaders after the action serve the account as it is now. Before JavaScript loads, the browser sends a form in a request that runs the loaders of the page as well, after the session middleware read the account. A person whom the person who runs the server deleted meanwhile is signed out. */
+export function reloadSessionAccount(
+  context: Readonly<RouterContextProvider>,
+  url: URL,
+): void {
+  const session = requireSession(context, url);
+  const account = findAccountByUsername(
+    context.get(databaseContext),
+    session.account.username,
+  );
+  context.set(
+    currentSessionContext,
+    account === undefined ? undefined : { ...session, account },
+  );
 }
 
 /** Whether the request comes from a person who is signed in, such as for the link to the account in the header. */
