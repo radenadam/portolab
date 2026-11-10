@@ -3,17 +3,17 @@ import type { ClassId } from "~/features/classes/classes.schema";
 import type { PriceSourceDescription } from "~/features/market-data/price-source.server";
 import { holdingQuoteFailureText } from "~/features/trading/holding-quote-failure-text";
 import type { PortfolioReader } from "~/features/trading/text-for-reader";
-import { valuePortfolio } from "~/features/trading/value-portfolio";
 import { languageNames } from "~/language-names";
 import { locales } from "~/paraglide/runtime.js";
 import type { Locale } from "~/paraglide/runtime.js";
 import { renderInRouterForTest } from "~/render-in-router-for-test";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
-import { rupiah } from "~/units/rupiah";
 import { measureDefinitionsForTest } from "./measure-definitions-for-test";
 import { measureFailureText } from "./measure-failure-text";
+import { measureTableForTest } from "./measure-table-for-test";
 import {
   aadiValuationForTest,
+  cashValuationForTest,
   databaseWithClosesForTest,
   valuationForTest,
 } from "./measures-for-test.server";
@@ -73,20 +73,6 @@ const stockNames: Record<PortfolioReader["kind"], (code: string) => string> = {
   lecturer: (code) => code,
 };
 
-function table(
-  header: readonly string[],
-  rows: readonly (readonly string[])[],
-): string {
-  const head = header.map((label) => `<th scope="col">${label}</th>`).join("");
-  const body = rows
-    .map(
-      ([name, ...cells]) =>
-        `<tr><th scope="row">${name ?? ""}</th>${cells.map((cell) => `<td>${cell}</td>`).join("")}</tr>`,
-    )
-    .join("");
-  return `<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
-}
-
 const fall = '<span aria-hidden="true">▼ </span>';
 
 const texts: Record<
@@ -142,7 +128,7 @@ const texts: Record<
     ],
     below:
       "Imbal hasil yang diharapkan berada di bawah garis pasar sekuritas, sehingga lebih rendah daripada imbal hasil yang disyaratkan CAPM untuk betanya.",
-    weightsTable: table(
+    weightsTable: measureTableForTest(
       ["Saham", "Nilai", "Bobot"],
       [
         ["BBCA", "Rp\u00a027.390.000", "50,00%"],
@@ -165,7 +151,7 @@ const texts: Record<
       "<p>E(R<sub>i</sub>) = ΣR<sub>i</sub> / n, n = 60 (AVERAGE)</p><p>β<sub>i</sub> = σ<sub>iM</sub> / σ²<sub>M</sub> (SLOPE)</p>",
     pairsNotice:
       "Kovarians suatu saham dengan dirinya sendiri adalah variansnya, dan korelasi suatu saham dengan dirinya sendiri sempurna.",
-    pairsTable: table(
+    pairsTable: measureTableForTest(
       ["Saham", "Kovarians", "Korelasi"],
       [
         ["BBCA", "0,002732", "1,00"],
@@ -219,7 +205,7 @@ const texts: Record<
     ],
     below:
       "The expected return lies below the security market line, so it is lower than the return that CAPM requires for its beta.",
-    weightsTable: table(
+    weightsTable: measureTableForTest(
       ["Stock", "Value", "Weight"],
       [
         ["BBCA", "IDR\u00a027,390,000", "50.00%"],
@@ -242,7 +228,7 @@ const texts: Record<
       "<p>E(R<sub>i</sub>) = ΣR<sub>i</sub> / n, n = 60 (AVERAGE)</p><p>β<sub>i</sub> = σ<sub>iM</sub> / σ²<sub>M</sub> (SLOPE)</p>",
     pairsNotice:
       "The covariance of a stock with itself is its variance, and a stock correlates perfectly with itself.",
-    pairsTable: table(
+    pairsTable: measureTableForTest(
       ["Stocks", "Covariance", "Correlation"],
       [
         ["BBCA", "0.002732", "1.00"],
@@ -375,7 +361,7 @@ for (const locale of locales) {
           text.weightsTable,
           `<h2>${readerText.holdingsTitle}</h2>`,
           `<p>${readerText.holdingsNotice}</p>`,
-          table(
+          measureTableForTest(
             text.holdingsHeader,
             text.holdingsRows.map(([code, ...cells]) => [
               stockNames[reader.kind](code),
@@ -407,11 +393,7 @@ for (const locale of locales) {
       switchLocaleForTest(locale);
       const report = readPortfolioMeasures(
         databaseWithClosesForTest(),
-        valuePortfolio(
-          { cash: rupiah(100_000_000), holdings: [] },
-          rupiah(100_000_000),
-          new Map(),
-        ),
+        cashValuationForTest(),
       );
       expect(render(report, undefined)).toBe(`<p>${readerText.noHoldings}</p>`);
     });

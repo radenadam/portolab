@@ -8,7 +8,9 @@ import { saveDailyHistory } from "~/features/market-data/history-store.server";
 import { defaultEstimationSettings } from "./estimation-settings";
 import { measurePortfolio } from "./measure-portfolio";
 import { measureStock } from "./measure-stock";
+import { closeToForTest } from "./close-to-for-test";
 import {
+  measureStoredMarket,
   measureStoredPortfolio,
   measureStoredStocks,
 } from "./measure-stored.server";
@@ -120,6 +122,31 @@ test("fails for a portfolio whose holdings share too few returns, and names the 
       count: 21,
       minimum: 24,
       enoughAfterFirstTradingDayOf: { ok: true, value: "2027-01-01" },
+    },
+  });
+});
+
+test("measures the IHSG alone over the latest complete months, with the risk-free rate at the end of them", () => {
+  // measure-stock.test.ts gives the expected return of the IHSG and the BI-Rate of 5.75% a year over the 60 months that end in September 2026.
+  expect(measureStoredMarket(databaseWithCloses())).toMatchObject({
+    ok: true,
+    value: {
+      returns: { length: 60 },
+      expectedReturn: { value: closeToForTest(0.00045684092205129883, 16) },
+      riskFreeRate: { value: closeToForTest(0.004791666666666666, 17) },
+    },
+  });
+});
+
+test("fails for the IHSG without stored closes, and names it as the instrument without the closes that would tell when enough come", () => {
+  expect(measureStoredMarket(openDatabaseForTest())).toEqual({
+    ok: false,
+    failure: {
+      kind: "tooFewReturns",
+      code: "IHSG",
+      count: 0,
+      minimum: 24,
+      enoughAfterFirstTradingDayOf: { ok: false, failure: { code: "IHSG" } },
     },
   });
 });

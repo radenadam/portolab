@@ -39,16 +39,6 @@
   font-size: var(--text-small);
 }
 
-.legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-1) var(--space-4);
-  margin: 0;
-  padding: 0;
-  font-size: var(--text-small);
-  list-style: none;
-}
-
 /* Each name follows a sample of its line in the chart, so the lines differ by their style and not by color alone, as decision 0012 sets. */
 .portfolioSeries::before,
 .marketSeries::before {

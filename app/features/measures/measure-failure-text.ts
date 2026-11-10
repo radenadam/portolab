@@ -9,10 +9,11 @@ import { instrumentName } from "./instrument-name";
 import type { StoredMeasureFailure } from "./measure-stored.server";
 import { monthlyReturnCount } from "./monthly-return-count";
 
-/** What a set of measures belongs to: one stock, which a student reads, or a portfolio, which its owner or the lecturer of the class reads. */
+/** What a set of measures belongs to: one stock, which a student reads, a portfolio, which its owner or the lecturer of the class reads, or the IHSG alone, whose measures give the security market line that a student reads. */
 export type MeasuredSubject =
   | { kind: "stock"; code: string }
-  | { kind: "portfolio"; reader: PortfolioReader };
+  | { kind: "portfolio"; reader: PortfolioReader }
+  | { kind: "market" };
 
 type TooFewReturns = Extract<StoredMeasureFailure, { kind: "tooFewReturns" }>;
 
@@ -84,6 +85,8 @@ function tooFewReturnsText(
           }),
       });
     }
+    case "market":
+      return m.measures_line_too_few_returns_notice(counts);
   }
 }
 
@@ -115,12 +118,15 @@ function forecastText(
             name,
           }),
       });
+    case "market":
+      return m.measures_line_enough_returns_notice(forecastInputs);
   }
 }
 
 function noRiskFreeRateText(date: string, subject: MeasuredSubject): string {
   switch (subject.kind) {
     case "stock":
+    case "market":
       return m.measures_no_risk_free_rate_notice({ date });
     case "portfolio":
       return textForReader(subject.reader, {

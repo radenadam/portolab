@@ -5,8 +5,10 @@ import {
   formatPercent,
   formatVariance,
 } from "~/formatting";
+import type { Beta } from "~/units/beta";
 import type { MonthlyVariance } from "~/units/monthly-variance";
 import type {
+  MarketLine,
   RequiredReturnMeasure,
   SecurityMarketLineMeasure,
   StockMeasures,
@@ -49,10 +51,14 @@ function Operand({ value, text }: { value: number; text: string }): ReactNode {
   return value < 0 ? `(${text})` : text;
 }
 
+/** The symbol of the rate free of risk, R with the subscript f, which a chart writes as well. */
+export const riskFreeSymbol = { letter: "R", subscript: "f" } as const;
+
 function RiskFree(): ReactNode {
   return (
     <>
-      R<sub>f</sub>
+      {riskFreeSymbol.letter}
+      <sub>{riskFreeSymbol.subscript}</sub>
     </>
   );
 }
@@ -207,6 +213,32 @@ export function PortfolioVarianceFormula(): ReactNode {
   );
 }
 
+/** k = R_f + β(E(Rₘ) − R_f) with the numbers of a line, for a stock or a portfolio with the subscript and the number of its beta, or for the whole line with the symbol of beta. */
+function CapmFormula({
+  of,
+  line,
+  beta,
+}: {
+  of: Subject | undefined;
+  line: MarketLine;
+  beta: Beta | undefined;
+}): ReactNode {
+  const riskFree = formatPercent(line.riskFreeRate, "two");
+  const subscript = of === undefined ? null : <sub>{of}</sub>;
+  return (
+    <>
+      k{subscript} = <RiskFree /> + β{subscript}(
+      <ExpectedReturn of="M" /> − <RiskFree />) = {riskFree} +{" "}
+      {beta === undefined ? (
+        "β"
+      ) : (
+        <Operand value={beta} text={formatBeta(beta)} />
+      )}{" "}
+      × ({formatPercent(line.marketExpectedReturn, "two")} − {riskFree})
+    </>
+  );
+}
+
 /** kᵢ = R_f + βᵢ(E(Rₘ) − R_f), with the rate free of risk, the beta, and the expected return of the market. */
 export function RequiredReturnFormula({
   of,
@@ -215,19 +247,18 @@ export function RequiredReturnFormula({
   of: Subject;
   required: RequiredReturnMeasure;
 }): ReactNode {
-  const riskFree = formatPercent(required.inputs.riskFreeRate, "two");
   return (
-    <>
-      k<sub>{of}</sub> = <RiskFree /> + β<sub>{of}</sub>(
-      <ExpectedReturn of="M" /> − <RiskFree />) = {riskFree} +{" "}
-      <Operand
-        value={required.inputs.beta}
-        text={formatBeta(required.inputs.beta)}
-      />{" "}
-      × ({formatPercent(required.inputs.marketExpectedReturn, "two")} −{" "}
-      {riskFree})
-    </>
+    <CapmFormula of={of} line={required.inputs} beta={required.inputs.beta} />
   );
+}
+
+/** k = R_f + β(E(Rₘ) − R_f), the security market line, with the rate free of risk and the expected return of the market. */
+export function SecurityMarketLineFormula({
+  line,
+}: {
+  line: MarketLine;
+}): ReactNode {
+  return <CapmFormula of={undefined} line={line} beta={undefined} />;
 }
 
 /** αᵢ = E(Rᵢ) − kᵢ, with the expected return and the required return. */

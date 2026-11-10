@@ -5,9 +5,17 @@ import type { StockQuote } from "~/features/market-data/price-source.server";
 import { stockQuote } from "~/features/market-data/stock-quote";
 import { valuePortfolio } from "~/features/trading/value-portfolio";
 import type { PortfolioValuation } from "~/features/trading/value-portfolio";
+import type { Result } from "~/result";
 import { rupiah } from "~/units/rupiah";
 import { shares } from "~/units/shares";
+import type { StoredMeasureFailure } from "./measure-stored.server";
 import { monthEndClosesForTest } from "./month-end-closes-for-test";
+import {
+  readPortfolioMeasures,
+  readStockRows,
+  readStudentLine,
+} from "./read-measures.server";
+import type { StockRow, StudentLine } from "./read-measures.server";
 
 /** A database with the recorded month-end closes of the IHSG, BBCA, TLKM, AMMN, and AADI. */
 export function databaseWithClosesForTest(): Database {
@@ -39,21 +47,71 @@ export function valuationForTest(
   );
 }
 
-/** A portfolio of 1,000 shares of AADI and cash, valued at the quote of 30 October 2026 that the fixture source records, which values the shares at Rp11,475,000. They cost Rp11,492,213 with a broker fee of 0.15%. AADI has too few monthly returns for measures. */
-export function aadiValuationForTest(): PortfolioValuation {
+// Each recent listing is a holding of 1,000 shares beside Rp10,000,000 in cash, and its quote is that of 30 October 2026 that the fixture source records. Each cost is the value at that quote with a broker fee of 0.15%: Rp11,475,000 of AADI cost Rp11,492,213, and Rp3,650,000 of AMMN cost Rp3,655,475.
+const recentListingCash = rupiah(10_000_000);
+const recentListings = {
+  AADI: {
+    holding: { code: "AADI", shares: shares(1_000), cost: rupiah(11_492_213) },
+    quote: stockQuote("AADI", [11_475, 11_125], "2026-10-30T09:14:58.000Z"),
+  },
+  AMMN: {
+    holding: { code: "AMMN", shares: shares(1_000), cost: rupiah(3_655_475) },
+    quote: stockQuote("AMMN", [3_650, 3_740], "2026-10-30T09:14:16.000Z"),
+  },
+};
+
+type RecentListing = keyof typeof recentListings;
+
+/** A portfolio of recent listings and cash, valued with the quotes of the codes that a test gives, and the other holdings without a price. The starting cash is what the holdings cost with the cash. */
+function recentListingsValuation(
+  heldCodes: readonly RecentListing[],
+  quotedCodes: readonly RecentListing[],
+): PortfolioValuation {
+  const held = heldCodes.map((code) => recentListings[code].holding);
+  let startingCash = recentListingCash;
+  for (const holding of held) {
+    startingCash = rupiah(startingCash + holding.cost);
+  }
   return valuePortfolio(
-    {
-      cash: rupiah(10_000_000),
-      holdings: [
-        { code: "AADI", shares: shares(1_000), cost: rupiah(11_492_213) },
-      ],
-    },
-    rupiah(21_492_213),
-    new Map([
-      [
-        "AADI",
-        stockQuote("AADI", [11_475, 11_125], "2026-10-30T09:14:58.000Z"),
-      ],
-    ]),
+    { cash: recentListingCash, holdings: held },
+    startingCash,
+    new Map(quotedCodes.map((code) => [code, recentListings[code].quote])),
+  );
+}
+
+/** A portfolio of AADI and cash at the quote of 30 October 2026. AADI has too few monthly returns for measures. */
+export function aadiValuationForTest(): PortfolioValuation {
+  return recentListingsValuation(["AADI"], ["AADI"]);
+}
+
+/** A portfolio of AMMN and cash at the quote of 30 October 2026. AMMN listed in July 2023, so the measures of the portfolio use fewer months than those of a stock with five years of returns. */
+export function ammnValuationForTest(): PortfolioValuation {
+  return recentListingsValuation(["AMMN"], ["AMMN"]);
+}
+
+/** A portfolio of AMMN, AADI, and cash without a delayed price of either, so it has no measures. AMMN lies against the line of its own months, and AADI has too few monthly returns for measures. */
+export function unpricedListingsValuationForTest(): PortfolioValuation {
+  return recentListingsValuation(["AMMN", "AADI"], []);
+}
+
+/** A portfolio of the starting cash of Rp100,000,000 alone, which holds no shares. */
+export function cashValuationForTest(): PortfolioValuation {
+  return valuePortfolio(
+    { cash: rupiah(100_000_000), holdings: [] },
+    rupiah(100_000_000),
+    new Map(),
+  );
+}
+
+/** The line that the page of the measures of a student draws for a portfolio, from the measures of its valuation as the loader of the page reads them, against every stock that Portolab tracks or the stocks that a test gives. */
+export function studentLineForTest(
+  database: Database,
+  valuation: PortfolioValuation,
+  stocks: readonly StockRow[] = readStockRows(database),
+): Result<StudentLine, StoredMeasureFailure> {
+  return readStudentLine(
+    database,
+    { valuation, report: readPortfolioMeasures(database, valuation) },
+    stocks,
   );
 }

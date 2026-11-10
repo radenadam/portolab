@@ -12,7 +12,7 @@ import {
 } from "./measure-failure-text";
 import type { StoredMeasureFailure } from "./measure-stored.server";
 
-// AADI listed in December 2024, so it has 21 returns in the window that ends in September 2026, and forecast-enough-returns.test.ts explains why January 2027 brings enough. A stock that listed in August 2026 has 1 return in that window.
+// AADI listed in December 2024, so it has 21 returns in the window that ends in September 2026, and forecast-enough-returns.test.ts explains why January 2027 brings enough. A stock that listed in August 2026 has 1 return in that window. The IHSG with closes from September 2025 has 12 returns, and read-measures.server.test.ts explains why October 2027 brings enough. With closes from 31 August 2026, it has the 1 return of September 2026, and the 23 months to August 2028 bring 24, which the first trading day of September 2028 completes.
 const failures = {
   aadi: {
     kind: "tooFewReturns",
@@ -42,6 +42,20 @@ const failures = {
     minimum: 24,
     enoughAfterFirstTradingDayOf: fail({ code: "IHSG" }),
   },
+  marketOfOneYear: {
+    kind: "tooFewReturns",
+    code: "IHSG",
+    count: 12,
+    minimum: 24,
+    enoughAfterFirstTradingDayOf: succeed("2027-10-01"),
+  },
+  marketOfOneMonth: {
+    kind: "tooFewReturns",
+    code: "IHSG",
+    count: 1,
+    minimum: 24,
+    enoughAfterFirstTradingDayOf: succeed("2028-09-01"),
+  },
   noVariation: { kind: "noVariation", code: "BBCA" },
   marketWithoutVariation: { kind: "noVariation", code: "IHSG" },
   noRiskFreeRate: { kind: "noRiskFreeRate", date: "2020-12-31" },
@@ -62,6 +76,9 @@ const texts: Record<
     oneReturnForLecturer: string;
     marketWithoutHistoryOfPortfolio: string;
     marketWithoutHistoryForLecturer: string;
+    lineOfOneYear: string;
+    lineOfOneMonth: string;
+    lineWithoutHistory: string;
     noVariation: string;
     marketWithoutVariation: string;
     noRiskFreeRate: string;
@@ -84,6 +101,12 @@ const texts: Record<
       "Saham Siti Rahayu dan IHSG baru sama-sama memiliki 0 imbal hasil bulanan dalam 60 bulan lengkap terakhir, dan IHSG memiliki imbal hasil paling sedikit, sedangkan Portolab menghitung ukuran portofolio hanya dari paling sedikit 24 imbal hasil bulanan. Portolab belum menyimpan riwayat harga IHSG selama satu bulan penuh, sehingga belum dapat memperkirakan kapan ukurannya tersedia. Portolab dapat memperkirakannya setelah pembaruan riwayat harga berikutnya menyimpan riwayat tersebut.",
     marketWithoutHistoryOfPortfolio:
       "Saham Anda dan IHSG baru sama-sama memiliki 0 imbal hasil bulanan dalam 60 bulan lengkap terakhir, dan IHSG memiliki imbal hasil paling sedikit, sedangkan Portolab menghitung ukuran portofolio hanya dari paling sedikit 24 imbal hasil bulanan. Portolab belum menyimpan riwayat harga IHSG selama satu bulan penuh, sehingga belum dapat memperkirakan kapan ukurannya tersedia. Portolab dapat memperkirakannya setelah pembaruan riwayat harga berikutnya menyimpan riwayat tersebut.",
+    lineOfOneYear:
+      "IHSG baru memiliki 12 imbal hasil bulanan dalam 60 bulan lengkap terakhir, sedangkan Portolab menghitung garis pasar sekuritas hanya dari paling sedikit 24 imbal hasil bulanan. Jika IHSG tetap memiliki harga penutupan di akhir setiap bulan, Portolab menghitung garis itu setelah pembaruan riwayat harga yang menyimpan harga penutupan hari bursa pertama Oktober 2027.",
+    lineOfOneMonth:
+      "IHSG baru memiliki 1 imbal hasil bulanan dalam 60 bulan lengkap terakhir, sedangkan Portolab menghitung garis pasar sekuritas hanya dari paling sedikit 24 imbal hasil bulanan. Jika IHSG tetap memiliki harga penutupan di akhir setiap bulan, Portolab menghitung garis itu setelah pembaruan riwayat harga yang menyimpan harga penutupan hari bursa pertama September 2028.",
+    lineWithoutHistory:
+      "IHSG baru memiliki 0 imbal hasil bulanan dalam 60 bulan lengkap terakhir, sedangkan Portolab menghitung garis pasar sekuritas hanya dari paling sedikit 24 imbal hasil bulanan. Portolab belum menyimpan riwayat harga IHSG selama satu bulan penuh, sehingga belum dapat memperkirakan kapan ukurannya tersedia. Portolab dapat memperkirakannya setelah pembaruan riwayat harga berikutnya menyimpan riwayat tersebut.",
     noVariation:
       "Imbal hasil BBCA sama di setiap bulan ukuran ini, sehingga variansnya nol, dan korelasi dengannya akan membagi dengan nol. Portolab menghitung ukurannya setelah pembaruan riwayat harga menyimpan harga penutupan suatu bulan yang memberi BBCA imbal hasil lain.",
     marketWithoutVariation:
@@ -110,6 +133,12 @@ const texts: Record<
       "The stocks of Siti Rahayu and the IHSG share 0 monthly returns in the latest 60 complete months, and the IHSG has the fewest returns, but Portolab computes the measures of a portfolio only from at least 24 monthly returns. Portolab has not stored a complete month of the price history of the IHSG yet, so it cannot tell when the measures come. It can tell once the next update of the price history stores that history.",
     marketWithoutHistoryOfPortfolio:
       "Your stocks and the IHSG share 0 monthly returns in the latest 60 complete months, and the IHSG has the fewest returns, but Portolab computes the measures of a portfolio only from at least 24 monthly returns. Portolab has not stored a complete month of the price history of the IHSG yet, so it cannot tell when the measures come. It can tell once the next update of the price history stores that history.",
+    lineOfOneYear:
+      "The IHSG has 12 monthly returns in the latest 60 complete months, but Portolab computes the security market line only from at least 24 monthly returns. If the IHSG keeps a close at the end of every month, Portolab computes the line after the update of the price history that stores the close of the first trading day of October 2027.",
+    lineOfOneMonth:
+      "The IHSG has 1 monthly return in the latest 60 complete months, but Portolab computes the security market line only from at least 24 monthly returns. If the IHSG keeps a close at the end of every month, Portolab computes the line after the update of the price history that stores the close of the first trading day of September 2028.",
+    lineWithoutHistory:
+      "The IHSG has 0 monthly returns in the latest 60 complete months, but Portolab computes the security market line only from at least 24 monthly returns. Portolab has not stored a complete month of the price history of the IHSG yet, so it cannot tell when the measures come. It can tell once the next update of the price history stores that history.",
     noVariation:
       "The returns of BBCA are the same in every month of the measures, so their variance is zero, and a correlation with them would divide by zero. Portolab computes the measures after an update of the price history stores the close of a month that gives BBCA another return.",
     marketWithoutVariation:
@@ -166,12 +195,13 @@ for (const locale of locales) {
     }
   });
 
-  test(`explains returns without variation of a stock or of the IHSG alike for a stock and a portfolio, and a missing BI-Rate with the step of the student or of the lecturer, in ${language}`, () => {
+  test(`explains returns without variation of a stock or of the IHSG alike for a stock, a portfolio, and the security market line, and a missing BI-Rate with the step of the student or of the lecturer, in ${language}`, () => {
     switchLocaleForTest(locale);
     for (const [subject, noRiskFreeRate] of [
       [{ kind: "stock", code: "BBCA" }, text.noRiskFreeRate],
       [{ kind: "portfolio", reader: owner }, text.noRiskFreeRate],
       [{ kind: "portfolio", reader: lecturer }, text.noRiskFreeRateForLecturer],
+      [{ kind: "market" }, text.noRiskFreeRate],
     ] as const) {
       expect(measureFailureText(failures.noVariation, subject)).toBe(
         text.noVariation,
@@ -182,6 +212,17 @@ for (const locale of locales) {
       expect(measureFailureText(failures.noRiskFreeRate, subject)).toBe(
         noRiskFreeRate,
       );
+    }
+  });
+
+  test(`explains too few returns of the IHSG for the security market line, with the month that brings enough, or without it while the IHSG has no stored history, in ${language}`, () => {
+    switchLocaleForTest(locale);
+    for (const [failure, expected] of [
+      [failures.marketOfOneYear, text.lineOfOneYear],
+      [failures.marketOfOneMonth, text.lineOfOneMonth],
+      [failures.marketWithoutHistory, text.lineWithoutHistory],
+    ] as const) {
+      expect(measureFailureText(failure, { kind: "market" })).toBe(expected);
     }
   });
 

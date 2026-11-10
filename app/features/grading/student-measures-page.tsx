@@ -1,10 +1,17 @@
 import type { ReactNode } from "react";
 import { databaseContext } from "~/database/database.server";
 import type { PriceSourceDescription } from "~/features/market-data/price-source.server";
+import { LecturerMarketLine } from "~/features/measures/market-line-section";
 import { MethodNotice } from "~/features/measures/method-notice";
 import { PortfolioMeasuresView } from "~/features/measures/portfolio-measures-view";
-import { readPortfolioMeasures } from "~/features/measures/read-measures.server";
-import type { PortfolioMeasuresReport } from "~/features/measures/read-measures.server";
+import {
+  readPortfolioLine,
+  readPortfolioMeasures,
+} from "~/features/measures/read-measures.server";
+import type {
+  PortfolioLine,
+  PortfolioMeasuresReport,
+} from "~/features/measures/read-measures.server";
 import { holdingQuoteFailureText } from "~/features/trading/holding-quote-failure-text";
 import { readPortfolioValuation } from "~/features/trading/read-portfolio-report.server";
 import type { ValuationReport } from "~/features/trading/read-portfolio-report.server";
@@ -22,6 +29,7 @@ export function loader({ context, request, params, url }: Route.LoaderArgs): {
   student: TaughtStudent;
   valuation: ValuationReport;
   portfolio: PortfolioMeasuresReport;
+  marketLine: PortfolioLine | undefined;
   now: Date;
   source: PriceSourceDescription;
 } {
@@ -35,10 +43,15 @@ export function loader({ context, request, params, url }: Route.LoaderArgs): {
     portfolio,
     startingCash,
   });
+  const portfolioMeasures = readPortfolioMeasures(
+    database,
+    valuation.valuation,
+  );
   return {
     student,
     valuation,
-    portfolio: readPortfolioMeasures(database, valuation.valuation),
+    portfolio: portfolioMeasures,
+    marketLine: readPortfolioLine(portfolioMeasures),
     now,
     source,
   };
@@ -47,7 +60,7 @@ export function loader({ context, request, params, url }: Route.LoaderArgs): {
 export default function StudentMeasuresPage({
   loaderData,
 }: Route.ComponentProps): ReactNode {
-  const { student, source } = loaderData;
+  const { student, source, marketLine } = loaderData;
   return (
     <>
       <TaughtStudentHeading page="measures" student={student} />
@@ -62,6 +75,13 @@ export default function StudentMeasuresPage({
         })}
         source={source}
       />
+      {/* A portfolio without measures has no line of its months, and the text above says why it has no measures. */}
+      {marketLine !== undefined && (
+        <LecturerMarketLine
+          studentName={student.name}
+          portfolioLine={marketLine}
+        />
+      )}
     </>
   );
 }

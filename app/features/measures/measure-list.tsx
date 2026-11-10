@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { ChangeText } from "~/change-text";
 import definitionStyles from "~/definition-list.module.css";
 import type { ChangeDirection } from "~/formatting";
-import { formatMonth, formatPercent, formatSignedPercent } from "~/formatting";
+import { formatPercent, formatSignedPercent } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import type { MonthlyReturn } from "~/units/monthly-return";
 import type { ReturnMeasure } from "./aligned-returns";
@@ -11,7 +11,7 @@ import type { RequiredReturnMeasure, SecurityMarketLineMeasure } from "./capm";
 import { MarketLineFormula, RequiredReturnFormula } from "./formulas";
 import type { Subject } from "./formulas";
 import styles from "./measures.module.css";
-import { monthlyReturnCount } from "./monthly-return-count";
+import { monthSpanInputs, monthSpanOf } from "./month-span";
 
 /** A measure as a list of measures shows it: its name, its value, and its formula with its inputs. */
 export interface MeasureRow {
@@ -90,21 +90,7 @@ export function MonthsNotice({
 }: {
   returns: readonly ReturnMeasure[];
 }): ReactNode {
-  const first = returns.at(0);
-  const last = returns.at(-1);
-  // The measures need at least two returns, so measures without any are a defect.
-  if (first === undefined || last === undefined) {
-    throw new Error(
-      "Measures always have monthly returns, but these have none.",
-    );
-  }
   return (
-    <p>
-      {m.measures_months_notice({
-        returns: monthlyReturnCount(returns.length),
-        first: formatMonth(first.inputs.endDate),
-        last: formatMonth(last.inputs.endDate),
-      })}
-    </p>
+    <p>{m.measures_months_notice(monthSpanInputs(monthSpanOf(returns)))}</p>
   );
 }
