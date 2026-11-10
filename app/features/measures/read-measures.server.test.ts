@@ -1,20 +1,48 @@
 import { expect, test } from "vitest";
+import { openDatabaseForTest } from "~/database/open-database-for-test.server";
+import { indexHistoryForTest } from "~/features/market-data/history-for-test";
+import { saveDailyHistory } from "~/features/market-data/history-store.server";
 import { trackedStockCodes } from "~/features/market-data/tracked-instruments";
 import { valuePortfolio } from "~/features/trading/value-portfolio";
 import { rupiah } from "~/units/rupiah";
 import { closeToForTest } from "./close-to-for-test";
 import {
   aadiValuationForTest,
+  ammnValuationForTest,
   databaseWithClosesForTest,
   valuationForTest,
 } from "./measures-for-test.server";
+import { monthEndClosesForTest } from "./month-end-closes-for-test";
 import {
+  readPortfolioLine,
   readPortfolioMeasures,
   readStockMeasures,
   readStockRows,
+  readStudentLine,
 } from "./read-measures.server";
 
 // The expected values were computed with the decimal module of Python at 50 significant digits, as measure-stock.test.ts and measure-portfolio.test.ts give them. The measures of the portfolio with weights of 0.5 and 0.3 follow from those of BBCA and TLKM: the expected return and the beta are the sums of each measure times its weight, and the variance is 0.25 times the variance of BBCA, plus 0.09 times that of TLKM, plus 0.3 times their covariance.
+
+// The 60 monthly returns from October 2021 to September 2026 give the security market line of BBCA, TLKM, and every portfolio of them, with the BI-Rate of 5.75% that held on 30 September 2026. AMMN listed in July 2023, so its 38 returns from August 2023 give another line.
+const fiveYearLine = {
+  riskFreeRate: closeToForTest(0.004791666666666666, 17),
+  marketExpectedReturn: closeToForTest(0.00045684092205129883, 16),
+};
+const fiveYearMonths = { count: 60, first: "2021-10-29", last: "2026-09-30" };
+const stocksOnFiveYearLine = [
+  {
+    code: "BBCA",
+    beta: closeToForTest(0.6893713956004657, 14),
+    expectedReturn: closeToForTest(-0.0010226485841997692, 16),
+    distance: closeToForTest(-0.002826010377616112, 16),
+  },
+  {
+    code: "TLKM",
+    beta: closeToForTest(0.9200241000486532, 14),
+    expectedReturn: closeToForTest(-0.005491161260692473, 16),
+    distance: closeToForTest(-0.006294683772801653, 16),
+  },
+];
 
 test("measures a portfolio of BBCA, TLKM, and cash, weighted by their shares of its value at the delayed prices, with each pair of stocks once", () => {
   const report = readPortfolioMeasures(
@@ -38,6 +66,7 @@ test("measures a portfolio of BBCA, TLKM, and cash, weighted by their shares of 
             weight: 0.5,
             expectedReturn: closeToForTest(-0.0010226485841997692, 16),
             beta: closeToForTest(0.6893713956004657, 14),
+            distance: closeToForTest(-0.002826010377616112, 16),
             returns: { length: 60 },
           },
           {
@@ -46,6 +75,7 @@ test("measures a portfolio of BBCA, TLKM, and cash, weighted by their shares of 
             weight: 0.3,
             expectedReturn: closeToForTest(-0.005491161260692473, 16),
             beta: closeToForTest(0.9200241000486532, 14),
+            distance: closeToForTest(-0.006294683772801653, 16),
             returns: { length: 60 },
           },
         ],
@@ -134,6 +164,8 @@ test("measures every stock that Portolab tracks, in their order, or says why a s
         expectedReturn: closeToForTest(-0.0010226485841997692, 16),
         standardDeviation: closeToForTest(0.05227213243397345, 15),
         beta: closeToForTest(0.6893713956004657, 14),
+        line: fiveYearLine,
+        distance: closeToForTest(-0.002826010377616112, 16),
       },
     },
   });
@@ -170,6 +202,139 @@ test("measures one stock with the inputs that its page shows, over the months th
         returns: { length: 38 },
         expectedReturn: closeToForTest(-0.002012279107748291, 16),
       },
+    },
+  });
+});
+
+test("gives the line of the months of a portfolio with measures, with the portfolio and its stocks, and no line for a portfolio without measures", () => {
+  const database = databaseWithClosesForTest();
+  // The distance of the portfolio is that of each stock times its weight, less the weight of the cash times the risk-free rate, as decision 0021 explains: 0.5 × -0.002826010377616112 + 0.3 × -0.006294683772801653 - 0.2 × 0.0575 / 12.
+  expect(
+    readPortfolioLine(
+      readPortfolioMeasures(database, valuationForTest(["BBCA", "TLKM"])),
+    ),
+  ).toEqual({
+    line: { ...fiveYearLine, months: fiveYearMonths },
+    portfolio: {
+      beta: closeToForTest(0.6206929278148288, 14),
+      expectedReturn: closeToForTest(-0.0021586726703076266, 16),
+      distance: closeToForTest(-0.004259743653981885, 16),
+    },
+    holdings: stocksOnFiveYearLine,
+  });
+  for (const valuation of [
+    valuationForTest(["BBCA"]),
+    aadiValuationForTest(),
+    valuePortfolio(
+      { cash: rupiah(100_000_000), holdings: [] },
+      rupiah(100_000_000),
+      new Map(),
+    ),
+  ]) {
+    expect(
+      readPortfolioLine(readPortfolioMeasures(database, valuation)),
+    ).toBeUndefined();
+  }
+});
+
+test("draws the line of the months of a portfolio for its student, with each stock that it does not hold on that line, the stocks on other lines, and whether a stock has no measures", () => {
+  const database = databaseWithClosesForTest();
+  const stocks = readStockRows(database);
+  const portfolio = readPortfolioMeasures(
+    database,
+    valuationForTest(["BBCA", "TLKM"]),
+  );
+  expect(readStudentLine(database, portfolio, stocks)).toEqual({
+    ok: true,
+    value: {
+      kind: "portfolio",
+      portfolioLine: readPortfolioLine(portfolio),
+      others: { onLine: [], otherLineCodes: ["AMMN"], hasUnmeasured: true },
+    },
+  });
+  // A portfolio of AMMN has the line of the 38 months that AMMN shares with the IHSG, and the stocks with five years of returns lie against another line.
+  expect(
+    readStudentLine(
+      database,
+      readPortfolioMeasures(database, ammnValuationForTest()),
+      stocks,
+    ),
+  ).toMatchObject({
+    ok: true,
+    value: {
+      kind: "portfolio",
+      portfolioLine: {
+        line: {
+          riskFreeRate: closeToForTest(0.004791666666666666, 17),
+          marketExpectedReturn: closeToForTest(-0.002012279107748291, 16),
+          months: { count: 38, first: "2023-08-31", last: "2026-09-30" },
+        },
+        holdings: [{ code: "AMMN" }],
+      },
+      others: {
+        onLine: [],
+        otherLineCodes: ["BBCA", "TLKM"],
+        hasUnmeasured: true,
+      },
+    },
+  });
+});
+
+test("draws the line of the latest complete months of the IHSG with every stock on it while the portfolio has no measures, for any reason", () => {
+  const database = databaseWithClosesForTest();
+  const stocks = readStockRows(database);
+  for (const valuation of [
+    valuePortfolio(
+      { cash: rupiah(100_000_000), holdings: [] },
+      rupiah(100_000_000),
+      new Map(),
+    ),
+    valuationForTest(["BBCA"]),
+    aadiValuationForTest(),
+  ]) {
+    expect(
+      readStudentLine(
+        database,
+        readPortfolioMeasures(database, valuation),
+        stocks,
+      ),
+    ).toEqual({
+      ok: true,
+      value: {
+        kind: "latest",
+        line: { ...fiveYearLine, months: fiveYearMonths },
+        others: {
+          onLine: stocksOnFiveYearLine,
+          otherLineCodes: ["AMMN"],
+          hasUnmeasured: true,
+        },
+      },
+    });
+  }
+  expect(
+    readStudentLine(
+      database,
+      { kind: "noHoldings" },
+      stocks.filter(({ measures }) => measures.ok),
+    ),
+  ).toMatchObject({ ok: true, value: { others: { hasUnmeasured: false } } });
+});
+
+test("fails to draw the line while the IHSG has too few complete months, with the month that brings enough", () => {
+  // The closes of the IHSG from September 2025 to October 2026 complete the months from September 2025 to September 2026, which give 12 returns. The returns of the 12 months from October 2026 to September 2027 bring 24, and the first trading day of October 2027 completes September 2027.
+  const database = openDatabaseForTest();
+  const ihsg = indexHistoryForTest(monthEndClosesForTest("IHSG"));
+  saveDailyHistory(database, { ...ihsg, closes: ihsg.closes.slice(-14) });
+  expect(
+    readStudentLine(database, { kind: "noHoldings" }, readStockRows(database)),
+  ).toEqual({
+    ok: false,
+    failure: {
+      kind: "tooFewReturns",
+      code: "IHSG",
+      count: 12,
+      minimum: 24,
+      enoughAfterFirstTradingDayOf: { ok: true, value: "2027-10-01" },
     },
   });
 });

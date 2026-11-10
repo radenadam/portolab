@@ -14,7 +14,7 @@ import { studentWithPortfolio } from "./student-with-portfolio.ts";
 import type { PortfolioOfTest } from "./student-with-portfolio.ts";
 import { widestClassNames } from "./widest-class-names.ts";
 
-// The server runs with the fixture price source, whose quotes are the closes of Friday 30 October 2026, and the global setup stores the month-end closes that give BBCA 60 monthly returns and AADI 21, and no closes of ADMR. bbca-holding.ts describes the portfolio of the student, in which BBCA has a weight of 0.496382. The measures of the portfolio follow from those of BBCA that the decimal module of Python computed, as measure-stock.test.ts gives them: an expected return of -0.000508, a variance of 0.000673, a standard deviation of 0.025947, a beta of 0.342192, a required return of 0.003308, and a distance of -0.003816 from the security market line.
+// The server runs with the fixture price source, whose quotes are the closes of Friday 30 October 2026, and the global setup stores the month-end closes that give BBCA 60 monthly returns, AMMN 38, and AADI 21, and no closes of ADMR. bbca-holding.ts describes the portfolio of the student, in which BBCA has a weight of 0.496382. The measures of the portfolio follow from those of BBCA that the decimal module of Python computed, as measure-stock.test.ts gives them: an expected return of -0.000508, a variance of 0.000673, a standard deviation of 0.025947, a beta of 0.342192, a required return of 0.003308, and a distance of -0.003816 from the security market line.
 const { className } = widestClassNames;
 
 const texts: Record<
@@ -35,6 +35,19 @@ const texts: Record<
     holding: readonly string[];
     pair: readonly string[];
     summaries: readonly string[];
+    pointsLabel: string;
+    lineNotice: string;
+    portfolioLine: string;
+    latestLine: string;
+    portfolioLegend: string;
+    latestLegend: string;
+    formula: string;
+    riskFreePoint: readonly string[];
+    marketPoint: readonly string[];
+    portfolioPoint: readonly string[];
+    bbcaPoint: readonly string[];
+    ammnElsewhere: string;
+    unmeasured: string;
     stocksNotice: string;
     stocks: readonly (readonly [string, ...string[]])[];
     noHoldings: string;
@@ -66,6 +79,7 @@ const texts: Record<
       "Kovarians dan korelasi saham Anda",
       "IHSG dan suku bunga bebas risiko",
       "Imbal hasil bulanan",
+      "Garis pasar sekuritas",
       "Ukuran setiap saham",
     ],
     months:
@@ -100,6 +114,24 @@ const texts: Record<
     holding: ["BBCA", "49,64%", "-0,10%", "0,69"],
     pair: ["BBCA", "0,002732", "1,00"],
     summaries: ["Imbal hasil bulanan IHSG", "Imbal hasil bulanan BBCA"],
+    pointsLabel: "Titik-titik grafik",
+    lineNotice:
+      "Garis ini melewati suku bunga bebas risiko pada beta 0 dan imbal hasil yang diharapkan IHSG pada beta 1, sehingga memberikan imbal hasil yang disyaratkan CAPM untuk setiap beta. Titik di atas garis memiliki imbal hasil yang diharapkan lebih tinggi daripada yang disyaratkan CAPM untuk betanya, dan titik di bawah garis memiliki imbal hasil yang diharapkan lebih rendah.",
+    portfolioLine:
+      "Grafik ini menempatkan portofolio Anda, saham Anda, dan setiap saham lain yang ukurannya memakai bulan-bulan yang sama dengan portofolio Anda terhadap garis pasar sekuritas bulan-bulan tersebut, yang memberikan 60 imbal hasil bulanan dari Oktober 2021 sampai September 2026.",
+    latestLine:
+      "Portofolio Anda belum memiliki ukuran, sehingga grafik ini menempatkan setiap saham yang ukurannya memakai bulan-bulan lengkap terakhir IHSG terhadap garis pasar sekuritas bulan-bulan tersebut, yang memberikan 60 imbal hasil bulanan dari Oktober 2021 sampai September 2026.",
+    portfolioLegend: "Portofolio Anda (p)Saham Anda",
+    latestLegend: "Saham lain",
+    formula: "k = Rf + β(E(RM) − Rf) = 0,48% + β × (0,05% − 0,48%)",
+    riskFreePoint: ["Suku bunga bebas risiko (Rf)", "0,00", "0,48%", "0,00%"],
+    marketPoint: ["IHSG (M)", "1,00", "0,05%", "0,00%"],
+    portfolioPoint: ["Portofolio Anda (p)", "0,34", "-0,05%", "▼ -0,38%"],
+    bbcaPoint: ["BBCA", "0,69", "-0,10%", "▼ -0,28%"],
+    ammnElsewhere:
+      "AMMN tidak ada di grafik, karena ukurannya memakai bulan-bulan yang berbeda, yang memberikan garis pasar sekuritas yang berbeda. Halamannya menunjukkan jaraknya dari garis itu.",
+    unmeasured:
+      "Saham yang belum memiliki ukuran tidak ada di grafik, dan tabel ukuran setiap saham di bawah menjelaskan alasannya.",
     stocksNotice:
       "Tabel ini memuat setiap saham LQ45 yang dicatat Portolab, sehingga mencakup setiap saham yang dapat Anda beli atau jual. Setiap saham memakai bulan-bulan yang di dalamnya saham itu dan IHSG memiliki imbal hasil, dan halamannya menunjukkan setiap rumus dan setiap imbal hasil, atau alasan lengkap mengapa saham itu belum memiliki ukuran.",
     stocks: [
@@ -164,6 +196,7 @@ const texts: Record<
       "Covariances and correlations of your stocks",
       "The IHSG and the risk-free rate",
       "Monthly returns",
+      "Security market line",
       "Measures of each stock",
     ],
     months:
@@ -198,6 +231,24 @@ const texts: Record<
     holding: ["BBCA", "49.64%", "-0.10%", "0.69"],
     pair: ["BBCA", "0.002732", "1.00"],
     summaries: ["Monthly returns of the IHSG", "Monthly returns of BBCA"],
+    pointsLabel: "The points of the chart",
+    lineNotice:
+      "The line runs through the risk-free rate at a beta of 0 and the expected return of the IHSG at a beta of 1, so it gives the return that CAPM requires for each beta. A point above the line has a higher expected return than CAPM requires for its beta, and a point below it has a lower one.",
+    portfolioLine:
+      "The chart places your portfolio, your stocks, and every other stock whose measures use the same months as your portfolio against the security market line of those months, which give 60 monthly returns from October 2021 to September 2026.",
+    latestLine:
+      "Your portfolio has no measures yet, so the chart places every stock whose measures use the latest complete months of the IHSG against the security market line of those months, which give 60 monthly returns from October 2021 to September 2026.",
+    portfolioLegend: "Your portfolio (p)Your stocks",
+    latestLegend: "Other stocks",
+    formula: "k = Rf + β(E(RM) − Rf) = 0.48% + β × (0.05% − 0.48%)",
+    riskFreePoint: ["Risk-free rate (Rf)", "0.00", "0.48%", "0.00%"],
+    marketPoint: ["IHSG (M)", "1.00", "0.05%", "0.00%"],
+    portfolioPoint: ["Your portfolio (p)", "0.34", "-0.05%", "▼ -0.38%"],
+    bbcaPoint: ["BBCA", "0.69", "-0.10%", "▼ -0.28%"],
+    ammnElsewhere:
+      "AMMN is not on the chart, because its measures use different months, which give a different security market line. Its page shows its distance from that line.",
+    unmeasured:
+      "A stock that has no measures yet is not on the chart, and the table of the measures of each stock below says why.",
     stocksNotice:
       "The table lists every stock of the LQ45 that Portolab records, so it covers every stock that you can buy or sell. Each stock uses the months in which it and the IHSG have a return, and its page shows every formula and every return, or the whole reason why it has no measures yet.",
     stocks: [
@@ -273,18 +324,64 @@ async function expectRow(
   await expect(row.locator("th, td")).toHaveText(cells);
 }
 
-/** Opens every table of monthly returns, so that a check sees the screen with its widest content. */
+/** Opens every table of monthly returns and of the points of the chart, so that a check sees the screen with its widest content. */
 async function openReturnTables(page: Page): Promise<void> {
   for (const summary of await page.getByRole("main").locator("summary").all()) {
     await summary.click();
   }
 }
 
+/** Checks the section of the security market line: what the chart places against which line, its legend, the formula of the line, each point in the table of the points, which stocks are not on the chart, and that the chart draws at the size of its frame once the browser measures it. */
+async function expectMarketLine(
+  main: Locator,
+  section: {
+    locale: Locale;
+    notice: string;
+    legend: string;
+    points: readonly (readonly string[])[];
+  },
+): Promise<void> {
+  const text = texts[section.locale];
+  for (const notice of [
+    section.notice,
+    text.lineNotice,
+    text.formula,
+    text.ammnElsewhere,
+    text.unmeasured,
+  ]) {
+    await expect(main).toContainText(notice);
+  }
+  // The legend names the marks of the chart, which screen readers skip, as they skip the chart.
+  await expect(main.locator("ul")).toHaveText(section.legend);
+  const rows = main
+    .locator("details")
+    .filter({ hasText: text.pointsLabel })
+    .locator("tbody tr");
+  await expect(rows).toHaveCount(section.points.length);
+  for (const [index, cells] of section.points.entries()) {
+    await expectRow(rows.nth(index), cells);
+  }
+  const chart = main.locator("svg[font-size]");
+  await expect(chart).toBeVisible();
+  await expect
+    .poll(() =>
+      chart.evaluate((svg) => {
+        const frame = svg.parentElement;
+        return (
+          frame !== null &&
+          svg.getAttribute("viewBox") ===
+            `0 0 ${String(frame.clientWidth)} ${String(frame.clientHeight)}`
+        );
+      }),
+    )
+    .toBe(true);
+}
+
 for (const locale of locales) {
   const text = texts[locale];
   const language = languageNames[locale];
 
-  test(`shows the measures of a portfolio with every formula and input, and the measures of each stock, in ${language}`, async ({
+  test(`shows the measures of a portfolio with every formula and input, places it and its stocks against the security market line, and shows the measures of each stock, in ${language}`, async ({
     page,
     browser,
   }) => {
@@ -320,8 +417,22 @@ for (const locale of locales) {
     }
     await expectRow(tables.nth(1).locator("tbody tr"), text.holding);
     await expectRow(tables.nth(2).locator("tbody tr"), text.pair);
-    await expect(main.locator("summary")).toHaveText(text.summaries);
+    await expect(main.locator("summary")).toHaveText([
+      ...text.summaries,
+      text.pointsLabel,
+    ]);
     await openReturnTables(student);
+    await expectMarketLine(main, {
+      locale,
+      notice: text.portfolioLine,
+      legend: text.portfolioLegend,
+      points: [
+        text.riskFreePoint,
+        text.marketPoint,
+        text.portfolioPoint,
+        text.bbcaPoint,
+      ],
+    });
     // 60 returns and the close that starts the first of them.
     await expect(tables.nth(4).locator("tbody tr")).toHaveCount(61);
     await expect(main).toContainText(text.stocksNotice);
@@ -367,7 +478,7 @@ for (const locale of locales) {
     await student.context().close();
   });
 
-  test(`says why a portfolio has no measures, and leads between the class, the portfolio, the orders, and the measures, in ${language}`, async ({
+  test(`says why a portfolio has no measures, places every stock against the line of the latest months instead, and leads between the class, the portfolio, the orders, and the measures, in ${language}`, async ({
     page,
     browser,
   }) => {
@@ -375,6 +486,13 @@ for (const locale of locales) {
       locale,
     });
     await expect(main).toContainText(text.noHoldings);
+    await openReturnTables(student);
+    await expectMarketLine(main, {
+      locale,
+      notice: text.latestLine,
+      legend: text.latestLegend,
+      points: [text.riskFreePoint, text.marketPoint, text.bbcaPoint],
+    });
     await expectAccessibleScreen(student);
     for (const path of [`${classPath}/portfolio`, `${classPath}/orders`]) {
       await student.goto(path);

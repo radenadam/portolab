@@ -13,12 +13,23 @@ import type { ValuationReport } from "~/features/trading/read-portfolio-report.s
 import { readStudentPortfolio } from "~/features/trading/read-student-portfolio.server";
 import { pageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
+import type { Result } from "~/result";
 import type { Route } from "./+types/measures-page";
+import { StudentMarketLine } from "./market-line-section";
+import type { StoredMeasureFailure } from "./measure-stored.server";
 import styles from "./measures.module.css";
 import { MethodNotice } from "./method-notice";
 import { PortfolioMeasuresView } from "./portfolio-measures-view";
-import { readPortfolioMeasures, readStockRows } from "./read-measures.server";
-import type { PortfolioMeasuresReport, StockRow } from "./read-measures.server";
+import {
+  readPortfolioMeasures,
+  readStockRows,
+  readStudentLine,
+} from "./read-measures.server";
+import type {
+  PortfolioMeasuresReport,
+  StockRow,
+  StudentLine,
+} from "./read-measures.server";
 import { StockTable } from "./stock-table";
 
 export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
@@ -34,6 +45,7 @@ export function loader({ context, request, params, url }: Route.LoaderArgs): {
   className: string;
   valuation: ValuationReport;
   portfolio: PortfolioMeasuresReport;
+  marketLine: Result<StudentLine, StoredMeasureFailure>;
   stocks: StockRow[];
   now: Date;
   source: PriceSourceDescription;
@@ -50,12 +62,18 @@ export function loader({ context, request, params, url }: Route.LoaderArgs): {
     portfolio,
     startingCash: place.owner.startingCash,
   });
+  const portfolioMeasures = readPortfolioMeasures(
+    database,
+    valuation.valuation,
+  );
+  const stocks = readStockRows(database);
   return {
     classId: place.classId,
     className: place.className,
     valuation,
-    portfolio: readPortfolioMeasures(database, valuation.valuation),
-    stocks: readStockRows(database),
+    portfolio: portfolioMeasures,
+    marketLine: readStudentLine(database, portfolioMeasures, stocks),
+    stocks,
     now,
     source,
   };
@@ -88,6 +106,7 @@ export default function MeasuresPage({
         })}
         source={source}
       />
+      <StudentMarketLine marketLine={loaderData.marketLine} />
       <h2>{m.measures_stocks_title()}</h2>
       <p>{m.measures_stocks_notice({ index: marketIndex.code })}</p>
       <StockTable classId={classId} stocks={loaderData.stocks} />

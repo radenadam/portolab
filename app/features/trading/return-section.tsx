@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import legendStyles from "~/chart-legend.module.css";
 import { ChangeText } from "~/change-text";
 import { countedText } from "~/counted-text";
 import tableStyles from "~/data-table.module.css";
@@ -55,7 +56,7 @@ export function ReturnSection({
             })}
           </p>
           {/* The legend names the lines of the chart, which screen readers skip, as they do the chart. */}
-          <ul className={styles["legend"]} aria-hidden>
+          <ul className={legendStyles["legend"]} aria-hidden>
             <li className={styles["portfolioSeries"]}>{seriesLabel}</li>
             <li className={styles["marketSeries"]}>{marketIndex.code}</li>
           </ul>

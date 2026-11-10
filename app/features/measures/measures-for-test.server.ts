@@ -57,3 +57,19 @@ export function aadiValuationForTest(): PortfolioValuation {
     ]),
   );
 }
+
+/** A portfolio of 1,000 shares of AMMN and cash, valued at the quote of 30 October 2026 that the fixture source records, which values the shares at Rp3,650,000. They cost Rp3,655,475 with a broker fee of 0.15%. AMMN listed in July 2023, so the measures of the portfolio use fewer months than those of a stock with five years of returns. */
+export function ammnValuationForTest(): PortfolioValuation {
+  return valuePortfolio(
+    {
+      cash: rupiah(10_000_000),
+      holdings: [
+        { code: "AMMN", shares: shares(1_000), cost: rupiah(3_655_475) },
+      ],
+    },
+    rupiah(13_655_475),
+    new Map([
+      ["AMMN", stockQuote("AMMN", [3_650, 3_740], "2026-10-30T09:14:16.000Z")],
+    ]),
+  );
+}

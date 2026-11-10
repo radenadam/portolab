@@ -26,15 +26,17 @@ type BetaMeasure = Measure<
   { covarianceWithMarket: MonthlyVariance; marketVariance: MonthlyVariance }
 >;
 
+/** The security market line of one set of months. It runs through the risk-free rate at a beta of 0 and the expected return of the market at a beta of 1, so it gives the return that CAPM requires for every beta. */
+export interface MarketLine {
+  riskFreeRate: MonthlyReturn;
+  marketExpectedReturn: MonthlyReturn;
+}
+
 /** The return that CAPM requires for the risk that a beta measures. */
 export type RequiredReturnMeasure = Measure<
   "capm",
   MonthlyReturn,
-  {
-    riskFreeRate: MonthlyReturn;
-    beta: Beta;
-    marketExpectedReturn: MonthlyReturn;
-  }
+  MarketLine & { beta: Beta }
 >;
 
 /** How far the expected return lies above the security market line, or below it when negative. */
@@ -108,19 +110,26 @@ export function measureAgainstMarket(
   };
 }
 
+/** The return that CAPM requires for a beta, which is the height of a security market line at that beta. */
+export function requiredReturnOn(line: MarketLine, beta: Beta): MonthlyReturn {
+  return monthlyReturn(
+    line.riskFreeRate + beta * (line.marketExpectedReturn - line.riskFreeRate),
+  );
+}
+
 /** Measures the return that CAPM requires for a beta, with the risk-free rate and the expected return of the market. */
 export function measureRequiredReturn(
   beta: Beta,
   market: MarketMeasures,
 ): RequiredReturnMeasure {
-  const riskFreeRate = market.riskFreeRate.value;
-  const marketExpectedReturn = market.expectedReturn.value;
+  const line: MarketLine = {
+    riskFreeRate: market.riskFreeRate.value,
+    marketExpectedReturn: market.expectedReturn.value,
+  };
   return {
     formula: "capm",
-    value: monthlyReturn(
-      riskFreeRate + beta * (marketExpectedReturn - riskFreeRate),
-    ),
-    inputs: { riskFreeRate, beta, marketExpectedReturn },
+    value: requiredReturnOn(line, beta),
+    inputs: { ...line, beta },
   };
 }
 

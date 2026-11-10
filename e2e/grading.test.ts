@@ -58,6 +58,10 @@ const texts: Record<
     legend: readonly string[];
     measuresHeadings: readonly string[];
     bbcaMeasures: string;
+    lineTitle: string;
+    lineNotice: (name: string) => string;
+    lineLegend: string;
+    linePoints: readonly (readonly string[])[];
     notFoundTitle: string;
   }
 > = {
@@ -152,6 +156,7 @@ const texts: Record<
       "Kovarians dan korelasi saham portofolio",
       "IHSG dan suku bunga bebas risiko",
       "Imbal hasil bulanan",
+      "Garis pasar sekuritas",
     ],
     bbcaMeasures: [
       "Imbal hasil yang diharapkan",
@@ -173,6 +178,16 @@ const texts: Record<
       "▼ -0,38%",
       "αp = E(Rp) − kp = -0,05% − 0,33%",
     ].join(""),
+    lineTitle: "Garis pasar sekuritas",
+    lineNotice: (name) =>
+      `Grafik ini menempatkan portofolio ${name} dan sahamnya terhadap garis pasar sekuritas dari bulan-bulan ukurannya, yang memberikan 60 imbal hasil bulanan dari Oktober 2021 sampai September 2026.`,
+    lineLegend: "Portofolio (p)Saham portofolio",
+    linePoints: [
+      ["Suku bunga bebas risiko (Rf)", "0,00", "0,48%", "0,00%"],
+      ["IHSG (M)", "1,00", "0,05%", "0,00%"],
+      ["Portofolio (p)", "0,34", "-0,05%", "▼ -0,38%"],
+      ["BBCA", "0,69", "-0,10%", "▼ -0,28%"],
+    ],
     notFoundTitle: "Halaman tidak ditemukan",
   },
   en: {
@@ -262,6 +277,7 @@ const texts: Record<
       "Covariances and correlations of the stocks of the portfolio",
       "The IHSG and the risk-free rate",
       "Monthly returns",
+      "Security market line",
     ],
     bbcaMeasures: [
       "Expected return",
@@ -283,6 +299,16 @@ const texts: Record<
       "▼ -0.38%",
       "αp = E(Rp) − kp = -0.05% − 0.33%",
     ].join(""),
+    lineTitle: "Security market line",
+    lineNotice: (name) =>
+      `The chart places the portfolio of ${name} and its stocks against the security market line of the months of its measures, which give 60 monthly returns from October 2021 to September 2026.`,
+    lineLegend: "Portfolio (p)Stocks of the portfolio",
+    linePoints: [
+      ["Risk-free rate (Rf)", "0.00", "0.48%", "0.00%"],
+      ["IHSG (M)", "1.00", "0.05%", "0.00%"],
+      ["Portfolio (p)", "0.34", "-0.05%", "▼ -0.38%"],
+      ["BBCA", "0.69", "-0.10%", "▼ -0.28%"],
+    ],
     notFoundTitle: "Page not found",
   },
 };
@@ -421,6 +447,15 @@ for (const locale of locales) {
     for (const summary of await main.locator("summary").all()) {
       await summary.click();
     }
+    // The chart places the portfolio and its stocks against the line of its months, and the table of its points lists each of them.
+    await expect(main).toContainText(text.lineNotice(studentName));
+    await expect(main.locator("ul")).toHaveText(text.lineLegend);
+    await expect(main.locator("svg[font-size]")).toBeVisible();
+    const points = main.locator("details").last().locator("tbody tr");
+    await expect(points).toHaveCount(text.linePoints.length);
+    for (const [index, cells] of text.linePoints.entries()) {
+      await expect(points.nth(index).locator("th, td")).toHaveText(cells);
+    }
     await expectAccessibleScreen(page);
     await main
       .getByRole("link", { name: text.portfolioLink(studentName), exact: true })
@@ -475,6 +510,10 @@ for (const locale of locales) {
       .getByRole("link", { name: text.measuresLink(studentName), exact: true })
       .click();
     await expect(main).toContainText(text.itmgFailure(studentName));
+    // A portfolio without measures has no months that give a line, and the text above says why.
+    await expect(
+      main.getByRole("heading", { name: text.lineTitle }),
+    ).toHaveCount(0);
     await student.context().close();
   });
 

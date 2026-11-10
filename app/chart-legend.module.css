@@ -1,0 +1,10 @@
+/* The legend of a chart names each of its series or kinds of point beside a sample of its mark, which the chart tells apart by its style and not by color alone, as decision 0012 sets. */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  margin: 0;
+  padding: 0;
+  font-size: var(--text-small);
+  list-style: none;
+}

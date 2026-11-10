@@ -6,6 +6,7 @@ import type { PortfolioWeight } from "~/units/portfolio-weight";
 import type { Rupiah } from "~/units/rupiah";
 import type { ReturnMeasure } from "./aligned-returns";
 import type {
+  MarketLine,
   MarketMeasures,
   RequiredReturnMeasure,
   SecurityMarketLineMeasure,
@@ -41,11 +42,14 @@ export interface StockSummary {
   market: MarketSummary;
 }
 
-/** The measures of a stock that a table of every stock shows. */
+/** The measures of a stock that a table of every stock shows, with the line of its months and its distance from that line, which a chart of the security market line places it by. */
 export interface StockRowSummary {
   expectedReturn: MonthlyReturn;
   standardDeviation: MonthlyReturn;
   beta: Beta;
+  line: MarketLine;
+  /** How far the expected return lies above the security market line, or below it when negative, which is α. */
+  distance: MonthlyReturn;
 }
 
 /** A stock of a portfolio with its value, its weight, and the measures that the table of the stocks of the portfolio shows. */
@@ -55,6 +59,8 @@ interface HoldingSummary {
   weight: PortfolioWeight;
   expectedReturn: MonthlyReturn;
   beta: Beta;
+  /** How far the expected return lies above the security market line of the months of the portfolio, or below it when negative, which is α. */
+  distance: MonthlyReturn;
   returns: readonly ReturnMeasure[];
 }
 
@@ -84,7 +90,7 @@ export interface PortfolioSummary {
   market: MarketSummary;
 }
 
-function summarizeMarket(market: MarketMeasures): MarketSummary {
+export function summarizeMarket(market: MarketMeasures): MarketSummary {
   return {
     returns: market.returns,
     expectedReturn: market.expectedReturn.value,
@@ -117,10 +123,13 @@ export function summarizeStock({
 }
 
 export function summarizeStockRow(stock: StockMeasures): StockRowSummary {
+  const { riskFreeRate, marketExpectedReturn } = stock.requiredReturn.inputs;
   return {
     expectedReturn: stock.expectedReturn.value,
     standardDeviation: stock.standardDeviation.value,
     beta: stock.beta.value,
+    line: { riskFreeRate, marketExpectedReturn },
+    distance: stock.securityMarketLine.value,
   };
 }
 
@@ -170,6 +179,7 @@ export function summarizePortfolio(
       weight: holding.weight,
       expectedReturn: holding.expectedReturn.value,
       beta: holding.beta.value,
+      distance: holding.securityMarketLine.value,
       returns: holding.returns,
     })),
     pairs,

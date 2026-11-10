@@ -7,7 +7,9 @@ import { portfolioWeight } from "~/units/portfolio-weight";
 import type { PortfolioWeight } from "~/units/portfolio-weight";
 import { rupiah } from "~/units/rupiah";
 import type { Rupiah } from "~/units/rupiah";
+import { alignedReturns } from "./aligned-returns";
 import type { InstrumentCloses } from "./aligned-returns";
+import { measureMarket } from "./capm";
 import type { MarketMeasures, StockMeasures } from "./capm";
 import { defaultEstimationSettings } from "./estimation-settings";
 import { forecastEnoughReturns } from "./forecast-enough-returns";
@@ -86,6 +88,18 @@ export function measureStoredPortfolio(
     ...measures.value,
     cashWeight: portfolioWeight(portfolio.cash / wholeValue),
   });
+}
+
+/** Measures the IHSG alone from the daily closes that the price job stored, over the latest complete months of the settings that every measure uses, with the risk-free rate. They give the security market line of every stock whose measures use all of those months. */
+export function measureStoredMarket(
+  database: Database,
+): Result<MarketMeasures, StoredMeasureFailure> {
+  const market = listDailyHistory(database, marketIndex);
+  const returns = alignedReturns(market, [], defaultEstimationSettings);
+  const measures = returns.ok ? measureMarket(returns.value) : returns;
+  return measures.ok
+    ? measures
+    : fail(withForecast(measures.failure, [], market));
 }
 
 function withForecast(

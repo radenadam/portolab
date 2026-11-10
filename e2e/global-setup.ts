@@ -81,13 +81,13 @@ export default async function globalSetup(): Promise<() => Promise<void>> {
   }
 }
 
-/** Stores the recorded month-end closes of the IHSG, of BBCA, which has the monthly returns that a purchase needs, and of AADI, which has too few, and the closes of the IHSG and ITMG in the last week of October 2026 that the fixture source records, which the chart of a portfolio needs. The history job of the server asks the fixture source for the closes of the latest trading day, which its closes of October 2026 lack, so it stores none. The closes of October leave that month without a later close of the IHSG, so the count of monthly returns stays as the month-end closes give it. */
+/** Stores the recorded month-end closes of the IHSG, of BBCA, which has the monthly returns that a purchase needs, of AMMN, which listed later and so lies against another security market line, and of AADI, which has too few, and the closes of the IHSG and ITMG in the last week of October 2026 that the fixture source records, which the chart of a portfolio needs. The history job of the server asks the fixture source for the closes of the latest trading day, which its closes of October 2026 lack, so it stores none. The closes of October leave that month without a later close of the IHSG, so the count of monthly returns stays as the month-end closes give it. */
 function storeClosesOfTests(databasePath: string): void {
   const database = openDatabase(
     databasePath,
     join(import.meta.dirname, "..", migrationsFolderName),
   );
-  for (const code of ["IHSG", "BBCA", "AADI"] as const) {
+  for (const code of ["IHSG", "BBCA", "AMMN", "AADI"] as const) {
     saveDailyHistory(database, monthEndClosesForTest(code));
   }
   for (const instrument of [
