@@ -28,6 +28,10 @@ pnpm start
 
 Open http://localhost:3000 on the laptop as before. The page of each class then shows its address for joining on each network of the laptop, because a phone cannot open localhost. The server also prints the address of the laptop on each network when it starts. On Windows, allow the connection when the firewall asks.
 
+## Deploy it
+
+[`docs/deploy.md`](docs/deploy.md) takes a fresh Ubuntu server to Portolab, served over HTTPS at a domain of your own, one command at a time. It also covers backups, updates, the deletion of personal data, and what to do when prices stop updating.
+
 ## Accounts
 
 Nobody signs up as a lecturer. The person who runs the server creates each lecturer account with the account command:
@@ -42,7 +46,7 @@ The command prints a temporary password and says what the lecturer does with it.
 pnpm account reset-password <username>
 ```
 
-The command works on the database that `DATABASE_PATH` names, so run it with the same environment variables as the server. It can run while the server runs, but it cannot end a block after wrong passwords, which the server keeps until the time that the sign-in page names.
+The command works on the database that `DATABASE_PATH` names, so run it with the same environment variables as the server. On a server that follows the deployment guide, it runs in the container of Portolab, as [the guide shows](docs/deploy.md#7-create-the-first-lecturer-account). It can run while the server runs, but it cannot end a block after wrong passwords, which the server keeps until the time that the sign-in page names.
 
 ## Configuration
 

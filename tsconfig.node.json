@@ -32,6 +32,7 @@
     "app/form-size.ts",
     "app/units/bytes.ts",
     "app/value-shapes.ts",
+    "e2e/browser-projects.ts",
     "e2e/test-server.ts",
     "scripts/**/*.ts",
     "lint/**/*.ts",

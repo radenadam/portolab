@@ -11,12 +11,19 @@ const semicolon = { character: ";", name: "semicolon" };
 
 type Forbidden = readonly { character: string; name: string }[];
 
-type CodeKind = "typescript" | "css" | "yaml";
+type CodeKind = "typescript" | "css" | "yaml" | "configuration";
+
+// The files of the deployment whose comments start with #, apart from the YAML files.
+const configurationFiles = new Set([
+  "Dockerfile",
+  "Caddyfile",
+  ".dockerignore",
+]);
 
 /** How a file holds its prose, which decides where each character is forbidden. */
 export type FileKind = "markdown" | "messages" | CodeKind;
 
-/** Decides how a file holds its prose by its place and extension, or returns undefined when the check does not read the file. */
+/** Decides how a file holds its prose by its place, its name, and its extension, or returns undefined when the check does not read the file. */
 export function fileKind(path: string): FileKind | undefined {
   if (/^messages\/[^/]+\.json$/.test(path)) {
     return "messages";
@@ -33,6 +40,9 @@ export function fileKind(path: string): FileKind | undefined {
   }
   if (path.endsWith(".yml") || path.endsWith(".yaml")) {
     return "yaml";
+  }
+  if (configurationFiles.has(path.split("/").at(-1) ?? "")) {
+    return "configuration";
   }
   return undefined;
 }
@@ -152,6 +162,12 @@ function comments(file: string, text: string, kind: CodeKind): Comment[] {
       }));
     case "yaml":
       return yamlComments(text);
+    case "configuration":
+      // A # starts a comment at the start of a line or after a space, which also covers a comment of the shell in an instruction of the Dockerfile.
+      return [...text.matchAll(/(?<=^|[ \t])#.*$/gm)].map((match) => ({
+        start: match.index,
+        text: match[0],
+      }));
   }
 }
 

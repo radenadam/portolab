@@ -144,6 +144,50 @@ const expectedLenses: [ChangedFile, Lens[]][] = [
     ],
   ],
   [
+    modified("Dockerfile"),
+    [
+      "architecture",
+      "consistency",
+      "craft",
+      "docs",
+      "reliability",
+      "standards",
+    ],
+  ],
+  [
+    modified("compose.yaml"),
+    [
+      "architecture",
+      "consistency",
+      "craft",
+      "docs",
+      "reliability",
+      "standards",
+    ],
+  ],
+  [
+    modified("Caddyfile"),
+    [
+      "architecture",
+      "consistency",
+      "craft",
+      "docs",
+      "reliability",
+      "standards",
+    ],
+  ],
+  [
+    modified(".dockerignore"),
+    [
+      "architecture",
+      "consistency",
+      "craft",
+      "docs",
+      "reliability",
+      "standards",
+    ],
+  ],
+  [
     modified(".github/workflows/review.yml"),
     ["consistency", "craft", "docs", "reliability", "standards"],
   ],

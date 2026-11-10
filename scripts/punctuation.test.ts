@@ -18,6 +18,12 @@ test("selects files by extension, including files in dot directories", () => {
   expect(fileKind("scripts/json.ts")).toBe("typescript");
   expect(fileKind("app/theme.css")).toBe("css");
   expect(fileKind("messages/en.json")).toBe("messages");
+  expect(fileKind("Dockerfile")).toBe("configuration");
+  expect(fileKind("Caddyfile")).toBe("configuration");
+  expect(fileKind(".dockerignore")).toBe("configuration");
+  expect(fileKind("server/Dockerfile")).toBe("configuration");
+  expect(fileKind(".devcontainer/Dockerfile")).toBe("configuration");
+  expect(fileKind("Dockerfile.md")).toBe("markdown");
   expect(fileKind("project.inlang/settings.json")).toBeUndefined();
   expect(fileKind("package.json")).toBeUndefined();
 });
@@ -97,6 +103,40 @@ test("rejects a semicolon in a YAML comment and accepts one in a value", () => {
     semicolonAt("a.yml:1"),
     semicolonAt("a.yml:2"),
     semicolonAt("a.yml:3"),
+  ]);
+});
+
+test("rejects a semicolon in a comment of a file of the deployment and accepts one in an instruction", () => {
+  expect(
+    punctuationProblems(
+      "Dockerfile",
+      [
+        "# One; two.",
+        "  # One; two.",
+        "RUN apt-get update; apt-get install sqlite3 # One; two.",
+        "RUN echo a#b; echo c",
+        "\treverse_proxy 127.0.0.1:3000\t# One; two.",
+      ].join("\n"),
+      "configuration",
+    ),
+  ).toEqual([
+    semicolonAt("Dockerfile:1"),
+    semicolonAt("Dockerfile:2"),
+    semicolonAt("Dockerfile:3"),
+    semicolonAt("Dockerfile:5"),
+  ]);
+});
+
+test("rejects a dash on every line of a file of the deployment", () => {
+  expect(
+    punctuationProblems(
+      "Caddyfile",
+      `# One ${emDash} two.\nrespond "One ${emDash} two."`,
+      "configuration",
+    ),
+  ).toEqual([
+    "Caddyfile:1: replace the em dash with a connecting word or a new sentence.",
+    "Caddyfile:2: replace the em dash with a connecting word or a new sentence.",
   ]);
 });
 
