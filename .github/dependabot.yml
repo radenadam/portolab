@@ -1,4 +1,4 @@
-# Without a commit-message setting, Dependabot follows the Conventional Commits of the history, with a subject in lowercase, which the check of titles accepts. A prefix makes it write "Bump" with a capital, which that check rejects.
+# Without a commit-message setting, Dependabot takes the types and scopes of the history, such as chore(deps). It still writes "Bump" with a capital, so the check of titles and the merge both use the subject that scripts/parse-dependabot-title.ts writes from its title.
 version: 2
 updates:
   - package-ecosystem: npm
