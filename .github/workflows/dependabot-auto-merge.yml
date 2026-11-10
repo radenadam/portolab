@@ -1,11 +1,11 @@
 name: Dependabot auto-merge
 
-# The check of titles runs on the same events, so the merge takes the subject of every title that the check judged.
+# The check of titles runs on the same events, so the title that this job writes is the subject that the check judged.
 on:
   pull_request:
     types: [opened, synchronize, reopened, edited]
 
-# A push and a new title of Dependabot start two runs, and each reads the title of its own event. Only the latest run may set the subject, as only the latest run of the check judges the title.
+# A push and a new title of Dependabot start two runs, and each reads the title of its own event. Only the latest run may write the title, as only the latest run of the check judges it.
 concurrency:
   group: dependabot-merge-${{ github.event.pull_request.number }}
   cancel-in-progress: true
@@ -29,7 +29,7 @@ jobs:
         timeout-minutes: 4
         with:
           install: false
-      # A squash commit takes the title and the description of its pull request, which Dependabot writes in its own style, with release notes in the description. The merge gives the commit the subject that the check of titles read and this body, and the release notes stay on the pull request. Each push of Dependabot can change the title, so the merge is set again for every push.
+      # A squash commit takes the title that its pull request has when it merges, and here this body instead of the description, which Dependabot fills with release notes in its own style. So the job writes each title of Dependabot in the style of the history, as the check of titles reads it, and sets the merge once. GitHub refuses a workflow that disables a merge which another account set, so the job never resets it, and an edit by this job starts no other run.
       - name: Merge once every required check passes
         timeout-minutes: 3
         env:
@@ -42,8 +42,10 @@ jobs:
             panel passed the update, and the pull request holds the release notes.
         run: |
           subject=$(node scripts/print-dependabot-subject.ts)
-          enabled=$(gh pr view "$PULL_REQUEST_URL" --json autoMergeRequest --jq '.autoMergeRequest != null')
-          if [ "$enabled" = "true" ]; then
-            gh pr merge --disable-auto "$PULL_REQUEST_URL"
+          if [ "$subject" != "$TITLE" ]; then
+            gh pr edit "$PULL_REQUEST_URL" --title "$subject"
           fi
-          gh pr merge --auto --squash --subject "$subject" --body "$COMMIT_BODY" "$PULL_REQUEST_URL"
+          enabled=$(gh pr view "$PULL_REQUEST_URL" --json autoMergeRequest --jq '.autoMergeRequest != null')
+          if [ "$enabled" != "true" ]; then
+            gh pr merge --auto --squash --body "$COMMIT_BODY" "$PULL_REQUEST_URL"
+          fi
