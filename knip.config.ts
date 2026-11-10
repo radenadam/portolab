@@ -5,7 +5,7 @@ export default {
   entry: [
     "server/app.ts!",
     "server/account.ts!",
-    "scripts/{check-dev-server,check-messages,check-migrations,check-punctuation,check-workflows,measure-agent-run,plan-review,post-review,print-schema,read-agent-tools,save-findings,write-review-files}.ts!",
+    "scripts/{check-dev-server,check-messages,check-migrations,check-punctuation,check-workflows,measure-agent-run,plan-review,post-review,print-dependabot-subject,print-schema,read-agent-tools,save-findings,write-review-files}.ts!",
     "project.inlang/paraglide.config.ts",
   ],
   // Helpers of tests, browser tests, and lint rules are not production code, so the production run leaves them out.
