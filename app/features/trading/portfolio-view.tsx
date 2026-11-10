@@ -36,7 +36,7 @@ export function PortfolioView({
   source: PriceSourceDescription;
 }): ReactNode {
   const { valuation } = report;
-  const failure = holdingQuoteFailureText(report, {
+  const failure = holdingQuoteFailureText([report], {
     now,
     delayMinutes: source.delayMinutes,
   });

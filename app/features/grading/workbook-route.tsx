@@ -18,16 +18,17 @@ export const middleware: Route.MiddlewareFunction[] = [
   ({ context, request, params, url }) => {
     const taughtClass = requireTaughtClass(context, url, params.classId);
     const now = new Date();
+    const source = readPriceSourceDescription(context);
     const workbook = writeWorkbook(
       portfoliosWorksheet({
         className: taughtClass.name,
         portfolios: readClassPortfolios(
           context.get(databaseContext),
           taughtClass,
-          { request, now },
+          { request, now, delayMinutes: source.delayMinutes },
         ),
         now,
-        source: readPriceSourceDescription(context),
+        source,
       }),
     );
     const fileName = `${m.grading_page_title({ class: taughtClass.name })}.xlsx`;

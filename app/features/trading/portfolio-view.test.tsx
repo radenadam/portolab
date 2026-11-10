@@ -256,7 +256,7 @@ const texts: Record<
     severalMissingCloses:
       "Portolab belum menyimpan harga penutupan IHSG dan BBCA pada 4 November 2026. Portolab menampilkan imbal hasil mulai hari itu setelah pembaruan riwayat harga menyimpan harga penutupan masing-masing pada hari itu atau hari sesudahnya.",
     quoteFailure:
-      "Portolab tidak dapat memperbarui harga BBCA pada 3 Nov 2026, 10.30 WIB, jadi harganya di bawah adalah harga terakhir yang tersimpan. Portolab mencoba lagi pada 3 Nov 2026, 10.31 WIB.",
+      "Portolab tidak dapat memperbarui harga BBCA pada 3 Nov 2026, 10.30 WIB, jadi Portolab memakai harga terakhir BBCA yang tersimpan. Portolab mencoba lagi pada 3 Nov 2026, 10.31 WIB.",
   },
   en: {
     waiting:
@@ -272,7 +272,7 @@ const texts: Record<
     severalMissingCloses:
       "Portolab has not stored the closes of IHSG and BBCA on November 4, 2026 yet. It shows the returns from that day on once an update of the price history stores a close of each of them on that day or on a later day.",
     quoteFailure:
-      "Portolab could not update the price of BBCA at Nov 3, 2026, 10:30 AM WIB, so the BBCA price below is the last one it stored. Portolab tries again at Nov 3, 2026, 10:31 AM WIB.",
+      "Portolab could not update the price of BBCA at Nov 3, 2026, 10:30 AM WIB, so it uses the last price of BBCA that it stored. Portolab tries again at Nov 3, 2026, 10:31 AM WIB.",
   },
 };
 

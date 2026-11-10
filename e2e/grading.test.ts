@@ -10,7 +10,7 @@ import { bbcaHolding } from "./bbca-holding.ts";
 import { chooseLanguage } from "./choose-language.ts";
 import { createTestClass } from "./create-test-class.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
-import { expectMissingPage } from "./expect-missing-page.ts";
+import { expectMissingClassPages } from "./expect-missing-class-pages.ts";
 import { expectPageHeadings } from "./expect-page-headings.ts";
 import { itmgPortfolio } from "./itmg-portfolio.ts";
 import { newDevice } from "./new-device.ts";
@@ -497,38 +497,50 @@ for (const locale of locales) {
     page,
     browser,
   }) => {
-    const { student, classPath } = await studentWithPortfolio(page, browser, {
+    await expectMissingClassPages(page, browser, {
       locale,
+      notFoundTitle: text.notFoundTitle,
+      addresses: async ({ classPath, otherClassPath, lecturer }) => {
+        const studentPath = await (
+          await openPortfolios(lecturer, locale, classPath)
+        )
+          .getByRole("link", {
+            name: text.portfolioLink(studentName),
+            exact: true,
+          })
+          .getAttribute("href");
+        if (studentPath === null) {
+          throw new Error(
+            "The link to the portfolio of a student has no address.",
+          );
+        }
+        const studentMeasuresPath = studentPath.replace(
+          /portfolio$/,
+          "measures",
+        );
+        // The student of the class is in no class of the other lecturer.
+        const otherStudentPath = studentPath.replace(classPath, otherClassPath);
+        return [
+          { reader: "student", path: `${classPath}/portfolios` },
+          { reader: "student", path: `${classPath}/portfolios/export` },
+          { reader: "student", path: studentPath },
+          { reader: "student", path: studentMeasuresPath },
+          { reader: "otherLecturer", path: `${classPath}/portfolios` },
+          { reader: "otherLecturer", path: `${classPath}/portfolios/export` },
+          { reader: "otherLecturer", path: studentPath },
+          { reader: "otherLecturer", path: otherStudentPath },
+          {
+            reader: "otherLecturer",
+            path: otherStudentPath.replace(/portfolio$/, "measures"),
+          },
+          { reader: "lecturer", path: "/classes/999999999/portfolios" },
+          {
+            reader: "lecturer",
+            path: `${classPath}/students/999999999/portfolio`,
+          },
+          { reader: "lecturer", path: `${classPath}/students/x/measures` },
+        ];
+      },
     });
-    const main = await openPortfolios(page, locale, classPath);
-    const studentPath = await main
-      .getByRole("link", { name: text.portfolioLink(studentName), exact: true })
-      .getAttribute("href");
-    if (studentPath === null) {
-      throw new Error("The link to the portfolio of a student has no address.");
-    }
-    const studentMeasuresPath = studentPath.replace(/portfolio$/, "measures");
-    const otherLecturer = await newDevice(browser, locale);
-    await signInAsNewLecturer(otherLecturer, lecturerName);
-    const otherClass = await createTestClass(otherLecturer, className);
-    const otherStudentPath = studentPath.replace(classPath, otherClass.path);
-    for (const [reader, path] of [
-      [student, `${classPath}/portfolios`],
-      [student, `${classPath}/portfolios/export`],
-      [student, studentPath],
-      [student, studentMeasuresPath],
-      [otherLecturer, `${classPath}/portfolios`],
-      [otherLecturer, `${classPath}/portfolios/export`],
-      [otherLecturer, studentPath],
-      [otherLecturer, otherStudentPath],
-      [otherLecturer, otherStudentPath.replace(/portfolio$/, "measures")],
-      [page, "/classes/999999999/portfolios"],
-      [page, `${classPath}/students/999999999/portfolio`],
-      [page, `${classPath}/students/x/measures`],
-    ] as const) {
-      await expectMissingPage(reader, path, text.notFoundTitle);
-    }
-    await student.context().close();
-    await otherLecturer.context().close();
   });
 }

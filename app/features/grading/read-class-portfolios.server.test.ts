@@ -13,16 +13,23 @@ import { readClassPortfolios } from "./read-class-portfolios.server";
 // class-of-students-for-test.server.ts describes the students and their portfolios in a class with the default starting cash of Rp100,000,000. The measures follow from those of BBCA, TLKM, and the IHSG that read-measures.server.test.ts gives, with the risk-free rate of 5.75% a year, and were computed with the decimal module of Python at 50 significant digits.
 const now = new Date("2026-10-30T09:20:00Z");
 
-const reasons: Record<Locale, { dewi: string; budi: string; rina: string }> = {
+const reasons: Record<
+  Locale,
+  { dewi: string; budi: string; rina: string; quoteFailure: string }
+> = {
   id: {
     dewi: "Saham Dewi Lestari dan IHSG baru sama-sama memiliki 21 imbal hasil bulanan dalam 60 bulan lengkap terakhir, dan AADI memiliki imbal hasil paling sedikit, sedangkan Portolab menghitung ukuran portofolio hanya dari paling sedikit 24 imbal hasil bulanan. Jika IHSG dan setiap saham Dewi Lestari tetap memiliki harga penutupan di akhir setiap bulan, Portolab menghitung ukuran portofolio Dewi Lestari setelah pembaruan riwayat harga yang menyimpan harga penutupan hari bursa pertama Januari 2027.",
     budi: "Budi Hartono belum memegang saham, sehingga portofolionya hanya berisi kas, yang tidak menghasilkan imbal hasil di Portolab. Portolab menghitung ukuran portofolio itu setelah order beli Budi Hartono tereksekusi.",
     rina: "Portolab menilai portofolio Rina Kusuma dan menghitung ukurannya setelah pembaruan harga berikutnya membawa harga tertunda AMMN, karena nilai dan bobot setiap saham berasal dari harga tertundanya.",
+    quoteFailure:
+      "Portolab belum memiliki harga AMMN, karena percobaan terakhir untuk mengambilnya pada 30 Okt 2026, 16.15 WIB gagal. Portolab sedang mencoba lagi sekarang.",
   },
   en: {
     dewi: "The stocks of Dewi Lestari and the IHSG share 21 monthly returns in the latest 60 complete months, and AADI has the fewest returns, but Portolab computes the measures of a portfolio only from at least 24 monthly returns. If the IHSG and each stock of Dewi Lestari keep a close at the end of every month, Portolab computes the measures of the portfolio of Dewi Lestari after the update of the price history that stores the close of the first trading day of January 2027.",
     budi: "Budi Hartono holds no shares yet, so the portfolio is cash alone, which earns no return in Portolab. Portolab computes the measures of the portfolio once a purchase of Budi Hartono fills.",
     rina: "Portolab values the portfolio of Rina Kusuma and computes its measures once the next update of prices brings a delayed price of AMMN, because the value and the weight of each stock come from its delayed price.",
+    quoteFailure:
+      "Portolab has no price for AMMN yet, because its latest attempt to fetch it at Oct 30, 2026, 4:15 PM WIB failed. Portolab is trying again now.",
   },
 };
 
@@ -46,6 +53,7 @@ for (const locale of locales) {
     const portfolios = readClassPortfolios(database, taughtClass, {
       request: new Request("http://localhost/classes/1/portfolios"),
       now,
+      delayMinutes: 10,
     });
     expect(portfolios.ranked).toEqual([
       {
@@ -97,6 +105,8 @@ for (const locale of locales) {
         reason: reason.rina,
       },
     ]);
+    // Only Rina holds a stock that the latest update could not fetch, so the text names AMMN alone among the codes that it lacked.
+    expect(portfolios.quoteFailure).toBe(reason.quoteFailure);
   });
 }
 
@@ -112,6 +122,7 @@ test("reads no portfolio of a class without students", async () => {
     readClassPortfolios(database, taught, {
       request: new Request("http://localhost/classes/1/portfolios"),
       now,
+      delayMinutes: 10,
     }),
-  ).toEqual({ ranked: [], unmeasured: [] });
+  ).toEqual({ ranked: [], unmeasured: [], quoteFailure: undefined });
 });

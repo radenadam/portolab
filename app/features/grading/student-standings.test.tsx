@@ -121,6 +121,7 @@ for (const locale of locales) {
     const { ranked, unmeasured } = readClassPortfolios(database, taughtClass, {
       request: new Request("http://localhost/classes/1/portfolios"),
       now,
+      delayMinutes: 10,
     });
     const item = (
       student: { studentId: UserId; name: string },

@@ -106,6 +106,7 @@ for (const locale of locales) {
     const portfolios = readClassPortfolios(database, taughtClass, {
       request: new Request("http://localhost/classes/1/portfolios/export"),
       now,
+      delayMinutes: 10,
     });
     const sheet = portfoliosWorksheet({
       className: taughtClass.name,

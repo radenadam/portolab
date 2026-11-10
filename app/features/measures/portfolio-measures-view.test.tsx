@@ -51,15 +51,17 @@ function renderView(
 /** The sentences about a partial update of prices at 16:15 WIB on Friday 30 October 2026 that did not update TLKM, seen half a minute later. */
 function quoteFailureForTest(): string | undefined {
   return holdingQuoteFailureText(
-    {
-      valuation: valuationForTest(["BBCA", "TLKM"]),
-      quoteAttempt: {
-        attemptedAt: new Date("2026-10-30T09:15:00Z"),
-        succeeded: true,
-        consecutiveFailures: 0,
-        failedCodes: ["TLKM"],
+    [
+      {
+        valuation: valuationForTest(["BBCA", "TLKM"]),
+        quoteAttempt: {
+          attemptedAt: new Date("2026-10-30T09:15:00Z"),
+          succeeded: true,
+          consecutiveFailures: 0,
+          failedCodes: ["TLKM"],
+        },
       },
-    },
+    ],
     { now: new Date("2026-10-30T09:15:30Z"), delayMinutes: 10 },
   );
 }

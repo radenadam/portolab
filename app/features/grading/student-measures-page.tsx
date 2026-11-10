@@ -56,7 +56,7 @@ export default function StudentMeasuresPage({
       <PortfolioMeasuresView
         report={loaderData.portfolio}
         reader={{ kind: "lecturer", studentName: student.name }}
-        quoteFailure={holdingQuoteFailureText(loaderData.valuation, {
+        quoteFailure={holdingQuoteFailureText([loaderData.valuation], {
           now: loaderData.now,
           delayMinutes: source.delayMinutes,
         })}

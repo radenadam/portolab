@@ -30,4 +30,4 @@ A file of comma-separated values leaves both to the spreadsheet. Excel splits su
 - Excel, Google Sheets, LibreOffice, and Numbers open the workbook without asking how to read it.
 - The workbook holds the name and the username of each student, which leave Portolab on the computer of the lecturer, as the privacy notice says. Only the lecturer of the class can download it. Every other person gets the page for an address that does not exist, as for the page of the portfolios.
 - React Router answers a route without a page as a resource, whose failures reach the reader as bare data. So the route of the workbook has the error boundary of the app, and its middleware answers with the file before any page renders.
-- The workbook states when it was downloaded, but not which delayed prices the latest update could not fetch. The page of the portfolio of each student names them.
+- The workbook states when it was downloaded, but not which delayed prices the latest update could not fetch, because its sentence about the next attempt would be out of date in a saved file. The page of the portfolios names them.
