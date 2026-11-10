@@ -26,7 +26,7 @@ jobs:
         with:
           cache: true
           require-lockfile: true
-      # Dependabot writes "Bump" with a capital, so for its pull requests the check reads the subject that the merge gives the squash commit.
+      # Dependabot writes "Bump" with a capital, so for its pull requests the check reads the title that the job of its merge writes, which the squash commit takes as its subject.
       - name: Check the pull request title
         timeout-minutes: 2
         if: github.event_name == 'pull_request'
