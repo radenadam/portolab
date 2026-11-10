@@ -13,9 +13,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      # The body of a squash commit is the description of its pull request, which Dependabot fills with release notes in its own style. The merge replaces it with this text, and the release notes stay on the pull request.
       - name: Merge once every required check passes
         timeout-minutes: 3
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PULL_REQUEST_URL: ${{ github.event.pull_request.html_url }}
-        run: gh pr merge --auto --squash "$PULL_REQUEST_URL"
+          COMMIT_BODY: Dependabot updates the dependencies that the title names. The check job and the review panel passed the update, and the pull request holds the release notes.
+        run: gh pr merge --auto --squash --body "$COMMIT_BODY" "$PULL_REQUEST_URL"
