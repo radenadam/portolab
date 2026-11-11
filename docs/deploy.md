@@ -177,7 +177,7 @@ systemctl start portolab-backup.service
 ls -l /var/backups/portolab
 ```
 
-Each backup holds the personal data of every person in Portolab, so only root opens the folder. The container runs Portolab as the user number 1000, and an account of the server can have that number as well, so the folder cannot belong to that user. Instead, the container passes each backup to the script through its output, and the script writes it into the folder. To make a backup at any other time, such as before an update, run `systemctl start portolab-backup`. A second backup on the same day replaces the first once it is complete. When a backup fails, `journalctl --unit portolab-backup` names the reason.
+Each backup holds the personal data of every person in Portolab, so only root opens the folder. The container runs Portolab as a user other than root, and an account of the server can have the number of that user as well, so the folder cannot belong to that user. Instead, the container passes each backup to the script through its output, and the script writes it into the folder. To make a backup at any other time, such as before an update, run `systemctl start portolab-backup`. A second backup on the same day replaces the first once it is complete. When a backup fails, `journalctl --unit portolab-backup` names the reason.
 
 A backup on the server is lost with the server. To keep a copy on your computer, run this command on your computer with the address of your server and the date of the backup:
 
@@ -211,7 +211,7 @@ systemctl reload caddy
 docker image prune --force --filter label=com.docker.compose.project=portolab
 ```
 
-An earlier version of section 8 made the user number 1000 the owner of the folder of the backups, so an account of the server with that number could read every backup. This command prints the number of the owner of the folder:
+An earlier version of section 8 created the folder of the backups with `--owner 1000`, so an account of the server with the number 1000 could read every backup. This command prints the number of the owner of the folder:
 
 ```sh
 stat --format %u /var/backups/portolab

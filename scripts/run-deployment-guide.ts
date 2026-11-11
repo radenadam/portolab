@@ -10,14 +10,16 @@ import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { errorMessage } from "../app/error-message.ts";
 import { exitWithFailure } from "../app/exit-with-failure.server.ts";
-import { failuresOf, succeed } from "../app/result.ts";
+import { fail, failuresOf, succeed } from "../app/result.ts";
+import type { Result } from "../app/result.ts";
 import { minuteMilliseconds } from "../app/time-units.ts";
 import {
   backupFolder,
   checkBackupsOnlyForRoot,
   checkSystemNamed,
-  containerUserNumber,
+  containerExecArguments,
   guidePath,
+  parseIdOutput,
   parseRunArguments,
   parseServerBlocks,
   parseSystemRelease,
@@ -77,7 +79,7 @@ rmSync(folder, { recursive: true, force: true });
 if (failure !== undefined) {
   exitWithFailure([failure], writeScriptFailure);
 }
-// An account of the server can have the numbers of the user of the container, so the test checks with those numbers that it can read no backup.
+// An account of the server can have the numbers of the user and the group of the container, so the test checks with those numbers that it can read no backup.
 const backupFailures = checkBackups();
 if (backupFailures.length > 0) {
   exitWithFailure(backupFailures, writeScriptFailure);
@@ -125,19 +127,40 @@ function followGuide(
 
 /** Returns why the user of the container can read a file in the folder of the backups, or why the test could not tell, and an empty list when only root reads them. */
 function checkBackups(): string[] {
-  let names: string[];
-  try {
-    names = readdirSync(backupFolder);
-  } catch (error) {
-    return [
-      `The test could not list ${backupFolder}. Node reported: ${errorMessage(error)}`,
-    ];
+  const user = readContainerId("--user");
+  const group = readContainerId("--group");
+  const names = listBackupFolder();
+  const failures = failuresOf([user, group, names]);
+  if (!user.ok || !group.ok || !names.ok) {
+    return failures;
   }
-  return checkBackupsOnlyForRoot(names, (path) => {
+  const identity = { user: user.value, group: group.value };
+  return checkBackupsOnlyForRoot(names.value, identity.user, (path) => {
     const run = runCommand("test", ["-r", path], {
       answerCodes: [1],
-      identity: { user: containerUserNumber, group: containerUserNumber },
+      identity,
     });
     return run.ok ? succeed(run.value.code === 0) : run;
   });
+}
+
+/** Reads the number of the user or of the group as which the container of Portolab runs. */
+function readContainerId(option: "--user" | "--group"): Result<number, string> {
+  const run = runCommand("docker", [...containerExecArguments, "id", option]);
+  return run.ok
+    ? parseIdOutput(
+        run.value.stdout,
+        `The output of id ${option} in the container of Portolab`,
+      )
+    : run;
+}
+
+function listBackupFolder(): Result<string[], string> {
+  try {
+    return succeed(readdirSync(backupFolder));
+  } catch (error) {
+    return fail(
+      `The test could not list ${backupFolder}. Node reported: ${errorMessage(error)}`,
+    );
+  }
 }
