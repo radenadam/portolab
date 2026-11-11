@@ -22,17 +22,19 @@ Every screen follows the layout of the references in both languages, and each of
 ### The frame of the app
 
 - On a desktop, a sidebar at the left holds the mark Portolab in IBM Plex Mono, the navigation, and at its foot the mark "Simulasi" in a pill with an outline of ink, with the delay of prices and the time of the latest update under it. An item of the navigation is in muted text. The current page is in ink and semibold, after a dot of the signal color. A thin line separates the sidebar from the page.
-- On a phone, a top bar holds the mark Portolab and the pill "Simulasi", and a line in small muted text under it gives the delay of prices and the time of the latest update. A tab bar at the bottom holds the navigation in equal parts. The current tab is in ink and semibold, with a line of the signal color along its top edge. A page below another page, such as the measures of one stock below the measures of the portfolio, shows a link back to the page above it in place of the mark, as the order ticket of the phone references does.
-- The navigation holds the pages of the reader. A student in a class has the four pages of the references: the portfolio, the prices, the orders, and the class. A lecturer has the classes, and inside a class the page of the class, the ranking of its portfolios, and the prices. A visitor who is not signed in has the prices, joining a class, and sign-in.
-- The link to the account and the language switch, which the references do not show, stand at the foot of the sidebar above the pill on a desktop, and in the top bar between the mark and the pill on a phone.
-- The notice of the simulation in full ends the order ticket, as the references show, and it ends the main column of every other page in the same small muted text.
+- On a phone, a top bar holds the mark Portolab and the pill "Simulasi", and a line in small muted text under it gives the delay of prices and the time of the latest update. A page whose first part gives the delay, such as the order ticket, leaves that line out, as the phone reference of the order does. A tab bar at the bottom holds the navigation in equal parts. The current tab is in ink and semibold, with a line of the signal color along its top edge.
+- The navigation holds the pages of the reader. Inside a class, a student has the four pages of the references: the portfolio, the prices, the orders, and the class. Inside a class, a lecturer has the classes, the page of the class, the ranking of its portfolios, and the prices. Outside a class, such as on the list of classes, a person who is signed in has the classes and the prices. A visitor who is not signed in has the prices, joining a class, and sign-in.
+- Some pages are below another page. The measures of the portfolio are below the portfolio, and the measures of one stock are below the measures of the portfolio. The portfolio of a student that the lecturer opens is below the ranking, and the measures of that student are below that portfolio. The reset of the password of a student is below the page of the class. The current page in the navigation is the page itself, or the nearest page above it that the navigation holds. When the navigation holds neither, no page in it is current.
+- On a phone, a page below another page shows a link back to the page above it in place of the mark. The page of the orders with a chosen stock shows a link back to the portfolio in the same way, as the order ticket of the phone references does, because a desktop shows the same ticket beside the portfolio. Every other page shows the mark.
+- The link to the account and the language switch, which the references do not show, stand at the foot of the sidebar above the pill on a desktop, and in the top bar between the pill and the mark, or the link back that replaces the mark, on a phone.
+- The notice of the simulation in full ends the order ticket, as the references show. Every other page has the pill "Simulasi" of the frame as its label of a simulation.
 - On a screen wider than the desktop reference, the columns keep the widths of the reference, and the frame stands in the middle of the screen. A page with nothing for the right column gives its width to the main column, such as for a wide table.
 - A screen without room for the right column beside the sidebar and the main column places what the right column holds as a phone does, such as the order ticket on the page of the orders. A screen without room for the sidebar beside the main column takes the frame of the phone.
 
 ### The header of a page
 
-- A page opens with a header line in small muted text. At the left it holds the path of the page, such as the class and then the page, and the last part of the path is the heading of the page. Each earlier part links to its page. At the right it holds the date and the time of the prices that the page shows, and a page without prices leaves it empty.
-- On a phone, the header line holds the path alone, because the line of the delay above it gives the time.
+- A page opens with a header line in small muted text. At the left it holds the path of the page, which is its class when it has one, the pages above it, and the page itself. The last part of the path is the heading of the page, and each earlier part links to its page. At the right it holds the date and the time of the prices that the page shows, and a page without prices leaves it empty.
+- On a phone, the header line stands under the top bar, and under the line of the delay where the page shows that line. It holds the path alone, because the time stands in the line of the delay, or in the part of the page that gives the delay in its place. The phone references leave the header line out, but a phone shows it, because its heading names the page and the class to a reader who may have several classes.
 
 ### The headline
 
@@ -52,7 +54,7 @@ Every screen follows the layout of the references in both languages, and each of
 
 - A few values of equal weight, such as the measures of a portfolio, are a grid of four columns on a desktop and two on a phone. Each value has a small muted label above it and is in IBM Plex Mono, larger than the text.
 - A chart that places them, such as the security market line, follows the grid, with a caption of one or two sentences that says what the chart shows about the portfolio of the reader.
-- The portfolio shows its key measures and the chart of the security market line, as the references do, with a link to the page of the measures. That page sits below the portfolio, and it shows the formula and the inputs of each measure.
+- The portfolio shows its key measures and the chart of the security market line, as the references do, with a link to the page of the measures, which shows the formula and the inputs of each measure.
 
 ### Charts
 
@@ -60,7 +62,7 @@ Every screen follows the layout of the references in both languages, and each of
 
 ### Forms and the order ticket
 
-- On a desktop, the order ticket stands in a right column beside the portfolio, as the references show, and beside the list of orders. A form that acts on what a page lists, such as the form that creates a class beside the list of classes, takes the right column in the same way. On a phone, the ticket opens the page of the orders, and the list of orders follows it. Another such form stands in the main column of its page.
+- On a desktop, the order ticket stands in a right column beside the portfolio, as the references show, and beside the list of orders. A form that acts on what a page lists, such as the form that creates a class beside the list of classes, takes the right column in the same way. On a phone, the ticket comes first on the page of the orders, under the header line, and the list of orders follows it. Another such form stands in the main column of its page.
 - The ticket opens with the stock of the order, its code in semibold with the name of its company under it. The latest price follows in IBM Plex Mono with its change, and the delay under it. Before the student chooses a stock, the ticket holds the form that chooses one, as decision 0025 sets.
 - A field has its label above it and its hint below it, both small and muted. Its value stands on a line of ink, without a box, in IBM Plex Mono when it is a number and in IBM Plex Sans otherwise.
 - A choice between a few options, such as buying or selling, or a limit or a market order, is a row of equal options above a thin line. The current option is in ink and semibold, with a line of the signal color under it.
