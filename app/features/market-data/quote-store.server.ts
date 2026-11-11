@@ -4,7 +4,12 @@ import type {
   DatabaseWriter,
 } from "../../database/database.server.ts";
 import { indexQuotes, stockQuotes } from "./market-data.schema.ts";
-import type { Quote, StockQuote } from "./price-source.server.ts";
+import type {
+  IndexCode,
+  IndexQuote,
+  Quote,
+  StockQuote,
+} from "./price-source.server.ts";
 import { readLatestUpdateAttempt } from "./update-attempts.server.ts";
 
 export function saveQuotes(
@@ -53,13 +58,7 @@ export function listLatestQuotes(database: Database): Quote[] {
     .from(indexQuotes)
     .orderBy(asc(indexQuotes.code))
     .all()) {
-    quotes.push({
-      kind: "index",
-      code: row.code,
-      level: row.level,
-      previousLevel: row.previousLevel,
-      quotedAt: row.quotedAt,
-    });
+    quotes.push(indexQuoteOf(row));
   }
   for (const row of database
     .select()
@@ -69,6 +68,19 @@ export function listLatestQuotes(database: Database): Quote[] {
     quotes.push(stockQuoteOf(row));
   }
   return quotes;
+}
+
+/** The latest quote of an index, or undefined while Portolab has none, such as before the first update of prices. */
+export function findIndexQuote(
+  database: Database,
+  code: IndexCode,
+): IndexQuote | undefined {
+  const row = database
+    .select()
+    .from(indexQuotes)
+    .where(eq(indexQuotes.code, code))
+    .get();
+  return row === undefined ? undefined : indexQuoteOf(row);
 }
 
 /** The latest quote of a stock, or undefined while Portolab has none, such as before the first update of prices after the stock joins the stocks that Portolab tracks. */
@@ -99,6 +111,16 @@ export function listFreshStockQuotes(
     }
   }
   return fresh;
+}
+
+function indexQuoteOf(row: typeof indexQuotes.$inferSelect): IndexQuote {
+  return {
+    kind: "index",
+    code: row.code,
+    level: row.level,
+    previousLevel: row.previousLevel,
+    quotedAt: row.quotedAt,
+  };
 }
 
 function stockQuoteOf(row: typeof stockQuotes.$inferSelect): StockQuote {

@@ -4,9 +4,11 @@ import {
   sourceAnsweringForTest,
   updateQuotesForTest,
 } from "~/features/market-data/quote-updates-for-test.server";
+import type { IndexQuote } from "~/features/market-data/price-source.server";
 import { stockQuote } from "~/features/market-data/stock-quote";
 import { readLatestUpdateAttempt } from "~/features/market-data/update-attempts.server";
 import { closeToForTest } from "~/features/measures/close-to-for-test";
+import { indexPoints } from "~/units/index-points";
 import { duringSessionForTest } from "./orders-for-test";
 import { readPortfolio } from "./portfolio-store.server";
 import { readPortfolioReport } from "./read-portfolio-report.server";
@@ -108,4 +110,52 @@ test("has no history of a student who joined on a date that no calendar covers",
       { now: wednesday, delayMinutes },
     ).history,
   ).toEqual({ ok: false, failure: { kind: "missingCalendar" } });
+});
+
+test("gives the return of the IHSG since the close at the start at its latest delayed level, and names the IHSG among the prices that the latest update could not fetch only while the report gives that return", async () => {
+  const { database, owner } = await tradedPortfolioForTest();
+  const member = {
+    portfolio: readPortfolio(database, owner),
+    startingCash: owner.startingCash,
+    joinedAt: duringSessionForTest,
+  };
+  const report = (): ReturnType<typeof readPortfolioReport> =>
+    readPortfolioReport(database, member, { now: wednesday, delayMinutes });
+  // The IHSG at its close of Tuesday 3 November 2026, which an update at 09:00 on Wednesday brought with the price of BBCA.
+  const ihsgOfTuesday: IndexQuote = {
+    kind: "index",
+    code: "IHSG",
+    level: indexPoints(4_904.29),
+    previousLevel: indexPoints(5_096.83),
+    quotedAt: new Date("2026-11-03T09:14:00Z"),
+  };
+  const bbcaOfTuesday = stockQuote(
+    "BBCA",
+    [4_840, 4_980],
+    "2026-11-03T09:14:00Z",
+  );
+  await updateQuotesForTest(
+    database,
+    sourceAnsweringForTest([ihsgOfTuesday, bbcaOfTuesday]),
+    { at: new Date("2026-11-04T02:00:00Z") },
+  );
+  expect(report().market).toEqual({
+    quote: ihsgOfTuesday,
+    return: closeToForTest(-0.03020733431546059, 15),
+  });
+  expect(report().quoteAttempt?.failedCodes).toEqual([]);
+  // An update at 10:01 that brought the price of BBCA but not the level of the IHSG, whose stored level the report keeps.
+  await updateQuotesForTest(database, sourceAnsweringForTest([bbcaOfTuesday]), {
+    at: new Date("2026-11-04T03:01:00Z"),
+  });
+  expect(report().market?.quote).toEqual(ihsgOfTuesday);
+  expect(report().quoteAttempt?.failedCodes).toEqual(["IHSG"]);
+  // A student who joined on a date that no calendar covers has no start, so the IHSG has no return to show and no failure to name.
+  const withoutStart = readPortfolioReport(
+    database,
+    { ...member, joinedAt: new Date("2028-01-03T03:00:00Z") },
+    { now: wednesday, delayMinutes },
+  );
+  expect(withoutStart.market).toBeUndefined();
+  expect(withoutStart.quoteAttempt?.failedCodes).toEqual([]);
 });

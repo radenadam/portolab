@@ -127,9 +127,16 @@ export function reloadSessionAccount(
   );
 }
 
-/** Whether the request comes from a person who is signed in, such as for the link to the account in the header. */
+/** Whether the request comes from a person who is signed in, such as for the link to the classes on the home page. */
 export function isSignedIn(context: Readonly<RouterContextProvider>): boolean {
   return context.get(currentSessionContext) !== undefined;
+}
+
+/** The role of the person who is signed in, whether or not the account is ready, or undefined for a visitor who is not signed in, which the navigation of the frame follows. */
+export function signedInRole(
+  context: Readonly<RouterContextProvider>,
+): Role | undefined {
+  return context.get(currentSessionContext)?.account.role;
 }
 
 function currentPath(url: URL): string {

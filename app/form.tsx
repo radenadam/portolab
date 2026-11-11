@@ -1,6 +1,6 @@
 import { useId } from "react";
 import type { ReactNode } from "react";
-import { useNavigation } from "react-router";
+import { Form, useNavigation } from "react-router";
 import styles from "./form.module.css";
 
 interface TextFieldProps {
@@ -45,7 +45,9 @@ export function TextField({
         defaultValue={defaultValue}
         aria-invalid={failure !== undefined}
         aria-describedby={describedBy(id, { hint, failure })}
-        className={styles["input"]}
+        className={
+          inputMode === "numeric" ? styles["numberInput"] : styles["input"]
+        }
       />
     </DescribedField>
   );
@@ -143,7 +145,7 @@ interface ChoiceFieldProps {
   defaultValue?: string | undefined;
 }
 
-/** A group of options of which the reader chooses one, with the label of the group and the reason that the choice was not accepted, which a screen reader reads with the group. */
+/** A group of options of which the reader chooses one, with the label of the group and the reason that the choice was not accepted, which a screen reader reads with the group. The options stand in a row of equal parts, and the chosen one carries a line of the signal color, as decision 0026 sets. */
 export function ChoiceField({
   name,
   label,
@@ -160,19 +162,20 @@ export function ChoiceField({
     >
       <legend className={styles["label"]}>{label}</legend>
       <FieldFailure id={failureId} text={failure} />
-      {options.map((option) => (
-        <div key={option.value} className={styles["checkbox"]}>
-          <input
-            id={`${id}-${option.value}`}
-            name={name}
-            type="radio"
-            value={option.value}
-            defaultChecked={option.value === defaultValue}
-            className={styles["box"]}
-          />
-          <label htmlFor={`${id}-${option.value}`}>{option.label}</label>
-        </div>
-      ))}
+      <div className={styles["options"]}>
+        {options.map((option) => (
+          <label key={option.value} className={styles["option"]}>
+            <input
+              name={name}
+              type="radio"
+              value={option.value}
+              defaultChecked={option.value === defaultValue}
+              className={styles["optionInput"]}
+            />
+            {option.label}
+          </label>
+        ))}
+      </div>
     </fieldset>
   );
 }
@@ -188,12 +191,60 @@ export function SubmitButton({ label }: { label: string }): ReactNode {
   );
 }
 
-/** A reason that the whole form was not accepted, which a screen reader announces when it appears. */
+/** A reason that the whole form was not accepted, which a screen reader announces when it appears. It opens with the line of ink of a rejection, as decision 0026 sets for every failure. */
 export function FormFailure({ text }: { text: string }): ReactNode {
   return (
-    <p role="alert" className={styles["failure"]}>
+    <p role="alert" className={styles["rejection"]}>
       {text}
     </p>
+  );
+}
+
+/** A rejection of a whole form, as decision 0026 draws it: a line of ink, a title, the text, and the control of the next step when Portolab can take it, such as a button that changes the order to the largest one that the cash pays for. A screen reader announces it when it appears. */
+export function Rejection({
+  title,
+  text,
+  step,
+}: {
+  title: string;
+  text: string;
+  step: ReactNode;
+}): ReactNode {
+  return (
+    <div role="alert" className={styles["rejection"]}>
+      <p className={styles["rejectionTitle"]}>{title}</p>
+      <p>{text}</p>
+      {step}
+    </div>
+  );
+}
+
+/** The button of a rejection that takes the next step that its text offers, in a form of its own that sends the step with the fields that the rejected form sent, so it works before JavaScript loads. A form sends with its first submit button when the reader presses Enter in a field, so the step never shares a form with the button that sends the fields. */
+export function StepForm({
+  fields,
+  step,
+  label,
+}: {
+  /** The fields that the rejected form sent, by name, which the step keeps. */
+  fields: Readonly<Record<string, string>>;
+  /** The name and the value of the step, which the action answers. */
+  step: { name: string; value: string };
+  label: string;
+}): ReactNode {
+  return (
+    <Form method="post">
+      {Object.entries(fields).map(([name, value]) => (
+        <input key={name} type="hidden" name={name} value={value} />
+      ))}
+      <button
+        type="submit"
+        name={step.name}
+        value={step.value}
+        className={styles["stepButton"]}
+      >
+        {label}
+      </button>
+    </Form>
   );
 }
 
@@ -216,7 +267,7 @@ interface DescribedFieldProps {
   children: ReactNode;
 }
 
-/** A field with its label, its hint, and the reason that its value was not accepted, above its control. */
+/** A field with its label and the reason that its value was not accepted above its control, and its hint below it, as decision 0026 sets. */
 function DescribedField({
   id,
   label,
@@ -229,13 +280,13 @@ function DescribedField({
       <label htmlFor={id} className={styles["label"]}>
         {label}
       </label>
+      <FieldFailure id={failureIdOf(id)} text={failure} />
+      {children}
       {hint !== undefined && (
         <p id={hintIdOf(id)} className={styles["hint"]}>
           {hint}
         </p>
       )}
-      <FieldFailure id={failureIdOf(id)} text={failure} />
-      {children}
     </div>
   );
 }

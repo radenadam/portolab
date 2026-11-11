@@ -4,6 +4,7 @@ import { minutesAfter } from "~/time-units";
 import { indexPoints } from "~/units/index-points";
 import { rupiah } from "~/units/rupiah";
 import {
+  findIndexQuote,
   findStockQuote,
   listFreshStockQuotes,
   listLatestQuotes,
@@ -81,6 +82,20 @@ test("finds the latest quote of a stock, and none for a stock without a stored q
   saveQuotes(database, [bbcaClose], afterClose);
   expect(findStockQuote(database, "BBCA")).toEqual(bbcaClose);
   expect(findStockQuote(database, "BREN")).toBeUndefined();
+});
+
+test("finds the latest quote of the IHSG, and none before the first one is stored", () => {
+  const database = openDatabaseForTest();
+  expect(findIndexQuote(database, "IHSG")).toBeUndefined();
+  const ihsgClose = {
+    kind: "index",
+    code: "IHSG",
+    level: indexPoints(5_057.05),
+    previousLevel: indexPoints(5_098.06),
+    quotedAt: new Date("2026-10-30T09:14:00Z"),
+  } as const;
+  saveQuotes(database, [ihsgClose, bbcaClose], afterClose);
+  expect(findIndexQuote(database, "IHSG")).toEqual(ihsgClose);
 });
 
 test("gives the quotes that the latest attempt fetched, without a stock that it could not update, whose stored quote is older", async () => {

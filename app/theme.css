@@ -1,8 +1,9 @@
-/* Decision 0012 sets this look, its palette, and its fonts, which app/root.tsx loads. */
+/* Decision 0012 sets this look, its palette, and its fonts, which app/root.tsx loads. Decision 0026 sets the layout and the sizes, which the reference screens in docs/design/tenang/ draw. */
 :root {
   color-scheme: light dark;
 
   --color-background: #f8f8fa;
+  --color-surface: #eeeef3;
   --color-ink: #16161d;
   --color-muted: #5e5e6c;
   --color-line: #e2e2ea;
@@ -15,10 +16,19 @@
   --font-numbers:
     "IBM Plex Mono", ui-monospace, Menlo, Consolas, "Liberation Mono", monospace;
 
-  --text-small: 0.875rem;
-  --text-body: 1rem;
-  --text-heading: 1.25rem;
+  --text-headline: 2.875rem;
+  --text-measure: 1.375rem;
+  --text-price: 1.375rem;
+  --text-stock: 1.25rem;
+  --text-field: 1.0625rem;
+  --text-mark: 0.9375rem;
+  --text-body: 0.875rem;
+  --text-row: 0.84375rem;
+  --text-caption: 0.78125rem;
+  --text-small: 0.75rem;
+  /* The pages that issue #118 has not rebuilt yet still open with a large title, and the code of a class stands out on its page. */
   --text-title: 1.75rem;
+  --text-heading: 1.25rem;
 
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -26,8 +36,18 @@
   --space-4: 1rem;
   --space-6: 1.5rem;
   --space-8: 2rem;
+  --space-section: 2.5rem;
+  --space-page-start: 2rem;
+  --space-page-side: 2.5rem;
+  --space-page-end: 3rem;
+  --space-sidebar-start: 2rem;
+  --space-sidebar-side: 1.5rem;
+  --space-aside-start: 2rem;
+  --space-aside-side: 1.75rem;
 
-  --width-reading: 40rem;
+  --width-sidebar: 11.5rem;
+  --width-main: 42rem;
+  --width-aside: 21.5rem;
   /* A chart takes about a third of the screen of a phone held upright, so the text around it stays in view. */
   --size-chart: 16rem;
   /* Thin lines separate the parts of a page, as decision 0012 sets. A mark, such as focus, hover, or the current choice, must stand out from them. */
@@ -35,11 +55,25 @@
   --size-mark: 2px;
   /* The smallest touch target, which AGENTS.md sets and e2e/expect-accessible-screen.ts checks every screen against. */
   --size-touch-target: 2.75rem;
+  --radius-button: 0.375rem;
+}
+
+/* A screen without room for the sidebar takes the frame and the sizes of the phone references. app/frame.module.css switches the frame at the same width. */
+@media (width < 48rem) {
+  :root {
+    --text-headline: 2.125rem;
+    --text-measure: 1.1875rem;
+    --space-section: 1.875rem;
+    --space-page-start: 0.5rem;
+    --space-page-side: 1.25rem;
+    --space-page-end: 1.5rem;
+  }
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --color-background: #121216;
+    --color-surface: #1c1c24;
     --color-ink: #ececf1;
     --color-muted: #9d9dac;
     --color-line: #2a2a34;
@@ -70,12 +104,13 @@ h1 {
   line-height: 1.2;
 }
 
-/* A heading of a section has more space above it than the blocks of the page have between them, so it starts a new part. */
+/* A section opens with a small muted heading in semibold, and space alone separates it from the section before it, as decision 0026 sets. */
 h2 {
   margin: var(--space-4) 0 0;
-  font-size: var(--text-heading);
+  color: var(--color-muted);
+  font-size: var(--text-caption);
   font-weight: 600;
-  line-height: 1.3;
+  line-height: 1.4;
 }
 
 p {
@@ -101,18 +136,21 @@ summary {
   cursor: pointer;
 }
 
-:is(a, button, summary):hover {
+/* An option of a choice draws its look over a hidden radio button, so it shows the hover and the focus of that button. */
+:is(a, button, summary, label:has(> input[type="radio"])):hover {
   text-decoration-line: underline;
   text-decoration-thickness: var(--size-mark);
 }
 
-/* A button that waits for the answer to its form turns muted, so a reader on a touch screen sees the wait too, which the pointer shows on a mouse. */
+/* A button that waits for the answer to its form shows muted text on the surface color, as the references draw a button that cannot act, so a reader on a touch screen sees the wait too, which the pointer shows on a mouse. */
 button:disabled {
-  background: var(--color-muted);
+  background: var(--color-surface);
+  color: var(--color-muted);
   cursor: progress;
 }
 
-:focus-visible {
+:focus-visible,
+label:has(> input[type="radio"]:focus-visible) {
   outline: var(--size-mark) solid var(--color-signal);
   outline-offset: var(--size-mark);
 }

@@ -457,7 +457,9 @@ for (const locale of locales) {
     await expectAccessibleScreen(student);
     await student.goto("/");
     await expect(
-      student.getByRole("link", { name: text.homeClassesLink }),
+      student
+        .getByRole("main")
+        .getByRole("link", { name: text.homeClassesLink }),
     ).toBeVisible();
     await student.context().close();
 

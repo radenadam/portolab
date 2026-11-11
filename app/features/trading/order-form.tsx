@@ -1,15 +1,27 @@
 import type { ReactNode } from "react";
 import { Form } from "react-router";
-import { ChoiceField, FormFailure, SubmitButton, TextField } from "~/form";
+import {
+  ChoiceField,
+  Rejection,
+  StepForm,
+  SubmitButton,
+  TextField,
+} from "~/form";
 import formStyles from "~/form.module.css";
-import { formatCalendarDate, formatMarketClock } from "~/formatting";
+import {
+  formatCalendarDate,
+  formatMarketClock,
+  formatNumber,
+} from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { smallestOrderLots } from "~/units/lots";
 import type { Lots } from "~/units/lots";
 import type { Shares } from "~/units/shares";
 import { lotCount, shareCount } from "./count-parts";
+import type { OrderRejection } from "./order-actions.server";
 import {
   blankOrderForm,
+  lotsStepName,
   priceKindOptions,
   sideOptions,
 } from "./order-form-fields";
@@ -40,26 +52,57 @@ interface OrderFormProps {
   day: OrderDay;
   /** What the student sent, with the reason that each field was not accepted. */
   fields: OrderFormFields | undefined;
-  /** Why Portolab did not accept the order as a whole. */
-  failure: string | undefined;
+  /** Why Portolab did not accept the order as a whole, with the lots that its next step offers. */
+  rejection: OrderRejection | undefined;
 }
 
-/** The form with which a student places an order of the stock that the address of the page chose: buy or sell, a market or a limit order, the lots, and the limit price, with the trading day of an order placed now. It sends the order to the address of the page, which keeps the stock. */
+/** The form with which a student places an order of the stock that the address of the page chose: buy or sell, a market or a limit order, the lots, and the limit price, with the trading day of an order placed now. A rejection of the whole order stands above the fields, as decision 0026 sets, with a button that changes the lots of the rejected order to those that its text offers. The form sends the order to the address of the page, which keeps the stock. */
 export function OrderForm({
   day,
   fields = blankOrderForm,
-  failure,
+  rejection,
 }: OrderFormProps): ReactNode {
   return (
+    <>
+      {rejection !== undefined && (
+        <Rejection
+          title={m.trading_rejected_title()}
+          text={rejection.text}
+          step={
+            rejection.lotsStep !== undefined && (
+              <StepForm
+                fields={{
+                  side: fields.side,
+                  priceKind: fields.priceKind,
+                  limit: fields.limit,
+                }}
+                step={{
+                  name: lotsStepName,
+                  value: formatNumber(rejection.lotsStep),
+                }}
+                label={m.trading_lots_step_label({
+                  lots: lotCount(rejection.lotsStep),
+                })}
+              />
+            )
+          }
+        />
+      )}
+      <OrderFields day={day} fields={fields} />
+    </>
+  );
+}
+
+/** The fields of an order and the button that sends them, which is the only submit button of their form, so Enter in a field sends the order. */
+function OrderFields({
+  day,
+  fields,
+}: {
+  day: OrderDay;
+  fields: OrderFormFields;
+}): ReactNode {
+  return (
     <Form method="post" className={formStyles["form"]}>
-      <p>
-        {m.trading_day_notice({
-          date: formatCalendarDate(day.date),
-          start: formatMarketClock(day.tradesFrom),
-          end: formatMarketClock(day.expiresAt),
-        })}
-      </p>
-      {failure !== undefined && <FormFailure text={failure} />}
       <ChoiceField
         name="side"
         label={m.trading_side_label()}
@@ -75,6 +118,8 @@ export function OrderForm({
         defaultValue={fields.priceKind}
       />
       <TextField
+        // The step of a rejection changes the lots that the form shows, and a field keeps its own value until it is drawn anew.
+        key={fields.lots}
         name="lots"
         label={m.trading_lots_label()}
         type="text"
@@ -98,6 +143,13 @@ export function OrderForm({
         failure={fields.limitFailure}
         defaultValue={fields.limit}
       />
+      <p className={formStyles["hint"]}>
+        {m.trading_day_notice({
+          date: formatCalendarDate(day.date),
+          start: formatMarketClock(day.tradesFrom),
+          end: formatMarketClock(day.expiresAt),
+        })}
+      </p>
       <SubmitButton label={m.trading_place_label()} />
     </Form>
   );

@@ -34,15 +34,31 @@ const widestHolding = {
   cost: rupiah(999_999_998_167),
 };
 
+// A student who holds 3 lots of BBCA, bought at Rp4,980 for Rp1,496,241 with the broker fee, and Rp2,000,000 of cash. At the fixture price of Rp4,980, 5 lots cost Rp2,493,735 and 4 lots Rp1,994,988 with the fee of 0.15%, as the decimal module of Python computed with ROUND_HALF_UP, so the cash pays for at most 4 lots, and the student can sell at most 3.
+const smallHolding = {
+  cash: rupiah(2_000_000),
+  code: "BBCA",
+  shares: shares(300),
+  cost: rupiah(1_496_241),
+};
+
 const texts: Record<
   Locale,
   {
     ordersLink: string;
     title: string;
-    backLink: string;
+    heading: string;
+    navigation: string;
+    pricesTab: string;
     fillNotice: string;
-    pricesLink: string;
     headings: readonly string[];
+    ticketTitle: string;
+    simulation: string;
+    rejectedTitle: string;
+    quoteNotice: readonly [string, string];
+    purchaseStep: string;
+    saleStep: string;
+    saleOfTwoLots: string;
     startingCash: readonly string[];
     noHoldings: string;
     dayNotice: readonly [string, string, string, string];
@@ -59,7 +75,7 @@ const texts: Record<
       cancel: string;
     };
     stockHint: string;
-    priceTerms: { delayedPrice: string; change: string; quotedAt: string };
+    priceTerms: { delayedPrice: string; change: string };
     quotes: Record<QuotedCode, readonly [string, string, string]>;
     staleNotice: readonly [string, string];
     missingNotice: readonly [string, string];
@@ -90,10 +106,11 @@ const texts: Record<
   id: {
     ordersLink: "Order Anda di kelas ini",
     title: `Order di ${className}`,
-    backLink: `Kembali ke ${className}`,
+    heading: "Order Anda",
+    navigation: "Navigasi utama",
+    pricesTab: "Harga",
     fillNotice:
       "Portolab mengeksekusi order pada harga tertunda dari Yahoo Finance, sekitar 10 menit di belakang BEI, yang tercatat pada sesi I atau sesi II hari bursa order tersebut. Karena itu, harga eksekusi dapat berbeda dari harga di bursa pada saat yang sama.",
-    pricesLink: "Lihat harga tertunda saham",
     headings: [
       "Kas Anda",
       "Saham yang Anda pegang",
@@ -101,6 +118,14 @@ const texts: Record<
       "Order yang masih terbuka",
       "Order sebelumnya",
     ],
+    ticketTitle: "Pasang order",
+    simulation:
+      "Simulasi. Tidak ada uang sungguhan dan tidak ada transaksi sungguhan.",
+    rejectedTitle: "Portolab tidak menerima order ini",
+    quoteNotice: ["Harga tertunda sekitar 10 menit, tercatat pada ", " WIB."],
+    purchaseStep: "Ubah menjadi 4 lot",
+    saleStep: "Ubah menjadi 3 lot",
+    saleOfTwoLots: "Jual 2 lot BBCA pada harga pasar",
     startingCash: [
       "Kas",
       "Rp\u00a01.000.000.000.000",
@@ -133,7 +158,6 @@ const texts: Record<
     priceTerms: {
       delayedPrice: "Harga tertunda",
       change: "Perubahan dari harga penutupan sebelumnya",
-      quotedAt: "Tercatat pada (WIB)",
     },
     quotes: {
       AADI: ["Rp\u00a011.475", "▲ +3,15%", "30 Okt 2026, 16.14"],
@@ -209,10 +233,11 @@ const texts: Record<
   en: {
     ordersLink: "Your orders in this class",
     title: `Orders in ${className}`,
-    backLink: `Back to ${className}`,
+    heading: "Your orders",
+    navigation: "Main navigation",
+    pricesTab: "Prices",
     fillNotice:
       "Portolab fills an order at a delayed price from Yahoo Finance, about 10 minutes behind IDX, that was quoted in session I or session II of the trading day of the order. So a fill can differ from the price on the exchange at the same moment.",
-    pricesLink: "See the delayed prices of the stocks",
     headings: [
       "Your cash",
       "Your holdings",
@@ -220,6 +245,13 @@ const texts: Record<
       "Open orders",
       "Past orders",
     ],
+    ticketTitle: "Place an order",
+    simulation: "Simulation. No real money and no real trades.",
+    rejectedTitle: "Portolab did not accept this order",
+    quoteNotice: ["Delayed by about 10 minutes, quoted at ", " WIB."],
+    purchaseStep: "Change to 4 lots",
+    saleStep: "Change to 3 lots",
+    saleOfTwoLots: "Sell 2 lots of BBCA at the market price",
     startingCash: [
       "Cash",
       "IDR\u00a01,000,000,000,000",
@@ -252,7 +284,6 @@ const texts: Record<
     priceTerms: {
       delayedPrice: "Delayed price",
       change: "Change from the previous close",
-      quotedAt: "Quoted at (WIB)",
     },
     quotes: {
       AADI: ["IDR\u00a011,475", "▲ +3.15%", "Oct 30, 2026, 4:14 PM"],
@@ -371,32 +402,34 @@ async function chooseAnotherStock(
   await chooseStock(page, locale, code);
 }
 
-/** The terms that the page shows of the chosen stock, which start with the stock. */
-function chosenStockTerms(page: Page, locale: Locale): Locator {
+/** The order ticket, which the page of the orders shows first on a phone and beside the orders on a desktop. */
+function orderTicket(page: Page, locale: Locale): Locator {
   return page
     .getByRole("main")
-    .locator("dl", { hasText: new RegExp(`^${texts[locale].labels.stock}`) });
+    .locator("section")
+    .filter({
+      has: page.getByRole("heading", {
+        level: 2,
+        name: texts[locale].ticketTitle,
+      }),
+    });
 }
 
-/** Checks that the page shows the chosen stock with its latest delayed price, its change, and the time of its quote. */
+/** Checks that the ticket shows the chosen stock with its latest delayed price, its change, its delay, and the time of its quote. */
 async function expectChosenPrice(
   page: Page,
   locale: Locale,
   code: QuotedCode,
 ): Promise<void> {
-  const { labels, priceTerms, quotes } = texts[locale];
+  const { priceTerms, quotes, quoteNotice } = texts[locale];
   const [price, change, quotedAt] = quotes[code];
-  await expect(chosenStockTerms(page, locale)).toHaveText(
-    [
-      labels.stock,
-      code,
-      priceTerms.delayedPrice,
-      price,
-      priceTerms.change,
-      change,
-      priceTerms.quotedAt,
-      quotedAt,
-    ].join(""),
+  const ticket = orderTicket(page, locale);
+  await expect(ticket.getByText(code, { exact: true })).toBeVisible();
+  await expect(ticket.locator("dl")).toHaveText(
+    [priceTerms.delayedPrice, price, priceTerms.change, change].join(""),
+  );
+  await expect(ticket).toContainText(
+    `${quoteNotice[0]}${quotedAt}${quoteNotice[1]}`,
   );
 }
 
@@ -432,16 +465,26 @@ for (const locale of locales) {
     page,
     browser,
   }) => {
-    const { student } = await openOrdersOfNewStudent(page, browser, locale);
+    const { student, classPath } = await openOrdersOfNewStudent(
+      page,
+      browser,
+      locale,
+    );
     await expectPageHeadings(student, {
       title: text.title,
+      heading: text.heading,
       headings: text.headings,
     });
     await expect(
-      student.getByRole("link", { name: text.backLink }),
-    ).toBeVisible();
+      student
+        .getByRole("main")
+        .getByRole("link", { name: className, exact: true }),
+    ).toHaveAttribute("href", classPath);
+    const navigation = student.getByRole("navigation", {
+      name: text.navigation,
+    });
     await expect(
-      student.getByRole("link", { name: text.pricesLink }),
+      navigation.getByRole("link", { name: text.pricesTab }),
     ).toHaveAttribute("href", "/prices");
     await expect(student.locator("main dl")).toHaveText(
       text.startingCash.join(""),
@@ -452,6 +495,7 @@ for (const locale of locales) {
       text.stockHint,
       text.noOpenOrders,
       text.noPastOrders,
+      text.simulation,
     ]);
     await expect(
       student.getByRole("button", { name: text.labels.place }),
@@ -472,12 +516,16 @@ for (const locale of locales) {
     await expectTexts(student.getByRole("main"), [text.noSide, text.emptyLots]);
     await expectAccessibleScreen(student);
     await placeOrder(student, locale, { side: "buy", lots: "1" });
-    await expect(student.getByRole("alert")).toHaveText(text.tooFewReturns);
+    await expect(student.getByRole("alert")).toHaveText(
+      `${text.rejectedTitle}${text.tooFewReturns}`,
+    );
 
     await chooseAnotherStock(student, locale, "BBCA");
     await expectChosenPrice(student, locale, "BBCA");
     await placeOrder(student, locale, { side: "sell", lots: "5" });
-    await expect(student.getByRole("alert")).toHaveText(text.noShares);
+    await expect(student.getByRole("alert")).toHaveText(
+      `${text.rejectedTitle}${text.noShares}`,
+    );
     await placeOrder(student, locale, {
       side: "buy",
       isLimit: true,
@@ -561,8 +609,47 @@ for (const locale of locales) {
     await expectAccessibleScreen(student);
     await chooseStock(student, locale, "BBCA");
     await placeOrder(student, locale, { side: "buy", lots: "1" });
-    await expect(student.getByRole("alert")).toHaveText(text.notEnoughCash);
+    await expect(student.getByRole("alert")).toHaveText(
+      `${text.rejectedTitle}${text.notEnoughCash}`,
+    );
     await expectAccessibleScreen(student);
+    await student.context().close();
+  });
+
+  test(`offers the largest purchase that the cash pays for and the largest sale that the free shares allow as the step of a rejection, which changes the lots of the order form, while Enter in a field still sends the order, in ${language}`, async ({
+    page,
+    browser,
+  }) => {
+    const { student, classId } = await openOrdersOfNewStudent(
+      page,
+      browser,
+      locale,
+    );
+    storeTestHolding(classId, smallHolding);
+    await student.reload();
+    await chooseStock(student, locale, "BBCA");
+    const lotsField = student
+      .getByRole("main")
+      .getByLabel(text.labels.lots, { exact: true });
+    await placeOrder(student, locale, { side: "buy", lots: "5" });
+    const rejection = student.getByRole("alert");
+    await expect(rejection).toContainText(text.rejectedTitle);
+    await expectAccessibleScreen(student);
+    await rejection.getByRole("button", { name: text.purchaseStep }).click();
+    await expect(lotsField).toHaveValue("4");
+    await expect(rejection).toHaveCount(0);
+    await placeOrder(student, locale, { side: "sell", lots: "5" });
+    await rejection.getByRole("button", { name: text.saleStep }).click();
+    await expect(lotsField).toHaveValue("3");
+    // A student who types other lots while a rejection offers its step, and presses Enter, places the order with the lots that they typed.
+    await placeOrder(student, locale, { side: "sell", lots: "5" });
+    await expect(
+      rejection.getByRole("button", { name: text.saleStep }),
+    ).toBeVisible();
+    await lotsField.fill("2");
+    await lotsField.press("Enter");
+    await expect(student.getByRole("status")).toHaveText(text.placed);
+    await expectTexts(student.getByRole("main"), [text.saleOfTwoLots]);
     await student.context().close();
   });
 
@@ -593,9 +680,10 @@ for (const locale of locales) {
     await expectAccessibleScreen(student);
 
     await chooseAnotherStock(student, locale, "WIFI");
-    await expect(chosenStockTerms(student, locale)).toHaveText(
-      `${text.labels.stock}WIFI`,
-    );
+    await expect(
+      orderTicket(student, locale).getByText("WIFI", { exact: true }),
+    ).toBeVisible();
+    await expect(orderTicket(student, locale).locator("dl")).toHaveCount(0);
     await expectTexts(
       student.getByRole("main").getByText(text.missingNotice[0]),
       text.missingNotice,
@@ -643,7 +731,7 @@ for (const locale of locales) {
     // Axe runs in the page, so the screens are checked in the tests with JavaScript, and this test checks that each form works without it.
     test.use({ javaScriptEnabled: false });
 
-    test("chooses a stock, keeps it after a refused order, and places an order of it", async ({
+    test("chooses a stock, keeps it after a refused order, takes the step of a rejection, and places an order of it", async ({
       page,
       browser,
     }) => {
@@ -664,7 +752,19 @@ for (const locale of locales) {
       await expectTexts(page.getByRole("main"), [text.emptyLots]);
       await expect(page).toHaveURL(/\/orders\?code=BBCA$/);
       await expectChosenPrice(page, locale, "BBCA");
-      await placeOrder(page, locale, { side: "buy", lots: "1" });
+      storeTestHolding(testClass.id, smallHolding);
+      await placeOrder(page, locale, { side: "buy", lots: "5" });
+      await page
+        .getByRole("alert")
+        .getByRole("button", { name: text.purchaseStep })
+        .click();
+      await expect(
+        page.getByRole("main").getByLabel(text.labels.lots, { exact: true }),
+      ).toHaveValue("4");
+      await page
+        .getByRole("main")
+        .getByRole("button", { name: text.labels.place })
+        .click();
       await expect(page).toHaveURL(/\/orders\?placed=\d+$/);
       await expect(page.getByRole("status")).toHaveText(text.placed);
       await lecturer.context().close();

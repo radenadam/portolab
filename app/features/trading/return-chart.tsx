@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import type {
   DeepPartial,
   LineWidth,
+  SeriesMarker,
   TickMarkType,
   Time,
   TimeChartOptions,
@@ -20,13 +21,23 @@ import styles from "./trading.module.css";
 
 type ChartLibrary = typeof LightweightCharts;
 
-/** Draws the returns of a portfolio and of the IHSG at each close with Lightweight Charts, as decision 0008 sets: the portfolio in ink and the IHSG in muted gray with a dashed line, as decision 0012 sets. The table of returns beside the chart lists the same returns for screen readers and keyboards, as decision 0019 explains, so they skip the chart. */
+/** The names of the lines of a chart of returns, which label the end of each line. */
+interface SeriesLabels {
+  portfolio: string;
+  market: string;
+}
+
+/** Draws the returns of a portfolio and of the IHSG at each close with Lightweight Charts, as decision 0008 sets: the portfolio in ink with a light fill under its line and the IHSG in muted gray with a dashed line, as decisions 0012 and 0026 set, each ending in a dot and a label with its last return. The table of returns beside the chart lists the same returns for screen readers and keyboards, as decision 0019 explains, so they skip the chart. */
 export function ReturnChart({
   points,
+  labels,
 }: {
   points: readonly ReturnPoint[];
+  labels: SeriesLabels;
 }): ReactNode {
   const containerRef = useRef<HTMLDivElement>(null);
+  // A new object of the same names must not draw the chart again.
+  const { portfolio: portfolioLabel, market: marketLabel } = labels;
   useEffect(() => {
     const container = containerRef.current;
     if (container === null) {
@@ -38,7 +49,10 @@ export function ReturnChart({
     import("lightweight-charts").then(
       (library) => {
         if (!isRemoved) {
-          removeChart = drawReturns(library, container, points);
+          removeChart = drawReturns(library, container, {
+            points,
+            labels: { portfolio: portfolioLabel, market: marketLabel },
+          });
         }
       },
       () => {
@@ -50,14 +64,14 @@ export function ReturnChart({
       isRemoved = true;
       removeChart?.();
     };
-  }, [points]);
+  }, [points, portfolioLabel, marketLabel]);
   return <div ref={containerRef} className={styles["chart"]} aria-hidden />;
 }
 
 function drawReturns(
   library: ChartLibrary,
   container: HTMLElement,
-  points: readonly ReturnPoint[],
+  { points, labels }: { points: readonly ReturnPoint[]; labels: SeriesLabels },
 ): () => void {
   const chart = library.createChart(container, {
     autoSize: true,
@@ -86,17 +100,17 @@ function drawReturns(
     // A tick of the price scale is never finer than the hundredth of a percent that the returns show.
     minMove: 0.0001,
   };
-  const portfolio = chart.addSeries(library.LineSeries, {
+  const portfolio = chart.addSeries(library.AreaSeries, {
     lineStyle: library.LineStyle.Solid,
     priceFormat,
     priceLineVisible: false,
-    lastValueVisible: false,
+    title: labels.portfolio,
   });
   const market = chart.addSeries(library.LineSeries, {
     lineStyle: library.LineStyle.Dashed,
     priceFormat,
     priceLineVisible: false,
-    lastValueVisible: false,
+    title: labels.market,
   });
   portfolio.setData(
     points.map((point) => ({ time: point.date, value: point.portfolio })),
@@ -104,6 +118,9 @@ function drawReturns(
   market.setData(
     points.map((point) => ({ time: point.date, value: point.market })),
   );
+  const last = points.at(-1);
+  const portfolioEnd = library.createSeriesMarkers(portfolio);
+  const marketEnd = library.createSeriesMarkers(market);
   const zeroLine = portfolio.createPriceLine({
     price: 0,
     lineStyle: library.LineStyle.Solid,
@@ -114,8 +131,17 @@ function drawReturns(
   const applyTheme = (): void => {
     const theme = themeOf(library, container);
     chart.applyOptions(theme.chart);
-    portfolio.applyOptions({ color: theme.ink, lineWidth: theme.markWidth });
+    portfolio.applyOptions({
+      lineColor: theme.ink,
+      topColor: theme.surface,
+      bottomColor: theme.surface,
+      lineWidth: theme.markWidth,
+    });
     market.applyOptions({ color: theme.muted, lineWidth: theme.markWidth });
+    if (last !== undefined) {
+      portfolioEnd.setMarkers([endMarker(last.date, theme.ink)]);
+      marketEnd.setMarkers([endMarker(last.date, theme.muted)]);
+    }
     zeroLine.applyOptions({ color: theme.line, lineWidth: theme.lineWidth });
   };
   applyTheme();
@@ -125,6 +151,11 @@ function drawReturns(
     colorScheme.removeEventListener("change", applyTheme);
     chart.remove();
   };
+}
+
+/** The dot at the end of a line, on its last close. */
+function endMarker(date: string, color: string): SeriesMarker<Time> {
+  return { time: date, position: "inBar", shape: "circle", color, size: 0.5 };
 }
 
 // Lightweight Charts numbers the kinds of a mark on its time axis: the year, the month, the day, and two kinds with a time of day, which a chart of daily closes never shows, so they show the day.
@@ -153,6 +184,8 @@ interface ChartTheme {
   ink: string;
   muted: string;
   line: string;
+  /** The fill under the line of the portfolio. */
+  surface: string;
   /** The width of a series, which is a mark, and of a thin line, such as the line of zero. */
   markWidth: LineWidth;
   lineWidth: LineWidth;
@@ -188,6 +221,7 @@ function themeOf(library: ChartLibrary, container: HTMLElement): ChartTheme {
     ink,
     muted,
     line,
+    surface: token("--color-surface"),
     markWidth: lineWidthOf(token("--size-mark")),
     lineWidth: lineWidthOf(token("--size-line")),
   };

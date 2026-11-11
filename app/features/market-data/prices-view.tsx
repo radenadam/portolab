@@ -12,6 +12,7 @@ import {
 } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { isSameWibDay } from "./idx-calendar";
+import { latestQuoteTime } from "./latest-quote-time";
 import type { PriceSourceDescription, Quote } from "./price-source.server";
 import styles from "./prices-view.module.css";
 import { quoteChange } from "./quote-change";
@@ -87,16 +88,6 @@ export function PricesView({
       )}
     </>
   );
-}
-
-function latestQuoteTime(quotes: readonly Quote[]): Date | undefined {
-  let latest: Date | undefined;
-  for (const quote of quotes) {
-    if (latest === undefined || quote.quotedAt > latest) {
-      latest = quote.quotedAt;
-    }
-  }
-  return latest;
 }
 
 // Each row shows when it was quoted, because a price that the source stopped sending keeps its old time. A row from another day than the newest price shows its date too, so it stands out.

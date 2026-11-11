@@ -20,8 +20,11 @@ import type {
 /** The section of the chart of the security market line on the page of the measures of a student, with the portfolio, its stocks, and every other stock against the line, or why the stored closes give no line. */
 export function StudentMarketLine({
   marketLine,
+  caption,
 }: {
   marketLine: Result<StudentLine, StoredMeasureFailure>;
+  /** What the chart shows about the portfolio, which the portfolio gives under the chart, as the references do, and the page of the measures gives above it with the other measures. */
+  caption?: ReactNode;
 }): ReactNode {
   if (!marketLine.ok) {
     return (
@@ -48,6 +51,7 @@ export function StudentMarketLine({
           holdings: m.measures_line_holdings_label(),
         }}
       />
+      {caption}
       <OtherStocksNotices others={others} />
     </>
   );

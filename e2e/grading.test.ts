@@ -53,9 +53,9 @@ const texts: Record<
     allPortfoliosLink: string;
     portfolioHeadings: readonly string[];
     lecturerValuation: (name: string) => string;
+    bbcaTotal: string;
     bbcaValue: readonly string[];
     chartNotice: (name: string) => string;
-    legend: readonly string[];
     measuresHeadings: readonly string[];
     bbcaMeasures: string;
     lineTitle: string;
@@ -134,21 +134,17 @@ const texts: Record<
     ],
     lecturerValuation: (name) =>
       `Portofolio ${name} adalah simulasi dengan uang virtual. Portolab menilai setiap saham yang dipegangnya pada harga tertunda terakhir dari Yahoo Finance, sekitar 10 menit di belakang BEI, sehingga nilainya dapat berbeda dari nilai di bursa pada saat yang sama.`,
+    bbcaTotal: "Rp\u00a01.003.259.000.000",
     bbcaValue: [
-      "Kas",
-      "Rp\u00a0505.259.000.000",
-      "Nilai saham yang dipegang",
-      "Rp\u00a0498.000.000.000",
-      "Nilai total",
-      "Rp\u00a01.003.259.000.000",
-      "Kas awal",
-      "Rp\u00a01.000.000.000.000",
       "Imbal hasil sejak awal",
       "▲ +0,33%",
+      "Kas",
+      "Rp\u00a0505.259.000.000",
+      "Kas awal",
+      "Rp\u00a01.000.000.000.000",
     ],
     chartNotice: (name) =>
       `Grafik dan tabel di bawah membandingkan imbal hasil portofolio ${name} dengan imbal hasil IHSG sejak penutupan 26 Oktober 2026, sebelum ${name} dapat bertransaksi. Setiap imbal hasilnya memakai harga penutupan final pada harinya.`,
-    legend: ["Portofolio", "IHSG"],
     measuresHeadings: [
       "Ukuran portofolio",
       "Bobot portofolio",
@@ -255,21 +251,17 @@ const texts: Record<
     ],
     lecturerValuation: (name) =>
       `The portfolio of ${name} is a simulation with virtual cash. Portolab values each holding at the latest delayed price from Yahoo Finance, about 10 minutes behind IDX, so a value can differ from the value on the exchange at the same moment.`,
+    bbcaTotal: "IDR\u00a01,003,259,000,000",
     bbcaValue: [
-      "Cash",
-      "IDR\u00a0505,259,000,000",
-      "Value of the holdings",
-      "IDR\u00a0498,000,000,000",
-      "Total value",
-      "IDR\u00a01,003,259,000,000",
-      "Starting cash",
-      "IDR\u00a01,000,000,000,000",
       "Return since the start",
       "▲ +0.33%",
+      "Cash",
+      "IDR\u00a0505,259,000,000",
+      "Starting cash",
+      "IDR\u00a01,000,000,000,000",
     ],
     chartNotice: (name) =>
       `The chart and the table below compare the return of the portfolio of ${name} with the return of the IHSG since the close of October 26, 2026, before ${name} could trade. Each of their returns uses the final closes of its day.`,
-    legend: ["Portfolio", "IHSG"],
     measuresHeadings: [
       "Measures of the portfolio",
       "Weights of the portfolio",
@@ -468,6 +460,7 @@ for (const locale of locales) {
       headings: text.portfolioHeadings,
     });
     await expect(main).toContainText(text.lecturerValuation(studentName));
+    await expect(main.getByText(text.bbcaTotal, { exact: true })).toBeVisible();
     await expect(main.locator("dl").first()).toHaveText(
       text.bbcaValue.join(""),
     );
@@ -503,7 +496,6 @@ for (const locale of locales) {
       .getByRole("link", { name: text.portfolioLink(studentName), exact: true })
       .click();
     await expect(main).toContainText(text.chartNotice(studentName));
-    await expect(main).toContainText(text.legend.join(""));
     await expect(main.locator("canvas").first()).toBeVisible();
     await expectAccessibleScreen(page);
     await main

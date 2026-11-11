@@ -77,7 +77,7 @@ export function HoldingList({
 }
 
 /** The holdings of a portfolio, each under its code with the details that a page shows of it, or the sentence that the portfolio holds no shares. */
-export function HoldingItems<Item extends { code: string }>({
+function HoldingItems<Item extends { code: string }>({
   holdings,
   emptyText,
   details,

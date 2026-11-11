@@ -477,7 +477,7 @@ for (const locale of locales) {
     await student.context().close();
   });
 
-  test(`says why a portfolio has no measures, places every stock against the line of the latest months instead, and leads between the class, the portfolio, the orders, and the measures, in ${language}`, async ({
+  test(`says why a portfolio has no measures, places every stock against the line of the latest months instead, and leads from the portfolio to the measures, in ${language}`, async ({
     page,
     browser,
   }) => {
@@ -493,11 +493,9 @@ for (const locale of locales) {
       points: [text.riskFreePoint, text.marketPoint, text.bbcaPoint],
     });
     await expectAccessibleScreen(student);
-    for (const path of [`${classPath}/portfolio`, `${classPath}/orders`]) {
-      await student.goto(path);
-      await main.getByRole("link", { name: text.measuresLink }).click();
-      await expect(student).toHaveURL(`${classPath}/measures`);
-    }
+    await student.goto(`${classPath}/portfolio`);
+    await main.getByRole("link", { name: text.measuresLink }).click();
+    await expect(student).toHaveURL(`${classPath}/measures`);
     await student.context().close();
   });
 

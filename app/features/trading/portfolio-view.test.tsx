@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { expect, test } from "vitest";
 import type {
+  IndexQuote,
   PriceSourceDescription,
   StockQuote,
 } from "~/features/market-data/price-source.server";
@@ -12,12 +13,13 @@ import type { Locale } from "~/paraglide/runtime.js";
 import { succeed, fail } from "~/result";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
 import { cumulativeReturn } from "~/units/cumulative-return";
+import { indexPoints } from "~/units/index-points";
 import { rupiah } from "~/units/rupiah";
 import { shares } from "~/units/shares";
 import type { ClassId } from "~/features/classes/classes.schema";
 import type { Holding } from "./holding-after-fill";
 import type { HistoryEnd, ReturnPoint } from "./portfolio-history";
-import { PortfolioView } from "./portfolio-view";
+import { portfolioPricesTime, PortfolioView } from "./portfolio-view";
 import type { PortfolioReport } from "./read-portfolio-report.server";
 import type { PortfolioReader } from "./text-for-reader";
 import { valuePortfolio } from "./value-portfolio";
@@ -39,6 +41,14 @@ const tlkmHolding: Holding = {
   cost: rupiah(198_297),
 };
 const bbcaQuote = stockQuote("BBCA", [4_840, 4_980], "2026-11-03T02:55:00Z");
+// The IHSG at its close of Tuesday 3 November 2026, quoted at 16:14 WIB, whose return since the close of 30 October is the one of the history at that close.
+const ihsgQuote: IndexQuote = {
+  kind: "index",
+  code: "IHSG",
+  level: indexPoints(5_000),
+  previousLevel: indexPoints(5_100),
+  quotedAt: new Date("2026-11-03T09:14:00Z"),
+};
 // 10:00 WIB on Wednesday 4 November 2026.
 const wednesday = new Date("2026-11-04T03:00:00Z");
 
@@ -81,6 +91,10 @@ function reportForTest(changes: Partial<PortfolioReport>): PortfolioReport {
     ),
     quoteAttempt: undefined,
     history: succeed({ points, end: waitingForWednesday }),
+    market: {
+      quote: ihsgQuote,
+      return: cumulativeReturn(-0.03020733431546059),
+    },
     ...changes,
   };
 }
@@ -111,19 +125,21 @@ const fall = '<span aria-hidden="true">▼ </span>';
 const rise = '<span aria-hidden="true">▲ </span>';
 
 /** The terms of a list of definitions and their values, as the markup shows them. */
-function definitions(pairs: readonly (readonly [string, string])[]): string {
-  return pairs
-    .map(([term, value]) => `<dt>${term}</dt><dd>${value}</dd>`)
-    .join("");
+/** The values in the line under the headline, each with its label, as the markup shows them. */
+function facts(pairs: readonly (readonly [string, string])[]): string {
+  return `<dl>${pairs
+    .map(([term, value]) => `<div><dt>${term}</dt><dd>${value}</dd></div>`)
+    .join("")}</dl>`;
 }
 
 const labels: Record<
   Locale,
   {
     cash: string;
-    totalValue: string;
     startingCash: string;
     return: string;
+    marketReturn: string;
+    stock: string;
     shares: string;
     cost: string;
     delayedPrice: string;
@@ -137,9 +153,10 @@ const labels: Record<
 > = {
   id: {
     cash: "Kas",
-    totalValue: "Nilai total",
     startingCash: "Kas awal",
     return: "Imbal hasil sejak awal",
+    marketReturn: "IHSG sejak awal",
+    stock: "Saham",
     shares: "Jumlah saham",
     cost: "Biaya termasuk biaya broker",
     delayedPrice: "Harga tertunda",
@@ -152,9 +169,10 @@ const labels: Record<
   },
   en: {
     cash: "Cash",
-    totalValue: "Total value",
     startingCash: "Starting cash",
     return: "Return since the start",
+    marketReturn: "IHSG since the start",
+    stock: "Stock",
     shares: "Shares",
     cost: "Cost with broker fees",
     delayedPrice: "Delayed price",
@@ -167,16 +185,16 @@ const labels: Record<
   },
 };
 
-// The values that the lists and the table show, in the format of each language.
+// The values that the headline, the holdings, and the table show, in the format of each language.
 const values: Record<
   Locale,
   {
     cash: string;
-    holdingsValue: string;
+    holdingValue: string;
     totalValue: string;
     startingCash: string;
     return: string;
-    noHoldingsValue: string;
+    marketReturn: string;
     noReturn: string;
     shares: string;
     cost: string;
@@ -184,16 +202,18 @@ const values: Record<
     quotedAt: string;
     gain: string;
     gainReturn: string;
+    holdingNotice: string;
+    priceNotice: string;
     rows: readonly (readonly [string, string, string])[];
   }
 > = {
   id: {
     cash: "Rp\u00a048.529.600",
-    holdingsValue: "Rp\u00a048.400.000",
+    holdingValue: "Rp\u00a048.400.000",
     totalValue: "Rp\u00a096.929.600",
     startingCash: "Rp\u00a0100.000.000",
     return: `${fall}-3,07%`,
-    noHoldingsValue: "Rp\u00a00",
+    marketReturn: `${fall}-3,02%`,
     noReturn: "0,00%",
     shares: "10.000",
     cost: "Rp\u00a049.874.700",
@@ -201,6 +221,10 @@ const values: Record<
     quotedAt: "3 Nov 2026, 09.55",
     gain: `${fall}-Rp\u00a01.474.700`,
     gainReturn: `${fall}-2,96%`,
+    holdingNotice:
+      "10.000 saham dengan biaya Rp\u00a049.874.700, termasuk biaya broker.",
+    priceNotice:
+      "Harga tertunda Rp\u00a04.840, tercatat pada 3 Nov 2026, 09.55 WIB.",
     rows: [
       ["30 Okt 2026", "0,00%", "0,00%"],
       ["2 Nov 2026", `${fall}-0,15%`, `${rise}+0,79%`],
@@ -209,11 +233,11 @@ const values: Record<
   },
   en: {
     cash: "IDR\u00a048,529,600",
-    holdingsValue: "IDR\u00a048,400,000",
+    holdingValue: "IDR\u00a048,400,000",
     totalValue: "IDR\u00a096,929,600",
     startingCash: "IDR\u00a0100,000,000",
     return: `${fall}-3.07%`,
-    noHoldingsValue: "IDR\u00a00",
+    marketReturn: `${fall}-3.02%`,
     noReturn: "0.00%",
     shares: "10,000",
     cost: "IDR\u00a049,874,700",
@@ -221,6 +245,10 @@ const values: Record<
     quotedAt: "Nov 3, 2026, 9:55 AM",
     gain: `${fall}-IDR\u00a01,474,700`,
     gainReturn: `${fall}-2.96%`,
+    holdingNotice:
+      "10,000 shares that cost IDR\u00a049,874,700, broker fees included.",
+    priceNotice:
+      "Delayed price IDR\u00a04,840, quoted at Nov 3, 2026, 9:55 AM WIB.",
     rows: [
       ["Oct 30, 2026", "0.00%", "0.00%"],
       ["Nov 2, 2026", `${fall}-0.15%`, `${rise}+0.79%`],
@@ -228,7 +256,6 @@ const values: Record<
     ],
   },
 };
-
 const texts: Record<
   Locale,
   {
@@ -240,6 +267,7 @@ const texts: Record<
     unpricedHolding: string;
     severalMissingCloses: string;
     quoteFailure: string;
+    marketQuoteFailure: string;
   }
 > = {
   id: {
@@ -257,6 +285,8 @@ const texts: Record<
       "Portolab belum menyimpan harga penutupan IHSG dan BBCA pada 4 November 2026. Portolab menampilkan imbal hasil mulai hari itu setelah pembaruan riwayat harga menyimpan harga penutupan masing-masing pada hari itu atau hari sesudahnya.",
     quoteFailure:
       "Portolab tidak dapat memperbarui harga BBCA pada 3 Nov 2026, 10.30 WIB, jadi Portolab memakai harga terakhir BBCA yang tersimpan. Portolab mencoba lagi pada 3 Nov 2026, 10.31 WIB.",
+    marketQuoteFailure:
+      "Portolab tidak dapat memperbarui harga BBCA dan IHSG pada 3 Nov 2026, 10.30 WIB, jadi Portolab memakai harga terakhir masing-masing yang tersimpan. Portolab mencoba lagi pada 3 Nov 2026, 10.31 WIB.",
   },
   en: {
     waiting:
@@ -273,6 +303,8 @@ const texts: Record<
       "Portolab has not stored the closes of IHSG and BBCA on November 4, 2026 yet. It shows the returns from that day on once an update of the price history stores a close of each of them on that day or on a later day.",
     quoteFailure:
       "Portolab could not update the price of BBCA at Nov 3, 2026, 10:30 AM WIB, so it uses the last price of BBCA that it stored. Portolab tries again at Nov 3, 2026, 10:31 AM WIB.",
+    marketQuoteFailure:
+      "Portolab could not update the prices of BBCA and IHSG at Nov 3, 2026, 10:30 AM WIB, so it uses the last price of each that it stored. Portolab tries again at Nov 3, 2026, 10:31 AM WIB.",
   },
 };
 
@@ -284,7 +316,6 @@ const readerTexts: Record<
     {
       valuationNotice: string;
       valueTitle: string;
-      holdingsValue: string;
       holdingsTitle: string;
       noHoldings: string;
       returnTitle: string;
@@ -299,7 +330,6 @@ const readerTexts: Record<
       valuationNotice:
         "Portofolio Anda adalah simulasi dengan uang virtual. Portolab menilai setiap saham yang Anda pegang pada harga tertunda terakhir dari Yahoo Finance, sekitar 10 menit di belakang BEI, sehingga nilainya dapat berbeda dari nilai di bursa pada saat yang sama.",
       valueTitle: "Nilai portofolio Anda",
-      holdingsValue: "Nilai saham yang Anda pegang",
       holdingsTitle: "Saham yang Anda pegang",
       noHoldings: "Anda belum memegang saham.",
       returnTitle: "Imbal hasil Anda dibandingkan IHSG",
@@ -313,7 +343,6 @@ const readerTexts: Record<
       valuationNotice:
         "Portofolio Siti Rahayu adalah simulasi dengan uang virtual. Portolab menilai setiap saham yang dipegangnya pada harga tertunda terakhir dari Yahoo Finance, sekitar 10 menit di belakang BEI, sehingga nilainya dapat berbeda dari nilai di bursa pada saat yang sama.",
       valueTitle: "Nilai portofolio",
-      holdingsValue: "Nilai saham yang dipegang",
       holdingsTitle: "Saham yang dipegang",
       noHoldings: "Siti Rahayu belum memegang saham.",
       returnTitle: "Imbal hasil dibandingkan IHSG",
@@ -329,7 +358,6 @@ const readerTexts: Record<
       valuationNotice:
         "Your portfolio is a simulation with virtual cash. Portolab values each holding at the latest delayed price from Yahoo Finance, about 10 minutes behind IDX, so a value can differ from the value on the exchange at the same moment.",
       valueTitle: "Value of your portfolio",
-      holdingsValue: "Value of your holdings",
       holdingsTitle: "Your holdings",
       noHoldings: "You hold no shares yet.",
       returnTitle: "Your return against the IHSG",
@@ -343,7 +371,6 @@ const readerTexts: Record<
       valuationNotice:
         "The portfolio of Siti Rahayu is a simulation with virtual cash. Portolab values each holding at the latest delayed price from Yahoo Finance, about 10 minutes behind IDX, so a value can differ from the value on the exchange at the same moment.",
       valueTitle: "Value of the portfolio",
-      holdingsValue: "Value of the holdings",
       holdingsTitle: "Holdings",
       noHoldings: "Siti Rahayu holds no shares yet.",
       returnTitle: "Return against the IHSG",
@@ -366,33 +393,22 @@ for (const locale of locales) {
     const render = (report: PortfolioReport, now?: Date): string =>
       renderView(report, reader, now);
 
-    test(`shows the value of each holding at its delayed price, the return since the start, and the returns of the portfolio and the IHSG at each close, in ${language}`, () => {
+    test(`shows the value as the headline with the returns of the portfolio and the IHSG since the start, each holding at its delayed price as a table and as a row, and the returns at each close, in ${language}`, () => {
       switchLocaleForTest(locale);
       const html = render(reportForTest({}));
       for (const part of [
-        `<p>${readerText.valuationNotice}</p>`,
-        `<h2>${readerText.valueTitle}</h2>`,
-        definitions([
-          [label.cash, value.cash],
-          [readerText.holdingsValue, value.holdingsValue],
-          [label.totalValue, value.totalValue],
-          [label.startingCash, value.startingCash],
+        `<h2>${readerText.valueTitle}</h2><p>${value.totalValue}</p>${facts([
           [label.return, value.return],
-        ]),
-        `<h2>${readerText.holdingsTitle}</h2>`,
-        ">BBCA</p>",
-        definitions([
-          [label.shares, value.shares],
-          [label.cost, value.cost],
-          [label.delayedPrice, value.delayedPrice],
-          [label.quotedAt, value.quotedAt],
-          [label.value, value.holdingsValue],
-          [label.gain, value.gain],
-          [label.gainReturn, value.gainReturn],
-        ]),
+          [label.marketReturn, value.marketReturn],
+          [label.cash, value.cash],
+          [label.startingCash, value.startingCash],
+        ])}<p>${readerText.valuationNotice}</p></section>`,
+        `<h2 id="holdings-heading">${readerText.holdingsTitle}</h2>`,
+        `<tr><th scope="col">${label.stock}</th><th scope="col">${label.shares}</th><th scope="col">${label.cost}</th><th scope="col"><span>${label.delayedPrice}</span><span>${label.quotedAt}</span></th><th scope="col">${label.value}</th><th scope="col"><span>${label.gain}</span><span>${label.gainReturn}</span></th></tr>`,
+        `<tr><th scope="row">BBCA</th><td>${value.shares}</td><td>${value.cost}</td><td><span>${value.delayedPrice}</span><span>${value.quotedAt}</span></td><td>${value.holdingValue}</td><td><span>${value.gain}</span><span>${value.gainReturn}</span></td></tr>`,
+        `<li><div><p>BBCA</p><p>${value.holdingNotice}</p><p>${value.priceNotice}</p></div><div><p>${value.holdingValue}</p><p>${value.gain}</p><p>${value.gainReturn}</p></div></li>`,
         `<h2>${readerText.returnTitle}</h2>`,
         readerText.chartNotice,
-        `<li>${readerText.portfolioSeries}</li><li>IHSG</li>`,
         `<summary>${label.returnsTable}</summary>`,
         `<tr><th scope="col">${label.tradingDay}</th><th scope="col">${readerText.portfolioSeries}</th><th scope="col">IHSG</th></tr>`,
         ...value.rows.map(
@@ -407,7 +423,7 @@ for (const locale of locales) {
       expect(html).not.toContain(text.quoteFailure);
     });
 
-    test(`shows a portfolio of cash alone, and no chart while the close of the IHSG at the start is not stored, in ${language}`, () => {
+    test(`shows a portfolio of cash alone without the IHSG while the close of the IHSG at the start is not stored, and no chart, in ${language}`, () => {
       switchLocaleForTest(locale);
       const html = render(
         reportForTest({
@@ -420,25 +436,25 @@ for (const locale of locales) {
             points: [],
             end: { kind: "missingCloses", date: "2026-10-30", codes: ["IHSG"] },
           }),
+          market: undefined,
         }),
       );
       expect(html).toContain(
-        definitions([
-          [label.cash, value.startingCash],
-          [readerText.holdingsValue, value.noHoldingsValue],
-          [label.totalValue, value.startingCash],
-          [label.startingCash, value.startingCash],
+        `<p>${value.startingCash}</p>${facts([
           [label.return, value.noReturn],
-        ]),
+          [label.cash, value.startingCash],
+          [label.startingCash, value.startingCash],
+        ])}`,
       );
       expect(html).toContain(`<p>${readerText.noHoldings}</p>`);
+      expect(html).not.toContain("<table");
       expect(html).toContain(text.missingStart);
       expect(html).not.toContain(readerText.chartNotice);
       expect(html).not.toContain(label.returnsTable);
       expect(html).not.toContain(text.credit);
     });
 
-    test(`shows no total while one holding or several have no delayed price, in ${language}`, () => {
+    test(`shows no total while one holding or several have no delayed price, and the holding without a price in the table and in its row, in ${language}`, () => {
       switchLocaleForTest(locale);
       const withOne = render(
         reportForTest({
@@ -450,12 +466,16 @@ for (const locale of locales) {
         }),
       );
       expect(withOne).toContain(
-        `<dl>${definitions([
+        `<h2>${readerText.valueTitle}</h2><p>${text.oneUnpriced}</p>${facts([
+          [label.marketReturn, value.marketReturn],
           [label.cash, value.cash],
           [label.startingCash, value.startingCash],
-        ])}</dl><p>${text.oneUnpriced}</p>`,
+        ])}`,
       );
-      expect(withOne).toContain(text.unpricedHolding);
+      expect(withOne).toContain(
+        `<td colSpan="3">${text.unpricedHolding}</td></tr>`,
+      );
+      expect(withOne).toContain(`<p>${text.unpricedHolding}</p></div></li>`);
       const withSeveral = render(
         reportForTest({
           valuation: valuePortfolio(
@@ -522,7 +542,7 @@ for (const locale of locales) {
       }
     });
 
-    test(`names the price of a holding that the latest update of prices could not fetch, in ${language}`, () => {
+    test(`names the price of a holding, and the level of the IHSG that the headline counts from, that the latest update of prices could not fetch, in ${language}`, () => {
       switchLocaleForTest(locale);
       // A partial update at 10:30 WIB on Tuesday 3 November 2026, seen half a minute later.
       const attempt: UpdateAttempt = {
@@ -531,12 +551,46 @@ for (const locale of locales) {
         consecutiveFailures: 0,
         failedCodes: ["BBCA"],
       };
+      const halfMinuteLater = new Date("2026-11-03T03:30:30Z");
+      expect(
+        render(reportForTest({ quoteAttempt: attempt }), halfMinuteLater),
+      ).toContain(`<p>${text.quoteFailure}</p></section>`);
       expect(
         render(
-          reportForTest({ quoteAttempt: attempt }),
-          new Date("2026-11-03T03:30:30Z"),
+          reportForTest({
+            quoteAttempt: { ...attempt, failedCodes: ["IHSG", "BBCA"] },
+          }),
+          halfMinuteLater,
         ),
-      ).toContain(text.quoteFailure);
+      ).toContain(`<p>${text.marketQuoteFailure}</p></section>`);
     });
   }
 }
+
+test("gives the header line the time of the newest delayed price that the page shows, of a holding or of the IHSG, and none without prices", () => {
+  const laterBbca = stockQuote("BBCA", [4_840, 4_980], "2026-11-03T09:14:30Z");
+  expect(portfolioPricesTime(reportForTest({}))).toEqual(ihsgQuote.quotedAt);
+  expect(
+    portfolioPricesTime(
+      reportForTest({
+        valuation: valuePortfolio(
+          { cash: rupiah(48_529_600), holdings: [bbcaHolding] },
+          startingCash,
+          quotesByCode([laterBbca]),
+        ),
+      }),
+    ),
+  ).toEqual(laterBbca.quotedAt);
+  expect(
+    portfolioPricesTime(
+      reportForTest({
+        valuation: valuePortfolio(
+          { cash: startingCash, holdings: [] },
+          startingCash,
+          quotesByCode([]),
+        ),
+        market: undefined,
+      }),
+    ),
+  ).toBeUndefined();
+});

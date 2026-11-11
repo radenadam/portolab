@@ -1,10 +1,9 @@
 import type { ReactNode } from "react";
 import { Form, Link } from "react-router";
 import { ChangeText } from "~/change-text";
-import definitionStyles from "~/definition-list.module.css";
-import type { ClassId } from "~/features/classes/classes.schema";
 import type { StockQuote } from "~/features/market-data/price-source.server";
 import { quoteChange } from "~/features/market-data/quote-change";
+import { trackedStockCodes } from "~/features/market-data/tracked-instruments";
 import {
   missingQuoteText,
   quoteFailureText,
@@ -13,17 +12,15 @@ import { SelectField, SubmitButton } from "~/form";
 import formStyles from "~/form.module.css";
 import {
   formatMarketTime,
+  formatNumber,
   formatRupiah,
   formatSignedPercent,
 } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
-import type { Result } from "~/result";
 import type { OrdersAnswer } from "./order-actions.server";
+import type { OrderTicket } from "./order-ticket.server";
 import { OrderForm } from "./order-form";
-import type { OrderDay } from "./order-form";
 import type { TradingDayFailure } from "./order-trading-day";
-import { ordersPath } from "./orders-path";
-import type { StockChoice } from "./read-stock-choice.server";
 import styles from "./trading.module.css";
 
 // The texts of a refused order speak of that order, but the page states the gap before the student places one.
@@ -33,25 +30,33 @@ const missingDayTexts: Record<TradingDayFailure["kind"], () => string> = {
 };
 
 interface PlaceOrderSectionProps {
-  /** The trading day of an order placed now, which orderTradingDay gives, or why Portolab cannot check an order against it. */
-  day: Result<OrderDay, TradingDayFailure>;
-  /** The stock that the address of the page chose, which readStockChoice reads. */
-  choice: StockChoice;
-  /** The codes of the stocks that the field that chooses a stock offers. */
-  codes: readonly string[];
-  classId: ClassId;
+  /** The trading day of an order placed now and the stock that the address of the page chose, which readOrderTicket reads. */
+  ticket: OrderTicket;
+  /** The codes of the stocks that the field that chooses a stock offers, which are those that Portolab tracks unless a test gives others. */
+  codes?: readonly string[];
+  /** The address of the page that shows the ticket, without a stock, to which the link that chooses another stock leads. */
+  pagePath: string;
   /** The moment that the page shows and the delay of its prices, which decide when the quote job tries again. */
   moment: { now: Date; delayMinutes: number };
   /** The answer of the action to a form that it did not accept. */
   answer: OrdersAnswer | undefined;
 }
 
-/** The section for a new order: the form that chooses a stock, and then the latest delayed price of that stock with the order form, or why Portolab cannot take an order now when a record that its trading day needs is missing. */
-export function PlaceOrderSection({
-  day,
-  choice,
-  codes,
-  classId,
+/** The order ticket, as decision 0026 draws it: the form that chooses a stock, and then the latest delayed price of that stock with the order form, or why Portolab cannot take an order now when a record that its trading day needs is missing. The notice of the simulation in full ends it. */
+export function PlaceOrderSection(props: PlaceOrderSectionProps): ReactNode {
+  return (
+    <section className={styles["ticket"]}>
+      <h2>{m.trading_place_title()}</h2>
+      <TicketBody {...props} />
+      <p className={styles["details"]}>{m.trading_simulation_notice()}</p>
+    </section>
+  );
+}
+
+function TicketBody({
+  ticket: { day, choice },
+  codes = trackedStockCodes,
+  pagePath,
   moment,
   answer,
 }: PlaceOrderSectionProps): ReactNode {
@@ -69,7 +74,7 @@ export function PlaceOrderSection({
     case "chosen": {
       const { code, quote, quoteAttempt } = choice;
       const otherStockLink = (
-        <Link to={ordersPath(classId)} className={styles["link"]}>
+        <Link to={pagePath} className={styles["link"]}>
           {m.trading_other_stock_link()}
         </Link>
       );
@@ -77,9 +82,7 @@ export function PlaceOrderSection({
       if (quote === undefined) {
         return (
           <>
-            <dl className={definitionStyles["list"]}>
-              <StockTerm code={code} />
-            </dl>
+            <p className={styles["ticketStock"]}>{code}</p>
             <p className={styles["details"]}>
               {missingQuoteText(code, quoteAttempt, moment)}
             </p>
@@ -91,10 +94,8 @@ export function PlaceOrderSection({
       const failure = quoteFailureText(quoteAttempt, [quote], moment);
       return (
         <>
-          <dl className={definitionStyles["list"]}>
-            <StockTerm code={code} />
-            <QuoteTerms quote={quote} />
-          </dl>
+          <p className={styles["ticketStock"]}>{code}</p>
+          <QuoteLines quote={quote} delayMinutes={moment.delayMinutes} />
           {failure !== undefined && (
             <p className={styles["details"]}>{failure}</p>
           )}
@@ -102,7 +103,7 @@ export function PlaceOrderSection({
           <OrderForm
             day={day.value}
             fields={answer?.fields}
-            failure={answer?.failure}
+            rejection={answer?.rejection}
           />
         </>
       );
@@ -133,26 +134,32 @@ function StockChooser({
   );
 }
 
-function StockTerm({ code }: { code: string }): ReactNode {
+/** The latest delayed price of the stock of the ticket with its change from the previous close, and its delay and the time of its quote under it. The names of the price and of the change are for screen readers, because the ticket shows the two numbers alone, as the references do. */
+function QuoteLines({
+  quote,
+  delayMinutes,
+}: {
+  quote: StockQuote;
+  delayMinutes: number;
+}): ReactNode {
   return (
     <>
-      <dt>{m.trading_stock_label()}</dt>
-      <dd>{code}</dd>
-    </>
-  );
-}
-
-function QuoteTerms({ quote }: { quote: StockQuote }): ReactNode {
-  return (
-    <>
-      <dt>{m.trading_delayed_price_label()}</dt>
-      <dd>{formatRupiah(quote.price)}</dd>
-      <dt>{m.trading_change_label()}</dt>
-      <dd>
-        <ChangeText change={formatSignedPercent(quoteChange(quote))} />
-      </dd>
-      <dt>{m.trading_quoted_at_label()}</dt>
-      <dd>{formatMarketTime(quote.quotedAt)}</dd>
+      <dl className={styles["ticketQuote"]}>
+        <dt className={styles["visuallyHidden"]}>
+          {m.trading_delayed_price_label()}
+        </dt>
+        <dd className={styles["ticketPrice"]}>{formatRupiah(quote.price)}</dd>
+        <dt className={styles["visuallyHidden"]}>{m.trading_change_label()}</dt>
+        <dd>
+          <ChangeText change={formatSignedPercent(quoteChange(quote))} />
+        </dd>
+      </dl>
+      <p className={styles["details"]}>
+        {m.trading_quote_notice({
+          minutes: formatNumber(delayMinutes),
+          time: formatMarketTime(quote.quotedAt),
+        })}
+      </p>
     </>
   );
 }
