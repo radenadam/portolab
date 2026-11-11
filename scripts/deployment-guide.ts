@@ -13,6 +13,22 @@ export const guidePath = "docs/deploy.md";
 /** The folder into which the guide installs Portolab on the server. */
 export const serverFolder = "/opt/portolab";
 
+/** The folder in which the guide keeps the backups of the database, which only root may open. */
+export const backupFolder = "/var/backups/portolab";
+
+/** The arguments of docker that run a command in the container of Portolab that the guide started, which only root may run. */
+export const containerExecArguments = [
+  "compose",
+  "--project-directory",
+  serverFolder,
+  "exec",
+  "--no-TTY",
+  "app",
+];
+
+// Node runs a child process as a user or a group only when its number fits a signed whole number of 32 bits.
+const largestIdNumber = 2_147_483_647;
+
 /** The domain of the server in the test, which only the test machine resolves. Caddy serves a name under .internal with a certificate of its own authority, because Let's Encrypt cannot reach it. */
 export const testDomain = "portolab.internal";
 
@@ -210,6 +226,48 @@ export function checkSystemNamed(
     : fail(
         `${guidePath} must name ${named}, because the test follows it on that system, but it does not.`,
       );
+}
+
+/** Reads the number of a user or of a group, as `id --user` or `id --group` prints it on a line of its own. */
+export function parseIdOutput(
+  value: unknown,
+  source: string,
+): Result<number, string> {
+  if (typeof value === "string" && /^(?:0|[1-9][0-9]{0,9})\n$/.test(value)) {
+    const number = Number(value);
+    if (number <= largestIdNumber) {
+      return succeed(number);
+    }
+  }
+  return fail(
+    `${source} must be a whole number from 0 to ${String(largestIdNumber)} on a line of its own, but it is ${describeValue(value)}.`,
+  );
+}
+
+/** Fails for each file in the folder of the backups that a process with the number of the user of the container can read, as `isReadable` reports for its path. It also fails for a folder without a file, because the check would then pass without checking anything. */
+export function checkBackupsOnlyForRoot(
+  names: readonly string[],
+  userNumber: number,
+  isReadable: (path: string) => Result<boolean, string>,
+): string[] {
+  if (names.length === 0) {
+    return [
+      `${backupFolder} holds no file after the guide, so the test cannot check who reads a backup.`,
+    ];
+  }
+  const failures: string[] = [];
+  for (const name of names) {
+    const path = `${backupFolder}/${name}`;
+    const readable = isReadable(path);
+    if (!readable.ok) {
+      failures.push(readable.failure);
+    } else if (readable.value) {
+      failures.push(
+        `A process of the user number ${String(userNumber)} can read ${path}, so an account of the server with that number reads the personal data in it.`,
+      );
+    }
+  }
+  return failures;
 }
 
 interface GuideBlock {

@@ -1,6 +1,9 @@
 import { expect, test } from "@playwright/test";
 import { baseLocale } from "../../app/paraglide/runtime.js";
-import { serverFolder, testDomain } from "../../scripts/deployment-guide.ts";
+import {
+  containerExecArguments,
+  testDomain,
+} from "../../scripts/deployment-guide.ts";
 import { joinAsNewStudent, signInAsNewLecturer } from "../accounts.ts";
 import type { AccountCommand } from "../accounts.ts";
 import { createTestClass } from "../create-test-class.ts";
@@ -12,17 +15,7 @@ const { className, lecturerName, studentName } = widestClassNames;
 /** The account command in the container that the guide started, which the person who runs the server runs as root. */
 const serverAccountCommand: AccountCommand = {
   file: "sudo",
-  arguments: [
-    "docker",
-    "compose",
-    "--project-directory",
-    serverFolder,
-    "exec",
-    "--no-TTY",
-    "app",
-    "node",
-    "server/account.ts",
-  ],
+  arguments: ["docker", ...containerExecArguments, "node", "server/account.ts"],
   environment: process.env,
 };
 

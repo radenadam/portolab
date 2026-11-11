@@ -10,9 +10,11 @@ interface CommandOptions {
   input?: string;
   /** The folder in which the command runs, when it is not the working directory of the script. */
   cwd?: string | undefined;
+  /** The numbers of the user and of the group as which the command runs, when they are not those of the script, which only root may choose. */
+  identity?: { user: number; group: number };
 }
 
-// A request to GitHub or a command of git that hangs ends after this, so the step fails with the reason before CI stops it.
+// A command that hangs, such as a request to GitHub, ends after this, so the step fails with the reason before CI stops it.
 const commandTimeoutMilliseconds = minuteMilliseconds;
 
 // A diff of a large change can hold many megabytes, and Node stops a command whose output passes its buffer.
@@ -33,6 +35,8 @@ export function runCommand(
     encoding: "utf8",
     input: options.input,
     cwd: options.cwd,
+    uid: options.identity?.user,
+    gid: options.identity?.group,
     maxBuffer: outputLimitBytes,
     timeout: commandTimeoutMilliseconds,
   });
