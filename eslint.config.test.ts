@@ -507,9 +507,10 @@ test(
 );
 
 const createContextImport = 'import { createContext } from "react-router";\n';
+const namespaceImport = 'import * as Router from "react-router";\n';
 
 test(
-  "rejects a context that is not the value of a variable named with the suffix Context, and a renamed createContext",
+  "rejects a context that is not the value of a variable named with the suffix Context, and createContext under another name",
   async () => {
     for (const code of [
       `${createContextImport}export const source = createContext<string>();`,
@@ -518,6 +519,14 @@ test(
       `${createContextImport}export const contexts = [createContext<string>()];`,
       'import { createContext as makeContext } from "react-router";\nexport { makeContext };',
       'import { "createContext" as makeContext } from "react-router";\nexport { makeContext };',
+      `${namespaceImport}export const source = Router.createContext<string>();`,
+      `${namespaceImport}export const source = Router["createContext"]<string>();`,
+      `${namespaceImport}export const source = Router[\`createContext\`]<string>();`,
+      `${namespaceImport}export const make = Router.createContext;`,
+      `${namespaceImport}const { createContext: make } = Router;\nexport const sourceContext = make<string>();`,
+      `${namespaceImport}const { "createContext": make } = Router;\nexport const sourceContext = make<string>();`,
+      `${createContextImport}const make = createContext;\nexport const sourceContext = make<string>();`,
+      'export const load = async (): Promise<unknown> => {\n  const { createContext } = await import("react-router");\n  return createContext<string>();\n};',
     ]) {
       expect(
         await rulesReporting(
@@ -534,12 +543,20 @@ test(
 test(
   "accepts a context that is the value of a variable named with the suffix Context",
   async () => {
-    expect(
-      await rulesReporting(
-        `${createContextImport}export const sourceContext = createContext<string>();`,
-        "app/features/market-data/price-source-context.server.ts",
-      ),
-    ).not.toContain("no-restricted-syntax");
+    for (const code of [
+      `${createContextImport}export const sourceContext = createContext<string>();`,
+      'import { "createContext" as createContext } from "react-router";\nexport const sourceContext = createContext<string>();',
+      `${namespaceImport}export const sourceContext = Router.createContext<string>();`,
+      `${namespaceImport}export const sourceContext = Router["createContext"]<string>();`,
+    ]) {
+      expect(
+        await rulesReporting(
+          code,
+          "app/features/market-data/price-source-context.server.ts",
+        ),
+        code,
+      ).not.toContain("no-restricted-syntax");
+    }
   },
   minuteMilliseconds,
 );

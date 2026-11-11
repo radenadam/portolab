@@ -70,7 +70,10 @@ const parserForms = [
 const parser = `:matches(${parserForms.join(", ")})`;
 
 const contextName =
-  "A context of React Router is the value of a variable whose name ends in Context, and createContext keeps its name, so that the check of the contexts of features finds every context.";
+  "A context of React Router is the value of a variable whose name ends in Context, so that the check of the contexts of features finds every context. So createContext comes only from a named import under its own name, and a call of it, or of the createContext of a namespace, is the value of such a variable.";
+// The callee of a call whose value a variable named with the suffix Context holds, alone or as the member of a namespace, which is the one place where createContext may stand besides its import.
+const contextCall = "VariableDeclarator[id.name=/Context$/] > CallExpression";
+const contextCallee = `${contextCall} > Identifier.callee, ${contextCall} > MemberExpression.callee > .property`;
 
 const restrictedSyntax = [
   {
@@ -92,8 +95,7 @@ const restrictedSyntax = [
     message: parserSignature,
   },
   {
-    selector:
-      'CallExpression[callee.name="createContext"]:not(VariableDeclarator[id.name=/Context$/] > CallExpression)',
+    selector: `:matches(Identifier[name="createContext"], Literal[value="createContext"], TemplateLiteral[quasis.0.value.cooked="createContext"]):not(ImportSpecifier > *, ${contextCallee})`,
     message: contextName,
   },
   {
