@@ -1,7 +1,7 @@
 import { data, redirect } from "react-router";
 import type { RouterContextProvider } from "react-router";
 import { databaseContext } from "~/database/database.server";
-import { priceSourceContext } from "~/features/market-data/price-source-context.server";
+import { readPriceSourceDescription } from "~/features/market-data/price-source-context.server";
 import { trackedStockCodes } from "~/features/market-data/tracked-instruments";
 import { formatMarketTime } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
@@ -13,17 +13,22 @@ import { lotCount } from "./count-parts";
 import type { StudentPlace } from "./find-student-place.server";
 import type { OrderFailure } from "./order";
 import { limitPriceFailureText, orderFailureText } from "./order-failure-text";
-import { readOrderForm, typedOrderForm } from "./order-form-fields";
+import {
+  parseStockCode,
+  readOrderForm,
+  typedOrderForm,
+} from "./order-form-fields";
 import type { OrderFormFields } from "./order-form-fields";
 import { orderTradingDay } from "./order-trading-day";
 import { ordersPath } from "./orders-path";
 import { placePortfolioOrder } from "./place-portfolio-order.server";
 import type { OrderId } from "./trading.schema";
 
-/** The answer of the action of the orders to a form that it did not accept: the order form as the student sent it with the reason for each field, why the order was not accepted as a whole, and why no order was cancelled. */
+/** The answer of the action of the orders to a form that it did not accept: the order form as the student sent it with the reason for each field, why the order was not accepted as a whole, why the stock that the address chose was not accepted, and why no order was cancelled. */
 export interface OrdersAnswer {
   fields: OrderFormFields | undefined;
   failure: string | undefined;
+  stockFailure: string | undefined;
   cancelFailure: string | undefined;
 }
 
@@ -32,6 +37,11 @@ export interface OrdersForm {
   form: FormData;
   place: Pick<StudentPlace, "classId" | "owner">;
   now: Date;
+}
+
+/** An order form that a student sent, with the stock that the address of the page chose, as the address sends it. */
+export interface SentOrderForm extends OrdersForm {
+  chosenStock: string | null;
 }
 
 // A failure that the order causes is a wrong value. A record or a price that Portolab lacks keeps it from taking any such order for now.
@@ -50,12 +60,12 @@ const failureStatuses: Record<OrderFailure["kind"], number> = {
   notEnoughShares: 400,
 };
 
-/** Places the order of the form and opens the orders with the notice that Portolab accepted it, or answers with the reason that the form or the order was not accepted. */
+/** Places the order of the form for the stock that the address chose and opens the orders with the notice that Portolab accepted it, or answers with the reason that the form, the stock, or the order was not accepted. */
 export function placeFromForm(
   context: Readonly<RouterContextProvider>,
-  { form, place, now }: OrdersForm,
+  { form, place, now, chosenStock }: SentOrderForm,
 ): Response | ReturnType<typeof data<OrdersAnswer>> {
-  const { delayMinutes } = context.get(priceSourceContext);
+  const { delayMinutes } = readPriceSourceDescription(context);
   const day = orderTradingDay(now, delayMinutes);
   if (!day.ok) {
     return answer(
@@ -63,8 +73,17 @@ export function placeFromForm(
       failureStatuses[day.failure.kind],
     );
   }
+  // The order form appears only on a page whose address holds a stock that Portolab trades, so this reason belongs to an address that someone changed, and the page shows it at the field that chooses a stock.
+  const code = parseStockCode(
+    chosenStock,
+    m.trading_stock_label(),
+    trackedStockCodes,
+  );
+  if (!code.ok) {
+    return answer({ stockFailure: code.failure }, 400);
+  }
   const request = readOrderForm(form, {
-    codes: trackedStockCodes,
+    code: code.value,
     maximumLots: day.value.rules.maximumLots,
     placedAt: now,
   });
@@ -145,6 +164,7 @@ function answer(
     {
       fields: parts.fields,
       failure: parts.failure,
+      stockFailure: parts.stockFailure,
       cancelFailure: parts.cancelFailure,
     },
     { status },

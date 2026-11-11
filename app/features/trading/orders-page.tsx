@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
-import { Link } from "react-router";
-import type { data, ShouldRevalidateFunctionArgs } from "react-router";
+import { data, Link } from "react-router";
+import type { ShouldRevalidateFunctionArgs } from "react-router";
+import { databaseContext } from "~/database/database.server";
 import { classPath } from "~/features/classes/class-path";
 import type { ClassId } from "~/features/classes/classes.schema";
 import type { PriceSourceDescription } from "~/features/market-data/price-source.server";
@@ -25,10 +26,24 @@ import { portfolioPath } from "./portfolio-path";
 import { orderTradingDay } from "./order-trading-day";
 import type { TradingDayFailure } from "./order-trading-day";
 import type { Portfolio } from "./portfolio-store.server";
+import { readStockChoice } from "./read-stock-choice.server";
+import type { StockChoice } from "./read-stock-choice.server";
 import { readStudentPortfolio } from "./read-student-portfolio.server";
 import { CashSummary, HoldingList } from "./portfolio-summary";
 import styles from "./trading.module.css";
 import type { OrderId } from "./trading.schema";
+
+/** What the page of the orders of a student shows. */
+interface OrdersPageData {
+  classId: ClassId;
+  className: string;
+  portfolio: Portfolio;
+  now: Date;
+  source: PriceSourceDescription;
+  day: Result<OrderDay, TradingDayFailure>;
+  choice: StockChoice;
+  isPlaced: boolean;
+}
 
 export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
   return [
@@ -36,15 +51,12 @@ export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
   ];
 }
 
-export function loader({ context, request, params, url }: Route.LoaderArgs): {
-  classId: ClassId;
-  className: string;
-  portfolio: Portfolio;
-  now: Date;
-  source: PriceSourceDescription;
-  day: Result<OrderDay, TradingDayFailure>;
-  isPlaced: boolean;
-} {
+export function loader({
+  context,
+  request,
+  params,
+  url,
+}: Route.LoaderArgs): ReturnType<typeof data<OrdersPageData>> {
   const now = new Date();
   const { place, portfolio, source } = readStudentPortfolio(context, {
     request,
@@ -57,17 +69,32 @@ export function loader({ context, request, params, url }: Route.LoaderArgs): {
     url.searchParams.get("placed"),
     "placed",
   );
-  return {
-    classId: place.classId,
-    className: place.className,
-    portfolio,
-    now,
-    source,
-    day: day.ok ? succeed(orderDayOf(day.value)) : day,
-    // The notice confirms only an order of this portfolio, so an address with another number shows the orders without it.
-    isPlaced:
-      placed.ok && portfolio.orders.some((order) => order.id === placed.value),
-  };
+  // While the trading day lacks a record, the page offers no order and so chooses no stock for one.
+  const choice: StockChoice = day.ok
+    ? readStockChoice(
+        context.get(databaseContext),
+        url.searchParams.get("code"),
+      )
+    : { kind: "choosing", failure: undefined };
+  return data<OrdersPageData>(
+    {
+      classId: place.classId,
+      className: place.className,
+      portfolio,
+      now,
+      source,
+      day: day.ok ? succeed(orderDayOf(day.value)) : day,
+      choice,
+      // The notice confirms only an order of this portfolio, so an address with another number shows the orders without it.
+      isPlaced:
+        placed.ok &&
+        portfolio.orders.some((order) => order.id === placed.value),
+    },
+    {
+      status:
+        choice.kind === "choosing" && choice.failure !== undefined ? 400 : 200,
+    },
+  );
 }
 
 // The orders change while the page is open, such as by a fill of the price job or a cancel on another device, and after a form that Portolab refused, React Router keeps the orders that the page loaded. So the page loads them again after every form.
@@ -92,14 +119,19 @@ export async function action({
   // Each order in the list has a form that sends only the number of the order to cancel, and the order form never sends it.
   return form.has("cancel")
     ? cancelFromForm(context, { form, place, now })
-    : placeFromForm(context, { form, place, now });
+    : placeFromForm(context, {
+        form,
+        place,
+        now,
+        chosenStock: url.searchParams.get("code"),
+      });
 }
 
 export default function OrdersPage({
   loaderData,
   actionData,
 }: Route.ComponentProps): ReactNode {
-  const { portfolio, now, source, day } = loaderData;
+  const { portfolio, now, source } = loaderData;
   return (
     <>
       <h1>{m.trading_page_title({ class: loaderData.className })}</h1>
@@ -132,10 +164,12 @@ export default function OrdersPage({
       />
       <h2>{m.trading_place_title()}</h2>
       <PlaceOrderSection
-        day={day}
+        day={loaderData.day}
+        choice={loaderData.choice}
         codes={trackedStockCodes}
-        fields={actionData?.fields}
-        failure={actionData?.failure}
+        classId={loaderData.classId}
+        moment={{ now, delayMinutes: source.delayMinutes }}
+        answer={actionData}
       />
       <h2>{m.trading_open_orders_title()}</h2>
       {actionData?.cancelFailure !== undefined && (

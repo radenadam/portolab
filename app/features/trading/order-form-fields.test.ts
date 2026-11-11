@@ -6,7 +6,11 @@ import { locales } from "~/paraglide/runtime.js";
 import type { Locale } from "~/paraglide/runtime.js";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
 import { failureOf } from "~/result";
-import { readOrderForm, sideOptions } from "./order-form-fields";
+import {
+  parseStockCode,
+  readOrderForm,
+  sideOptions,
+} from "./order-form-fields";
 import type { OrderFormFields } from "./order-form-fields";
 import {
   duringSessionForTest,
@@ -26,7 +30,7 @@ const texts: Record<
     labels: { stock: string; side: string; priceKind: string; limit: string };
     noStock: string;
     unknownStock: readonly [string, string];
-    fileInStock: string;
+    fileInSide: string;
     farTooLong: (field: string, length: string) => string;
     lengths: { justPast: string; farPast: string };
     lotsLabel: string;
@@ -51,11 +55,11 @@ const texts: Record<
     },
     noStock: 'Kolom "Saham" belum berisi saham. Pilih saham untuk order ini.',
     unknownStock: [
-      'Formulir mengirim "',
-      '" di kolom "Saham", tetapi Portolab hanya memperdagangkan saham yang ada di daftar kolom itu. Muat ulang halaman, lalu pilih salah satunya.',
+      'Alamat halaman ini menyebut "',
+      '" sebagai saham, tetapi Portolab hanya memperdagangkan saham yang ada di daftar kolom "Saham". Pilih salah satunya.',
     ],
-    fileInStock:
-      'Formulir mengirim nilai bertipe File di kolom "Saham", bukan teks. Muat ulang halaman, lalu isi formulirnya lagi.',
+    fileInSide:
+      'Formulir mengirim nilai bertipe File di kolom "Beli atau jual", bukan teks. Muat ulang halaman, lalu isi formulirnya lagi.',
     farTooLong: (field, length) =>
       `Kolom "${field}" berisi ${length} karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.`,
     lengths: { justPast: "8.001", farPast: "1.000.000" },
@@ -109,11 +113,11 @@ const texts: Record<
     noStock:
       'The field "Stock" holds no stock yet. Choose the stock of the order.',
     unknownStock: [
-      'The form sent "',
-      '" in the field "Stock", but Portolab trades only the stocks in the list of that field. Reload the page and choose one of them.',
+      'The address of this page names "',
+      '" as the stock, but Portolab trades only the stocks in the list of the field "Stock". Choose one of them.',
     ],
-    fileInStock:
-      'The form sent a value of type File in the field "Stock" instead of text. Reload the page and fill in the form again.',
+    fileInSide:
+      'The form sent a value of type File in the field "Buy or sell" instead of text. Reload the page and fill in the form again.',
     farTooLong: (field, length) =>
       `The field "${field}" has ${length} characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.`,
     lengths: { justPast: "8,001", farPast: "1,000,000" },
@@ -158,11 +162,10 @@ const texts: Record<
   },
 };
 
-const order = { codes, maximumLots, placedAt: duringSessionForTest };
+const order = { code: "BBCA", maximumLots, placedAt: duringSessionForTest };
 
-// A limit purchase of 5 lots of BBCA at Rp5,000, of which a test changes or leaves out a field.
+// A limit purchase of 5 lots at Rp5,000, of which a test changes or leaves out a field.
 const limitPurchase: Record<string, string> = {
-  code: "BBCA",
   side: "buy",
   priceKind: "limit",
   lots: "5",
@@ -198,40 +201,38 @@ for (const locale of locales) {
   const text = texts[locale];
   const language = languageNames[locale];
 
-  test(`reads a stock of the list of the field, and rejects a field without a stock, with another stock, or with a file, in ${language}`, () => {
+  test(`reads a stock of the list of the field from the address, and rejects an address without a stock or with another stock, in ${language}`, () => {
     switchLocaleForTest(locale);
-    expect(readFields({ ...limitPurchase, code: "TLKM" })).toMatchObject({
+    const source = text.labels.stock;
+    expect(parseStockCode("TLKM", source, codes)).toEqual({
       ok: true,
-      value: { code: "TLKM" },
+      value: "TLKM",
     });
-    for (const fields of [
-      withoutFields(["code"]),
-      { ...limitPurchase, code: "" },
-    ]) {
-      expect(failuresOfForm(fields)?.codeFailure).toBe(text.noStock);
+    for (const missing of [null, ""]) {
+      expect(parseStockCode(missing, source, codes), String(missing)).toEqual({
+        ok: false,
+        failure: text.noStock,
+      });
     }
     for (const other of ["BREN", "bbca", " BBCA "]) {
-      expect(
-        failuresOfForm({ ...limitPurchase, code: other })?.codeFailure,
-        other,
-      ).toBe(`${text.unknownStock[0]}${other.trim()}${text.unknownStock[1]}`);
+      expect(parseStockCode(other, source, codes), other).toEqual({
+        ok: false,
+        failure: `${text.unknownStock[0]}${other.trim()}${text.unknownStock[1]}`,
+      });
     }
-    const withFile = formDataForTest(limitPurchase);
-    withFile.set("code", new File([], "BBCA"));
-    expect(readOrderForm(withFile, order)).toMatchObject({
-      ok: false,
-      failure: { codeFailure: text.fileInStock },
-    });
   });
 
-  test(`judges each field of the order form at the length of the longest field by its own rule, and rejects it just past and far past that length before any other work, in ${language}`, () => {
+  test(`judges the stock of the address and each field of the order form at the length of the longest field by its own rule, and rejects it just past and far past that length before any other work, in ${language}`, () => {
     switchLocaleForTest(locale);
     const { labels } = text;
     const atLimit = "1".repeat(fieldMaximumLength);
+    expect(parseStockCode(atLimit, labels.stock, codes)).toEqual({
+      ok: false,
+      failure: `${text.unknownStock[0]}${atLimit}${text.unknownStock[1]}`,
+    });
     expect(
       readOrderForm(
         formDataForTest({
-          code: atLimit,
           side: atLimit,
           priceKind: "limit",
           lots: atLimit,
@@ -242,7 +243,6 @@ for (const locale of locales) {
     ).toMatchObject({
       ok: false,
       failure: {
-        codeFailure: `${text.unknownStock[0]}${atLimit}${text.unknownStock[1]}`,
         sideFailure: `${text.unknownSide[0]}${atLimit}${text.unknownSide[1]}`,
         lotsFailure: `${text.tooManyLots[0]}${atLimit}${text.tooManyLots[1]}`,
         limitFailure: undefined,
@@ -261,10 +261,13 @@ for (const locale of locales) {
       [1_000_000, text.lengths.farPast],
     ] as const) {
       const long = "1".repeat(length);
+      expect(parseStockCode(long, labels.stock, codes)).toEqual({
+        ok: false,
+        failure: text.farTooLong(labels.stock, written),
+      });
       expect(
         readOrderForm(
           formDataForTest({
-            code: long,
             side: long,
             priceKind: "limit",
             lots: long,
@@ -275,7 +278,6 @@ for (const locale of locales) {
       ).toMatchObject({
         ok: false,
         failure: {
-          codeFailure: text.farTooLong(labels.stock, written),
           sideFailure: text.farTooLong(labels.side, written),
           lotsFailure: text.farTooLong(text.lotsLabel, written),
           limitFailure: text.farTooLong(labels.limit, written),
@@ -292,7 +294,7 @@ for (const locale of locales) {
     }
   });
 
-  test(`reads the side and the kind of an order from their options, and names the options when the field holds none of them, in ${language}`, () => {
+  test(`reads the side and the kind of an order from their options, names the options when the field holds none of them, and rejects a file, in ${language}`, () => {
     switchLocaleForTest(locale);
     for (const option of sideOptions()) {
       expect(
@@ -309,6 +311,12 @@ for (const locale of locales) {
     expect(
       failuresOfForm({ ...limitPurchase, side: "hold" })?.sideFailure,
     ).toBe(`${text.unknownSide[0]}hold${text.unknownSide[1]}`);
+    const withFile = formDataForTest(limitPurchase);
+    withFile.set("side", new File([], "buy"));
+    expect(readOrderForm(withFile, order)).toMatchObject({
+      ok: false,
+      failure: { sideFailure: text.fileInSide },
+    });
   });
 
   test(`reads a limit price in whole rupiah, in digits alone or in the groups of digits that Portolab writes in ${language}`, () => {
@@ -349,9 +357,9 @@ for (const locale of locales) {
     }
   });
 
-  test(`reads an order from the form, and the limit price only of a limit order, in ${language}`, () => {
+  test(`reads an order of the stock of the address from the form, and the limit price only of a limit order, in ${language}`, () => {
     switchLocaleForTest(locale);
-    const fields = { code: "BBCA", side: "sell", lots: "5" };
+    const fields = { side: "sell", lots: "5" };
     expect(
       readOrderForm(
         formDataForTest({ ...fields, priceKind: "market", limit: "lima ribu" }),
@@ -385,12 +393,10 @@ for (const locale of locales) {
     ).toEqual({
       ok: false,
       failure: {
-        code: "",
         side: "",
         priceKind: "limit",
         lots: "",
         limit: " ",
-        codeFailure: text.noStock,
         sideFailure: text.noSide,
         priceKindFailure: undefined,
         lotsFailure: text.emptyLots,

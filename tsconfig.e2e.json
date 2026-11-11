@@ -40,9 +40,13 @@
     "app/features/market-data/build-daily-history.ts",
     "app/features/market-data/fixture-history.ts",
     "app/features/market-data/history-store.server.ts",
+    "app/features/market-data/left-out-quotes-for-test.ts",
     "app/features/market-data/market-data.schema.ts",
     "app/features/market-data/price-source.server.ts",
+    "app/features/market-data/quote-store.server.ts",
+    "app/features/market-data/stock-quote.ts",
     "app/features/market-data/tracked-instruments.ts",
+    "app/features/market-data/update-attempts.server.ts",
     "app/features/measures/month-end-closes-for-test.ts",
     "app/features/trading/trading.schema.ts",
     "app/workbook/read-zip-for-test.server.ts"

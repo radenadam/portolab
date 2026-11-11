@@ -1,6 +1,7 @@
 import type { Database } from "~/database/database.server";
 import { fail, succeed } from "~/result";
 import { fixturePriceSource } from "./fixture-price-source.server";
+import { leftOutQuotesForTest } from "./left-out-quotes-for-test";
 import { runQuoteUpdate } from "./price-job.server";
 import type { PriceJobSettings } from "./price-job-settings";
 import type { PriceSource, Quote } from "./price-source.server";
@@ -20,6 +21,24 @@ export function sourceAnsweringForTest(quotes: readonly Quote[]): PriceSource {
       Promise.resolve(succeed({ quotes: [...quotes], problems: [] })),
   };
 }
+
+/** A source that answers as the fixture source does, and also with the quotes that the fixture source leaves out, so that it answers for every instrument that Portolab tracks. */
+export const completeSourceForTest: PriceSource = {
+  ...fixturePriceSource,
+  fetchQuotes: async (instruments, signal) => {
+    const answer = await fixturePriceSource.fetchQuotes(instruments, signal);
+    if (!answer.ok) {
+      return answer;
+    }
+    const leftOut = leftOutQuotesForTest.filter((quote) =>
+      instruments.some((instrument) => instrument.code === quote.code),
+    );
+    return succeed({
+      quotes: [...answer.value.quotes, ...leftOut],
+      problems: [],
+    });
+  },
+};
 
 /** The settings of the price job for the tracked instruments and a source of a test. */
 export function jobSettingsForTest(

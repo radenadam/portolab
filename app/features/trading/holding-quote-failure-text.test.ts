@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+import { attemptForCodes } from "~/features/market-data/quote-failure-text";
 import { stockQuote } from "~/features/market-data/stock-quote";
 import type { UpdateAttempt } from "~/features/market-data/update-attempts.server";
 import { languageNames } from "~/language-names";
@@ -24,7 +25,7 @@ const quotes = new Map([
   ["TLKM", stockQuote("TLKM", [1_980, 1_980], "2026-11-03T02:50:00Z")],
 ]);
 
-/** The valuation of a portfolio of the test that holds the stocks of some codes, with the latest attempt narrowed to them, as readPortfolioValuation narrows it. */
+/** The valuation of a portfolio of the test that holds the stocks of some codes, with the latest attempt narrowed to them, as readPortfolioValuation narrows it through attemptForCodes. */
 function reportForTest(codes: readonly string[]): ValuationReport {
   return {
     valuation: valuePortfolio(
@@ -39,10 +40,7 @@ function reportForTest(codes: readonly string[]): ValuationReport {
       rupiah(10_000_000),
       quotes,
     ),
-    quoteAttempt: {
-      ...attempt,
-      failedCodes: attempt.failedCodes.filter((code) => codes.includes(code)),
-    },
+    quoteAttempt: attemptForCodes(attempt, codes),
   };
 }
 

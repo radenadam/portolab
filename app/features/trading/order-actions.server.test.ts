@@ -13,7 +13,7 @@ import type { ClassId } from "~/features/classes/classes.schema";
 import { successValueForTest } from "~/success-value-for-test";
 import { parseRecordId } from "~/value-parsers";
 import { cancelFromForm, placeFromForm } from "./order-actions.server";
-import type { OrdersForm } from "./order-actions.server";
+import type { SentOrderForm } from "./order-actions.server";
 import {
   bbcaCloseOfFridayForTest,
   duringSessionForTest,
@@ -34,6 +34,8 @@ const texts: Record<
     noReferenceClose: string;
     outsideLimits: string;
     missingRules: string;
+    noStock: string;
+    unknownStock: string;
   }
 > = {
   id: {
@@ -47,6 +49,9 @@ const texts: Record<
       'Kolom "Harga limit" berisi "9.000", tetapi BEI menolak harga itu untuk BBCA pada 2 November 2026 karena batas auto rejection. Batas itu mengizinkan harga paling jauh 25% di atas dan 7% di bawah harga acuan Rp\u00a04.980, dan setiap ujung rentangnya adalah harga sah terdekat di dalam batas itu. BEI menetapkan harga acuan dari harga penutupan terakhir BBCA sebelum hari itu. Pilih harga dari Rp\u00a04.640 sampai Rp\u00a06.225.',
     missingRules:
       "Portolab belum dapat menerima order ini, karena aturan BEI untuk hari bursa order ini belum tercatat. Beri tahu dosen Anda agar aturan tersebut dapat ditambahkan.",
+    noStock: 'Kolom "Saham" belum berisi saham. Pilih saham untuk order ini.',
+    unknownStock:
+      'Alamat halaman ini menyebut "BREN" sebagai saham, tetapi Portolab hanya memperdagangkan saham yang ada di daftar kolom "Saham". Pilih salah satunya.',
   },
   en: {
     missingOrder:
@@ -59,6 +64,10 @@ const texts: Record<
       'The field "Limit price" holds "9,000", but IDX rejects that price for BBCA on November 2, 2026 by its auto rejection limits. They allow a price at most 25% above and 7% below the reference price of IDR\u00a04,980, and each end of the range is the nearest valid price inside those limits. IDX sets the reference price from the latest close of BBCA before that day. Choose a price from IDR\u00a04,640 to IDR\u00a06,225.',
     missingRules:
       "Portolab cannot take this order yet, because it has not recorded the rules of IDX for the trading day of the order. Tell your lecturer, so that the rules can be added.",
+    noStock:
+      'The field "Stock" holds no stock yet. Choose the stock of the order.',
+    unknownStock:
+      'The address of this page names "BREN" as the stock, but Portolab trades only the stocks in the list of the field "Stock". Choose one of them.',
   },
 };
 
@@ -70,10 +79,14 @@ function contextForTest(database: Database): RouterContextProvider {
   return context;
 }
 
-/** A student with a portfolio in a class whose stored quote of BBCA is the close of Friday, and the form request of the student at a moment. */
+/** A student with a portfolio in a class whose stored quote of BBCA is the close of Friday, and the form request of the student at a moment, from the orders whose address chose BBCA unless the test gives another stock as the address sends it. */
 async function studentRequestForTest(): Promise<{
   database: Database;
-  request: (fields: Record<string, string>, now: Date) => OrdersForm;
+  request: (
+    fields: Record<string, string>,
+    now: Date,
+    chosenStock?: string | null,
+  ) => SentOrderForm;
 }> {
   const { database, owner } = await studentWithQuotesForTest(
     [bbcaCloseOfFridayForTest],
@@ -81,16 +94,16 @@ async function studentRequestForTest(): Promise<{
   );
   return {
     database,
-    request: (fields, now) => ({
+    request: (fields, now, chosenStock = "BBCA") => ({
       form: formDataForTest(fields),
       place: { classId, owner },
       now,
+      chosenStock,
     }),
   };
 }
 
 const purchase = {
-  code: "BBCA",
   side: "buy",
   priceKind: "market",
   lots: "5",
@@ -167,7 +180,7 @@ for (const locale of locales) {
       placeFromForm(context, request(limit, new Date("2026-11-03T01:50:00Z"))),
     ).toMatchObject({
       data: {
-        fields: { code: "BBCA", limitFailure: undefined },
+        fields: { side: "buy", limitFailure: undefined },
         failure: text.noReferenceClose,
       },
       init: { status: 503 },
@@ -183,8 +196,33 @@ for (const locale of locales) {
         request(purchase, new Date("2028-01-03T03:00:00Z")),
       ),
     ).toMatchObject({
-      data: { fields: { code: "BBCA" }, failure: text.missingRules },
+      data: { fields: { side: "buy" }, failure: text.missingRules },
       init: { status: 503 },
     });
+  });
+
+  test(`refuses an order from an address that chooses no stock or a stock that Portolab does not trade, with the reason for the field that chooses a stock, in ${language}`, async () => {
+    switchLocaleForTest(locale);
+    const { database, request } = await studentRequestForTest();
+    for (const [chosenStock, stockFailure] of [
+      [null, text.noStock],
+      ["BREN", text.unknownStock],
+    ] as const) {
+      expect(
+        placeFromForm(
+          contextForTest(database),
+          request(purchase, duringSessionForTest, chosenStock),
+        ),
+        String(chosenStock),
+      ).toMatchObject({
+        data: {
+          fields: undefined,
+          failure: undefined,
+          stockFailure,
+          cancelFailure: undefined,
+        },
+        init: { status: 400 },
+      });
+    }
   });
 }

@@ -1,12 +1,6 @@
 import type { ReactNode } from "react";
 import { Form } from "react-router";
-import {
-  ChoiceField,
-  FormFailure,
-  SelectField,
-  SubmitButton,
-  TextField,
-} from "~/form";
+import { ChoiceField, FormFailure, SubmitButton, TextField } from "~/form";
 import formStyles from "~/form.module.css";
 import { formatCalendarDate, formatMarketClock } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
@@ -43,8 +37,6 @@ export function orderDayOf(day: OrderTradingDay): OrderDay {
 }
 
 interface OrderFormProps {
-  /** The codes of the stocks that the form offers. */
-  codes: readonly string[];
   day: OrderDay;
   /** What the student sent, with the reason that each field was not accepted. */
   fields: OrderFormFields | undefined;
@@ -52,9 +44,8 @@ interface OrderFormProps {
   failure: string | undefined;
 }
 
-/** The form with which a student places an order: the stock, buy or sell, a market or a limit order, the lots, and the limit price, with the trading day of an order placed now. */
+/** The form with which a student places an order of the stock that the address of the page chose: buy or sell, a market or a limit order, the lots, and the limit price, with the trading day of an order placed now. It sends the order to the address of the page, which keeps the stock. */
 export function OrderForm({
-  codes,
   day,
   fields = blankOrderForm,
   failure,
@@ -69,15 +60,6 @@ export function OrderForm({
         })}
       </p>
       {failure !== undefined && <FormFailure text={failure} />}
-      <SelectField
-        name="code"
-        label={m.trading_stock_label()}
-        placeholder={m.trading_choose_stock_label()}
-        options={codes.map((code) => ({ value: code, label: code }))}
-        hint={m.trading_stock_hint()}
-        failure={fields.codeFailure}
-        defaultValue={fields.code}
-      />
       <ChoiceField
         name="side"
         label={m.trading_side_label()}

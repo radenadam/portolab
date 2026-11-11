@@ -1,5 +1,5 @@
-import { rupiah } from "~/units/rupiah";
-import type { StockQuote } from "./price-source.server";
+import { rupiah } from "../../units/rupiah.ts";
+import type { StockQuote } from "./price-source.server.ts";
 
 /** A delayed quote of a stock from prices that the program holds, such as an answer of a source that it recorded: the price, the close of the trading day before it, and the moment of the quote. */
 export function stockQuote(
