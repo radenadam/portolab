@@ -15,7 +15,7 @@ export default function handleRequest(
   request: Request,
   responseStatusCode: number,
   responseHeaders: Headers,
-  routerContext: EntryContext,
+  entry: EntryContext,
 ): Promise<Response> | Response {
   if (request.method.toUpperCase() === "HEAD") {
     return new Response(null, {
@@ -52,7 +52,7 @@ export default function handleRequest(
     };
 
     const { pipe, abort } = renderToPipeableStream(
-      <ServerRouter context={routerContext} url={request.url} />,
+      <ServerRouter context={entry} url={request.url} />,
       {
         ...(waitsForAllContent
           ? { onAllReady: onReady }

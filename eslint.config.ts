@@ -70,10 +70,25 @@ const parserForms = [
 const parser = `:matches(${parserForms.join(", ")})`;
 
 const contextName =
-  "A context of React Router is the value of a variable whose name ends in Context, so that the check of the contexts of features finds every context. So createContext comes only from a named import under its own name, and a call of it, or of the createContext of a namespace, is the value of such a variable.";
-// The callee of a call whose value a variable named with the suffix Context holds, alone or as the member of a namespace, which is the one place where createContext may stand besides its import.
-const contextCall = "VariableDeclarator[id.name=/Context$/] > CallExpression";
+  "A context of React Router keeps a name that ends in Context from the constant that creates it to each call of get or set that takes it, so that the check of the contexts of features finds every context. So createContext comes only from a named import under its own name, a module creates a context only as a constant that it exports at its top level, an import or an export of a context keeps the suffix, and a context stands nowhere else.";
+// A constant that a module exports at its top level, which is the one place where a module creates a context.
+const contextDeclarator =
+  'Program > ExportNamedDeclaration > VariableDeclaration[kind="const"] > VariableDeclarator[id.name=/Context$/]';
+// The callee of the call that creates a context, alone or as the member of a namespace, which is the one place where createContext may stand besides its import.
+const contextCall = `${contextDeclarator} > CallExpression`;
 const contextCallee = `${contextCall} > Identifier.callee, ${contextCall} > MemberExpression.callee > .property`;
+// A name of a context starts with a lowercase letter, unlike a type such as EntryContext, and createContext is no context.
+const contextNamePattern = "/^[a-z][A-Za-z0-9]*Context$/";
+// The positions where the name of a context may stand: the constant that creates it, an import or an export, a type that takes its type, the first argument of a call of get or set, and a method that only ends in Context, such as newContext of Playwright.
+const contextPlaces = [
+  `${contextDeclarator} > Identifier.id`,
+  "ImportSpecifier > *",
+  "ExportSpecifier > *",
+  "TSTypeQuery > Identifier",
+  "CallExpression[callee.property.name=/^(get|set)$/] > Identifier.arguments:first-child",
+  "CallExpression > MemberExpression.callee > Identifier.property",
+  ":matches(Property[method=true], MethodDefinition) > Identifier.key",
+];
 
 const restrictedSyntax = [
   {
@@ -101,6 +116,24 @@ const restrictedSyntax = [
   {
     selector:
       'ImportSpecifier:matches([imported.name="createContext"], [imported.value="createContext"]):not([local.name="createContext"])',
+    message: contextName,
+  },
+  {
+    selector: `Identifier[name=${contextNamePattern}][name!="createContext"]:not(${contextPlaces.join(", ")})`,
+    message: contextName,
+  },
+  {
+    selector: `:matches(Literal[value=${contextNamePattern}][value!="createContext"], TemplateLiteral[quasis.0.value.cooked=${contextNamePattern}][quasis.0.value.cooked!="createContext"]):not(ImportSpecifier > *, ExportSpecifier > *)`,
+    message: contextName,
+  },
+  {
+    selector:
+      "ExportSpecifier:matches([local.name=/Context$/], [local.value=/Context$/]):not([exported.name=/Context$/], [exported.value=/Context$/])",
+    message: contextName,
+  },
+  {
+    selector:
+      "ImportSpecifier:matches([imported.name=/Context$/], [imported.value=/Context$/]):not([local.name=/Context$/])",
     message: contextName,
   },
 ];
