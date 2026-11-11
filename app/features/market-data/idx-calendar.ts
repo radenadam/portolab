@@ -177,6 +177,15 @@ export function tradingDayAfter(date: string): Result<string, string> {
   return nextTradingDay(date, 1);
 }
 
+/** Whether IDX trades on a date, which is a weekday that is not a holiday. It fails for a date that no calendar covers. */
+export function isTradingDay(date: string): Result<boolean, string> {
+  const calendar = calendarFor(date);
+  if (!calendar.ok) {
+    return calendar;
+  }
+  return succeed(isTradingDayIn(calendar.value, date));
+}
+
 function nextTradingDay(date: string, step: 1 | -1): Result<string, string> {
   return searchDays(addDays(date, step), step, (calendar, candidate) =>
     isTradingDayIn(calendar, candidate) ? candidate : undefined,

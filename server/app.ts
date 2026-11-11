@@ -30,6 +30,7 @@ import type { PriceSource } from "~/features/market-data/price-source.server";
 import { trackedInstruments } from "~/features/market-data/tracked-instruments";
 import { createYahooPriceSource } from "~/features/market-data/yahoo-price-source.server";
 import { checkAllOpenOrders } from "~/features/trading/check-open-orders.server";
+import { missingOrderDataWarnings } from "~/features/trading/missing-order-data-warnings";
 import {
   defaultEstimationSettings,
   earliestCloseDate,
@@ -51,7 +52,7 @@ export interface Services {
   stop: () => void;
 }
 
-/** Opens the database, starts the price job, which checks the open orders after each update of quotes, and the sweep of ended sessions, and creates the limits on passwords and on joining classes, with the settings that the server read at startup. */
+/** Opens the database, starts the price job, which checks the open orders after each update of quotes and warns about a trading day of the coming weeks that lacks a record that orders need, and the sweep of ended sessions, and creates the limits on passwords and on joining classes, with the settings that the server read at startup. */
 export function startServices(settings: ServiceSettings): Services {
   const database = openDatabase(
     settings.databasePath,
@@ -72,6 +73,7 @@ export function startServices(settings: ServiceSettings): Services {
     (now) => {
       checkAllOpenOrders(database, now);
     },
+    missingOrderDataWarnings,
   );
   const stopSessionSweep = startSessionSweep(database);
   return {
