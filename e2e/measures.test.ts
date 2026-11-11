@@ -6,6 +6,7 @@ import type { Locale } from "../app/paraglide/runtime.js";
 import { bbcaHolding } from "./bbca-holding.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 import { expectMissingClassPages } from "./expect-missing-class-pages.ts";
+import { expectTexts } from "./expect-texts.ts";
 import { expectPageHeadings } from "./expect-page-headings.ts";
 import { itmgPortfolio } from "./itmg-portfolio.ts";
 import { storeTestHolding } from "./store-test-holding.ts";
@@ -405,9 +406,7 @@ for (const locale of locales) {
         path,
       );
     }
-    for (const notice of [text.methodNotice, text.months, text.below]) {
-      await expect(main).toContainText(notice);
-    }
+    await expectTexts(main, [text.methodNotice, text.months, text.below]);
     await expect(main.locator("dl").first()).toHaveText(text.measures);
     const tables = main.locator("table");
     const weightRows = tables.nth(0).locator("tbody tr");

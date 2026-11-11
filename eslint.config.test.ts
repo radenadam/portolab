@@ -354,17 +354,13 @@ test(
 );
 
 test(
-  "accepts loading a feature in the modules that compose the app and in the features",
+  "accepts loading a feature in the modules that compose the app",
   async () => {
     for (const [filePath, path] of [
       ["app/root.tsx", "./features/market-data/quote-change"],
       ["app/routes.ts", "~/features/market-data/quote-change"],
       ["server/app.ts", "~/features/market-data/quote-change"],
       ["server/account.ts", "../app/features/market-data/quote-change.ts"],
-      [
-        "app/features/market-data/prices-view.tsx",
-        "~/features/language/language-switch",
-      ],
     ] as const) {
       for (const [form, write] of Object.entries(loadingForms)) {
         const rules = await rulesReporting(write(path), filePath);
@@ -378,6 +374,174 @@ test(
     }
   },
   2 * minuteMilliseconds,
+);
+
+/** Code that loads a module at a path, and takes a name of it or everything of it. */
+type LoadingForm = (path: string, name: string) => string;
+
+// Every way to load a module that names what it takes, which the check accepts for a name that is no context.
+const namingForms: Record<string, LoadingForm> = {
+  "static import": (path, name) =>
+    `import { ${name} } from "${path}";\nexport const loaded = ${name};`,
+  "renamed import": (path, name) =>
+    `import { ${name} as loaded } from "${path}";\nexport { loaded };`,
+  "type import": (path, name) =>
+    `import type { ${name} } from "${path}";\nexport type Loaded = typeof ${name};`,
+  "export from": (path, name) => `export { ${name} } from "${path}";`,
+  "renamed export from": (path, name) =>
+    `export { ${name} as loaded } from "${path}";`,
+};
+
+// Every way to load everything of a module, which the check refuses from another feature, because it cannot see whether it takes a context.
+const wholeModuleForms: Record<string, LoadingForm> = {
+  "export all from": (path) => `export * from "${path}";`,
+  "export all as from": (path) => `export * as loaded from "${path}";`,
+  "namespace import": (path, name) =>
+    `import * as loaded from "${path}";\nexport const value = loaded.${name};`,
+  "dynamic import": (path) =>
+    `export const load = async (): Promise<unknown> => import("${path}");`,
+  "dynamic import of a template": (path) =>
+    `export const load = async (): Promise<unknown> => import(\`${path}\`);`,
+};
+
+const contextLoadingForms = { ...namingForms, ...wholeModuleForms };
+
+/** Whether a rule that restricts loading a module reports the code at the path. */
+async function isLoadingRefused(
+  code: string,
+  filePath: string,
+): Promise<boolean> {
+  const rules = await rulesReporting(code, filePath);
+  return (
+    rules.includes("no-restricted-imports") ||
+    rules.includes("no-restricted-syntax")
+  );
+}
+
+// A module of trading, with the paths to the context of the price source of market-data that it can write: the alias, a path to a sibling folder, and paths that climb to the folder of the features and of the app.
+const tradingModule = "app/features/trading/orders-page.tsx";
+const otherFeatureContextPaths = [
+  "~/features/market-data/price-source-context.server",
+  "../market-data/price-source-context.server",
+  "../../features/market-data/price-source-context.server",
+  "../../../app/features/market-data/price-source-context.server.ts",
+];
+
+test(
+  "rejects every way to load a context of another feature, or everything of another feature, in a feature",
+  async () => {
+    for (const path of otherFeatureContextPaths) {
+      for (const [form, write] of Object.entries(contextLoadingForms)) {
+        expect(
+          await isLoadingRefused(
+            write(path, "priceSourceContext"),
+            tradingModule,
+          ),
+          `${form} of ${path}`,
+        ).toBe(true);
+      }
+    }
+  },
+  2 * minuteMilliseconds,
+);
+
+test(
+  "accepts a context of the same feature or of no feature, a name of another feature that is no context, and a context of another feature in tests",
+  async () => {
+    const accepted: {
+      filePath: string;
+      paths: readonly string[];
+      name: string;
+      forms: Record<string, LoadingForm>;
+    }[] = [
+      {
+        filePath: "app/features/market-data/prices-page.tsx",
+        paths: [
+          "./price-source-context.server",
+          "~/features/market-data/price-source-context.server",
+          "../market-data/price-source-context.server",
+        ],
+        name: "priceSourceContext",
+        forms: contextLoadingForms,
+      },
+      {
+        filePath: tradingModule,
+        paths: [
+          "~/database/database.server",
+          "../../database/database.server.ts",
+        ],
+        name: "databaseContext",
+        forms: contextLoadingForms,
+      },
+      {
+        filePath: tradingModule,
+        paths: otherFeatureContextPaths,
+        name: "readPriceSourceDescription",
+        forms: namingForms,
+      },
+      {
+        filePath: "app/features/trading/order-actions.server.test.ts",
+        paths: otherFeatureContextPaths,
+        name: "priceSourceContext",
+        forms: contextLoadingForms,
+      },
+      {
+        filePath: "app/features/trading/orders-for-test.ts",
+        paths: otherFeatureContextPaths,
+        name: "priceSourceContext",
+        forms: contextLoadingForms,
+      },
+    ];
+    for (const { filePath, paths, name, forms } of accepted) {
+      for (const path of paths) {
+        for (const [form, write] of Object.entries(forms)) {
+          expect(
+            await isLoadingRefused(write(path, name), filePath),
+            `${form} of ${name} from ${path} in ${filePath}`,
+          ).toBe(false);
+        }
+      }
+    }
+  },
+  4 * minuteMilliseconds,
+);
+
+const createContextImport = 'import { createContext } from "react-router";\n';
+
+test(
+  "rejects a context that is not the value of a variable named with the suffix Context, and a renamed createContext",
+  async () => {
+    for (const code of [
+      `${createContextImport}export const source = createContext<string>();`,
+      `${createContextImport}export const holder = { sourceContext: createContext<string>() };`,
+      `${createContextImport}export let sourceContext = createContext<string>();\nsourceContext = createContext<string>();`,
+      `${createContextImport}export const contexts = [createContext<string>()];`,
+      'import { createContext as makeContext } from "react-router";\nexport { makeContext };',
+      'import { "createContext" as makeContext } from "react-router";\nexport { makeContext };',
+    ]) {
+      expect(
+        await rulesReporting(
+          code,
+          "app/features/market-data/price-source-context.server.ts",
+        ),
+        code,
+      ).toContain("no-restricted-syntax");
+    }
+  },
+  minuteMilliseconds,
+);
+
+test(
+  "accepts a context that is the value of a variable named with the suffix Context",
+  async () => {
+    expect(
+      await rulesReporting(
+        `${createContextImport}export const sourceContext = createContext<string>();`,
+        "app/features/market-data/price-source-context.server.ts",
+      ),
+    ).not.toContain("no-restricted-syntax");
+  },
+  minuteMilliseconds,
 );
 
 const fileNameRule = "portolab/file-named-after-export";

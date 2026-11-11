@@ -13,7 +13,7 @@ import { createTestClass } from "./create-test-class.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 import { expectMissingPage } from "./expect-missing-page.ts";
 import { expectPageHeadings } from "./expect-page-headings.ts";
-import { expectTextParts } from "./expect-text-parts.ts";
+import { expectTexts } from "./expect-texts.ts";
 import { newDevice } from "./new-device.ts";
 import { storeTestHolding } from "./store-test-holding.ts";
 import { studentOfNewClass } from "./student-of-new-class.ts";
@@ -424,17 +424,6 @@ async function placeOrder(
   await main.getByRole("button", { name: labels.place }).click();
 }
 
-/** Checks that the main part of a page shows each text. */
-async function expectTexts(
-  page: Page,
-  shown: readonly string[],
-): Promise<void> {
-  const main = page.getByRole("main");
-  for (const text of shown) {
-    await expect(main).toContainText(text);
-  }
-}
-
 for (const locale of locales) {
   const text = texts[locale];
   const language = languageNames[locale];
@@ -457,7 +446,7 @@ for (const locale of locales) {
     await expect(student.locator("main dl")).toHaveText(
       text.startingCash.join(""),
     );
-    await expectTexts(student, [
+    await expectTexts(student.getByRole("main"), [
       text.fillNotice,
       text.noHoldings,
       text.stockHint,
@@ -470,14 +459,17 @@ for (const locale of locales) {
     await expectAccessibleScreen(student);
 
     await chooseStock(student, locale, "");
-    await expectTexts(student, [text.noStock]);
+    await expectTexts(student.getByRole("main"), [text.noStock]);
     await expectAccessibleScreen(student);
 
     await chooseStock(student, locale, "AADI");
     await expectChosenPrice(student, locale, "AADI");
-    await expectTexts(student, [...text.dayNotice, text.lotsHint]);
+    await expectTexts(student.getByRole("main"), [
+      ...text.dayNotice,
+      text.lotsHint,
+    ]);
     await placeOrder(student, locale, {});
-    await expectTexts(student, [text.noSide, text.emptyLots]);
+    await expectTexts(student.getByRole("main"), [text.noSide, text.emptyLots]);
     await expectAccessibleScreen(student);
     await placeOrder(student, locale, { side: "buy", lots: "1" });
     await expect(student.getByRole("alert")).toHaveText(text.tooFewReturns);
@@ -492,7 +484,7 @@ for (const locale of locales) {
       lots: "5",
       limit: text.typedLimit,
     });
-    await expectTextParts(student.getByRole("alert"), text.noReferenceClose);
+    await expectTexts(student.getByRole("alert"), text.noReferenceClose);
     await expect(
       student.getByRole("main").getByLabel(text.labels.limit, { exact: true }),
     ).toHaveValue(text.typedLimit);
@@ -508,7 +500,10 @@ for (const locale of locales) {
     });
     await expect(student).toHaveURL(/\/orders\?placed=\d+$/);
     await expect(student.getByRole("status")).toHaveText(text.placed);
-    await expectTexts(student, [...text.purchase, ...text.cashWithPurchase]);
+    await expectTexts(student.getByRole("main"), [
+      ...text.purchase,
+      ...text.cashWithPurchase,
+    ]);
     await expectAccessibleScreen(student);
 
     // A second tab keeps the order open, as a page that the student opened before cancelling it elsewhere.
@@ -521,7 +516,10 @@ for (const locale of locales) {
     await expect(student.getByText(text.cancelled[0])).toContainText(
       text.cancelled[1],
     );
-    await expectTexts(student, [text.noOpenOrders, ...text.startingCash]);
+    await expectTexts(student.getByRole("main"), [
+      text.noOpenOrders,
+      ...text.startingCash,
+    ]);
     await staleTab
       .getByRole("main")
       .getByRole("button", { name: text.labels.cancel })
@@ -532,7 +530,7 @@ for (const locale of locales) {
     await expect(staleTab.getByText(text.cancelled[0])).toContainText(
       text.cancelled[1],
     );
-    await expectTexts(staleTab, [text.noOpenOrders]);
+    await expectTexts(staleTab.getByRole("main"), [text.noOpenOrders]);
     await expectAccessibleScreen(staleTab);
     await student.context().close();
   });
@@ -548,7 +546,7 @@ for (const locale of locales) {
     );
     storeTestHolding(classId, widestHolding);
     await student.reload();
-    await expectTexts(student, text.holding);
+    await expectTexts(student.getByRole("main"), text.holding);
     await chooseStock(student, locale, "GOTO");
     await expectChosenPrice(student, locale, "GOTO");
     await placeOrder(student, locale, {
@@ -556,7 +554,10 @@ for (const locale of locales) {
       lots: text.largestOrder,
     });
     await expect(student.getByRole("status")).toHaveText(text.placed);
-    await expectTexts(student, [...text.holding, ...text.sale]);
+    await expectTexts(student.getByRole("main"), [
+      ...text.holding,
+      ...text.sale,
+    ]);
     await expectAccessibleScreen(student);
     await chooseStock(student, locale, "BBCA");
     await placeOrder(student, locale, { side: "buy", lots: "1" });
@@ -584,7 +585,7 @@ for (const locale of locales) {
 
     await chooseAnotherStock(student, locale, "UNVR");
     await expectChosenPrice(student, locale, "UNVR");
-    await expectTextParts(
+    await expectTexts(
       student.getByRole("main").getByText(text.staleNotice[0]),
       text.staleNotice,
     );
@@ -595,11 +596,11 @@ for (const locale of locales) {
     await expect(chosenStockTerms(student, locale)).toHaveText(
       `${text.labels.stock}WIFI`,
     );
-    await expectTextParts(
+    await expectTexts(
       student.getByRole("main").getByText(text.missingNotice[0]),
       text.missingNotice,
     );
-    await expectTexts(student, [text.noPriceOrder]);
+    await expectTexts(student.getByRole("main"), [text.noPriceOrder]);
     await expect(placeButton).toHaveCount(0);
     await expectAccessibleScreen(student);
 
@@ -660,7 +661,7 @@ for (const locale of locales) {
       await chooseStock(page, locale, "BBCA");
       await expectChosenPrice(page, locale, "BBCA");
       await placeOrder(page, locale, { side: "buy" });
-      await expectTexts(page, [text.emptyLots]);
+      await expectTexts(page.getByRole("main"), [text.emptyLots]);
       await expect(page).toHaveURL(/\/orders\?code=BBCA$/);
       await expectChosenPrice(page, locale, "BBCA");
       await placeOrder(page, locale, { side: "buy", lots: "1" });

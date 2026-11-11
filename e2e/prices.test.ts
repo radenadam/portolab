@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
-import { expectTextParts } from "./expect-text-parts.ts";
+import { expectTexts } from "./expect-texts.ts";
 import { languageNames } from "../app/language-names.ts";
 import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
@@ -73,7 +73,7 @@ for (const locale of locales) {
       page.getByRole("heading", { level: 1, name: text.title }),
     ).toBeVisible();
     await expect(page.getByText(text.delayNotice)).toBeVisible();
-    await expectTextParts(
+    await expectTexts(
       page.getByText(text.failureNotice[0]),
       text.failureNotice,
     );
@@ -90,10 +90,10 @@ for (const locale of locales) {
       ["GOTO", text.goto],
       ["ITMG", text.itmg],
     ] as const) {
-      const row = page.getByRole("row", { name: new RegExp(code) });
-      for (const cell of cells) {
-        await expect(row, code).toContainText(cell);
-      }
+      await expectTexts(
+        page.getByRole("row", { name: new RegExp(code) }),
+        cells,
+      );
     }
     // The header and a row for each tracked instrument but WIFI, of which Portolab has no price.
     const headerRows = 1;

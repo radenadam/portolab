@@ -1,5 +1,8 @@
+import { readdirSync } from "node:fs";
+import { join } from "node:path";
 import eslintJs from "@eslint/js";
 import eslintReact from "@eslint-react/eslint-plugin";
+import type { Linter } from "eslint";
 import { defineConfig, globalIgnores } from "eslint/config";
 import jsxA11y from "eslint-plugin-jsx-a11y-x";
 import reactHooks from "eslint-plugin-react-hooks";
@@ -66,6 +69,9 @@ const parserForms = [
 ];
 const parser = `:matches(${parserForms.join(", ")})`;
 
+const contextName =
+  "A context of React Router is the value of a variable whose name ends in Context, and createContext keeps its name, so that the check of the contexts of features finds every context.";
+
 const restrictedSyntax = [
   {
     selector:
@@ -85,7 +91,70 @@ const restrictedSyntax = [
     selector: `${parser}:not([returnType.typeAnnotation.typeName.name="Result"][returnType.typeAnnotation.typeArguments.params.1.type="TSStringKeyword"])`,
     message: parserSignature,
   },
+  {
+    selector:
+      'CallExpression[callee.name="createContext"]:not(VariableDeclarator[id.name=/Context$/] > CallExpression)',
+    message: contextName,
+  },
+  {
+    selector:
+      'ImportSpecifier:matches([imported.name="createContext"], [imported.value="createContext"]):not([local.name="createContext"])',
+    message: contextName,
+  },
 ];
+
+const featureContextImport =
+  "A feature never reads a context of React Router that another feature defines, as the section Structure of AGENTS.md states. Call a function of that feature that reads it, such as readPriceSourceDescription. A namespace import or an export of everything from another feature is refused too, because the check cannot see whether it takes a context.";
+const featureDynamicImport =
+  "A feature loads another feature with a static import, because the check of contexts cannot see what a dynamic import takes.";
+
+const featureNames = readdirSync(join(import.meta.dirname, "app", "features"), {
+  withFileTypes: true,
+})
+  .filter((entry) => entry.isDirectory())
+  .map((entry) => entry.name);
+
+/** The paths with which a module in the folder of a feature loads another feature: the alias, a path to a sibling folder, and a path that climbs to the folder of the features or of the app. A path that climbs back into the folder of the feature stays in it. */
+function otherFeaturePath(feature: string): string {
+  return `^(~/features/|(\\.\\./)+(app/)?features/|\\.\\./)(?!${feature}/|\\.\\./)`;
+}
+
+/** The rules that keep the contexts of other features out of a feature. Tests and their helpers set contexts as the server does, so they may import them. */
+function featureContextRules(feature: string): Linter.Config {
+  const otherFeature = otherFeaturePath(feature);
+  // A selector writes a pattern between slashes, so each slash in it is escaped.
+  const selectorPattern = otherFeature.replaceAll("/", "\\/");
+  return {
+    files: [`app/features/${feature}/**/*.{ts,tsx}`],
+    ignores: [
+      "**/*.test.{ts,tsx}",
+      "**/*-for-test.{ts,tsx}",
+      "**/*-for-test.server.{ts,tsx}",
+    ],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              regex: otherFeature,
+              importNamePattern: "Context$",
+              message: featureContextImport,
+            },
+          ],
+        },
+      ],
+      "no-restricted-syntax": [
+        "error",
+        ...restrictedSyntax,
+        {
+          selector: `ImportExpression:matches([source.value=/${selectorPattern}/], [source.quasis.0.value.cooked=/${selectorPattern}/])`,
+          message: featureDynamicImport,
+        },
+      ],
+    },
+  };
+}
 
 const featureImport =
   "A module outside the features never imports from a feature, as the section Structure of AGENTS.md states. Only app/root.tsx, app/routes.ts, server/app.ts, and server/account.ts compose the app from its features.";
@@ -202,4 +271,5 @@ export default defineConfig(
       ],
     },
   },
+  featureNames.map(featureContextRules),
 );
