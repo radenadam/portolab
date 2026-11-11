@@ -1,17 +1,17 @@
 # Deploying Portolab
 
-This guide takes a fresh Ubuntu server to Portolab, served over HTTPS at a domain of your own. Copy each command in the order of the guide. As [decision 0010](decisions/0010-the-server-owner-deploys-from-the-repository.md) explains, Docker Compose runs Portolab in a container that the server builds from this repository, and Caddy serves HTTPS in front of it. A test runs every command of this guide for the server on a fresh Ubuntu server, so the commands stay right.
+This guide takes an Ubuntu server to Portolab, served over HTTPS at a domain of your own. The server may also run other work, which the guide leaves as it is. Copy each command in the order of the guide. As [decision 0010](decisions/0010-the-server-owner-deploys-from-the-repository.md) explains, Docker Compose runs Portolab in a container that the server builds from this repository, and Caddy serves HTTPS in front of it. A test runs every command of this guide for the server on a fresh Ubuntu server, so the commands stay right.
 
 <!-- The workflow in .github/workflows/deployment.yml runs every block marked sh, in order, as root on a fresh Ubuntu machine, and replaces the examples that it names, such as the domain. A block that runs on the computer of the reader is marked text. -->
 
 ## What you need
 
-- A server with a fresh installation of Ubuntu 24.04 LTS or Ubuntu 26.04 LTS, with at least 2 GB of memory and 20 GB of disk.
+- A server with Ubuntu 24.04 LTS or Ubuntu 26.04 LTS, with at least 2 GB of memory and 20 GB of disk that other work on the server leaves free.
 - The IPv4 address of the server, such as `203.0.113.10`, and the password or the SSH key of its root user, which the provider gives you.
 - A domain name for Portolab, such as `portolab.example.com`, whose DNS records you can change. A subdomain of the domain of your university works too, and its IT office can create it.
 - A computer with a terminal. Windows, macOS, and Linux all have the command `ssh`.
 
-The server must accept connections on ports 80 and 443, because Caddy uses both to get the certificate for HTTPS and to serve Portolab. When the provider has a firewall in its control panel, allow both ports there.
+The server must accept connections on ports 80 and 443, because Caddy uses both to get the certificate for HTTPS and to serve Portolab. When the provider has a firewall in its control panel, allow both ports there. Portolab itself uses port 3000, which only the server can reach, and section 2 checks that no other program uses these three ports.
 
 ## 1. Point the domain at the server
 
@@ -41,13 +41,25 @@ sudo -i
 
 Every later command runs as root on the server.
 
-## 3. Install Docker
-
-These commands add the package repository of Docker and install Docker with Compose, as the [installation guide of Docker](https://docs.docker.com/engine/install/ubuntu/) describes:
+These commands install the tools that the guide uses, and they leave a tool that the server already has as it is. The last command lists each program that already waits for connections on one of the ports that Portolab needs:
 
 ```sh
 apt-get update
-apt-get install --yes ca-certificates curl git
+apt-get install --yes --no-upgrade ca-certificates curl git gpg
+ss -tlnp 'sport = :80 or sport = :443 or sport = :3000'
+```
+
+The list names each program in quotes after `users:`. On a fresh server, it shows only its line of headings. When it names `caddy`, Caddy already serves other sites on the server, so skip section 4 and add Portolab to those sites as section 6 explains. When it names any other program, that program keeps Portolab from working, so install Portolab on another server.
+
+## 3. Install Docker
+
+Portolab runs in Docker with Compose. When the server already has Docker, such as for other work, `docker --version` prints its version. Then do not run the commands at the end of this section, because they would update that Docker or conflict with it, as the [installation guide of Docker](https://docs.docker.com/engine/install/ubuntu/) explains. Docker stops every container while it updates, unless it was set up to keep them running.
+
+On such a server, `docker compose version` prints the version of Compose. When it fails, that Docker lacks Compose, so install Compose as the [installation guide of Compose](https://docs.docker.com/compose/install/linux/) describes. Compose is a command of its own, so its installation stops no container.
+
+On a server without Docker, these commands add the package repository of Docker and install Docker with Compose, as the installation guide of Docker describes:
+
+```sh
 install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
 chmod a+r /etc/apt/keyrings/docker.asc
@@ -63,6 +75,8 @@ apt-get install --yes docker-ce docker-ce-cli containerd.io docker-buildx-plugin
 ```
 
 ## 4. Install Caddy
+
+When section 2 found Caddy on the server, skip this section, because Portolab shares that Caddy with the other sites.
 
 These commands add the package repository of Caddy and install it, as the [installation guide of Caddy](https://caddyserver.com/docs/install#debian-ubuntu-raspbian) describes:
 
@@ -84,16 +98,18 @@ cd /opt/portolab
 docker compose up --detach --build --wait
 ```
 
-The first build takes several minutes. The last command ends once Portolab answers. Portolab then fetches its first prices by itself, and it starts again by itself after a crash or a restart of the server.
+The first build takes several minutes. When it stops with an error, such as a download that ran out of time, run the last command again. Docker reuses the steps that succeeded, so the build continues from the step that failed. The last command ends once Portolab answers. Portolab then fetches its first prices by itself, and it starts again by itself after a crash or a restart of the server.
 
 ## 6. Serve Portolab over HTTPS
 
-Run these commands with your domain in place of `portolab.example.com`:
+Run these commands with your domain in place of `portolab.example.com`. The first command replaces the example site that Caddy comes with, so that Caddy serves Portolab:
 
 ```sh
 echo "import /opt/portolab/Caddyfile portolab.example.com" > /etc/caddy/Caddyfile
 systemctl reload caddy
 ```
+
+When section 2 found Caddy on the server, the file `/etc/caddy/Caddyfile` holds its other sites, so write `>>` in place of `>` in the first command. The command then adds Portolab at the end of the file and keeps those sites.
 
 Caddy now gets a certificate for the domain from Let's Encrypt. Open `https://portolab.example.com` with your domain in a browser, and the home page of Portolab appears.
 
@@ -180,7 +196,7 @@ docker compose up --detach --wait
 
 ## Update Portolab
 
-An update stops Portolab for a moment while the new version starts, so students who use it then see an error. So update outside the trading sessions of IDX, such as in the evening or at a weekend. These commands back up the database, download the new version, build it, start it, reload the Caddyfile, and delete what the build left behind:
+An update stops Portolab for a moment while the new version starts, so students who use it then see an error. So update outside the trading sessions of IDX, such as in the evening or at a weekend. These commands back up the database, download the new version, build it, start it, and reload the Caddyfile. Some installations of Docker keep the image of the previous version, so the last command deletes it. It deletes only images of Portolab, so the images of other work stay:
 
 ```sh
 cd /opt/portolab
@@ -188,7 +204,7 @@ systemctl start portolab-backup
 git pull
 docker compose up --detach --build --wait
 systemctl reload caddy
-docker system prune --force
+docker image prune --force --filter label=com.docker.compose.project=portolab
 ```
 
 Portolab needs data of IDX that the repository adds over time, such as the trading calendar of each year, the auto rejection limits that IDX sets for orders, and the stocks of the LQ45 after each review. When the log says that such data is missing, an update brings it once the repository has it.
