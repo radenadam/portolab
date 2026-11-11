@@ -1,6 +1,6 @@
 import { useId } from "react";
 import type { ReactNode } from "react";
-import { useNavigation } from "react-router";
+import { Form, useNavigation } from "react-router";
 import styles from "./form.module.css";
 
 interface TextFieldProps {
@@ -219,25 +219,32 @@ export function Rejection({
   );
 }
 
-/** A button of a rejection that takes the next step that its text offers. It sends the form with its name and value, so it works before JavaScript loads. */
-export function StepButton({
-  name,
-  value,
+/** The button of a rejection that takes the next step that its text offers, in a form of its own that sends the step with the fields that the rejected form sent, so it works before JavaScript loads. A form sends with its first submit button when the reader presses Enter in a field, so the step never shares a form with the button that sends the fields. */
+export function StepForm({
+  fields,
+  step,
   label,
 }: {
-  name: string;
-  value: string;
+  /** The fields that the rejected form sent, by name, which the step keeps. */
+  fields: Readonly<Record<string, string>>;
+  /** The name and the value of the step, which the action answers. */
+  step: { name: string; value: string };
   label: string;
 }): ReactNode {
   return (
-    <button
-      type="submit"
-      name={name}
-      value={value}
-      className={styles["stepButton"]}
-    >
-      {label}
-    </button>
+    <Form method="post">
+      {Object.entries(fields).map(([name, value]) => (
+        <input key={name} type="hidden" name={name} value={value} />
+      ))}
+      <button
+        type="submit"
+        name={step.name}
+        value={step.value}
+        className={styles["stepButton"]}
+      >
+        {label}
+      </button>
+    </Form>
   );
 }
 

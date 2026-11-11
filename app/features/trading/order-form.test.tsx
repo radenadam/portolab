@@ -106,23 +106,29 @@ for (const locale of locales) {
     expect(html).not.toContain('name="code"');
   });
 
-  test(`opens a rejection with its title above the fields, and offers its lots as a button that sends the form with them, in ${languageNames[locale]}`, () => {
+  test(`opens a rejection with its title above the fields, and offers its lots as a button of a form of its own that sends them with the other fields of the rejected order, in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     for (const [lotsStep, button] of text.lotsSteps) {
       // The names of the classes of CSS modules carry a hash, so the test compares the markup without them.
       const html = renderInRouterForTest(
         <OrderForm
           day={monday}
-          fields={undefined}
+          fields={{
+            ...blankOrderForm,
+            side: "buy",
+            lots: "25",
+            limit: "9.875",
+          }}
           rejection={{ text: "The reason of the order.", lotsStep }}
         />,
       ).replaceAll(/ class="[^"]*"/g, "");
       expect(html).toContain(
-        `<p>${text.rejectedTitle}</p><p>The reason of the order.</p><button type="submit" ${button}`,
+        `<div role="alert"><p>${text.rejectedTitle}</p><p>The reason of the order.</p><form data-discover="true" action="/" method="post"><input type="hidden" name="side" value="buy"/><input type="hidden" name="priceKind" value="market"/><input type="hidden" name="limit" value="9.875"/><button type="submit" ${button}</form></div><form`,
       );
-      expect(html.indexOf('role="alert"')).toBeLessThan(
-        html.indexOf('name="side"'),
-      );
+      // Enter in a field sends a form with its first submit button, so the form of the fields holds only the button that places the order.
+      const fieldsForm = html.slice(html.lastIndexOf("<form"));
+      expect(fieldsForm.match(/type="submit"/g)).toHaveLength(1);
+      expect(fieldsForm).toContain('value="25"');
     }
   });
 }

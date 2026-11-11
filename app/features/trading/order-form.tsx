@@ -3,7 +3,7 @@ import { Form } from "react-router";
 import {
   ChoiceField,
   Rejection,
-  StepButton,
+  StepForm,
   SubmitButton,
   TextField,
 } from "~/form";
@@ -56,23 +56,30 @@ interface OrderFormProps {
   rejection: OrderRejection | undefined;
 }
 
-/** The form with which a student places an order of the stock that the address of the page chose: buy or sell, a market or a limit order, the lots, and the limit price, with the trading day of an order placed now. A rejection of the whole order stands above the fields, as decision 0026 sets, with a button that changes the lots to those that its text offers. The form sends the order to the address of the page, which keeps the stock. */
+/** The form with which a student places an order of the stock that the address of the page chose: buy or sell, a market or a limit order, the lots, and the limit price, with the trading day of an order placed now. A rejection of the whole order stands above the fields, as decision 0026 sets, with a button that changes the lots of the rejected order to those that its text offers. The form sends the order to the address of the page, which keeps the stock. */
 export function OrderForm({
   day,
   fields = blankOrderForm,
   rejection,
 }: OrderFormProps): ReactNode {
   return (
-    <Form method="post" className={formStyles["form"]}>
+    <>
       {rejection !== undefined && (
         <Rejection
           title={m.trading_rejected_title()}
           text={rejection.text}
           step={
             rejection.lotsStep !== undefined && (
-              <StepButton
-                name={lotsStepName}
-                value={formatNumber(rejection.lotsStep)}
+              <StepForm
+                fields={{
+                  side: fields.side,
+                  priceKind: fields.priceKind,
+                  limit: fields.limit,
+                }}
+                step={{
+                  name: lotsStepName,
+                  value: formatNumber(rejection.lotsStep),
+                }}
                 label={m.trading_lots_step_label({
                   lots: lotCount(rejection.lotsStep),
                 })}
@@ -81,6 +88,21 @@ export function OrderForm({
           }
         />
       )}
+      <OrderFields day={day} fields={fields} />
+    </>
+  );
+}
+
+/** The fields of an order and the button that sends them, which is the only submit button of their form, so Enter in a field sends the order. */
+function OrderFields({
+  day,
+  fields,
+}: {
+  day: OrderDay;
+  fields: OrderFormFields;
+}): ReactNode {
+  return (
+    <Form method="post" className={formStyles["form"]}>
       <ChoiceField
         name="side"
         label={m.trading_side_label()}

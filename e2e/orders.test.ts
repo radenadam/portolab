@@ -58,6 +58,7 @@ const texts: Record<
     quoteNotice: readonly [string, string];
     purchaseStep: string;
     saleStep: string;
+    saleOfTwoLots: string;
     startingCash: readonly string[];
     noHoldings: string;
     dayNotice: readonly [string, string, string, string];
@@ -124,6 +125,7 @@ const texts: Record<
     quoteNotice: ["Harga tertunda sekitar 10 menit, tercatat pada ", " WIB."],
     purchaseStep: "Ubah menjadi 4 lot",
     saleStep: "Ubah menjadi 3 lot",
+    saleOfTwoLots: "Jual 2 lot BBCA pada harga pasar",
     startingCash: [
       "Kas",
       "Rp\u00a01.000.000.000.000",
@@ -249,6 +251,7 @@ const texts: Record<
     quoteNotice: ["Delayed by about 10 minutes, quoted at ", " WIB."],
     purchaseStep: "Change to 4 lots",
     saleStep: "Change to 3 lots",
+    saleOfTwoLots: "Sell 2 lots of BBCA at the market price",
     startingCash: [
       "Cash",
       "IDR\u00a01,000,000,000,000",
@@ -613,7 +616,7 @@ for (const locale of locales) {
     await student.context().close();
   });
 
-  test(`offers the largest purchase that the cash pays for and the largest sale that the free shares allow as the step of a rejection, which changes the lots of the order form, in ${language}`, async ({
+  test(`offers the largest purchase that the cash pays for and the largest sale that the free shares allow as the step of a rejection, which changes the lots of the order form, while Enter in a field still sends the order, in ${language}`, async ({
     page,
     browser,
   }) => {
@@ -638,11 +641,15 @@ for (const locale of locales) {
     await placeOrder(student, locale, { side: "sell", lots: "5" });
     await rejection.getByRole("button", { name: text.saleStep }).click();
     await expect(lotsField).toHaveValue("3");
-    await student
-      .getByRole("main")
-      .getByRole("button", { name: text.labels.place })
-      .click();
+    // A student who types other lots while a rejection offers its step, and presses Enter, places the order with the lots that they typed.
+    await placeOrder(student, locale, { side: "sell", lots: "5" });
+    await expect(
+      rejection.getByRole("button", { name: text.saleStep }),
+    ).toBeVisible();
+    await lotsField.fill("2");
+    await lotsField.press("Enter");
     await expect(student.getByRole("status")).toHaveText(text.placed);
+    await expectTexts(student.getByRole("main"), [text.saleOfTwoLots]);
     await student.context().close();
   });
 
