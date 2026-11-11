@@ -10,7 +10,10 @@ const texts: Record<
   Locale,
   {
     tagline: string;
-    simulationNotice: string;
+    simulationLabel: string;
+    delayNotice: string;
+    navigation: string;
+    visitorLinks: readonly (readonly [string, string])[];
     switchLabel: string;
     pricesLink: string;
     pricesTitle: string;
@@ -24,8 +27,15 @@ const texts: Record<
   id: {
     tagline:
       "Laboratorium manajemen portofolio dengan harga saham Indonesia yang nyata.",
-    simulationNotice:
-      "Simulasi. Tidak ada uang sungguhan dan tidak ada transaksi sungguhan.",
+    simulationLabel: "Simulasi",
+    delayNotice:
+      "Harga tertunda sekitar 10 menit. Harga terakhir tercatat pada 30 Okt 2026, 16.14 WIB.",
+    navigation: "Navigasi utama",
+    visitorLinks: [
+      ["Harga", "/prices"],
+      ["Gabung ke kelas", "/join"],
+      ["Masuk", "/sign-in"],
+    ],
     switchLabel: "Bahasa",
     pricesLink: "Lihat harga saham",
     pricesTitle: "Harga saham",
@@ -39,7 +49,15 @@ const texts: Record<
   },
   en: {
     tagline: "A portfolio management lab with real Indonesian stock prices.",
-    simulationNotice: "Simulation. No real money and no real trades.",
+    simulationLabel: "Simulation",
+    delayNotice:
+      "Prices are delayed by about 10 minutes. The latest price was quoted at Oct 30, 2026, 4:14 PM WIB.",
+    navigation: "Main navigation",
+    visitorLinks: [
+      ["Prices", "/prices"],
+      ["Join a class", "/join"],
+      ["Sign in", "/sign-in"],
+    ],
     switchLabel: "Language",
     pricesLink: "See stock prices",
     pricesTitle: "Stock prices",
@@ -59,7 +77,7 @@ test(`opens the home page in ${languageNames[baseLocale]} for a reader who chose
   await page.goto("/");
   await expect(page.locator("html")).toHaveAttribute("lang", baseLocale);
   await expect(
-    page.getByText(texts[baseLocale].simulationNotice),
+    page.getByText(texts[baseLocale].simulationLabel, { exact: true }),
   ).toBeVisible();
 });
 
@@ -85,7 +103,23 @@ for (const locale of locales) {
       page.getByRole("heading", { level: 1, name: "Portolab" }),
     ).toBeVisible();
     await expect(page.getByText(text.tagline)).toBeVisible();
-    await expect(page.getByText(text.simulationNotice)).toBeVisible();
+    await expect(
+      page.getByText(text.simulationLabel, { exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByText(text.delayNotice, { exact: true }),
+    ).toBeVisible();
+    // A visitor who is not signed in finds the prices, joining a class, and sign-in in the navigation, and no page of it is current on the home page.
+    const navigation = page.getByRole("navigation", { name: text.navigation });
+    await expect(navigation.getByRole("link")).toHaveCount(
+      text.visitorLinks.length,
+    );
+    for (const [name, path] of text.visitorLinks) {
+      await expect(
+        navigation.getByRole("link", { name, exact: true }),
+      ).toHaveAttribute("href", path);
+    }
+    await expect(navigation.locator("[aria-current]")).toHaveCount(0);
     await expect(
       page.getByRole("group", { name: text.switchLabel }),
     ).toBeVisible();

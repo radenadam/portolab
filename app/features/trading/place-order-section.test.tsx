@@ -1,6 +1,5 @@
 import { expect, test } from "vitest";
 import { openDatabaseForTest } from "~/database/open-database-for-test.server";
-import type { ClassId } from "~/features/classes/classes.schema";
 import type { PriceSource } from "~/features/market-data/price-source.server";
 import {
   failingSourceForTest,
@@ -18,10 +17,8 @@ import type { Locale } from "~/paraglide/runtime.js";
 import { renderInRouterForTest } from "~/render-in-router-for-test";
 import { succeed } from "~/result";
 import type { Result } from "~/result";
-import { successValueForTest } from "~/success-value-for-test";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
 import { minutesAfter } from "~/time-units";
-import { parseRecordId } from "~/value-parsers";
 import type { OrdersAnswer } from "./order-actions.server";
 import { orderDayOf } from "./order-form";
 import type { OrderDay } from "./order-form";
@@ -37,10 +34,6 @@ import { PlaceOrderSection } from "./place-order-section";
 import { readStockChoice } from "./read-stock-choice.server";
 import type { StockChoice } from "./read-stock-choice.server";
 
-const classId = successValueForTest(
-  parseRecordId<ClassId>("1", "classId"),
-  "1 is an id",
-);
 const monday = succeed(orderDayOf(mondayTradingDayForTest));
 // The updates of the quote job of each test end with an attempt at 10:00 WIB on Monday 2 November 2026, and the section is seen half a minute later.
 const lastAttemptAt = new Date(sessionStateForTest.attemptedAt);
@@ -49,7 +42,7 @@ const moment = {
   delayMinutes: bbcaForTest.delayMinutes,
 };
 
-/** The section with the trading day of Monday, a stock that the address chose, and the answer of the action of a test. */
+/** The section with the trading day of Monday, a stock that the address chose, and the answer of the action of a test, on the page of the orders of a class. The names of the classes of CSS modules carry a hash, so the markup leaves them out. */
 function renderSection(
   choice: StockChoice,
   {
@@ -62,14 +55,13 @@ function renderSection(
 ): string {
   return renderInRouterForTest(
     <PlaceOrderSection
-      day={day}
-      choice={choice}
+      ticket={{ day, choice }}
       codes={["BBCA", "TLKM"]}
-      classId={classId}
+      pagePath="/classes/1/orders"
       moment={moment}
       answer={answer}
     />,
-  );
+  ).replaceAll(/ class="[^"]*"/g, "");
 }
 
 /** An update of the quote job from a source of a test at a moment. */
@@ -134,12 +126,13 @@ const missingDayKinds = [
 const texts: Record<
   Locale,
   {
+    title: string;
+    simulation: string;
     missingDay: Record<TradingDayFailure["kind"], string>;
     chooser: readonly string[];
     placeholder: string;
     noStock: string;
     unknownStock: string;
-    stockTerm: string;
     placeButton: string;
     quoteTerms: string;
     otherStockLink: string;
@@ -152,6 +145,9 @@ const texts: Record<
   }
 > = {
   id: {
+    title: "<h2>Pasang order</h2>",
+    simulation:
+      "<p>Simulasi. Tidak ada uang sungguhan dan tidak ada transaksi sungguhan.</p></section>",
     missingDay: {
       missingRules:
         "Portolab belum dapat menerima order saat ini, karena aturan BEI untuk hari bursa order yang Anda pasang sekarang belum tercatat. Beri tahu dosen Anda agar aturan tersebut dapat ditambahkan.",
@@ -167,10 +163,9 @@ const texts: Record<
     noStock: "belum berisi saham. Pilih saham untuk order ini.",
     unknownStock:
       "sebagai saham, tetapi Portolab hanya memperdagangkan saham yang ada di daftar kolom",
-    stockTerm: "Saham",
     placeButton: ">Pasang order</button>",
     quoteTerms:
-      '<dt>Saham</dt><dd>BBCA</dd><dt>Harga tertunda</dt><dd>Rp\u00a04.980</dd><dt>Perubahan dari harga penutupan sebelumnya</dt><dd><span aria-hidden="true">▲ </span>+0,81%</dd><dt>Tercatat pada (WIB)</dt><dd>30 Okt 2026, 16.14</dd>',
+      '<p>BBCA</p><dl><dt>Harga tertunda</dt><dd>Rp 4.980</dd><dt>Perubahan dari harga penutupan sebelumnya</dt><dd><span aria-hidden="true">▲ </span>+0,81%</dd></dl><p>Harga tertunda sekitar 10 menit, tercatat pada 30 Okt 2026, 16.14 WIB.</p>',
     otherStockLink: ">Pilih saham lain</a>",
     tryAgain: "Portolab mencoba lagi",
     staleNotice:
@@ -185,6 +180,9 @@ const texts: Record<
       "Anda dapat memasang order BBCA setelah pembaruan harga berikutnya membawa harga tertunda BBCA.",
   },
   en: {
+    title: "<h2>Place an order</h2>",
+    simulation:
+      "<p>Simulation. No real money and no real trades.</p></section>",
     missingDay: {
       missingRules:
         "Portolab cannot take an order now, because it has not recorded the rules of IDX for the trading day of an order that you place now. Tell your lecturer, so that the rules can be added.",
@@ -200,10 +198,9 @@ const texts: Record<
     noStock: "holds no stock yet. Choose the stock of the order.",
     unknownStock:
       "as the stock, but Portolab trades only the stocks in the list of the field",
-    stockTerm: "Stock",
     placeButton: ">Place the order</button>",
     quoteTerms:
-      '<dt>Stock</dt><dd>BBCA</dd><dt>Delayed price</dt><dd>IDR\u00a04,980</dd><dt>Change from the previous close</dt><dd><span aria-hidden="true">▲ </span>+0.81%</dd><dt>Quoted at (WIB)</dt><dd>Oct 30, 2026, 4:14 PM</dd>',
+      '<p>BBCA</p><dl><dt>Delayed price</dt><dd>IDR 4,980</dd><dt>Change from the previous close</dt><dd><span aria-hidden="true">▲ </span>+0.81%</dd></dl><p>Delayed by about 10 minutes, quoted at Oct 30, 2026, 4:14 PM WIB.</p>',
     otherStockLink: ">Choose another stock</a>",
     tryAgain: "Portolab tries again",
     staleNotice:
@@ -233,7 +230,7 @@ for (const locale of locales) {
       expect(day.ok ? undefined : day.failure.kind, kind).toBe(kind);
       if (!day.ok) {
         expect(renderSection(await choiceAfter(null, []), { day }), kind).toBe(
-          `<p>${text.missingDay[kind]}</p>`,
+          `<section>${text.title}<p>${text.missingDay[kind]}</p>${text.simulation}`,
         );
       }
     }
@@ -307,7 +304,8 @@ for (const locale of locales) {
     ] as const) {
       const html = renderSection(await choiceAfter("BBCA", updates));
       for (const expected of [
-        `<dt>${text.stockTerm}</dt><dd>BBCA</dd></dl>`,
+        "<h2>",
+        "<p>BBCA</p>",
         `>${notice}</p>`,
         `<p>${text.noPriceOrder}</p>`,
         text.otherStockLink,
@@ -324,7 +322,7 @@ test("shows the reason of the action at the field that chooses a stock, in place
   const html = renderSection(await choiceAfter(null, []), {
     answer: {
       fields: undefined,
-      failure: undefined,
+      rejection: undefined,
       stockFailure: "The reason of the action.",
       cancelFailure: undefined,
     },
@@ -343,7 +341,7 @@ test("shows the order form of the chosen stock as the student sent it, with the 
           lots: "5",
           lotsFailure: "The reason of the lots.",
         },
-        failure: "The reason of the order.",
+        rejection: { text: "The reason of the order.", lotsStep: undefined },
         stockFailure: undefined,
         cancelFailure: undefined,
       },

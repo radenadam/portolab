@@ -97,3 +97,30 @@
   width: 1em;
   height: 1em;
 }
+
+/* A few values of equal weight stand in a grid of four columns on a desktop and two on a phone, each under a small muted label, as decision 0026 sets. The width of a column is the one at which four fit beside each other in the main column of a desktop, and two on a phone. */
+.keyMeasures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 7rem), 1fr));
+  gap: var(--space-4);
+  align-self: stretch;
+  margin: 0;
+}
+
+.keyMeasure {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-1);
+}
+
+.keyMeasure dt {
+  color: var(--color-muted);
+  font-size: var(--text-small);
+}
+
+.keyMeasure dd {
+  margin: 0;
+  font-family: var(--font-numbers);
+  font-size: var(--text-measure);
+}

@@ -1,4 +1,4 @@
-/* A form fills the width of the page, so that its fields can, and it sets the space between its blocks as the frame of the page does. */
+/* A form takes the parts of the order ticket of the references, as decision 0026 sets. It fills the width of its column, so that its fields and its button can. */
 .form {
   display: flex;
   flex-direction: column;
@@ -14,8 +14,10 @@
   gap: var(--space-1);
 }
 
-.label {
-  font-weight: 600;
+.label,
+.hint {
+  color: var(--color-muted);
+  font-size: var(--text-small);
 }
 
 /* A group of options keeps the space of a field, without the frame that a browser draws around a group. */
@@ -34,9 +36,42 @@
   padding: 0;
 }
 
-.hint {
+/* The options stand in a row of equal parts above a thin line. */
+.options {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  border-block-end: var(--size-line) solid var(--color-line);
+}
+
+.option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--size-touch-target);
+  padding-inline: var(--space-1);
   color: var(--color-muted);
-  font-size: var(--text-small);
+  text-align: center;
+  cursor: pointer;
+}
+
+/* The chosen option is in ink and semibold, with a line of the signal color under it, which an inset shadow draws so that the text stays in the middle. */
+.option:has(.optionInput:checked) {
+  box-shadow: inset 0 calc(-1 * var(--size-mark)) 0 var(--color-signal);
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+/* The radio button covers its whole option, so a tap anywhere on the option chooses it, and the option draws its look. */
+.optionInput {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
 }
 
 .failure,
@@ -44,21 +79,28 @@
   font-weight: 600;
 }
 
-/* A field takes the whole width of its form, so a long value stays visible on a phone. Its border has the muted color, because a thin line in the color of lines is too faint to show where a field is. */
-.input {
+/* The value of a field stands on a line of ink without a box, and it takes the whole width of its form, so a long value stays visible on a phone. */
+.input,
+.numberInput {
   width: 100%;
   min-height: var(--size-touch-target);
-  padding-inline: var(--space-2);
-  border: var(--size-line) solid var(--color-muted);
+  padding: 0;
+  border: 0;
+  border-block-end: var(--size-line) solid var(--color-ink);
+  border-radius: 0;
   background: transparent;
   color: inherit;
   font: inherit;
+  font-size: var(--text-field);
 }
 
-/* A field whose value was not accepted gets a thicker border, so the mark does not depend on color. */
-.input[aria-invalid="true"] {
-  border-width: var(--size-mark);
-  border-color: var(--color-ink);
+.numberInput {
+  font-family: var(--font-numbers);
+}
+
+/* A field whose value was not accepted gets a thicker line, so the mark does not depend on color. */
+:is(.input, .numberInput)[aria-invalid="true"] {
+  border-block-end-width: var(--size-mark);
 }
 
 .checkbox {
@@ -75,13 +117,37 @@
   accent-color: var(--color-signal);
 }
 
-.button {
+.button,
+.stepButton {
   min-height: var(--size-touch-target);
   padding-inline: var(--space-4);
   border: 0;
+  border-radius: var(--radius-button);
   background: var(--color-signal);
   color: var(--color-on-signal);
   font: inherit;
   font-weight: 600;
   cursor: pointer;
+}
+
+/* The button that sends a form spans its width. */
+.button {
+  align-self: stretch;
+}
+
+/* A rejection and every other failure of a form opens with a line of ink above its title, and uses no color, box, or icon, as decision 0026 sets. */
+.rejection {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  align-self: stretch;
+  gap: var(--space-3);
+  padding-block-start: var(--space-3);
+  border-block-start: var(--size-mark) solid var(--color-ink);
+  font-size: var(--text-row);
+}
+
+.rejectionTitle {
+  font-size: var(--text-mark);
+  font-weight: 600;
 }

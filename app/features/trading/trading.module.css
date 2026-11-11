@@ -39,22 +39,124 @@
   font-size: var(--text-small);
 }
 
-/* Each name follows a sample of its line in the chart, so the lines differ by their style and not by color alone, as decision 0012 sets. */
-.portfolioSeries::before,
-.marketSeries::before {
-  display: inline-block;
-  width: var(--space-6);
-  margin-inline-end: var(--space-2);
-  vertical-align: middle;
-  border-block-start: var(--size-mark) solid var(--color-ink);
-  content: "";
-}
-
-.marketSeries::before {
-  border-block-start-style: dashed;
-  border-block-start-color: var(--color-muted);
-}
-
 .returns {
   align-self: stretch;
+}
+
+/* The headline number keeps the font of the text, with figures of equal width, as decision 0026 sets. */
+.headline {
+  font-size: var(--text-headline);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-6);
+  margin: 0;
+}
+
+.fact {
+  display: flex;
+  gap: var(--space-2);
+  align-items: baseline;
+}
+
+.fact dt {
+  color: var(--color-muted);
+}
+
+.fact dd {
+  margin: 0;
+  font-family: var(--font-numbers);
+}
+
+.tableFrame {
+  align-self: stretch;
+  overflow-x: auto;
+}
+
+.cellLine,
+.cellDetail {
+  display: block;
+}
+
+.cellDetail {
+  color: var(--color-muted);
+  font-size: var(--text-small);
+}
+
+/* On a phone, each holding is a row between thin lines, with its name and short muted lines at the left and its main numbers at the right. */
+.rows {
+  align-self: stretch;
+  margin: 0;
+  padding: 0;
+  border-block-start: var(--size-line) solid var(--color-line);
+  font-size: var(--text-row);
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding-block: var(--space-3);
+  border-block-end: var(--size-line) solid var(--color-line);
+}
+
+.rowName {
+  min-width: 0;
+}
+
+.rowNumbers {
+  font-family: var(--font-numbers);
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* The order ticket, as the references draw it. */
+.ticket {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.ticket > h2 {
+  margin: 0;
+}
+
+.ticketStock {
+  font-size: var(--text-stock);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.ticketQuote {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--space-3);
+  margin: 0;
+  font-family: var(--font-numbers);
+}
+
+.ticketQuote dd {
+  margin: 0;
+}
+
+.ticketPrice {
+  font-size: var(--text-price);
+}
+
+/* A name that a screen reader reads but that the ticket leaves to the look of its numbers. */
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }

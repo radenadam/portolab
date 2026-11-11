@@ -12,6 +12,7 @@ import {
   currentSessionContext,
   reloadSessionAccount,
   requireUser,
+  signedInRole,
 } from "./current-session.server";
 import { createSession, resumeSession } from "./session-store.server";
 
@@ -48,4 +49,20 @@ test("signs out a person whose account the person who runs the server deleted af
   expect(context.get(currentSessionContext)).toBeDefined();
   reloadSessionAccount(context, url);
   expect(context.get(currentSessionContext)).toBeUndefined();
+});
+
+test("gives the role of the person who is signed in, also before the account is ready, and none for a visitor", async () => {
+  const database = openDatabaseForTest();
+  const { context, id } = await contextOfStudent(database);
+  expect(signedInRole(context)).toBe("student");
+  // An account that must change its password is not ready, but its navigation already follows its role.
+  database
+    .update(users)
+    .set({ mustChangePassword: true })
+    .where(eq(users.id, id))
+    .run();
+  reloadSessionAccount(context, url);
+  expect(signedInRole(context)).toBe("student");
+  context.set(currentSessionContext, undefined);
+  expect(signedInRole(context)).toBeUndefined();
 });

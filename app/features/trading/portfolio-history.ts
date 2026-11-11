@@ -143,6 +143,20 @@ export function portfolioHistory(input: HistoryInput): PortfolioHistory {
   }
 }
 
+/** The return of the IHSG since the close from which portfolioHistory counts the returns of a portfolio, at a later level, such as its latest delayed level, so that it covers the same time as the return of the portfolio since its starting cash. It is undefined while portfolioHistory has no such close, because the prices of the start are not final or no close of the IHSG on the start or later is stored. */
+export function marketReturnSinceStart(
+  input: Pick<HistoryInput, "startDate" | "market" | "now" | "delayMinutes">,
+  level: IndexPoints,
+): CumulativeReturn | undefined {
+  if (unfinishedEnd(input.startDate, input) !== undefined) {
+    return undefined;
+  }
+  const base = baseClose(closesByDate(input.market.closes), input.startDate);
+  return base === undefined
+    ? undefined
+    : cumulativeReturn(priceChange(level, base.level));
+}
+
 /** The close of the IHSG from which the returns count: its close on the start, or its latest close before the start when the source left out the close of the start, because a later close is stored. The portfolio held only its starting cash at either close. It is undefined while the close of the start is not stored, nor any later one. */
 function baseClose(
   closes: ReadonlyMap<string, IndexPoints>,
@@ -167,7 +181,7 @@ function baseClose(
 // A day whose prices are not final yet ends the history before it, and so does a day that no IDX calendar covers.
 function unfinishedEnd(
   date: string,
-  { now, delayMinutes }: HistoryInput,
+  { now, delayMinutes }: Pick<HistoryInput, "now" | "delayMinutes">,
 ): HistoryEnd | undefined {
   const finalAt = pricesFinalAt(date, delayMinutes);
   if (!finalAt.ok) {

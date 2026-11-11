@@ -9,9 +9,10 @@ import {
 } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { basisPointsPerWhole } from "~/units/basis-points";
-import { lots, smallestOrderLots } from "~/units/lots";
+import { smallestOrderLots } from "~/units/lots";
 import { rupiah } from "~/units/rupiah";
 import { lotCount } from "./count-parts";
+import { freeLotsOf } from "./lots-step";
 import type { PriceLimit } from "./price-limits";
 import type { FillFailure, OrderFailure } from "./order";
 import { purchaseCost } from "./trading-costs";
@@ -208,7 +209,7 @@ const failureTexts: FailureTexts = {
         ),
       );
     }
-    const freeLots = lots(failure.heldLots - failure.setAside.amount);
+    const freeLots = freeLotsOf(failure);
     sentences.push(
       freeLots === 0
         ? countedText(

@@ -27,6 +27,9 @@ export interface OrderFormFields {
   limitFailure: string | undefined;
 }
 
+/** The name of the button of a rejection that changes the lots of the order form to those that it offers, which a form sends only when the student taps it. */
+export const lotsStepName = "lotsStep";
+
 // The example shows a group of digits in the format of the language, as the example of every whole number does.
 const limitExample = 1_000;
 

@@ -19,6 +19,8 @@ import {
   duringSessionForTest,
   endOfMondayForTest,
 } from "./orders-for-test";
+import { readPortfolio } from "./portfolio-store.server";
+import type { PortfolioOwner } from "./portfolio-store.server";
 import { studentWithQuotesForTest } from "./portfolios-for-test.server";
 
 const classId = successValueForTest(
@@ -82,6 +84,7 @@ function contextForTest(database: Database): RouterContextProvider {
 /** A student with a portfolio in a class whose stored quote of BBCA is the close of Friday, and the form request of the student at a moment, from the orders whose address chose BBCA unless the test gives another stock as the address sends it. */
 async function studentRequestForTest(): Promise<{
   database: Database;
+  owner: PortfolioOwner;
   request: (
     fields: Record<string, string>,
     now: Date,
@@ -94,6 +97,7 @@ async function studentRequestForTest(): Promise<{
   );
   return {
     database,
+    owner,
     request: (fields, now, chosenStock = "BBCA") => ({
       form: formDataForTest(fields),
       place: { classId, owner },
@@ -171,7 +175,7 @@ for (const locale of locales) {
           limit: locale === "id" ? " 9.000 " : " 9,000 ",
           limitFailure: text.outsideLimits,
         },
-        failure: undefined,
+        rejection: undefined,
       },
       init: { status: 400 },
     });
@@ -181,7 +185,7 @@ for (const locale of locales) {
     ).toMatchObject({
       data: {
         fields: { side: "buy", limitFailure: undefined },
-        failure: text.noReferenceClose,
+        rejection: { text: text.noReferenceClose, lotsStep: undefined },
       },
       init: { status: 503 },
     });
@@ -196,7 +200,10 @@ for (const locale of locales) {
         request(purchase, new Date("2028-01-03T03:00:00Z")),
       ),
     ).toMatchObject({
-      data: { fields: { side: "buy" }, failure: text.missingRules },
+      data: {
+        fields: { side: "buy" },
+        rejection: { text: text.missingRules, lotsStep: undefined },
+      },
       init: { status: 503 },
     });
   });
@@ -217,7 +224,7 @@ for (const locale of locales) {
       ).toMatchObject({
         data: {
           fields: undefined,
-          failure: undefined,
+          rejection: undefined,
           stockFailure,
           cancelFailure: undefined,
         },
@@ -226,3 +233,52 @@ for (const locale of locales) {
     }
   });
 }
+
+// The class of the test starts its students with Rp100,000,000, and the stored quote of BBCA is Rp4,980. A purchase of 200 lots costs Rp99,600,000 and a broker fee of Rp149,400, which together the cash pays for, while 201 lots cost Rp100,098,000 before the fee, as the multiplication shows by hand.
+test("rejects a purchase that the cash cannot pay for with the largest purchase that it pays for as the step of the rejection, and no step for a sale of shares that the student does not hold", async () => {
+  const { database, request } = await studentRequestForTest();
+  const context = contextForTest(database);
+  expect(
+    placeFromForm(
+      context,
+      request({ ...purchase, lots: "300" }, duringSessionForTest),
+    ),
+  ).toMatchObject({
+    data: { fields: { lots: "300" }, rejection: { lotsStep: 200 } },
+    init: { status: 400 },
+  });
+  expect(
+    placeFromForm(
+      context,
+      request({ ...purchase, side: "sell" }, duringSessionForTest),
+    ),
+  ).toMatchObject({
+    data: { rejection: { lotsStep: undefined } },
+    init: { status: 400 },
+  });
+});
+
+test("changes the lots of the order form to those of the step of a rejection, keeps the other fields, and places no order", async () => {
+  const { database, owner, request } = await studentRequestForTest();
+  expect(
+    placeFromForm(
+      contextForTest(database),
+      request(
+        { ...purchase, lots: "300", lotsStep: "200" },
+        duringSessionForTest,
+      ),
+    ),
+  ).toMatchObject({
+    data: {
+      fields: {
+        side: "buy",
+        priceKind: "market",
+        lots: "200",
+        lotsFailure: undefined,
+      },
+      rejection: undefined,
+    },
+    init: { status: 200 },
+  });
+  expect(readPortfolio(database, owner).orders).toEqual([]);
+});

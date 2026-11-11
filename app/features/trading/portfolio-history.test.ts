@@ -7,10 +7,15 @@ import type {
 } from "~/features/market-data/price-source.server";
 import { closeToForTest } from "~/features/measures/close-to-for-test";
 import { successValueForTest } from "~/success-value-for-test";
+import { indexPoints } from "~/units/index-points";
 import { rupiah } from "~/units/rupiah";
 import type { Order } from "./order";
 import { duringSessionForTest } from "./orders-for-test";
-import { historyStartDate, portfolioHistory } from "./portfolio-history";
+import {
+  historyStartDate,
+  marketReturnSinceStart,
+  portfolioHistory,
+} from "./portfolio-history";
 import type { PortfolioHistory } from "./portfolio-history";
 import { readPortfolio } from "./portfolio-store.server";
 import {
@@ -351,4 +356,62 @@ test("ends at a day after which no calendar covers the next trading day", () => 
     ],
     end: { kind: "missingCalendar" },
   });
+});
+
+// The IHSG closed at 4,904.29 on Tuesday 3 November 2026, which the history takes as a later level of the index.
+const tuesdayIhsgLevel = indexPoints(4_904.29);
+
+test("gives the return of the IHSG at a later level since the close from which the returns of the portfolio count", () => {
+  expect(
+    marketReturnSinceStart(
+      {
+        startDate,
+        market: recordedIhsgForTest(),
+        now: new Date("2026-11-04T03:00:00Z"),
+        delayMinutes,
+      },
+      tuesdayIhsgLevel,
+    ),
+  ).toEqual(tuesdayPoint.market);
+  // Without the close of the start, the return counts from the close before it, as the history does, which the decimal module of Python gives as 4,904.29 / 5,098.06 - 1.
+  expect(
+    marketReturnSinceStart(
+      {
+        startDate,
+        market: recordedIhsgForTest(["2026-10-30"]),
+        now: new Date("2026-11-04T03:00:00Z"),
+        delayMinutes,
+      },
+      tuesdayIhsgLevel,
+    ),
+  ).toEqual(closeToForTest(-0.03800857581119092, 15));
+});
+
+test("gives no return of the IHSG while the prices of the start are not final, or while no close of the IHSG on the start or later is stored", () => {
+  const cashStart = successValueForTest(
+    historyStartDate(new Date("2026-10-30T09:05:00Z")),
+    "IDX calendars cover October 2026",
+  );
+  expect(
+    marketReturnSinceStart(
+      {
+        startDate: cashStart,
+        market: recordedIhsgForTest(),
+        now: new Date("2026-10-30T09:10:00Z"),
+        delayMinutes,
+      },
+      tuesdayIhsgLevel,
+    ),
+  ).toBeUndefined();
+  expect(
+    marketReturnSinceStart(
+      {
+        startDate,
+        market: recordedIhsgForTest(["2026-10-30", "2026-11-02", "2026-11-03"]),
+        now: new Date("2026-11-04T03:00:00Z"),
+        delayMinutes,
+      },
+      tuesdayIhsgLevel,
+    ),
+  ).toBeUndefined();
 });

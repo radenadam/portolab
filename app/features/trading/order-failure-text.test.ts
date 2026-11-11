@@ -7,6 +7,7 @@ import { lots } from "~/units/lots";
 import { rupiah } from "~/units/rupiah";
 import type { OrderFailure } from "./order";
 import { limitPriceFailureText, orderFailureText } from "./order-failure-text";
+import { purchaseWithCashSetAsideForTest } from "./purchase-with-cash-set-aside-for-test";
 import { orderLotsForTest } from "./orders-for-test";
 import { oneRupiahLimit, rateLimit } from "./price-limits";
 
@@ -44,24 +45,7 @@ const allCashSetAside = {
   setAside: { amount: rupiah(498_747), orders: 1 },
 } satisfies OrderFailure;
 
-// A purchase of 5 lots of BBCA at Rp4,980, which costs Rp2,493,735, while one open buy order of 1 lot sets aside Rp498,747 of a cash of Rp2,500,000.
-const cashSetAside = {
-  kind: "notEnoughCash",
-  code: "BBCA",
-  lots: orderLotsForTest(5),
-  price: rupiah(4_980),
-  value: rupiah(2_490_000),
-  fee: rupiah(3_735),
-  tax: rupiah(0),
-  cash: rupiah(2_500_000),
-  setAside: { amount: rupiah(498_747), orders: 1 },
-  holdsFreeShares: false,
-  sales: noSales,
-  availableCash: rupiah(2_001_253),
-  largestLots: lots(4),
-  highestLotPrice: rupiah(19_982),
-  minimumPrice: rupiah(1),
-} satisfies OrderFailure;
+const cashSetAside = purchaseWithCashSetAsideForTest;
 
 const failures = {
   missingRules: {

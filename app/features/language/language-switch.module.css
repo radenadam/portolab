@@ -2,7 +2,6 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: flex-end;
   gap: 0 var(--space-3);
   color: var(--color-muted);
   font-size: var(--text-small);
@@ -10,7 +9,8 @@
 
 .options {
   display: flex;
-  gap: var(--space-3);
+  flex-wrap: wrap;
+  gap: 0 var(--space-3);
 }
 
 .option {

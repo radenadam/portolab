@@ -28,7 +28,7 @@ export interface StockQuote {
 }
 
 /** Index levels are points with two decimals, not amounts of money. */
-interface IndexQuote {
+export interface IndexQuote {
   kind: "index";
   code: IndexCode;
   level: IndexPoints;
