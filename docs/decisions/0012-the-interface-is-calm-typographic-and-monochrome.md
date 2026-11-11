@@ -1,6 +1,6 @@
 # 0012. The interface is calm, typographic, and monochrome
 
-- Status: Accepted
+- Status: Accepted. [Decision 0026](0026-every-screen-follows-the-reference-screens-of-tenang.md) sets the layout of every screen, which this record left out, and changes one of its rules: the font of the headline number of a page.
 - Date: 2026-11-01
 
 ## Context
