@@ -103,7 +103,7 @@ export function universeOn(date: string): Result<readonly string[], string> {
   );
   if (!period.ok) {
     return fail(
-      `No recorded period of the LQ45 covers ${date}, so add the stocks of the latest review of IDX to ${file}.`,
+      `No recorded period of the LQ45 covers ${date}, so add the stocks of the LQ45 that IDX set for that day to ${file}.`,
     );
   }
   return succeed(period.value.codes);

@@ -52,7 +52,7 @@ export interface Services {
   stop: () => void;
 }
 
-/** Opens the database, starts the price job, which checks the open orders after each update of quotes and warns about a trading day of the coming weeks that lacks a record that orders need, and the sweep of ended sessions, and creates the limits on passwords and on joining classes, with the settings that the server read at startup. */
+/** Opens the database, starts the price job, which checks the open orders after each update of quotes and warns about a trading day of the coming weeks that lacks a record that orders or purchases need, and the sweep of ended sessions, and creates the limits on passwords and on joining classes, with the settings that the server read at startup. */
 export function startServices(settings: ServiceSettings): Services {
   const database = openDatabase(
     settings.databasePath,

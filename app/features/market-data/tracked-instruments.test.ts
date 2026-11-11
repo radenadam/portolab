@@ -25,11 +25,11 @@ test("fails for a date that no recorded period covers, and names the date", () =
   expect(universeOn("2027-02-01")).toEqual({
     ok: false,
     failure:
-      "No recorded period of the LQ45 covers 2027-02-01, so add the stocks of the latest review of IDX to tracked-instruments.ts.",
+      "No recorded period of the LQ45 covers 2027-02-01, so add the stocks of the LQ45 that IDX set for that day to tracked-instruments.ts.",
   });
   expect(universeOn("2026-10-30")).toEqual({
     ok: false,
     failure:
-      "No recorded period of the LQ45 covers 2026-10-30, so add the stocks of the latest review of IDX to tracked-instruments.ts.",
+      "No recorded period of the LQ45 covers 2026-10-30, so add the stocks of the LQ45 that IDX set for that day to tracked-instruments.ts.",
   });
 });

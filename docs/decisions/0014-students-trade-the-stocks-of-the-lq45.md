@@ -25,4 +25,4 @@ A student needs enough stocks from enough sectors to build a diversified portfol
 - Every stock in the universe has a liquid market, so its delayed price is close to what a broker would show.
 - The universe covers banks, mining, energy, consumer goods, telecommunications, and technology, so a student can diversify across sectors.
 - Some members listed recently, so they have fewer monthly returns than the measures need, and the measures say so instead of computing them.
-- Someone must add the next period after each review of IDX, and the price job warns while no recorded period covers a trading day. The tracked stocks grow by the few stocks that each review replaces.
+- Someone must add the next period after each review of IDX, and the log warns weeks before a trading day that no recorded period covers, as [the deployment guide](../deploy.md#update-portolab) explains. The tracked stocks grow by the few stocks that each review replaces.

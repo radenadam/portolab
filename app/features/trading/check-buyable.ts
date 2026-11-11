@@ -22,9 +22,9 @@ export function checkBuyable(
   date: string,
   stock: StockHistories,
 ): Result<undefined, OrderFailure> {
-  const universe = universeOn(date);
+  const universe = purchaseUniverseOn(date);
   if (!universe.ok) {
-    return fail({ kind: "missingUniverse", reason: universe.failure });
+    return universe;
   }
   if (!universe.value.includes(code)) {
     return fail({ kind: "outsideUniverse", code, date });
@@ -53,4 +53,18 @@ export function checkBuyable(
     minimum: returns.minimum,
     enoughAfterFirstTradingDayOf: enough.value,
   });
+}
+
+/** The codes of the stocks in the universe of a trading day, which are the only stocks that a purchase of that day can buy. It fails when no recorded period of the LQ45 covers the day, so every purchase of that day fails. */
+export function purchaseUniverseOn(
+  date: string,
+): Result<
+  readonly string[],
+  Extract<OrderFailure, { kind: "missingUniverse" }>
+> {
+  const universe = universeOn(date);
+  if (!universe.ok) {
+    return fail({ kind: "missingUniverse", reason: universe.failure });
+  }
+  return universe;
 }

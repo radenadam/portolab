@@ -4,7 +4,6 @@ import { errorDetail } from "~/error-message";
 import { secondMilliseconds } from "~/time-units";
 import { writeLog } from "~/write-log.server";
 import { dailyWarningLog } from "./daily-warning-log.server";
-import { missingDataWarnings } from "./missing-data-warnings";
 import type { PriceJobSettings } from "./price-job-settings";
 import type { Quote } from "./price-source.server";
 import { saveQuotes } from "./quote-store.server";
@@ -21,20 +20,19 @@ const requestTimeoutMilliseconds = 20 * secondMilliseconds;
 // Decision 0001 asks for a low load on Yahoo, and with a second between requests the closes of the whole universe take about a minute.
 const historyRequestPauseMilliseconds = secondMilliseconds;
 
-/** Fetches quotes and daily closes once at startup, so a fresh server shows the last close, then quotes every minute while prices can change and daily closes after each trading day closes. After each run of the quote update, it hands the moment when the run ended to afterQuoteUpdate, such as the check of open orders. At startup and every minute, it logs the warnings about missing data, its own and those that otherWarnings gives, such as a trading day of the coming weeks without the rules of IDX that orders need, each once a day. Returns a function that stops the job. */
+/** Fetches quotes and daily closes once at startup, so a fresh server shows the last close, then quotes every minute while prices can change and daily closes after each trading day closes. After each run of the quote update, it hands the moment when the run ended to afterQuoteUpdate, such as the check of open orders. At startup and on the first run of each date in WIB, it logs the warnings about missing data that missingDataWarnings gives for the date, such as a trading day of the coming weeks without the rules of IDX that orders need. Returns a function that stops the job. */
 export function startPriceJob(
   settings: PriceJobSettings,
   afterQuoteUpdate: (now: Date) => void,
-  otherWarnings: (now: Date, delayMinutes: number) => readonly string[],
+  missingDataWarnings: (
+    date: string,
+    delayMinutes: number,
+  ) => readonly string[],
 ): () => void {
   const { delayMinutes } = settings.priceSource;
-  const logWarnings = dailyWarningLog();
-  const warnAboutMissingData = (now: Date) => {
-    logWarnings(now, [
-      ...missingDataWarnings(now, delayMinutes),
-      ...otherWarnings(now, delayMinutes),
-    ]);
-  };
+  const warnAboutMissingData = dailyWarningLog((date) =>
+    missingDataWarnings(date, delayMinutes),
+  );
   const updateQuotes = serializeUpdates(async () => {
     await runQuoteUpdate(
       settings,
