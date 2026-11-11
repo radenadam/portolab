@@ -2,6 +2,7 @@ import { expect, test } from "vitest";
 import { fail, succeed } from "../app/result.ts";
 import { successValueForTest } from "../app/success-value-for-test.ts";
 import {
+  checkBackupsOnlyForRoot,
   checkSystemNamed,
   followsGuide,
   guidePath,
@@ -309,4 +310,53 @@ test("accepts a guide that names the system of the test machine and rejects one 
     failure:
       "docs/deploy.md must name Ubuntu 26.04, because the test follows it on that system, but it does not.",
   });
+});
+
+test("accepts a folder of backups that the user of the container can read none of, and checks each file at its path", () => {
+  const checkedPaths: string[] = [];
+  expect(
+    checkBackupsOnlyForRoot(
+      ["portolab-2026-11-10.sqlite", "portolab-2026-11-11.sqlite"],
+      (path) => {
+        checkedPaths.push(path);
+        return succeed(false);
+      },
+    ),
+  ).toEqual([]);
+  expect(checkedPaths).toEqual([
+    "/var/backups/portolab/portolab-2026-11-10.sqlite",
+    "/var/backups/portolab/portolab-2026-11-11.sqlite",
+  ]);
+});
+
+test("fails for each file in the folder of the backups that the user of the container can read", () => {
+  expect(
+    checkBackupsOnlyForRoot(
+      [
+        "portolab-2026-11-10.sqlite",
+        "portolab-2026-11-11.sqlite",
+        "unfinished.sqlite",
+      ],
+      (path) => succeed(!path.endsWith("portolab-2026-11-11.sqlite")),
+    ),
+  ).toEqual([
+    "A process of the user number 1000 can read /var/backups/portolab/portolab-2026-11-10.sqlite, so an account of the server with that number reads the personal data in it.",
+    "A process of the user number 1000 can read /var/backups/portolab/unfinished.sqlite, so an account of the server with that number reads the personal data in it.",
+  ]);
+});
+
+test("fails for a folder of backups without a file, because the check would pass without checking anything", () => {
+  expect(checkBackupsOnlyForRoot([], () => succeed(false))).toEqual([
+    "/var/backups/portolab holds no file after the guide, so the test cannot check who reads a backup.",
+  ]);
+});
+
+test("passes on why it could not tell whether the user of the container can read a file", () => {
+  const failure =
+    "test -r /var/backups/portolab/portolab-2026-11-11.sqlite ended with code 2. test: missing argument";
+  expect(
+    checkBackupsOnlyForRoot(["portolab-2026-11-11.sqlite"], () =>
+      fail(failure),
+    ),
+  ).toEqual([failure]);
 });

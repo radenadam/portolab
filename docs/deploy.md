@@ -135,14 +135,18 @@ The command prints a temporary password and says what the lecturer does with it.
 Portolab keeps all its data in one SQLite database, in a volume of Docker. These commands write a script that backs it up into `/var/backups/portolab` and deletes each backup once it is 14 days old. They make systemd run the script every day, and they make the first backup now:
 
 ```sh
-install --directory --owner 1000 --group 1000 --mode 700 /var/backups/portolab
+install --directory --owner root --group root --mode 700 /var/backups/portolab
 cat > /usr/local/bin/portolab-backup <<'EOF'
 #!/bin/sh
 set -e
-backup="portolab-$(date -I).sqlite"
+backup="/var/backups/portolab/portolab-$(date -I).sqlite"
+unfinished=/var/backups/portolab/unfinished.sqlite
+# A backup that fails replaces no earlier backup and leaves no part of itself.
+trap 'rm -f "$unfinished"' EXIT
 cd /opt/portolab
-# A backup in the journal mode DELETE is one file, which a restore can read from a folder that it cannot change.
-docker compose run --rm --volume /var/backups/portolab:/backups app sqlite3 "file:/app/data/portolab.sqlite?mode=rw" ".timeout 10000" ".backup /backups/$backup" ".open /backups/$backup" "PRAGMA journal_mode = DELETE"
+# Only root opens the folder of the backups, so the container passes the backup on through its output.
+docker compose run --rm --no-TTY app sh -c 'sqlite3 "file:/app/data/portolab.sqlite?mode=rw" ".timeout 10000" ".backup /tmp/portolab.sqlite" && cat /tmp/portolab.sqlite' > "$unfinished"
+mv "$unfinished" "$backup"
 find /var/backups/portolab -name "portolab-*.sqlite" -mtime +13 -delete
 EOF
 chmod +x /usr/local/bin/portolab-backup
@@ -173,7 +177,7 @@ systemctl start portolab-backup.service
 ls -l /var/backups/portolab
 ```
 
-The container writes each backup as the user that runs Portolab, whose number is 1000, so that user owns the folder. To make a backup at any other time, such as before an update, run `systemctl start portolab-backup`. A second backup on the same day replaces the first. When a backup fails, `journalctl --unit portolab-backup` names the reason.
+Each backup holds the personal data of every person in Portolab, so only root opens the folder. The container runs Portolab as the user number 1000, and an account of the server can have that number as well, so the folder cannot belong to that user. Instead, the container passes each backup to the script through its output, and the script writes it into the folder. To make a backup at any other time, such as before an update, run `systemctl start portolab-backup`. A second backup on the same day replaces the first once it is complete. When a backup fails, `journalctl --unit portolab-backup` names the reason.
 
 A backup on the server is lost with the server. To keep a copy on your computer, run this command on your computer with the address of your server and the date of the backup:
 
@@ -185,12 +189,12 @@ A copy holds the personal data of every person in Portolab, so delete it as the 
 
 ## Restore a backup
 
-A restore replaces the whole database with the backup, so every change after the backup is lost. Run these commands with the date of the backup in place of `2026-11-10`. When no backup has that date, the command fails and the database stays as it was.
+A restore replaces the whole database with the backup, so every change after the backup is lost. Run these commands with the date of the backup in place of `2026-11-10`. The container cannot open the folder of the backups, so the third command passes the backup to it through its input. When no backup has that date, the command fails and the database stays as it was.
 
 ```sh
 cd /opt/portolab
 docker compose stop app
-docker compose run --rm --volume /var/backups/portolab:/backups:ro app sqlite3 "file:/app/data/portolab.sqlite?mode=rw" ".restore /backups/portolab-2026-11-10.sqlite"
+docker compose run --rm --no-TTY app sh -c 'cat > /tmp/portolab.sqlite && sqlite3 "file:/app/data/portolab.sqlite?mode=rw" ".restore /tmp/portolab.sqlite"' < /var/backups/portolab/portolab-2026-11-10.sqlite
 docker compose up --detach --wait
 ```
 
@@ -206,6 +210,14 @@ docker compose up --detach --build --wait
 systemctl reload caddy
 docker image prune --force --filter label=com.docker.compose.project=portolab
 ```
+
+An earlier version of section 8 made the user number 1000 the owner of the folder of the backups, so an account of the server with that number could read every backup. This command prints the number of the owner of the folder:
+
+```sh
+stat --format %u /var/backups/portolab
+```
+
+It prints 0 for root. When it prints 1000, run the commands of section 8 once more. They make root the owner of the folder and write the script again, and they keep the backups that the folder holds.
 
 Portolab needs data of IDX that the repository adds over time, such as the trading calendar of each year, the auto rejection limits that IDX sets for orders, and the stocks of the LQ45 after each review. When the log says that such data is missing, an update brings it once the repository has it.
 

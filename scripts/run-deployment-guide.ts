@@ -1,13 +1,22 @@
 import { spawnSync } from "node:child_process";
-import { appendFileSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  appendFileSync,
+  mkdtempSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { errorMessage } from "../app/error-message.ts";
 import { exitWithFailure } from "../app/exit-with-failure.server.ts";
-import { failuresOf } from "../app/result.ts";
+import { failuresOf, succeed } from "../app/result.ts";
 import { minuteMilliseconds } from "../app/time-units.ts";
 import {
+  backupFolder,
+  checkBackupsOnlyForRoot,
   checkSystemNamed,
+  containerUserNumber,
   guidePath,
   parseRunArguments,
   parseServerBlocks,
@@ -17,6 +26,7 @@ import {
 } from "./deployment-guide.ts";
 import type { ServerBlock } from "./deployment-guide.ts";
 import { readTextFile } from "./read-text-file.ts";
+import { runCommand } from "./run-command.ts";
 import { writeScriptFailure } from "./write-script-failure.ts";
 
 // The first build of Portolab takes minutes on a small server, and a block that hangs fails by name before the step of the workflow ends.
@@ -67,6 +77,11 @@ rmSync(folder, { recursive: true, force: true });
 if (failure !== undefined) {
   exitWithFailure([failure], writeScriptFailure);
 }
+// An account of the server can have the numbers of the user of the container, so the test checks with those numbers that it can read no backup.
+const backupFailures = checkBackups();
+if (backupFailures.length > 0) {
+  exitWithFailure(backupFailures, writeScriptFailure);
+}
 
 /** Runs each block in order, and returns why the first block that failed failed, or undefined when every block succeeded. */
 function followGuide(
@@ -106,4 +121,23 @@ function followGuide(
     }
   }
   return undefined;
+}
+
+/** Returns why the user of the container can read a file in the folder of the backups, or why the test could not tell, and an empty list when only root reads them. */
+function checkBackups(): string[] {
+  let names: string[];
+  try {
+    names = readdirSync(backupFolder);
+  } catch (error) {
+    return [
+      `The test could not list ${backupFolder}. Node reported: ${errorMessage(error)}`,
+    ];
+  }
+  return checkBackupsOnlyForRoot(names, (path) => {
+    const run = runCommand("test", ["-r", path], {
+      answerCodes: [1],
+      identity: { user: containerUserNumber, group: containerUserNumber },
+    });
+    return run.ok ? succeed(run.value.code === 0) : run;
+  });
 }

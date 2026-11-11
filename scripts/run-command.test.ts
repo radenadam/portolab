@@ -1,3 +1,4 @@
+import { userInfo } from "node:os";
 import { expect, test } from "vitest";
 import { runCommand } from "./run-command.ts";
 
@@ -50,3 +51,16 @@ test("fails when the command cannot start", () => {
     "a-command-that-does-not-exist failed. It reported:",
   );
 });
+
+// Windows has no numbers of users, and root may run a command as any user, so CI runs this test on Linux as another user than root.
+test.skipIf(process.platform === "win32" || userInfo().uid === 0)(
+  "fails when the command cannot run as the user that it names",
+  () => {
+    const { uid, gid } = userInfo();
+    const run = runCommand(node, ["-e", ""], {
+      identity: { user: uid + 1, group: gid },
+    });
+    expect(run.ok).toBe(false);
+    expect(!run.ok && run.failure).toContain("EPERM");
+  },
+);
