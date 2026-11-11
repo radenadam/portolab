@@ -4,6 +4,7 @@ import {
   isContinuousTradingTime,
   isPriceUpdateTime,
   isSameWibDay,
+  isTradingDay,
   latestClosedTradingDay,
   pricesFinalAt,
   tradingDayAfter,
@@ -492,5 +493,37 @@ test("fails when the search for the trading day before a date reaches a date tha
     ok: false,
     failure:
       "No IDX trading calendar covers 2025-12-31, so add the holidays and trading hours of that year to idx-calendar.ts.",
+  });
+});
+
+// Each case gives a date and whether IDX trades on it.
+const tradingDates: { name: string; date: string; isTrading: boolean }[] = [
+  { name: "on a weekday", date: "2026-11-02", isTrading: true },
+  { name: "on a Saturday", date: "2026-11-07", isTrading: false },
+  { name: "on a Sunday", date: "2026-11-08", isTrading: false },
+  { name: "on a holiday", date: "2026-12-24", isTrading: false },
+  {
+    name: "on a weekday of the calendar of the next year",
+    date: "2027-01-04",
+    isTrading: true,
+  },
+  {
+    name: "on a holiday of the calendar of the next year",
+    date: "2027-01-05",
+    isTrading: false,
+  },
+];
+
+for (const { name, date, isTrading } of tradingDates) {
+  test(`${isTrading ? "finds" : "finds no"} trading ${name}`, () => {
+    expect(isTradingDay(date)).toEqual({ ok: true, value: isTrading });
+  });
+}
+
+test("fails to say whether IDX trades on a date that no calendar covers", () => {
+  expect(isTradingDay("2028-01-03")).toEqual({
+    ok: false,
+    failure:
+      "No IDX trading calendar covers 2028-01-03, so add the holidays and trading hours of that year to idx-calendar.ts.",
   });
 });
