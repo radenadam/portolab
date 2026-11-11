@@ -53,9 +53,11 @@ The list names each program in quotes after `users:`. On a fresh server, it show
 
 ## 3. Install Docker
 
-Portolab runs in Docker with Compose. When the server already has both, such as for other work, `docker compose version` prints the version of Compose. Then skip this section, because these commands would update or replace Docker, which restarts every container on the server.
+Portolab runs in Docker with Compose. When the server already has Docker, such as for other work, `docker --version` prints its version. Then skip this section, because its commands would update that Docker or conflict with it, as the [installation guide of Docker](https://docs.docker.com/engine/install/ubuntu/) explains. Docker stops every container while it updates, unless it was set up to keep them running.
 
-These commands add the package repository of Docker and install Docker with Compose, as the [installation guide of Docker](https://docs.docker.com/engine/install/ubuntu/) describes. On a server that has Docker without Compose, they install the Docker of the guide in its place. That restarts the containers of the server once, so run them when that work may stop for a moment:
+On such a server, `docker compose version` prints the version of Compose. When it fails, that Docker lacks Compose, so install Compose as the [installation guide of Compose](https://docs.docker.com/compose/install/linux/) describes. Compose is a command of its own, so its installation stops no container.
+
+On a server without Docker, these commands add the package repository of Docker and install Docker with Compose, as the installation guide of Docker describes:
 
 ```sh
 install -m 0755 -d /etc/apt/keyrings
@@ -96,7 +98,7 @@ cd /opt/portolab
 docker compose up --detach --build --wait
 ```
 
-The first build takes several minutes. When it stops with an error, such as a download that ran out of time, its last lines name the step that failed. Run the last command again, and the build continues after the steps that succeeded. The last command ends once Portolab answers. Portolab then fetches its first prices by itself, and it starts again by itself after a crash or a restart of the server.
+The first build takes several minutes. When it stops with an error, such as a download that ran out of time, run the last command again. Docker reuses the steps that succeeded, so the build continues from the step that failed. The last command ends once Portolab answers. Portolab then fetches its first prices by itself, and it starts again by itself after a crash or a restart of the server.
 
 ## 6. Serve Portolab over HTTPS
 
