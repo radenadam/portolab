@@ -4,6 +4,7 @@ import {
   listStockHistory,
 } from "~/features/market-data/history-store.server";
 import type { StockQuote } from "~/features/market-data/price-source.server";
+import { attemptForCodes } from "~/features/market-data/quote-failure-text";
 import { findStockQuote } from "~/features/market-data/quote-store.server";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
 import { readLatestUpdateAttempt } from "~/features/market-data/update-attempts.server";
@@ -41,18 +42,12 @@ export function readPortfolioValuation(
       quotes.set(holding.code, quote);
     }
   }
-  const attempt = readLatestUpdateAttempt(database, "quotes");
   return {
     valuation: valuePortfolio(portfolio, startingCash, quotes),
-    quoteAttempt:
-      attempt === undefined
-        ? undefined
-        : {
-            ...attempt,
-            failedCodes: attempt.failedCodes.filter((code) =>
-              portfolio.holdings.some((holding) => holding.code === code),
-            ),
-          },
+    quoteAttempt: attemptForCodes(
+      readLatestUpdateAttempt(database, "quotes"),
+      portfolio.holdings.map((holding) => holding.code),
+    ),
   };
 }
 

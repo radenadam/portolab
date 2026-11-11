@@ -1,17 +1,20 @@
 import { expect, test } from "@playwright/test";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
+import { expectTexts } from "./expect-texts.ts";
 import { languageNames } from "../app/language-names.ts";
 import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
+import { trackedInstruments } from "../app/features/market-data/tracked-instruments.ts";
 import { chooseLanguage } from "./choose-language.ts";
 
-// The server runs with the fixture price source, and fixture-price-source.server.ts describes its quotes. ITMG has the highest price of the universe, and the quotes of GOTO and BMRI hold the widest change and a date from an earlier day, so the table holds the widest content of each column.
+// The server runs with the fixture price source, and fixture-price-source.server.ts describes its quotes. ITMG has the highest price of the universe, and the quotes of GOTO and BMRI hold the widest change and a date from an earlier day, so the table holds the widest content of each column. Every update lacks UNVR, whose quote the global setup stored before the server started, and WIFI, of which Portolab has no price. The notice of those prices is a tuple of its parts around the time of the latest update, and the time of the next attempt depends on the moment of the test.
 
 const texts: Record<
   Locale,
   {
     title: string;
     delayNotice: string;
+    failureNotice: readonly [string, string, string];
     columns: readonly string[];
     bbca: readonly string[];
     ihsg: readonly string[];
@@ -25,6 +28,11 @@ const texts: Record<
     title: "Harga saham",
     delayNotice:
       "Harga tertunda sekitar 10 menit dan berasal dari Yahoo Finance. Harga terakhir tercatat pada 30 Okt 2026, 16.14 WIB.",
+    failureNotice: [
+      "Portolab tidak dapat memperbarui harga UNVR pada ",
+      " WIB, jadi Portolab memakai harga terakhir UNVR yang tersimpan. Portolab belum memiliki harga WIFI, karena percobaan terakhir untuk mengambilnya pada ",
+      " WIB gagal. Portolab ",
+    ],
     columns: ["Kode", "Harga terakhir", "Perubahan", "Waktu (WIB)"],
     bbca: ["4.980", "▲", "+0,81%", "16.14"],
     ihsg: ["5.057,05", "▼", "-0,80%", "16.00"],
@@ -37,6 +45,11 @@ const texts: Record<
     title: "Stock prices",
     delayNotice:
       "Prices are delayed by about 10 minutes and come from Yahoo Finance. The latest price was recorded at Oct 30, 2026, 4:14 PM WIB.",
+    failureNotice: [
+      "Portolab could not update the price of UNVR at ",
+      " WIB, so it uses the last price of UNVR that it stored. Portolab has no price for WIFI yet, because its latest attempt to fetch it at ",
+      " WIB failed. Portolab ",
+    ],
     columns: ["Code", "Last price", "Change", "Time (WIB)"],
     bbca: ["IDR 4,980", "▲", "+0.81%", "4:14 PM"],
     ihsg: ["5,057.05", "▼", "-0.80%", "4:00 PM"],
@@ -60,6 +73,10 @@ for (const locale of locales) {
       page.getByRole("heading", { level: 1, name: text.title }),
     ).toBeVisible();
     await expect(page.getByText(text.delayNotice)).toBeVisible();
+    await expectTexts(
+      page.getByText(text.failureNotice[0]),
+      text.failureNotice,
+    );
     for (const column of text.columns) {
       await expect(
         page.getByRole("columnheader", { name: column }),
@@ -73,13 +90,17 @@ for (const locale of locales) {
       ["GOTO", text.goto],
       ["ITMG", text.itmg],
     ] as const) {
-      const row = page.getByRole("row", { name: new RegExp(code) });
-      for (const cell of cells) {
-        await expect(row, code).toContainText(cell);
-      }
+      await expectTexts(
+        page.getByRole("row", { name: new RegExp(code) }),
+        cells,
+      );
     }
-    // The header, the IHSG, and the 45 stocks of the universe.
-    await expect(page.getByRole("row")).toHaveCount(47);
+    // The header and a row for each tracked instrument but WIFI, of which Portolab has no price.
+    const headerRows = 1;
+    const unpricedInstruments = 1;
+    await expect(page.getByRole("row")).toHaveCount(
+      headerRows + trackedInstruments.length - unpricedInstruments,
+    );
     await expectAccessibleScreen(page);
   });
 }

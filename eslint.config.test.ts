@@ -354,17 +354,13 @@ test(
 );
 
 test(
-  "accepts loading a feature in the modules that compose the app and in the features",
+  "accepts loading a feature in the modules that compose the app",
   async () => {
     for (const [filePath, path] of [
       ["app/root.tsx", "./features/market-data/quote-change"],
       ["app/routes.ts", "~/features/market-data/quote-change"],
       ["server/app.ts", "~/features/market-data/quote-change"],
       ["server/account.ts", "../app/features/market-data/quote-change.ts"],
-      [
-        "app/features/market-data/prices-view.tsx",
-        "~/features/language/language-switch",
-      ],
     ] as const) {
       for (const [form, write] of Object.entries(loadingForms)) {
         const rules = await rulesReporting(write(path), filePath);
@@ -378,6 +374,268 @@ test(
     }
   },
   2 * minuteMilliseconds,
+);
+
+/** Code that loads a module at a path, and takes a name of it or everything of it. */
+type LoadingForm = (path: string, name: string) => string;
+
+/** The name of a context with a stem. The test builds it, because the check rejects a string that holds the name of a context. */
+function contextNamed(stem: string): string {
+  return `${stem}Context`;
+}
+
+const priceSourceContextName = contextNamed("priceSource");
+
+/** The name under which a form renames what it takes, which keeps the suffix of the name of a context. */
+function renamed(name: string): string {
+  return `loaded${name.charAt(0).toUpperCase()}${name.slice(1)}`;
+}
+
+/** Code that reads a context of a name through a provider of contexts, as a loader of React Router does. */
+function readWith(name: string): string {
+  return `export const read = (context: { get: (key: unknown) => unknown }): unknown => context.get(${name});`;
+}
+
+// Every way to load a module that names what it takes, each using it where a context may stand, which the check accepts for a name that is no context.
+const namingForms: Record<string, LoadingForm> = {
+  "static import": (path, name) =>
+    `import { ${name} } from "${path}";\n${readWith(name)}`,
+  "renamed import": (path, name) =>
+    `import { ${name} as ${renamed(name)} } from "${path}";\n${readWith(renamed(name))}`,
+  "type import": (path, name) =>
+    `import type { ${name} } from "${path}";\nexport type Loaded = typeof ${name};`,
+  "export from": (path, name) => `export { ${name} } from "${path}";`,
+  "renamed export from": (path, name) =>
+    `export { ${name} as ${renamed(name)} } from "${path}";`,
+};
+
+// Every way to load everything of a module, which the check refuses from another feature, because it cannot see whether it takes a context.
+const wholeModuleForms: Record<string, LoadingForm> = {
+  "export all from": (path) => `export * from "${path}";`,
+  "export all as from": (path) => `export * as loaded from "${path}";`,
+  "namespace import": (path) =>
+    `import * as loaded from "${path}";\nexport { loaded };`,
+  "dynamic import": (path) =>
+    `export const load = async (): Promise<unknown> => import("${path}");`,
+  "dynamic import of a template": (path) =>
+    `export const load = async (): Promise<unknown> => import(\`${path}\`);`,
+};
+
+const contextLoadingForms = { ...namingForms, ...wholeModuleForms };
+
+/** Whether a rule that restricts loading a module reports the code at the path. */
+async function isLoadingRefused(
+  code: string,
+  filePath: string,
+): Promise<boolean> {
+  const rules = await rulesReporting(code, filePath);
+  return (
+    rules.includes("no-restricted-imports") ||
+    rules.includes("no-restricted-syntax")
+  );
+}
+
+// A module of trading, with the paths to the context of the price source of market-data that it can write: the alias, a path to a sibling folder, and paths that climb to the folder of the features and of the app.
+const tradingModule = "app/features/trading/orders-page.tsx";
+const otherFeatureContextPaths = [
+  "~/features/market-data/price-source-context.server",
+  "../market-data/price-source-context.server",
+  "../../features/market-data/price-source-context.server",
+  "../../../app/features/market-data/price-source-context.server.ts",
+];
+
+test(
+  "rejects every way to load a context of another feature, or everything of another feature, in a feature",
+  async () => {
+    for (const path of otherFeatureContextPaths) {
+      for (const [form, write] of Object.entries(contextLoadingForms)) {
+        expect(
+          await isLoadingRefused(
+            write(path, priceSourceContextName),
+            tradingModule,
+          ),
+          `${form} of ${path}`,
+        ).toBe(true);
+      }
+    }
+  },
+  2 * minuteMilliseconds,
+);
+
+test(
+  "accepts a context of the same feature or of no feature, a name of another feature that is no context, and a context of another feature in tests",
+  async () => {
+    const accepted: {
+      filePath: string;
+      paths: readonly string[];
+      name: string;
+      forms: Record<string, LoadingForm>;
+    }[] = [
+      {
+        filePath: "app/features/market-data/prices-page.tsx",
+        paths: [
+          "./price-source-context.server",
+          "~/features/market-data/price-source-context.server",
+          "../market-data/price-source-context.server",
+        ],
+        name: priceSourceContextName,
+        forms: contextLoadingForms,
+      },
+      {
+        filePath: tradingModule,
+        paths: [
+          "~/database/database.server",
+          "../../database/database.server.ts",
+        ],
+        name: contextNamed("database"),
+        forms: contextLoadingForms,
+      },
+      {
+        filePath: tradingModule,
+        paths: otherFeatureContextPaths,
+        name: "readPriceSourceDescription",
+        forms: namingForms,
+      },
+      {
+        filePath: "app/features/trading/order-actions.server.test.ts",
+        paths: otherFeatureContextPaths,
+        name: priceSourceContextName,
+        forms: contextLoadingForms,
+      },
+      {
+        filePath: "app/features/trading/orders-for-test.ts",
+        paths: otherFeatureContextPaths,
+        name: priceSourceContextName,
+        forms: contextLoadingForms,
+      },
+    ];
+    for (const { filePath, paths, name, forms } of accepted) {
+      for (const path of paths) {
+        for (const [form, write] of Object.entries(forms)) {
+          expect(
+            await isLoadingRefused(write(path, name), filePath),
+            `${form} of ${name} from ${path} in ${filePath}`,
+          ).toBe(false);
+        }
+      }
+    }
+  },
+  4 * minuteMilliseconds,
+);
+
+// A module of market-data other than the one that the code of a test imports, because the type checker never finishes a module that imports itself and exports what it imports.
+const contextModule = "app/features/market-data/prices-page.tsx";
+const createContextImport = 'import { createContext } from "react-router";\n';
+const namespaceImport = 'import * as Router from "react-router";\n';
+// A module that creates a context as it may, which a test then passes on.
+const sourceContextModule = `${createContextImport}export const sourceContext = createContext<string>();\n`;
+const pricesImport =
+  'import * as prices from "./price-source-context.server";\n';
+
+/** Checks that no-restricted-syntax reports each code, or reports none of them, in a module of market-data. */
+async function expectContextRule(
+  codes: readonly string[],
+  isReported: boolean,
+): Promise<void> {
+  for (const code of codes) {
+    const rules = await rulesReporting(code, contextModule);
+    expect(rules.includes("no-restricted-syntax"), code).toBe(isReported);
+  }
+}
+
+test(
+  "rejects a context that a module does not create as a constant that it exports at its top level under a name with the suffix Context, and createContext under another name",
+  async () => {
+    await expectContextRule(
+      [
+        `${createContextImport}export const source = createContext<string>();`,
+        `${createContextImport}export const holder = { sourceContext: createContext<string>() };`,
+        `${createContextImport}export let sourceContext = createContext<string>();`,
+        `${createContextImport}const sourceContext = createContext<string>();\nexport { sourceContext };`,
+        `${createContextImport}export function make(): unknown {\n  const localContext = createContext<string>();\n  return localContext;\n}`,
+        `${createContextImport}export const contexts = [createContext<string>()];`,
+        'import { createContext as makeContext } from "react-router";\nexport { makeContext };',
+        'import { "createContext" as makeContext } from "react-router";\nexport { makeContext };',
+        `${namespaceImport}export const source = Router.createContext<string>();`,
+        `${namespaceImport}export const source = Router["createContext"]<string>();`,
+        `${namespaceImport}export const source = Router[\`createContext\`]<string>();`,
+        `${namespaceImport}export const make = Router.createContext;`,
+        `${namespaceImport}const { createContext: make } = Router;\nexport const sourceContext = make<string>();`,
+        `${namespaceImport}const { "createContext": make } = Router;\nexport const sourceContext = make<string>();`,
+        `${createContextImport}const make = createContext;\nexport const sourceContext = make<string>();`,
+        'export const load = async (): Promise<unknown> => {\n  const { createContext } = await import("react-router");\n  return createContext<string>();\n};',
+      ],
+      true,
+    );
+  },
+  minuteMilliseconds,
+);
+
+test(
+  "accepts a context that a module creates as a constant that it exports at its top level under a name with the suffix Context",
+  async () => {
+    await expectContextRule(
+      [
+        sourceContextModule,
+        'import { "createContext" as createContext } from "react-router";\nexport const sourceContext = createContext<string>();',
+        `${namespaceImport}export const sourceContext = Router.createContext<string>();`,
+        `${namespaceImport}export const sourceContext = Router["createContext"]<string>();`,
+      ],
+      false,
+    );
+  },
+  minuteMilliseconds,
+);
+
+test(
+  "rejects a context under a name without the suffix Context, and a context anywhere but its declaration, an import, an export, a type, and the first argument of a call of get or set",
+  async () => {
+    const name = priceSourceContextName;
+    await expectContextRule(
+      [
+        `${sourceContextModule}export { sourceContext as source };`,
+        `${sourceContextModule}export { sourceContext as "source" };`,
+        `${sourceContextModule}export { sourceContext as default };`,
+        `${sourceContextModule}export default sourceContext;`,
+        `${sourceContextModule}export const source = sourceContext;`,
+        `${sourceContextModule}export function source(): unknown {\n  return sourceContext;\n}`,
+        `${sourceContextModule}export const holder = { sourceContext };`,
+        `${sourceContextModule}export const holder = { source: sourceContext };`,
+        `${sourceContextModule}export const contexts = [sourceContext];`,
+        `${sourceContextModule}export const text = String(sourceContext);`,
+        `${sourceContextModule}export const read = (context: { get: (key: unknown, other: unknown) => unknown }): unknown => context.get(1, sourceContext);`,
+        `export function read(sourceContext: unknown): unknown {\n  return sourceContext;\n}`,
+        `import { ${name} as source } from "./price-source-context.server";\nexport { source };`,
+        `export { ${name} as source } from "./price-source-context.server";`,
+        `${pricesImport}export const source = prices.${name};`,
+        `${pricesImport}export const source = prices["${name}"];`,
+        `${pricesImport}export const source = prices[\`${name}\`];`,
+        `${pricesImport}export const source: unknown = Reflect.get(prices, "${name}");`,
+        `${pricesImport}const { ${name}: source } = prices;\nexport { source };`,
+        `${pricesImport}const { "${name}": source } = prices;\nexport { source };`,
+      ],
+      true,
+    );
+  },
+  2 * minuteMilliseconds,
+);
+
+test(
+  "accepts a context in its declaration, an import and an export that keep the suffix Context, a type, and a call of get or set, and a method whose name ends in Context",
+  async () => {
+    const name = priceSourceContextName;
+    await expectContextRule(
+      [
+        `${sourceContextModule}export { sourceContext as otherContext };`,
+        `import { ${name} } from "./price-source-context.server";\nexport { ${name} };\nexport type Source = typeof ${name};\nexport const read = (context: { get: (key: unknown) => unknown; set: (key: unknown, value: unknown) => void }): unknown => {\n  context.set(${name}, 1);\n  return context.get(${name});\n};`,
+        `import { ${name} as ${renamed(name)} } from "./price-source-context.server";\nexport { ${renamed(name)} as otherContext };`,
+        "export const browser = {\n  newContext(): void {},\n};\nbrowser.newContext();",
+        "export class Server {\n  getLoadContext(): void {}\n}",
+      ],
+      false,
+    );
+  },
+  minuteMilliseconds,
 );
 
 const fileNameRule = "portolab/file-named-after-export";

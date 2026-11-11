@@ -1,8 +1,11 @@
 import { asc, eq } from "drizzle-orm";
-import type { Database, DatabaseWriter } from "~/database/database.server";
-import { indexQuotes, stockQuotes } from "./market-data.schema";
-import type { Quote, StockQuote } from "./price-source.server";
-import { readLatestUpdateAttempt } from "./update-attempts.server";
+import type {
+  Database,
+  DatabaseWriter,
+} from "../../database/database.server.ts";
+import { indexQuotes, stockQuotes } from "./market-data.schema.ts";
+import type { Quote, StockQuote } from "./price-source.server.ts";
+import { readLatestUpdateAttempt } from "./update-attempts.server.ts";
 
 export function saveQuotes(
   database: Database,

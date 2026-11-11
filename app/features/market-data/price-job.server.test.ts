@@ -7,6 +7,7 @@ import { runQuoteUpdate, serializeUpdates } from "./price-job.server";
 import type { PriceSource } from "./price-source.server";
 import { listLatestQuotes } from "./quote-store.server";
 import {
+  completeSourceForTest,
   failingSourceForTest,
   jobSettingsForTest,
   updateQuotesForTest,
@@ -28,11 +29,11 @@ const throwingSource: PriceSource = {
   ...fixturePriceSource,
   fetchQuotes: () => Promise.reject(new Error("The network is down.")),
 };
-// Answers like the fixture source, but without BBRI and TLKM.
+// Answers for every tracked instrument but BBRI and TLKM.
 const partialSource: PriceSource = {
   ...fixturePriceSource,
   fetchQuotes: async (instruments, signal) => {
-    const answer = await fixturePriceSource.fetchQuotes(instruments, signal);
+    const answer = await completeSourceForTest.fetchQuotes(instruments, signal);
     if (!answer.ok) {
       return answer;
     }
@@ -57,7 +58,7 @@ function minutesAfterStart(minutes: number): Date {
 
 test("stores the quotes and records a success", async () => {
   const database = openDatabaseForTest();
-  await updateQuotesForTest(database, fixturePriceSource, { at: start });
+  await updateQuotesForTest(database, completeSourceForTest, { at: start });
   expect(listLatestQuotes(database)).toHaveLength(trackedInstruments.length);
   expect(readLatestUpdateAttempt(database, "quotes")).toEqual({
     attemptedAt: start,
@@ -131,11 +132,11 @@ test("waits after failures, and a later run of the job keeps waiting, because th
     at: minutesAfterStart(1),
   });
   // After two failures in a row, the backoff in update-schedule.ts makes this attempt too early.
-  await updateQuotesForTest(database, fixturePriceSource, {
+  await updateQuotesForTest(database, completeSourceForTest, {
     at: minutesAfterStart(2),
   });
   expect(listLatestQuotes(database)).toEqual([]);
-  await updateQuotesForTest(database, fixturePriceSource, {
+  await updateQuotesForTest(database, completeSourceForTest, {
     at: minutesAfterStart(3),
   });
   expect(listLatestQuotes(database)).toHaveLength(trackedInstruments.length);
@@ -158,7 +159,7 @@ test("runs one more update right after the current one when asked during it, and
         answers.push(resolve);
       });
       running -= 1;
-      return fixturePriceSource.fetchQuotes(instruments, signal);
+      return completeSourceForTest.fetchQuotes(instruments, signal);
     },
   };
   const updatePrices = serializeUpdates(

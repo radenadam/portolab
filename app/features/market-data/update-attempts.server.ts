@@ -1,6 +1,9 @@
 import { eq } from "drizzle-orm";
-import type { Database, DatabaseWriter } from "~/database/database.server";
-import { priceUpdates } from "./market-data.schema";
+import type {
+  Database,
+  DatabaseWriter,
+} from "../../database/database.server.ts";
+import { priceUpdates } from "./market-data.schema.ts";
 
 /** The jobs that update prices: the latest quotes during trading sessions, and the daily closes after each close. */
 export type UpdateJob = "quotes" | "history";

@@ -17,12 +17,10 @@ export type PriceKind = OrderRequest["price"]["kind"];
 
 /** The fields of the order form as the student filled them in, so that the form can show them again, with the reason that each was not accepted. */
 export interface OrderFormFields {
-  code: string;
   side: string;
   priceKind: string;
   lots: string;
   limit: string;
-  codeFailure: string | undefined;
   sideFailure: string | undefined;
   priceKindFailure: string | undefined;
   lotsFailure: string | undefined;
@@ -48,16 +46,11 @@ export function priceKindOptions(): FieldOption<PriceKind>[] {
   ];
 }
 
-/** Reads an order from the form that a student sent at a moment, for the stocks that Portolab tracks and with the largest order of the trading day that orderTradingDay gives. It reads the limit price only for a limit order, because a market order has none. The failure holds what each field holds and why each was not accepted. */
+/** Reads an order of a stock from the form that a student sent at a moment, with the largest order of the trading day that orderTradingDay gives. The stock comes from the address of the page, which parseStockCode reads, because the form places the order of the stock whose price the page shows. It reads the limit price only for a limit order, because a market order has none. The failure holds what each field holds and why each was not accepted. */
 export function readOrderForm(
   form: FormData,
-  order: { codes: readonly string[]; maximumLots: Lots; placedAt: Date },
+  order: { code: string; maximumLots: Lots; placedAt: Date },
 ): Result<OrderRequest, OrderFormFields> {
-  const code = parseStockCode(
-    form.get("code"),
-    m.trading_stock_label(),
-    order.codes,
-  );
   const side = parseOrderChoice(
     form.get("side"),
     m.trading_side_label(),
@@ -75,10 +68,9 @@ export function readOrderForm(
   );
   // The price of an order depends on its kind, so a form without a valid kind has no price to read.
   const price = priceKind.ok ? readPrice(form, priceKind.value) : undefined;
-  if (!code.ok || !side.ok || !lots.ok || !price?.ok) {
+  if (!side.ok || !lots.ok || !price?.ok) {
     return fail({
       ...typedOrderForm(form),
-      codeFailure: failureOf(code),
       sideFailure: failureOf(side),
       priceKindFailure: failureOf(priceKind),
       lotsFailure: failureOf(lots),
@@ -86,7 +78,7 @@ export function readOrderForm(
     });
   }
   return succeed({
-    code: code.value,
+    code: order.code,
     side: side.value,
     lots: lots.value,
     price: price.value,
@@ -113,12 +105,10 @@ function readPrice(
 
 /** The order form before the student sends it, which chooses a market order, because it needs no price. */
 export const blankOrderForm: OrderFormFields = {
-  code: "",
   side: "",
   priceKind: "market",
   lots: "",
   limit: "",
-  codeFailure: undefined,
   sideFailure: undefined,
   priceKindFailure: undefined,
   lotsFailure: undefined,
@@ -128,12 +118,10 @@ export const blankOrderForm: OrderFormFields = {
 /** What each field of the order form holds as the student typed it, without a reason for any field. */
 export function typedOrderForm(form: FormData): OrderFormFields {
   return {
-    code: typedText(form.get("code")),
     side: typedText(form.get("side")),
     priceKind: typedText(form.get("priceKind")),
     lots: typedText(form.get("lots")),
     limit: typedText(form.get("limit")),
-    codeFailure: undefined,
     sideFailure: undefined,
     priceKindFailure: undefined,
     lotsFailure: undefined,
@@ -141,8 +129,8 @@ export function typedOrderForm(form: FormData): OrderFormFields {
   };
 }
 
-/** Reads the code of the stock that the order form sent, which is one of the stocks in the list of the field. The source is the label of the field, and the failure is a sentence for the reader in the current language. */
-function parseStockCode(
+/** Reads the stock that the address of the orders chose, which is one of the stocks in the list of the field that chooses it. The form that chooses a stock sends its field in the address, so the source is the label of that field, and the failure is a sentence for the reader in the current language. */
+export function parseStockCode(
   value: unknown,
   source: string,
   codes: readonly string[],

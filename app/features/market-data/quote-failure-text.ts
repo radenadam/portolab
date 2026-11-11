@@ -6,7 +6,20 @@ import type { Quote } from "./price-source.server";
 import type { UpdateAttempt } from "./update-attempts.server";
 import { nextScheduledAttempt } from "./update-schedule";
 
-/** The sentences that name the prices that the latest attempt of the quote job could not update, and when the job tries again, or undefined when the attempt updated all of them. A screen that shows only some prices passes an attempt whose failed codes it narrowed to theirs. */
+/** The latest attempt of the quote job with only the given codes among the prices that it could not update, which a screen that shows only the prices of those codes passes to quoteFailureText. */
+export function attemptForCodes(
+  attempt: UpdateAttempt | undefined,
+  codes: readonly string[],
+): UpdateAttempt | undefined {
+  return attempt === undefined
+    ? undefined
+    : {
+        ...attempt,
+        failedCodes: attempt.failedCodes.filter((code) => codes.includes(code)),
+      };
+}
+
+/** The sentences that name the prices that the latest attempt of the quote job could not update, and when the job tries again, or undefined when the attempt updated all of them. A screen that shows only some prices passes an attempt that attemptForCodes narrowed to theirs. */
 export function quoteFailureText(
   attempt: UpdateAttempt | undefined,
   quotes: readonly Quote[],
@@ -19,6 +32,25 @@ export function quoteFailureText(
     ...failedPriceSentences(attempt, quotes),
     nextAttemptSentence(attempt, now, delayMinutes),
   ].join(" ");
+}
+
+/** The sentences that say why Portolab has no delayed price of a stock and when the quote job tries again, from the latest attempt of the job, which attemptForCodes narrowed to that stock. Before the first attempt, the job is fetching the first prices, because the server starts it at once. */
+export function missingQuoteText(
+  code: string,
+  attempt: UpdateAttempt | undefined,
+  { now, delayMinutes }: { now: Date; delayMinutes: number },
+): string {
+  if (attempt === undefined) {
+    return m.market_data_empty_body();
+  }
+  // An attempt that did not ask for the stock, such as one before the stock joined the stocks that Portolab tracks, left no failure to name.
+  return (
+    quoteFailureText(attempt, [], { now, delayMinutes }) ??
+    [
+      m.market_data_no_price_notice({ code }),
+      nextAttemptSentence(attempt, now, delayMinutes),
+    ].join(" ")
+  );
 }
 
 // A sentence that says that Portolab uses the last price that it stored would be false for a price that Portolab never stored, because that price has no row.
@@ -37,14 +69,15 @@ function failedPriceSentences(
     }
   }
   const sentences: string[] = [];
-  if (!attempt.succeeded) {
-    sentences.push(m.market_data_update_failed_notice({ time }));
-  } else if (staleCodes.length > 0) {
+  // The sentence of a failed attempt speaks of the stored prices that the screen shows, so it has nothing to speak of on a screen whose failed prices were never stored.
+  if (staleCodes.length > 0) {
     sentences.push(
-      sentenceForCodes(staleCodes, time, {
-        one: m.market_data_one_stale_price_notice,
-        several: m.market_data_several_stale_prices_notice,
-      }),
+      attempt.succeeded
+        ? sentenceForCodes(staleCodes, time, {
+            one: m.market_data_one_stale_price_notice,
+            several: m.market_data_several_stale_prices_notice,
+          })
+        : m.market_data_update_failed_notice({ time }),
     );
   }
   if (missingCodes.length > 0) {

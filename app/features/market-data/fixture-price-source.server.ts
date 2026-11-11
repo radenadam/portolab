@@ -5,7 +5,7 @@ import { stockQuote } from "./stock-quote";
 import type { PriceSource, Quote } from "./price-source.server";
 import { yahooFinance } from "./yahoo-price-source.server";
 
-// The closing quotes of 30 October 2026, as Yahoo Finance returned them on 31 October and 1 November 2026, with two exceptions. BMRI keeps its quote of 29 October, as Yahoo does for a stock that did not trade, so the tests see a row from an earlier day. GOTO has a previous close of 18 instead of 23, so the tests see a change with two digits before the decimal point.
+// The closing quotes of 30 October 2026, as Yahoo Finance returned them on 31 October and 1 November 2026, with three exceptions. BMRI keeps its quote of 29 October, as Yahoo does for a stock that did not trade, so the tests see a row from an earlier day. GOTO has a previous close of 18 instead of 23, so the tests see a change with two digits before the decimal point. UNVR and WIFI are left out, as Yahoo leaves out a stock now and then, so every update lacks them, and left-out-quotes-for-test.ts keeps their quotes. The browser tests store the quote of UNVR before the server starts, so they see a price that the latest update missed in UNVR and a stock without any price in WIFI.
 const fixtureQuotes: Quote[] = [
   {
     kind: "index",
@@ -57,18 +57,25 @@ const fixtureQuotes: Quote[] = [
   stockQuote("SMGR", [1335, 1365], "2026-10-30T09:13:07.000Z"),
   stockQuote("TLKM", [1980, 1980], "2026-10-30T09:14:51.000Z"),
   stockQuote("UNTR", [24200, 24550], "2026-10-30T09:03:16.000Z"),
-  stockQuote("UNVR", [1390, 1400], "2026-10-30T09:14:51.000Z"),
-  stockQuote("WIFI", [910, 935], "2026-10-30T09:14:29.000Z"),
 ];
 
 // The quotes and closes are answers of Yahoo Finance, so the source describes itself as Yahoo Finance.
 export const fixturePriceSource: PriceSource = {
   ...yahooFinance,
   fetchQuotes(instruments) {
-    const quotes = fixtureQuotes.filter((quote) =>
-      instruments.some((instrument) => instrument.code === quote.code),
-    );
-    return Promise.resolve(succeed({ quotes, problems: [] }));
+    const quotes: Quote[] = [];
+    const problems: string[] = [];
+    for (const instrument of instruments) {
+      const quote = fixtureQuotes.find(
+        (candidate) => candidate.code === instrument.code,
+      );
+      if (quote === undefined) {
+        problems.push(`The fixture records no quote of ${instrument.code}.`);
+      } else {
+        quotes.push(quote);
+      }
+    }
+    return Promise.resolve(succeed({ quotes, problems }));
   },
   fetchDailyHistory(instrument, from) {
     const history = fixtureHistory(instrument, from);

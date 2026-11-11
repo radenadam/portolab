@@ -1,20 +1,30 @@
 import { expect, test } from "@playwright/test";
-import type { Browser, Page } from "@playwright/test";
+import type { Browser, Locator, Page } from "@playwright/test";
 import type { ClassId } from "../app/features/classes/classes.schema.ts";
+import { fieldMaximumLength } from "../app/form-size.ts";
 import { languageNames } from "../app/language-names.ts";
 import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
 import { rupiah } from "../app/units/rupiah.ts";
 import { shares } from "../app/units/shares.ts";
+import { joinAsNewStudent, signInAsNewLecturer } from "./accounts.ts";
+import { chooseLanguage } from "./choose-language.ts";
+import { createTestClass } from "./create-test-class.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 import { expectMissingPage } from "./expect-missing-page.ts";
 import { expectPageHeadings } from "./expect-page-headings.ts";
+import { expectTexts } from "./expect-texts.ts";
+import { newDevice } from "./new-device.ts";
 import { storeTestHolding } from "./store-test-holding.ts";
 import { studentOfNewClass } from "./student-of-new-class.ts";
+import { wideWord } from "./wide-word.ts";
 import { widestClassNames } from "./widest-class-names.ts";
 
-// The server runs with the fixture price source, whose quotes are the closes of Friday 30 October 2026, which fixture-price-source.server.ts records. They are from no session of the trading day of an order that a test places, so every order waits. The global setup stores the month-end closes that give BBCA enough monthly returns and AADI too few. The class has the most starting cash that Portolab accepts, and the purchase has the largest order that IDX accepts at the highest price of the stocks that a student can buy, so the screens show their widest amounts. A text with a part that the test cannot know in advance, such as the time of an order, is the tuple of its other parts.
+// The server runs with the fixture price source, whose quotes are the closes of Friday 30 October 2026, which fixture-price-source.server.ts records. They are from no session of the trading day of an order that a test places, so every order waits. Every update lacks UNVR, whose quote the global setup stored before the server started, and WIFI, of which Portolab has no price. ITMG has the highest price and GOTO the widest change of the stocks that a student can choose. The global setup stores the month-end closes that give BBCA enough monthly returns and AADI too few. The class has the most starting cash that Portolab accepts, and the purchase has the largest order that IDX accepts at the highest price of the stocks that a student can buy, so the screens show their widest amounts. A text with a part that the test cannot know in advance, such as the time of an order or of the latest update of prices, is the tuple of its other parts.
 const { className } = widestClassNames;
+
+/** The stocks whose delayed price the tests show. */
+type QuotedCode = "AADI" | "BBCA" | "GOTO" | "ITMG" | "UNVR";
 
 // The fixture records GOTO at Rp24, at which the starting cash of Rp1,000,000,000,000 buys at most 416,042,602 lots with the broker fee of 0.15%, which costs Rp999,999,998,167 and leaves Rp1,833, as the decimal module of Python computed with ROUND_HALF_UP. It is the largest holding, in shares and in cost, that the cash of a class can buy at a price of the fixture.
 const widestHolding = {
@@ -38,6 +48,8 @@ const texts: Record<
     dayNotice: readonly [string, string, string, string];
     labels: {
       stock: string;
+      showPrice: string;
+      otherStock: string;
       buy: string;
       sell: string;
       limitOrder: string;
@@ -46,6 +58,13 @@ const texts: Record<
       place: string;
       cancel: string;
     };
+    stockHint: string;
+    priceTerms: { delayedPrice: string; change: string; quotedAt: string };
+    quotes: Record<QuotedCode, readonly [string, string, string]>;
+    staleNotice: readonly [string, string];
+    missingNotice: readonly [string, string];
+    noPriceOrder: string;
+    unknownStock: readonly [string, string];
     lotsHint: string;
     noOpenOrders: string;
     noPastOrders: string;
@@ -99,6 +118,8 @@ const texts: Record<
     ],
     labels: {
       stock: "Saham",
+      showPrice: "Tampilkan harganya",
+      otherStock: "Pilih saham lain",
       buy: "Beli",
       sell: "Jual",
       limitOrder: "Order limit",
@@ -107,6 +128,34 @@ const texts: Record<
       place: "Pasang order",
       cancel: "Batalkan order ini",
     },
+    stockHint:
+      "Anda dapat membeli saham LQ45 yang memiliki imbal hasil bulanan yang dibutuhkan ukuran portofolio, dan menjual saham yang Anda pegang.",
+    priceTerms: {
+      delayedPrice: "Harga tertunda",
+      change: "Perubahan dari harga penutupan sebelumnya",
+      quotedAt: "Tercatat pada (WIB)",
+    },
+    quotes: {
+      AADI: ["Rp\u00a011.475", "▲ +3,15%", "30 Okt 2026, 16.14"],
+      BBCA: ["Rp\u00a04.980", "▲ +0,81%", "30 Okt 2026, 16.14"],
+      GOTO: ["Rp\u00a024", "▲ +33,33%", "30 Okt 2026, 16.14"],
+      ITMG: ["Rp\u00a024.900", "▲ +1,22%", "30 Okt 2026, 16.10"],
+      UNVR: ["Rp\u00a01.390", "▼ -0,71%", "30 Okt 2026, 16.14"],
+    },
+    staleNotice: [
+      "Portolab tidak dapat memperbarui harga UNVR pada ",
+      " WIB, jadi Portolab memakai harga terakhir UNVR yang tersimpan. Portolab ",
+    ],
+    missingNotice: [
+      "Portolab belum memiliki harga WIFI, karena percobaan terakhir untuk mengambilnya pada ",
+      " WIB gagal. Portolab ",
+    ],
+    noPriceOrder:
+      "Anda dapat memasang order WIFI setelah pembaruan harga berikutnya membawa harga tertunda WIFI.",
+    unknownStock: [
+      'Alamat halaman ini menyebut "',
+      '" sebagai saham, tetapi Portolab hanya memperdagangkan saham yang ada di daftar kolom "Saham". Pilih salah satunya.',
+    ],
     lotsHint:
       "Satu lot berisi 100 saham. Satu order berisi 1 lot sampai 50.000 lot, yaitu order terbesar yang diterima BEI.",
     noOpenOrders: "Anda tidak memiliki order yang masih terbuka.",
@@ -188,6 +237,8 @@ const texts: Record<
     ],
     labels: {
       stock: "Stock",
+      showPrice: "Show the price",
+      otherStock: "Choose another stock",
       buy: "Buy",
       sell: "Sell",
       limitOrder: "Limit order",
@@ -196,6 +247,34 @@ const texts: Record<
       place: "Place the order",
       cancel: "Cancel this order",
     },
+    stockHint:
+      "You can buy a stock of the LQ45 that has the monthly returns that the measures of a portfolio need, and sell a stock that you hold.",
+    priceTerms: {
+      delayedPrice: "Delayed price",
+      change: "Change from the previous close",
+      quotedAt: "Quoted at (WIB)",
+    },
+    quotes: {
+      AADI: ["IDR\u00a011,475", "▲ +3.15%", "Oct 30, 2026, 4:14 PM"],
+      BBCA: ["IDR\u00a04,980", "▲ +0.81%", "Oct 30, 2026, 4:14 PM"],
+      GOTO: ["IDR\u00a024", "▲ +33.33%", "Oct 30, 2026, 4:14 PM"],
+      ITMG: ["IDR\u00a024,900", "▲ +1.22%", "Oct 30, 2026, 4:10 PM"],
+      UNVR: ["IDR\u00a01,390", "▼ -0.71%", "Oct 30, 2026, 4:14 PM"],
+    },
+    staleNotice: [
+      "Portolab could not update the price of UNVR at ",
+      " WIB, so it uses the last price of UNVR that it stored. Portolab ",
+    ],
+    missingNotice: [
+      "Portolab has no price for WIFI yet, because its latest attempt to fetch it at ",
+      " WIB failed. Portolab ",
+    ],
+    noPriceOrder:
+      "You can place an order of WIFI once the next update of prices brings a delayed price of WIFI.",
+    unknownStock: [
+      'The address of this page names "',
+      '" as the stock, but Portolab trades only the stocks in the list of the field "Stock". Choose one of them.',
+    ],
     lotsHint:
       "A lot is 100 shares. An order has 1 lot to 50,000 lots, the largest order that IDX accepts.",
     noOpenOrders: "You have no open order.",
@@ -265,12 +344,67 @@ async function openOrdersOfNewStudent(
   return joined;
 }
 
+/** Chooses a stock in the form that chooses one, or no stock for an empty code, and sends the form, which opens the orders with the stock in the address. */
+async function chooseStock(
+  page: Page,
+  locale: Locale,
+  code: string,
+): Promise<void> {
+  const { labels } = texts[locale];
+  const main = page.getByRole("main");
+  await main.getByLabel(labels.stock, { exact: true }).selectOption(code);
+  await main.getByRole("button", { name: labels.showPrice }).click();
+  await expect(page).toHaveURL(new RegExp(`/orders\\?code=${code}$`));
+}
+
+/** Leaves the stock that the page shows through the link that chooses another one, and chooses a stock. */
+async function chooseAnotherStock(
+  page: Page,
+  locale: Locale,
+  code: string,
+): Promise<void> {
+  await page
+    .getByRole("main")
+    .getByRole("link", { name: texts[locale].labels.otherStock })
+    .click();
+  await expect(page).toHaveURL(/\/orders$/);
+  await chooseStock(page, locale, code);
+}
+
+/** The terms that the page shows of the chosen stock, which start with the stock. */
+function chosenStockTerms(page: Page, locale: Locale): Locator {
+  return page
+    .getByRole("main")
+    .locator("dl", { hasText: new RegExp(`^${texts[locale].labels.stock}`) });
+}
+
+/** Checks that the page shows the chosen stock with its latest delayed price, its change, and the time of its quote. */
+async function expectChosenPrice(
+  page: Page,
+  locale: Locale,
+  code: QuotedCode,
+): Promise<void> {
+  const { labels, priceTerms, quotes } = texts[locale];
+  const [price, change, quotedAt] = quotes[code];
+  await expect(chosenStockTerms(page, locale)).toHaveText(
+    [
+      labels.stock,
+      code,
+      priceTerms.delayedPrice,
+      price,
+      priceTerms.change,
+      change,
+      priceTerms.quotedAt,
+      quotedAt,
+    ].join(""),
+  );
+}
+
 /** Fills the order form with the fields that a test gives and sends it. The form chooses a market order until the test chooses a limit order. */
 async function placeOrder(
   page: Page,
   locale: Locale,
   order: {
-    code?: string;
     side?: "buy" | "sell";
     isLimit?: boolean;
     lots?: string;
@@ -279,11 +413,6 @@ async function placeOrder(
 ): Promise<void> {
   const { labels } = texts[locale];
   const main = page.getByRole("main");
-  if (order.code !== undefined) {
-    await main
-      .getByLabel(labels.stock, { exact: true })
-      .selectOption(order.code);
-  }
   if (order.side !== undefined) {
     await main.getByLabel(labels[order.side], { exact: true }).check();
   }
@@ -293,17 +422,6 @@ async function placeOrder(
   await main.getByLabel(labels.lots, { exact: true }).fill(order.lots ?? "");
   await main.getByLabel(labels.limit, { exact: true }).fill(order.limit ?? "");
   await main.getByRole("button", { name: labels.place }).click();
-}
-
-/** Checks that the main part of a page shows each text. */
-async function expectTexts(
-  page: Page,
-  shown: readonly string[],
-): Promise<void> {
-  const main = page.getByRole("main");
-  for (const text of shown) {
-    await expect(main).toContainText(text);
-  }
 }
 
 for (const locale of locales) {
@@ -328,53 +446,64 @@ for (const locale of locales) {
     await expect(student.locator("main dl")).toHaveText(
       text.startingCash.join(""),
     );
-    await expectTexts(student, [
+    await expectTexts(student.getByRole("main"), [
       text.fillNotice,
       text.noHoldings,
-      ...text.dayNotice,
-      text.lotsHint,
+      text.stockHint,
       text.noOpenOrders,
       text.noPastOrders,
     ]);
+    await expect(
+      student.getByRole("button", { name: text.labels.place }),
+    ).toHaveCount(0);
     await expectAccessibleScreen(student);
 
+    await chooseStock(student, locale, "");
+    await expectTexts(student.getByRole("main"), [text.noStock]);
+    await expectAccessibleScreen(student);
+
+    await chooseStock(student, locale, "AADI");
+    await expectChosenPrice(student, locale, "AADI");
+    await expectTexts(student.getByRole("main"), [
+      ...text.dayNotice,
+      text.lotsHint,
+    ]);
     await placeOrder(student, locale, {});
-    await expectTexts(student, [text.noStock, text.noSide, text.emptyLots]);
+    await expectTexts(student.getByRole("main"), [text.noSide, text.emptyLots]);
     await expectAccessibleScreen(student);
-
-    await placeOrder(student, locale, { code: "AADI", side: "buy", lots: "1" });
+    await placeOrder(student, locale, { side: "buy", lots: "1" });
     await expect(student.getByRole("alert")).toHaveText(text.tooFewReturns);
-    await placeOrder(student, locale, {
-      code: "BBCA",
-      side: "sell",
-      lots: "5",
-    });
+
+    await chooseAnotherStock(student, locale, "BBCA");
+    await expectChosenPrice(student, locale, "BBCA");
+    await placeOrder(student, locale, { side: "sell", lots: "5" });
     await expect(student.getByRole("alert")).toHaveText(text.noShares);
     await placeOrder(student, locale, {
-      code: "BBCA",
       side: "buy",
       isLimit: true,
       lots: "5",
       limit: text.typedLimit,
     });
-    const alert = student.getByRole("alert");
-    for (const part of text.noReferenceClose) {
-      await expect(alert).toContainText(part);
-    }
+    await expectTexts(student.getByRole("alert"), text.noReferenceClose);
     await expect(
       student.getByRole("main").getByLabel(text.labels.limit, { exact: true }),
     ).toHaveValue(text.typedLimit);
+    // A refused order keeps the stock of the address and its price.
+    await expect(student).toHaveURL(/\/orders\?code=BBCA$/);
+    await expectChosenPrice(student, locale, "BBCA");
     await expectAccessibleScreen(student);
 
     await student.reload();
     await placeOrder(student, locale, {
-      code: "BBCA",
       side: "buy",
       lots: text.largestOrder,
     });
     await expect(student).toHaveURL(/\/orders\?placed=\d+$/);
     await expect(student.getByRole("status")).toHaveText(text.placed);
-    await expectTexts(student, [...text.purchase, ...text.cashWithPurchase]);
+    await expectTexts(student.getByRole("main"), [
+      ...text.purchase,
+      ...text.cashWithPurchase,
+    ]);
     await expectAccessibleScreen(student);
 
     // A second tab keeps the order open, as a page that the student opened before cancelling it elsewhere.
@@ -387,7 +516,10 @@ for (const locale of locales) {
     await expect(student.getByText(text.cancelled[0])).toContainText(
       text.cancelled[1],
     );
-    await expectTexts(student, [text.noOpenOrders, ...text.startingCash]);
+    await expectTexts(student.getByRole("main"), [
+      text.noOpenOrders,
+      ...text.startingCash,
+    ]);
     await staleTab
       .getByRole("main")
       .getByRole("button", { name: text.labels.cancel })
@@ -398,7 +530,7 @@ for (const locale of locales) {
     await expect(staleTab.getByText(text.cancelled[0])).toContainText(
       text.cancelled[1],
     );
-    await expectTexts(staleTab, [text.noOpenOrders]);
+    await expectTexts(staleTab.getByRole("main"), [text.noOpenOrders]);
     await expectAccessibleScreen(staleTab);
     await student.context().close();
   });
@@ -414,17 +546,77 @@ for (const locale of locales) {
     );
     storeTestHolding(classId, widestHolding);
     await student.reload();
-    await expectTexts(student, text.holding);
+    await expectTexts(student.getByRole("main"), text.holding);
+    await chooseStock(student, locale, "GOTO");
+    await expectChosenPrice(student, locale, "GOTO");
     await placeOrder(student, locale, {
-      code: "GOTO",
       side: "sell",
       lots: text.largestOrder,
     });
     await expect(student.getByRole("status")).toHaveText(text.placed);
-    await expectTexts(student, [...text.holding, ...text.sale]);
+    await expectTexts(student.getByRole("main"), [
+      ...text.holding,
+      ...text.sale,
+    ]);
     await expectAccessibleScreen(student);
-    await placeOrder(student, locale, { code: "BBCA", side: "buy", lots: "1" });
+    await chooseStock(student, locale, "BBCA");
+    await placeOrder(student, locale, { side: "buy", lots: "1" });
     await expect(student.getByRole("alert")).toHaveText(text.notEnoughCash);
+    await expectAccessibleScreen(student);
+    await student.context().close();
+  });
+
+  test(`shows the delayed price of the chosen stock and the price that the latest update missed, and offers no order of a stock without a price, in ${language}`, async ({
+    page,
+    browser,
+  }) => {
+    const { student, classPath } = await openOrdersOfNewStudent(
+      page,
+      browser,
+      locale,
+    );
+    const placeButton = student
+      .getByRole("main")
+      .getByRole("button", { name: text.labels.place });
+    await chooseStock(student, locale, "ITMG");
+    await expectChosenPrice(student, locale, "ITMG");
+    await expect(placeButton).toBeVisible();
+    await expectAccessibleScreen(student);
+
+    await chooseAnotherStock(student, locale, "UNVR");
+    await expectChosenPrice(student, locale, "UNVR");
+    await expectTexts(
+      student.getByRole("main").getByText(text.staleNotice[0]),
+      text.staleNotice,
+    );
+    await expect(placeButton).toBeVisible();
+    await expectAccessibleScreen(student);
+
+    await chooseAnotherStock(student, locale, "WIFI");
+    await expect(chosenStockTerms(student, locale)).toHaveText(
+      `${text.labels.stock}WIFI`,
+    );
+    await expectTexts(
+      student.getByRole("main").getByText(text.missingNotice[0]),
+      text.missingNotice,
+    );
+    await expectTexts(student.getByRole("main"), [text.noPriceOrder]);
+    await expect(placeButton).toHaveCount(0);
+    await expectAccessibleScreen(student);
+
+    // An address with a stock that Portolab does not trade, as long as any field takes, shows the field that chooses a stock with the reason that quotes it.
+    const widestCode = wideWord("X", fieldMaximumLength);
+    const answer = await student.goto(`${classPath}/orders?code=${widestCode}`);
+    expect(answer?.status()).toBe(400);
+    await expect(
+      student.getByText(
+        `${text.unknownStock[0]}${widestCode}${text.unknownStock[1]}`,
+        { exact: true },
+      ),
+    ).toBeVisible();
+    await expect(
+      student.getByRole("main").getByLabel(text.labels.stock, { exact: true }),
+    ).toHaveAttribute("aria-invalid", "true");
     await expectAccessibleScreen(student);
     await student.context().close();
   });
@@ -445,5 +637,37 @@ for (const locale of locales) {
       await expectMissingPage(reader, path, text.notFoundTitle);
     }
     await student.context().close();
+  });
+
+  test.describe(`before JavaScript loads in ${language}`, () => {
+    // Axe runs in the page, so the screens are checked in the tests with JavaScript, and this test checks that each form works without it.
+    test.use({ javaScriptEnabled: false });
+
+    test("chooses a stock, keeps it after a refused order, and places an order of it", async ({
+      page,
+      browser,
+    }) => {
+      // The lecturer uses a device of their own, so the page of the test, which runs no JavaScript, is the student.
+      const lecturer = await newDevice(browser, locale);
+      await signInAsNewLecturer(lecturer, widestClassNames.lecturerName);
+      const testClass = await createTestClass(lecturer, className);
+      await chooseLanguage(page, locale);
+      await joinAsNewStudent(
+        page,
+        testClass.joinPath,
+        widestClassNames.studentName,
+      );
+      await page.goto(`${testClass.path}/orders`);
+      await chooseStock(page, locale, "BBCA");
+      await expectChosenPrice(page, locale, "BBCA");
+      await placeOrder(page, locale, { side: "buy" });
+      await expectTexts(page.getByRole("main"), [text.emptyLots]);
+      await expect(page).toHaveURL(/\/orders\?code=BBCA$/);
+      await expectChosenPrice(page, locale, "BBCA");
+      await placeOrder(page, locale, { side: "buy", lots: "1" });
+      await expect(page).toHaveURL(/\/orders\?placed=\d+$/);
+      await expect(page.getByRole("status")).toHaveText(text.placed);
+      await lecturer.context().close();
+    });
   });
 }
