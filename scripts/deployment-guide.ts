@@ -16,18 +16,30 @@ export const serverFolder = "/opt/portolab";
 /** The folder in which the guide keeps the backups of the database, which only root may open. */
 export const backupFolder = "/var/backups/portolab";
 
-/** The arguments of docker that run a command in the container of Portolab that the guide started, which only root may run. */
+/** The arguments of docker that run Docker Compose on the installation of the guide, which only root may run. */
+const composeArguments = ["compose", "--project-directory", serverFolder];
+
+/** The service of Portolab in compose.yaml. */
+const service = "app";
+
+/** The arguments of docker that run a command in the container of Portolab that the guide started. */
 export const containerExecArguments = [
-  "compose",
-  "--project-directory",
-  serverFolder,
+  ...composeArguments,
   "exec",
   "--no-TTY",
-  "app",
+  service,
 ];
 
-// Node runs a child process as a user or a group only when its number fits a signed whole number of 32 bits.
-const largestIdNumber = 2_147_483_647;
+/** The arguments of docker that print the id of the running container of Portolab. */
+export const containerIdArguments = [
+  ...composeArguments,
+  "ps",
+  "--quiet",
+  service,
+];
+
+/** The section of the guide whose first block finds an installation from before decision 0027. */
+const updateSection = "Update Portolab";
 
 /** The domain of the server in the test, which only the test machine resolves. Caddy serves a name under .internal with a certificate of its own authority, because Let's Encrypt cannot reach it. */
 export const testDomain = "portolab.internal";
@@ -61,9 +73,11 @@ const deploymentPaths = [
   "package.json",
   "pnpm-lock.yaml",
   "pnpm-workspace.yaml",
+  "scripts/container-volume.ts",
   "scripts/deployment-guide.ts",
   "scripts/plan-deployment-test.ts",
   "scripts/run-deployment-guide.ts",
+  "scripts/user-numbers.ts",
   "server/",
 ];
 
@@ -228,46 +242,22 @@ export function checkSystemNamed(
       );
 }
 
-/** Reads the number of a user or of a group, as `id --user` or `id --group` prints it on a line of its own. */
-export function parseIdOutput(
-  value: unknown,
-  source: string,
-): Result<number, string> {
-  if (typeof value === "string" && /^(?:0|[1-9][0-9]{0,9})\n$/.test(value)) {
-    const number = Number(value);
-    if (number <= largestIdNumber) {
-      return succeed(number);
-    }
-  }
-  return fail(
-    `${source} must be a whole number from 0 to ${String(largestIdNumber)} on a line of its own, but it is ${describeValue(value)}.`,
-  );
+/** The blocks of the guide before the section that finds an installation from before decision 0027, and the blocks from that section on. */
+export interface GuideParts {
+  before: ServerBlock[];
+  after: ServerBlock[];
 }
 
-/** Fails for each file in the folder of the backups that a process with the number of the user of the container can read, as `isReadable` reports for its path. It also fails for a folder without a file, because the check would then pass without checking anything. */
-export function checkBackupsOnlyForRoot(
-  names: readonly string[],
-  userNumber: number,
-  isReadable: (path: string) => Result<boolean, string>,
-): string[] {
-  if (names.length === 0) {
-    return [
-      `${backupFolder} holds no file after the guide, so the test cannot check who reads a backup.`,
-    ];
-  }
-  const failures: string[] = [];
-  for (const name of names) {
-    const path = `${backupFolder}/${name}`;
-    const readable = isReadable(path);
-    if (!readable.ok) {
-      failures.push(readable.failure);
-    } else if (readable.value) {
-      failures.push(
-        `A process of the user number ${String(userNumber)} can read ${path}, so an account of the server with that number reads the personal data in it.`,
-      );
-    }
-  }
-  return failures;
+/** Splits the blocks of the guide at the section that finds an installation from before decision 0027, so that the test can make such an installation between the parts. It fails for a guide without a block in that section, because the test would then never follow the guide on such an installation. */
+export function splitAtUpdate(
+  blocks: readonly ServerBlock[],
+): Result<GuideParts, string> {
+  const index = blocks.findIndex(({ section }) => section === updateSection);
+  return index === -1
+    ? fail(
+        `${guidePath} must have a block of commands in the section "${updateSection}", which finds an installation from before decision 0027, but it has none.`,
+      )
+    : succeed({ before: blocks.slice(0, index), after: blocks.slice(index) });
 }
 
 interface GuideBlock {
