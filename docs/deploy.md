@@ -2,7 +2,7 @@
 
 This guide takes an Ubuntu server to Portolab, served over HTTPS at a domain of your own. The server may also run other work, which the guide leaves as it is. Copy each command in the order of the guide. As [decision 0010](decisions/0010-the-server-owner-deploys-from-the-repository.md) explains, Docker Compose runs Portolab in a container that the server builds from this repository, and Caddy serves HTTPS in front of it. A test runs every command of this guide for the server on a fresh Ubuntu server, so the commands stay right.
 
-<!-- The workflow in .github/workflows/deployment.yml runs every block marked sh, in order, as root on a fresh Ubuntu machine, and replaces the examples that it names, such as the domain. A block that runs on the computer of the reader is marked text. -->
+<!-- The workflow in .github/workflows/deployment.yml runs every block marked sh, in order, as root on a fresh Ubuntu machine, and replaces the examples that it names, such as the domain. Before the section Update Portolab, it gives the files of the database to the user number 1000, as an installation from before decision 0027 has them. A block that runs on the computer of the reader is marked text. -->
 
 ## What you need
 
@@ -177,7 +177,7 @@ systemctl start portolab-backup.service
 ls -l /var/backups/portolab
 ```
 
-Each backup holds the personal data of every person in Portolab, so only root opens the folder. The container runs Portolab as a user other than root, and an account of the server can have the number of that user as well, so the folder cannot belong to that user. Instead, the container passes each backup to the script through its output, and the script writes it into the folder. To make a backup at any other time, such as before an update, run `systemctl start portolab-backup`. A second backup on the same day replaces the first once it is complete. When a backup fails, `journalctl --unit portolab-backup` names the reason.
+Each backup holds the personal data of every person in Portolab, so only root opens the folder. The container never opens it. It passes each backup to the script through its output, and the script writes it into the folder, so no process of the container can read or change an earlier backup. To make a backup at any other time, such as before an update, run `systemctl start portolab-backup`. A second backup on the same day replaces the first once it is complete. When a backup fails, `journalctl --unit portolab-backup` names the reason.
 
 A backup on the server is lost with the server. To keep a copy on your computer, run this command on your computer with the address of your server and the date of the backup:
 
@@ -200,7 +200,27 @@ docker compose up --detach --wait
 
 ## Update Portolab
 
-An update stops Portolab for a moment while the new version starts, so students who use it then see an error. So update outside the trading sessions of IDX, such as in the evening or at a weekend. These commands back up the database, download the new version, build it, start it, and reload the Caddyfile. Some installations of Docker keep the image of the previous version, so the last command deletes it. It deletes only images of Portolab, so the images of other work stay:
+An update stops Portolab for a moment while the new version starts, so students who use it then see an error. So update outside the trading sessions of IDX, such as in the evening or at a weekend.
+
+An earlier version of section 8 gave the folder of the backups to the user number 1000, and an earlier image of Portolab ran the server as that user, who owned the database. Ubuntu gives that number to the first account of a person, so that account could read the personal data in both. An installation from that time gives each of them a new owner once, before its next update. These commands print the number of the owner of the folder of the backups, and then the number of the owner of the folder of the database:
+
+```sh
+cd /opt/portolab
+stat --format %u /var/backups/portolab
+docker compose run --rm app stat --format %u /app/data
+```
+
+When the first number is 1000, run the commands of section 8 once more. They make root the owner of the folder and write the script again, and they keep the backups that the folder holds. When the second number is 1000, run these commands once. They download the new version, build it, stop Portolab, and give the folder of the database and its files to the user that Portolab runs as now, whose number no account gets, as [decision 0027](decisions/0027-the-container-runs-as-a-user-whose-number-no-account-gets.md) explains. The commands of the update then start Portolab again:
+
+```sh
+cd /opt/portolab
+git pull
+docker compose build
+docker compose stop app
+docker compose run --rm --user root app chown -R portolab:portolab /app/data
+```
+
+These commands back up the database, download the new version, build it, start it, and reload the Caddyfile. Some installations of Docker keep the image of the previous version, so the last command deletes it. It deletes only images of Portolab, so the images of other work stay:
 
 ```sh
 cd /opt/portolab
@@ -210,14 +230,6 @@ docker compose up --detach --build --wait
 systemctl reload caddy
 docker image prune --force --filter label=com.docker.compose.project=portolab
 ```
-
-An earlier version of section 8 created the folder of the backups with `--owner 1000`, so an account of the server with the number 1000 could read every backup. This command prints the number of the owner of the folder:
-
-```sh
-stat --format %u /var/backups/portolab
-```
-
-It prints 0 for root. When it prints 1000, run the commands of section 8 once more. They make root the owner of the folder and write the script again, and they keep the backups that the folder holds.
 
 Portolab needs data of IDX that the repository adds over time, such as the trading calendar of each year, the auto rejection limits that IDX sets for orders, and the stocks of the LQ45 after each review. When the log says that such data is missing, an update brings it once the repository has it.
 
