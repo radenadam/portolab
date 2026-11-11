@@ -53,7 +53,7 @@ The list names each program in quotes after `users:`. On a fresh server, it show
 
 ## 3. Install Docker
 
-Portolab runs in Docker with Compose. When the server already has Docker, such as for other work, `docker --version` prints its version. Then skip this section, because its commands would update that Docker or conflict with it, as the [installation guide of Docker](https://docs.docker.com/engine/install/ubuntu/) explains. Docker stops every container while it updates, unless it was set up to keep them running.
+Portolab runs in Docker with Compose. When the server already has Docker, such as for other work, `docker --version` prints its version. Then do not run the commands at the end of this section, because they would update that Docker or conflict with it, as the [installation guide of Docker](https://docs.docker.com/engine/install/ubuntu/) explains. Docker stops every container while it updates, unless it was set up to keep them running.
 
 On such a server, `docker compose version` prints the version of Compose. When it fails, that Docker lacks Compose, so install Compose as the [installation guide of Compose](https://docs.docker.com/compose/install/linux/) describes. Compose is a command of its own, so its installation stops no container.
 
