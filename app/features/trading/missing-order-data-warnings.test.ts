@@ -1,100 +1,103 @@
 import { expect, test } from "vitest";
 import { missingOrderDataWarnings } from "./missing-order-data-warnings";
 
-// The states follow the price hours of a source with this delay.
+// An order expires when the prices of its trading day become final, which depends on the delay of the price source.
 const delayMinutes = 10;
 
-const rulesOfJanuary4 =
-  "No recorded IDX rule for the auto rejection limits covers 2027-01-04, so add the rules that IDX set for that day to idx-rules-on.ts.";
+function rulesOf(date: string): string {
+  return `No recorded IDX rule for the auto rejection limits covers ${date}, so add the rules that IDX set for that day to idx-rules-on.ts.`;
+}
 
-// Each state of the schedule, with the warning that it gives. The recorded auto rejection limits end on Thursday 31 December 2026, so Monday 4 January 2027 is the first trading day without them, which the coming weeks reach from Monday 7 December 2026. The comment of each state gives the moment in WIB.
-const warningStates: { name: string; moment: string; warnings: string[] }[] = [
+function lq45Of(date: string): string {
+  return `No recorded period of the LQ45 covers ${date}, so add the stocks of the LQ45 that IDX set for that day to tracked-instruments.ts.`;
+}
+
+// Each date, with the warnings that it gives. The recorded auto rejection limits end on Thursday 31 December 2026, so Monday 4 January 2027 is the first trading day without them, which the coming weeks reach from Monday 7 December 2026. The recorded period of the LQ45 ends on Friday 29 January 2027, so Monday 1 February 2027 is the first trading day that no period covers, which the coming weeks reach from Monday 4 January 2027.
+const warningStates: { name: string; date: string; warnings: string[] }[] = [
   {
-    // 10:00 WIB on Monday 2 November 2026.
-    name: "during a session whose coming weeks have every record",
-    moment: "2026-11-02T03:00:00.000Z",
+    name: "on a trading day whose coming weeks have every record",
+    date: "2026-11-02",
     warnings: [],
   },
   {
-    // 23:59 WIB on Sunday 6 December 2026.
-    name: "in the last minute before the coming weeks reach a trading day without a record",
-    moment: "2026-12-06T16:59:00.000Z",
+    name: "on the last date before the coming weeks reach a trading day without a rule",
+    date: "2026-12-06",
     warnings: [],
   },
   {
-    // 00:00 WIB on Monday 7 December 2026.
-    name: "from the first minute in which the coming weeks reach that day",
-    moment: "2026-12-06T17:00:00.000Z",
-    warnings: [rulesOfJanuary4],
+    name: "from the first date on which the coming weeks reach that day",
+    date: "2026-12-07",
+    warnings: [rulesOf("2027-01-04")],
   },
   {
-    // 10:00 WIB on Friday 11 December 2026.
-    name: "during a session of a Friday",
-    moment: "2026-12-11T03:00:00.000Z",
-    warnings: [rulesOfJanuary4],
+    name: "on a Friday",
+    date: "2026-12-11",
+    warnings: [rulesOf("2027-01-04")],
   },
   {
-    // 16:26 WIB on Friday 11 December 2026.
-    name: "after the close of a Friday",
-    moment: "2026-12-11T09:26:00.000Z",
-    warnings: [rulesOfJanuary4],
+    name: "on the last trading day before that day",
+    date: "2026-12-30",
+    warnings: [rulesOf("2027-01-04")],
   },
   {
-    // 10:00 WIB on Wednesday 30 December 2026.
-    name: "during a session of the last trading day before that day",
-    moment: "2026-12-30T03:00:00.000Z",
-    warnings: [rulesOfJanuary4],
-  },
-  {
-    // 16:25 WIB on Wednesday 30 December 2026.
-    name: "in the last minute of the price hours of that trading day",
-    moment: "2026-12-30T09:25:00.000Z",
-    warnings: [rulesOfJanuary4],
-  },
-  {
-    // 16:26 WIB on Wednesday 30 December 2026.
-    name: "after the close of that trading day",
-    moment: "2026-12-30T09:26:00.000Z",
-    warnings: [rulesOfJanuary4],
-  },
-  {
-    // 10:00 WIB on Thursday 31 December 2026.
     name: "on a holiday",
-    moment: "2026-12-31T03:00:00.000Z",
-    warnings: [rulesOfJanuary4],
+    date: "2026-12-31",
+    warnings: [rulesOf("2027-01-04")],
   },
   {
-    // 10:00 WIB on Saturday 2 January 2027.
     name: "on a weekend",
-    moment: "2027-01-02T03:00:00.000Z",
-    warnings: [rulesOfJanuary4],
+    date: "2027-01-02",
+    warnings: [rulesOf("2027-01-04")],
   },
   {
-    // 10:00 WIB on Monday 4 January 2027.
-    name: "on the trading day without a record",
-    moment: "2027-01-04T03:00:00.000Z",
-    warnings: [rulesOfJanuary4],
+    name: "on the last date before the coming weeks reach a trading day without a period of the LQ45",
+    date: "2027-01-03",
+    warnings: [rulesOf("2027-01-04")],
   },
   {
-    // 10:00 WIB on Wednesday 6 January 2027, after the holiday of 5 January.
-    name: "on the next trading day, which lacks the record too",
-    moment: "2027-01-06T03:00:00.000Z",
-    warnings: [
-      "No recorded IDX rule for the auto rejection limits covers 2027-01-06, so add the rules that IDX set for that day to idx-rules-on.ts.",
-    ],
+    name: "from the first date on which the coming weeks reach that day, which is a trading day without a rule",
+    date: "2027-01-04",
+    warnings: [rulesOf("2027-01-04"), lq45Of("2027-02-01")],
   },
   {
-    // 10:00 WIB on Friday 30 October 2026, before the first recorded broker fee.
-    name: "on a trading day without a record of the costs",
-    moment: "2026-10-30T03:00:00.000Z",
+    // 5 January 2027 is a holiday.
+    name: "on the next trading day, which lacks a rule too",
+    date: "2027-01-06",
+    warnings: [rulesOf("2027-01-06"), lq45Of("2027-02-01")],
+  },
+  {
+    name: "on the last trading day of the period of the LQ45, which is a Friday",
+    date: "2027-01-29",
+    warnings: [rulesOf("2027-01-29"), lq45Of("2027-02-01")],
+  },
+  {
+    name: "on the weekend before the trading day without a period",
+    date: "2027-01-30",
+    warnings: [rulesOf("2027-02-01"), lq45Of("2027-02-01")],
+  },
+  {
+    name: "on the trading day without a period",
+    date: "2027-02-01",
+    warnings: [rulesOf("2027-02-01"), lq45Of("2027-02-01")],
+  },
+  {
+    // Friday 30 October 2026 comes before the first recorded broker fee and the first recorded period of the LQ45.
+    name: "on a trading day without a record of the costs or a period of the LQ45",
+    date: "2026-10-30",
     warnings: [
       "No record of the broker fee covers 2026-10-30, so add the rates for that day to trading-costs.ts.",
+      lq45Of("2026-10-30"),
     ],
   },
   {
-    // 10:00 WIB on Monday 3 January 2028.
+    // No calendar covers 1 January 2028, which the coming weeks of this date reach after trading days without a rule and a period.
+    name: "on a date whose coming weeks reach a date that no calendar covers",
+    date: "2027-12-20",
+    warnings: [rulesOf("2027-12-20"), lq45Of("2027-12-20")],
+  },
+  {
     name: "on a date that no calendar covers",
-    moment: "2028-01-03T03:00:00.000Z",
+    date: "2028-01-03",
     warnings: [
       "No IDX trading calendar covers 2028-01-03, so add the holidays and trading hours of that year to idx-calendar.ts.",
     ],
@@ -102,9 +105,9 @@ const warningStates: { name: string; moment: string; warnings: string[] }[] = [
 ];
 
 for (const state of warningStates) {
-  test(`${state.warnings.length > 0 ? "warns about the first trading day that lacks a record" : "gives no warning"} ${state.name}`, () => {
-    expect(
-      missingOrderDataWarnings(new Date(state.moment), delayMinutes),
-    ).toEqual(state.warnings);
+  test(`${state.warnings.length > 0 ? "warns about the first date that lacks each record" : "gives no warning"} ${state.name}`, () => {
+    expect(missingOrderDataWarnings(state.date, delayMinutes)).toEqual(
+      state.warnings,
+    );
   });
 }

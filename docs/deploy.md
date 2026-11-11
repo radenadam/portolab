@@ -193,7 +193,12 @@ docker system prune --force
 
 Portolab needs data of IDX that the repository adds over time, such as the trading calendar of each year, the auto rejection limits that IDX sets for orders, and the stocks of the LQ45 after each review. When the log says that such data is missing, an update brings it once the repository has it.
 
-Portolab warns before a gap in the data that orders need reaches the students. While a date of the coming weeks has no trading calendar, or a trading day of those weeks lacks a rule of IDX, the broker fee, or the final tax on sales, Portolab writes a warning to the log when it starts and once a day after that. The warning names the first such day and what it lacks. From the end of session II of the last trading day before that day, students cannot place orders until Portolab records the data. So update Portolab before then, once a [release of Portolab](https://github.com/radenadam/portolab/releases) records the data. When `docker compose logs --since 10m app` shows the warning again right after the update, that release does not record the data yet, so update again once a later release does.
+Portolab warns before a gap in the data that orders need reaches the students. It looks for two kinds of gap in the coming weeks, and it writes a warning about the first day of each kind to the log when it starts and once a day after that:
+
+- A date without a trading calendar stops every order, and so does a trading day without a rule of IDX, the broker fee, or the final tax on sales.
+- A trading day that no recorded period of the LQ45 covers stops every purchase, because students buy only the stocks of the LQ45, as [decision 0015](decisions/0015-students-buy-only-stocks-that-the-measures-can-use.md) explains. Students can still sell.
+
+Each warning names its day and what it lacks. From the end of session II of the last trading day before that day, the orders that the gap stops fail until Portolab records the data. So update Portolab before then, once a [release of Portolab](https://github.com/radenadam/portolab/releases) records the data. When `docker compose logs --since 10m app` shows the warning again right after the update, that release does not record the data yet, so update again once a later release does.
 
 ## Personal data
 
