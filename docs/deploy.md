@@ -7,6 +7,7 @@ This guide takes an Ubuntu server to Portolab, served over HTTPS at a domain of 
 ## What you need
 
 - A server with Ubuntu 24.04 LTS or Ubuntu 26.04 LTS, with at least 2 GB of memory and 20 GB of disk that other work on the server leaves free.
+- No account on the server with a number from the range of user numbers that [decision 0027](decisions/0027-the-container-runs-as-a-user-whose-number-no-account-gets.md) keeps for Portolab. Portolab runs in its container as a user with such a number, and an account with the same number could read its database. Ubuntu gives no account such a number, but `useradd --uid` or a directory of accounts, such as LDAP, can.
 - The IPv4 address of the server, such as `203.0.113.10`, and the password or the SSH key of its root user, which the provider gives you.
 - A domain name for Portolab, such as `portolab.example.com`, whose DNS records you can change. A subdomain of the domain of your university works too, and its IT office can create it.
 - A computer with a terminal. Windows, macOS, and Linux all have the command `ssh`.
@@ -210,7 +211,7 @@ stat --format %u /var/backups/portolab
 docker compose run --rm app stat --format %u /app/data
 ```
 
-When the first number is 1000, run the commands of section 8 once more. They make root the owner of the folder and write the script again, and they keep the backups that the folder holds. When the second number is 1000, run these commands once. They download the new version, build it, stop Portolab, and give the folder of the database and its files to the user that Portolab runs as now, whose number no account gets, as [decision 0027](decisions/0027-the-container-runs-as-a-user-whose-number-no-account-gets.md) explains. The commands of the update then start Portolab again:
+When the first number is 1000, run the commands of section 8 once more. They make root the owner of the folder and write the script again, and they keep the backups that the folder holds. When the second number is 1000, run these commands once. They download the new version, build it, stop Portolab, and give the folder of the database and its files to the user that Portolab runs as now, whose number Ubuntu gives no account, as [decision 0027](decisions/0027-the-container-runs-as-a-user-whose-number-no-account-gets.md) explains. The commands of the update then start Portolab again:
 
 ```sh
 cd /opt/portolab

@@ -29,7 +29,7 @@ COPY server server
 COPY --from=build /app/app app
 COPY --from=build /app/build build
 COPY --from=dependencies /app/node_modules node_modules
-# Decision 0027 explains why Portolab runs as a user of its own, with a number that no account of the server gets. Without --no-log-init, useradd writes a log whose size grows with the number, and the image would store all of it, as the best practices of Docker for Dockerfiles explain. Docker fills a new volume with the folder of the data, so the database belongs to that user.
+# Decision 0027 explains why Portolab runs as a user of its own, with a number that Ubuntu gives no account. Without --no-log-init, useradd writes a log whose size grows with the number, and the image would store all of it, as the best practices of Docker for Dockerfiles explain. Docker fills a new volume with the folder of the data, so the database belongs to that user.
 RUN number=61000 \
   && groupadd --gid "$number" portolab \
   && useradd --uid "$number" --gid portolab --no-create-home --no-log-init portolab \
