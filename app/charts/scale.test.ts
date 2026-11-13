@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+import { smallestPercentStep } from "~/formatting";
 import { cumulativeReturn } from "~/units/cumulative-return";
 import { fractionOf, niceTicks, paddedRange } from "./scale";
 
@@ -31,7 +32,7 @@ test("marks a range at the multiples of the smallest step of 1, 2, or 5 times a 
   expect(
     niceTicks(
       { min: cumulativeReturn(-0.024), max: cumulativeReturn(0.034) },
-      4,
+      { count: 4, smallestStep: smallestPercentStep },
       cumulativeReturn,
     ),
   ).toEqual([-0.02, 0, 0.02]);
@@ -39,7 +40,7 @@ test("marks a range at the multiples of the smallest step of 1, 2, or 5 times a 
   expect(
     niceTicks(
       { min: cumulativeReturn(-0.005), max: cumulativeReturn(0.005) },
-      4,
+      { count: 4, smallestStep: smallestPercentStep },
       cumulativeReturn,
     ),
   ).toEqual([-0.005, 0, 0.005]);
@@ -47,7 +48,7 @@ test("marks a range at the multiples of the smallest step of 1, 2, or 5 times a 
   expect(
     niceTicks(
       { min: cumulativeReturn(0.1), max: cumulativeReturn(1) },
-      4,
+      { count: 4, smallestStep: smallestPercentStep },
       cumulativeReturn,
     ),
   ).toEqual([0.5, 1]);
@@ -56,9 +57,27 @@ test("marks a range at the multiples of the smallest step of 1, 2, or 5 times a 
 test("marks zero as zero and never as a negative zero, which Intl would write with a minus sign", () => {
   const ticks = niceTicks(
     { min: cumulativeReturn(-0.001), max: cumulativeReturn(0.012) },
-    4,
+    { count: 4, smallestStep: smallestPercentStep },
     cumulativeReturn,
   );
   expect(ticks).toEqual([0, 0.005, 0.01]);
   expect(Object.is(ticks[0], 0)).toBe(true);
+});
+
+test("never steps finer than the smallest step that the texts of the marks write apart, so returns that barely move get one mark for each text", () => {
+  // A range of 0.0058% in 4 steps would take a step of 0.002%, which a percentage with two decimals writes as 0% for every mark, so the step is the hundredth of a percent of smallestPercentStep.
+  expect(
+    niceTicks(
+      { min: cumulativeReturn(-0.000004), max: cumulativeReturn(0.000054) },
+      { count: 4, smallestStep: smallestPercentStep },
+      cumulativeReturn,
+    ),
+  ).toEqual([0]);
+  expect(
+    niceTicks(
+      { min: cumulativeReturn(-0.00015), max: cumulativeReturn(0.00025) },
+      { count: 4, smallestStep: smallestPercentStep },
+      cumulativeReturn,
+    ),
+  ).toEqual([-0.0001, 0, 0.0001, 0.0002]);
 });

@@ -48,8 +48,16 @@ export function digitGrouping(): { separator: string; size: number } {
   return { separator, size: lastGroup.length };
 }
 
+// A number shows at most three decimals, which is also the default of Intl.
+const mostNumberDecimals = 3;
+
+/** The smallest step between the marks of an axis whose texts formatNumber writes, so no two marks read the same. */
+export const smallestNumberStep = 10 ** -mostNumberDecimals;
+
 export function formatNumber(value: number): string {
-  return new Intl.NumberFormat(intlLocale()).format(value);
+  return new Intl.NumberFormat(intlLocale(), {
+    maximumFractionDigits: mostNumberDecimals,
+  }).format(value);
 }
 
 /** Formats a size in bytes, such as 128,000 bytes. */
@@ -75,6 +83,10 @@ const fewestPercentDecimals: Record<PercentDecimals, number> = {
   upToTwo: 0,
   two: 2,
 };
+const mostPercentDecimals = 2;
+
+/** The smallest step between the marks of an axis whose texts formatPercent or formatSignedPercent writes, a hundredth of a percent, so no two marks read the same. */
+export const smallestPercentStep = 10 ** -(mostPercentDecimals + 2);
 
 /** Formats a fraction such as 0.07 as a percentage without a plus sign, such as 7% with at most two decimals or 7.00% with exactly two. */
 export function formatPercent(
@@ -90,7 +102,7 @@ function percentOptions(decimals: PercentDecimals): Intl.NumberFormatOptions {
   return {
     style: "percent",
     minimumFractionDigits: fewestPercentDecimals[decimals],
-    maximumFractionDigits: 2,
+    maximumFractionDigits: mostPercentDecimals,
   };
 }
 

@@ -27,13 +27,14 @@ export function fractionOf<Value extends number>(
   return (value - range.min) / (range.max - range.min);
 }
 
-/** The round values in a range for about a number of marks of an axis: the multiples of a step of 1, 2, or 5 times a power of ten, so a reader reads the scale at a glance. */
+/** The round values in a range for about a number of marks of an axis: the multiples of a step of 1, 2, or 5 times a power of ten, so a reader reads the scale at a glance. The step is never finer than the smallest step that the format of the texts of the marks writes apart, such as smallestPercentStep, so no two marks read the same. */
 export function niceTicks<Value extends number>(
   range: Range<Value>,
-  count: number,
+  marks: { count: number; smallestStep: number },
   toValue: (value: number) => Value,
 ): Value[] {
-  const roughStep = (range.max - range.min) / count;
+  const { count, smallestStep } = marks;
+  const roughStep = Math.max((range.max - range.min) / count, smallestStep);
   const power = 10 ** Math.floor(Math.log10(roughStep));
   const step =
     [1, 2, 5]

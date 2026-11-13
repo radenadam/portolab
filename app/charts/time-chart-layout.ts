@@ -1,4 +1,8 @@
-import { formatCalendarDatePart, formatSignedPercent } from "~/formatting";
+import {
+  formatCalendarDatePart,
+  formatSignedPercent,
+  smallestPercentStep,
+} from "~/formatting";
 import { cumulativeReturn } from "~/units/cumulative-return";
 import type { CumulativeReturn } from "~/units/cumulative-return";
 import { plotFraction } from "~/units/plot-fraction";
@@ -62,13 +66,15 @@ export function layoutTimeChart(
     lines.flatMap((line) => line.returns),
     cumulativeReturn,
   );
-  const returnTicks = niceTicks(range, returnTickCount, cumulativeReturn).map(
-    (value) => ({
-      at: heightOf(range, value),
-      text: formatSignedPercent(value, "upToTwo").text,
-      isZero: value === 0,
-    }),
-  );
+  const returnTicks = niceTicks(
+    range,
+    { count: returnTickCount, smallestStep: smallestPercentStep },
+    cumulativeReturn,
+  ).map((value) => ({
+    at: heightOf(range, value),
+    text: formatSignedPercent(value, "upToTwo").text,
+    isZero: value === 0,
+  }));
   let returnTextLength = 0;
   for (const tick of returnTicks) {
     returnTextLength = Math.max(returnTextLength, tick.text.length);

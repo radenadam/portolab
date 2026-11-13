@@ -71,7 +71,7 @@ export function TimePlot<Point extends { date: string }>({
   const drawing = (
     <svg ref={drawingRef} className={styles["drawing"]} aria-hidden>
       {layout.returnTicks.map((tick) => (
-        <g key={tick.text}>
+        <g key={tick.at}>
           <line
             x1="0"
             x2="100%"
@@ -93,7 +93,7 @@ export function TimePlot<Point extends { date: string }>({
       ))}
       {layout.dateTicks.map((tick) => (
         <text
-          key={tick.text}
+          key={tick.at}
           x={percentOf(tick.at)}
           y="100%"
           dy={`${String(dateBaseline)}em`}

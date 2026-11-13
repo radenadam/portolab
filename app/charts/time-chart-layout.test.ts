@@ -118,6 +118,17 @@ test("keeps a date a major mark when a minor mark falls on it too, so a short ch
   ]);
 });
 
+test("writes each mark of returns apart from the others when the returns move by less than a hundredth of a percent, such as a portfolio of cash against an IHSG that barely moved", () => {
+  // The returns reach from 0% to 0.005%, so the marks stand a hundredth of a percent apart at the least, and only the mark at 0% lies in their range.
+  const layout = layoutTimeChart(dates.slice(0, 2), [
+    { kind: "own", returns: [0, 0].map(cumulativeReturn) },
+    { kind: "reference", returns: [0, 0.00005].map(cumulativeReturn) },
+  ]);
+  expect(layout.returnTicks.map(({ text, isZero }) => [text, isZero])).toEqual([
+    ["0%", true],
+  ]);
+});
+
 test("puts the one return of a chart of one date at the right edge, where every other chart has its latest return, around a range of zero", () => {
   const layout = layoutTimeChart(dates.slice(0, 1), [
     { kind: "own", returns: [cumulativeReturn(0)] },

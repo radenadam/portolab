@@ -1,6 +1,11 @@
 import { fractionOf, niceTicks, paddedRange } from "~/charts/scale";
 import type { Range } from "~/charts/scale";
-import { formatNumber, formatPercent } from "~/formatting";
+import {
+  formatNumber,
+  formatPercent,
+  smallestNumberStep,
+  smallestPercentStep,
+} from "~/formatting";
 import { beta } from "~/units/beta";
 import type { Beta } from "~/units/beta";
 import { monthlyReturn } from "~/units/monthly-return";
@@ -92,7 +97,10 @@ export function layoutMarketLineChart(
   const bottom = pixels(frame.height - em * margins.bottom);
   const returnValues = niceTicks(
     expectedReturns,
-    tickCount(bottom - top, em * tickSpacing.expectedReturn),
+    {
+      count: tickCount(bottom - top, em * tickSpacing.expectedReturn),
+      smallestStep: smallestPercentStep,
+    },
     monthlyReturn,
   ).map((value) => ({ value, text: formatPercent(value) }));
   const textEnd = pixels(em * widestText(returnValues));
@@ -117,7 +125,10 @@ export function layoutMarketLineChart(
     plot,
     betaTicks: niceTicks(
       betas,
-      tickCount(right - left, em * tickSpacing.beta),
+      {
+        count: tickCount(right - left, em * tickSpacing.beta),
+        smallestStep: smallestNumberStep,
+      },
       beta,
     ).map((value) => {
       const position = horizontal(value);
