@@ -82,6 +82,7 @@ export function purchaseForTest(
     side: "buy",
     lots: orderLotsForTest(5),
     price: { kind: "market" },
+    reason: undefined,
     placedAt: duringSessionForTest,
     ...changes,
   };

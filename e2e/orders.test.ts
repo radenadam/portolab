@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import type { Browser, Locator, Page } from "@playwright/test";
 import type { ClassId } from "../app/features/classes/classes.schema.ts";
+import { reasonMaximumLength } from "../app/features/trading/reason-maximum-length.ts";
 import { fieldMaximumLength } from "../app/form-size.ts";
 import { languageNames } from "../app/language-names.ts";
 import { locales } from "../app/paraglide/runtime.js";
@@ -21,7 +22,7 @@ import { wideWord } from "./wide-word.ts";
 import { widestClassNames } from "./widest-class-names.ts";
 
 // The server runs with the fixture price source, whose quotes are the closes of Friday 30 October 2026, which fixture-price-source.server.ts records. They are from no session of the trading day of an order that a test places, so every order waits. Every update lacks UNVR, whose quote the global setup stored before the server started, and WIFI, of which Portolab has no price. ITMG has the highest price and GOTO the widest change of the stocks that a student can choose. The global setup stores the month-end closes that give BBCA enough monthly returns and AADI too few. The class has the most starting cash that Portolab accepts, and the purchase has the largest order that IDX accepts at the highest price of the stocks that a student can buy, so the screens show their widest amounts. A text with a part that the test cannot know in advance, such as the time of an order or of the latest update of prices, is the tuple of its other parts.
-const { className } = widestClassNames;
+const { className, studentName } = widestClassNames;
 
 /** The stocks whose delayed price the tests show. */
 type QuotedCode = "AADI" | "BBCA" | "GOTO" | "ITMG" | "UNVR";
@@ -71,6 +72,7 @@ const texts: Record<
       limitOrder: string;
       lots: string;
       limit: string;
+      reason: string;
       place: string;
       cancel: string;
     };
@@ -101,6 +103,13 @@ const texts: Record<
     sale: readonly string[];
     notEnoughCash: string;
     notFoundTitle: string;
+    reasonHint: string;
+    reasonTooLong: string;
+    reasonFarTooLong: string;
+    reasonLabel: string;
+    purchaseOfOneLot: string;
+    studentPortfolioLink: string;
+    reasonsTitle: string;
   }
 > = {
   id: {
@@ -150,6 +159,7 @@ const texts: Record<
       limitOrder: "Order limit",
       lots: "Jumlah lot",
       limit: "Harga limit",
+      reason: "Alasan (opsional)",
       place: "Pasang order",
       cancel: "Batalkan order ini",
     },
@@ -229,6 +239,16 @@ const texts: Record<
     notEnoughCash:
       "Membeli 1 lot BBCA pada harga Rp\u00a04.980 membutuhkan Rp\u00a0498.747, yaitu Rp\u00a0498.000 untuk saham dan Rp\u00a0747 untuk biaya broker, sedangkan kas Anda yang tersedia hanya Rp\u00a01.833. Kas Anda yang tersedia hanya cukup untuk membayar 1 lot saham pada harga paling tinggi Rp\u00a018. Kas Anda yang tersedia masih kurang Rp\u00a0496.914 untuk order ini, dan menjual saham yang Anda pegang menambah kas itu. Order jual GOTO Anda yang masih terbuka membawa kas saat tereksekusi.",
     notFoundTitle: "Halaman tidak ditemukan",
+    reasonHint:
+      "Mengapa Anda memasang order ini, paling banyak 500 karakter. Portolab menyimpannya bersama order ini, dan dosen kelas ini dapat membacanya.",
+    reasonTooLong:
+      'Kolom "Alasan (opsional)" memuat paling banyak 500 karakter, tetapi isinya 501 karakter. Persingkat isinya.',
+    reasonFarTooLong:
+      'Kolom "Alasan (opsional)" berisi 8.001 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
+    reasonLabel: "Alasan Anda: ",
+    purchaseOfOneLot: "Beli 1 lot BBCA pada harga pasar",
+    studentPortfolioLink: `Portofolio ${studentName}`,
+    reasonsTitle: "Alasan order",
   },
   en: {
     ordersLink: "Your orders in this class",
@@ -276,6 +296,7 @@ const texts: Record<
       limitOrder: "Limit order",
       lots: "Lots",
       limit: "Limit price",
+      reason: "Reason (optional)",
       place: "Place the order",
       cancel: "Cancel this order",
     },
@@ -355,6 +376,16 @@ const texts: Record<
     notEnoughCash:
       "Buying 1 lot of BBCA at IDR\u00a04,980 costs IDR\u00a0498,747, which is IDR\u00a0498,000 for the shares and IDR\u00a0747 for the broker fee, but your available cash is IDR\u00a01,833. Your available cash pays for 1 lot of a stock only at a price of at most IDR\u00a018. This order needs IDR\u00a0496,914 more than your available cash, and selling shares that you hold adds to that cash. Your open sell order of GOTO brings cash when it fills.",
     notFoundTitle: "Page not found",
+    reasonHint:
+      "Why you place this order, in at most 500 characters. Portolab keeps it with the order, and the lecturer of this class can read it.",
+    reasonTooLong:
+      'The field "Reason (optional)" holds at most 500 characters, but it has 501. Shorten it.',
+    reasonFarTooLong:
+      'The field "Reason (optional)" has 8,001 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
+    reasonLabel: "Your reason: ",
+    purchaseOfOneLot: "Buy 1 lot of BBCA at the market price",
+    studentPortfolioLink: `Portfolio of ${studentName}`,
+    reasonsTitle: "Reasons for the orders",
   },
 };
 
@@ -433,7 +464,7 @@ async function expectChosenPrice(
   );
 }
 
-/** Fills the order form with the fields that a test gives and sends it. The form chooses a market order until the test chooses a limit order. */
+/** Fills the order form with the fields that a test gives and sends it. The form chooses a market order until the test chooses a limit order, and it keeps the reason that the field holds until the test gives one. */
 async function placeOrder(
   page: Page,
   locale: Locale,
@@ -442,6 +473,7 @@ async function placeOrder(
     isLimit?: boolean;
     lots?: string;
     limit?: string;
+    reason?: string;
   },
 ): Promise<void> {
   const { labels } = texts[locale];
@@ -454,6 +486,9 @@ async function placeOrder(
   }
   await main.getByLabel(labels.lots, { exact: true }).fill(order.lots ?? "");
   await main.getByLabel(labels.limit, { exact: true }).fill(order.limit ?? "");
+  if (order.reason !== undefined) {
+    await main.getByLabel(labels.reason, { exact: true }).fill(order.reason);
+  }
   await main.getByRole("button", { name: labels.place }).click();
 }
 
@@ -653,6 +688,75 @@ for (const locale of locales) {
     await student.context().close();
   });
 
+  test(`keeps the reason that a student writes with the order, which the lecturer of the class reads, and explains a reason that is too long at its field, in ${language}`, async ({
+    page,
+    browser,
+  }) => {
+    const { student, classPath } = await openOrdersOfNewStudent(
+      page,
+      browser,
+      locale,
+    );
+    await chooseStock(student, locale, "BBCA");
+    const main = student.getByRole("main");
+    await expectTexts(main, [text.reasonHint]);
+    const reasonField = main.getByLabel(text.labels.reason, { exact: true });
+    // A reason one character past its maximum, and one past the maximum of any field, each as one word.
+    const justPast = wideWord("Alasan", reasonMaximumLength + 1);
+    await placeOrder(student, locale, {
+      side: "buy",
+      lots: "1",
+      reason: justPast,
+    });
+    await expect(
+      main.getByText(text.reasonTooLong, { exact: true }),
+    ).toBeVisible();
+    await expect(reasonField).toHaveValue(justPast);
+    await expect(reasonField).toHaveAttribute("aria-invalid", "true");
+    await expectAccessibleScreen(student);
+    await placeOrder(student, locale, {
+      side: "buy",
+      lots: "1",
+      reason: wideWord("Alasan", fieldMaximumLength + 1),
+    });
+    await expect(
+      main.getByText(text.reasonFarTooLong, { exact: true }),
+    ).toBeVisible();
+    await expectAccessibleScreen(student);
+
+    // The longest reason that Portolab keeps, as one word, so each list that shows it is checked with its widest content.
+    const widestReason = wideWord("Alasan", reasonMaximumLength);
+    await placeOrder(student, locale, {
+      side: "buy",
+      lots: "1",
+      reason: widestReason,
+    });
+    await expect(student.getByRole("status")).toHaveText(text.placed);
+    await expect(
+      main.getByText(`${text.reasonLabel}${widestReason}`, { exact: true }),
+    ).toBeVisible();
+    await expectAccessibleScreen(student);
+
+    await page.goto(`${classPath}/portfolios`);
+    await page
+      .getByRole("link", { name: text.studentPortfolioLink, exact: true })
+      .click();
+    const reasons = page
+      .getByRole("main")
+      .locator("section")
+      .filter({
+        has: page.getByRole("heading", { level: 2, name: text.reasonsTitle }),
+      });
+    await expect(reasons.locator("li")).toHaveCount(1);
+    await expectTexts(reasons.locator("li"), [
+      text.purchaseOfOneLot,
+      widestReason,
+    ]);
+    await expect(reasons).not.toContainText(text.reasonLabel);
+    await expectAccessibleScreen(page);
+    await student.context().close();
+  });
+
   test(`shows the delayed price of the chosen stock and the price that the latest update missed, and offers no order of a stock without a price, in ${language}`, async ({
     page,
     browser,
@@ -731,7 +835,7 @@ for (const locale of locales) {
     // Axe runs in the page, so the screens are checked in the tests with JavaScript, and this test checks that each form works without it.
     test.use({ javaScriptEnabled: false });
 
-    test("chooses a stock, keeps it after a refused order, takes the step of a rejection, and places an order of it", async ({
+    test("chooses a stock, keeps it after a refused order, takes the step of a rejection with the reason of the order, and places an order of it with its reason", async ({
       page,
       browser,
     }) => {
@@ -753,7 +857,9 @@ for (const locale of locales) {
       await expect(page).toHaveURL(/\/orders\?code=BBCA$/);
       await expectChosenPrice(page, locale, "BBCA");
       storeTestHolding(testClass.id, smallHolding);
-      await placeOrder(page, locale, { side: "buy", lots: "5" });
+      // A reason of two paragraphs, whose line break the browser sends as a carriage return and a line feed, in the order form and in the form of the step.
+      const reason = "Bank besar dengan laba stabil.\n\nBeta di bawah 1.";
+      await placeOrder(page, locale, { side: "buy", lots: "5", reason });
       await page
         .getByRole("alert")
         .getByRole("button", { name: text.purchaseStep })
@@ -761,12 +867,18 @@ for (const locale of locales) {
       await expect(
         page.getByRole("main").getByLabel(text.labels.lots, { exact: true }),
       ).toHaveValue("4");
+      await expect(
+        page.getByRole("main").getByLabel(text.labels.reason, { exact: true }),
+      ).toHaveValue(reason);
       await page
         .getByRole("main")
         .getByRole("button", { name: text.labels.place })
         .click();
       await expect(page).toHaveURL(/\/orders\?placed=\d+$/);
       await expect(page.getByRole("status")).toHaveText(text.placed);
+      await expect(
+        page.getByText(`${text.reasonLabel}${reason}`, { exact: true }),
+      ).toBeVisible();
       await lecturer.context().close();
     });
   });

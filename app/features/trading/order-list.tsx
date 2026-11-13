@@ -87,7 +87,59 @@ export function PastOrderList({
   );
 }
 
+/** The orders of a student that have a reason, newest first, each with its price, when the student placed it, and the reason, which the lecturer of the class reads. */
+export function ReasonSection({
+  orders,
+  studentName,
+}: {
+  orders: readonly ListedOrder[];
+  studentName: string;
+}): ReactNode {
+  const reasoned: { order: ListedOrder; reason: string }[] = [];
+  for (const order of orders.toReversed()) {
+    if (order.reason !== undefined) {
+      reasoned.push({ order, reason: order.reason });
+    }
+  }
+  return (
+    <section>
+      <h2>{m.trading_lecturer_reasons_title()}</h2>
+      {reasoned.length === 0 ? (
+        <p>{m.trading_lecturer_no_reasons_body({ name: studentName })}</p>
+      ) : (
+        <ul className={styles["list"]}>
+          {reasoned.map(({ order, reason }) => (
+            <li key={order.id} className={styles["item"]}>
+              <OrderHeading order={order} />
+              <p className={styles["reason"]}>{reason}</p>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
 function OrderLines({ order, now }: { order: Order; now: Date }): ReactNode {
+  return (
+    <>
+      <OrderHeading order={order} />
+      {stateLines(order, stateAt(order, now)).map((line) => (
+        <p key={line} className={styles["details"]}>
+          {line}
+        </p>
+      ))}
+      {order.reason !== undefined && (
+        <p className={styles["reason"]}>
+          {m.trading_reason_notice({ reason: order.reason })}
+        </p>
+      )}
+    </>
+  );
+}
+
+/** The side, the lots, the stock, and the price of an order, and when the student placed it for which trading day. */
+function OrderHeading({ order }: { order: Order }): ReactNode {
   return (
     <>
       <p className={styles["title"]}>{orderTitle(order)}</p>
@@ -97,11 +149,6 @@ function OrderLines({ order, now }: { order: Order; now: Date }): ReactNode {
           date: formatCalendarDate(order.tradingDay),
         })}
       </p>
-      {stateLines(order, stateAt(order, now)).map((line) => (
-        <p key={line} className={styles["details"]}>
-          {line}
-        </p>
-      ))}
     </>
   );
 }
