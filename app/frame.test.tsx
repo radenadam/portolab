@@ -1,12 +1,7 @@
 import { expect, test } from "vitest";
 import { AppIcon } from "./app-icon";
-import {
-  delayNoticeText,
-  Frame,
-  PageColumns,
-  PageHeader,
-  PhoneAndDesktop,
-} from "./frame";
+import { Frame, PageColumns, PageHeader, PhoneAndDesktop } from "./frame";
+import type { FrameProfile } from "./frame";
 import { languageNames } from "./language-names";
 import { locales } from "./paraglide/runtime.js";
 import type { Locale } from "./paraglide/runtime.js";
@@ -19,27 +14,25 @@ const quotedAt = new Date("2026-10-30T09:14:00Z");
 const texts: Record<
   Locale,
   {
+    skip: string;
     navigation: string;
-    simulation: string;
-    delay: string;
-    delayWithoutPrices: string;
+    profile: string;
+    profileTitle: string;
     pricesTime: string;
   }
 > = {
   id: {
+    skip: "Lewati ke konten",
     navigation: "Navigasi utama",
-    simulation: "Simulasi",
-    delay:
-      "Harga tertunda sekitar 10 menit. Harga terakhir tercatat pada 30 Okt 2026, 16.14 WIB.",
-    delayWithoutPrices: "Harga tertunda sekitar 10 menit.",
+    profile: "Profil Sari Wulandari",
+    profileTitle: "Profil",
     pricesTime: "30 Okt 2026, 16.14 WIB",
   },
   en: {
+    skip: "Skip to content",
     navigation: "Main navigation",
-    simulation: "Simulation",
-    delay:
-      "Prices are delayed by about 10 minutes. The latest price was quoted at Oct 30, 2026, 4:14 PM WIB.",
-    delayWithoutPrices: "Prices are delayed by about 10 minutes.",
+    profile: "Profile of Sari Wulandari",
+    profileTitle: "Profile",
     pricesTime: "Oct 30, 2026, 4:14 PM WIB",
   },
 };
@@ -49,44 +42,88 @@ function withoutClasses(html: string): string {
   return html.replaceAll(/ class="[^"]*"/g, "");
 }
 
-const links = [
-  { path: "/classes/7/portfolio", label: "Portofolio", isCurrent: true },
-  { path: "/prices", label: "Harga", isCurrent: false },
-];
+// The icon of an item is a path of its own, which the test leaves out to read the items.
+function withoutIcons(html: string): string {
+  return html.replaceAll(/<svg viewBox="0 0 24 24".*?<\/svg>/g, "");
+}
+
+const items = [
+  {
+    path: "/classes/7/portfolio",
+    label: "Beranda",
+    icon: "map",
+    isCurrent: true,
+  },
+  {
+    path: "/classes/7/market",
+    label: "Pasar",
+    icon: "trend",
+    isCurrent: false,
+  },
+] as const;
+
+const profile: FrameProfile = {
+  name: "Sari Wulandari",
+  menu: <span>menu</span>,
+};
+
+function frameForTest({
+  frameItems,
+  start,
+  frameProfile,
+}: {
+  frameItems: readonly (typeof items)[number][];
+  start: string | undefined;
+  frameProfile: FrameProfile | undefined;
+}): string {
+  return withoutIcons(
+    withoutClasses(
+      renderInRouterForTest(
+        <Frame
+          items={frameItems}
+          start={start === undefined ? undefined : <span>{start}</span>}
+          profile={frameProfile}
+          tools={<span>tools</span>}
+          badge={<span>badge</span>}
+        >
+          <p>page</p>
+        </Frame>,
+      ),
+    ),
+  );
+}
+
+const itemList =
+  '<ul><li><a aria-current="page" href="/classes/7/portfolio" data-discover="true">Beranda</a></li><li><a href="/classes/7/market" data-discover="true">Pasar</a></li></ul>';
 
 for (const locale of locales) {
   const text = texts[locale];
   const language = languageNames[locale];
 
-  test(`gives the delay of prices with the time of the latest price, or the delay alone before the first price, in ${language}`, () => {
+  test(`frames a page with the link that skips to the content, the rail with the app icon, the items, and the avatar of the profile, the top bar with its start, the tools, the name, the badge, and the avatar of a phone, the content in the middle, and the tab bar, in ${language}`, () => {
     switchLocaleForTest(locale);
-    expect(delayNoticeText(10, quotedAt)).toBe(text.delay);
-    expect(delayNoticeText(10, undefined)).toBe(text.delayWithoutPrices);
-  });
-
-  test(`frames a page with the mark of the app icon and the name, the navigation with its current page, the tools, the mark of a simulation, the delay, and the main landmark, in ${language}`, () => {
-    switchLocaleForTest(locale);
-    const html = withoutClasses(
-      renderInRouterForTest(
-        <Frame
-          navigation={links}
-          backLink={undefined}
-          tools={<span>tools</span>}
-          delayNotice={text.delay}
-          showsDelayOnPhone
-        >
-          <p>page</p>
-        </Frame>,
-      ),
+    const html = frameForTest({
+      frameItems: items,
+      start: "switcher",
+      frameProfile: profile,
+    });
+    const icon = withoutClasses(renderInRouterForTest(<AppIcon />));
+    const profileButton = (popover: string, content: string): string =>
+      `<button type="button" popoverTarget="${popover}" aria-label="${text.profile}" style="anchor-name:--${popover}">${content}</button>`;
+    const profilePopover = (popover: string): string =>
+      `<div id="${popover}" popover="auto" role="dialog" aria-label="${text.profileTitle}" style="position-anchor:--${popover}"><span>menu</span></div>`;
+    expect(html).toBe(
+      [
+        `<a href="#main">${text.skip}</a><div>`,
+        `<nav aria-label="${text.navigation}"><a aria-label="Portolab" href="/" data-discover="true">${icon}</a>${itemList}`,
+        `<div>${profileButton("rail-profile", '<span data-initials="SW"></span>')}${profilePopover("rail-profile")}</div></nav>`,
+        `<div><header><div data-layout="content"><span>switcher</span><div><span>tools</span>`,
+        `<span>${profileButton("top-profile", "<span>Sari Wulandari</span>")}</span><span>badge</span>`,
+        `${profileButton("top-profile", '<span data-initials="SW"></span>')}${profilePopover("top-profile")}</div></div></header>`,
+        `<main id="main" tabindex="-1"><div data-layout="content"><p>page</p></div></main></div>`,
+        `<nav aria-label="${text.navigation}">${itemList}</nav></div>`,
+      ].join(""),
     );
-    for (const part of [
-      `<a href="/" data-discover="true">${withoutClasses(renderInRouterForTest(<AppIcon />))}Portolab</a>`,
-      `<nav aria-label="${text.navigation}"><ul><li><a aria-current="page" href="/classes/7/portfolio" data-discover="true">Portofolio</a></li><li><a href="/prices" data-discover="true">Harga</a></li></ul></nav>`,
-      `<div><span>tools</span></div><p>${text.simulation}</p><p>${text.delay}</p>`,
-      "<main><p>page</p></main>",
-    ]) {
-      expect(html).toContain(part);
-    }
   });
 
   test(`opens a page with its path, its heading, and the time of its prices, or without a time for a page without prices, in ${language}`, () => {
@@ -113,49 +150,18 @@ for (const locale of locales) {
   });
 }
 
-test("shows the link back to the page above in place of the mark on a phone, under a name that says that it leads back", () => {
-  const html = renderInRouterForTest(
-    <Frame
-      navigation={links}
-      backLink={{
-        path: "/classes/7/portfolio",
-        label: "Portofolio",
-        name: "Kembali ke Portofolio",
-      }}
-      tools={undefined}
-      delayNotice={undefined}
-      showsDelayOnPhone
-    >
-      <p>page</p>
-    </Frame>,
+test("shows the app icon with the name of Portolab where no part starts the top bar, and leaves out the tab bar without items and the profile without a person", () => {
+  const html = frameForTest({
+    frameItems: [],
+    start: undefined,
+    frameProfile: undefined,
+  });
+  expect(html).toContain(
+    `<header><div data-layout="content"><a href="/" data-discover="true">${withoutClasses(renderInRouterForTest(<AppIcon />))}Portolab</a><div><span>tools</span><span>badge</span></div></div></header>`,
   );
-  expect(html).toMatch(/<a class="[^"]*_markBesideBack_[^"]*" href="\/"/);
-  expect(withoutClasses(html)).toContain(
-    '<a aria-label="Kembali ke Portofolio" href="/classes/7/portfolio" data-discover="true"><span aria-hidden="true">←</span>Portofolio</a>',
-  );
-});
-
-test("leaves the delay out of a phone on a page whose first part gives it, and out of every screen without the data of the root", () => {
-  const frame = (
-    delayNotice: string | undefined,
-    showsDelayOnPhone: boolean,
-  ): string =>
-    renderInRouterForTest(
-      <Frame
-        navigation={links}
-        backLink={undefined}
-        tools={undefined}
-        delayNotice={delayNotice}
-        showsDelayOnPhone={showsDelayOnPhone}
-      >
-        <p>page</p>
-      </Frame>,
-    );
-  expect(frame("The delay.", false)).toMatch(
-    /<p class="[^"]*_delayOnDesktop_[^"]*">The delay.<\/p>/,
-  );
-  expect(frame("The delay.", true)).not.toContain("_delayOnDesktop_");
-  expect(frame(undefined, true)).not.toContain("_delay_");
+  expect(html).not.toContain("popoverTarget");
+  expect(html).not.toContain("<ul>");
+  expect(html).toMatch(/<\/main><\/div><\/div>$/);
 });
 
 test("places the right column under the header line or leaves it to a wide screen, with the main column after the header line", () => {

@@ -1,0 +1,89 @@
+/* The switcher names the class of the workspace as the references draw it: on a phone, the term above the name, and on a desktop, at the width at which app/frame.module.css shows the rail, the term beside the name. A long name ends in an ellipsis. */
+.button {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  min-height: var(--size-touch-target);
+  margin-inline-start: calc(-1 * var(--space-2));
+  padding: var(--space-1) var(--space-2);
+  border: 0;
+  border-radius: var(--radius-item);
+  background: none;
+  color: var(--color-ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.current {
+  display: flex;
+  flex-direction: column-reverse;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.name,
+.term {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.name {
+  font-size: var(--text-mark);
+  font-weight: 600;
+}
+
+.term {
+  color: var(--color-muted);
+  font-size: var(--text-small);
+}
+
+.chevron {
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  color: var(--color-ink-secondary);
+}
+
+@media (width >= 60rem) {
+  .current {
+    flex-direction: row;
+    align-items: baseline;
+    gap: var(--space-2);
+  }
+
+  /* A long name gives way to the term beside it, which stays whole. */
+  .term {
+    flex: none;
+    font-size: var(--text-caption);
+  }
+}
+
+.classes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.classText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.details {
+  color: var(--color-muted);
+  font-size: var(--text-small);
+}
+
+.check {
+  flex: none;
+  width: 1.125rem;
+  height: 1.125rem;
+  color: var(--color-data);
+}

@@ -7,6 +7,7 @@ import {
   formatCorrelation,
   formatMarketTime,
   formatMarketTimeParts,
+  formatMinutes,
   formatPercent,
   formatSignedPercent,
   formatSignedRupiah,
@@ -50,7 +51,21 @@ for (const locale of locales) {
     switchLocaleForTest(locale);
     expect(formatBytes(bytes(128_040))).toBe(sizes[locale]);
   });
+
+  test(`formats minutes short for a badge and long for a sentence, in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    expect([
+      formatMinutes(10, "short"),
+      formatMinutes(10, "long"),
+      formatMinutes(1, "long"),
+    ]).toEqual(minutes[locale]);
+  });
 }
+
+const minutes: Record<Locale, readonly string[]> = {
+  id: ["10 mnt", "10 menit", "1 menit"],
+  en: ["10 min", "10 minutes", "1 minute"],
+};
 
 const signedAmounts: Record<
   Locale,

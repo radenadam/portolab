@@ -16,7 +16,7 @@ import { latestQuoteTime } from "./latest-quote-time";
 import type { PriceSourceDescription, Quote } from "./price-source.server";
 import styles from "./prices-view.module.css";
 import { quoteChange } from "./quote-change";
-import { nextAttemptSentence, quoteFailureText } from "./quote-failure-text";
+import { noPricesText, quoteFailureText } from "./quote-failure-text";
 import type { UpdateAttempt } from "./update-attempts.server";
 
 interface PricesViewProps {
@@ -44,14 +44,10 @@ export function PricesView({
       <h1>{m.market_data_page_title()}</h1>
       {latestQuotedAt === undefined ? (
         <p>
-          {latestAttempt?.succeeded === false
-            ? [
-                m.market_data_empty_failed_body({
-                  time: formatMarketTime(latestAttempt.attemptedAt),
-                }),
-                nextAttemptSentence(latestAttempt, now, source.delayMinutes),
-              ].join(" ")
-            : m.market_data_empty_body()}
+          {noPricesText(latestAttempt, {
+            now,
+            delayMinutes: source.delayMinutes,
+          })}
         </p>
       ) : (
         <>

@@ -9,10 +9,10 @@ import {
   findClassStudent,
   findJoinedClass,
   findTaughtClass,
+  isReaderClass,
   joinClass,
-  listJoinedClasses,
+  listReaderClasses,
   listStudents,
-  listTaughtClasses,
   setFirstSessionDate,
 } from "./class-store.server";
 import {
@@ -91,9 +91,12 @@ test("adds a student to a class once, however often the student joins", async ()
       joinedAt: now,
     },
   ]);
-  expect(listTaughtClasses(database, lecturerId)).toMatchObject([
-    { id: classId, studentCount: 1 },
-  ]);
+  expect(
+    listReaderClasses(database, { id: lecturerId, role: "lecturer" }),
+  ).toMatchObject({
+    role: "lecturer",
+    classes: [{ id: classId, studentCount: 1 }],
+  });
 });
 
 test("lists the classes of a lecturer with their students, and the classes of a student, in the order they began", async () => {
@@ -118,19 +121,71 @@ test("lists the classes of a lecturer with their students, and the classes of a 
   joinClass(database, { classId: second, studentId: firstStudent }, now);
   joinClass(database, { classId: first, studentId: firstStudent }, later);
   joinClass(database, { classId: first, studentId: secondStudent }, later);
+  const taught = listReaderClasses(database, {
+    id: lecturerId,
+    role: "lecturer",
+  });
+  if (taught.role !== "lecturer") {
+    throw new Error("The classes of a lecturer came as those of a student.");
+  }
   expect(
-    listTaughtClasses(database, lecturerId).map(({ name, studentCount }) => ({
+    taught.classes.map(({ name, studentCount, firstSessionDate }) => ({
       name,
       studentCount,
+      firstSessionDate,
     })),
   ).toEqual([
-    { name: "Manajemen Portofolio A", studentCount: 2 },
-    { name: "Manajemen Portofolio B", studentCount: 1 },
+    {
+      name: "Manajemen Portofolio A",
+      studentCount: 2,
+      firstSessionDate: "2026-09-07",
+    },
+    {
+      name: "Manajemen Portofolio B",
+      studentCount: 1,
+      firstSessionDate: "2026-09-07",
+    },
   ]);
+  const joined = listReaderClasses(database, {
+    id: firstStudent,
+    role: "student",
+  });
+  expect(joined.role).toBe("student");
+  expect(joined.classes.map(({ name }) => name)).toEqual([
+    "Manajemen Portofolio B",
+    "Manajemen Portofolio A",
+  ]);
+  // A role decides where an id counts, so the id of a student teaches no class.
   expect(
-    listJoinedClasses(database, firstStudent).map(({ name }) => name),
-  ).toEqual(["Manajemen Portofolio B", "Manajemen Portofolio A"]);
-  expect(listTaughtClasses(database, firstStudent)).toEqual([]);
+    listReaderClasses(database, { id: firstStudent, role: "lecturer" }).classes,
+  ).toEqual([]);
+});
+
+test("finds that a lecturer teaches a class and a student joined it, and that no one else belongs to it", async () => {
+  const database = openDatabaseForTest();
+  const { lecturerId, classId } =
+    await createLecturerWithClassForTest(database);
+  const studentId = await createTestStudent(database, "sari", "Sari Wulandari");
+  const otherStudentId = await createTestStudent(database, "eko", "Eko");
+  const otherLecturerId = await createReadyTestLecturer(
+    database,
+    "dosen2",
+    "Rina Hartono",
+  );
+  joinClass(database, { classId, studentId }, now);
+  for (const [reader, belongs] of [
+    [{ id: lecturerId, role: "lecturer" }, true],
+    [{ id: studentId, role: "student" }, true],
+    [{ id: otherLecturerId, role: "lecturer" }, false],
+    [{ id: otherStudentId, role: "student" }, false],
+    // A student and a lecturer have ids of one table, so the role decides where the id counts.
+    [{ id: studentId, role: "lecturer" }, false],
+  ] as const) {
+    expect(
+      isReaderClass(database, reader, classId),
+      JSON.stringify(reader),
+    ).toBe(belongs);
+  }
 });
 
 test("keeps the date of session 1 that a class was created with, and changes it for that class alone", async () => {

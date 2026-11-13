@@ -1,3 +1,4 @@
+import { useId } from "react";
 import type { ReactNode } from "react";
 import { Form, useLocation } from "react-router";
 import { m } from "~/paraglide/messages.js";
@@ -5,9 +6,11 @@ import { languageNames } from "~/language-names";
 import { getLocale, locales } from "~/paraglide/runtime.js";
 import styles from "./language-switch.module.css";
 
+/** The switch of the language, which sends the chosen language and returns to the same page, also before JavaScript loads. A page can hold it more than once, such as in the menu of the profile and on the page of the language. */
 export function LanguageSwitch(): ReactNode {
   const location = useLocation();
   const currentLocale = getLocale();
+  const labelId = useId();
   return (
     <Form
       method="post"
@@ -20,12 +23,10 @@ export function LanguageSwitch(): ReactNode {
         name="returnTo"
         value={location.pathname + location.search}
       />
-      <span id="language-switch-label">{m.language_switch_label()}</span>
-      <div
-        role="group"
-        aria-labelledby="language-switch-label"
-        className={styles["options"]}
-      >
+      <span id={labelId} className={styles["label"]}>
+        {m.language_switch_label()}
+      </span>
+      <div role="group" aria-labelledby={labelId} className={styles["options"]}>
         {locales.map((locale) => (
           <button
             key={locale}

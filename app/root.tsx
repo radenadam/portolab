@@ -7,32 +7,31 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
-  useLocation,
   useMatches,
   useRouteLoaderData,
 } from "react-router";
 import type { Route } from "./+types/root";
 import { tabIconAddress } from "./app-icon";
-import { databaseContext } from "./database/database.server";
 import { RouteErrorPage } from "./error-page";
-import { AccountLink } from "./features/accounts/account-link";
-import type { Role } from "./features/accounts/accounts.schema";
+import { sessionMiddleware } from "./features/accounts/current-session.server";
 import { crossSiteProtection } from "./features/accounts/cross-site-protection.server";
-import {
-  sessionMiddleware,
-  signedInRole,
-} from "./features/accounts/current-session.server";
+import { ProfileMenu } from "./features/accounts/profile-menu";
 import {
   isRefusedForm,
   RefusedFormPage,
 } from "./features/accounts/refused-form";
-import { LanguageSwitch } from "./features/language/language-switch";
-import { latestQuoteTime } from "./features/market-data/latest-quote-time";
-import { readPriceSourceDescription } from "./features/market-data/price-source-context.server";
-import { listLatestQuotes } from "./features/market-data/quote-store.server";
-import { frameNavigation } from "./features/navigation/frame-navigation";
+import { lastClassMiddleware } from "./features/classes/last-class.server";
+import { LanguageMenu } from "./features/language/language-menu";
+import { SimulationBadge } from "./features/market-data/simulation-badge";
+import { readSimulationBadge } from "./features/market-data/read-simulation-badge.server";
+import type { SimulationBadgeData } from "./features/market-data/read-simulation-badge.server";
+import { ClassSwitcher } from "./features/navigation/class-switcher";
+import { frameItems } from "./features/navigation/frame-navigation";
+import type { FrameReader } from "./features/navigation/frame-reader";
+import { readFrameReader } from "./features/navigation/frame-reader.server";
 import { formSizeLimit } from "./form-size-limit.server";
-import { delayNoticeText, Frame } from "./frame";
+import { Frame } from "./frame";
+import type { FrameProfile } from "./frame";
 import { getLocale } from "./paraglide/runtime.js";
 import { paraglideMiddleware } from "./paraglide/server.js";
 import "./theme.css";
@@ -51,37 +50,33 @@ export const middleware: Route.MiddlewareFunction[] = [
   crossSiteProtection,
   formSizeLimit,
   sessionMiddleware,
+  lastClassMiddleware,
 ];
 
 export function links(): Route.LinkDescriptors {
   return [{ rel: "icon", type: "image/svg+xml", href: tabIconAddress }];
 }
 
-export function loader({ context }: Route.LoaderArgs): {
-  role: Role | undefined;
-  delayMinutes: number;
-  latestQuotedAt: Date | undefined;
-} {
+export async function loader({
+  context,
+  request,
+  params,
+}: Route.LoaderArgs): Promise<{
+  reader: FrameReader;
+  simulation: SimulationBadgeData;
+}> {
   return {
-    role: signedInRole(context),
-    delayMinutes: readPriceSourceDescription(context).delayMinutes,
-    latestQuotedAt: latestQuoteTime(
-      listLatestQuotes(context.get(databaseContext)),
-    ),
+    reader: await readFrameReader(context, request, params),
+    simulation: readSimulationBadge(context, new Date()),
   };
 }
 
-// Every page and the error page share this frame, so the navigation, the mark of a simulation, and the delay of prices are on every screen, and no page draws its own main landmark.
+// Every page and the error page share this frame, so the navigation and the badge of the simulation are on every screen, and no page draws its own main landmark.
 export function Layout({ children }: { children: ReactNode }): ReactNode {
-  // An error page has no data of the root when the error came before its loader, so the frame then leaves out the link to the account and the delay.
+  // An error page has no data of the root when the error came before its loader, so the frame then leaves out the navigation, the profile, and the card of the badge.
   const rootData = useRouteLoaderData<typeof loader>("root");
   const page = useMatches().at(-1);
-  const role = rootData?.role;
-  const navigation = frameNavigation(role, {
-    routeId: page?.id,
-    params: page?.params ?? {},
-    search: new URLSearchParams(useLocation().search),
-  });
+  const reader = rootData?.reader;
   return (
     <html lang={getLocale()}>
       <head>
@@ -92,20 +87,12 @@ export function Layout({ children }: { children: ReactNode }): ReactNode {
       </head>
       <body>
         <Frame
-          navigation={navigation.links}
-          backLink={navigation.backLink}
-          tools={
-            <>
-              {role !== undefined && <AccountLink />}
-              <LanguageSwitch />
-            </>
-          }
-          delayNotice={
-            rootData === undefined
-              ? undefined
-              : delayNoticeText(rootData.delayMinutes, rootData.latestQuotedAt)
-          }
-          showsDelayOnPhone={navigation.showsDelayOnPhone}
+          items={frameItems(reader, {
+            routeId: page?.id,
+            params: page?.params ?? {},
+          })}
+          {...readerParts(reader)}
+          badge={<SimulationBadge badge={rootData?.simulation} />}
         >
           {children}
         </Frame>
@@ -114,6 +101,28 @@ export function Layout({ children }: { children: ReactNode }): ReactNode {
       </body>
     </html>
   );
+}
+
+/** The parts of the frame that depend on who reads the page: the switcher of the class of the workspace, the profile of a person who is signed in, and the language of everyone else, who has no menu of a profile to hold it. */
+function readerParts(reader: FrameReader | undefined): {
+  start: ReactNode;
+  profile: FrameProfile | undefined;
+  tools: ReactNode;
+} {
+  if (reader?.kind !== "user") {
+    return { start: undefined, profile: undefined, tools: <LanguageMenu /> };
+  }
+  return {
+    start:
+      reader.workspace === undefined ? undefined : (
+        <ClassSwitcher readerRole={reader.role} workspace={reader.workspace} />
+      ),
+    profile: {
+      name: reader.name,
+      menu: <ProfileMenu name={reader.name} readerRole={reader.role} />,
+    },
+    tools: undefined,
+  };
 }
 
 export default function Root(): ReactNode {

@@ -47,7 +47,7 @@ const texts: Record<
     title: string;
     heading: string;
     navigation: string;
-    pricesTab: string;
+    marketTab: string;
     fillNotice: string;
     headings: readonly string[];
     ticketTitle: string;
@@ -114,7 +114,7 @@ const texts: Record<
     title: `Order di ${className}`,
     heading: "Order Anda",
     navigation: "Navigasi utama",
-    pricesTab: "Harga",
+    marketTab: "Pasar",
     fillNotice:
       "Portolab mengeksekusi order pada harga tertunda dari Yahoo Finance, sekitar 10 menit di belakang BEI, yang tercatat pada sesi I atau sesi II hari bursa order tersebut. Karena itu, harga eksekusi dapat berbeda dari harga di bursa pada saat yang sama.",
     headings: [
@@ -252,7 +252,7 @@ const texts: Record<
     title: `Orders in ${className}`,
     heading: "Your orders",
     navigation: "Main navigation",
-    pricesTab: "Prices",
+    marketTab: "Market",
     fillNotice:
       "Portolab fills an order at a delayed price from Yahoo Finance, about 10 minutes behind IDX, that was quoted in session I or session II of the trading day of the order. So a fill can differ from the price on the exchange at the same moment.",
     headings: [
@@ -516,8 +516,8 @@ for (const locale of locales) {
       name: text.navigation,
     });
     await expect(
-      navigation.getByRole("link", { name: text.pricesTab }),
-    ).toHaveAttribute("href", "/prices");
+      navigation.getByRole("link", { name: text.marketTab }),
+    ).toHaveAttribute("href", `${classPath}/market`);
     await expect(student.locator("main dl")).toHaveText(
       text.startingCash.join(""),
     );

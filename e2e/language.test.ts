@@ -10,21 +10,21 @@ const texts: Record<
   Locale,
   {
     pageTitle: string;
-    pageBody: string;
+    switchLabel: string;
     rejectedTitle: string;
     unknownLanguageError: string;
   }
 > = {
   id: {
     pageTitle: "Pilih bahasa",
-    pageBody: "Pilih bahasa dengan pengalih di bagian atas halaman.",
+    switchLabel: "Bahasa",
     rejectedTitle: "Bahasa tidak dapat diganti",
     unknownLanguageError:
       'Formulir mengirim "fr" di kolom "Bahasa", tetapi Portolab hanya tersedia dalam Bahasa Indonesia dan English. Pilih salah satunya di pengalih bahasa.',
   },
   en: {
     pageTitle: "Choose a language",
-    pageBody: "Choose a language with the switch at the top of the page.",
+    switchLabel: "Language",
     rejectedTitle: "The language could not be changed",
     unknownLanguageError:
       'The form sent "fr" in the field "Language", but Portolab is only available in Bahasa Indonesia and English. Choose one of them in the language switch.',
@@ -36,7 +36,9 @@ async function sendUnknownLanguage(
   page: Page,
   buttonName: string,
 ): Promise<void> {
-  const button = page.getByRole("button", { name: buttonName });
+  const button = page
+    .getByRole("main")
+    .getByRole("button", { name: buttonName });
   await button.evaluate((element) => {
     element.setAttribute("value", "fr");
   });
@@ -72,6 +74,7 @@ for (const locale of locales) {
     await expect(page.getByText(text.unknownLanguageError)).toBeVisible();
     await expectAccessibleScreen(page);
     await page
+      .getByRole("main")
       .getByRole("button", { name: languageNames[otherLocale] })
       .click();
     await expect(page.locator("html")).toHaveAttribute("lang", otherLocale);
@@ -86,9 +89,15 @@ for (const locale of locales) {
     await expect(
       page.getByRole("heading", { level: 1, name: text.pageTitle }),
     ).toBeVisible();
-    await expect(page.getByText(text.pageBody)).toBeVisible();
+    const languageSwitch = page
+      .getByRole("main")
+      .getByRole("group", { name: text.switchLabel });
+    await expect(languageSwitch.getByRole("button")).toHaveText([
+      "Bahasa Indonesia",
+      "English",
+    ]);
     await expectAccessibleScreen(page);
-    await page
+    await languageSwitch
       .getByRole("button", { name: languageNames[otherLocale] })
       .click();
     await expect(page).toHaveTitle(

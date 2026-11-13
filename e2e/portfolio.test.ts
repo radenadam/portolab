@@ -6,6 +6,7 @@ import type { Locale } from "../app/paraglide/runtime.js";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 import { expectMissingClassPages } from "./expect-missing-class-pages.ts";
 import { expectPageHeadings } from "./expect-page-headings.ts";
+import { isPhone } from "./frame.ts";
 import { itmgPortfolio } from "./itmg-portfolio.ts";
 import { joinNewClass } from "./join-new-class.ts";
 import { storeTestPurchases } from "./store-test-purchases.ts";
@@ -22,8 +23,8 @@ const texts: Record<
     title: string;
     heading: string;
     navigation: string;
-    portfolioTab: string;
-    ordersTab: string;
+    homeTab: string;
+    activityTab: string;
     simulation: string;
     valuationNotice: string;
     // The second heading names the chart of the returns.
@@ -59,8 +60,8 @@ const texts: Record<
     title: `Portofolio di ${className}`,
     heading: "Portofolio Anda",
     navigation: "Navigasi utama",
-    portfolioTab: "Portofolio",
-    ordersTab: "Order",
+    homeTab: "Beranda",
+    activityTab: "Aktivitas",
     simulation: "Simulasi",
     valuationNotice:
       "Portofolio Anda adalah simulasi dengan uang virtual. Portolab menilai setiap saham yang Anda pegang pada harga tertunda terakhir dari Yahoo Finance, sekitar 10 menit di belakang BEI, sehingga nilainya dapat berbeda dari nilai di bursa pada saat yang sama.",
@@ -151,8 +152,8 @@ const texts: Record<
     title: `Portfolio in ${className}`,
     heading: "Your portfolio",
     navigation: "Main navigation",
-    portfolioTab: "Portfolio",
-    ordersTab: "Orders",
+    homeTab: "Home",
+    activityTab: "Activity",
     simulation: "Simulation",
     valuationNotice:
       "Your portfolio is a simulation with virtual cash. Portolab values each holding at the latest delayed price from Yahoo Finance, about 10 minutes behind IDX, so a value can differ from the value on the exchange at the same moment.",
@@ -302,11 +303,6 @@ function orderTicket(student: Page, locale: Locale): Locator {
     });
 }
 
-// A phone shows the holdings as a list of rows and the order ticket on the page of the orders, and a desktop shows a table and the ticket beside the portfolio, as decision 0026 sets.
-function isPhone(): boolean {
-  return test.info().project.name === "phone";
-}
-
 for (const locale of locales) {
   const text = texts[locale];
   const language = languageNames[locale];
@@ -338,8 +334,8 @@ for (const locale of locales) {
       main.getByRole("link", { name: text.measuresLink }),
     ).toHaveAttribute("href", `${classPath}/measures`);
     await expect(
-      student.getByText(text.simulation, { exact: true }),
-    ).toBeVisible();
+      student.locator('button[popovertarget="simulation-card"]'),
+    ).toContainText(text.simulation);
     await expect(orderTicket(student, locale)).toBeVisible({
       visible: !isPhone(),
     });
@@ -349,11 +345,11 @@ for (const locale of locales) {
       name: text.navigation,
     });
     await expect(
-      navigation.getByRole("link", { name: text.portfolioTab }),
+      navigation.getByRole("link", { name: text.homeTab }),
     ).toHaveAttribute("aria-current", "page");
-    await navigation.getByRole("link", { name: text.ordersTab }).click();
+    await navigation.getByRole("link", { name: text.activityTab }).click();
     await expect(student).toHaveURL(`${classPath}/orders`);
-    await navigation.getByRole("link", { name: text.portfolioTab }).click();
+    await navigation.getByRole("link", { name: text.homeTab }).click();
     await expect(student).toHaveURL(`${classPath}/portfolio`);
     await student.context().close();
   });

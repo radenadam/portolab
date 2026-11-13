@@ -73,8 +73,9 @@ for (const locale of locales) {
       page.getByRole("heading", { level: 1, name: text.title }),
     ).toBeVisible();
     await expect(page.getByText(text.delayNotice)).toBeVisible();
+    // The card of the badge of the simulation names the same prices, so the test reads the notice of the page.
     await expectTexts(
-      page.getByText(text.failureNotice[0]),
+      page.getByRole("main").getByText(text.failureNotice[0]),
       text.failureNotice,
     );
     for (const column of text.columns) {
