@@ -6,8 +6,10 @@ import { fail, succeed } from "~/result";
 import type { ClassId } from "~/features/classes/classes.schema";
 import type { PortfolioReader } from "~/features/trading/text-for-reader";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
+import { beta } from "~/units/beta";
 import {
   measureFailureText,
+  riskMeasureFailureText,
   shortMeasureFailureText,
 } from "./measure-failure-text";
 import type { StoredMeasureFailure } from "./measure-stored.server";
@@ -240,5 +242,44 @@ for (const locale of locales) {
     expect(shortMeasureFailureText(failures.noRiskFreeRate)).toBe(
       text.shortNoRiskFreeRate,
     );
+  });
+}
+
+const riskTexts: Record<
+  Locale,
+  { noVariation: string; betaOfZero: string; betaBelowZero: string }
+> = {
+  id: {
+    noVariation:
+      "Imbal hasil portofolio sama di setiap bulan, sehingga varians dan simpangan bakunya nol, dan ukuran yang membagi dengan keduanya tidak memiliki nilai. Portolab menghitung ukuran seperti itu setelah suatu order tereksekusi atau pembaruan riwayat harga memberi portofolio imbal hasil yang berbeda dari bulan ke bulan.",
+    betaOfZero:
+      "Rasio Treynor membagi imbal hasil di atas suku bunga bebas risiko dengan beta, sehingga memerlukan beta di atas nol, tetapi beta portofolio ini 0,00. Beta nol membuat pembagian itu tidak terdefinisi, dan beta di bawah nol akan membuat imbal hasil di bawah suku bunga bebas risiko tampak sebagai imbalan atas risiko. Portolab menghitung rasio ini setelah suatu order tereksekusi atau pembaruan riwayat harga memberi portofolio beta di atas nol.",
+    betaBelowZero:
+      "Rasio Treynor membagi imbal hasil di atas suku bunga bebas risiko dengan beta, sehingga memerlukan beta di atas nol, tetapi beta portofolio ini -0,12. Beta nol membuat pembagian itu tidak terdefinisi, dan beta di bawah nol akan membuat imbal hasil di bawah suku bunga bebas risiko tampak sebagai imbalan atas risiko. Portolab menghitung rasio ini setelah suatu order tereksekusi atau pembaruan riwayat harga memberi portofolio beta di atas nol.",
+  },
+  en: {
+    noVariation:
+      "The returns of the portfolio are the same in every month, so its variance and its standard deviation are zero, and a measure that divides by them has no value. Portolab computes such a measure once an order fills or an update of the price history gives the portfolio returns that differ from month to month.",
+    betaOfZero:
+      "The Treynor ratio divides the return above the risk-free rate by beta, so it needs a beta above zero, but the beta of the portfolio is 0.00. A beta of zero leaves the division undefined, and a beta below zero would turn a return below the risk-free rate into a reward for risk. Portolab computes the ratio once an order fills or an update of the price history gives the portfolio a beta above zero.",
+    betaBelowZero:
+      "The Treynor ratio divides the return above the risk-free rate by beta, so it needs a beta above zero, but the beta of the portfolio is -0.12. A beta of zero leaves the division undefined, and a beta below zero would turn a return below the risk-free rate into a reward for risk. Portolab computes the ratio once an order fills or an update of the price history gives the portfolio a beta above zero.",
+  },
+};
+
+for (const locale of locales) {
+  test(`explains why a portfolio lacks a measure that divides by its risk: returns without variation, a beta of zero, and a beta below zero, in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    const text = riskTexts[locale];
+    expect(riskMeasureFailureText({ kind: "noPortfolioVariation" })).toBe(
+      text.noVariation,
+    );
+    // Cash alone has a beta of zero, and a portfolio of a stock that rises when the IHSG falls has a beta below zero.
+    expect(
+      riskMeasureFailureText({ kind: "betaNotPositive", beta: beta(0) }),
+    ).toBe(text.betaOfZero);
+    expect(
+      riskMeasureFailureText({ kind: "betaNotPositive", beta: beta(-0.1234) }),
+    ).toBe(text.betaBelowZero);
   });
 }

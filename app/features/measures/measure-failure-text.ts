@@ -1,13 +1,20 @@
 import { marketIndex } from "~/features/market-data/tracked-instruments";
 import { textForReader } from "~/features/trading/text-for-reader";
 import type { PortfolioReader } from "~/features/trading/text-for-reader";
-import { formatCalendarDate, formatMonth, formatNumber } from "~/formatting";
+import {
+  formatBeta,
+  formatCalendarDate,
+  formatMonth,
+  formatNumber,
+} from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import type { Result } from "~/result";
 import { defaultEstimationSettings } from "./estimation-settings";
 import { instrumentName } from "./instrument-name";
+import type { NoPortfolioVariation } from "./measure-portfolio";
 import type { StoredMeasureFailure } from "./measure-stored.server";
 import { monthlyReturnCount } from "./monthly-return-count";
+import type { BetaNotPositive } from "./performance-ratios";
 
 /** What a set of measures belongs to: one stock, which a student reads, a portfolio, which its owner or the lecturer of the class reads, or the IHSG alone, whose measures give the security market line that a student reads. */
 export type MeasuredSubject =
@@ -34,6 +41,20 @@ export function measureFailureText(
       });
     case "noRiskFreeRate":
       return noRiskFreeRateText(formatCalendarDate(failure.date), subject);
+  }
+}
+
+/** Why a portfolio with measures lacks one that divides by its risk: the Sharpe ratio, the share of its variance and the correlation with it of each stock, or the Treynor ratio, with the rule behind it and when Portolab computes it. */
+export function riskMeasureFailureText(
+  failure: NoPortfolioVariation | BetaNotPositive,
+): string {
+  switch (failure.kind) {
+    case "noPortfolioVariation":
+      return m.measures_no_portfolio_variation_notice();
+    case "betaNotPositive":
+      return m.measures_treynor_beta_not_positive_notice({
+        beta: formatBeta(failure.beta),
+      });
   }
 }
 

@@ -13,7 +13,7 @@ import { m } from "~/paraglide/messages.js";
 import { portfolioWeight } from "~/units/portfolio-weight";
 import type { PortfolioWeight } from "~/units/portfolio-weight";
 import type { Rupiah } from "~/units/rupiah";
-import type { PortfolioSummary } from "./measure-summaries";
+import type { HoldingRiskSummary, PortfolioSummary } from "./measure-summaries";
 import { MeasureTable, StockLink } from "./measure-table";
 import type { MeasureTableRow } from "./measure-table";
 
@@ -132,6 +132,38 @@ export function PairTable({
           values: [
             formatVariance(pair.covariance),
             formatCorrelation(pair.correlation),
+          ],
+        },
+      }))}
+    />
+  );
+}
+
+/** The weight of each stock of a portfolio, its covariance with the portfolio, the share of the variance of the portfolio that it adds, and its correlation with the portfolio. */
+export function RiskTable({
+  risks,
+}: {
+  risks: readonly HoldingRiskSummary[];
+}): ReactNode {
+  return (
+    <MeasureTable
+      header={[
+        m.measures_stock_label(),
+        m.measures_weight_label(),
+        m.measures_covariance_with_portfolio_label(),
+        m.measures_variance_share_label(),
+        m.measures_correlation_with_portfolio_label(),
+      ]}
+      rows={risks.map((risk) => ({
+        key: risk.code,
+        name: risk.code,
+        cells: {
+          kind: "numbers",
+          values: [
+            formatPercent(risk.weight, "two"),
+            formatVariance(risk.covarianceWithPortfolio),
+            formatPercent(risk.varianceShare, "two"),
+            formatCorrelation(risk.correlationWithPortfolio),
           ],
         },
       }))}

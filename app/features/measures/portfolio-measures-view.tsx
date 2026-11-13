@@ -7,6 +7,7 @@ import {
   formatBeta,
   formatNumber,
   formatPercent,
+  formatSharpeRatio,
   formatVariance,
 } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
@@ -15,22 +16,32 @@ import {
   BetaFormula,
   CorrelationFormula,
   CovarianceFormula,
+  CovarianceWithPortfolioFormula,
   MeanFormula,
   PortfolioVarianceFormula,
   StandardDeviationFormula,
+  VarianceShareFormula,
   WeightedSumFormula,
 } from "./formulas";
 import { MarketSection } from "./market-section";
+import { riskMeasureFailureText } from "./measure-failure-text";
 import {
   capmRows,
   MarketLinePosition,
   MeasureList,
   MonthsNotice,
 } from "./measure-list";
+import type { MeasureRow } from "./measure-list";
 import type { PortfolioSummary } from "./measure-summaries";
 import styles from "./measures.module.css";
-import { HoldingTable, PairTable, WeightTable } from "./portfolio-tables";
+import {
+  HoldingTable,
+  PairTable,
+  RiskTable,
+  WeightTable,
+} from "./portfolio-tables";
 import type { PortfolioMeasuresReport } from "./read-measures.server";
+import { SharpeRatioFormula, TreynorRatioFormula } from "./ratio-formulas";
 import { ReturnTables } from "./return-tables";
 
 interface PortfolioMeasuresProps {
@@ -110,6 +121,7 @@ function MeasuredPortfolio({
             value: formatBeta(portfolio.beta),
             formula: <WeightedSumFormula measure="beta" />,
           },
+          ...ratioRows(portfolio),
           ...capmRows("p", portfolio),
         ]}
       />
@@ -164,6 +176,29 @@ function MeasuredPortfolio({
       <p className={styles["details"]}>
         <CorrelationFormula first="i" second="j" correlation={undefined} />
       </p>
+      <h2>
+        {textForReader(reader, {
+          owner: () => m.measures_risks_title(),
+          lecturer: () => m.measures_lecturer_risks_title(),
+        })}
+      </h2>
+      {portfolio.holdingRisks.ok ? (
+        <>
+          <p>{m.measures_risks_notice()}</p>
+          <RiskTable risks={portfolio.holdingRisks.value} />
+          <p className={styles["details"]}>
+            <CovarianceWithPortfolioFormula />
+          </p>
+          <p className={styles["details"]}>
+            <VarianceShareFormula />
+          </p>
+          <p className={styles["details"]}>
+            <CorrelationFormula first="i" second="p" correlation={undefined} />
+          </p>
+        </>
+      ) : (
+        <p>{riskMeasureFailureText(portfolio.holdingRisks.failure)}</p>
+      )}
       <MarketSection market={portfolio.market} />
       <ReturnTables
         instruments={[
@@ -173,4 +208,54 @@ function MeasuredPortfolio({
       />
     </>
   );
+}
+
+/** The rows of the Sharpe ratio and the Treynor ratio of a portfolio, each with its formula and its inputs, and for a ratio that the portfolio does not have, the reason in place of its value. */
+function ratioRows(portfolio: PortfolioSummary): MeasureRow[] {
+  const excessReturn = {
+    expectedReturn: portfolio.expectedReturn,
+    riskFreeRate: portfolio.market.riskFreeRate.value,
+  };
+  const { sharpeRatio, treynorRatio } = portfolio;
+  return [
+    {
+      label: m.measures_sharpe_ratio_label(),
+      value: sharpeRatio.ok
+        ? formatSharpeRatio(sharpeRatio.value)
+        : m.measures_no_value_label(),
+      formula: (
+        <>
+          <SharpeRatioFormula
+            inputs={{
+              ...excessReturn,
+              standardDeviation: portfolio.standardDeviation,
+            }}
+          />
+          {!sharpeRatio.ok && (
+            <span className={styles["formulaNote"]}>
+              {riskMeasureFailureText(sharpeRatio.failure)}
+            </span>
+          )}
+        </>
+      ),
+    },
+    {
+      label: m.measures_treynor_ratio_label(),
+      value: treynorRatio.ok
+        ? formatPercent(treynorRatio.value, "two")
+        : m.measures_no_value_label(),
+      formula: (
+        <>
+          <TreynorRatioFormula
+            inputs={{ ...excessReturn, beta: portfolio.beta }}
+          />
+          {!treynorRatio.ok && (
+            <span className={styles["formulaNote"]}>
+              {riskMeasureFailureText(treynorRatio.failure)}
+            </span>
+          )}
+        </>
+      ),
+    },
+  ];
 }

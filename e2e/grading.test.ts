@@ -7,6 +7,7 @@ import type { Locale } from "../app/paraglide/runtime.js";
 import { readZipForTest } from "../app/workbook/read-zip-for-test.server.ts";
 import { joinAsNewStudent, signInAsNewLecturer } from "./accounts.ts";
 import { bbcaHolding } from "./bbca-holding.ts";
+import { bbcaPortfolioMeasures } from "./bbca-portfolio-measures.ts";
 import { chooseLanguage } from "./choose-language.ts";
 import { createTestClass } from "./create-test-class.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
@@ -78,14 +79,14 @@ const texts: Record<
       "Spreadsheet ini adalah workbook Excel yang memuat nilai dan ukuran di halaman ini, dengan urutan yang sama. Excel, Google Sheets, dan LibreOffice dapat membukanya, dan masing-masing menulis angkanya dalam format bahasanya sendiri.",
     rankedTitle: "Portofolio yang memiliki ukuran",
     rankedNotice:
-      "Portolab mengurutkan portofolio ini menurut jarak imbal hasil yang diharapkannya dari garis pasar sekuritas, dari yang tertinggi sampai yang terendah. Jarak itu membandingkan imbal hasil yang diharapkan dengan imbal hasil yang disyaratkan CAPM untuk beta portofolio, sehingga urutannya menghargai imbal hasil sesuai risiko yang diambil portofolio, bukan imbal hasil saja.",
+      "Portolab mengurutkan portofolio ini menurut alpha Jensen, yaitu jarak imbal hasil yang diharapkannya dari garis pasar sekuritas, dari yang tertinggi sampai yang terendah. Jarak itu membandingkan imbal hasil yang diharapkan dengan imbal hasil yang disyaratkan CAPM untuk beta portofolio, sehingga urutannya menghargai imbal hasil sesuai risiko yang diambil portofolio, bukan imbal hasil saja.",
     unmeasuredTitle: "Portofolio yang belum memiliki ukuran",
     noRanked:
       "Belum ada portofolio di kelas ini yang memiliki ukuran, sehingga Portolab belum mengurutkan satu pun. Setiap portofolio di bawah menjelaskan alasannya.",
     noStudents:
       "Belum ada mahasiswa yang bergabung di kelas ini, sehingga belum ada portofolio untuk ditampilkan.",
     bbcaStanding: [
-      "Jarak dari garis pasar sekuritas",
+      "Alpha Jensen",
       "▼ -0,38%",
       "Imbal hasil yang diharapkan",
       "-0,05%",
@@ -150,30 +151,12 @@ const texts: Record<
       "Bobot portofolio",
       "Saham portofolio pada bulan-bulan ini",
       "Kovarians dan korelasi saham portofolio",
+      "Risiko yang ditambahkan setiap saham portofolio",
       "IHSG dan suku bunga bebas risiko",
       "Imbal hasil bulanan",
       "Garis pasar sekuritas",
     ],
-    bbcaMeasures: [
-      "Imbal hasil yang diharapkan",
-      "-0,05%",
-      "E(Rp) = Σ wi E(Ri) (SUMPRODUCT)",
-      "Varians",
-      "0,0006732",
-      "σ²p = Σi Σj wi wj σij (MMULT)",
-      "Simpangan baku",
-      "2,59%",
-      "σp = √σ²p = √0,0006732",
-      "Beta terhadap IHSG",
-      "0,34",
-      "βp = Σ wi βi (SUMPRODUCT)",
-      "Imbal hasil yang disyaratkan CAPM",
-      "0,33%",
-      "kp = Rf + βp(E(RM) − Rf) = 0,48% + 0,34 × (0,05% − 0,48%)",
-      "Jarak dari garis pasar sekuritas",
-      "▼ -0,38%",
-      "αp = E(Rp) − kp = -0,05% − 0,33%",
-    ].join(""),
+    bbcaMeasures: bbcaPortfolioMeasures.id,
     lineTitle: "Garis pasar sekuritas",
     lineNotice: (name) =>
       `Grafik ini menempatkan portofolio ${name} dan sahamnya terhadap garis pasar sekuritas dari bulan-bulan ukurannya, yang memberikan 60 imbal hasil bulanan dari Oktober 2021 sampai September 2026.`,
@@ -199,14 +182,14 @@ const texts: Record<
       "The spreadsheet is an Excel workbook with the values and the measures of this page, in the same order. Excel, Google Sheets, and LibreOffice open it, and each writes its numbers in the format of its own language.",
     rankedTitle: "Portfolios with measures",
     rankedNotice:
-      "Portolab ranks these portfolios by the distance of their expected return from the security market line, from the highest to the lowest. The distance compares the expected return with the return that CAPM requires for the beta of the portfolio, so the rank rewards the return for the risk that a portfolio takes, not the return alone.",
+      "Portolab ranks these portfolios by Jensen's alpha, the distance of their expected return from the security market line, from the highest to the lowest. The distance compares the expected return with the return that CAPM requires for the beta of the portfolio, so the rank rewards the return for the risk that a portfolio takes, not the return alone.",
     unmeasuredTitle: "Portfolios without measures yet",
     noRanked:
       "No portfolio of this class has measures yet, so Portolab ranks none. Each portfolio below says why it has none.",
     noStudents:
       "No student has joined this class yet, so there is no portfolio to show.",
     bbcaStanding: [
-      "Distance from the security market line",
+      "Jensen's alpha",
       "▼ -0.38%",
       "Expected return",
       "-0.05%",
@@ -267,30 +250,12 @@ const texts: Record<
       "Weights of the portfolio",
       "The stocks of the portfolio in these months",
       "Covariances and correlations of the stocks of the portfolio",
+      "The risk that each stock of the portfolio adds",
       "The IHSG and the risk-free rate",
       "Monthly returns",
       "Security market line",
     ],
-    bbcaMeasures: [
-      "Expected return",
-      "-0.05%",
-      "E(Rp) = Σ wi E(Ri) (SUMPRODUCT)",
-      "Variance",
-      "0.0006732",
-      "σ²p = Σi Σj wi wj σij (MMULT)",
-      "Standard deviation",
-      "2.59%",
-      "σp = √σ²p = √0.0006732",
-      "Beta against the IHSG",
-      "0.34",
-      "βp = Σ wi βi (SUMPRODUCT)",
-      "Return that CAPM requires",
-      "0.33%",
-      "kp = Rf + βp(E(RM) − Rf) = 0.48% + 0.34 × (0.05% − 0.48%)",
-      "Distance from the security market line",
-      "▼ -0.38%",
-      "αp = E(Rp) − kp = -0.05% − 0.33%",
-    ].join(""),
+    bbcaMeasures: bbcaPortfolioMeasures.en,
     lineTitle: "Security market line",
     lineNotice: (name) =>
       `The chart places the portfolio of ${name} and its stocks against the security market line of the months of its measures, which give 60 monthly returns from October 2021 to September 2026.`,

@@ -1,4 +1,4 @@
-import { succeed } from "~/result";
+import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
 import { beta as toBeta } from "~/units/beta";
 import type { Beta } from "~/units/beta";
@@ -7,6 +7,8 @@ import type { MonthlyReturn } from "~/units/monthly-return";
 import { monthlyVariance } from "~/units/monthly-variance";
 import type { MonthlyVariance } from "~/units/monthly-variance";
 import type { PortfolioWeight } from "~/units/portfolio-weight";
+import { varianceShare } from "~/units/variance-share";
+import type { VarianceShare } from "~/units/variance-share";
 import {
   measureAgainstMarket,
   measureMarket,
@@ -23,6 +25,12 @@ import type { EstimationSettings } from "./estimation-settings";
 import type { Measure, MeasureFailure } from "./measure";
 import { alignedReturns } from "./aligned-returns";
 import type { InstrumentCloses } from "./aligned-returns";
+import { measureSharpeRatio, measureTreynorRatio } from "./performance-ratios";
+import type {
+  BetaNotPositive,
+  SharpeRatioMeasure,
+  TreynorRatioMeasure,
+} from "./performance-ratios";
 import {
   measureCorrelation,
   measureCovariance,
@@ -55,9 +63,39 @@ type PortfolioVarianceMeasure = Measure<
   }
 >;
 
+/** The measures of a holding against the market, with its weight and how its returns move with those of its portfolio. */
+type HoldingMeasures = StockMeasures & {
+  weight: PortfolioWeight;
+  /** The covariance of the holding with the portfolio, which is the sum of its covariance with each holding times the weight of that holding. */
+  covarianceWithPortfolio: WeightedSumMeasure<MonthlyVariance>;
+};
+
+/** The share of the variance of a portfolio that one holding adds: its weight times its covariance with the portfolio, divided by the variance of the portfolio. */
+type VarianceShareMeasure = Measure<
+  "varianceShare",
+  VarianceShare,
+  {
+    weight: PortfolioWeight;
+    covarianceWithPortfolio: MonthlyVariance;
+    portfolioVariance: MonthlyVariance;
+  }
+>;
+
+/** The risk that one holding adds to its portfolio. */
+interface HoldingRisk {
+  code: string;
+  varianceShare: VarianceShareMeasure;
+  correlationWithPortfolio: CorrelationMeasure;
+}
+
+/** Why a portfolio has no measure that divides by its variance or its standard deviation: its returns are the same in every month, such as those of cash alone, so both are zero. */
+export interface NoPortfolioVariation {
+  kind: "noPortfolioVariation";
+}
+
 export interface PortfolioMeasures {
-  /** The measures of each holding against the market, in the order of the holdings. */
-  holdings: (StockMeasures & { weight: PortfolioWeight })[];
+  /** The measures of each holding, in the order of the holdings. */
+  holdings: HoldingMeasures[];
   market: MarketMeasures;
   /** The covariance of each pair of holdings, in the order of the holdings, with the variance of each holding on the diagonal. */
   covarianceMatrix: CovarianceMeasure[][];
@@ -67,7 +105,12 @@ export interface PortfolioMeasures {
   standardDeviation: StandardDeviationMeasure;
   beta: WeightedSumMeasure<Beta>;
   requiredReturn: RequiredReturnMeasure;
+  /** Jensen's alpha, which is how far the expected return lies above the security market line, or below it when negative. */
   securityMarketLine: SecurityMarketLineMeasure;
+  sharpeRatio: Result<SharpeRatioMeasure, NoPortfolioVariation>;
+  treynorRatio: Result<TreynorRatioMeasure, BetaNotPositive>;
+  /** The risk that each holding adds, in the order of the holdings. */
+  holdingRisks: Result<HoldingRisk[], NoPortfolioVariation>;
 }
 
 /** Measures a portfolio and each of its holdings against the market, from the returns of the months in the window of the settings in which the market and every holding have a return. */
@@ -84,7 +127,7 @@ export function measurePortfolio(
   if (!marketMeasures.ok) {
     return marketMeasures;
   }
-  const holdingMeasures = returns.value.instruments.map(
+  const stockMeasures = returns.value.instruments.map(
     ({ instrument, returns: holdingReturns }) => ({
       ...measureAgainstMarket(
         instrument.code,
@@ -94,19 +137,31 @@ export function measurePortfolio(
       weight: instrument.weight,
     }),
   );
-  const covarianceMatrix = holdingMeasures.map((row) =>
-    holdingMeasures.map((column) => measureCovariance(row, column)),
+  const covarianceMatrix = stockMeasures.map((row) =>
+    stockMeasures.map((column) => measureCovariance(row, column)),
   );
-  const correlationMatrix = holdingMeasures.map((row, rowIndex) =>
-    holdingMeasures.map((column, columnIndex) =>
-      measureCorrelation(
-        matrixCell(covarianceMatrix, rowIndex, columnIndex),
-        row,
-        column,
-      ),
+  const correlationMatrix = stockMeasures.map((row, rowIndex) =>
+    stockMeasures.map((column, columnIndex) =>
+      measureCorrelation({
+        covariance: matrixCell(covarianceMatrix, rowIndex, columnIndex).value,
+        firstStandardDeviation: row.standardDeviation.value,
+        secondStandardDeviation: column.standardDeviation.value,
+      }),
     ),
   );
+  const holdingMeasures = stockMeasures.map((holding, rowIndex) => ({
+    ...holding,
+    covarianceWithPortfolio: measureWeightedSum(
+      stockMeasures.map((column, columnIndex) => ({
+        code: column.code,
+        weight: column.weight,
+        value: matrixCell(covarianceMatrix, rowIndex, columnIndex).value,
+      })),
+      monthlyVariance,
+    ),
+  }));
   const variance = measurePortfolioVariance(holdingMeasures, covarianceMatrix);
+  const standardDeviation = measureStandardDeviation(variance.value);
   const expectedReturn = measureWeightedSum(
     holdingMeasures.map((holding) => ({
       code: holding.code,
@@ -127,6 +182,12 @@ export function measurePortfolio(
     beta.value,
     marketMeasures.value,
   );
+  const excessReturn = {
+    expectedReturn: expectedReturn.value,
+    riskFreeRate: marketMeasures.value.riskFreeRate.value,
+  };
+  const noVariation: NoPortfolioVariation = { kind: "noPortfolioVariation" };
+  const hasVariation = variance.value > 0;
   return succeed({
     holdings: holdingMeasures,
     market: marketMeasures.value,
@@ -134,13 +195,24 @@ export function measurePortfolio(
     correlationMatrix,
     expectedReturn,
     variance,
-    standardDeviation: measureStandardDeviation(variance.value),
+    standardDeviation,
     beta,
     requiredReturn,
     securityMarketLine: measureSecurityMarketLineDistance(
       expectedReturn.value,
       requiredReturn,
     ),
+    sharpeRatio: hasVariation
+      ? succeed(measureSharpeRatio(excessReturn, standardDeviation.value))
+      : fail(noVariation),
+    treynorRatio: measureTreynorRatio(excessReturn, beta.value),
+    holdingRisks: hasVariation
+      ? succeed(
+          holdingMeasures.map((holding) =>
+            measureHoldingRisk(holding, { variance, standardDeviation }),
+          ),
+        )
+      : fail(noVariation),
   });
 }
 
@@ -176,6 +248,36 @@ function measurePortfolioVariance(
       weights,
       covariances: covarianceMatrix.map((row) => row.map((cell) => cell.value)),
     },
+  };
+}
+
+/** Measures the share of the variance of a portfolio that a holding adds, and the correlation of the holding with the portfolio, which both divide by the risk of a portfolio whose variance is above zero. */
+function measureHoldingRisk(
+  holding: HoldingMeasures,
+  portfolio: {
+    variance: PortfolioVarianceMeasure;
+    standardDeviation: StandardDeviationMeasure;
+  },
+): HoldingRisk {
+  const covarianceWithPortfolio = holding.covarianceWithPortfolio.value;
+  return {
+    code: holding.code,
+    varianceShare: {
+      formula: "varianceShare",
+      value: varianceShare(
+        (holding.weight * covarianceWithPortfolio) / portfolio.variance.value,
+      ),
+      inputs: {
+        weight: holding.weight,
+        covarianceWithPortfolio,
+        portfolioVariance: portfolio.variance.value,
+      },
+    },
+    correlationWithPortfolio: measureCorrelation({
+      covariance: covarianceWithPortfolio,
+      firstStandardDeviation: holding.standardDeviation.value,
+      secondStandardDeviation: portfolio.standardDeviation.value,
+    }),
   };
 }
 
