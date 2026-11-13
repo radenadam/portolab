@@ -16,9 +16,12 @@ Portolab is not for investors outside a class, for traders who want a trading pl
 - **StockTrak** is the classroom simulator that universities use most. Its lecturers set trade limits, commissions, diversification rules, and start and end dates, and they can rank students by Sharpe ratio, alpha, and beta instead of raw return. It does not cover IDX, has no Indonesian interface, and does not tie portfolio theory to a student's holdings. Portolab matches its class controls for everything Portolab supports, and it is better on all three gaps.
 - **Stockbit Virtual Trading** follows IDX mechanics faithfully: trading sessions, lots, tick sizes, auto rejection limits, fees, and the states of an order. It has no class features and no portfolio analytics. Portolab matches its market realism.
 - **Portfolio Visualizer** shows risk measures and efficient frontiers clearly, but only for US and Canadian assets. Portolab shows the measures of the course with the same clarity, for IDX stocks, computed from the student's own portfolio.
+- **Stockbit, Ajaib, and IPOT** are apps with which many Indonesians trade IDX stocks, and some students already use one of them. Portolab must hold up beside them on a phone, so a stock opens with its price chart, an order shows its costs before the student confirms it, and gains and losses are green and red with a sign and an arrow.
+- **Investopedia Simulator** is a free simulator in which a teacher can run a game for a class, as StockTrak runs classes. Portolab must feel as much like trading as both, while it ties every trade to the theory of the course.
+- **Duolingo and Khan Academy** teach in short steps, with help where the learner practices, such as the tips of a lesson and the hints of an exercise. Portolab teaches the same way, so practice comes first, and a concept opens where the student acts, with depth on demand.
 - **Teaching research** finds that leaderboards by raw return, prizes for rank, and badges push students toward gambling, while trading on fixed dates and judging risk-adjusted return against a benchmark teach portfolio management. Portolab follows the research by design.
 
-Beyond these products, Portolab must meet three standards of its own:
+[Decision 0028](decisions/0028-every-screen-follows-the-reference-screens-of-peta.md) sets the screens that meet this bar. Beyond these products, Portolab must meet three standards of its own:
 
 - **Every measure can be checked by hand.** A measure shows its formula and its inputs, so a student can reproduce it in a spreadsheet and trust it.
 - **Copy teaches.** When the app rejects an action, it states what happened with the real numbers, explains the rule behind it, and offers a next step.
@@ -28,7 +31,7 @@ Beyond these products, Portolab must meet three standards of its own:
 
 ### First release
 
-The first release serves the course sessions on CAPM and on portfolio return and risk.
+The first release serves the course sessions on CAPM and on portfolio return and risk, and it teaches every other topic of the course in a lesson.
 
 - A lecturer creates a class, and students join it with a code. Accounts need no email.
 - A class meets weekly for the 16 sessions of the course, from the date of its first session, which its lecturer gives. Its page shows the semester and the session of each week, as decision 0032 explains.
@@ -37,12 +40,13 @@ The first release serves the course sessions on CAPM and on portfolio return and
 - A portfolio shows its holdings, cash, value, and return over time against the IHSG index. The return counts at each final daily close since the student could first trade, as decision 0018 explains.
 - For each stock and for the whole portfolio, Portolab shows the expected return, variance, standard deviation, covariances and correlations, beta against the IHSG, the return that CAPM requires, and the position on the security market line. A stock gets them once it has the monthly returns that decision 0013 requires. Because students buy only such stocks, a portfolio has them too, unless a holding later loses monthly returns, such as after a suspension, or its stocks lack the closes of different months. A chart places the portfolio and the stocks against the security market line of the months that their measures share, as decision 0023 explains.
 - The lecturer sees every portfolio and every measure, ranked by the distance from the security market line, as decision 0021 explains, and downloads them for grading as a workbook that every spreadsheet opens, as decision 0022 explains.
+- The approved design brings these into the first release besides the reason of an order, as [decision 0028](decisions/0028-every-screen-follows-the-reference-screens-of-peta.md) explains: the measures of performance of Sharpe, Treynor, and Jensen, a lesson for each session of the course that teaches a topic with a glossary, a watchlist, and a demonstration portfolio in which the lecturer trades and which no statistic of the class counts.
 - Every screen works on a phone, a tablet, and a computer.
 - Every result is labelled as a simulation, and the price delay is always visible.
 
 ### Later releases
 
-Each later release serves the next course topic, in teaching order: futures and hedging, mutual funds, options, and bonds. After those come the efficient frontier, the performance measures of Sharpe, Treynor, and Jensen, portfolios managed by teams, and the topics of the first half of the course.
+Each later release lets students practice the next course topic in the simulation, in teaching order: futures and hedging, mutual funds, options, and bonds. The first release teaches these topics only in their lessons. After those come the efficient frontier and portfolios managed by teams.
 
 ### Non-goals
 
@@ -59,4 +63,4 @@ Each later release serves the next course topic, in teaching order: futures and 
 - **Market data**: delayed prices come from Yahoo Finance, which has no license for this use and limits automated requests. The source sits behind one interface, every price is cached, and the app keeps working with the last known prices when the source fails. A licensed source can replace it without changes elsewhere.
 - **Privacy**: Indonesia's personal data protection law applies. Portolab stores only what a class needs, asks for explicit consent, and holds no real financial data.
 - **Regulation**: OJK rules on financial information allow simulations that are labelled as simulations and that make no recommendations.
-- **Schedule**: the first release is live before the first session on CAPM, in November 2026.
+- **Schedule**: the first release reaches the students of the first class in the remaining sessions of the semester, which ends around 21 December 2026, as issue #127 tracks.
