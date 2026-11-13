@@ -5,7 +5,14 @@ export const contentWidthToken = "--width-content";
 
 /** A rule of the layout of decision 0028 that a program can measure. */
 export type LayoutRule =
-  "width" | "content" | "reading" | "columns" | "rows" | "tables" | "cells";
+  | "width"
+  | "content"
+  | "reading"
+  | "columns"
+  | "parts"
+  | "rows"
+  | "tables"
+  | "cells";
 
 /** A rule that the screen of a page breaks, with the sentence that says where and by how much. */
 export interface LayoutProblem {
@@ -35,6 +42,7 @@ export async function sidewaysProblems(page: Page): Promise<LayoutProblem[]> {
  * - `content`: an element marked `data-layout="content"` is never wider than the token of the width of content, and it stands in the middle of the content box of its parent.
  * - `reading`: an element marked `data-layout="reading"` stands in the middle of the content box of its parent.
  * - `columns`: the children of `data-layout="columns"` that sit side by side end on one line, within 2 pixels. A child ends where the last of its parts with a ground or a line under it ends, so a column that stretches while its cards stay short still ends early.
+ * - `parts`: a table, and an element marked with `data-layout`, ends inside the content box of each column that holds it, within 1 pixel, so it never crosses into the space beside its column or into the column next to it. A column is an element that shares more than 1 pixel of its height with another child of its parent, as the columns of a grid do. An element between the part and a column that clips what overflows it, such as a frame in which a table scrolls, limits the part to what that element shows. A part inside an element outside the flow, such as a sheet, is measured only against the columns inside that element.
  * - `rows`: the children of `data-layout="rows"` are rows that share one column template. In each row the check follows the items of every grid and of every flex container that does not wrap, down to the fifth level. An item without text, such as a bar, starts and ends at the same place in every row, within 1 pixel, and an item with text starts or ends at the same place, so text can align left or right.
  * - `tables`: tables with the same heads of their columns put each column at the same place, within 1 pixel. Tables that stand one above the other compare their columns on the screen, and tables side by side compare them from their own left edge.
  * - `cells`: no cell of a table holds more than its column shows.
@@ -58,13 +66,16 @@ function inspectLayout(widthToken: string): LayoutProblem[] {
     const text = element.textContent.replaceAll(/\s+/g, " ").trim();
     return `<${element.tagName.toLowerCase()}> "${text.slice(0, 30)}"`;
   }
+  function isOutsideFlow(element: Element): boolean {
+    return ["absolute", "fixed"].includes(getComputedStyle(element).position);
+  }
   function isShown(element: Element): boolean {
     const style = getComputedStyle(element);
     const box = element.getBoundingClientRect();
     return (
       style.display !== "none" &&
       style.visibility !== "hidden" &&
-      !["absolute", "fixed"].includes(style.position) &&
+      !isOutsideFlow(element) &&
       box.width > 0 &&
       box.height > 0
     );
@@ -88,18 +99,37 @@ function inspectLayout(widthToken: string): LayoutProblem[] {
     return value.toFixed(1);
   }
 
+  interface Span {
+    left: number;
+    right: number;
+  }
+  // An element clips what overflows it at the inside of its borders.
+  function paddingSpan(element: Element): Span {
+    const box = element.getBoundingClientRect();
+    const style = getComputedStyle(element);
+    return {
+      left: box.left + parseFloat(style.borderLeftWidth),
+      right: box.right - parseFloat(style.borderRightWidth),
+    };
+  }
+  function contentSpan(element: Element): Span {
+    const inside = paddingSpan(element);
+    const style = getComputedStyle(element);
+    return {
+      left: inside.left + parseFloat(style.paddingLeft),
+      right: inside.right - parseFloat(style.paddingRight),
+    };
+  }
+
   function checkMiddle(element: Element, what: string, rule: LayoutRule): void {
     const parent = element.parentElement;
     if (parent === null) {
       return;
     }
     const box = element.getBoundingClientRect();
-    const parentBox = parent.getBoundingClientRect();
-    const parentStyle = getComputedStyle(parent);
-    const left =
-      box.left - parentBox.left - parseFloat(parentStyle.paddingLeft);
-    const right =
-      parentBox.right - parseFloat(parentStyle.paddingRight) - box.right;
+    const inside = contentSpan(parent);
+    const left = box.left - inside.left;
+    const right = inside.right - box.right;
     if (Math.abs(left - right) > 2) {
       problems.push({
         rule,
@@ -191,6 +221,63 @@ function inspectLayout(widthToken: string): LayoutProblem[] {
             text: `The columns ${items.map(nameOf).join(" and ")} of ${nameOf(columns)} end ${pixels(spread(feet))} pixels apart.`,
           });
         }
+      }
+    }
+  }
+
+  function isColumn(element: Element): boolean {
+    const parent = element.parentElement;
+    if (parent === null || !isShown(element)) {
+      return false;
+    }
+    const box = element.getBoundingClientRect();
+    return shownChildren(parent).some((sibling) => {
+      const siblingBox = sibling.getBoundingClientRect();
+      return (
+        sibling !== element &&
+        box.top < siblingBox.bottom - 1 &&
+        siblingBox.top < box.bottom - 1
+      );
+    });
+  }
+  function checkPart(part: Element): void {
+    const box = part.getBoundingClientRect();
+    let shown: Span = { left: box.left, right: box.right };
+    for (
+      let holder = part.parentElement;
+      holder !== null;
+      holder = holder.parentElement
+    ) {
+      if (isColumn(holder)) {
+        const inside = contentSpan(holder);
+        const beyondLeft = inside.left - shown.left;
+        const beyondRight = shown.right - inside.right;
+        const distance = Math.max(beyondLeft, beyondRight);
+        if (distance > 1) {
+          problems.push({
+            rule: "parts",
+            text: `The part ${nameOf(part)} crosses the ${beyondRight >= beyondLeft ? "right" : "left"} edge of the content box of its column ${nameOf(holder)} by ${tenthsOfPixels(distance)} pixels.`,
+          });
+          return;
+        }
+      }
+      if (getComputedStyle(holder).overflowX !== "visible") {
+        const clip = paddingSpan(holder);
+        shown = {
+          left: Math.max(shown.left, clip.left),
+          right: Math.min(shown.right, clip.right),
+        };
+      }
+      // A part inside an element outside the flow, such as a sheet, lies over the columns around that element instead of inside them.
+      if (isOutsideFlow(holder)) {
+        return;
+      }
+    }
+  }
+  function checkParts(): void {
+    for (const part of document.querySelectorAll("table, [data-layout]")) {
+      if (isShown(part)) {
+        checkPart(part);
       }
     }
   }
@@ -348,6 +435,7 @@ function inspectLayout(widthToken: string): LayoutProblem[] {
   checkContents();
   checkReading();
   checkColumns();
+  checkParts();
   checkRows();
   checkTables();
   checkCells();

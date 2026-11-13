@@ -29,7 +29,7 @@ interface WalkedClass {
 interface RoutePage {
   reader: Reader;
   path: (walked: WalkedClass) => string;
-  /** The rules of the layout that a page of Tenang breaks until the piece of issue #127 that rebuilds it, which removes them here. */
+  /** The rules of the layout that a page of Tenang breaks until the piece of issue #127 that rebuilds it removes them here. The comment of the entry names that piece. */
   brokenUntilRebuilt?: readonly LayoutRule[];
 }
 
@@ -75,15 +75,15 @@ const routePages: Record<string, readonly RoutePage[]> = {
     {
       reader: "student",
       path: ({ classPath }) => `${classPath}/portfolio`,
-      // The portfolio of Tenang scrolls sideways at 768 pixels, which no browser test opened before this walk.
-      brokenUntilRebuilt: ["width"],
+      // The portfolio of Tenang scrolls sideways at 768 pixels, which no browser test opened before this walk, and its table of holdings crosses its column, into the order ticket on a wide screen (#135). Piece 16 rebuilds it.
+      brokenUntilRebuilt: ["width", "parts"],
     },
   ],
   "features/measures/measures-page.tsx": [
     {
       reader: "student",
       path: ({ classPath }) => `${classPath}/measures`,
-      // Each table of closes and returns sizes its columns by its own cells.
+      // Each table of closes and returns sizes its columns by its own cells. Piece 17 rebuilds the page.
       brokenUntilRebuilt: ["tables"],
     },
   ],
@@ -91,6 +91,7 @@ const routePages: Record<string, readonly RoutePage[]> = {
     {
       reader: "student",
       path: ({ classPath }) => `${classPath}/measures/BBCA`,
+      // The same tables of closes and returns, which piece 13 rebuilds.
       brokenUntilRebuilt: ["tables"],
     },
   ],
@@ -106,13 +107,15 @@ const routePages: Record<string, readonly RoutePage[]> = {
     {
       reader: "lecturer",
       path: ({ studentPath }) => `${studentPath}/portfolio`,
-      brokenUntilRebuilt: ["width"],
+      // The same portfolio as the student's, which piece 32 rebuilds.
+      brokenUntilRebuilt: ["width", "parts"],
     },
   ],
   "features/grading/student-measures-page.tsx": [
     {
       reader: "lecturer",
       path: ({ studentPath }) => `${studentPath}/measures`,
+      // The same tables as the measures of the portfolio, which piece 32 rebuilds.
       brokenUntilRebuilt: ["tables"],
     },
   ],
