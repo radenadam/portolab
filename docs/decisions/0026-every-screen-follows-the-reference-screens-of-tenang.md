@@ -1,6 +1,6 @@
 # 0026. Every screen follows the reference screens of Tenang
 
-- Status: Accepted
+- Status: Superseded. [Decision 0028](0028-every-screen-follows-the-reference-screens-of-peta.md) replaces each of its sections: the reference screens, the frame of the app, the header of a page, the headline, sections, tables and lists of rows, key measures, charts, forms and the order ticket, rejections and other failures, screens that the references do not show, and sizes. It also changes two of its consequences: which issue tracks the rebuild of the screens, and which references the product lens compares a screen with.
 - Date: 2026-11-11
 
 ## Context

@@ -6,6 +6,7 @@
     "app/local-network.server.ts",
     "app/paraglide/runtime.d.ts",
     "app/result.ts",
+    "app/routes.ts",
     "app/sentences.ts",
     "app/success-value-for-test.ts",
     "app/value-parsers.ts",
