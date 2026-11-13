@@ -13,6 +13,8 @@ export default defineConfig({
   // The tests of the deployment run against a server that the deployment guide installed, which e2e/deployment/playwright.config.ts names.
   testIgnore: "deployment/**",
   fullyParallel: true,
+  // A worker waits on the browser and the server for much of each test, so the runner of CI finishes sooner with a worker for each CPU than with a worker for half of them, which is the default of Playwright. The commit that set it gives the times that it measured. No other computer was measured, so it keeps the default.
+  workers: isContinuousIntegration ? "100%" : "50%",
   forbidOnly: isContinuousIntegration,
   retries: 0,
   timeout: testTimeoutSeconds * secondMilliseconds,
