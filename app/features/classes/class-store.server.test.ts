@@ -13,6 +13,7 @@ import {
   listJoinedClasses,
   listStudents,
   listTaughtClasses,
+  setFirstSessionDate,
 } from "./class-store.server";
 import {
   createClassForTest,
@@ -63,6 +64,7 @@ test("shows a class only to the lecturer who teaches it and to its students", as
     id: classId,
     lecturerName: "Budi Santoso",
     joinedAt: later,
+    firstSessionDate: "2026-09-07",
   });
   expect(findClassStudent(database, classId, studentId)).toEqual({
     id: studentId,
@@ -129,4 +131,25 @@ test("lists the classes of a lecturer with their students, and the classes of a 
     listJoinedClasses(database, firstStudent).map(({ name }) => name),
   ).toEqual(["Manajemen Portofolio B", "Manajemen Portofolio A"]);
   expect(listTaughtClasses(database, firstStudent)).toEqual([]);
+});
+
+test("keeps the date of session 1 that a class was created with, and changes it for that class alone", async () => {
+  const database = openDatabaseForTest();
+  const { lecturerId, classId } =
+    await createLecturerWithClassForTest(database);
+  const other = createClassForTest(
+    database,
+    lecturerId,
+    "Manajemen Portofolio B",
+  ).classId;
+  expect(findTaughtClass(database, classId, lecturerId)?.firstSessionDate).toBe(
+    "2026-09-07",
+  );
+  setFirstSessionDate(database, classId, "2026-09-12");
+  expect(findTaughtClass(database, classId, lecturerId)?.firstSessionDate).toBe(
+    "2026-09-12",
+  );
+  expect(findTaughtClass(database, other, lecturerId)?.firstSessionDate).toBe(
+    "2026-09-07",
+  );
 });

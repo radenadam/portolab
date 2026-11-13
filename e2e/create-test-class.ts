@@ -5,6 +5,7 @@ import type { ClassId } from "../app/features/classes/classes.schema.ts";
 import { joinPath } from "../app/features/classes/join-code.ts";
 import { successValueForTest } from "../app/success-value-for-test.ts";
 import { parseRecordId } from "../app/value-parsers.ts";
+import { wibDateOf } from "../app/wib.ts";
 
 /** A class that a test created, with its id, the path of its page, the code that its lecturer shares, and the path that joins it on the site that the test opened. */
 export interface TestClass {
@@ -14,13 +15,16 @@ export interface TestClass {
   joinPath: string;
 }
 
-/** Creates a class from the classes page of a lecturer who is signed in, and returns it from its page. The class has the most starting cash that Portolab accepts, so each screen that shows the amount is checked with its widest content. */
+/** Creates a class from the classes page of a lecturer who is signed in, and returns it from its page. The class has the most starting cash that Portolab accepts, so each screen that shows the amount is checked with its widest content, and its session 1 meets today. */
 export async function createTestClass(
   page: Page,
   name: string,
 ): Promise<TestClass> {
   await page.goto("/classes");
   await page.locator('main input[name="name"]').fill(name);
+  await page
+    .locator('main input[name="firstSessionDate"]')
+    .fill(wibDateOf(new Date()));
   await page
     .locator('main input[name="startingCash"]')
     .fill(String(startingCashLimits.maximum));

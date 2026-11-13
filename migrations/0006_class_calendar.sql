@@ -1,0 +1,1 @@
+ALTER TABLE `classes` ADD `first_session_date` text;

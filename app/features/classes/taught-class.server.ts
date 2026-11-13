@@ -9,11 +9,12 @@ import { findClassStudent, findTaughtClass } from "./class-store.server";
 import type { ClassStudent } from "./class-store.server";
 import type { ClassId } from "./classes.schema";
 
-/** A class that the lecturer who is signed in teaches, with the cash that each of its students starts with. */
+/** A class that the lecturer who is signed in teaches, with the cash that each of its students starts with and the calendar date when its first session meets, which a class that Portolab created before it stored that date lacks. */
 export interface TaughtClassDetails {
   id: ClassId;
   name: string;
   startingCash: Rupiah;
+  firstSessionDate: string | null;
 }
 
 /** The class of an address, which the lecturer who is signed in teaches. A student, a class that does not exist, and a class of another lecturer answer as an address that does not exist, so a guessed address reveals nothing. The url is the one that React Router gives a loader or an action. */
@@ -34,6 +35,7 @@ export function requireTaughtClass(
     id: taught.id,
     name: taught.name,
     startingCash: taught.startingCash,
+    firstSessionDate: taught.firstSessionDate,
   };
 }
 

@@ -185,7 +185,7 @@ for (const locale of locales) {
     expect(withoutStock.showsDelayOnPhone).toBe(true);
   });
 
-  test(`gives a lecturer in a class the classes, the class, the ranking, and the prices, with the ranking current on the pages of a student, which link back to the page above them, in ${language}`, () => {
+  test(`gives a lecturer in a class the classes, the class, the ranking, and the prices, with the ranking current on the pages of a student and the class current on the pages below it, which link back to the page above them, in ${language}`, () => {
     switchLocaleForTest(locale);
     const links = (current: string): object[] =>
       [
@@ -229,20 +229,20 @@ for (const locale of locales) {
       },
       showsDelayOnPhone: true,
     });
-    expect(
-      frameNavigation(
-        "lecturer",
-        pageForTest("features/classes/reset-password-page", ofStudent),
-      ),
-    ).toEqual({
-      links: links(label.class),
-      backLink: {
-        path: "/classes/7",
-        label: label.class,
-        name: label.backToClass,
-      },
-      showsDelayOnPhone: true,
-    });
+    for (const pageBelowClass of [
+      pageForTest("features/classes/reset-password-page", ofStudent),
+      pageForTest("features/classes/calendar-page", inClass),
+    ]) {
+      expect(frameNavigation("lecturer", pageBelowClass)).toEqual({
+        links: links(label.class),
+        backLink: {
+          path: "/classes/7",
+          label: label.class,
+          name: label.backToClass,
+        },
+        showsDelayOnPhone: true,
+      });
+    }
   });
 }
 

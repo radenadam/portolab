@@ -4,6 +4,7 @@ import {
   dayOfWeek,
   startOfMonth,
   startOfUtcDate,
+  startOfWeek,
   utcDateOf,
 } from "./calendar-dates";
 
@@ -31,4 +32,13 @@ test("counts the day of the week from 0 for Sunday", () => {
   expect(dayOfWeek("2026-11-01")).toBe(0);
   expect(dayOfWeek("2026-10-30")).toBe(5);
   expect(dayOfWeek("2026-10-31")).toBe(6);
+});
+
+test("starts each week on its Monday, across the end of a month and a year", () => {
+  expect(startOfWeek("2026-11-09")).toBe("2026-11-09");
+  expect(startOfWeek("2026-11-14")).toBe("2026-11-09");
+  expect(startOfWeek("2026-11-15")).toBe("2026-11-09");
+  expect(startOfWeek("2026-11-16")).toBe("2026-11-16");
+  expect(startOfWeek("2026-10-01")).toBe("2026-09-28");
+  expect(startOfWeek("2027-01-03")).toBe("2026-12-28");
 });

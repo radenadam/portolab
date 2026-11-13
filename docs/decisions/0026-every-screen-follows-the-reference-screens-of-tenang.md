@@ -1,6 +1,6 @@
 # 0026. Every screen follows the reference screens of Tenang
 
-- Status: Accepted
+- Status: Accepted. [Decision 0032](0032-a-class-meets-weekly-from-the-date-of-its-first-session.md) changes one of its rules: which pages are below the page of a class.
 - Date: 2026-11-11
 
 ## Context

@@ -57,6 +57,7 @@ const pagePlaces: Record<RouteId, PagePlace> = {
   "features/accounts/privacy-page": nowhere,
   "features/classes/classes-page": place("classes"),
   "features/classes/class-page": place("class"),
+  "features/classes/calendar-page": place("class", "class"),
   "features/trading/orders-page": { ...place("orders"), hasTicket: true },
   "features/trading/portfolio-page": place("portfolio"),
   "features/measures/measures-page": place("portfolio", "portfolio"),
