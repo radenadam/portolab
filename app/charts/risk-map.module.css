@@ -1,0 +1,193 @@
+/* A map takes the width of its section, and its height grows with its width, so it is a container of its own. */
+.riskMap {
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+  container-type: inline-size;
+}
+
+/* The map is as high as a chart on a phone, and higher on a wider screen, as the references of decision 0028 draw it. */
+.plot {
+  composes: plot from "./plot.module.css";
+  block-size: clamp(var(--size-chart), 60cqi, 2 * var(--size-chart));
+}
+
+.area {
+  composes: area from "./plot.module.css";
+}
+
+/* The drawing sets the font of the names, the font of the text, as decision 0035 sets, and every length of a mark or a name counts in sizes of that text. */
+.drawing {
+  composes: drawing from "./plot.module.css";
+  font-family: var(--font-text);
+  font-size: var(--text-small);
+}
+
+.tick,
+.minorTick,
+.marketTick {
+  font-family: var(--font-code);
+  font-size: var(--text-chart);
+  fill: var(--color-muted);
+}
+
+/* The mark of the risk of the IHSG reads as the reference of its axis, as the strong line above it does. */
+.marketTick {
+  fill: var(--color-ink);
+  font-weight: 600;
+}
+
+/* About ten marks overlap below this width, so a narrow map shows every other one. */
+@container (width < 30rem) {
+  .minorTick {
+    display: none;
+  }
+}
+
+.axisTitle {
+  font-size: var(--text-chart);
+  fill: var(--color-muted);
+}
+
+.gridLine,
+.strongLine {
+  stroke-width: var(--size-line);
+}
+
+.gridLine {
+  stroke: var(--color-line);
+}
+
+.strongLine {
+  stroke: var(--color-line-strong);
+}
+
+/* The line at the return of the IHSG is dashed, so it reads apart from the lines of the grid and from the line through the IHSG. */
+.level {
+  stroke: var(--color-ink-secondary);
+  stroke-width: var(--size-line);
+  stroke-dasharray: 0.42em 0.33em;
+}
+
+.line {
+  stroke: var(--color-ink-secondary);
+  stroke-width: calc(var(--size-mark) * 0.75);
+}
+
+/* A mark stands out from the lines and the marks under it by a ring of the ground of the panel, and the marks differ by their shape and their fill as well as by their color. */
+.own,
+.held,
+.market {
+  stroke: var(--color-panel);
+  stroke-width: var(--size-mark);
+}
+
+.own {
+  fill: var(--color-own);
+}
+
+.ring {
+  fill: none;
+  stroke: var(--color-own);
+  stroke-width: calc(var(--size-mark) * 0.75);
+}
+
+.held {
+  fill: var(--color-data);
+}
+
+.other {
+  fill: var(--color-panel);
+  stroke: var(--color-data);
+  stroke-width: calc(var(--size-mark) * 0.875);
+}
+
+.market {
+  fill: var(--color-ink);
+}
+
+.active {
+  fill: none;
+  stroke: var(--color-ink);
+  stroke-width: calc(var(--size-mark) * 0.75);
+}
+
+/* A label keeps a band of the ground of the panel around its letters, so it stays readable where it crosses a line or a mark. */
+.label,
+.lineLabel {
+  paint-order: stroke;
+  stroke: var(--color-panel);
+  stroke-width: calc(var(--size-mark) * 2);
+  stroke-linejoin: round;
+}
+
+.label {
+  fill: var(--color-ink);
+  font-weight: 600;
+}
+
+.lineLabel {
+  fill: var(--color-muted);
+}
+
+.tip {
+  composes: tip from "./plot.module.css";
+}
+
+.tipName {
+  font-weight: 600;
+}
+
+.tipValue {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: space-between;
+}
+
+.tipNumber {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-ink-secondary);
+}
+
+/* A key of the legend draws the mark of its kind at the size of the text beside it. */
+.ownKey,
+.heldKey,
+.otherKey {
+  inline-size: 0.8em;
+  block-size: 0.8em;
+  border-radius: 50%;
+}
+
+.ownKey {
+  background: var(--color-own);
+}
+
+.heldKey {
+  background: var(--color-data);
+}
+
+.otherKey {
+  border: calc(var(--size-mark) * 0.875) solid var(--color-data);
+}
+
+.marketKey {
+  inline-size: 0.65em;
+  block-size: 0.65em;
+  margin-inline: 0.1em;
+  background: var(--color-ink);
+  rotate: 45deg;
+}
+
+.lineKey {
+  inline-size: 1.15em;
+  block-size: calc(var(--size-mark) * 0.75);
+  background: var(--color-ink-secondary);
+}

@@ -1,3 +1,4 @@
+import { useId } from "react";
 import type { ReactNode } from "react";
 import { countedText } from "~/counted-text";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
@@ -10,10 +11,10 @@ import type { StoredMeasureFailure } from "./measure-stored.server";
 import { monthSpanInputs } from "./month-span";
 import type {
   ChartedLine,
+  HoldingOnLine,
   LinePoint,
   OtherStocks,
   PortfolioLine,
-  StockOnLine,
   StudentLine,
 } from "./read-measures.server";
 
@@ -26,6 +27,7 @@ export function StudentMarketLine({
   /** What the chart shows about the portfolio, which the portfolio gives under the chart, as the references do, and the page of the measures gives above it with the other measures. */
   caption?: ReactNode;
 }): ReactNode {
+  const headingId = useId();
   if (!marketLine.ok) {
     return (
       <>
@@ -34,12 +36,11 @@ export function StudentMarketLine({
       </>
     );
   }
-  const { notice, line, portfolio, holdings, others } = studentPlot(
-    marketLine.value,
-  );
+  const { notice, line, portfolio, holdings, holdingsName, others } =
+    studentPlot(marketLine.value);
   return (
     <>
-      <h2>{m.measures_line_title()}</h2>
+      <h2 id={headingId}>{m.measures_line_title()}</h2>
       <p>{notice}</p>
       <MarketLineFigure
         line={line}
@@ -48,8 +49,9 @@ export function StudentMarketLine({
         otherStocks={others.onLine}
         names={{
           portfolio: m.measures_line_portfolio_label(),
-          holdings: m.measures_line_holdings_label(),
+          holdings: holdingsName,
         }}
+        labelledBy={headingId}
       />
       {caption}
       <OtherStocksNotices others={others} />
@@ -65,9 +67,10 @@ export function LecturerMarketLine({
   studentName: string;
   portfolioLine: PortfolioLine;
 }): ReactNode {
+  const headingId = useId();
   return (
     <>
-      <h2>{m.measures_line_title()}</h2>
+      <h2 id={headingId}>{m.measures_line_title()}</h2>
       <p>
         {m.measures_lecturer_portfolio_line_notice({
           ...monthSpanInputs(portfolioLine.line.months),
@@ -83,17 +86,19 @@ export function LecturerMarketLine({
           portfolio: m.measures_lecturer_line_portfolio_label(),
           holdings: m.measures_lecturer_line_holdings_label(),
         }}
+        labelledBy={headingId}
       />
     </>
   );
 }
 
-/** The text that says what the chart of a student places against which line, with the line, the portfolio if it has measures, its stocks on the line, and the other stocks. */
+/** The text that says what the chart of a student places against which line, with the line, the portfolio if it has measures, its stocks on the line with the name that the legend gives them, and the other stocks. The stocks of a portfolio with measures have weights, which size their marks. */
 function studentPlot(plot: StudentLine): {
   notice: string;
   line: ChartedLine;
   portfolio: LinePoint | undefined;
-  holdings: readonly StockOnLine[];
+  holdings: readonly HoldingOnLine[];
+  holdingsName: string;
   others: OtherStocks;
 } {
   switch (plot.kind) {
@@ -105,6 +110,7 @@ function studentPlot(plot: StudentLine): {
         line: plot.portfolioLine.line,
         portfolio: plot.portfolioLine.portfolio,
         holdings: plot.portfolioLine.holdings,
+        holdingsName: m.measures_line_weighted_holdings_label(),
         others: plot.others,
       };
     case "latest":
@@ -116,6 +122,7 @@ function studentPlot(plot: StudentLine): {
         line: plot.line,
         portfolio: undefined,
         holdings: plot.holdings,
+        holdingsName: m.measures_line_holdings_label(),
         others: plot.others,
       };
   }

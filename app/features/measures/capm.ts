@@ -111,7 +111,7 @@ export function measureAgainstMarket(
 }
 
 /** The return that CAPM requires for a beta, which is the height of a security market line at that beta. */
-export function requiredReturnOn(line: MarketLine, beta: Beta): MonthlyReturn {
+function requiredReturnOn(line: MarketLine, beta: Beta): MonthlyReturn {
   return monthlyReturn(
     line.riskFreeRate + beta * (line.marketExpectedReturn - line.riskFreeRate),
   );

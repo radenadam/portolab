@@ -27,7 +27,7 @@ function render(valuation: PortfolioValuation): string {
       report={readPortfolioMeasures(database, valuation)}
       marketLine={studentLineForTest(database, valuation)}
     />,
-  ).replaceAll(/ class="[^"]*"/g, "");
+  ).replaceAll(/ (class|id)="[^"]*"/g, "");
 }
 
 const texts: Record<

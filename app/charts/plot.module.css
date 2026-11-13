@@ -1,0 +1,35 @@
+/* The parts that every chart in a plot shares. The plot sets the font of the marks of its axes, so a width of a character of the font of codes holds a character of each of their texts. A vertical drag scrolls the page, and a horizontal one moves the mark of the chart. */
+.plot {
+  font-family: var(--font-code);
+  font-size: var(--text-chart);
+  touch-action: pan-y;
+  user-select: none;
+}
+
+/* The area holds the drawing and its tooltip, so a position in the drawing places the tooltip as well. */
+.area {
+  position: relative;
+  block-size: 100%;
+}
+
+.drawing {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  overflow: visible;
+}
+
+/* The tooltip of a marked point, in the inverse colors of the panel, which a pointer passes through to the plot. */
+.tip {
+  position: absolute;
+  z-index: 1;
+  inline-size: var(--width-chart-tip);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-button);
+  background: var(--color-ink);
+  color: var(--color-panel);
+  font-family: var(--font-text);
+  font-size: var(--text-caption);
+  line-height: 1.4;
+  pointer-events: none;
+}

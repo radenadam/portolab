@@ -25,19 +25,15 @@ import {
 
 // The portfolio of measures-for-test.server.ts holds BBCA, TLKM, and cash, and read-measures.server.test.ts gives the line of its 60 months and the measures of the portfolio and of its stocks, which the decimal module of Python computed. The portfolio of AMMN has a weight of 3,650,000 / 13,650,000 in AMMN, so Python gives it a beta of 0.296989, an expected return of 0.007546, and a distance of 0.004775 from the line of the 38 months of AMMN, whose IHSG has an expected return of -0.002012.
 
+// The heading names the map by an id that React gives it, which the markup leaves out with the classes.
 function render(part: ReactNode): string {
-  return renderToStaticMarkup(part).replaceAll(/ class="[^"]*"/g, "");
+  return renderToStaticMarkup(part).replaceAll(/ (class|id)="[^"]*"/g, "");
 }
 
-function legend(items: readonly [string, string][]): string {
-  return `<ul aria-hidden="true">${items.map(([mark, name]) => `<li><svg viewBox="-0.5 -0.5 1 1">${mark}</svg>${name}</li>`).join("")}</ul>`;
+/** The legend of the map, which names the kinds of point that it draws, the IHSG, and the line, each after a sample of its mark. */
+function legend(names: readonly string[]): string {
+  return `<ul aria-hidden="true">${[...names, "IHSG", "SML"].map((name) => `<li><span></span>${name}</li>`).join("")}</ul>`;
 }
-
-const marks = {
-  portfolio: '<polygon points="0,-0.5 0.5,0 0,0.5 -0.5,0"></polygon>',
-  holding: '<circle cx="0" cy="0" r="0.3"></circle>',
-  otherStock: '<circle cx="0" cy="0" r="0.25"></circle>',
-};
 
 const fall = '<span aria-hidden="true">▼ </span>';
 const rise = '<span aria-hidden="true">▲ </span>';
@@ -54,6 +50,8 @@ const texts: Record<
     lineNotice: string;
     portfolioName: string;
     holdingsName: string;
+    weightedHoldingsName: string;
+    verticalNotice: string;
     lecturerPortfolioName: string;
     lecturerHoldingsName: string;
     otherStocksName: string;
@@ -87,8 +85,10 @@ const texts: Record<
       "Garis ini melewati suku bunga bebas risiko pada beta 0 dan imbal hasil yang diharapkan IHSG pada beta 1, sehingga memberikan imbal hasil yang disyaratkan CAPM untuk setiap beta. Titik di atas garis memiliki imbal hasil yang diharapkan lebih tinggi daripada yang disyaratkan CAPM untuk betanya, dan titik di bawah garis memiliki imbal hasil yang diharapkan lebih rendah.",
     portfolioName: "Portofolio Anda",
     holdingsName: "Saham Anda",
+    weightedHoldingsName: "Saham Anda, ukuran = bobot",
+    verticalNotice: "Tegak: imbal hasil yang diharapkan per bulan.",
     lecturerPortfolioName: "Portofolio",
-    lecturerHoldingsName: "Saham portofolio",
+    lecturerHoldingsName: "Saham portofolio, ukuran = bobot",
     otherStocksName: "Saham lain",
     formula: `k = ${riskFreeSymbol} + β(E(R<sub>M</sub>) − ${riskFreeSymbol}) = 0,48% + β × (0,05% − 0,48%)`,
     ammnFormula: `k = ${riskFreeSymbol} + β(E(R<sub>M</sub>) − ${riskFreeSymbol}) = 0,48% + β × (-0,20% − 0,48%)`,
@@ -135,8 +135,10 @@ const texts: Record<
       "The line runs through the risk-free rate at a beta of 0 and the expected return of the IHSG at a beta of 1, so it gives the return that CAPM requires for each beta. A point above the line has a higher expected return than CAPM requires for its beta, and a point below it has a lower one.",
     portfolioName: "Your portfolio",
     holdingsName: "Your stocks",
+    weightedHoldingsName: "Your stocks, size = weight",
+    verticalNotice: "Vertical: the expected return per month.",
     lecturerPortfolioName: "Portfolio",
-    lecturerHoldingsName: "Stocks of the portfolio",
+    lecturerHoldingsName: "Stocks of the portfolio, size = weight",
     otherStocksName: "Other stocks",
     formula: `k = ${riskFreeSymbol} + β(E(R<sub>M</sub>) − ${riskFreeSymbol}) = 0.48% + β × (0.05% − 0.48%)`,
     ammnFormula: `k = ${riskFreeSymbol} + β(E(R<sub>M</sub>) − ${riskFreeSymbol}) = 0.48% + β × (-0.20% − 0.48%)`,
@@ -171,12 +173,13 @@ const texts: Record<
   },
 };
 
-/** The markup of the section from its title to the table of the points, with the chart between the legend and the formula left out, because the tests of its layout check it. */
+/** The markup of the section from its title to the table of the points, with the map between the legend and the formula left out, because the tests of the map check it. */
 function sectionWithoutChart(
   parts: {
     notice: string;
     lineNotice: string;
     legend: string;
+    verticalNotice: string;
     formula: string;
     pointsLabel: string;
     table: string;
@@ -188,6 +191,7 @@ function sectionWithoutChart(
     `<p>${parts.notice}</p>`,
     `<p>${parts.lineNotice}</p>`,
     parts.legend,
+    `<p>${parts.verticalNotice}</p>`,
     "CHART",
     `<p>${parts.formula}</p>`,
     `<details><summary>${parts.pointsLabel}</summary>${parts.table}</details>`,
@@ -196,9 +200,16 @@ function sectionWithoutChart(
 
 function withoutChart(html: string): string {
   return html.replace(
-    /<div aria-hidden="true"><svg viewBox=.*?<\/svg><\/div>/,
+    /<div><div style="[^"]*"><div><svg aria-hidden="true">.*?<\/svg><\/div><\/div><\/div>/,
     "CHART",
   );
+}
+
+/** Whether the map names a point beside its mark, at any of the places beside it. */
+function namesPoint(html: string, name: string): boolean {
+  return new RegExp(
+    `<text x="[^"]+" y="[^"]+" dx="[^"]+" dy="[^"]+" text-anchor="[a-z]+">${name}</text>`,
+  ).test(html);
 }
 
 for (const locale of locales) {
@@ -220,10 +231,8 @@ for (const locale of locales) {
         {
           notice: text.portfolioNotice,
           lineNotice: text.lineNotice,
-          legend: legend([
-            [marks.portfolio, `${text.portfolioName} (p)`],
-            [marks.holding, text.holdingsName],
-          ]),
+          legend: legend([text.portfolioName, text.weightedHoldingsName]),
+          verticalNotice: text.verticalNotice,
           formula: text.formula,
           pointsLabel: text.pointsLabel,
           table: measureTableForTest(text.header, [
@@ -238,20 +247,9 @@ for (const locale of locales) {
         `<p>${text.oneOtherLine}</p>` +
         `<p>${text.unmeasured}</p>`,
     );
-    // The chart labels the risk-free rate, the IHSG, the portfolio, and each of its stocks.
-    expect(html).toContain(
-      '<div aria-hidden="true"><svg viewBox="0 0 328 256" font-size="14">',
-    );
-    for (const label of [
-      'R<tspan dy="0.3em" font-size="75%">f</tspan>',
-      "M",
-      "p",
-      "BBCA",
-      "TLKM",
-    ]) {
-      expect(html).toMatch(
-        new RegExp(`<text x="[^"]+" y="[^"]+">${label}</text>`),
-      );
+    // The map names the portfolio, each of its stocks, and the IHSG in words, as decision 0035 sets, and the table names them with the symbols of the formula of the line.
+    for (const name of [text.portfolioName, "BBCA", "TLKM", "IHSG"]) {
+      expect(namesPoint(html, name)).toBe(true);
     }
   });
 
@@ -270,10 +268,8 @@ for (const locale of locales) {
         {
           notice: text.ammnNotice,
           lineNotice: text.lineNotice,
-          legend: legend([
-            [marks.portfolio, `${text.portfolioName} (p)`],
-            [marks.holding, text.holdingsName],
-          ]),
+          legend: legend([text.portfolioName, text.weightedHoldingsName]),
+          verticalNotice: text.verticalNotice,
           formula: text.ammnFormula,
           pointsLabel: text.pointsLabel,
           table: measureTableForTest(text.header, [
@@ -294,7 +290,7 @@ for (const locale of locales) {
     switchLocaleForTest(locale);
     const database = databaseWithClosesForTest();
     const latest = (
-      legendItems: readonly [string, string][],
+      legendItems: readonly string[],
       rows: readonly (readonly string[])[],
     ): string =>
       sectionWithoutChart(
@@ -302,6 +298,7 @@ for (const locale of locales) {
           notice: text.latestNotice,
           lineNotice: text.lineNotice,
           legend: legend(legendItems),
+          verticalNotice: text.verticalNotice,
           formula: text.formula,
           pointsLabel: text.pointsLabel,
           table: measureTableForTest(text.header, [
@@ -321,11 +318,8 @@ for (const locale of locales) {
           />,
         ),
       ),
-    ).toBe(
-      latest([[marks.otherStock, text.otherStocksName]], text.stockRows) +
-        offTheChart,
-    );
-    // The portfolio of BBCA and TLKM lacks a delayed price of TLKM, so it has no measures, but the chart labels the stocks that it holds.
+    ).toBe(latest([text.otherStocksName], text.stockRows) + offTheChart);
+    // The portfolio of BBCA and TLKM lacks a delayed price of TLKM, so it has no measures, but the map names the stocks that it holds.
     expect(readPortfolioMeasures(database, valuationForTest(["BBCA"]))).toEqual(
       { kind: "unpriced", codes: ["TLKM"] },
     );
@@ -335,13 +329,10 @@ for (const locale of locales) {
       />,
     );
     expect(withoutChart(held)).toBe(
-      latest([[marks.holding, text.holdingsName]], text.stockRows) +
-        offTheChart,
+      latest([text.holdingsName], text.stockRows) + offTheChart,
     );
-    for (const label of ["BBCA", "TLKM"]) {
-      expect(held).toMatch(
-        new RegExp(`<text x="[^"]+" y="[^"]+">${label}</text>`),
-      );
+    for (const name of ["BBCA", "TLKM"]) {
+      expect(namesPoint(held, name)).toBe(true);
     }
     expect(
       withoutChart(
@@ -357,7 +348,7 @@ for (const locale of locales) {
           />,
         ),
       ),
-    ).toBe(latest([[marks.otherStock, text.otherStocksName]], text.stockRows));
+    ).toBe(latest([text.otherStocksName], text.stockRows));
   });
 
   test(`draws the line of the months of the portfolio of a student for the lecturer, with the portfolio and its stocks, in ${language}`, () => {
@@ -386,9 +377,10 @@ for (const locale of locales) {
           notice: text.lecturerNotice,
           lineNotice: text.lineNotice,
           legend: legend([
-            [marks.portfolio, `${text.lecturerPortfolioName} (p)`],
-            [marks.holding, text.lecturerHoldingsName],
+            text.lecturerPortfolioName,
+            text.lecturerHoldingsName,
           ]),
+          verticalNotice: text.verticalNotice,
           formula: text.formula,
           pointsLabel: text.pointsLabel,
           table: measureTableForTest(text.header, [
