@@ -159,7 +159,6 @@ test("lists every route of app/routes.ts", () => {
   );
 });
 
-/** Creates the class of the walk with the widest names, the most starting cash, a student who holds BBCA, and a lecturer who has not finished the account yet, and returns the page of each reader. */
 // Beside the holding of BBCA, the portfolio of the walk holds PGAS, which has one of the longest names of a company, with 35 characters, and AMMN, whose name holds the longest word, "Internasional". Each is 100 shares bought at the close of 29 October 2026 with the broker fee of 0.15%, PGAS at Rp1,215 for Rp121,682 and AMMN at Rp3,740 for Rp374,561, as the decimal module of Python computed with ROUND_HALF_UP. They leave Rp505,258,503,757 of the cash that the purchase of BBCA left.
 const widestNameHoldings = [
   { code: "PGAS", shares: shares(100), cost: rupiah(121_682) },
@@ -167,6 +166,7 @@ const widestNameHoldings = [
 ];
 const walkedCash = rupiah(505_258_503_757);
 
+/** Creates the class of the walk with the widest names, the most starting cash, a student who holds BBCA, PGAS, and AMMN, and a lecturer who has not finished the account yet, and returns the page of each reader. */
 async function walkedReaders(
   page: Page,
   browser: Browser,
