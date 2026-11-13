@@ -1,0 +1,32 @@
+.rise,
+.fall,
+.flat {
+  display: block;
+  inline-size: var(--width-sparkline);
+  block-size: var(--size-sparkline);
+  overflow: visible;
+}
+
+.rise {
+  --line-color: var(--color-gain);
+}
+
+.fall {
+  --line-color: var(--color-loss);
+}
+
+.flat {
+  --line-color: var(--color-muted);
+}
+
+.line {
+  fill: none;
+  stroke: var(--line-color);
+  stroke-width: calc(var(--size-mark) * 0.75);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.dot {
+  fill: var(--line-color);
+}
