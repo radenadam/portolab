@@ -977,7 +977,7 @@ for (const locale of locales) {
       ).toBeVisible();
       await expect(field).toHaveValue(outside);
     }
-    // A reader who types one digit too many gives the field a year of six digits, which the field sends as it holds it. The browsers of the tests show a date as its month, its day, and its year.
+    // A reader who types two digits too many gives the field a year of six digits, which the field sends as it holds it. The browsers of the tests show a date as its month, its day, and its year.
     await field.fill("");
     await field.focus();
     await page.keyboard.type("0907202666");
