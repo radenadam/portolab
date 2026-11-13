@@ -203,7 +203,7 @@ function themeOf(library: ChartLibrary, container: HTMLElement): ChartTheme {
       layout: {
         background: { type: library.ColorType.Solid, color: "transparent" },
         textColor: muted,
-        fontFamily: token("--font-numbers"),
+        fontFamily: token("--font-code"),
         fontSize: Number.parseFloat(style.fontSize),
         attributionLogo: false,
       },

@@ -59,7 +59,7 @@ Every screen follows the 14 principles of the specification on that branch, whic
 
 ### The look
 
-The colors are tokens of `app/theme.css`, which defines each one when a screen first uses it:
+The colors are tokens of `app/theme.css`, which defines all of them before the screens use them, because the changes of issue #127 rebuild the screens at the same time:
 
 | Role                                               | Token                   | Light                     | Dark                        |
 | -------------------------------------------------- | ----------------------- | ------------------------- | --------------------------- |

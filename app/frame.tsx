@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router";
+import { AppIcon } from "./app-icon";
 import styles from "./frame.module.css";
 import { formatMarketTime, formatNumber } from "./formatting";
 import { m } from "./paraglide/messages.js";
@@ -32,7 +33,7 @@ interface FrameProps {
   children: ReactNode;
 }
 
-/** The frame of every page, as decision 0026 sets it: on a desktop, the sidebar with the mark, the navigation, the account, the language, the mark of a simulation, and the delay of prices. On a phone, the top bar with the same parts and the navigation in a tab bar at the bottom. */
+/** The frame of every page, as decision 0026 sets it: on a desktop, the sidebar with the mark, which is the app icon of decision 0028 beside the name of Portolab, the navigation, the account, the language, the mark of a simulation, and the delay of prices. On a phone, the top bar with the same parts and the navigation in a tab bar at the bottom. */
 export function Frame({
   navigation,
   backLink,
@@ -51,6 +52,7 @@ export function Frame({
             backLink !== undefined && styles["markBesideBack"],
           )}
         >
+          <AppIcon />
           {m.app_name()}
         </Link>
         {backLink !== undefined && (

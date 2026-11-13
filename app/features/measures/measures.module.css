@@ -30,7 +30,7 @@
 .marketLineChart {
   align-self: stretch;
   height: var(--size-chart);
-  font-family: var(--font-numbers);
+  font-family: var(--font-code);
   font-size: var(--text-small);
 }
 
