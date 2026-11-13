@@ -180,17 +180,26 @@ test("gives returns without any spread a range, so a flat line still has a heigh
   expect(layout.returnTicks.length).toBeGreaterThanOrEqual(2);
 });
 
-test("writes each mark of the expected returns apart from the others when they spread over less than a hundredth of a percent", () => {
-  // The expected return of the IHSG lies 0.001% above the risk-free rate of 0.5%, so the marks stand a hundredth of a percent apart at the least, and only the mark at 0.5% lies in the range of the returns.
-  const close = {
-    riskFreeRate: monthlyReturn(0.005),
-    marketExpectedReturn: monthlyReturn(0.00501),
-  };
-  const anchors = points.slice(0, 2).map((point, index) => ({
-    ...point,
-    expectedReturn: monthlyReturn(index === 0 ? 0.005 : 0.00501),
-  }));
-  switchLocaleForTest("en");
-  const layout = layoutMarketLineChart(close, anchors, frame);
-  expect(layout.returnTicks.map((tick) => tick.text)).toEqual(["0.5%"]);
-});
+const closeReturnTexts: Record<Locale, readonly string[]> = {
+  id: ["0,5%"],
+  en: ["0.5%"],
+};
+
+for (const locale of locales) {
+  test(`writes each mark of the expected returns apart from the others when they spread over less than a hundredth of a percent, in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    // The expected return of the IHSG lies 0.001% above the risk-free rate of 0.5%, so the marks stand a hundredth of a percent apart at the least, and only the mark at 0.5% lies in the range of the returns.
+    const close = {
+      riskFreeRate: monthlyReturn(0.005),
+      marketExpectedReturn: monthlyReturn(0.00501),
+    };
+    const anchors = points.slice(0, 2).map((point, index) => ({
+      ...point,
+      expectedReturn: monthlyReturn(index === 0 ? 0.005 : 0.00501),
+    }));
+    const layout = layoutMarketLineChart(close, anchors, frame);
+    expect(layout.returnTicks.map((tick) => tick.text)).toEqual(
+      closeReturnTexts[locale],
+    );
+  });
+}
