@@ -52,6 +52,7 @@ const texts: Record<
     measuresTitle: (name: string) => string;
     allPortfoliosLink: string;
     portfolioHeadings: readonly string[];
+    noReasons: (name: string) => string;
     lecturerValuation: (name: string) => string;
     bbcaTotal: string;
     bbcaValue: readonly string[];
@@ -131,7 +132,9 @@ const texts: Record<
       "Nilai portofolio",
       "Saham yang dipegang",
       "Imbal hasil dibandingkan IHSG",
+      "Alasan order",
     ],
+    noReasons: (name) => `${name} belum menulis alasan untuk order mana pun.`,
     lecturerValuation: (name) =>
       `Portofolio ${name} adalah simulasi dengan uang virtual. Portolab menilai setiap saham yang dipegangnya pada harga tertunda terakhir dari Yahoo Finance, sekitar 10 menit di belakang BEI, sehingga nilainya dapat berbeda dari nilai di bursa pada saat yang sama.`,
     bbcaTotal: "Rp\u00a01.003.259.000.000",
@@ -248,7 +251,9 @@ const texts: Record<
       "Value of the portfolio",
       "Holdings",
       "Return against the IHSG",
+      "Reasons for the orders",
     ],
+    noReasons: (name) => `${name} has not written a reason for any order yet.`,
     lecturerValuation: (name) =>
       `The portfolio of ${name} is a simulation with virtual cash. Portolab values each holding at the latest delayed price from Yahoo Finance, about 10 minutes behind IDX, so a value can differ from the value on the exchange at the same moment.`,
     bbcaTotal: "IDR\u00a01,003,259,000,000",
@@ -465,6 +470,10 @@ for (const locale of locales) {
       text.bbcaValue.join(""),
     );
     await expect(main.locator("form")).toHaveCount(0);
+    // The student holds the shares that the test stored, without an order, so no order has a reason.
+    await expect(
+      main.getByText(text.noReasons(studentName), { exact: true }),
+    ).toBeVisible();
     await expectAccessibleScreen(page);
     await main.getByRole("link", { name: text.allPortfoliosLink }).click();
     await expect(page).toHaveURL(`${classPath}/portfolios`);

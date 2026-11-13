@@ -1,6 +1,12 @@
 import { useId } from "react";
 import type { ReactNode } from "react";
 import { Form, useNavigation } from "react-router";
+import {
+  DescribedField,
+  describedBy,
+  FieldFailure,
+  failureIdOf,
+} from "./described-field";
 import styles from "./form.module.css";
 
 interface TextFieldProps {
@@ -48,6 +54,39 @@ export function TextField({
         className={
           inputMode === "numeric" ? styles["numberInput"] : styles["input"]
         }
+      />
+    </DescribedField>
+  );
+}
+
+interface TextAreaFieldProps {
+  name: string;
+  label: string;
+  hint: string;
+  /** Why the value that the form sent was not accepted. */
+  failure: string | undefined;
+  defaultValue: string;
+}
+
+/** A field of several lines of text, such as the reason of an order, with its label, a hint, and the reason its value was not accepted, which a screen reader reads with it. */
+export function TextAreaField({
+  name,
+  label,
+  hint,
+  failure,
+  defaultValue,
+}: TextAreaFieldProps): ReactNode {
+  const id = useId();
+  return (
+    <DescribedField id={id} label={label} hint={hint} failure={failure}>
+      <textarea
+        id={id}
+        name={name}
+        rows={3}
+        defaultValue={defaultValue}
+        aria-invalid={failure !== undefined}
+        aria-describedby={describedBy(id, { hint, failure })}
+        className={styles["textArea"]}
       />
     </DescribedField>
   );
@@ -252,77 +291,6 @@ export function StepForm({
 export function FormSuccess({ text }: { text: string }): ReactNode {
   return (
     <p role="status" className={styles["success"]}>
-      {text}
-    </p>
-  );
-}
-
-interface DescribedFieldProps {
-  /** The id of the control of the field, from which the ids of the hint and the reason follow. */
-  id: string;
-  label: string;
-  hint: string | undefined;
-  failure: string | undefined;
-  /** The control, which describedBy gives the ids of the hint and the reason. */
-  children: ReactNode;
-}
-
-/** A field with its label and the reason that its value was not accepted above its control, and its hint below it, as decision 0026 sets. */
-function DescribedField({
-  id,
-  label,
-  hint,
-  failure,
-  children,
-}: DescribedFieldProps): ReactNode {
-  return (
-    <div className={styles["field"]}>
-      <label htmlFor={id} className={styles["label"]}>
-        {label}
-      </label>
-      <FieldFailure id={failureIdOf(id)} text={failure} />
-      {children}
-      {hint !== undefined && (
-        <p id={hintIdOf(id)} className={styles["hint"]}>
-          {hint}
-        </p>
-      )}
-    </div>
-  );
-}
-
-/** The ids of the hint and the reason that describe the control of a field, so a screen reader reads them with it. */
-function describedBy(
-  id: string,
-  { hint, failure }: { hint: string | undefined; failure: string | undefined },
-): string | undefined {
-  const ids: string[] = [];
-  if (hint !== undefined) {
-    ids.push(hintIdOf(id));
-  }
-  if (failure !== undefined) {
-    ids.push(failureIdOf(id));
-  }
-  return ids.length === 0 ? undefined : ids.join(" ");
-}
-
-function hintIdOf(id: string): string {
-  return `${id}-hint`;
-}
-
-function failureIdOf(id: string): string {
-  return `${id}-failure`;
-}
-
-function FieldFailure({
-  id,
-  text,
-}: {
-  id: string;
-  text: string | undefined;
-}): ReactNode {
-  return text === undefined ? null : (
-    <p id={id} className={styles["failure"]}>
       {text}
     </p>
   );

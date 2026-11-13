@@ -15,6 +15,8 @@ export interface OrderRequest {
   side: OrderSide;
   lots: OrderLots;
   price: OrderPrice;
+  /** Why the student places the order, in their own words, which the lecturer of the class reads, or undefined when the student wrote none. Portolab checks the order without it. */
+  reason: string | undefined;
   placedAt: Date;
 }
 

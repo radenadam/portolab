@@ -91,6 +91,7 @@ export function savePlacedOrder(
       side: order.side,
       lots: order.lots,
       limit: limitOf(order.price),
+      reason: order.reason ?? null,
       placedAt: order.placedAt,
       shares: order.shares,
       tradingDay: order.tradingDay,
