@@ -81,7 +81,8 @@
 
 /* The value of a field stands on a line of ink without a box, and it takes the whole width of its form, so a long value stays visible on a phone. */
 .input,
-.numberInput {
+.numberInput,
+.textArea {
   width: 100%;
   min-height: var(--size-touch-target);
   padding: 0;
@@ -98,8 +99,13 @@
   font-family: var(--font-numbers);
 }
 
+/* A field of several lines grows taller when the reader drags its corner, so a long text can be read whole, but never wider than its form. */
+.textArea {
+  resize: vertical;
+}
+
 /* A field whose value was not accepted gets a thicker line, so the mark does not depend on color. */
-:is(.input, .numberInput)[aria-invalid="true"] {
+:is(.input, .numberInput, .textArea)[aria-invalid="true"] {
   border-block-end-width: var(--size-mark);
 }
 
@@ -123,8 +129,8 @@
   padding-inline: var(--space-4);
   border: 0;
   border-radius: var(--radius-button);
-  background: var(--color-signal);
-  color: var(--color-on-signal);
+  background: var(--color-button);
+  color: var(--color-on-button);
   font: inherit;
   font-weight: 600;
   cursor: pointer;

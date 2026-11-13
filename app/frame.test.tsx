@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+import { AppIcon } from "./app-icon";
 import {
   delayNoticeText,
   Frame,
@@ -63,7 +64,7 @@ for (const locale of locales) {
     expect(delayNoticeText(10, undefined)).toBe(text.delayWithoutPrices);
   });
 
-  test(`frames a page with the mark, the navigation with its current page, the tools, the mark of a simulation, the delay, and the main landmark, in ${language}`, () => {
+  test(`frames a page with the mark of the app icon and the name, the navigation with its current page, the tools, the mark of a simulation, the delay, and the main landmark, in ${language}`, () => {
     switchLocaleForTest(locale);
     const html = withoutClasses(
       renderInRouterForTest(
@@ -79,7 +80,7 @@ for (const locale of locales) {
       ),
     );
     for (const part of [
-      '<a href="/" data-discover="true">Portolab</a>',
+      `<a href="/" data-discover="true">${withoutClasses(renderInRouterForTest(<AppIcon />))}Portolab</a>`,
       `<nav aria-label="${text.navigation}"><ul><li><a aria-current="page" href="/classes/7/portfolio" data-discover="true">Portofolio</a></li><li><a href="/prices" data-discover="true">Harga</a></li></ul></nav>`,
       `<div><span>tools</span></div><p>${text.simulation}</p><p>${text.delay}</p>`,
       "<main><p>page</p></main>",

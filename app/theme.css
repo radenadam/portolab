@@ -1,20 +1,44 @@
-/* Decision 0012 sets this look, its palette, and its fonts, which app/root.tsx loads. Decision 0026 sets the layout and the sizes, which the reference screens in docs/design/tenang/ draw. */
+/* Decision 0028 sets the palette, the fonts, which app/root.tsx loads, and the width of content of Peta. The sizes of text, the spaces, and the widths of the columns are still those of decision 0026, because the screens that issue #127 has not rebuilt yet are laid out with them. */
 :root {
   color-scheme: light dark;
 
-  --color-background: #f8f8fa;
-  --color-surface: #eeeef3;
-  --color-ink: #16161d;
-  --color-muted: #5e5e6c;
-  --color-line: #e2e2ea;
-  --color-signal: #3f3dc8;
-  --color-on-signal: #ffffff;
+  --color-background: #f1f4f7;
+  --color-panel: #ffffff;
+  --color-raised: #eef2f5;
+  --color-line: #dfe5ea;
+  --color-line-strong: #b9c4cf;
+  --color-ink: #0f1820;
+  --color-ink-secondary: #374552;
+  --color-muted: #5d6b78;
+  --color-data: #1f6fd6;
+  --color-own: #c97800;
+  --color-gain: #0b7a53;
+  --color-loss: #c73a28;
+  --color-warning: #8a5a00;
+  --color-on-button: #ffffff;
+  --color-link: #1a5fba;
+  --color-data-soft: rgba(31, 111, 214, 0.1);
+  --color-own-soft: rgba(201, 120, 0, 0.14);
+  --color-gain-soft: #e1f3eb;
+  --color-loss-soft: #fbe8e4;
+  --color-warning-soft: #fbf0d9;
+  /* The button is ink, Beli is the green of gains, Jual is the red of losses, and each carries the text of a button, so these follow the colors of their role in each theme. */
+  --color-button: var(--color-ink);
+  --color-buy: var(--color-gain);
+  --color-on-buy: var(--color-on-button);
+  --color-sell: var(--color-loss);
+  --color-on-sell: var(--color-on-button);
 
   --font-text:
-    "IBM Plex Sans Variable", system-ui, -apple-system, "Segoe UI", Roboto,
+    "Instrument Sans Variable", system-ui, -apple-system, "Segoe UI", Roboto,
     sans-serif;
-  --font-numbers:
-    "IBM Plex Mono", ui-monospace, Menlo, Consolas, "Liberation Mono", monospace;
+  --font-code:
+    "DM Mono", ui-monospace, Menlo, Consolas, "Liberation Mono", monospace;
+
+  /* The screens that issue #127 has not rebuilt yet still use the names of Tenang, which take the color or the font of Peta that plays their part. */
+  --color-surface: var(--color-raised);
+  --color-signal: var(--color-data);
+  --font-numbers: var(--font-text);
 
   --text-headline: 2.875rem;
   --text-measure: 1.375rem;
@@ -26,7 +50,7 @@
   --text-row: 0.84375rem;
   --text-caption: 0.78125rem;
   --text-small: 0.75rem;
-  /* The pages that issue #118 has not rebuilt yet still open with a large title, and the code of a class stands out on its page. */
+  /* The pages that issue #127 has not rebuilt yet still open with a large title, and the code of a class stands out on its page. */
   --text-title: 1.75rem;
   --text-heading: 1.25rem;
 
@@ -48,9 +72,13 @@
   --width-sidebar: 11.5rem;
   --width-main: 42rem;
   --width-aside: 21.5rem;
+  /* The largest width of the content of a screen, which decision 0028 sets and e2e/expect-layout.ts checks every part marked as content against. */
+  --width-content: 85rem;
+  /* The app icon takes the size that the rail of the references draws it at. */
+  --size-app-icon: 2.25rem;
   /* A chart takes about a third of the screen of a phone held upright, so the text around it stays in view. */
   --size-chart: 16rem;
-  /* Thin lines separate the parts of a page, as decision 0012 sets. A mark, such as focus, hover, or the current choice, must stand out from them. */
+  /* Thin lines separate the parts of a page, as decision 0028 sets. A mark, such as focus, hover, or the current choice, must stand out from them. */
   --size-line: 1px;
   --size-mark: 2px;
   /* The smallest touch target, which AGENTS.md sets and e2e/expect-accessible-screen.ts checks every screen against. */
@@ -72,13 +100,26 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-background: #121216;
-    --color-surface: #1c1c24;
-    --color-ink: #ececf1;
-    --color-muted: #9d9dac;
-    --color-line: #2a2a34;
-    --color-signal: #a9a8ff;
-    --color-on-signal: #15142b;
+    --color-background: #0f1317;
+    --color-panel: #151b21;
+    --color-raised: #1d252d;
+    --color-line: #25303a;
+    --color-line-strong: #3b4956;
+    --color-ink: #e9eef2;
+    --color-ink-secondary: #b9c4ce;
+    --color-muted: #8695a3;
+    --color-data: #3987e5;
+    --color-own: #c98500;
+    --color-gain: #3dcb8c;
+    --color-loss: #ff7f6e;
+    --color-warning: #e9b44c;
+    --color-on-button: #0f1317;
+    --color-link: #7db3f5;
+    --color-data-soft: rgba(57, 135, 229, 0.18);
+    --color-own-soft: rgba(201, 133, 0, 0.2);
+    --color-gain-soft: rgba(61, 203, 140, 0.14);
+    --color-loss-soft: rgba(255, 127, 110, 0.15);
+    --color-warning-soft: rgba(233, 180, 76, 0.14);
   }
 }
 
@@ -94,6 +135,8 @@ body {
   color: var(--color-ink);
   font-family: var(--font-text);
   font-size: var(--text-body);
+  /* Every figure of the font of text takes the same width, so digits line up in columns, as decision 0028 sets. */
+  font-variant-numeric: tabular-nums;
   line-height: 1.5;
 }
 
@@ -125,13 +168,13 @@ p {
 }
 
 a {
-  color: var(--color-signal);
+  color: var(--color-link);
 }
 
 /* The label of a part that opens, such as a table of returns, has the color of a link and the height of a touch target, and it keeps the marker that shows whether the part is open. */
 summary {
   min-height: var(--size-touch-target);
-  color: var(--color-signal);
+  color: var(--color-link);
   line-height: var(--size-touch-target);
   cursor: pointer;
 }
@@ -142,15 +185,15 @@ summary {
   text-decoration-thickness: var(--size-mark);
 }
 
-/* A button that waits for the answer to its form shows muted text on the surface color, as the references draw a button that cannot act, so a reader on a touch screen sees the wait too, which the pointer shows on a mouse. */
+/* A button that waits for the answer to its form shows muted text on the raised color, so a reader on a touch screen sees the wait too, which the pointer shows on a mouse. */
 button:disabled {
-  background: var(--color-surface);
+  background: var(--color-raised);
   color: var(--color-muted);
   cursor: progress;
 }
 
 :focus-visible,
 label:has(> input[type="radio"]:focus-visible) {
-  outline: var(--size-mark) solid var(--color-signal);
+  outline: var(--size-mark) solid var(--color-data);
   outline-offset: var(--size-mark);
 }

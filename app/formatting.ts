@@ -118,16 +118,37 @@ function formatTwoDecimals(value: number): string {
   }).format(value);
 }
 
-/** Formats a calendar date such as 2026-11-02 as a date in words, such as 2 November 2026 in a sentence, or with the short month of a table, such as 2 Nov 2026. */
+/** How a calendar date reads: in words for a sentence, in words with the day of the week, or with the short month of a table. */
+type CalendarDateStyle = "long" | "weekday" | "medium";
+
+const calendarDateOptions: Record<
+  CalendarDateStyle,
+  Intl.DateTimeFormatOptions
+> = {
+  long: { dateStyle: "long" },
+  // The full style of Bahasa Indonesia writes the day with two digits, such as Senin, 02 November 2026, which no other date of Portolab does.
+  weekday: { weekday: "long", day: "numeric", month: "long", year: "numeric" },
+  medium: { dateStyle: "medium" },
+};
+
+/** Formats a calendar date such as 2026-11-02 as a date in words, such as 2 November 2026 in a sentence, with the day of the week, such as Senin, 2 November 2026, or with the short month of a table, such as 2 Nov 2026. */
 export function formatCalendarDate(
   date: string,
-  dateStyle: "long" | "medium" = "long",
+  style: CalendarDateStyle = "long",
 ): string {
-  // A calendar date names a day without a time zone, and startOfUtcDate gives the start of that day in UTC, so the date is formatted in UTC.
+  return formatUtcDay(startOfUtcDate(date), style);
+}
+
+/** Formats the day of a moment in UTC as formatCalendarDate formats a calendar date, such as the day that a field of a date sent, whose year can have more than four digits, such as 7 September 202666. */
+export function formatUtcDay(
+  moment: Date,
+  style: CalendarDateStyle = "long",
+): string {
+  // A calendar date names a day without a time zone, and the moment is the start of the day in UTC, as startOfUtcDate gives it, so the day is formatted in UTC.
   return new Intl.DateTimeFormat(intlLocale(), {
-    dateStyle,
+    ...calendarDateOptions[style],
     timeZone: "UTC",
-  }).format(startOfUtcDate(date));
+  }).format(moment);
 }
 
 /** Formats one part of a calendar date such as 2026-10-30, which a mark on a time axis shows: the year, such as 2026, the month, such as Okt, or the day, such as 30. */

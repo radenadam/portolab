@@ -31,11 +31,13 @@ const texts: Record<
       ">Jenis order</legend>",
       ">Jumlah lot</label>",
       ">Harga limit</label>",
+      ">Alasan (opsional)</label>",
       ">Pasang order</button>",
     ],
     hints: [
       "Satu lot berisi 100 saham. Satu order berisi 1 lot sampai 50.000 lot, yaitu order terbesar yang diterima BEI.",
       "Dalam rupiah bulat. Hanya order limit yang memakainya. Pembelian tereksekusi pada harga ini atau lebih rendah, dan penjualan pada harga ini atau lebih tinggi.",
+      "Mengapa Anda memasang order ini, paling banyak 500 karakter. Portolab menyimpannya bersama order ini, dan dosen kelas ini dapat membacanya.",
     ],
     options: [
       ">Beli</label>",
@@ -59,11 +61,13 @@ const texts: Record<
       ">Kind of order</legend>",
       ">Lots</label>",
       ">Limit price</label>",
+      ">Reason (optional)</label>",
       ">Place the order</button>",
     ],
     hints: [
       "A lot is 100 shares. An order has 1 lot to 50,000 lots, the largest order that IDX accepts.",
       "In whole rupiah. Only a limit order uses it. A purchase fills at this price or lower, and a sale at this price or higher.",
+      "Why you place this order, in at most 500 characters. Portolab keeps it with the order, and the lecturer of this class can read it.",
     ],
     options: [
       ">Buy</label>",
@@ -118,12 +122,13 @@ for (const locale of locales) {
             side: "buy",
             lots: "25",
             limit: "9.875",
+            reason: "Bank besar dengan laba stabil.",
           }}
           rejection={{ text: "The reason of the order.", lotsStep }}
         />,
       ).replaceAll(/ class="[^"]*"/g, "");
       expect(html).toContain(
-        `<div role="alert"><p>${text.rejectedTitle}</p><p>The reason of the order.</p><form data-discover="true" action="/" method="post"><input type="hidden" name="side" value="buy"/><input type="hidden" name="priceKind" value="market"/><input type="hidden" name="limit" value="9.875"/><button type="submit" ${button}</form></div><form`,
+        `<div role="alert"><p>${text.rejectedTitle}</p><p>The reason of the order.</p><form data-discover="true" action="/" method="post"><input type="hidden" name="side" value="buy"/><input type="hidden" name="priceKind" value="market"/><input type="hidden" name="limit" value="9.875"/><input type="hidden" name="reason" value="Bank besar dengan laba stabil."/><button type="submit" ${button}</form></div><form`,
       );
       // Enter in a field sends a form with its first submit button, so the form of the fields holds only the button that places the order.
       const fieldsForm = html.slice(html.lastIndexOf("<form"));
@@ -133,7 +138,7 @@ for (const locale of locales) {
   });
 }
 
-test("shows what the student sent, the reason at each field, and a rejection without a step above the fields", () => {
+test("shows what the student sent, the reason that each field was not accepted at the field, and a rejection without a step above the fields", () => {
   const html = renderInRouterForTest(
     <OrderForm
       day={monday}
@@ -143,7 +148,9 @@ test("shows what the student sent, the reason at each field, and a rejection wit
         priceKind: "limit",
         lots: "5",
         limit: "2.000",
+        reason: "Menunggu harga turun.",
         limitFailure: "The reason of the limit price.",
+        reasonFailure: "Why the reason was not accepted.",
       }}
       rejection={{ text: "The reason of the order.", lotsStep: undefined }}
     />,
@@ -153,6 +160,10 @@ test("shows what the student sent, the reason at each field, and a rejection wit
   expect(html).toContain('value="5"');
   expect(html).toContain('value="2.000"');
   expect(html).toContain("The reason of the limit price.</p>");
+  expect(html).toMatch(
+    /name="reason"[^>]* aria-invalid="true" aria-describedby="[^"]+-hint [^"]+-failure"[^>]*>Menunggu harga turun\.<\/textarea>/,
+  );
+  expect(html).toContain("Why the reason was not accepted.</p>");
   expect(html).toContain('role="alert"');
   expect(html).toContain("The reason of the order.</p></div>");
   expect(html).not.toContain('name="lotsStep"');

@@ -65,6 +65,8 @@ export const orders = sqliteTable(
     side: text("side", { enum: orderSides }).notNull(),
     lots: integer("lots").$type<OrderLots>().notNull(),
     limit: integer("limit").$type<Rupiah>(),
+    /** Why the student placed the order, in their own words, which the lecturer of the class reads, as decision 0033 explains. An order without one has none. It lives as long as its order, as the privacy notice states. */
+    reason: text("reason"),
     placedAt: integer("placed_at", { mode: "timestamp_ms" }).notNull(),
     shares: integer("shares").$type<Shares>().notNull(),
     tradingDay: text("trading_day").notNull(),

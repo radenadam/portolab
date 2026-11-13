@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
+import { sidewaysProblems } from "./expect-layout.ts";
 
 // The section "Interface behavior" of AGENTS.md sets this as the smallest touch target, and axe does not check it.
 const smallestTargetHeight = 44;
@@ -52,13 +53,6 @@ export async function expectAccessibleScreen(page: Page): Promise<void> {
     }
   }
   expect(smallTargets).toEqual([]);
-  // Axe does not check the width, and a page wider than a phone scrolls sideways under the reader's thumb.
-  const widths = await page.evaluate(() => ({
-    page: document.documentElement.scrollWidth,
-    viewport: document.documentElement.clientWidth,
-  }));
-  expect(
-    widths.page,
-    `The page is ${String(widths.page)} pixels wide, but the screen is ${String(widths.viewport)} pixels wide.`,
-  ).toBeLessThanOrEqual(widths.viewport);
+  // Axe does not check the width of the page.
+  expect(await sidewaysProblems(page)).toEqual([]);
 }

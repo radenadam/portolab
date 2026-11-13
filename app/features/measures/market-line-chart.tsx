@@ -25,7 +25,7 @@ const drawOrder: Record<PointKind, number> = {
   portfolio: 3,
 };
 
-/** Draws a security market line and its points in SVG, as decision 0008 sets, in the colors and the font of decision 0012, at the size of its frame. It is hidden from assistive technology, because the table of its points below it lists every point, as decision 0023 explains. */
+/** Draws a security market line and its points in SVG, as decision 0008 sets, in the colors and the font of decision 0028, at the size of its frame. It is hidden from assistive technology, because the table of its points below it lists every point, as decision 0023 explains. */
 export function MarketLineChart({
   line,
   points,

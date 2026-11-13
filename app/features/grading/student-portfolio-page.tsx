@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { databaseContext } from "~/database/database.server";
 import type { PriceSourceDescription } from "~/features/market-data/price-source.server";
+import { ReasonSection } from "~/features/trading/order-list";
+import type { StoredOrder } from "~/features/trading/order-rows";
 import { PortfolioView } from "~/features/trading/portfolio-view";
 import { readPortfolioReport } from "~/features/trading/read-portfolio-report.server";
 import type { PortfolioReport } from "~/features/trading/read-portfolio-report.server";
@@ -16,6 +18,7 @@ export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
 export function loader({ context, request, params, url }: Route.LoaderArgs): {
   student: TaughtStudent;
   report: PortfolioReport;
+  orders: StoredOrder[];
   now: Date;
   source: PriceSourceDescription;
 } {
@@ -29,6 +32,7 @@ export function loader({ context, request, params, url }: Route.LoaderArgs): {
       { portfolio, startingCash, joinedAt },
       { now, delayMinutes: source.delayMinutes },
     ),
+    orders: portfolio.orders,
     now,
     source,
   };
@@ -47,6 +51,7 @@ export default function StudentPortfolioPage({
         now={loaderData.now}
         source={loaderData.source}
       />
+      <ReasonSection orders={loaderData.orders} studentName={student.name} />
     </>
   );
 }

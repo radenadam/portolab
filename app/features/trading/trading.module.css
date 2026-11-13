@@ -32,6 +32,11 @@
   font-size: var(--text-small);
 }
 
+/* A reason keeps the line breaks that the student wrote, so its paragraphs stay apart. */
+.reason {
+  white-space: pre-line;
+}
+
 /* The frame of a chart holds the size of its text and the tokens of the theme, which the chart reads when it draws. */
 .chart {
   align-self: stretch;

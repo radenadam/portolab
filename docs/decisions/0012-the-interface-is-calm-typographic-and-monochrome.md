@@ -1,6 +1,6 @@
 # 0012. The interface is calm, typographic, and monochrome
 
-- Status: Accepted. [Decision 0026](0026-every-screen-follows-the-reference-screens-of-tenang.md) sets the layout of every screen, which this record left out, and changes one of its rules: the font of the headline number of a page.
+- Status: Superseded. [Decision 0028](0028-every-screen-follows-the-reference-screens-of-peta.md) replaces these of its rules: the fonts of text and of numbers, the palette with its one signal color, the ink of gains and losses, the space and thin lines that separate the parts of a page, how a chart tells two series apart, how a reader chooses the theme, and the size of the fonts that a browser downloads. Its rule that Portolab serves its fonts from the Fontsource packages stays, for the same reason. Before that, [decision 0026](0026-every-screen-follows-the-reference-screens-of-tenang.md) set the layout of every screen, which this record left out, and changed one of its rules: the font of the headline number of a page.
 - Date: 2026-11-01
 
 ## Context

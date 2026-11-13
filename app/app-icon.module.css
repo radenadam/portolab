@@ -1,0 +1,13 @@
+.icon {
+  flex: none;
+  width: var(--size-app-icon);
+  height: var(--size-app-icon);
+}
+
+.flask {
+  stroke: var(--color-ink);
+}
+
+.line {
+  stroke: var(--color-gain);
+}

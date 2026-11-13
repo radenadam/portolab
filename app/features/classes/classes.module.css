@@ -26,9 +26,9 @@
   font-size: var(--text-small);
 }
 
-/* A code and a temporary password are read from a projector or copied by hand, so they take the font for numbers, whose characters a reader tells apart. */
+/* A code and a temporary password are read from a projector or copied by hand, so they take the font of codes, whose characters a reader tells apart. */
 .code {
-  font-family: var(--font-numbers);
+  font-family: var(--font-code);
   font-size: var(--text-heading);
   overflow-wrap: anywhere;
 }

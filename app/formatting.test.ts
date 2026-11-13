@@ -10,6 +10,7 @@ import {
   formatPercent,
   formatSharpeRatio,
   formatSignedRupiah,
+  formatUtcDay,
   formatVariance,
 } from "./formatting";
 import { languageNames } from "./language-names";
@@ -70,10 +71,22 @@ const signedAmounts: Record<
 
 const dates: Record<
   Locale,
-  { long: string; medium: string; year: string; month: string; day: string }
+  {
+    long: string;
+    weekday: string;
+    oneDigitDay: string;
+    longYear: string;
+    medium: string;
+    year: string;
+    month: string;
+    day: string;
+  }
 > = {
   id: {
     long: "30 Oktober 2026",
+    weekday: "Jumat, 30 Oktober 2026",
+    oneDigitDay: "Senin, 2 November 2026",
+    longYear: "7 September 202666",
     medium: "30 Okt 2026",
     year: "2026",
     month: "Okt",
@@ -81,6 +94,9 @@ const dates: Record<
   },
   en: {
     long: "October 30, 2026",
+    weekday: "Friday, October 30, 2026",
+    oneDigitDay: "Monday, November 2, 2026",
+    longYear: "September 7, 202666",
     medium: "Oct 30, 2026",
     year: "2026",
     month: "Oct",
@@ -106,11 +122,16 @@ for (const locale of locales) {
     });
   });
 
-  test(`formats a calendar date in a sentence, in a table, and in the parts that a time axis shows, in ${languageNames[locale]}`, () => {
+  test(`formats a calendar date in a sentence, with its day of the week, in a table, and in the parts that a time axis shows, and a day of a year of six digits, in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     const text = dates[locale];
     expect(formatCalendarDate("2026-10-30")).toBe(text.long);
+    expect(formatCalendarDate("2026-10-30", "weekday")).toBe(text.weekday);
+    expect(formatCalendarDate("2026-11-02", "weekday")).toBe(text.oneDigitDay);
     expect(formatCalendarDate("2026-10-30", "medium")).toBe(text.medium);
+    const farDay = new Date(0);
+    farDay.setUTCFullYear(202666, 8, 7);
+    expect(formatUtcDay(farDay)).toBe(text.longYear);
     expect(formatCalendarDatePart("2026-10-30", "year")).toBe(text.year);
     expect(formatCalendarDatePart("2026-10-30", "month")).toBe(text.month);
     expect(formatCalendarDatePart("2026-10-30", "day")).toBe(text.day);

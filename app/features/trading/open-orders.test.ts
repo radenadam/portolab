@@ -37,6 +37,7 @@ function order(side: OrderSide, code: string, state: OrderState): Order {
     side,
     lots: orderLotsForTest(1),
     price: { kind: "limit", limit },
+    reason: undefined,
     placedAt,
     shares: shares(100),
     tradingDay: "2026-11-02",
