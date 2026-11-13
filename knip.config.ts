@@ -7,6 +7,8 @@ export default {
     "server/account.ts!",
     "scripts/{check-dev-server,check-messages,check-migrations,check-punctuation,check-workflows,measure-agent-run,plan-deployment-test,plan-review,post-review,print-dependabot-subject,print-schema,read-agent-tools,run-deployment-guide,save-findings,write-review-files}.ts!",
     "project.inlang/paraglide.config.ts",
+    // The list of the market and the holdings of the home of a student of issue #127 call Sparkline, once they show the closes of the last month of each stock.
+    "app/charts/sparkline.tsx!",
   ],
   // Helpers of tests, browser tests, and lint rules are not production code, so the production run leaves them out.
   project: [

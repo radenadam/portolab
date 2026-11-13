@@ -1,6 +1,6 @@
 # 0019. A table of its points makes a chart over time accessible
 
-- Status: Accepted
+- Status: Accepted. [Decision 0029](0029-the-server-draws-every-chart-as-svg.md) changes these of its rules: how a screen reader and a keyboard reach the chart itself, how the library of a chart loads with its budget, the notice of the license of the library, and what a drag on the chart does. Its rule that a table of every point stands beside the chart stays.
 - Date: 2026-11-03
 
 ## Context

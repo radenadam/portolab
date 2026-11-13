@@ -1,4 +1,4 @@
-/* The legend of a chart names each of its series or kinds of point beside a sample of its mark, which the chart tells apart by its style and not by color alone, as decision 0012 sets. */
+/* The legend of a chart names each of its series or kinds of point beside a sample of its mark as the chart draws it, so a reader finds each mark by its name. */
 .legend {
   display: flex;
   flex-wrap: wrap;

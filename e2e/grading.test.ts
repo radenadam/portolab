@@ -505,7 +505,8 @@ for (const locale of locales) {
       .getByRole("link", { name: text.portfolioLink(studentName), exact: true })
       .click();
     await expect(main).toContainText(text.chartNotice(studentName));
-    await expect(main.locator("canvas").first()).toBeVisible();
+    await expect(main.getByRole("slider")).toBeVisible();
+    await expect(main.locator("svg path")).toHaveCount(2);
     await expectAccessibleScreen(page);
     await main
       .getByRole("link", { name: text.measuresLink(studentName), exact: true })

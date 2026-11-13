@@ -8,14 +8,11 @@ import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
 import { rupiah } from "../app/units/rupiah.ts";
 import { shares } from "../app/units/shares.ts";
-import { joinAsNewStudent, signInAsNewLecturer } from "./accounts.ts";
-import { chooseLanguage } from "./choose-language.ts";
-import { createTestClass } from "./create-test-class.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 import { expectMissingPage } from "./expect-missing-page.ts";
 import { expectPageHeadings } from "./expect-page-headings.ts";
 import { expectTexts } from "./expect-texts.ts";
-import { newDevice } from "./new-device.ts";
+import { joinNewClass } from "./join-new-class.ts";
 import { storeTestHolding } from "./store-test-holding.ts";
 import { studentOfNewClass } from "./student-of-new-class.ts";
 import { wideWord } from "./wide-word.ts";
@@ -891,15 +888,10 @@ for (const locale of locales) {
       browser,
     }) => {
       // The lecturer uses a device of their own, so the page of the test, which runs no JavaScript, is the student.
-      const lecturer = await newDevice(browser, locale);
-      await signInAsNewLecturer(lecturer, widestClassNames.lecturerName);
-      const testClass = await createTestClass(lecturer, className);
-      await chooseLanguage(page, locale);
-      await joinAsNewStudent(
-        page,
-        testClass.joinPath,
-        widestClassNames.studentName,
-      );
+      const { lecturer, testClass } = await joinNewClass(page, browser, {
+        locale,
+        ...widestClassNames,
+      });
       await page.goto(`${testClass.path}/orders`);
       await chooseStock(page, locale, "BBCA");
       await expectChosenPrice(page, locale, "BBCA");
