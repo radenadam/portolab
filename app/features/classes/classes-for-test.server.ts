@@ -33,7 +33,7 @@ export function joinContextForTest(
   return context;
 }
 
-/** Creates a class of a lecturer for a test, with the default starting cash, and returns its id and its code. */
+/** Creates a class of a lecturer for a test, with the default starting cash and its first session on Monday 7 September 2026, and returns its id and its code. */
 export function createClassForTest(
   database: Database,
   lecturerId: UserId,
@@ -41,7 +41,12 @@ export function createClassForTest(
 ): { classId: ClassId; joinCode: JoinCode } {
   const classId = createClass(
     database,
-    { lecturerId, name, startingCash: defaultStartingCash },
+    {
+      lecturerId,
+      name,
+      startingCash: defaultStartingCash,
+      firstSessionDate: "2026-09-07",
+    },
     new Date("2026-11-02T03:00:00.000Z"),
   );
   const taught = findTaughtClass(database, classId, lecturerId);

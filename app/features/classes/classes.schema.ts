@@ -17,7 +17,7 @@ export type ClassId = number & { readonly brand: "ClassId" };
 /** The number that identifies the place of a student in a class. */
 export type MembershipId = number & { readonly brand: "MembershipId" };
 
-/** Each class, which its lecturer teaches, with the cash that each of its students starts with and the code with which they join. A class lives until the person who runs the server deletes it, as the privacy notice states. */
+/** Each class, which its lecturer teaches, with the cash that each of its students starts with, the code with which they join, and the date when its first session meets, from which its later sessions follow one a week, as decision 0032 explains. A class that Portolab created before it stored that date has none until its lecturer sets it. A class lives until the person who runs the server deletes it, as the privacy notice states. */
 export const classes = sqliteTable(
   "classes",
   {
@@ -29,6 +29,8 @@ export const classes = sqliteTable(
       .references(() => users.id),
     startingCash: integer("starting_cash").$type<Rupiah>().notNull(),
     joinCode: text("join_code").$type<JoinCode>().notNull().unique(),
+    /** The calendar date of session 1, such as 2026-09-07. */
+    firstSessionDate: text("first_session_date"),
     createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
   },
   (table) => [index("classes_lecturer_id_index").on(table.lecturerId)],

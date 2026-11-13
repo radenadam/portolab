@@ -1,13 +1,20 @@
 import { expect, test } from "@playwright/test";
 import type { Browser, Page } from "@playwright/test";
+import { eq } from "drizzle-orm";
+import { addDays, startOfUtcDate, startOfWeek } from "../app/calendar-dates.ts";
+import { calendarPath } from "../app/features/classes/class-path.ts";
 import {
   classNameMaximumLength,
+  firstSessionReachDays,
   startingCashLimits,
 } from "../app/features/classes/class-rules.ts";
+import { classes } from "../app/features/classes/classes.schema.ts";
+import type { ClassId } from "../app/features/classes/classes.schema.ts";
 import { languageNames } from "../app/language-names.ts";
 import { addressesForOthers } from "../app/local-network.server.ts";
 import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
+import { wibDateOf } from "../app/wib.ts";
 import {
   chosenPassword,
   joinAsNewStudent,
@@ -22,9 +29,12 @@ import { createTestClass, readTestClass } from "./create-test-class.ts";
 import type { TestClass } from "./create-test-class.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 import { newDevice } from "./new-device.ts";
+import { expectPageHeadings } from "./expect-page-headings.ts";
+import { studentOfNewClass } from "./student-of-new-class.ts";
 import { publicServerUrl } from "./test-server.ts";
 import { wideWord } from "./wide-word.ts";
 import { widestClassNames } from "./widest-class-names.ts";
+import { writeTestDatabase } from "./write-test-database.ts";
 
 // The longest names that Portolab accepts, each one word, so each screen that shows a name is checked with its widest content.
 const { className, lecturerName, studentName } = widestClassNames;
@@ -86,6 +96,20 @@ const texts: Record<
     backLink: string;
     notFoundTitle: string;
     newPasswordTitle: string;
+    firstSessionLabel: string;
+    firstSessionHint: string;
+    noFirstSession: string;
+    firstSessionOutOfRange: readonly [string, string, string, string];
+    calendarTitle: string;
+    calendarLink: string;
+    saveCalendarButton: string;
+    lecturerNoCalendar: string;
+    studentNoCalendar: string;
+    term: RegExp;
+    firstWeek: readonly [string, string];
+    midtermWeek: readonly [string, string];
+    courseAhead: readonly [string, string];
+    courseOver: readonly [string, string];
   }
 > = {
   id: {
@@ -165,6 +189,41 @@ const texts: Record<
     backLink: `Kembali ke ${className}`,
     notFoundTitle: "Halaman tidak ditemukan",
     newPasswordTitle: "Pilih kata sandi baru",
+    firstSessionLabel: "Tanggal sesi 1",
+    firstSessionHint:
+      "Sesi berikutnya bertemu setiap minggu sesudahnya, sampai sesi 16. Portolab menentukan semester kelas ini dari tanggal ini.",
+    noFirstSession:
+      'Kolom "Tanggal sesi 1" belum berisi tanggal yang lengkap. Isi kolom itu dengan hari, bulan, dan tahun sesi 1, karena Portolab menghitung sesi setiap minggu dari tanggal itu.',
+    firstSessionOutOfRange: [
+      'Kolom "Tanggal sesi 1" menerima ',
+      " sampai ",
+      ', tetapi isinya "',
+      '". Sebuah kelas berlangsung pada semester ini atau semester di dekatnya, sehingga Portolab menerima tanggal sesi 1 paling jauh 365 hari sebelum atau sesudah hari ini. Periksa tahun tanggal itu.',
+    ],
+    calendarTitle: "Jadwal kuliah",
+    calendarLink: "Atur tanggal sesi 1",
+    saveCalendarButton: "Simpan tanggal",
+    lecturerNoCalendar:
+      "Portolab belum mengetahui tanggal sesi 1 kelas ini, sehingga belum dapat menunjukkan sesi setiap minggu kepada Anda dan mahasiswa Anda.",
+    studentNoCalendar:
+      "Dosen Anda belum mengatur tanggal sesi 1 kelas ini. Portolab menunjukkan sesi setiap minggu setelah dosen Anda mengaturnya.",
+    term: /^Kelas ini termasuk semester (Ganjil|Genap) \d{4}\/\d{4}\.$/,
+    firstWeek: [
+      'Sesi minggu ini adalah sesi 1 dari 16, "Konsep dasar manajemen portofolio", pada ',
+      ".",
+    ],
+    midtermWeek: [
+      'Sesi minggu ini adalah sesi 8 dari 16, "Ujian tengah semester dan proposal penelitian final", pada ',
+      ".",
+    ],
+    courseAhead: [
+      'Kuliah kelas ini dimulai dengan sesi 1, "Konsep dasar manajemen portofolio", pada ',
+      ".",
+    ],
+    courseOver: [
+      'Kuliah kelas ini berakhir dengan sesi 16, "Ujian akhir semester dan artikel ilmiah final", pada ',
+      ".",
+    ],
   },
   en: {
     classesTitle: "Your classes",
@@ -241,6 +300,41 @@ const texts: Record<
     backLink: `Back to ${className}`,
     notFoundTitle: "Page not found",
     newPasswordTitle: "Choose a new password",
+    firstSessionLabel: "Date of session 1",
+    firstSessionHint:
+      "The later sessions meet each week after it, until session 16. Portolab finds the semester of this class from this date.",
+    noFirstSession:
+      'The field "Date of session 1" holds no complete date yet. Fill it in with the day, the month, and the year of session 1, because Portolab counts the session of each week from that date.',
+    firstSessionOutOfRange: [
+      'The field "Date of session 1" takes ',
+      " to ",
+      ', but it holds "',
+      '". A class runs in the current semester or a near one, so Portolab takes a date of session 1 at most 365 days before or after today. Check the year of the date.',
+    ],
+    calendarTitle: "Course calendar",
+    calendarLink: "Set the date of session 1",
+    saveCalendarButton: "Save the date",
+    lecturerNoCalendar:
+      "Portolab does not know the date of session 1 of this class yet, so it cannot show you and your students the session of each week.",
+    studentNoCalendar:
+      "Your lecturer has not set the date of session 1 of this class yet. Portolab shows the session of each week once your lecturer sets it.",
+    term: /^This class belongs to the (odd|even) semester of \d{4}\/\d{4}\.$/,
+    firstWeek: [
+      'The session of this week is session 1 of 16, "Basic concepts of portfolio management", on ',
+      ".",
+    ],
+    midtermWeek: [
+      'The session of this week is session 8 of 16, "Midterm exam and the final research proposal", on ',
+      ".",
+    ],
+    courseAhead: [
+      'The course of this class starts with session 1, "Basic concepts of portfolio management", on ',
+      ".",
+    ],
+    courseOver: [
+      'The course of this class ended with session 16, "Final exam and the final research article", on ',
+      ".",
+    ],
   },
 };
 
@@ -334,6 +428,61 @@ async function expectAddressesForPhones(
   }
 }
 
+// A date in a sentence reads in words with the day of the week. The test writes each date with Intl itself, apart from the formatting of Portolab.
+const dateInSentence: Intl.DateTimeFormatOptions = {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+};
+
+/** Writes a calendar date, such as 2026-09-12, as a language writes it with the options of Intl. */
+function writtenDate(
+  locale: Locale,
+  date: string,
+  options: Intl.DateTimeFormatOptions,
+): string {
+  return new Intl.DateTimeFormat(locale, {
+    ...options,
+    timeZone: "UTC",
+  }).format(startOfUtcDate(date));
+}
+
+/** A sentence about the course that names the day of a session, from the parts around that day. */
+function sessionSentence(
+  locale: Locale,
+  [before, after]: readonly [string, string],
+  date: string,
+): string {
+  return `${before}${writtenDate(locale, date, dateInSentence)}${after}`;
+}
+
+/** The date after the current week that the field of session 1 takes, whose text in a language is the longest, so that the sentence of a course ahead shows its widest date. */
+function widestDateAhead(locale: Locale, today: string): string {
+  const latest = addDays(today, firstSessionReachDays);
+  let widest = addDays(startOfWeek(today), 7);
+  for (let date = widest; date <= latest; date = addDays(date, 1)) {
+    if (
+      writtenDate(locale, date, dateInSentence).length >
+      writtenDate(locale, widest, dateInSentence).length
+    ) {
+      widest = date;
+    }
+  }
+  return widest;
+}
+
+/** Removes the date of session 1 of a class of a test, by writing to the database of the test server, as a class that Portolab created before it stored that date lacks it. */
+function forgetFirstSessionDate(classId: ClassId): void {
+  writeTestDatabase((database) => {
+    database
+      .update(classes)
+      .set({ firstSessionDate: null })
+      .where(eq(classes.id, classId))
+      .run();
+  });
+}
+
 for (const locale of locales) {
   const text = texts[locale];
   const language = languageNames[locale];
@@ -350,6 +499,7 @@ for (const locale of locales) {
       page.getByRole("heading", { level: 2, name: text.createTitle }),
     ).toBeVisible();
     await expect(page.getByText(text.nameHint)).toBeVisible();
+    await expect(page.getByText(text.firstSessionHint)).toBeVisible();
     await expect(page.getByText(text.cashHint)).toBeVisible();
     await expectAccessibleScreen(page);
 
@@ -360,8 +510,12 @@ for (const locale of locales) {
       .getByRole("button", { name: text.createButton })
       .click();
     await expect(page.getByText(text.cashNotWhole)).toBeVisible();
+    await expect(page.getByText(text.noFirstSession)).toBeVisible();
     await expect(page.getByLabel(text.nameLabel)).toHaveValue(className);
     await expectAccessibleScreen(page);
+
+    const today = wibDateOf(new Date());
+    await page.getByLabel(text.firstSessionLabel).fill(today);
 
     // The lecturer types the most cash that Portolab accepts, so the screens below show their widest amount.
     expect(Number(text.typedCash.replaceAll(/\D/g, ""))).toBe(
@@ -392,6 +546,13 @@ for (const locale of locales) {
     await expect(page.locator("main dd").nth(0)).toHaveText(
       /^[a-km-np-z2-9]{4}-[a-km-np-z2-9]{4}$/,
     );
+    await expect(
+      page.getByRole("heading", { level: 2, name: text.calendarTitle }),
+    ).toBeVisible();
+    await expect(page.getByText(text.term)).toBeVisible();
+    await expect(
+      page.getByText(sessionSentence(locale, text.firstWeek, today)),
+    ).toBeVisible();
     await expect(
       page.getByRole("heading", { level: 2, name: text.studentsTitle }),
     ).toBeVisible();
@@ -681,8 +842,11 @@ for (const locale of locales) {
     for (const [device, path] of [
       [otherLecturer, testClass.path],
       [otherLecturer, resetPath],
+      [otherLecturer, calendarPath(testClass.id)],
       [outsider, testClass.path],
+      [outsider, calendarPath(testClass.id)],
       [member, resetPath],
+      [member, calendarPath(testClass.id)],
       [member, "/classes/0"],
     ] as const) {
       const response = await device.goto(path);
@@ -757,5 +921,96 @@ for (const locale of locales) {
     for (const device of [member, otherLecturer, outsider]) {
       await device.context().close();
     }
+  });
+
+  test(`lets a lecturer set the date of session 1, from which the class shows the semester and the session of each week, in ${language}`, async ({
+    page,
+    browser,
+  }) => {
+    const { student, classId, classPath } = await studentOfNewClass(
+      page,
+      browser,
+      { locale, className, lecturerName, studentName },
+    );
+    // A class that Portolab created before it stored the date of session 1 has none until its lecturer sets it.
+    forgetFirstSessionDate(classId);
+    await page.goto(classPath);
+    await expect(
+      page.getByRole("heading", { level: 2, name: text.calendarTitle }),
+    ).toBeVisible();
+    await expect(page.getByText(text.lecturerNoCalendar)).toBeVisible();
+    await expect(page.getByText(text.term)).toHaveCount(0);
+    await expectAccessibleScreen(page);
+    await student.reload();
+    await expect(student.getByText(text.studentNoCalendar)).toBeVisible();
+    await expectAccessibleScreen(student);
+
+    await page.getByRole("link", { name: text.calendarLink }).click();
+    await expectPageHeadings(page, { title: text.calendarTitle, headings: [] });
+    const field = page.getByLabel(text.firstSessionLabel);
+    await expect(field).toHaveValue("");
+    await expect(page.getByText(text.firstSessionHint)).toBeVisible();
+    await expectAccessibleScreen(page);
+    const saveButton = page
+      .getByRole("main")
+      .getByRole("button", { name: text.saveCalendarButton });
+    await saveButton.click();
+    await expect(page.getByText(text.noFirstSession)).toBeVisible();
+    await expectAccessibleScreen(page);
+
+    const today = wibDateOf(new Date());
+    const earliest = addDays(today, -firstSessionReachDays);
+    const latest = addDays(today, firstSessionReachDays);
+    const longDate = { dateStyle: "long" } as const;
+    const [takes, until, holds, reason] = text.firstSessionOutOfRange;
+    for (const outside of [addDays(earliest, -1), addDays(latest, 1)]) {
+      await field.fill(outside);
+      await saveButton.click();
+      await expect(
+        page.getByText(
+          `${takes}${writtenDate(locale, earliest, longDate)}${until}${writtenDate(locale, latest, longDate)}${holds}${writtenDate(locale, outside, longDate)}${reason}`,
+        ),
+      ).toBeVisible();
+      await expect(field).toHaveValue(outside);
+    }
+
+    // Session 1 meets on a Saturday seven weeks before the Saturday of this week, so this week is the week of session 8, the midterm exam.
+    const thisMonday = startOfWeek(today);
+    const thisSaturday = addDays(thisMonday, 5);
+    await field.fill(addDays(thisSaturday, -7 * 7));
+    await saveButton.click();
+    await expect(page).toHaveURL(classPath);
+    await student.reload();
+    for (const device of [page, student]) {
+      await expect(device.getByText(text.term)).toBeVisible();
+      await expect(
+        device.getByText(
+          sessionSentence(locale, text.midtermWeek, thisSaturday),
+        ),
+      ).toBeVisible();
+    }
+    await expectAccessibleScreen(student);
+
+    // Session 1 on the widest date ahead shows the course ahead at its widest. Session 1 on the Monday sixteen weeks before this one puts the last session on the Monday of the week before.
+    const ahead = widestDateAhead(locale, today);
+    const lastWeekMonday = addDays(thisMonday, -7);
+    for (const [firstSessionDate, sentence] of [
+      [ahead, sessionSentence(locale, text.courseAhead, ahead)],
+      [
+        addDays(thisMonday, -16 * 7),
+        sessionSentence(locale, text.courseOver, lastWeekMonday),
+      ],
+    ] as const) {
+      await page.getByRole("link", { name: text.calendarLink }).click();
+      await field.fill(firstSessionDate);
+      await saveButton.click();
+      await expect(page).toHaveURL(classPath);
+      await expect(page.getByText(text.term)).toBeVisible();
+      await expect(page.getByText(sentence)).toBeVisible();
+      await expectAccessibleScreen(page);
+    }
+    await page.getByRole("link", { name: text.calendarLink }).click();
+    await expect(field).toHaveValue(addDays(thisMonday, -16 * 7));
+    await student.context().close();
   });
 }

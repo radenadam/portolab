@@ -31,3 +31,10 @@ export function startOfMonth(date: string, months: number): string {
 export function dayOfWeek(date: string): number {
   return startOfUtcDate(date).getUTCDay();
 }
+
+/** The Monday that starts the week of a date, such as 2026-11-09 for 2026-11-15, because a week in Indonesia runs from Monday to Sunday. */
+export function startOfWeek(date: string): string {
+  // dayOfWeek counts from Sunday, which ends a week here, so Sunday lies six days after its Monday.
+  const daysSinceMonday = (dayOfWeek(date) + 6) % 7;
+  return addDays(date, -daysSinceMonday);
+}

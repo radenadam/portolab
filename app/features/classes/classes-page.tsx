@@ -25,6 +25,8 @@ import type { ListedClass } from "./class-list";
 import styles from "./classes.module.css";
 import { parseStartingCash } from "./parse-starting-cash";
 import { classNameMaximumLength, defaultStartingCash } from "./class-rules";
+import { FirstSessionField } from "./first-session-field";
+import { parseFirstSessionDate } from "./parse-first-session-date";
 
 export function loader({
   context,
@@ -68,8 +70,10 @@ export async function action({ context, request, url }: Route.ActionArgs) {
 /** Why the fields of the form that creates a class were not accepted, with their values as the lecturer typed them, so the form can show them again. */
 interface NewClassFailures {
   name: string;
+  firstSessionDate: string;
   startingCash: string;
   nameFailure: string | undefined;
+  firstSessionDateFailure: string | undefined;
   startingCashFailure: string | undefined;
 }
 
@@ -85,22 +89,34 @@ async function createClassFromForm(
     m.classes_name_label(),
     classNameMaximumLength,
   );
+  const firstSessionDate = parseFirstSessionDate(
+    form.get("firstSessionDate"),
+    m.classes_first_session_label(),
+    now,
+  );
   const startingCash = parseStartingCash(
     form.get("startingCash"),
     m.classes_starting_cash_label(),
   );
-  if (!name.ok || !startingCash.ok) {
+  if (!name.ok || !firstSessionDate.ok || !startingCash.ok) {
     const fields: NewClassFailures = {
       name: typedText(form.get("name")),
+      firstSessionDate: typedText(form.get("firstSessionDate")),
       startingCash: typedText(form.get("startingCash")),
       nameFailure: failureOf(name),
+      firstSessionDateFailure: failureOf(firstSessionDate),
       startingCashFailure: failureOf(startingCash),
     };
     return data({ fields, failure: undefined }, { status: 400 });
   }
   const classId = createClass(
     context.get(databaseContext),
-    { lecturerId, name: name.value, startingCash: startingCash.value },
+    {
+      lecturerId,
+      name: name.value,
+      startingCash: startingCash.value,
+      firstSessionDate: firstSessionDate.value,
+    },
     now,
   );
   return redirect(classPath(classId));
@@ -187,7 +203,7 @@ function NewClassForm({
   fields: NewClassFailures | undefined;
 }): ReactNode {
   return (
-    <Form method="post" className={formStyles["form"]}>
+    <Form method="post" noValidate className={formStyles["form"]}>
       <TextField
         name="name"
         label={m.classes_name_label()}
@@ -197,6 +213,10 @@ function NewClassForm({
         hint={m.classes_name_hint()}
         failure={fields?.nameFailure}
         defaultValue={fields?.name}
+      />
+      <FirstSessionField
+        failure={fields?.firstSessionDateFailure}
+        defaultValue={fields?.firstSessionDate}
       />
       <TextField
         name="startingCash"

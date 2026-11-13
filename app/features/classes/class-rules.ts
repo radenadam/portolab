@@ -11,3 +11,6 @@ export const startingCashLimits = {
 
 /** The most characters of the name of a class. A name of a class names a course and a group, such as Portfolio Management A, which rarely comes near this. */
 export const classNameMaximumLength = 100;
+
+/** The most days that the date of session 1 of a class lies before or after the day when a lecturer sets it. A class runs in the current semester or a near one, so a date further away is most likely a year that the lecturer mistyped. */
+export const firstSessionReachDays = 365;
