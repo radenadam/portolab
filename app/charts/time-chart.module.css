@@ -1,0 +1,142 @@
+/* A chart takes the width of its section. Its width decides how many dates its axis shows, so it is a container of its own. */
+.timeChart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-self: stretch;
+  container-type: inline-size;
+}
+
+.legendItem {
+  color: var(--color-ink-secondary);
+}
+
+.own {
+  --line-color: var(--color-own);
+  --line-width: var(--size-mark);
+}
+
+/* A line of comparison is thinner as well as muted, so it differs from the line that the chart is about in more than its color. */
+.reference {
+  --line-color: var(--color-muted);
+  --line-width: calc(var(--size-mark) * 0.75);
+}
+
+/* A key is a short piece of its line, so it takes the color and the width of its kind of line. */
+.ownKey {
+  composes: own;
+}
+
+.referenceKey {
+  composes: reference;
+}
+
+.ownKey,
+.referenceKey {
+  display: inline-block;
+  inline-size: var(--space-4);
+  block-size: var(--line-width);
+  margin-inline-end: var(--space-2);
+  background: var(--line-color);
+  vertical-align: middle;
+}
+
+/* The plot sets the font of its texts, so a width of a character of the font of codes holds a character of each text of a mark of returns. A vertical drag scrolls the page, and a horizontal one moves the crosshair. */
+.plot {
+  block-size: var(--size-chart);
+  font-family: var(--font-code);
+  font-size: var(--text-chart);
+  touch-action: pan-y;
+  user-select: none;
+}
+
+/* The area holds the drawing and its tooltip, so a position across the drawing places the tooltip as well. */
+.area {
+  position: relative;
+  block-size: 100%;
+}
+
+.drawing {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  overflow: visible;
+}
+
+.tick,
+.minorTick {
+  fill: var(--color-muted);
+}
+
+/* Five dates overlap below this width, so a narrow chart shows the first, the middle, and the last. */
+@container (width < 26.25rem) {
+  .minorTick {
+    display: none;
+  }
+}
+
+.gridLine,
+.zeroLine,
+.crosshair {
+  stroke-width: var(--size-line);
+}
+
+.gridLine {
+  stroke: var(--color-line);
+}
+
+.zeroLine,
+.crosshair {
+  stroke: var(--color-line-strong);
+}
+
+.line {
+  fill: none;
+  stroke: var(--line-color);
+  stroke-width: var(--line-width);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* A dot stands out from the lines under it by a ring of the ground of the panel. */
+.dot {
+  fill: var(--line-color);
+  stroke: var(--color-panel);
+  stroke-width: var(--size-mark);
+}
+
+.tip {
+  position: absolute;
+  inset-block-start: 0;
+  z-index: 1;
+  inline-size: var(--width-chart-tip);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-button);
+  background: var(--color-ink);
+  color: var(--color-panel);
+  font-family: var(--font-text);
+  font-size: var(--text-caption);
+  line-height: 1.4;
+  pointer-events: none;
+}
+
+.tipDate {
+  font-weight: 600;
+}
+
+.tipLine {
+  display: flex;
+  align-items: center;
+}
+
+.tipReturn {
+  margin-inline-start: auto;
+  padding-inline-start: var(--space-3);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.points {
+  align-self: stretch;
+}

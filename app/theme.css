@@ -50,6 +50,8 @@
   --text-row: 0.84375rem;
   --text-caption: 0.78125rem;
   --text-small: 0.75rem;
+  /* The texts of the marks of a chart are the smallest of a screen, as the references of decision 0028 draw them. */
+  --text-chart: 0.65625rem;
   /* The pages that issue #127 has not rebuilt yet still open with a large title, and the code of a class stands out on its page. */
   --text-title: 1.75rem;
   --text-heading: 1.25rem;
@@ -74,10 +76,15 @@
   --width-aside: 21.5rem;
   /* The largest width of the content of a screen, which decision 0028 sets and e2e/expect-layout.ts checks every part marked as content against. */
   --width-content: 85rem;
+  /* The tooltip of a chart holds a date and a name with a return on each line. */
+  --width-chart-tip: 12rem;
   /* The app icon takes the size that the rail of the references draws it at. */
   --size-app-icon: 2.25rem;
   /* A chart takes about a third of the screen of a phone held upright, so the text around it stays in view. */
   --size-chart: 16rem;
+  /* A sparkline sits in a row of a list beside the price of its stock. */
+  --width-sparkline: 4.75rem;
+  --size-sparkline: 1.375rem;
   /* Thin lines separate the parts of a page, as decision 0028 sets. A mark, such as focus, hover, or the current choice, must stand out from them. */
   --size-line: 1px;
   --size-mark: 2px;

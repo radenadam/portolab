@@ -68,7 +68,7 @@ export function formatIndexLevel(level: IndexPoints): string {
   }).format(level);
 }
 
-/** How many decimals a percentage shows: at most two, or exactly two, so that the values of a column of measures line up. */
+/** How many decimals a percentage shows: at most two, such as on the marks of an axis, or exactly two, so that the values of a column line up. */
 type PercentDecimals = "upToTwo" | "two";
 
 const fewestPercentDecimals: Record<PercentDecimals, number> = {
@@ -81,11 +81,17 @@ export function formatPercent(
   fraction: number,
   decimals: PercentDecimals = "upToTwo",
 ): string {
-  return new Intl.NumberFormat(intlLocale(), {
+  return new Intl.NumberFormat(intlLocale(), percentOptions(decimals)).format(
+    fraction,
+  );
+}
+
+function percentOptions(decimals: PercentDecimals): Intl.NumberFormatOptions {
+  return {
     style: "percent",
     minimumFractionDigits: fewestPercentDecimals[decimals],
     maximumFractionDigits: 2,
-  }).format(fraction);
+  };
 }
 
 /** Formats a variance or a covariance of monthly returns with four significant digits, such as 0.002732, because it is a square of returns and too small for a percentage. */
@@ -145,15 +151,14 @@ export function formatUtcDay(
   }).format(moment);
 }
 
-/** Formats one part of a calendar date such as 2026-10-30, which a mark on a time axis shows: the year, such as 2026, the month, such as Okt, or the day, such as 30. */
+/** Formats a part of a calendar date such as 2026-10-30: the year, such as 2026, or the day with the short month, such as 30 Okt, which a mark on a time axis shows. */
 export function formatCalendarDatePart(
   date: string,
-  part: "year" | "month" | "day",
+  part: "year" | "dayAndMonth",
 ): string {
   const options: Record<typeof part, Intl.DateTimeFormatOptions> = {
     year: { year: "numeric" },
-    month: { month: "short" },
-    day: { day: "numeric" },
+    dayAndMonth: { day: "numeric", month: "short" },
   };
   // The part is formatted in UTC for the same reason as a calendar date.
   return new Intl.DateTimeFormat(intlLocale(), {
@@ -181,16 +186,12 @@ export interface SignedChange {
   direction: ChangeDirection;
 }
 
-/** Formats a fraction such as 0.0081 as a percentage with an explicit sign, such as +0.81%. The direction comes from the sign that the text shows, so a change that rounds to zero has none. */
-export function formatSignedPercent(fraction: number): SignedChange {
-  return signedChange(
-    {
-      style: "percent",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    },
-    fraction,
-  );
+/** Formats a fraction such as 0.0081 as a percentage with an explicit sign, such as +0.81% with exactly two decimals, or +2% with at most two on the mark of an axis. The direction comes from the sign that the text shows, so a change that rounds to zero has none. */
+export function formatSignedPercent(
+  fraction: number,
+  decimals: PercentDecimals = "two",
+): SignedChange {
+  return signedChange(percentOptions(decimals), fraction);
 }
 
 /** Formats an amount such as a gain or a loss with an explicit sign, such as +Rp 8.521.000.000, and the direction that the sign shows. */

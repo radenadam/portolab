@@ -1,3 +1,5 @@
+import { fractionOf, niceTicks, paddedRange } from "~/charts/scale";
+import type { Range } from "~/charts/scale";
 import { formatNumber, formatPercent } from "~/formatting";
 import { beta } from "~/units/beta";
 import type { Beta } from "~/units/beta";
@@ -68,9 +70,6 @@ export const markRadii: Record<PointKind, number> = {
   holding: 0.3,
   otherStock: 0.25,
 };
-// A point at the edge of the range keeps a part of the range between it and the axis, and a range of returns without any spread still needs a height.
-const rangePadding = 0.08;
-const emptyRangePadding = 0.005;
 
 /** Lays out the chart of a security market line and of its points in a frame: the line from the smallest to the largest beta, the axes with marks at round values, and the label of each point where it has room. */
 export function layoutMarketLineChart(
@@ -91,7 +90,7 @@ export function layoutMarketLineChart(
   );
   const top = pixels(em * margins.top);
   const bottom = pixels(frame.height - em * margins.bottom);
-  const returnValues = ticksOf(
+  const returnValues = niceTicks(
     expectedReturns,
     tickCount(bottom - top, em * tickSpacing.expectedReturn),
     monthlyReturn,
@@ -116,7 +115,7 @@ export function layoutMarketLineChart(
   }));
   return {
     plot,
-    betaTicks: ticksOf(
+    betaTicks: niceTicks(
       betas,
       tickCount(right - left, em * tickSpacing.beta),
       beta,
@@ -155,48 +154,9 @@ export function layoutMarketLineChart(
   };
 }
 
-interface Range<Value extends number> {
-  min: Value;
-  max: Value;
-}
-
-function paddedRange<Value extends number>(
-  values: readonly Value[],
-  toValue: (value: number) => Value,
-): Range<Value> {
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const padding = max > min ? (max - min) * rangePadding : emptyRangePadding;
-  return { min: toValue(min - padding), max: toValue(max + padding) };
-}
-
 function tickCount(length: number, spacing: number): number {
   // An axis keeps two marks on a frame too small for them, so it still shows its scale.
   return Math.max(2, Math.floor(length / spacing));
-}
-
-/** The round values in a range for about a number of marks: the multiples of a step of 1, 2, or 5 times a power of ten. */
-function ticksOf<Value extends number>(
-  range: Range<Value>,
-  count: number,
-  toValue: (value: number) => Value,
-): Value[] {
-  const roughStep = (range.max - range.min) / count;
-  const power = 10 ** Math.floor(Math.log10(roughStep));
-  const step =
-    [1, 2, 5]
-      .map((multiple) => multiple * power)
-      .find((candidate) => candidate >= roughStep) ?? 10 * power;
-  const ticks: Value[] = [];
-  for (
-    let index = Math.ceil(range.min / step);
-    index * step <= range.max;
-    index += 1
-  ) {
-    // Math.ceil gives -0 for a value just below zero, which Intl writes as -0.
-    ticks.push(toValue(index === 0 ? 0 : index * step));
-  }
-  return ticks;
 }
 
 /** The width of the widest text, in sizes of the text. */
@@ -213,9 +173,5 @@ function scale<Value extends number>(
   screen: { from: Pixels; to: Pixels },
 ): (value: Value) => Pixels {
   return (value) =>
-    pixels(
-      screen.from +
-        ((value - range.min) / (range.max - range.min)) *
-          (screen.to - screen.from),
-    );
+    pixels(screen.from + fractionOf(range, value) * (screen.to - screen.from));
 }

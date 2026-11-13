@@ -19,7 +19,7 @@ import { shareCount } from "./count-parts";
 import { holdingQuoteFailureText } from "./holding-quote-failure-text";
 import type { PortfolioReport } from "./read-portfolio-report.server";
 import type { ValuedHolding } from "./value-portfolio";
-import { missingCalendarText, ReturnSection } from "./return-section";
+import { ReturnSection } from "./return-section";
 import { textForReader } from "./text-for-reader";
 import type { PortfolioReader } from "./text-for-reader";
 import styles from "./trading.module.css";
@@ -37,27 +37,10 @@ export function PortfolioView({
   now: Date;
   source: PriceSourceDescription;
 }): ReactNode {
-  const index = marketIndex.code;
   return (
     <>
       <Headline report={report} reader={reader} now={now} source={source} />
-      <section>
-        <h2>
-          {textForReader(reader, {
-            owner: () => m.trading_return_title({ index }),
-            lecturer: () => m.trading_lecturer_return_title({ index }),
-          })}
-        </h2>
-        {report.history.ok ? (
-          <ReturnSection
-            points={report.history.value.points}
-            end={report.history.value.end}
-            reader={reader}
-          />
-        ) : (
-          <p>{missingCalendarText(reader)}</p>
-        )}
-      </section>
+      <ReturnSection history={report.history} reader={reader} />
       <section>
         <h2 id={holdingsHeadingId}>
           {textForReader(reader, {

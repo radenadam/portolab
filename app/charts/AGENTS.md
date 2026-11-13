@@ -1,0 +1,8 @@
+# Charts
+
+These standards apply to every chart, whether it lives here or in the feature that owns its subject. [Decision 0029](../../docs/decisions/0029-the-server-draws-every-chart-as-svg.md) explains why the server draws charts.
+
+- The server draws a chart in SVG as part of its page, so the chart shows before JavaScript loads. What a chart does in the browser, such as a crosshair, a tooltip, or a label placed again, enhances the drawing, and before JavaScript runs the page shows no control that waits for it.
+- A chart places its marks, its texts, and the ends of its lines at fractions of its plot, as `PlotFraction`, because only the browser knows the width of the plot. A length that is not a position in the plot is a multiple of the size of the text of the chart, in em, so the chart keeps its proportions when a reader enlarges the text. The texts of marks use the font of codes, DM Mono, which decision 0028 sets for the labels of charts and whose characters are equally wide, so the room for a text is counted in widths of a character.
+- A chart that a reader explores answers a pointer, a finger, and the keys of the pattern of ARIA that fits it, such as a slider for the dates of a chart over time. Its heading names it, a screen reader reads the marked point as its value, and Escape hides what the chart shows over its drawing.
+- The line or the point that a chart is about, which is the reader's own or the one that the reader opened, takes the color of the reader's own point, and what it is compared with, such as the IHSG, takes muted ink, so a chart reads the same on every screen.
