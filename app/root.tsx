@@ -1,7 +1,5 @@
 import "@fontsource-variable/instrument-sans/wght.css";
 import "@fontsource/dm-mono/400.css";
-// The references set the code of a stock and the code for joining a class in DM Mono at 500, and the labels of charts at 400.
-import "@fontsource/dm-mono/500.css";
 import type { ReactNode } from "react";
 import {
   Links,
