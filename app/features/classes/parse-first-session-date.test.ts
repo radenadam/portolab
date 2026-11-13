@@ -34,6 +34,9 @@ const texts: Record<
       ["2027-11-15", "15 November 2027"],
       ["0001-01-01", "1 Januari 1"],
       ["9999-12-31", "31 Desember 9999"],
+      ["20266-09-07", "7 September 20266"],
+      ["202666-09-07", "7 September 202666"],
+      ["275760-09-13", "13 September 275760"],
     ],
     outOfRange: [
       'Kolom "Tanggal sesi 1" menerima 14 November 2025 sampai 14 November 2027, tetapi isinya "',
@@ -61,6 +64,9 @@ const texts: Record<
       ["2027-11-15", "November 15, 2027"],
       ["0001-01-01", "January 1, 1"],
       ["9999-12-31", "December 31, 9999"],
+      ["20266-09-07", "September 7, 20266"],
+      ["202666-09-07", "September 7, 202666"],
+      ["275760-09-13", "September 13, 275760"],
     ],
     outOfRange: [
       'The field "Date of session 1" takes November 14, 2025 to November 14, 2027, but it holds "',
@@ -78,17 +84,18 @@ const texts: Record<
 };
 
 test("reads a date from the earliest to the latest day that the field takes, around the day of the moment in WIB", () => {
-  for (const [date, moment] of [
-    ["2025-11-14", now],
-    ["2026-09-12", now],
-    [" 2027-11-14 ", now],
+  for (const [sent, moment, date] of [
+    ["2025-11-14", now, "2025-11-14"],
+    ["2026-09-12", now, "2026-09-12"],
+    [" 2027-11-14 ", now, "2027-11-14"],
+    ["02026-09-12", now, "2026-09-12"],
     // 00:00 WIB on Saturday 14 November 2026 is still Friday 13 November in UTC.
-    ["2027-11-14", new Date("2026-11-13T17:00:00.000Z")],
+    ["2027-11-14", new Date("2026-11-13T17:00:00.000Z"), "2027-11-14"],
   ] as const) {
     expect(
-      parseFirstSessionDate(date, "firstSessionDate", moment),
-      date,
-    ).toEqual({ ok: true, value: date.trim() });
+      parseFirstSessionDate(sent, "firstSessionDate", moment),
+      sent,
+    ).toEqual({ ok: true, value: date });
   }
 });
 
@@ -117,7 +124,8 @@ for (const locale of locales) {
       "2026-9-7",
       "2026-02-30",
       "2026-13-01",
-      "20266-09-07",
+      "0000-01-01",
+      "275760-09-14",
       "2026-09-07T10:00",
       "a".repeat(fieldMaximumLength),
     ]) {
@@ -128,7 +136,7 @@ for (const locale of locales) {
     }
   });
 
-  test(`rejects a date one day or more outside the days that the field takes, with both limits, in ${language}`, () => {
+  test(`rejects a date one day or more outside the days that the field takes, also with a year of more than four digits, with both limits, in ${language}`, () => {
     switchLocaleForTest(locale);
     const [before, after] = text.outOfRange;
     for (const [value, shown] of text.outside) {

@@ -100,6 +100,7 @@ const texts: Record<
     firstSessionHint: string;
     noFirstSession: string;
     firstSessionOutOfRange: readonly [string, string, string, string];
+    longYearDay: string;
     calendarTitle: string;
     calendarLink: string;
     saveCalendarButton: string;
@@ -200,6 +201,7 @@ const texts: Record<
       ', tetapi isinya "',
       '". Sebuah kelas berlangsung pada semester ini atau semester di dekatnya, sehingga Portolab menerima tanggal sesi 1 paling jauh 365 hari sebelum atau sesudah hari ini. Periksa tahun tanggal itu.',
     ],
+    longYearDay: "7 September 202666",
     calendarTitle: "Jadwal kuliah",
     calendarLink: "Atur tanggal sesi 1",
     saveCalendarButton: "Simpan tanggal",
@@ -311,6 +313,7 @@ const texts: Record<
       ', but it holds "',
       '". A class runs in the current semester or a near one, so Portolab takes a date of session 1 at most 365 days before or after today. Check the year of the date.',
     ],
+    longYearDay: "September 7, 202666",
     calendarTitle: "Course calendar",
     calendarLink: "Set the date of session 1",
     saveCalendarButton: "Save the date",
@@ -963,16 +966,26 @@ for (const locale of locales) {
     const latest = addDays(today, firstSessionReachDays);
     const longDate = { dateStyle: "long" } as const;
     const [takes, until, holds, reason] = text.firstSessionOutOfRange;
+    const limits = `${takes}${writtenDate(locale, earliest, longDate)}${until}${writtenDate(locale, latest, longDate)}${holds}`;
     for (const outside of [addDays(earliest, -1), addDays(latest, 1)]) {
       await field.fill(outside);
       await saveButton.click();
       await expect(
         page.getByText(
-          `${takes}${writtenDate(locale, earliest, longDate)}${until}${writtenDate(locale, latest, longDate)}${holds}${writtenDate(locale, outside, longDate)}${reason}`,
+          `${limits}${writtenDate(locale, outside, longDate)}${reason}`,
         ),
       ).toBeVisible();
       await expect(field).toHaveValue(outside);
     }
+    // A reader who types one digit too many gives the field a year of six digits, which the field sends as it holds it. The browsers of the tests show a date as its month, its day, and its year.
+    await field.fill("");
+    await field.focus();
+    await page.keyboard.type("0907202666");
+    await expect(field).toHaveValue("202666-09-07");
+    await saveButton.click();
+    await expect(
+      page.getByText(`${limits}${text.longYearDay}${reason}`),
+    ).toBeVisible();
 
     // Session 1 meets on a Saturday seven weeks before the Saturday of this week, so this week is the week of session 8, the midterm exam.
     const thisMonday = startOfWeek(today);
