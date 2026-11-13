@@ -82,17 +82,29 @@ test("gives a portfolio without an order the starting cash of its class and noth
   });
 });
 
-test("gives back an order as it stored it, with its limit and each state that a check or the student gives it", async () => {
+test("gives back an order as it stored it, with its limit, its reason or none, and each state that a check or the student gives it", async () => {
   const database = openDatabaseForTest();
   const owner = await studentPortfolioForTest(database);
+  const reason = "Bank besar dengan laba stabil.\n\nBeta di bawah 1.";
   const order = acceptedForTest(
-    purchaseForTest({ price: limitForTest(4_980) }),
+    purchaseForTest({ price: limitForTest(4_980), reason }),
     accountForTest(),
     bbcaForTest,
   );
   const orderId = savePlacedOrder(database, owner, order);
-  expect(readStoredPortfolio(database, owner.membershipId)?.orders).toEqual([
+  const withoutReason = acceptedForTest(
+    purchaseForTest(),
+    accountForTest(),
+    bbcaForTest,
+  );
+  const withoutReasonId = savePlacedOrder(database, owner, withoutReason);
+  expect(order.reason).toBe(reason);
+  expect(withoutReason.reason).toBeUndefined();
+  expect(
+    readStoredPortfolio(database, owner.membershipId)?.orders,
+  ).toStrictEqual([
     { ...order, id: orderId },
+    { ...withoutReason, id: withoutReasonId },
   ]);
   for (const [name, state] of Object.entries(states)) {
     saveOrderState(database, orderId, state);

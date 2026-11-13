@@ -49,6 +49,7 @@
     "app/features/market-data/tracked-instruments.ts",
     "app/features/market-data/update-attempts.server.ts",
     "app/features/measures/month-end-closes-for-test.ts",
+    "app/features/trading/reason-maximum-length.ts",
     "app/features/trading/trading.schema.ts",
     "app/workbook/read-zip-for-test.server.ts"
   ],

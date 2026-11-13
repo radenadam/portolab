@@ -60,6 +60,7 @@ export function storedOrderOf(row: OrderRow): StoredOrder {
       row.limit === null
         ? { kind: "market" }
         : { kind: "limit", limit: row.limit },
+    reason: row.reason ?? undefined,
     placedAt: row.placedAt,
     shares: row.shares,
     tradingDay: row.tradingDay,

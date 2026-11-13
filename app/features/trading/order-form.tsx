@@ -5,6 +5,7 @@ import {
   Rejection,
   StepForm,
   SubmitButton,
+  TextAreaField,
   TextField,
 } from "~/form";
 import formStyles from "~/form.module.css";
@@ -27,6 +28,7 @@ import {
 } from "./order-form-fields";
 import type { OrderFormFields } from "./order-form-fields";
 import type { OrderTradingDay } from "./order-trading-day";
+import { reasonMaximumLength } from "./reason-maximum-length";
 
 /** What the order form tells about the trading day of an order placed now, which orderTradingDay gives. */
 export interface OrderDay {
@@ -56,7 +58,7 @@ interface OrderFormProps {
   rejection: OrderRejection | undefined;
 }
 
-/** The form with which a student places an order of the stock that the address of the page chose: buy or sell, a market or a limit order, the lots, and the limit price, with the trading day of an order placed now. A rejection of the whole order stands above the fields, as decision 0026 sets, with a button that changes the lots of the rejected order to those that its text offers. The form sends the order to the address of the page, which keeps the stock. */
+/** The form with which a student places an order of the stock that the address of the page chose: buy or sell, a market or a limit order, the lots, the limit price, and the reason that the student may write, with the trading day of an order placed now. A rejection of the whole order stands above the fields, as decision 0026 sets, with a button that changes the lots of the rejected order to those that its text offers. The form sends the order to the address of the page, which keeps the stock. */
 export function OrderForm({
   day,
   fields = blankOrderForm,
@@ -75,6 +77,7 @@ export function OrderForm({
                   side: fields.side,
                   priceKind: fields.priceKind,
                   limit: fields.limit,
+                  reason: fields.reason,
                 }}
                 step={{
                   name: lotsStepName,
@@ -142,6 +145,15 @@ function OrderFields({
         hint={m.trading_limit_price_hint()}
         failure={fields.limitFailure}
         defaultValue={fields.limit}
+      />
+      <TextAreaField
+        name="reason"
+        label={m.trading_reason_label()}
+        hint={m.trading_reason_hint({
+          maximum: formatNumber(reasonMaximumLength),
+        })}
+        failure={fields.reasonFailure}
+        defaultValue={fields.reason}
       />
       <p className={formStyles["hint"]}>
         {m.trading_day_notice({
