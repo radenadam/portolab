@@ -1,5 +1,5 @@
-import "@fontsource/ibm-plex-mono/400.css";
-import "@fontsource-variable/ibm-plex-sans/wght.css";
+import "@fontsource-variable/instrument-sans/wght.css";
+import "@fontsource/dm-mono/400.css";
 import type { ReactNode } from "react";
 import {
   Links,
@@ -12,6 +12,7 @@ import {
   useRouteLoaderData,
 } from "react-router";
 import type { Route } from "./+types/root";
+import { tabIconAddress } from "./app-icon";
 import { databaseContext } from "./database/database.server";
 import { RouteErrorPage } from "./error-page";
 import { AccountLink } from "./features/accounts/account-link";
@@ -51,6 +52,10 @@ export const middleware: Route.MiddlewareFunction[] = [
   formSizeLimit,
   sessionMiddleware,
 ];
+
+export function links(): Route.LinkDescriptors {
+  return [{ rel: "icon", type: "image/svg+xml", href: tabIconAddress }];
+}
 
 export function loader({ context }: Route.LoaderArgs): {
   role: Role | undefined;

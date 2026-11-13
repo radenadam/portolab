@@ -113,11 +113,12 @@ test("aligns every number and time of the table to the right in the font for num
   await expect(cells).toHaveCount(3);
   for (const cell of await cells.all()) {
     await expect(cell).toHaveCSS("text-align", "right");
-    await expect(cell).toHaveCSS("font-family", /^"IBM Plex Mono",/);
+    await expect(cell).toHaveCSS("font-family", /^"Instrument Sans Variable",/);
+    await expect(cell).toHaveCSS("font-variant-numeric", "tabular-nums");
   }
 });
 
-// Decision 0012 explains why Portolab serves its fonts itself.
+// Decision 0012 explains why Portolab serves its fonts itself. A browser downloads only the faces whose text a page shows, so the test loads every face that the page declares.
 test("loads both fonts from Portolab itself", async ({ page }) => {
   const requestedUrls: string[] = [];
   page.on("request", (request) => {
@@ -125,16 +126,12 @@ test("loads both fonts from Portolab itself", async ({ page }) => {
   });
   await page.goto("/prices");
   const loadedFamilies = await page.evaluate(async () => {
-    await document.fonts.ready;
-    const families = new Set<string>();
-    for (const face of document.fonts) {
-      if (face.status === "loaded") {
-        families.add(face.family);
-      }
-    }
-    return [...families].sort();
+    const faces = await Promise.all(
+      Array.from(document.fonts, (face) => face.load()),
+    );
+    return [...new Set(faces.map((face) => face.family))].sort();
   });
-  expect(loadedFamilies).toEqual(["IBM Plex Mono", "IBM Plex Sans Variable"]);
+  expect(loadedFamilies).toEqual(["DM Mono", "Instrument Sans Variable"]);
   const pageOrigin = new URL(page.url()).origin;
   expect(
     requestedUrls.filter((url) => new URL(url).origin !== pageOrigin),

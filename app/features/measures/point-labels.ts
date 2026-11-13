@@ -18,7 +18,7 @@ export interface PlacedLabel extends Position {
   label: PointLabel;
 }
 
-// IBM Plex Mono, the font of numbers that decision 0012 sets, sets the text of a chart, and each of its characters is 0.6 of the size of the text wide.
+// DM Mono, which decision 0028 sets for the labels of charts, sets the text of a chart, and each of its characters is 0.6 of the size of the text wide.
 const characterWidth = 0.6;
 /** How a chart draws a subscript against the size of its text: smaller, and lower than the baseline. */
 export const subscriptStyle = { size: 0.75, shift: 0.3 };

@@ -1,12 +1,14 @@
 /* Decision 0026 sets the frame and the reference screens in docs/design/tenang/ draw it. A screen narrower than the sidebar and a main column takes the frame of a phone, at the width at which app/theme.css takes the sizes of a phone. */
 
+/* The mark is the app icon with the name of Portolab in semibold, as the prototype of decision 0028 draws them together. */
 .mark {
   display: inline-flex;
   align-items: center;
+  gap: var(--space-2);
   min-height: var(--size-touch-target);
   color: var(--color-ink);
-  font-family: var(--font-numbers);
   font-size: var(--text-mark);
+  font-weight: 600;
   text-decoration: none;
 }
 
