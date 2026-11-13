@@ -16,6 +16,7 @@ import {
   duringSessionForTest,
   mondayTradingDayForTest,
 } from "./orders-for-test";
+import { reasonMaximumLength } from "./reason-maximum-length";
 
 const codes = ["BBCA", "TLKM"];
 const { maximumLots } = mondayTradingDayForTest.rules;
@@ -27,12 +28,18 @@ const notWholeInEveryLanguage = ["1e3", "Rp4980"];
 const texts: Record<
   Locale,
   {
-    labels: { stock: string; side: string; priceKind: string; limit: string };
+    labels: {
+      stock: string;
+      side: string;
+      priceKind: string;
+      limit: string;
+      reason: string;
+    };
     noStock: string;
     unknownStock: readonly [string, string];
     fileInSide: string;
     farTooLong: (field: string, length: string) => string;
-    lengths: { justPast: string; farPast: string };
+    lengths: { atLimit: string; justPast: string; farPast: string };
     lotsLabel: string;
     tooManyLots: readonly [string, string];
     noSide: string;
@@ -44,6 +51,8 @@ const texts: Record<
     notWholeLimit: readonly [string, string];
     emptyLimit: string;
     emptyLots: string;
+    tooLongReason: (length: string) => string;
+    fileInReason: string;
   }
 > = {
   id: {
@@ -52,6 +61,7 @@ const texts: Record<
       side: "Beli atau jual",
       priceKind: "Jenis order",
       limit: "Harga limit",
+      reason: "Alasan (opsional)",
     },
     noStock: 'Kolom "Saham" belum berisi saham. Pilih saham untuk order ini.',
     unknownStock: [
@@ -62,7 +72,7 @@ const texts: Record<
       'Formulir mengirim nilai bertipe File di kolom "Beli atau jual", bukan teks. Muat ulang halaman, lalu isi formulirnya lagi.',
     farTooLong: (field, length) =>
       `Kolom "${field}" berisi ${length} karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.`,
-    lengths: { justPast: "8.001", farPast: "1.000.000" },
+    lengths: { atLimit: "8.000", justPast: "8.001", farPast: "1.000.000" },
     lotsLabel: "Jumlah lot",
     tooManyLots: [
       'Kolom "Jumlah lot" menerima paling banyak 50.000 lot, yaitu order terbesar yang diterima BEI, tetapi isinya "',
@@ -102,6 +112,10 @@ const texts: Record<
       'Kolom "Harga limit" kosong, padahal Portolab memerlukannya. Isi kolom itu.',
     emptyLots:
       'Kolom "Jumlah lot" kosong, padahal Portolab memerlukannya. Isi kolom itu.',
+    tooLongReason: (length) =>
+      `Kolom "Alasan (opsional)" memuat paling banyak 500 karakter, tetapi isinya ${length} karakter. Persingkat isinya.`,
+    fileInReason:
+      'Formulir mengirim nilai bertipe File di kolom "Alasan (opsional)", bukan teks. Muat ulang halaman, lalu isi formulirnya lagi.',
   },
   en: {
     labels: {
@@ -109,6 +123,7 @@ const texts: Record<
       side: "Buy or sell",
       priceKind: "Kind of order",
       limit: "Limit price",
+      reason: "Reason (optional)",
     },
     noStock:
       'The field "Stock" holds no stock yet. Choose the stock of the order.',
@@ -120,7 +135,7 @@ const texts: Record<
       'The form sent a value of type File in the field "Buy or sell" instead of text. Reload the page and fill in the form again.',
     farTooLong: (field, length) =>
       `The field "${field}" has ${length} characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.`,
-    lengths: { justPast: "8,001", farPast: "1,000,000" },
+    lengths: { atLimit: "8,000", justPast: "8,001", farPast: "1,000,000" },
     lotsLabel: "Lots",
     tooManyLots: [
       'The field "Lots" takes at most 50,000 lots, the largest order that IDX accepts, but it holds "',
@@ -159,6 +174,10 @@ const texts: Record<
     emptyLimit:
       'The field "Limit price" is empty, but Portolab needs it. Fill it in.',
     emptyLots: 'The field "Lots" is empty, but Portolab needs it. Fill it in.',
+    tooLongReason: (length) =>
+      `The field "Reason (optional)" holds at most 500 characters, but it has ${length}. Shorten it.`,
+    fileInReason:
+      'The form sent a value of type File in the field "Reason (optional)" instead of text. Reload the page and fill in the form again.',
   },
 };
 
@@ -237,6 +256,7 @@ for (const locale of locales) {
           priceKind: "limit",
           lots: atLimit,
           limit: atLimit,
+          reason: atLimit,
         }),
         order,
       ),
@@ -246,6 +266,7 @@ for (const locale of locales) {
         sideFailure: `${text.unknownSide[0]}${atLimit}${text.unknownSide[1]}`,
         lotsFailure: `${text.tooManyLots[0]}${atLimit}${text.tooManyLots[1]}`,
         limitFailure: undefined,
+        reasonFailure: text.tooLongReason(text.lengths.atLimit),
       },
     });
     expect(
@@ -272,6 +293,7 @@ for (const locale of locales) {
             priceKind: "limit",
             lots: long,
             limit: long,
+            reason: long,
           }),
           order,
         ),
@@ -281,6 +303,7 @@ for (const locale of locales) {
           sideFailure: text.farTooLong(labels.side, written),
           lotsFailure: text.farTooLong(text.lotsLabel, written),
           limitFailure: text.farTooLong(labels.limit, written),
+          reasonFailure: text.farTooLong(labels.reason, written),
         },
       });
       expect(
@@ -372,6 +395,7 @@ for (const locale of locales) {
         side: "sell",
         lots: 5,
         price: { kind: "market" },
+        reason: undefined,
         placedAt: duringSessionForTest,
       },
     });
@@ -386,6 +410,50 @@ for (const locale of locales) {
     });
   });
 
+  test(`reads the reason of an order without the spaces around it, counts each line break and each letter as one character, and reads a blank reason as none, in ${language}`, () => {
+    switchLocaleForTest(locale);
+    const accepted: readonly (readonly [string, string])[] = [
+      ["  Bank besar dengan laba stabil.  ", "Bank besar dengan laba stabil."],
+      [
+        "Kredit tumbuh.\r\n\r\nBeta di bawah 1.",
+        "Kredit tumbuh.\n\nBeta di bawah 1.",
+      ],
+      ["Kredit tumbuh.\rBeta di bawah 1.", "Kredit tumbuh.\nBeta di bawah 1."],
+      // A browser sends a line break as two characters, and a letter with an accent can come as two, but a reader counts each as one.
+      [
+        `${"W".repeat(249)}\r\n${"W".repeat(250)}`,
+        `${"W".repeat(249)}\n${"W".repeat(250)}`,
+      ],
+      [`${"W".repeat(499)}e\u0301`, `${"W".repeat(499)}\u00e9`],
+    ];
+    for (const [written, reason] of accepted) {
+      expect(readFields({ ...limitPurchase, reason: written })).toMatchObject({
+        ok: true,
+        value: { reason },
+      });
+    }
+    for (const blank of ["", " ", "\r\n \r\n"]) {
+      expect(readFields({ ...limitPurchase, reason: blank })).toMatchObject({
+        ok: true,
+        value: { reason: undefined },
+      });
+    }
+    expect(readFields(limitPurchase)).toMatchObject({
+      ok: true,
+      value: { reason: undefined },
+    });
+    expect(
+      failuresOfForm({ ...limitPurchase, reason: ` ${"W".repeat(501)} ` })
+        ?.reasonFailure,
+    ).toBe(text.tooLongReason("501"));
+    const withFile = formDataForTest(limitPurchase);
+    withFile.set("reason", new File([], "reason.txt"));
+    expect(readOrderForm(withFile, order)).toMatchObject({
+      ok: false,
+      failure: { reasonFailure: text.fileInReason },
+    });
+  });
+
   test(`gives the reason for each field of a form that it does not accept, with what each field holds, in ${language}`, () => {
     switchLocaleForTest(locale);
     expect(
@@ -397,10 +465,30 @@ for (const locale of locales) {
         priceKind: "limit",
         lots: "",
         limit: " ",
+        reason: "",
         sideFailure: text.noSide,
         priceKindFailure: undefined,
         lotsFailure: text.emptyLots,
         limitFailure: text.emptyLimit,
+        reasonFailure: undefined,
+      },
+    });
+    const tooLong = "W".repeat(reasonMaximumLength + 1);
+    expect(
+      readOrderForm(
+        formDataForTest({ ...limitPurchase, reason: tooLong }),
+        order,
+      ),
+    ).toEqual({
+      ok: false,
+      failure: {
+        ...limitPurchase,
+        reason: tooLong,
+        sideFailure: undefined,
+        priceKindFailure: undefined,
+        lotsFailure: undefined,
+        limitFailure: undefined,
+        reasonFailure: text.tooLongReason("501"),
       },
     });
     // A form without a kind of order has no price to read, so its limit price gets no reason.

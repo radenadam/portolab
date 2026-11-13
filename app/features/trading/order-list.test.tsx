@@ -10,7 +10,7 @@ import { rupiah } from "~/units/rupiah";
 import { shares } from "~/units/shares";
 import { parseRecordId } from "~/value-parsers";
 import type { OpenOrder, Order, OrderRequest, OrderState } from "./order";
-import { OpenOrderList, PastOrderList } from "./order-list";
+import { OpenOrderList, PastOrderList, ReasonSection } from "./order-list";
 import {
   acceptedForTest,
   accountForTest,
@@ -145,6 +145,28 @@ const pastOrders = [
   ),
 ];
 
+// A reason of two paragraphs, as the order form reads it with its line break.
+const reason = "Bank besar dengan laba stabil.\n\nBeta di bawah 1.";
+const studentName = "Siti Rahayu";
+
+/** The orders of a student of whom the second and the third have a reason, placed in that order. */
+const ordersWithReasons = [
+  listed(marketPurchase, 1),
+  listed({ ...limitPurchase, reason }, 2),
+  listed(
+    withState(
+      { ...marketSale, reason: "Mengunci sebagian laba." },
+      { kind: "cancelled", cancelledAt: new Date("2026-11-02T03:30:00Z") },
+    ),
+    3,
+  ),
+];
+
+/** The markup of a list without the names of the classes of CSS modules, which carry a hash. */
+function withoutClasses(html: string): string {
+  return html.replaceAll(/ class="[^"]*"/g, "");
+}
+
 const texts: Record<
   Locale,
   {
@@ -154,6 +176,8 @@ const texts: Record<
     open: readonly string[];
     past: readonly string[];
     expiredAtEnd: readonly string[];
+    reasonLabel: string;
+    reasons: { title: string; noReasons: string; items: readonly string[] };
   }
 > = {
   id: {
@@ -188,6 +212,15 @@ const texts: Record<
       "Beli 5 lot BBCA pada harga pasar",
       "Order ini kedaluwarsa tanpa tereksekusi saat harga tertunda tanggal 2 November 2026 menjadi final pada pukul 16.26 WIB.",
     ],
+    reasonLabel: "Alasan Anda: ",
+    reasons: {
+      title: "Alasan order",
+      noReasons: "Siti Rahayu belum menulis alasan untuk order mana pun.",
+      items: [
+        "<li><p>Jual 5 lot BBCA pada harga pasar</p><p>Dipasang pada 2 Nov 2026, 10.00 WIB untuk hari bursa 2 November 2026.</p><p>Mengunci sebagian laba.</p></li>",
+        `<li><p>Beli 1 lot BBCA dengan limit Rp\u00a04.950</p><p>Dipasang pada 2 Nov 2026, 10.00 WIB untuk hari bursa 2 November 2026.</p><p>${reason}</p></li>`,
+      ],
+    },
   },
   en: {
     noOpenOrders: "You have no open order.",
@@ -221,6 +254,15 @@ const texts: Record<
       "Buy 5 lots of BBCA at the market price",
       "It expired without filling when the delayed prices of November 2, 2026 became final at 4:26 PM WIB.",
     ],
+    reasonLabel: "Your reason: ",
+    reasons: {
+      title: "Reasons for the orders",
+      noReasons: "Siti Rahayu has not written a reason for any order yet.",
+      items: [
+        "<li><p>Sell 5 lots of BBCA at the market price</p><p>Placed on Nov 2, 2026, 10:00 AM WIB for the trading day November 2, 2026.</p><p>Mengunci sebagian laba.</p></li>",
+        `<li><p>Buy 1 lot of BBCA at a limit of IDR\u00a04,950</p><p>Placed on Nov 2, 2026, 10:00 AM WIB for the trading day November 2, 2026.</p><p>${reason}</p></li>`,
+      ],
+    },
   },
 };
 
@@ -281,5 +323,62 @@ for (const locale of locales) {
         <PastOrderList orders={[]} now={duringSessionForTest} />,
       ),
     ).toBe(`<p>${text.noPastOrders}</p>`);
+  });
+
+  test(`shows the reason that the student wrote, with its paragraphs, under each open and each ended order that has one, in ${language}`, () => {
+    switchLocaleForTest(locale);
+    const open = withoutClasses(
+      renderInRouterForTest(
+        <OpenOrderList orders={ordersWithReasons} now={duringSessionForTest} />,
+      ),
+    );
+    expect(open).toContain(`<p>${text.reasonLabel}${reason}</p><form`);
+    expect(open.split(text.reasonLabel)).toHaveLength(2);
+    const past = withoutClasses(
+      renderInRouterForTest(
+        <PastOrderList orders={ordersWithReasons} now={duringSessionForTest} />,
+      ),
+    );
+    expect(past).toContain(
+      `<p>${text.reasonLabel}Mengunci sebagian laba.</p></li>`,
+    );
+    expect(
+      renderInRouterForTest(
+        <OpenOrderList orders={openOrders} now={duringSessionForTest} />,
+      ),
+    ).not.toContain(text.reasonLabel);
+  });
+
+  test(`lists each order of a student that has a reason, newest first, with its price, when it was placed, and the reason, for the lecturer of the class, in ${language}`, () => {
+    switchLocaleForTest(locale);
+    const { reasons } = text;
+    expect(
+      withoutClasses(
+        renderInRouterForTest(
+          <ReasonSection
+            orders={ordersWithReasons}
+            studentName={studentName}
+          />,
+        ),
+      ),
+    ).toBe(
+      `<section><h2>${reasons.title}</h2><ul>${reasons.items.join("")}</ul></section>`,
+    );
+  });
+
+  test(`says that a student has written no reason, whether the student placed no order or orders without a reason, in ${language}`, () => {
+    switchLocaleForTest(locale);
+    const { reasons } = text;
+    for (const orders of [[], openOrders, pastOrders]) {
+      expect(
+        withoutClasses(
+          renderInRouterForTest(
+            <ReasonSection orders={orders} studentName={studentName} />,
+          ),
+        ),
+      ).toBe(
+        `<section><h2>${reasons.title}</h2><p>${reasons.noReasons}</p></section>`,
+      );
+    }
   });
 }

@@ -1,5 +1,9 @@
 import type { FieldOption } from "~/form";
-import { checkFieldLengthForReader, typedText } from "~/form-text";
+import {
+  checkFieldLengthForReader,
+  checkMaximumLength,
+  typedText,
+} from "~/form-text";
 import { formatList } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { failureOf, fail, succeed } from "~/result";
@@ -11,6 +15,7 @@ import { typeName } from "~/value-shapes";
 import { parseWrittenWholeNumber } from "~/written-whole-number";
 import type { OrderRequest, OrderSide } from "./order";
 import { parseOrderLots } from "./parse-order-lots";
+import { reasonMaximumLength } from "./reason-maximum-length";
 
 /** The kind of the price of an order: the delayed price when it fills, or a limit that the price must reach. */
 export type PriceKind = OrderRequest["price"]["kind"];
@@ -21,10 +26,12 @@ export interface OrderFormFields {
   priceKind: string;
   lots: string;
   limit: string;
+  reason: string;
   sideFailure: string | undefined;
   priceKindFailure: string | undefined;
   lotsFailure: string | undefined;
   limitFailure: string | undefined;
+  reasonFailure: string | undefined;
 }
 
 /** The name of the button of a rejection that changes the lots of the order form to those that it offers, which a form sends only when the student taps it. */
@@ -49,7 +56,7 @@ export function priceKindOptions(): FieldOption<PriceKind>[] {
   ];
 }
 
-/** Reads an order of a stock from the form that a student sent at a moment, with the largest order of the trading day that orderTradingDay gives. The stock comes from the address of the page, which parseStockCode reads, because the form places the order of the stock whose price the page shows. It reads the limit price only for a limit order, because a market order has none. The failure holds what each field holds and why each was not accepted. */
+/** Reads an order of a stock from the form that a student sent at a moment, with the largest order of the trading day that orderTradingDay gives. The stock comes from the address of the page, which parseStockCode reads, because the form places the order of the stock whose price the page shows. It reads the limit price only for a limit order, because a market order has none, and the reason that the student may write. The failure holds what each field holds and why each was not accepted. */
 export function readOrderForm(
   form: FormData,
   order: { code: string; maximumLots: Lots; placedAt: Date },
@@ -71,13 +78,15 @@ export function readOrderForm(
   );
   // The price of an order depends on its kind, so a form without a valid kind has no price to read.
   const price = priceKind.ok ? readPrice(form, priceKind.value) : undefined;
-  if (!side.ok || !lots.ok || !price?.ok) {
+  const reason = parseOrderReason(form.get("reason"), m.trading_reason_label());
+  if (!side.ok || !lots.ok || !price?.ok || !reason.ok) {
     return fail({
       ...typedOrderForm(form),
       sideFailure: failureOf(side),
       priceKindFailure: failureOf(priceKind),
       lotsFailure: failureOf(lots),
       limitFailure: price === undefined ? undefined : failureOf(price),
+      reasonFailure: failureOf(reason),
     });
   }
   return succeed({
@@ -85,6 +94,7 @@ export function readOrderForm(
     side: side.value,
     lots: lots.value,
     price: price.value,
+    reason: reason.value,
     placedAt: order.placedAt,
   });
 }
@@ -112,10 +122,12 @@ export const blankOrderForm: OrderFormFields = {
   priceKind: "market",
   lots: "",
   limit: "",
+  reason: "",
   sideFailure: undefined,
   priceKindFailure: undefined,
   lotsFailure: undefined,
   limitFailure: undefined,
+  reasonFailure: undefined,
 };
 
 /** What each field of the order form holds as the student typed it, without a reason for any field. */
@@ -125,10 +137,12 @@ export function typedOrderForm(form: FormData): OrderFormFields {
     priceKind: typedText(form.get("priceKind")),
     lots: typedText(form.get("lots")),
     limit: typedText(form.get("limit")),
+    reason: typedText(form.get("reason")),
     sideFailure: undefined,
     priceKindFailure: undefined,
     lotsFailure: undefined,
     limitFailure: undefined,
+    reasonFailure: undefined,
   };
 }
 
@@ -138,7 +152,7 @@ export function parseStockCode(
   source: string,
   codes: readonly string[],
 ): Result<string, string> {
-  const chosen = parseChosenText(value, source);
+  const chosen = parseOptionalText(value, source);
   if (!chosen.ok) {
     return chosen;
   }
@@ -162,7 +176,7 @@ function parseOrderChoice<Value extends string>(
   source: string,
   options: readonly FieldOption<Value>[],
 ): Result<Value, string> {
-  const chosen = parseChosenText(value, source);
+  const chosen = parseOptionalText(value, source);
   if (!chosen.ok) {
     return chosen;
   }
@@ -201,8 +215,25 @@ function parseLimitPrice(
   return succeed(isRupiah(amount) ? amount : rupiah(Number.MAX_SAFE_INTEGER));
 }
 
-/** Reads the text of a field of choices, which is undefined when the field holds no choice. A choice is never longer than a field takes, so a longer text fails before any other work on it. */
-function parseChosenText(
+/** Reads the reason of an order as the student wrote it, without the spaces around it, with each line break as one character, and undefined when the student wrote none. A reason keeps its lines, because a student may write it in several paragraphs. The source is the label of the field, and the failure is a sentence for the reader in the current language. */
+function parseOrderReason(
+  value: unknown,
+  source: string,
+): Result<string | undefined, string> {
+  const text = parseOptionalText(value, source);
+  if (!text.ok || text.value === undefined) {
+    return text;
+  }
+  // A browser sends each line break of a field of several lines as a carriage return and a line feed, which a reader counts as one character.
+  const tidied = text.value.trim().replace(/\r\n?/g, "\n").normalize("NFC");
+  if (tidied === "") {
+    return succeed(undefined);
+  }
+  return checkMaximumLength(tidied, source, reasonMaximumLength);
+}
+
+/** Reads the text of a field that a person may leave empty, such as a field of choices, which is undefined when the field holds nothing. A text longer than any field takes fails before any other work on it. */
+function parseOptionalText(
   value: unknown,
   source: string,
 ): Result<string | undefined, string> {

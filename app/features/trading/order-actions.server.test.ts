@@ -117,18 +117,24 @@ for (const locale of locales) {
   const text = texts[locale];
   const language = languageNames[locale];
 
-  test(`places an order and opens the orders with its number, then refuses to cancel it once it ended, in ${language}`, async () => {
+  test(`places an order with its reason and opens the orders with its number, then refuses to cancel it once it ended, in ${language}`, async () => {
     switchLocaleForTest(locale);
-    const { database, request } = await studentRequestForTest();
+    const { database, owner, request } = await studentRequestForTest();
     const context = contextForTest(database);
     const placed = placeFromForm(
       context,
-      request(purchase, duringSessionForTest),
+      request(
+        { ...purchase, reason: " Laba stabil.\r\n\r\nBeta di bawah 1. " },
+        duringSessionForTest,
+      ),
     );
     expect(placed).toBeInstanceOf(Response);
     const location =
       placed instanceof Response ? placed.headers.get("Location") : null;
     expect(location).toMatch(/^\/classes\/1\/orders\?placed=\d+$/);
+    expect(readPortfolio(database, owner).orders).toMatchObject([
+      { reason: "Laba stabil.\n\nBeta di bawah 1." },
+    ]);
     const orderId = location?.split("=")[1] ?? "";
     expect(
       cancelFromForm(context, request({ cancel: orderId }, endOfMondayForTest)),
@@ -258,13 +264,13 @@ test("rejects a purchase that the cash cannot pay for with the largest purchase 
   });
 });
 
-test("changes the lots of the order form to those of the step of a rejection, keeps the other fields, and places no order", async () => {
+test("changes the lots of the order form to those of the step of a rejection, keeps the other fields with the reason as the student wrote it, and places no order", async () => {
   const { database, owner, request } = await studentRequestForTest();
   expect(
     placeFromForm(
       contextForTest(database),
       request(
-        { ...purchase, lots: "300", lotsStep: "200" },
+        { ...purchase, lots: "300", reason: " Laba stabil. ", lotsStep: "200" },
         duringSessionForTest,
       ),
     ),
@@ -274,6 +280,7 @@ test("changes the lots of the order form to those of the step of a rejection, ke
         side: "buy",
         priceKind: "market",
         lots: "200",
+        reason: " Laba stabil. ",
         lotsFailure: undefined,
       },
       rejection: undefined,
