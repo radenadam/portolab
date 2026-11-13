@@ -19,6 +19,11 @@ export interface TaughtClass {
   studentCount: number;
 }
 
+/** A class that a lecturer teaches, as its own pages read it, with the calendar date when its first session meets, such as 2026-09-07. A class that Portolab created before it stored that date has none until its lecturer sets it. */
+export interface TaughtClassRecord extends Omit<TaughtClass, "studentCount"> {
+  firstSessionDate: string | null;
+}
+
 /** A class as a student sees it, or as a visitor with its code sees it before joining. */
 export interface ClassForStudents {
   id: ClassId;
@@ -27,10 +32,11 @@ export interface ClassForStudents {
   startingCash: Rupiah;
 }
 
-/** A class that a student joined, with the place of the student in it, to which the portfolio of the student in the class belongs, and the time when the student joined it. */
+/** A class that a student joined, with the place of the student in it, to which the portfolio of the student in the class belongs, the time when the student joined it, and the calendar date when its first session meets, which a class that Portolab created before it stored that date lacks until its lecturer sets it. */
 export interface JoinedClass extends ClassForStudents {
   membershipId: MembershipId;
   joinedAt: Date;
+  firstSessionDate: string | null;
 }
 
 /** A student in a class, as the lecturer of the class sees them, with the place of the student in the class, to which the portfolio of the student in the class belongs. */
@@ -39,11 +45,12 @@ export interface ClassStudent extends Person {
   joinedAt: Date;
 }
 
-/** What a lecturer gives to create a class. */
+/** What a lecturer gives to create a class, with the calendar date when its first session meets. */
 export interface NewClass {
   lecturerId: UserId;
   name: string;
   startingCash: Rupiah;
+  firstSessionDate: string;
 }
 
 // The name of the lecturer comes from the accounts feature, which owns the table of people, so a query of classes selects the id of the lecturer and withLecturerNames adds the name.
@@ -105,17 +112,31 @@ export function findTaughtClass(
   database: Database,
   classId: ClassId,
   lecturerId: UserId,
-): Omit<TaughtClass, "studentCount"> | undefined {
+): TaughtClassRecord | undefined {
   return database
     .select({
       id: classes.id,
       name: classes.name,
       startingCash: classes.startingCash,
       joinCode: classes.joinCode,
+      firstSessionDate: classes.firstSessionDate,
     })
     .from(classes)
     .where(and(eq(classes.id, classId), eq(classes.lecturerId, lecturerId)))
     .get();
+}
+
+/** Sets the calendar date when the first session of a class meets, from which its later sessions follow one a week. */
+export function setFirstSessionDate(
+  database: Database,
+  classId: ClassId,
+  firstSessionDate: string,
+): void {
+  database
+    .update(classes)
+    .set({ firstSessionDate })
+    .where(eq(classes.id, classId))
+    .run();
 }
 
 /** Lists the students of a class, in the order in which they joined. */
@@ -214,6 +235,7 @@ function selectJoinedClasses(database: Database) {
       ...classForStudentsColumns,
       membershipId: memberships.id,
       joinedAt: memberships.joinedAt,
+      firstSessionDate: classes.firstSessionDate,
     })
     .from(memberships)
     .innerJoin(classes, eq(classes.id, memberships.classId))

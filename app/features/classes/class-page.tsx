@@ -21,8 +21,11 @@ import {
 } from "./class-store.server";
 import type { ClassStudent, JoinedClass } from "./class-store.server";
 import type { ClassId } from "./classes.schema";
-import { classPath } from "./class-path";
+import { calendarPath, classPath } from "./class-path";
 import styles from "./classes.module.css";
+import { classCalendarOf } from "./course-calendar";
+import type { ClassCalendar } from "./course-calendar";
+import { CourseCalendarNotice } from "./course-calendar-notice";
 import { formatJoinCode, joinPath } from "./join-code";
 import { JoinDetails } from "./join-details";
 
@@ -38,9 +41,14 @@ export function loader({ context, params, url }: Route.LoaderArgs):
       startingCash: Rupiah;
       joinCode: string;
       joinAddresses: AddressesForOthers;
+      calendar: ClassCalendar | undefined;
       students: ClassStudent[];
     }
-  | ({ role: "student" } & JoinedClass) {
+  | ({ role: "student"; calendar: ClassCalendar | undefined } & Omit<
+      JoinedClass,
+      "firstSessionDate"
+    >) {
+  const now = new Date();
   const user = requireUser(context, url);
   const classId = parseRecordId<ClassId>(params.classId, "classId");
   const database = context.get(databaseContext);
@@ -64,6 +72,7 @@ export function loader({ context, params, url }: Route.LoaderArgs):
         joinCode,
         // The host comes from the request, so a forged Host header shows the addresses of the server on its networks only to the lecturer of the class, who reaches the server already.
         joinAddresses: addressesForOthers(new URL(joinPath(joinCode), url)),
+        calendar: classCalendarOf(taught.firstSessionDate, now),
         students: listStudents(database, taught.id),
       };
     }
@@ -72,7 +81,12 @@ export function loader({ context, params, url }: Route.LoaderArgs):
       if (joined === undefined) {
         throw notFound;
       }
-      return { role: user.role, ...joined };
+      const { firstSessionDate, ...joinedClass } = joined;
+      return {
+        role: user.role,
+        ...joinedClass,
+        calendar: classCalendarOf(firstSessionDate, now),
+      };
     }
   }
 }
@@ -90,6 +104,14 @@ export default function ClassPage({
             joinAddresses={loaderData.joinAddresses}
             startingCash={loaderData.startingCash}
           />
+          <h2>{m.classes_calendar_title()}</h2>
+          <CourseCalendarNotice
+            calendar={loaderData.calendar}
+            role={loaderData.role}
+          />
+          <Link to={calendarPath(loaderData.id)} className={styles["link"]}>
+            {m.classes_calendar_link()}
+          </Link>
           <h2>{m.classes_students_title()}</h2>
           <Link
             to={classPortfoliosPath(loaderData.id)}
@@ -105,6 +127,10 @@ export default function ClassPage({
         <>
           <h1>{loaderData.name}</h1>
           <p>{m.classes_taught_by_notice({ name: loaderData.lecturerName })}</p>
+          <CourseCalendarNotice
+            calendar={loaderData.calendar}
+            role={loaderData.role}
+          />
           <p>
             {m.classes_starting_cash_notice({
               cash: formatRupiah(loaderData.startingCash),

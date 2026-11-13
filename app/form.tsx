@@ -12,7 +12,8 @@ import styles from "./form.module.css";
 interface TextFieldProps {
   name: string;
   label: string;
-  type: "text" | "password";
+  /** The kind of field. A browser shows a field of a date with a calendar in the language of the device. */
+  type: "text" | "password" | "date";
   /** The kind of value, which lets a browser or a password manager fill the field, such as "username" or "new-password". */
   autoComplete: string;
   /** Whether a phone keyboard starts each word with a capital letter, which a name wants and a username or a password does not. */

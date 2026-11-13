@@ -61,6 +61,9 @@ const routePages: Record<string, readonly RoutePage[]> = {
     { reader: "lecturer", path: ({ classPath }) => classPath },
     { reader: "student", path: ({ classPath }) => classPath },
   ],
+  "features/classes/calendar-page.tsx": [
+    { reader: "lecturer", path: ({ classPath }) => `${classPath}/calendar` },
+  ],
   "features/trading/orders-page.tsx": [
     { reader: "student", path: ({ classPath }) => `${classPath}/orders` },
     {
