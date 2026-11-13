@@ -425,3 +425,36 @@ for (const locale of locales) {
     expect(html).not.toContain("▼");
   });
 }
+
+// The IHSG is an index, so its row names it by its code alone. The names of the companies read the same in both languages, and their sectors take the names that IDX gives them in each language.
+const stockCells: Record<Locale, readonly string[]> = {
+  id: [
+    '<th scope="col">Saham</th>',
+    '<th scope="row">IHSG</th>',
+    '<th scope="row"><div><span aria-hidden="true">BB</span><div><span>BBCA</span><span>Bank Central Asia Tbk</span><span>Keuangan</span></div></div></th>',
+    '<th scope="row"><div><span aria-hidden="true">BB</span><div><span>BBRI</span><span>Bank Rakyat Indonesia (Persero) Tbk</span><span>Keuangan</span></div></div></th>',
+  ],
+  en: [
+    '<th scope="col">Stock</th>',
+    '<th scope="row">IHSG</th>',
+    '<th scope="row"><div><span aria-hidden="true">BB</span><div><span>BBCA</span><span>Bank Central Asia Tbk</span><span>Financials</span></div></div></th>',
+    '<th scope="row"><div><span aria-hidden="true">BB</span><div><span>BBRI</span><span>Bank Rakyat Indonesia (Persero) Tbk</span><span>Financials</span></div></div></th>',
+  ],
+};
+
+for (const locale of locales) {
+  test(`names the company of each stock under its code with its sector, beside the tile of the company, in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    const html = renderToStaticMarkup(
+      <PricesView
+        quotes={quotes}
+        latestAttempt={succeededAttempt}
+        now={halfMinuteAfterFailure}
+        source={yahooFinance}
+      />,
+    ).replaceAll(/ class="[^"]*"/g, "");
+    for (const cell of stockCells[locale]) {
+      expect(html).toContain(cell);
+    }
+  });
+}

@@ -7,7 +7,7 @@ import type { Locale } from "../app/paraglide/runtime.js";
 import { trackedInstruments } from "../app/features/market-data/tracked-instruments.ts";
 import { chooseLanguage } from "./choose-language.ts";
 
-// The server runs with the fixture price source, and fixture-price-source.server.ts describes its quotes. ITMG has the highest price of the universe, and the quotes of GOTO and BMRI hold the widest change and a date from an earlier day, so the table holds the widest content of each column. Every update lacks UNVR, whose quote the global setup stored before the server started, and WIFI, of which Portolab has no price. The notice of those prices is a tuple of its parts around the time of the latest update, and the time of the next attempt depends on the moment of the test.
+// The server runs with the fixture price source, and fixture-price-source.server.ts describes its quotes. ITMG has the highest price of the universe, the quotes of GOTO and BMRI hold the widest change and a date from an earlier day, and the table names the company of every stock with a price, so it holds the widest content of each column. Every update lacks UNVR, whose quote the global setup stored before the server started, and WIFI, of which Portolab has no price. The notice of those prices is a tuple of its parts around the time of the latest update, and the time of the next attempt depends on the moment of the test.
 
 const texts: Record<
   Locale,
@@ -33,13 +33,34 @@ const texts: Record<
       " WIB, jadi Portolab memakai harga terakhir UNVR yang tersimpan. Portolab belum memiliki harga WIFI, karena percobaan terakhir untuk mengambilnya pada ",
       " WIB gagal. Portolab ",
     ],
-    columns: ["Kode", "Harga terakhir", "Perubahan", "Waktu (WIB)"],
-    bbca: ["4.980", "▲", "+0,81%", "16.14"],
+    columns: ["Saham", "Harga terakhir", "Perubahan", "Waktu (WIB)"],
+    bbca: [
+      "Bank Central Asia Tbk",
+      "Keuangan",
+      "4.980",
+      "▲",
+      "+0,81%",
+      "16.14",
+    ],
     ihsg: ["5.057,05", "▼", "-0,80%", "16.00"],
     tlkm: ["1.980", "0,00%", "16.14"],
     bmri: ["3.720", "29 Okt 2026", "16.14"],
-    goto: ["24", "▲", "+33,33%", "16.14"],
-    itmg: ["24.900", "▲", "+1,22%", "16.10"],
+    goto: [
+      "GoTo Gojek Tokopedia Tbk",
+      "Teknologi",
+      "24",
+      "▲",
+      "+33,33%",
+      "16.14",
+    ],
+    itmg: [
+      "Indo Tambangraya Megah Tbk",
+      "Energi",
+      "24.900",
+      "▲",
+      "+1,22%",
+      "16.10",
+    ],
   },
   en: {
     title: "Stock prices",
@@ -50,20 +71,41 @@ const texts: Record<
       " WIB, so it uses the last price of UNVR that it stored. Portolab has no price for WIFI yet, because its latest attempt to fetch it at ",
       " WIB failed. Portolab ",
     ],
-    columns: ["Code", "Last price", "Change", "Time (WIB)"],
-    bbca: ["IDR 4,980", "▲", "+0.81%", "4:14 PM"],
+    columns: ["Stock", "Last price", "Change", "Time (WIB)"],
+    bbca: [
+      "Bank Central Asia Tbk",
+      "Financials",
+      "IDR 4,980",
+      "▲",
+      "+0.81%",
+      "4:14 PM",
+    ],
     ihsg: ["5,057.05", "▼", "-0.80%", "4:00 PM"],
     tlkm: ["IDR 1,980", "0.00%", "4:14 PM"],
     bmri: ["IDR 3,720", "Oct 29, 2026", "4:14 PM"],
-    goto: ["IDR 24", "▲", "+33.33%", "4:14 PM"],
-    itmg: ["IDR 24,900", "▲", "+1.22%", "4:10 PM"],
+    goto: [
+      "GoTo Gojek Tokopedia Tbk",
+      "Technology",
+      "IDR 24",
+      "▲",
+      "+33.33%",
+      "4:14 PM",
+    ],
+    itmg: [
+      "Indo Tambangraya Megah Tbk",
+      "Energy",
+      "IDR 24,900",
+      "▲",
+      "+1.22%",
+      "4:10 PM",
+    ],
   },
 };
 
 for (const locale of locales) {
   const text = texts[locale];
 
-  test(`shows delayed prices with their changes, signs, arrows, and times in ${languageNames[locale]}`, async ({
+  test(`shows delayed prices with the companies and the sectors of the stocks, their changes, signs, arrows, and times in ${languageNames[locale]}`, async ({
     page,
   }) => {
     await chooseLanguage(page, locale);

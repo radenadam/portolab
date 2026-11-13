@@ -1,6 +1,6 @@
 # 0014. Students trade the stocks of the LQ45
 
-- Status: Accepted. [Decision 0015](0015-students-buy-only-stocks-that-the-measures-can-use.md) changes two of its rules for trading: which stocks of the universe a student can buy, and whether a student can sell a holding after its stock leaves the universe.
+- Status: Accepted. [Decision 0015](0015-students-buy-only-stocks-that-the-measures-can-use.md) changes two of its rules for trading: which stocks of the universe a student can buy, and whether a student can sell a holding after its stock leaves the universe. [Decision 0034](0034-a-stock-carries-the-name-and-the-sector-that-idx-publishes.md) changes what a new period needs: a record of the company of each stock that it adds.
 - Date: 2026-11-01
 
 ## Context

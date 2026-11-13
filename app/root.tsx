@@ -1,5 +1,6 @@
 import "@fontsource-variable/instrument-sans/wght.css";
 import "@fontsource/dm-mono/400.css";
+import "@fontsource/dm-mono/500.css";
 import type { ReactNode } from "react";
 import {
   Links,

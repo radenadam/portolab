@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { countedText } from "~/counted-text";
 import definitionStyles from "~/definition-list.module.css";
+import { StockName } from "~/features/market-data/stock-name";
 import { formatRupiah } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { rupiah } from "~/units/rupiah";
@@ -76,7 +77,7 @@ export function HoldingList({
   );
 }
 
-/** The holdings of a portfolio, each under its code with the details that a page shows of it, or the sentence that the portfolio holds no shares. */
+/** The holdings of a portfolio, each under its stock with the details that a page shows of it, or the sentence that the portfolio holds no shares. */
 function HoldingItems<Item extends { code: string }>({
   holdings,
   emptyText,
@@ -94,7 +95,7 @@ function HoldingItems<Item extends { code: string }>({
     <ul className={styles["list"]}>
       {holdings.map((holding) => (
         <li key={holding.code} className={styles["item"]}>
-          <p className={styles["title"]}>{holding.code}</p>
+          <StockName code={holding.code} />
           {details(holding)}
         </li>
       ))}

@@ -27,6 +27,19 @@ const { className, studentName } = widestClassNames;
 /** The stocks whose delayed price the tests show. */
 type QuotedCode = "AADI" | "BBCA" | "GOTO" | "ITMG" | "UNVR";
 
+/** The stocks that the tests choose, which are those with a delayed price and WIFI, of which Portolab has no price. */
+type ChosenCode = QuotedCode | "WIFI";
+
+// The names of the companies, which read the same in both languages.
+const companyNames: Record<ChosenCode, string> = {
+  AADI: "Adaro Andalan Indonesia Tbk",
+  BBCA: "Bank Central Asia Tbk",
+  GOTO: "GoTo Gojek Tokopedia Tbk",
+  ITMG: "Indo Tambangraya Megah Tbk",
+  UNVR: "Unilever Indonesia Tbk",
+  WIFI: "Solusi Sinergi Digital Tbk",
+};
+
 // The fixture records GOTO at Rp24, at which the starting cash of Rp1,000,000,000,000 buys at most 416,042,602 lots with the broker fee of 0.15%, which costs Rp999,999,998,167 and leaves Rp1,833, as the decimal module of Python computed with ROUND_HALF_UP. It is the largest holding, in shares and in cost, that the cash of a class can buy at a price of the fixture.
 const widestHolding = {
   cash: rupiah(1_833),
@@ -79,6 +92,7 @@ const texts: Record<
     stockHint: string;
     priceTerms: { delayedPrice: string; change: string };
     quotes: Record<QuotedCode, readonly [string, string, string]>;
+    sectors: Record<ChosenCode, string>;
     staleNotice: readonly [string, string];
     missingNotice: readonly [string, string];
     noPriceOrder: string;
@@ -169,6 +183,14 @@ const texts: Record<
       delayedPrice: "Harga tertunda",
       change: "Perubahan dari harga penutupan sebelumnya",
     },
+    sectors: {
+      AADI: "Energi",
+      BBCA: "Keuangan",
+      GOTO: "Teknologi",
+      ITMG: "Energi",
+      UNVR: "Barang Konsumen Primer",
+      WIFI: "Teknologi",
+    },
     quotes: {
       AADI: ["Rp\u00a011.475", "▲ +3,15%", "30 Okt 2026, 16.14"],
       BBCA: ["Rp\u00a04.980", "▲ +0,81%", "30 Okt 2026, 16.14"],
@@ -229,6 +251,7 @@ const texts: Record<
     ],
     holding: [
       "GOTO",
+      "GoTo Gojek Tokopedia Tbk",
       "41.604.260.200 saham dengan biaya Rp\u00a0999.999.998.167, termasuk biaya broker.",
     ],
     sale: [
@@ -306,6 +329,14 @@ const texts: Record<
       delayedPrice: "Delayed price",
       change: "Change from the previous close",
     },
+    sectors: {
+      AADI: "Energy",
+      BBCA: "Financials",
+      GOTO: "Technology",
+      ITMG: "Energy",
+      UNVR: "Consumer Non-Cyclicals",
+      WIFI: "Technology",
+    },
     quotes: {
       AADI: ["IDR\u00a011,475", "▲ +3.15%", "Oct 30, 2026, 4:14 PM"],
       BBCA: ["IDR\u00a04,980", "▲ +0.81%", "Oct 30, 2026, 4:14 PM"],
@@ -366,6 +397,7 @@ const texts: Record<
     ],
     holding: [
       "GOTO",
+      "GoTo Gojek Tokopedia Tbk",
       "41,604,260,200 shares that cost IDR\u00a0999,999,998,167, broker fees included.",
     ],
     sale: [
@@ -406,15 +438,24 @@ async function openOrdersOfNewStudent(
   return joined;
 }
 
-/** Chooses a stock in the form that chooses one, or no stock for an empty code, and sends the form, which opens the orders with the stock in the address. */
+/** Chooses a stock in the form that chooses one, which offers it under the name of its company, or no stock for an empty code, and sends the form, which opens the orders with the stock in the address. */
 async function chooseStock(
   page: Page,
   locale: Locale,
-  code: string,
+  code: ChosenCode | "",
 ): Promise<void> {
   const { labels } = texts[locale];
   const main = page.getByRole("main");
-  await main.getByLabel(labels.stock, { exact: true }).selectOption(code);
+  const field = main.getByLabel(labels.stock, { exact: true });
+  if (code !== "") {
+    await expect(
+      field.getByRole("option", {
+        name: `${code} · ${companyNames[code]}`,
+        exact: true,
+      }),
+    ).toBeAttached();
+  }
+  await field.selectOption(code);
   await main.getByRole("button", { name: labels.showPrice }).click();
   await expect(page).toHaveURL(new RegExp(`/orders\\?code=${code}$`));
 }
@@ -423,7 +464,7 @@ async function chooseStock(
 async function chooseAnotherStock(
   page: Page,
   locale: Locale,
-  code: string,
+  code: ChosenCode,
 ): Promise<void> {
   await page
     .getByRole("main")
@@ -446,7 +487,19 @@ function orderTicket(page: Page, locale: Locale): Locator {
     });
 }
 
-/** Checks that the ticket shows the chosen stock with its latest delayed price, its change, its delay, and the time of its quote. */
+/** Checks that the ticket shows the chosen stock with the name and the sector of its company. */
+async function expectChosenStock(
+  page: Page,
+  locale: Locale,
+  code: ChosenCode,
+): Promise<void> {
+  const ticket = orderTicket(page, locale);
+  for (const name of [code, companyNames[code], texts[locale].sectors[code]]) {
+    await expect(ticket.getByText(name, { exact: true })).toBeVisible();
+  }
+}
+
+/** Checks that the ticket shows the chosen stock with its company, its latest delayed price, its change, its delay, and the time of its quote. */
 async function expectChosenPrice(
   page: Page,
   locale: Locale,
@@ -455,7 +508,7 @@ async function expectChosenPrice(
   const { priceTerms, quotes, quoteNotice } = texts[locale];
   const [price, change, quotedAt] = quotes[code];
   const ticket = orderTicket(page, locale);
-  await expect(ticket.getByText(code, { exact: true })).toBeVisible();
+  await expectChosenStock(page, locale, code);
   await expect(ticket.locator("dl")).toHaveText(
     [priceTerms.delayedPrice, price, priceTerms.change, change].join(""),
   );
@@ -784,9 +837,7 @@ for (const locale of locales) {
     await expectAccessibleScreen(student);
 
     await chooseAnotherStock(student, locale, "WIFI");
-    await expect(
-      orderTicket(student, locale).getByText("WIFI", { exact: true }),
-    ).toBeVisible();
+    await expectChosenStock(student, locale, "WIFI");
     await expect(orderTicket(student, locale).locator("dl")).toHaveCount(0);
     await expectTexts(
       student.getByRole("main").getByText(text.missingNotice[0]),

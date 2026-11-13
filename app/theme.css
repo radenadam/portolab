@@ -50,6 +50,7 @@
   --text-row: 0.84375rem;
   --text-caption: 0.78125rem;
   --text-small: 0.75rem;
+  --text-tile: 0.6875rem;
   /* The pages that issue #127 has not rebuilt yet still open with a large title, and the code of a class stands out on its page. */
   --text-title: 1.75rem;
   --text-heading: 1.25rem;
@@ -74,6 +75,8 @@
   --width-aside: 21.5rem;
   /* The largest width of the content of a screen, which decision 0028 sets and e2e/expect-layout.ts checks every part marked as content against. */
   --width-content: 85rem;
+  /* The name of a company stands beside its tile while it has room for a word of about ten letters, and under the tile otherwise. */
+  --width-company-name: 5rem;
   /* The app icon takes the size that the rail of the references draws it at. */
   --size-app-icon: 2.25rem;
   /* A chart takes about a third of the screen of a phone held upright, so the text around it stays in view. */
@@ -83,7 +86,9 @@
   --size-mark: 2px;
   /* The smallest touch target, which AGENTS.md sets and e2e/expect-accessible-screen.ts checks every screen against. */
   --size-touch-target: 2.75rem;
+  --size-tile: 2rem;
   --radius-button: 0.375rem;
+  --radius-tile: 0.5625rem;
 }
 
 /* A screen without room for the sidebar takes the frame and the sizes of the phone references. app/frame.module.css switches the frame at the same width. */
