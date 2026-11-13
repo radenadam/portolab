@@ -97,7 +97,7 @@ const texts: Record<
       "Titik",
       "Beta terhadap IHSG",
       "Imbal hasil yang diharapkan",
-      "Jarak dari garis pasar sekuritas",
+      "Alpha Jensen",
     ],
     riskFreeRow: [
       `Suku bunga bebas risiko (${riskFreeSymbol})`,
@@ -145,7 +145,7 @@ const texts: Record<
       "Point",
       "Beta against the IHSG",
       "Expected return",
-      "Distance from the security market line",
+      "Jensen's alpha",
     ],
     riskFreeRow: [
       `Risk-free rate (${riskFreeSymbol})`,

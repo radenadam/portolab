@@ -1,6 +1,6 @@
 # 0021. The lecturer ranks portfolios by their distance from the security market line
 
-- Status: Accepted
+- Status: Accepted. [Decision 0031](0031-sharpe-treynor-and-jensens-alpha-are-measures-of-the-first-release.md) changes one of its consequences: when the measures of Sharpe, Treynor, and Jensen come.
 - Date: 2026-11-11
 
 ## Context

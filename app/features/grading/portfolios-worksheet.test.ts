@@ -57,11 +57,11 @@ const texts: Record<
     sheetName: "Portofolio",
     title: "Portofolio mahasiswa di Manajemen Portofolio A",
     notice:
-      "Simulasi dengan uang virtual, diunduh pada 30 Okt 2026, 16.20 WIB. Portolab menilai setiap saham yang dipegang pada harga tertunda terakhir dari Yahoo Finance, sekitar 10 menit di belakang BEI. Setiap ukuran berlaku per bulan, dan portofolio yang memiliki ukuran muncul lebih dulu, dari jarak dari garis pasar sekuritas yang tertinggi sampai yang terendah.",
+      "Simulasi dengan uang virtual, diunduh pada 30 Okt 2026, 16.20 WIB. Portolab menilai setiap saham yang dipegang pada harga tertunda terakhir dari Yahoo Finance, sekitar 10 menit di belakang BEI. Setiap ukuran berlaku per bulan, dan portofolio yang memiliki ukuran muncul lebih dulu, dari alpha Jensen yang tertinggi sampai yang terendah.",
     headings: [
       "Nama",
       "Nama pengguna",
-      "Jarak dari garis pasar sekuritas",
+      "Alpha Jensen",
       "Imbal hasil yang diharapkan",
       "Simpangan baku",
       "Beta terhadap IHSG",
@@ -78,11 +78,11 @@ const texts: Record<
     sheetName: "Portfolios",
     title: "Portfolios of the students in Manajemen Portofolio A",
     notice:
-      "A simulation with virtual cash, downloaded on Oct 30, 2026, 4:20 PM WIB. Portolab valued each holding at the latest delayed price from Yahoo Finance, about 10 minutes behind IDX. Every measure is per month, and the portfolios with measures come first, from the highest distance from the security market line to the lowest.",
+      "A simulation with virtual cash, downloaded on Oct 30, 2026, 4:20 PM WIB. Portolab valued each holding at the latest delayed price from Yahoo Finance, about 10 minutes behind IDX. Every measure is per month, and the portfolios with measures come first, from the highest Jensen's alpha to the lowest.",
     headings: [
       "Name",
       "Username",
-      "Distance from the security market line",
+      "Jensen's alpha",
       "Expected return",
       "Standard deviation",
       "Beta against the IHSG",

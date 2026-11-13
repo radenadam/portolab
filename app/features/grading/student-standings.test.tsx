@@ -9,6 +9,7 @@ import { classOfStudentsForTest } from "./class-of-students-for-test.server";
 import { studentMeasuresPath, studentPortfolioPath } from "./grading-paths";
 import { readClassPortfolios } from "./read-class-portfolios.server";
 import { RankedStudents, UnmeasuredStudents } from "./student-standings";
+import { markupTextForTest } from "~/markup-text-for-test";
 
 // class-of-students-for-test.server.ts describes the students, and read-class-portfolios.server.test.ts gives their measures and values, which the lists round as the pages of the measures do. Intl puts a no-break space after the currency, which the texts write as \u00a0.
 const now = new Date("2026-10-30T09:20:00Z");
@@ -39,7 +40,7 @@ const texts: Record<
 > = {
   id: {
     labels: {
-      distance: "Jarak dari garis pasar sekuritas",
+      distance: "Alpha Jensen",
       expectedReturn: "Imbal hasil yang diharapkan",
       standardDeviation: "Simpangan baku",
       beta: "Beta terhadap IHSG",
@@ -72,7 +73,7 @@ const texts: Record<
   },
   en: {
     labels: {
-      distance: "Distance from the security market line",
+      distance: "Jensen's alpha",
       expectedReturn: "Expected return",
       standardDeviation: "Standard deviation",
       beta: "Beta against the IHSG",
@@ -109,7 +110,7 @@ function definitions(
   terms: readonly string[],
   values: readonly string[],
 ): string {
-  return `<dl>${terms.map((term, index) => `<dt>${term}</dt><dd>${values[index] ?? ""}</dd>`).join("")}</dl>`;
+  return `<dl>${terms.map((term, index) => `<dt>${markupTextForTest(term)}</dt><dd>${values[index] ?? ""}</dd>`).join("")}</dl>`;
 }
 
 for (const locale of locales) {
