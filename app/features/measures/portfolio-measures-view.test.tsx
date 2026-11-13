@@ -4,24 +4,32 @@ import type { PriceSourceDescription } from "~/features/market-data/price-source
 import { holdingQuoteFailureText } from "~/features/trading/holding-quote-failure-text";
 import type { PortfolioReader } from "~/features/trading/text-for-reader";
 import { languageNames } from "~/language-names";
+import { succeed } from "~/result";
 import { locales } from "~/paraglide/runtime.js";
 import type { Locale } from "~/paraglide/runtime.js";
 import { renderInRouterForTest } from "~/render-in-router-for-test";
+import { successValueForTest } from "~/success-value-for-test";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
+import { rupiah } from "~/units/rupiah";
+import { splitAdjustedRupiah } from "~/units/split-adjusted-rupiah";
+import { defaultEstimationSettings } from "./estimation-settings";
 import { measureDefinitionsForTest } from "./measure-definitions-for-test";
 import { measureFailureText } from "./measure-failure-text";
+import { summarizePortfolio } from "./measure-summaries";
 import { measureTableForTest } from "./measure-table-for-test";
+import { measureValuedPortfolio } from "./measure-valued-portfolio";
 import {
   aadiValuationForTest,
   cashValuationForTest,
   databaseWithClosesForTest,
   valuationForTest,
 } from "./measures-for-test.server";
+import { monthEndClosesForTest } from "./month-end-closes-for-test";
 import { PortfolioMeasuresView } from "./portfolio-measures-view";
 import { readPortfolioMeasures } from "./read-measures.server";
 import type { PortfolioMeasuresReport } from "./read-measures.server";
 
-// The portfolio of measures-for-test.server.ts holds BBCA, TLKM, and cash at weights of 0.5, 0.3, and 0.2. read-measures.server.test.ts explains its measures, which come from the values that the decimal module of Python computed for BBCA and TLKM: an expected return of -0.002159, a variance of 0.001653, a standard deviation of 0.040657, a beta of 0.620693, a required return of 0.002101, and a distance of -0.004260 from the security market line. Intl puts a no-break space after the currency, which the texts write as \u00a0.
+// The portfolio of measures-for-test.server.ts holds BBCA, TLKM, and cash at weights of 0.5, 0.3, and 0.2. read-measures.server.test.ts explains its measures, which come from the values that the decimal module of Python computed for BBCA and TLKM: an expected return of -0.002159, a variance of 0.001653, a standard deviation of 0.040657, a beta of 0.620693, a required return of 0.002101, a Jensen's alpha of -0.004260, a Sharpe ratio of -0.170950, a Treynor ratio of -0.011198, covariances of BBCA and TLKM with the portfolio of 0.0019095 and 0.0023275, shares of the variance of 0.577587 and 0.422413, and correlations with the portfolio of 0.898491 and 0.831512. Intl puts a no-break space after the currency, which the texts write as \u00a0.
 const yahooFinance: PriceSourceDescription = {
   name: "Yahoo Finance",
   delayMinutes: 10,
@@ -88,6 +96,9 @@ const texts: Record<
     pairsNotice: string;
     pairsTable: string;
     pairFormulas: string;
+    risksNotice: string;
+    risksTable: string;
+    riskFormulas: string;
     summaries: readonly string[];
   }
 > = {
@@ -116,12 +127,22 @@ const texts: Record<
         "β<sub>p</sub> = Σ w<sub>i</sub> β<sub>i</sub> (SUMPRODUCT)",
       ],
       [
+        "Rasio Sharpe",
+        "-0,17",
+        "S<sub>p</sub> = (E(R<sub>p</sub>) − R<sub>f</sub>) / σ<sub>p</sub> = (-0,22% − 0,48%) / 4,07%",
+      ],
+      [
+        "Rasio Treynor",
+        "-1,12%",
+        "T<sub>p</sub> = (E(R<sub>p</sub>) − R<sub>f</sub>) / β<sub>p</sub> = (-0,22% − 0,48%) / 0,62",
+      ],
+      [
         "Imbal hasil yang disyaratkan CAPM",
         "0,21%",
         "k<sub>p</sub> = R<sub>f</sub> + β<sub>p</sub>(E(R<sub>M</sub>) − R<sub>f</sub>) = 0,48% + 0,62 × (0,05% − 0,48%)",
       ],
       [
-        "Jarak dari garis pasar sekuritas",
+        "Alpha Jensen",
         `${fall}-0,43%`,
         "α<sub>p</sub> = E(R<sub>p</sub>) − k<sub>p</sub> = -0,22% − 0,21%",
       ],
@@ -161,6 +182,23 @@ const texts: Record<
     ),
     pairFormulas:
       "<p>σ<sub>ij</sub> = Σ(R<sub>i</sub> − E(R<sub>i</sub>))(R<sub>j</sub> − E(R<sub>j</sub>)) / (n − 1) (COVARIANCE.S)</p><p>ρ<sub>ij</sub> = σ<sub>ij</sub> / (σ<sub>i</sub> σ<sub>j</sub>) (CORREL)</p>",
+    risksNotice:
+      "Bagian varians suatu saham adalah bobotnya dikali kovariansnya dengan portofolio, dibagi varians portofolio, sehingga bagian semua saham bersama-sama membentuk seluruh varians. Bagian yang lebih besar daripada bobotnya berarti saham itu menambahkan bagian risiko portofolio yang lebih besar daripada bagian nilainya.",
+    risksTable: measureTableForTest(
+      [
+        "Saham",
+        "Bobot",
+        "Kovarians dengan portofolio",
+        "Bagian varians",
+        "Korelasi dengan portofolio",
+      ],
+      [
+        ["BBCA", "50,00%", "0,00191", "57,76%", "0,90"],
+        ["TLKM", "30,00%", "0,002328", "42,24%", "0,83"],
+      ],
+    ),
+    riskFormulas:
+      "<p>σ<sub>ip</sub> = Σ<sub>j</sub> w<sub>j</sub> σ<sub>ij</sub> (SUMPRODUCT)</p><p>c<sub>i</sub> = w<sub>i</sub> σ<sub>ip</sub> / σ²<sub>p</sub></p><p>ρ<sub>ip</sub> = σ<sub>ip</sub> / (σ<sub>i</sub> σ<sub>p</sub>) (CORREL)</p>",
     summaries: [
       "<h2>IHSG dan suku bunga bebas risiko</h2>",
       "<summary>Imbal hasil bulanan IHSG</summary>",
@@ -193,12 +231,22 @@ const texts: Record<
         "β<sub>p</sub> = Σ w<sub>i</sub> β<sub>i</sub> (SUMPRODUCT)",
       ],
       [
+        "Sharpe ratio",
+        "-0.17",
+        "S<sub>p</sub> = (E(R<sub>p</sub>) − R<sub>f</sub>) / σ<sub>p</sub> = (-0.22% − 0.48%) / 4.07%",
+      ],
+      [
+        "Treynor ratio",
+        "-1.12%",
+        "T<sub>p</sub> = (E(R<sub>p</sub>) − R<sub>f</sub>) / β<sub>p</sub> = (-0.22% − 0.48%) / 0.62",
+      ],
+      [
         "Return that CAPM requires",
         "0.21%",
         "k<sub>p</sub> = R<sub>f</sub> + β<sub>p</sub>(E(R<sub>M</sub>) − R<sub>f</sub>) = 0.48% + 0.62 × (0.05% − 0.48%)",
       ],
       [
-        "Distance from the security market line",
+        "Jensen's alpha",
         `${fall}-0.43%`,
         "α<sub>p</sub> = E(R<sub>p</sub>) − k<sub>p</sub> = -0.22% − 0.21%",
       ],
@@ -238,6 +286,23 @@ const texts: Record<
     ),
     pairFormulas:
       "<p>σ<sub>ij</sub> = Σ(R<sub>i</sub> − E(R<sub>i</sub>))(R<sub>j</sub> − E(R<sub>j</sub>)) / (n − 1) (COVARIANCE.S)</p><p>ρ<sub>ij</sub> = σ<sub>ij</sub> / (σ<sub>i</sub> σ<sub>j</sub>) (CORREL)</p>",
+    risksNotice:
+      "The share of the variance of a stock is its weight times its covariance with the portfolio, divided by the variance of the portfolio, so together the shares of the stocks make up the whole variance. A share above the weight means that the stock adds more of the risk of the portfolio than of its value.",
+    risksTable: measureTableForTest(
+      [
+        "Stock",
+        "Weight",
+        "Covariance with the portfolio",
+        "Share of the variance",
+        "Correlation with the portfolio",
+      ],
+      [
+        ["BBCA", "50.00%", "0.00191", "57.76%", "0.90"],
+        ["TLKM", "30.00%", "0.002328", "42.24%", "0.83"],
+      ],
+    ),
+    riskFormulas:
+      "<p>σ<sub>ip</sub> = Σ<sub>j</sub> w<sub>j</sub> σ<sub>ij</sub> (SUMPRODUCT)</p><p>c<sub>i</sub> = w<sub>i</sub> σ<sub>ip</sub> / σ²<sub>p</sub></p><p>ρ<sub>ip</sub> = σ<sub>ip</sub> / (σ<sub>i</sub> σ<sub>p</sub>) (CORREL)</p>",
     summaries: [
       "<h2>The IHSG and the risk-free rate</h2>",
       "<summary>Monthly returns of the IHSG</summary>",
@@ -258,6 +323,7 @@ const readerTexts: Record<
       holdingsTitle: string;
       holdingsNotice: string;
       pairsTitle: string;
+      risksTitle: string;
       noHoldings: string;
       oneUnpriced: string;
       severalUnpriced: string;
@@ -273,6 +339,7 @@ const readerTexts: Record<
       holdingsNotice:
         "Ukuran portofolio Anda berasal dari ukuran saham Anda ini pada bulan-bulan yang sama dengan portofolio, yang bisa lebih sedikit daripada bulan-bulan di halaman suatu saham.",
       pairsTitle: "Kovarians dan korelasi saham Anda",
+      risksTitle: "Risiko yang ditambahkan setiap saham Anda",
       noHoldings:
         "Anda belum memegang saham, sehingga portofolio Anda hanya berisi kas, yang tidak menghasilkan imbal hasil di Portolab. Portolab menghitung ukuran portofolio Anda setelah order beli Anda tereksekusi.",
       oneUnpriced:
@@ -288,6 +355,7 @@ const readerTexts: Record<
       holdingsNotice:
         "Ukuran portofolio berasal dari ukuran sahamnya ini pada bulan-bulan yang sama dengan portofolio, yang bisa lebih sedikit daripada bulan-bulan yang dipakai ukuran suatu saham sendiri.",
       pairsTitle: "Kovarians dan korelasi saham portofolio",
+      risksTitle: "Risiko yang ditambahkan setiap saham portofolio",
       noHoldings:
         "Siti Rahayu belum memegang saham, sehingga portofolionya hanya berisi kas, yang tidak menghasilkan imbal hasil di Portolab. Portolab menghitung ukuran portofolio itu setelah order beli Siti Rahayu tereksekusi.",
       oneUnpriced:
@@ -305,6 +373,7 @@ const readerTexts: Record<
       holdingsNotice:
         "The measures of your portfolio come from these measures of your stocks over the same months as the portfolio, which can be fewer than the months on the page of a stock.",
       pairsTitle: "Covariances and correlations of your stocks",
+      risksTitle: "The risk that each of your stocks adds",
       noHoldings:
         "You hold no shares yet, so your portfolio is cash alone, which earns no return in Portolab. Portolab computes the measures of your portfolio once a purchase of yours fills.",
       oneUnpriced:
@@ -320,6 +389,7 @@ const readerTexts: Record<
       holdingsNotice:
         "The measures of the portfolio come from these measures of its stocks over the same months as the portfolio, which can be fewer than the months that the measures of a stock alone use.",
       pairsTitle: "Covariances and correlations of the stocks of the portfolio",
+      risksTitle: "The risk that each stock of the portfolio adds",
       noHoldings:
         "Siti Rahayu holds no shares yet, so the portfolio is cash alone, which earns no return in Portolab. Portolab computes the measures of the portfolio once a purchase of Siti Rahayu fills.",
       oneUnpriced:
@@ -340,7 +410,7 @@ for (const locale of locales) {
       quoteFailure: string | undefined,
     ): string => renderView(report, reader, quoteFailure);
 
-    test(`shows each measure of a portfolio with its formula, the weights, the measures of its stocks, their covariances and correlations, the IHSG, and the monthly returns, in ${language}`, () => {
+    test(`shows each measure of a portfolio with its formula, the weights, the measures of its stocks, their covariances and correlations, the risk that each stock adds, the IHSG, and the monthly returns, in ${language}`, () => {
       switchLocaleForTest(locale);
       const quoteFailure = quoteFailureForTest();
       const html = render(
@@ -373,6 +443,10 @@ for (const locale of locales) {
           `<p>${text.pairsNotice}</p>`,
           text.pairsTable,
           text.pairFormulas,
+          `<h2>${readerText.risksTitle}</h2>`,
+          `<p>${text.risksNotice}</p>`,
+          text.risksTable,
+          text.riskFormulas,
         ].join(""),
       );
       for (const part of text.summaries) {
@@ -430,4 +504,81 @@ for (const locale of locales) {
       );
     });
   }
+}
+
+/** The measures of a portfolio of Rp5,000,000 in an invented stock whose price rises when the IHSG falls, and Rp5,000,000 in cash. The close of the stock at the end of each month is Rp31,000,000 divided by the close of the IHSG, rounded to a whole rupiah. No stock of the fixtures moves against the IHSG, so the stock takes a code that no stock of IDX has. */
+function portfolioAgainstMarketForTest(): PortfolioMeasuresReport {
+  const ihsg = monthEndClosesForTest("IHSG");
+  const holding = {
+    code: "CONTRA",
+    closes: ihsg.closes.map(({ date, close }) => ({
+      date,
+      close: splitAdjustedRupiah(Math.round(31_000_000 / close)),
+    })),
+    value: rupiah(5_000_000),
+  };
+  const cash = rupiah(5_000_000);
+  const measures = successValueForTest(
+    measureValuedPortfolio(
+      { holdings: [holding], cash },
+      ihsg,
+      defaultEstimationSettings,
+    ),
+    "The invented stock has the 60 monthly returns of the IHSG",
+  );
+  return {
+    kind: "measured",
+    measures: succeed(
+      summarizePortfolio(measures, {
+        holdings: [holding],
+        cash,
+        total: rupiah(10_000_000),
+      }),
+    ),
+  };
+}
+
+// The decimal module of Python computed the measures of that portfolio from the same closes at 50 significant digits: an expected return of 0.000828, a standard deviation of 0.023833, a beta of -0.524884, and a Sharpe ratio of -0.166294.
+const againstMarketTexts: Record<
+  Locale,
+  readonly (readonly [string, string, string])[]
+> = {
+  id: [
+    [
+      "Rasio Sharpe",
+      "-0,17",
+      "S<sub>p</sub> = (E(R<sub>p</sub>) − R<sub>f</sub>) / σ<sub>p</sub> = (0,08% − 0,48%) / 2,38%",
+    ],
+    [
+      "Rasio Treynor",
+      "Tidak ada",
+      "T<sub>p</sub> = (E(R<sub>p</sub>) − R<sub>f</sub>) / β<sub>p</sub> = (0,08% − 0,48%) / (-0,52)<span>Rasio Treynor membagi imbal hasil di atas suku bunga bebas risiko dengan beta, sehingga memerlukan beta di atas nol, tetapi beta portofolio ini -0,52. Beta nol membuat pembagian itu tidak terdefinisi, dan beta di bawah nol akan membuat imbal hasil di bawah suku bunga bebas risiko tampak sebagai imbalan atas risiko. Portolab menghitung rasio ini setelah suatu order tereksekusi atau pembaruan riwayat harga memberi portofolio beta di atas nol.</span>",
+    ],
+  ],
+  en: [
+    [
+      "Sharpe ratio",
+      "-0.17",
+      "S<sub>p</sub> = (E(R<sub>p</sub>) − R<sub>f</sub>) / σ<sub>p</sub> = (0.08% − 0.48%) / 2.38%",
+    ],
+    [
+      "Treynor ratio",
+      "None",
+      "T<sub>p</sub> = (E(R<sub>p</sub>) − R<sub>f</sub>) / β<sub>p</sub> = (0.08% − 0.48%) / (-0.52)<span>The Treynor ratio divides the return above the risk-free rate by beta, so it needs a beta above zero, but the beta of the portfolio is -0.52. A beta of zero leaves the division undefined, and a beta below zero would turn a return below the risk-free rate into a reward for risk. Portolab computes the ratio once an order fills or an update of the price history gives the portfolio a beta above zero.</span>",
+    ],
+  ],
+};
+
+for (const locale of locales) {
+  test(`shows no Treynor ratio for a portfolio whose beta is below zero, with the division by its beta and the reason, in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    const report = portfolioAgainstMarketForTest();
+    if (report.kind !== "measured" || !report.measures.ok) {
+      throw new Error("The portfolio against the market has measures.");
+    }
+    expect(report.measures.value.beta).toBeLessThan(0);
+    expect(renderView(report, readers.owner, undefined)).toContain(
+      measureDefinitionsForTest(againstMarketTexts[locale]),
+    );
+  });
 }

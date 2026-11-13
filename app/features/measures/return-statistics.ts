@@ -116,24 +116,19 @@ export function measureCovariance(
   };
 }
 
-/** Measures the correlation of the returns of two instruments from their covariance and their standard deviations. */
-export function measureCorrelation(
-  covariance: CovarianceMeasure,
-  first: SeriesMeasures,
-  second: SeriesMeasures,
-): CorrelationMeasure {
-  const firstStandardDeviation = first.standardDeviation.value;
-  const secondStandardDeviation = second.standardDeviation.value;
+/** Measures the correlation of the returns of two instruments, or of a stock and its portfolio, from their covariance and their standard deviations. */
+export function measureCorrelation(inputs: {
+  covariance: MonthlyVariance;
+  firstStandardDeviation: MonthlyReturn;
+  secondStandardDeviation: MonthlyReturn;
+}): CorrelationMeasure {
   return {
     formula: "correlation",
     value: correlation(
-      covariance.value / (firstStandardDeviation * secondStandardDeviation),
+      inputs.covariance /
+        (inputs.firstStandardDeviation * inputs.secondStandardDeviation),
     ),
-    inputs: {
-      covariance: covariance.value,
-      firstStandardDeviation,
-      secondStandardDeviation,
-    },
+    inputs,
   };
 }
 

@@ -29,7 +29,8 @@ function Return({ of }: { of: Subject }): ReactNode {
   );
 }
 
-function ExpectedReturn({ of }: { of: Subject }): ReactNode {
+/** E(Rᵢ), the expected return of an instrument. */
+export function ExpectedReturn({ of }: { of: Subject }): ReactNode {
   return (
     <>
       E(
@@ -47,14 +48,21 @@ function Deviation({ of }: { of: Subject }): ReactNode {
 }
 
 /** A number after an operator, as decision 0020 writes it. */
-function Operand({ value, text }: { value: number; text: string }): ReactNode {
+export function Operand({
+  value,
+  text,
+}: {
+  value: number;
+  text: string;
+}): ReactNode {
   return value < 0 ? `(${text})` : text;
 }
 
 /** The symbol of the rate free of risk, R with the subscript f, which a chart writes as well. */
 export const riskFreeSymbol = { letter: "R", subscript: "f" } as const;
 
-function RiskFree(): ReactNode {
+/** R_f, the rate free of risk. */
+export function RiskFree(): ReactNode {
   return (
     <>
       {riskFreeSymbol.letter}
@@ -292,6 +300,24 @@ export function RiskFreeFormula({
     <>
       <RiskFree /> = BI-Rate / {months} ={" "}
       {formatPercent(rate.inputs.annualRate)} / {months}
+    </>
+  );
+}
+
+/** σᵢₚ = Σⱼ wⱼ σᵢⱼ, the covariance of a stock with its portfolio from the weights and the covariances of the stocks. */
+export function CovarianceWithPortfolioFormula(): ReactNode {
+  return (
+    <>
+      σ<sub>ip</sub> = Σ<sub>j</sub> w<sub>j</sub> σ<sub>ij</sub> (SUMPRODUCT)
+    </>
+  );
+}
+
+/** cᵢ = wᵢ σᵢₚ / σ²ₚ, the share of the variance of a portfolio that one stock adds. */
+export function VarianceShareFormula(): ReactNode {
+  return (
+    <>
+      c<sub>i</sub> = w<sub>i</sub> σ<sub>ip</sub> / σ²<sub>p</sub>
     </>
   );
 }

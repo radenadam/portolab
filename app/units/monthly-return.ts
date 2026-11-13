@@ -1,4 +1,4 @@
-/** A return over one month as a fraction, such as 0.0123 for 1.23%. An expected return, a standard deviation, the risk-free rate of one month, and a distance from the security market line are returns over one month too. */
+/** A return over one month as a fraction, such as 0.0123 for 1.23%. An expected return, a standard deviation, the risk-free rate of one month, Jensen's alpha, which is the distance from the security market line, and a Treynor ratio, which is the return above the risk-free rate for each unit of beta, are returns over one month too. */
 export type MonthlyReturn = number & { readonly brand: "MonthlyReturn" };
 
 function isMonthlyReturn(value: number): value is MonthlyReturn {

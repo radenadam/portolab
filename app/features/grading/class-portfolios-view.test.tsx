@@ -10,6 +10,7 @@ import { classOfStudentsForTest } from "./class-of-students-for-test.server";
 import { ClassPortfoliosView } from "./class-portfolios-view";
 import type { ClassPortfolios } from "./read-class-portfolios.server";
 import { readClassPortfolios } from "./read-class-portfolios.server";
+import { markupTextForTest } from "~/markup-text-for-test";
 
 // class-of-students-for-test.server.ts describes the students, and read-class-portfolios.server.test.ts gives the sentence about the price of AMMN, which the latest update of the class could not fetch. student-standings.test.tsx checks each student of the lists.
 const yahooFinance: PriceSourceDescription = {
@@ -41,7 +42,7 @@ const texts: Record<
       "Spreadsheet ini adalah workbook Excel yang memuat nilai dan ukuran di halaman ini, dengan urutan yang sama. Excel, Google Sheets, dan LibreOffice dapat membukanya, dan masing-masing menulis angkanya dalam format bahasanya sendiri.",
     rankedTitle: "Portofolio yang memiliki ukuran",
     rankedNotice:
-      "Portolab mengurutkan portofolio ini menurut jarak imbal hasil yang diharapkannya dari garis pasar sekuritas, dari yang tertinggi sampai yang terendah. Jarak itu membandingkan imbal hasil yang diharapkan dengan imbal hasil yang disyaratkan CAPM untuk beta portofolio, sehingga urutannya menghargai imbal hasil sesuai risiko yang diambil portofolio, bukan imbal hasil saja.",
+      "Portolab mengurutkan portofolio ini menurut alpha Jensen, yaitu jarak imbal hasil yang diharapkannya dari garis pasar sekuritas, dari yang tertinggi sampai yang terendah. Jarak itu membandingkan imbal hasil yang diharapkan dengan imbal hasil yang disyaratkan CAPM untuk beta portofolio, sehingga urutannya menghargai imbal hasil sesuai risiko yang diambil portofolio, bukan imbal hasil saja.",
     noRanked:
       "Belum ada portofolio di kelas ini yang memiliki ukuran, sehingga Portolab belum mengurutkan satu pun. Setiap portofolio di bawah menjelaskan alasannya.",
     unmeasuredTitle: "Portofolio yang belum memiliki ukuran",
@@ -58,7 +59,7 @@ const texts: Record<
       "The spreadsheet is an Excel workbook with the values and the measures of this page, in the same order. Excel, Google Sheets, and LibreOffice open it, and each writes its numbers in the format of its own language.",
     rankedTitle: "Portfolios with measures",
     rankedNotice:
-      "Portolab ranks these portfolios by the distance of their expected return from the security market line, from the highest to the lowest. The distance compares the expected return with the return that CAPM requires for the beta of the portfolio, so the rank rewards the return for the risk that a portfolio takes, not the return alone.",
+      "Portolab ranks these portfolios by Jensen's alpha, the distance of their expected return from the security market line, from the highest to the lowest. The distance compares the expected return with the return that CAPM requires for the beta of the portfolio, so the rank rewards the return for the risk that a portfolio takes, not the return alone.",
     noRanked:
       "No portfolio of this class has measures yet, so Portolab ranks none. Each portfolio below says why it has none.",
     unmeasuredTitle: "Portfolios without measures yet",
@@ -102,7 +103,7 @@ for (const locale of locales) {
         `<a href="/classes/1/portfolios/export">${text.exportLink}</a>`,
         `<p>${text.exportNotice}</p>`,
         `<h2>${text.rankedTitle}</h2>`,
-        `<p>${text.rankedNotice}</p>`,
+        `<p>${markupTextForTest(text.rankedNotice)}</p>`,
         "<ol>",
       ].join(""),
     );

@@ -8,6 +8,7 @@ import {
   formatMarketTime,
   formatMarketTimeParts,
   formatPercent,
+  formatSharpeRatio,
   formatSignedPercent,
   formatSignedRupiah,
   formatUtcDay,
@@ -22,6 +23,7 @@ import { bytes } from "./units/bytes";
 import { correlation } from "./units/correlation";
 import { monthlyVariance } from "./units/monthly-variance";
 import { rupiah } from "./units/rupiah";
+import { sharpeRatio } from "./units/sharpe-ratio";
 
 // 09:14:56 UTC on 16 October 2026 is 16:14 WIB.
 const quotedAt = new Date("2026-10-16T09:14:56.000Z");
@@ -183,6 +185,7 @@ const measureValues: Record<
     smallVariance: string;
     beta: string;
     correlation: string;
+    sharpeRatio: string;
   }
 > = {
   id: {
@@ -192,6 +195,7 @@ const measureValues: Record<
     smallVariance: "-0,00007039",
     beta: "0,69",
     correlation: "-0,25",
+    sharpeRatio: "-0,17",
   },
   en: {
     upToTwo: "0.1%",
@@ -200,11 +204,12 @@ const measureValues: Record<
     smallVariance: "-0.00007039",
     beta: "0.69",
     correlation: "-0.25",
+    sharpeRatio: "-0.17",
   },
 };
 
 for (const locale of locales) {
-  test(`formats a percentage with up to two decimals or exactly two, a variance with four significant digits, and a beta and a correlation with two decimals, in ${languageNames[locale]}`, () => {
+  test(`formats a percentage with up to two decimals or exactly two, a variance with four significant digits, and a beta, a correlation, and a Sharpe ratio with two decimals, in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     const text = measureValues[locale];
     expect(formatPercent(0.001)).toBe(text.upToTwo);
@@ -217,5 +222,8 @@ for (const locale of locales) {
     );
     expect(formatBeta(beta(0.6893713956004657))).toBe(text.beta);
     expect(formatCorrelation(correlation(-0.2501))).toBe(text.correlation);
+    expect(formatSharpeRatio(sharpeRatio(-0.17094998531994998))).toBe(
+      text.sharpeRatio,
+    );
   });
 }
