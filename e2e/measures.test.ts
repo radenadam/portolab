@@ -145,7 +145,7 @@ const texts: Record<
         [
           ["Beta terhadap IHSG", "", "0,34"],
           ["Imbal hasil yang diharapkan", "", "-0,05%"],
-          ["Jarak dari garis pasar sekuritas", "▼ ", "-0,38%"],
+          ["Alpha Jensen", "▼ ", "-0,38%"],
         ],
         "dan",
       ),
@@ -154,7 +154,7 @@ const texts: Record<
         [
           ["Beta terhadap IHSG", "", "0,69"],
           ["Imbal hasil yang diharapkan", "", "-0,10%"],
-          ["Jarak dari garis pasar sekuritas", "▼ ", "-0,28%"],
+          ["Alpha Jensen", "▼ ", "-0,28%"],
         ],
         "dan",
       ),
@@ -163,7 +163,7 @@ const texts: Record<
         [
           ["Beta terhadap IHSG", "", "1,00"],
           ["Imbal hasil yang diharapkan", "", "0,05%"],
-          ["Jarak dari garis pasar sekuritas", "", "0,00%"],
+          ["Alpha Jensen", "", "0,00%"],
         ],
         "dan",
       ),
@@ -276,7 +276,7 @@ const texts: Record<
         [
           ["Beta against the IHSG", "", "0.34"],
           ["Expected return", "", "-0.05%"],
-          ["Distance from the security market line", "▼ ", "-0.38%"],
+          ["Jensen's alpha", "▼ ", "-0.38%"],
         ],
         "and",
       ),
@@ -285,7 +285,7 @@ const texts: Record<
         [
           ["Beta against the IHSG", "", "0.69"],
           ["Expected return", "", "-0.10%"],
-          ["Distance from the security market line", "▼ ", "-0.28%"],
+          ["Jensen's alpha", "▼ ", "-0.28%"],
         ],
         "and",
       ),
@@ -294,7 +294,7 @@ const texts: Record<
         [
           ["Beta against the IHSG", "", "1.00"],
           ["Expected return", "", "0.05%"],
-          ["Distance from the security market line", "", "0.00%"],
+          ["Jensen's alpha", "", "0.00%"],
         ],
         "and",
       ),

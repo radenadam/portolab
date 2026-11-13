@@ -12,7 +12,7 @@ import type { PlotPosition } from "./plot";
 import { fractionOf, niceTicks, paddedRange } from "./scale";
 import type { Range } from "./scale";
 
-/** How the map draws a point other than the IHSG, as decision 0035 sets: the point of the reader in the color of the reader's own point with a ring around it, a stock that the portfolio holds as a filled dot whose area grows with its weight, and any other stock as a hollow dot. A holding without a weight, such as one of a portfolio without measures, takes the size of the smallest weight. */
+/** How the map draws a point other than the IHSG, as decision 0035 sets: the point that the map is about, which is the reader's own portfolio or the one that the reader opened, in the color of the reader's own point with a ring around it, a stock that the portfolio holds as a filled dot whose area grows with its weight, and any other stock as a hollow dot. A holding without a weight, such as one of a portfolio without measures, takes the size of the smallest weight. */
 export type MapMark =
   | { kind: "own" }
   | { kind: "held"; weight: PortfolioWeight | undefined }
