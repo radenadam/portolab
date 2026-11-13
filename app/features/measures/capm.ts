@@ -96,11 +96,11 @@ export function measureAgainstMarket(
     ...series,
     code,
     covarianceWithMarket,
-    correlationWithMarket: measureCorrelation(
-      covarianceWithMarket,
-      series,
-      market,
-    ),
+    correlationWithMarket: measureCorrelation({
+      covariance: covarianceWithMarket.value,
+      firstStandardDeviation: series.standardDeviation.value,
+      secondStandardDeviation: market.standardDeviation.value,
+    }),
     beta,
     requiredReturn,
     securityMarketLine: measureSecurityMarketLineDistance(

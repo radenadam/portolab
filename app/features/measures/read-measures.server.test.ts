@@ -21,7 +21,7 @@ import {
   readStockRows,
 } from "./read-measures.server";
 
-// The expected values were computed with the decimal module of Python at 50 significant digits, as measure-stock.test.ts and measure-portfolio.test.ts give them. The measures of the portfolio with weights of 0.5 and 0.3 follow from those of BBCA and TLKM: the expected return and the beta are the sums of each measure times its weight, and the variance is 0.25 times the variance of BBCA, plus 0.09 times that of TLKM, plus 0.3 times their covariance.
+// The expected values were computed with the decimal module of Python at 50 significant digits, as measure-stock.test.ts and measure-portfolio.test.ts give them. The measures of the portfolio with weights of 0.5 and 0.3 follow from those of BBCA and TLKM: the expected return and the beta are the sums of each measure times its weight, and the variance is 0.25 times the variance of BBCA, plus 0.09 times that of TLKM, plus 0.3 times their covariance. The covariance of each stock with the portfolio is its covariance with BBCA times 0.5 plus its covariance with TLKM times 0.3.
 
 // The 60 monthly returns from October 2021 to September 2026 give the security market line of BBCA, TLKM, and every portfolio of them, with the BI-Rate of 5.75% that held on 30 September 2026. AMMN listed in July 2023, so its 38 returns from August 2023 give another line.
 const fiveYearLine = {
@@ -44,7 +44,7 @@ const stocksOnFiveYearLine = [
   },
 ];
 
-test("measures a portfolio of BBCA, TLKM, and cash, weighted by their shares of its value at the delayed prices, with each pair of stocks once", () => {
+test("measures a portfolio of BBCA, TLKM, and cash, weighted by their shares of its value at the delayed prices, with each pair of stocks once, its ratios, and the risk that each stock adds", () => {
   const report = readPortfolioMeasures(
     databaseWithClosesForTest(),
     valuationForTest(["BBCA", "TLKM"]),
@@ -57,6 +57,36 @@ test("measures a portfolio of BBCA, TLKM, and cash, weighted by their shares of 
         expectedReturn: closeToForTest(-0.0021586726703076266, 16),
         variance: closeToForTest(0.0016530039133445262, 16),
         beta: closeToForTest(0.6206929278148288, 14),
+        sharpeRatio: {
+          ok: true,
+          value: closeToForTest(-0.17094998531994998, 14),
+        },
+        treynorRatio: {
+          ok: true,
+          value: closeToForTest(-0.01119770989085248, 16),
+        },
+        holdingRisks: {
+          ok: true,
+          value: [
+            {
+              code: "BBCA",
+              weight: 0.5,
+              covarianceWithPortfolio: closeToForTest(
+                0.0019095063845852456,
+                16,
+              ),
+              varianceShare: closeToForTest(0.5775867707178435, 15),
+              correlationWithPortfolio: closeToForTest(0.8984914660690569, 14),
+            },
+            {
+              code: "TLKM",
+              weight: 0.3,
+              covarianceWithPortfolio: closeToForTest(0.002327502403506345, 16),
+              varianceShare: closeToForTest(0.4224132292821566, 15),
+              correlationWithPortfolio: closeToForTest(0.8315116919090838, 14),
+            },
+          ],
+        },
         cash: { value: 10_956_000, weight: 0.2 },
         totalValue: 54_780_000,
         holdings: [

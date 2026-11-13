@@ -7,7 +7,7 @@ import { measurePortfolio } from "./measure-portfolio";
 import type { Holding, PortfolioMeasures } from "./measure-portfolio";
 import { monthEndClosesForTest } from "./month-end-closes-for-test";
 
-// The expected values were computed with the decimal module of Python at 50 significant digits, from the month-end closes in month-end-closes-for-test.ts and a BI-Rate of 5.75%. Python also computed each portfolio variance as the sample variance of the monthly returns of the portfolio, as a student would check it with VAR.S, and got the same value. The window ends on 30 September 2026.
+// The expected values were computed with the decimal module of Python at 50 significant digits, from the month-end closes in month-end-closes-for-test.ts and a BI-Rate of 5.75%. Python also computed each portfolio variance as the sample variance of the monthly returns of the portfolio, as a student would check it with VAR.S, and each covariance of a holding with the portfolio as the sample covariance of their monthly returns, as COVARIANCE.S checks it, and got the same values. The window ends on 30 September 2026.
 const ihsg = monthEndClosesForTest("IHSG");
 
 function measured(holdings: readonly Holding[]): PortfolioMeasures {
@@ -112,6 +112,99 @@ test("measures a portfolio of two stocks from the measures of its holdings", () 
   );
 });
 
+test("measures the Sharpe ratio, the Treynor ratio, and the risk that each holding adds to a portfolio of two stocks", () => {
+  const portfolio = measured([
+    { ...monthEndClosesForTest("BBCA"), weight: portfolioWeight(0.6) },
+    { ...monthEndClosesForTest("TLKM"), weight: portfolioWeight(0.4) },
+  ]);
+  const excessReturn = {
+    expectedReturn: portfolio.expectedReturn.value,
+    riskFreeRate: portfolio.market.riskFreeRate.value,
+  };
+  expect(portfolio.sharpeRatio).toEqual({
+    ok: true,
+    value: {
+      formula: "sharpeRatio",
+      value: closeToForTest(-0.14875767048879135, 14),
+      inputs: {
+        ...excessReturn,
+        standardDeviation: portfolio.standardDeviation.value,
+      },
+    },
+  });
+  expect(portfolio.treynorRatio).toEqual({
+    ok: true,
+    value: {
+      formula: "treynorRatio",
+      value: closeToForTest(-0.009725440717287866, 16),
+      inputs: { ...excessReturn, beta: portfolio.beta.value },
+    },
+  });
+  const covariances = portfolio.covarianceMatrix.map((row) =>
+    row.map((cell) => cell.value),
+  );
+  expect(
+    portfolio.holdings.map((holding) => holding.covarianceWithPortfolio),
+  ).toEqual([
+    {
+      formula: "weightedSum",
+      value: closeToForTest(0.002363850124167337, 16),
+      inputs: {
+        terms: [
+          { code: "BBCA", weight: 0.6, value: covariances[0]?.[0] },
+          { code: "TLKM", weight: 0.4, value: covariances[0]?.[1] },
+        ],
+      },
+    },
+    {
+      formula: "weightedSum",
+      value: closeToForTest(0.0029825991002333896, 16),
+      inputs: {
+        terms: [
+          { code: "BBCA", weight: 0.6, value: covariances[1]?.[0] },
+          { code: "TLKM", weight: 0.4, value: covariances[1]?.[1] },
+        ],
+      },
+    },
+  ]);
+  const risks = successValueForTest(
+    portfolio.holdingRisks,
+    "A portfolio of two stocks has a variance",
+  );
+  expect(risks.map((risk) => risk.code)).toEqual(["BBCA", "TLKM"]);
+  expect(risks.map((risk) => risk.varianceShare)).toEqual(
+    portfolio.holdings.map((holding) => ({
+      formula: "varianceShare",
+      value: expect.any(Number) as number,
+      inputs: {
+        weight: holding.weight,
+        covarianceWithPortfolio: holding.covarianceWithPortfolio.value,
+        portfolioVariance: portfolio.variance.value,
+      },
+    })),
+  );
+  // The shares add up to 1, because the variance of the portfolio is the sum of each weight times the covariance of its holding with the portfolio.
+  expect(risks.map((risk) => risk.varianceShare.value)).toEqual([
+    closeToForTest(0.5431329502035102, 15),
+    closeToForTest(0.4568670497964898, 15),
+  ]);
+  expect(risks.map((risk) => risk.correlationWithPortfolio)).toEqual(
+    portfolio.holdings.map((holding) => ({
+      formula: "correlation",
+      value: expect.any(Number) as number,
+      inputs: {
+        covariance: holding.covarianceWithPortfolio.value,
+        firstStandardDeviation: holding.standardDeviation.value,
+        secondStandardDeviation: portfolio.standardDeviation.value,
+      },
+    })),
+  );
+  expect(risks.map((risk) => risk.correlationWithPortfolio.value)).toEqual([
+    closeToForTest(0.8849468781317702, 14),
+    closeToForTest(0.847768990562084, 14),
+  ]);
+});
+
 test("measures a portfolio with cash and a recent listing over the months that every holding shares", () => {
   // AMMN listed in July 2023, so the holdings share 38 monthly returns. A tenth of the value is cash, which earns nothing.
   const portfolio = measured([
@@ -183,9 +276,50 @@ test("measures a portfolio with cash and a recent listing over the months that e
     -0.0007931099471363978,
     16,
   );
+  expect(
+    successValueForTest(portfolio.sharpeRatio, "The portfolio has a variance")
+      .value,
+  ).toBeCloseTo(-0.09790983428152598, 14);
+  expect(
+    successValueForTest(portfolio.treynorRatio, "The beta is above 0").value,
+  ).toBeCloseTo(-0.007913821913645607, 16);
+  expect(
+    portfolio.holdings.map((holding) => holding.covarianceWithPortfolio.value),
+  ).toEqual([
+    closeToForTest(0.0023629457486599513, 16),
+    closeToForTest(0.002634804871219561, 16),
+    closeToForTest(0.008138277712207556, 16),
+  ]);
+  // AMMN has a fifth of the value, but almost half of the variance, because its returns vary the most.
+  expect(
+    successValueForTest(
+      portfolio.holdingRisks,
+      "The portfolio has a variance",
+    ).map((risk) => ({
+      code: risk.code,
+      varianceShare: risk.varianceShare.value,
+      correlationWithPortfolio: risk.correlationWithPortfolio.value,
+    })),
+  ).toEqual([
+    {
+      code: "BBCA",
+      varianceShare: closeToForTest(0.3541490457395607, 15),
+      correlationWithPortfolio: closeToForTest(0.7418932800289431, 14),
+    },
+    {
+      code: "TLKM",
+      varianceShare: closeToForTest(0.1579576901215834, 15),
+      correlationWithPortfolio: closeToForTest(0.5852770850373883, 14),
+    },
+    {
+      code: "AMMN",
+      varianceShare: closeToForTest(0.487893264138856, 15),
+      correlationWithPortfolio: closeToForTest(0.764531806011347, 14),
+    },
+  ]);
 });
 
-test("measures a portfolio of cash alone at no return, no risk, and the risk-free rate below the security market line", () => {
+test("measures a portfolio of cash alone at no return, no risk, and the risk-free rate below the security market line, without the measures that divide by its risk", () => {
   const portfolio = measured([]);
   expect(portfolio.holdings).toEqual([]);
   expect(portfolio.covarianceMatrix).toEqual([]);
@@ -198,6 +332,18 @@ test("measures a portfolio of cash alone at no return, no risk, and the risk-fre
     -0.004791666666666666,
     17,
   );
+  expect(portfolio.sharpeRatio).toEqual({
+    ok: false,
+    failure: { kind: "noPortfolioVariation" },
+  });
+  expect(portfolio.treynorRatio).toEqual({
+    ok: false,
+    failure: { kind: "betaNotPositive", beta: 0 },
+  });
+  expect(portfolio.holdingRisks).toEqual({
+    ok: false,
+    failure: { kind: "noPortfolioVariation" },
+  });
 });
 
 test("fails for a portfolio whose holdings share fewer monthly returns than the minimum, and names the holding with the fewest", () => {

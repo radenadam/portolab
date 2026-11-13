@@ -4,6 +4,7 @@ import { languageNames } from "../app/language-names.ts";
 import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
 import { bbcaHolding } from "./bbca-holding.ts";
+import { bbcaPortfolioMeasures } from "./bbca-portfolio-measures.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 import { expectMissingClassPages } from "./expect-missing-class-pages.ts";
 import { expectTexts } from "./expect-texts.ts";
@@ -16,7 +17,7 @@ import { studentWithPortfolio } from "./student-with-portfolio.ts";
 import type { PortfolioOfTest } from "./student-with-portfolio.ts";
 import { widestClassNames } from "./widest-class-names.ts";
 
-// The server runs with the fixture price source, whose quotes are the closes of Friday 30 October 2026, and the global setup stores the month-end closes that give BBCA 60 monthly returns, AMMN 38, and AADI 21, and no closes of ADMR. bbca-holding.ts describes the portfolio of the student, in which BBCA has a weight of 0.496382. The measures of the portfolio follow from those of BBCA that the decimal module of Python computed, as measure-stock.test.ts gives them: an expected return of -0.000508, a variance of 0.000673, a standard deviation of 0.025947, a beta of 0.342192, a required return of 0.003308, and a distance of -0.003816 from the security market line.
+// The server runs with the fixture price source, whose quotes are the closes of Friday 30 October 2026, and the global setup stores the month-end closes that give BBCA 60 monthly returns, AMMN 38, and AADI 21, and no closes of ADMR. bbca-holding.ts describes the portfolio of the student, in which BBCA has a weight of 0.496382. The measures of the portfolio follow from those of BBCA that the decimal module of Python computed, as measure-stock.test.ts gives them: an expected return of -0.000508, a variance of 0.000673, a standard deviation of 0.025947, a beta of 0.342192, a required return of 0.003308, a Jensen's alpha of -0.003816, a Sharpe ratio of -0.204236, and a Treynor ratio of -0.015486. BBCA is the only stock, so its covariance with the portfolio of 0.001356 is the whole variance of the portfolio, and it correlates perfectly with the portfolio.
 const { className } = widestClassNames;
 
 /** What a point of the map gives a reader: its name beside its mark, the text that a screen reader reads as the value of the slider, and the lines of its tooltip, its name and then each value after its measure, a change after its arrow. */
@@ -60,6 +61,7 @@ const texts: Record<
     weights: readonly (readonly string[])[];
     holding: readonly string[];
     pair: readonly string[];
+    risk: readonly string[];
     summaries: readonly string[];
     pointsLabel: string;
     lineNotice: string;
@@ -106,6 +108,7 @@ const texts: Record<
       "Bobot portofolio Anda",
       "Saham Anda pada bulan-bulan ini",
       "Kovarians dan korelasi saham Anda",
+      "Risiko yang ditambahkan setiap saham Anda",
       "IHSG dan suku bunga bebas risiko",
       "Imbal hasil bulanan",
       "Garis pasar sekuritas",
@@ -113,26 +116,7 @@ const texts: Record<
     ],
     months:
       "Ukuran di bawah memakai 60 imbal hasil bulanan dari Oktober 2021 sampai September 2026.",
-    measures: [
-      "Imbal hasil yang diharapkan",
-      "-0,05%",
-      "E(Rp) = Σ wi E(Ri) (SUMPRODUCT)",
-      "Varians",
-      "0,0006732",
-      "σ²p = Σi Σj wi wj σij (MMULT)",
-      "Simpangan baku",
-      "2,59%",
-      "σp = √σ²p = √0,0006732",
-      "Beta terhadap IHSG",
-      "0,34",
-      "βp = Σ wi βi (SUMPRODUCT)",
-      "Imbal hasil yang disyaratkan CAPM",
-      "0,33%",
-      "kp = Rf + βp(E(RM) − Rf) = 0,48% + 0,34 × (0,05% − 0,48%)",
-      "Jarak dari garis pasar sekuritas",
-      "▼ -0,38%",
-      "αp = E(Rp) − kp = -0,05% − 0,33%",
-    ].join(""),
+    measures: bbcaPortfolioMeasures.id,
     below:
       "Imbal hasil yang diharapkan berada di bawah garis pasar sekuritas, sehingga lebih rendah daripada imbal hasil yang disyaratkan CAPM untuk betanya.",
     weights: [
@@ -142,6 +126,7 @@ const texts: Record<
     ],
     holding: ["BBCA", "49,64%", "-0,10%", "0,69"],
     pair: ["BBCA", "0,002732", "1,00"],
+    risk: ["BBCA", "49,64%", "0,001356", "100,00%", "1,00"],
     summaries: ["Imbal hasil bulanan IHSG", "Imbal hasil bulanan BBCA"],
     pointsLabel: "Titik-titik grafik",
     lineNotice:
@@ -228,7 +213,7 @@ const texts: Record<
       "Imbal hasil yang disyaratkan CAPM",
       "0,18%",
       "ki = Rf + βi(E(RM) − Rf) = 0,48% + 0,69 × (0,05% − 0,48%)",
-      "Jarak dari garis pasar sekuritas",
+      "Alpha Jensen",
       "▼ -0,28%",
       "αi = E(Ri) − ki = -0,10% − 0,18%",
     ].join(""),
@@ -254,6 +239,7 @@ const texts: Record<
       "Weights of your portfolio",
       "Your stocks in these months",
       "Covariances and correlations of your stocks",
+      "The risk that each of your stocks adds",
       "The IHSG and the risk-free rate",
       "Monthly returns",
       "Security market line",
@@ -261,26 +247,7 @@ const texts: Record<
     ],
     months:
       "The measures below use 60 monthly returns from October 2021 to September 2026.",
-    measures: [
-      "Expected return",
-      "-0.05%",
-      "E(Rp) = Σ wi E(Ri) (SUMPRODUCT)",
-      "Variance",
-      "0.0006732",
-      "σ²p = Σi Σj wi wj σij (MMULT)",
-      "Standard deviation",
-      "2.59%",
-      "σp = √σ²p = √0.0006732",
-      "Beta against the IHSG",
-      "0.34",
-      "βp = Σ wi βi (SUMPRODUCT)",
-      "Return that CAPM requires",
-      "0.33%",
-      "kp = Rf + βp(E(RM) − Rf) = 0.48% + 0.34 × (0.05% − 0.48%)",
-      "Distance from the security market line",
-      "▼ -0.38%",
-      "αp = E(Rp) − kp = -0.05% − 0.33%",
-    ].join(""),
+    measures: bbcaPortfolioMeasures.en,
     below:
       "The expected return lies below the security market line, so it is lower than the return that CAPM requires for its beta.",
     weights: [
@@ -290,6 +257,7 @@ const texts: Record<
     ],
     holding: ["BBCA", "49.64%", "-0.10%", "0.69"],
     pair: ["BBCA", "0.002732", "1.00"],
+    risk: ["BBCA", "49.64%", "0.001356", "100.00%", "1.00"],
     summaries: ["Monthly returns of the IHSG", "Monthly returns of BBCA"],
     pointsLabel: "The points of the chart",
     lineNotice:
@@ -376,7 +344,7 @@ const texts: Record<
       "Return that CAPM requires",
       "0.18%",
       "ki = Rf + βi(E(RM) − Rf) = 0.48% + 0.69 × (0.05% − 0.48%)",
-      "Distance from the security market line",
+      "Jensen's alpha",
       "▼ -0.28%",
       "αi = E(Ri) − ki = -0.10% − 0.18%",
     ].join(""),
@@ -562,6 +530,7 @@ for (const locale of locales) {
     }
     await expectRow(tables.nth(1).locator("tbody tr"), text.holding);
     await expectRow(tables.nth(2).locator("tbody tr"), text.pair);
+    await expectRow(tables.nth(3).locator("tbody tr"), text.risk);
     await expect(main.locator("summary")).toHaveText([
       ...text.summaries,
       text.pointsLabel,
@@ -580,7 +549,7 @@ for (const locale of locales) {
       resting: text.mapPoints.portfolio,
     });
     // 60 returns and the close that starts the first of them.
-    await expect(tables.nth(4).locator("tbody tr")).toHaveCount(61);
+    await expect(tables.nth(5).locator("tbody tr")).toHaveCount(61);
     await expect(main).toContainText(text.stocksNotice);
     const stockTable = tables.last();
     for (const cells of text.stocks) {
