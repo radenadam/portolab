@@ -9,6 +9,8 @@ export default {
     "project.inlang/paraglide.config.ts",
     // The order ticket and the page of a stock of issue #127 call measureTrade, with HeldStock, ConsideredTrade, and TradeImpact, once they show what a trade does to the portfolio.
     "app/features/measures/measure-trade.ts!",
+    // The list of the market and the holdings of the home of a student of issue #127 call Sparkline, once they show the closes of the last month of each stock.
+    "app/charts/sparkline.tsx!",
   ],
   // Helpers of tests, browser tests, and lint rules are not production code, so the production run leaves them out.
   project: [

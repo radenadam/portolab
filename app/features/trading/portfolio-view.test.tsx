@@ -16,6 +16,7 @@ import { cumulativeReturn } from "~/units/cumulative-return";
 import { indexPoints } from "~/units/index-points";
 import { rupiah } from "~/units/rupiah";
 import { shares } from "~/units/shares";
+import { returnPointsForTest } from "~/charts/return-points-for-test";
 import type { ClassId } from "~/features/classes/classes.schema";
 import type { Holding } from "./holding-after-fill";
 import type { HistoryEnd, ReturnPoint } from "./portfolio-history";
@@ -52,23 +53,7 @@ const ihsgQuote: IndexQuote = {
 // 10:00 WIB on Wednesday 4 November 2026.
 const wednesday = new Date("2026-11-04T03:00:00Z");
 
-const points: ReturnPoint[] = [
-  {
-    date: "2026-10-30",
-    portfolio: cumulativeReturn(0),
-    market: cumulativeReturn(0),
-  },
-  {
-    date: "2026-11-02",
-    portfolio: cumulativeReturn(-0.001494),
-    market: cumulativeReturn(0.00786624613163801),
-  },
-  {
-    date: "2026-11-03",
-    portfolio: cumulativeReturn(-0.030704),
-    market: cumulativeReturn(-0.03020733431546059),
-  },
-];
+const points: ReturnPoint[] = [...returnPointsForTest];
 const waitingForWednesday: HistoryEnd = {
   kind: "notFinal",
   date: "2026-11-04",
@@ -260,7 +245,6 @@ const texts: Record<
   Locale,
   {
     waiting: string;
-    credit: string;
     missingStart: string;
     oneUnpriced: string;
     severalUnpriced: string;
@@ -273,7 +257,6 @@ const texts: Record<
   id: {
     waiting:
       "Harga tanggal 4 November 2026 menjadi final pada pukul 16.26 WIB, dan Portolab menampilkan imbal hasil mulai hari itu setelah pembaruan riwayat harga menyimpan harga penutupan hari itu atau hari sesudahnya.",
-    credit: "Grafik: TradingView Lightweight Charts™ © 2025 TradingView, Inc.",
     missingStart:
       "Portolab belum menyimpan harga penutupan IHSG pada 30 Oktober 2026. Portolab menampilkan imbal hasil mulai hari itu setelah pembaruan riwayat harga menyimpan harga penutupan IHSG pada hari itu atau hari sesudahnya.",
     oneUnpriced:
@@ -291,7 +274,6 @@ const texts: Record<
   en: {
     waiting:
       "The prices of November 4, 2026 become final at 4:26 PM WIB, and Portolab shows the returns from that day on once an update of the price history stores closes of that day or of a later day.",
-    credit: "Chart: TradingView Lightweight Charts™ © 2025 TradingView, Inc.",
     missingStart:
       "Portolab has not stored the close of IHSG on October 30, 2026 yet. It shows the returns from that day on once an update of the price history stores a close of IHSG on that day or on a later day.",
     oneUnpriced:
@@ -393,7 +375,7 @@ for (const locale of locales) {
     const render = (report: PortfolioReport, now?: Date): string =>
       renderView(report, reader, now);
 
-    test(`shows the value as the headline with the returns of the portfolio and the IHSG since the start, each holding at its delayed price as a table and as a row, and the returns at each close, in ${language}`, () => {
+    test(`shows the value as the headline with the returns of the portfolio and the IHSG since the start, each holding at its delayed price as a table and as a row, and the returns at each close as a chart and a table, in ${language}`, () => {
       switchLocaleForTest(locale);
       const html = render(reportForTest({}));
       for (const part of [
@@ -407,8 +389,9 @@ for (const locale of locales) {
         `<tr><th scope="col">${label.stock}</th><th scope="col">${label.shares}</th><th scope="col">${label.cost}</th><th scope="col"><span>${label.delayedPrice}</span><span>${label.quotedAt}</span></th><th scope="col">${label.value}</th><th scope="col"><span>${label.gain}</span><span>${label.gainReturn}</span></th></tr>`,
         `<tr><th scope="row">BBCA</th><td>${value.shares}</td><td>${value.cost}</td><td><span>${value.delayedPrice}</span><span>${value.quotedAt}</span></td><td>${value.holdingValue}</td><td><span>${value.gain}</span><span>${value.gainReturn}</span></td></tr>`,
         `<li><div><p>BBCA</p><p>${value.holdingNotice}</p><p>${value.priceNotice}</p></div><div><p>${value.holdingValue}</p><p>${value.gain}</p><p>${value.gainReturn}</p></div></li>`,
-        `<h2>${readerText.returnTitle}</h2>`,
-        readerText.chartNotice,
+        `<h2 id="return-heading">${readerText.returnTitle}</h2><p>${readerText.chartNotice}</p>`,
+        `<li><span aria-hidden="true"></span>${readerText.portfolioSeries} ${value.return}</li><li><span aria-hidden="true"></span>IHSG ${value.marketReturn}</li>`,
+        '<svg aria-hidden="true">',
         `<summary>${label.returnsTable}</summary>`,
         `<tr><th scope="col">${label.tradingDay}</th><th scope="col">${readerText.portfolioSeries}</th><th scope="col">IHSG</th></tr>`,
         ...value.rows.map(
@@ -416,7 +399,6 @@ for (const locale of locales) {
             `<tr><th scope="row">${date}</th><td>${portfolio}</td><td>${market}</td></tr>`,
         ),
         text.waiting,
-        `<a href="https://www.tradingview.com/">${text.credit}</a>`,
       ]) {
         expect(html).toContain(part);
       }
@@ -451,7 +433,7 @@ for (const locale of locales) {
       expect(html).toContain(text.missingStart);
       expect(html).not.toContain(readerText.chartNotice);
       expect(html).not.toContain(label.returnsTable);
-      expect(html).not.toContain(text.credit);
+      expect(html).not.toContain("<svg");
     });
 
     test(`shows no total while one holding or several have no delayed price, and the holding without a price in the table and in its row, in ${language}`, () => {

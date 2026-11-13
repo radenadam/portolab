@@ -37,17 +37,6 @@
   white-space: pre-line;
 }
 
-/* The frame of a chart holds the size of its text and the tokens of the theme, which the chart reads when it draws. */
-.chart {
-  align-self: stretch;
-  height: var(--size-chart);
-  font-size: var(--text-small);
-}
-
-.returns {
-  align-self: stretch;
-}
-
 /* The headline number keeps the font of the text, with figures of equal width, as decision 0026 sets. */
 .headline {
   font-size: var(--text-headline);

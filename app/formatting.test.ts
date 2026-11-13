@@ -9,6 +9,7 @@ import {
   formatMarketTimeParts,
   formatPercent,
   formatSharpeRatio,
+  formatSignedPercent,
   formatSignedRupiah,
   formatUtcDay,
   formatVariance,
@@ -55,17 +56,36 @@ for (const locale of locales) {
 
 const signedAmounts: Record<
   Locale,
-  { gain: string; loss: string; none: string }
+  {
+    gain: string;
+    loss: string;
+    none: string;
+    percentGain: string;
+    percentLoss: string;
+    percentNone: string;
+    tickGain: string;
+    tickLoss: string;
+  }
 > = {
   id: {
     gain: "+Rp\u00a08.521.000",
     loss: "-Rp\u00a01.474.700",
     none: "Rp\u00a00",
+    percentGain: "+0,81%",
+    percentLoss: "-2,00%",
+    percentNone: "0,00%",
+    tickGain: "+0,5%",
+    tickLoss: "-2%",
   },
   en: {
     gain: "+IDR\u00a08,521,000",
     loss: "-IDR\u00a01,474,700",
     none: "IDR\u00a00",
+    percentGain: "+0.81%",
+    percentLoss: "-2.00%",
+    percentNone: "0.00%",
+    tickGain: "+0.5%",
+    tickLoss: "-2%",
   },
 };
 
@@ -78,8 +98,7 @@ const dates: Record<
     longYear: string;
     medium: string;
     year: string;
-    month: string;
-    day: string;
+    dayAndMonth: string;
   }
 > = {
   id: {
@@ -89,8 +108,7 @@ const dates: Record<
     longYear: "7 September 202666",
     medium: "30 Okt 2026",
     year: "2026",
-    month: "Okt",
-    day: "30",
+    dayAndMonth: "30 Okt",
   },
   en: {
     long: "October 30, 2026",
@@ -99,15 +117,34 @@ const dates: Record<
     longYear: "September 7, 202666",
     medium: "Oct 30, 2026",
     year: "2026",
-    month: "Oct",
-    day: "30",
+    dayAndMonth: "Oct 30",
   },
 };
 
 for (const locale of locales) {
-  test(`formats a gain and a loss with their signs and directions, and an amount of zero without either, in ${languageNames[locale]}`, () => {
+  test(`formats a gain and a loss with their signs and directions, and an amount or a percentage that is zero or rounds to zero without either, in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     const text = signedAmounts[locale];
+    expect(formatSignedPercent(0.0081)).toEqual({
+      text: text.percentGain,
+      direction: "rise",
+    });
+    expect(formatSignedPercent(-0.02)).toEqual({
+      text: text.percentLoss,
+      direction: "fall",
+    });
+    expect(formatSignedPercent(-0.00004)).toEqual({
+      text: text.percentNone,
+      direction: "none",
+    });
+    expect(formatSignedPercent(0.005, "upToTwo")).toEqual({
+      text: text.tickGain,
+      direction: "rise",
+    });
+    expect(formatSignedPercent(-0.02, "upToTwo")).toEqual({
+      text: text.tickLoss,
+      direction: "fall",
+    });
     expect(formatSignedRupiah(rupiah(8_521_000))).toEqual({
       text: text.gain,
       direction: "rise",
@@ -122,7 +159,7 @@ for (const locale of locales) {
     });
   });
 
-  test(`formats a calendar date in a sentence, with its day of the week, in a table, and in the parts that a time axis shows, and a day of a year of six digits, in ${languageNames[locale]}`, () => {
+  test(`formats a calendar date in a sentence, with its day of the week, in a table, and in the parts that a heading and a time axis show, and a day of a year of six digits, in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     const text = dates[locale];
     expect(formatCalendarDate("2026-10-30")).toBe(text.long);
@@ -133,8 +170,9 @@ for (const locale of locales) {
     farDay.setUTCFullYear(202666, 8, 7);
     expect(formatUtcDay(farDay)).toBe(text.longYear);
     expect(formatCalendarDatePart("2026-10-30", "year")).toBe(text.year);
-    expect(formatCalendarDatePart("2026-10-30", "month")).toBe(text.month);
-    expect(formatCalendarDatePart("2026-10-30", "day")).toBe(text.day);
+    expect(formatCalendarDatePart("2026-10-30", "dayAndMonth")).toBe(
+      text.dayAndMonth,
+    );
   });
 }
 

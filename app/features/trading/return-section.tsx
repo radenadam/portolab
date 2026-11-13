@@ -1,27 +1,58 @@
 import type { ReactNode } from "react";
-import { ChangeText } from "~/change-text";
+import { TimeChart } from "~/charts/time-chart";
 import { countedText } from "~/counted-text";
-import tableStyles from "~/data-table.module.css";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
 import {
   formatCalendarDate,
   formatList,
   formatMarketClock,
-  formatSignedPercent,
 } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
-import type { HistoryEnd, ReturnPoint } from "./portfolio-history";
-import { ReturnChart } from "./return-chart";
+import type { Result } from "~/result";
+import type {
+  HistoryEnd,
+  MissingCalendar,
+  PortfolioHistory,
+  ReturnPoint,
+} from "./portfolio-history";
 import { textForReader } from "./text-for-reader";
 import type { PortfolioReader } from "./text-for-reader";
 import styles from "./trading.module.css";
 
-// The license of Lightweight Charts asks every page that shows a chart for the attribution notice of its NOTICE file and a link to TradingView. The notice names the library and its owner, so it reads the same in every language.
-const chartNotice = "TradingView Lightweight Charts™ © 2025 TradingView, Inc.";
-const chartNoticeAddress = "https://www.tradingview.com/";
+// The heading of the section names the chart of the returns, whose plot is a slider in the browser.
+const headingId = "return-heading";
 
-/** The return of a portfolio against the IHSG at each final close since the start, as a chart and a table of its points, and up to which day the returns reach. */
+/** The section of the return of a portfolio against the IHSG at each final close since the start, as a chart with the table of its points, and up to which day the returns reach, or why Portolab cannot show them. */
 export function ReturnSection({
+  history,
+  reader,
+}: {
+  history: Result<PortfolioHistory, MissingCalendar>;
+  reader: PortfolioReader;
+}): ReactNode {
+  const index = marketIndex.code;
+  return (
+    <section>
+      <h2 id={headingId}>
+        {textForReader(reader, {
+          owner: () => m.trading_return_title({ index }),
+          lecturer: () => m.trading_lecturer_return_title({ index }),
+        })}
+      </h2>
+      {history.ok ? (
+        <Returns
+          points={history.value.points}
+          end={history.value.end}
+          reader={reader}
+        />
+      ) : (
+        <p>{missingCalendarText(reader)}</p>
+      )}
+    </section>
+  );
+}
+
+function Returns({
   points,
   end,
   reader,
@@ -31,10 +62,6 @@ export function ReturnSection({
   reader: PortfolioReader;
 }): ReactNode {
   const start = points[0];
-  const seriesLabel = textForReader(reader, {
-    owner: () => m.trading_portfolio_series_label(),
-    lecturer: () => m.trading_lecturer_portfolio_series_label(),
-  });
   return (
     <>
       {start !== undefined && (
@@ -54,59 +81,31 @@ export function ReturnSection({
                 }),
             })}
           </p>
-          <ReturnChart
+          <TimeChart
             points={points}
-            labels={{ portfolio: seriesLabel, market: marketIndex.code }}
+            lines={[
+              {
+                name: textForReader(reader, {
+                  owner: () => m.trading_portfolio_series_label(),
+                  lecturer: () => m.trading_lecturer_portfolio_series_label(),
+                }),
+                kind: "own",
+                returnOf: (point) => point.portfolio,
+              },
+              {
+                name: marketIndex.code,
+                kind: "reference",
+                returnOf: (point) => point.market,
+              },
+            ]}
+            labelledBy={headingId}
+            dateLabel={m.trading_trading_day_label()}
+            tableLabel={m.trading_returns_table_label()}
           />
-          <details className={styles["returns"]}>
-            <summary>{m.trading_returns_table_label()}</summary>
-            <ReturnTable points={points} seriesLabel={seriesLabel} />
-          </details>
         </>
       )}
       <p className={styles["details"]}>{historyEndText(end, reader)}</p>
-      {start !== undefined && (
-        <p className={styles["details"]}>
-          <a href={chartNoticeAddress} className={styles["link"]}>
-            {m.trading_chart_credit_link({ notice: chartNotice })}
-          </a>
-        </p>
-      )}
     </>
-  );
-}
-
-function ReturnTable({
-  points,
-  seriesLabel,
-}: {
-  points: readonly ReturnPoint[];
-  /** The name of the column of the portfolio, which also names its line in the legend of the chart. */
-  seriesLabel: string;
-}): ReactNode {
-  return (
-    <table className={tableStyles["table"]}>
-      <thead>
-        <tr>
-          <th scope="col">{m.trading_trading_day_label()}</th>
-          <th scope="col">{seriesLabel}</th>
-          <th scope="col">{marketIndex.code}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {points.map((point) => (
-          <tr key={point.date}>
-            <th scope="row">{formatCalendarDate(point.date, "medium")}</th>
-            <td className={tableStyles["number"]}>
-              <ChangeText change={formatSignedPercent(point.portfolio)} />
-            </td>
-            <td className={tableStyles["number"]}>
-              <ChangeText change={formatSignedPercent(point.market)} />
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
   );
 }
 
@@ -135,7 +134,7 @@ function historyEndText(end: HistoryEnd, reader: PortfolioReader): string {
 }
 
 /** The text that says that Portolab has not recorded the trading calendar of the next trading day, with the step of its reader. */
-export function missingCalendarText(reader: PortfolioReader): string {
+function missingCalendarText(reader: PortfolioReader): string {
   return textForReader(reader, {
     owner: () => m.trading_chart_calendar_missing_notice(),
     lecturer: () => m.trading_lecturer_chart_calendar_missing_notice(),
