@@ -30,7 +30,7 @@ export async function sidewaysProblems(page: Page): Promise<LayoutProblem[]> {
 }
 
 /**
- * Returns each rule of the layout of decision 0028 that the screen of a page breaks, after its fonts load. Every rule leaves out a part that the screen hides, or places outside the flow with `position: absolute` or `fixed`, such as a popover.
+ * Returns each rule of the layout of decision 0028 that the screen of a page breaks, after its fonts load. The rules other than `width` skip each element that is itself hidden, or placed outside the flow with `position: absolute` or `fixed`. A part inside an element outside the flow that a rule finds by itself, such as a table or an element marked with `data-layout`, is still measured.
  * - `width`: the page never scrolls sideways.
  * - `content`: an element marked `data-layout="content"` is never wider than the token of the width of content, and it stands in the middle of the content box of its parent.
  * - `reading`: an element marked `data-layout="reading"` stands in the middle of the content box of its parent.
