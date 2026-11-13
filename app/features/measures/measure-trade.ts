@@ -1,11 +1,7 @@
-import type { OrderSide, Trade } from "~/features/trading/order";
-import {
-  cashChange,
-  purchaseCost,
-  tradeWithCosts,
-} from "~/features/trading/trading-costs";
+import type { Order, Trade } from "~/features/trading/order";
+import { cashChange, tradeWithCosts } from "~/features/trading/trading-costs";
 import type { CostRates } from "~/features/trading/trading-costs";
-import { fail, succeed } from "~/result";
+import { succeed } from "~/result";
 import type { Result } from "~/result";
 import { rupiah } from "~/units/rupiah";
 import type { Rupiah } from "~/units/rupiah";
@@ -23,15 +19,9 @@ export interface HeldStock extends InstrumentCloses {
   price: Rupiah;
 }
 
-/** A trade that a student considers before placing its order. */
+/** A trade that a student considers: an order that placeOrder accepted, so the portfolio holds the shares that it sells and the cash that its other open orders leave pays for what it buys, and the rates of the costs of the trading day of the order, which costRatesOn gives. */
 export interface ConsideredTrade {
-  code: string;
-  side: OrderSide;
-  /** The shares that the trade buys or sells. */
-  shares: Shares;
-  /** The price at which the trade would fill, which sets its value and its costs. */
-  price: Rupiah;
-  /** The rates of the costs on the trading day of the trade, which costRatesOn gives. */
+  order: Pick<Order, "code" | "side" | "shares" | "checkedPrice">;
   rates: CostRates;
 }
 
@@ -49,44 +39,34 @@ export interface TradeImpact {
   after: ValuedPortfolioMeasures;
 }
 
-/** Why a trade has no impact to measure: a purchase that costs more than the cash of the portfolio, a sale of more shares than the portfolio holds, or closes that give no measures. */
-export type TradeImpactFailure =
-  | MeasureFailure
-  | { kind: "costsMoreThanCash"; cost: Rupiah; cash: Rupiah }
-  | { kind: "sellsMoreThanHeld"; shares: Shares; heldShares: Shares };
-
-/** Measures a portfolio before and after a trade. The stocks of the portfolio include the stock of the trade, with no shares when the portfolio does not hold it. Every share is valued at the latest delayed price of its stock, before and after the trade, and the cash after the trade changes by the value of the trade at its own price and by its costs. */
+/** Measures a portfolio before and after a trade. The stocks of the portfolio include the stock of the trade, with no shares when the portfolio does not hold it. Every share is valued at the latest delayed price of its stock, before and after the trade, and the cash after the trade changes by the value of the order at its checked price and by its costs. */
 export function measureTrade(
   portfolio: { stocks: readonly HeldStock[]; cash: Rupiah },
   trade: ConsideredTrade,
   against: Against,
-): Result<TradeImpact, TradeImpactFailure> {
-  const traded = portfolio.stocks.find((stock) => stock.code === trade.code);
+): Result<TradeImpact, MeasureFailure> {
+  const { order, rates } = trade;
+  const traded = portfolio.stocks.find((stock) => stock.code === order.code);
   if (traded === undefined) {
     throw new Error(
-      `measureTrade takes the stock of the trade among the stocks of the portfolio, but ${trade.code} is not among them.`,
+      `measureTrade takes the stock of the trade among the stocks of the portfolio, but ${order.code} is not among them.`,
     );
   }
   const costs = tradeWithCosts(
-    trade.side,
-    rupiah(trade.shares * trade.price),
-    trade.rates,
+    order.side,
+    rupiah(order.shares * order.checkedPrice),
+    rates,
   );
-  const sharesAfter = sharesAfterTrade(trade, costs, {
-    heldShares: traded.shares,
-    cash: portfolio.cash,
-  });
-  if (!sharesAfter.ok) {
-    return sharesAfter;
-  }
-  const cashAfter = rupiah(portfolio.cash + cashChange(trade.side, costs));
+  const cashAfter = rupiah(portfolio.cash + cashChange(order.side, costs));
   const before = measureStocks(portfolio.stocks, portfolio.cash, against);
   if (!before.ok) {
     return before;
   }
   const after = measureStocks(
     portfolio.stocks.map((stock) =>
-      stock === traded ? { ...stock, shares: sharesAfter.value } : stock,
+      stock === traded
+        ? { ...stock, shares: sharesAfterOrder(order, stock.shares) }
+        : stock,
     ),
     cashAfter,
     against,
@@ -102,24 +82,16 @@ export function measureTrade(
   });
 }
 
-/** The shares of the stock of a trade that the portfolio holds after it, or why the portfolio cannot make it: a purchase needs the cash for its value and its costs, and a sale needs the shares that it sells. */
-function sharesAfterTrade(
-  trade: ConsideredTrade,
-  costs: Trade,
-  portfolio: { heldShares: Shares; cash: Rupiah },
-): Result<Shares, TradeImpactFailure> {
-  const { heldShares, cash } = portfolio;
-  switch (trade.side) {
-    case "buy": {
-      const cost = purchaseCost(costs);
-      return cost > cash
-        ? fail({ kind: "costsMoreThanCash", cost, cash })
-        : succeed(toShares(heldShares + trade.shares));
-    }
+// placeOrder accepts a sale only of shares that the portfolio holds, so a sale never leaves fewer than none.
+function sharesAfterOrder(
+  order: ConsideredTrade["order"],
+  heldShares: Shares,
+): Shares {
+  switch (order.side) {
+    case "buy":
+      return toShares(heldShares + order.shares);
     case "sell":
-      return trade.shares > heldShares
-        ? fail({ kind: "sellsMoreThanHeld", shares: trade.shares, heldShares })
-        : succeed(toShares(heldShares - trade.shares));
+      return toShares(heldShares - order.shares);
   }
 }
 

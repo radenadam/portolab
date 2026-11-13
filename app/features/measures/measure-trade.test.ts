@@ -1,43 +1,54 @@
 import { expect, test } from "vitest";
 import { fixturePriceSource } from "~/features/market-data/fixture-price-source.server";
-import { costRatesOn } from "~/features/trading/trading-costs";
+import {
+  indexHistoryForTest,
+  stockHistoryForTest,
+} from "~/features/market-data/history-for-test";
+import type {
+  DailyHistory,
+  StockQuote,
+} from "~/features/market-data/price-source.server";
+import type { OrderRequest } from "~/features/trading/order";
+import {
+  acceptedForTest,
+  limitForTest,
+  orderLotsForTest,
+  purchaseForTest,
+  saleForTest,
+} from "~/features/trading/orders-for-test";
+import { costRatesForTest } from "~/features/trading/rules-for-test";
 import type { PortfolioValuation } from "~/features/trading/value-portfolio";
+import type { Result } from "~/result";
 import { successValueForTest } from "~/success-value-for-test";
-import { rupiah } from "~/units/rupiah";
-import type { Rupiah } from "~/units/rupiah";
 import { shares } from "~/units/shares";
 import { closeToForTest } from "./close-to-for-test";
 import { defaultEstimationSettings } from "./estimation-settings";
-import type { ValuedPortfolioMeasures } from "./measure-valued-portfolio";
+import type { MeasureFailure } from "./measure";
 import { measureTrade } from "./measure-trade";
-import type {
-  ConsideredTrade,
-  HeldStock,
-  TradeImpact,
-  TradeImpactFailure,
-} from "./measure-trade";
+import type { HeldStock, TradeImpact } from "./measure-trade";
+import type { ValuedPortfolioMeasures } from "./measure-valued-portfolio";
 import {
+  aadiValuationForTest,
   ammnValuationForTest,
   valuationForTest,
 } from "./measures-for-test.server";
 import { monthEndClosesForTest } from "./month-end-closes-for-test";
-import type { Result } from "~/result";
 
 // The expected values were computed with the decimal module of Python at 50 significant digits, from the month-end closes in month-end-closes-for-test.ts, a BI-Rate of 5.75%, the quotes of 30 October 2026 that the fixture source records, and the broker fee of 0.15% and the final tax on sales of 0.1% of trading-costs.ts, each rounded to the nearest whole rupiah. Python weighed every share at its quote and checked that the shares of the variance of each portfolio add up to 1. The window ends on 30 September 2026.
 
 type RecordedCode = Parameters<typeof monthEndClosesForTest>[0];
 
-// The first trading day after the quotes of 30 October 2026.
-const rates = successValueForTest(
-  costRatesOn("2026-11-02"),
-  "The fees and the tax cover 2 November 2026",
-);
+const ihsg = monthEndClosesForTest("IHSG");
 
-/** The stocks of a valuation, and each stock that a test adds without shares, with their recorded month-end closes and their quotes of 30 October 2026, as the measures of a trade take them. */
-async function portfolioForTest(
+/**
+ * Places an order of a test at 10:00 WIB on Monday 2 November 2026 against a valuation, as the order ticket does before it shows what the order changes, and measures the portfolio before and after the order.
+ * The stocks of the portfolio are the stocks of the codes, which are those of the valuation and the stock of the order, with their recorded month-end closes and their quotes of 30 October 2026.
+ */
+async function impactOf(
   valuation: PortfolioValuation,
   codes: readonly RecordedCode[],
-): Promise<{ stocks: HeldStock[]; cash: Rupiah }> {
+  request: OrderRequest,
+): Promise<Result<TradeImpact, MeasureFailure>> {
   const fetched = successValueForTest(
     await fixturePriceSource.fetchQuotes(
       codes.map((code) => ({ kind: "stock", code })),
@@ -45,35 +56,44 @@ async function portfolioForTest(
     ),
     "The fixture source records a quote of every stock of the test",
   );
-  const stocks: HeldStock[] = [];
-  for (const code of codes) {
+  const quoteOf = (code: string): StockQuote => {
     const quote = fetched.quotes.find((candidate) => candidate.code === code);
     if (quote?.kind !== "stock") {
       throw new Error(`The fixture source records no quote of ${code}.`);
     }
-    const holding = valuation.holdings.find(
-      (candidate) => candidate.code === code,
-    );
-    stocks.push({
-      ...monthEndClosesForTest(code),
-      shares: holding?.shares ?? shares(0),
-      price: quote.price,
-    });
-  }
-  return { stocks, cash: valuation.cash };
-}
-
-function impactOf(
-  portfolio: { stocks: HeldStock[]; cash: Rupiah },
-  trade: Omit<ConsideredTrade, "rates">,
-): Result<TradeImpact, TradeImpactFailure> {
-  return measureTrade(
-    portfolio,
-    { ...trade, rates },
+    return quote;
+  };
+  const histories = new Map<string, DailyHistory>(
+    codes.map((code) => [code, monthEndClosesForTest(code)]),
+  );
+  const historyOf = (code: string): DailyHistory => {
+    const history = histories.get(code);
+    if (history === undefined) {
+      throw new Error(`The codes of the test lack ${code}.`);
+    }
+    return history;
+  };
+  const stocks: HeldStock[] = codes.map((code) => ({
+    ...historyOf(code),
+    shares:
+      valuation.holdings.find((holding) => holding.code === code)?.shares ??
+      shares(0),
+    price: quoteOf(code).price,
+  }));
+  const order = acceptedForTest(
+    request,
+    { cash: valuation.cash, holdings: valuation.holdings, orders: [] },
     {
-      market: monthEndClosesForTest("IHSG"),
-      settings: defaultEstimationSettings,
+      quote: quoteOf(request.code),
+      delayMinutes: fixturePriceSource.delayMinutes,
+      closes: stockHistoryForTest(historyOf(request.code)),
+      marketCloses: indexHistoryForTest(ihsg),
     },
+  );
+  return measureTrade(
+    { stocks, cash: valuation.cash },
+    { order, rates: costRatesForTest(order.tradingDay) },
+    { market: ihsg, settings: defaultEstimationSettings },
   );
 }
 
@@ -115,20 +135,16 @@ function summaryOf(measures: ValuedPortfolioMeasures): {
 
 test("measures a purchase of a stock that the portfolio does not hold, with the new shares at their quote and the cash less the limit price and the broker fee", async () => {
   const impact = successValueForTest(
-    impactOf(
-      await portfolioForTest(valuationForTest(["BBCA", "TLKM"]), [
-        "BBCA",
-        "TLKM",
-        "ASII",
-      ]),
-      {
+    await impactOf(
+      valuationForTest(["BBCA", "TLKM"]),
+      ["BBCA", "TLKM", "ASII"],
+      purchaseForTest({
         code: "ASII",
-        side: "buy",
-        shares: shares(1_000),
-        price: rupiah(4_750),
-      },
+        lots: orderLotsForTest(10),
+        price: limitForTest(4_750),
+      }),
     ),
-    "The cash pays for 10 lots of ASII",
+    "The closes give measures",
   );
   expect(impact.trade).toEqual({ value: 4_750_000, fee: 7_125, tax: 0 });
   expect(impact.cashAfter).toBe(6_198_875);
@@ -192,20 +208,16 @@ test("measures a purchase of a stock that the portfolio does not hold, with the 
 test("measures the portfolio before and after a purchase of a stock with fewer monthly returns over the fewer months that they share", async () => {
   // AMMN listed in July 2023, so it shares 38 monthly returns with the portfolio, whose own measures use 60.
   const impact = successValueForTest(
-    impactOf(
-      await portfolioForTest(valuationForTest(["BBCA", "TLKM"]), [
-        "BBCA",
-        "TLKM",
-        "AMMN",
-      ]),
-      {
+    await impactOf(
+      valuationForTest(["BBCA", "TLKM"]),
+      ["BBCA", "TLKM", "AMMN"],
+      purchaseForTest({
         code: "AMMN",
-        side: "buy",
-        shares: shares(1_000),
-        price: rupiah(3_650),
-      },
+        lots: orderLotsForTest(10),
+        price: limitForTest(3_650),
+      }),
     ),
-    "The cash pays for 10 lots of AMMN",
+    "The closes give measures",
   );
   expect(impact.trade).toEqual({ value: 3_650_000, fee: 5_475, tax: 0 });
   expect(impact.cashAfter).toBe(7_300_525);
@@ -237,19 +249,16 @@ test("measures the portfolio before and after a purchase of a stock with fewer m
 
 test("measures a sale of every share of a stock, which keeps the stock without weight and adds its value less the broker fee and the final tax to the cash", async () => {
   const impact = successValueForTest(
-    impactOf(
-      await portfolioForTest(valuationForTest(["BBCA", "TLKM"]), [
-        "BBCA",
-        "TLKM",
-      ]),
-      {
+    await impactOf(
+      valuationForTest(["BBCA", "TLKM"]),
+      ["BBCA", "TLKM"],
+      saleForTest({
         code: "TLKM",
-        side: "sell",
-        shares: shares(8_300),
-        price: rupiah(1_980),
-      },
+        lots: orderLotsForTest(83),
+        price: limitForTest(1_980),
+      }),
     ),
-    "The portfolio holds 83 lots of TLKM",
+    "The closes give measures",
   );
   expect(impact.trade).toEqual({ value: 16_434_000, fee: 24_651, tax: 16_434 });
   expect(impact.cashAfter).toBe(27_348_915);
@@ -279,13 +288,16 @@ test("measures a sale of every share of a stock, which keeps the stock without w
 
 test("measures a sale of the only stock of a portfolio, which leaves cash alone without a Sharpe ratio, a Treynor ratio, or a share of its variance", async () => {
   const impact = successValueForTest(
-    impactOf(await portfolioForTest(ammnValuationForTest(), ["AMMN"]), {
-      code: "AMMN",
-      side: "sell",
-      shares: shares(1_000),
-      price: rupiah(3_650),
-    }),
-    "The portfolio holds 10 lots of AMMN",
+    await impactOf(
+      ammnValuationForTest(),
+      ["AMMN"],
+      saleForTest({
+        code: "AMMN",
+        lots: orderLotsForTest(10),
+        price: limitForTest(3_650),
+      }),
+    ),
+    "The closes give measures",
   );
   expect(impact.cashAfter).toBe(13_640_875);
   expect(summaryOf(impact.before)).toMatchObject({
@@ -308,59 +320,17 @@ test("measures a sale of the only stock of a portfolio, which leaves cash alone 
   });
 });
 
-test("measures a purchase that costs exactly the cash, and fails for a purchase that costs one rupiah more than the cash", async () => {
-  // 10 lots of ASII at Rp4,750 cost Rp4,750,000 and a broker fee of Rp7,125.
-  const { stocks } = await portfolioForTest(
-    valuationForTest(["BBCA", "TLKM"]),
-    ["BBCA", "TLKM", "ASII"],
-  );
-  const purchase = {
-    code: "ASII",
-    side: "buy",
-    shares: shares(1_000),
-    price: rupiah(4_750),
-  } as const;
-  const exact = successValueForTest(
-    impactOf({ stocks, cash: rupiah(4_757_125) }, purchase),
-    "The cash pays for the purchase exactly",
-  );
-  expect(exact.cashAfter).toBe(0);
-  expect(impactOf({ stocks, cash: rupiah(4_757_124) }, purchase)).toEqual({
-    ok: false,
-    failure: { kind: "costsMoreThanCash", cost: 4_757_125, cash: 4_757_124 },
-  });
-});
-
-test("fails for a sale of more shares than the portfolio holds", async () => {
+test("fails for a sale of a stock with too few monthly returns, and names it", async () => {
+  // AADI listed in December 2024, so it has 21 monthly returns. placeOrder accepts no purchase of it, but it accepts a sale of a holding that lacks monthly returns, as decision 0015 explains.
   expect(
-    impactOf(
-      await portfolioForTest(valuationForTest(["BBCA", "TLKM"]), [
-        "BBCA",
-        "TLKM",
-      ]),
-      {
-        code: "TLKM",
-        side: "sell",
-        shares: shares(8_400),
-        price: rupiah(1_980),
-      },
-    ),
-  ).toEqual({
-    ok: false,
-    failure: { kind: "sellsMoreThanHeld", shares: 8_400, heldShares: 8_300 },
-  });
-});
-
-test("fails for a purchase of a stock with too few monthly returns, and names it", async () => {
-  // AADI listed in December 2024, so it has 21 monthly returns.
-  expect(
-    impactOf(
-      await portfolioForTest(valuationForTest(["BBCA", "TLKM"]), [
-        "BBCA",
-        "TLKM",
-        "AADI",
-      ]),
-      { code: "AADI", side: "buy", shares: shares(100), price: rupiah(11_475) },
+    await impactOf(
+      aadiValuationForTest(),
+      ["AADI"],
+      saleForTest({
+        code: "AADI",
+        lots: orderLotsForTest(10),
+        price: limitForTest(11_475),
+      }),
     ),
   ).toEqual({
     ok: false,

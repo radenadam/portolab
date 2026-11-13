@@ -7,7 +7,7 @@ export default {
     "server/account.ts!",
     "scripts/{check-dev-server,check-messages,check-migrations,check-punctuation,check-workflows,measure-agent-run,plan-deployment-test,plan-review,post-review,print-dependabot-subject,print-schema,read-agent-tools,run-deployment-guide,save-findings,write-review-files}.ts!",
     "project.inlang/paraglide.config.ts",
-    // The order ticket and the page of a stock of issue #127 call measureTrade, with HeldStock, ConsideredTrade, TradeImpact, and TradeImpactFailure, once they show what a trade does to the portfolio.
+    // The order ticket and the page of a stock of issue #127 call measureTrade, with HeldStock, ConsideredTrade, and TradeImpact, once they show what a trade does to the portfolio.
     "app/features/measures/measure-trade.ts!",
   ],
   // Helpers of tests, browser tests, and lint rules are not production code, so the production run leaves them out.
