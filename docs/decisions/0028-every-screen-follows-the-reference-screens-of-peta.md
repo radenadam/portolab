@@ -92,7 +92,7 @@ The colors are tokens of `app/theme.css`, which defines each one when a screen f
 The file `src/styles.css` of the prototype holds every other detail of the look, such as the dim ground behind a sheet, the shadow of a popover, and the darker gain and loss on a highlighted row.
 
 - Instrument Sans sets the text, with figures of equal width for every number, so digits line up in columns. DM Mono sets the labels of charts, the codes of stocks, the student numbers, and the code for joining a class.
-- Portolab serves both fonts itself from the Fontsource packages, for the reason of decision 0012: a page loads nothing from another server, so it works on a local network without internet and tells no other server who reads Portolab.
+- Portolab serves both fonts itself from the Fontsource packages, for the reason of decision 0012. A page then loads nothing from another server, so it works on a local network without internet and tells no other server who reads Portolab.
 - A gain is green with ▲ and a plus sign, and a loss is red with ▼ and a minus sign. The sign and the arrow carry the meaning for a reader who cannot tell red from green, and on a projector that washes colors out.
 - A light and a dark theme follow the setting of the device, and the profile menu offers the choice of the system, light, or dark, which overrides the setting.
 - Panels have corners of 14 pixels and a thin line around them, and they separate the parts of a screen.
@@ -135,7 +135,7 @@ The approved design brings these into the first release, which [`docs/product.md
 - Sharpe, Treynor, and Jensen's alpha, beside the measures that the first release already has.
 - Belajar, with a card for each of the 16 sessions of the course, a lesson for each session that teaches a topic, and a glossary. A lesson of a topic that the simulation cannot practice yet says so.
 - A watchlist of stocks.
-- The reason of an order, which the student may write and the lecturer reads.
+- The reason of an order, as [decision 0033](0033-a-student-may-write-the-reason-of-an-order-which-the-lecturer-reads.md) records it.
 - A demonstration portfolio, in which the lecturer trades in front of the class and which no statistic of the class counts.
 
 ## Alternatives
