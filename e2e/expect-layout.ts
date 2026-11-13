@@ -30,12 +30,12 @@ export async function sidewaysProblems(page: Page): Promise<LayoutProblem[]> {
 }
 
 /**
- * Returns each rule of the layout of decision 0028 that the screen of a page breaks, after its fonts load.
+ * Returns each rule of the layout of decision 0028 that the screen of a page breaks, after its fonts load. Every rule leaves out a part that the screen hides, or places outside the flow with `position: absolute` or `fixed`, such as a popover.
  * - `width`: the page never scrolls sideways.
  * - `content`: an element marked `data-layout="content"` is never wider than the token of the width of content, and it stands in the middle of the content box of its parent.
  * - `reading`: an element marked `data-layout="reading"` stands in the middle of the content box of its parent.
  * - `columns`: the children of `data-layout="columns"` that sit side by side end on one line, within 2 pixels. A child ends where the last of its parts with a ground or a line under it ends, so a column that stretches while its cards stay short still ends early.
- * - `rows`: the children of `data-layout="rows"` are rows that share one column template. In each row the check follows the items of every grid and of every flex container that does not wrap. An item without text, such as a bar, starts and ends at the same place in every row, within 1 pixel, and an item with text starts or ends at the same place, so text can align left or right.
+ * - `rows`: the children of `data-layout="rows"` are rows that share one column template. In each row the check follows the items of every grid and of every flex container that does not wrap, down to the fifth level. An item without text, such as a bar, starts and ends at the same place in every row, within 1 pixel, and an item with text starts or ends at the same place, so text can align left or right.
  * - `tables`: tables with the same heads of their columns put each column at the same place, within 1 pixel. Tables that stand one above the other compare their columns on the screen, and tables side by side compare them from their own left edge.
  * - `cells`: no cell of a table holds more than its column shows.
  */
@@ -159,12 +159,12 @@ function inspectLayout(widthToken: string): LayoutProblem[] {
       style.borderBottomStyle !== "none";
     return !isClear || hasLineUnder;
   }
-  function footOf(element: Element, depth: number): number {
+  function footOf(element: Element): number {
     const children = shownChildren(element);
-    if (hasGround(element) || depth > 8 || children.length === 0) {
+    if (hasGround(element) || children.length === 0) {
       return element.getBoundingClientRect().bottom;
     }
-    return Math.max(...children.map((child) => footOf(child, depth + 1)));
+    return Math.max(...children.map(footOf));
   }
   function linesOf(columns: Element): Element[][] {
     const lines: { top: number; items: Element[] }[] = [];
@@ -184,7 +184,7 @@ function inspectLayout(widthToken: string): LayoutProblem[] {
   function checkColumns(): void {
     for (const columns of marked("columns")) {
       for (const items of linesOf(columns).filter((line) => line.length > 1)) {
-        const feet = items.map((item) => footOf(item, 0));
+        const feet = items.map(footOf);
         if (spread(feet) > 2) {
           problems.push({
             rule: "columns",
@@ -225,6 +225,8 @@ function inspectLayout(widthToken: string): LayoutProblem[] {
     const style = getComputedStyle(element);
     return style.display.includes("flex") && style.flexWrap !== "nowrap";
   }
+  // Below the fifth level of a row lie the parts of one item, such as the arrow and the number of a change, so the check compares no deeper, as the check of the prototype did.
+  const rowLevels = 5;
   interface RowItem {
     element: Element;
     lefts: number[];
@@ -250,9 +252,9 @@ function inspectLayout(widthToken: string): LayoutProblem[] {
       }
       const isColumns =
         isContainer(item) && !hasNoText(item) && !isPhrase(item);
-      // A path holds one part for each level of the row, and four levels reach every column of a row.
-      const depth = path.split("/").length - 1;
-      if (depth < 4 && isColumns) {
+      // A path holds one part for each level of the row.
+      const level = itemPath.split("/").length - 1;
+      if (level < rowLevels && isColumns) {
         collectItems(item, itemPath, items);
       }
     }

@@ -36,7 +36,7 @@ const codesOfDifferentWidths = ["BBCA", "BBCAWWWW"];
 async function spreadOf(
   page: Page,
   selector: string,
-  measure: "left" | "right" | "top" | "width",
+  measure: "left" | "right" | "top" | "bottom" | "width",
 ): Promise<number> {
   const values = await page
     .locator(selector)
@@ -171,6 +171,23 @@ test("accepts columns that stand one above the other", async ({ page }) => {
   expect(await layoutProblems(page)).toEqual([]);
 });
 
+test("accepts parts that a screen hides or places outside the flow, which end apart", async ({
+  page,
+}) => {
+  await showPage(
+    page,
+    `<div data-layout="columns" style="display: grid; grid-template-columns: 1fr 1fr 1fr; position: relative">
+      <section class="card" style="height: 100px">A</section>
+      <section class="card" style="height: 100px">B</section>
+      <section class="card" style="height: 40px; visibility: hidden">C</section>
+      <section class="card" style="height: 40px; position: absolute; top: 0">D</section>
+      <section class="card" style="height: 40px; position: fixed; top: 0">E</section>
+    </div>`,
+  );
+  expect(await spreadOf(page, "section", "bottom")).toBeGreaterThan(2);
+  expect(await layoutProblems(page)).toEqual([]);
+});
+
 test("rejects rows whose bar moves from row to row", async ({ page }) => {
   await showPage(
     page,
@@ -245,6 +262,41 @@ test("accepts rows whose phrase of words holds parts of different widths", async
   expect(await layoutProblems(page)).toEqual([]);
 });
 
+/** A row whose bar stands at a level of its nesting, at a distance from the start of its grid, inside grids that hold one item each. */
+function rowWithBarAtLevel(level: number, barStart: number): string {
+  let row = `<div style="display: grid; grid-template-columns: ${String(barStart)}px 40px"><span>A</span><span class="bar" style="background: #00f; height: 4px"></span></div>`;
+  for (let wrapper = 1; wrapper < level; wrapper += 1) {
+    row = `<div style="display: grid">${row}</div>`;
+  }
+  return row;
+}
+
+test("rejects rows whose bar moves at the fifth level of a row", async ({
+  page,
+}) => {
+  await showPage(
+    page,
+    `<div data-layout="rows">${rowWithBarAtLevel(5, 60)}${rowWithBarAtLevel(5, 80)}</div>`,
+  );
+  expect(await layoutProblems(page)).toEqual([
+    {
+      rule: "rows",
+      text: `The rows of <div> "AA" do not share one column template, because the item <span> "" moves 20.0 pixels from row to row.`,
+    },
+  ]);
+});
+
+test("accepts rows whose bar moves below the fifth level of a row", async ({
+  page,
+}) => {
+  await showPage(
+    page,
+    `<div data-layout="rows">${rowWithBarAtLevel(6, 60)}${rowWithBarAtLevel(6, 80)}</div>`,
+  );
+  expect(await spreadOf(page, ".bar", "left")).toBeGreaterThan(1);
+  expect(await layoutProblems(page)).toEqual([]);
+});
+
 test("rejects tables with the same columns that stand one above the other with the columns apart", async ({
   page,
 }) => {
@@ -278,6 +330,23 @@ test("accepts tables with the same columns side by side that start each column a
   );
   expect(await spreadOf(page, "th:nth-child(2)", "left")).toBeGreaterThan(1);
   expect(await layoutProblems(page)).toEqual([]);
+});
+
+test("rejects tables with the same columns side by side whose columns start apart from their own left edge", async ({
+  page,
+}) => {
+  await showPage(
+    page,
+    `<div style="display: flex; gap: 8px">${twoTables("", codesOfDifferentWidths)}</div>`,
+  );
+  expect(await layoutProblems(page)).toEqual([
+    {
+      rule: "tables",
+      text: expect.stringMatching(
+        /^Two tables with the columns Kode, Harga start the column "Harga" \d+\.\d pixels apart\.$/,
+      ),
+    },
+  ]);
 });
 
 test("accepts tables with other columns whose columns stand apart", async ({

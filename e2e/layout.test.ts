@@ -5,6 +5,7 @@ import type { Locale } from "../app/paraglide/runtime.js";
 import routes from "../app/routes.ts";
 import { runAccountCommand, submitSignIn, uniqueUsername } from "./accounts.ts";
 import { bbcaHolding } from "./bbca-holding.ts";
+import type { BrowserProjectName } from "./browser-projects.ts";
 import { chooseLanguage } from "./choose-language.ts";
 import { readTestClass } from "./create-test-class.ts";
 import { layoutProblems } from "./expect-layout.ts";
@@ -135,7 +136,7 @@ const routePages: Record<string, readonly RoutePage[]> = {
 };
 
 // The phone project walks the widths of phones and the desktop project the widths of tablets, laptops, and screens, up to a screen of 2560 pixels. Decision 0028 sets the widths at which the layout changes, and these lie on both sides of each.
-const widthsOfProject: Record<string, readonly number[]> = {
+const widthsOfProject: Record<BrowserProjectName, readonly number[]> = {
   phone: [360, 390],
   desktop: [768, 1024, 1280, 1440, 1920, 2560],
 };
