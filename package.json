@@ -1,0 +1,13 @@
+{
+  "name": "portolab-peta-prototype",
+  "private": true,
+  "description": "The clickable prototype of the design Peta of Portolab, which the maintainer approved on 13 November 2026.",
+  "license": "MIT",
+  "packageManager": "pnpm@12.16.1",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.0"
+  }
+}

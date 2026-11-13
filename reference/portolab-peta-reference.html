@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Portolab Peta Reference</title>
+<!--
+  Design reference for Portolab, direction "Peta" (alternative A of the redesign).
+  Three desktop screens at 1320 px: Dosen / Kelas, Dosen / Mahasiswa, Mahasiswa / Beranda, each in light and dark.
+  How to read this file:
+  - Tokens for both themes are the two .dA[data-mode] rules. Layout and parts are the .a-* rules. Shared parts (chips, inline bars, chart marks) are the .m rules.
+  - The script draws the screens from example data. riskMap() draws the risk and return map, lineChart() the portfolio line, dv()/ds()/br() the inline marks in table cells, and aKelas(), aMhs(), aBeranda() are the three screens.
+  - All figures are example data. The fonts load from Google Fonts in this file only.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400..700&display=swap">
+<style>
+/* Page around the mockups. Only the rules under .m and .dA below describe the Portolab screens. */
+:root { --c-bg: #ECEEF1; --c-surface: #FFFFFF; --c-ink: #14171C; --c-ink2: #3A404A; --c-muted: #5B6370; --c-line: #D3D7DE; --c-accent: #2447C7; --c-tip: #14171C; --c-on-tip: #F4F5F7; }
+@media (prefers-color-scheme: dark) {
+  :root { color-scheme: dark; --c-bg: #0B0D10; --c-surface: #14171B; --c-ink: #E8EAEE; --c-ink2: #C3C8D0; --c-muted: #98A0AD; --c-line: #282D35; --c-accent: #9CB3FF; --c-tip: #E8EAEE; --c-on-tip: #14171C; }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--c-bg); color: var(--c-ink); font: 15px/1.5 "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+button:focus-visible, a:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 2px; border-radius: 6px; }
+.bar { position: sticky; top: 0; z-index: 20; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 10px 16px; background: var(--c-bg); border-bottom: 1px solid var(--c-line); }
+.bar-name { font-weight: 600; margin-right: auto; }
+.bar-name span { font-weight: 400; color: var(--c-muted); }
+.theme { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--c-muted); }
+.toggle { display: inline-flex; border: 1px solid var(--c-line); border-radius: 999px; padding: 2px; background: var(--c-surface); }
+.toggle button { font: inherit; font-size: 13px; color: var(--c-muted); background: transparent; border: 0; border-radius: 999px; padding: 4px 12px; cursor: pointer; }
+.toggle button[aria-pressed="true"] { background: var(--c-ink); color: var(--c-bg); font-weight: 600; }
+.frames { max-width: 1480px; margin: 0 auto; padding: 24px 16px 64px; display: flex; flex-direction: column; gap: 28px; }
+.frame { margin: 0; border: 1px solid var(--c-line); border-radius: 14px; overflow: hidden; background: var(--c-surface); }
+.frame-cap { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; padding: 10px 16px; border-bottom: 1px solid var(--c-line); font-size: 13.5px; color: var(--c-muted); }
+.frame-cap .role { font-size: 11.5px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; border: 1px solid var(--c-line); border-radius: 999px; padding: 1px 9px; color: var(--c-ink2); }
+.frame-cap strong { color: var(--c-ink); font-weight: 600; }
+.scaler { width: 100%; overflow-x: auto; overflow-y: hidden; }
+.tip { position: fixed; z-index: 50; pointer-events: none; background: var(--c-tip); color: var(--c-on-tip); border-radius: 8px; padding: 7px 10px; font-size: 12.5px; line-height: 1.4; max-width: 280px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28); }
+.tip b { display: block; font-weight: 600; }
+
+/* ===== Shared mockup base. Every mockup carries its own tokens through its direction class and data-mode, so it never depends on the viewer's theme. ===== */
+.m { width: 1320px; zoom: var(--z, 1); background: var(--bg); color: var(--ink); font-family: var(--f-ui); font-size: 14px; line-height: 1.45; --plot: var(--panel); }
+.m *, .m *::before, .m *::after { box-sizing: border-box; }
+.m :where(h1, h2, h3, h4, p, figure, ul) { margin: 0; padding: 0; }
+.m h1, .m h2, .m h3 { text-wrap: balance; }
+.m ul { list-style: none; }
+.m mark { background: none; color: inherit; }
+.m .grow { flex: 1; }
+.m .num { font-variant-numeric: tabular-nums; }
+.m .ic { flex: none; }
+.m .tri { width: 0.62em; height: 0.62em; flex: none; }
+.m .dl { display: inline-flex; align-items: center; gap: 0.26em; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.m .dl.up { color: var(--gain); }
+.m .dl.dn { color: var(--loss); }
+.m .dl.fl { color: var(--muted); }
+.m .av { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 600; background: var(--raised); color: var(--ink2); flex: none; }
+.m .chip { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 11px; border-radius: 999px; border: 1px solid var(--line); font-size: 12.5px; color: var(--ink2); white-space: nowrap; }
+.m .chip b { font-family: var(--f-code); font-weight: 500; color: var(--ink); letter-spacing: 0.05em; }
+.m .chip.sim { border-color: transparent; background: var(--warn-soft); color: var(--warn); font-weight: 600; }
+.m .chip.sim i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.m .seg { display: inline-flex; background: var(--raised); border-radius: 10px; padding: 3px; }
+.m .seg span { padding: 6px 12px; border-radius: 7px; font-size: 13px; font-weight: 500; color: var(--ink2); white-space: nowrap; }
+.m .seg .on { background: var(--panel); color: var(--ink); font-weight: 600; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14); }
+.m .inp { display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px; color: var(--muted); font-size: 13px; background: var(--panel); min-width: 190px; }
+.m .btn { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--line2); font-weight: 600; font-size: 13px; color: var(--ink); white-space: nowrap; }
+.m .btn.pri { background: var(--btn); color: var(--on-btn); border-color: transparent; }
+.m .lk { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; color: var(--link); white-space: nowrap; }
+.m .cellbar { display: grid; grid-template-columns: 60px minmax(0, 1fr); gap: 8px; align-items: center; }
+.m .cellbar .v { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.m .dv, .m .ds { position: relative; display: block; height: 14px; }
+.m .dv::before, .m .ds::before { content: ""; position: absolute; left: 0; right: 0; top: 6.5px; height: 1px; background: var(--line); }
+.m .dv .z { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--line2); }
+.m .dv .f { position: absolute; top: 3px; height: 8px; }
+.m .dv .f.pos { background: var(--gain); border-radius: 0 3px 3px 0; }
+.m .dv .f.neg { background: var(--loss); border-radius: 3px 0 0 3px; }
+.m .dv .t, .m .ds .t { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--ink2); border-radius: 1px; }
+.m .ds .d { position: absolute; top: 2px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: var(--data); box-shadow: 0 0 0 2px var(--plot); }
+.m .ds.me .d { background: var(--you); }
+.m .br { position: relative; display: block; height: 8px; border-radius: 0 4px 4px 0; background: var(--raised); }
+.m .br i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 0 4px 4px 0; background: var(--data); }
+.m .unit { display: grid; grid-template-columns: repeat(16, minmax(0, 1fr)); gap: 5px; }
+.m .unit i { aspect-ratio: 1; border-radius: 50%; border: 1.75px solid var(--line2); }
+.m .unit i.on { background: var(--unit, var(--data)); border-color: var(--unit, var(--data)); }
+.m .segbar { display: flex; gap: 2px; height: 8px; }
+.m .segbar i { border-radius: 4px; background: var(--data); }
+.m .segbar i.cash { background: var(--line2); }
+.m .key { display: inline-flex; align-items: center; gap: 6px; }
+.m .key i { width: 14px; height: 2px; border-radius: 1px; background: var(--you); }
+.m .key.ih i { background: var(--muted); }
+
+.m .chart { display: block; width: 100%; height: auto; overflow: visible; }
+.m svg text { font-family: var(--f-num); font-size: 10.5px; fill: var(--muted); }
+.m svg .t-strong { fill: var(--ink); font-weight: 600; }
+.m svg .t-lab { font-family: var(--f-ui); font-size: 12px; font-weight: 600; fill: var(--ink); }
+.m svg .t-val { font-weight: 500; fill: var(--ink2); }
+.m svg .t-sub { font-family: var(--f-ui); font-size: 11.5px; fill: var(--muted); }
+.m svg .t-q { font-family: var(--f-ui); font-size: 11px; fill: var(--muted); }
+.m svg .t-ses { font-family: var(--f-ui); font-size: 10.5px; font-weight: 600; fill: var(--muted); }
+.m svg .halo { paint-order: stroke; stroke: var(--plot); stroke-width: 4px; stroke-linejoin: round; }
+.m .g-line { stroke: var(--line); stroke-width: 1; }
+.m .g-ref { stroke: var(--line2); stroke-width: 1; }
+.m .g-ihsg { stroke: var(--ink2); stroke-width: 1.25; stroke-dasharray: 5 4; }
+.m .g-med { stroke: var(--ink); stroke-width: 1.5; }
+.m .p-on { fill: var(--data); stroke: var(--plot); stroke-width: 2; }
+.m .p-off { fill: var(--plot); stroke: var(--data); stroke-width: 1.75; }
+.m .p-dim { fill: var(--data); opacity: 0.32; }
+.m .p-ghost { fill: var(--muted); opacity: 0.4; }
+.m .p-sel { fill: var(--you); stroke: var(--plot); stroke-width: 2; }
+.m .p-ring { fill: none; stroke: var(--you); stroke-width: 1.5; }
+.m .p-bad { fill: var(--loss); stroke: var(--plot); stroke-width: 2; }
+.m .p-ihsg { fill: var(--ink); stroke: var(--plot); stroke-width: 2; }
+.m .p-hit { fill: transparent; }
+.m .m-bar { fill: var(--data); opacity: 0.26; }
+.m .l-port { fill: none; stroke: var(--you); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.m .l-ihsg { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
+.m .e-port { fill: var(--you); stroke: var(--plot); stroke-width: 2; }
+.m .e-ihsg { fill: var(--muted); stroke: var(--plot); stroke-width: 2; }
+.m .xh-l { stroke: var(--line2); stroke-width: 1; }
+.m .w-col { fill: var(--data); }
+.m .w-col.now { fill: var(--you); }
+.m .spark { display: block; }
+.m .spark path { fill: none; stroke-width: 1.5; stroke-linejoin: round; }
+.m .spark.up path { stroke: var(--gain); }
+.m .spark.dn path { stroke: var(--loss); }
+.m .spark.up circle { fill: var(--gain); }
+.m .spark.dn circle { fill: var(--loss); }
+
+/* ===== A. Peta. One map of risk and return is the home of every screen. Cool charcoal, blue data, saffron for the selected point. ===== */
+.dA { --f-ui: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif; --f-num: "DM Mono", ui-monospace, Menlo, Consolas, monospace; --f-code: var(--f-num); }
+.dA[data-mode="dark"] { --bg: #0F1317; --panel: #151B21; --raised: #1D252D; --line: #25303A; --line2: #3B4956; --ink: #E9EEF2; --ink2: #B9C4CE; --muted: #8695A3; --data: #3987E5; --data-soft: rgba(57, 135, 229, 0.18); --you: #C98500; --you-soft: rgba(201, 133, 0, 0.2); --gain: #3DCB8C; --loss: #FF7F6E; --gain-soft: rgba(61, 203, 140, 0.14); --loss-soft: rgba(255, 127, 110, 0.15); --warn: #E9B44C; --warn-soft: rgba(233, 180, 76, 0.14); --btn: #E9EEF2; --on-btn: #0F1317; --link: #7DB3F5; }
+.dA[data-mode="light"] { --bg: #F1F4F7; --panel: #FFFFFF; --raised: #EEF2F5; --line: #DFE5EA; --line2: #B9C4CF; --ink: #0F1820; --ink2: #374552; --muted: #5D6B78; --data: #1F6FD6; --data-soft: rgba(31, 111, 214, 0.1); --you: #C97800; --you-soft: rgba(201, 120, 0, 0.14); --gain: #0B7A53; --loss: #C73A28; --gain-soft: #E1F3EB; --loss-soft: #FBE8E4; --warn: #8A5A00; --warn-soft: #FBF0D9; --btn: #0F1820; --on-btn: #FFFFFF; --link: #1A5FBA; }
+.a-shell { display: grid; grid-template-columns: 76px minmax(0, 1fr); }
+.a-rail { background: var(--panel); border-right: 1px solid var(--line); display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 16px 0; }
+.a-logo { width: 36px; height: 36px; border-radius: 10px; background: var(--data); color: #FFFFFF; display: grid; place-items: center; margin-bottom: 16px; }
+.a-nav { width: 62px; padding: 9px 0 7px; border-radius: 10px; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11px; font-weight: 500; color: var(--muted); }
+.a-nav.on { background: var(--data-soft); color: var(--ink); font-weight: 600; }
+.a-nav.on svg { color: var(--data); }
+.a-body { min-width: 0; display: flex; flex-direction: column; }
+.a-top { height: 58px; display: flex; align-items: center; gap: 10px; padding: 0 28px; border-bottom: 1px solid var(--line); }
+.a-class { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 15px; }
+.a-class span { font-weight: 400; color: var(--muted); font-size: 13px; }
+.a-main { padding: 26px 28px 30px; display: grid; gap: 20px; align-items: start; }
+.a-k { grid-template-columns: minmax(0, 1fr) 344px; }
+.a-col { display: grid; gap: 16px; min-width: 0; }
+.a-head .eyebrow { font-size: 12.5px; color: var(--muted); }
+.a-head h1 { font-size: 30px; line-height: 1.15; letter-spacing: -0.02em; font-weight: 600; margin-top: 6px; }
+.a-head p { font-size: 15px; color: var(--ink2); margin-top: 8px; max-width: 70ch; }
+.a-panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; min-width: 0; }
+.a-ph { display: flex; align-items: center; gap: 14px; padding: 14px 18px 0; }
+.a-ph h2 { font-size: 15px; font-weight: 600; }
+.a-ph2 { display: flex; align-items: center; gap: 14px; padding: 10px 18px 0; font-size: 12px; color: var(--muted); }
+.a-legend { display: flex; gap: 16px; font-size: 12px; color: var(--ink2); }
+.a-legend span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.lg-on { width: 10px; height: 10px; border-radius: 50%; background: var(--data); }
+.lg-off { width: 10px; height: 10px; border-radius: 50%; border: 1.75px solid var(--data); }
+.lg-ihsg { width: 8px; height: 8px; background: var(--ink); transform: rotate(45deg); }
+.lg-you { width: 10px; height: 10px; border-radius: 50%; background: var(--you); }
+.lg-ghost { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); opacity: 0.5; }
+.a-map { padding: 6px 10px 10px; }
+.a-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid var(--line); }
+.a-strip div { padding: 12px 18px; font-size: 12.5px; color: var(--muted); }
+.a-strip div + div { border-left: 1px solid var(--line); }
+.a-strip b { display: block; font-size: 20px; font-weight: 600; color: var(--ink); letter-spacing: -0.01em; }
+.a-card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; min-width: 0; }
+.a-card h3 { font-size: 13px; font-weight: 600; color: var(--muted); display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.a-card h3 em { font-style: normal; font-size: 11px; padding: 1px 7px; border-radius: 999px; background: var(--data-soft); color: var(--ink); }
+.a-flag { display: grid; grid-template-columns: 24px minmax(0, 1fr) 16px; gap: 10px; padding: 10px 0; align-items: start; color: var(--muted); }
+.a-flag + .a-flag { border-top: 1px solid var(--line); }
+.a-flag .st { width: 24px; height: 24px; border-radius: 7px; display: grid; place-items: center; }
+.a-flag .st.bad { background: var(--loss-soft); color: var(--loss); }
+.a-flag .st.idle { background: var(--warn-soft); color: var(--warn); }
+.a-flag b { font-weight: 600; color: var(--ink); display: block; }
+.a-flag p { font-size: 12.5px; color: var(--muted); }
+.a-ask { display: grid; gap: 10px; font-size: 13.5px; color: var(--ink2); }
+.a-ask li { padding-left: 14px; position: relative; }
+.a-ask li::before { content: ""; position: absolute; left: 0; top: 0.6em; width: 5px; height: 5px; border-radius: 50%; background: var(--data); }
+.a-feed { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; padding: 9px 0; }
+.a-feed + .a-feed { border-top: 1px solid var(--line); }
+.a-feed .av { width: 28px; height: 28px; font-size: 11px; }
+.a-feed b { font-weight: 600; }
+.a-feed small { font-size: 12px; color: var(--muted); margin-left: 6px; }
+.a-feed p { font-size: 13px; color: var(--ink2); margin-top: 1px; }
+.a-s { grid-template-columns: minmax(0, 1fr) 332px; }
+.a-tools { display: flex; align-items: center; gap: 10px; }
+.a-tools h1 { font-size: 26px; font-weight: 600; letter-spacing: -0.02em; margin-right: 8px; }
+.a-filters { display: flex; gap: 8px; }
+.a-filters .chip.on { background: var(--btn); color: var(--on-btn); border-color: transparent; font-weight: 600; }
+.a-tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.a-tbl th { font-size: 11.5px; font-weight: 600; color: var(--muted); text-align: left; padding: 13px 10px 9px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.a-tbl th.srt { color: var(--ink); }
+.a-tbl td { padding: 0 10px; height: 50px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.a-tbl tbody tr:last-child td { border-bottom: 0; }
+.a-tbl tr.sel td { background: var(--you-soft); --plot: transparent; --muted: var(--ink2); }
+.dA[data-mode="light"] .a-tbl tr.sel td { --loss: #B02E1E; --gain: #096B49; }
+.a-tbl .rk { font-family: var(--f-num); font-size: 12px; color: var(--muted); text-align: right; width: 30px; padding-right: 2px; }
+.a-who { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.a-who .av { width: 30px; height: 30px; }
+.a-who b { font-weight: 600; display: block; white-space: nowrap; }
+.a-who small { font-family: var(--f-num); font-size: 11px; color: var(--muted); }
+.a-last { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--ink2); white-space: nowrap; }
+.a-last i { width: 7px; height: 7px; border-radius: 50%; background: var(--line2); }
+.a-last.on i { background: var(--gain); }
+.a-tnote { padding: 10px 18px 14px; font-size: 12px; color: var(--muted); border-top: 1px solid var(--line); display: flex; gap: 18px; }
+.a-tnote span { display: inline-flex; align-items: center; gap: 7px; }
+.a-tnote i { width: 2px; height: 12px; border-radius: 1px; background: var(--ink2); }
+.a-insp { display: grid; gap: 14px; }
+.a-insp-head { display: flex; align-items: center; gap: 12px; }
+.a-insp-head .av { width: 44px; height: 44px; font-size: 15px; background: var(--you-soft); color: var(--ink); }
+.a-insp-head b { font-size: 17px; font-weight: 600; display: block; }
+.a-insp-head small { font-size: 12px; color: var(--muted); }
+.a-kv { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 10px; }
+.a-kv div { font-size: 11.5px; color: var(--muted); }
+.a-kv b { display: block; font-size: 16px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+.a-note { font-size: 13px; color: var(--ink2); background: var(--raised); border-radius: 10px; padding: 10px 12px; }
+.a-note b { font-weight: 600; color: var(--ink); }
+.a-hold { display: grid; gap: 7px; font-size: 12.5px; color: var(--ink2); }
+.a-hold span b { font-family: var(--f-num); font-weight: 500; color: var(--ink); }
+.a-acts { display: flex; gap: 8px; }
+.a-h { grid-template-columns: 372px minmax(0, 1fr); }
+.a-wide { grid-column: 1 / -1; }
+.a-hero .lab { font-size: 13px; color: var(--muted); }
+.a-hero .val { font-size: 44px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.05; margin-top: 4px; }
+.a-hero .val small { font-size: 22px; font-weight: 500; color: var(--muted); margin-right: 6px; letter-spacing: 0; }
+.a-today { display: flex; gap: 8px; align-items: center; margin-top: 10px; font-size: 13px; color: var(--muted); }
+.a-today .dl { padding: 3px 8px; border-radius: 7px; background: var(--gain-soft); font-weight: 600; }
+.a-vs { display: grid; gap: 4px; }
+.a-vs .big { font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+.a-vs .keys { display: flex; gap: 14px; font-size: 12px; color: var(--ink2); margin: 6px 0 2px; }
+.a-risk { display: grid; grid-template-columns: 118px 50px minmax(0, 1fr); gap: 10px; align-items: center; padding: 9px 0; font-size: 13px; }
+.a-risk + .a-risk { border-top: 1px solid var(--line); }
+.a-risk span { color: var(--muted); }
+.a-risk b { font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+.a-risk small { grid-column: 1 / -1; font-size: 12px; color: var(--muted); margin-top: -4px; }
+.a-insight { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 12px 18px; border-top: 1px solid var(--line); font-size: 13.5px; color: var(--ink2); }
+.a-insight em { font-style: normal; font-size: 11.5px; font-weight: 600; padding: 3px 9px; border-radius: 999px; background: var(--data-soft); color: var(--ink); white-space: nowrap; }
+.a-ht { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.a-ht th { font-size: 11.5px; font-weight: 600; color: var(--muted); text-align: right; padding: 12px 12px 9px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.a-ht th:first-child, .a-ht td:first-child { text-align: left; padding-left: 18px; }
+.a-ht td { padding: 0 12px; height: 52px; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.a-ht tr:last-child td { border-bottom: 0; }
+.a-ht .tk b { font-family: var(--f-num); font-weight: 500; font-size: 14px; display: block; }
+.a-ht .tk small { font-size: 12px; color: var(--muted); }
+.a-ht .sub { display: block; font-size: 12px; color: var(--muted); }
+.a-ht .wide { width: 190px; }
+.a-ht .cellbar { grid-template-columns: 46px minmax(0, 1fr); }
+.a-ht .plc { display: grid; grid-template-columns: minmax(0, 1fr) 96px 62px; gap: 10px; align-items: center; }
+
+</style>
+</head>
+<body>
+<div class="bar">
+  <span class="bar-name">Portolab · Peta <span>design reference, three screens</span></span>
+  <div class="theme">
+    <span id="theme-label">Theme</span>
+    <div class="toggle" role="group" aria-labelledby="theme-label">
+      <button type="button" id="mode-light" data-set="light" aria-pressed="false">Light</button>
+      <button type="button" id="mode-dark" data-set="dark" aria-pressed="false">Dark</button>
+    </div>
+  </div>
+</div>
+<div class="frames" data-dir="A"></div>
+<div class="tip" id="tip" hidden></div>
+<script>
+(function () {
+  'use strict';
+
+  var NB = ' ';
+  var MINUS = '−';
+
+  function nf(v, d) { return new Intl.NumberFormat('id-ID', { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 }).format(v); }
+  function rp(v) { return 'Rp' + NB + nf(Math.round(v)); }
+  function sg(v) { return v > 0 ? '+' : v < 0 ? MINUS : ''; }
+  function pc(v, d) { return nf(Math.abs(v), d == null ? 2 : d) + '%'; }
+  function spc(v, d) { return sg(v) + pc(v, d); }
+  function fx(n) { return n.toFixed(1); }
+
+  var TRI_UP = '<svg class="tri" viewBox="0 0 10 10" aria-hidden="true"><path d="M5 1 9.5 9h-9Z" fill="currentColor"/></svg>';
+  var TRI_DN = '<svg class="tri" viewBox="0 0 10 10" aria-hidden="true"><path d="M.5 1h9L5 9Z" fill="currentColor"/></svg>';
+  function dl(v, o) {
+    o = o || {};
+    var c = v > 0 ? 'up' : v < 0 ? 'dn' : 'fl';
+    var t = o.rp ? sg(v) + rp(Math.abs(v)) : spc(v, o.d);
+    return '<span class="dl ' + c + '">' + (v > 0 ? TRI_UP : v < 0 ? TRI_DN : '') + t + '</span>';
+  }
+
+  var IC = {
+    cap: 'M22 10 12 5 2 10l10 5 10-5ZM6 12v5c3 2.5 9 2.5 12 0v-5',
+    users: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',
+    trend: 'M3 17l6-6 4 4 8-8M14 7h7v7',
+    book: 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5v14ZM4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5',
+    list: 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01',
+    pie: 'M21 12A9 9 0 1 1 12 3v9h9Z',
+    copy: 'M9 9h11v11H9zM5 15H4V4h11v1',
+    down: 'M12 3v12M7 10l5 5 5-5M4 21h16',
+    search: 'M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16ZM21 21l-4.3-4.3',
+    chev: 'M6 9l6 6 6-6',
+    right: 'M9 6l6 6-6 6',
+    check: 'M5 12.5l4.5 4.5L19 7.5',
+    arrow: 'M5 12h14M13 6l6 6-6 6',
+    fall: 'M3 7l6 6 4-4 8 8M14 17h7v-7',
+    clock: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18ZM12 7v5l3 2',
+    map: 'M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2ZM9 4v14M15 6v14'
+  };
+  function ic(n, s) {
+    s = s || 18;
+    return '<svg class="ic" width="' + s + '" height="' + s + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' + IC[n] + '"/></svg>';
+  }
+
+  /* ---------- Example data. The first twelve rows are the mock's own. ---------- */
+  var CLS = { course: 'Manajemen Portofolio', name: 'Kelas A', term: 'Ganjil 2026/2027', code: '7K4Q2M', ihsg: -1.75 };
+  /* name, NIM tail, return %, beta, sd % per month, alpha %, last active, orders in weeks 6..10, value, last trade, last reason */
+  var RAW = [
+    ['Citra Maharani', '276', 3.32, 0.87, 5.18, 0.48, 'kemarin', [3, 1, 0, 2, 2], 103319330, 'beli 6 lot ICBP', 'Korelasinya rendah dengan bank yang sudah saya pegang.'],
+    ['Hendra Gunawan', '241', 3.65, 0.82, 4.65, 0.17, '23 Okt', [4, 2, 0, 0, 0], 103653829, 'beli 10 lot BBCA', 'Bank besar dengan laba stabil.'],
+    ['Dimas Arya Nugroho', '136', 0.76, 0.77, 4.21, 0.14, 'kemarin dulu', [2, 1, 0, 1, 1], 100759116, 'beli 4 lot TLKM', 'Dividen rutin dan utang rendah.'],
+    ['Wulan Septiani', '290', -5.98, 0.96, 7.10, 0.13, '3 hari lalu', [3, 2, 1, 2, 1], 94020362, 'beli 6 lot MDKA', 'Harga emas dan tembaga naik, jadi saya menambah MDKA.'],
+    ['Ilham Maulana', '311', 1.28, 0.60, 3.64, 0.11, '22 Okt', [2, 1, 0, 0, 0], 101282152, 'beli 12 lot KLBF', 'Saham kesehatan lebih tahan saat pasar turun.'],
+    ['Tiara Anindya', '262', -1.12, 0.77, 4.18, 0.10, '27 Okt', [2, 1, 1, 0, 0], 98884324, 'jual 5 lot ADRO', 'Mengurangi saham batu bara yang terlalu bergejolak.'],
+    ['Salsabila Putri', '220', 1.61, 0.78, 4.20, 0.09, '26 Okt', [3, 1, 1, 0, 0], 101605590, 'beli 8 lot AMRT', 'Konsumen tetap belanja saat pasar lesu.'],
+    ['Anisa Rahmawati', '115', -4.18, 0.62, 3.66, 0.05, '22 Okt', [2, 2, 0, 0, 0], 95823021, 'beli 9 lot INCO', 'Harga nikel mulai pulih.'],
+    ['Andreas Simanjuntak', '185', 0.85, 0.91, 4.81, 0.03, 'kemarin', [3, 1, 0, 1, 1], 100847902, 'beli 10 lot UNTR', 'Bisnisnya beragam, dari otomotif sampai tambang.'],
+    ['Nadia Putri Maharani', '101', 1.86, 0.65, 3.67, -0.03, 'hari ini, 09.41', [3, 1, 0, 2, 1], 101862757, 'beli 23 lot AMRT', 'Menambah sektor yang belum saya punya.'],
+    ['Bagus Setiawan', '122', -2.83, 0.71, 4.16, -0.05, 'kemarin', [2, 0, 1, 1, 1], 97172277, 'beli 8 lot BMRI', 'Beta di bawah 1 untuk menahan risiko portofolio.'],
+    ['Ayu Lestari', '129', 0.31, 0.89, 4.58, -0.05, '3 hari lalu', [2, 1, 0, 0, 1], 100314430, 'beli 5 lot BBNI', 'Valuasinya lebih murah daripada bank lain.'],
+    ['Bima Wardhana', '143', 1.42, 0.63, 3.71, -0.06, 'kemarin', [2, 1, 0, 1, 1]],
+    ['Nabila Zahra', '150', 0.64, 0.55, 3.38, -0.07, 'kemarin dulu', [2, 0, 0, 1, 1]],
+    ['Clarissa Tanjung', '157', 1.19, 0.61, 3.52, -0.08, 'kemarin dulu', [3, 1, 0, 0, 1]],
+    ['Rizky Pratama', '164', -2.35, 1.07, 5.62, -0.09, 'kemarin', [3, 2, 1, 2, 1]],
+    ['Fajar Nugraha', '171', -2.94, 1.14, 6.05, -0.10, '30 Okt', [2, 1, 1, 0, 0]],
+    ['Putri Handayani', '178', 1.77, 0.49, 3.12, -0.11, '3 hari lalu', [2, 1, 0, 1, 1]],
+    ['Yoga Saputra', '192', -2.12, 0.86, 4.72, -0.12, '4 Nov', [2, 0, 0, 1, 0]],
+    ['Dewi Kartika', '199', 2.41, 0.68, 3.95, -0.14, 'kemarin', [3, 1, 0, 1, 1]],
+    ['Farhan Ramadhan', '206', -1.91, 0.84, 4.61, -0.15, 'kemarin dulu', [2, 1, 0, 0, 1]],
+    ['Maya Anggraini', '213', 0.51, 0.46, 2.98, -0.17, '5 Nov', [1, 1, 0, 1, 0]],
+    ['Reza Kurniawan', '227', -2.67, 1.02, 5.33, -0.18, 'hari ini, 09.12', [3, 2, 0, 1, 1]],
+    ['Sekar Larasati', '234', 1.05, 0.58, 3.44, -0.20, '29 Okt', [2, 0, 1, 0, 0]],
+    ['Galih Prakoso', '248', -1.35, 0.73, 4.08, -0.22, 'kemarin', [2, 1, 0, 1, 1]],
+    ['Intan Permata', '255', 3.08, 0.75, 4.32, -0.24, '3 hari lalu', [2, 1, 0, 1, 1]],
+    ['Kevin Halim', '269', -2.48, 0.81, 4.55, -0.27, '3 Nov', [2, 1, 0, 1, 0]],
+    ['Laras Wijayanti', '283', 1.53, 0.52, 3.21, -0.30, '21 Okt', [1, 1, 0, 0, 0]],
+    ['Naufal Hakim', '297', -0.42, 0.66, 3.69, -0.33, 'kemarin', [2, 0, 0, 0, 1]],
+    ['Olivia Sitompul', '304', -1.58, 0.69, 3.88, -0.38, '6 Nov', [2, 1, 0, 1, 0]],
+    ['Raka Aditya', '318', -0.77, 0.43, 2.86, -0.45, '20 Okt', [1, 1, 0, 0, 0]],
+    ['Syifa Aulia', '325', 0, null, null, null, 'belum pernah', [0, 0, 0, 0, 0]]
+  ];
+  function initials(name) { var p = name.split(' '); return (p[0][0] + (p[1] ? p[1][0] : '')).toUpperCase(); }
+  var ST = RAW.map(function (r, i) {
+    return { name: r[0], nim: '1202220' + r[1], ret: r[2], beta: r[3], sd: r[4], alpha: r[5], last: r[6], wk: r[7], value: r[8] || Math.round(1e8 * (1 + r[2] / 100)), trade: r[9], reason: r[10], rank: i + 1, active: r[7][4] > 0, ini: initials(r[0]) };
+  });
+  var BY = {};
+  ST.forEach(function (s) { BY[s.name] = s; });
+  var N = ST.length;
+  var WS = ST.filter(function (s) { return s.beta != null; });
+  function median(a) { var b = a.slice().sort(function (x, y) { return x - y; }); var n = b.length; return n % 2 ? b[(n - 1) / 2] : (b[n / 2 - 1] + b[n / 2]) / 2; }
+  var ACTIVE = ST.filter(function (s) { return s.active; }).length;
+  var IDLE = N - ACTIVE;
+  var ORDERS = ST.reduce(function (a, s) { return a + s.wk[4]; }, 0);
+  var MED = Math.round(median(ST.map(function (s) { return s.ret; })) * 100) / 100;
+  var LEAD = Math.round((MED - CLS.ihsg) * 100) / 100;
+  var ABOVE = ST.filter(function (s) { return s.ret > CLS.ihsg; }).length;
+  var LOWB = WS.filter(function (s) { return s.beta < 1; }).length;
+  var MEDB = median(WS.map(function (s) { return s.beta; }));
+  var WKLAB = ['6', '7', 'UTS', '9', '10'];
+
+  var ME = { name: 'Nadia Putri Maharani', nim: '1202220101', value: 101862757, dayRp: 590000, dayPct: 0.58, ret: 1.86, cash: 19520257, cashW: 19.2, beta: 0.65, sd: 3.67, sharpe: 0.05, treynor: 0.28 };
+  var MELEAD = Math.round((ME.ret - CLS.ihsg) * 100) / 100;
+  var HOLD = [
+    { t: 'BBCA', n: 'Bank Central Asia Tbk', lot: 30, avg: 9189, px: 9350, day: 0.81, val: 28050000, w: 27.5, pl: 483712, plp: 1.75, beta: 0.72, seed: 11 },
+    { t: 'ICBP', n: 'Indofood CBP Sukses Makmur Tbk', lot: 15, avg: 10741, px: 10525, day: 0.48, val: 15787500, w: 15.5, pl: -324131, plp: -2.01, beta: 0.47, seed: 23 },
+    { t: 'BMRI', n: 'Bank Mandiri (Persero) Tbk', lot: 25, avg: 5233, px: 5450, day: 1.87, val: 13625000, w: 13.4, pl: 542906, plp: 4.15, beta: 0.93, seed: 37 },
+    { t: 'TLKM', n: 'Telkom Indonesia (Persero) Tbk', lot: 40, avg: 3175, px: 3150, day: -0.63, val: 12600000, w: 12.4, pl: -99020, plp: -0.78, beta: 0.66, seed: 41 },
+    { t: 'ANTM', n: 'Aneka Tambang Tbk', lot: 40, avg: 2844, px: 3070, day: 0.99, val: 12280000, w: 12.1, pl: 902960, plp: 7.94, beta: 1.46, seed: 53 }
+  ];
+  var DATES = ['14 Okt', '15 Okt', '16 Okt', '19 Okt', '20 Okt', '21 Okt', '22 Okt', '23 Okt', '26 Okt', '27 Okt', '28 Okt', '29 Okt', '30 Okt', '2 Nov', '3 Nov', '4 Nov', '5 Nov', '6 Nov', '9 Nov', '10 Nov', '11 Nov', '12 Nov'];
+  var PORT = [0, -0.1, -0.9, -1.9, -1.8, -1.6, -1.3, -2.1, -2.2, -0.9, 0.5, 1.3, 1.7, -0.5, 0.1, 0.8, 0.9, 1.3, 0.8, 0.85, 1.28, 1.86];
+  var IHSG = [0, -0.05, -0.15, -1.6, -1.0, -1.1, -0.2, -1.25, -1.2, -0.5, 0.4, 0.95, 0.9, -1.9, -2.1, -2.15, -1.8, -1.55, -2.5, -3.15, -1.95, -1.75];
+  var FEED = [
+    ['Andreas Simanjuntak', 'beli 10 lot UNTR', '11 Nov, 13.38', 'Bisnisnya beragam, dari otomotif sampai tambang.'],
+    ['Bagus Setiawan', 'beli 8 lot BMRI', '11 Nov, 13.11', 'Beta di bawah 1 untuk menahan risiko portofolio.'],
+    ['Citra Maharani', 'beli 6 lot ICBP', '11 Nov, 10.52', 'Korelasinya rendah dengan bank yang sudah saya pegang.']
+  ];
+
+  /* ---------- Inline marks ---------- */
+  function dv(v, min, max, ref) {
+    var span = max - min, z = (0 - min) / span * 100, x = (v - min) / span * 100;
+    var out = '<span class="dv"><span class="z" style="left:' + z.toFixed(2) + '%"></span><span class="f ' + (v >= 0 ? 'pos' : 'neg') + '" style="left:' + Math.min(z, x).toFixed(2) + '%;width:' + Math.abs(x - z).toFixed(2) + '%"></span>';
+    if (ref != null) out += '<span class="t" style="left:' + ((ref - min) / span * 100).toFixed(2) + '%"></span>';
+    return out + '</span>';
+  }
+  function ds(v, min, max, ref, cls) {
+    return '<span class="ds' + (cls ? ' ' + cls : '') + '"><span class="t" style="left:' + ((ref - min) / (max - min) * 100).toFixed(2) + '%"></span><span class="d" style="left:' + ((v - min) / (max - min) * 100).toFixed(2) + '%"></span></span>';
+  }
+  function br(v, max) { return '<span class="br"><i style="width:' + (v / max * 100).toFixed(2) + '%"></i></span>'; }
+  /* ---------- Charts ---------- */
+  function hist(vals, from, step, n) {
+    var c = [];
+    for (var i = 0; i < n; i++) c.push(0);
+    vals.forEach(function (v) { var k = Math.floor((v - from) / step + 1e-9); if (k >= 0 && k < n) c[k]++; });
+    return c;
+  }
+
+  function riskMap(o) {
+    var W = o.w, H = o.h, p = o.pad, x0 = p.l, x1 = W - p.r, y0 = p.t, y1 = H - p.b;
+    function X(v) { return x0 + (v - o.xd[0]) / (o.xd[1] - o.xd[0]) * (x1 - x0); }
+    function Y(v) { return y1 - (v - o.yd[0]) / (o.yd[1] - o.yd[0]) * (y1 - y0); }
+    var s = '';
+    o.yt.forEach(function (t) {
+      s += '<line class="' + (t === 0 ? 'g-ref' : 'g-line') + '" x1="' + x0 + '" x2="' + x1 + '" y1="' + fx(Y(t)) + '" y2="' + fx(Y(t)) + '"/>';
+      s += '<text x="' + (x0 - 8) + '" y="' + fx(Y(t) + 3.5) + '" text-anchor="end">' + (t === 0 ? '0%' : spc(t, 0)) + '</text>';
+    });
+    o.xt.forEach(function (t) {
+      s += '<line class="' + (t === 1 ? 'g-ref' : 'g-line') + '" x1="' + fx(X(t)) + '" x2="' + fx(X(t)) + '" y1="' + y0 + '" y2="' + y1 + '"/>';
+      s += '<text' + (t === 1 ? ' class="t-strong"' : '') + ' x="' + fx(X(t)) + '" y="' + (y1 + 16) + '" text-anchor="middle">' + nf(t, 1) + '</text>';
+    });
+    if (o.xTitle) s += '<text class="t-sub" x="' + x1 + '" y="' + (y1 + 33) + '" text-anchor="end">' + o.xTitle + '</text>';
+    if (o.quad) {
+      s += '<text class="t-q" x="' + (x0 + 10) + '" y="' + (y0 + 18) + '">' + o.quad[0] + '</text>';
+      s += '<text class="t-q" x="' + (x1 - 10) + '" y="' + (y0 + 18) + '" text-anchor="end">' + o.quad[1] + '</text>';
+      s += '<text class="t-q" x="' + (x0 + 10) + '" y="' + (y1 - 10) + '">' + o.quad[2] + '</text>';
+      s += '<text class="t-q" x="' + (x1 - 10) + '" y="' + (y1 - 10) + '" text-anchor="end">' + o.quad[3] + '</text>';
+    }
+    if (o.ihsg != null) {
+      s += '<line class="g-ihsg" x1="' + x0 + '" x2="' + x1 + '" y1="' + fx(Y(o.ihsg)) + '" y2="' + fx(Y(o.ihsg)) + '"/>';
+      if (o.ihsgLabel) s += '<text class="t-sub halo" x="' + (x0 + 10) + '" y="' + fx(Y(o.ihsg) - 6) + '">IHSG ' + spc(o.ihsg) + '</text>';
+    }
+    if (o.zeroLabel) s += '<text class="t-sub halo" x="' + (x0 + 10) + '" y="' + fx(Y(0) - 6) + '">' + o.zeroLabel + '</text>';
+    if (o.median != null) {
+      s += '<line class="g-med" x1="' + (x1 - 104) + '" x2="' + x1 + '" y1="' + fx(Y(o.median)) + '" y2="' + fx(Y(o.median)) + '"/>';
+      s += '<text class="t-sub halo" x="' + (x1 - 8) + '" y="' + fx(Y(o.median) - 6) + '" text-anchor="end">Median kelas ' + spc(o.median) + '</text>';
+    }
+    if (o.marg) {
+      var mx = o.marg.x, my = o.marg.y, cx = hist(mx.vals, mx.from, mx.step, mx.n), cy = hist(my.vals, my.from, my.step, my.n);
+      var maxX = Math.max.apply(null, cx), maxY = Math.max.apply(null, cy);
+      cx.forEach(function (c, i) {
+        if (!c) return;
+        var a = X(mx.from + i * mx.step) + 1, b = X(mx.from + (i + 1) * mx.step) - 1, h = c / maxX * 28;
+        s += '<rect class="m-bar" x="' + fx(a) + '" y="' + fx(y0 - 6 - h) + '" width="' + fx(b - a) + '" height="' + fx(h) + '" rx="2" data-tip="Beta ' + nf(mx.from + i * mx.step, 1) + ' sampai ' + nf(mx.from + (i + 1) * mx.step, 1) + '|' + c + ' mahasiswa"/>';
+      });
+      cy.forEach(function (c, j) {
+        if (!c) return;
+        var a = Y(my.from + (j + 1) * my.step) + 1, b = Y(my.from + j * my.step) - 1, w = c / maxY * (p.r - 22);
+        s += '<rect class="m-bar" x="' + (x1 + 8) + '" y="' + fx(a) + '" width="' + fx(w) + '" height="' + fx(b - a) + '" rx="2" data-tip="Imbal hasil ' + spc(my.from + j * my.step, 0) + ' sampai ' + spc(my.from + (j + 1) * my.step, 0) + '|' + c + ' mahasiswa"/>';
+      });
+    }
+    var order = { ghost: 0, dim: 0, off: 1, on: 2, stock: 2, ihsg: 3, sel: 4, you: 4 };
+    var pts = o.pts.slice().sort(function (a, b) { return order[a.kind] - order[b.kind]; });
+    var hits = '';
+    pts.forEach(function (q) {
+      var cx = fx(X(q.x)), cy = fx(Y(q.y));
+      if (q.kind === 'ghost') s += '<circle class="p-ghost" cx="' + cx + '" cy="' + cy + '" r="3"/>';
+      else if (q.kind === 'dim') s += '<circle class="p-dim" cx="' + cx + '" cy="' + cy + '" r="4"/>';
+      else if (q.kind === 'off') s += '<circle class="p-off" cx="' + cx + '" cy="' + cy + '" r="5"/>';
+      else if (q.kind === 'on') s += '<circle class="p-on" cx="' + cx + '" cy="' + cy + '" r="5.5"/>';
+      else if (q.kind === 'stock') s += '<circle class="p-on" cx="' + cx + '" cy="' + cy + '" r="' + fx(q.r) + '"/>';
+      else if (q.kind === 'ihsg') s += '<path class="p-ihsg" d="M' + cx + ' ' + fx(Y(q.y) - 7) + 'l7 7-7 7-7-7Z"/>';
+      else if (q.kind === 'sel' || q.kind === 'you') {
+        var r = q.kind === 'you' ? 8 : 6.5;
+        s += '<circle class="p-ring" cx="' + cx + '" cy="' + cy + '" r="' + (r + 4.5) + '"/><circle class="p-sel" cx="' + cx + '" cy="' + cy + '" r="' + r + '"/>';
+      }
+      if (q.tip) hits += '<circle class="p-hit" cx="' + cx + '" cy="' + cy + '" r="' + (q.kind === 'ghost' || q.kind === 'dim' ? 6 : 12) + '" data-tip="' + q.tip + '"/>';
+    });
+    (o.labels || []).forEach(function (l) {
+      var dx = l.dx != null ? l.dx : (l.anchor === 'end' ? -11 : 11);
+      s += '<text class="t-lab halo" x="' + fx(X(l.x) + dx) + '" y="' + fx(Y(l.y) + 4 + (l.dy || 0)) + '" text-anchor="' + l.anchor + '">' + l.html + '</text>';
+    });
+    return '<svg class="chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + o.aria + '">' + s + hits + '</svg>';
+  }
+
+  var LC = {};
+  function lineChart(o) {
+    var W = o.w, H = o.h, p = { l: 40, r: o.end ? 104 : 12, t: o.ses ? 28 : 10, b: 24 };
+    var n = PORT.length, lo = -3.6, hi = 2.6;
+    function X(i) { return p.l + i / (n - 1) * (W - p.l - p.r); }
+    function Y(v) { return p.t + (hi - v) / (hi - lo) * (H - p.t - p.b); }
+    var s = '';
+    o.yt.forEach(function (t) {
+      s += '<line class="' + (t === 0 ? 'g-ref' : 'g-line') + '" x1="' + p.l + '" x2="' + (W - p.r) + '" y1="' + fx(Y(t)) + '" y2="' + fx(Y(t)) + '"/>';
+      s += '<text x="' + (p.l - 7) + '" y="' + fx(Y(t) + 3.5) + '" text-anchor="end">' + (t === 0 ? '0%' : spc(t, 0)) + '</text>';
+    });
+    [0, 5, 10, 15, 20].forEach(function (i, k) {
+      if (o.ses) {
+        s += '<line class="g-line" x1="' + fx(X(i)) + '" x2="' + fx(X(i)) + '" y1="' + (p.t - 8) + '" y2="' + (H - p.b) + '"/>';
+        s += '<text class="t-ses" x="' + fx(X(i)) + '" y="11" text-anchor="' + (k === 0 ? 'start' : 'middle') + '">' + (WKLAB[k] === 'UTS' ? 'UTS' : 'Sesi ' + WKLAB[k]) + '</text>';
+      }
+      s += '<text x="' + fx(X(i)) + '" y="' + (H - 6) + '" text-anchor="' + (k === 0 ? 'start' : 'middle') + '">' + DATES[i] + '</text>';
+    });
+    function path(a) { return a.map(function (v, i) { return (i ? 'L' : 'M') + fx(X(i)) + ' ' + fx(Y(v)); }).join(''); }
+    s += '<path class="l-ihsg" d="' + path(IHSG) + '"/><path class="l-port" d="' + path(PORT) + '"/>';
+    s += '<circle class="e-ihsg" cx="' + fx(X(n - 1)) + '" cy="' + fx(Y(IHSG[n - 1])) + '" r="4.5"/><circle class="e-port" cx="' + fx(X(n - 1)) + '" cy="' + fx(Y(PORT[n - 1])) + '" r="4.5"/>';
+    if (o.end) {
+      s += '<text class="t-lab" x="' + fx(X(n - 1) + 10) + '" y="' + fx(Y(PORT[n - 1]) + 4) + '">Anda ' + spc(PORT[n - 1]) + '</text>';
+      s += '<text class="t-sub" x="' + fx(X(n - 1) + 10) + '" y="' + fx(Y(IHSG[n - 1]) + 4) + '">IHSG ' + spc(IHSG[n - 1]) + '</text>';
+    }
+    s += '<g class="xh" visibility="hidden"><line class="xh-l" y1="' + p.t + '" y2="' + (H - p.b) + '"/><circle class="e-ihsg" r="4.5"/><circle class="e-port" r="4.5"/></g>';
+    s += '<rect x="' + p.l + '" y="' + p.t + '" width="' + (W - p.l - p.r) + '" height="' + (H - p.t - p.b) + '" fill="transparent"/>';
+    LC[o.id] = { p: p, W: W, H: H, n: n, lo: lo, hi: hi };
+    return '<svg class="chart lc" data-lc="' + o.id + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Imbal hasil portofolio dan IHSG sejak 14 Oktober 2026">' + s + '</svg>';
+  }
+
+  function rng(seed) { var a = seed >>> 0; return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  function spark(seed, end) {
+    var r = rng(seed), v = [0], i;
+    for (i = 1; i < 22; i++) v.push(v[i - 1] + (r() - 0.5) * 1.8);
+    var c = end - v[21];
+    v = v.map(function (x, k) { return x + c * k / 21; });
+    var lo = Math.min.apply(null, v), hi = Math.max.apply(null, v);
+    function y(x) { return 3 + (1 - (x - lo) / (hi - lo)) * 16; }
+    var d = v.map(function (x, k) { return (k ? 'L' : 'M') + fx(2 + k / 21 * 68) + ' ' + fx(y(x)); }).join('');
+    return '<svg class="spark ' + (end >= 0 ? 'up' : 'dn') + '" viewBox="0 0 76 22" width="76" height="22" aria-hidden="true"><path d="' + d + '"/><circle cx="70" cy="' + fx(y(v[21])) + '" r="2.5"/></svg>';
+  }
+
+  /* ================= A. Peta ================= */
+  function aShell(role, active, body) {
+    var lec = [['cap', 'Kelas'], ['users', 'Mahasiswa'], ['trend', 'Pasar'], ['book', 'Belajar']];
+    var stu = [['map', 'Beranda'], ['trend', 'Pasar'], ['list', 'Aktivitas'], ['pie', 'Analisis'], ['book', 'Belajar']];
+    var nav = (role === 'dosen' ? lec : stu).map(function (n) { return '<span class="a-nav' + (n[1] === active ? ' on' : '') + '">' + ic(n[0], 20) + n[1] + '</span>'; }).join('');
+    return '<div class="a-shell"><aside class="a-rail"><span class="a-logo">' + ic('trend', 20) + '</span>' + nav + '<span class="grow"></span><span class="av">' + (role === 'dosen' ? 'RW' : 'NP') + '</span></aside>' +
+      '<div class="a-body"><header class="a-top"><div class="a-class">' + CLS.course + ' · ' + CLS.name + '<span>' + CLS.term + '</span>' + ic('chev', 16) + '</div><span class="grow"></span>' +
+      (role === 'dosen' ? '<span class="chip">Kode gabung <b>' + CLS.code + '</b>' + ic('copy', 14) + '</span>' : '<span class="chip">' + ME.name + '</span>') +
+      '<span class="chip sim"><i></i>Simulasi · harga tertunda ±10 mnt</span></header>' + body + '</div></div>';
+  }
+  function tipOf(s) { return s.name + '|Imbal hasil ' + spc(s.ret) + ' · beta ' + nf(s.beta, 2) + '|' + (s.active ? 'Aktif minggu ini' : 'Terakhir aktif ' + s.last); }
+  function nameLab(name, anchor) { var s = BY[name]; return { x: s.beta, y: s.ret, anchor: anchor, html: name + ' <tspan class="t-val">' + spc(s.ret) + '</tspan>' }; }
+
+  function aKelas() {
+    var pts = WS.map(function (s) { return { x: s.beta, y: s.ret, kind: s.active ? 'on' : 'off', tip: tipOf(s) }; });
+    pts.push({ x: 1, y: CLS.ihsg, kind: 'ihsg', tip: 'IHSG|' + spc(CLS.ihsg) + ' sejak 14 Okt · beta 1,00' });
+    var map = riskMap({
+      w: 802, h: 548, pad: { l: 52, r: 60, t: 48, b: 40 }, xd: [0.35, 1.25], yd: [-7, 5],
+      xt: [0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2], yt: [-6, -4, -2, 0, 2, 4], pts: pts,
+      labels: [nameLab('Hendra Gunawan', 'end'), nameLab('Citra Maharani', 'start'), nameLab('Wulan Septiani', 'start'), nameLab('Anisa Rahmawati', 'end'), { x: 1, y: CLS.ihsg, anchor: 'start', dx: 13, html: 'IHSG' }],
+      quad: ['Lebih tenang dari pasar, untung', 'Lebih bergejolak, untung', 'Lebih tenang, rugi', 'Lebih bergejolak, rugi'],
+      ihsg: CLS.ihsg, ihsgLabel: true, zeroLabel: 'Modal awal', median: MED, xTitle: 'Beta portofolio (1,0 = pasar)',
+      marg: { x: { vals: WS.map(function (s) { return s.beta; }), from: 0.4, step: 0.1, n: 8 }, y: { vals: ST.map(function (s) { return s.ret; }), from: -6, step: 1, n: 10 } },
+      aria: 'Peta beta dan imbal hasil ' + WS.length + ' mahasiswa, dengan IHSG sebagai pembanding'
+    });
+    var w = BY['Wulan Septiani'], a = BY['Anisa Rahmawati'];
+    var flags =
+      '<div class="a-flag"><span class="st bad">' + ic('fall', 14) + '</span><div><b>' + w.name + '</b><p>' + spc(w.ret) + '. Portofolio paling bergejolak di kelas, σ ' + pc(w.sd) + ' per bulan.</p></div>' + ic('right', 16) + '</div>' +
+      '<div class="a-flag"><span class="st bad">' + ic('fall', 14) + '</span><div><b>' + a.name + '</b><p>' + spc(a.ret) + ' dengan beta hanya ' + nf(a.beta, 2) + '. Tidak aktif sejak ' + a.last + '.</p></div>' + ic('right', 16) + '</div>' +
+      '<div class="a-flag"><span class="st idle">' + ic('clock', 14) + '</span><div><b>Syifa Aulia</b><p>Belum punya saham sejak bergabung, jadi tidak tampil di peta.</p></div>' + ic('right', 16) + '</div>' +
+      '<div class="a-flag"><span class="st idle">' + ic('clock', 14) + '</span><div><b>' + IDLE + ' mahasiswa</b><p>belum bertransaksi minggu ini. Titik kosong di peta.</p></div>' + ic('right', 16) + '</div>';
+    var feed = FEED.slice(0, 2).map(function (f) { return '<div class="a-feed"><span class="av">' + initials(f[0]) + '</span><div><b>' + f[0] + '</b><small>' + f[1] + ' · ' + f[2] + '</small><p>“' + f[3] + '”</p></div></div>'; }).join('');
+    return aShell('dosen', 'Kelas',
+      '<main class="a-main a-k"><div class="a-col">' +
+      '<div class="a-head"><div class="eyebrow">Kamis, 12 Nov 2026 · 10.14 WIB</div><h1>Kelas unggul ' + nf(LEAD, 2) + ' poin dari IHSG</h1><p>Median imbal hasil ' + spc(MED) + ' sejak 14 Okt, saat IHSG ' + spc(CLS.ihsg) + '. ' + ABOVE + ' dari ' + N + ' mahasiswa berada di atas pasar, dan ' + LOWB + ' dari ' + WS.length + ' portofolio lebih tenang dari pasar.</p></div>' +
+      '<section class="a-panel"><div class="a-ph"><h2>Peta risiko dan imbal hasil</h2><span class="grow"></span><div class="seg"><span class="on">Beta</span><span>Simpangan baku</span></div></div>' +
+      '<div class="a-ph2"><div class="a-legend"><span><i class="lg-on"></i>Aktif minggu ini · ' + ACTIVE + '</span><span><i class="lg-off"></i>Belum bertransaksi minggu ini · ' + (WS.length - ACTIVE) + '</span><span><i class="lg-ihsg"></i>IHSG</span></div><span class="grow"></span><span>Tegak: imbal hasil sejak 14 Okt. Batang di tepi: sebaran kelas.</span></div>' +
+      '<div class="a-map">' + map + '</div>' +
+      '<div class="a-strip"><div><b>' + N + '</b>mahasiswa</div><div><b>' + ACTIVE + '</b>aktif minggu ini (' + nf(ACTIVE / N * 100) + '%)</div><div><b>' + ORDERS + '</b>order minggu ini</div><div><b>' + nf(MEDB, 2) + '</b>median beta kelas</div></div></section></div>' +
+      '<div class="a-col"><section class="a-card"><h3>Perlu perhatian</h3>' + flags + '</section>' +
+      '<section class="a-card"><h3>Bahan diskusi <em>Sesi 10</em></h3><ul class="a-ask"><li>' + LOWB + ' dari ' + WS.length + ' portofolio berbeta di bawah 1. Mengapa hampir semua memilih bertahan?</li><li>Hendra unggul di imbal hasil (' + spc(BY['Hendra Gunawan'].ret) + '), Citra unggul di alpha (' + spc(BY['Citra Maharani'].alpha) + '). Ukuran mana yang lebih adil?</li></ul><div style="margin-top:12px"><span class="lk">Buka materi sesi 10' + ic('arrow', 15) + '</span></div></section>' +
+      '<section class="a-card"><h3>Alasan terbaru<span class="grow"></span><span class="lk">Semua' + ic('right', 15) + '</span></h3>' + feed + '</section></div></main>');
+  }
+
+  function aMhs() {
+    var sel = 'Wulan Septiani';
+    var rows = ST.slice(0, 12).map(function (s) {
+      return '<tr' + (s.name === sel ? ' class="sel"' : '') + '><td class="rk">' + s.rank + '</td>' +
+        '<td><div class="a-who"><span class="av">' + s.ini + '</span><div><b>' + s.name + '</b><small>' + s.nim + '</small></div></div></td>' +
+        '<td><div class="cellbar"><span class="v">' + dl(s.ret) + '</span>' + dv(s.ret, -6.6, 4.4, CLS.ihsg) + '</div></td>' +
+        '<td><div class="cellbar" style="grid-template-columns:34px minmax(0,1fr)"><span class="v">' + nf(s.beta, 2) + '</span>' + ds(s.beta, 0.35, 1.25, 1) + '</div></td>' +
+        '<td class="num" style="text-align:right">' + pc(s.sd) + '</td>' +
+        '<td style="font-weight:600">' + dl(s.alpha) + '</td>' +
+        '<td><span class="a-last' + (s.active ? ' on' : '') + '"><i></i>' + s.last + '</span></td></tr>';
+    }).join('');
+    var w = BY[sel];
+    var pts = WS.map(function (s) { return s.name === sel ? { x: s.beta, y: s.ret, kind: 'sel', tip: tipOf(s) } : { x: s.beta, y: s.ret, kind: 'dim', tip: tipOf(s) }; });
+    pts.push({ x: 1, y: CLS.ihsg, kind: 'ihsg', tip: 'IHSG|' + spc(CLS.ihsg) + ' · beta 1,00' });
+    var mini = riskMap({ w: 294, h: 214, pad: { l: 38, r: 10, t: 10, b: 28 }, xd: [0.35, 1.25], yd: [-7, 5], xt: [0.4, 0.6, 0.8, 1, 1.2], yt: [-6, -3, 0, 3], pts: pts, ihsg: CLS.ihsg, labels: [{ x: w.beta, y: w.ret, anchor: 'start', dx: 16, html: 'Wulan' }, { x: 1, y: CLS.ihsg, anchor: 'start', dx: 12, dy: -12, html: 'IHSG' }], aria: 'Posisi Wulan Septiani di peta kelas' });
+    return aShell('dosen', 'Mahasiswa',
+      '<main class="a-main a-s"><div class="a-col">' +
+      '<div class="a-tools"><h1>Mahasiswa</h1><div class="seg"><span class="on">Alpha Jensen</span><span>Sharpe</span><span>Treynor</span></div><span class="grow"></span><div class="inp">' + ic('search', 15) + 'Cari nama atau NIM</div><span class="btn">' + ic('down', 15) + 'Unduh workbook</span></div>' +
+      '<div class="a-filters"><span class="chip on">Semua · ' + N + '</span><span class="chip">Di bawah IHSG · ' + (N - ABOVE) + '</span><span class="chip">Belum aktif minggu ini · ' + IDLE + '</span><span class="chip">Beta di atas 1 · ' + (WS.length - LOWB) + '</span></div>' +
+      '<section class="a-panel"><table class="a-tbl"><thead><tr><th></th><th>Mahasiswa</th><th style="width:196px">Imbal hasil</th><th style="width:116px">Beta</th><th style="width:84px;text-align:right">Risiko/bln</th><th class="srt" style="width:106px">Alpha Jensen ↓</th><th style="width:108px">Terakhir aktif</th></tr></thead><tbody>' + rows + '</tbody></table>' +
+      '<div class="a-tnote"><span><i></i>Garis tegak: IHSG (imbal hasil ' + spc(CLS.ihsg) + ', beta 1,0)</span><span>12 dari ' + N + ' mahasiswa tampil</span></div></section></div>' +
+      '<aside class="a-card a-insp"><div class="a-insp-head"><span class="av">' + w.ini + '</span><div><b>' + w.name + '</b><small>' + w.nim + ' · peringkat ' + w.rank + ' dari ' + WS.length + '</small></div></div>' + mini +
+      '<div class="a-kv"><div><b>' + dl(w.ret) + '</b>Imbal hasil</div><div><b>' + nf(w.beta, 2) + '</b>Beta</div><div><b>' + pc(w.sd) + '</b>Risiko per bulan</div><div><b>' + dl(w.alpha) + '</b>Alpha Jensen</div><div><b>' + nf(w.value / 1e6, 1) + ' jt</b>Nilai (Rp)</div><div><b>9</b>Order</div></div>' +
+      '<p class="a-note"><b>Imbal hasil terendah dan risiko tertinggi di kelas.</b> Betanya hampir sama dengan pasar, jadi sebagian besar risikonya datang dari saham pilihannya, bukan dari pasar.</p>' +
+      '<div class="a-hold"><div class="segbar" role="img" aria-label="MDKA 31%, ANTM 24%, KLBF 18%, kas 27%"><i style="flex:31"></i><i style="flex:24"></i><i style="flex:18"></i><i class="cash" style="flex:27"></i></div><span><b>MDKA</b> 31% · <b>ANTM</b> 24% · <b>KLBF</b> 18% · Kas 27%</span></div>' +
+      '<div class="a-feed" style="padding:0"><span class="av">' + w.ini + '</span><div><b>Alasan terakhir</b><small>' + w.trade + ' · 9 Nov</small><p>“' + w.reason + '”</p></div></div>' +
+      '<div class="a-acts"><span class="btn pri">Buka portofolio</span><span class="btn">Jurnal alasan</span></div></aside></main>');
+  }
+
+  function aBeranda() {
+    var pts = WS.filter(function (s) { return s.name !== ME.name; }).map(function (s) { return { x: s.beta, y: s.ret, kind: 'ghost' }; });
+    HOLD.forEach(function (h) { pts.push({ x: h.beta, y: h.plp, kind: 'stock', r: 2.3 * Math.sqrt(h.w), tip: h.t + ' · ' + h.n + '|Laba atau rugi ' + spc(h.plp) + ' · beta ' + nf(h.beta, 2) + '|Bobot ' + pc(h.w, 1) }); });
+    pts.push({ x: ME.beta, y: ME.ret, kind: 'you', tip: 'Portofolio Anda|' + spc(ME.ret) + ' sejak 14 Okt · beta ' + nf(ME.beta, 2) });
+    pts.push({ x: 1, y: CLS.ihsg, kind: 'ihsg', tip: 'IHSG|' + spc(CLS.ihsg) + ' sejak 14 Okt · beta 1,00' });
+    var labs = HOLD.map(function (h) { var r = 2.3 * Math.sqrt(h.w); var end = h.t === 'ANTM'; return { x: h.beta, y: h.plp, anchor: end ? 'end' : 'start', dx: end ? -(r + 6) : r + 6, html: h.t + ' <tspan class="t-val">' + spc(h.plp) + '</tspan>' }; });
+    labs.push({ x: ME.beta, y: ME.ret, anchor: 'end', dx: -17, html: 'Portofolio Anda <tspan class="t-val">' + spc(ME.ret) + '</tspan>' });
+    labs.push({ x: 1, y: CLS.ihsg, anchor: 'start', dx: 13, html: 'IHSG <tspan class="t-val">' + spc(CLS.ihsg) + '</tspan>' });
+    var map = riskMap({ w: 774, h: 452, pad: { l: 52, r: 20, t: 16, b: 40 }, xd: [0.3, 1.6], yd: [-7, 9], xt: [0.4, 0.6, 0.8, 1, 1.2, 1.4, 1.6], yt: [-6, -3, 0, 3, 6, 9], pts: pts, labels: labs, xTitle: 'Beta (1,0 = pasar)', aria: 'Peta beta dan imbal hasil untuk lima saham Anda, portofolio Anda, IHSG, dan teman sekelas' });
+    var rows = HOLD.map(function (h) {
+      return '<tr><td class="tk"><b>' + h.t + '</b><small>' + h.n + '</small></td>' +
+        '<td class="wide"><div class="cellbar"><span class="v">' + pc(h.w, 1) + '</span>' + br(h.w, 30) + '</div></td>' +
+        '<td>' + h.lot + '</td><td>' + nf(h.avg) + '</td><td>' + nf(h.px) + '<span class="sub">' + dl(h.day) + '</span></td><td>' + rp(h.val) + '</td>' +
+        '<td style="width:330px"><div class="plc">' + dv(h.pl, -1e6, 1e6) + '<span>' + dl(h.pl, { rp: true }) + '</span><span>' + spc(h.plp) + '</span></div></td>' +
+        '<td style="width:100px">' + spark(h.seed, h.plp) + '</td></tr>';
+    }).join('');
+    return aShell('mahasiswa', 'Beranda',
+      '<main class="a-main a-h"><div class="a-col">' +
+      '<div class="a-hero"><div class="lab">Nilai portofolio</div><div class="val"><small>Rp</small>' + nf(ME.value) + '</div><div class="a-today">' + dl(ME.dayRp, { rp: true }) + dl(ME.dayPct) + '<span>hari ini</span></div></div>' +
+      '<section class="a-card a-vs"><h3>Sejak 14 Okt</h3><div class="big">Unggul ' + nf(MELEAD, 2) + ' poin dari IHSG</div><div class="keys"><span class="key"><i></i>Anda ' + spc(ME.ret) + '</span><span class="key ih"><i></i>IHSG ' + spc(CLS.ihsg) + '</span></div>' + lineChart({ id: 'a3', w: 334, h: 150, yt: [-2, 0, 2] }) + '</section>' +
+      '<section class="a-card"><h3>Risiko dibanding pasar<span class="grow"></span><span class="lk">Analisis' + ic('right', 15) + '</span></h3>' +
+      '<div class="a-risk"><span>Beta</span><b>' + nf(ME.beta, 2) + '</b>' + ds(ME.beta, 0, 1.5, 1, 'me') + '<small>Pasar 1,00. Portofolio Anda lebih tenang dari pasar.</small></div>' +
+      '<div class="a-risk"><span>Risiko per bulan</span><b>' + pc(ME.sd) + '</b>' + ds(ME.sd, 0, 6.8, 4.53, 'me') + '<small>IHSG 4,53%.</small></div>' +
+      '<div class="a-risk"><span>Sharpe</span><b>' + nf(ME.sharpe, 2) + '</b>' + ds(ME.sharpe, 0, 0.105, 0.07, 'me') + '<small>IHSG 0,07. Imbal hasil per unit risiko masih di bawah pasar.</small></div></section></div>' +
+      '<div class="a-col"><section class="a-panel"><div class="a-ph"><h2>Posisi Anda di peta</h2><span class="grow"></span><div class="seg"><span class="on">Peta</span><span>Grafik waktu</span></div></div>' +
+      '<div class="a-ph2"><div class="a-legend"><span><i class="lg-you"></i>Portofolio Anda</span><span><i class="lg-on"></i>Saham Anda, ukuran = bobot</span><span><i class="lg-ihsg"></i>IHSG</span><span><i class="lg-ghost"></i>Teman sekelas</span></div></div><div class="a-ph2" style="padding-top:6px">Tegak: imbal hasil. Saham dihitung sejak dibeli, portofolio sejak 14 Okt.</div>' +
+      '<div class="a-map">' + map + '</div>' +
+      '<div class="a-insight"><em>Sesi 9 · Beta</em><span>ANTM memberi imbal hasil tertinggi dan juga beta tertinggi (1,46). Kas ' + pc(ME.cashW, 0) + ' menarik beta portofolio turun ke ' + nf(ME.beta, 2) + '.</span><span class="lk">Pelajari' + ic('arrow', 15) + '</span></div></section></div>' +
+      '<section class="a-panel a-wide"><table class="a-ht"><thead><tr><th>Saham Anda · 5</th><th style="text-align:left">Bobot</th><th>Lot</th><th>Harga rata-rata</th><th>Harga</th><th>Nilai</th><th style="text-align:left">Laba atau rugi</th><th style="text-align:left">1 bulan</th></tr></thead><tbody>' + rows +
+      '<tr><td class="tk"><b>Kas</b><small>Rp 5,1 jt disisihkan untuk order</small></td><td class="wide"><div class="cellbar"><span class="v">' + pc(ME.cashW, 1) + '</span>' + br(ME.cashW, 30) + '</div></td><td></td><td></td><td></td><td>' + rp(ME.cash) + '</td><td></td><td></td></tr></tbody></table></section></main>');
+  }
+
+  /* ---------- Assemble ---------- */
+  function effectiveTheme() {
+    var a = document.documentElement.getAttribute('data-theme');
+    if (a === 'dark' || a === 'light') return a;
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  var mode = effectiveTheme();
+  var overridden = false;
+
+  var SCREENS = {
+    A: [['Dosen', 'Kelas', 'The map replaces both histograms. The join code moves to the top bar.', aKelas],
+      ['Dosen', 'Mahasiswa', 'Same columns as today. Return and beta are also drawn on shared scales. The selected student shows on the map.', aMhs],
+      ['Mahasiswa', 'Beranda', 'The student sees their stocks, their portfolio and the IHSG on one map.', aBeranda]]
+  };
+  Object.keys(SCREENS).forEach(function (d) {
+    var host = document.querySelector('.frames[data-dir="' + d + '"]');
+    host.innerHTML = SCREENS[d].map(function (s) {
+      return '<figure class="frame"><figcaption class="frame-cap"><span class="role">' + s[0] + '</span><strong>' + s[1] + '</strong><span>' + s[2] + '</span></figcaption><div class="scaler"><div class="m d' + d + '" data-mode="' + mode + '">' + s[3]() + '</div></div></figure>';
+    }).join('');
+  });
+
+  function applyMode() {
+    document.querySelectorAll('.m').forEach(function (m) { m.setAttribute('data-mode', mode); });
+    document.getElementById('mode-light').setAttribute('aria-pressed', String(mode === 'light'));
+    document.getElementById('mode-dark').setAttribute('aria-pressed', String(mode === 'dark'));
+  }
+  applyMode();
+  document.querySelectorAll('.toggle button').forEach(function (b) {
+    b.addEventListener('click', function () { mode = b.getAttribute('data-set'); overridden = true; applyMode(); });
+  });
+  function follow() { if (!overridden) { mode = effectiveTheme(); applyMode(); } }
+  new MutationObserver(follow).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  if (window.matchMedia) {
+    var mq = window.matchMedia('(prefers-color-scheme: dark)');
+    if (mq.addEventListener) mq.addEventListener('change', follow);
+  }
+
+  /* Scale every 1320px mockup to its frame. */
+  function fit(sc) {
+    var w = sc.clientWidth;
+    if (!w) return;
+    var z = Math.max(0.5, Math.min(1.12, Math.floor(w / 1320 * 1000) / 1000));
+    sc.firstElementChild.style.setProperty('--z', z);
+  }
+  var scalers = document.querySelectorAll('.scaler');
+  if (window.ResizeObserver) {
+    var ro = new ResizeObserver(function (es) { es.forEach(function (e) { fit(e.target); }); });
+    scalers.forEach(function (sc) { ro.observe(sc); });
+  }
+  scalers.forEach(fit);
+  window.addEventListener('resize', function () { scalers.forEach(fit); });
+
+  /* Tooltips */
+  var tip = document.getElementById('tip');
+  function showTip(e, lines) {
+    tip.innerHTML = '<b>' + lines[0] + '</b>' + lines.slice(1).join('<br>');
+    tip.hidden = false;
+    var r = tip.getBoundingClientRect(), x = e.clientX + 14, y = e.clientY + 16;
+    if (x + r.width > window.innerWidth - 8) x = e.clientX - r.width - 12;
+    if (y + r.height > window.innerHeight - 8) y = e.clientY - r.height - 12;
+    tip.style.left = Math.max(8, x) + 'px';
+    tip.style.top = Math.max(8, y) + 'px';
+  }
+  document.addEventListener('pointermove', function (e) {
+    var t = e.target.closest ? e.target.closest('[data-tip]') : null;
+    if (t) showTip(e, t.getAttribute('data-tip').split('|'));
+    else if (!(e.target.closest && e.target.closest('svg.lc'))) tip.hidden = true;
+  });
+  document.querySelectorAll('svg.lc').forEach(function (svg) {
+    var c = LC[svg.getAttribute('data-lc')], g = svg.querySelector('.xh'), ln = g.querySelector('line'), cs = g.querySelectorAll('circle');
+    function Y(v) { return c.p.t + (c.hi - v) / (c.hi - c.lo) * (c.H - c.p.t - c.p.b); }
+    svg.addEventListener('pointermove', function (e) {
+      var r = svg.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * c.W, span = c.W - c.p.l - c.p.r;
+      var i = Math.max(0, Math.min(c.n - 1, Math.round((x - c.p.l) / span * (c.n - 1)))), X = c.p.l + i / (c.n - 1) * span;
+      ln.setAttribute('x1', X); ln.setAttribute('x2', X);
+      cs[0].setAttribute('cx', X); cs[0].setAttribute('cy', Y(IHSG[i]));
+      cs[1].setAttribute('cx', X); cs[1].setAttribute('cy', Y(PORT[i]));
+      g.setAttribute('visibility', 'visible');
+      showTip(e, [DATES[i] + ' 2026', 'Portofolio ' + spc(PORT[i]), 'IHSG ' + spc(IHSG[i])]);
+    });
+    svg.addEventListener('pointerleave', function () { g.setAttribute('visibility', 'hidden'); tip.hidden = true; });
+  });
+})();
+</script>
+</body>
+</html>
