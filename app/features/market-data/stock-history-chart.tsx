@@ -23,6 +23,16 @@ const labels: Record<PriceChartRange, () => string> = {
   "5y": () => m.market_data_five_year_range_label(),
 };
 
+const dateParts: Record<
+  PriceChartRange,
+  Parameters<typeof formatCalendarDatePart>[1]
+> = {
+  "1m": "dayAndMonth",
+  "3m": "dayAndMonth",
+  "1y": "monthAndYear",
+  "5y": "monthAndYear",
+};
+
 /** Range links keep the chart usable before JavaScript loads and in browser history. */
 export function StockHistoryChart({
   history,
@@ -70,7 +80,7 @@ export function StockHistoryChart({
               {
                 name: history.code,
                 kind: "own",
-                returnOf: (point) => point.close,
+                valueOf: (point) => point.close,
               },
             ]}
             layout={layoutTimeSeries(
@@ -78,7 +88,7 @@ export function StockHistoryChart({
               [
                 {
                   kind: "own",
-                  returns: history.closes.map((point) => point.close),
+                  values: history.closes.map((point) => point.close),
                 },
               ],
               {
@@ -87,12 +97,7 @@ export function StockHistoryChart({
                 smallestStep: smallestNumberStep,
                 tickText: formatNumber,
                 dateText: (date) =>
-                  formatCalendarDatePart(
-                    date,
-                    range === "1y" || range === "5y"
-                      ? "monthAndYear"
-                      : "dayAndMonth",
-                  ),
+                  formatCalendarDatePart(date, dateParts[range]),
               },
             )}
             labelledBy="price-chart-title"

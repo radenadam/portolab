@@ -6,8 +6,8 @@ import { plotFraction } from "~/units/plot-fraction";
 import { LineKey } from "./line-key";
 import { percentOf, PlotLine } from "./plot";
 import type { PlotPosition } from "./plot";
-import { ReturnMark, returnMarkGap } from "./return-mark";
-import type { ValueAxisSide } from "./return-mark";
+import { ValueMark, valueMarkGap } from "./value-mark";
+import type { ValueAxisSide } from "./value-mark";
 import { useChartSlider } from "./use-chart-slider";
 import { tipAcross } from "./tip-placement";
 import { acrossOf, indexAt } from "./time-chart-layout";
@@ -60,22 +60,23 @@ export function TimePlot<Point extends { date: string }, Value extends number>({
     labelledBy,
   });
   const drawingRef = useRef<SVGSVGElement>(null);
-  const labelRoom = `calc(${String(layout.returnTextLength)}ch + ${String(returnMarkGap)}em)`;
+  const labelRoom = `calc(${String(layout.valueTextLength)}ch + ${String(valueMarkGap)}em)`;
   const edgeRoom = `${String(dotRadius)}em`;
+  const inlinePadding: Record<ValueAxisSide, string> = {
+    left: `${labelRoom} ${edgeRoom}`,
+    right: `${edgeRoom} ${labelRoom}`,
+  };
   const style: CSSProperties = {
     paddingBlock: `${String(headroom)}em ${String(dateBaseline + headroom)}em`,
-    paddingInline:
-      axisSide === "left"
-        ? `${labelRoom} ${edgeRoom}`
-        : `${edgeRoom} ${labelRoom}`,
+    paddingInline: inlinePadding[axisSide],
   };
   const drawnLines = layout.lines.toSorted(
     (first, second) => drawOrder[first.kind] - drawOrder[second.kind],
   );
   const drawing = (
     <svg ref={drawingRef} className={styles["drawing"]} aria-hidden>
-      {layout.returnTicks.map((tick) => (
-        <ReturnMark
+      {layout.valueTicks.map((tick) => (
+        <ValueMark
           key={tick.at}
           at={tick.at}
           text={tick.text}
@@ -158,8 +159,8 @@ export function TimePlot<Point extends { date: string }, Value extends number>({
               <p key={line.name} className={styles["tipLine"]}>
                 <LineKey kind={line.kind} />
                 <span>{line.name}</span>
-                <span className={styles["tipReturn"]}>
-                  {valueNode(line.returnOf(point))}
+                <span className={styles["tipValue"]}>
+                  {valueNode(line.valueOf(point))}
                 </span>
               </p>
             ))}
@@ -178,11 +179,11 @@ function pointText<Point extends { date: string }, Value extends number>(
 ): string {
   return m.app_chart_point_label({
     date: formatCalendarDate(point.date, "medium"),
-    returns: formatList(
+    values: formatList(
       lines.map((line) =>
-        m.app_chart_line_return_part({
+        m.app_chart_line_value_part({
           line: line.name,
-          value: valueText(line.returnOf(point)),
+          value: valueText(line.valueOf(point)),
         }),
       ),
       "conjunction",

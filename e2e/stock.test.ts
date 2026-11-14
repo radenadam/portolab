@@ -31,9 +31,13 @@ const texts: Record<
     noCloses: string;
     quote: string;
     trade: string;
+    rangeHelp: string;
+    betaHelp: string;
   }
 > = {
   id: {
+    rangeHelp: "Apa itu Rentang 52 minggu?",
+    betaHelp: "Apa itu Beta terhadap IHSG?",
     quote: "30 Okt 2026, 16.14 · penutupan sebelumnya Rp 4.940",
     trade: "Order saham",
     title: "Saham BBCA",
@@ -55,6 +59,8 @@ const texts: Record<
       "Belum ada harga penutupan dalam rentang ini. Periksa kembali setelah pembaruan riwayat harga menyimpan penutupan dalam rentang ini.",
   },
   en: {
+    rangeHelp: "What is 52-week range?",
+    betaHelp: "What is Beta against the IHSG?",
     quote: "Oct 30, 2026, 4:14 PM · previous close IDR 4,940",
     trade: "Stock order",
     title: "BBCA stock",
@@ -78,12 +84,35 @@ const texts: Record<
 };
 
 async function expectChangeInk(page: Page): Promise<void> {
-  const tokens = { rise: "--color-gain", fall: "--color-loss" } as const;
+  const tokens = {
+    rise: {
+      ink: "--color-gain",
+      pillInk: "--color-gain",
+      tint: "--color-gain-soft",
+    },
+    fall: {
+      ink: "--color-loss",
+      pillInk: "--color-loss-on-soft",
+      tint: "--color-loss-soft",
+    },
+  } as const;
   for (const [direction, token] of Object.entries(tokens)) {
     for (const value of await page
       .locator(`[data-change="${direction}"]`)
       .all()) {
-      await expect(value).toHaveCSS("color", await tokenColor(page, token));
+      const isQuote = await value.evaluate(
+        (element) => element.closest("main header") !== null,
+      );
+      await expect(value).toHaveCSS(
+        "color",
+        await tokenColor(page, isQuote ? token.pillInk : token.ink),
+      );
+      if (isQuote) {
+        await expect(value.locator("..")).toHaveCSS(
+          "background-color",
+          await tokenColor(page, token.tint),
+        );
+      }
     }
   }
 }
@@ -138,6 +167,26 @@ for (const locale of locales) {
         await student.emulateMedia({ colorScheme });
         await expectChangeInk(student);
         expect(await layoutProblems(student)).toEqual([]);
+        const [rangeGroup, beta] = await Promise.all(
+          [text.rangeHelp, text.betaHelp].map((label) =>
+            student
+              .getByRole("button", { name: label, exact: true })
+              .evaluate((element) => {
+                const box = element.closest("dl")?.getBoundingClientRect();
+                return box === undefined
+                  ? undefined
+                  : { width: box.width, top: box.top };
+              }),
+          ),
+        );
+        if (rangeGroup === undefined || beta === undefined)
+          throw new Error("The stock statistics are visible.");
+        expect(rangeGroup.width).toBeGreaterThan(beta.width * 1.5);
+        if (testInfo.project.name === "phone") {
+          expect(beta.top).toBeGreaterThan(rangeGroup.top);
+        } else {
+          expect(beta.top).toBeCloseTo(rangeGroup.top, 0);
+        }
         await student.screenshot({
           path: testInfo.outputPath(
             `stock-${locale}-${String(width)}-${colorScheme}.png`,

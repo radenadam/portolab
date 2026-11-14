@@ -14,7 +14,6 @@ import {
 import { MeasureLabel } from "./measure-list";
 import type { StoredMeasureFailure } from "./measure-stored.server";
 import type { StockSummary } from "./measure-summaries";
-import { monthlyReturnCount } from "./monthly-return-count";
 import { monthSpanOf, monthSpanInputs } from "./month-span";
 import type { StockCorrelation } from "./read-stock-correlation.server";
 import { MeasureTable } from "./measure-table";
@@ -65,19 +64,19 @@ export function StockKeyMeasures({
             })
           : measureFailureText(measures.failure, { kind: "stock", code })}
       </p>
-      <dl className={styles["grid"]}>
-        {children}
+      <div className={styles["grid"]}>
+        <dl className={styles["ranges"]}>{children}</dl>
         {rows !== undefined &&
           [rows.beta, rows.risk, rows.expectedReturn].map((row) => (
-            <div key={row.label} className={styles["stat"]}>
+            <dl key={row.label} className={styles["stat"]}>
               <dt>
                 <MeasureLabel row={row} />
               </dt>
               <dd>{row.value}</dd>
-            </div>
+            </dl>
           ))}
         {correlation !== undefined && (
-          <div className={styles["stat"]}>
+          <dl className={styles["stat"]}>
             <dt>
               {m.measures_portfolio_correlation_label()}
               <ConceptCard
@@ -155,9 +154,9 @@ export function StockKeyMeasures({
                 )}
               </dd>
             )}
-          </div>
+          </dl>
         )}
-      </dl>
+      </div>
       {correlation?.ok === true && (
         <p className={styles["note"]}>
           {m.measures_correlation_prices_notice()}
@@ -184,19 +183,7 @@ function correlationFailure(
         throw new Error("An unavailable portfolio has no measures.");
       return explained.failure;
     }
-    case "unmeasured": {
-      const reason = failure.failure;
-      switch (reason.kind) {
-        case "tooFewReturns":
-          return m.measures_correlation_too_few_notice({
-            returns: monthlyReturnCount(reason.count),
-            minimum: monthlyReturnCount(reason.minimum),
-          });
-        case "noVariation":
-          return m.measures_no_variation_notice({ code: reason.code });
-        case "noRiskFreeRate":
-          return measureFailureText(reason, { kind: "market" });
-      }
-    }
+    case "unmeasured":
+      return measureFailureText(failure.failure, { kind: "correlation" });
   }
 }

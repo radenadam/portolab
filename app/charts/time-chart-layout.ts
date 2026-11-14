@@ -18,14 +18,14 @@ export type LineKind = "own" | "reference";
 export interface TimeLine<Point, Value extends number = CumulativeReturn> {
   name: string;
   kind: LineKind;
-  returnOf: (point: Point) => Value;
+  valueOf: (point: Point) => Value;
 }
 
 /** Where a text starts, has its middle, or ends, at its position. */
 type TextAnchor = "start" | "middle" | "end";
 
-/** A mark of the axis of returns: its height in the plot, its text, and whether it marks zero, from which every line starts. */
-interface ReturnTick {
+/** The zero mark is distinguished so a return chart can show its starting level. */
+interface ValueTick {
   at: PlotFraction;
   text: string;
   isZero: boolean;
@@ -42,24 +42,24 @@ interface DateTick {
 /** Where a chart over time draws each of its parts in its plot. */
 export interface TimeChartLayout {
   /** The marks of the value axis at round values, from the lowest. */
-  returnTicks: ReturnTick[];
-  /** The characters of the longest text of a mark of returns. DM Mono, the font of codes that decision 0028 sets for the labels of charts, draws each character equally wide, so the plot leaves this many widths of a character for the texts. */
-  returnTextLength: number;
+  valueTicks: ValueTick[];
+  /** The characters of the longest text of a value mark. DM Mono, the font of codes that decision 0028 sets for the labels of charts, draws each character equally wide, so the plot leaves this many widths of a character for the texts. */
+  valueTextLength: number;
   /** The marks of the axis of time, from the oldest date. */
   dateTicks: DateTick[];
-  /** Each line with the position of its return at each date, in the order of the lines and of the dates. */
+  /** Each line with the position of its value at each date, in the order of the lines and of the dates. */
   lines: { kind: LineKind; positions: PlotPosition[] }[];
 }
 
-// Four steps of the axis of returns keep their texts apart at the height of a chart on a phone.
-const returnTickCount = 4;
+// Four steps of the value axis keep their texts apart at the height of a chart on a phone.
+const valueTickCount = 4;
 // Five dates evenly apart fit the axis of time of a wide chart, and a narrow chart keeps the three that are not minor, as the references of decision 0028 draw them.
 const dateTickCount = 5;
 
 /** Lays out a chart of the returns of lines over the dates of at least one trading day: the returns of every line on one axis that marks round values and zero, the dates evenly across, and the position of each return. */
 export function layoutTimeChart(
   dates: readonly string[],
-  lines: readonly { kind: LineKind; returns: readonly CumulativeReturn[] }[],
+  lines: readonly { kind: LineKind; values: readonly CumulativeReturn[] }[],
 ): TimeChartLayout {
   return layoutTimeSeries(dates, lines, {
     unit: cumulativeReturn,
@@ -71,7 +71,7 @@ export function layoutTimeChart(
 /** Uses the unit and format of its caller so prices and returns share the same geometry without mixing their units. */
 export function layoutTimeSeries<Value extends number>(
   dates: readonly string[],
-  lines: readonly { kind: LineKind; returns: readonly Value[] }[],
+  lines: readonly { kind: LineKind; values: readonly Value[] }[],
   format: {
     unit: (value: number) => Value;
     smallestStep: number;
@@ -81,30 +81,30 @@ export function layoutTimeSeries<Value extends number>(
   },
 ): TimeChartLayout {
   const range = paddedRange(
-    lines.flatMap((line) => line.returns),
+    lines.flatMap((line) => line.values),
     format.unit,
     format.minimum,
   );
-  const returnTicks = niceTicks(
+  const valueTicks = niceTicks(
     range,
-    { count: returnTickCount, smallestStep: format.smallestStep },
+    { count: valueTickCount, smallestStep: format.smallestStep },
     format.unit,
   ).map((value) => ({
     at: heightOf(range, value),
     text: format.tickText(value),
     isZero: value === 0,
   }));
-  let returnTextLength = 0;
-  for (const tick of returnTicks) {
-    returnTextLength = Math.max(returnTextLength, tick.text.length);
+  let valueTextLength = 0;
+  for (const tick of valueTicks) {
+    valueTextLength = Math.max(valueTextLength, tick.text.length);
   }
   return {
-    returnTicks,
-    returnTextLength,
+    valueTicks,
+    valueTextLength,
     dateTicks: dateTicksOf(dates, format.dateText),
-    lines: lines.map(({ kind, returns }) => ({
+    lines: lines.map(({ kind, values }) => ({
       kind,
-      positions: returns.map((value, index) => ({
+      positions: values.map((value, index) => ({
         x: acrossOf(index, dates.length),
         y: heightOf(range, value),
       })),
@@ -119,7 +119,7 @@ function heightOf<Value extends number>(
   return plotFraction(1 - fractionOf(range, value));
 }
 
-/** Where the date of an index stands across the plot among a number of dates. A chart of one date shows its one return at the right edge, where every other chart shows its latest return. */
+/** Where the date of an index stands across the plot among a number of dates. A chart of one date shows its one value at the right edge, where every other chart shows its latest value. */
 export function acrossOf(index: number, count: number): PlotFraction {
   return plotFraction(count <= 1 ? 1 : index / (count - 1));
 }

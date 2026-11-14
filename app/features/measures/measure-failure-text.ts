@@ -16,10 +16,11 @@ import type { StoredMeasureFailure } from "./measure-stored.server";
 import { monthlyReturnCount } from "./monthly-return-count";
 import type { BetaNotPositive } from "./performance-ratios";
 
-/** What a set of measures belongs to: one stock, which a student reads, a portfolio, which its owner or the lecturer of the class reads, or the IHSG alone, whose measures give the security market line that a student reads. */
+/** The subject keeps the forecast and the next step specific to the calculation and its reader. */
 export type MeasuredSubject =
   | { kind: "stock"; code: string }
   | { kind: "portfolio"; reader: PortfolioReader }
+  | { kind: "correlation" }
   | { kind: "market" };
 
 type TooFewReturns = Extract<StoredMeasureFailure, { kind: "tooFewReturns" }>;
@@ -108,6 +109,8 @@ function tooFewReturnsText(
     }
     case "market":
       return m.measures_line_too_few_returns_notice(counts);
+    case "correlation":
+      return m.measures_correlation_too_few_notice(counts);
   }
 }
 
@@ -141,6 +144,8 @@ function forecastText(
       });
     case "market":
       return m.measures_line_enough_returns_notice(forecastInputs);
+    case "correlation":
+      return m.measures_correlation_enough_returns_notice(forecastInputs);
   }
 }
 
@@ -148,6 +153,7 @@ function noRiskFreeRateText(date: string, subject: MeasuredSubject): string {
   switch (subject.kind) {
     case "stock":
     case "market":
+    case "correlation":
       return m.measures_no_risk_free_rate_notice({ date });
     case "portfolio":
       return textForReader(subject.reader, {

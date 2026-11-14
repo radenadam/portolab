@@ -90,12 +90,12 @@ function Returns({
                   lecturer: () => m.trading_lecturer_portfolio_series_label(),
                 }),
                 kind: "own",
-                returnOf: (point) => point.portfolio,
+                valueOf: (point) => point.portfolio,
               },
               {
                 name: marketIndex.code,
                 kind: "reference",
-                returnOf: (point) => point.market,
+                valueOf: (point) => point.market,
               },
             ]}
             labelledBy={headingId}

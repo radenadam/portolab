@@ -6,8 +6,22 @@
 }
 
 .stat {
+  margin: 0;
   min-width: 0;
   overflow-wrap: anywhere;
+}
+
+/* Ranges share a group so adding another range leaves the metric columns in place. */
+.ranges {
+  grid-column: span 2;
+  display: flex;
+  gap: var(--space-4);
+  min-width: 0;
+  margin: 0;
+}
+
+.ranges > * {
+  flex: 1;
 }
 
 .stat dt,

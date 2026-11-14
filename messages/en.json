@@ -496,8 +496,7 @@
   "app_profile_title": "Profile",
   "app_profile_label": "Profile of {name}",
   "app_prices_time_label": "{time} WIB",
-  "app_chart_point_label": "{date}: {returns}",
-  "app_chart_line_return_part": "{line} {value}",
+  "app_chart_point_label": "{date}: {values}",
   "app_map_point_label": "{name}: {values}",
   "app_map_value_part": "{name} {value}",
   "app_concept_help_label": "What is {concept}?",
@@ -553,7 +552,7 @@
   "market_data_price_range_part": "{low} to {high}",
   "measures_portfolio_correlation_label": "Correlation with portfolio",
   "measures_portfolio_correlation_body": "Correlation measures how stock and portfolio returns move together over the same months, from −1 to 1.",
-  "measures_correlation_too_few_notice": "This stock, each stock in your portfolio, and the IHSG share {returns}, but correlation needs at least {minimum}. Portolab computes it when a price history update provides enough returns over the same months.",
+  "measures_correlation_too_few_notice": "This stock, each stock in your portfolio, and the {index} share {returns} in the latest {window} complete months, but Portolab computes correlation only from at least {minimum}.",
   "trading_average_cost_label": "Average cost",
   "trading_average_cost_body": "Average cost divides the cost of the shares you still hold, including purchase broker fees, by their share count.",
   "trading_average_cost_calculation_notice": "{cost} / {shares} = {average} per share, rounded to the nearest rupiah.",
@@ -562,5 +561,7 @@
   "market_data_history_period_notice": "Stored closes from {first} to {last}.",
   "measures_stock_statistics_notice": "{measures} use {returns} from {first} to {last}.",
   "measures_month_span_part": "{returns} · {first} to {last}",
-  "measures_correlation_prices_notice": "Portfolio weights use delayed prices. Your portfolio page shows when each price was quoted."
+  "measures_correlation_prices_notice": "Portfolio weights use delayed prices. Your portfolio page shows when each price was quoted.",
+  "measures_correlation_enough_returns_notice": "If this stock, the {index}, and each of your stocks keep a close at the end of every month, Portolab computes correlation after the update of the price history that stores the close of the first trading day of {month}.",
+  "app_chart_line_value_part": "{line} {value}"
 }

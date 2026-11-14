@@ -496,8 +496,7 @@
   "app_profile_title": "Profil",
   "app_profile_label": "Profil {name}",
   "app_prices_time_label": "{time} WIB",
-  "app_chart_point_label": "{date}: {returns}",
-  "app_chart_line_return_part": "{line} {value}",
+  "app_chart_point_label": "{date}: {values}",
   "app_map_point_label": "{name}: {values}",
   "app_map_value_part": "{name} {value}",
   "app_concept_help_label": "Apa itu {concept}?",
@@ -553,7 +552,7 @@
   "market_data_price_range_part": "{low} sampai {high}",
   "measures_portfolio_correlation_label": "Korelasi dengan portofolio",
   "measures_portfolio_correlation_body": "Korelasi mengukur gerak bersama imbal hasil saham dan portofolio pada bulan yang sama, dari −1 sampai 1.",
-  "measures_correlation_too_few_notice": "Saham ini, setiap saham portofolio Anda, dan IHSG berbagi {returns}, tetapi korelasi memerlukan sedikitnya {minimum}. Portolab menghitungnya saat pembaruan riwayat harga menyediakan cukup imbal hasil pada bulan yang sama.",
+  "measures_correlation_too_few_notice": "Saham ini, setiap saham portofolio Anda, dan {index} baru sama-sama memiliki {returns} dalam {window} bulan lengkap terakhir, sedangkan Portolab menghitung korelasi hanya dari paling sedikit {minimum}.",
   "trading_average_cost_label": "Harga rata-rata",
   "trading_average_cost_body": "Harga rata-rata membagi biaya saham yang masih Anda miliki, termasuk biaya broker pembelian, dengan jumlah lembarnya.",
   "trading_average_cost_calculation_notice": "{cost} / {shares} = {average} per lembar, dibulatkan ke rupiah terdekat.",
@@ -562,5 +561,7 @@
   "market_data_history_period_notice": "Penutupan tersimpan dari {first} sampai {last}.",
   "measures_stock_statistics_notice": "{measures} memakai {returns} dari {first} sampai {last}.",
   "measures_month_span_part": "{returns} · {first} sampai {last}",
-  "measures_correlation_prices_notice": "Bobot portofolio memakai harga tertunda. Halaman portofolio Anda menunjukkan waktu kutipan setiap harga."
+  "measures_correlation_prices_notice": "Bobot portofolio memakai harga tertunda. Halaman portofolio Anda menunjukkan waktu kutipan setiap harga.",
+  "measures_correlation_enough_returns_notice": "Jika saham ini, {index}, dan setiap saham Anda tetap memiliki harga penutupan di akhir setiap bulan, Portolab menghitung korelasi setelah pembaruan riwayat harga yang menyimpan harga penutupan hari bursa pertama {month}.",
+  "app_chart_line_value_part": "{line} {value}"
 }

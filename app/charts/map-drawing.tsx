@@ -2,7 +2,7 @@ import type { ReactNode, Ref } from "react";
 import type { LabelPlace, PlacedLabels } from "./map-labels";
 import { keptNameRoom } from "./map-labels";
 import { percentOf } from "./plot";
-import { ReturnMark } from "./return-mark";
+import { ValueMark } from "./value-mark";
 import type {
   MapMark,
   MapPoint,
@@ -122,7 +122,7 @@ function Axes({
   return (
     <>
       {layout.upTicks.map((tick) => (
-        <ReturnMark
+        <ValueMark
           key={tick.at}
           at={tick.at}
           text={tick.text}

@@ -2,13 +2,21 @@ import type { ReactNode } from "react";
 import type { PlotFraction } from "~/units/plot-fraction";
 import { percentOf } from "./plot";
 
-/** The gap between the text of a mark of the axis of returns and the left edge of the plot, in sizes of the text of the marks. The plot leaves it beside the room for the texts. */
-export const returnMarkGap = 0.75;
+/** The gap between the text of a value mark and the edge of the plot, in sizes of the text of the marks. The plot leaves it beside the room for the texts. */
+export const valueMarkGap = 0.75;
 
 export type ValueAxisSide = "left" | "right";
 
-/** A mark of the axis of returns: a line across the plot at the height of a value, and the text of the value, which ends before the left edge of the plot with its middle at that height. */
-export function ReturnMark({
+const sideAttributes: Record<
+  ValueAxisSide,
+  { x: string; gap: number; anchor: "end" | "start" }
+> = {
+  left: { x: "0", gap: -valueMarkGap, anchor: "end" },
+  right: { x: "100%", gap: valueMarkGap, anchor: "start" },
+};
+
+/** The label stays outside its chosen edge of the plot so it does not cover the data. */
+export function ValueMark({
   at,
   text,
   lineClassName,
@@ -23,6 +31,7 @@ export function ReturnMark({
   textShift?: string;
   side?: ValueAxisSide;
 }): ReactNode {
+  const attributes = sideAttributes[side];
   return (
     <g>
       <line
@@ -33,11 +42,11 @@ export function ReturnMark({
         className={lineClassName}
       />
       <text
-        x={side === "left" ? "0" : "100%"}
+        x={attributes.x}
         y={percentOf(at)}
-        dx={`${String(side === "left" ? -returnMarkGap : returnMarkGap)}em`}
+        dx={`${String(attributes.gap)}em`}
         dy="0.35em"
-        textAnchor={side === "left" ? "end" : "start"}
+        textAnchor={attributes.anchor}
         style={{ translate: textShift }}
         className={textClassName}
       >
