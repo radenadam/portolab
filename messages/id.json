@@ -85,7 +85,7 @@
   "measures_bi_rate_notice": "Portolab memakai BI-Rate sebagai suku bunga bebas risiko. Bank Indonesia menetapkan BI-Rate sebesar {rate} pada {date}, dan suku bunga itu masih berlaku pada akhir bulan terakhir dari imbal hasil tersebut.",
   "measures_bi_rate_link": "BI-Rate di situs Bank Indonesia",
   "measures_weights_title": "Bobot portofolio Anda",
-  "measures_weights_notice": "Bobot suatu saham adalah nilainya pada harga tertunda terakhir dari {source}, sekitar {minutes} menit di belakang BEI, dibagi nilai total portofolio Anda, dan bobot kas Anda adalah bagiannya dari nilai total itu. Halaman portofolio Anda menunjukkan setiap harga tertunda dan waktu pencatatannya. Kas tidak menghasilkan imbal hasil di Portolab, sehingga kas tidak menambah imbal hasil yang diharapkan, varians, maupun beta.",
+  "measures_weights_notice": "Bobot suatu saham adalah nilainya pada harga tertunda terakhir dari {source}, sekitar {minutes} menit di belakang BEI, dibagi nilai total portofolio Anda, dan bobot kas Anda adalah bagiannya dari nilai total itu. {page} menunjukkan setiap harga tertunda dan waktu pencatatannya. Kas tidak menghasilkan imbal hasil di Portolab, sehingga kas tidak menambah imbal hasil yang diharapkan, varians, maupun beta.",
   "measures_stock_label": "Saham",
   "measures_index_name": "{index}",
   "measures_value_label": "Nilai",
@@ -603,7 +603,7 @@
   "market_data_history_period_notice": "Penutupan tersimpan dari {first} sampai {last}.",
   "measures_stock_statistics_notice": "{measures} memakai {returns} dari {first} sampai {last}.",
   "measures_month_span_part": "{returns} · {first} sampai {last}",
-  "measures_correlation_prices_notice": "Bobot portofolio memakai harga tertunda. Halaman portofolio Anda menunjukkan waktu kutipan setiap harga.",
+  "measures_correlation_prices_notice": "Bobot portofolio memakai harga tertunda. {page} menunjukkan waktu kutipan setiap harga.",
   "measures_correlation_enough_returns_notice": "Jika saham ini, {index}, dan setiap saham Anda tetap memiliki harga penutupan di akhir setiap bulan, Portolab menghitung korelasi setelah pembaruan riwayat harga yang menyimpan harga penutupan hari bursa pertama {month}.",
   "app_chart_line_value_part": "{line} {value}"
 }

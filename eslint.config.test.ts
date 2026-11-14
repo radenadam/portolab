@@ -1,38 +1,161 @@
 import { ESLint } from "eslint";
+import type { Linter } from "eslint";
 import { expect, test } from "vitest";
 import { minuteMilliseconds } from "./app/time-units.ts";
 
 const eslint = new ESLint();
 
+const testCalls = [
+  "test",
+  "it",
+  "describe",
+  "test.skip",
+  "test.only",
+  "test.todo",
+  "test.fails",
+  "test.concurrent",
+  "test.sequential",
+  "test.fixme",
+  "test.step",
+  "test.step.skip",
+  "it.skip",
+  "describe.only",
+  "test.describe",
+  "test.describe.parallel",
+  "test.describe.serial",
+  "test.describe.skip",
+  'test["skip"]',
+  'test.describe["parallel"]',
+  "test.each([1])",
+  "test.each`value`",
+  "describe.each([1])",
+  "test.skipIf(false)",
+  "test.runIf(true)",
+  "test.for([1])",
+  "test.extend({})",
+  "(test)",
+  "(test as typeof test)",
+  "test!",
+  "test?.skip",
+  "(test?.skip)",
+  "check",
+  "example",
+  "suite",
+  "browserTest",
+  "playwrightTest",
+  "quotedTest",
+  "vitest.test",
+  "vitest.describe.only",
+  'vitest["it"]',
+  "playwright.test.describe.parallel",
+];
+const testImports = [
+  'import { test as check, it as example, describe as suite } from "vitest";',
+  'import * as vitest from "vitest";',
+  'import playwrightTest, { test as browserTest } from "@playwright/test";',
+  'import * as playwright from "@playwright/test";',
+  'import { "test" as quotedTest } from "vitest";',
+];
+const rejectedLanguageForms: string[] = [];
+for (const operator of ["===", "!==", "==", "!="]) {
+  for (const [left, right] of [
+    ["locale", '"id"'],
+    ['"en"', "locale"],
+    ["locale", "`id`"],
+    ["`en`", "locale"],
+  ] as const) {
+    rejectedLanguageForms.push(
+      `{ const value = ${left} ${operator} ${right} ? "one" : "two"; }`,
+    );
+  }
+}
+rejectedLanguageForms.push(
+  'switch (locale) { case "id": break; case "en": break; default: break; }',
+  'if (locale !== "en") { expect(value).toBe("one"); }',
+  'const value = locale === "id" && "one";',
+);
+for (const call of testCalls) {
+  rejectedLanguageForms.push(
+    `${call}(\`shows cash in \${locale}\`, () => {});`,
+  );
+}
+rejectedLanguageForms.push(
+  "test(`shows cash in ${String(locale)}`, () => {});",
+  "test(`shows cash in ${locale.toUpperCase()}`, () => {});",
+  "describe(`shows cash in ${`language ${locale}`}`, () => {});",
+);
+const acceptedLanguageForms = [
+  'const texts: Record<"id" | "en", string> = { id: "satu", en: "one" };',
+  "const input = texts[locale];",
+  "const found = entries.find((entry) => entry.locale === locale);",
+  'const filename = locale + ".json";',
+  'switch (side) { case "buy": break; default: break; }',
+  "switch (locale) { default: break; }",
+  "format(`a file in ${locale}`);",
+  "object.test(`a field in ${locale}`);",
+  "vitest.expect(`a field in ${locale}`);",
+  "test.info().outputPath(`home-${locale}.png`);",
+];
+for (const call of testCalls) {
+  acceptedLanguageForms.push(
+    `${call}(\`shows cash in \${languageNames[locale]}\`, () => {});`,
+  );
+}
+
+const languageRule = "portolab-tests/language";
+
 test(
-  "requires locale tables and readable language names in tests",
+  "checks locale branches and every test title form in each test location",
   async () => {
-    const filePath = "app/formatting.test.ts";
-    for (const code of [
-      'const input = locale === "id" ? "1.000" : "1,000";',
-      'expect(button).toBe("en" === locale);',
-      "test(`shows cash in ${locale}`, () => {});",
-      "test.skip(`shows cash in ${locale}`, () => {});",
+    const code = [
+      ...testImports,
+      ...rejectedLanguageForms,
+      ...acceptedLanguageForms,
+    ].join("\n");
+    const expected = rejectedLanguageForms.map(
+      (_form, index) => testImports.length + index + 1,
+    );
+    for (const filePath of [
+      "app/formatting.test.ts",
+      "app/features/trading/home-portfolio.test.tsx",
+      "server/server-options.test.ts",
+      "scripts/json.test.ts",
+      "eslint.config.test.ts",
+      "e2e/classes.test.ts",
+      "e2e/frame.ts",
     ]) {
-      expect(await rulesReporting(code, filePath)).toContain(
-        "portolab-tests/language",
-      );
+      const lines: number[] = [];
+      for (const message of await lintMessages(code, filePath)) {
+        if (message.ruleId === languageRule) lines.push(message.line);
+      }
+      expect(lines, filePath).toEqual(expected);
     }
-    for (const code of [
-      "const input = texts[locale].amount;",
-      "const found = entries.find((entry) => entry.locale === locale);",
-      "test(`shows cash in ${languageNames[locale]}`, () => {});",
-      'const value = locale === "id" ? 1 : 2;',
+  },
+  2 * minuteMilliseconds,
+);
+
+test(
+  "keeps production code and the tracked legacy files outside the locale check",
+  async () => {
+    const code = [...testImports, ...rejectedLanguageForms].join("\n");
+    for (const filePath of [
+      "app/formatting.ts",
+      "server/server-options.ts",
+      "scripts/json.ts",
+      "eslint.config.ts",
+      "app/change-text.test.tsx",
+      "app/features/accounts/profile-menu.test.tsx",
+      "app/features/market-data/stock-range.test.tsx",
+      "app/features/trading/order-actions.server.test.ts",
+      "app/features/trading/stock-position.test.tsx",
+      "e2e/stock.test.ts",
     ]) {
-      const target = code.startsWith("const value")
-        ? "app/formatting.ts"
-        : filePath;
-      expect(await rulesReporting(code, target)).not.toContain(
-        "portolab-tests/language",
+      expect(await rulesReporting(code, filePath), filePath).not.toContain(
+        languageRule,
       );
     }
   },
-  minuteMilliseconds,
+  2 * minuteMilliseconds,
 );
 
 /** Lints code as if it were the file at the path, a file in scripts/ unless the test names another, and returns the rules that report it. The file must exist, because the type information that ESLint uses covers only files of the project. */
@@ -40,18 +163,27 @@ async function rulesReporting(
   code: string,
   filePath = "scripts/json.ts",
 ): Promise<string[]> {
-  const results = await eslint.lintText(code, { filePath });
   const rules: string[] = [];
+  for (const message of await lintMessages(code, filePath)) {
+    if (message.ruleId !== null) rules.push(message.ruleId);
+  }
+  return rules;
+}
+
+async function lintMessages(
+  code: string,
+  filePath: string,
+): Promise<Linter.LintMessage[]> {
+  const results = await eslint.lintText(code, { filePath });
+  const messages: Linter.LintMessage[] = [];
   for (const result of results) {
     for (const message of result.messages) {
       // A parsing error means that no rule ran, so a test that expects no report would pass without checking anything.
       expect(message.fatal ?? false, message.message).toBe(false);
-      if (message.ruleId !== null) {
-        rules.push(message.ruleId);
-      }
+      messages.push(message);
     }
   }
-  return rules;
+  return messages;
 }
 
 const imports = `import { fail, succeed } from "../app/result.ts";

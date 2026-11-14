@@ -85,7 +85,7 @@
   "measures_bi_rate_notice": "Portolab takes the BI-Rate as the risk-free rate. Bank Indonesia set the BI-Rate at {rate} on {date}, and that rate held at the end of the last month of the returns.",
   "measures_bi_rate_link": "The BI-Rate on the site of Bank Indonesia",
   "measures_weights_title": "Weights of your portfolio",
-  "measures_weights_notice": "The weight of a stock is its value at the latest delayed price from {source}, about {minutes} minutes behind IDX, divided by the total value of your portfolio, and the weight of your cash is its share of that total. The page of your portfolio shows each delayed price and when it was quoted. Cash earns no return in Portolab, so it adds nothing to the expected return, the variance, or the beta.",
+  "measures_weights_notice": "The weight of a stock is its value at the latest delayed price from {source}, about {minutes} minutes behind IDX, divided by the total value of your portfolio, and the weight of your cash is its share of that total. {page} shows each delayed price and when it was quoted. Cash earns no return in Portolab, so it adds nothing to the expected return, the variance, or the beta.",
   "measures_stock_label": "Stock",
   "measures_index_name": "the {index}",
   "measures_value_label": "Value",
@@ -603,7 +603,7 @@
   "market_data_history_period_notice": "Stored closes from {first} to {last}.",
   "measures_stock_statistics_notice": "{measures} use {returns} from {first} to {last}.",
   "measures_month_span_part": "{returns} · {first} to {last}",
-  "measures_correlation_prices_notice": "Portfolio weights use delayed prices. Your portfolio page shows when each price was quoted.",
+  "measures_correlation_prices_notice": "Portfolio weights use delayed prices. {page} shows when each price was quoted.",
   "measures_correlation_enough_returns_notice": "If this stock, the {index}, and each of your stocks keep a close at the end of every month, Portolab computes correlation after the update of the price history that stores the close of the first trading day of {month}.",
   "app_chart_line_value_part": "{line} {value}"
 }

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { ChangeText } from "~/change-text";
+import { homeTitle } from "./home-title";
 import type { ClassId } from "~/features/classes/classes.schema";
 import {
   formatList,
@@ -47,7 +48,7 @@ export function HomePortfolio({
   });
   return (
     <div className={styles["home"]}>
-      <h1 className={styles["screenTitle"]}>{m.trading_home_title()}</h1>
+      <h1 className={styles["screenTitle"]}>{homeTitle()}</h1>
       <div className={styles["summary"]}>
         <section className={styles["hero"]}>
           <div className={styles["valueLabel"]}>

@@ -1,6 +1,7 @@
 import type { ClassId } from "~/features/classes/classes.schema";
 import type { ReactNode } from "react";
 import { ConceptCard } from "~/concept-card";
+import { homeTitle } from "~/features/trading/home-title";
 import { ConceptLesson } from "~/features/learning/concept-lesson";
 import { formatCorrelation, formatList, formatPercent } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
@@ -159,7 +160,7 @@ export function StockKeyMeasures({
       </div>
       {correlation?.ok === true && (
         <p className={styles["note"]}>
-          {m.measures_correlation_prices_notice()}
+          {m.measures_correlation_prices_notice({ page: homeTitle() })}
         </p>
       )}
     </>
