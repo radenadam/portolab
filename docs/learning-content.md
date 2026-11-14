@@ -4,7 +4,7 @@
 
 ## Reading content
 
-`readLearningContent` in `app/features/learning/read-learning-content.server.ts` returns a `Result` with both languages. A caller handles a failure with its original source and reason. It selects the active language only after the entire collection passes validation. The result contains ordered sessions, tagged sections, and glossary terms. Session numbers use the calendar's `SessionNumber` type.
+`readLearningContent` in `app/features/learning/read-learning-content.server.ts` returns a `Result` with one entry for every language in Paraglide's `locales`. A caller handles a failure with its original source and reason. It selects the entry whose `locale` is active only after the entire collection passes validation. Each entry contains ordered sessions, tagged sections, and glossary terms. Session numbers use the calendar's `SessionNumber` type.
 
 The module bundles `content/**/*.md` through Vite's raw imports. There is no content folder to locate at request time. `pnpm check` reads all shipped files through that entry in its unit tests. The parser also rejects unexpected Markdown files under the content folder, so a misspelled language or filename cannot disappear silently.
 
@@ -20,11 +20,13 @@ Section headings in session files are stable ids. Their visible labels will be P
 | Full lesson                  | `summary`, `key-idea`, `body`, `interactive`, `terms`, `practice` |
 | Research review or exam card | `summary`                                                         |
 
-The lessons for instruments that the simulator cannot practise have `unavailable` before `terms`. The session kinds follow [decision 0032](decisions/0032-a-class-meets-weekly-from-the-date-of-its-first-session.md). Each summary, key idea, and unavailable notice is one plain paragraph. A body can mix paragraphs and references. `terms` contains bullet lines of glossary ids. `interactive` and `practice` are empty reserved sections, so no prose claims that their future controls exist.
+The [`sessionKinds` table](../app/features/learning/content.ts) lists the format of each session, and `cannotPractiseSession` in that file selects the sessions that require `unavailable` before `terms`. [Decision 0036](decisions/0036-lessons-and-the-glossary-are-content-in-both-languages.md) records the source of the short and full lesson formats. [Decision 0032](decisions/0032-a-class-meets-weekly-from-the-date-of-its-first-session.md) supplies the topics and the roles of research reviews and exams.
+
+Each summary, key idea, and unavailable notice is one plain paragraph. A body can mix paragraphs and references. `terms` contains at least two unique glossary ids, each on its own `- ` bullet line. A line without that bullet fails parsing. `interactive` and `practice` are empty reserved sections, so no prose claims that their future controls exist.
 
 A glossary entry uses a heading such as `## beta | Beta | 9`, followed by paragraphs and optional references. Its three fields are the stable term id, its title in the file's language, and the session to open for more detail. The glossary title itself is source metadata. The page's heading remains an interface message.
 
-Both languages must have the same sessions, sections, term ids, lesson links, and references. Lesson term lists must also agree and resolve to glossary entries. Paragraph counts and wording can differ to suit each language.
+Every configured language must have the same sessions, sections, term ids, lesson links, and references. The parser compares each translation with the first one in `locales`. Lesson term lists must also agree and resolve to glossary entries. Paragraph counts and wording can differ to suit each language.
 
 ## References
 

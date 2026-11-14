@@ -122,6 +122,9 @@ it.each([
   "- beta\n- beta",
   "- beta\n- Wrong",
   "- beta\n- bad id",
+  "beta\ncapm",
+  "- beta\ncapm",
+  "beta\n- capm",
 ])("rejects invalid term lists %s", (terms) => {
   expect(parseSessionContent(shortLesson(terms), "Lesson", 1)).toMatchObject({
     ok: false,

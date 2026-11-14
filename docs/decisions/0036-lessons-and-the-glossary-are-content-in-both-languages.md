@@ -10,6 +10,7 @@ The Peta rebuild teaches the topics of the course in Bahasa Indonesia and Englis
 ## Decision
 
 - Lesson and glossary prose lives in Markdown files for each language inside the learning feature. The [content format](../learning-content.md) defines the supported Markdown and its typed references.
+- Lesson depth follows the [catalogue of the approved Peta prototype](https://github.com/radenadam/portolab/blob/design/peta-prototype/src/concepts.js). The [`sessionKinds` table and `cannotPractiseSession`](../../app/features/learning/content.ts) are the named policy for each session's format and for the instruments that the simulator cannot practise. [Decision 0032](0032-a-class-meets-weekly-from-the-date-of-its-first-session.md) owns the course topics and the roles of research reviews and exams.
 - A boundary parser validates every file before a page receives its typed sessions and terms. It checks the course session set, section structure, term links, and known formula and table references. It checks that both languages agree on those structures. `pnpm check` applies the parser to all shipped content and tests its refusal of malformed or mismatched content.
 - Sentences computed from data remain Paraglide messages. Interface controls and errors remain messages too. Content Markdown holds original prose and references to formulas and tables rather than copies of figures owned by code or dated rules.
 - Vite bundles the raw Markdown into the server module. Reading content never resolves a path against the working directory.

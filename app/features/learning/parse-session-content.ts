@@ -1,7 +1,12 @@
 import { fail, succeed } from "../../result.ts";
 import type { Result } from "../../result.ts";
 import { describeValue } from "../../value-shapes.ts";
-import { contentSession, sessionKinds, termIdPattern } from "./content.ts";
+import {
+  cannotPractiseSession,
+  contentSession,
+  sessionKinds,
+  termIdPattern,
+} from "./content.ts";
 import type { LessonSection, SessionContent, SessionKind } from "./content.ts";
 import { parseContentBlocks, parseMarkdown } from "./markdown.ts";
 import type { MarkdownSection } from "./markdown.ts";
@@ -28,7 +33,7 @@ export function parseSessionContent(
   if (!document.ok) return document;
   const kind = sessionKinds[session];
   const expected = [...sectionOrder[kind]];
-  if (session >= 11 && session <= 14)
+  if (cannotPractiseSession(session))
     expected.splice(expected.length - 1, 0, "unavailable");
   const actual = document.value.sections.map((section) => section.heading);
   if (JSON.stringify(actual) !== JSON.stringify(expected)) {
@@ -83,14 +88,16 @@ function sectionFromMarkdown(
 }
 
 function readTermIds(text: string, source: string): Result<string[], string> {
-  const termIds = text.split("\n").map((line) => line.replace(/^- /u, ""));
+  const lines = text.split("\n");
+  const termIds = lines.map((line) => line.slice(2));
   if (
     termIds.length < 2 ||
+    lines.some((line) => !line.startsWith("- ")) ||
     termIds.some((id) => !termIdPattern.test(id)) ||
     new Set(termIds).size !== termIds.length
   ) {
     return fail(
-      `${source} must list at least two unique term ids, but it is ${describeValue(text)}.`,
+      `${source} must list at least two unique term ids as bullet lines, but it is ${describeValue(text)}.`,
     );
   }
   return succeed(termIds);

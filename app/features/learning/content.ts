@@ -1,4 +1,5 @@
 import type { SessionNumber } from "../classes/course-calendar.ts";
+import type { Locale } from "../../paraglide/runtime.js";
 
 export const termIdPattern = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/u;
 
@@ -57,6 +58,16 @@ export interface GlossaryTerm {
 export interface LearningContent {
   sessions: SessionContent[];
   terms: GlossaryTerm[];
+}
+
+export interface LocalizedLearningContent extends LearningContent {
+  locale: Locale;
+}
+
+const unavailableSessions: readonly SessionNumber[] = [11, 12, 13, 14];
+
+export function cannotPractiseSession(session: SessionNumber): boolean {
+  return unavailableSessions.includes(session);
 }
 
 // The calendar owns the session numbers. This table makes a changed course fail to compile until its content structure is chosen.
