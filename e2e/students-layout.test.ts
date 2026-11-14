@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { selectFirstStudent } from "./select-first-student.ts";
 import { locales } from "../app/paraglide/runtime.js";
+import { languageNames } from "../app/language-names.ts";
 import { layoutProblems } from "./expect-layout.ts";
 import { storeGradingPortfolio } from "./store-grading-portfolio.ts";
 import { studentOfNewClass } from "./student-of-new-class.ts";
@@ -9,7 +10,7 @@ const screenshotWidths = [360, 1440, 1920];
 const widths = [360, 1280, 1319, 1320, 1440, 1920];
 
 for (const locale of locales) {
-  test(`keeps the student panel in a sheet below its docking width and captures the Peta comparison in ${locale}`, async ({
+  test(`keeps the student panel in a sheet below its docking width and captures the Peta comparison in ${languageNames[locale]}`, async ({
     page,
     browser,
   }, testInfo) => {

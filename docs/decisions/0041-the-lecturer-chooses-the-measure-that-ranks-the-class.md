@@ -1,4 +1,4 @@
-# 0040. The lecturer chooses the measure that ranks the class
+# 0041. The lecturer chooses the measure that ranks the class
 
 - Status: Accepted
 - Date: 2026-11-14

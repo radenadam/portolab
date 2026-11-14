@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { ChangeText } from "~/change-text";
 import { countedText } from "~/counted-text";
-import { latestQuoteTime } from "~/features/market-data/latest-quote-time";
 import type { PriceSourceDescription } from "~/features/market-data/price-source.server";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
 import {
@@ -39,20 +38,6 @@ export function PortfolioView({
       <HoldingsSection holdings={report.valuation.holdings} reader={reader} />
     </>
   );
-}
-
-/** When the newest of the delayed prices that the page of a portfolio shows was quoted, which its header line shows, or undefined for a page without prices. */
-export function portfolioPricesTime(report: PortfolioReport): Date | undefined {
-  const quotes: { quotedAt: Date }[] = [];
-  if (report.market !== undefined) {
-    quotes.push(report.market.quote);
-  }
-  for (const holding of report.valuation.holdings) {
-    if (holding.kind === "priced") {
-      quotes.push(holding.quote);
-    }
-  }
-  return latestQuoteTime(quotes);
 }
 
 /** The value of a portfolio as the headline of its page, with the values that explain it in the line under it, as decision 0026 sets. */

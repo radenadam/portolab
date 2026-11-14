@@ -6,7 +6,7 @@ Portolab is made for lecturers and students of portfolio management courses at I
 
 ## Status
 
-Portolab is in early development. It shows delayed prices of the stocks in the LQ45 index and of the IHSG, and it keeps their daily closes for the measures of the course. The table of prices, the holdings, and the order ticket name the company of each stock, and the table of prices and the ticket name its sector too. Lecturers create classes, and students join them with a code. The page of a class shows its semester and the session of the week, from the date of its first session. In a class, a student places market and limit orders under the rules of IDX, which fill at delayed prices, and sees the value of the portfolio that they leave and its return against the IHSG at each daily close. The student may write the reason of each order, which the lecturer of the class reads. The student also sees the measures of the course for the portfolio and for each stock, each with its formula and its inputs, and a chart that places them against the security market line. The lecturer of a class sees the portfolio and the measures of every student, ranked by Jensen's alpha, which is their distance from the security market line, and downloads them as a spreadsheet for grading. The first release, planned for November 2026, serves the course sessions on CAPM and on portfolio return and risk. [`docs/product.md`](docs/product.md) describes what Portolab will do and what it deliberately will not do.
+Portolab is in early development. It shows delayed prices of the stocks in the LQ45 index and of the IHSG, and it keeps their daily closes for the measures of the course. The table of prices, the holdings, and the order ticket name the company of each stock, and the table of prices and the ticket name its sector too. Lecturers create classes, and students join them with a code. The page of a class shows its semester and the session of the week, from the date of its first session. In a class, a student places market and limit orders under the rules of IDX, which fill at delayed prices, and sees the value of the portfolio that they leave and its return against the IHSG at each daily close. The student may write the reason of each order, which the lecturer of the class reads. The student also sees the measures of the course for the portfolio and for each stock, each with its formula and its inputs, and a chart that places them against the security market line. The lecturer of a class sees the portfolio and the measures of every student, ranked by a performance measure that the lecturer chooses, and downloads them as a spreadsheet for grading. The first release, planned for November 2026, serves the course sessions on CAPM and on portfolio return and risk. [`docs/product.md`](docs/product.md) describes what Portolab will do and what it deliberately will not do.
 
 ## Run it
 
@@ -62,7 +62,18 @@ Portolab reads these environment variables when it starts, and it names every wr
 
 [`CONTRIBUTING.md`](CONTRIBUTING.md) explains how to propose a change.
 
-Run `pnpm check` to run every check that CI runs. To run checks at the same time, use a separate worktree for each run and give each a different `PORTOLAB_CHECK_SLOT` from `0` to `99`:
+The [workflow](AGENTS.md#workflow) sets which checks must pass before a push. `pnpm check` runs every check that CI runs. `pnpm check:fast` runs the same steps except the browser tests, including the dev server check, the production build, and the size check.
+
+For a later push, run the fast check and choose the browser test files that cover the changed behavior. For example, after changing the stock screen:
+
+```sh
+pnpm check:fast
+pnpm test:e2e e2e/stock.test.ts e2e/layout.test.ts
+```
+
+The browser command runs the selected files on both the phone and desktop projects, with their tests in both languages. Choose files by what they cover, including callers of shared code, rather than only test files that changed. A change to shared layout, styles, or browser test infrastructure can need the full browser suite, which runs with `pnpm test:e2e`. A change confined to docs or scripts with no browser behavior needs no browser tests.
+
+To run checks at the same time, use a separate worktree for each run and give each a different `PORTOLAB_CHECK_SLOT` from `0` to `99`:
 
 ```sh
 # In the first worktree

@@ -19,7 +19,7 @@ import {
 } from "~/formatting";
 import { initialsOf } from "~/initials-of";
 import { m } from "~/paraglide/messages.js";
-import { portfolioWeight } from "~/units/portfolio-weight";
+import { portfolioWeightOf } from "~/features/trading/portfolio-weight-of";
 import { studentMeasuresPath, studentPortfolioPath } from "./grading-paths";
 import type { ComparedStudent } from "./student-filters";
 import { studentNote } from "./student-note";
@@ -212,7 +212,7 @@ export function StudentPanel({
                     <span key={holding.code}>
                       {holding.code}{" "}
                       {formatPercent(
-                        portfolioWeight(holding.value / value.value),
+                        portfolioWeightOf(holding.value, value.value),
                         "two",
                       )}{" "}
                       ·{" "}
@@ -221,7 +221,7 @@ export function StudentPanel({
               )}
               {m.grading_cash_label()}{" "}
               {formatPercent(
-                portfolioWeight(panel.valuation.cash / value.value),
+                portfolioWeightOf(panel.valuation.cash, value.value),
                 "two",
               )}
             </p>

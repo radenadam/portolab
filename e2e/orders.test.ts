@@ -57,7 +57,7 @@ const smallHolding = {
 const texts: Record<
   Locale,
   {
-    ordersLink: string;
+    activityLink: string;
     title: string;
     heading: string;
     navigation: string;
@@ -125,7 +125,7 @@ const texts: Record<
   }
 > = {
   id: {
-    ordersLink: "Order Anda di kelas ini",
+    activityLink: "Aktivitas",
     title: `Order di ${className}`,
     heading: "Order Anda",
     navigation: "Navigasi utama",
@@ -155,7 +155,7 @@ const texts: Record<
       "Kas yang tersedia",
       "Rp\u00a01.000.000.000.000",
     ],
-    noHoldings: "Anda belum memegang saham.",
+    noHoldings: "Anda tidak memegang saham.",
     dayNotice: [
       "Order yang Anda pasang sekarang dapat tereksekusi pada harga tertunda yang tercatat pada sesi I atau sesi II tanggal ",
       ", mulai pukul ",
@@ -272,7 +272,7 @@ const texts: Record<
     reasonsTitle: "Alasan order",
   },
   en: {
-    ordersLink: "Your orders in this class",
+    activityLink: "Activity",
     title: `Orders in ${className}`,
     heading: "Your orders",
     navigation: "Main navigation",
@@ -301,7 +301,7 @@ const texts: Record<
       "Available cash",
       "IDR\u00a01,000,000,000,000",
     ],
-    noHoldings: "You hold no shares yet.",
+    noHoldings: "You hold no shares.",
     dayNotice: [
       "An order that you place now can fill at a delayed price quoted in session I or session II on ",
       ", from ",
@@ -430,7 +430,7 @@ async function openOrdersOfNewStudent(
     ...widestClassNames,
   });
   await joined.student
-    .getByRole("link", { name: texts[locale].ordersLink })
+    .getByRole("link", { name: texts[locale].activityLink, exact: true })
     .click();
   await expect(joined.student).toHaveURL(`${joined.classPath}/orders`);
   return joined;

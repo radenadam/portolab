@@ -1,6 +1,6 @@
 # 0022. The lecturer downloads the portfolios as a workbook that Portolab writes
 
-- Status: Accepted. [Decision 0040](0040-the-lecturer-chooses-the-measure-that-ranks-the-class.md) changes the order and the columns of the worksheet.
+- Status: Accepted. [Decision 0041](0041-the-lecturer-chooses-the-measure-that-ranks-the-class.md) changes the order and the columns of the worksheet.
 - Date: 2026-11-11
 
 ## Context
@@ -11,7 +11,7 @@ A file of comma-separated values leaves both to the spreadsheet. Excel splits su
 
 ## Decision
 
-- The export is a workbook of Office Open XML, the `.xlsx` format of ECMA-376, with one worksheet. It holds the title of the page of the portfolios, a notice that the values are a simulation at delayed prices with the time of the download and the delay of the source, a row of headings, and a row for each student in the order that [decision 0040](0040-the-lecturer-chooses-the-measure-that-ranks-the-class.md) governs, with the reason of each portfolio without measures.
+- The export is a workbook of Office Open XML, the `.xlsx` format of ECMA-376, with one worksheet. It holds the title of the page of the portfolios, a notice that the values are a simulation at delayed prices with the time of the download and the delay of the source, a row of headings, and a row for each student in the order that [decision 0041](0041-the-lecturer-chooses-the-measure-that-ranks-the-class.md) governs, with the reason of each portfolio without measures.
 - Each number is a number in the workbook, without rounding, with a format that every spreadsheet builds in: whole rupiah with groups of digits, a percentage with two decimals, or a beta with two decimals. So each spreadsheet shows the numbers in its own language, and the texts are in the language of the lecturer in Portolab.
 - Each text is an inline string of the worksheet, which a spreadsheet never runs as a formula.
 - Portolab writes the workbook itself, in `app/workbook/`. It stores the files of the workbook in a zip archive without compression, with the CRC-32 of `node:zlib`.

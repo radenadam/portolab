@@ -46,9 +46,15 @@ const texts: Record<
     measureHeading: string;
     portfolioTitle: string;
     portfolioLink: string;
+    sharpeValue: string;
+    treynorValue: string;
+    resetTitle: string;
   }
 > = {
   id: {
+    sharpeValue: "-0,20",
+    treynorValue: "-1,55%",
+    resetTitle: "Atur ulang kata sandi",
     portfolioTitle: `Portofolio ${widestClassNames.studentName} di ${widestClassNames.className}`,
     portfolioLink: `Portofolio ${widestClassNames.studentName}`,
     classLink: "Portofolio dan ukuran mahasiswa",
@@ -83,6 +89,9 @@ const texts: Record<
     row: ["+0,33%", "0,34", "2,59%", "-0,38%"],
   },
   en: {
+    sharpeValue: "-0.20",
+    treynorValue: "-1.55%",
+    resetTitle: "Reset a password",
     portfolioTitle: `Portfolio of ${widestClassNames.studentName} in ${widestClassNames.className}`,
     portfolioLink: `Portfolio of ${widestClassNames.studentName}`,
     classLink: "Portfolios and measures of the students",
@@ -144,12 +153,12 @@ for (const locale of locales) {
     await page.getByRole("link", { name: "Sharpe", exact: true }).click();
     await expect(page).toHaveURL(/measure=sharpe/);
     await expect(page.locator("main tbody tr").first()).toContainText(
-      locale === "id" ? "-0,20" : "-0.20",
+      text.sharpeValue,
     );
     await page.getByRole("link", { name: "Treynor", exact: true }).click();
     await expect(page).toHaveURL(/measure=treynor/);
     await expect(page.locator("main tbody tr").first()).toContainText(
-      locale === "id" ? "-1,55%" : "-1.55%",
+      text.treynorValue,
     );
     await page.getByRole("link", { name: text.beta, exact: true }).click();
     await expect(page.locator("main tbody tr")).toHaveCount(0);
@@ -179,7 +188,7 @@ for (const locale of locales) {
     await expectAccessibleScreen(page);
     await panel.getByRole("link", { name: text.reset, exact: true }).click();
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-      locale === "id" ? "Atur ulang kata sandi" : "Reset a password",
+      text.resetTitle,
     );
     await expectAccessibleScreen(page);
     await page.getByRole("link", { name: text.back, exact: true }).click();

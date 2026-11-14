@@ -2,6 +2,7 @@ import { marketIndex } from "~/features/market-data/tracked-instruments";
 import type { ReactNode } from "react";
 import type { PriceSourceDescription } from "~/features/market-data/price-source.server";
 import { textForReader } from "~/features/trading/text-for-reader";
+import { homeTitle } from "~/features/trading/home-title";
 import type { PortfolioReader } from "~/features/trading/text-for-reader";
 import { formatNumber } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
@@ -91,7 +92,8 @@ function MeasuredPortfolio({
       </h2>
       <p>
         {textForReader(reader, {
-          owner: () => m.measures_weights_notice(delay),
+          owner: () =>
+            m.measures_weights_notice({ ...delay, page: homeTitle() }),
           lecturer: (name) =>
             m.measures_lecturer_weights_notice({ ...delay, name }),
         })}

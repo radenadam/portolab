@@ -10,7 +10,7 @@ Every change, however small:
 
 1. Branch from an up-to-date `main` as `<type>/<summary-in-kebab-case>`. One coherent change goes on each branch. An improvement noticed along the way gets its own branch or a GitHub issue.
 2. Make the change complete: code, tests, and every doc, example, and standard that it affects. Nothing that the change needs is left for a follow-up. Instances of a defect elsewhere follow step 3 of the defect protocol.
-3. Run `pnpm check`. It passes before every commit.
+3. Run `pnpm check` before the first push of a pull request. Before each later push, run `pnpm check:fast` and the browser tests that cover the files the change touches, as the [README](README.md#contributing) describes. These checks pass before the push. CI still runs the full check on every push.
 4. Commit using Conventional Commits, push, and open a pull request titled with the final commit message. Its description explains why the change is needed, because it becomes the body of the squashed commit, so update it whenever a push changes what the pull request does. Before each push, compare it with `git diff origin/main...HEAD`, so that it names every change to a standard, a message, or a check, each in short sentences. Enable auto-merge with `gh pr merge --auto --squash`. The pull request merges when CI's check job and review job both pass. When the review job fails, fix each verified finding in the change through the defect protocol, and push all the fixes at once, because each push starts a round of the panel.
 
 Work that is noticed but not done becomes a GitHub issue: a flaw that is parked, an open question, or an idea. Nothing about the state of the project lives only in a conversation or in a comment in the code.

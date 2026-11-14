@@ -273,12 +273,10 @@
   overflow: visible;
 }
 .track {
-  stroke: var(--color-line);
-  stroke-width: var(--size-line);
+  composes: track from "../../charts/inline-scale.module.css";
 }
 .reference {
-  stroke: var(--color-ink);
-  stroke-width: var(--size-mark);
+  composes: reference from "../../charts/inline-scale.module.css";
 }
 .rise {
   fill: var(--color-gain);
