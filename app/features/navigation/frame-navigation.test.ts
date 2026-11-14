@@ -105,13 +105,13 @@ for (const locale of locales) {
     switchLocaleForTest(locale);
     const items = (current: string): object[] =>
       [
-        { path: "/classes/7/portfolio", label: label.home, icon: "map" },
+        { path: "/classes/7", label: label.home, icon: "map" },
         { path: "/classes/7/market", label: label.market, icon: "trend" },
         { path: "/classes/7/orders", label: label.activity, icon: "list" },
         { path: "/classes/7/measures", label: label.analysis, icon: "pie" },
       ].map((item) => ({ ...item, isCurrent: item.label === current }));
     for (const [routeId, current] of [
-      ["features/trading/portfolio-page", label.home],
+      ["features/classes/class-page", label.home],
       ["features/market-data/market-page", label.market],
       ["features/trading/orders-page", label.activity],
       ["features/measures/measures-page", label.analysis],
@@ -171,10 +171,8 @@ test("marks no item current on a page outside the items, on a route that it does
     pageForTest("features/classes/classes-page"),
     pageForTest("not-found-page"),
     pageForTest(undefined, inClass),
-    pageForTest("features/trading/portfolio-page", { classId: "8" }),
-    pageForTest("features/trading/portfolio-page", { classId: "abc" }),
-    // A student has no item of the page of a class until Beranda moves there.
-    pageForTest("features/classes/class-page", inClass),
+    pageForTest("features/classes/class-page", { classId: "8" }),
+    pageForTest("features/classes/class-page", { classId: "abc" }),
   ]) {
     expect(
       frameItems(readerForTest("student"), page).some((item) => item.isCurrent),
@@ -197,7 +195,7 @@ test("gives no items to a person without a class, to a person who has not finish
 
 test("leads each role to the home of a class, which is the first item of its navigation", () => {
   const classId = 7 as ClassId;
-  expect(workspaceHomePath("student", classId)).toBe("/classes/7/portfolio");
+  expect(workspaceHomePath("student", classId)).toBe("/classes/7");
   expect(workspaceHomePath("lecturer", classId)).toBe("/classes/7");
   for (const role of ["student", "lecturer"] as const) {
     expect(

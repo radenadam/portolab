@@ -77,14 +77,6 @@ const routePages: Record<string, readonly RoutePage[]> = {
       path: ({ classPath }) => `${classPath}/orders?code=${code}`,
     })),
   ],
-  "features/trading/portfolio-page.tsx": [
-    {
-      reader: "student",
-      path: ({ classPath }) => `${classPath}/portfolio`,
-      // The portfolio of Tenang scrolls sideways at 768 pixels, which no browser test opened before this walk, and its table of holdings crosses its column, into the order ticket on a wide screen (#135). Piece 16 rebuilds it.
-      brokenUntilRebuilt: ["width", "parts"],
-    },
-  ],
   "features/measures/measures-page.tsx": [
     {
       reader: "student",

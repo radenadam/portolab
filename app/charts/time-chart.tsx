@@ -16,6 +16,7 @@ export function TimeChart<Point extends { date: string }>({
   labelledBy,
   dateLabel,
   tableLabel,
+  coloredChanges = false,
 }: {
   /** The points of the chart, oldest first, at least one. */
   points: readonly Point[];
@@ -26,6 +27,7 @@ export function TimeChart<Point extends { date: string }>({
   dateLabel: string;
   /** The label that opens the table of points. */
   tableLabel: string;
+  coloredChanges?: boolean;
 }): ReactNode {
   const latest = points.at(-1);
   if (latest === undefined) {
@@ -45,7 +47,10 @@ export function TimeChart<Point extends { date: string }>({
           <li key={line.name} className={styles["legendItem"]}>
             <LineKey kind={line.kind} />
             {line.name}{" "}
-            <ChangeText change={formatSignedPercent(line.returnOf(latest))} />
+            <ChangeText
+              colored={coloredChanges}
+              change={formatSignedPercent(line.returnOf(latest))}
+            />
           </li>
         ))}
       </ul>
@@ -54,6 +59,7 @@ export function TimeChart<Point extends { date: string }>({
         lines={lines}
         layout={layout}
         labelledBy={labelledBy}
+        coloredChanges={coloredChanges}
       />
       <details className={styles["points"]}>
         <summary>{tableLabel}</summary>
@@ -75,6 +81,7 @@ export function TimeChart<Point extends { date: string }>({
                 {lines.map((line) => (
                   <td key={line.name} className={tableStyles["number"]}>
                     <ChangeText
+                      colored={coloredChanges}
                       change={formatSignedPercent(line.returnOf(point))}
                     />
                   </td>

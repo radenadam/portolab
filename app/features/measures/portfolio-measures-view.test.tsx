@@ -342,7 +342,7 @@ const readerTexts: Record<
       pairsTitle: "Kovarians dan korelasi saham Anda",
       risksTitle: "Risiko yang ditambahkan setiap saham Anda",
       noHoldings:
-        "Anda belum memegang saham, sehingga portofolio Anda hanya berisi kas, yang tidak menghasilkan imbal hasil di Portolab. Portolab menghitung ukuran portofolio Anda setelah order beli Anda tereksekusi.",
+        "Anda tidak memegang saham, sehingga portofolio Anda hanya berisi kas, yang tidak menghasilkan imbal hasil di Portolab. Portolab menghitung ukuran portofolio Anda setelah order beli Anda tereksekusi.",
       oneUnpriced:
         "Portolab menghitung ukuran portofolio Anda setelah pembaruan harga berikutnya membawa harga tertunda TLKM, karena bobot setiap saham adalah nilainya pada harga tertundanya.",
       severalUnpriced:
@@ -376,7 +376,7 @@ const readerTexts: Record<
       pairsTitle: "Covariances and correlations of your stocks",
       risksTitle: "The risk that each of your stocks adds",
       noHoldings:
-        "You hold no shares yet, so your portfolio is cash alone, which earns no return in Portolab. Portolab computes the measures of your portfolio once a purchase of yours fills.",
+        "You hold no shares, so your portfolio is cash alone, which earns no return in Portolab. Portolab computes the measures of your portfolio once a purchase of yours fills.",
       oneUnpriced:
         "Portolab computes the measures of your portfolio once the next update of prices brings a delayed price of TLKM, because the weight of each stock is its value at its delayed price.",
       severalUnpriced:

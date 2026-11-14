@@ -48,7 +48,7 @@ function mapPointText(
 const texts: Record<
   Locale,
   {
-    classLink: string;
+    analysisLink: string;
     title: string;
     backLink: string;
     portfolioLink: string;
@@ -95,7 +95,7 @@ const texts: Record<
   }
 > = {
   id: {
-    classLink: "Imbal hasil dan risiko portofolio Anda dan setiap saham",
+    analysisLink: "Analisis",
     title: `Imbal hasil dan risiko di ${className}`,
     backLink: `Kembali ke ${className}`,
     portfolioLink: "Lihat nilai dan imbal hasil portofolio Anda",
@@ -186,7 +186,7 @@ const texts: Record<
       ["BBCA", "-0,10%", "5,23%", "0,69"],
     ],
     noHoldings:
-      "Anda belum memegang saham, sehingga portofolio Anda hanya berisi kas, yang tidak menghasilkan imbal hasil di Portolab. Portolab menghitung ukuran portofolio Anda setelah order beli Anda tereksekusi.",
+      "Anda tidak memegang saham, sehingga portofolio Anda hanya berisi kas, yang tidak menghasilkan imbal hasil di Portolab. Portolab menghitung ukuran portofolio Anda setelah order beli Anda tereksekusi.",
     itmgFailure:
       "Saham Anda dan IHSG baru sama-sama memiliki 0 imbal hasil bulanan dalam 60 bulan lengkap terakhir, dan ITMG memiliki imbal hasil paling sedikit, sedangkan Portolab menghitung ukuran portofolio hanya dari paling sedikit 24 imbal hasil bulanan. Jika IHSG dan setiap saham Anda tetap memiliki harga penutupan di akhir setiap bulan, Portolab menghitung ukuran portofolio Anda setelah pembaruan riwayat harga yang menyimpan harga penutupan hari bursa pertama November 2028.",
     stockTitle: "Imbal hasil dan risiko BBCA",
@@ -226,7 +226,7 @@ const texts: Record<
     notFoundTitle: "Halaman tidak ditemukan",
   },
   en: {
-    classLink: "Return and risk of your portfolio and of each stock",
+    analysisLink: "Analysis",
     title: `Return and risk in ${className}`,
     backLink: `Back to ${className}`,
     portfolioLink: "See the value and the return of your portfolio",
@@ -317,7 +317,7 @@ const texts: Record<
       ["BBCA", "-0.10%", "5.23%", "0.69"],
     ],
     noHoldings:
-      "You hold no shares yet, so your portfolio is cash alone, which earns no return in Portolab. Portolab computes the measures of your portfolio once a purchase of yours fills.",
+      "You hold no shares, so your portfolio is cash alone, which earns no return in Portolab. Portolab computes the measures of your portfolio once a purchase of yours fills.",
     itmgFailure:
       "Your stocks and the IHSG share 0 monthly returns in the latest 60 complete months, and ITMG has the fewest returns, but Portolab computes the measures of a portfolio only from at least 24 monthly returns. If the IHSG and each of your stocks keep a close at the end of every month, Portolab computes the measures of your portfolio after the update of the price history that stores the close of the first trading day of November 2028.",
     stockTitle: "Return and risk of BBCA",
@@ -370,7 +370,11 @@ async function openMeasures(
     portfolio,
   );
   await student
-    .getByRole("link", { name: texts[portfolio.locale].classLink })
+    .getByRole("main")
+    .getByRole("link", {
+      name: texts[portfolio.locale].analysisLink,
+      exact: true,
+    })
     .click();
   await expect(student).toHaveURL(`${classPath}/measures`);
   return { student, main: student.getByRole("main"), classPath };
@@ -516,7 +520,7 @@ for (const locale of locales) {
     });
     for (const [name, path] of [
       [text.backLink, classPath],
-      [text.portfolioLink, `${classPath}/portfolio`],
+      [text.portfolioLink, classPath],
       [text.ordersLink, `${classPath}/orders`],
     ] as const) {
       await expect(main.getByRole("link", { name })).toHaveAttribute(
@@ -670,8 +674,13 @@ for (const locale of locales) {
       resting: text.mapPoints.market,
     });
     await expectAccessibleScreen(student);
-    await student.goto(`${classPath}/portfolio`);
-    await main.getByRole("link", { name: text.measuresLink }).click();
+    await student.goto(classPath);
+    await main
+      .getByRole("link", {
+        name: locale === "id" ? "Analisis" : "Analysis",
+        exact: true,
+      })
+      .click();
     await expect(student).toHaveURL(`${classPath}/measures`);
     await student.context().close();
   });

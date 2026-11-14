@@ -26,6 +26,13 @@ export function formatRupiah(amount: Rupiah): string {
   return new Intl.NumberFormat(intlLocale(), rupiahOptions).format(amount);
 }
 
+/** One format supplies both the currency and digits when a headline sizes them apart. */
+export function formatRupiahParts(amount: Rupiah): Intl.NumberFormatPart[] {
+  return new Intl.NumberFormat(intlLocale(), rupiahOptions).formatToParts(
+    amount,
+  );
+}
+
 /** How the active language groups the digits of a whole number: the character between groups, such as the dot in 100.000.000, and the number of digits in each group after the first, so that a parser can read a number as a person writes it. */
 export function digitGrouping(): { separator: string; size: number } {
   const locale = intlLocale();
@@ -182,7 +189,13 @@ function formatTwoDecimals(value: number): string {
   return new Intl.NumberFormat(intlLocale(), {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
+    signDisplay: "negative",
   }).format(value);
+}
+
+/** Formats a difference of returns in percentage points, without a percent sign. */
+export function formatPercentagePoints(fraction: number): string {
+  return formatTwoDecimals(fraction * 100);
 }
 
 /** How a calendar date reads: in words for a sentence, in words with the day of the week, or with the short month of a table. */

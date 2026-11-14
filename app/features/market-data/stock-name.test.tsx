@@ -83,13 +83,27 @@ const stocksOfSectors: Record<Sector, StockOfSector> = {
 };
 
 /** The markup of a stock without the names of the classes of CSS modules, which carry a hash. */
-function renderStock(code: string, withSector: boolean): string {
+function renderStock(
+  code: string,
+  withSector: boolean,
+  withCompanyName = true,
+): string {
   return renderToStaticMarkup(
-    <StockName code={code} withSector={withSector} />,
+    <StockName
+      code={code}
+      withSector={withSector}
+      withCompanyName={withCompanyName}
+    />,
   ).replaceAll(/ class="[^"]*"/g, "");
 }
 
 for (const locale of locales) {
+  test(`keeps the tile and code when a compact holding row omits the company name in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    expect(renderStock("BBCA", false, false)).toBe(
+      '<div><span aria-hidden="true">BB</span><div><span>BBCA</span></div></div>',
+    );
+  });
   test(`shows the sector of the company of a stock in each sector of IDX-IC under the name of the company, in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     for (const { code, tile, name, sector } of Object.values(stocksOfSectors)) {

@@ -33,6 +33,18 @@ import { sharpeRatio } from "./units/sharpe-ratio";
 // 09:14:56 UTC on 16 October 2026 is 16:14 WIB.
 const quotedAt = new Date("2026-10-16T09:14:56.000Z");
 
+const roundedZero: Record<Locale, string> = { id: "0,00", en: "0.00" };
+for (const locale of locales) {
+  test(`formats beta, correlation, and Sharpe without a minus sign when they round to zero in ${locale}`, () => {
+    switchLocaleForTest(locale);
+    for (const value of [-0.0001, 0, 0.0001]) {
+      expect(formatBeta(beta(value))).toBe(roundedZero[locale]);
+      expect(formatCorrelation(correlation(value))).toBe(roundedZero[locale]);
+      expect(formatSharpeRatio(sharpeRatio(value))).toBe(roundedZero[locale]);
+    }
+  });
+}
+
 const sizes: Record<Locale, string> = {
   id: "128.040 byte",
   en: "128,040 bytes",

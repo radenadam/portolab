@@ -14,18 +14,10 @@ import {
 } from "~/features/market-data/quote-updates-for-test.server";
 import { stockQuote } from "~/features/market-data/stock-quote";
 import { checkPortfolioOrders } from "./check-open-orders.server";
-import {
-  bbcaForTest,
-  duringSessionForTest,
-  orderLotsForTest,
-  purchaseForTest,
-  saleForTest,
-} from "./orders-for-test";
+import { orderLotsForTest, saleForTest } from "./orders-for-test";
 import type { PortfolioOwner } from "./portfolio-store.server";
-import {
-  placedOrderForTest,
-  studentWithQuotesForTest,
-} from "./portfolios-for-test.server";
+import { placedOrderForTest } from "./portfolios-for-test.server";
+import { purchasedPortfolioForTest } from "./purchased-portfolio-for-test.server";
 
 /** 10:00 WIB on Tuesday 3 November 2026, in session I. */
 const tuesdaySessionForTest = new Date("2026-11-03T03:00:00Z");
@@ -54,16 +46,7 @@ export async function tradedPortfolioForTest(): Promise<{
   database: Database;
   owner: PortfolioOwner;
 }> {
-  const { database, owner } = await studentWithQuotesForTest(
-    [bbcaForTest.quote],
-    bbcaForTest.quote.quotedAt,
-  );
-  placedOrderForTest(
-    database,
-    owner,
-    purchaseForTest({ lots: orderLotsForTest(200) }),
-  );
-  checkPortfolioOrders(database, owner.membershipId, duringSessionForTest);
+  const { database, owner } = await purchasedPortfolioForTest();
   await updateQuotesForTest(
     database,
     sourceAnsweringForTest([

@@ -13,6 +13,8 @@ A redesign followed as clickable mocks. On 13 November 2026 the maintainer chose
 
 ### The reference screens
 
+Beranda replaces the old class page of a student with the portfolio layout of its reference. It no longer shows the class calendar notice of [decision 0032](0032-a-class-meets-weekly-from-the-date-of-its-first-session.md).
+
 The reference screens of Portolab are images in [`docs/design/peta/`](../design/peta/), drawn in Bahasa Indonesia with the seeded sample data of the prototype. Each image shows the whole height of a screen of the prototype at 1440 pixels on a desktop or at 360 pixels on a phone, in the light theme unless its link says dark. Kamus and a sheet on a phone show only the first screen, because the other terms of Kamus repeat the same part and a sheet scrolls inside the screen. The prototype shows a monogram tile for each stock, because the repository carries no logos of other companies.
 
 | Screen                                                                                                                   | Desktop                                                                                                      | Phone                                                                                                   |
@@ -86,10 +88,10 @@ The colors are tokens of `app/theme.css`, which defines all of them before the s
 | Tint of data, such as the current item of the rail | `--color-data-soft`     | `rgba(31, 111, 214, 0.1)` | `rgba(57, 135, 229, 0.18)`  |
 | Tint of the reader's own point                     | `--color-own-soft`      | `rgba(201, 120, 0, 0.14)` | `rgba(201, 133, 0, 0.2)`    |
 | Tint of a gain                                     | `--color-gain-soft`     | `#e1f3eb`                 | `rgba(61, 203, 140, 0.14)`  |
-| Tint of a loss                                     | `--color-loss-soft`     | `#fbe8e4`                 | `rgba(255, 127, 110, 0.15)` |
+| Tint of a loss                                     | `--color-loss-soft`     | `#fcedea`                 | `rgba(255, 127, 110, 0.15)` |
 | Tint of a warning                                  | `--color-warning-soft`  | `#fbf0d9`                 | `rgba(233, 180, 76, 0.14)`  |
 
-The file `src/styles.css` of the prototype holds every other detail of the look, such as the dim ground behind a sheet, the shadow of a popover, and the darker gain and loss on a highlighted row.
+The tint of a loss is lighter than the prototype because its small red text must pass the contrast check. The file `src/styles.css` of the prototype holds every other detail of the look, such as the dim ground behind a sheet, the shadow of a popover, and the darker gain and loss on a highlighted row.
 
 - Instrument Sans sets the text, with figures of equal width for every number, so digits line up in columns. DM Mono sets the labels of charts, the codes of stocks, the student numbers, and the code for joining a class.
 - Portolab serves both fonts itself from the Fontsource packages, for the reason of decision 0012. A page then loads nothing from another server, so it works on a local network without internet and tells no other server who reads Portolab.

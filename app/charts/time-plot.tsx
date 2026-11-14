@@ -38,11 +38,13 @@ export function TimePlot<Point extends { date: string }>({
   lines,
   layout,
   labelledBy,
+  coloredChanges = false,
 }: {
   points: readonly Point[];
   lines: readonly TimeLine<Point>[];
   layout: TimeChartLayout;
   labelledBy: string;
+  coloredChanges?: boolean;
 }): ReactNode {
   const isInBrowser = useIsInBrowser();
   const {
@@ -146,6 +148,7 @@ export function TimePlot<Point extends { date: string }>({
                 <span>{line.name}</span>
                 <span className={styles["tipReturn"]}>
                   <ChangeText
+                    colored={coloredChanges}
                     change={formatSignedPercent(line.returnOf(point))}
                   />
                 </span>

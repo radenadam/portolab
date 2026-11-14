@@ -23,17 +23,26 @@ const sectorNames: Record<Sector, () => string> = {
 export function StockName({
   code,
   withSector = false,
+  withCompanyName = true,
 }: {
   code: string;
   withSector?: boolean;
+  withCompanyName?: boolean;
 }): ReactNode {
   const company = companyOf(code);
   return (
-    <div className={styles["stock"]}>
+    <div
+      className={[
+        styles["stock"],
+        withCompanyName || withSector ? undefined : styles["compact"],
+      ].join(" ")}
+    >
       <CompanyTile code={code} />
       <div className={styles["names"]}>
         <span className={styles["code"]}>{code}</span>
-        <span className={styles["detail"]}>{company.name}</span>
+        {withCompanyName && (
+          <span className={styles["detail"]}>{company.name}</span>
+        )}
         {withSector && (
           <span className={styles["detail"]}>
             {sectorNames[company.sector]()}

@@ -190,9 +190,9 @@ test("lands a person in the home of the class that the person opened last, else 
       await requestAfterOpening(student, first),
       homeUrl,
     ),
-  ).toBe(`/classes/${String(first)}/portfolio`);
+  ).toBe(`/classes/${String(first)}`);
   expect(await landingPath(student, new Request(homeUrl), homeUrl)).toBe(
-    `/classes/${String(second)}/portfolio`,
+    `/classes/${String(second)}`,
   );
   const lecturer = readerContextForTest(database, { userId: lecturerId, now });
   expect(

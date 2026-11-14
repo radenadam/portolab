@@ -1,3 +1,10 @@
+import { replayPortfolioFills } from "./replay-portfolio-fills";
+import {
+  closesByDate,
+  stockClosesByCode,
+  valueHoldingsOnDay,
+  hasLaterClose,
+} from "./portfolio-close-values";
 import {
   currentOrNextSessionStart,
   pricesFinalAt,
@@ -6,7 +13,6 @@ import {
 } from "~/features/market-data/idx-calendar";
 import { priceChange } from "~/features/market-data/price-change";
 import type {
-  DailyClose,
   IndexCode,
   IndexHistory,
   StockHistory,
@@ -16,13 +22,11 @@ import type { Result } from "~/result";
 import { cumulativeReturn } from "~/units/cumulative-return";
 import type { CumulativeReturn } from "~/units/cumulative-return";
 import type { IndexPoints } from "~/units/index-points";
-import { rupiah } from "~/units/rupiah";
 import type { Rupiah } from "~/units/rupiah";
-import { shares } from "~/units/shares";
 import type { Shares } from "~/units/shares";
 import type { SplitAdjustedRupiah } from "~/units/split-adjusted-rupiah";
 import { wibDateOf } from "~/wib";
-import type { Order, OrderSide } from "./order";
+import type { Order } from "./order";
 
 /** The returns of a portfolio and of the IHSG at the close of one trading day, both since the close at the start of the history. */
 export interface ReturnPoint {
@@ -97,11 +101,8 @@ export function portfolioHistory(input: HistoryInput): PortfolioHistory {
       },
     };
   }
-  const stocks = new Map<string, Map<string, SplitAdjustedRupiah>>();
-  for (const stock of input.stocks) {
-    stocks.set(stock.code, closesByDate(stock.closes));
-  }
-  const holdingsAt = replayFills(input.startingCash, input.orders);
+  const stocks = stockClosesByCode(input.stocks);
+  const holdingsAt = replayPortfolioFills(input.startingCash, input.orders);
   // At the close of the base the portfolio held only its starting cash.
   const points: ReturnPoint[] = [
     {
@@ -192,80 +193,6 @@ function unfinishedEnd(
     : undefined;
 }
 
-/** The cash and the shares of each stock of a portfolio at the close of a day, which the fills of that day and the days before it leave. */
-type Holdings = (date: string) => {
-  cash: Rupiah;
-  sharesByCode: ReadonlyMap<string, Shares>;
-};
-
-// The history asks for its days in order, so each fill applies once, at the close of its trading day.
-function replayFills(startingCash: Rupiah, orders: readonly Order[]): Holdings {
-  const fills = filledOrders(orders);
-  const sharesByCode = new Map<string, Shares>();
-  let cash = startingCash;
-  let filledCount = 0;
-  return (date) => {
-    for (const fill of fills.slice(filledCount)) {
-      if (fill.tradingDay > date) {
-        break;
-      }
-      cash = rupiah(cash + fill.cashChange);
-      // A sale takes only shares that the fills before it bought, unless the person who runs the server deleted an order by hand, so the shares of a stock never fall below none.
-      sharesByCode.set(
-        fill.code,
-        shares(
-          Math.max(
-            0,
-            (sharesByCode.get(fill.code) ?? 0) +
-              shareSigns[fill.side] * fill.shares,
-          ),
-        ),
-      );
-      filledCount += 1;
-    }
-    return { cash, sharesByCode };
-  };
-}
-
-const shareSigns: Record<OrderSide, 1 | -1> = { buy: 1, sell: -1 };
-
-interface HistoryFill {
-  code: string;
-  side: OrderSide;
-  shares: Shares;
-  tradingDay: string;
-  cashChange: Rupiah;
-}
-
-// The fills of each day apply together at its close, so only the order of the days matters.
-function filledOrders(orders: readonly Order[]): HistoryFill[] {
-  const fills: HistoryFill[] = [];
-  for (const order of orders) {
-    if (order.state.kind === "filled") {
-      fills.push({
-        code: order.code,
-        side: order.side,
-        shares: order.shares,
-        tradingDay: order.tradingDay,
-        cashChange: order.state.fill.cashChange,
-      });
-    }
-  }
-  return fills.sort((first, second) =>
-    first.tradingDay.localeCompare(second.tradingDay),
-  );
-}
-
-function closesByDate<Price>(
-  closes: readonly DailyClose<Price>[],
-): Map<string, Price> {
-  const byDate = new Map<string, Price>();
-  for (const close of closes) {
-    byDate.set(close.date, close.close);
-  }
-  return byDate;
-}
-
 type DayValue =
   | { kind: "valued"; value: number; level: IndexPoints }
   | { kind: "skipped" }
@@ -281,8 +208,9 @@ function valueOnDay(
     stocks: ReadonlyMap<string, ReadonlyMap<string, SplitAdjustedRupiah>>;
   },
 ): DayValue {
+  const holdingValue = valueHoldingsOnDay(date, portfolio);
   const missingCodes: string[] = [];
-  let isSkipped = false;
+  let isSkipped = holdingValue.skippedCodes.length > 0;
   const level = portfolio.market.closes.get(date);
   if (level === undefined) {
     if (hasLaterClose(portfolio.market.closes, date)) {
@@ -291,39 +219,12 @@ function valueOnDay(
       missingCodes.push(portfolio.market.code);
     }
   }
-  let value: number = portfolio.cash;
-  for (const [code, count] of portfolio.sharesByCode) {
-    if (count === 0) {
-      continue;
-    }
-    const closes =
-      portfolio.stocks.get(code) ?? new Map<string, SplitAdjustedRupiah>();
-    const close = closes.get(date);
-    if (close !== undefined) {
-      value += count * close;
-    } else if (hasLaterClose(closes, date)) {
-      isSkipped = true;
-    } else {
-      missingCodes.push(code);
-    }
-  }
+  missingCodes.push(...holdingValue.missingCodes);
   if (missingCodes.length > 0) {
     return { kind: "missing", codes: missingCodes };
   }
   if (isSkipped || level === undefined) {
     return { kind: "skipped" };
   }
-  return { kind: "valued", value, level };
-}
-
-function hasLaterClose(
-  closes: ReadonlyMap<string, unknown>,
-  date: string,
-): boolean {
-  for (const closeDate of closes.keys()) {
-    if (closeDate > date) {
-      return true;
-    }
-  }
-  return false;
+  return { kind: "valued", value: holdingValue.value, level };
 }
