@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
+import { expectPageHeadings } from "./expect-page-headings.ts";
 import { languageNames } from "../app/language-names.ts";
 import { baseLocale, locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
@@ -103,10 +104,7 @@ for (const locale of locales) {
     await chooseLanguage(page, locale);
     await page.goto("/");
     await expect(page).toHaveURL("/sign-in");
-    await expect(page).toHaveTitle(`${text.signInTitle} | Portolab`);
-    await expect(
-      page.getByRole("heading", { level: 1, name: text.signInTitle }),
-    ).toBeVisible();
+    await expectPageHeadings(page, { title: text.signInTitle, headings: [] });
     // A phone shows the short badge of the simulation, and a desktop the long one.
     await expect(
       page.getByRole("button", {
