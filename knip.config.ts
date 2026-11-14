@@ -11,6 +11,8 @@ export default {
     "app/features/measures/measure-trade.ts!",
     // The list of the market and the holdings of the home of a student of issue #127 call Sparkline, once they show the closes of the last month of each stock.
     "app/charts/sparkline.tsx!",
+    // The lessons and glossary of issue #127 call readLearningContent when piece 22 adds their pages.
+    "app/features/learning/read-learning-content.server.ts!",
   ],
   // Helpers of tests, browser tests, and lint rules are not production code, so the production run leaves them out.
   project: [
