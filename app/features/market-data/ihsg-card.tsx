@@ -87,7 +87,7 @@ export function IhsgCard({
         </div>
       )}
       {closes.length === 0 ? (
-        <p>{m.market_data_no_chart_notice()}</p>
+        <p>{m.market_data_no_closes_notice()}</p>
       ) : (
         <div className={styles["indexChart"]}>
           <TimeSeriesChart

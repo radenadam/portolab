@@ -250,12 +250,10 @@
   align-items: center;
   min-block-size: var(--size-touch-target);
 }
-.status {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
 @media (width < 74rem) {
+  .tableReference {
+    display: none;
+  }
   .sectors {
     flex-basis: 100%;
   }
@@ -263,12 +261,16 @@
     display: none;
   }
   .table thead {
-    display: none;
     position: absolute;
     inline-size: 1px;
     block-size: 1px;
     overflow: hidden;
     clip-path: inset(50%);
+  }
+  .table thead th:nth-child(2),
+  .table thead th:nth-child(6),
+  .table thead th:nth-child(7) {
+    display: none;
   }
   .table,
   .table tbody {

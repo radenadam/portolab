@@ -1,6 +1,6 @@
 import { succeed } from "~/result";
 import type { Result } from "~/result";
-import { portfolioWeight } from "~/units/portfolio-weight";
+import { portfolioWeightOf } from "~/features/trading/portfolio-weight-of";
 import type { PortfolioWeight } from "~/units/portfolio-weight";
 import { rupiah } from "~/units/rupiah";
 import type { Rupiah } from "~/units/rupiah";
@@ -34,7 +34,7 @@ export function measureValuedPortfolio(
     portfolio.holdings.map(({ code, closes, value }) => ({
       code,
       closes,
-      weight: portfolioWeight(value / wholeValue),
+      weight: portfolioWeightOf(value, wholeValue),
     })),
     market,
     settings,
@@ -44,6 +44,6 @@ export function measureValuedPortfolio(
   }
   return succeed({
     ...measures.value,
-    cashWeight: portfolioWeight(portfolio.cash / wholeValue),
+    cashWeight: portfolioWeightOf(portfolio.cash, wholeValue),
   });
 }

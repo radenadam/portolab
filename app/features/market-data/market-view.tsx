@@ -1,9 +1,10 @@
 import { FilterOptions } from "./filter-options";
 import { MarketMeasureHelp } from "./market-measure-help";
-import { monthSpanInputs } from "~/features/measures/month-span";
+import { MarketReferenceNotice } from "./market-reference-notice";
+import { MarketEmpty } from "./market-empty";
 import { useMarketFilters } from "./use-market-filters";
 import type { ReactNode } from "react";
-import { Form, Link } from "react-router";
+import { Form } from "react-router";
 import type { ClassId } from "~/features/classes/classes.schema";
 import { countedText } from "~/counted-text";
 import { formatCalendarDate, formatNumber } from "~/formatting";
@@ -44,7 +45,6 @@ type MarketViewProps = ReturnType<typeof readMarket> & {
   values: Record<keyof MarketFilters, string>;
 };
 
-/** Native GET submission must keep filtering available before JavaScript loads. */
 export function MarketView(props: MarketViewProps): ReactNode {
   const { classId, filters, rows, latestAttempt, failures, values } = props;
   const { live, setLive, formRef } = useMarketFilters(filters);
@@ -260,16 +260,7 @@ export function MarketView(props: MarketViewProps): ReactNode {
             )}
           </h2>
           {shown.length === 0 ? (
-            <div className={styles["empty"]}>
-              <p>
-                {m.market_data_no_results_notice({ query: live.query.trim() })}
-              </p>
-              <Link
-                to={`${marketPath(classId)}${marketSearch({ ...live, query: "", sector: "all" })}`}
-              >
-                {m.market_data_clear_link()}
-              </Link>
-            </div>
+            <MarketEmpty classId={classId} filters={live} />
           ) : (
             <MarketTable
               rows={shown}
@@ -284,14 +275,12 @@ export function MarketView(props: MarketViewProps): ReactNode {
           )}
         </section>
       )}
-      {props.marketReference.ok && (
-        <p className={styles["status"]}>
-          {m.market_data_reference_notice({
-            index: props.index,
-            ...monthSpanInputs(props.marketReference.value.months),
-          })}
-        </p>
-      )}
+      <MarketReferenceNotice
+        rows={shown}
+        indexQuote={props.indexQuote}
+        reference={props.marketReference}
+        index={props.index}
+      />
       <PriceStatus
         quotes={props.quotes}
         latestAttempt={latestAttempt}

@@ -27,6 +27,7 @@ import {
 import type { MissingCalendar, PortfolioHistory } from "./portfolio-history";
 import type { Portfolio } from "./portfolio-store.server";
 import { valuePortfolio } from "./value-portfolio";
+import { filledStockCodes } from "./filled-stock-codes";
 import type { PortfolioValuation } from "./value-portfolio";
 
 /** A portfolio of a student in a class at the latest delayed prices of its holdings. */
@@ -111,7 +112,7 @@ export function readPortfolioReport(
             startDate: startDate.value,
             orders: portfolio.orders,
             market: marketHistory,
-            stocks: filledCodes(portfolio).map((code) =>
+            stocks: filledStockCodes(portfolio.orders).map((code) =>
               listStockHistory(database, code, startDate.value),
             ),
             now,
@@ -121,14 +122,4 @@ export function readPortfolioReport(
       : startDate,
     market,
   };
-}
-
-function filledCodes(portfolio: Portfolio): string[] {
-  const codes = new Set<string>();
-  for (const order of portfolio.orders) {
-    if (order.state.kind === "filled") {
-      codes.add(order.code);
-    }
-  }
-  return [...codes];
 }

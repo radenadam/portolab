@@ -1,5 +1,5 @@
 import { databaseContext } from "~/database/database.server";
-import { indexDailyCloses } from "./market-data.schema";
+import { indexDailyCloses, indexQuotes } from "./market-data.schema";
 import { saveDailyHistory, listIndexHistory } from "./history-store.server";
 import { MarketMeasureHelp } from "./market-measure-help";
 import type { ComponentProps } from "react";
@@ -74,6 +74,7 @@ const states: Record<
     one: string;
     several: string;
     none: string;
+    emptySector: string;
     clear: string;
     noChart: string;
     unavailable: string;
@@ -82,16 +83,19 @@ const states: Record<
     time: string;
     oldTime: string;
     reference: string;
+    referenceMarks: string;
     period: string;
   }
 > = {
   id: {
     one: "Saham LQ45 · 1",
     several: "Saham LQ45 · 45",
-    none: 'Tidak ada saham LQ45 yang cocok dengan "tidakada" dan sektor yang dipilih. Hapus pencarian untuk melihat semua saham.',
-    clear: "Hapus pencarian",
+    none: 'Tidak ada saham LQ45 yang cocok dengan "tidakada" dan sektor yang dipilih. Hapus filter untuk melihat semua saham.',
+    emptySector:
+      "Sektor yang dipilih tidak memiliki saham dalam daftar LQ45 saat ini. Pilih sektor lain atau hapus filter untuk melihat semua saham.",
+    clear: "Hapus filter",
     noChart:
-      "Belum ada harga penutupan dalam rentang ini. Pilih rentang lain. Jika tetap kosong, beri tahu orang yang menjalankan server Portolab ini agar riwayat harga dapat diperiksa.",
+      "Belum ada harga penutupan dalam rentang ini. Periksa kembali setelah pembaruan riwayat harga menyimpan penutupan dalam rentang ini.",
     unavailable:
       "Daftar LQ45 yang sah untuk 1 Februari 2027 belum tercatat. Beri tahu orang yang menjalankan server Portolab ini agar daftar dari BEI dapat diperiksa dan ditambahkan.",
     missed: "Pembaruan terakhir gagal",
@@ -100,15 +104,18 @@ const states: Record<
     oldTime: "29 Okt 2026, 16.14 WIB",
     period: "60 imbal hasil bulanan, dari Oktober 2021 sampai September 2026.",
     reference:
-      "Garis tegak di tabel: IHSG. Volatilitas IHSG memakai 60 imbal hasil bulanan dari Oktober 2021 sampai September 2026. Buka halaman saham untuk melihat periode ukurannya atau alasan ukurannya belum tersedia.",
+      "Volatilitas IHSG memakai 60 imbal hasil bulanan dari Oktober 2021 sampai September 2026. Buka halaman saham untuk melihat periode ukurannya atau alasan ukurannya belum tersedia.",
+    referenceMarks: "Garis tegak di tabel: IHSG.",
   },
   en: {
     one: "LQ45 stock · 1",
     several: "LQ45 stocks · 45",
-    none: 'No LQ45 stocks match "tidakada" and the chosen sector. Clear the search to see all stocks.',
-    clear: "Clear search",
+    none: 'No LQ45 stocks match "tidakada" and the chosen sector. Clear filters to see all stocks.',
+    emptySector:
+      "The chosen sector has no stocks in the current LQ45 list. Choose another sector or clear filters to see all stocks.",
+    clear: "Clear filters",
     noChart:
-      "There are no stored closes in this range yet. Choose another range. If it stays empty, tell the person who runs this Portolab server so the price history can be checked.",
+      "There are no closing prices in this range yet. Check again when a price history update stores closes in this range.",
     unavailable:
       "A valid LQ45 list for February 1, 2027 has not been recorded. Tell the person who runs this Portolab server so that the list from IDX can be checked and added.",
     missed: "Last update failed",
@@ -117,7 +124,8 @@ const states: Record<
     oldTime: "Oct 29, 2026, 4:14 PM WIB",
     period: "60 monthly returns, from October 2021 to September 2026.",
     reference:
-      "Vertical ticks in the table mark the IHSG. IHSG volatility uses 60 monthly returns from October 2021 to September 2026. Open a stock page for its measurement period or the reason its measures are unavailable.",
+      "IHSG volatility uses 60 monthly returns from October 2021 to September 2026. Open a stock page for its measurement period or the reason its measures are unavailable.",
+    referenceMarks: "Vertical ticks in the table mark the IHSG.",
   },
 };
 
@@ -151,6 +159,41 @@ async function propsForTest(): Promise<Props> {
   };
 }
 for (const locale of locales) {
+  test(`explains empty sectors and only describes reference marks when the table has them in ${languageNames[locale]}`, async () => {
+    switchLocaleForTest(locale);
+    const props = await propsForTest();
+    for (const query of ["", "   "]) {
+      const emptySector = render(props, {
+        filters: {
+          ...defaultMarketFilters,
+          query,
+          sector: "propertiesAndRealEstate",
+        },
+      });
+      expect(emptySector).toContain(states[locale].emptySector);
+      expect(emptySector).toContain(states[locale].clear);
+      expect(emptySector).not.toContain(states[locale].referenceMarks);
+    }
+    for (const query of ["tidakada", "WIFI"]) {
+      const withoutMarks = render(props, {
+        filters: { ...defaultMarketFilters, query },
+      });
+      expect(withoutMarks).not.toContain(states[locale].referenceMarks);
+    }
+    const context = await marketContextForTest();
+    context.get(databaseContext).delete(indexQuotes).run();
+    const withoutIndexQuote = readMarket(context, props.now, "3m");
+    for (const [query, hasMeasures] of [
+      ["BBCA", true],
+      ["GOTO", false],
+    ] as const) {
+      const html = render(props, {
+        ...withoutIndexQuote,
+        filters: { ...defaultMarketFilters, query },
+      });
+      expect(html.includes(states[locale].referenceMarks)).toBe(hasMeasures);
+    }
+  });
   test(`keeps unavailable and constant market references out of calculation controls in ${languageNames[locale]}`, async () => {
     switchLocaleForTest(locale);
     const context = await marketContextForTest();
@@ -202,6 +245,7 @@ for (const locale of locales) {
     expect(html).toContain("/classes/1/stocks/BBCA");
     expect(html).not.toContain('role="slider"');
     expect(html).toContain(states[locale].reference);
+    expect(html).toContain(states[locale].referenceMarks);
     const one = render(props, {
       filters: { ...defaultMarketFilters, query: "BBCA" },
     });

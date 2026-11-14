@@ -29,6 +29,9 @@ const texts: Record<
     all: string;
     clear: string;
     noResults: string;
+    emptySector: string;
+    referenceMarks: string;
+    price: string;
     month: string;
     range: string;
     stockRange: string;
@@ -49,9 +52,13 @@ const texts: Record<
     direction: "Urutan",
     financials: "Keuangan · 5",
     all: "Semua · 45",
-    clear: "Hapus pencarian",
+    clear: "Hapus filter",
     noResults:
-      'Tidak ada saham LQ45 yang cocok dengan "tidakada" dan sektor yang dipilih. Hapus pencarian untuk melihat semua saham.',
+      'Tidak ada saham LQ45 yang cocok dengan "tidakada" dan sektor yang dipilih. Hapus filter untuk melihat semua saham.',
+    emptySector:
+      "Sektor yang dipilih tidak memiliki saham dalam daftar LQ45 saat ini. Pilih sektor lain atau hapus filter untuk melihat semua saham.",
+    referenceMarks: "Garis tegak di tabel: IHSG.",
+    price: "Harga",
     month: "1B",
     range: "Rentang grafik IHSG",
     stockRange: "Rentang grafik harga",
@@ -72,9 +79,13 @@ const texts: Record<
     direction: "Order",
     financials: "Financials · 5",
     all: "All · 45",
-    clear: "Clear search",
+    clear: "Clear filters",
     noResults:
-      'No LQ45 stocks match "tidakada" and the chosen sector. Clear the search to see all stocks.',
+      'No LQ45 stocks match "tidakada" and the chosen sector. Clear filters to see all stocks.',
+    emptySector:
+      "The chosen sector has no stocks in the current LQ45 list. Choose another sector or clear filters to see all stocks.",
+    referenceMarks: "Vertical ticks in the table mark the IHSG.",
+    price: "Price",
     month: "1M",
     range: "IHSG chart range",
     stockRange: "Price chart range",
@@ -173,6 +184,13 @@ for (const locale of locales) {
           .getByRole("button", { name: text.apply, exact: true })
           .click();
         await expect(student.getByText(text.noResults)).toBeVisible();
+        await student.getByRole("link", { name: text.clear }).click();
+        await expect(rows).toHaveCount(45);
+        const emptySectorResponse = await student.goto(
+          `${testClass.path}/market?sector=propertiesAndRealEstate`,
+        );
+        expect(emptySectorResponse?.status()).toBe(200);
+        await expect(student.getByText(text.emptySector)).toBeVisible();
         await student.getByRole("link", { name: text.clear }).click();
         await expect(rows).toHaveCount(45);
         const widestSearch = "x".repeat(fieldMaximumLength);
@@ -342,6 +360,13 @@ async function captureScreens(
       if (screen === "market" && testInfo.project.name === "desktop") {
         await expectMarketScales(page);
       }
+      if (screen === "market") {
+        await expectMarketHeaders(
+          page,
+          locale,
+          testInfo.project.name === "phone",
+        );
+      }
       await page.screenshot({
         path: testInfo.outputPath(
           `${screen}-${String(width)}-${colorScheme}-${locale}.png`,
@@ -349,6 +374,21 @@ async function captureScreens(
       });
     }
   }
+}
+
+async function expectMarketHeaders(
+  page: Page,
+  locale: Locale,
+  isPhone: boolean,
+): Promise<void> {
+  const table = page.locator('section[aria-labelledby="stocks-heading"]');
+  await expect(
+    table.getByRole("columnheader", { name: texts[locale].price, exact: true }),
+  ).toHaveCount(1);
+  await expect(table.getByRole("columnheader")).toHaveCount(isPhone ? 4 : 7);
+  await expect(
+    page.getByText(texts[locale].referenceMarks, { exact: true }),
+  ).toBeVisible({ visible: !isPhone });
 }
 
 async function expectMarketScales(page: Page): Promise<void> {
