@@ -70,10 +70,10 @@ export function TaughtStudentHeading({
   return (
     <>
       <h1>
-        <NumberText>{titles[page](student)}</NumberText>
+        <NumberText verbatim>{titles[page](student)}</NumberText>
       </h1>
       <Link to={returnPath} className={styles["link"]}>
-        <NumberText>
+        <NumberText verbatim>
           {m.grading_all_portfolios_link({ class: student.className })}
         </NumberText>
       </Link>
@@ -81,7 +81,7 @@ export function TaughtStudentHeading({
         to={pathReturningTo(other.path, returnPath)}
         className={styles["link"]}
       >
-        <NumberText>{other.label}</NumberText>
+        <NumberText verbatim>{other.label}</NumberText>
       </Link>
     </>
   );

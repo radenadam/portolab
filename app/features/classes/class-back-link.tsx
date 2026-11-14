@@ -15,7 +15,9 @@ export function ClassBackLink({
 }): ReactNode {
   return (
     <Link to={classPath(classId)} className={styles["link"]}>
-      <NumberText>{m.classes_back_link({ class: className })}</NumberText>
+      <NumberText verbatim>
+        {m.classes_back_link({ class: className })}
+      </NumberText>
     </Link>
   );
 }

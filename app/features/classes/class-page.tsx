@@ -111,7 +111,7 @@ export default function ClassPage({
       return (
         <>
           <h1>
-            <NumberText>{loaderData.name}</NumberText>
+            <NumberText verbatim>{loaderData.name}</NumberText>
           </h1>
           <JoinDetails
             joinCode={loaderData.joinCode}
@@ -156,21 +156,23 @@ function Students({
       {students.map((student) => (
         <li key={student.id} className={styles["item"]}>
           <strong className={styles["name"]}>
-            <NumberText>{student.name}</NumberText>
+            <NumberText verbatim>{student.name}</NumberText>
           </strong>
           <p className={styles["details"]}>
             <NumberText>
-              {m.classes_student_notice({
-                username: student.username,
-                time: formatMarketTime(student.joinedAt),
-              })}
+              {(textValue) =>
+                m.classes_student_notice({
+                  username: textValue(student.username),
+                  time: formatMarketTime(student.joinedAt),
+                })
+              }
             </NumberText>
           </p>
           <Link
             to={resetStudentPasswordPath(classId, student.id)}
             className={styles["link"]}
           >
-            <NumberText>
+            <NumberText verbatim>
               {m.classes_reset_password_link({ name: student.name })}
             </NumberText>
           </Link>

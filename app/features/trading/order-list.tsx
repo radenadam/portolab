@@ -108,7 +108,7 @@ export function ReasonSection({
       <h2>{m.trading_lecturer_reasons_title()}</h2>
       {reasoned.length === 0 ? (
         <p>
-          <NumberText>
+          <NumberText verbatim>
             {m.trading_lecturer_no_reasons_body({ name: studentName })}
           </NumberText>
         </p>
@@ -118,7 +118,7 @@ export function ReasonSection({
             <li key={order.id} className={styles["item"]}>
               <OrderHeading order={order} />
               <p className={styles["reason"]}>
-                <NumberText>{reason}</NumberText>
+                <NumberText verbatim>{reason}</NumberText>
               </p>
             </li>
           ))}
@@ -139,7 +139,7 @@ function OrderLines({ order, now }: { order: Order; now: Date }): ReactNode {
       ))}
       {order.reason !== undefined && (
         <p className={styles["reason"]}>
-          <NumberText>
+          <NumberText verbatim>
             {m.trading_reason_notice({ reason: order.reason })}
           </NumberText>
         </p>

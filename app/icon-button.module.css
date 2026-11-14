@@ -1,0 +1,13 @@
+:where(.button) {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--size-touch-target);
+  height: var(--size-touch-target);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}

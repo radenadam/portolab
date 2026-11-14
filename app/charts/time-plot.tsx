@@ -201,7 +201,7 @@ export function TimePlot<Point extends { date: string }, Value extends number>({
               <p key={line.name} className={styles["tipLine"]}>
                 <LineKey kind={line.kind} />
                 <span>
-                  <NumberText>{line.name}</NumberText>
+                  <NumberText verbatim>{line.name}</NumberText>
                 </span>
                 <span className={styles["tipValue"]}>
                   <NumberText whole>

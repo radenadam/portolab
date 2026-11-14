@@ -51,12 +51,12 @@ export default function ResetPasswordPage({
 }: Route.ComponentProps): ReactNode {
   const { student, returnPath } = loaderData;
   return (
-    <section className={styles["reset"]} data-layout="reading">
+    <section className={styles["panel"]} data-layout="reading">
       <h1>{m.classes_reset_title()}</h1>
       {actionData === undefined ? (
         <>
           <p>
-            <NumberText>
+            <NumberText verbatim>
               {m.classes_reset_body({
                 name: student.name,
                 username: student.username,
@@ -73,7 +73,7 @@ export default function ResetPasswordPage({
             text={m.classes_temporary_password_notice({ name: student.name })}
           />
           <p className={styles["code"]}>
-            <NumberText>{actionData.temporaryPassword}</NumberText>
+            <NumberText verbatim>{actionData.temporaryPassword}</NumberText>
           </p>
         </>
       )}

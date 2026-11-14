@@ -2,6 +2,7 @@ import { languageNames } from "./language-names";
 import { renderToStaticMarkup } from "react-dom/server";
 import { expect, test } from "vitest";
 import { NumberText } from "./number-text";
+import { renderTextMarkupForTest } from "./render-text-markup-for-test";
 import { numberPattern } from "./number-pattern";
 import { locales } from "./paraglide/runtime.js";
 import type { Locale } from "./paraglide/runtime.js";
@@ -113,6 +114,41 @@ test("leaves words and instrument codes intact", () => {
   expect(matchedNumbers(text)).toEqual([]);
   expect(renderToStaticMarkup(<NumberText>{text}</NumberText>)).toBe(text);
 });
+
+test("leaves a long digit-only name as text", () => {
+  const name = "8".repeat(100);
+  expect(renderToStaticMarkup(<NumberText verbatim>{name}</NumberText>)).toBe(
+    `<span data-text-value="">${name}</span>`,
+  );
+});
+
+const mixedTexts: Record<Locale, { quantity: string; verb: string }> = {
+  id: { quantity: "1 imbal hasil bulanan", verb: "memiliki" },
+  en: { quantity: "1 monthly return", verb: "has" },
+};
+
+for (const locale of locales) {
+  test(`keeps text placeholders distinct from identical quantities in ${languageNames[locale]}`, () => {
+    const { quantity, verb } = mixedTexts[locale];
+    const html = renderToStaticMarkup(
+      <NumberText>
+        {(textValue) =>
+          `${textValue("1")} ${verb} ${quantity} (${textValue(quantity)}).`
+        }
+      </NumberText>,
+    );
+    expect(html).toContain('data-text-value="">1</span>');
+    expect(html).toContain(`data-number="">${quantity}</span>`);
+    expect(html).toContain(`data-text-value="">${quantity}</span>`);
+    expect(
+      renderTextMarkupForTest(
+        <NumberText>
+          {(textValue) => `${textValue("1")} ${verb} ${quantity}.`}
+        </NumberText>,
+      ),
+    ).toBe(`1 ${verb} ${quantity}.`);
+  });
+}
 
 test("requires an explicit whole group for an element", () => {
   const element = <em>128.000 byte</em>;

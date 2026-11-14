@@ -267,12 +267,12 @@ function MapTip({ drawn }: { drawn: DrawnPoint }): ReactNode {
       }}
     >
       <p className={styles["tipName"]}>
-        <NumberText>{drawn.point.name}</NumberText>
+        <NumberText verbatim>{drawn.point.name}</NumberText>
       </p>
       {drawn.point.values.map(({ name, value }) => (
         <p key={name} className={styles["tipValue"]}>
           <span>
-            <NumberText>{name}</NumberText>
+            <NumberText verbatim>{name}</NumberText>
           </span>
           <span className={styles["tipNumber"]}>
             <ValueText value={value} />

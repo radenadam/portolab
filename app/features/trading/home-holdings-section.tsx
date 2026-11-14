@@ -3,6 +3,7 @@ import { CashName } from "./cash-name";
 import { sharedQuoteTime } from "./shared-quote-time";
 import { HomeHoldingPrice } from "./home-holding-price";
 import { NumberText } from "~/number-text";
+import { homeHoldingsSectionId } from "./home-holdings-section-id";
 import { homeSparklineMonths } from "./home-sparkline-months";
 import { portfolioWeight } from "~/units/portfolio-weight";
 import { rupiah } from "~/units/rupiah";
@@ -78,9 +79,9 @@ export function HomeHoldingsSection({
   return (
     <section
       className={styles["holdings"]}
-      aria-labelledby="home-holdings-heading"
+      aria-labelledby={homeHoldingsSectionId}
     >
-      <h2 id="home-holdings-heading" className={styles["holdingsTitle"]}>
+      <h2 id={homeHoldingsSectionId} className={styles["holdingsTitle"]}>
         <NumberText>{title}</NumberText>
       </h2>
       {values.holdings.length === 0 && (

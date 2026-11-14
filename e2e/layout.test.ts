@@ -16,7 +16,11 @@ import type { LayoutRule } from "./expect-layout.ts";
 import { newDevice } from "./new-device.ts";
 import { storeTestHolding } from "./store-test-holding.ts";
 import { studentOfNewClass } from "./student-of-new-class.ts";
-import { widestClassNames } from "./widest-class-names.ts";
+import {
+  widestClassNames,
+  widestDigitClassNames,
+} from "./widest-class-names.ts";
+import { lessonSessionsForTest } from "./lesson-sessions-for-test.ts";
 
 /** Who opens a page: a visitor who is not signed in, the lecturer of the class, its student, or a lecturer who has not finished the account yet. */
 type Reader = "visitor" | "lecturer" | "student" | "newLecturer";
@@ -38,6 +42,18 @@ interface RoutePage {
 
 // Each route of app/routes.ts, by its module, with the pages that the walk opens. The data of the walk has the widest content, so each page shows it at its widest.
 const routePages: Record<string, readonly RoutePage[]> = {
+  "features/learning/learn-page.tsx": [
+    { reader: "student", path: ({ classPath }) => `${classPath}/learn` },
+  ],
+  "features/learning/lesson-page.tsx": lessonSessionsForTest.map(
+    (session): RoutePage => ({
+      reader: "student",
+      path: ({ classPath }) => `${classPath}/learn/${String(session)}`,
+    }),
+  ),
+  "features/learning/glossary-page.tsx": [
+    { reader: "student", path: ({ classPath }) => `${classPath}/glossary` },
+  ],
   "features/home/home-page.tsx": [{ reader: "visitor", path: () => "/" }],
   "features/market-data/prices-page.tsx": [
     { reader: "visitor", path: () => "/prices" },
@@ -169,11 +185,12 @@ const walkedCash = rupiah(505_258_503_757);
 async function walkedReaders(
   page: Page,
   browser: Browser,
+  names: typeof widestClassNames,
 ): Promise<{ readers: Record<Reader, Page>; walked: WalkedClass }> {
   const { student, classId, classPath } = await studentOfNewClass(
     page,
     browser,
-    { locale: baseLocale, ...widestClassNames },
+    { locale: baseLocale, ...names },
   );
   storeTestHolding(
     classId,
@@ -241,43 +258,49 @@ async function inspectScreen(
 
 for (const [project, widths] of Object.entries(widthsOfProject)) {
   for (const width of widths) {
-    test(`keeps the layout of every page at ${String(width)} pixels`, async ({
-      page,
-      browser,
-    }, testInfo) => {
-      test.skip(
-        testInfo.project.name !== project,
-        `The ${project} project walks this width.`,
-      );
-      test.setTimeout(walkTimeoutMilliseconds);
-      const { readers, walked } = await walkedReaders(page, browser);
-      const walkedLocales: readonly Locale[] = widthsInEveryLanguage.includes(
-        width,
-      )
-        ? locales
-        : [baseLocale];
-      const problems: string[] = [];
-      for (const locale of walkedLocales) {
-        for (const reader of Object.values(readers)) {
-          await chooseLanguage(reader, locale);
-          await reader.setViewportSize({ width, height: 900 });
+    const namesAtWidth =
+      width === 360
+        ? { letters: widestClassNames, digits: widestDigitClassNames }
+        : { letters: widestClassNames };
+    for (const [nameKind, names] of Object.entries(namesAtWidth)) {
+      test(`keeps the layout of every page at ${String(width)} pixels with ${nameKind}`, async ({
+        page,
+        browser,
+      }, testInfo) => {
+        test.skip(
+          testInfo.project.name !== project,
+          `The ${project} project walks this width.`,
+        );
+        test.setTimeout(walkTimeoutMilliseconds);
+        const { readers, walked } = await walkedReaders(page, browser, names);
+        const walkedLocales: readonly Locale[] = widthsInEveryLanguage.includes(
+          width,
+        )
+          ? locales
+          : [baseLocale];
+        const problems: string[] = [];
+        for (const locale of walkedLocales) {
+          for (const reader of Object.values(readers)) {
+            await chooseLanguage(reader, locale);
+            await reader.setViewportSize({ width, height: 900 });
+          }
+          for (const [
+            screen,
+            { reader, path, brokenUntilRebuilt = [] },
+          ] of Object.values(routePages).flat().entries()) {
+            const address = path(walked);
+            await readers[reader].goto(address);
+            problems.push(
+              ...(await inspectScreen(
+                readers[reader],
+                { screen, locale, width, address, brokenUntilRebuilt },
+                testInfo,
+              )),
+            );
+          }
         }
-        for (const [
-          screen,
-          { reader, path, brokenUntilRebuilt = [] },
-        ] of Object.values(routePages).flat().entries()) {
-          const address = path(walked);
-          await readers[reader].goto(address);
-          problems.push(
-            ...(await inspectScreen(
-              readers[reader],
-              { screen, locale, width, address, brokenUntilRebuilt },
-              testInfo,
-            )),
-          );
-        }
-      }
-      expect(problems).toEqual([]);
-    });
+        expect(problems).toEqual([]);
+      });
+    }
   }
 }

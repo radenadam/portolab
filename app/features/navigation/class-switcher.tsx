@@ -41,7 +41,7 @@ export function ClassSwitcher({
       <PopoverButton popover={switcherId} className={styles["button"]}>
         <span className={styles["current"]}>
           <span className={styles["name"]}>
-            <NumberText>{current.name}</NumberText>
+            <NumberText verbatim>{current.name}</NumberText>
           </span>
           {current.term !== undefined && (
             <span className={styles["term"]}>
@@ -96,10 +96,12 @@ function ClassLink({
     >
       <span className={styles["classText"]}>
         <span>
-          <NumberText>{workspaceClass.name}</NumberText>
+          <NumberText verbatim>{workspaceClass.name}</NumberText>
         </span>
         <span className={styles["details"]}>
-          <NumberText>{classDetailsText(workspaceClass)}</NumberText>
+          <NumberText>
+            {(textValue) => classDetailsText(workspaceClass, textValue)}
+          </NumberText>
         </span>
       </span>
       {isCurrent && <Icon name="check" className={styles["check"]} />}
@@ -108,8 +110,11 @@ function ClassLink({
 }
 
 /** The line under the name of a class in the switcher: its lecturer or the number of its students, with its term once its lecturer set the date of its first session. */
-function classDetailsText(workspaceClass: WorkspaceClass): string {
-  const people = peopleText(workspaceClass.people);
+function classDetailsText(
+  workspaceClass: WorkspaceClass,
+  textValue: (value: string) => string,
+): string {
+  const people = peopleText(workspaceClass.people, textValue);
   return workspaceClass.term === undefined
     ? people
     : m.navigation_class_details_notice({
@@ -118,10 +123,13 @@ function classDetailsText(workspaceClass: WorkspaceClass): string {
       });
 }
 
-function peopleText(people: WorkspaceClass["people"]): string {
+function peopleText(
+  people: WorkspaceClass["people"],
+  textValue: (value: string) => string,
+): string {
   switch (people.kind) {
     case "lecturer":
-      return people.name;
+      return textValue(people.name);
     case "students":
       return countedText(
         people.count,

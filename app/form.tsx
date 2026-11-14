@@ -306,7 +306,7 @@ export function StepForm({
 export function FormSuccess({ text }: { text: string }): ReactNode {
   return (
     <p role="status" className={styles["success"]}>
-      <NumberText>{text}</NumberText>
+      <NumberText verbatim>{text}</NumberText>
     </p>
   );
 }

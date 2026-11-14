@@ -18,13 +18,15 @@ export function StudentRank({
   const rank = studentRank(student, all, measure);
   return (
     <NumberText>
-      {rank === undefined
-        ? m.grading_unranked_notice({ username: student.username })
-        : m.grading_rank_notice({
-            username: student.username,
-            rank: formatNumber(rank.rank),
-            total: formatNumber(rank.total),
-          })}
+      {(textValue) =>
+        rank === undefined
+          ? m.grading_unranked_notice({ username: textValue(student.username) })
+          : m.grading_rank_notice({
+              username: textValue(student.username),
+              rank: formatNumber(rank.rank),
+              total: formatNumber(rank.total),
+            })
+      }
     </NumberText>
   );
 }

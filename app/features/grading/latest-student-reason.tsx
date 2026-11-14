@@ -23,7 +23,7 @@ export function LatestStudentReason({
             <NumberText>{heading(reason)}</NumberText>
           </small>
           <p>
-            <NumberText>{reason.reason}</NumberText>
+            <NumberText verbatim>{reason.reason}</NumberText>
           </p>
         </>
       )}

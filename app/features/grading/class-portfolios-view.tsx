@@ -1,4 +1,5 @@
 import { NumberText } from "~/number-text";
+import { QuoteNotice } from "~/features/market-data/quote-notice";
 import type { ReactNode } from "react";
 import { Form } from "react-router";
 import type { ClassId } from "~/features/classes/classes.schema";
@@ -93,7 +94,9 @@ export function ClassPortfoliosView({
                 placeholder={m.grading_search_label()}
                 aria-label={m.grading_search_label()}
               />
-              <button type="submit">{m.grading_search_button_label()}</button>
+              <button type="submit" className={styles["button"]}>
+                {m.grading_search_button_label()}
+              </button>
               {queryFailure !== undefined && (
                 <p
                   id="student-search-failure"
@@ -195,7 +198,7 @@ export function ClassPortfoliosView({
                   })}
                 </NumberText>
               </p>
-              {quoteFailure !== undefined && <p>{quoteFailure}</p>}
+              <QuoteNotice text={quoteFailure} className={undefined} />
             </div>
           </section>
         </div>

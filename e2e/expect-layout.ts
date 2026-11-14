@@ -513,7 +513,13 @@ function inspectLayout({
 
   function checkNumbers(): void {
     for (const [element, nodes] of numberTextGroups()) {
-      const text = nodes.map((node) => node.data).join("");
+      const text = nodes
+        .map((node) =>
+          node.parentElement?.closest("[data-text-value]") === null
+            ? node.data
+            : "\uFFFC".repeat(node.length),
+        )
+        .join("");
       for (const match of text.matchAll(new RegExp(numberSource, "gu"))) {
         if (numberBreaks(nodes, match.index, match.index + match[0].length))
           problems.push({

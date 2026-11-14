@@ -7,7 +7,9 @@ export function renderTextMarkupForTest(part: ReactNode): string {
   return renderToStaticMarkup(part).replaceAll(/<\/?span\b[^>]*>/gu, (tag) => {
     if (tag.startsWith("</")) return numberSpans.pop() === true ? "" : tag;
     const isNumber =
-      tag.includes('data-number=""') || tag.includes('data-number-text=""');
+      tag.includes('data-number=""') ||
+      tag.includes('data-number-text=""') ||
+      tag.includes('data-text-value=""');
     numberSpans.push(isNumber);
     return isNumber ? "" : tag;
   });

@@ -108,7 +108,7 @@ export function TimeSeriesChart<
           {lines.map((line) => (
             <li key={line.name} className={styles["legendItem"]}>
               <LineKey kind={line.kind} />
-              <NumberText>{line.name}</NumberText>{" "}
+              <NumberText verbatim>{line.name}</NumberText>{" "}
               <NumberText whole>{valueNode(line.valueOf(latest))}</NumberText>
             </li>
           ))}
@@ -152,7 +152,7 @@ export function TimeSeriesChart<
               </th>
               {lines.map((line) => (
                 <th key={line.name} scope="col">
-                  <NumberText>{line.name}</NumberText>
+                  <NumberText verbatim>{line.name}</NumberText>
                 </th>
               ))}
             </tr>

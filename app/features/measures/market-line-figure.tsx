@@ -238,7 +238,7 @@ function PointName({
 }): ReactNode {
   return (
     <>
-      <NumberText>{name}</NumberText> ({symbol.letter}
+      <NumberText verbatim>{name}</NumberText> ({symbol.letter}
       {symbol.subscript !== undefined && <sub>{symbol.subscript}</sub>})
     </>
   );

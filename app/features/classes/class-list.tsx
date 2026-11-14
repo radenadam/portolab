@@ -34,10 +34,14 @@ export function ClassList({
       {classes.map((listed) => (
         <li key={listed.id} className={styles["item"]}>
           <Link to={classPath(listed.id)} className={styles["link"]}>
-            <NumberText>{listed.name}</NumberText>
+            <NumberText verbatim>{listed.name}</NumberText>
           </Link>
           <p className={styles["details"]}>
-            <NumberText>{listed.details}</NumberText>
+            <NumberText>
+              {(textValue) =>
+                role === "student" ? textValue(listed.details) : listed.details
+              }
+            </NumberText>
           </p>
         </li>
       ))}

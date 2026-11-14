@@ -17,11 +17,11 @@ export function AccountDetails({
       <dl className={styles["details"]}>
         <dt>{m.accounts_name_label()}</dt>
         <dd>
-          <NumberText>{user.name}</NumberText>
+          <NumberText verbatim>{user.name}</NumberText>
         </dd>
         <dt>{m.accounts_username_label()}</dt>
         <dd>
-          <NumberText>{user.username}</NumberText>
+          <NumberText verbatim>{user.username}</NumberText>
         </dd>
         <dt>{m.accounts_role_label()}</dt>
         <dd>

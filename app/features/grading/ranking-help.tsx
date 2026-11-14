@@ -29,7 +29,7 @@ export function RankingHelp({
       meaning={concept.meaning}
       example={
         <p>
-          <NumberText>{student.name}</NumberText>{" "}
+          <NumberText verbatim>{student.name}</NumberText>{" "}
           <NumberText>
             {value.ok ? rankingText(student.measures, measure) : value.failure}
           </NumberText>

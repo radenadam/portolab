@@ -104,7 +104,7 @@ export function Frame({
                       className={chipStyles["chip"]}
                     >
                       <span className={chipStyles["text"]}>
-                        <NumberText>{profile.name}</NumberText>
+                        <NumberText verbatim>{profile.name}</NumberText>
                       </span>
                     </PopoverButton>
                   </span>
@@ -219,7 +219,7 @@ export function PageHeader({
         {path.map((part) => (
           <span key={part.path} className={styles["pathPart"]}>
             <Link to={part.path} className={styles["pathLink"]}>
-              <NumberText>{part.label}</NumberText>
+              <NumberText verbatim>{part.label}</NumberText>
             </Link>
             <span aria-hidden="true">/</span>
           </span>

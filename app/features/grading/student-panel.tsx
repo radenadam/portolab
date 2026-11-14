@@ -110,7 +110,7 @@ export function StudentPanel({
           </span>
           <div>
             <h2 id={selectedStudentHeadingId}>
-              <NumberText>{student.name}</NumberText>
+              <NumberText verbatim>{student.name}</NumberText>
             </h2>
             <small>
               <StudentRank

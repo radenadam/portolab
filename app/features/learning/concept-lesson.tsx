@@ -1,8 +1,11 @@
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
-import { useRouteLoaderData } from "react-router";
+import { Link, useLocation, useParams, useRouteLoaderData } from "react-router";
 import { formatNumber } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
+import type { ClassId } from "~/features/classes/classes.schema";
+import { parseRecordId } from "~/value-parsers";
+import { lessonPath } from "./learning-paths";
 import type { SessionNumber } from "../classes/course-calendar";
 import type { ConceptTermId } from "./concept-term-ids";
 
@@ -25,9 +28,22 @@ export function ConceptLesson({
       `The concept card's glossary term "${termId}" has no lesson.`,
     );
   }
+  const params = useParams();
+  const location = useLocation();
+  const classId = parseRecordId<ClassId>(params["classId"], "classId");
+  const label = m.learning_concept_lesson_link({
+    session: formatNumber(session),
+  });
+  if (!classId.ok) return <NumberText>{label}</NumberText>;
   return (
-    <NumberText>
-      {m.app_concept_lesson_notice({ session: formatNumber(session) })}
-    </NumberText>
+    <Link
+      to={lessonPath(
+        classId.value,
+        session,
+        `${location.pathname}${location.search}${location.hash}`,
+      )}
+    >
+      <NumberText>{label}</NumberText>
+    </Link>
   );
 }

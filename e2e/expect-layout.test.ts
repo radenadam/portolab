@@ -602,3 +602,25 @@ test("ignores numbers in hidden help and SVG marks", async ({ page }) => {
   );
   expect(await layoutProblems(page)).toEqual([]);
 });
+
+test("accepts a wrapping digit-only name beside a quantity", async ({
+  page,
+}) => {
+  await showPage(
+    page,
+    `<p style="width: 160px; overflow-wrap: anywhere"><span data-text-value="">${"8".repeat(100)}</span> <span style="white-space: nowrap">Rp 1.000</span></p>`,
+  );
+  expect(await layoutProblems(page)).toEqual([]);
+});
+
+test("still rejects a broken quantity beside a wrapping digit-only name", async ({
+  page,
+}) => {
+  await showPage(
+    page,
+    `<p style="width: 40px; overflow-wrap: anywhere"><span data-text-value="">${"8".repeat(100)}</span> Rp 498.000.000.000</p>`,
+  );
+  const problems = await layoutProblems(page);
+  expect(problems.filter(({ rule }) => rule === "numbers")).toHaveLength(1);
+  expect(problems[0]?.text).toContain('The number "Rp 498.000.000.000"');
+});

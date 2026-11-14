@@ -90,10 +90,14 @@ export default function MeasuresPage({
   return (
     <>
       <h1>
-        <NumberText>{m.measures_page_title({ class: className })}</NumberText>
+        <NumberText verbatim>
+          {m.measures_page_title({ class: className })}
+        </NumberText>
       </h1>
       <Link to={classPath(classId)} className={styles["link"]}>
-        <NumberText>{m.measures_back_link({ class: className })}</NumberText>
+        <NumberText verbatim>
+          {m.measures_back_link({ class: className })}
+        </NumberText>
       </Link>
       <Link to={classPath(classId)} className={styles["link"]}>
         {m.measures_portfolio_link()}

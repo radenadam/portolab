@@ -80,10 +80,12 @@ export function LecturerMarketLine({
       <h2 id={headingId}>{m.measures_line_title()}</h2>
       <p>
         <NumberText>
-          {m.measures_lecturer_portfolio_line_notice({
-            ...monthSpanInputs(portfolioLine.line.months),
-            name: studentName,
-          })}
+          {(textValue) =>
+            m.measures_lecturer_portfolio_line_notice({
+              ...monthSpanInputs(portfolioLine.line.months),
+              name: textValue(studentName),
+            })
+          }
         </NumberText>
       </p>
       <MarketLineFigure

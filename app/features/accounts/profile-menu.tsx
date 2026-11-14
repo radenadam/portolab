@@ -21,7 +21,7 @@ export function ProfileMenu({
     <>
       <p className={styles["person"]}>
         <span className={styles["name"]}>
-          <NumberText>{name}</NumberText>
+          <NumberText verbatim>{name}</NumberText>
         </span>
         <span className={styles["role"]}>
           <NumberText>{roleName(readerRole)}</NumberText>

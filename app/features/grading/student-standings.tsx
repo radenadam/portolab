@@ -108,9 +108,9 @@ export function StudentStandings({
                     {initialsOf(student.name)}
                   </span>
                   <span className={styles["studentName"]}>
-                    <NumberText>{student.name}</NumberText>
+                    <NumberText verbatim>{student.name}</NumberText>
                     <small>
-                      <NumberText>{student.username}</NumberText>
+                      <NumberText verbatim>{student.username}</NumberText>
                     </small>
                   </span>
                 </StudentLink>

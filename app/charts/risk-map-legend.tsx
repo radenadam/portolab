@@ -27,7 +27,7 @@ export function RiskMapLegend({
       {items.map(({ kind, name }) => (
         <li key={kind} className={styles["legendItem"]}>
           <span className={keyClasses[kind]} />
-          <NumberText>{name}</NumberText>
+          <NumberText verbatim>{name}</NumberText>
         </li>
       ))}
     </ul>

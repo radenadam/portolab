@@ -25,7 +25,7 @@ export function JoinDetails({
       <dl className={styles["share"]}>
         <dt>{m.classes_code_label()}</dt>
         <dd className={styles["code"]}>
-          <NumberText>{joinCode}</NumberText>
+          <NumberText verbatim>{joinCode}</NumberText>
         </dd>
         <JoinAddresses joinAddresses={joinAddresses} />
       </dl>
@@ -92,7 +92,7 @@ function JoinAddresses({
         <>
           <dt>{m.classes_join_address_label()}</dt>
           <dd className={styles["address"]}>
-            <NumberText>{joinAddresses.address}</NumberText>
+            <NumberText verbatim>{joinAddresses.address}</NumberText>
           </dd>
         </>
       );
@@ -106,9 +106,9 @@ function JoinAddresses({
               className={styles["address"]}
             >
               <span className={styles["connection"]}>
-                <NumberText>{connectionName}</NumberText>
+                <NumberText verbatim>{connectionName}</NumberText>
               </span>
-              <NumberText>{address}</NumberText>
+              <NumberText verbatim>{address}</NumberText>
             </dd>
           ))}
         </>

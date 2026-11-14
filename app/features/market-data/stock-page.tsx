@@ -1,3 +1,4 @@
+import { StockQuoteDetails } from "./stock-quote-details";
 import { QuoteNotice } from "~/features/market-data/quote-notice";
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
@@ -19,7 +20,6 @@ import { idxRulesOn } from "~/features/trading/idx-rules-on";
 import { parseStockCode } from "~/features/trading/order-form-fields";
 import { StockPosition } from "~/features/trading/stock-position";
 import {
-  formatMarketTime,
   formatRupiah,
   formatSignedPercent,
   formatSignedRupiah,
@@ -119,7 +119,7 @@ export function loader({ context, params, request, url }: Route.LoaderArgs) {
         ? undefined
         : readStockCorrelation(database, code, report.valuation),
     totalValue: report?.valuation.total?.value,
-    universe,
+    isLq45: isLq45Stock(code, universe),
     holding: report?.valuation.holdings.find(
       (holding) => holding.code === code,
     ),
@@ -132,10 +132,20 @@ export function loader({ context, params, request, url }: Route.LoaderArgs) {
   };
 }
 
+function isLq45Stock(
+  code: string,
+  universe: ReturnType<typeof universeOn>,
+): boolean {
+  return universe.ok && universe.value.includes(code);
+}
+
 export default function StockPage({
   loaderData: stock,
 }: Route.ComponentProps): ReactNode {
   const { classId, code, quote, holding } = stock;
+  const hasPortfolioQuotes =
+    (holding?.kind === "priced" && stock.totalValue !== undefined) ||
+    stock.correlation?.ok === true;
   return (
     <div className={styles["page"]}>
       <header className={styles["header"]}>
@@ -153,40 +163,39 @@ export default function StockPage({
           <StockMetadata
             code={code}
             held={holding !== undefined}
-            isLq45={stock.universe.ok && stock.universe.value.includes(code)}
+            isLq45={stock.isLq45}
           />
         </p>
         {quote?.kind === "stock" && (
-          <>
-            <div className={styles["quote"]}>
-              <strong className={styles["price"]}>
-                <NumberText>{formatRupiah(quote.price)}</NumberText>
-              </strong>
-              <span className={styles["change"]}>
-                <ChangeText
-                  colored
-                  change={formatSignedRupiah(
-                    rupiah(quote.price - quote.previousClose),
-                  )}
-                />
-              </span>
-              <span className={styles["change"]}>
-                <ChangeText
-                  colored
-                  change={formatSignedPercent(quoteChange(quote))}
-                />
-              </span>
-            </div>
-            <p className={styles["muted"]}>
-              <NumberText>
-                {m.market_data_stock_quote_notice({
-                  time: formatMarketTime(quote.quotedAt),
-                  previous: formatRupiah(quote.previousClose),
-                })}
-              </NumberText>
-            </p>
-          </>
+          <div className={styles["quote"]}>
+            <strong className={styles["price"]}>
+              <NumberText>{formatRupiah(quote.price)}</NumberText>
+            </strong>
+            <span className={styles["change"]}>
+              <ChangeText
+                colored
+                change={formatSignedRupiah(
+                  rupiah(quote.price - quote.previousClose),
+                )}
+              />
+            </span>
+            <span className={styles["change"]}>
+              <ChangeText
+                colored
+                change={formatSignedPercent(quoteChange(quote))}
+              />
+            </span>
+          </div>
         )}
+        <StockQuoteDetails
+          classId={classId}
+          quote={
+            quote?.kind === "stock"
+              ? { quotedAt: quote.quotedAt, previousClose: quote.previousClose }
+              : undefined
+          }
+          hasPortfolioQuotes={hasPortfolioQuotes}
+        />
         <QuoteNotice text={stock.quoteNotice} className={styles["muted"]} />
       </header>
       <section

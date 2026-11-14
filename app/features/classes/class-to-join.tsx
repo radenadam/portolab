@@ -31,16 +31,18 @@ export function ClassToJoin({
   return (
     <>
       <h1>
-        <NumberText>
+        <NumberText verbatim>
           {m.classes_join_class_title({ class: classToJoin.name })}
         </NumberText>
       </h1>
       <p>
         <NumberText>
-          {m.classes_join_class_body({
-            lecturer: classToJoin.lecturerName,
-            cash: formatRupiah(classToJoin.startingCash),
-          })}
+          {(textValue) =>
+            m.classes_join_class_body({
+              lecturer: textValue(classToJoin.lecturerName),
+              cash: formatRupiah(classToJoin.startingCash),
+            })
+          }
         </NumberText>
       </p>
       {isSignedIn ? (

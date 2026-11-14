@@ -1,4 +1,5 @@
 import { renderToStaticMarkup } from "react-dom/server";
+import { renderTextMarkupForTest } from "~/render-text-markup-for-test";
 import { expect, test } from "vitest";
 import { formatSignedPercent } from "~/formatting";
 import { languageNames } from "~/language-names";
@@ -197,7 +198,7 @@ for (const locale of locales) {
 
 test("names each kind of point and the line in a legend beside a sample of its mark, which screen readers skip", () => {
   expect(
-    renderToStaticMarkup(
+    renderTextMarkupForTest(
       <RiskMapLegend
         items={[
           { kind: "own", name: "Portofolio Anda" },

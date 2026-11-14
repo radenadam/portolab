@@ -35,10 +35,10 @@ export function HomeMapTable({
               <th scope="row">
                 {point.mark.kind === "held" ? (
                   <Link to={stockPath(classId, point.key)}>
-                    <NumberText>{point.name}</NumberText>
+                    <NumberText verbatim>{point.name}</NumberText>
                   </Link>
                 ) : (
-                  <NumberText>{point.name}</NumberText>
+                  <NumberText verbatim>{point.name}</NumberText>
                 )}
               </th>
               {point.values.slice(0, 2).map(({ name, value }) => (
