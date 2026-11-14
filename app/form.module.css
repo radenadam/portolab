@@ -1,4 +1,4 @@
-/* A form takes the controls of the order ticket of Peta, as decision 0028 sets. */
+/* Ticket controls keep the pages without their own reference consistent with Peta. */
 .form {
   display: flex;
   flex-direction: column;
@@ -62,7 +62,7 @@
   cursor: pointer;
 }
 
-/* The chosen part stands above its track, so its mark does not depend on color alone. */
+/* A raised selection stays clear when a reader cannot distinguish its color. */
 .option:has(.optionInput:checked) {
   border-radius: var(--radius-button);
   background: var(--color-panel);

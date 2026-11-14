@@ -38,7 +38,7 @@
   "market_data_several_missing_prices_notice": "Portolab belum memiliki harga {codes}, karena percobaan terakhir untuk mengambilnya pada {time} WIB gagal.",
   "market_data_no_price_notice": "Portolab belum memiliki harga {code}.",
   "market_data_next_attempt_notice": "Portolab mencoba lagi pada {nextTime} WIB.",
-  "market_data_simulation_name": "Simulasi",
+  "market_data_simulation_fallback_label": "Simulasi · harga tertunda",
   "market_data_simulation_badge_label": "Simulasi · harga tertunda ±{delay}",
   "market_data_short_simulation_badge_label": "Simulasi · ±{delay}",
   "market_data_simulation_title": "Simulasi dan harga tertunda",

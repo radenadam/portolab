@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import styles from "./page-layout.module.css";
 
-/** Outside a class, a single form takes the panel of a docked ticket in a centered column, as decision 0028 sets. */
+/** Decision 0028 uses ticket panels when no reference draws a form page, so these pages share one composition. */
 export function FormPage({
   title,
   children,

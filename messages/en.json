@@ -38,7 +38,7 @@
   "market_data_several_missing_prices_notice": "Portolab has no prices for {codes} yet, because its latest attempt to fetch them at {time} WIB failed.",
   "market_data_no_price_notice": "Portolab has no price for {code} yet.",
   "market_data_next_attempt_notice": "Portolab tries again at {nextTime} WIB.",
-  "market_data_simulation_name": "Simulation",
+  "market_data_simulation_fallback_label": "Simulation · prices delayed",
   "market_data_simulation_badge_label": "Simulation · prices delayed ±{delay}",
   "market_data_short_simulation_badge_label": "Simulation · ±{delay}",
   "market_data_simulation_title": "Simulation and delayed prices",

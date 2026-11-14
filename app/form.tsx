@@ -185,7 +185,7 @@ interface ChoiceFieldProps {
   defaultValue?: string | undefined;
 }
 
-/** A group of options with the label and the reason that a choice was not accepted, which a screen reader reads with the group. */
+/** A screen reader needs the group label and a refused choice together, so both belong to the fieldset. */
 export function ChoiceField({
   name,
   label,
@@ -238,7 +238,7 @@ export function SubmitButton({
   );
 }
 
-/** A reason that the whole form was not accepted, which a screen reader announces when it appears. */
+/** Whole-form failures need an announcement when an action returns without navigating. */
 export function FormFailure({ text }: { text: string }): ReactNode {
   return (
     <p role="alert" className={styles["rejection"]}>
@@ -247,7 +247,7 @@ export function FormFailure({ text }: { text: string }): ReactNode {
   );
 }
 
-/** A rejection with its next step, such as a button that changes an order to the largest one that the cash pays for. A screen reader announces it when it appears. */
+/** A refusal should let the reader take the offered fix in place, so its next step stays with the explanation. */
 export function Rejection({
   title,
   text,

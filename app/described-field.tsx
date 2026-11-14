@@ -11,7 +11,7 @@ interface DescribedFieldProps {
   children: ReactNode;
 }
 
-/** A field keeps its label, hint, and failure beside the control, so the reader can correct it in place. */
+/** A reader corrects a refused value in place, so its label, hint, and failure stay with the control. */
 export function DescribedField({
   id,
   label,

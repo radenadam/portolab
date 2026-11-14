@@ -12,6 +12,7 @@ const texts: Record<
   {
     badge: string;
     longBadge: string;
+    fallbackBadge: string;
     navigation: string;
     visitorLinks: readonly (readonly [string, string])[];
     switchLabel: string;
@@ -27,6 +28,7 @@ const texts: Record<
   id: {
     badge: "Simulasi · ±10 mnt",
     longBadge: "Simulasi · harga tertunda ±10 mnt",
+    fallbackBadge: "Simulasi · harga tertunda",
     navigation: "Navigasi utama",
     visitorLinks: [
       ["Harga", "/prices"],
@@ -47,6 +49,7 @@ const texts: Record<
   en: {
     badge: "Simulation · ±10 min",
     longBadge: "Simulation · prices delayed ±10 min",
+    fallbackBadge: "Simulation · prices delayed",
     navigation: "Main navigation",
     visitorLinks: [
       ["Prices", "/prices"],
@@ -165,6 +168,9 @@ for (const locale of locales) {
     ).toBeVisible();
     await expect(page).toHaveTitle(`${text.unexpectedErrorTitle} | Portolab`);
     await expect(page.getByText(text.unexpectedErrorBody)).toBeVisible();
+    await expect(
+      page.getByText(text.fallbackBadge, { exact: true }),
+    ).toBeVisible();
     await expectAccessibleScreen(page);
   });
 }
