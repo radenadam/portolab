@@ -13,6 +13,7 @@ const keyClasses: Record<MapKeyKind, string | undefined> = {
   other: styles["otherKey"],
   market: styles["marketKey"],
   line: styles["lineKey"],
+  classmate: styles["classmateKey"],
 };
 
 /** The legend of a map, which names each kind of point and the line beside a sample of its mark. Screen readers skip it, as they skip the drawing, because the slider and the table of the points name every point. */

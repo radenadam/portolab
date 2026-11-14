@@ -26,6 +26,26 @@ export function messageKeys(messages: Record<string, unknown>): string[] {
   return Object.keys(messages).filter((key) => key !== "$schema");
 }
 
+/** The index code comes from its definition, so translations must take it through a placeholder. */
+export function literalIndexProblems(
+  path: string,
+  messages: Record<string, unknown>,
+  indexCode: string,
+): string[] {
+  const problems: string[] = [];
+  for (const key of messageKeys(messages)) {
+    const text = messages[key];
+    if (typeof text !== "string") continue;
+    const words = text.replaceAll(/\{[^}]*\}/gu, "").split(/[^\p{L}\p{N}_]+/u);
+    if (words.some((word) => word.toUpperCase() === indexCode.toUpperCase())) {
+      problems.push(
+        `${path}: the message "${key}" writes the index "${indexCode}" directly, so take its code through a placeholder.`,
+      );
+    }
+  }
+  return problems;
+}
+
 // The kinds of text in the interface, so that a reader can find every text of one kind by its key. A part is a piece of a sentence that code joins into another text, such as a range of characters.
 const messageKinds = [
   "title",
@@ -94,7 +114,7 @@ export function messageTextProblems(
       );
       continue;
     }
-    if (/^[\s·,:;]/u.test(text)) {
+    if (!key.endsWith("_part") && /^[\s·,:;]/u.test(text)) {
       problems.push(
         `${path}: the message "${key}" starts with whitespace or a separator, so write a complete message instead of a fragment that code joins.`,
       );

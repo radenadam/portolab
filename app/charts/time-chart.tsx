@@ -12,6 +12,8 @@ import styles from "./time-chart.module.css";
 import { TimePlot } from "./time-plot";
 import type { ValueAxisSide } from "./value-mark";
 
+const noAnnotations: readonly { date: string; label: string }[] = [];
+
 /** A chart of the returns of one or two lines at the close of each trading day, with a legend when it compares lines and a table of every point, as decision 0029 sets. The server draws it in SVG, so it shows before JavaScript loads. Once JavaScript runs, its plot is a slider that a pointer, a finger, or the keys move along the dates, which marks a date with a crosshair and shows the returns of the date in a tooltip. */
 export function TimeChart<Point extends { date: string }>({
   points,
@@ -20,6 +22,7 @@ export function TimeChart<Point extends { date: string }>({
   dateLabel,
   tableLabel,
   coloredChanges = false,
+  annotations = noAnnotations,
 }: {
   /** The points of the chart, oldest first, at least one. */
   points: readonly Point[];
@@ -31,6 +34,7 @@ export function TimeChart<Point extends { date: string }>({
   /** The label that opens the table of points. */
   tableLabel: string;
   coloredChanges?: boolean;
+  annotations?: readonly { date: string; label: string }[] | undefined;
 }): ReactNode {
   if (points.length === 0) return null;
   const layout = layoutTimeChart(
@@ -48,6 +52,11 @@ export function TimeChart<Point extends { date: string }>({
       labelledBy={labelledBy}
       dateLabel={dateLabel}
       tableLabel={tableLabel}
+      annotations={annotations}
+      columnWidths={[
+        "var(--width-close-column)",
+        ...lines.slice(0, -1).map(() => "var(--width-return-column)"),
+      ]}
       valueText={(value: CumulativeReturn) => formatSignedPercent(value).text}
       valueNode={(value: CumulativeReturn) => (
         <ChangeText
@@ -74,6 +83,8 @@ export function TimeSeriesChart<
   valueNode,
   area = false,
   axisSide = "left",
+  annotations = noAnnotations,
+  columnWidths,
 }: {
   points: readonly Point[];
   lines: readonly TimeLine<Point, Value>[];
@@ -85,6 +96,8 @@ export function TimeSeriesChart<
   valueNode: (value: Value) => ReactNode;
   area?: boolean;
   axisSide?: ValueAxisSide;
+  annotations?: readonly { date: string; label: string }[] | undefined;
+  columnWidths?: readonly string[];
 }): ReactNode {
   const latest = points.at(-1);
   if (latest === undefined) return null;
@@ -110,12 +123,28 @@ export function TimeSeriesChart<
         valueNode={valueNode}
         area={area}
         axisSide={axisSide}
+        annotations={annotations}
       />
       <details className={styles["points"]}>
         <summary>
           <NumberText>{tableLabel}</NumberText>
         </summary>
-        <table className={tableStyles["table"]}>
+        <table
+          className={[
+            tableStyles["table"],
+            columnWidths === undefined ? undefined : styles["fixedTable"],
+          ]
+            .filter(Boolean)
+            .join(" ")}
+        >
+          {columnWidths !== undefined && (
+            <colgroup>
+              {columnWidths.map((width) => (
+                <col key={width} style={{ width }} />
+              ))}
+              <col />
+            </colgroup>
+          )}
           <thead>
             <tr>
               <th scope="col">

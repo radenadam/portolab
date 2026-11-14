@@ -1,12 +1,11 @@
-import type { ReactNode } from "react";
 import { NumberText } from "~/number-text";
+import type { ReactNode } from "react";
 import { formatRupiahParts } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import type { Rupiah } from "~/units/rupiah";
 import styles from "./home-portfolio.module.css";
 
-/** The cash row shares its name and order note across the phone and desktop layouts. */
-export function HomeCashName({
+export function CashName({
   note,
   cash,
 }: {

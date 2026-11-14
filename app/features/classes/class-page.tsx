@@ -96,6 +96,7 @@ export function loader({ context, request, params, url }: Route.LoaderArgs):
           url,
           classId: params.classId,
           now,
+          firstSessionDate: joined.firstSessionDate,
         }),
       };
     }

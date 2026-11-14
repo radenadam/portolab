@@ -1,9 +1,11 @@
 import { readdirSync } from "node:fs";
+import { marketIndex } from "../app/features/market-data/tracked-instruments.ts";
 import { exitWithFailure } from "../app/exit-with-failure.server.ts";
 import { readJsonFile } from "./json.ts";
 import { readFilesIn } from "./read-files-in.ts";
 import {
   isInterfaceTest,
+  literalIndexProblems,
   messageKeyProblems,
   messageKeys,
   parseLocales,
@@ -36,13 +38,16 @@ for (const locale of locales.value) {
   const messages = readMessages(path);
   if (messages.ok) {
     keysByLanguage.set(locale, messageKeys(messages.value));
-    problems.push(...messageTextProblems(path, messages.value, testSources));
+    problems.push(
+      ...literalIndexProblems(path, messages.value, marketIndex.code),
+      ...messageTextProblems(path, messages.value, testSources),
+    );
   } else {
     problems.push(messages.failure);
   }
 }
 // Keys can only be compared once every language file has been read.
-if (problems.length === 0) {
+if (keysByLanguage.size === locales.value.length) {
   problems.push(...messageKeyProblems(keysByLanguage, featureFolders));
 }
 if (problems.length > 0) {

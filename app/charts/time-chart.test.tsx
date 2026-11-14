@@ -6,6 +6,7 @@ import type { Locale } from "~/paraglide/runtime.js";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
 import { returnPointsForTest } from "./return-points-for-test";
 import { TimeChart } from "./time-chart";
+import type { TimeLine } from "./time-chart-layout";
 
 // time-chart-layout.test.ts gives the positions of the returns of returnPointsForTest. A return r lies at (0.0109518658 - r) / 0.0447414855 of the height of the plot, which the chart writes as a percentage with two decimals.
 type Point = (typeof returnPointsForTest)[number];
@@ -50,18 +51,23 @@ const texts: Record<
   },
 };
 
-function render(chartPoints: readonly Point[], locale: Locale): string {
+function render(
+  chartPoints: readonly Point[],
+  locale: Locale,
+  lineCount = 2,
+): string {
+  const lines: readonly TimeLine<Point>[] = [
+    {
+      name: texts[locale].portfolio,
+      kind: "own",
+      valueOf: (point) => point.portfolio,
+    },
+    { name: "IHSG", kind: "reference", valueOf: (point) => point.market },
+  ];
   return renderTextMarkupForTest(
     <TimeChart
       points={chartPoints}
-      lines={[
-        {
-          name: texts[locale].portfolio,
-          kind: "own",
-          valueOf: (point) => point.portfolio,
-        },
-        { name: "IHSG", kind: "reference", valueOf: (point) => point.market },
-      ]}
+      lines={lines.slice(0, lineCount)}
       labelledBy="return-heading"
       dateLabel={texts[locale].dateLabel}
       tableLabel={texts[locale].tableLabel}
@@ -88,7 +94,7 @@ for (const locale of locales) {
       `<text x="0%" y="100%" dy="1.5em" text-anchor="start">${text.dates[0]}</text><text x="50%" y="100%" dy="1.5em" text-anchor="middle">${text.dates[1]}</text><text x="100%" y="100%" dy="1.5em" text-anchor="end">${text.dates[2]}</text>`,
       line("M0 24.48L50 6.9L100 91.99", "91.99%") +
         line("M0 24.48L50 27.82L100 93.1", "93.1%"),
-      `<details><summary>${text.tableLabel}</summary><table><thead><tr><th scope="col">${text.dateLabel}</th><th scope="col">${text.portfolio}</th><th scope="col">IHSG</th></tr></thead><tbody>${text.rows
+      `<details><summary>${text.tableLabel}</summary><table><colgroup><col style="width:var(--width-close-column)"/><col style="width:var(--width-return-column)"/><col/></colgroup><thead><tr><th scope="col">${text.dateLabel}</th><th scope="col">${text.portfolio}</th><th scope="col">IHSG</th></tr></thead><tbody>${text.rows
         .map(
           ([date, portfolio, market]) =>
             `<tr><th scope="row">${date}</th><td>${portfolio}</td><td>${market}</td></tr>`,
@@ -100,6 +106,9 @@ for (const locale of locales) {
     // The plot becomes a slider only once JavaScript runs in the browser, so before then no control does nothing.
     expect(html).not.toContain("slider");
     expect(html).not.toContain("tabindex");
+    const single = render(returnPointsForTest, locale, 1);
+    expect(single.match(/<col[\s/]/g)).toHaveLength(2);
+    expect(single).not.toContain('<th scope="col">IHSG</th>');
   });
 }
 

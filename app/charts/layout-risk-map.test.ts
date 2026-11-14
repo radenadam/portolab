@@ -80,10 +80,10 @@ test("places each point by its risk across and its return up, in ranges that hol
     expect(placed.position.x).toBeCloseTo(across(point.across), 12);
     expect(placed.position.y).toBeCloseTo(down(point.up), 12);
   }
-  expect(map.line.start.x).toBe(0);
-  expect(map.line.start.y).toBeCloseTo(down(0.005), 12);
-  expect(map.line.end.x).toBe(1);
-  expect(map.line.end.y).toBeCloseTo(down(0.0158), 12);
+  expect(map.line?.start.x).toBe(0);
+  expect(map.line?.start.y).toBeCloseTo(down(0.005), 12);
+  expect(map.line?.end.x).toBe(1);
+  expect(map.line?.end.y).toBeCloseTo(down(0.0158), 12);
 });
 
 test("starts the axis of risk below zero when a point lies below zero, such as a stock with a negative beta", () => {
@@ -92,7 +92,7 @@ test("starts the axis of risk below zero when a point lies below zero, such as a
     markedPoint("ANTM", { beta: -0.5, return: 0.01 }, { kind: "other" }),
   ]);
   expect(map.market.position.x).toBeCloseTo((1 + 0.62) / 1.74, 12);
-  expect(map.line.start.x).toBeCloseTo(0.62 / 1.74, 12);
+  expect(map.line?.start.x).toBeCloseTo(0.62 / 1.74, 12);
 });
 
 test("sizes the dot of a stock that the portfolio holds by the root of its weight, keeps the smallest size for a small weight and for a stock without a weight, and rings the point of the reader", () => {
@@ -196,9 +196,9 @@ test("offers places for the label of the line at the return of the IHSG along th
   ]);
   expect(map.linePlaces.level).toHaveLength(18);
   expect(map.linePlaces.line).toEqual([
-    { at: map.line.end, dx: -0.33, dy: -0.67, anchor: "end" },
-    { at: map.line.end, dx: -0.33, dy: 1.33, anchor: "end" },
-    { at: map.line.end, dx: -3.33, dy: 1.33, anchor: "end" },
+    { at: map.line?.end, dx: -0.33, dy: -0.67, anchor: "end" },
+    { at: map.line?.end, dx: -0.33, dy: 1.33, anchor: "end" },
+    { at: map.line?.end, dx: -3.33, dy: 1.33, anchor: "end" },
   ]);
 });
 

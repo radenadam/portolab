@@ -26,12 +26,14 @@ export function HomeHoldingTableRow({
   classId,
   maximumWeight,
   maximumGain,
+  sharedTime,
 }: {
   row: HomeHolding;
   home: HomePortfolioData;
   classId: ClassId;
   maximumWeight: PortfolioWeight;
   maximumGain: Rupiah;
+  sharedTime: string | undefined;
 }): ReactNode {
   const { holding } = row;
   const history = home.histories.find(({ code }) => code === holding.code);
@@ -60,6 +62,7 @@ export function HomeHoldingTableRow({
       </td>
       <td>
         <HomeHoldingPrice
+          sharedTime={sharedTime}
           holding={row.holding}
           failed={
             home.report.quoteAttempt?.failedCodes.includes(row.holding.code) ??

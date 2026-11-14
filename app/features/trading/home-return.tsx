@@ -1,7 +1,7 @@
 import { ConceptHelp } from "~/concept-card";
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
-import { TimeChart } from "~/charts/time-chart";
+import { PortfolioReturnChart } from "./portfolio-return-chart";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
 import { formatCalendarDate, formatCalendarDatePart } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
@@ -62,24 +62,9 @@ export function HomeReturn({
               {returnHeadline(latest.portfolio, latest.market)}
             </NumberText>
           </p>
-          <TimeChart
-            coloredChanges
+          <PortfolioReturnChart
             points={points}
-            lines={[
-              {
-                name: m.trading_portfolio_series_label(),
-                kind: "own",
-                valueOf: (point) => point.portfolio,
-              },
-              {
-                name: marketIndex.code,
-                kind: "reference",
-                valueOf: (point) => point.market,
-              },
-            ]}
             labelledBy="home-return-heading"
-            dateLabel={m.trading_trading_day_label()}
-            tableLabel={m.trading_returns_table_label()}
           />
         </>
       )}

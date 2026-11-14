@@ -105,19 +105,21 @@ export function formatIndexLevel(level: IndexPoints): string {
   }).format(level);
 }
 
-/** How many decimals a percentage shows: at most two, such as on the marks of an axis, or exactly two, so that the values of a column line up. */
-type PercentDecimals = "upToTwo" | "two";
+/** Columns use a fixed precision so their values line up, while chart marks can omit trailing zeroes. */
+type PercentDecimals = "upToTwo" | "two" | "one" | "integer";
 
-const fewestPercentDecimals: Record<PercentDecimals, number> = {
-  upToTwo: 0,
-  two: 2,
-};
 const mostPercentDecimals = 2;
+const percentDecimals: Record<PercentDecimals, readonly [number, number]> = {
+  upToTwo: [0, mostPercentDecimals],
+  two: [mostPercentDecimals, mostPercentDecimals],
+  one: [1, 1],
+  integer: [0, 0],
+};
 
 /** The smallest step between the marks of an axis whose texts formatPercent or formatSignedPercent writes, a hundredth of a percent, so no two marks read the same. */
 export const smallestPercentStep = 10 ** -(mostPercentDecimals + 2);
 
-/** Formats a fraction such as 0.07 as a percentage without a plus sign, such as 7% with at most two decimals or 7.00% with exactly two. */
+/** Formats a fraction as a percentage without a plus sign, at the precision of its caller. */
 export function formatPercent(
   fraction: number,
   decimals: PercentDecimals = "upToTwo",
@@ -165,11 +167,9 @@ function isWhole(value: number): boolean {
 }
 
 function percentOptions(decimals: PercentDecimals): Intl.NumberFormatOptions {
-  return {
-    style: "percent",
-    minimumFractionDigits: fewestPercentDecimals[decimals],
-    maximumFractionDigits: mostPercentDecimals,
-  };
+  const [minimumFractionDigits, maximumFractionDigits] =
+    percentDecimals[decimals];
+  return { style: "percent", minimumFractionDigits, maximumFractionDigits };
 }
 
 /** Formats a variance or a covariance of monthly returns with four significant digits, such as 0.002732, because it is a square of returns and too small for a percentage. */
