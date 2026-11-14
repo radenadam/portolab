@@ -403,3 +403,18 @@
     border-inline-start: var(--size-line) solid var(--color-line);
   }
 }
+
+.workspaceToolsWide {
+  display: none;
+}
+.workspaceToolsPhone {
+  padding: var(--space-3) var(--space-gutter) 0;
+}
+@media (width >= 60rem) {
+  .workspaceToolsWide {
+    display: contents;
+  }
+  .workspaceToolsPhone {
+    display: none;
+  }
+}

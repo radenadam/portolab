@@ -69,6 +69,16 @@ function render(mapPoints = points): string {
   ).replaceAll(/ class="[^"]*"/g, "");
 }
 
+for (const locale of locales) {
+  test(`keeps the portfolio and holding names when a caller hides other point labels in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    const html = render(points.map((point) => ({ ...point, label: "" })));
+    expect(html).toContain(">Portofolio Anda</text>");
+    expect(html).toContain(">BBCA</text>");
+    expect(html).not.toContain(">TLKM</text>");
+  });
+}
+
 /** The text of a label at the position of its point, with any place beside it. */
 function label(text: string, at: { x: string; y: string }): RegExp {
   return new RegExp(

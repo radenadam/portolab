@@ -21,7 +21,18 @@ The first map replaces the chart of the security market line on the measures of 
 - The table of the points stays below the map, behind a label that opens it. Once JavaScript runs, the map is a slider over its points in the order of their risk, as decision 0029 makes a chart over time a slider over its dates. A pointer, a finger, or the arrow keys, Home, and End mark a point, and a tooltip shows its values. Until a reader marks a point, the slider reads the point that the map is about, or the IHSG when there is none.
 - Each other screen places its own points on the same map. The parts that only those screens draw, such as the bars of the spread of a class at the edges, the median of the class, the labels of the four corners, unnamed points of classmates, and a value beside a name, come with the first screen that shows them, as issue #127 tracks.
 
+### The class map
+
+- The lecturer's map places each measured portfolio by beta or monthly standard deviation across and its cumulative return at delayed prices up. Its return scale leaves room on both sides of zero, so the corner labels describe gains and losses even when every return is positive or zero. It draws no security market line, because that line compares expected monthly returns. A portfolio without risk measures stays in the table below the map.
+- Each student's comparison with the IHSG uses that student's own period, from the base close of decision 0018 to the delayed quotes. The headline takes the median of those paired differences. Its words follow the sign after rounding to two decimals of a percentage point. The sentence gives the median portfolio return and the median IHSG return over the comparable periods, and names those periods. The diamond and the dashed line use that median IHSG return. Its standard deviation comes from the latest complete monthly returns of the IHSG.
+- The distribution bars count the portfolios that the map draws. The short line marks the median return of the comparable students, including cash-only portfolios. The table keeps every student, including a student without prices or measures, with the reason and the times of the prices. The class map's help explains what its marks count.
+- The latest order is a student's last activity. An order placed in the current Monday-to-Sunday week in WIB makes the point filled. Other points are hollow. The stat strip counts every student, each student with an order this week, all orders this week, and the median beta of measured portfolios.
+- The highest and lowest returns, the highest Jensen's alpha, and the highest standard deviation choose the names that the class map tries to place. All points retain their full name in the tooltip and the table. Activating a point opens that student's portfolio.
+
 ## Alternatives
+
+- **One common start for every student of the class.** It would include days before a later student joined. Comparing each student over their own period keeps the rule of decision 0018.
+- **The difference between the median portfolio return and the median IHSG return as the headline.** These medians can come from different students, so their difference need not be the median of the paired differences. The headline uses the pairs, while the map names its IHSG value as a median in its help.
 
 - **Names in DM Mono, counted in characters, as decision 0029 sets for the texts of marks.** The server would place them without an estimate, but the approved design sets the names in the font of the text, and a name in DM Mono reads like a mark of an axis.
 - **Names that only the browser places.** A map would show no names until JavaScript loads, and none at all where JavaScript never runs.

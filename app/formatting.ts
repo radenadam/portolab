@@ -3,6 +3,7 @@ import { getLocale } from "~/paraglide/runtime.js";
 import { listOfWords } from "~/sentences";
 import type { Beta } from "~/units/beta";
 import type { Bytes } from "~/units/bytes";
+import type { CumulativeReturn } from "~/units/cumulative-return";
 import type { Correlation } from "~/units/correlation";
 import type { IndexPoints } from "~/units/index-points";
 import type { MonthlyVariance } from "~/units/monthly-variance";
@@ -176,6 +177,11 @@ export function formatCorrelation(correlation: Correlation): string {
 /** Formats a Sharpe ratio with two decimals, such as -0.17. */
 export function formatSharpeRatio(ratio: SharpeRatio): string {
   return formatTwoDecimals(ratio);
+}
+
+/** A return difference needs percentage points in the class headline, while its inputs remain fractions. */
+export function formatReturnPoints(difference: CumulativeReturn): string {
+  return formatTwoDecimals(Math.abs(difference) * 100);
 }
 
 function formatTwoDecimals(value: number): string {

@@ -35,6 +35,7 @@ interface FrameProps {
   tools: ReactNode;
   /** The badge of the simulation, with the card that it opens. */
   badge: ReactNode;
+  workspaceTools?: ReactNode;
   children: ReactNode;
 }
 
@@ -49,6 +50,7 @@ export function Frame({
   profile,
   tools,
   badge,
+  workspaceTools,
   children,
 }: FrameProps): ReactNode {
   const profileLabel =
@@ -95,7 +97,12 @@ export function Frame({
               )}
               <div className={styles["topBarEnd"]}>
                 {tools}
-                {profile !== undefined && (
+                {workspaceTools !== undefined && (
+                  <span className={styles["workspaceToolsWide"]}>
+                    {workspaceTools}
+                  </span>
+                )}
+                {profile !== undefined && workspaceTools === undefined && (
                   <span className={styles["nameChip"]}>
                     <PopoverButton
                       popover={topProfileId}
@@ -128,6 +135,11 @@ export function Frame({
               </div>
             </div>
           </header>
+          {workspaceTools !== undefined && (
+            <div className={styles["workspaceToolsPhone"]}>
+              {workspaceTools}
+            </div>
+          )}
           <main
             id="main"
             tabIndex={-1}

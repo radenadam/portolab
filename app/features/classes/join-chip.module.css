@@ -1,0 +1,25 @@
+.code {
+  font-family: var(--font-code);
+  color: var(--color-ink);
+}
+
+.details {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.copy {
+  min-height: var(--size-touch-target);
+  padding-inline: var(--space-3);
+  border: var(--size-line) solid var(--color-line);
+  border-radius: var(--radius-button);
+  background: var(--color-panel);
+  color: var(--color-ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.copyIcon {
+  width: var(--text-small);
+  height: var(--text-small);
+}

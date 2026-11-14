@@ -10,6 +10,7 @@ import { signInAsTestStudent } from "./sign-in-as-test-student.ts";
 import { bbcaHolding } from "./bbca-holding.ts";
 import { bbcaPortfolioMeasures } from "./bbca-portfolio-measures.ts";
 import { chooseLanguage } from "./choose-language.ts";
+import { openClassAdministration } from "./class-controls.ts";
 import { createTestClass } from "./create-test-class.ts";
 import { expectMeasureList } from "./expect-measure-list.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
@@ -284,6 +285,7 @@ async function openPortfolios(
   classPath: string,
 ): Promise<Locator> {
   await lecturer.goto(classPath);
+  await openClassAdministration(lecturer);
   await lecturer.getByRole("link", { name: texts[locale].classLink }).click();
   await expect(lecturer).toHaveURL(`${classPath}/portfolios`);
   return lecturer.getByRole("main");

@@ -91,6 +91,8 @@
   --size-avatar: 2rem;
   /* A chart takes about a third of the screen of a phone held upright, so the text around it stays in view. */
   --size-chart: 16rem;
+  /* The distribution bars and corner labels of a class need more height than a line chart. */
+  --size-class-map: 21.25rem;
   /* A sparkline sits in a row of a list beside the price of its stock. */
   --width-sparkline: 4.75rem;
   --size-sparkline: 1.375rem;

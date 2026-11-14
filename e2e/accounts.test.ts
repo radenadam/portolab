@@ -17,6 +17,7 @@ import {
   uniqueUsername,
 } from "./accounts.ts";
 import { chooseLanguage } from "./choose-language.ts";
+import { openClassAdministration } from "./class-controls.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 import { openProfileMenu } from "./frame.ts";
 import { newDevice } from "./new-device.ts";
@@ -499,8 +500,11 @@ for (const locale of locales) {
     await expect(student.getByRole("status")).toHaveText(text.nameChanged);
 
     await page.goto(classPath);
+    await openClassAdministration(page);
     await expect(
-      page.getByRole("main").getByText(correctedName, { exact: true }),
+      page
+        .locator("[data-class-administration]")
+        .getByText(correctedName, { exact: true }),
     ).toBeVisible();
     await student.context().close();
   });
