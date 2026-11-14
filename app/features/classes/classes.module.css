@@ -10,8 +10,24 @@
 .item {
   display: flex;
   flex-direction: column;
-  padding-block: var(--space-3);
   border-block-end: var(--size-line) solid var(--color-line);
+}
+
+.item:last-child {
+  border-block-end: 0;
+}
+
+.item > .link {
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  padding-block: var(--space-3);
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.className {
+  font-weight: 600;
 }
 
 .link {

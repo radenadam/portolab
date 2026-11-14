@@ -11,7 +11,7 @@ interface DescribedFieldProps {
   children: ReactNode;
 }
 
-/** A field with its label and the reason that its value was not accepted above its control, and its hint below it, as decision 0026 sets. */
+/** A field keeps its label, hint, and failure beside the control, so the reader can correct it in place. */
 export function DescribedField({
   id,
   label,

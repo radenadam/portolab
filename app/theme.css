@@ -74,6 +74,8 @@
   --space-gutter: 1rem;
 
   --width-aside: 21.5rem;
+  --width-form: 25rem;
+  --width-reading: 48.75rem;
   --width-rail: 4.75rem;
   --width-rail-item: 3.875rem;
   /* A menu that opens in place is wide enough for the name of a class beside its mark. */

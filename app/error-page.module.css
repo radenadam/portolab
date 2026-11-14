@@ -1,5 +1,7 @@
 .nextStepLink {
+  composes: stepButton from "./form.module.css";
   display: inline-flex;
   align-items: center;
-  min-height: var(--size-touch-target);
+  justify-content: center;
+  text-decoration: none;
 }

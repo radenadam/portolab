@@ -3,6 +3,7 @@ import { Form, Link } from "react-router";
 import { resetForgottenPassword } from "~/features/accounts/reset-forgotten-password.server";
 import { FormSuccess, SubmitButton } from "~/form";
 import formStyles from "~/form.module.css";
+import { FormPage } from "~/form-page";
 import { pageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
 import type { Route } from "./+types/reset-password-page";
@@ -36,8 +37,7 @@ export default function ResetPasswordPage({
 }: Route.ComponentProps): ReactNode {
   const { classId, className, student } = loaderData;
   return (
-    <>
-      <h1>{m.classes_reset_title()}</h1>
+    <FormPage title={m.classes_reset_title()}>
       {actionData === undefined ? (
         <>
           <p>
@@ -61,6 +61,6 @@ export default function ResetPasswordPage({
       <Link to={classPath(classId)} className={styles["link"]}>
         {m.classes_back_link({ class: className })}
       </Link>
-    </>
+    </FormPage>
   );
 }

@@ -1,9 +1,11 @@
 import type { ReactNode } from "react";
-import { data, Form, redirect } from "react-router";
+import { data, Form, Link, redirect } from "react-router";
 import { clientAddressContext } from "~/client-address.server";
 import { databaseContext } from "~/database/database.server";
 import { FormFailure, SubmitButton, TextField } from "~/form";
 import formStyles from "~/form.module.css";
+import { FormPage } from "~/form-page";
+import pageStyles from "~/page-layout.module.css";
 import { parseFilledText, typedText } from "~/form-text";
 import { pageTitle } from "~/page-title";
 import { failureOf } from "~/result";
@@ -112,8 +114,7 @@ export default function SignInPage({
   actionData,
 }: Route.ComponentProps): ReactNode {
   return (
-    <>
-      <h1>{m.accounts_sign_in_title()}</h1>
+    <FormPage title={m.accounts_sign_in_title()}>
       <Form method="post" className={formStyles["form"]}>
         <input type="hidden" name="returnTo" value={loaderData.returnTo} />
         {actionData?.failure !== undefined && (
@@ -136,7 +137,12 @@ export default function SignInPage({
         />
         <SubmitButton label={m.accounts_sign_in_label()} />
       </Form>
-      <p>{m.accounts_forgot_password_notice()}</p>
-    </>
+      <p className={pageStyles["note"]}>
+        {m.accounts_forgot_password_notice()}
+      </p>
+      <Link to="/join" className={pageStyles["link"]}>
+        {m.accounts_join_link()}
+      </Link>
+    </FormPage>
   );
 }

@@ -7,6 +7,7 @@ import { requireUser } from "~/features/accounts/current-session.server";
 import { ErrorPage } from "~/error-page";
 import { SubmitButton, TextField } from "~/form";
 import formStyles from "~/form.module.css";
+import pageStyles from "~/page-layout.module.css";
 import { parseShortText, typedText } from "~/form-text";
 import { formatNumber, formatRupiah } from "~/formatting";
 import { PageTitle } from "~/page-title";
@@ -122,9 +123,16 @@ export default function ClassesPage({
   return (
     <>
       <PageTitle text={m.classes_page_title()} />
-      <h1>{m.classes_page_title()}</h1>
-      <ClassList role={loaderData.role} classes={listedClasses(loaderData)} />
-      <NextStep role={loaderData.role} fields={actionData?.fields} />
+      <div className={pageStyles["formColumn"]} data-layout="reading">
+        <h1>{m.classes_page_title()}</h1>
+        <div className={pageStyles["panel"]}>
+          <ClassList
+            role={loaderData.role}
+            classes={listedClasses(loaderData)}
+          />
+        </div>
+        <NextStep role={loaderData.role} fields={actionData?.fields} />
+      </div>
     </>
   );
 }
@@ -163,10 +171,10 @@ function NextStep({
   switch (role) {
     case "lecturer":
       return (
-        <>
+        <section className={pageStyles["panel"]}>
           <h2 id={createClassSectionId}>{m.classes_create_title()}</h2>
           <NewClassForm fields={fields} />
-        </>
+        </section>
       );
     case "student":
       return (

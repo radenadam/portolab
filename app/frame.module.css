@@ -63,7 +63,7 @@
   margin-inline-start: auto;
 }
 
-/* A phone shows the app icon with the name of Portolab outside a workspace, where no switcher of a class starts the top bar. */
+/* Outside a workspace, the icon leaves room for the language and the simulation badge on the narrowest phone. */
 .mark {
   display: inline-flex;
   align-items: center;
@@ -74,6 +74,16 @@
   font-size: var(--text-mark);
   font-weight: 600;
   text-decoration: none;
+}
+
+.markName {
+  display: none;
+}
+
+@media (width >= 30rem) {
+  .markName {
+    display: inline;
+  }
 }
 
 /* A phone opens the menu of the profile from the avatar in the top bar, and a desktop from the name and from the avatar of the rail. */

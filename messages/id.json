@@ -163,6 +163,7 @@
   "accounts_sign_in_title": "Masuk",
   "accounts_username_label": "Nama pengguna",
   "accounts_password_label": "Kata sandi",
+  "accounts_join_link": "Gabung ke kelas",
   "accounts_sign_in_label": "Masuk",
   "accounts_forgot_password_notice": "Lupa kata sandi? Mahasiswa meminta dosennya untuk mengatur ulang kata sandi, dan dosen meminta orang yang menjalankan server Portolab ini.",
   "accounts_wrong_credentials_error": "Portolab tidak menemukan akun dengan nama pengguna dan kata sandi ini. Periksa keduanya, lalu coba lagi. Setelah {failures} percobaan salah dalam {minutes} menit, Portolab memblokir nama pengguna itu untuk sementara. Blokir ini menghentikan siapa pun yang mencoba menebak kata sandinya.",

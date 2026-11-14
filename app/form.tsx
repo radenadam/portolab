@@ -185,7 +185,7 @@ interface ChoiceFieldProps {
   defaultValue?: string | undefined;
 }
 
-/** A group of options of which the reader chooses one, with the label of the group and the reason that the choice was not accepted, which a screen reader reads with the group. The options stand in a row of equal parts, and the chosen one carries a line of the signal color, as decision 0026 sets. */
+/** A group of options with the label and the reason that a choice was not accepted, which a screen reader reads with the group. */
 export function ChoiceField({
   name,
   label,
@@ -238,7 +238,7 @@ export function SubmitButton({
   );
 }
 
-/** A reason that the whole form was not accepted, which a screen reader announces when it appears. It opens with the line of ink of a rejection, as decision 0026 sets for every failure. */
+/** A reason that the whole form was not accepted, which a screen reader announces when it appears. */
 export function FormFailure({ text }: { text: string }): ReactNode {
   return (
     <p role="alert" className={styles["rejection"]}>
@@ -247,7 +247,7 @@ export function FormFailure({ text }: { text: string }): ReactNode {
   );
 }
 
-/** A rejection of a whole form, as decision 0026 draws it: a line of ink, a title, the text, and the control of the next step when Portolab can take it, such as a button that changes the order to the largest one that the cash pays for. A screen reader announces it when it appears. */
+/** A rejection with its next step, such as a button that changes an order to the largest one that the cash pays for. A screen reader announces it when it appears. */
 export function Rejection({
   title,
   text,

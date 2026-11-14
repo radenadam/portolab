@@ -31,6 +31,8 @@ interface WalkedClass {
 interface RoutePage {
   reader: Reader;
   path: (walked: WalkedClass) => string;
+  /** A form or a page of prose must mark its centered reading column, so omitting the mark cannot skip that rule. */
+  reading?: boolean;
   /** The rules of the layout that a page of Tenang breaks until the piece of issue #127 that rebuilds it removes them here. The comment of the entry names that piece. */
   brokenUntilRebuilt?: readonly LayoutRule[];
 }
@@ -45,22 +47,23 @@ const routePages: Record<string, readonly RoutePage[]> = {
     { reader: "student", path: ({ classPath }) => `${classPath}/market` },
   ],
   "features/accounts/sign-in-page.tsx": [
-    { reader: "visitor", path: () => "/sign-in" },
+    { reader: "visitor", path: () => "/sign-in", reading: true },
   ],
   "features/accounts/sign-out-page.tsx": [
-    { reader: "student", path: () => "/sign-out" },
+    { reader: "student", path: () => "/sign-out", reading: true },
   ],
   "features/accounts/account-page.tsx": [
-    { reader: "student", path: () => "/account" },
+    { reader: "student", path: () => "/account", reading: true },
   ],
   "features/accounts/account-setup-page.tsx": [
-    { reader: "newLecturer", path: () => "/account/setup" },
+    { reader: "newLecturer", path: () => "/account/setup", reading: true },
   ],
   "features/accounts/privacy-page.tsx": [
-    { reader: "visitor", path: () => "/privacy" },
+    { reader: "visitor", path: () => "/privacy", reading: true },
   ],
   "features/classes/classes-page.tsx": [
-    { reader: "lecturer", path: () => "/classes" },
+    { reader: "lecturer", path: () => "/classes", reading: true },
+    { reader: "student", path: () => "/classes", reading: true },
   ],
   "features/classes/class-page.tsx": [
     { reader: "lecturer", path: ({ classPath }) => classPath },
@@ -121,21 +124,27 @@ const routePages: Record<string, readonly RoutePage[]> = {
     {
       reader: "lecturer",
       path: ({ studentPath }) => `${studentPath}/password`,
+      reading: true,
     },
   ],
   "features/classes/join-page.tsx": [
-    { reader: "visitor", path: () => "/join" },
+    { reader: "visitor", path: () => "/join", reading: true },
   ],
   "features/classes/join-class-page.tsx": [
-    { reader: "visitor", path: ({ joinPath }) => joinPath },
+    { reader: "visitor", path: ({ joinPath }) => joinPath, reading: true },
+    { reader: "visitor", path: () => "/join/invalid", reading: true },
   ],
   "features/language/language-page.tsx": [
-    { reader: "visitor", path: () => "/language" },
+    { reader: "visitor", path: () => "/language", reading: true },
   ],
   // The address answers the check of the health of the server, for machines.
   "features/health/health-route.ts": [],
   "not-found-page.tsx": [
-    { reader: "visitor", path: () => "/a-page-that-does-not-exist" },
+    {
+      reader: "visitor",
+      path: () => "/a-page-that-does-not-exist",
+      reading: true,
+    },
   ],
 };
 
@@ -228,11 +237,20 @@ for (const [project, widths] of Object.entries(widthsOfProject)) {
           await chooseLanguage(reader, locale);
           await reader.setViewportSize({ width, height: 900 });
         }
-        for (const { reader, path, brokenUntilRebuilt = [] } of Object.values(
-          routePages,
-        ).flat()) {
+        for (const {
+          reader,
+          path,
+          reading,
+          brokenUntilRebuilt = [],
+        } of Object.values(routePages).flat()) {
           const address = path(walked);
           await readers[reader].goto(address);
+          if (reading === true) {
+            await expect(
+              readers[reader].locator('main [data-layout="reading"]'),
+              address,
+            ).toHaveCount(1);
+          }
           const found = await layoutProblems(readers[reader]);
           problems.push(
             ...found

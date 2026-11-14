@@ -3,6 +3,7 @@ import { data, Form, redirect } from "react-router";
 import { databaseContext } from "~/database/database.server";
 import { SubmitButton } from "~/form";
 import formStyles from "~/form.module.css";
+import { FormPage } from "~/form-page";
 import { typedText } from "~/form-text";
 import { pageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
@@ -126,12 +127,13 @@ export default function AccountSetupPage({
   const { steps, role, returnTo } = loaderData;
   const firstSetup = isFirstSetup(steps);
   return (
-    <>
-      <h1>
-        {firstSetup
+    <FormPage
+      title={
+        firstSetup
           ? m.accounts_first_setup_title()
-          : m.accounts_new_password_title()}
-      </h1>
+          : m.accounts_new_password_title()
+      }
+    >
       <p>
         {firstSetup
           ? m.accounts_first_setup_body()
@@ -144,6 +146,6 @@ export default function AccountSetupPage({
         {steps.consent && <ConsentField failures={actionData} />}
         <SubmitButton label={m.accounts_finish_label()} />
       </Form>
-    </>
+    </FormPage>
   );
 }

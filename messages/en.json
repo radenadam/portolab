@@ -163,6 +163,7 @@
   "accounts_sign_in_title": "Sign in",
   "accounts_username_label": "Username",
   "accounts_password_label": "Password",
+  "accounts_join_link": "Join a class",
   "accounts_sign_in_label": "Sign in",
   "accounts_forgot_password_notice": "Forgot your password? A student asks the lecturer to reset it, and a lecturer asks the person who runs this Portolab server.",
   "accounts_wrong_credentials_error": "Portolab found no account with this username and password. Check both and try again. After {failures} wrong attempts within {minutes} minutes, Portolab blocks the username for a while. The block stops anyone who tries to guess the password.",

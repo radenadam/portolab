@@ -1,0 +1,59 @@
+.formColumn,
+.reading,
+.formPage {
+  align-self: stretch;
+  width: 100%;
+  min-width: 0;
+  margin-inline: auto;
+}
+
+.formColumn,
+.formPage {
+  max-width: var(--width-form);
+}
+
+.reading {
+  max-width: var(--width-reading);
+}
+
+.formColumn,
+.reading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.formPage {
+  composes: panel from "./panel.module.css";
+}
+
+.panel {
+  composes: panel from "./panel.module.css";
+}
+
+.formPage h1,
+.formColumn h1 {
+  font-size: var(--text-stock);
+}
+
+.reading h2 {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--text-body);
+}
+
+.reading > h1 {
+  letter-spacing: -0.02em;
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--size-touch-target);
+  overflow-wrap: anywhere;
+}
+
+.note {
+  color: var(--color-muted);
+  font-size: var(--text-small);
+}
