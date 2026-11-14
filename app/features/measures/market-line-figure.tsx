@@ -7,7 +7,7 @@ import type { MapPoint, MarkedPoint } from "~/charts/layout-risk-map";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
 import { formatBeta, formatPercent, formatSignedPercent } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
-import { beta } from "~/units/beta";
+import { beta, marketBeta } from "~/units/beta";
 import type { Beta } from "~/units/beta";
 import { monthlyReturn } from "~/units/monthly-return";
 import type { MonthlyReturn } from "~/units/monthly-return";
@@ -69,7 +69,7 @@ export function MarketLineFigure({
 }): ReactNode {
   const index = marketIndex.code;
   const market: LinePoint = {
-    beta: beta(1),
+    beta: marketBeta,
     expectedReturn: line.marketExpectedReturn,
     distance: monthlyReturn(0),
   };

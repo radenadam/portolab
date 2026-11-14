@@ -44,8 +44,11 @@ const numberUnits = [
   "sesi",
 ].join("|");
 
+const digits = String.raw`\d+(?:[.,]\d+)*`;
+const currency = String.raw`(?:Rp|IDR)\s*[+−±-]?${digits}(?:\s*(?:rb|jt|[KMBT]))?`;
+
 /** A shared pattern keeps rendering and the layout check from disagreeing about the signs, arrows, and units of a number. */
 export const numberPattern = new RegExp(
-  String.raw`(?<![\p{L}\p{N}_])(?:[▲▼]\s*)?[+−±-]?(?:(?:Rp|IDR)\s*)?[+−±-]?\d+(?:[.,]\d+)*(?:(?:\s*-\s*|\s*)(?:%|(?:${numberUnits})\b))?(?:\s*[▲▼](?!\s*[+−±-]?(?:(?:Rp|IDR)\s*)?\d))?(?![.,]\d|[\p{L}\p{N}_])`,
+  String.raw`(?<![\p{L}\p{N}_])(?:[▲▼]\s*)?[+−±-]?(?:${currency}|[+−±-]?${digits})(?:(?:\s*-\s*|\s*)(?:%|(?:${numberUnits})\b))?(?:\s*[▲▼](?!\s*[+−±-]?(?:(?:Rp|IDR)\s*)?\d))?(?![.,]\d|[\p{L}\p{N}_])`,
   "gu",
 );

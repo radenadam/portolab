@@ -6,11 +6,14 @@ import type { PriceSourceDescription } from "~/features/market-data/price-source
 import type { Portfolio } from "~/features/trading/portfolio-store.server";
 import { readCurrentPortfolio } from "~/features/trading/read-current-portfolio.server";
 import type { Rupiah } from "~/units/rupiah";
+import { parseStudentReturnPath } from "./parse-student-return-path";
+import { classPortfoliosPath } from "./grading-paths";
 import type { TaughtStudent } from "./taught-student-page";
 
 /** What every page of the portfolio of one student reads for the lecturer of the class: the student, the portfolio with the starting cash of the class and the time when the student joined, from which its return counts, and what the page tells about the source of its prices. */
 export interface TaughtPortfolio {
   student: TaughtStudent;
+  returnPath: string;
   portfolio: Portfolio;
   startingCash: Rupiah;
   joinedAt: Date;
@@ -33,7 +36,15 @@ export function readTaughtPortfolio(
   },
 ): TaughtPortfolio {
   const { taughtClass, student } = requireTaughtStudent(context, url, params);
+  const returnPath = parseStudentReturnPath(
+    url.searchParams.get("returnTo"),
+    "returnTo",
+    { origin: url.origin, classId: taughtClass.id },
+  );
   return {
+    returnPath: returnPath.ok
+      ? returnPath.value
+      : classPortfoliosPath(taughtClass.id),
     student: {
       classId: taughtClass.id,
       className: taughtClass.name,

@@ -1,4 +1,4 @@
-import { compareRoundedNumbers } from "~/formatting";
+import { compareRoundedNumbers } from "~/compare-rounded-numbers";
 import { m } from "~/paraglide/messages.js";
 import { beta } from "~/units/beta";
 import type { Beta } from "~/units/beta";

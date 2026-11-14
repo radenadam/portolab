@@ -9,6 +9,9 @@ import type { Locale } from "./paraglide/runtime.js";
 const values: Record<Locale, readonly string[]> = {
   id: [
     "Rp 498.000.000.000",
+    "Rp498 M",
+    "Rp1,5 jt",
+    "▲ +Rp1 T",
     "▲ +Rp 3.259.000.000",
     "▼ -0,81%",
     "+0,81% ▲",
@@ -25,6 +28,9 @@ const values: Record<Locale, readonly string[]> = {
   ],
   en: [
     "IDR 498,000,000,000",
+    "IDR498B",
+    "IDR1.5M",
+    "▲ +IDR1T",
     "▲ +IDR 3,259,000,000",
     "▼ -0.81%",
     "+0.81% ▲",

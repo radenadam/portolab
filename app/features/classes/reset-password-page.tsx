@@ -1,7 +1,6 @@
-import { ClassBackLink } from "./class-back-link";
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
-import { Form } from "react-router";
+import { Form, Link } from "react-router";
 import { resetForgottenPassword } from "~/features/accounts/reset-forgotten-password.server";
 import { FormSuccess, SubmitButton } from "~/form";
 import formStyles from "~/form.module.css";
@@ -9,7 +8,8 @@ import { pageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
 import type { Route } from "./+types/reset-password-page";
 import type { ClassStudent } from "./class-store.server";
-import type { ClassId } from "./classes.schema";
+import { parseStudentReturnPath } from "~/features/grading/parse-student-return-path";
+import { studentsAddress } from "~/features/grading/students-address";
 import styles from "./classes.module.css";
 import { requireTaughtStudent } from "./taught-class.server";
 
@@ -18,12 +18,26 @@ export function meta(): Route.MetaDescriptors {
 }
 
 export function loader({ context, url, params }: Route.LoaderArgs): {
-  classId: ClassId;
-  className: string;
+  returnPath: string;
   student: ClassStudent;
 } {
   const { taughtClass, student } = requireTaughtStudent(context, url, params);
-  return { classId: taughtClass.id, className: taughtClass.name, student };
+  const returnPath = parseStudentReturnPath(
+    url.searchParams.get("returnTo"),
+    "returnTo",
+    { origin: url.origin, classId: taughtClass.id },
+  );
+  return {
+    student,
+    returnPath: returnPath.ok
+      ? returnPath.value
+      : studentsAddress(taughtClass.id, {
+          measure: "alpha",
+          filter: "all",
+          query: "",
+          studentId: student.id,
+        }),
+  };
 }
 
 export async function action({ context, url, params }: Route.ActionArgs) {
@@ -35,9 +49,9 @@ export default function ResetPasswordPage({
   loaderData,
   actionData,
 }: Route.ComponentProps): ReactNode {
-  const { classId, className, student } = loaderData;
+  const { student, returnPath } = loaderData;
   return (
-    <>
+    <section className={styles["reset"]} data-layout="reading">
       <h1>{m.classes_reset_title()}</h1>
       {actionData === undefined ? (
         <>
@@ -63,7 +77,9 @@ export default function ResetPasswordPage({
           </p>
         </>
       )}
-      <ClassBackLink classId={classId} className={className} />
-    </>
+      <Link to={returnPath} className={styles["link"]}>
+        {m.classes_students_back_link()}
+      </Link>
+    </section>
   );
 }

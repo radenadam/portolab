@@ -71,7 +71,7 @@ const texts: Record<
     fileInSide:
       'Formulir mengirim nilai bertipe File di kolom "Beli atau jual", bukan teks. Muat ulang halaman, lalu isi formulirnya lagi.',
     farTooLong: (field, length) =>
-      `Kolom "${field}" berisi ${length} karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.`,
+      `Kolom "${field}" berisi ${length} karakter, lebih banyak daripada yang diterima kolom ini. Isi kolom itu dengan teks yang dimintanya.`,
     lengths: { atLimit: "8.000", justPast: "8.001", farPast: "1.000.000" },
     lotsLabel: "Jumlah lot",
     tooManyLots: [
@@ -134,7 +134,7 @@ const texts: Record<
     fileInSide:
       'The form sent a value of type File in the field "Buy or sell" instead of text. Reload the page and fill in the form again.',
     farTooLong: (field, length) =>
-      `The field "${field}" has ${length} characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.`,
+      `The field "${field}" has ${length} characters, more than this field takes. Fill it in with the text that it asks for.`,
     lengths: { atLimit: "8,000", justPast: "8,001", farPast: "1,000,000" },
     lotsLabel: "Lots",
     tooManyLots: [

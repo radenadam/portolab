@@ -1,6 +1,4 @@
-import { eq } from "drizzle-orm";
 import type { ClassId } from "../app/features/classes/classes.schema.ts";
-import { memberships } from "../app/features/classes/classes.schema.ts";
 import {
   holdings,
   orders,
@@ -11,6 +9,7 @@ import type { OrderLots } from "../app/units/lots.ts";
 import { rupiah } from "../app/units/rupiah.ts";
 import type { Rupiah } from "../app/units/rupiah.ts";
 import type { Shares } from "../app/units/shares.ts";
+import { storeTestJoiningTime } from "./store-test-joining-time.ts";
 import { writeForTestStudent } from "./write-for-test-student.ts";
 
 /** A market purchase that filled at once on its trading day, as a check of the price job stores it. */
@@ -30,6 +29,7 @@ export interface TestPurchase {
   fee: Rupiah;
   /** The value and the fee, which the order set aside until it filled. */
   cost: Rupiah;
+  reason?: string;
 }
 
 /**
@@ -47,11 +47,7 @@ export function storeTestPurchases(
   },
 ): void {
   writeForTestStudent(classId, (database, membershipId) => {
-    database
-      .update(memberships)
-      .set({ joinedAt: portfolio.joinedAt })
-      .where(eq(memberships.id, membershipId))
-      .run();
+    storeTestJoiningTime(database, membershipId, portfolio.joinedAt);
     database
       .insert(portfolios)
       .values({ membershipId, cash: portfolio.cash })
@@ -63,6 +59,7 @@ export function storeTestPurchases(
           membershipId,
           code: purchase.code,
           side: "buy",
+          reason: purchase.reason ?? null,
           lots: orderLotsOf(purchase.lots),
           limit: null,
           placedAt: purchase.placedAt,

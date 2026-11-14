@@ -1,157 +1,295 @@
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
-import { Link } from "react-router";
+import { beta, marketBeta } from "~/units/beta";
+import type { Beta } from "~/units/beta";
+import { cumulativeReturn } from "~/units/cumulative-return";
+import type { CumulativeReturn } from "~/units/cumulative-return";
+import { percentOf } from "~/charts/plot";
+import { plotFraction } from "~/units/plot-fraction";
 import { ChangeText } from "~/change-text";
-import definitionStyles from "~/definition-list.module.css";
-import type { ClassId } from "~/features/classes/classes.schema";
-import { marketIndex } from "~/features/market-data/tracked-instruments";
+import { fractionOf, paddedRange } from "~/charts/scale";
+import type { Range } from "~/charts/scale";
 import {
   formatBeta,
+  formatMarketTimeParts,
+  formatNumber,
   formatPercent,
-  formatRupiah,
   formatSignedPercent,
 } from "~/formatting";
+import { initialsOf } from "~/initials-of";
 import { m } from "~/paraglide/messages.js";
+import {
+  rankingLabel,
+  rankingText,
+  rankingValue,
+  studentRank,
+} from "./ranking-measure";
+import type { ComparedStudent } from "./student-filters";
+import type { StudentOptions } from "./students-address";
+import { studentRowId, studentsAddress } from "./students-address";
+import type { ClassId } from "~/features/classes/classes.schema";
+import { StudentLink } from "./student-link";
 import styles from "./grading.module.css";
-import { studentMeasuresPath, studentPortfolioPath } from "./grading-paths";
-import type {
-  RankedStudent,
-  UnmeasuredStudent,
-} from "./read-class-portfolios.server";
 
-/** The students whose portfolios have measures, in the order of their rank, each with the measures that the lecturer compares and the value of the portfolio. */
-export function RankedStudents({
+export function StudentStandings({
   classId,
-  students,
+  all,
+  shown,
+  options,
+  selected,
 }: {
   classId: ClassId;
-  students: readonly RankedStudent[];
+  all: readonly ComparedStudent[];
+  shown: readonly ComparedStudent[];
+  options: StudentOptions;
+  selected: ComparedStudent | undefined;
 }): ReactNode {
-  return (
-    <ol className={styles["list"]}>
-      {students.map((student) => (
-        <StudentItem
-          key={student.studentId}
-          classId={classId}
-          student={student}
-        >
-          <dl className={definitionStyles["list"]}>
-            <dt>{m.grading_market_line_label()}</dt>
-            <dd>
-              <ChangeText
-                change={formatSignedPercent(student.measures.distance)}
-              />
-            </dd>
-            <dt>{m.grading_expected_return_label()}</dt>
-            <dd>
-              <NumberText>
-                {formatPercent(student.measures.expectedReturn, "two")}
-              </NumberText>
-            </dd>
-            <dt>{m.grading_standard_deviation_label()}</dt>
-            <dd>
-              <NumberText>
-                {formatPercent(student.measures.standardDeviation, "two")}
-              </NumberText>
-            </dd>
-            <dt>
-              <NumberText>
-                {m.grading_beta_label({ index: marketIndex.code })}
-              </NumberText>
-            </dt>
-            <dd>
-              <NumberText>{formatBeta(student.measures.beta)}</NumberText>
-            </dd>
-            <dt>{m.grading_required_return_label()}</dt>
-            <dd>
-              <NumberText>
-                {formatPercent(student.measures.requiredReturn, "two")}
-              </NumberText>
-            </dd>
-            <TotalRows total={student.total} />
-          </dl>
-        </StudentItem>
-      ))}
-    </ol>
-  );
-}
-
-/** The students whose portfolios have no measures, each with the value of the portfolio when every holding has a delayed price, and why the portfolio has no measures. */
-export function UnmeasuredStudents({
-  classId,
-  students,
-}: {
-  classId: ClassId;
-  students: readonly UnmeasuredStudent[];
-}): ReactNode {
-  return (
-    <ul className={styles["list"]}>
-      {students.map((student) => (
-        <StudentItem
-          key={student.studentId}
-          classId={classId}
-          student={student}
-        >
-          {student.total !== undefined && (
-            <dl className={definitionStyles["list"]}>
-              <TotalRows total={student.total} />
-            </dl>
-          )}
-          <p>
-            <NumberText>{student.reason}</NumberText>
-          </p>
-        </StudentItem>
-      ))}
-    </ul>
-  );
-}
-
-function StudentItem({
-  classId,
-  student,
-  children,
-}: {
-  classId: ClassId;
-  student: RankedStudent | UnmeasuredStudent;
-  children: ReactNode;
-}): ReactNode {
-  const { name } = student;
-  return (
-    <li className={styles["item"]}>
-      <p className={styles["name"]}>
-        <NumberText>{name}</NumberText>
-      </p>
-      {children}
-      <Link
-        to={studentPortfolioPath(classId, student.studentId)}
-        className={styles["link"]}
-      >
-        <NumberText>{m.grading_portfolio_link({ name })}</NumberText>
-      </Link>
-      <Link
-        to={studentMeasuresPath(classId, student.studentId)}
-        className={styles["link"]}
-      >
-        <NumberText>{m.grading_measures_link({ name })}</NumberText>
-      </Link>
-    </li>
-  );
-}
-
-function TotalRows({ total }: { total: RankedStudent["total"] }): ReactNode {
-  if (total === undefined) {
-    return null;
+  const returnValues = [cumulativeReturn(0)];
+  const betaValues: Beta[] = [marketBeta];
+  for (const student of all) {
+    if (student.total !== undefined) returnValues.push(student.total.return);
+    if (student.marketReturn !== undefined)
+      returnValues.push(student.marketReturn);
+    if ("measures" in student) betaValues.push(student.measures.beta);
   }
+  const returns = paddedRange(returnValues, cumulativeReturn);
+  const betas = paddedRange(betaValues, beta);
+  return (
+    <table className={styles["table"]} data-layout="table">
+      <thead>
+        <tr>
+          <th>
+            <span className={styles["rankHeading"]}>
+              {m.grading_rank_label()}
+            </span>
+          </th>
+          <th>{m.grading_name_label()}</th>
+          <th>{m.grading_short_return_label()}</th>
+          <th>{m.grading_short_beta_label()}</th>
+          <th>{m.grading_risk_label()}</th>
+          <th aria-sort="descending">{rankingLabel(options.measure)} ↓</th>
+          <th>{m.grading_last_activity_label()}</th>
+        </tr>
+      </thead>
+      <tbody data-layout="rows">
+        {shown.map((student) => {
+          const value = rankingValue(student, options.measure);
+          const reason = value.ok ? undefined : value.failure;
+          const rank = studentRank(student, all, options.measure)?.rank;
+          return (
+            <tr
+              data-auto-selected={
+                options.studentId === undefined ? "true" : undefined
+              }
+              key={student.studentId}
+              id={studentRowId(student.studentId)}
+              className={
+                selected?.studentId === student.studentId
+                  ? styles["selected"]
+                  : undefined
+              }
+            >
+              <td className={styles["rank"]}>
+                <NumberText>
+                  {rank === undefined ? "" : formatNumber(rank)}
+                </NumberText>
+              </td>
+              <td className={styles["who"]}>
+                <StudentLink
+                  to={studentsAddress(classId, {
+                    ...options,
+                    studentId: student.studentId,
+                  })}
+                  aria-current={
+                    options.studentId === student.studentId ? "true" : undefined
+                  }
+                >
+                  <span className={styles["avatar"]} aria-hidden="true">
+                    {initialsOf(student.name)}
+                  </span>
+                  <span className={styles["studentName"]}>
+                    <NumberText>{student.name}</NumberText>
+                    <small>
+                      <NumberText>{student.username}</NumberText>
+                    </small>
+                  </span>
+                </StudentLink>
+              </td>
+              <StudentNumbers
+                student={student}
+                options={options}
+                returns={returns}
+                betas={betas}
+              />
+              <td className={styles["activityCell"]}>
+                <span
+                  className={
+                    student.activeThisWeek
+                      ? styles["active"]
+                      : styles["inactive"]
+                  }
+                  aria-hidden="true"
+                >
+                  ●
+                </span>
+                {student.lastActivity === undefined ? (
+                  m.grading_never_label()
+                ) : (
+                  <ActivityTime moment={student.lastActivity} />
+                )}
+              </td>
+              {reason !== undefined && (
+                <td className={styles["reasonCell"]}>
+                  <details>
+                    <summary>{m.grading_missing_measure_label()}</summary>
+                    <p>
+                      <NumberText>{reason}</NumberText>
+                    </p>
+                  </details>
+                </td>
+              )}
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  );
+}
+
+function ActivityTime({ moment }: { moment: Date }): ReactNode {
+  const time = formatMarketTimeParts(moment);
+  return (
+    <time dateTime={moment.toISOString()}>
+      <NumberText>{time.date}</NumberText>
+      <small>
+        <NumberText whole>{time.clock}</NumberText>
+      </small>
+    </time>
+  );
+}
+
+function InlineScale<Value extends number>({
+  range,
+  value,
+  reference,
+  kind,
+  toValue,
+}: {
+  range: Range<Value>;
+  value: NoInfer<Value>;
+  reference: NoInfer<Value> | undefined;
+  kind: "return" | "beta";
+  toValue: (value: number) => NoInfer<Value>;
+}): ReactNode {
+  const position = plotFraction(fractionOf(range, value));
+  const zero = plotFraction(fractionOf(range, toValue(0)));
+  return (
+    <svg className={styles["scale"]} aria-hidden="true">
+      <line x1="0" x2="100%" y1="50%" y2="50%" className={styles["track"]} />
+      {kind === "return" ? (
+        <rect
+          x={percentOf(plotFraction(Math.min(position, zero)))}
+          y="0.25em"
+          width={percentOf(plotFraction(Math.abs(position - zero)))}
+          height="0.5em"
+          rx="0.125em"
+          className={styles[formatSignedPercent(value).direction]}
+        />
+      ) : (
+        <circle
+          cx={percentOf(position)}
+          cy="50%"
+          r="0.3125em"
+          className={styles["dot"]}
+        />
+      )}
+      {reference !== undefined && (
+        <line
+          x1={percentOf(plotFraction(fractionOf(range, reference)))}
+          x2={percentOf(plotFraction(fractionOf(range, reference)))}
+          y1="0"
+          y2="100%"
+          className={styles["reference"]}
+        />
+      )}
+    </svg>
+  );
+}
+
+function StudentNumbers({
+  student,
+  options,
+  returns,
+  betas,
+}: {
+  student: ComparedStudent;
+  options: StudentOptions;
+  returns: Range<CumulativeReturn>;
+  betas: Range<Beta>;
+}): ReactNode {
   return (
     <>
-      <dt>{m.grading_total_value_label()}</dt>
-      <dd>
-        <NumberText>{formatRupiah(total.value)}</NumberText>
-      </dd>
-      <dt>{m.grading_return_label()}</dt>
-      <dd>
-        <ChangeText change={formatSignedPercent(total.return)} />
-      </dd>
+      <td className={styles["returnCell"]}>
+        {student.total === undefined ? (
+          m.grading_unavailable_label()
+        ) : (
+          <>
+            <ChangeText
+              change={formatSignedPercent(student.total.return)}
+              colored
+            />
+            <InlineScale
+              range={returns}
+              value={student.total.return}
+              reference={student.marketReturn}
+              kind="return"
+              toValue={cumulativeReturn}
+            />
+          </>
+        )}
+      </td>
+      <td className={styles["betaCell"]}>
+        {"measures" in student ? (
+          <>
+            <span>
+              <NumberText>{formatBeta(student.measures.beta)}</NumberText>
+            </span>
+            <InlineScale
+              range={betas}
+              value={student.measures.beta}
+              reference={marketBeta}
+              kind="beta"
+              toValue={beta}
+            />
+          </>
+        ) : (
+          m.grading_unavailable_label()
+        )}
+      </td>
+      <td className={styles["riskCell"]}>
+        <NumberText>
+          {"measures" in student
+            ? formatPercent(student.measures.standardDeviation, "two")
+            : m.grading_unavailable_label()}
+        </NumberText>
+      </td>
+      <td className={styles["measureCell"]}>
+        <NumberText whole>
+          {"measures" in student ? (
+            options.measure === "alpha" ? (
+              <ChangeText
+                change={formatSignedPercent(student.measures.distance)}
+                colored
+              />
+            ) : (
+              rankingText(student.measures, options.measure)
+            )
+          ) : (
+            m.grading_unavailable_label()
+          )}
+        </NumberText>
+        <small>{rankingLabel(options.measure)}</small>
+      </td>
     </>
   );
 }

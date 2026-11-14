@@ -23,8 +23,20 @@ const rupiahOptions: Intl.NumberFormatOptions = {
   maximumFractionDigits: 0,
 };
 
-export function formatRupiah(amount: Rupiah): string {
-  return new Intl.NumberFormat(intlLocale(), rupiahOptions).format(amount);
+type CurrencyNotation = "standard" | "compact";
+
+const rupiahFormats: Record<CurrencyNotation, Intl.NumberFormatOptions> = {
+  standard: rupiahOptions,
+  compact: { ...rupiahOptions, notation: "compact", maximumFractionDigits: 1 },
+};
+
+export function formatRupiah(
+  amount: Rupiah,
+  notation: CurrencyNotation = "standard",
+): string {
+  return new Intl.NumberFormat(intlLocale(), rupiahFormats[notation]).format(
+    amount,
+  );
 }
 
 /** One format supplies both the currency and digits when a headline sizes them apart. */
@@ -199,26 +211,13 @@ const ratioOptions: Intl.NumberFormatOptions = {
   maximumFractionDigits: 2,
   signDisplay: "negative",
 };
-const precisionOptions = { number: numberOptions, ratio: ratioOptions };
+export const numberPrecisionOptions = {
+  number: numberOptions,
+  ratio: ratioOptions,
+};
 
 function formatTwoDecimals(value: number): string {
   return new Intl.NumberFormat(intlLocale(), ratioOptions).format(value);
-}
-
-/** Interpretations use the same Intl rounding as the text. The canonical format has no groups, so the program can read it back. */
-export function compareRoundedNumbers<Value extends number>(
-  first: Value,
-  second: NoInfer<Value>,
-  precision: keyof typeof precisionOptions,
-): ChangeDirection {
-  const format = new Intl.NumberFormat("en-US", {
-    ...precisionOptions[precision],
-    useGrouping: false,
-  });
-  const firstValue = Number(format.format(first));
-  const secondValue = Number(format.format(second));
-  if (firstValue > secondValue) return "rise";
-  return firstValue < secondValue ? "fall" : "none";
 }
 
 /** Formats a difference of returns in percentage points, without a percent sign. */

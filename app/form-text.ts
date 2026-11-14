@@ -1,6 +1,7 @@
 import { characterCount } from "~/character-count";
 import { checkFieldLength } from "~/check-field-length";
 import { formatNumber } from "~/formatting";
+import { fieldMaximumLength } from "~/form-size";
 import { m } from "~/paraglide/messages.js";
 import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
@@ -32,9 +33,18 @@ export function parseFilledText(
 export function checkFieldLengthForReader(
   text: string,
   source: string,
+  maximum: "guard" | "field" = "guard",
 ): Result<string, string> {
   const checked = checkFieldLength(text);
-  // The rule of every field that a person fills in allows far less, so the error states no maximum, which would not be the one of the field.
+  // A guard for a shorter product rule must not present itself as that field's maximum.
+  if (!checked.ok && maximum === "field")
+    return fail(
+      m.app_too_long_error({
+        field: source,
+        maximum: formatNumber(fieldMaximumLength),
+        length: formatNumber(checked.failure),
+      }),
+    );
   return checked.ok
     ? checked
     : fail(

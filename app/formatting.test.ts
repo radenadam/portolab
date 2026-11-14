@@ -11,6 +11,7 @@ import {
   formatMinutes,
   formatMonth,
   formatPercent,
+  formatRupiah,
   formatSharpeRatio,
   formatSignedPercent,
   formatSignedRupiah,
@@ -343,5 +344,21 @@ for (const locale of locales) {
     expect(axisMarks([0, smallestPercentStep], "percent")).toEqual(
       text.finestPercents,
     );
+  });
+}
+
+const compactAmounts: Record<Locale, readonly string[]> = {
+  id: ["Rp\u00a00", "Rp\u00a054,8\u00a0jt", "Rp\u00a01\u00a0T"],
+  en: ["IDR\u00a00", "IDR\u00a054.8M", "IDR\u00a01T"],
+};
+
+for (const locale of locales) {
+  test(`formats compact rupiah totals with the units of ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    expect(
+      [0, 54_780_000, 1_003_259_000_000].map((value) =>
+        formatRupiah(rupiah(value), "compact"),
+      ),
+    ).toEqual(compactAmounts[locale]);
   });
 }

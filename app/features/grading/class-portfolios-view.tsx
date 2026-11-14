@@ -1,62 +1,214 @@
-import { QuoteNotice } from "~/features/market-data/quote-notice";
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
+import { Form } from "react-router";
 import type { ClassId } from "~/features/classes/classes.schema";
-import type { PriceSourceDescription } from "~/features/market-data/price-source.server";
-import { MethodNotice } from "~/features/measures/method-notice";
-import { formatNumber } from "~/formatting";
+import { marketIndex } from "~/features/market-data/tracked-instruments";
+import { countedText } from "~/counted-text";
+import { marketBeta } from "~/units/beta";
+import { formatBeta, formatNumber } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
+import { classPortfoliosPath, portfoliosWorkbookPath } from "./grading-paths";
+import { RankingHelp } from "./ranking-help";
+import { rankingLabel, rankingMeasures } from "./ranking-measure";
+import {
+  matchesStudentFilter,
+  studentFilterLabel,
+  studentFilters,
+} from "./student-filters";
+import type { ComparedStudent } from "./student-filters";
+import { StudentStandings } from "./student-standings";
+import { StudentPanel } from "./student-panel";
+import type { StudentPanelData } from "./student-panel-data.server";
+import { studentsAddress } from "./students-address";
+import type { StudentOptions } from "./students-address";
+import { StudentLink } from "./student-link";
 import styles from "./grading.module.css";
-import { portfoliosWorkbookPath } from "./grading-paths";
-import type { ClassPortfolios } from "./read-class-portfolios.server";
-import { RankedStudents, UnmeasuredStudents } from "./student-standings";
 
-/** The portfolios of the students of a class below the title of their page: the values at delayed prices, the prices that the latest update could not fetch, the link to the workbook, and the students in the order of decision 0021, or that no student has joined yet. */
 export function ClassPortfoliosView({
   classId,
-  portfolios,
-  source,
+  all,
+  quoteFailure,
+  options,
+  shown,
+  selected,
+  panel,
+  queryFailure,
 }: {
   classId: ClassId;
-  portfolios: ClassPortfolios;
-  source: PriceSourceDescription;
+  all: readonly ComparedStudent[];
+  quoteFailure: string | undefined;
+  options: StudentOptions;
+  shown: readonly ComparedStudent[];
+  selected: ComparedStudent | undefined;
+  panel: StudentPanelData | undefined;
+  queryFailure?: string | undefined;
 }): ReactNode {
-  const { ranked, unmeasured, quoteFailure } = portfolios;
-  if (ranked.length === 0 && unmeasured.length === 0) {
-    return <p>{m.grading_no_students_body()}</p>;
-  }
   return (
-    <>
-      <p>
-        <NumberText>
-          {m.grading_valuation_notice({
-            source: source.name,
-            minutes: formatNumber(source.delayMinutes),
-          })}
-        </NumberText>
-      </p>
-      <QuoteNotice text={quoteFailure} className={styles["details"]} />
-      <MethodNotice />
-      {/* A plain link makes the browser request the address itself, which the server answers with the file, where a link of React Router would ask the router for the data of a page. */}
-      <a href={portfoliosWorkbookPath(classId)} className={styles["link"]}>
-        {m.grading_export_link()}
-      </a>
-      <p className={styles["details"]}>{m.grading_export_notice()}</p>
-      <h2>{m.grading_ranked_title()}</h2>
-      {ranked.length === 0 ? (
-        <p>{m.grading_no_ranked_body()}</p>
-      ) : (
-        <>
-          <p>{m.grading_ranked_notice()}</p>
-          <RankedStudents classId={classId} students={ranked} />
-        </>
-      )}
-      {unmeasured.length > 0 && (
-        <>
-          <h2>{m.grading_unmeasured_title()}</h2>
-          <UnmeasuredStudents classId={classId} students={unmeasured} />
-        </>
-      )}
-    </>
+    <div className={styles["content"]} data-layout="content">
+      <div className={styles["students"]} data-layout="columns">
+        <div className={styles["column"]}>
+          <div className={styles["tools"]}>
+            <h1>{m.grading_students_title()}</h1>
+            <nav
+              className={styles["measures"]}
+              aria-label={m.grading_measure_label()}
+            >
+              {rankingMeasures.map((measure) => (
+                <StudentLink
+                  key={measure}
+                  to={studentsAddress(classId, { ...options, measure })}
+                  aria-current={
+                    options.measure === measure ? "true" : undefined
+                  }
+                >
+                  <span>{rankingLabel(measure)}</span>
+                </StudentLink>
+              ))}
+            </nav>
+            <Form
+              method="get"
+              action={classPortfoliosPath(classId)}
+              className={styles["search"]}
+            >
+              <input type="hidden" name="measure" value={options.measure} />
+              <input type="hidden" name="filter" value={options.filter} />
+              {options.studentId !== undefined && (
+                <input
+                  type="hidden"
+                  name="student"
+                  value={String(options.studentId)}
+                />
+              )}
+              <input
+                aria-invalid={queryFailure !== undefined}
+                aria-describedby={
+                  queryFailure === undefined
+                    ? undefined
+                    : "student-search-failure"
+                }
+                type="search"
+                name="q"
+                defaultValue={options.query}
+                key={options.query}
+                placeholder={m.grading_search_label()}
+                aria-label={m.grading_search_label()}
+              />
+              <button type="submit">{m.grading_search_button_label()}</button>
+              {queryFailure !== undefined && (
+                <p
+                  id="student-search-failure"
+                  className={styles["searchFailure"]}
+                  role="alert"
+                >
+                  <NumberText>{queryFailure}</NumberText>
+                </p>
+              )}
+            </Form>
+            {all.length > 0 && (
+              <a
+                className={[styles["button"], styles["export"]].join(" ")}
+                href={`${portfoliosWorkbookPath(classId)}?measure=${options.measure}`}
+                aria-label={m.grading_export_link()}
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 3v12m-5-5 5 5 5-5M4 17v4h16v-4" />
+                </svg>
+                <span>{m.grading_export_link()}</span>
+              </a>
+            )}
+          </div>
+          <nav
+            className={styles["filters"]}
+            aria-label={m.grading_filter_label()}
+          >
+            {studentFilters
+              .filter(
+                (filter) => filter !== "no-stocks" || options.filter === filter,
+              )
+              .map((filter) => (
+                <StudentLink
+                  key={filter}
+                  to={studentsAddress(classId, { ...options, filter })}
+                  aria-current={options.filter === filter ? "true" : undefined}
+                >
+                  <span>
+                    <NumberText>{studentFilterLabel(filter)}</NumberText> ·{" "}
+                    <NumberText>
+                      {formatNumber(
+                        all.filter((student) =>
+                          matchesStudentFilter(student, filter),
+                        ).length,
+                      )}
+                    </NumberText>
+                  </span>
+                </StudentLink>
+              ))}
+          </nav>
+          <section
+            className={styles["listPanel"]}
+            aria-label={m.grading_ranking_title()}
+          >
+            {shown.length > 0 ? (
+              <StudentStandings
+                classId={classId}
+                all={all}
+                shown={shown}
+                options={options}
+                selected={selected}
+              />
+            ) : (
+              <p className={styles["empty"]}>
+                {all.length === 0
+                  ? m.grading_no_students_body()
+                  : m.grading_no_matches_body()}
+              </p>
+            )}
+            <div className={styles["tableNote"]}>
+              <p>
+                <NumberText>
+                  {countedText(
+                    all.length,
+                    {
+                      one: m.grading_one_student_notice,
+                      several: m.grading_several_students_notice,
+                    },
+                    {
+                      shown: formatNumber(shown.length),
+                      total: formatNumber(all.length),
+                    },
+                  )}
+                </NumberText>
+              </p>
+              <p>
+                <NumberText>
+                  {m.grading_ranking_notice({
+                    measure: rankingLabel(options.measure),
+                  })}
+                </NumberText>
+              </p>
+              <RankingHelp student={selected} measure={options.measure} />
+              <p>
+                <NumberText>
+                  {m.grading_price_times_notice({
+                    index: marketIndex.code,
+                    beta: formatBeta(marketBeta),
+                  })}
+                </NumberText>
+              </p>
+              {quoteFailure !== undefined && <p>{quoteFailure}</p>}
+            </div>
+          </section>
+        </div>
+        {selected !== undefined && panel !== undefined && (
+          <StudentPanel
+            classId={classId}
+            student={selected}
+            all={all}
+            options={options}
+            panel={panel}
+          />
+        )}
+      </div>
+    </div>
   );
 }

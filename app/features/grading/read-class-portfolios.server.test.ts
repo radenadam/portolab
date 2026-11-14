@@ -1,5 +1,10 @@
 import { expect, test } from "vitest";
-import { findTaughtClass } from "~/features/classes/class-store.server";
+import {
+  findTaughtClass,
+  listStudents,
+} from "~/features/classes/class-store.server";
+import { placedOrderForTest } from "~/features/trading/portfolios-for-test.server";
+import { purchaseForTest } from "~/features/trading/orders-for-test";
 import { createLecturerWithClassForTest } from "~/features/classes/classes-for-test.server";
 import { closeToForTest } from "~/features/measures/close-to-for-test";
 import { databaseWithClosesForTest } from "~/features/measures/measures-for-test.server";
@@ -47,27 +52,15 @@ const bbcaStudent = {
 for (const locale of locales) {
   const reason = reasons[locale];
 
-  test(`ranks the portfolios with measures by their distance from the security market line, keeps the order of joining for equal distances, and lists the others with the reason, in ${languageNames[locale]}`, async () => {
+  test(`reads the portfolios with measures and the others with their reasons in joining order, in ${languageNames[locale]}`, async () => {
     switchLocaleForTest(locale);
     const { database, taughtClass } = await classOfStudentsForTest();
     const portfolios = readClassPortfolios(database, taughtClass, {
-      request: new Request("http://localhost/classes/1/portfolios"),
+      request: new Request("http://localhost/classes/1/students"),
       now,
       delayMinutes: 10,
     });
-    expect(portfolios.ranked).toEqual([
-      {
-        studentId: expect.any(Number) as number,
-        name: "Eko Prasetyo",
-        username: "eko",
-        ...bbcaStudent,
-      },
-      {
-        studentId: expect.any(Number) as number,
-        name: "Fajar Nugroho",
-        username: "fajar",
-        ...bbcaStudent,
-      },
+    expect(portfolios.ranked).toMatchObject([
       {
         studentId: expect.any(Number) as number,
         name: "Sari Wulandari",
@@ -81,8 +74,20 @@ for (const locale of locales) {
           requiredReturn: closeToForTest(0.002101070983674259, 16),
         },
       },
+      {
+        studentId: expect.any(Number) as number,
+        name: "Eko Prasetyo",
+        username: "eko",
+        ...bbcaStudent,
+      },
+      {
+        studentId: expect.any(Number) as number,
+        name: "Fajar Nugroho",
+        username: "fajar",
+        ...bbcaStudent,
+      },
     ]);
-    expect(portfolios.unmeasured).toEqual([
+    expect(portfolios.unmeasured).toMatchObject([
       {
         studentId: expect.any(Number) as number,
         name: "Dewi Lestari",
@@ -120,9 +125,44 @@ test("reads no portfolio of a class without students", async () => {
   }
   expect(
     readClassPortfolios(database, taught, {
-      request: new Request("http://localhost/classes/1/portfolios"),
+      request: new Request("http://localhost/classes/1/students"),
       now,
       delayMinutes: 10,
     }),
   ).toEqual({ ranked: [], unmeasured: [], quoteFailure: undefined });
+});
+
+test("counts any placed order as activity and starts the week at Monday midnight WIB", async () => {
+  const { database, taughtClass } = await classOfStudentsForTest();
+  const student = listStudents(database, taughtClass.id).find(
+    (member) => member.username === "budi",
+  );
+  if (student === undefined)
+    throw new Error("The fixture has Budi in the class.");
+  const placedAt = new Date("2026-11-01T16:59:59Z");
+  placedOrderForTest(
+    database,
+    {
+      membershipId: student.membershipId,
+      startingCash: taughtClass.startingCash,
+    },
+    purchaseForTest({ placedAt }),
+  );
+  for (const [moment, activeThisWeek] of [
+    ["2026-11-01T16:59:59.999Z", true],
+    ["2026-11-01T17:00:00.000Z", false],
+  ] as const) {
+    const result = readClassPortfolios(database, taughtClass, {
+      request: new Request("http://localhost/classes/1/students"),
+      now: new Date(moment),
+      delayMinutes: 10,
+    });
+    expect(
+      result.unmeasured.find((member) => member.studentId === student.id),
+    ).toMatchObject({
+      lastActivity: placedAt,
+      activeThisWeek,
+      hasHoldings: false,
+    });
+  }
 });

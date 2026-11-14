@@ -44,9 +44,9 @@ const texts: Record<
     ],
     pastAnyFieldMaximum: {
       justPast:
-        'Kolom "Tanggal sesi 1" berisi 8.001 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
+        'Kolom "Tanggal sesi 1" berisi 8.001 karakter, lebih banyak daripada yang diterima kolom ini. Isi kolom itu dengan teks yang dimintanya.',
       farPast:
-        'Kolom "Tanggal sesi 1" berisi 1.000.000 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
+        'Kolom "Tanggal sesi 1" berisi 1.000.000 karakter, lebih banyak daripada yang diterima kolom ini. Isi kolom itu dengan teks yang dimintanya.',
     },
     notText:
       'Formulir mengirim nilai bertipe File di kolom "Tanggal sesi 1", bukan teks. Muat ulang halaman, lalu isi formulirnya lagi.',
@@ -74,9 +74,9 @@ const texts: Record<
     ],
     pastAnyFieldMaximum: {
       justPast:
-        'The field "Date of session 1" has 8,001 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
+        'The field "Date of session 1" has 8,001 characters, more than this field takes. Fill it in with the text that it asks for.',
       farPast:
-        'The field "Date of session 1" has 1,000,000 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
+        'The field "Date of session 1" has 1,000,000 characters, more than this field takes. Fill it in with the text that it asks for.',
     },
     notText:
       'The form sent a value of type File in the field "Date of session 1" instead of text. Reload the page and fill in the form again.',

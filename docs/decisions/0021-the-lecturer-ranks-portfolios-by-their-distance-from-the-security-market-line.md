@@ -1,6 +1,6 @@
 # 0021. The lecturer ranks portfolios by their distance from the security market line
 
-- Status: Accepted. [Decision 0031](0031-sharpe-treynor-and-jensens-alpha-are-measures-of-the-first-release.md) changes one of its consequences: when the measures of Sharpe, Treynor, and Jensen come.
+- Status: Accepted. [Decision 0041](0041-the-lecturer-chooses-the-measure-that-ranks-the-class.md) changes the ranking order and the comparison columns. [Decision 0031](0031-sharpe-treynor-and-jensens-alpha-are-measures-of-the-first-release.md) changes one of its consequences: when the measures of Sharpe, Treynor, and Jensen come.
 - Date: 2026-11-11
 
 ## Context
@@ -28,4 +28,4 @@ The first release serves the course sessions on CAPM and on portfolio return and
 - A portfolio ranks by how far the expected return of its stocks at their current weights lies above the return that CAPM requires for its beta, over the months of its measures. So the rank judges the choice of stocks and weights by the model of the course, not the luck of the weeks of the class.
 - Cash earns no return in Portolab, while the risk-free rate is above zero, so the distance of a portfolio is the sum of the distances of its stocks times their weights, less the weight of its cash times the risk-free rate of a month. Cash that a student leaves idle lowers the rank.
 - The measures of two portfolios can use different months, when a stock of one of them has fewer returns, so their distances can come from different windows of the same history.
-- Once the later release adds the measures of Sharpe, Treynor, and Jensen, a lecturer may want to rank by one of them, which issue #93 tracks.
+- [Decision 0041](0041-the-lecturer-chooses-the-measure-that-ranks-the-class.md) governs the choice of a ranking measure.

@@ -1,4 +1,4 @@
-import { compareRoundedNumbers } from "../formatting.ts";
+import { compareRoundedNumbers } from "../compare-rounded-numbers.ts";
 import type { SplitAdjustedRupiah } from "../units/split-adjusted-rupiah.ts";
 import type { ChangeDirection } from "../formatting.ts";
 
