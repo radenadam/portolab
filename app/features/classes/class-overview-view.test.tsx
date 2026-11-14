@@ -1,3 +1,6 @@
+import { openDatabaseForTest } from "~/database/open-database-for-test.server";
+import { createLecturerWithClassForTest } from "./classes-for-test.server";
+import { findTaughtClass } from "./class-store.server";
 import { languageNames } from "~/language-names";
 import { renderTextMarkupForTest } from "~/render-text-markup-for-test";
 import { MemoryRouter } from "react-router";
@@ -16,6 +19,8 @@ import { classSummary } from "./class-summary";
 const texts: Record<
   Locale,
   {
+    noStudents: string;
+    invitation: string;
     labels: readonly string[];
     betaAxis: string;
     deviationAxis: string;
@@ -26,6 +31,9 @@ const texts: Record<
   }
 > = {
   id: {
+    noStudents: "Belum ada mahasiswa yang bergabung.",
+    invitation:
+      "Bagikan kode gabung di bagian atas halaman agar mahasiswa dapat bergabung.",
     labels: [
       "Peta risiko dan imbal hasil",
       "Modal awal",
@@ -36,7 +44,7 @@ const texts: Record<
       "Bergejolak, rugi",
       "Beta",
       "Simpangan baku",
-      "Tentang peta kelas",
+      "Apa itu Peta risiko dan imbal hasil?",
       "Tegak: imbal hasil sejak mahasiswa dapat bertransaksi. IHSG di peta adalah median imbal hasil IHSG pada periode yang sama. Batang di tepi menunjukkan sebaran titik. Garis pendek menandai median imbal hasil kelas. Portofolio tanpa ukuran risiko tidak tampil di peta. Tabel di bawah memuat setiap mahasiswa dan waktu harga sahamnya. Perbandingan memakai mahasiswa dengan imbal hasil portofolio dan IHSG. Hitungan risiko memakai portofolio terukur.",
       "Imbal hasil",
       "Risiko",
@@ -65,6 +73,9 @@ const texts: Record<
     ],
   },
   en: {
+    noStudents: "No student has joined yet.",
+    invitation:
+      "Share the join code at the top of the page so that students can join.",
     labels: [
       "Risk and return map",
       "Starting cash",
@@ -75,7 +86,7 @@ const texts: Record<
       "More volatile, loss",
       "Beta",
       "Standard deviation",
-      "About the class map",
+      "What is Risk and return map?",
       "Up: return since each student could trade. IHSG on the map is the median IHSG return over those periods. Edge bars show the distribution of points. The short line marks the median class return. Portfolios without risk measures do not appear on the map. The table below includes every student and the times of their stock prices. Comparison counts require portfolio and IHSG returns. Risk counts include measured portfolios.",
       "Return",
       "Risk",
@@ -105,6 +116,38 @@ const texts: Record<
 };
 
 for (const locale of locales) {
+  test(`shows the join step and no empty table before a student joins in ${languageNames[locale]}`, async () => {
+    switchLocaleForTest(locale);
+    const database = openDatabaseForTest();
+    const { classId, lecturerId } =
+      await createLecturerWithClassForTest(database);
+    const taught = findTaughtClass(database, classId, lecturerId);
+    if (taught === undefined) throw new Error("The test class is missing.");
+    const overview = readClassOverview(database, taught, {
+      request: new Request("http://localhost/classes/1"),
+      now: new Date("2026-11-02T03:00:00Z"),
+      delayMinutes: 10,
+    });
+    expect(overview.students).toEqual([]);
+    for (const axis of ["beta", "deviation"] satisfies ClassMapAxis[]) {
+      const html = renderTextMarkupForTest(
+        <MemoryRouter>
+          <ClassOverviewView
+            classId={classId}
+            overview={overview}
+            axis={axis}
+            points={[]}
+            administration={null}
+          />
+        </MemoryRouter>,
+      );
+      expect(html).toContain(
+        `${texts[locale].noStudents} ${texts[locale].invitation}`,
+      );
+      expect(html).not.toContain(texts[locale].empty);
+      expect(html).not.toContain("<table");
+    }
+  });
   test(`draws the class map and its data before JavaScript, with either risk axis and all count forms in ${languageNames[locale]}`, async () => {
     switchLocaleForTest(locale);
     const { database, taughtClass } = await classOfStudentsForTest();

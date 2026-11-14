@@ -94,8 +94,8 @@ const texts: Record<
       'Kolom "Kata sandi" kosong, padahal Portolab memerlukannya. Isi kolom itu.',
     ],
     pastAnyFieldMaximum: [
-      'Kolom "Nama pengguna" berisi 8.001 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
-      'Kolom "Kata sandi" berisi 8.001 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
+      'Kolom "Nama pengguna" berisi 8.001 karakter, lebih banyak daripada yang diterima kolom ini. Isi kolom itu dengan teks yang dimintanya.',
+      'Kolom "Kata sandi" berisi 8.001 karakter, lebih banyak daripada yang diterima kolom ini. Isi kolom itu dengan teks yang dimintanya.',
     ],
     wrongCredentials:
       "Portolab tidak menemukan akun dengan nama pengguna dan kata sandi ini. Periksa keduanya, lalu coba lagi. Setelah 10 percobaan salah dalam 15 menit, Portolab memblokir nama pengguna itu untuk sementara. Blokir ini menghentikan siapa pun yang mencoba menebak kata sandinya.",
@@ -165,8 +165,8 @@ const texts: Record<
       'The field "Password" is empty, but Portolab needs it. Fill it in.',
     ],
     pastAnyFieldMaximum: [
-      'The field "Username" has 8,001 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
-      'The field "Password" has 8,001 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
+      'The field "Username" has 8,001 characters, more than this field takes. Fill it in with the text that it asks for.',
+      'The field "Password" has 8,001 characters, more than this field takes. Fill it in with the text that it asks for.',
     ],
     wrongCredentials:
       "Portolab found no account with this username and password. Check both and try again. After 10 wrong attempts within 15 minutes, Portolab blocks the username for a while. The block stops anyone who tries to guess the password.",

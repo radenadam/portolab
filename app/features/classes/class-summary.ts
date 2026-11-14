@@ -1,3 +1,4 @@
+import { marketIndex } from "~/features/market-data/tracked-instruments";
 import {
   formatBeta,
   formatNumber,
@@ -5,8 +6,7 @@ import {
   formatSignedPercent,
 } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
-import { marketBeta } from "~/features/measures/market-beta";
-import { beta } from "~/units/beta";
+import { beta, marketBeta } from "~/units/beta";
 import type { Beta } from "~/units/beta";
 import { cumulativeReturn } from "~/units/cumulative-return";
 import type { CumulativeReturn } from "~/units/cumulative-return";
@@ -68,14 +68,15 @@ export function classSummary(
   }
   const headline =
     difference === undefined
-      ? m.classes_comparison_pending_title()
+      ? m.classes_comparison_pending_title({ index: marketIndex.code })
       : comparisonHeadline(difference);
   return {
     headline,
     sentence:
       medianReturn === undefined || marketReturn === undefined
-        ? m.classes_comparison_pending_notice()
+        ? m.classes_comparison_pending_notice({ index: marketIndex.code })
         : m.classes_comparison_notice({
+            index: marketIndex.code,
             portfolio: formatSignedPercent(medianReturn).text,
             market: formatSignedPercent(marketReturn).text,
             above: abovePart(above, compared.length),
@@ -129,13 +130,19 @@ function comparisonHeadline(difference: CumulativeReturn): string {
   switch (rounded.direction) {
     case "rise":
       return isOne
-        ? m.classes_one_ahead_point_title({ points })
-        : m.classes_several_ahead_points_title({ points });
+        ? m.classes_one_ahead_point_title({ points, index: marketIndex.code })
+        : m.classes_several_ahead_points_title({
+            points,
+            index: marketIndex.code,
+          });
     case "fall":
       return isOne
-        ? m.classes_one_behind_point_title({ points })
-        : m.classes_several_behind_points_title({ points });
+        ? m.classes_one_behind_point_title({ points, index: marketIndex.code })
+        : m.classes_several_behind_points_title({
+            points,
+            index: marketIndex.code,
+          });
     case "none":
-      return m.classes_comparison_equal_title();
+      return m.classes_comparison_equal_title({ index: marketIndex.code });
   }
 }

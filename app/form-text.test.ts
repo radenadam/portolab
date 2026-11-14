@@ -25,9 +25,9 @@ const failures: Record<
       'Kolom "Nama Anda" memuat paling banyak 1.000 karakter, tetapi isinya 1.001 karakter. Persingkat isinya.',
     pastAnyFieldMaximum: {
       justPast:
-        'Kolom "Nama Anda" berisi 8.001 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
+        'Kolom "Nama Anda" berisi 8.001 karakter, lebih banyak daripada yang diterima kolom ini. Isi kolom itu dengan teks yang dimintanya.',
       farPast:
-        'Kolom "Nama Anda" berisi 1.000.000 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
+        'Kolom "Nama Anda" berisi 1.000.000 karakter, lebih banyak daripada yang diterima kolom ini. Isi kolom itu dengan teks yang dimintanya.',
     },
   },
   en: {
@@ -38,9 +38,9 @@ const failures: Record<
       'The field "Your name" holds at most 1,000 characters, but it has 1,001. Shorten it.',
     pastAnyFieldMaximum: {
       justPast:
-        'The field "Your name" has 8,001 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
+        'The field "Your name" has 8,001 characters, more than this field takes. Fill it in with the text that it asks for.',
       farPast:
-        'The field "Your name" has 1,000,000 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
+        'The field "Your name" has 1,000,000 characters, more than this field takes. Fill it in with the text that it asks for.',
     },
   },
 };

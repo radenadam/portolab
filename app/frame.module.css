@@ -81,36 +81,17 @@
   display: none;
 }
 
-.avatarButton,
-.topAvatarButton {
-  display: grid;
-  flex: none;
-  place-items: center;
-  width: var(--size-touch-target);
-  height: var(--size-touch-target);
-  padding: 0;
-  border: 0;
+.avatarButton {
+  composes: button from "./icon-button.module.css";
   border-radius: 50%;
-  background: none;
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
+}
+
+.topAvatarButton {
+  composes: avatarButton;
 }
 
 .avatar {
-  display: grid;
-  place-items: center;
-  width: var(--size-avatar);
-  height: var(--size-avatar);
-  border-radius: 50%;
-  background: var(--color-raised);
-  color: var(--color-ink-secondary);
-  font-size: var(--text-small);
-  font-weight: 600;
-}
-
-.avatar::before {
-  content: attr(data-initials);
+  composes: avatar from "./avatar.module.css";
 }
 
 .main {
@@ -320,12 +301,8 @@
 
 /* A part of the path keeps the muted text of the header line, and its underline shows that it leads to its page. */
 .pathLink {
-  display: inline-flex;
-  align-items: center;
-  min-height: var(--size-touch-target);
+  composes: link from "./path-link.module.css";
   color: inherit;
-  overflow-wrap: anywhere;
-  text-underline-offset: 0.2em;
 }
 
 .title {

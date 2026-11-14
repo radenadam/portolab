@@ -57,7 +57,7 @@ export function RiskMap<Across extends number, Up extends number>({
   spread?: MapSpreadText & { median: Up | undefined };
   coloredValues?: boolean;
   /** The label of the line at the return of the IHSG, such as IHSG 0.70%. */
-  levelLabel: string;
+  levelLabel?: string;
   /** The id of the heading that names the map, which also names its slider. */
   labelledBy: string;
 }): ReactNode {
@@ -124,8 +124,7 @@ export function RiskMap<Across extends number, Up extends number>({
       layout={layout}
       drawn={drawn}
       placed={placed}
-      texts={{ title: across.title, level: levelLabel, line: line?.name ?? "" }}
-      showLine={line !== undefined}
+      texts={{ title: across.title, level: levelLabel, line: line?.name }}
       spread={spread}
       active={active}
       drawingRef={drawingRef}

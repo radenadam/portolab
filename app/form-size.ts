@@ -9,5 +9,8 @@ export const discardMaximumBytes = bytes(10_000_000);
 /** The most digits of the size that a request states for its body. A whole number of this many digits stays below the largest one that JavaScript holds exactly, and no browser states a size with more digits, so only a forged request sends one. */
 export const statedSizeMaximumDigits = 15;
 
-/** The most characters of any field of a form or of an address, as sent. RFC 9110 recommends that HTTP supports addresses of at least 8,000 octets, and an address, such as a path to return to, is the longest text that a field of Portolab takes. The rule of every other field allows far less, and its error explains any shorter text, so only a forged request or a text pasted by mistake reaches this maximum. */
+/** A raw bound keeps an unusually large input from making later field validation unbounded. */
 export const fieldMaximumLength = 8000;
+
+// Percent encoding expands a full field, and a return address also holds its route and controls.
+export const returnPathMaximumLength = fieldMaximumLength * 16;

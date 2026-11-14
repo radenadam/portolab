@@ -1,5 +1,6 @@
-import { boxesOverlap } from "./boxes-overlap";
-import type { LabelBox } from "./boxes-overlap";
+import { boxesOverlap, distanceToBox } from "./label-box";
+import type { LabelBox } from "./label-box";
+import { labelAscent, labelDescent, placesAroundMark } from "./label-places";
 import type { PlotPosition } from "./plot";
 
 /** Where a text starts, has its middle, or ends, at its position. */
@@ -26,6 +27,7 @@ export interface LabelledMark {
 interface PointLabel {
   key: string;
   text: string;
+  value?: string | undefined;
 }
 
 /** The labels of a map, in the order in which they take their places. */
@@ -46,11 +48,9 @@ export interface MapLabels {
 export interface PlacedLabels {
   points: Map<string, LabelPlace>;
   lines: Map<string, LabelPlace>;
+  values: Set<string>;
 }
 
-// A name reserves the full height of the font, because a box that holds only capitals misses the letters below its baseline.
-const ascent = 1;
-const descent = 0.25;
 const sideRoom = 0.17;
 // Two labels keep this gap, so that they never read as one, and a label keeps a little room from a mark that is not its own.
 const labelGap = { across: 0.67, down: 0.25 };
@@ -59,11 +59,6 @@ const markRoom = 0.08;
 const bottomOverhang = 0.33;
 // The gutter of the return marks can hold a kept name that has no place within the plot.
 export const keptNameRoom = 1.5;
-// A label stands this far from the edge of its mark, or farther in two steps where the nearer places break a rule.
-const markDistance = 0.42;
-const fartherSteps = [0, 0.67, 1.5];
-// A label at a corner of its mark stands on the diagonal at the same distance, so its corner touches the circle around the mark.
-const diagonal = Math.SQRT1_2;
 // Names keep their gap first and their link to their own point next, before they keep clear of other marks. A cost from ruleBroken on means a broken rule.
 const coverCost = 1000;
 const labelCoverCost = 1000000;
@@ -113,12 +108,12 @@ export function placeMapLabels(
         best = { place, box, cost };
       }
     };
-    for (const place of placesAround(mark)) {
+    for (const place of placesAroundMark(mark)) {
       consider(place, 0);
     }
     if (isKept && (best === undefined || best.cost >= ruleBroken)) {
       // A large dot can leave no room between its edge and a neighbor. Its name can cross its own mark and use the gutter before it reads as another point's name.
-      for (const place of placesAround(mark, markRoom)) {
+      for (const place of placesAroundMark(mark, markRoom)) {
         const box = boxOf(place, width, size);
         const shift =
           Math.max(0, -keptNameRoom - box.left) -
@@ -162,54 +157,65 @@ export function placeMapLabels(
   for (const label of labels.others) {
     placePoint(label, false);
   }
-  return { points, lines };
+  return {
+    points,
+    lines,
+    values: extendPointValues(
+      labels,
+      { size, marks, widthOf, canGrow },
+      { points, placedBoxes, markOf },
+    ),
+  };
 }
 
-/** The width of a text in Instrument Sans in semibold, the font of the labels, in sizes of the text, as the server estimates it before a browser measures the text. A browser measured the letters of the font: a capital is 0.69 of the size of the text wide on average, a small letter 0.54, a figure 0.6, and a space 0.19, and the estimate rounds each up a little, so it leaves a label more room rather than less. Any other character, such as a sign, counts as wide as a figure, which is at least as wide as the signs of a value, such as + and %. */
-export function estimatedLabelWidth(text: string): number {
-  let width = 0;
-  for (const character of text) {
-    width += characterWidth(character);
-  }
-  return width;
-}
-
-function characterWidth(character: string): number {
-  if (character === " ") {
-    return 0.2;
-  }
-  if (/\p{Lu}/u.test(character)) {
-    return 0.7;
-  }
-  if (/\p{Ll}/u.test(character)) {
-    return 0.55;
-  }
-  return 0.6;
-}
-
-function placesAround(
-  mark: LabelledMark,
-  nearest = mark.outerRadius + markDistance,
-): LabelPlace[] {
-  const places: LabelPlace[] = [];
-  const middle = (ascent - descent) / 2;
-  for (const farther of fartherSteps) {
-    const distance = nearest + farther;
-    const corner = distance * diagonal;
-    for (const [dx, dy, anchor] of [
-      [distance, middle, "start"],
-      [-distance, middle, "end"],
-      [corner, -corner - descent, "start"],
-      [corner, corner + ascent, "start"],
-      [-corner, -corner - descent, "end"],
-      [-corner, corner + ascent, "end"],
-      [0, -distance - descent, "middle"],
-      [0, distance + ascent, "middle"],
-    ] as const) {
-      places.push({ at: mark.position, dx, dy, anchor });
+function extendPointValues(
+  labels: MapLabels,
+  plot: {
+    size: { width: number; height: number };
+    marks: readonly LabelledMark[];
+    widthOf: (text: string) => number;
+    canGrow: boolean;
+  },
+  placement: {
+    points: Map<string, LabelPlace>;
+    placedBoxes: LabelBox[];
+    markOf: Map<string, LabelledMark>;
+  },
+): Set<string> {
+  const { size, marks, widthOf } = plot;
+  const { points, placedBoxes, markOf } = placement;
+  const values = new Set<string>();
+  for (const label of [...labels.kept, ...labels.others]) {
+    const place = points.get(label.key);
+    const mark = markOf.get(label.key);
+    if (label.value === undefined || place === undefined || mark === undefined)
+      continue;
+    const width = widthOf(label.text);
+    const fullWidth = widthOf(`${label.text} ${label.value}`);
+    const fullPlace = {
+      ...place,
+      dx: place.dx + (fullWidth - width) * anchorShares[place.anchor],
+    };
+    const original = boxOf(place, width, size);
+    const withoutOwn = placedBoxes.filter(
+      (box) => box.left !== original.left || box.top !== original.top,
+    );
+    const box = boxOf(fullPlace, fullWidth, size);
+    if (
+      costOf(box, mark, {
+        size,
+        marks,
+        placedBoxes: withoutOwn,
+        leftRoom: keptNameRoom,
+        canGrow: plot.canGrow,
+      }) < ruleBroken
+    ) {
+      points.set(label.key, fullPlace);
+      placedBoxes.push(box);
+      values.add(label.key);
     }
   }
-  return places;
+  return values;
 }
 
 function costOf(
@@ -233,7 +239,7 @@ function costOf(
     left: box.left + sideRoom,
     right: box.right - sideRoom,
   };
-  const ownDistance = distanceTo(ink, centerOf(mark, size));
+  const ownDistance = distanceToBox(ink, centerOf(mark, size));
   let cost = costPerDistance * ownDistance;
   if (hitsLabel(box, placedBoxes, map.canGrow)) {
     cost += labelCoverCost;
@@ -245,7 +251,7 @@ function costOf(
     if (boxesOverlap(box, boxAround(other, size))) {
       cost += coverCost;
     }
-    if (distanceTo(ink, centerOf(other, size)) <= ownDistance + markRoom) {
+    if (distanceToBox(ink, centerOf(other, size)) <= ownDistance + markRoom) {
       cost += nearerCost;
     }
   }
@@ -265,8 +271,8 @@ function boxOf(
     fixed: false,
     left: left - sideRoom,
     right: left + width + sideRoom,
-    top: baseline - ascent,
-    bottom: baseline + descent,
+    top: baseline - labelAscent,
+    bottom: baseline + labelDescent,
   };
 }
 
@@ -320,11 +326,4 @@ function hitsLabel(
     bottom: box.bottom + labelGap.down,
   };
   return placedBoxes.some((other) => boxesOverlap(spaced, other, canGrow));
-}
-
-function distanceTo(box: LabelBox, point: { x: number; y: number }): number {
-  return Math.hypot(
-    Math.max(box.left - point.x, 0, point.x - box.right),
-    Math.max(box.top - point.y, 0, point.y - box.bottom),
-  );
 }

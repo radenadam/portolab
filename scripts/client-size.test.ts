@@ -80,7 +80,7 @@ test("budgets every route with its ancestors, split exports, static imports, and
     ["Route JavaScript: market", "200 kB", true],
     ["Route JavaScript: other", "200 kB", true],
     ["All client JavaScript (report only)", undefined, true],
-    ["Client CSS", "20 kB", true],
+    ["Client CSS", "21 kB", true],
   ]);
   const shared = ["bootstrap", "root", "shared", "vendor"].map(
     (name) => `build/client/assets/${name}.js`,

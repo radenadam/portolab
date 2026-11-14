@@ -1,3 +1,5 @@
+import { pathReturningTo } from "~/features/accounts/path-returning-to";
+import { classMapPath } from "./class-path";
 import type { UserId } from "~/features/accounts/accounts.schema";
 import { studentPortfolioPath } from "~/features/grading/grading-paths";
 import type { ClassId } from "./classes.schema";
@@ -22,6 +24,8 @@ export function classMapPoints(
     const risk = student.risk;
     if (risk === undefined || student.return === undefined) continue;
     const isActive = student.ordersThisWeek > 0;
+    const isNamed = named.has(student.id);
+    const change = formatSignedPercent(student.return);
     const values: Record<ClassMapAxis, ClassRisk> = {
       beta: risk.beta,
       deviation: risk.standardDeviation,
@@ -30,15 +34,19 @@ export function classMapPoints(
     points.push({
       key: String(student.id),
       name: student.name,
-      href: studentPortfolioPath(classId, student.id),
-      label: named.has(student.id) ? student.name : "",
+      href: pathReturningTo(
+        studentPortfolioPath(classId, student.id),
+        classMapPath(classId, axis),
+      ),
+      label: isNamed ? student.name : "",
+      ...(isNamed ? { labelValue: change.text } : {}),
       across,
       up: student.return,
       mark: { kind: isActive ? "active" : "other" },
       values: [
         {
           name: m.classes_map_return_label(),
-          value: formatSignedPercent(student.return),
+          value: change,
         },
         { name: m.classes_map_beta_label(), value: formatBeta(risk.beta) },
         {

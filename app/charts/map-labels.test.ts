@@ -1,11 +1,8 @@
+import { estimatedLabelWidth } from "./estimated-label-width";
 import { expect, test } from "vitest";
 import { plotFraction } from "~/units/plot-fraction";
 import { crowdedMapForTest } from "./crowded-map-for-test";
-import {
-  estimatedLabelWidth,
-  keptNameRoom,
-  placeMapLabels,
-} from "./map-labels";
+import { keptNameRoom, placeMapLabels } from "./map-labels";
 import type { LabelledMark, LabelPlace, MapLabels } from "./map-labels";
 
 // Every length is in sizes of the text of the labels. A text of the tests is 0.6 of that size wide for each character.
@@ -43,6 +40,34 @@ const size = { width: 20, height: 10 };
 const beside = 0.5 + 0.42;
 const middle = 0.375;
 
+test("adds values only after every required name has a place and leaves crowded values out", () => {
+  const marks = [
+    mark("portfolio", { x: 0.25, y: 0.5 }),
+    mark("BBCA", { x: 0.7, y: 0.5 }),
+  ];
+  const labels: MapLabels = {
+    kept: [
+      { key: "portfolio", text: "Portfolio", value: "+1.50%" },
+      { key: "BBCA", text: "BBCA", value: "+2.00%" },
+    ],
+    lines: [],
+    others: [],
+  };
+  const narrow = placeMapLabels(labels, {
+    size: { width: 14, height: 10 },
+    marks,
+    widthOf,
+  });
+  expect([...narrow.points.keys()]).toEqual(["portfolio", "BBCA"]);
+  expect(narrow.values.size).toBeLessThan(2);
+  const wide = placeMapLabels(labels, {
+    size: { width: 80, height: 30 },
+    marks,
+    widthOf,
+  });
+  expect([...wide.values]).toEqual(["portfolio", "BBCA"]);
+});
+
 test("places the name of a point to the right of its mark, where its letters face the middle of the mark", () => {
   const point = mark("BBCA", { x: 0.5, y: 0.5 });
   expect(
@@ -52,6 +77,7 @@ test("places the name of a point to the right of its mark, where its letters fac
       ["BBCA", { at: point.position, dx: beside, dy: middle, anchor: "start" }],
     ]),
     lines: new Map(),
+    values: new Set(),
   });
 });
 
@@ -277,10 +303,14 @@ test("keeps fixed labels apart from names placed before and after them at every 
     anchor: "start",
   }));
   for (const isKept of [true, false]) {
+    const pointNames = names("BBCA").map((label) => ({
+      ...label,
+      value: "+12%",
+    }));
     const labels: MapLabels = {
       ...fixedLabel(places),
-      kept: isKept ? names("BBCA") : [],
-      others: isKept ? [] : names("BBCA"),
+      kept: isKept ? pointNames : [],
+      others: isKept ? [] : pointNames,
     };
     const placed = placeMapLabels(labels, {
       size,
@@ -290,6 +320,7 @@ test("keeps fixed labels apart from names placed before and after them at every 
     });
     const fixed = placed.lines.get("zero");
     const name = placed.points.get("BBCA");
+    expect(placed.values.has("BBCA")).toBe(true);
     expect(fixed).toBeDefined();
     expect(name).toBeDefined();
     if (fixed === undefined || name === undefined)
@@ -299,7 +330,7 @@ test("keeps fixed labels apart from names placed before and after them at every 
       expect(
         overlaps(
           boxOf(fixed, widthOf("W"), grown),
-          boxOf(name, widthOf("BBCA"), grown),
+          boxOf(name, widthOf("BBCA +12%"), grown),
         ),
       ).toBe(false);
     }

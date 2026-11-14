@@ -1,6 +1,6 @@
 # 0038. Client JavaScript is budgeted by route
 
-- Status: Accepted
+- Status: Accepted. [Decision 0042](0042-the-class-overview-keeps-a-measured-css-budget.md) changes its rule about the ceiling for all client CSS.
 - Date: 2026-11-14
 
 ## Context

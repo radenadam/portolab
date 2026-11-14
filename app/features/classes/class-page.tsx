@@ -1,3 +1,4 @@
+import { pathReturningTo } from "~/features/accounts/path-returning-to";
 import type { ReactNode } from "react";
 import { data, Link } from "react-router";
 import { databaseContext } from "~/database/database.server";
@@ -14,7 +15,11 @@ import type { Route } from "./+types/class-page";
 import { findJoinedClass, findTaughtClass } from "./class-store.server";
 import type { ClassStudent } from "./class-store.server";
 import type { ClassId } from "./classes.schema";
-import { calendarPath, classPath } from "./class-path";
+import {
+  calendarPath,
+  classMapPath,
+  resetStudentPasswordPath,
+} from "./class-path";
 import styles from "./classes.module.css";
 import { classCalendarOf } from "./course-calendar";
 import type { ClassCalendar } from "./course-calendar";
@@ -100,6 +105,7 @@ export function loader({ context, params, url, request }: Route.LoaderArgs):
           url,
           classId: params.classId,
           now,
+          firstSessionDate: joined.firstSessionDate,
         }),
       };
     }
@@ -134,10 +140,13 @@ export default function ClassPage({
               >
                 {m.classes_portfolios_link()}
               </Link>
-              <Students
-                classId={loaderData.id}
-                students={loaderData.overview.students}
-              />
+              {loaderData.overview.students.length > 0 && (
+                <Students
+                  classId={loaderData.id}
+                  students={loaderData.overview.students}
+                  axis={loaderData.axis}
+                />
+              )}
             </>
           }
         />
@@ -149,17 +158,16 @@ export default function ClassPage({
 
 function Students({
   classId,
+  axis,
   students,
 }: {
   classId: ClassId;
+  axis: ClassMapAxis;
   students: readonly Pick<
     ClassStudent,
     "id" | "name" | "username" | "joinedAt"
   >[];
 }): ReactNode {
-  if (students.length === 0) {
-    return <p>{m.classes_no_students_body()}</p>;
-  }
   return (
     <ul className={styles["list"]}>
       {students.map((student) => (
@@ -172,7 +180,10 @@ function Students({
             })}
           </p>
           <Link
-            to={`${classPath(classId)}/students/${String(student.id)}/password`}
+            to={pathReturningTo(
+              resetStudentPasswordPath(classId, student.id),
+              classMapPath(classId, axis),
+            )}
             className={styles["link"]}
           >
             {m.classes_reset_password_link({ name: student.name })}

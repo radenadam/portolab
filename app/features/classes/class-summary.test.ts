@@ -31,7 +31,7 @@ const texts: Record<
 > = {
   id: {
     referenceSentence:
-      "Median imbal hasil +0,41%, IHSG -1,75%, per periode mahasiswa. 23 dari 32 mahasiswa di atas pasar, dan 28 dari 31 portofolio lebih tenang dari pasar.",
+      "Median imbal hasil +0,41% dan IHSG -1,75% per periode mahasiswa, dengan 23 dari 32 mahasiswa di atas pasar dan 28 dari 31 portofolio lebih tenang dari pasar.",
     oneAhead: "Kelas unggul 1,00 poin dari IHSG",
     oneBehind: "Kelas tertinggal 1,00 poin dari IHSG",
     paired: "Kelas unggul 2,00 poin dari IHSG",
@@ -44,15 +44,15 @@ const texts: Record<
     market: "0,00%",
     comparison: [
       "Median imbal hasil ",
-      ", IHSG ",
-      ", per periode mahasiswa. ",
-      ", dan ",
+      " dan IHSG ",
+      " per periode mahasiswa, dengan ",
+      " dan ",
     ],
     above: [
-      "Tidak ada mahasiswa di atas pasar",
-      "Mahasiswa di atas pasar",
-      "Semua 3 mahasiswa di atas pasar",
-      "Satu dari 3 mahasiswa di atas pasar",
+      "tidak ada mahasiswa di atas pasar",
+      "mahasiswa di atas pasar",
+      "semua 3 mahasiswa di atas pasar",
+      "satu dari 3 mahasiswa di atas pasar",
       "2 dari 3 mahasiswa di atas pasar",
     ],
     calmer: [
@@ -69,7 +69,7 @@ const texts: Record<
   },
   en: {
     referenceSentence:
-      "Median return +0.41%, IHSG -1.75% over each student’s period. 23 of 32 students are above the market, and 28 of 31 portfolios are calmer than the market.",
+      "Median return is +0.41% against IHSG -1.75% over each student’s period, with 23 of 32 students above the market and 28 of 31 portfolios calmer than the market.",
     oneAhead: "Class leads IHSG by 1.00 point",
     oneBehind: "Class trails IHSG by 1.00 point",
     paired: "Class leads IHSG by 2.00 points",
@@ -81,26 +81,26 @@ const texts: Record<
     portfolio: "+10.00%",
     market: "0.00%",
     comparison: [
-      "Median return ",
-      ", IHSG ",
-      " over each student’s period. ",
-      ", and ",
+      "Median return is ",
+      " against IHSG ",
+      " over each student’s period, with ",
+      " and ",
     ],
     above: [
-      "No student is above the market",
-      "The student is above the market",
-      "All 3 students are above the market",
-      "One of 3 students is above the market",
-      "2 of 3 students are above the market",
+      "no student above the market",
+      "the student above the market",
+      "all 3 students above the market",
+      "one of 3 students above the market",
+      "2 of 3 students above the market",
     ],
     calmer: [
-      "risk measures are pending",
-      "the portfolio is calmer than the market",
-      "the portfolio is not calmer than the market",
-      "no portfolio is calmer than the market",
-      "all 3 portfolios are calmer than the market",
-      "one of 3 portfolios is calmer than the market",
-      "2 of 3 portfolios are calmer than the market",
+      "risk measures pending",
+      "the portfolio calmer than the market",
+      "the portfolio not calmer than the market",
+      "no portfolio calmer than the market",
+      "all 3 portfolios calmer than the market",
+      "one of 3 portfolios calmer than the market",
+      "2 of 3 portfolios calmer than the market",
     ],
     medianBeta: "0.75",
     marketBeta: "1.00",
@@ -171,7 +171,7 @@ for (const locale of locales) {
     expect(summary.medianBeta).toBe(texts[locale].medianBeta);
   });
 
-  test(`writes the whole sentence for every count and for betas that round to the market beta in ${languageNames[locale]}`, () => {
+  test(`writes one whole sentence for every count and for betas that round to the market beta in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     const text = texts[locale];
     const aboveCases = [
@@ -207,6 +207,13 @@ for (const locale of locales) {
           })),
           values.map(beta),
         );
+        expect(
+          Array.from(
+            new Intl.Segmenter(locale, { granularity: "sentence" }).segment(
+              summary.sentence,
+            ),
+          ),
+        ).toHaveLength(1);
         const median =
           aboveIndex === 0 || aboveIndex === 3 ? text.market : text.portfolio;
         const [start, versus, period, and] = text.comparison;

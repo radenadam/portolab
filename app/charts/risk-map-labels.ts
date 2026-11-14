@@ -18,6 +18,7 @@ const labelOrder: Record<MarkKind, number> = {
   market: 2,
   active: 3,
   other: 4,
+  classmate: 5,
 };
 
 /** The labels of the map in the order in which they take their places: the names of the points of the reader, the fixed labels, and then the names of the other points by labelOrder. */
@@ -25,21 +26,27 @@ export function riskMapLabels(
   drawn: readonly DrawnPoint[],
   map: {
     line: { name: string } | undefined;
-    levelLabel: string;
+    levelLabel: string | undefined;
     layout: RiskMapLayout<unknown>;
     spread: MapSpreadText | undefined;
   },
 ): MapLabels {
-  const kept: { key: string; text: string }[] = [];
-  const others: { key: string; text: string }[] = [];
+  const kept: { key: string; text: string; value: string | undefined }[] = [];
+  const others: { key: string; text: string; value: string | undefined }[] = [];
   for (const { point, kind } of drawn.toSorted(
     (first, second) =>
       labelOrder[first.kind] - labelOrder[second.kind] ||
       second.placed.outerRadius - first.placed.outerRadius,
   )) {
-    const label = { key: point.key, text: mapPointName({ point, kind }) };
+    const label = {
+      key: point.key,
+      text: mapPointName({ point, kind }),
+      value: point.labelValue,
+    };
     if (label.text.length === 0) continue;
     switch (kind) {
+      case "classmate":
+        break;
       case "own":
       case "held":
         kept.push(label);
@@ -55,11 +62,15 @@ export function riskMapLabels(
   return {
     kept,
     lines: [
-      {
-        key: mapLineLabelKeys.level,
-        text: map.levelLabel,
-        places: map.layout.linePlaces.level,
-      },
+      ...(map.levelLabel === undefined
+        ? []
+        : [
+            {
+              key: mapLineLabelKeys.level,
+              text: map.levelLabel,
+              places: map.layout.linePlaces.level,
+            },
+          ]),
       ...extraLines,
       ...(map.line === undefined
         ? []

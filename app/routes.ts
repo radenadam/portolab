@@ -12,6 +12,9 @@ export default [
   route("classes", "features/classes/classes-page.tsx"),
   route("classes/:classId", "features/classes/class-page.tsx"),
   route("classes/:classId/calendar", "features/classes/calendar-page.tsx"),
+  route("classes/:classId/learn", "features/learning/learn-page.tsx"),
+  route("classes/:classId/learn/:session", "features/learning/lesson-page.tsx"),
+  route("classes/:classId/glossary", "features/learning/glossary-page.tsx"),
   route("classes/:classId/market", "features/market-data/market-page.tsx"),
   route("classes/:classId/orders", "features/trading/orders-page.tsx"),
   route("classes/:classId/measures", "features/measures/measures-page.tsx"),
@@ -21,13 +24,10 @@ export default [
     "features/trading/stock-ticket-fallback.ts",
   ),
   route(
-    "classes/:classId/portfolios",
+    "classes/:classId/students",
     "features/grading/class-portfolios-page.tsx",
   ),
-  route(
-    "classes/:classId/portfolios/export",
-    "features/grading/workbook-route.tsx",
-  ),
+  route("classes/:classId/workbook", "features/grading/workbook-route.tsx"),
   route(
     "classes/:classId/students/:studentId/portfolio",
     "features/grading/student-portfolio-page.tsx",

@@ -21,10 +21,9 @@
 }
 
 .panel {
-  min-width: 0;
-  border: var(--size-line) solid var(--color-line);
-  border-radius: var(--radius-panel);
-  background: var(--color-panel);
+  composes: panel from "../../panel.module.css";
+  gap: 0;
+  padding: 0;
 }
 
 .mapHeader,
@@ -52,41 +51,13 @@
   font-size: var(--text-small);
 }
 
-.help {
-  flex: none;
-  width: var(--size-touch-target);
-  height: var(--size-touch-target);
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--color-muted);
-  font: inherit;
-  cursor: pointer;
-}
-
 .choice {
-  display: inline-flex;
-  padding: var(--space-1);
-  border-radius: var(--radius-item);
-  background: var(--color-raised);
-}
-
-.choice > a {
-  display: inline-flex;
-  align-items: center;
-  min-height: var(--size-touch-target);
-  padding-inline: var(--space-3);
-  border-radius: var(--radius-button);
-  color: var(--color-ink-secondary);
+  composes: choice from "../../segmented-choice.module.css";
   font-size: var(--text-caption);
-  text-decoration: none;
 }
 
 .choice > [aria-current] {
-  background: var(--color-panel);
-  color: var(--color-ink);
   font-weight: 600;
-  box-shadow: var(--shadow-choice);
 }
 
 .strip {

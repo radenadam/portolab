@@ -50,6 +50,7 @@
     "app/features/accounts/password.server.ts",
     "app/features/accounts/normalize-password.ts",
     "app/features/classes/classes.schema.ts",
+    "app/features/learning/glossary-query-maximum-length.ts",
     "app/features/market-data/build-daily-history.ts",
     "app/features/market-data/fixture-history.ts",
     "app/features/market-data/history-store.server.ts",
@@ -62,6 +63,7 @@
     "app/features/market-data/update-attempts.server.ts",
     "app/features/measures/month-end-closes-for-test.ts",
     "app/features/trading/reason-maximum-length.ts",
+    "app/features/trading/student-reasons-section-id.ts",
     "app/features/trading/trading.schema.ts",
     "app/workbook/read-zip-for-test.server.ts"
   ],

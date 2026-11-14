@@ -1,15 +1,13 @@
+import { isClassMapPath } from "~/features/classes/class-path";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import type { UserId } from "~/features/accounts/accounts.schema";
 import type { ClassId } from "~/features/classes/classes.schema";
+import { pathReturningTo } from "~/features/accounts/path-returning-to";
 import { pageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
 import styles from "./grading.module.css";
-import {
-  classPortfoliosPath,
-  studentMeasuresPath,
-  studentPortfolioPath,
-} from "./grading-paths";
+import { studentMeasuresPath, studentPortfolioPath } from "./grading-paths";
 
 /** A student of a class as the pages of the portfolio of the student show the student to the lecturer of the class. */
 export interface TaughtStudent {
@@ -62,21 +60,25 @@ export function taughtStudentMeta(
 export function TaughtStudentHeading({
   page,
   student,
+  returnPath,
 }: {
   page: StudentPage;
   student: TaughtStudent;
+  returnPath: string;
 }): ReactNode {
   const other = otherPages[page](student);
   return (
     <>
       <h1>{titles[page](student)}</h1>
+      <Link to={returnPath} className={styles["link"]}>
+        {isClassMapPath(returnPath, student.classId)
+          ? m.grading_class_map_back_link({ class: student.className })
+          : m.grading_all_portfolios_link({ class: student.className })}
+      </Link>
       <Link
-        to={classPortfoliosPath(student.classId)}
+        to={pathReturningTo(other.path, returnPath)}
         className={styles["link"]}
       >
-        {m.grading_all_portfolios_link({ class: student.className })}
-      </Link>
-      <Link to={other.path} className={styles["link"]}>
         {other.label}
       </Link>
     </>

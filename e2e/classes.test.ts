@@ -24,6 +24,7 @@ import {
   submitNewPassword,
   submitSignIn,
 } from "./accounts.ts";
+import { selectFirstStudent } from "./select-first-student.ts";
 import { chooseLanguage } from "./choose-language.ts";
 import { openJoinDetails, openClassAdministration } from "./class-controls.ts";
 import { createTestClass, readTestClass } from "./create-test-class.ts";
@@ -68,6 +69,7 @@ const texts: Record<
     noStudents: string;
     studentNotice: readonly [string, string, string];
     resetLink: string;
+    panelResetLink: string;
     taughtBy: string;
     joinLink: string;
     homeJoinLink: string;
@@ -95,7 +97,7 @@ const texts: Record<
     resetBody: readonly [string, string];
     resetButton: string;
     temporaryPassword: string;
-    backLink: string;
+    studentsBackLink: string;
     notFoundTitle: string;
     newPasswordTitle: string;
     firstSessionLabel: string;
@@ -144,6 +146,7 @@ const texts: Record<
     noStudents: "Belum ada mahasiswa yang bergabung.",
     studentNotice: ['Masuk sebagai "', '". Bergabung pada ', " WIB."],
     resetLink: `Atur ulang kata sandi ${studentName}`,
+    panelResetLink: "Atur ulang kata sandi",
     taughtBy: `${lecturerName} mengajar kelas ini.`,
     joinLink: "Gabung ke kelas dengan kodenya",
     homeJoinLink: "Gabung ke kelas dengan kodenya",
@@ -186,7 +189,7 @@ const texts: Record<
     ],
     resetButton: "Atur ulang kata sandi",
     temporaryPassword: `Berikan kata sandi sementara ini kepada ${studentName}. Kata sandi ini berlaku sampai ia memilih kata sandi baru.`,
-    backLink: `Kembali ke ${className}`,
+    studentsBackLink: "Kembali ke mahasiswa",
     notFoundTitle: "Halaman tidak ditemukan",
     newPasswordTitle: "Pilih kata sandi baru",
     firstSessionLabel: "Tanggal sesi 1",
@@ -253,6 +256,7 @@ const texts: Record<
     noStudents: "No student has joined yet.",
     studentNotice: ['Signs in as "', '". Joined on ', " WIB."],
     resetLink: `Reset the password of ${studentName}`,
+    panelResetLink: "Reset password",
     taughtBy: `${lecturerName} teaches this class.`,
     joinLink: "Join a class with its code",
     homeJoinLink: "Join a class with its code",
@@ -295,7 +299,7 @@ const texts: Record<
     ],
     resetButton: "Reset the password",
     temporaryPassword: `Give ${studentName} this temporary password. It works until they choose a new one.`,
-    backLink: `Back to ${className}`,
+    studentsBackLink: "Back to students",
     notFoundTitle: "Page not found",
     newPasswordTitle: "Choose a new password",
     firstSessionLabel: "Date of session 1",
@@ -792,7 +796,16 @@ for (const locale of locales) {
       ),
     ).toContainText(text.studentNotice[2]);
     await expectAccessibleScreen(page);
-    await page.getByRole("link", { name: text.resetLink }).click();
+    await page.goto(
+      `${testClass.path}/students?measure=sharpe&q=${encodeURIComponent(studentName)}`,
+    );
+    await selectFirstStudent(page);
+    const selectedAddress = new URL(page.url());
+    selectedAddress.hash = "#selected-student";
+    await page
+      .getByRole("dialog")
+      .getByRole("link", { name: text.panelResetLink, exact: true })
+      .click();
     await expect(page).toHaveTitle(`${text.resetTitle} | Portolab`);
     await expect(
       page.getByText(`${text.resetBody[0]}${username}${text.resetBody[1]}`),
@@ -808,8 +821,15 @@ for (const locale of locales) {
       /^[a-km-np-z2-9]{4}(-[a-km-np-z2-9]{4}){2}$/,
     );
     await expectAccessibleScreen(page);
-    await page.getByRole("link", { name: text.backLink }).click();
-    await expect(page).toHaveURL(testClass.path);
+    await page
+      .getByRole("link", { name: text.studentsBackLink, exact: true })
+      .click();
+    await expect(page).toHaveURL(selectedAddress.href);
+    await expect(
+      page
+        .getByRole("dialog")
+        .getByRole("heading", { name: studentName, exact: true }),
+    ).toBeVisible();
 
     await student.goto(testClass.path);
     await expect(student).toHaveURL(

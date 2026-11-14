@@ -2,7 +2,7 @@ import { useId, useState } from "react";
 import type { ComponentProps, ReactNode } from "react";
 import chipStyles from "~/chip.module.css";
 import { m } from "~/paraglide/messages.js";
-import { Popover } from "~/popover";
+import { Popover, PopoverButton } from "~/popover";
 import { useIsInBrowser } from "~/charts/use-is-in-browser";
 import { JoinDetails } from "./join-details";
 import styles from "./join-chip.module.css";
@@ -26,13 +26,11 @@ export function JoinChip({
   };
   return (
     <>
-      <button
-        type="button"
+      <PopoverButton
         className={chipStyles["chip"]}
-        popoverTarget={popoverId}
-        style={{ anchorName: `--${popoverId}` }}
+        popover={popoverId}
         data-join-code={details.joinCode}
-        aria-label={
+        label={
           isInBrowser
             ? m.classes_join_chip_label({ code: details.joinCode })
             : m.classes_join_view_label({ code: details.joinCode })
@@ -54,7 +52,7 @@ export function JoinChip({
             <path d="M8 8h12v13H8ZM4 16H3V3h13v1" />
           </svg>
         )}
-      </button>
+      </PopoverButton>
       <Popover
         id={popoverId}
         label={m.classes_join_chip_title()}

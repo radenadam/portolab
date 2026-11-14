@@ -1,8 +1,9 @@
+import { MapLabel } from "./map-label";
 import { mapLineLabelKeys, mapPointName } from "./map-label-text";
 import type { ReactNode, Ref } from "react";
-import type { LabelPlace, PlacedLabels } from "./map-labels";
+import type { PlacedLabels } from "./map-labels";
 import { keptNameRoom } from "./map-labels";
-import { percentOf } from "./plot";
+import { emOf, percentOf } from "./plot";
 import { ValueMark } from "./value-mark";
 import type {
   MapMark,
@@ -30,6 +31,7 @@ export const markReach = 0.33;
 // The marks of the stocks that the portfolio does not hold come first, so they never hide the marks of the portfolio, of its stocks, or of the IHSG, and the mark of the reader comes last.
 const drawOrder: Record<MarkKind, number> = {
   other: 0,
+  classmate: -1,
   active: 1,
   held: 1,
   market: 2,
@@ -47,7 +49,6 @@ export function MapDrawing({
   placed,
   texts,
   active,
-  showLine,
   spread,
   drawingRef,
   measureRef,
@@ -55,9 +56,8 @@ export function MapDrawing({
   layout: RiskMapLayout<unknown>;
   drawn: readonly DrawnPoint[];
   placed: PlacedLabels;
-  texts: { title: string; level: string; line: string };
+  texts: { title: string; level: string | undefined; line: string | undefined };
   active: DrawnPoint | undefined;
-  showLine: boolean;
   spread: MapSpreadText | undefined;
   drawingRef: Ref<SVGSVGElement>;
   measureRef: Ref<SVGTextElement>;
@@ -65,14 +65,16 @@ export function MapDrawing({
   return (
     <svg ref={drawingRef} className={styles["drawing"]} aria-hidden>
       <Axes layout={layout} title={texts.title} />
-      <line
-        x1="0"
-        x2="100%"
-        y1={percentOf(layout.market.position.y)}
-        y2={percentOf(layout.market.position.y)}
-        className={styles["level"]}
-      />
-      {showLine && (
+      {texts.level !== undefined && (
+        <line
+          x1="0"
+          x2="100%"
+          y1={percentOf(layout.market.position.y)}
+          y2={percentOf(layout.market.position.y)}
+          className={styles["level"]}
+        />
+      )}
+      {layout.line !== undefined && (
         <line
           x1={percentOf(layout.line.start.x)}
           y1={percentOf(layout.line.start.y)}
@@ -93,18 +95,18 @@ export function MapDrawing({
               className={styles["line"]}
             />
           )}
-          <Label
+          <MapLabel
             text={spread.zeroLabel}
             place={placed.lines.get(mapLineLabelKeys.zero)}
             className={styles["corner"]}
           />
-          <Label
+          <MapLabel
             text={spread.medianLabel}
             place={placed.lines.get(mapLineLabelKeys.median)}
             className={styles["medianLabel"]}
           />
           {spread.corners.map((text, index) => (
-            <Label
+            <MapLabel
               key={text}
               text={text}
               place={placed.lines.get(mapLineLabelKeys.corners[index] ?? "")}
@@ -124,24 +126,25 @@ export function MapDrawing({
         <circle
           cx={percentOf(active.placed.position.x)}
           cy={percentOf(active.placed.position.y)}
-          r={em(active.placed.outerRadius + markReach)}
+          r={emOf(active.placed.outerRadius + markReach)}
           className={styles["active"]}
         />
       )}
-      <Label
+      <MapLabel
         text={texts.level}
         place={placed.lines.get(mapLineLabelKeys.level)}
         className={styles["lineLabel"]}
       />
-      <Label
+      <MapLabel
         text={texts.line}
         place={placed.lines.get(mapLineLabelKeys.line)}
         className={styles["lineLabel"]}
       />
       {drawn.map(({ point, kind }) => (
-        <Label
+        <MapLabel
           key={point.key}
           text={mapPointName({ point, kind })}
+          value={placed.values.has(point.key) ? point.labelValue : undefined}
           place={placed.points.get(point.key)}
           kind="point"
           className={styles["label"]}
@@ -185,7 +188,7 @@ function Axes({
           <text
             x={percentOf(tick.at)}
             y="100%"
-            dy={em(tickBaseline)}
+            dy={emOf(tickBaseline)}
             textAnchor="middle"
             className={acrossTickClass(tick)}
           >
@@ -203,7 +206,7 @@ function Axes({
       <text
         x="100%"
         y="100%"
-        dy={em(titleBaseline)}
+        dy={emOf(titleBaseline)}
         textAnchor="end"
         className={styles["axisTitle"]}
       >
@@ -223,11 +226,6 @@ function acrossTickClass(tick: {
   return tick.isMinor ? styles["minorTick"] : styles["tick"];
 }
 
-// Two decimals of a size of the text place a mark within a tenth of a pixel, and they keep the page small.
-function em(length: number): string {
-  return `${String(Math.round(length * 100) / 100)}em`;
-}
-
 function Mark({
   kind,
   placed,
@@ -238,7 +236,7 @@ function Mark({
   const cx = percentOf(placed.position.x);
   const cy = percentOf(placed.position.y);
   const dot = (className: string | undefined): ReactNode => (
-    <circle cx={cx} cy={cy} r={em(placed.radius)} className={className} />
+    <circle cx={cx} cy={cy} r={emOf(placed.radius)} className={className} />
   );
   switch (kind) {
     case "own":
@@ -247,7 +245,7 @@ function Mark({
           <circle
             cx={cx}
             cy={cy}
-            r={em(placed.outerRadius)}
+            r={emOf(placed.outerRadius)}
             className={styles["ring"]}
           />
           {dot(styles["own"])}
@@ -256,6 +254,8 @@ function Mark({
     case "active":
     case "held":
       return dot(styles["held"]);
+    case "classmate":
+      return dot(styles["classmate"]);
     case "other":
       return dot(styles["other"]);
     case "market":
@@ -265,7 +265,7 @@ function Mark({
 
 /** The diamond of the IHSG. A path cannot place a corner at a position of the plot plus a length in sizes of the text, so an inner drawing stands at the position of the IHSG, and the diamond fills a drawing of its own size around that position. */
 function Diamond({ placed }: { placed: PlacedMark }): ReactNode {
-  const size = em(2 * placed.radius);
+  const size = emOf(2 * placed.radius);
   return (
     <svg
       x={percentOf(placed.position.x)}
@@ -273,8 +273,8 @@ function Diamond({ placed }: { placed: PlacedMark }): ReactNode {
       overflow="visible"
     >
       <svg
-        x={em(-placed.radius)}
-        y={em(-placed.radius)}
+        x={emOf(-placed.radius)}
+        y={emOf(-placed.radius)}
         width={size}
         height={size}
         viewBox="-1 -1 2 2"
@@ -287,34 +287,5 @@ function Diamond({ placed }: { placed: PlacedMark }): ReactNode {
         />
       </svg>
     </svg>
-  );
-}
-
-function Label({
-  text,
-  place,
-  className,
-  kind = "fixed",
-}: {
-  text: string;
-  place: LabelPlace | undefined;
-  className: string | undefined;
-  kind?: "fixed" | "point";
-}): ReactNode {
-  if (place === undefined) {
-    return null;
-  }
-  return (
-    <text
-      x={percentOf(place.at.x)}
-      y={percentOf(place.at.y)}
-      dx={em(place.dx)}
-      dy={em(place.dy)}
-      textAnchor={place.anchor}
-      data-map-label={kind}
-    >
-      {/* The offsets use the drawing's text size, while the letters may use a smaller font. */}
-      <tspan className={className}>{text}</tspan>
-    </text>
   );
 }

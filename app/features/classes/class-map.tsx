@@ -1,3 +1,4 @@
+import { marketIndex } from "~/features/market-data/tracked-instruments";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { NumberText } from "~/number-text";
@@ -11,12 +12,11 @@ import {
   formatSignedPercent,
 } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
-import { Popover, PopoverButton } from "~/popover";
+import { ConceptHelp } from "~/concept-card";
 import type { Beta } from "~/units/beta";
 import type { MonthlyReturn } from "~/units/monthly-return";
 import type { CumulativeReturn } from "~/units/cumulative-return";
-import { beta } from "~/units/beta";
-import { marketBeta } from "~/features/measures/market-beta";
+import { beta, marketBeta } from "~/units/beta";
 import { monthlyReturn } from "~/units/monthly-return";
 import { cumulativeReturn } from "~/units/cumulative-return";
 import type { ClassOverview } from "./read-class-overview.server";
@@ -50,7 +50,7 @@ export function ClassMap({
     }
   > = {
     beta: {
-      title: m.classes_map_beta_axis_label(),
+      title: m.classes_map_beta_axis_label({ index: marketIndex.code }),
       style: "decimal",
       toValue: beta,
       risk: marketBeta,
@@ -66,39 +66,7 @@ export function ClassMap({
   const marketRisk = chosen.risk;
   return (
     <section className={styles["panel"]} aria-labelledby="class-map-heading">
-      <div className={styles["mapHeader"]}>
-        <div className={styles["titleRow"]}>
-          <h2 id="class-map-heading">{m.classes_map_title()}</h2>
-          <PopoverButton
-            popover="class-map-help"
-            label={m.classes_map_help_label()}
-            className={styles["help"]}
-          >
-            ?
-          </PopoverButton>
-          <Popover
-            id="class-map-help"
-            label={m.classes_map_help_label()}
-            placement="belowEnd"
-          >
-            <p>{m.classes_map_help_notice()}</p>
-          </Popover>
-        </div>
-        <div className={styles["choice"]}>
-          <Link
-            to="?axis=beta"
-            aria-current={axis === "beta" ? "true" : undefined}
-          >
-            {m.classes_map_beta_label()}
-          </Link>
-          <Link
-            to="?axis=deviation"
-            aria-current={axis === "deviation" ? "true" : undefined}
-          >
-            {m.classes_map_deviation_label()}
-          </Link>
-        </div>
-      </div>
+      <ClassMapHeader axis={axis} hasStudents={overview.students.length > 0} />
       <div className={styles["legend"]}>
         <RiskMapLegend
           items={[
@@ -124,19 +92,25 @@ export function ClassMap({
                       count: formatNumber(inactive),
                     }),
             },
-            { kind: "market", name: m.classes_map_market_label() },
+            { kind: "market", name: marketIndex.code },
           ]}
         />
       </div>
-      {marketReturn === undefined || marketRisk === undefined ? (
-        <p className={styles["empty"]}>{m.classes_map_unavailable_notice()}</p>
+      {overview.students.length === 0 ? (
+        <p className={styles["empty"]}>
+          {m.classes_no_students_body()} {m.classes_map_invite_notice()}
+        </p>
+      ) : marketReturn === undefined || marketRisk === undefined ? (
+        <p className={styles["empty"]}>
+          {m.classes_map_unavailable_notice({ index: marketIndex.code })}
+        </p>
       ) : (
         <RiskMap
           labelledBy="class-map-heading"
           coloredValues
           market={{
-            key: "IHSG",
-            name: m.classes_map_market_label(),
+            key: marketIndex.code,
+            name: marketIndex.code,
             across: marketRisk,
             up: marketReturn,
             values: marketValues(marketReturn, overview.marketDeviation),
@@ -145,7 +119,7 @@ export function ClassMap({
           across={chosen}
           up={{ style: "percent", toValue: cumulativeReturn }}
           levelLabel={m.app_map_value_part({
-            name: m.classes_map_market_label(),
+            name: marketIndex.code,
             value: formatSignedPercent(marketReturn).text,
           })}
           spread={{
@@ -197,6 +171,41 @@ export function ClassMap({
         />
       </div>
     </section>
+  );
+}
+
+function ClassMapHeader({
+  axis,
+  hasStudents,
+}: {
+  axis: ClassMapAxis;
+  hasStudents: boolean;
+}): ReactNode {
+  return (
+    <div className={styles["mapHeader"]}>
+      <div className={styles["titleRow"]}>
+        <h2 id="class-map-heading">{m.classes_map_title()}</h2>
+        {hasStudents && (
+          <ConceptHelp title={m.classes_map_title()}>
+            <p>{m.classes_map_help_notice({ index: marketIndex.code })}</p>
+          </ConceptHelp>
+        )}
+      </div>
+      <div className={styles["choice"]}>
+        <Link
+          to="?axis=beta"
+          aria-current={axis === "beta" ? "true" : undefined}
+        >
+          {m.classes_map_beta_label()}
+        </Link>
+        <Link
+          to="?axis=deviation"
+          aria-current={axis === "deviation" ? "true" : undefined}
+        >
+          {m.classes_map_deviation_label()}
+        </Link>
+      </div>
+    </div>
   );
 }
 

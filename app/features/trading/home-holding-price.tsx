@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { priceChange } from "~/features/market-data/price-change";
 import {
   formatMarketTime,
-  formatRupiah,
+  formatNumber,
   formatSignedPercent,
 } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
@@ -13,15 +13,17 @@ import type { ValuedHolding } from "./value-portfolio";
 export function HomeHoldingPrice({
   holding,
   failed,
+  sharedTime,
 }: {
   holding: ValuedHolding;
   failed: boolean;
+  sharedTime?: string | undefined;
 }): ReactNode {
   return (
     <>
       {holding.kind === "priced" ? (
         <>
-          <span>{formatRupiah(holding.quote.price)}</span>
+          <span>{formatNumber(holding.quote.price)}</span>
           <small>
             <ChangeText
               colored
@@ -30,11 +32,13 @@ export function HomeHoldingPrice({
               )}
             />
           </small>
-          <small className={styles["quoteTime"]}>
-            {m.trading_home_price_time_notice({
-              time: formatMarketTime(holding.quote.quotedAt),
-            })}
-          </small>
+          {formatMarketTime(holding.quote.quotedAt) !== sharedTime && (
+            <small className={styles["quoteTime"]}>
+              {m.trading_home_price_time_notice({
+                time: formatMarketTime(holding.quote.quotedAt),
+              })}
+            </small>
+          )}
           {failed && <small>{m.trading_home_quote_failed_notice()}</small>}
         </>
       ) : (

@@ -6,13 +6,12 @@ import type { MapPoint, MarkedPoint } from "~/charts/layout-risk-map";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
 import { formatBeta, formatPercent, formatSignedPercent } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
-import { beta } from "~/units/beta";
+import { beta, marketBeta } from "~/units/beta";
 import type { Beta } from "~/units/beta";
 import { monthlyReturn } from "~/units/monthly-return";
 import type { MonthlyReturn } from "~/units/monthly-return";
 import { riskFreeSymbol, SecurityMarketLineFormula } from "./formulas";
 import { MeasureTable } from "./measure-table";
-import { marketBeta } from "./market-beta";
 import type { MeasureTableRow } from "./measure-table";
 import styles from "./measures.module.css";
 import type {

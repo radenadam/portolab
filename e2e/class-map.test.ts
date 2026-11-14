@@ -1,3 +1,6 @@
+import { chooseLanguage } from "./choose-language.ts";
+import { signInAsNewLecturer } from "./accounts.ts";
+import { createTestClass } from "./create-test-class.ts";
 import { languageNames } from "../app/language-names.ts";
 import { expect, test } from "@playwright/test";
 import { eq } from "drizzle-orm";
@@ -13,7 +16,7 @@ import { storeTestHolding } from "./store-test-holding.ts";
 import { studentOfNewClass } from "./student-of-new-class.ts";
 import { widestClassNames } from "./widest-class-names.ts";
 import { writeForTestStudent } from "./write-for-test-student.ts";
-import { withHeldClientScripts } from "./with-held-client-scripts.ts";
+import { holdClientScripts } from "./hold-client-scripts.ts";
 import { expectMapLabelsClear } from "./expect-map-labels-clear.ts";
 import { fillClassMap } from "./fill-class-map.ts";
 
@@ -32,15 +35,20 @@ const texts: Record<
     chip: readonly [string, string];
     viewChip: readonly [string, string];
     startingCash: string;
+    empty: string;
+    back: string;
   }
 > = {
   id: {
+    back: `Kembali ke ${widestClassNames.className}`,
+    empty:
+      "Belum ada mahasiswa yang bergabung. Bagikan kode gabung di bagian atas halaman agar mahasiswa dapat bergabung.",
     startingCash: "Modal awal",
     title: "Peta risiko dan imbal hasil",
     deviation: "Simpangan baku",
     axis: "Simpangan baku per bulan",
     table: "Lihat data mahasiswa dan waktu harga",
-    help: "Tentang peta kelas",
+    help: "Apa itu Peta risiko dan imbal hasil?",
     join: "Kode gabung",
     copied: ["Kode ", " tersalin."],
     failed: "Browser menolak menyalin otomatis. Pilih kode lalu salin.",
@@ -49,12 +57,15 @@ const texts: Record<
     viewChip: ["Kode gabung ", ". Lihat kode dan alamat gabung"],
   },
   en: {
+    back: `Back to ${widestClassNames.className}`,
+    empty:
+      "No student has joined yet. Share the join code at the top of the page so that students can join.",
     startingCash: "Starting cash",
     title: "Risk and return map",
     deviation: "Standard deviation",
     axis: "Standard deviation per month",
     table: "View student data and price times",
-    help: "About the class map",
+    help: "What is Risk and return map?",
     join: "Join code",
     copied: ["Code ", " copied."],
     failed:
@@ -79,6 +90,37 @@ for (const width of [360, 1440, 1920]) {
 }
 
 for (const locale of locales) {
+  test(`offers the join code before the first student joins, with and without JavaScript, in ${languageNames[locale]}`, async ({
+    page,
+    browser,
+  }) => {
+    await chooseLanguage(page, locale);
+    await signInAsNewLecturer(page, widestClassNames.lecturerName);
+    const taught = await createTestClass(page, widestClassNames.className);
+    const plain = await newDevice(browser, locale, {
+      javaScriptEnabled: false,
+      storageState: await page.context().storageState(),
+    });
+    try {
+      for (const screen of [page, plain]) {
+        await screen.goto(taught.path);
+        await expect(
+          screen.getByText(texts[locale].empty, { exact: true }),
+        ).toBeVisible();
+        await expect(screen.getByRole("table")).toHaveCount(0);
+        await expect(
+          screen.getByRole("button", { name: texts[locale].help, exact: true }),
+        ).toHaveCount(0);
+        const details = await openJoinDetails(screen);
+        await expect(details.locator("dd").first()).toHaveText(taught.joinCode);
+        expect(await layoutProblems(screen)).toEqual([]);
+      }
+      // Axe injects frame scripts, so its audit needs the context with JavaScript enabled.
+      await expectAccessibleScreen(page);
+    } finally {
+      await plain.context().close();
+    }
+  });
   test(`keeps fixed map labels clear of a crowded class at every reference width, with and without JavaScript, in ${languageNames[locale]}`, async ({
     page,
     browser,
@@ -135,47 +177,44 @@ for (const locale of locales) {
       locale,
       ...widestClassNames,
     });
-    await page
-      .context()
-      .grantPermissions(["clipboard-read", "clipboard-write"]);
-    try {
-      await withHeldClientScripts(
-        page,
-        async () => {
-          const chip = page.locator("[data-join-code]:visible");
-          const code = await chip.getAttribute("data-join-code");
-          if (code === null) throw new Error("The workspace has no join code.");
-          await expect(chip).toHaveAccessibleName(
-            `${text.viewChip[0]}${code}${text.viewChip[1]}`,
-          );
-          const card = await openJoinDetails(page);
-          await expect(card).toBeVisible();
-          await expect(
-            card.getByRole("button", { name: text.copy, exact: true }),
-          ).toHaveCount(0);
-          return { card, code, details: await card.locator("dl").innerText() };
-        },
-        async ({ card, code, details }) => {
-          await expect(
-            page.locator("[data-join-code]:visible"),
-          ).toHaveAccessibleName(`${text.chip[0]}${code}${text.chip[1]}`);
-          await expect(card).toBeVisible();
-          expect(await card.locator("dl").innerText()).toBe(details);
-          await expect(page).toHaveURL(classPath);
-          await card
-            .getByRole("button", { name: text.copy, exact: true })
-            .click();
-          await expect(card.getByRole("status")).toHaveText(
-            `${text.copied[0]}${code}${text.copied[1]}`,
-          );
-          expect(
-            await page.evaluate(() => navigator.clipboard.readText()),
-          ).toBe(code);
-        },
-      );
-    } finally {
-      await student.context().close();
-    }
+    await holdClientScripts(
+      page,
+      { otherDevice: student.context() },
+      async (loadClient) => {
+        await page
+          .context()
+          .grantPermissions(["clipboard-read", "clipboard-write"]);
+        const chip = page.locator("[data-join-code]:visible");
+        await expect(chip).toHaveCount(1);
+        const code = await chip.getAttribute("data-join-code");
+        if (code === null) throw new Error("The workspace has no join code.");
+        await expect(chip).toHaveAccessibleName(
+          `${text.viewChip[0]}${code}${text.viewChip[1]}`,
+        );
+        const card = await openJoinDetails(page);
+        await expect(card).toBeVisible();
+        await expect(
+          card.getByRole("button", { name: text.copy, exact: true }),
+        ).toHaveCount(0);
+        const details = await card.locator("dl").innerText();
+        await loadClient();
+        await expect(
+          page.locator("[data-join-code]:visible"),
+        ).toHaveAccessibleName(`${text.chip[0]}${code}${text.chip[1]}`);
+        await expect(card).toBeVisible();
+        expect(await card.locator("dl").innerText()).toBe(details);
+        await expect(page).toHaveURL(classPath);
+        await card
+          .getByRole("button", { name: text.copy, exact: true })
+          .click();
+        await expect(card.getByRole("status")).toHaveText(
+          `${text.copied[0]}${code}${text.copied[1]}`,
+        );
+        expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
+          code,
+        );
+      },
+    );
   });
 
   test(`explores the class on either risk axis, opens a student, and shares its code in ${languageNames[locale]}`, async ({
@@ -216,14 +255,19 @@ for (const locale of locales) {
       page.locator("main svg text").filter({ hasText: text.axis }),
     ).toBeVisible();
     expect(await layoutProblems(page)).toEqual([]);
-    await page.goBack();
-    await expect(page).toHaveURL(classPath);
     await map.focus();
     await page.keyboard.press("Home");
     const documentsBeforeKey = documentRequests;
     await page.keyboard.press("Enter");
-    await expect(page).toHaveURL(/\/students\/\d+\/portfolio$/);
+    await expect(page).toHaveURL(/\/students\/\d+\/portfolio\?returnTo=/);
     expect(documentRequests).toBe(documentsBeforeKey);
+    await page
+      .getByRole("link", {
+        name: text.back,
+        exact: true,
+      })
+      .click();
+    await expect(page).toHaveURL(`${classPath}?axis=deviation`);
     await page.goto(classPath);
     await expect(map).toBeVisible();
     const point = await page.locator("main svg circle").first().boundingBox();
@@ -238,11 +282,13 @@ for (const locale of locales) {
     } else {
       await page.mouse.click(center.x, center.y);
     }
-    await expect(page).toHaveURL(/\/students\/\d+\/portfolio$/);
+    await expect(page).toHaveURL(/\/students\/\d+\/portfolio\?returnTo=/);
     expect(documentRequests).toBe(documentsBeforePointer);
     await page.goto(classPath);
     await page.getByRole("button", { name: text.help, exact: true }).click();
-    await expect(page.getByRole("dialog", { name: text.help })).toBeVisible();
+    const help = page.getByRole("dialog", { name: text.title });
+    await expect(help).toBeVisible();
+    await expect(help.getByText(text.title, { exact: true })).toBeVisible();
     await page.keyboard.press("Escape");
     await page.getByText(text.table, { exact: true }).click();
     const studentLink = page
@@ -252,7 +298,7 @@ for (const locale of locales) {
     expect(await layoutProblems(page)).toEqual([]);
     await expectAccessibleScreen(page);
     await studentLink.click();
-    await expect(page).toHaveURL(/\/students\/\d+\/portfolio$/);
+    await expect(page).toHaveURL(/\/students\/\d+\/portfolio\?returnTo=/);
     await page.goto(classPath);
     await page
       .context()

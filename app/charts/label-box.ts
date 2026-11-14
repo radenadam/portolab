@@ -48,3 +48,13 @@ function canMeet(
   if (direction < 0) return second.end > first.start;
   return first.start < second.end && second.start < first.end;
 }
+
+export function distanceToBox(
+  box: LabelBox,
+  point: { x: number; y: number },
+): number {
+  return Math.hypot(
+    Math.max(box.left - point.x, 0, point.x - box.right),
+    Math.max(box.top - point.y, 0, point.y - box.bottom),
+  );
+}

@@ -1,4 +1,6 @@
+import { CashName } from "./cash-name";
 import { HomeHoldingPrice } from "./home-holding-price";
+import { sharedQuoteTime } from "./shared-quote-time";
 import { homeSparklineMonths } from "./home-sparkline-months";
 import { portfolioWeight } from "~/units/portfolio-weight";
 import { rupiah } from "~/units/rupiah";
@@ -18,7 +20,6 @@ import { stockPath } from "~/features/market-data/stock-path";
 import {
   formatNumber,
   formatRupiah,
-  formatRupiahParts,
   formatSignedPercent,
   formatSignedRupiah,
 } from "~/formatting";
@@ -40,6 +41,7 @@ export function HomeHoldingsSection({
   values,
   classId,
 }: HoldingsProps): ReactNode {
+  const sharedTime = sharedQuoteTime(home.report.valuation.holdings);
   const maximumWeight = portfolioWeight(
     Math.max(
       values.cashWeight ?? 0,
@@ -126,6 +128,7 @@ export function HomeHoldingsSection({
                 classId={classId}
                 maximumWeight={maximumWeight}
                 maximumGain={maximumGain}
+                sharedTime={sharedTime}
               />
             ))}
             <tr>
@@ -152,7 +155,29 @@ export function HomeHoldingsSection({
               to={stockPath(classId, row.holding.code)}
               className={styles["stockLink"]}
             >
-              <StockName code={row.holding.code} withCompanyName={false} />
+              <StockName
+                code={row.holding.code}
+                withCompanyName={false}
+                detail={
+                  <span className={styles["rowPrice"]}>
+                    <span>
+                      {home.lotShares === undefined
+                        ? shareCount(row.holding.shares)
+                        : lotCount(lots(row.holding.shares / home.lotShares))}
+                    </span>
+                    <span aria-hidden>·</span>
+                    <HomeHoldingPrice
+                      holding={row.holding}
+                      sharedTime={sharedTime}
+                      failed={
+                        home.report.quoteAttempt?.failedCodes.includes(
+                          row.holding.code,
+                        ) ?? false
+                      }
+                    />
+                  </span>
+                }
+              />
             </Link>
             <div className={styles["rowValue"]}>
               {row.holding.kind === "priced" && (
@@ -165,25 +190,6 @@ export function HomeHoldingsSection({
                 </>
               )}
             </div>
-            <p className={styles["rowPrice"]}>
-              <span>
-                {m.trading_home_position_notice({
-                  count:
-                    home.lotShares === undefined
-                      ? shareCount(row.holding.shares)
-                      : lotCount(lots(row.holding.shares / home.lotShares)),
-                  average: formatRupiah(row.averageCost),
-                })}
-              </span>
-              <HomeHoldingPrice
-                holding={row.holding}
-                failed={
-                  home.report.quoteAttempt?.failedCodes.includes(
-                    row.holding.code,
-                  ) ?? false
-                }
-              />
-            </p>
             <div className={styles["rowWeight"]}>
               <WeightMark value={row.weight} maximum={maximumWeight} />
             </div>
@@ -210,7 +216,12 @@ export function HomeHoldingsSection({
           </div>
         </li>
       </ul>
-      <p className={styles["tableNote"]}>{m.trading_home_average_notice()}</p>
+      <div className={styles["tableNote"]}>
+        {sharedTime !== undefined && (
+          <p>{m.trading_home_prices_time_notice({ time: sharedTime })}</p>
+        )}
+        <p>{m.trading_home_average_notice()}</p>
+      </div>
     </section>
   );
 }
@@ -221,12 +232,14 @@ function HoldingTableRow({
   classId,
   maximumWeight,
   maximumGain,
+  sharedTime,
 }: {
   row: HomeHolding;
   home: HomePortfolioData;
   classId: ClassId;
   maximumWeight: PortfolioWeight;
   maximumGain: Rupiah;
+  sharedTime: string | undefined;
 }): ReactNode {
   const { holding } = row;
   const history = home.histories.find(({ code }) => code === holding.code);
@@ -252,6 +265,7 @@ function HoldingTableRow({
       <td>
         <HomeHoldingPrice
           holding={row.holding}
+          sharedTime={sharedTime}
           failed={
             home.report.quoteAttempt?.failedCodes.includes(row.holding.code) ??
             false
@@ -281,22 +295,5 @@ function HoldingTableRow({
         )}
       </td>
     </tr>
-  );
-}
-
-function CashName({ note, cash }: { note: string; cash: Rupiah }): ReactNode {
-  return (
-    <div className={styles["cashName"]}>
-      <span className={styles["cashTile"]} aria-hidden="true">
-        {formatRupiahParts(cash)
-          .filter((part) => part.type === "currency")
-          .map((part) => part.value)
-          .join("")}
-      </span>
-      <span>
-        {m.trading_cash_label()}
-        <small>{note}</small>
-      </span>
-    </div>
   );
 }

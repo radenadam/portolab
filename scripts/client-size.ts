@@ -166,7 +166,7 @@ export function clientSizeChecks(
     {
       name: "Client CSS",
       path: "build/client/assets/*.css",
-      limit: "20 kB",
+      limit: "21 kB",
       gzip: true,
     },
   );

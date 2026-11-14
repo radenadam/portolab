@@ -186,7 +186,7 @@ function portfolioPriceTimes(report: ReturnType<typeof readPortfolioReport>): {
       ? []
       : [
           m.app_map_value_part({
-            name: m.classes_map_market_label(),
+            name: report.market.quote.code,
             value: formatMarketTime(report.market.quote.quotedAt),
           }),
         ];

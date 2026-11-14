@@ -1,0 +1,39 @@
+import type { ReactNode } from "react";
+import { TimeChart } from "~/charts/time-chart";
+import { marketIndex } from "~/features/market-data/tracked-instruments";
+import { m } from "~/paraglide/messages.js";
+import type { ReturnPoint } from "./portfolio-history";
+
+/** The small summary and the large view compare the same final closes. */
+export function PortfolioReturnChart({
+  points,
+  labelledBy,
+  annotations,
+}: {
+  points: readonly ReturnPoint[];
+  labelledBy: string;
+  annotations?: readonly { date: string; label: string }[];
+}): ReactNode {
+  return (
+    <TimeChart
+      coloredChanges
+      points={points}
+      lines={[
+        {
+          name: m.trading_portfolio_series_label(),
+          kind: "own",
+          valueOf: (point) => point.portfolio,
+        },
+        {
+          name: marketIndex.code,
+          kind: "reference",
+          valueOf: (point) => point.market,
+        },
+      ]}
+      labelledBy={labelledBy}
+      dateLabel={m.trading_trading_day_label()}
+      tableLabel={m.trading_returns_table_label()}
+      annotations={annotations}
+    />
+  );
+}

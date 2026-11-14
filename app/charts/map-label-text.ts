@@ -15,6 +15,8 @@ export function mapPointName({
   kind,
 }: Pick<DrawnPoint, "point" | "kind">): string {
   switch (kind) {
+    case "classmate":
+      return "";
     case "own":
     case "held":
       return point.name;

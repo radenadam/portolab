@@ -46,7 +46,7 @@ const numberUnits = [
   "sesi",
 ].join("|");
 
-/** A shared pattern keeps rendering and the layout check from disagreeing about the signs, arrows, and units of a number. */
+/** A unit or sign on another line can read as part of a different number. */
 export const numberPattern = new RegExp(
   String.raw`(?<![\p{L}\p{N}_])(?:[▲▼]\s*)?[+−±-]?(?:(?:Rp|IDR)\s*)?[+−±-]?\d+(?:[.,]\d+)*(?:(?:\s*-\s*|\s*)(?:%|(?:${numberUnits})\b))?(?:\s*[▲▼](?!\s*[+−±-]?(?:(?:Rp|IDR)\s*)?\d))?(?![.,]\d|[\p{L}\p{N}_])`,
   "gu",

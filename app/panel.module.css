@@ -1,0 +1,11 @@
+/* A route can load these defaults after the frame or another route, so local styles must win regardless of load order. */
+:where(.panel) {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+  padding: var(--space-4);
+  border: var(--size-line) solid var(--color-line);
+  border-radius: var(--radius-panel);
+  background: var(--color-panel);
+}

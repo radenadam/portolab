@@ -1,3 +1,4 @@
+import { isClassMapPath } from "./class-path";
 import type { ReactNode } from "react";
 import { Form, Link } from "react-router";
 import { resetForgottenPassword } from "~/features/accounts/reset-forgotten-password.server";
@@ -7,8 +8,8 @@ import { pageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
 import type { Route } from "./+types/reset-password-page";
 import type { ClassStudent } from "./class-store.server";
-import type { ClassId } from "./classes.schema";
-import { classPath } from "./class-path";
+import { parseStudentReturnPath } from "~/features/grading/parse-student-return-path";
+import { studentsAddress } from "~/features/grading/students-address";
 import styles from "./classes.module.css";
 import { requireTaughtStudent } from "./taught-class.server";
 
@@ -17,12 +18,31 @@ export function meta(): Route.MetaDescriptors {
 }
 
 export function loader({ context, url, params }: Route.LoaderArgs): {
-  classId: ClassId;
-  className: string;
+  returnPath: string;
+  returnLabel: string;
   student: ClassStudent;
 } {
   const { taughtClass, student } = requireTaughtStudent(context, url, params);
-  return { classId: taughtClass.id, className: taughtClass.name, student };
+  const returnPath = parseStudentReturnPath(
+    url.searchParams.get("returnTo"),
+    "returnTo",
+    { origin: url.origin, classId: taughtClass.id },
+  );
+  return {
+    student,
+    returnLabel:
+      returnPath.ok && isClassMapPath(returnPath.value, taughtClass.id)
+        ? m.classes_back_link({ class: taughtClass.name })
+        : m.classes_students_back_link(),
+    returnPath: returnPath.ok
+      ? returnPath.value
+      : studentsAddress(taughtClass.id, {
+          measure: "alpha",
+          filter: "all",
+          query: "",
+          studentId: student.id,
+        }),
+  };
 }
 
 export async function action({ context, url, params }: Route.ActionArgs) {
@@ -34,9 +54,9 @@ export default function ResetPasswordPage({
   loaderData,
   actionData,
 }: Route.ComponentProps): ReactNode {
-  const { classId, className, student } = loaderData;
+  const { student, returnPath, returnLabel } = loaderData;
   return (
-    <>
+    <section className={styles["reset"]} data-layout="reading">
       <h1>{m.classes_reset_title()}</h1>
       {actionData === undefined ? (
         <>
@@ -58,9 +78,9 @@ export default function ResetPasswordPage({
           <p className={styles["code"]}>{actionData.temporaryPassword}</p>
         </>
       )}
-      <Link to={classPath(classId)} className={styles["link"]}>
-        {m.classes_back_link({ class: className })}
+      <Link to={returnPath} className={styles["link"]}>
+        {returnLabel}
       </Link>
-    </>
+    </section>
   );
 }
