@@ -6,3 +6,5 @@ Coding agents make most changes to Portolab, and every change follows the same w
 2. Follow the section "Workflow" of [`AGENTS.md`](AGENTS.md#workflow), which covers the branch, the change, `pnpm check`, and the pull request. The section "Review panel" describes the automated review that CI adds.
 
 To report a bug or suggest an idea, open an issue. To report a vulnerability, follow [`SECURITY.md`](SECURITY.md).
+
+After `pnpm build`, `pnpm size` reports the shared JavaScript, every route, the whole client, and CSS. [Decision 0037](docs/decisions/0037-client-javascript-is-budgeted-by-route.md) explains the budgets, their measurements, and how to keep an enhancement with its route.
