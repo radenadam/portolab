@@ -35,7 +35,7 @@
     "test:e2e": "playwright test",
     "unused": "knip && knip --production --include files,exports,nsExports,types",
     "duplicates": "jscpd",
-    "size": "size-limit"
+    "size": "size-limit --config size-limit.config.ts"
   },
   "dependencies": {
     "@fontsource-variable/instrument-sans": "^5.3.0",

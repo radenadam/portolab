@@ -1,6 +1,6 @@
 # 0029. The server draws every chart as SVG
 
-- Status: Accepted. [Decision 0035](0035-the-map-names-its-points-in-words-and-keeps-the-name-of-the-reader.md) changes one of its rules: the font of the names of the points of a map, whose widths the server estimates and the browser measures, while DM Mono keeps the marks of the axes.
+- Status: Accepted. [Decision 0035](0035-the-map-names-its-points-in-words-and-keeps-the-name-of-the-reader.md) changes one of its rules: the font of the names of the points of a map, whose widths the server estimates and the browser measures, while DM Mono keeps the marks of the axes. [Decision 0037](0037-client-javascript-is-budgeted-by-route.md) replaces its rule about the scope of the client JavaScript budget.
 - Date: 2026-11-14
 
 ## Context
@@ -16,7 +16,7 @@ The design of [decision 0028](0028-every-screen-follows-the-reference-screens-of
 - Every chart over time keeps the table of its points behind a label that opens it, as decision 0019 decides, and a legend names each of its lines with its latest value.
 - Once JavaScript runs, the plot of a chart over time is a slider that its heading names. A pointer, a finger, or the arrow keys, Home, and End mark a date with a crosshair and a dot on each line, and a tooltip shows the date with the value of each line. The slider gives a screen reader the same text as its value, and Escape hides the crosshair. Before JavaScript runs, the plot is a drawing that screen readers skip, so no control waits for code that has not loaded.
 - On a touch screen, a vertical drag on a chart scrolls the page, and a horizontal drag moves the crosshair.
-- Portolab ships no chart library, so a chart has no notice of a license, and the budget of client JavaScript in `.size-limit.json` covers every page as one part.
+- Portolab ships no chart library, so a chart has no notice of a license.
 
 ## Alternatives
 
