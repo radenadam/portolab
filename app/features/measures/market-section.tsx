@@ -1,3 +1,5 @@
+import { RiskFreeFormula } from "./capm-formulas";
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
 import {
@@ -8,7 +10,6 @@ import {
 import { m } from "~/paraglide/messages.js";
 import {
   MeanFormula,
-  RiskFreeFormula,
   StandardDeviationFormula,
   VarianceFormula,
 } from "./formulas";
@@ -27,7 +28,9 @@ export function MarketSection({
   const { riskFreeRate } = market;
   return (
     <>
-      <h2>{m.measures_market_title({ index })}</h2>
+      <h2>
+        <NumberText>{m.measures_market_title({ index })}</NumberText>
+      </h2>
       <MeasureList
         rows={[
           {
@@ -64,10 +67,12 @@ export function MarketSection({
         ]}
       />
       <p className={styles["details"]}>
-        {m.measures_bi_rate_notice({
-          rate: formatPercent(riskFreeRate.inputs.annualRate),
-          date: formatCalendarDate(riskFreeRate.inputs.announcedOn),
-        })}
+        <NumberText>
+          {m.measures_bi_rate_notice({
+            rate: formatPercent(riskFreeRate.inputs.annualRate),
+            date: formatCalendarDate(riskFreeRate.inputs.announcedOn),
+          })}
+        </NumberText>
       </p>
       <a href={riskFreeRate.inputs.source} className={styles["link"]}>
         {m.measures_bi_rate_link()}

@@ -246,10 +246,13 @@ export function formatCalendarDatePart(
 }
 
 /** Formats the month of a calendar date such as 2027-01-01 in words, such as January 2027. */
-export function formatMonth(date: string): string {
+export function formatMonth(
+  date: string,
+  month: "long" | "short" = "long",
+): string {
   // The month is formatted in UTC for the same reason as a calendar date.
   return new Intl.DateTimeFormat(intlLocale(), {
-    month: "long",
+    month,
     year: "numeric",
     timeZone: "UTC",
   }).format(startOfUtcDate(date));

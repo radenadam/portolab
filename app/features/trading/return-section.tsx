@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { TimeChart } from "~/charts/time-chart";
 import { countedText } from "~/counted-text";
@@ -34,10 +35,12 @@ export function ReturnSection({
   return (
     <section>
       <h2 id={headingId}>
-        {textForReader(reader, {
-          owner: () => m.trading_return_title({ index }),
-          lecturer: () => m.trading_lecturer_return_title({ index }),
-        })}
+        <NumberText>
+          {textForReader(reader, {
+            owner: () => m.trading_return_title({ index }),
+            lecturer: () => m.trading_lecturer_return_title({ index }),
+          })}
+        </NumberText>
       </h2>
       {history.ok ? (
         <Returns
@@ -46,7 +49,9 @@ export function ReturnSection({
           reader={reader}
         />
       ) : (
-        <p>{missingCalendarText(reader)}</p>
+        <p>
+          <NumberText>{missingCalendarText(reader)}</NumberText>
+        </p>
       )}
     </section>
   );
@@ -67,19 +72,21 @@ function Returns({
       {start !== undefined && (
         <>
           <p>
-            {textForReader(reader, {
-              owner: () =>
-                m.trading_chart_notice({
-                  index: marketIndex.code,
-                  date: formatCalendarDate(start.date),
-                }),
-              lecturer: (name) =>
-                m.trading_lecturer_chart_notice({
-                  index: marketIndex.code,
-                  date: formatCalendarDate(start.date),
-                  name,
-                }),
-            })}
+            <NumberText>
+              {textForReader(reader, {
+                owner: () =>
+                  m.trading_chart_notice({
+                    index: marketIndex.code,
+                    date: formatCalendarDate(start.date),
+                  }),
+                lecturer: (name) =>
+                  m.trading_lecturer_chart_notice({
+                    index: marketIndex.code,
+                    date: formatCalendarDate(start.date),
+                    name,
+                  }),
+              })}
+            </NumberText>
           </p>
           <TimeChart
             points={points}
@@ -104,7 +111,9 @@ function Returns({
           />
         </>
       )}
-      <p className={styles["details"]}>{historyEndText(end, reader)}</p>
+      <p className={styles["details"]}>
+        <NumberText>{historyEndText(end, reader)}</NumberText>
+      </p>
     </>
   );
 }

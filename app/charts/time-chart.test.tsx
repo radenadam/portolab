@@ -1,4 +1,4 @@
-import { renderToStaticMarkup } from "react-dom/server";
+import { renderTextMarkupForTest } from "~/render-text-markup-for-test";
 import { expect, test } from "vitest";
 import { languageNames } from "~/language-names";
 import { locales } from "~/paraglide/runtime.js";
@@ -51,7 +51,7 @@ const texts: Record<
 };
 
 function render(chartPoints: readonly Point[], locale: Locale): string {
-  return renderToStaticMarkup(
+  return renderTextMarkupForTest(
     <TimeChart
       points={chartPoints}
       lines={[
@@ -66,7 +66,7 @@ function render(chartPoints: readonly Point[], locale: Locale): string {
       dateLabel={texts[locale].dateLabel}
       tableLabel={texts[locale].tableLabel}
     />,
-  ).replaceAll(/ class="[^"]*"/g, "");
+  ).replaceAll(/ (?:class|data-line)="[^"]*"/g, "");
 }
 
 function line(path: string, dot: string): string {

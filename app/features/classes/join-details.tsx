@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { formatRupiah } from "~/formatting";
 import type { AddressesForOthers } from "~/local-network.server";
@@ -23,7 +24,9 @@ export function JoinDetails({
       />
       <dl className={styles["share"]}>
         <dt>{m.classes_code_label()}</dt>
-        <dd className={styles["code"]}>{joinCode}</dd>
+        <dd className={styles["code"]}>
+          <NumberText>{joinCode}</NumberText>
+        </dd>
         <JoinAddresses joinAddresses={joinAddresses} />
       </dl>
     </>
@@ -40,15 +43,23 @@ function ShareNotices({
 }): ReactNode {
   switch (joinAddresses.kind) {
     case "asOpened":
-      return <p>{m.classes_share_notice({ cash })}</p>;
+      return (
+        <p>
+          <NumberText>{m.classes_share_notice({ cash })}</NumberText>
+        </p>
+      );
     case "onLocalNetwork":
       return (
         <>
-          <p>{m.classes_share_notice({ cash })}</p>
           <p>
-            {m.classes_local_network_notice({
-              host: joinAddresses.openedHost,
-            })}
+            <NumberText>{m.classes_share_notice({ cash })}</NumberText>
+          </p>
+          <p>
+            <NumberText>
+              {m.classes_local_network_notice({
+                host: joinAddresses.openedHost,
+              })}
+            </NumberText>
           </p>
           {joinAddresses.addresses.length > 1 && (
             <p>{m.classes_several_networks_notice()}</p>
@@ -58,10 +69,12 @@ function ShareNotices({
     case "noNetwork":
       return (
         <p>
-          {m.classes_no_network_notice({
-            host: joinAddresses.openedHost,
-            cash,
-          })}
+          <NumberText>
+            {m.classes_no_network_notice({
+              host: joinAddresses.openedHost,
+              cash,
+            })}
+          </NumberText>
         </p>
       );
   }
@@ -78,7 +91,9 @@ function JoinAddresses({
       return (
         <>
           <dt>{m.classes_join_address_label()}</dt>
-          <dd className={styles["address"]}>{joinAddresses.address}</dd>
+          <dd className={styles["address"]}>
+            <NumberText>{joinAddresses.address}</NumberText>
+          </dd>
         </>
       );
     case "onLocalNetwork":
@@ -90,8 +105,10 @@ function JoinAddresses({
               key={`${connectionName} ${address}`}
               className={styles["address"]}
             >
-              <span className={styles["connection"]}>{connectionName}</span>
-              {address}
+              <span className={styles["connection"]}>
+                <NumberText>{connectionName}</NumberText>
+              </span>
+              <NumberText>{address}</NumberText>
             </dd>
           ))}
         </>

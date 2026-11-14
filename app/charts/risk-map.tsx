@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import { useMemo } from "react";
 import type { CSSProperties, PointerEvent, ReactNode } from "react";
 import { ChangeText } from "~/change-text";
@@ -254,10 +255,14 @@ function MapTip({ drawn }: { drawn: DrawnPoint }): ReactNode {
         ...tipDown(drawn.placed.position.y),
       }}
     >
-      <p className={styles["tipName"]}>{drawn.point.name}</p>
+      <p className={styles["tipName"]}>
+        <NumberText>{drawn.point.name}</NumberText>
+      </p>
       {drawn.point.values.map(({ name, value }) => (
         <p key={name} className={styles["tipValue"]}>
-          <span>{name}</span>
+          <span>
+            <NumberText>{name}</NumberText>
+          </span>
           <span className={styles["tipNumber"]}>
             <ValueText value={value} />
           </span>

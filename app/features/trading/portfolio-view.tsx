@@ -1,3 +1,5 @@
+import { QuoteNotice } from "~/features/market-data/quote-notice";
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { ChangeText } from "~/change-text";
 import { countedText } from "~/counted-text";
@@ -80,24 +82,30 @@ function Headline({
   return (
     <section>
       <h2>
-        {textForReader(reader, {
-          owner: () => m.trading_value_title(),
-          lecturer: () => m.trading_lecturer_value_title(),
-        })}
+        <NumberText>
+          {textForReader(reader, {
+            owner: () => m.trading_value_title(),
+            lecturer: () => m.trading_lecturer_value_title(),
+          })}
+        </NumberText>
       </h2>
       {total === undefined ? (
         <p>
-          {countedText(
-            valuation.unpricedCodes.length,
-            {
-              one: m.trading_one_unpriced_holding_notice,
-              several: m.trading_several_unpriced_holdings_notice,
-            },
-            { codes: formatList(valuation.unpricedCodes, "conjunction") },
-          )}
+          <NumberText>
+            {countedText(
+              valuation.unpricedCodes.length,
+              {
+                one: m.trading_one_unpriced_holding_notice,
+                several: m.trading_several_unpriced_holdings_notice,
+              },
+              { codes: formatList(valuation.unpricedCodes, "conjunction") },
+            )}
+          </NumberText>
         </p>
       ) : (
-        <p className={styles["headline"]}>{formatRupiah(total.value)}</p>
+        <p className={styles["headline"]}>
+          <NumberText>{formatRupiah(total.value)}</NumberText>
+        </p>
       )}
       <dl className={styles["facts"]}>
         {total !== undefined && (
@@ -111,7 +119,9 @@ function Headline({
         {market !== undefined && (
           <div className={styles["fact"]}>
             <dt>
-              {m.trading_market_return_label({ index: marketIndex.code })}
+              <NumberText>
+                {m.trading_market_return_label({ index: marketIndex.code })}
+              </NumberText>
             </dt>
             <dd>
               <ChangeText change={formatSignedPercent(market.return)} />
@@ -120,21 +130,27 @@ function Headline({
         )}
         <div className={styles["fact"]}>
           <dt>{m.trading_cash_label()}</dt>
-          <dd>{formatRupiah(valuation.cash)}</dd>
+          <dd>
+            <NumberText>{formatRupiah(valuation.cash)}</NumberText>
+          </dd>
         </div>
         <div className={styles["fact"]}>
           <dt>{m.trading_starting_cash_label()}</dt>
-          <dd>{formatRupiah(valuation.startingCash)}</dd>
+          <dd>
+            <NumberText>{formatRupiah(valuation.startingCash)}</NumberText>
+          </dd>
         </div>
       </dl>
       <p className={styles["details"]}>
-        {textForReader(reader, {
-          owner: () => m.trading_valuation_notice(delay),
-          lecturer: (name) =>
-            m.trading_lecturer_valuation_notice({ ...delay, name }),
-        })}
+        <NumberText>
+          {textForReader(reader, {
+            owner: () => m.trading_valuation_notice(delay),
+            lecturer: (name) =>
+              m.trading_lecturer_valuation_notice({ ...delay, name }),
+          })}
+        </NumberText>
       </p>
-      {failure !== undefined && <p className={styles["details"]}>{failure}</p>}
+      <QuoteNotice text={failure} className={styles["details"]} />
     </section>
   );
 }

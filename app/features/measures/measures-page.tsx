@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { databaseContext } from "~/database/database.server";
@@ -89,9 +90,11 @@ export default function MeasuresPage({
   const { classId, className, source } = loaderData;
   return (
     <>
-      <h1>{m.measures_page_title({ class: className })}</h1>
+      <h1>
+        <NumberText>{m.measures_page_title({ class: className })}</NumberText>
+      </h1>
       <Link to={classPath(classId)} className={styles["link"]}>
-        {m.measures_back_link({ class: className })}
+        <NumberText>{m.measures_back_link({ class: className })}</NumberText>
       </Link>
       <Link to={portfolioPath(classId)} className={styles["link"]}>
         {m.measures_portfolio_link()}
@@ -112,7 +115,11 @@ export default function MeasuresPage({
       />
       <StudentMarketLine marketLine={loaderData.marketLine} />
       <h2>{m.measures_stocks_title()}</h2>
-      <p>{m.measures_stocks_notice({ index: marketIndex.code })}</p>
+      <p>
+        <NumberText>
+          {m.measures_stocks_notice({ index: marketIndex.code })}
+        </NumberText>
+      </p>
       <StockTable classId={classId} stocks={loaderData.stocks} />
     </>
   );

@@ -78,13 +78,21 @@ const failures = {
 
 const periods: Record<Locale, readonly string[]> = {
   id: [
-    "Beta terhadap IHSG, Simpangan baku, dan Imbal hasil yang diharapkan memakai 60 imbal hasil bulanan dari Oktober 2021 sampai September 2026.",
-    "60 imbal hasil bulanan · Oktober 2021 sampai September 2026",
+    "Beta",
+    "Volatilitas/bln",
+    "Imbal hasil harapan/bln",
+    "Ukuran di bawah memakai 60 imbal hasil bulanan dari Oktober 2021 sampai September 2026.",
+    "IHSG 4,53%",
+    "IHSG 0,05%",
     "Bobot portofolio memakai harga tertunda. Halaman portofolio Anda menunjukkan waktu kutipan setiap harga.",
   ],
   en: [
-    "Beta against the IHSG, Standard deviation, and Expected return use 60 monthly returns from October 2021 to September 2026.",
-    "60 monthly returns · October 2021 to September 2026",
+    "Beta",
+    "Volatility/mo",
+    "Expected return/mo",
+    "The measures below use 60 monthly returns from October 2021 to September 2026.",
+    "IHSG 4.53%",
+    "IHSG 0.05%",
     "Portfolio weights use delayed prices. Your portfolio page shows when each price was quoted.",
   ],
 };

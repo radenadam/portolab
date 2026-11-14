@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { countedText } from "~/counted-text";
 import definitionStyles from "~/definition-list.module.css";
@@ -29,11 +30,17 @@ export function CashSummary({
   return (
     <dl className={definitionStyles["list"]}>
       <dt>{m.trading_cash_label()}</dt>
-      <dd>{formatRupiah(cash)}</dd>
+      <dd>
+        <NumberText>{formatRupiah(cash)}</NumberText>
+      </dd>
       <dt>{m.trading_set_aside_label()}</dt>
-      <dd>{formatRupiah(setAside)}</dd>
+      <dd>
+        <NumberText>{formatRupiah(setAside)}</NumberText>
+      </dd>
       <dt>{m.trading_available_cash_label()}</dt>
-      <dd>{formatRupiah(rupiah(cash - setAside))}</dd>
+      <dd>
+        <NumberText>{formatRupiah(rupiah(cash - setAside))}</NumberText>
+      </dd>
     </dl>
   );
 }
@@ -53,21 +60,25 @@ export function HoldingList({
         return (
           <>
             <p className={styles["details"]}>
-              {m.trading_holding_notice({
-                shares: shareCount(holding.shares),
-                cost: formatRupiah(holding.cost),
-              })}
+              <NumberText>
+                {m.trading_holding_notice({
+                  shares: shareCount(holding.shares),
+                  cost: formatRupiah(holding.cost),
+                })}
+              </NumberText>
             </p>
             {setAside.orders > 0 && (
               <p className={styles["details"]}>
-                {countedText(
-                  setAside.orders,
-                  {
-                    one: m.trading_one_sale_sets_aside_notice,
-                    several: m.trading_several_sales_set_aside_notice,
-                  },
-                  { shares: shareCount(setAside.amount) },
-                )}
+                <NumberText>
+                  {countedText(
+                    setAside.orders,
+                    {
+                      one: m.trading_one_sale_sets_aside_notice,
+                      several: m.trading_several_sales_set_aside_notice,
+                    },
+                    { shares: shareCount(setAside.amount) },
+                  )}
+                </NumberText>
               </p>
             )}
           </>
@@ -89,14 +100,18 @@ function HoldingItems<Item extends { code: string }>({
   details: (holding: Item) => ReactNode;
 }): ReactNode {
   if (holdings.length === 0) {
-    return <p>{emptyText}</p>;
+    return (
+      <p>
+        <NumberText>{emptyText}</NumberText>
+      </p>
+    );
   }
   return (
     <ul className={styles["list"]}>
       {holdings.map((holding) => (
         <li key={holding.code} className={styles["item"]}>
           <StockName code={holding.code} />
-          {details(holding)}
+          <NumberText>{details(holding)}</NumberText>
         </li>
       ))}
     </ul>

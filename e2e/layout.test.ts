@@ -1,5 +1,6 @@
+import { screenshotFullHeight } from "./screenshot-full-height.ts";
 import { expect, test } from "@playwright/test";
-import type { Browser, Page } from "@playwright/test";
+import type { Browser, Page, TestInfo } from "@playwright/test";
 import { baseLocale, locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
 import routes from "../app/routes.ts";
@@ -153,8 +154,8 @@ const widthsOfProject: Record<BrowserProjectName, readonly number[]> = {
   desktop: [768, 1024, 1280, 1440, 1920, 2560],
 };
 
-// Text differs in length between the languages, so the narrowest phone and the width of the desktop references walk both, and the other widths walk the language of the references.
-const widthsInEveryLanguage = [360, 1440];
+// The widths used for visual review walk both languages, because their text differs in length.
+const widthsInEveryLanguage = [360, 1440, 1920];
 
 // The walk opens every page of the app in each language of its width, which takes several times as long as a test of one flow.
 const walkTimeoutMilliseconds = 180_000;
@@ -213,6 +214,39 @@ async function walkedReaders(
   };
 }
 
+async function inspectScreen(
+  page: Page,
+  screen: {
+    screen: number;
+    locale: Locale;
+    width: number;
+    address: string;
+    brokenUntilRebuilt: readonly LayoutRule[];
+  },
+  testInfo: TestInfo,
+): Promise<string[]> {
+  const problems: string[] = [];
+  for (const colorScheme of ["light", "dark"] as const) {
+    await page.emulateMedia({ colorScheme });
+    const found = await layoutProblems(page);
+    problems.push(
+      ...found
+        .filter(({ rule }) => !screen.brokenUntilRebuilt.includes(rule))
+        .map(
+          ({ text }) =>
+            `${screen.locale} ${colorScheme} ${screen.address}: ${text}`,
+        ),
+    );
+    if (widthsInEveryLanguage.includes(screen.width))
+      await screenshotFullHeight(page, {
+        path: testInfo.outputPath(
+          `layout-${String(screen.screen)}-${screen.locale}-${String(screen.width)}-${colorScheme}.png`,
+        ),
+      });
+  }
+  return problems;
+}
+
 for (const [project, widths] of Object.entries(widthsOfProject)) {
   for (const width of widths) {
     test(`keeps the layout of every page at ${String(width)} pixels`, async ({
@@ -236,16 +270,18 @@ for (const [project, widths] of Object.entries(widthsOfProject)) {
           await chooseLanguage(reader, locale);
           await reader.setViewportSize({ width, height: 900 });
         }
-        for (const { reader, path, brokenUntilRebuilt = [] } of Object.values(
-          routePages,
-        ).flat()) {
+        for (const [
+          screen,
+          { reader, path, brokenUntilRebuilt = [] },
+        ] of Object.values(routePages).flat().entries()) {
           const address = path(walked);
           await readers[reader].goto(address);
-          const found = await layoutProblems(readers[reader]);
           problems.push(
-            ...found
-              .filter(({ rule }) => !brokenUntilRebuilt.includes(rule))
-              .map(({ text }) => `${locale} ${address}: ${text}`),
+            ...(await inspectScreen(
+              readers[reader],
+              { screen, locale, width, address, brokenUntilRebuilt },
+              testInfo,
+            )),
           );
         }
       }

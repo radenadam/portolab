@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { PortfolioReader } from "~/features/trading/text-for-reader";
 import { formatPercent, formatSharpeRatio, formatVariance } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
@@ -53,17 +54,21 @@ function ratioRows(portfolio: PortfolioSummary): MeasureRow[] {
       concept: "sharpe",
       calculation: sharpeFormula,
       example: !sharpeRatio.ok ? (
-        <p>{riskMeasureFailureText(sharpeRatio.failure)}</p>
+        <p>
+          <NumberText>{riskMeasureFailureText(sharpeRatio.failure)}</NumberText>
+        </p>
       ) : undefined,
       value: sharpeRatio.ok
         ? formatSharpeRatio(sharpeRatio.value)
         : m.measures_no_value_label(),
       formula: (
         <>
-          {sharpeFormula}
+          <NumberText>{sharpeFormula}</NumberText>
           {!sharpeRatio.ok && (
             <span className={styles["formulaNote"]}>
-              {riskMeasureFailureText(sharpeRatio.failure)}
+              <NumberText>
+                {riskMeasureFailureText(sharpeRatio.failure)}
+              </NumberText>
             </span>
           )}
         </>
@@ -74,17 +79,23 @@ function ratioRows(portfolio: PortfolioSummary): MeasureRow[] {
       concept: "treynor",
       calculation: treynorFormula,
       example: !treynorRatio.ok ? (
-        <p>{riskMeasureFailureText(treynorRatio.failure)}</p>
+        <p>
+          <NumberText>
+            {riskMeasureFailureText(treynorRatio.failure)}
+          </NumberText>
+        </p>
       ) : undefined,
       value: treynorRatio.ok
         ? formatPercent(treynorRatio.value, "two")
         : m.measures_no_value_label(),
       formula: (
         <>
-          {treynorFormula}
+          <NumberText>{treynorFormula}</NumberText>
           {!treynorRatio.ok && (
             <span className={styles["formulaNote"]}>
-              {riskMeasureFailureText(treynorRatio.failure)}
+              <NumberText>
+                {riskMeasureFailureText(treynorRatio.failure)}
+              </NumberText>
             </span>
           )}
         </>

@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { useRouteLoaderData } from "react-router";
 import { formatNumber } from "~/formatting";
@@ -24,5 +25,9 @@ export function ConceptLesson({
       `The concept card's glossary term "${termId}" has no lesson.`,
     );
   }
-  return m.app_concept_lesson_notice({ session: formatNumber(session) });
+  return (
+    <NumberText>
+      {m.app_concept_lesson_notice({ session: formatNumber(session) })}
+    </NumberText>
+  );
 }

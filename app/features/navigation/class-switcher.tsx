@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { countedText } from "~/counted-text";
@@ -39,10 +40,12 @@ export function ClassSwitcher({
     <>
       <PopoverButton popover={switcherId} className={styles["button"]}>
         <span className={styles["current"]}>
-          <span className={styles["name"]}>{current.name}</span>
+          <span className={styles["name"]}>
+            <NumberText>{current.name}</NumberText>
+          </span>
           {current.term !== undefined && (
             <span className={styles["term"]}>
-              {termText(current.term, "alone")}
+              <NumberText>{termText(current.term, "alone")}</NumberText>
             </span>
           )}
         </span>
@@ -54,7 +57,7 @@ export function ClassSwitcher({
         placement="belowStart"
       >
         <p className={popoverStyles["heading"]}>
-          {classListTitles[readerRole]()}
+          <NumberText>{classListTitles[readerRole]()}</NumberText>
         </p>
         <ul className={styles["classes"]}>
           {workspace.classes.map((workspaceClass) => (
@@ -69,7 +72,7 @@ export function ClassSwitcher({
         </ul>
         <hr className={popoverStyles["separator"]} />
         <Link to={nextClass.path} className={popoverStyles["item"]}>
-          {nextClass.label()}
+          <NumberText>{nextClass.label()}</NumberText>
         </Link>
       </Popover>
     </>
@@ -92,9 +95,11 @@ function ClassLink({
       className={popoverStyles["item"]}
     >
       <span className={styles["classText"]}>
-        <span>{workspaceClass.name}</span>
+        <span>
+          <NumberText>{workspaceClass.name}</NumberText>
+        </span>
         <span className={styles["details"]}>
-          {classDetailsText(workspaceClass)}
+          <NumberText>{classDetailsText(workspaceClass)}</NumberText>
         </span>
       </span>
       {isCurrent && <Icon name="check" className={styles["check"]} />}

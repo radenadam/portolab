@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { data, Link } from "react-router";
 import { databaseContext } from "~/database/database.server";
@@ -98,7 +99,9 @@ export default function ClassPage({
     case "lecturer":
       return (
         <>
-          <h1>{loaderData.name}</h1>
+          <h1>
+            <NumberText>{loaderData.name}</NumberText>
+          </h1>
           <JoinDetails
             joinCode={loaderData.joinCode}
             joinAddresses={loaderData.joinAddresses}
@@ -110,7 +113,7 @@ export default function ClassPage({
             role={loaderData.role}
           />
           <Link to={calendarPath(loaderData.id)} className={styles["link"]}>
-            {m.classes_calendar_link()}
+            <NumberText>{m.classes_calendar_link()}</NumberText>
           </Link>
           <h2>{m.classes_students_title()}</h2>
           <Link
@@ -125,21 +128,31 @@ export default function ClassPage({
     case "student":
       return (
         <>
-          <h1>{loaderData.name}</h1>
-          <p>{m.classes_taught_by_notice({ name: loaderData.lecturerName })}</p>
+          <h1>
+            <NumberText>{loaderData.name}</NumberText>
+          </h1>
+          <p>
+            <NumberText>
+              {m.classes_taught_by_notice({ name: loaderData.lecturerName })}
+            </NumberText>
+          </p>
           <CourseCalendarNotice
             calendar={loaderData.calendar}
             role={loaderData.role}
           />
           <p>
-            {m.classes_starting_cash_notice({
-              cash: formatRupiah(loaderData.startingCash),
-            })}
+            <NumberText>
+              {m.classes_starting_cash_notice({
+                cash: formatRupiah(loaderData.startingCash),
+              })}
+            </NumberText>
           </p>
           <p>
-            {m.classes_joined_notice({
-              time: formatMarketTime(loaderData.joinedAt),
-            })}
+            <NumberText>
+              {m.classes_joined_notice({
+                time: formatMarketTime(loaderData.joinedAt),
+              })}
+            </NumberText>
           </p>
           <Link to={portfolioPath(loaderData.id)} className={styles["link"]}>
             {m.classes_portfolio_link()}
@@ -169,18 +182,24 @@ function Students({
     <ul className={styles["list"]}>
       {students.map((student) => (
         <li key={student.id} className={styles["item"]}>
-          <strong className={styles["name"]}>{student.name}</strong>
+          <strong className={styles["name"]}>
+            <NumberText>{student.name}</NumberText>
+          </strong>
           <p className={styles["details"]}>
-            {m.classes_student_notice({
-              username: student.username,
-              time: formatMarketTime(student.joinedAt),
-            })}
+            <NumberText>
+              {m.classes_student_notice({
+                username: student.username,
+                time: formatMarketTime(student.joinedAt),
+              })}
+            </NumberText>
           </p>
           <Link
             to={`${classPath(classId)}/students/${String(student.id)}/password`}
             className={styles["link"]}
           >
-            {m.classes_reset_password_link({ name: student.name })}
+            <NumberText>
+              {m.classes_reset_password_link({ name: student.name })}
+            </NumberText>
           </Link>
         </li>
       ))}

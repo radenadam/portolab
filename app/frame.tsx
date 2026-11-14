@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { AppIcon } from "./app-icon";
@@ -79,7 +80,7 @@ export function Frame({
                 label={m.app_profile_title()}
                 placement="aboveStart"
               >
-                {profile.menu}
+                <NumberText>{profile.menu}</NumberText>
               </Popover>
             </div>
           )}
@@ -94,7 +95,7 @@ export function Frame({
                 </Link>
               )}
               <div className={styles["topBarEnd"]}>
-                {tools}
+                <NumberText>{tools}</NumberText>
                 {profile !== undefined && (
                   <span className={styles["nameChip"]}>
                     <PopoverButton
@@ -102,11 +103,13 @@ export function Frame({
                       label={profileLabel}
                       className={chipStyles["chip"]}
                     >
-                      <span className={chipStyles["text"]}>{profile.name}</span>
+                      <span className={chipStyles["text"]}>
+                        <NumberText>{profile.name}</NumberText>
+                      </span>
                     </PopoverButton>
                   </span>
                 )}
-                {badge}
+                <NumberText>{badge}</NumberText>
                 {profile !== undefined && (
                   <>
                     <PopoverButton
@@ -121,7 +124,7 @@ export function Frame({
                       label={m.app_profile_title()}
                       placement="belowEnd"
                     >
-                      {profile.menu}
+                      <NumberText>{profile.menu}</NumberText>
                     </Popover>
                   </>
                 )}
@@ -184,7 +187,7 @@ function ItemList({
             className={listStyles.item}
           >
             <Icon name={item.icon} className={styles["itemIcon"]} />
-            {item.label}
+            <NumberText>{item.label}</NumberText>
           </Link>
         </li>
       ))}
@@ -216,16 +219,20 @@ export function PageHeader({
         {path.map((part) => (
           <span key={part.path} className={styles["pathPart"]}>
             <Link to={part.path} className={styles["pathLink"]}>
-              {part.label}
+              <NumberText>{part.label}</NumberText>
             </Link>
             <span aria-hidden="true">/</span>
           </span>
         ))}
-        <h1 className={styles["title"]}>{title}</h1>
+        <h1 className={styles["title"]}>
+          <NumberText>{title}</NumberText>
+        </h1>
       </div>
       {pricesAt !== undefined && (
         <p className={styles["time"]}>
-          {m.app_prices_time_label({ time: formatMarketTime(pricesAt) })}
+          <NumberText>
+            {m.app_prices_time_label({ time: formatMarketTime(pricesAt) })}
+          </NumberText>
         </p>
       )}
     </div>
@@ -253,15 +260,17 @@ export function PageColumns({
         narrowPlacement === "hidden" && styles["asideOnWide"],
       )}
     >
-      {aside}
+      <NumberText>{aside}</NumberText>
     </div>
   );
   return (
     <div className={styles["columns"]}>
-      {header}
-      {narrowPlacement === "first" && asideColumn}
-      <div className={styles["content"]}>{main}</div>
-      {narrowPlacement === "hidden" && asideColumn}
+      <NumberText>{header}</NumberText>
+      <NumberText>{narrowPlacement === "first" && asideColumn}</NumberText>
+      <div className={styles["content"]}>
+        <NumberText>{main}</NumberText>
+      </div>
+      <NumberText>{narrowPlacement === "hidden" && asideColumn}</NumberText>
     </div>
   );
 }
@@ -276,8 +285,12 @@ export function PhoneAndDesktop({
 }): ReactNode {
   return (
     <>
-      <div className={styles["onPhone"]}>{phone}</div>
-      <div className={styles["onDesktop"]}>{desktop}</div>
+      <div className={styles["onPhone"]}>
+        <NumberText>{phone}</NumberText>
+      </div>
+      <div className={styles["onDesktop"]}>
+        <NumberText>{desktop}</NumberText>
+      </div>
     </>
   );
 }

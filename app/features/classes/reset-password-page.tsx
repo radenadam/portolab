@@ -1,5 +1,7 @@
+import { ClassBackLink } from "./class-back-link";
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
-import { Form, Link } from "react-router";
+import { Form } from "react-router";
 import { resetForgottenPassword } from "~/features/accounts/reset-forgotten-password.server";
 import { FormSuccess, SubmitButton } from "~/form";
 import formStyles from "~/form.module.css";
@@ -8,7 +10,6 @@ import { m } from "~/paraglide/messages.js";
 import type { Route } from "./+types/reset-password-page";
 import type { ClassStudent } from "./class-store.server";
 import type { ClassId } from "./classes.schema";
-import { classPath } from "./class-path";
 import styles from "./classes.module.css";
 import { requireTaughtStudent } from "./taught-class.server";
 
@@ -41,10 +42,12 @@ export default function ResetPasswordPage({
       {actionData === undefined ? (
         <>
           <p>
-            {m.classes_reset_body({
-              name: student.name,
-              username: student.username,
-            })}
+            <NumberText>
+              {m.classes_reset_body({
+                name: student.name,
+                username: student.username,
+              })}
+            </NumberText>
           </p>
           <Form method="post" className={formStyles["form"]}>
             <SubmitButton label={m.classes_reset_label()} />
@@ -55,12 +58,12 @@ export default function ResetPasswordPage({
           <FormSuccess
             text={m.classes_temporary_password_notice({ name: student.name })}
           />
-          <p className={styles["code"]}>{actionData.temporaryPassword}</p>
+          <p className={styles["code"]}>
+            <NumberText>{actionData.temporaryPassword}</NumberText>
+          </p>
         </>
       )}
-      <Link to={classPath(classId)} className={styles["link"]}>
-        {m.classes_back_link({ class: className })}
-      </Link>
+      <ClassBackLink classId={classId} className={className} />
     </>
   );
 }

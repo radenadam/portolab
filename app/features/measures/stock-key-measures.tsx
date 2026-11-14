@@ -1,8 +1,10 @@
+import { stockComparisonText } from "./stock-comparison-text";
+import { NumberText } from "~/number-text";
 import type { ClassId } from "~/features/classes/classes.schema";
 import type { ReactNode } from "react";
 import { ConceptCard } from "~/concept-card";
 import { ConceptLesson } from "~/features/learning/concept-lesson";
-import { formatCorrelation, formatList, formatPercent } from "~/formatting";
+import { formatCorrelation, formatPercent } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import type { Result } from "~/result";
 import styles from "~/stat-grid.module.css";
@@ -14,12 +16,11 @@ import {
 import { MeasureLabel } from "./measure-list";
 import type { StoredMeasureFailure } from "./measure-stored.server";
 import type { StockSummary } from "./measure-summaries";
-import { monthSpanOf, monthSpanInputs } from "./month-span";
+import { monthSpanInputs } from "./month-span";
 import type { StockCorrelation } from "./read-stock-correlation.server";
 import { MeasureTable } from "./measure-table";
 import { ReturnTables } from "./return-tables";
 import { stockConceptRows } from "./stock-concept-rows";
-import { marketIndex } from "~/features/market-data/tracked-instruments";
 import { explainPortfolioMeasures } from "./explain-portfolio-measures";
 
 export function StockKeyMeasures({
@@ -39,40 +40,49 @@ export function StockKeyMeasures({
   const correlationExample =
     correlation === undefined ? undefined : correlation.ok ? (
       <>
-        <p>{formatCorrelation(correlation.value.correlation.value)}</p>
         <p>
-          {m.measures_months_notice(monthSpanInputs(correlation.value.months))}
+          <NumberText>
+            {formatCorrelation(correlation.value.correlation.value)}
+          </NumberText>
+        </p>
+        <p>
+          <NumberText>
+            {m.measures_months_notice(
+              monthSpanInputs(correlation.value.months),
+            )}
+          </NumberText>
         </p>
       </>
     ) : (
-      <p>{correlationFailure(correlation.failure, classId)}</p>
+      <p>
+        <NumberText>
+          {correlationFailure(correlation.failure, classId)}
+        </NumberText>
+      </p>
     );
   return (
     <>
-      <p className={styles["note"]}>
-        {measures.ok
-          ? m.measures_stock_statistics_notice({
-              ...monthSpanInputs(monthSpanOf(measures.value.returns)),
-              measures: formatList(
-                [
-                  m.measures_beta_label({ index: marketIndex.code }),
-                  m.measures_standard_deviation_label(),
-                  m.measures_expected_return_label(),
-                ],
-                "conjunction",
-              ),
-            })
-          : measureFailureText(measures.failure, { kind: "stock", code })}
-      </p>
+      {!measures.ok && (
+        <p className={styles["note"]}>
+          <NumberText>
+            {measureFailureText(measures.failure, { kind: "stock", code })}
+          </NumberText>
+        </p>
+      )}
       <div className={styles["grid"]}>
         <dl className={styles["ranges"]}>{children}</dl>
         {rows !== undefined &&
           [rows.beta, rows.risk, rows.expectedReturn].map((row) => (
             <dl key={row.label} className={styles["stat"]}>
               <dt>
-                <MeasureLabel row={row} />
+                <MeasureLabel row={{ ...row, label: row.statisticLabel }} />
               </dt>
-              <dd>{row.value}</dd>
+              <dd>
+                <NumberText>{row.value}</NumberText>
+              </dd>
+              <dd className={styles["note"]}>
+                <NumberText>{row.comparison}</NumberText>
+              </dd>
             </dl>
           ))}
         {correlation !== undefined && (
@@ -86,6 +96,7 @@ export function StockKeyMeasures({
                 calculation={
                   correlation.ok ? (
                     <>
+                      <p>{m.measures_correlation_prices_notice()}</p>
                       <p>
                         <CorrelationFormula
                           first="i"
@@ -140,28 +151,30 @@ export function StockKeyMeasures({
             </dt>
             <dd>
               {correlation.ok ? (
-                formatCorrelation(correlation.value.correlation.value)
+                <NumberText>
+                  {formatCorrelation(correlation.value.correlation.value)}
+                </NumberText>
               ) : (
                 <span className={styles["note"]}>
-                  {correlationFailure(correlation.failure, classId)}
+                  <NumberText>
+                    {correlationFailure(correlation.failure, classId)}
+                  </NumberText>
                 </span>
               )}
             </dd>
             {correlation.ok && (
               <dd className={styles["note"]}>
-                {m.measures_month_span_part(
-                  monthSpanInputs(correlation.value.months),
-                )}
+                <NumberText>
+                  {stockComparisonText({
+                    kind: "correlation",
+                    value: correlation.value.correlation.value,
+                  })}
+                </NumberText>
               </dd>
             )}
           </dl>
         )}
       </div>
-      {correlation?.ok === true && (
-        <p className={styles["note"]}>
-          {m.measures_correlation_prices_notice()}
-        </p>
-      )}
     </>
   );
 }

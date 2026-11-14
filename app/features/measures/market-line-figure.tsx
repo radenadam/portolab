@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { ChangeText } from "~/change-text";
 import { RiskMap } from "~/charts/risk-map";
@@ -10,7 +11,8 @@ import { beta } from "~/units/beta";
 import type { Beta } from "~/units/beta";
 import { monthlyReturn } from "~/units/monthly-return";
 import type { MonthlyReturn } from "~/units/monthly-return";
-import { riskFreeSymbol, SecurityMarketLineFormula } from "./formulas";
+import { riskFreeSymbol } from "./formulas";
+import { SecurityMarketLineFormula } from "./capm-formulas";
 import { MeasureTable } from "./measure-table";
 import type { MeasureTableRow } from "./measure-table";
 import styles from "./measures.module.css";
@@ -116,7 +118,9 @@ export function MarketLineFigure({
   }
   return (
     <>
-      <p>{m.measures_line_notice({ index })}</p>
+      <p>
+        <NumberText>{m.measures_line_notice({ index })}</NumberText>
+      </p>
       <RiskMapLegend
         items={[
           ...(portfolio === undefined
@@ -234,8 +238,13 @@ function PointName({
 }): ReactNode {
   return (
     <>
-      {name} ({symbol.letter}
-      {symbol.subscript !== undefined && <sub>{symbol.subscript}</sub>})
+      <NumberText>{name}</NumberText> (<NumberText>{symbol.letter}</NumberText>
+      {symbol.subscript !== undefined && (
+        <sub>
+          <NumberText>{symbol.subscript}</NumberText>
+        </sub>
+      )}
+      )
     </>
   );
 }

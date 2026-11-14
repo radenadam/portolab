@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import { useId } from "react";
 import type { ReactNode } from "react";
 import { m } from "./paraglide/messages.js";
@@ -30,8 +31,12 @@ export function ConceptCard({
       </PopoverButton>
       <Popover id={id} label={title} placement="belowEnd">
         <div className={styles["card"]}>
-          <p className={styles["title"]}>{title}</p>
-          <p>{meaning}</p>
+          <p className={styles["title"]}>
+            <NumberText>{title}</NumberText>
+          </p>
+          <p>
+            <NumberText>{meaning}</NumberText>
+          </p>
           <div className={styles["example"]}>
             <p className={styles["label"]}>{m.app_concept_example_label()}</p>
             {example}

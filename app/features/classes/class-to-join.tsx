@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { Form, Link, useLocation } from "react-router";
 import type { AccountFormFailures } from "~/features/accounts/account-fields";
@@ -29,12 +30,18 @@ export function ClassToJoin({
 }): ReactNode {
   return (
     <>
-      <h1>{m.classes_join_class_title({ class: classToJoin.name })}</h1>
+      <h1>
+        <NumberText>
+          {m.classes_join_class_title({ class: classToJoin.name })}
+        </NumberText>
+      </h1>
       <p>
-        {m.classes_join_class_body({
-          lecturer: classToJoin.lecturerName,
-          cash: formatRupiah(classToJoin.startingCash),
-        })}
+        <NumberText>
+          {m.classes_join_class_body({
+            lecturer: classToJoin.lecturerName,
+            cash: formatRupiah(classToJoin.startingCash),
+          })}
+        </NumberText>
       </p>
       {isSignedIn ? (
         <Form method="post" className={formStyles["form"]}>

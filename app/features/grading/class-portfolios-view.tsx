@@ -1,3 +1,5 @@
+import { QuoteNotice } from "~/features/market-data/quote-notice";
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import type { ClassId } from "~/features/classes/classes.schema";
 import type { PriceSourceDescription } from "~/features/market-data/price-source.server";
@@ -26,14 +28,14 @@ export function ClassPortfoliosView({
   return (
     <>
       <p>
-        {m.grading_valuation_notice({
-          source: source.name,
-          minutes: formatNumber(source.delayMinutes),
-        })}
+        <NumberText>
+          {m.grading_valuation_notice({
+            source: source.name,
+            minutes: formatNumber(source.delayMinutes),
+          })}
+        </NumberText>
       </p>
-      {quoteFailure !== undefined && (
-        <p className={styles["details"]}>{quoteFailure}</p>
-      )}
+      <QuoteNotice text={quoteFailure} className={styles["details"]} />
       <MethodNotice />
       {/* A plain link makes the browser request the address itself, which the server answers with the file, where a link of React Router would ask the router for the data of a page. */}
       <a href={portfoliosWorkbookPath(classId)} className={styles["link"]}>

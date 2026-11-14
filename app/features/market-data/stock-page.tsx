@@ -1,3 +1,5 @@
+import { QuoteNotice } from "~/features/market-data/quote-notice";
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { data, Link } from "react-router";
 import { ChangeText } from "~/change-text";
@@ -6,6 +8,7 @@ import { requireUser } from "~/features/accounts/current-session.server";
 import { requireReaderClass } from "~/features/classes/require-reader-class.server";
 import { readStockMeasures } from "~/features/measures/read-measures.server";
 import { readStockCorrelation } from "~/features/measures/read-stock-correlation.server";
+import { monthSpanInputs, monthSpanOf } from "~/features/measures/month-span";
 import { StockKeyMeasures } from "~/features/measures/stock-key-measures";
 import { StockMeasuresView } from "~/features/measures/stock-measures-view";
 import { MethodNotice } from "~/features/measures/method-notice";
@@ -35,6 +38,7 @@ import {
   quoteFailureText,
 } from "./quote-failure-text";
 import { quoteChange } from "./quote-change";
+import { StockMetadata } from "./stock-metadata";
 import { StockName } from "./stock-name";
 import { stockPath } from "./stock-path";
 import styles from "./stock-page.module.css";
@@ -42,7 +46,7 @@ import { StockHistoryChart } from "./stock-history-chart";
 import { StockRange } from "./stock-range";
 import { stockPriceRange } from "./stock-price-range";
 import { parsePriceChartRange, priceChartStart } from "./price-chart-range";
-import { trackedStockCodes } from "./tracked-instruments";
+import { trackedStockCodes, universeOn } from "./tracked-instruments";
 
 export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
   return [
@@ -76,6 +80,7 @@ export function loader({ context, params, request, url }: Route.LoaderArgs) {
   const chartRange = selectedRange.ok ? selectedRange.value : "1y";
   const chartStart = priceChartStart(wibDateOf(now), chartRange);
   const rules = idxRulesOn(wibDateOf(now));
+  const universe = universeOn(wibDateOf(now));
   const member =
     reader.role === "student"
       ? readStudentPortfolio(context, {
@@ -113,6 +118,8 @@ export function loader({ context, params, request, url }: Route.LoaderArgs) {
       report === undefined
         ? undefined
         : readStockCorrelation(database, code, report.valuation),
+    totalValue: report?.valuation.total?.value,
+    universe,
     holding: report?.valuation.holdings.find(
       (holding) => holding.code === code,
     ),
@@ -140,16 +147,20 @@ export default function StockPage({
           >
             ‹
           </Link>
-          <StockName code={code} withSector heading />
+          <StockName code={code} heading />
         </div>
-        {holding !== undefined && (
-          <p className={styles["muted"]}>{m.market_data_held_notice()}</p>
-        )}
+        <p className={styles["muted"]}>
+          <StockMetadata
+            code={code}
+            held={holding !== undefined}
+            isLq45={stock.universe.ok && stock.universe.value.includes(code)}
+          />
+        </p>
         {quote?.kind === "stock" && (
           <>
             <div className={styles["quote"]}>
               <strong className={styles["price"]}>
-                {formatRupiah(quote.price)}
+                <NumberText>{formatRupiah(quote.price)}</NumberText>
               </strong>
               <span className={styles["change"]}>
                 <ChangeText
@@ -167,16 +178,16 @@ export default function StockPage({
               </span>
             </div>
             <p className={styles["muted"]}>
-              {m.market_data_stock_quote_notice({
-                time: formatMarketTime(quote.quotedAt),
-                previous: formatRupiah(quote.previousClose),
-              })}
+              <NumberText>
+                {m.market_data_stock_quote_notice({
+                  time: formatMarketTime(quote.quotedAt),
+                  previous: formatRupiah(quote.previousClose),
+                })}
+              </NumberText>
             </p>
           </>
         )}
-        {stock.quoteNotice !== undefined && (
-          <p className={styles["muted"]}>{stock.quoteNotice}</p>
-        )}
+        <QuoteNotice text={stock.quoteNotice} className={styles["muted"]} />
       </header>
       <section
         className={styles["panel"]}
@@ -191,11 +202,29 @@ export default function StockPage({
       {holding !== undefined && (
         <section className={styles["panel"]} aria-labelledby="position-title">
           <h2 id="position-title">{m.market_data_position_title()}</h2>
-          <StockPosition holding={holding} lotShares={stock.lotShares} />
+          <StockPosition
+            holding={holding}
+            lotShares={stock.lotShares}
+            totalValue={stock.totalValue}
+          />
         </section>
       )}
       <section className={styles["panel"]} aria-labelledby="statistics-title">
-        <h2 id="statistics-title">{m.market_data_statistics_title()}</h2>
+        <div className={styles["statisticsHeader"]}>
+          <h2 id="statistics-title">{m.market_data_statistics_title()}</h2>
+          {stock.measures.ok && (
+            <span className={styles["muted"]}>
+              <NumberText>
+                {m.measures_stock_statistics_notice(
+                  monthSpanInputs(
+                    monthSpanOf(stock.measures.value.returns),
+                    "short",
+                  ),
+                )}
+              </NumberText>
+            </span>
+          )}
+        </div>
         <StockKeyMeasures
           classId={classId}
           code={code}
@@ -204,9 +233,7 @@ export default function StockPage({
         >
           <StockRange range={stock.range} />
         </StockKeyMeasures>
-        {stock.portfolioNotice !== undefined && (
-          <p className={styles["muted"]}>{stock.portfolioNotice}</p>
-        )}
+        <QuoteNotice text={stock.portfolioNotice} className={styles["muted"]} />
         <details className={styles["calculations"]}>
           <summary>{m.market_data_all_calculations_label()}</summary>
           <MethodNotice />

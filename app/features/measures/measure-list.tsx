@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import { Fragment } from "react";
 import type { ReactNode } from "react";
 import { ChangeText } from "~/change-text";
@@ -10,7 +11,7 @@ import { m } from "~/paraglide/messages.js";
 import type { MonthlyReturn } from "~/units/monthly-return";
 import type { ReturnMeasure } from "./aligned-returns";
 import type { RequiredReturnMeasure, SecurityMarketLineMeasure } from "./capm";
-import { MarketLineFormula, RequiredReturnFormula } from "./formulas";
+import { MarketLineFormula, RequiredReturnFormula } from "./capm-formulas";
 import type { Subject } from "./formulas";
 import { measureConcept } from "./measure-concept";
 import type { MeasureConcept } from "./measure-concept";
@@ -41,7 +42,9 @@ export function MeasureList({
           <dt>
             <MeasureLabel row={row} />
           </dt>
-          <dd>{row.value}</dd>
+          <dd>
+            <NumberText>{row.value}</NumberText>
+          </dd>
           <dd className={styles["formula"]}>{row.formula}</dd>
         </Fragment>
       ))}
@@ -55,7 +58,7 @@ export function MeasureLabel({ row }: { row: MeasureRow }): ReactNode {
     row.concept === undefined ? undefined : measureConcept(row.concept);
   return (
     <>
-      {row.label}
+      <NumberText>{row.label}</NumberText>
       {concept !== undefined && (
         <ConceptCard
           title={row.label}
@@ -65,7 +68,9 @@ export function MeasureLabel({ row }: { row: MeasureRow }): ReactNode {
             row.example ?? (
               <>
                 <p>
-                  <strong>{row.value}</strong>
+                  <strong>
+                    <NumberText>{row.value}</NumberText>
+                  </strong>
                 </p>
                 {concept.monthly && (
                   <p>{m.measures_monthly_concept_notice()}</p>
@@ -75,7 +80,9 @@ export function MeasureLabel({ row }: { row: MeasureRow }): ReactNode {
           }
           calculation={
             <>
-              <p>{row.calculation ?? row.formula}</p>
+              <p>
+                <NumberText>{row.calculation ?? row.formula}</NumberText>
+              </p>
               {row.inputs}
             </>
           }
@@ -130,7 +137,13 @@ export function MarketLinePosition({
 }: {
   distance: MonthlyReturn;
 }): ReactNode {
-  return <p>{positions[formatSignedPercent(distance).direction]()}</p>;
+  return (
+    <p>
+      <NumberText>
+        {positions[formatSignedPercent(distance).direction]()}
+      </NumberText>
+    </p>
+  );
 }
 
 /** The number of monthly returns that measures use and the months of the first and the last of them. */
@@ -140,6 +153,10 @@ export function MonthsNotice({
   returns: readonly ReturnMeasure[];
 }): ReactNode {
   return (
-    <p>{m.measures_months_notice(monthSpanInputs(monthSpanOf(returns)))}</p>
+    <p>
+      <NumberText>
+        {m.measures_months_notice(monthSpanInputs(monthSpanOf(returns)))}
+      </NumberText>
+    </p>
   );
 }

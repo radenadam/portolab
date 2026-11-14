@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import type { Role } from "~/features/accounts/accounts.schema";
@@ -22,16 +23,22 @@ export function ClassList({
   classes: readonly ListedClass[];
 }): ReactNode {
   if (classes.length === 0) {
-    return <p>{noClassText(role)}</p>;
+    return (
+      <p>
+        <NumberText>{noClassText(role)}</NumberText>
+      </p>
+    );
   }
   return (
     <ul className={styles["list"]}>
       {classes.map((listed) => (
         <li key={listed.id} className={styles["item"]}>
           <Link to={classPath(listed.id)} className={styles["link"]}>
-            {listed.name}
+            <NumberText>{listed.name}</NumberText>
           </Link>
-          <p className={styles["details"]}>{listed.details}</p>
+          <p className={styles["details"]}>
+            <NumberText>{listed.details}</NumberText>
+          </p>
         </li>
       ))}
     </ul>

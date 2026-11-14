@@ -9,6 +9,7 @@ import {
   formatMarketTime,
   formatMarketTimeParts,
   formatMinutes,
+  formatMonth,
   formatPercent,
   formatSharpeRatio,
   formatSignedPercent,
@@ -34,6 +35,18 @@ import { splitAdjustedRupiah } from "./units/split-adjusted-rupiah";
 
 // 09:14:56 UTC on 16 October 2026 is 16:14 WIB.
 const quotedAt = new Date("2026-10-16T09:14:56.000Z");
+
+const monthNames: Record<Locale, readonly [string, string]> = {
+  id: ["September 2026", "Sep 2026"],
+  en: ["September 2026", "Sep 2026"],
+};
+for (const locale of locales) {
+  test(`formats the full month for help and its short name for a statistics header in ${locale}`, () => {
+    switchLocaleForTest(locale);
+    expect(formatMonth("2026-09-30")).toBe(monthNames[locale][0]);
+    expect(formatMonth("2026-09-30", "short")).toBe(monthNames[locale][1]);
+  });
+}
 
 const sizes: Record<Locale, string> = {
   id: "128.040 byte",

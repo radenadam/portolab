@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { isRouteErrorResponse, Link } from "react-router";
 import styles from "./error-page.module.css";
@@ -19,8 +20,12 @@ export function ErrorPage({
 }: ErrorPageProps): ReactNode {
   return (
     <>
-      <h1>{title}</h1>
-      <p>{body}</p>
+      <h1>
+        <NumberText>{title}</NumberText>
+      </h1>
+      <p>
+        <NumberText>{body}</NumberText>
+      </p>
       {nextStep ?? <NextStepLink to="/" label={m.app_back_home_link()} />}
     </>
   );
@@ -36,7 +41,7 @@ export function NextStepLink({
 }): ReactNode {
   return (
     <Link to={to} className={styles["nextStepLink"]}>
-      {label}
+      <NumberText>{label}</NumberText>
     </Link>
   );
 }

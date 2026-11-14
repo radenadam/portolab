@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import type { ClassId } from "~/features/classes/classes.schema";
 import { formatPercent } from "~/formatting";
@@ -34,7 +35,9 @@ export function PortfolioKeyMeasures({
         {measures.ok ? (
           <KeyMeasures portfolio={measures.value} classId={classId} />
         ) : (
-          <p>{measures.failure}</p>
+          <p>
+            <NumberText>{measures.failure}</NumberText>
+          </p>
         )}
       </section>
       <section>
@@ -86,7 +89,9 @@ function KeyMeasure({ row }: { row: MeasureRow }): ReactNode {
       <dt>
         <MeasureLabel row={row} />
       </dt>
-      <dd>{row.value}</dd>
+      <dd>
+        <NumberText>{row.value}</NumberText>
+      </dd>
     </div>
   );
 }

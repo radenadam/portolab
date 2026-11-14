@@ -1,4 +1,5 @@
 import type { Page } from "@playwright/test";
+import { numberPattern } from "../app/number-pattern.ts";
 
 /** The token in app/theme.css that holds the largest width of the content of a screen, which decision 0028 sets. */
 export const contentWidthToken = "--width-content";
@@ -12,7 +13,8 @@ export type LayoutRule =
   | "parts"
   | "rows"
   | "tables"
-  | "cells";
+  | "cells"
+  | "numbers";
 
 /** A rule that the screen of a page breaks, with the sentence that says where and by how much. */
 export interface LayoutProblem {
@@ -37,7 +39,7 @@ export async function sidewaysProblems(page: Page): Promise<LayoutProblem[]> {
 }
 
 /**
- * Returns each rule of the layout of decision 0028 that the screen of a page breaks, after its fonts load. The rules other than `width` skip each element that is itself hidden, or placed outside the flow with `position: absolute` or `fixed`. A part inside an element outside the flow that a rule finds by itself, such as a table or an element marked with `data-layout`, is still measured.
+ * Returns each rule of the layout of decision 0028 that the screen of a page breaks, after its fonts load. The rules other than `width` and `numbers` skip each element that is itself hidden, or placed outside the flow with `position: absolute` or `fixed`. A part inside an element outside the flow that a rule finds by itself, such as a table or an element marked with `data-layout`, is still measured.
  * - `width`: the page never scrolls sideways.
  * - `content`: an element marked `data-layout="content"` is never wider than the token of the width of content, and it stands in the middle of the content box of its parent.
  * - `reading`: an element marked `data-layout="reading"` stands in the middle of the content box of its parent.
@@ -46,6 +48,7 @@ export async function sidewaysProblems(page: Page): Promise<LayoutProblem[]> {
  * - `rows`: the children of `data-layout="rows"` are rows that share one column template. In each row the check follows the items of every grid and of every flex container that does not wrap, down to the fifth level. An item without text, such as a bar, starts and ends at the same place in every row, within 1 pixel, and an item with text starts or ends at the same place, so text can align left or right.
  * - `tables`: tables with the same heads of their columns put each column at the same place, within 1 pixel. Tables that stand one above the other compare their columns on the screen, and tables side by side compare them from their own left edge.
  * - `cells`: no cell of a table holds more than its column shows.
+ * - `numbers`: a number keeps its digits, unit, sign, and arrow on one line, including text split between inline elements.
  */
 export async function layoutProblems(page: Page): Promise<LayoutProblem[]> {
   // Until the fonts load, the browser draws text in a fallback font, whose widths differ.
@@ -54,12 +57,21 @@ export async function layoutProblems(page: Page): Promise<LayoutProblem[]> {
   });
   return [
     ...(await sidewaysProblems(page)),
-    ...(await page.evaluate(inspectLayout, contentWidthToken)),
+    ...(await page.evaluate(inspectLayout, {
+      widthToken: contentWidthToken,
+      numberSource: numberPattern.source,
+    })),
   ];
 }
 
 // Playwright sends this function to the browser as its source, so it holds every helper that it calls.
-function inspectLayout(widthToken: string): LayoutProblem[] {
+function inspectLayout({
+  widthToken,
+  numberSource,
+}: {
+  widthToken: string;
+  numberSource: string;
+}): LayoutProblem[] {
   const problems: LayoutProblem[] = [];
 
   function nameOf(element: Element): string {
@@ -432,6 +444,86 @@ function inspectLayout(widthToken: string): LayoutProblem[] {
     }
   }
 
+  function numberGroupOf(node: Text): Element | undefined {
+    let parent = node.parentElement;
+    if (parent?.closest("svg, script, style, select, textarea") !== null)
+      return undefined;
+    if (!parent.checkVisibility({ checkVisibilityCSS: true })) return undefined;
+    const range = document.createRange();
+    range.selectNodeContents(node);
+    if (range.getBoundingClientRect().height === 0) return undefined;
+    while (
+      parent.parentElement !== null &&
+      ["inline", "contents"].includes(getComputedStyle(parent).display)
+    )
+      parent = parent.parentElement;
+    return parent;
+  }
+
+  function numberTextGroups(): Map<Element, Text[]> {
+    const groups = new Map<Element, Text[]>();
+    const walker = document.createTreeWalker(
+      document.body,
+      NodeFilter.SHOW_TEXT,
+    );
+    while (walker.nextNode()) {
+      const node = walker.currentNode;
+      if (!(node instanceof Text)) continue;
+      const parent = numberGroupOf(node);
+      if (parent === undefined) continue;
+      const nodes = groups.get(parent) ?? [];
+      nodes.push(node);
+      groups.set(parent, nodes);
+    }
+    return groups;
+  }
+
+  function characterBoxes(node: Text, start: number, end: number): DOMRect[] {
+    const boxes: DOMRect[] = [];
+    for (
+      let index = Math.max(0, start);
+      index < Math.min(node.length, end);
+      index += 1
+    ) {
+      if (/\s/u.test(node.data[index] ?? "")) continue;
+      const range = document.createRange();
+      range.setStart(node, index);
+      range.setEnd(node, index + 1);
+      boxes.push(range.getBoundingClientRect());
+    }
+    return boxes;
+  }
+
+  function numberBreaks(
+    nodes: readonly Text[],
+    start: number,
+    end: number,
+  ): boolean {
+    const boxes: DOMRect[] = [];
+    let offset = 0;
+    for (const node of nodes) {
+      boxes.push(...characterBoxes(node, start - offset, end - offset));
+      offset += node.length;
+    }
+    return (
+      Math.min(...boxes.map((box) => box.bottom)) <=
+      Math.max(...boxes.map((box) => box.top))
+    );
+  }
+
+  function checkNumbers(): void {
+    for (const [element, nodes] of numberTextGroups()) {
+      const text = nodes.map((node) => node.data).join("");
+      for (const match of text.matchAll(new RegExp(numberSource, "gu"))) {
+        if (numberBreaks(nodes, match.index, match.index + match[0].length))
+          problems.push({
+            rule: "numbers",
+            text: `The number "${match[0]}" in ${nameOf(element)} breaks across lines.`,
+          });
+      }
+    }
+  }
+
   checkContents();
   checkReading();
   checkColumns();
@@ -439,5 +531,6 @@ function inspectLayout(widthToken: string): LayoutProblem[] {
   checkRows();
   checkTables();
   checkCells();
+  checkNumbers();
   return problems;
 }

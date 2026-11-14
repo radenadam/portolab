@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import type { UserId } from "~/features/accounts/accounts.schema";
@@ -69,15 +70,19 @@ export function TaughtStudentHeading({
   const other = otherPages[page](student);
   return (
     <>
-      <h1>{titles[page](student)}</h1>
+      <h1>
+        <NumberText>{titles[page](student)}</NumberText>
+      </h1>
       <Link
         to={classPortfoliosPath(student.classId)}
         className={styles["link"]}
       >
-        {m.grading_all_portfolios_link({ class: student.className })}
+        <NumberText>
+          {m.grading_all_portfolios_link({ class: student.className })}
+        </NumberText>
       </Link>
       <Link to={other.path} className={styles["link"]}>
-        {other.label}
+        <NumberText>{other.label}</NumberText>
       </Link>
     </>
   );

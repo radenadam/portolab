@@ -45,9 +45,7 @@ export function StockName({
         )}
         <span className={styles["detail"]}>{company.name}</span>
         {withSector && (
-          <span className={styles["detail"]}>
-            {sectorNames[company.sector]()}
-          </span>
+          <span className={styles["detail"]}>{sectorNameOf(code)}</span>
         )}
       </div>
     </div>
@@ -61,4 +59,8 @@ function CompanyTile({ code }: { code: string }): ReactNode {
       {code.slice(0, 2)}
     </span>
   );
+}
+
+export function sectorNameOf(code: string): string {
+  return sectorNames[companyOf(code).sector]();
 }

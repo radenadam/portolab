@@ -545,3 +545,60 @@ test("rejects a cell that holds more than its column shows", async ({
     },
   ]);
 });
+
+for (const [name, text, visible] of [
+  ["digits", "498.000.000.000", "498.000.000.000"],
+  ["currency", "Rp 498.000.000.000", "Rp 498.000.000.000"],
+  ["sign", "±128.000", "±128.000"],
+  ["unit", "128.000 byte", "128.000 byte"],
+  ["monthly return unit", "60 monthly returns", "60 monthly returns"],
+  [
+    "Indonesian monthly return unit",
+    "60 imbal hasil bulanan",
+    "60 imbal hasil bulanan",
+  ],
+  [
+    "arrow",
+    '<span aria-hidden="true">▲ </span>+Rp 3.259.000.000',
+    "▲ +Rp 3.259.000.000",
+  ],
+] as const) {
+  test(`rejects a number that breaks at its ${name}`, async ({ page }) => {
+    await showPage(
+      page,
+      `<p style="width: 40px; overflow-wrap: anywhere">${text}</p>`,
+    );
+    const heightInTextSizes = await page
+      .locator("p")
+      .evaluate(
+        (element) =>
+          element.getBoundingClientRect().height /
+          parseFloat(getComputedStyle(element).fontSize),
+      );
+    expect(heightInTextSizes).toBeGreaterThan(2);
+    expect(await layoutProblems(page)).toEqual([
+      {
+        rule: "numbers",
+        text: `The number "${visible}" in <p> "${visible}" breaks across lines.`,
+      },
+    ]);
+  });
+}
+
+test("accepts a number that moves as one piece within wrapping prose", async ({
+  page,
+}) => {
+  await showPage(
+    page,
+    '<p style="width: 150px">Harga <span style="white-space: nowrap">▲ +Rp 3.259.000</span> untuk saham.</p>',
+  );
+  expect(await layoutProblems(page)).toEqual([]);
+});
+
+test("ignores numbers in hidden help and SVG marks", async ({ page }) => {
+  await showPage(
+    page,
+    '<p hidden style="width: 20px">128.000 byte</p><details><summary>Buka</summary><p style="width: 20px">128.000 byte</p></details><svg><text>128.000</text></svg>',
+  );
+  expect(await layoutProblems(page)).toEqual([]);
+});

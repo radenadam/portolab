@@ -1,12 +1,13 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
+import { directionOf } from "~/charts/direction-of";
 import { layoutTimeSeries } from "~/charts/time-chart-layout";
 import { TimeSeriesChart } from "~/charts/time-chart";
 import {
   formatNumber,
   smallestNumberStep,
   formatCalendarDatePart,
-  formatCalendarDate,
   formatSplitAdjustedRupiah,
 } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
@@ -45,6 +46,10 @@ export function StockHistoryChart({
 }): ReactNode {
   const first = history.closes[0];
   const latest = history.closes.at(-1);
+  const kind =
+    first === undefined || latest === undefined
+      ? "none"
+      : directionOf(first.close, latest.close);
   return (
     <>
       <nav
@@ -57,7 +62,7 @@ export function StockHistoryChart({
             to={`${path}?range=${choice}`}
             aria-current={choice === range ? "true" : undefined}
           >
-            {labels[choice]()}
+            <NumberText>{labels[choice]()}</NumberText>
           </Link>
         ))}
       </nav>
@@ -66,20 +71,16 @@ export function StockHistoryChart({
       ) : (
         <>
           <h2 id="price-chart-title" className={styles["title"]}>
-            {m.market_data_price_chart_title({ code: history.code })}
+            <NumberText>
+              {m.market_data_price_chart_title({ code: history.code })}
+            </NumberText>
           </h2>
-          <p>
-            {m.market_data_history_period_notice({
-              first: formatCalendarDate(first.date, "medium"),
-              last: formatCalendarDate(latest.date, "medium"),
-            })}
-          </p>
           <TimeSeriesChart
             points={history.closes}
             lines={[
               {
                 name: history.code,
-                kind: "own",
+                kind,
                 valueOf: (point) => point.close,
               },
             ]}
@@ -87,7 +88,7 @@ export function StockHistoryChart({
               history.closes.map((point) => point.date),
               [
                 {
-                  kind: "own",
+                  kind,
                   values: history.closes.map((point) => point.close),
                 },
               ],

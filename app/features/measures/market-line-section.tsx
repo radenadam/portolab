@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import { useId } from "react";
 import type { ReactNode } from "react";
 import { countedText } from "~/counted-text";
@@ -32,7 +33,11 @@ export function StudentMarketLine({
     return (
       <>
         <h2>{m.measures_line_title()}</h2>
-        <p>{measureFailureText(marketLine.failure, { kind: "market" })}</p>
+        <p>
+          <NumberText>
+            {measureFailureText(marketLine.failure, { kind: "market" })}
+          </NumberText>
+        </p>
       </>
     );
   }
@@ -41,7 +46,9 @@ export function StudentMarketLine({
   return (
     <>
       <h2 id={headingId}>{m.measures_line_title()}</h2>
-      <p>{notice}</p>
+      <p>
+        <NumberText>{notice}</NumberText>
+      </p>
       <MarketLineFigure
         line={line}
         portfolio={portfolio}
@@ -53,7 +60,7 @@ export function StudentMarketLine({
         }}
         labelledBy={headingId}
       />
-      {caption}
+      <NumberText>{caption}</NumberText>
       <OtherStocksNotices others={others} />
     </>
   );
@@ -72,10 +79,12 @@ export function LecturerMarketLine({
     <>
       <h2 id={headingId}>{m.measures_line_title()}</h2>
       <p>
-        {m.measures_lecturer_portfolio_line_notice({
-          ...monthSpanInputs(portfolioLine.line.months),
-          name: studentName,
-        })}
+        <NumberText>
+          {m.measures_lecturer_portfolio_line_notice({
+            ...monthSpanInputs(portfolioLine.line.months),
+            name: studentName,
+          })}
+        </NumberText>
       </p>
       <MarketLineFigure
         line={portfolioLine.line}
@@ -135,14 +144,16 @@ function OtherStocksNotices({ others }: { others: OtherStocks }): ReactNode {
     <>
       {otherLineCodes.length > 0 && (
         <p>
-          {countedText(
-            otherLineCodes.length,
-            {
-              one: m.measures_one_other_line_notice,
-              several: m.measures_several_other_lines_notice,
-            },
-            { codes: formatList(otherLineCodes, "conjunction") },
-          )}
+          <NumberText>
+            {countedText(
+              otherLineCodes.length,
+              {
+                one: m.measures_one_other_line_notice,
+                several: m.measures_several_other_lines_notice,
+              },
+              { codes: formatList(otherLineCodes, "conjunction") },
+            )}
+          </NumberText>
         </p>
       )}
       {others.hasUnmeasured && <p>{m.measures_unmeasured_stocks_notice()}</p>}
