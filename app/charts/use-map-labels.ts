@@ -1,10 +1,7 @@
+import { estimatedLabelWidth } from "./estimated-label-width";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { RefObject } from "react";
-import {
-  estimatedLabelWidth,
-  keptNameRoom,
-  placeMapLabels,
-} from "./map-labels";
+import { keptNameRoom, placeMapLabels } from "./map-labels";
 import type { LabelledMark, MapLabels, PlacedLabels } from "./map-labels";
 
 // Before a browser measures the plot, the labels take their places in the plot of a phone 360 pixels wide, the narrowest that Portolab lays out, in which the marks lie closest together. Its size is in sizes of the text of the labels.

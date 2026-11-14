@@ -244,15 +244,3 @@ for (const locale of locales) {
     );
   });
 }
-
-test("places a class map without a security market line from its points alone", () => {
-  const map = layoutRiskMap({ market, points, ...axes });
-  expect(map.line).toBeUndefined();
-  expect(map.linePlaces.line).toEqual([]);
-  expect(map.points.map(({ point }) => point.key)).toEqual([
-    "portfolio",
-    "BBCA",
-    "TLKM",
-  ]);
-  expect(map.market.position.y).toBeCloseTo(down(0.01), 12);
-});

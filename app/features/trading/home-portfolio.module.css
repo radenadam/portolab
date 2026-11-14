@@ -46,8 +46,12 @@
 .valueLabel {
   font-weight: 400;
 }
+.hero {
+  container-type: inline-size;
+}
+
 .value {
-  font-size: var(--text-headline);
+  white-space: nowrap;
   font-weight: 600;
   line-height: 1.15;
   overflow-wrap: anywhere;
@@ -304,13 +308,16 @@
   font-size: var(--text-tile);
 }
 .phoneHoldings {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content;
   list-style: none;
   margin: 0;
   padding: 0;
 }
 .holdingRow {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
   gap: var(--space-2);
   padding: var(--space-3);
   border-block-start: var(--size-line) solid var(--color-line);
@@ -323,19 +330,17 @@
   flex-direction: column;
   text-align: end;
   justify-content: center;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
   font-size: var(--text-row);
 }
 .rowPrice {
-  grid-column: 1 / -1;
   color: var(--color-muted);
-  font-size: var(--text-small);
+  font-size: var(--text-chart);
   display: flex;
   flex-wrap: wrap;
-  column-gap: var(--space-2);
+  column-gap: var(--space-1);
 }
 
-.rowPrice > span:first-child,
 .rowPrice > .quoteTime {
   flex-basis: 100%;
 }
@@ -371,6 +376,22 @@
   display: none;
 }
 
+.leftColumn {
+  display: contents;
+}
+.summary {
+  order: 0;
+}
+.mapPanel {
+  order: 1;
+}
+.returnCard {
+  order: 2;
+}
+.riskCard {
+  order: 3;
+}
+
 @media (width >= 60rem) {
   .home {
     padding-block-start: calc(var(--space-4) + var(--space-1));
@@ -384,8 +405,173 @@
   .phoneHoldings {
     display: none;
   }
-  .summary {
-    inline-size: calc((100% - var(--space-6)) / 3.15);
-    max-inline-size: none;
+  .columns {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2.15fr);
   }
+  .leftColumn {
+    display: grid;
+    grid-template-rows: auto auto 1fr;
+    gap: var(--space-4);
+    min-inline-size: 0;
+  }
+  .mapPanel {
+    grid-column: 2;
+  }
+}
+
+.columns {
+  display: grid;
+  gap: var(--space-4) var(--space-6);
+  min-inline-size: 0;
+}
+.returnCard,
+.riskCard {
+  min-inline-size: 0;
+  --size-chart: var(--size-home-chart);
+}
+.riskCard > section {
+  block-size: 100%;
+}
+.mapPanel {
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-panel);
+  border: var(--size-line) solid var(--color-line);
+  border-radius: var(--radius-panel);
+}
+.mapContent {
+  padding: var(--space-4);
+  flex: 1;
+  min-inline-size: 0;
+}
+.mapHeading {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-block-end: var(--space-2);
+}
+.mapHeading h2 {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--text-body);
+}
+.viewChoice {
+  display: inline-flex;
+  background: var(--color-raised);
+  padding: var(--space-1);
+  border-radius: var(--radius-item);
+}
+.viewChoice a {
+  display: flex;
+  align-items: center;
+  min-block-size: var(--size-touch-target);
+  padding-inline: var(--space-3);
+  color: var(--color-ink-secondary);
+  text-decoration: none;
+  border-radius: var(--radius-button);
+}
+.viewChoice [aria-current] {
+  background: var(--color-panel);
+  box-shadow: var(--shadow-choice);
+  color: var(--color-ink);
+}
+.largeMap {
+  --size-chart: var(--size-home-map);
+}
+.largeTime {
+  --size-chart: var(--size-home-map);
+  margin-block-start: var(--space-4);
+}
+.insight {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--space-3);
+  border-block-start: var(--size-line) solid var(--color-line);
+  padding: var(--space-2) var(--space-4);
+  color: var(--color-ink-secondary);
+}
+.sessionBadge {
+  font-size: var(--text-tile);
+  font-weight: 600;
+  white-space: nowrap;
+  border-radius: var(--radius-item);
+  background: var(--color-data-soft);
+  color: var(--color-ink);
+  padding: var(--space-1) var(--space-2);
+}
+.learnLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  border: 0;
+  padding: 0;
+  min-block-size: var(--size-touch-target);
+  background: transparent;
+  color: var(--color-link);
+  font: inherit;
+  font-size: var(--text-caption);
+  cursor: pointer;
+}
+.lesson {
+  inline-size: min(var(--width-concept-card), calc(100vw - 2 * var(--space-4)));
+  padding: var(--space-4);
+}
+.lesson h2 {
+  margin: 0 0 var(--space-3);
+  color: var(--color-ink);
+}
+.mapTable {
+  font-size: var(--text-small);
+}
+.mapTable a {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--size-touch-target);
+}
+.rowPrice > span {
+  white-space: nowrap;
+}
+.rowPrice small {
+  display: inline;
+  font-size: inherit;
+}
+.rowPrice > .quoteTime {
+  white-space: normal;
+}
+.tableNote {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+}
+@media (width < 48rem) {
+  .mapHeading {
+    display: block;
+  }
+  .mapHeading h2 {
+    margin-block-end: var(--space-3);
+  }
+  .insight {
+    grid-template-columns: 1fr auto;
+  }
+  .insight p {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .sessionBadge {
+    justify-self: start;
+  }
+  .largeMap,
+  .largeTime {
+    --size-chart: var(--size-chart-phone-map);
+  }
+}
+
+.table [data-change],
+.rowValue [data-change] {
+  white-space: nowrap;
 }
