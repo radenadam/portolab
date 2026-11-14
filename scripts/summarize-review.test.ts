@@ -4,6 +4,7 @@ import type { ChangedFile, Lens } from "./review-lenses.ts";
 import {
   checkRoundLimit,
   mergeReviewRoundLimit,
+  parseReviewPlan,
   planReview,
   reviewRoundLimit,
 } from "./review-plan.ts";
@@ -458,22 +459,27 @@ test("fails without an agent after every round while one finding or several stay
   const cases: [Finding[], string][] = [
     [
       [finding("1.1")],
-      `The panel has used its 3 ordinary review rounds, and this push cannot use a remaining merge review or one of its 2 rounds that check open findings. 1 finding stays open, so it ran no agent. ${nextStep}`,
+      `The panel has used its 3 ordinary review rounds and its 2 rounds that check open findings, and 1 finding stays open, so it ran no agent. ${nextStep}`,
     ],
     [
       [finding("1.1"), finding("1.2")],
-      `The panel has used its 3 ordinary review rounds, and this push cannot use a remaining merge review or one of its 2 rounds that check open findings. 2 findings stay open, so it ran no agent. ${nextStep}`,
+      `The panel has used its 3 ordinary review rounds and its 2 rounds that check open findings, and 2 findings stay open, so it ran no agent. ${nextStep}`,
     ],
   ];
   for (const [openFindings, sentence] of cases) {
-    expectFailureWithoutAgent(
-      planReview(
-        stateAfter(lastCheck, openFindings),
+    for (const mergeRounds of [0, mergeReviewRoundLimit]) {
+      const previous = {
+        ...stateAfter(lastCheck + mergeRounds, openFindings),
+        mergeRounds,
+      };
+      const plan = planReview(
+        previous,
         { since: earlierHead, commitScope: "author" },
         [docs],
-      ),
-      sentence,
-    );
+      );
+      expect(plan.capReason).toBe("finding-checks");
+      expectFailureWithoutAgent(plan, sentence);
+    }
   }
 });
 
@@ -482,6 +488,17 @@ test("fails without an agent when files change after the review rounds while no 
     [
       planReview(
         stateAfter(reviewRoundLimit, []),
+        { since: earlierHead, commitScope: "author" },
+        [docs],
+      ),
+      `The panel has used its 3 ordinary review rounds, and the commits since ${earlierHead} changed files of the pull request while no finding was open, so no round may read them and no agent ran. ${nextStep}`,
+    ],
+    [
+      planReview(
+        {
+          ...stateAfter(reviewRoundLimit + mergeReviewRoundLimit, []),
+          mergeRounds: mergeReviewRoundLimit,
+        },
         { since: earlierHead, commitScope: "author" },
         [docs],
       ),
@@ -504,6 +521,50 @@ test("fails without an agent when files change after the review rounds while no 
   for (const [plan, sentence] of cases) {
     expectFailureWithoutAgent(plan, sentence);
   }
+});
+
+test("names mixed pushes without blaming either exhausted allowance", () => {
+  for (const mergeRounds of [0, mergeReviewRoundLimit]) {
+    for (const openFindings of [
+      [],
+      [finding("1.1")],
+      [finding("1.1"), finding("1.2")],
+    ]) {
+      const previous = {
+        ...stateAfter(
+          reviewRoundLimit + checkRoundLimit + mergeRounds,
+          openFindings,
+        ),
+        mergeRounds,
+      };
+      const plan = planReview(
+        previous,
+        { since: earlierHead, commitScope: "mixed" },
+        [docs],
+      );
+      expect(plan.capReason).toBe("mixed-push");
+      expectFailureWithoutAgent(
+        plan,
+        `The panel has used its 3 ordinary review rounds. A later push that changes files must contain author commits alone or two-parent merges of the base branch alone. This push has another combination of commits, so no agent ran. ${nextStep}`,
+      );
+    }
+  }
+});
+
+test("keeps a legacy capped plan truthful when its refusal reason is unknown", () => {
+  const plan = planReview(
+    stateAfter(reviewRoundLimit, []),
+    { since: earlierHead, commitScope: "author" },
+    [docs],
+  );
+  const legacy = successValueForTest(
+    parseReviewPlan({ ...plan, capReason: undefined }, "PLAN"),
+    "The older capped plan has no reason",
+  );
+  expectFailureWithoutAgent(
+    legacy,
+    `No remaining round may read or check this push, so no agent ran. ${nextStep}`,
+  );
 });
 
 test("counts a round whose agent did not finish, but keeps the head and the open findings of the last finished round", () => {

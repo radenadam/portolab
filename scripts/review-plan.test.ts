@@ -1,6 +1,7 @@
 import { expect, test } from "vitest";
 import { parseReviewerReport } from "./review-findings.ts";
 import type { Finding } from "./review-findings.ts";
+import type { CommitScope } from "./review-history.ts";
 import type { ChangedFile } from "./review-lenses.ts";
 import {
   buildRoundReport,
@@ -324,6 +325,40 @@ test("reads back the plan that the plan step writes, with and without a reviewed
       value: plan,
     });
   }
+});
+
+test("records and parses the refusal reason independently of the other exhausted caps", () => {
+  const cases: [CommitScope, Finding[], ReviewPlan["capReason"]][] = [
+    ["base-merges", [], "merge-reviews"],
+    ["base-merges", [openFinding], "merge-reviews"],
+    ["author", [], "unreviewed-change"],
+    ["author", [openFinding], "finding-checks"],
+    ["mixed", [], "mixed-push"],
+    ["mixed", [openFinding], "mixed-push"],
+  ];
+  for (const [commitScope, openFindings, capReason] of cases) {
+    const previous = stateAfter(
+      reviewRoundLimit + checkRoundLimit + mergeReviewRoundLimit,
+      openFindings,
+      mergeReviewRoundLimit,
+    );
+    const plan = planReview(previous, { since: head, commitScope }, [docs]);
+    expect(plan).toMatchObject({ kind: "capped", capReason });
+    expect(parseReviewPlan(JSON.parse(JSON.stringify(plan)), "PLAN")).toEqual({
+      ok: true,
+      value: plan,
+    });
+    expect(parseReviewPlan({ ...plan, capReason: "other" }, "PLAN").ok).toBe(
+      false,
+    );
+  }
+  expect(
+    planReview(
+      stateAfter(reviewRoundLimit, []),
+      { since: undefined, commitScope: "base-merges" },
+      [docs],
+    ),
+  ).toMatchObject({ kind: "capped", capReason: "unreviewed-change" });
 });
 
 test("rejects a plan with a missing or invalid merge round count", () => {

@@ -69,11 +69,6 @@ export function judgeReview(input: ReviewInput): Judgement {
 /** The verdict of a plan that fails without an agent, or undefined for a plan that runs one or passes. */
 function verdictWithoutAgent(plan: ReviewPlan): string | undefined {
   const openCount = plan.previous.openFindings.length;
-  const reviewRounds = countOf(
-    reviewRoundLimit,
-    "ordinary review round",
-    "ordinary review rounds",
-  );
   const nextStep =
     "The author decides how the change continues, for example in a new pull request with the same commits, which starts with new rounds.";
   switch (plan.kind) {
@@ -84,17 +79,32 @@ function verdictWithoutAgent(plan: ReviewPlan): string | undefined {
     case "unchanged":
       return `${countOf(openCount, "verified finding in the change remains", "verified findings in the change remain")}, and no file of the pull request changed since the last finished round, so no agent ran. Push the fixes to start the next round.`;
     case "capped":
-      if (plan.mergeRounds >= mergeReviewRoundLimit) {
-        return `The panel has used its ${countOf(mergeReviewRoundLimit, "extra merge review round", "extra merge review rounds")}, so it ran no agent to read further changes. ${nextStep}`;
-      }
-      if (openCount > 0) {
-        return `The panel has used its ${reviewRounds}, and this push cannot use a remaining merge review or one of its ${countOf(checkRoundLimit, "round that checks open findings", "rounds that check open findings")}. ${countOf(openCount, "finding stays open", "findings stay open")}, so it ran no agent. ${nextStep}`;
-      }
+      return `${capVerdict(plan)} ${nextStep}`;
+  }
+}
+
+function capVerdict(plan: ReviewPlan): string {
+  const reviewRounds = countOf(
+    reviewRoundLimit,
+    "ordinary review round",
+    "ordinary review rounds",
+  );
+  switch (plan.capReason) {
+    case "merge-reviews":
+      return `The panel has used its ${countOf(mergeReviewRoundLimit, "extra merge review round", "extra merge review rounds")}, so it ran no agent to read further changes.`;
+    case "finding-checks":
+      return `The panel has used its ${reviewRounds} and its ${countOf(checkRoundLimit, "round that checks open findings", "rounds that check open findings")}, and ${countOf(plan.previous.openFindings.length, "finding stays open", "findings stay open")}, so it ran no agent.`;
+    case "mixed-push":
+      return `The panel has used its ${reviewRounds}. A later push that changes files must contain author commits alone or two-parent merges of the base branch alone. This push has another combination of commits, so no agent ran.`;
+    case "unreviewed-change":
       return `The panel has used its ${reviewRounds}, and ${
         plan.since === undefined
           ? "no round finished reviewing the change"
           : `the commits since ${plan.since} changed files of the pull request while no finding was open`
-      }, so no round may read them and no agent ran. ${nextStep}`;
+      }, so no round may read them and no agent ran.`;
+    case undefined:
+      // A capped plan from an older head names no reason, so only the general refusal is known.
+      return "No remaining round may read or check this push, so no agent ran.";
   }
 }
 

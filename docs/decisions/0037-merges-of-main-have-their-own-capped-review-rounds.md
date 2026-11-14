@@ -15,6 +15,8 @@ After the ordinary review rounds, a push that contains only merges of main since
 
 A push with both merges and other author commits does not qualify for any round after the ordinary cap, even when they change the same files. A push with author commits alone may only fix open findings through the verifier-only allowance. Neither extra merge reviews nor verifier-only rounds replenish the other allowance. A change that no remaining round may read or check fails without an agent. The author then decides how the change continues, such as in a new pull request.
 
+The plan records the reason for a refusal, so the review text explains the rule that refused the push even when other allowances are exhausted too. An older plan that names no reason gets a general refusal text rather than a guess from its counters.
+
 The saved state keeps the count of extra merge reviews apart from the total rounds, including failures. Older states used no extra merge reviews, so their missing count reads as zero. A plan from an older pull request head also reads with zero merge rounds when both it and its previous state lack the count, because the final job can run newer code from the merge with main. A current plan whose previous state has the count must supply its own count too. A history that no longer contains the reviewed head cannot use the extra allowance because it has no reviewed starting point from which to select only the merge resolutions.
 
 ## Alternatives

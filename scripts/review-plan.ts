@@ -30,6 +30,13 @@ export const checkRoundLimit = 2;
 export const mergeReviewRoundLimit = 2;
 
 const planKinds = ["review", "check", "pass", "unchanged", "capped"] as const;
+const capReasons = [
+  "merge-reviews",
+  "finding-checks",
+  "mixed-push",
+  "unreviewed-change",
+] as const;
+type CapReason = (typeof capReasons)[number];
 
 /** What one run of the panel does. */
 export interface ReviewPlan {
@@ -41,6 +48,8 @@ export interface ReviewPlan {
    * - capped: no agent runs, because files changed or findings stay open after every round that could handle them.
    */
   kind: (typeof planKinds)[number];
+  /** The planner owns the refusal rule, so the verdict must not guess its reason from counters. Older plans have no reason. */
+  capReason: CapReason | undefined;
   /** The round of this run, which counts it only when an agent runs. */
   round: number;
   /** The extra merge review rounds used, including this run when it uses one. */
@@ -67,6 +76,7 @@ export function planReview(
     files: [],
     previous,
     mergeRounds: previous.mergeRounds,
+    capReason: undefined,
   };
   const hasOpenFindings = previous.openFindings.length > 0;
   if (files.length === 0) {
@@ -104,8 +114,25 @@ export function planReview(
   return {
     ...plan,
     kind: "capped",
+    capReason: reasonForCap(history, hasOpenFindings),
     round: previous.round,
   };
+}
+
+function reasonForCap(
+  history: { since: string | undefined; commitScope: CommitScope },
+  hasOpenFindings: boolean,
+): CapReason {
+  switch (history.commitScope) {
+    case "base-merges":
+      return history.since === undefined
+        ? "unreviewed-change"
+        : "merge-reviews";
+    case "author":
+      return hasOpenFindings ? "finding-checks" : "unreviewed-change";
+    case "mixed":
+      return "mixed-push";
+  }
 }
 
 function canReviewMerge(
@@ -150,20 +177,9 @@ export function parseReviewPlan(
   if (!kind.ok) {
     return kind;
   }
-  const round = parseRoundAt(value, source);
-  if (!round.ok) {
-    return round;
-  }
-  // The plan job checks out the pull request head, while the final job may read newer code from the merge with main.
-  const legacyPrevious =
-    isRecord(value["previous"]) &&
-    value["previous"]["mergeRounds"] === undefined;
-  const mergeRounds =
-    value["mergeRounds"] === undefined && legacyPrevious
-      ? succeed(0)
-      : parseMergeRoundsAt(value, source, round.value);
-  if (!mergeRounds.ok) {
-    return mergeRounds;
+  const limits = parsePlanLimits(value, source);
+  if (!limits.ok) {
+    return limits;
   }
   const since = parseOptionalCommitHashAt(value, source, "since");
   if (!since.ok) {
@@ -190,13 +206,50 @@ export function parseReviewPlan(
   }
   return succeed({
     kind: kind.value,
-    round: round.value,
-    mergeRounds: mergeRounds.value,
+    ...limits.value,
     since: since.value,
     lenses: chosenLenses.value,
     files: files.value,
     previous: previous.value,
   });
+}
+
+function parsePlanLimits(
+  value: unknown,
+  source: string,
+): Result<Pick<ReviewPlan, "round" | "mergeRounds" | "capReason">, string> {
+  if (!isRecord(value)) {
+    return notAnObject(source, value);
+  }
+  const round = parseRoundAt(value, source);
+  if (!round.ok) {
+    return round;
+  }
+  // The plan job checks out the pull request head, while the final job may read newer code from the merge with main.
+  const legacyPrevious =
+    isRecord(value["previous"]) &&
+    value["previous"]["mergeRounds"] === undefined;
+  const mergeRounds =
+    value["mergeRounds"] === undefined && legacyPrevious
+      ? succeed(0)
+      : parseMergeRoundsAt(value, source, round.value);
+  if (!mergeRounds.ok) {
+    return mergeRounds;
+  }
+  const capReason =
+    value["capReason"] === undefined
+      ? succeed(undefined)
+      : parseChoiceAt(value, source, {
+          name: "capReason",
+          choices: capReasons,
+        });
+  return capReason.ok
+    ? succeed({
+        round: round.value,
+        mergeRounds: mergeRounds.value,
+        capReason: capReason.value,
+      })
+    : capReason;
 }
 
 /** Builds the report of a round from its plan and the reviewer's answer: the findings of the round, numbered after it, then the open findings of earlier rounds. A round without a reviewer has only the open findings. The verifier's job and the review job both build it, so the review never trusts a file that an agent could change. */
