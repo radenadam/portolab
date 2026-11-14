@@ -74,6 +74,10 @@ Harga dasar untuk menghitung batas order. Bedakan harga acuan dari kutipan terak
 
 Biaya per lembar dari saham yang masih dimiliki. Dalam Portolab, biaya pembelian termasuk dalam dasar biaya, sedangkan biaya penjualan belum terjadi.
 
+## rentang-52-minggu | Rentang 52 minggu | 6
+
+Harga penutupan terendah dan tertinggi yang Portolab simpan dalam 52 minggu, setelah penyesuaian pemecahan saham. Rentang ini tidak mencakup harga di dalam hari perdagangan. Bila riwayat belum lengkap, rentang hanya mencakup penutupan yang tersedia.
+
 ## harga-tertunda | Harga tertunda | 6
 
 Kutipan harga yang diterima setelah transaksi bursa terjadi. Waktu kutipan menunjukkan umur harga, sehingga harga yang tampil bukan janji harga pasar saat ini.

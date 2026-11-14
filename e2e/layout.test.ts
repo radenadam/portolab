@@ -70,6 +70,7 @@ const routePages: Record<string, readonly RoutePage[]> = {
     { reader: "lecturer", path: ({ classPath }) => `${classPath}/calendar` },
   ],
   // Besides BBCA, the ticket shows PGAS, which has one of the longest names of a company, and HRTA and AMRT, whose sectors have the longest names in Bahasa Indonesia and in English.
+  "features/trading/stock-ticket-fallback.ts": [],
   "features/trading/orders-page.tsx": [
     { reader: "student", path: ({ classPath }) => `${classPath}/orders` },
     ...["BBCA", "PGAS", "HRTA", "AMRT"].map((code): RoutePage => ({
@@ -93,12 +94,10 @@ const routePages: Record<string, readonly RoutePage[]> = {
       brokenUntilRebuilt: ["tables"],
     },
   ],
-  "features/measures/stock-measures-page.tsx": [
+  "features/market-data/stock-page.tsx": [
     {
       reader: "student",
-      path: ({ classPath }) => `${classPath}/measures/BBCA`,
-      // The same tables of closes and returns, which piece 13 rebuilds.
-      brokenUntilRebuilt: ["tables"],
+      path: ({ classPath }) => `${classPath}/stocks/BBCA`,
     },
   ],
   "features/grading/class-portfolios-page.tsx": [

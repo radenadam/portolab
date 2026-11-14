@@ -16,9 +16,11 @@ export function useChartSlider(slider: {
 } {
   const { count, resting, labelledBy } = slider;
   const [marked, setMarked] = useState<number | undefined>(undefined);
-  const shown = marked ?? resting;
+  // A range can replace the points while the chart has focus, so its old index may lie beyond the new last point.
+  const active = marked === undefined ? undefined : Math.min(marked, count - 1);
+  const shown = active ?? resting;
   return {
-    marked,
+    marked: active,
     shown,
     setMarked,
     sliderProps: (valueText) => ({
@@ -36,7 +38,11 @@ export function useChartSlider(slider: {
         setMarked(undefined);
       },
       onKeyDown: (event) => {
-        const move = sliderMoveOf(event.key, { marked, resting, count });
+        const move = sliderMoveOf(event.key, {
+          marked: active,
+          resting,
+          count,
+        });
         switch (move.kind) {
           case "mark":
             event.preventDefault();

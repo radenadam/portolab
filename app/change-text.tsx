@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { ChangeDirection, SignedChange } from "./formatting";
+import styles from "./change-text.module.css";
 
 const arrows: Record<ChangeDirection, string | undefined> = {
   rise: "▲",
@@ -7,14 +8,27 @@ const arrows: Record<ChangeDirection, string | undefined> = {
   none: undefined,
 };
 
-/** A change as formatSignedPercent or formatSignedRupiah gives it, after the arrow of its direction, in the color of the text, as decision 0012 sets. */
-export function ChangeText({ change }: { change: SignedChange }): ReactNode {
+/** The rounded sign decides both the arrow and the optional gain or loss ink. */
+export function ChangeText({
+  change,
+  colored = false,
+}: {
+  change: SignedChange;
+  colored?: boolean;
+}): ReactNode {
   const arrow = arrows[change.direction];
-  return (
+  const text = (
     <>
       {/* The arrow repeats the sign that the change shows for sighted readers, so screen readers skip it. The space belongs to the arrow, so a change without an arrow starts with its number. */}
       {arrow !== undefined && <span aria-hidden="true">{`${arrow} `}</span>}
       {change.text}
     </>
+  );
+  return colored ? (
+    <span className={styles["change"]} data-change={change.direction}>
+      {text}
+    </span>
+  ) : (
+    text
   );
 }

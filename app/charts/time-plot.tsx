@@ -1,17 +1,13 @@
 import { useRef } from "react";
 import type { CSSProperties, PointerEvent, ReactNode } from "react";
-import { ChangeText } from "~/change-text";
-import {
-  formatCalendarDate,
-  formatList,
-  formatSignedPercent,
-} from "~/formatting";
+import { formatCalendarDate, formatList } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { plotFraction } from "~/units/plot-fraction";
 import { LineKey } from "./line-key";
 import { percentOf, PlotLine } from "./plot";
 import type { PlotPosition } from "./plot";
 import { ReturnMark, returnMarkGap } from "./return-mark";
+import type { ValueAxisSide } from "./return-mark";
 import { useChartSlider } from "./use-chart-slider";
 import { tipAcross } from "./tip-placement";
 import { acrossOf, indexAt } from "./time-chart-layout";
@@ -32,15 +28,23 @@ const dateBaseline = 1.5;
 const headroom = 0.5;
 const dotRadius = 0.4;
 
-/** The plot with its axes, its lines, and a dot on each line at the marked date, which is the latest date until a reader marks another. In the browser it is a slider that marks a date with a crosshair and shows a tooltip of its returns. */
-export function TimePlot<Point extends { date: string }>({
+/** The plot with its axes, its lines, and a dot on each line at the marked date, which is the latest date until a reader marks another. In the browser it is a slider that marks a date with a crosshair and shows a tooltip of its values. */
+export function TimePlot<Point extends { date: string }, Value extends number>({
   points,
   lines,
   layout,
   labelledBy,
+  valueText,
+  valueNode,
+  area = false,
+  axisSide = "left",
 }: {
   points: readonly Point[];
-  lines: readonly TimeLine<Point>[];
+  lines: readonly TimeLine<Point, Value>[];
+  valueText: (value: Value) => string;
+  valueNode: (value: Value) => ReactNode;
+  area?: boolean;
+  axisSide?: ValueAxisSide;
   layout: TimeChartLayout;
   labelledBy: string;
 }): ReactNode {
@@ -56,9 +60,14 @@ export function TimePlot<Point extends { date: string }>({
     labelledBy,
   });
   const drawingRef = useRef<SVGSVGElement>(null);
+  const labelRoom = `calc(${String(layout.returnTextLength)}ch + ${String(returnMarkGap)}em)`;
+  const edgeRoom = `${String(dotRadius)}em`;
   const style: CSSProperties = {
     paddingBlock: `${String(headroom)}em ${String(dateBaseline + headroom)}em`,
-    paddingInline: `calc(${String(layout.returnTextLength)}ch + ${String(returnMarkGap)}em) ${String(dotRadius)}em`,
+    paddingInline:
+      axisSide === "left"
+        ? `${labelRoom} ${edgeRoom}`
+        : `${edgeRoom} ${labelRoom}`,
   };
   const drawnLines = layout.lines.toSorted(
     (first, second) => drawOrder[first.kind] - drawOrder[second.kind],
@@ -70,6 +79,7 @@ export function TimePlot<Point extends { date: string }>({
           key={tick.at}
           at={tick.at}
           text={tick.text}
+          side={axisSide}
           lineClassName={tick.isZero ? styles["zeroLine"] : styles["gridLine"]}
           textClassName={styles["tick"]}
         />
@@ -97,7 +107,11 @@ export function TimePlot<Point extends { date: string }>({
       )}
       {drawnLines.map(({ kind, positions }) => (
         <g key={kind} className={lineClasses[kind]}>
-          <PlotLine positions={positions} className={styles["line"]} />
+          <PlotLine
+            positions={positions}
+            className={styles["line"]}
+            area={area}
+          />
           <Dot position={positions[marked]} />
         </g>
       ))}
@@ -126,7 +140,7 @@ export function TimePlot<Point extends { date: string }>({
     <div
       className={styles["plot"]}
       style={style}
-      {...sliderProps(pointText(point, lines))}
+      {...sliderProps(pointText(point, lines, valueText))}
       onPointerDown={markPointer}
       onPointerMove={markPointer}
     >
@@ -145,9 +159,7 @@ export function TimePlot<Point extends { date: string }>({
                 <LineKey kind={line.kind} />
                 <span>{line.name}</span>
                 <span className={styles["tipReturn"]}>
-                  <ChangeText
-                    change={formatSignedPercent(line.returnOf(point))}
-                  />
+                  {valueNode(line.returnOf(point))}
                 </span>
               </p>
             ))}
@@ -159,9 +171,10 @@ export function TimePlot<Point extends { date: string }>({
 }
 
 /** The text of a point that a screen reader reads as the value of the slider, such as 3 Nov 2026: Portofolio Anda -3,07% dan IHSG -3,02%. */
-function pointText<Point extends { date: string }>(
+function pointText<Point extends { date: string }, Value extends number>(
   point: Point,
-  lines: readonly TimeLine<Point>[],
+  lines: readonly TimeLine<Point, Value>[],
+  valueText: (value: Value) => string,
 ): string {
   return m.app_chart_point_label({
     date: formatCalendarDate(point.date, "medium"),
@@ -169,7 +182,7 @@ function pointText<Point extends { date: string }>(
       lines.map((line) =>
         m.app_chart_line_return_part({
           line: line.name,
-          value: formatSignedPercent(line.returnOf(point)).text,
+          value: valueText(line.returnOf(point)),
         }),
       ),
       "conjunction",

@@ -7,7 +7,13 @@ import { switchLocaleForTest } from "~/switch-locale-for-test";
 import { cumulativeReturn } from "~/units/cumulative-return";
 import type { CumulativeReturn } from "~/units/cumulative-return";
 import { plotFraction } from "~/units/plot-fraction";
-import { indexAt, layoutTimeChart } from "./time-chart-layout";
+import {
+  indexAt,
+  layoutTimeChart,
+  layoutTimeSeries,
+} from "./time-chart-layout";
+import { splitAdjustedRupiah } from "~/units/split-adjusted-rupiah";
+import { formatNumber, smallestNumberStep } from "~/formatting";
 import type { TimeChartLayout } from "./time-chart-layout";
 import { returnPointsForTest } from "./return-points-for-test";
 
@@ -152,4 +158,22 @@ test("finds the date nearest to a position across the plot, and the first or the
   expect(indexAt(plotFraction(-0.3), 5)).toBe(0);
   expect(indexAt(plotFraction(1.3), 5)).toBe(4);
   expect(indexAt(plotFraction(0.7), 1)).toBe(0);
+});
+
+test("keeps price ticks positive when padding a range of split-adjusted closes near zero", () => {
+  const layout = layoutTimeSeries(
+    ["2026-10-29", "2026-10-30"],
+    [{ kind: "own", returns: [0.00001, 1].map(splitAdjustedRupiah) }],
+    {
+      unit: splitAdjustedRupiah,
+      minimum: splitAdjustedRupiah(Number.MIN_VALUE),
+      smallestStep: smallestNumberStep,
+      tickText: formatNumber,
+    },
+  );
+  expect(layout.returnTicks.length).toBeGreaterThan(0);
+  expect(layout.lines[0]?.positions).toHaveLength(2);
+  expect(layout.returnTicks.every((tick) => tick.at >= 0 && tick.at <= 1)).toBe(
+    true,
+  );
 });

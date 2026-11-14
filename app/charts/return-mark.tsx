@@ -5,6 +5,8 @@ import { percentOf } from "./plot";
 /** The gap between the text of a mark of the axis of returns and the left edge of the plot, in sizes of the text of the marks. The plot leaves it beside the room for the texts. */
 export const returnMarkGap = 0.75;
 
+export type ValueAxisSide = "left" | "right";
+
 /** A mark of the axis of returns: a line across the plot at the height of a value, and the text of the value, which ends before the left edge of the plot with its middle at that height. */
 export function ReturnMark({
   at,
@@ -12,12 +14,14 @@ export function ReturnMark({
   lineClassName,
   textClassName,
   textShift,
+  side = "left",
 }: {
   at: PlotFraction;
   text: string;
   lineClassName: string | undefined;
   textClassName: string | undefined;
   textShift?: string;
+  side?: ValueAxisSide;
 }): ReactNode {
   return (
     <g>
@@ -29,11 +33,11 @@ export function ReturnMark({
         className={lineClassName}
       />
       <text
-        x="0"
+        x={side === "left" ? "0" : "100%"}
         y={percentOf(at)}
-        dx={`${String(-returnMarkGap)}em`}
+        dx={`${String(side === "left" ? -returnMarkGap : returnMarkGap)}em`}
         dy="0.35em"
-        textAnchor="end"
+        textAnchor={side === "left" ? "end" : "start"}
         style={{ translate: textShift }}
         className={textClassName}
       >

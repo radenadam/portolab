@@ -14,11 +14,11 @@ import type { Range } from "./scale";
 /** How a line of a chart over time is drawn: the portfolio that the chart is about, which is the reader's own or the one that the reader opened, in the color of the reader's own point, and a line that it is compared with, such as the IHSG, in the muted ink, as decision 0028 sets. */
 export type LineKind = "own" | "reference";
 
-/** A line of a chart over time: the name that its legend, its tooltip, and its table show, how it is drawn, and its return at each point of the chart. */
-export interface TimeLine<Point> {
+/** A line of a chart over time: the name that its legend, its tooltip, and its table show, how it is drawn, and its value at each point of the chart. */
+export interface TimeLine<Point, Value extends number = CumulativeReturn> {
   name: string;
   kind: LineKind;
-  returnOf: (point: Point) => CumulativeReturn;
+  returnOf: (point: Point) => Value;
 }
 
 /** Where a text starts, has its middle, or ends, at its position. */
@@ -41,7 +41,7 @@ interface DateTick {
 
 /** Where a chart over time draws each of its parts in its plot. */
 export interface TimeChartLayout {
-  /** The marks of the axis of returns at round values, from the lowest. */
+  /** The marks of the value axis at round values, from the lowest. */
   returnTicks: ReturnTick[];
   /** The characters of the longest text of a mark of returns. DM Mono, the font of codes that decision 0028 sets for the labels of charts, draws each character equally wide, so the plot leaves this many widths of a character for the texts. */
   returnTextLength: number;
@@ -61,17 +61,37 @@ export function layoutTimeChart(
   dates: readonly string[],
   lines: readonly { kind: LineKind; returns: readonly CumulativeReturn[] }[],
 ): TimeChartLayout {
+  return layoutTimeSeries(dates, lines, {
+    unit: cumulativeReturn,
+    smallestStep: smallestPercentStep,
+    tickText: (value) => formatSignedPercent(value, "upToTwo").text,
+  });
+}
+
+/** Uses the unit and format of its caller so prices and returns share the same geometry without mixing their units. */
+export function layoutTimeSeries<Value extends number>(
+  dates: readonly string[],
+  lines: readonly { kind: LineKind; returns: readonly Value[] }[],
+  format: {
+    unit: (value: number) => Value;
+    smallestStep: number;
+    tickText: (value: Value) => string;
+    minimum?: Value;
+    dateText?: (date: string) => string;
+  },
+): TimeChartLayout {
   const range = paddedRange(
     lines.flatMap((line) => line.returns),
-    cumulativeReturn,
+    format.unit,
+    format.minimum,
   );
   const returnTicks = niceTicks(
     range,
-    { count: returnTickCount, smallestStep: smallestPercentStep },
-    cumulativeReturn,
+    { count: returnTickCount, smallestStep: format.smallestStep },
+    format.unit,
   ).map((value) => ({
     at: heightOf(range, value),
-    text: formatSignedPercent(value, "upToTwo").text,
+    text: format.tickText(value),
     isZero: value === 0,
   }));
   let returnTextLength = 0;
@@ -81,7 +101,7 @@ export function layoutTimeChart(
   return {
     returnTicks,
     returnTextLength,
-    dateTicks: dateTicksOf(dates),
+    dateTicks: dateTicksOf(dates, format.dateText),
     lines: lines.map(({ kind, returns }) => ({
       kind,
       positions: returns.map((value, index) => ({
@@ -92,9 +112,9 @@ export function layoutTimeChart(
   };
 }
 
-function heightOf(
-  range: Range<CumulativeReturn>,
-  value: CumulativeReturn,
+function heightOf<Value extends number>(
+  range: Range<Value>,
+  value: Value,
 ): PlotFraction {
   return plotFraction(1 - fractionOf(range, value));
 }
@@ -104,7 +124,10 @@ export function acrossOf(index: number, count: number): PlotFraction {
   return plotFraction(count <= 1 ? 1 : index / (count - 1));
 }
 
-function dateTicksOf(dates: readonly string[]): DateTick[] {
+function dateTicksOf(
+  dates: readonly string[],
+  dateText = (date: string) => formatCalendarDatePart(date, "dayAndMonth"),
+): DateTick[] {
   // Two marks can fall on one date of a short chart, and the date stays a major mark when either of them is major.
   const isMinorOf = new Map<number, boolean>();
   for (let mark = 0; mark < dateTickCount; mark += 1) {
@@ -121,7 +144,7 @@ function dateTicksOf(dates: readonly string[]): DateTick[] {
     return [
       {
         at,
-        text: formatCalendarDatePart(date, "dayAndMonth"),
+        text: dateText(date),
         anchor: anchorAt(at),
         isMinor,
       },

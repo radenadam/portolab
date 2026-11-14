@@ -85,7 +85,7 @@ const texts: Record<
       ],
       [
         "Alpha Jensen",
-        `${fall}-0,28%`,
+        `<span data-change="fall">${fall}-0,28%</span>`,
         "α<sub>i</sub> = E(R<sub>i</sub>) − k<sub>i</sub> = -0,10% − 0,18%",
       ],
     ],
@@ -101,7 +101,7 @@ const texts: Record<
       ],
       [
         "Alpha Jensen",
-        `${rise}+3,10%`,
+        `<span data-change="rise">${rise}+3,10%</span>`,
         "α<sub>i</sub> = E(R<sub>i</sub>) − k<sub>i</sub> = 2,82% − (-0,28%)",
       ],
     ],
@@ -176,7 +176,7 @@ const texts: Record<
       ],
       [
         "Jensen's alpha",
-        `${fall}-0.28%`,
+        `<span data-change="fall">${fall}-0.28%</span>`,
         "α<sub>i</sub> = E(R<sub>i</sub>) − k<sub>i</sub> = -0.10% − 0.18%",
       ],
     ],
@@ -192,7 +192,7 @@ const texts: Record<
       ],
       [
         "Jensen's alpha",
-        `${rise}+3.10%`,
+        `<span data-change="rise">${rise}+3.10%</span>`,
         "α<sub>i</sub> = E(R<sub>i</sub>) − k<sub>i</sub> = 2.82% − (-0.28%)",
       ],
     ],
