@@ -2,7 +2,7 @@ import { buildDailyHistory } from "../market-data/build-daily-history.ts";
 import type { DailyHistory } from "../market-data/price-source.server.ts";
 import { trackedInstruments } from "../market-data/tracked-instruments.ts";
 
-// The closes on the last trading day of each month from August 2021 to October 2026, as Yahoo Finance returned them on 1 November 2026, rounded to two decimals as the history job stores them. BBCA split each share into five on 13 October 2021, so its earlier closes are a fifth of the prices of that time. AMMN listed in July 2023 and AADI in December 2024, so their closes start later.
+// The closes on the last trading day of each month from August 2021 to October 2026, as Yahoo Finance returned them on 1 November 2026, and ERAA, GGRM, and PWON on 14 November 2026, rounded to two decimals as the history job stores them. BBCA split each share into five on 13 October 2021, so its earlier closes are a fifth of the prices of that time. AMMN listed in July 2023 and AADI in December 2024, so their closes start later.
 const recordedMonthEnds = [
   "2021-08-31",
   "2021-09-30",
@@ -133,11 +133,44 @@ const closesByCode = {
       6975, 7600, 9250, 11275, 11600, 8400, 7775, 9225, 10825, 10950, 11475,
     ],
   },
+  ERAA: {
+    from: "2021-08-31",
+    closes: [
+      605, 605, 650, 620, 600, 550, 555, 580, 525, 535, 525, 498, 488, 414, 430,
+      406, 392, 420, 515, 520, 496, 484, 476, 500, 486, 452, 400, 358, 426, 410,
+      474, 430, 404, 400, 378, 426, 422, 454, 450, 414, 404, 384, 364, 404, 464,
+      555, 530, 486, 440, 432, 424, 414, 408, 396, 440, 378, 410, 374, 350, 420,
+      494, 595, 482,
+    ],
+  },
+  GGRM: {
+    from: "2021-08-31",
+    closes: [
+      33075, 32550, 33500, 31400, 30600, 30625, 31400, 31600, 30700, 31500,
+      31175, 27850, 23725, 22925, 24100, 19950, 18000, 23000, 25000, 26000,
+      28450, 27000, 27625, 27925, 24050, 24600, 23275, 21125, 20325, 19700,
+      20325, 19900, 18225, 18700, 18100, 15750, 16375, 15900, 14075, 12825,
+      13275, 11250, 10550, 10200, 10025, 10000, 9150, 8825, 8525, 13975, 17300,
+      14900, 14000, 15650, 17300, 14100, 16000, 17000, 16250, 19000, 20800,
+      16825, 16400,
+    ],
+  },
+  PWON: {
+    from: "2021-08-31",
+    closes: [
+      458, 484, 500, 492, 464, 430, 458, 484, 560, 510, 472, 456, 484, 452, 438,
+      474, 456, 448, 462, 454, 486, 468, 488, 480, 450, 438, 400, 412, 454, 420,
+      406, 424, 402, 394, 366, 426, 476, 515, 478, 418, 398, 394, 376, 340, 382,
+      400, 374, 352, 372, 376, 368, 382, 338, 360, 366, 338, 316, 290, 240, 266,
+      280, 258, 282,
+    ],
+  },
 } satisfies Record<string, { from: string; closes: readonly number[] }>;
 
-/** The closes of an instrument on the last trading day of each month, oldest first, as the history store gives them. */
+/** The closes of an instrument on the last trading day of each month, oldest first, from a date when given, as the history store gives them. */
 export function monthEndClosesForTest(
   code: keyof typeof closesByCode,
+  fromDate?: string,
 ): DailyHistory {
   const { from, closes } = closesByCode[code];
   const dates = recordedMonthEnds.slice(recordedMonthEnds.indexOf(from));
@@ -147,7 +180,9 @@ export function monthEndClosesForTest(
     if (date === undefined) {
       throw new Error(`${code} has more closes than there are month ends.`);
     }
-    datedCloses.push([date, close]);
+    if (fromDate === undefined || date >= fromDate) {
+      datedCloses.push([date, close]);
+    }
   }
   // The kind of an instrument comes from the instruments that Portolab tracks, so a new index never passes for a stock.
   const instrument = trackedInstruments.find(

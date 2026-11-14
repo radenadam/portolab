@@ -30,6 +30,7 @@
   "market_data_consumer_cyclicals_sector_name": "Consumer Cyclicals",
   "market_data_healthcare_sector_name": "Healthcare",
   "market_data_financials_sector_name": "Financials",
+  "market_data_properties_and_real_estate_sector_name": "Properties & Real Estate",
   "market_data_technology_sector_name": "Technology",
   "market_data_infrastructures_sector_name": "Infrastructures",
   "market_data_update_failed_notice": "Portolab could not update the prices at {time} WIB, so it uses the last prices that it stored.",

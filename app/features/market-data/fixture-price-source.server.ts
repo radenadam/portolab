@@ -5,7 +5,8 @@ import { stockQuote } from "./stock-quote";
 import type { PriceSource, Quote } from "./price-source.server";
 import { yahooFinance } from "./yahoo-price-source.server";
 
-// The closing quotes of 30 October 2026, as Yahoo Finance returned them on 31 October and 1 November 2026, with three exceptions. BMRI keeps its quote of 29 October, as Yahoo does for a stock that did not trade, so the tests see a row from an earlier day. GOTO has a previous close of 18 instead of 23, so the tests see a change with two digits before the decimal point. UNVR and WIFI are left out, as Yahoo leaves out a stock now and then, so every update lacks them, and left-out-quotes-for-test.ts keeps their quotes. The browser tests store the quote of UNVR before the server starts, so they see a price that the latest update missed in UNVR and a stock without any price in WIFI.
+// The closing quotes of the first recorded period on 30 October 2026, as Yahoo Finance returned them on 31 October and 1 November 2026, with three exceptions. BMRI keeps its quote of 29 October, as Yahoo does for a stock that did not trade, so the tests see a row from an earlier day. GOTO has a previous close of 18 instead of 23, so the tests see a change with two digits before the decimal point. UNVR and WIFI are left out, as Yahoo leaves out a stock now and then, so every update lacks them, and left-out-quotes-for-test.ts keeps their quotes. The browser tests store the quote of UNVR before the server starts, so they see a price that the latest update missed in UNVR and a stock without any price in WIFI.
+// ERAA, GGRM, and PWON joined the fixture after those quotes could be recorded, so they replay the daily closes that fixture-history.ts records, at 16:00 WIB.
 const fixtureQuotes: Quote[] = [
   {
     kind: "index",
@@ -33,8 +34,10 @@ const fixtureQuotes: Quote[] = [
   stockQuote("DEWA", [214, 226], "2026-10-30T09:14:45.000Z"),
   stockQuote("ELSA", [625, 620], "2026-10-30T09:13:43.000Z"),
   stockQuote("EMTK", [296, 304], "2026-10-30T09:12:41.000Z"),
+  stockQuote("ERAA", [482, 515], "2026-10-30T09:00:00.000Z"),
   stockQuote("ESSA", [500, 505], "2026-10-30T09:13:28.000Z"),
   stockQuote("EXCL", [1720, 1625], "2026-10-30T09:14:17.000Z"),
+  stockQuote("GGRM", [16400, 16025], "2026-10-30T09:00:00.000Z"),
   stockQuote("GOTO", [24, 18], "2026-10-30T09:14:45.000Z"),
   stockQuote("HRTA", [1430, 1510], "2026-10-30T09:14:04.000Z"),
   stockQuote("ICBP", [5475, 5575], "2026-10-30T09:12:49.000Z"),
@@ -54,12 +57,13 @@ const fixtureQuotes: Quote[] = [
   stockQuote("PGAS", [1320, 1215], "2026-10-30T09:14:52.000Z"),
   stockQuote("PGEO", [905, 960], "2026-10-30T09:13:54.000Z"),
   stockQuote("PTBA", [3240, 3060], "2026-10-30T09:14:32.000Z"),
+  stockQuote("PWON", [282, 286], "2026-10-30T09:00:00.000Z"),
   stockQuote("SMGR", [1335, 1365], "2026-10-30T09:13:07.000Z"),
   stockQuote("TLKM", [1980, 1980], "2026-10-30T09:14:51.000Z"),
   stockQuote("UNTR", [24200, 24550], "2026-10-30T09:03:16.000Z"),
 ];
 
-// The quotes and closes are answers of Yahoo Finance, so the source describes itself as Yahoo Finance.
+// The recorded prices come from Yahoo Finance, so the source describes itself as Yahoo Finance.
 export const fixturePriceSource: PriceSource = {
   ...yahooFinance,
   fetchQuotes(instruments) {

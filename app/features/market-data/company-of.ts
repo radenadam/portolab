@@ -9,6 +9,7 @@ export type Sector =
   | "consumerCyclicals"
   | "healthcare"
   | "financials"
+  | "propertiesAndRealEstate"
   | "technology"
   | "infrastructures";
 
@@ -21,7 +22,7 @@ interface Company {
   source: string;
 }
 
-// Decision 0034 explains why the records of 14 November 2026 come from copies of what IDX publishes.
+// Decision 0034 explains why the companies of the first recorded period use copies of what IDX publishes.
 const readOn14November2026 =
   "The name from the list of stocks that IDX publishes, as the project NeaByteLab/IDX-API saved it on GitHub on 20 February 2026, and as lembarsaham.com writes it where that list cuts it at 30 characters. The sector of IDX-IC from the profile of the company on lembarsaham.com on 14 November 2026.";
 
@@ -121,6 +122,12 @@ const companies: Record<TrackedStockCode, Company> = {
     sector: "technology",
     source: readOn14November2026,
   },
+  ERAA: {
+    name: "Erajaya Swasembada Tbk",
+    sector: "consumerCyclicals",
+    source:
+      "The name and the IDX-IC sector from https://www.idx.id/primary/ListedCompany/GetCompanyProfilesDetail?KodeEmiten=ERAA&language=id-id on 14 November 2026, checked against https://lembarsaham.com/fundamental-saham/emiten/ERAA.",
+  },
   ESSA: {
     name: "ESSA Industries Indonesia Tbk",
     sector: "basicMaterials",
@@ -130,6 +137,12 @@ const companies: Record<TrackedStockCode, Company> = {
     name: "XLSMART Telecom Sejahtera Tbk",
     sector: "infrastructures",
     source: readOn14November2026,
+  },
+  GGRM: {
+    name: "Gudang Garam Tbk",
+    sector: "consumerNonCyclicals",
+    source:
+      "The name and the IDX-IC sector from https://www.idx.id/primary/ListedCompany/GetCompanyProfilesDetail?KodeEmiten=GGRM&language=id-id on 14 November 2026, checked against https://lembarsaham.com/fundamental-saham/emiten/GGRM.",
   },
   GOTO: {
     name: "GoTo Gojek Tokopedia Tbk",
@@ -225,6 +238,12 @@ const companies: Record<TrackedStockCode, Company> = {
     name: "Bukit Asam Tbk",
     sector: "energy",
     source: readOn14November2026,
+  },
+  PWON: {
+    name: "Pakuwon Jati Tbk",
+    sector: "propertiesAndRealEstate",
+    source:
+      "The name and the IDX-IC sector from https://www.idx.id/primary/ListedCompany/GetCompanyProfilesDetail?KodeEmiten=PWON&language=id-id on 14 November 2026, checked against https://lembarsaham.com/fundamental-saham/emiten/PWON. The sector names agree with https://www.idx.co.id/id/produk/indeks and https://www.idx.id/en/products/index/.",
   },
   SMGR: {
     name: "Semen Indonesia (Persero) Tbk",

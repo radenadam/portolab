@@ -12,11 +12,11 @@ interface UniversePeriod extends DatePeriod {
   codes: readonly string[];
 }
 
-// IDX reviews the LQ45 every three months, so each period is data with the first and the last trading day that IDX announced for it.
+// IDX can revise a quarterly list through an incidental review, so a period ends before the next review takes effect.
 const universePeriods = [
   {
     from: "2026-11-02",
-    until: "2027-01-29",
+    until: "2026-11-17",
     source:
       "Peng-00204/BEI.POP/10-2026 of 26 October 2026, as Kontan reported it, and Peng-00205/BEI.POP/10-2026 of 27 October 2026, which revised it, as IDX Channel reported it",
     codes: [
@@ -60,6 +60,59 @@ const universePeriods = [
       "PGAS",
       "PGEO",
       "PTBA",
+      "SMGR",
+      "TLKM",
+      "UNTR",
+      "UNVR",
+      "WIFI",
+    ],
+  },
+  {
+    from: "2026-11-18",
+    until: "2027-01-29",
+    source:
+      "Peng-00218/BEI.POP/11-2026 of 11 November 2026, announcement and Appendix 1 read at https://www.idx.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/Exchange/No.%20Peng-00218_BEI.POP_11-2026-ID.zip on 14 November 2026. Reports: https://investasi.kontan.co.id/news/masuk-hsc-3-saham-dikeluarkan-dari-indeks-lq45-berlaku-18-nov-2026-cek-daftarnya (read through https://id.tradingview.com/news/kontan%3Aa3fcb30d987ea%3A0/) and https://www.liputan6.com/saham/read/8333491/bei-ubah-penghuni-saham-lq45-intip-daftar-terbaru. The 45 codes agree with Appendix 1, Liputan6, and the previous period after the three announced replacements. Kontan's list writes ERRA for ERAA, dates its heading 2025, and has CUAN instead of ELSA. Appendix 1 confirms ERAA, 2026, and ELSA.",
+    codes: [
+      "AADI",
+      "ADMR",
+      "ADRO",
+      "AKRA",
+      "AMMN",
+      "AMRT",
+      "ANTM",
+      "ASII",
+      "BBCA",
+      "BBNI",
+      "BBRI",
+      "BBTN",
+      "BMRI",
+      "BRPT",
+      "BUMI",
+      "CPIN",
+      "DEWA",
+      "ELSA",
+      "EMTK",
+      "ERAA",
+      "ESSA",
+      "EXCL",
+      "GGRM",
+      "GOTO",
+      "HRTA",
+      "ICBP",
+      "INCO",
+      "INDF",
+      "INDY",
+      "INKP",
+      "ISAT",
+      "ITMG",
+      "JPFA",
+      "KLBF",
+      "MBMA",
+      "MDKA",
+      "MEDC",
+      "PGAS",
+      "PTBA",
+      "PWON",
       "SMGR",
       "TLKM",
       "UNTR",
