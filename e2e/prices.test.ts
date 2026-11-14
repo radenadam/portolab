@@ -8,6 +8,7 @@ import { trackedInstruments } from "../app/features/market-data/tracked-instrume
 import { chooseLanguage } from "./choose-language.ts";
 
 // The server runs with the fixture price source, and fixture-price-source.server.ts describes its quotes. ITMG has the highest price of the universe, the quotes of GOTO and BMRI hold the widest change and a date from an earlier day, and the table names the company of every stock with a price, so it holds the widest content of each column. Every update lacks UNVR, whose quote the global setup stored before the server started, and WIFI, of which Portolab has no price. The notice of those prices is a tuple of its parts around the time of the latest update, and the time of the next attempt depends on the moment of the test.
+// The expected changes of ERAA, GGRM, and PWON were computed from the fixture closes with Python's decimal module and ROUND_HALF_UP, so they check the rounded signs independently.
 
 const texts: Record<
   Locale,
@@ -22,6 +23,9 @@ const texts: Record<
     bmri: readonly string[];
     goto: readonly string[];
     itmg: readonly string[];
+    eraa: readonly string[];
+    ggrm: readonly string[];
+    pwon: readonly string[];
   }
 > = {
   id: {
@@ -61,6 +65,30 @@ const texts: Record<
       "+1,22%",
       "16.10",
     ],
+    eraa: [
+      "Erajaya Swasembada Tbk",
+      "Barang Konsumen Non-Primer",
+      "482",
+      "▼",
+      "-6,41%",
+      "16.00",
+    ],
+    ggrm: [
+      "Gudang Garam Tbk",
+      "Barang Konsumen Primer",
+      "16.400",
+      "▲",
+      "+2,34%",
+      "16.00",
+    ],
+    pwon: [
+      "Pakuwon Jati Tbk",
+      "Properti & Real Estat",
+      "282",
+      "▼",
+      "-1,40%",
+      "16.00",
+    ],
   },
   en: {
     title: "Stock prices",
@@ -99,6 +127,30 @@ const texts: Record<
       "+1.22%",
       "4:10 PM",
     ],
+    eraa: [
+      "Erajaya Swasembada Tbk",
+      "Consumer Cyclicals",
+      "IDR 482",
+      "▼",
+      "-6.41%",
+      "4:00 PM",
+    ],
+    ggrm: [
+      "Gudang Garam Tbk",
+      "Consumer Non-Cyclicals",
+      "IDR 16,400",
+      "▲",
+      "+2.34%",
+      "4:00 PM",
+    ],
+    pwon: [
+      "Pakuwon Jati Tbk",
+      "Properties & Real Estate",
+      "IDR 282",
+      "▼",
+      "-1.40%",
+      "4:00 PM",
+    ],
   },
 };
 
@@ -132,6 +184,9 @@ for (const locale of locales) {
       ["BMRI", text.bmri],
       ["GOTO", text.goto],
       ["ITMG", text.itmg],
+      ["ERAA", text.eraa],
+      ["GGRM", text.ggrm],
+      ["PWON", text.pwon],
     ] as const) {
       await expectTexts(
         page.getByRole("row", { name: new RegExp(code) }),

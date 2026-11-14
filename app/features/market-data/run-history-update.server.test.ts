@@ -1,15 +1,31 @@
 import { afterEach, expect, test, vi } from "vitest";
 import type { Database } from "~/database/database.server";
 import { openDatabaseForTest } from "~/database/open-database-for-test.server";
+import { checkBuyable } from "~/features/trading/check-buyable";
+import { countReturns } from "~/features/measures/aligned-returns";
+import {
+  defaultEstimationSettings,
+  earliestCloseDate,
+} from "~/features/measures/estimation-settings";
+import { monthEndClosesForTest } from "~/features/measures/month-end-closes-for-test";
 import { fail, succeed } from "~/result";
+import { successValueForTest } from "~/success-value-for-test";
 import { writeLog } from "~/write-log.server";
 import { buildDailyHistory } from "./build-daily-history";
 import { fixturePriceSource } from "./fixture-price-source.server";
-import { withClosesForTest } from "./history-for-test";
+import {
+  indexHistoryForTest,
+  stockHistoryForTest,
+  withClosesForTest,
+} from "./history-for-test";
 import { listDailyHistory } from "./history-store.server";
 import type { Instrument, PriceSource } from "./price-source.server";
 import { runHistoryUpdate } from "./run-history-update.server";
-import { trackedInstruments } from "./tracked-instruments";
+import {
+  marketIndex,
+  trackedInstruments,
+  universeOn,
+} from "./tracked-instruments";
 import { readLatestUpdateAttempt } from "./update-attempts.server";
 import type { UpdateAttempt } from "./update-attempts.server";
 
@@ -101,6 +117,7 @@ async function updateHistory(
   options: {
     at: Date | readonly Date[];
     instrumentsToTrack?: readonly Instrument[];
+    from?: string;
     requestSignal?: () => AbortSignal;
   },
 ): Promise<{ waits: number }> {
@@ -115,7 +132,7 @@ async function updateHistory(
       database,
       priceSource,
       instruments: options.instrumentsToTrack ?? instruments,
-      historyStartDate,
+      historyStartDate: options.from ?? historyStartDate,
     },
     () => moments.shift() ?? lastMoment,
     {
@@ -166,6 +183,107 @@ test("gets an answer from the fixture source for every tracked instrument", asyn
     at: mondayMorning,
     instrumentsToTrack: trackedInstruments,
   });
+  expect(readLatestUpdateAttempt(database, "history")?.failedCodes).toEqual([]);
+});
+
+test("backfills the whole history of the added LQ45 members between closes, and keeps the histories of former members", async () => {
+  const database = openDatabaseForTest();
+  const oldCodes = successValueForTest(
+    universeOn("2026-11-17"),
+    "The previous period is recorded",
+  );
+  const oldInstruments: Instrument[] = [
+    marketIndex,
+    ...oldCodes.map((code): Instrument => ({ kind: "stock", code })),
+  ];
+  const from = earliestCloseDate(defaultEstimationSettings, "2026-11-02");
+  await updateHistory(database, fixturePriceSource, {
+    at: mondayMorning,
+    instrumentsToTrack: oldInstruments,
+    from,
+  });
+  expect(readLatestUpdateAttempt(database, "history")?.failedCodes).toEqual([]);
+  const marketCloses = indexHistoryForTest(monthEndClosesForTest("IHSG"));
+  const addedCodes = ["ERAA", "GGRM", "PWON"] as const;
+  for (const code of addedCodes) {
+    const closes = stockHistoryForTest(
+      listDailyHistory(database, { kind: "stock", code }),
+    );
+    expect(closes.closes).toEqual([]);
+    expect(checkBuyable(code, "2026-11-18", { closes, marketCloses })).toEqual({
+      ok: false,
+      failure: { kind: "noPriceHistory", code, instrument: code },
+    });
+  }
+  const { source, requests } = recordingSource({
+    ...fixturePriceSource,
+    fetchDailyHistory: (instrument, from) => {
+      switch (instrument.code) {
+        case "ERAA":
+        case "GGRM":
+        case "PWON":
+          return Promise.resolve(
+            succeed(monthEndClosesForTest(instrument.code, from)),
+          );
+        default:
+          throw new Error(
+            `The retry must fetch only added members, but requested ${instrument.code}.`,
+          );
+      }
+    },
+  });
+  await updateHistory(database, source, {
+    at: new Date("2026-11-02T04:00:00Z"),
+    instrumentsToTrack: trackedInstruments,
+    from,
+  });
+  expect(requests).toEqual(addedCodes.map((code) => ({ code, from })));
+  for (const code of addedCodes) {
+    const closes = stockHistoryForTest(
+      listDailyHistory(database, { kind: "stock", code }),
+    );
+    const stock = { closes, marketCloses };
+    expect(closes).toEqual(monthEndClosesForTest(code, from));
+    expect(
+      countReturns([closes], marketCloses, defaultEstimationSettings),
+    ).toMatchObject({ count: 60, minimum: 24 });
+    expect(checkBuyable(code, "2026-11-17", stock)).toEqual({
+      ok: false,
+      failure: { kind: "outsideUniverse", code, date: "2026-11-17" },
+    });
+    expect(checkBuyable(code, "2026-11-18", stock)).toEqual({
+      ok: true,
+      value: undefined,
+    });
+    for (const count of [23, 24]) {
+      // October has no later market close yet, so these returns need two more closes than their count.
+      const limitedCloses = {
+        ...closes,
+        closes: closes.closes.slice(-(count + 2)),
+      };
+      expect(
+        countReturns([limitedCloses], marketCloses, defaultEstimationSettings)
+          .count,
+      ).toBe(count);
+      const result = checkBuyable(code, "2026-11-18", {
+        ...stock,
+        closes: limitedCloses,
+      });
+      if (count === 24) {
+        expect(result).toEqual({ ok: true, value: undefined });
+      } else {
+        expect(result).toMatchObject({
+          ok: false,
+          failure: { kind: "tooFewReturns", count, minimum: 24 },
+        });
+      }
+    }
+  }
+  for (const code of ["MAPI", "NCKL", "PGEO"]) {
+    expect(
+      listDailyHistory(database, { kind: "stock", code }).closes,
+    ).toHaveLength(5);
+  }
   expect(readLatestUpdateAttempt(database, "history")?.failedCodes).toEqual([]);
 });
 

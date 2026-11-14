@@ -29,6 +29,7 @@
   "market_data_consumer_cyclicals_sector_name": "Barang Konsumen Non-Primer",
   "market_data_healthcare_sector_name": "Kesehatan",
   "market_data_financials_sector_name": "Keuangan",
+  "market_data_properties_and_real_estate_sector_name": "Properti & Real Estat",
   "market_data_technology_sector_name": "Teknologi",
   "market_data_infrastructures_sector_name": "Infrastruktur",
   "market_data_update_failed_notice": "Portolab tidak dapat memperbarui harga pada {time} WIB, jadi Portolab memakai harga terakhir yang tersimpan.",
