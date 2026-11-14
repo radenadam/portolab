@@ -1,13 +1,13 @@
 import type { ReactNode } from "react";
 import chipStyles from "~/chip.module.css";
-import { formatMinutes, formatNumber } from "~/formatting";
+import { ConceptLesson } from "~/features/learning/concept-lesson";
+import { formatMinutes } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { Popover, PopoverButton } from "~/popover";
 import type { SimulationBadgeData } from "./read-simulation-badge.server";
 import styles from "./simulation-badge.module.css";
 
 const cardId = "simulation-card";
-const simulationSession = 6;
 
 /** The badge of the top bar that labels every result as a simulation and says that prices are delayed, as decision 0028 sets. It opens a card that explains both, gives the time of the latest price, and names the prices that the latest update missed. A page without the data of the frame, such as the page of a form that another site sent, shows the label of the simulation alone. */
 export function SimulationBadge({
@@ -48,9 +48,7 @@ export function SimulationBadge({
             <p key={paragraph}>{paragraph}</p>
           ))}
           <p>
-            {m.app_concept_lesson_notice({
-              session: formatNumber(simulationSession),
-            })}
+            <ConceptLesson termId="harga-tertunda" />
           </p>
         </div>
       </Popover>

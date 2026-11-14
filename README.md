@@ -62,6 +62,19 @@ Portolab reads these environment variables when it starts, and it names every wr
 
 [`CONTRIBUTING.md`](CONTRIBUTING.md) explains how to propose a change.
 
+Run `pnpm check` to run every check that CI runs. To run checks at the same time, use a separate worktree for each run and give each a different `PORTOLAB_CHECK_SLOT` from `0` to `99`:
+
+```sh
+# In the first worktree
+PORTOLAB_CHECK_SLOT=1 pnpm check
+# In the second worktree
+PORTOLAB_CHECK_SLOT=2 pnpm check
+```
+
+In PowerShell, set `$env:PORTOLAB_CHECK_SLOT = '1'` before `pnpm.cmd check`, and use `'2'` in the other worktree. Without the variable, or with `0`, the ports stay unchanged. Each slot selects the ports of the browser tests, the dev server check, and Vite's WebSocket server. Nonzero slots also limit test workers so the runs can share the computer. A wrong value stops the check with the reason. Build output, generated code, caches, and Playwright output stay in each worktree. The browser tests create their database in a unique temporary folder and remove it after the server stops, and the dev server check uses a database in memory.
+
+The slot is only a setting of the check tools. The dev server check passes its WebSocket port through the server's `--hot-reload-port` option, so the server validates it with its other startup inputs.
+
 ## License
 
 [MIT](LICENSE)

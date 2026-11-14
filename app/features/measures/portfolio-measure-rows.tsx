@@ -30,7 +30,6 @@ export function portfolioMeasureRows(
   ];
 }
 
-/** The rows of the Sharpe ratio and the Treynor ratio of a portfolio, each with its formula and its inputs, and for a ratio that the portfolio does not have, the reason in place of its value. */
 function ratioRows(portfolio: PortfolioSummary): MeasureRow[] {
   const excessReturn = {
     expectedReturn: portfolio.expectedReturn,

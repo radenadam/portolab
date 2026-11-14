@@ -7,12 +7,12 @@ export default {
     "server/account.ts!",
     "scripts/{check-dev-server,check-messages,check-migrations,check-punctuation,check-workflows,measure-agent-run,plan-deployment-test,plan-review,post-review,print-dependabot-subject,print-schema,read-agent-tools,run-deployment-guide,save-findings,write-review-files}.ts!",
     "project.inlang/paraglide.config.ts",
+    // The check configurations load this boundary, but production mode omits them.
+    "scripts/read-check-settings.ts!",
     // The order ticket and the page of a stock of issue #127 call measureTrade, with HeldStock, ConsideredTrade, and TradeImpact, once they show what a trade does to the portfolio.
     "app/features/measures/measure-trade.ts!",
     // The list of the market and the holdings of the home of a student of issue #127 call Sparkline, once they show the closes of the last month of each stock.
     "app/charts/sparkline.tsx!",
-    // The lessons and glossary of issue #127 call readLearningContent when piece 22 adds their pages.
-    "app/features/learning/read-learning-content.server.ts!",
   ],
   // Helpers of tests, browser tests, and lint rules are not production code, so the production run leaves them out.
   project: [

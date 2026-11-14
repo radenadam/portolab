@@ -1,5 +1,7 @@
 import { expect, test } from "vitest";
+import { conceptCardBodiesForTest } from "~/concept-card-markup-for-test";
 import type { ClassId } from "~/features/classes/classes.schema";
+import { conceptLessonDataForTest } from "~/features/learning/concept-lesson-data-for-test";
 import { languageNames } from "~/language-names";
 import { markupTextForTest } from "~/markup-text-for-test";
 import { locales } from "~/paraglide/runtime.js";
@@ -32,6 +34,7 @@ interface CardText {
   meaning: string;
   value: string;
   session: number;
+  monthly: boolean;
 }
 
 const texts: Record<
@@ -62,6 +65,7 @@ const texts: Record<
           "Portolab memakai rata-rata imbal hasil bulanan yang lalu sebagai perkiraan imbal hasil ke depan.",
         value: "-0,22%",
         session: 10,
+        monthly: true,
       },
       {
         title: "Simpangan baku",
@@ -69,6 +73,7 @@ const texts: Record<
           "Simpangan baku mengukur seberapa jauh imbal hasil bulanan menyimpang dari rata-ratanya.",
         value: "4,07%",
         session: 10,
+        monthly: true,
       },
       {
         title: "Beta terhadap IHSG",
@@ -76,6 +81,7 @@ const texts: Record<
           "Beta mengukur seberapa kuat imbal hasil bergerak mengikuti IHSG.",
         value: "0,62",
         session: 9,
+        monthly: false,
       },
       {
         title: "Rasio Sharpe",
@@ -83,6 +89,7 @@ const texts: Record<
           "Rasio Sharpe membagi imbal hasil di atas tingkat bebas risiko dengan simpangan baku portofolio.",
         value: "-0,17",
         session: 10,
+        monthly: false,
       },
       {
         title: "Rasio Treynor",
@@ -90,6 +97,7 @@ const texts: Record<
           "Rasio Treynor membagi imbal hasil di atas tingkat bebas risiko dengan beta portofolio.",
         value: "-1,12%",
         session: 10,
+        monthly: true,
       },
       {
         title: "Alpha Jensen",
@@ -97,13 +105,15 @@ const texts: Record<
           "Alpha Jensen adalah selisih imbal hasil yang diharapkan dengan imbal hasil yang disyaratkan CAPM untuk beta yang sama.",
         value: "-0,43%",
         session: 9,
+        monthly: true,
       },
       {
         title: "Imbal hasil yang diharapkan IHSG",
         meaning:
-          "Indeks Harga Saham Gabungan mengukur pergerakan saham di BEI, dan Portolab memakainya sebagai portofolio pasar.",
+          "IHSG mengukur pergerakan saham di BEI, dan Portolab memakainya sebagai portofolio pasar.",
         value: "0,05%",
         session: 4,
+        monthly: true,
       },
       {
         title: "Suku bunga bebas risiko",
@@ -111,6 +121,7 @@ const texts: Record<
           "Portolab memakai BI-Rate sebagai tingkat bebas risiko dan mengubahnya menjadi tingkat per bulan.",
         value: "0,48%",
         session: 9,
+        monthly: true,
       },
     ],
     stockValues: [
@@ -137,6 +148,7 @@ const texts: Record<
           "Portolab uses the average past monthly return as an estimate of future returns.",
         value: "-0.22%",
         session: 10,
+        monthly: true,
       },
       {
         title: "Standard deviation",
@@ -144,12 +156,14 @@ const texts: Record<
           "Standard deviation measures how far monthly returns vary from their average.",
         value: "4.07%",
         session: 10,
+        monthly: true,
       },
       {
         title: "Beta against the IHSG",
         meaning: "Beta measures how strongly returns move with the IHSG.",
         value: "0.62",
         session: 9,
+        monthly: false,
       },
       {
         title: "Sharpe ratio",
@@ -157,6 +171,7 @@ const texts: Record<
           "The Sharpe ratio divides the return above the risk-free rate by the standard deviation of the portfolio.",
         value: "-0.17",
         session: 10,
+        monthly: false,
       },
       {
         title: "Treynor ratio",
@@ -164,6 +179,7 @@ const texts: Record<
           "The Treynor ratio divides the return above the risk-free rate by the beta of the portfolio.",
         value: "-1.12%",
         session: 10,
+        monthly: true,
       },
       {
         title: "Jensen's alpha",
@@ -171,13 +187,15 @@ const texts: Record<
           "Jensen's alpha is the difference between the expected return and the return that CAPM requires for the same beta.",
         value: "-0.43%",
         session: 9,
+        monthly: true,
       },
       {
         title: "Expected return of the IHSG",
         meaning:
-          "The Indonesia Composite Index measures stock movements on IDX, and Portolab uses it as the market portfolio.",
+          "The IHSG measures stock movements on IDX, and Portolab uses it as the market portfolio.",
         value: "0.05%",
         session: 4,
+        monthly: true,
       },
       {
         title: "Risk-free rate",
@@ -185,6 +203,7 @@ const texts: Record<
           "Portolab uses the BI-Rate as the risk-free rate and converts it to a monthly rate.",
         value: "0.48%",
         session: 9,
+        monthly: true,
       },
     ],
     stockValues: [
@@ -198,13 +217,6 @@ const texts: Record<
       "The returns of the portfolio are the same in every month, so its variance and its standard deviation are zero, and a measure that divides by them has no value. Portolab computes such a measure once an order fills or an update of the price history gives the portfolio returns that differ from month to month.",
   },
 };
-
-function cardBodies(markup: string): string[] {
-  return Array.from(
-    markup.matchAll(/<article[^>]*>([\s\S]*?)<\/article>/g),
-    (match) => match[1] ?? "",
-  );
-}
 
 function cardBody(cards: readonly string[], title: string): string | undefined {
   return cards.find((body) =>
@@ -233,8 +245,9 @@ for (const locale of locales) {
         <MeasureList rows={portfolioMeasureRows(portfolio, reader)} />
         <MarketSection market={portfolio.market} />
       </>,
+      conceptLessonDataForTest(),
     );
-    const cards = cardBodies(html);
+    const cards = conceptCardBodiesForTest(html);
     expect(cards).toHaveLength(9);
     for (const card of text.cards) {
       const contents = cardBody(cards, card.title);
@@ -242,6 +255,7 @@ for (const locale of locales) {
       expect(contents).toContain(`<p>${markupTextForTest(card.meaning)}</p>`);
       expect(contents).toContain(`<p>${text.example}</p>`);
       expect(contents).toContain(card.value);
+      expect(contents?.includes(`<p>${text.monthly}</p>`)).toBe(card.monthly);
       expect(contents).toContain(
         `<details><summary>${text.calculation}</summary>`,
       );
@@ -265,8 +279,9 @@ for (const locale of locales) {
         code="BBCA"
         measures={readStockMeasures(databaseWithClosesForTest(), "BBCA")}
       />,
+      conceptLessonDataForTest(),
     );
-    const cards = cardBodies(html);
+    const cards = conceptCardBodiesForTest(html);
     for (const [title, value] of text.stockValues) {
       expect(cardBody(cards, title)).toContain(value);
     }
@@ -293,8 +308,11 @@ for (const locale of locales) {
     if (row === undefined) {
       throw new Error("The portfolio has a Treynor row.");
     }
-    const html = renderMarkupForTest(<MeasureList rows={[row]} />);
-    const card = cardBodies(html)[0];
+    const html = renderMarkupForTest(
+      <MeasureList rows={[row]} />,
+      conceptLessonDataForTest(),
+    );
+    const card = conceptCardBodiesForTest(html)[0];
     expect(card).toContain(
       `<p>${markupTextForTest(negativeTreynorTextForTest[locale])}</p>`,
     );
@@ -316,8 +334,11 @@ for (const locale of locales) {
       (row) => row.concept === "sharpe",
     );
     expect(rows).toHaveLength(1);
-    const card = cardBodies(
-      renderMarkupForTest(<MeasureList rows={rows} />),
+    const card = conceptCardBodiesForTest(
+      renderMarkupForTest(
+        <MeasureList rows={rows} />,
+        conceptLessonDataForTest(),
+      ),
     )[0];
     expect(card).toContain(`<p>${text.noSharpe}</p>`);
   });

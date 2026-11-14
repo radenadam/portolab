@@ -462,7 +462,7 @@
   "measures_treynor_concept_body": "Rasio Treynor membagi imbal hasil di atas tingkat bebas risiko dengan beta portofolio.",
   "measures_alpha_concept_body": "Alpha Jensen adalah selisih imbal hasil yang diharapkan dengan imbal hasil yang disyaratkan CAPM untuk beta yang sama.",
   "measures_risk_free_concept_body": "Portolab memakai BI-Rate sebagai tingkat bebas risiko dan mengubahnya menjadi tingkat per bulan.",
-  "measures_market_concept_body": "Indeks Harga Saham Gabungan mengukur pergerakan saham di BEI, dan Portolab memakainya sebagai portofolio pasar.",
+  "measures_market_concept_body": "{index} mengukur pergerakan saham di BEI, dan Portolab memakainya sebagai portofolio pasar.",
   "measures_monthly_concept_notice": "Nilai ini per bulan.",
   "grading_page_title": "Portofolio mahasiswa di {class}",
   "grading_back_link": "Kembali ke {class}",

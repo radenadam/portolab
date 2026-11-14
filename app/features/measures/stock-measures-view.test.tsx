@@ -1,4 +1,5 @@
-import { withoutConceptCardsForTest } from "~/without-concept-cards-for-test";
+import { conceptLessonDataForTest } from "~/features/learning/concept-lesson-data-for-test";
+import { withoutConceptCardsForTest } from "~/concept-card-markup-for-test";
 import { renderInRouterForTest } from "~/render-in-router-for-test";
 import { expect, test } from "vitest";
 import { languageNames } from "~/language-names";
@@ -19,6 +20,7 @@ function render(code: string): string {
         code={code}
         measures={readStockMeasures(databaseWithClosesForTest(), code)}
       />,
+      conceptLessonDataForTest(),
     ),
   ).replaceAll(/ class="[^"]*"/g, "");
 }

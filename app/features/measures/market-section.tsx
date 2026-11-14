@@ -35,6 +35,7 @@ export function MarketSection({
             concept: "market",
             inputs: (
               <ReturnTables
+                showHeading={false}
                 instruments={[{ code: index, returns: market.returns }]}
               />
             ),

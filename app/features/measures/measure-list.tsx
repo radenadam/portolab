@@ -2,6 +2,7 @@ import { Fragment } from "react";
 import type { ReactNode } from "react";
 import { ChangeText } from "~/change-text";
 import { ConceptCard } from "~/concept-card";
+import { ConceptLesson } from "~/features/learning/concept-lesson";
 import definitionStyles from "~/definition-list.module.css";
 import type { ChangeDirection } from "~/formatting";
 import { formatPercent, formatSignedPercent } from "~/formatting";
@@ -50,20 +51,23 @@ export function MeasureList({
 
 /** The summary and the full list share a label so their help cannot differ. */
 export function MeasureLabel({ row }: { row: MeasureRow }): ReactNode {
+  const concept =
+    row.concept === undefined ? undefined : measureConcept(row.concept);
   return (
     <>
       {row.label}
-      {row.concept !== undefined && (
+      {concept !== undefined && (
         <ConceptCard
           title={row.label}
-          {...measureConcept(row.concept)}
+          meaning={concept.meaning}
+          lesson={<ConceptLesson termId={concept.termId} />}
           example={
             row.example ?? (
               <>
                 <p>
                   <strong>{row.value}</strong>
                 </p>
-                {row.concept !== "beta" && row.concept !== "sharpe" && (
+                {concept.monthly && (
                   <p>{m.measures_monthly_concept_notice()}</p>
                 )}
               </>

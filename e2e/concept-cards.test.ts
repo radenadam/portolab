@@ -75,7 +75,7 @@ async function openCalculation(
   card: Locator,
   locale: Locale,
 ): Promise<Locator> {
-  const calculation = card.locator("article > details");
+  const calculation = card.locator(":scope > div > details");
   if ((await calculation.getAttribute("open")) === null) {
     await calculation
       .getByText(texts[locale].calculation, { exact: true })
@@ -86,7 +86,7 @@ async function openCalculation(
 }
 
 async function expectBetaCalculation(card: Locator): Promise<void> {
-  const formula = card.locator("article > details > div > p");
+  const formula = card.locator(":scope > div > details > div > p");
   await expect(formula).toHaveText("βp = Σ wi βi (SUMPRODUCT)");
   const lines = await formula.evaluate(
     (element) =>
@@ -136,7 +136,9 @@ for (const locale of locales) {
     for (const [title, value, formula] of text.cards) {
       const card = await openConcept(page, locale, title);
       await expect(card).toContainText(text.example);
-      await expect(card.locator("article > div").first()).toContainText(value);
+      await expect(card.locator(":scope > div > div").first()).toContainText(
+        value,
+      );
       const calculation = await openCalculation(card, locale);
       await expect(calculation).toContainText(formula);
       await expectCardInsideScreen(page, card);

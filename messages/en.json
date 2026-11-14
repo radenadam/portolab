@@ -462,7 +462,7 @@
   "measures_treynor_concept_body": "The Treynor ratio divides the return above the risk-free rate by the beta of the portfolio.",
   "measures_alpha_concept_body": "Jensen's alpha is the difference between the expected return and the return that CAPM requires for the same beta.",
   "measures_risk_free_concept_body": "Portolab uses the BI-Rate as the risk-free rate and converts it to a monthly rate.",
-  "measures_market_concept_body": "The Indonesia Composite Index measures stock movements on IDX, and Portolab uses it as the market portfolio.",
+  "measures_market_concept_body": "The {index} measures stock movements on IDX, and Portolab uses it as the market portfolio.",
   "measures_monthly_concept_notice": "This value is per month.",
   "grading_page_title": "Portfolios of the students in {class}",
   "grading_back_link": "Back to {class}",

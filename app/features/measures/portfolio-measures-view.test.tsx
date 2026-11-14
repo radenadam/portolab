@@ -1,8 +1,9 @@
+import { conceptLessonDataForTest } from "~/features/learning/concept-lesson-data-for-test";
 import {
   negativeTreynorTextForTest,
   portfolioAgainstMarketForTest,
 } from "./portfolio-against-market-for-test";
-import { withoutConceptCardsForTest } from "~/without-concept-cards-for-test";
+import { withoutConceptCardsForTest } from "~/concept-card-markup-for-test";
 import { expect, test } from "vitest";
 import type { ClassId } from "~/features/classes/classes.schema";
 import type { PriceSourceDescription } from "~/features/market-data/price-source.server";
@@ -51,6 +52,7 @@ function renderView(
         quoteFailure={quoteFailure}
         source={yahooFinance}
       />,
+      conceptLessonDataForTest(),
     ),
   ).replaceAll(/ class="[^"]*"/g, "");
 }

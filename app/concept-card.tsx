@@ -1,6 +1,5 @@
 import { useId } from "react";
 import type { ReactNode } from "react";
-import { formatNumber } from "./formatting";
 import { m } from "./paraglide/messages.js";
 import { Popover, PopoverButton } from "./popover";
 import styles from "./concept-card.module.css";
@@ -11,13 +10,13 @@ export function ConceptCard({
   meaning,
   example,
   calculation,
-  session,
+  lesson,
 }: {
   title: string;
   meaning: string;
   example: ReactNode;
   calculation: ReactNode;
-  session: number;
+  lesson: ReactNode;
 }): ReactNode {
   const id = `concept-${useId().replaceAll(/[^a-zA-Z0-9_-]/g, "")}`;
   return (
@@ -30,7 +29,7 @@ export function ConceptCard({
         <span aria-hidden="true">?</span>
       </PopoverButton>
       <Popover id={id} label={title} placement="belowEnd">
-        <article className={styles["card"]}>
+        <div className={styles["card"]}>
           <p className={styles["title"]}>{title}</p>
           <p>{meaning}</p>
           <div className={styles["example"]}>
@@ -41,10 +40,8 @@ export function ConceptCard({
             <summary>{m.app_concept_calculation_label()}</summary>
             <div className={styles["calculation"]}>{calculation}</div>
           </details>
-          <p className={styles["lesson"]}>
-            {m.app_concept_lesson_notice({ session: formatNumber(session) })}
-          </p>
-        </article>
+          <p className={styles["lesson"]}>{lesson}</p>
+        </div>
       </Popover>
     </>
   );

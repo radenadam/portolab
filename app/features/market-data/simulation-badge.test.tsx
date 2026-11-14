@@ -1,3 +1,4 @@
+import { conceptLessonDataForTest } from "~/features/learning/concept-lesson-data-for-test";
 import { expect, test } from "vitest";
 import { languageNames } from "~/language-names";
 import { locales } from "~/paraglide/runtime.js";
@@ -39,6 +40,7 @@ for (const locale of locales) {
         <SimulationBadge
           badge={{ delayMinutes: 10, card: ["The first.", "The second."] }}
         />,
+        conceptLessonDataForTest(),
       ),
     ).toBe(
       [

@@ -52,7 +52,10 @@ export function StockMeasuresView({
             label: m.measures_expected_return_label(),
             concept: "expectedReturn",
             inputs: (
-              <ReturnTables instruments={[{ code, returns: stock.returns }]} />
+              <ReturnTables
+                showHeading={false}
+                instruments={[{ code, returns: stock.returns }]}
+              />
             ),
             value: formatPercent(stock.expectedReturn, "two"),
             formula: <MeanFormula of="i" count={stock.returns.length} />,

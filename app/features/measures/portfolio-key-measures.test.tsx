@@ -1,4 +1,5 @@
-import { withoutConceptCardsForTest } from "~/without-concept-cards-for-test";
+import { conceptLessonDataForTest } from "~/features/learning/concept-lesson-data-for-test";
+import { withoutConceptCardsForTest } from "~/concept-card-markup-for-test";
 import { renderInRouterForTest } from "~/render-in-router-for-test";
 import { expect, test } from "vitest";
 import type { ClassId } from "~/features/classes/classes.schema";
@@ -29,6 +30,7 @@ function render(valuation: PortfolioValuation): string {
         report={readPortfolioMeasures(database, valuation)}
         marketLine={studentLineForTest(database, valuation)}
       />,
+      conceptLessonDataForTest(),
     ),
   ).replaceAll(/ (class|id)="[^"]*"/g, "");
 }

@@ -23,12 +23,14 @@ interface CloseRow {
 /** The closes and the returns that measures use, in a table for each instrument that opens below its label, so a student can copy them into a spreadsheet. */
 export function ReturnTables({
   instruments,
+  showHeading = true,
 }: {
   instruments: readonly { code: string; returns: readonly ReturnMeasure[] }[];
+  showHeading?: boolean;
 }): ReactNode {
   return (
     <>
-      <h2>{m.measures_returns_title()}</h2>
+      {showHeading && <h2>{m.measures_returns_title()}</h2>}
       <p>{m.measures_returns_notice()}</p>
       {instruments.map(({ code, returns }) => (
         <details key={code} className={styles["returns"]}>
