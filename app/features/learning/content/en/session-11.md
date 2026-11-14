@@ -2,7 +2,7 @@
 
 ## summary
 
-Future contracts can transfer price risk while creating obligations.
+Forwards and futures can transfer price risk while creating obligations.
 
 ## key-idea
 
@@ -10,7 +10,7 @@ Hedging reduces an existing exposure, while speculation deliberately takes price
 
 ## body
 
-A forward binds two parties to a future transaction on agreed terms. A future is a standardised exchange-traded contract that uses clearing. Both create obligations, unlike an option buyer's right.
+A forward binds two parties to a future transaction on agreed terms. A futures contract is standardised, traded on an exchange, and uses clearing. Both create obligations, unlike an option buyer's right.
 
 Futures gains and losses are settled daily through marking to market. Margin is collateral rather than a limit on losses. Price moves can require additional cash.
 

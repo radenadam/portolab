@@ -156,6 +156,30 @@ describe("shipped learning content", () => {
     );
   });
 
+  it("rejects glossary links to every review and exam session in both translations", () => {
+    for (const session of [7, 8, 15, 16]) {
+      const changed = { ...files };
+      for (const locale of locales) {
+        const path = `./content/${locale}/glossary.md`;
+        const original = changed[path];
+        if (original === undefined)
+          throw new Error("Expected shipped glossary.");
+        expect(original).toContain("## beta | Beta | 9");
+        changed[path] = original.replace(
+          "## beta | Beta | 9",
+          `## beta | Beta | ${String(session)}`,
+        );
+      }
+      const failure = failureText(
+        parseLearningContent(changed, "Course files"),
+      );
+      for (const locale of locales)
+        expect(failure).toContain(
+          `Course files file "./content/${locale}/glossary.md" must link each term to a short or full lesson, but heading "beta | Beta | ${String(session)}" names a review or exam session.`,
+        );
+    }
+  });
+
   it("rejects different valid lesson term lists and formula references", () => {
     const path = "./content/en/session-2.md";
     const original = files[path];

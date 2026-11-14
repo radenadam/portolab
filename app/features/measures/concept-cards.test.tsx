@@ -56,8 +56,7 @@ const texts: Record<
     calculation: "Lihat perhitungan",
     monthly: "Nilai ini per bulan.",
     help: (concept) => `Apa itu ${concept}?`,
-    lesson: (session) =>
-      `Pelajari lebih lanjut di sesi ${String(session)}. Pelajaran belum tersedia di Portolab.`,
+    lesson: (session) => `Pelajari lebih lanjut di sesi ${String(session)}`,
     cards: [
       {
         title: "Imbal hasil harapan",
@@ -139,8 +138,7 @@ const texts: Record<
     calculation: "View calculation",
     monthly: "This value is per month.",
     help: (concept) => `What is ${concept}?`,
-    lesson: (session) =>
-      `Learn more in session ${String(session)}. The lesson is not available in Portolab yet.`,
+    lesson: (session) => `Learn more in session ${String(session)}`,
     cards: [
       {
         title: "Expected return",

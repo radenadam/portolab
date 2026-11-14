@@ -53,8 +53,8 @@ const texts: Record<
 > = {
   id: {
     navigation: "Navigasi utama",
-    studentItems: ["Beranda", "Pasar", "Aktivitas", "Analisis"],
-    lecturerItems: ["Kelas", "Mahasiswa", "Pasar"],
+    studentItems: ["Beranda", "Pasar", "Aktivitas", "Analisis", "Belajar"],
+    lecturerItems: ["Kelas", "Mahasiswa", "Pasar", "Belajar"],
     joinedClasses: "Kelas Anda",
     taughtClasses: "Kelas yang Anda ajar",
     join: "Gabung ke kelas",
@@ -69,8 +69,7 @@ const texts: Record<
     simulation:
       "Uang di Portolab virtual, jadi setiap hasil adalah simulasi. Setiap harga adalah harga tertunda dari Yahoo Finance, sekitar 10 menit di belakang BEI.",
     latestPrice: "Harga terakhir tercatat pada 30 Okt 2026, 16.14 WIB.",
-    lesson:
-      "Pelajari lebih lanjut di sesi 6. Pelajaran belum tersedia di Portolab.",
+    lesson: "Pelajari lebih lanjut di sesi 6",
     missedPrices: [
       "Portolab tidak dapat memperbarui harga UNVR pada ",
       " WIB, jadi Portolab memakai harga terakhir UNVR yang tersimpan. Portolab belum memiliki harga WIFI, karena percobaan terakhir untuk mengambilnya pada ",
@@ -79,8 +78,8 @@ const texts: Record<
   },
   en: {
     navigation: "Main navigation",
-    studentItems: ["Home", "Market", "Activity", "Analysis"],
-    lecturerItems: ["Class", "Students", "Market"],
+    studentItems: ["Home", "Market", "Activity", "Analysis", "Learn"],
+    lecturerItems: ["Class", "Students", "Market", "Learn"],
     joinedClasses: "Your classes",
     taughtClasses: "Classes you teach",
     join: "Join a class",
@@ -95,8 +94,7 @@ const texts: Record<
     simulation:
       "The money in Portolab is virtual, so every result is a simulation. Every price is a delayed price from Yahoo Finance, about 10 minutes behind IDX.",
     latestPrice: "The latest price was quoted at Oct 30, 2026, 4:14 PM WIB.",
-    lesson:
-      "Learn more in session 6. The lesson is not available in Portolab yet.",
+    lesson: "Learn more in session 6",
     missedPrices: [
       "Portolab could not update the price of UNVR at ",
       " WIB, so it uses the last price of UNVR that it stored. Portolab has no price for WIFI yet, because its latest attempt to fetch it at ",
@@ -196,6 +194,7 @@ for (const locale of locales) {
         `${classPath}/market`,
         `${classPath}/orders`,
         `${classPath}/analysis`,
+        `${classPath}/learn`,
       ].map((path, index) => [text.studentItems[index] ?? "", path]);
     await student.goto(`${second.path}/orders`);
     await expectItems(student, locale, {
@@ -268,6 +267,7 @@ for (const locale of locales) {
       testClass.path,
       `${testClass.path}/students`,
       `${testClass.path}/market`,
+      `${testClass.path}/learn`,
     ].map((path, index) => [text.lecturerItems[index] ?? "", path]);
     await expectItems(page, locale, {
       items: items,
