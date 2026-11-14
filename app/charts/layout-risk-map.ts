@@ -16,7 +16,8 @@ import type { Range } from "./scale";
 export type MapMark =
   | { kind: "own" }
   | { kind: "held"; weight: PortfolioWeight | undefined }
-  | { kind: "other" };
+  | { kind: "other" }
+  | { kind: "active" };
 
 /** A value that the tooltip of a point shows and a screen reader reads: the name of a measure with its value, as a text or as a change with a sign. */
 export interface MapValue {
@@ -30,6 +31,10 @@ export interface MapPoint<Across extends number, Up extends number> {
   key: string;
   /** The name beside the point and at the head of its tooltip. */
   name: string;
+  /** A shorter name beside the mark, or an empty text when only the tooltip names it. */
+  label?: string;
+  /** The page that opens when the reader activates this point. */
+  href?: string;
   across: Across;
   up: Up;
   values: readonly MapValue[];
@@ -84,6 +89,8 @@ export interface RiskMapLayout<Point> {
   /** The characters of the longest text of a mark of returns. DM Mono, the font of the marks of axes, draws each character equally wide, so the plot leaves this many widths of a character for the texts. */
   upTextLength: number;
   market: PlacedMark;
+  zero: PlotFraction;
+  median: PlotFraction | undefined;
   line: { start: PlotPosition; end: PlotPosition };
   /** Each point with its mark, in the order of the points. */
   points: { point: Point; placed: PlacedMark }[];
@@ -94,6 +101,8 @@ export interface RiskMapLayout<Point> {
 // About ten marks fit across a wide map, as the references of decision 0028 draw them, and a narrow map shows every other one. Four fit up a map at the height of a phone.
 const acrossTickCount = 10;
 const upTickCount = 4;
+// The corner labels need a band above and below the class points, also on a phone.
+const cornerPadding = 0.2;
 
 const smallestSteps: Record<AxisStyle, number> = {
   decimal: smallestNumberStep,
@@ -130,20 +139,31 @@ export function layoutRiskMap<
   points: readonly Point[];
   across: MapAxis<Across>;
   up: MapAxis<Up>;
-  line: MapLine<Across, Up>;
+  line?: MapLine<Across, Up> | undefined;
+  median?: Up;
+  roomForCorners?: boolean;
 }): RiskMapLayout<Point> {
-  const { market, points, across, up, line } = map;
+  const { market, points, across, up } = map;
+  const line = map.line ?? {
+    name: "",
+    start: { across: across.toValue(0), up: market.up },
+  };
   const acrossRange = rangeOf(
-    [market, ...points, line.start].map((point) => point.across),
+    [
+      ...[market, ...points].map((point) => point.across),
+      ...(map.line === undefined ? [] : [map.line.start.across]),
+    ],
     across.toValue,
   );
-  if (market.across === line.start.across) {
+  if (map.line !== undefined && market.across === line.start.across) {
     throw new Error(
       `The line of the map starts at the risk of the IHSG, ${String(market.across)}, so it has no direction.`,
     );
   }
   const slope =
-    (market.up - line.start.up) / (market.across - line.start.across);
+    map.line === undefined
+      ? 0
+      : (market.up - line.start.up) / (market.across - line.start.across);
   const lineEnd = up.toValue(
     line.start.up + (acrossRange.max - line.start.across) * slope,
   );
@@ -152,8 +172,10 @@ export function layoutRiskMap<
       ...[market, ...points, line.start].map((point) => point.up),
       up.toValue(0),
       lineEnd,
+      ...(map.median === undefined ? [] : [map.median]),
     ],
     up.toValue,
+    map.roomForCorners === true,
   );
   const positionOf = (point: { across: Across; up: Up }): PlotPosition => ({
     x: plotFraction(fractionOf(acrossRange, point.across)),
@@ -176,12 +198,18 @@ export function layoutRiskMap<
     acrossTicks: acrossTicksOf(acrossRange, across, market.across),
     upTicks,
     upTextLength,
+    zero: heightOf(upRange, up.toValue(0)),
+    median:
+      map.median === undefined ? undefined : heightOf(upRange, map.median),
     market: {
       position: marketPosition,
       radius: marketRadius,
       outerRadius: marketRadius,
     },
-    line: { start: positionOf(line.start), end },
+    line:
+      map.line === undefined
+        ? { start: marketPosition, end: marketPosition }
+        : { start: positionOf(line.start), end },
     points: points.map((point) => ({
       point,
       placed: { position: positionOf(point), ...markSizeOf(point.mark) },
@@ -221,11 +249,13 @@ function heightOf<Up extends number>(
 function rangeOf<Value extends number>(
   values: readonly Value[],
   toValue: (value: number) => Value,
+  roomForCorners = false,
 ): Range<Value> {
-  const range = paddedRange(values, toValue);
-  return Math.min(...values) >= 0 && range.min < 0
-    ? { min: toValue(0), max: range.max }
-    : range;
+  return paddedRange(values, toValue, {
+    paddingShare: roomForCorners ? cornerPadding : undefined,
+    minimum:
+      !roomForCorners && Math.min(...values) >= 0 ? toValue(0) : undefined,
+  });
 }
 
 function ticksOf<Value extends number>(
@@ -278,6 +308,7 @@ function markSizeOf(mark: MapMark): { radius: number; outerRadius: number } {
             );
       return { radius, outerRadius: radius };
     }
+    case "active":
     case "other":
       return { radius: otherRadius, outerRadius: otherRadius };
   }

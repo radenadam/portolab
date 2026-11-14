@@ -1,3 +1,4 @@
+import { mapLineLabelKeys, mapPointName } from "./map-label-text";
 import type { ReactNode, Ref } from "react";
 import type { LabelPlace, PlacedLabels } from "./map-labels";
 import { keptNameRoom } from "./map-labels";
@@ -10,6 +11,8 @@ import type {
   RiskMapLayout,
 } from "./layout-risk-map";
 import styles from "./risk-map.module.css";
+import type { MapSpreadText } from "./risk-map-labels";
+import { MapSpread } from "./map-spread";
 
 /** How the map draws a mark: the mark of a kind of point, or the diamond of the IHSG. */
 export type MarkKind = MapMark["kind"] | "market";
@@ -21,15 +24,13 @@ export interface DrawnPoint {
   placed: PlacedMark;
 }
 
-/** The keys by which the map finds the place of the label of each of its lines. */
-export const lineLabelKeys = { level: "level", line: "line" } as const;
-
 /** How far the ring of a marked point stands outside its mark, in sizes of the text of the labels, which is also how far beyond its mark a point answers a pointer. */
 export const markReach = 0.33;
 
 // The marks of the stocks that the portfolio does not hold come first, so they never hide the marks of the portfolio, of its stocks, or of the IHSG, and the mark of the reader comes last.
 const drawOrder: Record<MarkKind, number> = {
   other: 0,
+  active: 1,
   held: 1,
   market: 2,
   own: 3,
@@ -46,6 +47,8 @@ export function MapDrawing({
   placed,
   texts,
   active,
+  showLine,
+  spread,
   drawingRef,
   measureRef,
 }: {
@@ -54,6 +57,8 @@ export function MapDrawing({
   placed: PlacedLabels;
   texts: { title: string; level: string; line: string };
   active: DrawnPoint | undefined;
+  showLine: boolean;
+  spread: MapSpreadText | undefined;
   drawingRef: Ref<SVGSVGElement>;
   measureRef: Ref<SVGTextElement>;
 }): ReactNode {
@@ -67,13 +72,47 @@ export function MapDrawing({
         y2={percentOf(layout.market.position.y)}
         className={styles["level"]}
       />
-      <line
-        x1={percentOf(layout.line.start.x)}
-        y1={percentOf(layout.line.start.y)}
-        x2={percentOf(layout.line.end.x)}
-        y2={percentOf(layout.line.end.y)}
-        className={styles["line"]}
-      />
+      {showLine && (
+        <line
+          x1={percentOf(layout.line.start.x)}
+          y1={percentOf(layout.line.start.y)}
+          x2={percentOf(layout.line.end.x)}
+          y2={percentOf(layout.line.end.y)}
+          className={styles["line"]}
+        />
+      )}
+      {spread !== undefined && (
+        <>
+          <MapSpread layout={layout} />
+          {layout.median !== undefined && (
+            <line
+              x1="86%"
+              x2="100%"
+              y1={percentOf(layout.median)}
+              y2={percentOf(layout.median)}
+              className={styles["line"]}
+            />
+          )}
+          <Label
+            text={spread.zeroLabel}
+            place={placed.lines.get(mapLineLabelKeys.zero)}
+            className={styles["corner"]}
+          />
+          <Label
+            text={spread.medianLabel}
+            place={placed.lines.get(mapLineLabelKeys.median)}
+            className={styles["medianLabel"]}
+          />
+          {spread.corners.map((text, index) => (
+            <Label
+              key={text}
+              text={text}
+              place={placed.lines.get(mapLineLabelKeys.corners[index] ?? "")}
+              className={styles["corner"]}
+            />
+          ))}
+        </>
+      )}
       {drawn
         .toSorted(
           (first, second) => drawOrder[first.kind] - drawOrder[second.kind],
@@ -91,18 +130,18 @@ export function MapDrawing({
       )}
       <Label
         text={texts.level}
-        place={placed.lines.get(lineLabelKeys.level)}
+        place={placed.lines.get(mapLineLabelKeys.level)}
         className={styles["lineLabel"]}
       />
       <Label
         text={texts.line}
-        place={placed.lines.get(lineLabelKeys.line)}
+        place={placed.lines.get(mapLineLabelKeys.line)}
         className={styles["lineLabel"]}
       />
-      {drawn.map(({ point }) => (
+      {drawn.map(({ point, kind }) => (
         <Label
           key={point.key}
-          text={point.name}
+          text={mapPointName({ point, kind })}
           place={placed.points.get(point.key)}
           className={styles["label"]}
         />
@@ -213,6 +252,7 @@ function Mark({
           {dot(styles["own"])}
         </g>
       );
+    case "active":
     case "held":
       return dot(styles["held"]);
     case "other":

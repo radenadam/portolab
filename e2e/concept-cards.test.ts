@@ -8,6 +8,7 @@ import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 import { openSimulationCard } from "./frame.ts";
 import { openAsNewStudent } from "./open-as-new-student.ts";
 import { storeTestHolding } from "./store-test-holding.ts";
+import { withHeldClientScripts } from "./with-held-client-scripts.ts";
 
 const texts: Record<
   Locale,
@@ -198,33 +199,25 @@ for (const locale of locales) {
       locale,
       path: "/measures",
     });
-    const scripts = Promise.withResolvers<undefined>();
-    let heldScripts = 0;
-    await page.route("**/*", async (route) => {
-      if (route.request().resourceType() === "script") {
-        heldScripts += 1;
-        await scripts.promise;
-      }
-      await route.continue();
-    });
     try {
-      await page.reload({ waitUntil: "commit" });
-      await expect.poll(() => heldScripts).toBeGreaterThan(0);
-      await expect(page.getByRole("slider")).toHaveCount(0);
-      const address = page.url();
-      const card = await openConcept(page, locale, text.beta);
-      const calculation = await openCalculation(card, locale);
-      await expectBetaCalculation(card);
-
-      scripts.resolve(undefined);
-      await page.waitForLoadState("load");
-      await expect(page.getByRole("slider").first()).toBeVisible();
-      await expect(card).toBeVisible();
-      await expect(calculation).toHaveAttribute("open", "");
-      await expect(page).toHaveURL(address);
+      await withHeldClientScripts(
+        page,
+        async () => {
+          await expect(page.getByRole("slider")).toHaveCount(0);
+          const address = page.url();
+          const card = await openConcept(page, locale, text.beta);
+          const calculation = await openCalculation(card, locale);
+          await expectBetaCalculation(card);
+          return { address, card, calculation };
+        },
+        async ({ address, card, calculation }) => {
+          await expect(page.getByRole("slider").first()).toBeVisible();
+          await expect(card).toBeVisible();
+          await expect(calculation).toHaveAttribute("open", "");
+          await expect(page).toHaveURL(address);
+        },
+      );
     } finally {
-      scripts.resolve(undefined);
-      await page.unrouteAll({ behavior: "wait" });
       await lecturer.context().close();
     }
   });

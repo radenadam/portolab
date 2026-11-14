@@ -83,7 +83,7 @@ export function layoutTimeSeries<Value extends number>(
   const range = paddedRange(
     lines.flatMap((line) => line.values),
     format.unit,
-    format.minimum,
+    { minimum: format.minimum },
   );
   const valueTicks = niceTicks(
     range,

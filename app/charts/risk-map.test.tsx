@@ -1,4 +1,4 @@
-import { renderToStaticMarkup } from "react-dom/server";
+import { renderMarkupForTest } from "~/render-markup-for-test";
 import { expect, test } from "vitest";
 import { formatSignedPercent } from "~/formatting";
 import { languageNames } from "~/language-names";
@@ -53,7 +53,7 @@ const tickTexts: Record<Locale, { across: readonly string[] }> = {
 };
 
 function render(mapPoints = points): string {
-  return renderToStaticMarkup(
+  return renderMarkupForTest(
     <RiskMap
       market={mapPoint("IHSG", { beta: 1, return: 0.01 })}
       points={mapPoints}
@@ -66,7 +66,17 @@ function render(mapPoints = points): string {
       levelLabel="IHSG 1%"
       labelledBy="map-heading"
     />,
-  ).replaceAll(/ class="[^"]*"/g, "");
+  );
+}
+
+for (const locale of locales) {
+  test(`keeps the portfolio and holding names when a caller hides other point labels in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    const html = render(points.map((point) => ({ ...point, label: "" })));
+    expect(html).toContain(">Portofolio Anda</text>");
+    expect(html).toContain(">BBCA</text>");
+    expect(html).not.toContain(">TLKM</text>");
+  });
 }
 
 /** The text of a label at the position of its point, with any place beside it. */
@@ -197,7 +207,7 @@ for (const locale of locales) {
 
 test("names each kind of point and the line in a legend beside a sample of its mark, which screen readers skip", () => {
   expect(
-    renderToStaticMarkup(
+    renderMarkupForTest(
       <RiskMapLegend
         items={[
           { kind: "own", name: "Portofolio Anda" },
@@ -207,7 +217,7 @@ test("names each kind of point and the line in a legend beside a sample of its m
           { kind: "line", name: "SML" },
         ]}
       />,
-    ).replaceAll(/ class="[^"]*"/g, ""),
+    ),
   ).toBe(
     '<ul aria-hidden="true"><li><span></span>Portofolio Anda</li><li><span></span>Saham Anda</li><li><span></span>Saham lain</li><li><span></span>IHSG</li><li><span></span>SML</li></ul>',
   );

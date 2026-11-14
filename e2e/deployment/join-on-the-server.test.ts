@@ -6,6 +6,7 @@ import {
 } from "../../scripts/deployment-guide.ts";
 import { joinAsNewStudent, signInAsNewLecturer } from "../accounts.ts";
 import type { AccountCommand } from "../accounts.ts";
+import { openJoinDetails } from "../class-controls.ts";
 import { createTestClass } from "../create-test-class.ts";
 import { newDevice } from "../new-device.ts";
 import { widestClassNames } from "../widest-class-names.ts";
@@ -32,7 +33,8 @@ test("lets a student join a class at the address that its page shows, over HTTPS
   const testClass = await createTestClass(page, className);
   // Caddy passes on the host that the lecturer opened, so the address for joining names the domain of the server.
   const joinAddress = `https://${testDomain}${testClass.joinPath}`;
-  await expect(page.locator("main dd")).toHaveText([
+  await openJoinDetails(page);
+  await expect(page.locator("[popover]:popover-open dd")).toHaveText([
     testClass.joinCode,
     joinAddress,
   ]);

@@ -8,15 +8,18 @@ export interface Range<Value extends number> {
 const rangePadding = 0.08;
 const emptyRangePadding = 0.005;
 
-/** The range of an axis that shows the values with room on both sides: 8% of their spread, or half a percent for values without any spread, which suits fractions such as returns. */
+/** Padding leaves room for marks and labels, and a lower bound keeps the scale within its unit. */
 export function paddedRange<Value extends number>(
   values: readonly Value[],
   toValue: (value: number) => Value,
-  minimum?: Value,
+  {
+    paddingShare = rangePadding,
+    minimum,
+  }: { paddingShare?: number | undefined; minimum?: Value | undefined } = {},
 ): Range<Value> {
   const min = Math.min(...values);
   const max = Math.max(...values);
-  const padding = max > min ? (max - min) * rangePadding : emptyRangePadding;
+  const padding = max > min ? (max - min) * paddingShare : emptyRangePadding;
   return {
     min: toValue(Math.max(minimum ?? -Infinity, min - padding)),
     max: toValue(max + padding),

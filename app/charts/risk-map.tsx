@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useNavigate } from "react-router";
 import type { CSSProperties, PointerEvent, ReactNode } from "react";
 import { ChangeText } from "~/change-text";
 import { formatList } from "~/formatting";
@@ -13,9 +14,10 @@ import type {
   MarkedPoint,
   RiskMapLayout,
 } from "./layout-risk-map";
-import { lineLabelKeys, MapDrawing, markReach } from "./map-drawing";
-import type { DrawnPoint, MarkKind } from "./map-drawing";
-import type { MapLabels } from "./map-labels";
+import { MapDrawing, markReach } from "./map-drawing";
+import type { DrawnPoint } from "./map-drawing";
+import { riskMapLabels } from "./risk-map-labels";
+import type { MapSpreadText } from "./risk-map-labels";
 import { keptNameRoom } from "./map-labels";
 import { valueMarkGap } from "./value-mark";
 import styles from "./risk-map.module.css";
@@ -23,17 +25,10 @@ import { tipAcross, tipDown } from "./tip-placement";
 import { useIsInBrowser } from "./use-is-in-browser";
 import { useMapLabels } from "./use-map-labels";
 
-// The portfolio and every holding keep their names ahead of every other point, even when the caller lists the holdings before the portfolio. Larger marks leave less room for their names, so they take their places before smaller marks of the same kind.
-const labelOrder: Record<MarkKind, number> = {
-  own: 0,
-  held: 1,
-  market: 2,
-  other: 3,
-};
-
 // Every length around the plot is a multiple of the size of the text of its marks, so the map keeps its proportions when a reader enlarges the text.
 const bottomRoom = 3.5;
 const sideRoom = 0.5;
+const spreadRoom = 3.5;
 // A point answers a pointer or a finger within this distance of its center, in sizes of the text of the labels, or within the reach of its mark when that is larger.
 const pointerReach = 0.83;
 
@@ -46,6 +41,8 @@ export function RiskMap<Across extends number, Up extends number>({
   line,
   levelLabel,
   labelledBy,
+  spread,
+  coloredValues,
 }: {
   /** The IHSG. */
   market: MapPoint<Across, Up>;
@@ -55,21 +52,33 @@ export function RiskMap<Across extends number, Up extends number>({
     title: string;
   };
   up: MapAxis<Up>;
-  line: MapLine<Across, Up>;
+  line?: MapLine<Across, Up>;
+  spread?: MapSpreadText & { median: Up | undefined };
+  coloredValues?: boolean;
   /** The label of the line at the return of the IHSG, such as IHSG 0.70%. */
   levelLabel: string;
   /** The id of the heading that names the map, which also names its slider. */
   labelledBy: string;
 }): ReactNode {
+  const navigate = useNavigate();
   const isInBrowser = useIsInBrowser();
   const layout = useMemo(
-    () => layoutRiskMap({ market, points, across, up, line }),
-    [market, points, across, up, line],
+    () =>
+      layoutRiskMap({
+        market,
+        points,
+        across,
+        up,
+        line,
+        roomForCorners: spread !== undefined,
+        ...(spread?.median === undefined ? {} : { median: spread.median }),
+      }),
+    [market, points, across, up, line, spread],
   );
   const drawn = useMemo(() => drawnPoints(market, layout), [market, layout]);
   const labels = useMemo(
-    () => mapLabels(drawn, { line, levelLabel, layout }),
-    [drawn, line, levelLabel, layout],
+    () => riskMapLabels(drawn, { line, levelLabel, layout, spread }),
+    [drawn, line, levelLabel, layout, spread],
   );
   const marks = useMemo(
     () =>
@@ -103,8 +112,8 @@ export function RiskMap<Across extends number, Up extends number>({
     labelledBy,
   });
   const style: CSSProperties = {
-    paddingBlock: `${String(sideRoom)}em ${String(bottomRoom)}em`,
-    paddingInline: `calc(${String(layout.upTextLength)}ch + ${String(valueMarkGap)}em + ${String(keptNameRoom)} * var(--text-small)) ${String(sideRoom)}em`,
+    paddingBlock: `${String(spread === undefined ? sideRoom : spreadRoom)}em ${String(bottomRoom)}em`,
+    paddingInline: `calc(${String(layout.upTextLength)}ch + ${String(valueMarkGap)}em + ${String(keptNameRoom)} * var(--text-small)) ${String(spread === undefined ? sideRoom : spreadRoom)}em`,
   };
   const active = slider.marked === undefined ? undefined : stops[slider.marked];
   const drawing = (
@@ -112,7 +121,9 @@ export function RiskMap<Across extends number, Up extends number>({
       layout={layout}
       drawn={drawn}
       placed={placed}
-      texts={{ title: across.title, level: levelLabel, line: line.name }}
+      texts={{ title: across.title, level: levelLabel, line: line?.name ?? "" }}
+      showLine={line !== undefined}
+      spread={spread}
       active={active}
       drawingRef={drawingRef}
       measureRef={measureRef}
@@ -122,7 +133,12 @@ export function RiskMap<Across extends number, Up extends number>({
   if (!isInBrowser || shown === undefined) {
     return (
       <div className={styles["riskMap"]}>
-        <div className={styles["plot"]} style={style}>
+        <div
+          className={
+            spread === undefined ? styles["plot"] : styles["spreadPlot"]
+          }
+          style={style}
+        >
           <div ref={areaRef} className={styles["area"]}>
             {drawing}
           </div>
@@ -137,18 +153,38 @@ export function RiskMap<Across extends number, Up extends number>({
       slider.setMarked(nearestStop(stops, { event, area, textSize: size }));
     }
   };
+  const sliderProps = slider.sliderProps(spokenPoint(shown.point));
   return (
     <div className={styles["riskMap"]}>
       <div
-        className={styles["plot"]}
+        className={spread === undefined ? styles["plot"] : styles["spreadPlot"]}
         style={style}
-        {...slider.sliderProps(spokenPoint(shown.point))}
+        {...sliderProps}
+        role="slider"
+        aria-valuenow={sliderProps["aria-valuenow"]}
+        tabIndex={0}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" && shown.point.href !== undefined) {
+            event.preventDefault();
+            void navigate(shown.point.href);
+          } else sliderProps.onKeyDown?.(event);
+        }}
+        onClick={(event) => {
+          const area = areaRef.current;
+          const size = textSize();
+          if (area === null || size === undefined) return;
+          const stop = nearestStop(stops, { event, area, textSize: size });
+          const href = stop === undefined ? undefined : stops[stop]?.point.href;
+          if (href !== undefined) void navigate(href);
+        }}
         onPointerDown={markPointer}
         onPointerMove={markPointer}
       >
         <div ref={areaRef} className={styles["area"]}>
           {drawing}
-          {active !== undefined && <MapTip drawn={active} />}
+          {active !== undefined && (
+            <MapTip drawn={active} coloredValues={coloredValues} />
+          )}
         </div>
       </div>
     </div>
@@ -170,57 +206,11 @@ function drawnPoints<Across extends number, Up extends number>(
   ];
 }
 
-/** The labels of the map in the order in which they take their places: the names of the points of the reader, the labels of the lines, and then the names of the other points by labelOrder. */
-function mapLabels(
-  drawn: readonly DrawnPoint[],
-  map: {
-    line: { name: string };
-    levelLabel: string;
-    layout: RiskMapLayout<unknown>;
-  },
-): MapLabels {
-  const kept: { key: string; text: string }[] = [];
-  const others: { key: string; text: string }[] = [];
-  for (const { point, kind } of drawn.toSorted(
-    (first, second) =>
-      labelOrder[first.kind] - labelOrder[second.kind] ||
-      second.placed.outerRadius - first.placed.outerRadius,
-  )) {
-    const label = { key: point.key, text: point.name };
-    switch (kind) {
-      case "own":
-      case "held":
-        kept.push(label);
-        break;
-      case "market":
-      case "other":
-        others.push(label);
-        break;
-    }
-  }
-  return {
-    kept,
-    lines: [
-      {
-        key: lineLabelKeys.level,
-        text: map.levelLabel,
-        places: map.layout.linePlaces.level,
-      },
-      {
-        key: lineLabelKeys.line,
-        text: map.line.name,
-        places: map.layout.linePlaces.line,
-      },
-    ],
-    others,
-  };
-}
-
 /** The index of the point nearest to a pointer or a finger among the points within its reach, or undefined when none is. */
 function nearestStop(
   stops: readonly DrawnPoint[],
   pointer: {
-    event: PointerEvent<HTMLDivElement>;
+    event: Pick<PointerEvent<HTMLDivElement>, "clientX" | "clientY">;
     area: HTMLDivElement;
     textSize: number;
   },
@@ -245,10 +235,16 @@ function nearestStop(
 }
 
 /** The tooltip of a marked point: its name and each of its values, beside the point and toward the larger part of the plot. */
-function MapTip({ drawn }: { drawn: DrawnPoint }): ReactNode {
+function MapTip({
+  drawn,
+  coloredValues,
+}: {
+  drawn: DrawnPoint;
+  coloredValues: boolean | undefined;
+}): ReactNode {
   return (
     <div
-      className={styles["tip"]}
+      className={coloredValues ? styles["coloredTip"] : styles["tip"]}
       style={{
         ...tipAcross(drawn.placed.position.x),
         ...tipDown(drawn.placed.position.y),
@@ -259,7 +255,7 @@ function MapTip({ drawn }: { drawn: DrawnPoint }): ReactNode {
         <p key={name} className={styles["tipValue"]}>
           <span>{name}</span>
           <span className={styles["tipNumber"]}>
-            <ValueText value={value} />
+            <ValueText value={value} colored={coloredValues === true} />
           </span>
         </p>
       ))}
@@ -267,8 +263,18 @@ function MapTip({ drawn }: { drawn: DrawnPoint }): ReactNode {
   );
 }
 
-function ValueText({ value }: { value: MapValue["value"] }): ReactNode {
-  return typeof value === "string" ? value : <ChangeText change={value} />;
+function ValueText({
+  value,
+  colored,
+}: {
+  value: MapValue["value"];
+  colored: boolean;
+}): ReactNode {
+  return typeof value === "string" ? (
+    value
+  ) : (
+    <ChangeText change={value} colored={colored} />
+  );
 }
 
 /** The text of a point that a screen reader reads as the value of the slider, such as BBCA: Beta terhadap IHSG 0,69 dan Imbal hasil yang diharapkan -0,10%. */

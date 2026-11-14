@@ -25,6 +25,7 @@ import {
   submitSignIn,
 } from "./accounts.ts";
 import { chooseLanguage } from "./choose-language.ts";
+import { openJoinDetails, openClassAdministration } from "./class-controls.ts";
 import { createTestClass, readTestClass } from "./create-test-class.ts";
 import type { TestClass } from "./create-test-class.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
@@ -46,6 +47,7 @@ const texts: Record<
   Locale,
   {
     classesTitle: string;
+    pendingTitle: string;
     noTaughtClasses: string;
     createTitle: string;
     nameLabel: string;
@@ -116,6 +118,7 @@ const texts: Record<
 > = {
   id: {
     classesTitle: "Kelas Anda",
+    pendingTitle: "Kelas menunggu perbandingan dengan IHSG",
     noTaughtClasses:
       "Anda belum mengajar kelas. Buat kelas di bawah, lalu bagikan kodenya kepada mahasiswa Anda.",
     createTitle: "Buat kelas",
@@ -229,6 +232,7 @@ const texts: Record<
   },
   en: {
     classesTitle: "Your classes",
+    pendingTitle: "Class comparison with IHSG is pending",
     noTaughtClasses:
       "You teach no class yet. Create one below, then share its code with your students.",
     createTitle: "Create a class",
@@ -388,6 +392,7 @@ async function expectAddressesForPhones(
   { locale, testClass }: { locale: Locale; testClass: TestClass },
 ): Promise<void> {
   const text = texts[locale];
+  const details = await openJoinDetails(page);
   const forOthers = addressesForOthers(new URL(testClass.joinPath, page.url()));
   switch (forOthers.kind) {
     case "asOpened":
@@ -395,21 +400,23 @@ async function expectAddressesForPhones(
         `The test opened ${page.url()}, which other devices can open as well, so it cannot check the addresses on the local network.`,
       );
     case "noNetwork":
-      await expect(page.getByText(text.noNetworkNotice)).toBeVisible();
-      await expect(page.getByText(text.shareNotice)).toHaveCount(0);
-      await expect(page.locator("main dd")).toHaveText([testClass.joinCode]);
+      await expect(details.getByText(text.noNetworkNotice)).toBeVisible();
+      await expect(details.getByText(text.shareNotice)).toHaveCount(0);
+      await expect(page.locator("[popover]:popover-open dd")).toHaveText([
+        testClass.joinCode,
+      ]);
       return;
     case "onLocalNetwork": {
-      await expect(page.getByText(text.shareNotice)).toBeVisible();
+      await expect(details.getByText(text.shareNotice)).toBeVisible();
       await expect(
-        page.getByText(text.addressLabel, { exact: true }),
+        details.getByText(text.addressLabel, { exact: true }),
       ).toBeVisible();
-      await expect(page.getByText(text.localNetworkNotice)).toBeVisible();
-      await expect(page.getByText(text.severalNetworksNotice)).toHaveCount(
+      await expect(details.getByText(text.localNetworkNotice)).toBeVisible();
+      await expect(details.getByText(text.severalNetworksNotice)).toHaveCount(
         forOthers.addresses.length > 1 ? 1 : 0,
       );
       // The first value is the code, and an address for each network follows it.
-      const values = page.locator("main dd");
+      const values = page.locator("[popover]:popover-open dd");
       await expect(values).toHaveCount(1 + forOthers.addresses.length);
       const student = await newDevice(browser, locale);
       for (const [
@@ -540,14 +547,19 @@ for (const locale of locales) {
     await expect(page).toHaveTitle(`${className} | Portolab`);
     await page.unroute(/\.data(\?|$)/);
     await expect(
-      page.getByRole("heading", { level: 1, name: className }),
+      page.getByRole("heading", {
+        level: 1,
+        name: text.pendingTitle,
+      }),
     ).toBeVisible();
+    const details = await openJoinDetails(page);
     await expect(
-      page.getByText(text.codeFieldLabel, { exact: true }),
+      details.getByText(text.codeFieldLabel, { exact: true }),
     ).toBeVisible();
-    await expect(page.locator("main dd").nth(0)).toHaveText(
+    await expect(page.locator("[popover]:popover-open dd").nth(0)).toHaveText(
       /^[a-km-np-z2-9]{4}-[a-km-np-z2-9]{4}$/,
     );
+    await openClassAdministration(page);
     await expect(
       page.getByRole("heading", { level: 2, name: text.calendarTitle }),
     ).toBeVisible();
@@ -576,15 +588,16 @@ for (const locale of locales) {
     const testClass = await createTestClass(lecturer, className);
     // A public server keeps the address that the lecturer opened, which the phone of a student opens as well.
     const joinAddress = new URL(testClass.joinPath, publicServerUrl).href;
-    await expect(lecturer.getByText(text.shareNotice)).toBeVisible();
+    const details = await openJoinDetails(lecturer);
+    await expect(details.getByText(text.shareNotice)).toBeVisible();
     await expect(
-      lecturer.getByText(text.addressLabel, { exact: true }),
+      details.getByText(text.addressLabel, { exact: true }),
     ).toBeVisible();
-    await expect(lecturer.locator("main dd")).toHaveText([
+    await expect(lecturer.locator("[popover]:popover-open dd")).toHaveText([
       testClass.joinCode,
       joinAddress,
     ]);
-    await expect(lecturer.getByText(text.localNetworkNotice)).toHaveCount(0);
+    await expect(details.getByText(text.localNetworkNotice)).toHaveCount(0);
     await expectAccessibleScreen(lecturer);
 
     const student = await newDevice(browser, locale, {
@@ -689,6 +702,10 @@ for (const locale of locales) {
     const first = await createTestClass(page, className);
     const second = await createTestClass(page, otherClassName);
     const third = await createTestClass(page, className);
+    const created = [first, second, third];
+    expect(new Set(created.map((testClass) => testClass.joinCode)).size).toBe(
+      created.length,
+    );
 
     const student = await newDevice(browser, locale);
     await student.goto("/classes");
@@ -777,7 +794,12 @@ for (const locale of locales) {
     await expect(student).toHaveURL(testClass.path);
 
     await page.goto(testClass.path);
-    await expect(page.getByText(studentName, { exact: true })).toBeVisible();
+    await openClassAdministration(page);
+    await expect(
+      page
+        .locator("[data-class-administration]")
+        .getByText(studentName, { exact: true }),
+    ).toBeVisible();
     await expect(
       page.getByText(
         `${text.studentNotice[0]}${username}${text.studentNotice[1]}`,
@@ -824,6 +846,7 @@ for (const locale of locales) {
     const member = await newDevice(browser, locale);
     await signInAsTestStudent(member, testClass, studentName);
     await page.goto(testClass.path);
+    await openClassAdministration(page);
     const resetPath = await page
       .getByRole("link", { name: text.resetLink })
       .getAttribute("href");
@@ -935,6 +958,7 @@ for (const locale of locales) {
     // A class that Portolab created before it stored the date of session 1 has none until its lecturer sets it.
     forgetFirstSessionDate(classId);
     await page.goto(classPath);
+    await openClassAdministration(page);
     await expect(
       page.getByRole("heading", { level: 2, name: text.calendarTitle }),
     ).toBeVisible();
@@ -945,6 +969,7 @@ for (const locale of locales) {
     await expect(student.getByText(text.studentNoCalendar)).toBeVisible();
     await expectAccessibleScreen(student);
 
+    await openClassAdministration(page);
     await page.getByRole("link", { name: text.calendarLink }).click();
     await expectPageHeadings(page, { title: text.calendarTitle, headings: [] });
     const field = page.getByLabel(text.firstSessionLabel);
@@ -990,6 +1015,7 @@ for (const locale of locales) {
     await field.fill(addDays(thisSaturday, -7 * 7));
     await saveButton.click();
     await expect(page).toHaveURL(classPath);
+    await openClassAdministration(page);
     await student.reload();
     for (const device of [page, student]) {
       await expect(device.getByText(text.term)).toBeVisible();
@@ -1011,14 +1037,17 @@ for (const locale of locales) {
         sessionSentence(locale, text.courseOver, lastWeekMonday),
       ],
     ] as const) {
+      await openClassAdministration(page);
       await page.getByRole("link", { name: text.calendarLink }).click();
       await field.fill(firstSessionDate);
       await saveButton.click();
       await expect(page).toHaveURL(classPath);
+      await openClassAdministration(page);
       await expect(page.getByText(text.term)).toBeVisible();
       await expect(page.getByText(sentence)).toBeVisible();
       await expectAccessibleScreen(page);
     }
+    await openClassAdministration(page);
     await page.getByRole("link", { name: text.calendarLink }).click();
     await expect(field).toHaveValue(addDays(thisMonday, -16 * 7));
     await student.context().close();
