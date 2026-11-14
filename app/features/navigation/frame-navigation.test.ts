@@ -17,6 +17,7 @@ const labels: Record<
     analysis: string;
     class: string;
     students: string;
+    learn: string;
     prices: string;
     join: string;
     signIn: string;
@@ -29,6 +30,7 @@ const labels: Record<
     analysis: "Analisis",
     class: "Kelas",
     students: "Mahasiswa",
+    learn: "Belajar",
     prices: "Harga",
     join: "Gabung ke kelas",
     signIn: "Masuk",
@@ -40,6 +42,7 @@ const labels: Record<
     analysis: "Analysis",
     class: "Class",
     students: "Students",
+    learn: "Learn",
     prices: "Prices",
     join: "Join a class",
     signIn: "Sign in",
@@ -101,7 +104,7 @@ for (const locale of locales) {
     ).toBe(true);
   });
 
-  test(`gives a student in a class Beranda, Pasar, Aktivitas, and Analisis, each leading to the page that holds it, with the current one on its pages and on the pages below them, in ${language}`, () => {
+  test(`gives a student in a class Beranda, Pasar, Aktivitas, Analisis, and Belajar, each leading to the page that holds it, with the current one on its pages and on the pages below them, in ${language}`, () => {
     switchLocaleForTest(locale);
     const items = (current: string): object[] =>
       [
@@ -109,12 +112,16 @@ for (const locale of locales) {
         { path: "/classes/7/market", label: label.market, icon: "trend" },
         { path: "/classes/7/orders", label: label.activity, icon: "list" },
         { path: "/classes/7/measures", label: label.analysis, icon: "pie" },
+        { path: "/classes/7/learn", label: label.learn, icon: "book" },
       ].map((item) => ({ ...item, isCurrent: item.label === current }));
     for (const [routeId, current] of [
       ["features/classes/class-page", label.home],
       ["features/market-data/market-page", label.market],
       ["features/trading/orders-page", label.activity],
       ["features/measures/measures-page", label.analysis],
+      ["features/learning/learn-page", label.learn],
+      ["features/learning/lesson-page", label.learn],
+      ["features/learning/glossary-page", label.learn],
       ["features/market-data/stock-page", label.market],
       ["features/trading/stock-ticket-fallback", label.market],
     ] as const) {
@@ -125,7 +132,7 @@ for (const locale of locales) {
     }
   });
 
-  test(`gives a lecturer in a class Kelas, Mahasiswa, and Pasar, with Mahasiswa current on the pages of a student and Kelas on the pages below the class, in ${language}`, () => {
+  test(`gives a lecturer in a class Kelas, Mahasiswa, Pasar, and Belajar, with Mahasiswa current on the pages of a student and Kelas on the pages below the class, in ${language}`, () => {
     switchLocaleForTest(locale);
     const items = (current: string): object[] =>
       [
@@ -136,6 +143,7 @@ for (const locale of locales) {
           icon: "users",
         },
         { path: "/classes/7/market", label: label.market, icon: "trend" },
+        { path: "/classes/7/learn", label: label.learn, icon: "book" },
       ].map((item) => ({ ...item, isCurrent: item.label === current }));
     const ofStudent = { ...inClass, studentId: "9" };
     for (const [page, current] of [
@@ -158,6 +166,9 @@ for (const locale of locales) {
         label.students,
       ],
       [pageForTest("features/market-data/market-page", inClass), label.market],
+      [pageForTest("features/learning/learn-page", inClass), label.learn],
+      [pageForTest("features/learning/lesson-page", inClass), label.learn],
+      [pageForTest("features/learning/glossary-page", inClass), label.learn],
     ] as const) {
       expect(frameItems(readerForTest("lecturer"), page), page.routeId).toEqual(
         items(current),
