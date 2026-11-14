@@ -1,8 +1,24 @@
 import { expect, test } from "vitest";
-import { classCalendarOf } from "./course-calendar";
+import {
+  classCalendarOf,
+  courseSessions,
+  sessionCount,
+} from "./course-calendar";
 
 // Session 1 of this class meets on Saturday 12 September 2026, so its week runs from Monday 7 September to Sunday 13 September, and session 16 meets on Saturday 26 December 2026. A day in WIB starts at 17:00 UTC of the day before.
 const saturdayClass = "2026-09-12";
+
+test("gives chart markers the dates of the class calendar, including exams", () => {
+  const sessions = courseSessions(saturdayClass);
+  expect(sessions).toHaveLength(sessionCount);
+  for (const session of sessions)
+    expect(
+      classCalendarOf(saturdayClass, new Date(`${session.date}T12:00:00Z`))
+        ?.week,
+    ).toMatchObject(session);
+  expect(sessions.at(-1)).toEqual({ session: 16, date: "2026-12-26" });
+  expect(courseSessions(null)).toEqual([]);
+});
 
 function weekAt(firstSessionDate: string, moment: string) {
   return classCalendarOf(firstSessionDate, new Date(moment))?.week;

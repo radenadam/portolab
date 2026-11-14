@@ -29,6 +29,7 @@ const labelOrder: Record<MarkKind, number> = {
   held: 1,
   market: 2,
   other: 3,
+  classmate: 4,
 };
 
 // Every length around the plot is a multiple of the size of the text of its marks, so the map keeps its proportions when a reader enlarges the text.
@@ -37,7 +38,7 @@ const sideRoom = 0.5;
 // A point answers a pointer or a finger within this distance of its center, in sizes of the text of the labels, or within the reach of its mark when that is larger.
 const pointerReach = 0.83;
 
-/** A map of risk across against return up, as decisions 0028 and 0035 set: each point by its mark and its name, the IHSG as a diamond with a strong line through its risk and a dashed line at its return, and a line from a point through the IHSG, such as the security market line. The server draws it in SVG and places its labels from estimated widths of their texts. Once JavaScript runs, the browser places the labels again from their measured widths at the size of the plot, and the plot is a slider that a pointer, a finger, or the keys move over the points in the order of their risk, which shows the values of the marked point in a tooltip. */
+/** Beranda compares realized returns without a line, while the measures compare expected returns against the SML on the same map. The server's estimated label widths keep names visible before the browser can measure them. */
 export function RiskMap<Across extends number, Up extends number>({
   market,
   points,
@@ -55,9 +56,9 @@ export function RiskMap<Across extends number, Up extends number>({
     title: string;
   };
   up: MapAxis<Up>;
-  line: MapLine<Across, Up>;
+  line?: MapLine<Across, Up>;
   /** The label of the line at the return of the IHSG, such as IHSG 0.70%. */
-  levelLabel: string;
+  levelLabel?: string;
   /** The id of the heading that names the map, which also names its slider. */
   labelledBy: string;
 }): ReactNode {
@@ -112,7 +113,7 @@ export function RiskMap<Across extends number, Up extends number>({
       layout={layout}
       drawn={drawn}
       placed={placed}
-      texts={{ title: across.title, level: levelLabel, line: line.name }}
+      texts={{ title: across.title, level: levelLabel, line: line?.name }}
       active={active}
       drawingRef={drawingRef}
       measureRef={measureRef}
@@ -174,8 +175,8 @@ function drawnPoints<Across extends number, Up extends number>(
 function mapLabels(
   drawn: readonly DrawnPoint[],
   map: {
-    line: { name: string };
-    levelLabel: string;
+    line: { name: string } | undefined;
+    levelLabel: string | undefined;
     layout: RiskMapLayout<unknown>;
   },
 ): MapLabels {
@@ -186,7 +187,7 @@ function mapLabels(
       labelOrder[first.kind] - labelOrder[second.kind] ||
       second.placed.outerRadius - first.placed.outerRadius,
   )) {
-    const label = { key: point.key, text: point.name };
+    const label = { key: point.key, text: point.name, value: point.labelValue };
     switch (kind) {
       case "own":
       case "held":
@@ -196,21 +197,31 @@ function mapLabels(
       case "other":
         others.push(label);
         break;
+      case "classmate":
+        break;
     }
   }
   return {
     kept,
     lines: [
-      {
-        key: lineLabelKeys.level,
-        text: map.levelLabel,
-        places: map.layout.linePlaces.level,
-      },
-      {
-        key: lineLabelKeys.line,
-        text: map.line.name,
-        places: map.layout.linePlaces.line,
-      },
+      ...(map.levelLabel === undefined
+        ? []
+        : [
+            {
+              key: lineLabelKeys.level,
+              text: map.levelLabel,
+              places: map.layout.linePlaces.level,
+            },
+          ]),
+      ...(map.line === undefined
+        ? []
+        : [
+            {
+              key: lineLabelKeys.line,
+              text: map.line.name,
+              places: map.layout.linePlaces.line,
+            },
+          ]),
     ],
     others,
   };

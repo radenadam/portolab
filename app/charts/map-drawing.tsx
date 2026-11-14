@@ -30,6 +30,7 @@ export const markReach = 0.33;
 // The marks of the stocks that the portfolio does not hold come first, so they never hide the marks of the portfolio, of its stocks, or of the IHSG, and the mark of the reader comes last.
 const drawOrder: Record<MarkKind, number> = {
   other: 0,
+  classmate: -1,
   held: 1,
   market: 2,
   own: 3,
@@ -52,7 +53,7 @@ export function MapDrawing({
   layout: RiskMapLayout<unknown>;
   drawn: readonly DrawnPoint[];
   placed: PlacedLabels;
-  texts: { title: string; level: string; line: string };
+  texts: { title: string; level: string | undefined; line: string | undefined };
   active: DrawnPoint | undefined;
   drawingRef: Ref<SVGSVGElement>;
   measureRef: Ref<SVGTextElement>;
@@ -60,20 +61,24 @@ export function MapDrawing({
   return (
     <svg ref={drawingRef} className={styles["drawing"]} aria-hidden>
       <Axes layout={layout} title={texts.title} />
-      <line
-        x1="0"
-        x2="100%"
-        y1={percentOf(layout.market.position.y)}
-        y2={percentOf(layout.market.position.y)}
-        className={styles["level"]}
-      />
-      <line
-        x1={percentOf(layout.line.start.x)}
-        y1={percentOf(layout.line.start.y)}
-        x2={percentOf(layout.line.end.x)}
-        y2={percentOf(layout.line.end.y)}
-        className={styles["line"]}
-      />
+      {texts.level !== undefined && (
+        <line
+          x1="0"
+          x2="100%"
+          y1={percentOf(layout.market.position.y)}
+          y2={percentOf(layout.market.position.y)}
+          className={styles["level"]}
+        />
+      )}
+      {layout.line !== undefined && (
+        <line
+          x1={percentOf(layout.line.start.x)}
+          y1={percentOf(layout.line.start.y)}
+          x2={percentOf(layout.line.end.x)}
+          y2={percentOf(layout.line.end.y)}
+          className={styles["line"]}
+        />
+      )}
       {drawn
         .toSorted(
           (first, second) => drawOrder[first.kind] - drawOrder[second.kind],
@@ -103,6 +108,7 @@ export function MapDrawing({
         <Label
           key={point.key}
           text={point.name}
+          value={placed.values.has(point.key) ? point.labelValue : undefined}
           place={placed.points.get(point.key)}
           className={styles["label"]}
         />
@@ -217,6 +223,8 @@ function Mark({
       return dot(styles["held"]);
     case "other":
       return dot(styles["other"]);
+    case "classmate":
+      return dot(styles["classmate"]);
     case "market":
       return <Diamond placed={placed} />;
   }
@@ -251,14 +259,16 @@ function Diamond({ placed }: { placed: PlacedMark }): ReactNode {
 
 function Label({
   text,
+  value,
   place,
   className,
 }: {
-  text: string;
+  text: string | undefined;
+  value?: string | undefined;
   place: LabelPlace | undefined;
   className: string | undefined;
 }): ReactNode {
-  if (place === undefined) {
+  if (place === undefined || text === undefined) {
     return null;
   }
   return (
@@ -271,6 +281,9 @@ function Label({
       className={className}
     >
       {text}
+      {value !== undefined && (
+        <tspan className={styles["labelValue"]}> {value}</tspan>
+      )}
     </text>
   );
 }
