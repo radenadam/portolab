@@ -1,4 +1,5 @@
-import { renderToStaticMarkup } from "react-dom/server";
+import { withoutConceptCardsForTest } from "~/without-concept-cards-for-test";
+import { renderInRouterForTest } from "~/render-in-router-for-test";
 import { expect, test } from "vitest";
 import type { ClassId } from "~/features/classes/classes.schema";
 import type { PortfolioValuation } from "~/features/trading/value-portfolio";
@@ -21,12 +22,14 @@ const classId = 7 as ClassId;
 
 function render(valuation: PortfolioValuation): string {
   const database = databaseWithClosesForTest();
-  return renderToStaticMarkup(
-    <PortfolioKeyMeasures
-      classId={classId}
-      report={readPortfolioMeasures(database, valuation)}
-      marketLine={studentLineForTest(database, valuation)}
-    />,
+  return withoutConceptCardsForTest(
+    renderInRouterForTest(
+      <PortfolioKeyMeasures
+        classId={classId}
+        report={readPortfolioMeasures(database, valuation)}
+        marketLine={studentLineForTest(database, valuation)}
+      />,
+    ),
   ).replaceAll(/ (class|id)="[^"]*"/g, "");
 }
 

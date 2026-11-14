@@ -5,6 +5,7 @@ import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
 import { bbcaHolding } from "./bbca-holding.ts";
 import { bbcaPortfolioMeasures } from "./bbca-portfolio-measures.ts";
+import { expectMeasureList } from "./expect-measure-list.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 import { expectMissingClassPages } from "./expect-missing-class-pages.ts";
 import { expectTexts } from "./expect-texts.ts";
@@ -385,7 +386,10 @@ async function expectRow(
 
 /** Opens every table of monthly returns and of the points of the chart, so that a check sees the screen with its widest content. */
 async function openReturnTables(page: Page): Promise<void> {
-  for (const summary of await page.getByRole("main").locator("summary").all()) {
+  for (const summary of await page
+    .getByRole("main")
+    .locator("summary:not([popover] *)")
+    .all()) {
     await summary.click();
   }
 }
@@ -521,8 +525,8 @@ for (const locale of locales) {
       );
     }
     await expectTexts(main, [text.methodNotice, text.months, text.below]);
-    await expect(main.locator("dl").first()).toHaveText(text.measures);
-    const tables = main.locator("table");
+    await expectMeasureList(main.locator("dl").first(), text.measures);
+    const tables = main.locator("table:not([popover] *)");
     const weightRows = tables.nth(0).locator("tbody tr");
     await expect(weightRows).toHaveCount(text.weights.length);
     for (const [index, cells] of text.weights.entries()) {
@@ -531,7 +535,7 @@ for (const locale of locales) {
     await expectRow(tables.nth(1).locator("tbody tr"), text.holding);
     await expectRow(tables.nth(2).locator("tbody tr"), text.pair);
     await expectRow(tables.nth(3).locator("tbody tr"), text.risk);
-    await expect(main.locator("summary")).toHaveText([
+    await expect(main.locator("summary:not([popover] *)")).toHaveText([
       ...text.summaries,
       text.pointsLabel,
     ]);
@@ -579,7 +583,7 @@ for (const locale of locales) {
       headings: text.stockHeadings,
     });
     await expect(main).toContainText(text.methodNotice);
-    await expect(main.locator("dl").first()).toHaveText(text.stockMeasures);
+    await expectMeasureList(main.locator("dl").first(), text.stockMeasures);
     await openReturnTables(student);
     await expectAccessibleScreen(student);
     await main.getByRole("link", { name: text.allMeasuresLink }).click();

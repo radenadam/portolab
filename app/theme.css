@@ -74,6 +74,8 @@
   --width-rail-item: 3.875rem;
   /* A menu that opens in place is wide enough for the name of a class beside its mark. */
   --width-popover: 16.25rem;
+  --width-concept-card: 24rem;
+  --size-concept-mark: 0.9375rem;
   /* The largest width of the content of a screen, which decision 0028 sets and e2e/expect-layout.ts checks every part marked as content against. */
   --width-content: 85rem;
   /* The name of a company stands beside its tile while it has room for a word of about ten letters, and under the tile otherwise. */

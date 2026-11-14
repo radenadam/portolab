@@ -21,9 +21,10 @@ Portolab is not for investors outside a class, for traders who want a trading pl
 - **Duolingo and Khan Academy** teach in short steps, with help where the learner practices, such as the tips of a lesson and the hints of an exercise. Portolab teaches the same way, so practice comes first, and a concept opens where the student acts, with depth on demand.
 - **Teaching research** finds that leaderboards by raw return, prizes for rank, and badges push students toward gambling, while trading on fixed dates and judging risk-adjusted return against a benchmark teach portfolio management. Portolab follows the research by design.
 
-[Decision 0028](decisions/0028-every-screen-follows-the-reference-screens-of-peta.md) sets the screens that meet this bar. Beyond these products, Portolab must meet three standards of its own:
+[Decision 0028](decisions/0028-every-screen-follows-the-reference-screens-of-peta.md) sets the screens that meet this bar. Beyond these products, Portolab must meet these standards of its own:
 
 - **Every measure can be checked by hand.** A measure shows its formula and its inputs, so a student can reproduce it in a spreadsheet and trust it.
+- **Concepts open where students use them.** A "?" beside a measure opens its meaning and the value on the page. Its calculation expands in the card, as decision 0028 sets.
 - **Copy teaches.** When the app rejects an action, it states what happened with the real numbers, explains the rule behind it, and offers a next step.
 - **Both languages are complete.** Bahasa Indonesia and English cover every screen, message, and number format, and neither is a translation afterthought.
 

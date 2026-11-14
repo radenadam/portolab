@@ -11,6 +11,7 @@ import { bbcaHolding } from "./bbca-holding.ts";
 import { bbcaPortfolioMeasures } from "./bbca-portfolio-measures.ts";
 import { chooseLanguage } from "./choose-language.ts";
 import { createTestClass } from "./create-test-class.ts";
+import { expectMeasureList } from "./expect-measure-list.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 import { expectMissingClassPages } from "./expect-missing-class-pages.ts";
 import { expectPageHeadings } from "./expect-page-headings.ts";
@@ -402,12 +403,14 @@ for (const locale of locales) {
       headings: text.measuresHeadings,
     });
     await expect(main).toContainText(text.methodNotice);
-    await expect(main.locator("dl").first()).toHaveText(text.bbcaMeasures);
+    await expectMeasureList(main.locator("dl").first(), text.bbcaMeasures);
     // The page of a stock is for the students, so the lecturer reads each stock without a link.
     await expect(
       main.getByRole("link", { name: "BBCA", exact: true }),
     ).toHaveCount(0);
-    for (const summary of await main.locator("summary").all()) {
+    for (const summary of await main
+      .locator("summary:not([popover] *)")
+      .all()) {
       await summary.click();
     }
     // The map places the portfolio and its stocks against the line of its months, and the table of its points lists each of them.
@@ -434,7 +437,8 @@ for (const locale of locales) {
     });
     await expect(main).toContainText(text.lecturerValuation(studentName));
     await expect(main.getByText(text.bbcaTotal, { exact: true })).toBeVisible();
-    await expect(main.locator("dl").first()).toHaveText(
+    await expectMeasureList(
+      main.locator("dl").first(),
       text.bbcaValue.join(""),
     );
     await expect(main.locator("form")).toHaveCount(0);

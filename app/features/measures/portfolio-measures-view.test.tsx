@@ -1,30 +1,27 @@
+import {
+  negativeTreynorTextForTest,
+  portfolioAgainstMarketForTest,
+} from "./portfolio-against-market-for-test";
+import { withoutConceptCardsForTest } from "~/without-concept-cards-for-test";
 import { expect, test } from "vitest";
 import type { ClassId } from "~/features/classes/classes.schema";
 import type { PriceSourceDescription } from "~/features/market-data/price-source.server";
 import { holdingQuoteFailureText } from "~/features/trading/holding-quote-failure-text";
 import type { PortfolioReader } from "~/features/trading/text-for-reader";
 import { languageNames } from "~/language-names";
-import { succeed } from "~/result";
 import { locales } from "~/paraglide/runtime.js";
 import type { Locale } from "~/paraglide/runtime.js";
 import { renderInRouterForTest } from "~/render-in-router-for-test";
-import { successValueForTest } from "~/success-value-for-test";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
-import { rupiah } from "~/units/rupiah";
-import { splitAdjustedRupiah } from "~/units/split-adjusted-rupiah";
-import { defaultEstimationSettings } from "./estimation-settings";
 import { measureDefinitionsForTest } from "./measure-definitions-for-test";
 import { measureFailureText } from "./measure-failure-text";
-import { summarizePortfolio } from "./measure-summaries";
 import { measureTableForTest } from "./measure-table-for-test";
-import { measureValuedPortfolio } from "./measure-valued-portfolio";
 import {
   aadiValuationForTest,
   cashValuationForTest,
   databaseWithClosesForTest,
   valuationForTest,
 } from "./measures-for-test.server";
-import { monthEndClosesForTest } from "./month-end-closes-for-test";
 import { PortfolioMeasuresView } from "./portfolio-measures-view";
 import { readPortfolioMeasures } from "./read-measures.server";
 import type { PortfolioMeasuresReport } from "./read-measures.server";
@@ -46,13 +43,15 @@ function renderView(
   reader: PortfolioReader,
   quoteFailure: string | undefined,
 ): string {
-  return renderInRouterForTest(
-    <PortfolioMeasuresView
-      reader={reader}
-      report={report}
-      quoteFailure={quoteFailure}
-      source={yahooFinance}
-    />,
+  return withoutConceptCardsForTest(
+    renderInRouterForTest(
+      <PortfolioMeasuresView
+        reader={reader}
+        report={report}
+        quoteFailure={quoteFailure}
+        source={yahooFinance}
+      />,
+    ),
   ).replaceAll(/ class="[^"]*"/g, "");
 }
 
@@ -506,38 +505,6 @@ for (const locale of locales) {
   }
 }
 
-/** The measures of a portfolio of Rp5,000,000 in an invented stock whose price rises when the IHSG falls, and Rp5,000,000 in cash. The close of the stock at the end of each month is Rp31,000,000 divided by the close of the IHSG, rounded to a whole rupiah. No stock of the fixtures moves against the IHSG, so the stock takes a code that no stock of IDX has. */
-function portfolioAgainstMarketForTest(): PortfolioMeasuresReport {
-  const ihsg = monthEndClosesForTest("IHSG");
-  const holding = {
-    code: "CONTRA",
-    closes: ihsg.closes.map(({ date, close }) => ({
-      date,
-      close: splitAdjustedRupiah(Math.round(31_000_000 / close)),
-    })),
-    value: rupiah(5_000_000),
-  };
-  const cash = rupiah(5_000_000);
-  const measures = successValueForTest(
-    measureValuedPortfolio(
-      { holdings: [holding], cash },
-      ihsg,
-      defaultEstimationSettings,
-    ),
-    "The invented stock has the 60 monthly returns of the IHSG",
-  );
-  return {
-    kind: "measured",
-    measures: succeed(
-      summarizePortfolio(measures, {
-        holdings: [holding],
-        cash,
-        total: rupiah(10_000_000),
-      }),
-    ),
-  };
-}
-
 // The decimal module of Python computed the measures of that portfolio from the same closes at 50 significant digits: an expected return of 0.000828, a standard deviation of 0.023833, a beta of -0.524884, and a Sharpe ratio of -0.166294.
 const againstMarketTexts: Record<
   Locale,
@@ -552,7 +519,7 @@ const againstMarketTexts: Record<
     [
       "Rasio Treynor",
       "Tidak ada",
-      "T<sub>p</sub> = (E(R<sub>p</sub>) − R<sub>f</sub>) / β<sub>p</sub> = (0,08% − 0,48%) / (-0,52)<span>Rasio Treynor membagi imbal hasil di atas suku bunga bebas risiko dengan beta, sehingga memerlukan beta di atas nol, tetapi beta portofolio ini -0,52. Beta nol membuat pembagian itu tidak terdefinisi, dan beta di bawah nol akan membuat imbal hasil di bawah suku bunga bebas risiko tampak sebagai imbalan atas risiko. Portolab menghitung rasio ini setelah suatu order tereksekusi atau pembaruan riwayat harga memberi portofolio beta di atas nol.</span>",
+      `T<sub>p</sub> = (E(R<sub>p</sub>) − R<sub>f</sub>) / β<sub>p</sub> = (0,08% − 0,48%) / (-0,52)<span>${negativeTreynorTextForTest.id}</span>`,
     ],
   ],
   en: [
@@ -564,7 +531,7 @@ const againstMarketTexts: Record<
     [
       "Treynor ratio",
       "None",
-      "T<sub>p</sub> = (E(R<sub>p</sub>) − R<sub>f</sub>) / β<sub>p</sub> = (0.08% − 0.48%) / (-0.52)<span>The Treynor ratio divides the return above the risk-free rate by beta, so it needs a beta above zero, but the beta of the portfolio is -0.52. A beta of zero leaves the division undefined, and a beta below zero would turn a return below the risk-free rate into a reward for risk. Portolab computes the ratio once an order fills or an update of the price history gives the portfolio a beta above zero.</span>",
+      `T<sub>p</sub> = (E(R<sub>p</sub>) − R<sub>f</sub>) / β<sub>p</sub> = (0.08% − 0.48%) / (-0.52)<span>${negativeTreynorTextForTest.en}</span>`,
     ],
   ],
 };
