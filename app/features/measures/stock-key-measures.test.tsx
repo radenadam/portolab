@@ -1,5 +1,6 @@
 import { expect, test } from "vitest";
 import type { ClassId } from "~/features/classes/classes.schema";
+import { openDatabaseForTest } from "~/database/open-database-for-test.server";
 import { conceptLessonDataForTest } from "~/features/learning/concept-lesson-data-for-test";
 import { markupTextForTest } from "~/markup-text-for-test";
 import { locales } from "~/paraglide/runtime.js";
@@ -63,12 +64,12 @@ const failures = {
       enoughAfterFirstTradingDayOf: fail({ code: "ADMR" }),
     },
   },
-  noHistoryOne: {
+  noMarketHistory: {
     kind: "unmeasured",
     failure: {
       kind: "tooFewReturns",
       code: "IHSG",
-      count: 1,
+      count: 0,
       minimum: 24,
       enoughAfterFirstTradingDayOf: fail({ code: "IHSG" }),
     },
@@ -110,8 +111,8 @@ const failureTexts: Record<Locale, Record<keyof typeof failures, string>> = {
       "Saham ini, setiap saham portofolio Anda, dan IHSG baru sama-sama memiliki 1 imbal hasil bulanan dalam 60 bulan lengkap terakhir, sedangkan Portolab menghitung korelasi hanya dari paling sedikit 24 imbal hasil bulanan. Jika saham ini, IHSG, dan setiap saham Anda tetap memiliki harga penutupan di akhir setiap bulan, Portolab menghitung korelasi setelah pembaruan riwayat harga yang menyimpan harga penutupan hari bursa pertama Agustus 2028.",
     noHistorySeveral:
       "Saham ini, setiap saham portofolio Anda, dan IHSG baru sama-sama memiliki 0 imbal hasil bulanan dalam 60 bulan lengkap terakhir, sedangkan Portolab menghitung korelasi hanya dari paling sedikit 24 imbal hasil bulanan. Portolab belum menyimpan riwayat harga ADMR selama satu bulan penuh, sehingga belum dapat memperkirakan kapan ukurannya tersedia. Portolab dapat memperkirakannya setelah pembaruan riwayat harga berikutnya menyimpan riwayat tersebut.",
-    noHistoryOne:
-      "Saham ini, setiap saham portofolio Anda, dan IHSG baru sama-sama memiliki 1 imbal hasil bulanan dalam 60 bulan lengkap terakhir, sedangkan Portolab menghitung korelasi hanya dari paling sedikit 24 imbal hasil bulanan. Portolab belum menyimpan riwayat harga IHSG selama satu bulan penuh, sehingga belum dapat memperkirakan kapan ukurannya tersedia. Portolab dapat memperkirakannya setelah pembaruan riwayat harga berikutnya menyimpan riwayat tersebut.",
+    noMarketHistory:
+      "Saham ini, setiap saham portofolio Anda, dan IHSG baru sama-sama memiliki 0 imbal hasil bulanan dalam 60 bulan lengkap terakhir, sedangkan Portolab menghitung korelasi hanya dari paling sedikit 24 imbal hasil bulanan. Portolab belum menyimpan riwayat harga IHSG selama satu bulan penuh, sehingga belum dapat memperkirakan kapan ukurannya tersedia. Portolab dapat memperkirakannya setelah pembaruan riwayat harga berikutnya menyimpan riwayat tersebut.",
   },
   en: {
     noHoldings:
@@ -134,8 +135,8 @@ const failureTexts: Record<Locale, Record<keyof typeof failures, string>> = {
       "This stock, each stock in your portfolio, and the IHSG share 1 monthly return in the latest 60 complete months, but Portolab computes correlation only from at least 24 monthly returns. If this stock, the IHSG, and each of your stocks keep a close at the end of every month, Portolab computes correlation after the update of the price history that stores the close of the first trading day of August 2028.",
     noHistorySeveral:
       "This stock, each stock in your portfolio, and the IHSG share 0 monthly returns in the latest 60 complete months, but Portolab computes correlation only from at least 24 monthly returns. Portolab has not stored a complete month of the price history of ADMR yet, so it cannot tell when the measures come. It can tell once the next update of the price history stores that history.",
-    noHistoryOne:
-      "This stock, each stock in your portfolio, and the IHSG share 1 monthly return in the latest 60 complete months, but Portolab computes correlation only from at least 24 monthly returns. Portolab has not stored a complete month of the price history of the IHSG yet, so it cannot tell when the measures come. It can tell once the next update of the price history stores that history.",
+    noMarketHistory:
+      "This stock, each stock in your portfolio, and the IHSG share 0 monthly returns in the latest 60 complete months, but Portolab computes correlation only from at least 24 monthly returns. Portolab has not stored a complete month of the price history of the IHSG yet, so it cannot tell when the measures come. It can tell once the next update of the price history stores that history.",
   },
 };
 
@@ -167,6 +168,13 @@ for (const locale of locales) {
         conceptLessonDataForTest(),
       );
     }
+    expect(
+      readStockCorrelation(
+        openDatabaseForTest(),
+        "BBCA",
+        valuationForTest(["BBCA", "TLKM"]),
+      ),
+    ).toEqual(fail(failures.noMarketHistory));
     const measured = renderCorrelation(
       readStockCorrelation(
         database,

@@ -11,17 +11,11 @@
   overflow-wrap: anywhere;
 }
 
-/* Ranges share a group so adding another range leaves the metric columns in place. */
+/* The range needs room for its price labels and dates. */
 .ranges {
   grid-column: span 2;
-  display: flex;
-  gap: var(--space-4);
   min-width: 0;
   margin: 0;
-}
-
-.ranges > * {
-  flex: 1;
 }
 
 .stat dt,
