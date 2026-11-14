@@ -128,11 +128,16 @@ function Headline({
       </dl>
       <p className={styles["details"]}>
         <NumberText>
-          {textForReader(reader, {
-            owner: () => m.trading_valuation_notice(delay),
-            lecturer: (name) =>
-              m.trading_lecturer_valuation_notice({ ...delay, name }),
-          })}
+          {(textValue) =>
+            textForReader(reader, {
+              owner: () => m.trading_valuation_notice(delay),
+              lecturer: (name) =>
+                m.trading_lecturer_valuation_notice({
+                  ...delay,
+                  name: textValue(name),
+                }),
+            })
+          }
         </NumberText>
       </p>
       <QuoteNotice text={failure} className={styles["details"]} />

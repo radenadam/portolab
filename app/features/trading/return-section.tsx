@@ -73,19 +73,21 @@ function Returns({
         <>
           <p>
             <NumberText>
-              {textForReader(reader, {
-                owner: () =>
-                  m.trading_chart_notice({
-                    index: marketIndex.code,
-                    date: formatCalendarDate(start.date),
-                  }),
-                lecturer: (name) =>
-                  m.trading_lecturer_chart_notice({
-                    index: marketIndex.code,
-                    date: formatCalendarDate(start.date),
-                    name,
-                  }),
-              })}
+              {(textValue) =>
+                textForReader(reader, {
+                  owner: () =>
+                    m.trading_chart_notice({
+                      index: marketIndex.code,
+                      date: formatCalendarDate(start.date),
+                    }),
+                  lecturer: (name) =>
+                    m.trading_lecturer_chart_notice({
+                      index: marketIndex.code,
+                      date: formatCalendarDate(start.date),
+                      name: textValue(name),
+                    }),
+                })
+              }
             </NumberText>
           </p>
           <TimeChart

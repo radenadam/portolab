@@ -98,12 +98,17 @@ function MeasuredPortfolio({
       </h2>
       <p>
         <NumberText>
-          {textForReader(reader, {
-            owner: () =>
-              m.measures_weights_notice({ ...delay, page: homeTitle() }),
-            lecturer: (name) =>
-              m.measures_lecturer_weights_notice({ ...delay, name }),
-          })}
+          {(textValue) =>
+            textForReader(reader, {
+              owner: () =>
+                m.measures_weights_notice({ ...delay, page: homeTitle() }),
+              lecturer: (name) =>
+                m.measures_lecturer_weights_notice({
+                  ...delay,
+                  name: textValue(name),
+                }),
+            })
+          }
         </NumberText>
       </p>
       <QuoteNotice text={quoteFailure} className={styles["details"]} />

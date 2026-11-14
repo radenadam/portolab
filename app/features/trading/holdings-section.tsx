@@ -38,7 +38,7 @@ export function HoldingsSection({
       </h2>
       {holdings.length === 0 ? (
         <p>
-          <NumberText>
+          <NumberText verbatim>
             {textForReader(reader, {
               owner: () => m.trading_no_holdings_body(),
               lecturer: (name) => m.trading_lecturer_no_holdings_body({ name }),
