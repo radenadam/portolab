@@ -48,6 +48,7 @@ const texts: Record<
     simulation: string;
     latestPrice: string;
     missedPrices: readonly string[];
+    lesson: string;
   }
 > = {
   id: {
@@ -68,6 +69,8 @@ const texts: Record<
     simulation:
       "Uang di Portolab virtual, jadi setiap hasil adalah simulasi. Setiap harga adalah harga tertunda dari Yahoo Finance, sekitar 10 menit di belakang BEI.",
     latestPrice: "Harga terakhir tercatat pada 30 Okt 2026, 16.14 WIB.",
+    lesson:
+      "Pelajari lebih lanjut di sesi 6. Pelajaran belum tersedia di Portolab.",
     missedPrices: [
       "Portolab tidak dapat memperbarui harga UNVR pada ",
       " WIB, jadi Portolab memakai harga terakhir UNVR yang tersimpan. Portolab belum memiliki harga WIFI, karena percobaan terakhir untuk mengambilnya pada ",
@@ -92,6 +95,8 @@ const texts: Record<
     simulation:
       "The money in Portolab is virtual, so every result is a simulation. Every price is a delayed price from Yahoo Finance, about 10 minutes behind IDX.",
     latestPrice: "The latest price was quoted at Oct 30, 2026, 4:14 PM WIB.",
+    lesson:
+      "Learn more in session 6. The lesson is not available in Portolab yet.",
     missedPrices: [
       "Portolab could not update the price of UNVR at ",
       " WIB, so it uses the last price of UNVR that it stored. Portolab has no price for WIFI yet, because its latest attempt to fetch it at ",
@@ -335,7 +340,7 @@ for (const locale of locales) {
     ).toBeVisible();
     const card = await openSimulationCard(page);
     await expect(card).toHaveAccessibleName(text.cardTitle);
-    await expect(card.getByRole("paragraph")).toHaveCount(4);
+    await expect(card.getByRole("paragraph")).toHaveCount(5);
     await expect(card.getByRole("paragraph").nth(0)).toHaveText(text.cardTitle);
     await expect(card.getByRole("paragraph").nth(1)).toHaveText(
       text.simulation,
@@ -344,6 +349,7 @@ for (const locale of locales) {
       text.latestPrice,
     );
     await expectTexts(card.getByRole("paragraph").nth(3), text.missedPrices);
+    await expect(card.getByRole("paragraph").nth(4)).toHaveText(text.lesson);
     await expectAccessibleScreen(page);
     await page.keyboard.press("Escape");
     await expect(card).toBeHidden();

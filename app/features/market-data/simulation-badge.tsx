@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import chipStyles from "~/chip.module.css";
+import { ConceptLesson } from "~/features/learning/concept-lesson";
 import { formatMinutes } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { Popover, PopoverButton } from "~/popover";
@@ -34,6 +35,7 @@ export function SimulationBadge({
         <span className={styles["short"]}>
           {m.market_data_short_simulation_badge_label({ delay })}
         </span>
+        <span aria-hidden="true">?</span>
       </PopoverButton>
       <Popover
         id={cardId}
@@ -45,6 +47,9 @@ export function SimulationBadge({
           {badge.card.map((paragraph) => (
             <p key={paragraph}>{paragraph}</p>
           ))}
+          <p>
+            <ConceptLesson termId="harga-tertunda" />
+          </p>
         </div>
       </Popover>
     </>

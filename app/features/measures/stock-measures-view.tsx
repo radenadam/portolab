@@ -50,6 +50,13 @@ export function StockMeasuresView({
         rows={[
           {
             label: m.measures_expected_return_label(),
+            concept: "expectedReturn",
+            inputs: (
+              <ReturnTables
+                showHeading={false}
+                instruments={[{ code, returns: stock.returns }]}
+              />
+            ),
             value: formatPercent(stock.expectedReturn, "two"),
             formula: <MeanFormula of="i" count={stock.returns.length} />,
           },
@@ -60,6 +67,7 @@ export function StockMeasuresView({
           },
           {
             label: m.measures_standard_deviation_label(),
+            concept: "risk",
             value: formatPercent(stock.standardDeviation, "two"),
             formula: (
               <StandardDeviationFormula of="i" variance={stock.variance} />
@@ -83,6 +91,7 @@ export function StockMeasuresView({
           },
           {
             label: m.measures_beta_label({ index }),
+            concept: "beta",
             value: formatBeta(stock.beta.value),
             formula: <BetaFormula beta={stock.beta} />,
           },

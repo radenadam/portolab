@@ -71,17 +71,36 @@ export function WeightTable({
 export function HoldingTable({
   portfolio,
   reader,
+  measure,
 }: {
   portfolio: PortfolioSummary;
   reader: PortfolioReader;
+  measure?: "expectedReturn" | "beta";
 }): ReactNode {
+  const measures: readonly ("expectedReturn" | "beta")[] =
+    measure === undefined ? ["expectedReturn", "beta"] : [measure];
+  const columns: Record<
+    (typeof measures)[number],
+    {
+      label: string;
+      value: (holding: PortfolioSummary["holdings"][number]) => string;
+    }
+  > = {
+    expectedReturn: {
+      label: m.measures_expected_return_label(),
+      value: (holding) => formatPercent(holding.expectedReturn, "two"),
+    },
+    beta: {
+      label: m.measures_beta_label({ index: marketIndex.code }),
+      value: (holding) => formatBeta(holding.beta),
+    },
+  };
   return (
     <MeasureTable
       header={[
         m.measures_stock_label(),
         m.measures_weight_label(),
-        m.measures_expected_return_label(),
-        m.measures_beta_label({ index: marketIndex.code }),
+        ...measures.map((column) => columns[column].label),
       ]}
       rows={portfolio.holdings.map((holding) => ({
         key: holding.code,
@@ -90,8 +109,7 @@ export function HoldingTable({
           kind: "numbers",
           values: [
             formatPercent(holding.weight, "two"),
-            formatPercent(holding.expectedReturn, "two"),
-            formatBeta(holding.beta),
+            ...measures.map((column) => columns[column].value(holding)),
           ],
         },
       }))}

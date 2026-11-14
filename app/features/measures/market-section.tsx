@@ -15,6 +15,7 @@ import {
 import { MeasureList } from "./measure-list";
 import type { MarketSummary } from "./measure-summaries";
 import styles from "./measures.module.css";
+import { ReturnTables } from "./return-tables";
 
 /** The measures of the IHSG over the months of the stock or the portfolio beside it, and the rate free of risk, which the return that CAPM requires takes. */
 export function MarketSection({
@@ -31,6 +32,13 @@ export function MarketSection({
         rows={[
           {
             label: m.measures_market_expected_return_label({ index }),
+            concept: "market",
+            inputs: (
+              <ReturnTables
+                showHeading={false}
+                instruments={[{ code: index, returns: market.returns }]}
+              />
+            ),
             value: formatPercent(market.expectedReturn, "two"),
             formula: <MeanFormula of="M" count={market.returns.length} />,
           },
@@ -41,6 +49,7 @@ export function MarketSection({
           },
           {
             label: m.measures_market_standard_deviation_label({ index }),
+            concept: "risk",
             value: formatPercent(market.standardDeviation, "two"),
             formula: (
               <StandardDeviationFormula of="M" variance={market.variance} />
@@ -48,6 +57,7 @@ export function MarketSection({
           },
           {
             label: m.measures_risk_free_rate_label(),
+            concept: "riskFree",
             value: formatPercent(riskFreeRate.value, "two"),
             formula: <RiskFreeFormula rate={riskFreeRate} />,
           },
