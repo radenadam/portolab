@@ -10,7 +10,7 @@ export interface PortfolioOfTest {
   givePortfolio?: ((classId: ClassId) => void) | undefined;
 }
 
-/** Creates a lecturer with a class and a student who joined it, each with the widest name, and lets a test give the student a portfolio. Returns the page of the student, which shows the class, and the path of the class. */
+/** Prepares a lecturer with a class and an existing student, each with the widest name, and lets a test give the student a portfolio. Returns the page of the student, which shows the class, and the path of the class. */
 export async function studentWithPortfolio(
   page: Page,
   browser: Browser,

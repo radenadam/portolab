@@ -1,14 +1,14 @@
 import { and, asc, count, eq } from "drizzle-orm";
-import type { Database } from "~/database/database.server";
-import type { UserId } from "~/features/accounts/accounts.schema";
-import { findPeople } from "~/features/accounts/account-store.server";
-import type { Person } from "~/features/accounts/account-store.server";
-import { randomReadableText } from "~/random-text.server";
-import type { Rupiah } from "~/units/rupiah";
-import { classes, memberships } from "./classes.schema";
-import type { ClassId, MembershipId } from "./classes.schema";
-import { joinCodeLength } from "./join-code";
-import type { JoinCode } from "./join-code";
+import type { Database } from "../../database/database.server.ts";
+import type { UserId } from "../accounts/accounts.schema.ts";
+import { findPeople } from "../accounts/account-store.server.ts";
+import type { Person } from "../accounts/account-store.server.ts";
+import { randomReadableText } from "../../random-text.server.ts";
+import type { Rupiah } from "../../units/rupiah.ts";
+import { classes, memberships } from "./classes.schema.ts";
+import type { ClassId, MembershipId } from "./classes.schema.ts";
+import { joinCodeLength } from "./join-code.ts";
+import type { JoinCode } from "./join-code.ts";
 
 /** A class as its lecturer sees it in the list of classes. */
 export interface TaughtClass {

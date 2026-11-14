@@ -30,6 +30,7 @@ import type { TestClass } from "./create-test-class.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 import { newDevice } from "./new-device.ts";
 import { expectPageHeadings } from "./expect-page-headings.ts";
+import { signInAsTestStudent } from "./sign-in-as-test-student.ts";
 import { studentOfNewClass } from "./student-of-new-class.ts";
 import { publicServerUrl } from "./test-server.ts";
 import { wideWord } from "./wide-word.ts";
@@ -771,11 +772,7 @@ for (const locale of locales) {
     await signInAsNewLecturer(page, lecturerName);
     const testClass = await createTestClass(page, className);
     const student = await newDevice(browser, locale);
-    const username = await joinAsNewStudent(
-      student,
-      testClass.joinPath,
-      studentName,
-    );
+    const username = await signInAsTestStudent(student, testClass, studentName);
     await student.goto(testClass.joinPath);
     await expect(student).toHaveURL(testClass.path);
 
@@ -825,7 +822,7 @@ for (const locale of locales) {
     await signInAsNewLecturer(page, lecturerName);
     const testClass = await createTestClass(page, className);
     const member = await newDevice(browser, locale);
-    await joinAsNewStudent(member, testClass.joinPath, studentName);
+    await signInAsTestStudent(member, testClass, studentName);
     await page.goto(testClass.path);
     const resetPath = await page
       .getByRole("link", { name: text.resetLink })
@@ -840,7 +837,7 @@ for (const locale of locales) {
     await signInAsNewLecturer(otherLecturer, lecturerName);
     const otherClass = await createTestClass(otherLecturer, otherClassName);
     const outsider = await newDevice(browser, locale);
-    await joinAsNewStudent(outsider, otherClass.joinPath, studentName);
+    await signInAsTestStudent(outsider, otherClass, studentName);
 
     for (const [device, path] of [
       [otherLecturer, testClass.path],
