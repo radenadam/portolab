@@ -18,6 +18,7 @@ let beforeCleanMerge = "";
 let cleanAutomaticMerge = "";
 let manualMerge = "";
 let topicMerge = "";
+let separateFixAndMerge = "";
 let octopusMerge = "";
 
 function automaticText(first: string, last: string): string {
@@ -98,6 +99,16 @@ beforeAll(() => {
   git("add", ".");
   git("commit", "--quiet", "--message=manual merge");
   manualMerge = git("rev-parse", "HEAD");
+  git("checkout", "--quiet", "-b", "fix-and-merge", beforeMerge);
+  write("a.txt", "finding fix");
+  write("unrelated.txt", "unrelated author work");
+  git("add", ".");
+  git("commit", "--quiet", "--message=fix and other work");
+  git("merge", "--quiet", "main", "--message=merge main with fix");
+  write("c.txt", "c resolved");
+  git("add", ".");
+  git("commit", "--quiet", "--message=merge main with fix");
+  separateFixAndMerge = git("rev-parse", "HEAD");
   git("checkout", "--quiet", "-b", "topic", featureHead);
   write("topic.txt", "imported topic");
   git("add", ".");
@@ -127,7 +138,7 @@ afterAll(() => {
 });
 
 test("reads the whole change of the pull request against the base branch", () => {
-  expect(readChangedFiles(["main...HEAD"], repository)).toEqual({
+  expect(readChangedFiles(["main...HEAD"], repository)).toMatchObject({
     ok: true,
     value: [
       { path: "a.txt", change: "modified" },
@@ -137,21 +148,28 @@ test("reads the whole change of the pull request against the base branch", () =>
   });
 });
 
-test("reads author changes and conflict resolutions without automatic same-file merges", () => {
+test("separates author changes and resolutions in the same file without automatic same-file merges", () => {
+  expect(
+    git("log", "--first-parent", "--format=%s", `${reviewedHead}..HEAD`),
+  ).toContain("feature c");
   expect(git("diff", "--name-only", reviewedHead, "HEAD")).toBe(
     "automatic.txt\nb.txt\nc.txt",
   );
-  expect(changes(reviewedHead, ["a.txt", "automatic.txt", "c.txt"])).toEqual({
+  expect(
+    changes(reviewedHead, ["a.txt", "automatic.txt", "c.txt"]),
+  ).toMatchObject({
     ok: true,
     value: {
+      authorFiles: [{ path: "c.txt", change: "modified" }],
+      mergeFiles: [{ path: "c.txt", change: "modified" }],
       files: [{ path: "c.txt", change: "modified" }],
-      commitScope: "mixed",
+      commitScope: "fixes-and-merges",
     },
   });
 });
 
 test("recognizes merges of main alone, with and without conflict resolutions", () => {
-  expect(changes(beforeMerge, ["automatic.txt", "c.txt"])).toEqual({
+  expect(changes(beforeMerge, ["automatic.txt", "c.txt"])).toMatchObject({
     ok: true,
     value: {
       files: [{ path: "c.txt", change: "modified" }],
@@ -160,7 +178,7 @@ test("recognizes merges of main alone, with and without conflict resolutions", (
   });
   expect(
     changes(beforeCleanMerge, ["a.txt", "automatic.txt", "c.txt"]),
-  ).toEqual({
+  ).toMatchObject({
     ok: true,
     value: { files: [], commitScope: "base-merges" },
   });
@@ -177,7 +195,7 @@ test("uses no round for a clean merge that combines edits in the same file", () 
         "HEAD",
       ),
     ).toBe("automatic.txt");
-    expect(changes(reviewedHead, ["a.txt", "automatic.txt"])).toEqual({
+    expect(changes(reviewedHead, ["a.txt", "automatic.txt"])).toMatchObject({
       ok: true,
       value: { files: [], commitScope: "base-merges" },
     });
@@ -188,7 +206,7 @@ test("reviews every manual integration edit in a main merge", () => {
   atHead(manualMerge, () => {
     expect(
       changes(beforeMerge, ["automatic.txt", "c.txt", "integration.txt"]),
-    ).toEqual({
+    ).toMatchObject({
       ok: true,
       value: {
         files: [
@@ -201,19 +219,6 @@ test("reviews every manual integration edit in a main merge", () => {
   });
 });
 
-test("rejects a merge allowance for author commits alongside a merge in the same resolved file", () => {
-  expect(
-    git("log", "--first-parent", "--format=%s", `${reviewedHead}..HEAD`),
-  ).toContain("feature c");
-  expect(changes(reviewedHead, ["c.txt"])).toEqual({
-    ok: true,
-    value: {
-      files: [{ path: "c.txt", change: "modified" }],
-      commitScope: "mixed",
-    },
-  });
-});
-
 test("keeps files imported by foreign and octopus merges under ordinary review", () => {
   const featureHead = git("rev-parse", "HEAD");
   for (const [head, paths] of [
@@ -221,7 +226,7 @@ test("keeps files imported by foreign and octopus merges under ordinary review",
     [octopusMerge, ["other.txt", "topic.txt"]],
   ] as const) {
     atHead(head, () => {
-      expect(changes(featureHead, paths)).toEqual({
+      expect(changes(featureHead, paths)).toMatchObject({
         ok: true,
         value: {
           files: paths.map((path) => ({ path, change: "added" })),
@@ -233,14 +238,14 @@ test("keeps files imported by foreign and octopus merges under ordinary review",
 });
 
 test("rejects a merge outside main and gives an empty range no merge allowance", () => {
-  expect(changes(beforeMerge, ["c.txt"], reviewedHead)).toEqual({
+  expect(changes(beforeMerge, ["c.txt"], reviewedHead)).toMatchObject({
     ok: true,
     value: {
       files: [{ path: "c.txt", change: "modified" }],
       commitScope: "mixed",
     },
   });
-  expect(changes(git("rev-parse", "HEAD"), ["c.txt"])).toEqual({
+  expect(changes(git("rev-parse", "HEAD"), ["c.txt"])).toMatchObject({
     ok: true,
     value: { files: [], commitScope: "author" },
   });
@@ -248,7 +253,7 @@ test("rejects a merge outside main and gives an empty range no merge allowance",
 
 test("classifies author commits for the verifier-only allowance", () => {
   atHead(beforeMerge, () => {
-    expect(changes(reviewedHead, ["c.txt"])).toEqual({
+    expect(changes(reviewedHead, ["c.txt"])).toMatchObject({
       ok: true,
       value: {
         files: [{ path: "c.txt", change: "modified" }],
@@ -272,23 +277,44 @@ test("passes on failures to read history, the base, or a diff", () => {
 });
 
 test("reads no file when no path of the change was touched", () => {
-  expect(changes(reviewedHead, ["a.txt"])).toEqual({
+  expect(changes(reviewedHead, ["a.txt"])).toMatchObject({
     ok: true,
-    value: { files: [], commitScope: "mixed" },
+    value: { files: [], commitScope: "fixes-and-merges" },
   });
 });
 
 test("keeps a reviewed head that the head contains, and drops one that it does not contain or that does not exist", () => {
-  expect(containedHead(reviewedHead, repository)).toEqual({
+  expect(containedHead(reviewedHead, repository)).toMatchObject({
     ok: true,
     value: reviewedHead,
   });
-  expect(containedHead(unmergedBaseCommit, repository)).toEqual({
+  expect(containedHead(unmergedBaseCommit, repository)).toMatchObject({
     ok: true,
     value: undefined,
   });
-  expect(containedHead("f".repeat(40), repository)).toEqual({
+  expect(containedHead("f".repeat(40), repository)).toMatchObject({
     ok: true,
     value: undefined,
+  });
+});
+
+test("retains every author file separately from merge resolutions so unrelated work needs a verdict", () => {
+  atHead(separateFixAndMerge, () => {
+    expect(changes(beforeMerge, ["a.txt", "c.txt", "unrelated.txt"])).toEqual({
+      ok: true,
+      value: {
+        files: [
+          { path: "a.txt", change: "modified" },
+          { path: "c.txt", change: "modified" },
+          { path: "unrelated.txt", change: "added" },
+        ],
+        commitScope: "fixes-and-merges",
+        authorFiles: [
+          { path: "a.txt", change: "modified" },
+          { path: "unrelated.txt", change: "added" },
+        ],
+        mergeFiles: [{ path: "c.txt", change: "modified" }],
+      },
+    });
   });
 });

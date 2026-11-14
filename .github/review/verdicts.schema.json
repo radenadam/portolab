@@ -6,15 +6,29 @@
       "items": {
         "type": "object",
         "properties": {
-          "id": { "type": "string" },
+          "id": {
+            "type": "string"
+          },
           "status": {
             "type": "string",
             "enum": ["confirmed", "refuted", "duplicate"]
           },
-          "scope": { "type": "string", "enum": ["change", "existing"] },
-          "siblings": { "type": "array", "items": { "type": "string" } },
-          "duplicateOf": { "type": "string" },
-          "evidence": { "type": "string" }
+          "scope": {
+            "type": "string",
+            "enum": ["change", "existing"]
+          },
+          "siblings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "duplicateOf": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "string"
+          }
         },
         "required": [
           "id",
@@ -25,7 +39,26 @@
           "evidence"
         ]
       }
+    },
+    "fixChecks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["fix", "unrelated"]
+          },
+          "evidence": {
+            "type": "string"
+          }
+        },
+        "required": ["file", "status", "evidence"]
+      }
     }
   },
-  "required": ["verdicts"]
+  "required": ["verdicts", "fixChecks"]
 }

@@ -80,7 +80,7 @@ if (plan.kind === "review") {
     `lenses=${listOfWords(plan.lenses)}`,
     `tools=${tools.value}`,
     `product=${String(plan.lenses.includes("product"))}`,
-    `scope=${describeReviewScope(since.value, base)}`,
+    `scope=${describeReviewScope(since.value, base, plan.mergeRounds > plan.previous.mergeRounds)}`,
   );
 }
 process.stdout.write(`${outputs.join("\n")}\n`);
@@ -99,7 +99,7 @@ function readChangesSince(
   return changes.ok
     ? succeed({
         files: changes.value.files,
-        history: { since, commitScope: changes.value.commitScope },
+        history: { since, ...changes.value },
       })
     : changes;
 }

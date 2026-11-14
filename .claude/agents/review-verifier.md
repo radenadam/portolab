@@ -18,3 +18,5 @@ A finding from an earlier round was confirmed at an earlier head. Refute it only
 Give each finding one verdict. A finding is **confirmed** when you verified it, with the evidence you checked. It is **refuted** when it does not hold, with the reason. When you cannot settle a new finding, refute it and say what would settle it.
 
 Lenses overlap, so two findings can describe the same defect. Confirm the one with the strongest basis, merge the siblings of the others into it, and give each of the others the verdict **duplicate** of the confirmed one.
+
+After ordinary reviews, also check each author file under the finding-check rule in the section "Review panel" of `AGENTS.md`. State which changes you checked and how they relate to the open findings.

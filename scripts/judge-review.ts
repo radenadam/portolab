@@ -1,11 +1,9 @@
+import { checkRoundLimit, mergeReviewRoundLimit } from "./review-limits.ts";
 import { countOf, listOfWords, singularOrPlural } from "../app/sentences.ts";
 import type { Finding, RoundReport, Verdict } from "./review-findings.ts";
-import {
-  checkRoundLimit,
-  mergeReviewRoundLimit,
-  reviewRoundLimit,
-  runsAgent,
-} from "./review-plan.ts";
+import { fixCheckProblem } from "./review-fix-checks.ts";
+import type { FixCheck } from "./review-fix-checks.ts";
+import { runsAgent } from "./review-plan.ts";
 import type { ReviewPlan } from "./review-plan.ts";
 import type { ReviewState } from "./review-state.ts";
 
@@ -17,6 +15,7 @@ export interface ReviewInput {
   report: RoundReport | undefined;
   /** The verifier's verdicts, or undefined when its job gave none. */
   verdicts: Verdict[] | undefined;
+  fixChecks?: FixCheck[] | undefined;
   /** The result of each job of the panel, such as "success" or "failure". */
   jobResults: Record<string, string>;
   /** One sentence for each agent that ran, about its duration and its turns. */
@@ -84,20 +83,15 @@ function verdictWithoutAgent(plan: ReviewPlan): string | undefined {
 }
 
 function capVerdict(plan: ReviewPlan): string {
-  const reviewRounds = countOf(
-    reviewRoundLimit,
-    "ordinary review round",
-    "ordinary review rounds",
-  );
   switch (plan.capReason) {
     case "merge-reviews":
       return `The panel has used its ${countOf(mergeReviewRoundLimit, "extra merge review round", "extra merge review rounds")}, so it ran no agent to read further changes.`;
     case "finding-checks":
-      return `The panel has used its ${reviewRounds} and its ${countOf(checkRoundLimit, "round that checks open findings", "rounds that check open findings")}, and ${countOf(plan.previous.openFindings.length, "finding stays open", "findings stay open")}, so it ran no agent.`;
+      return `The panel has used its ordinary review allowance and its ${countOf(checkRoundLimit, "round that checks open findings", "rounds that check open findings")}, and ${countOf(plan.previous.openFindings.length, "finding stays open", "findings stay open")}, so it ran no agent.`;
     case "mixed-push":
-      return `The panel has used its ${reviewRounds}. A later push that changes files must contain author commits alone or two-parent merges of the base branch alone. This push has another combination of commits, so no agent ran.`;
+      return `The panel has used its ordinary review allowance. This push needs an ordinary review or a remaining allowance for each of its finding fixes and base merge resolutions, so no agent ran.`;
     case "unreviewed-change":
-      return `The panel has used its ${reviewRounds}, and ${
+      return `The panel has used its ordinary review allowance, and ${
         plan.since === undefined
           ? "no round finished reviewing the change"
           : `the commits since ${plan.since} changed files of the pull request while no finding was open`
@@ -115,7 +109,12 @@ function unfinished(plan: ReviewPlan, verdict: string): Judgement {
     hasFinished: false,
     // A run whose agent did not finish still counts as a round, so that a failing agent cannot run without end.
     state: runsAgent(plan)
-      ? { ...plan.previous, round: plan.round, mergeRounds: plan.mergeRounds }
+      ? {
+          ...plan.previous,
+          round: plan.round,
+          mergeRounds: plan.mergeRounds,
+          checkRounds: plan.checkRounds,
+        }
       : undefined,
     verified: [],
     blocking: [],
@@ -140,7 +139,10 @@ function unfinishedReason(input: ReviewInput): string | undefined {
   if (findings.length > 0 && input.verdicts === undefined) {
     return "The verifier's verdicts are missing, so no finding has been verified. The log of the verifier's job names the reason.";
   }
-  return coverageProblem(findings, input.verdicts ?? []);
+  return (
+    coverageProblem(findings, input.verdicts ?? []) ??
+    fixCheckProblem(input.plan.fixFiles, input.fixChecks)
+  );
 }
 
 // The jobs that a kind of plan needs. A job of an agent can fail after its agent answered, such as in its measure, so its answer counts only when the job succeeded.
@@ -225,6 +227,7 @@ function finished(input: ReviewInput): Judgement {
       head: input.reviewedHead,
       round: input.plan.round,
       mergeRounds: input.plan.mergeRounds,
+      checkRounds: input.plan.checkRounds,
       openFindings: blocking.map(withoutVerdict),
     },
     verified,

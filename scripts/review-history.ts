@@ -47,12 +47,15 @@ export function containedHead(
   return succeed(contained.value ? head : undefined);
 }
 
-/** Which allowance may read the first-parent commits since the reviewed head. A mixed push needs an ordinary review. */
-export type CommitScope = "author" | "base-merges" | "mixed";
+/** Which allowance may read the first-parent commits since the reviewed head. Foreign merges need an ordinary review. */
+export type CommitScope =
+  "author" | "base-merges" | "fixes-and-merges" | "mixed";
 
 export interface ReviewChanges {
   files: ChangedFile[];
   commitScope: CommitScope;
+  authorFiles: ChangedFile[];
+  mergeFiles: ChangedFile[];
 }
 
 /** Selects author changes and manual merge resolutions together with their allowance, so a foreign merge cannot hide imported files behind an empty combined diff. */
@@ -71,6 +74,8 @@ export function readReviewChangesSince(
   }
   const changePaths = new Set(change.paths);
   const touched = new Set<string>();
+  const authorPaths = new Set<string>();
+  const mergePaths = new Set<string>();
   let commitScope: CommitScope | undefined;
   for (const line of log.value.stdout.trim().split("\n").filter(Boolean)) {
     const commit = parseHistoryCommit(line, "git log");
@@ -82,11 +87,11 @@ export function readReviewChangesSince(
       return contribution;
     }
     const scope = contribution.value.commitScope;
-    commitScope =
-      commitScope === undefined || commitScope === scope ? scope : "mixed";
+    commitScope = combineScopes(commitScope, scope);
     for (const file of contribution.value.files) {
       if (changePaths.has(file.path)) {
         touched.add(file.path);
+        (scope === "base-merges" ? mergePaths : authorPaths).add(file.path);
       }
     }
   }
@@ -96,15 +101,30 @@ export function readReviewChangesSince(
       ? succeed([])
       : readChangedFiles([since, "HEAD", "--", ...touched], cwd);
   return files.ok
-    ? succeed({ files: files.value, commitScope: commitScope ?? "author" })
+    ? succeed({
+        files: files.value,
+        commitScope: commitScope ?? "author",
+        authorFiles: files.value.filter(({ path }) => authorPaths.has(path)),
+        mergeFiles: files.value.filter(({ path }) => mergePaths.has(path)),
+      })
     : files;
+}
+
+function combineScopes(
+  previous: CommitScope | undefined,
+  next: CommitScope,
+): CommitScope {
+  if (previous === undefined || previous === next) return next;
+  return previous === "mixed" || next === "mixed"
+    ? "mixed"
+    : "fixes-and-merges";
 }
 
 function readCommitChanges(
   commit: HistoryCommit,
   base: string,
   cwd?: string,
-): Result<ReviewChanges, string> {
+): Result<Pick<ReviewChanges, "files" | "commitScope">, string> {
   const scope = classifyCommit(commit, base, cwd);
   if (!scope.ok) {
     return scope;
@@ -113,6 +133,7 @@ function readCommitChanges(
     author: "first-parent",
     "base-merges": "remerge",
     mixed: "first-parent",
+    "fixes-and-merges": "first-parent",
   };
   // A remerge compares the recorded result with Git's automatic merge, so disjoint edits in one file do not spend another review round.
   const diff = runCommand(
@@ -132,7 +153,10 @@ function readCommitChanges(
     ? parseChangedFiles(diff.value.stdout, `git show ${commit.head}`)
     : diff;
   return files.ok
-    ? succeed({ files: files.value, commitScope: scope.value })
+    ? succeed({
+        files: files.value,
+        commitScope: scope.value,
+      })
     : files;
 }
 
