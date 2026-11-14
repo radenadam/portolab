@@ -1,18 +1,14 @@
 import type { ReactNode } from "react";
 import type { Role } from "~/features/accounts/accounts.schema";
-import {
-  formatCalendarDate,
-  formatCalendarDatePart,
-  formatNumber,
-} from "~/formatting";
+import { formatCalendarDate, formatNumber } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { sessionCount } from "./course-calendar";
 import type {
   ClassCalendar,
   CourseWeek,
   SessionNumber,
-  Term,
 } from "./course-calendar";
+import { termText } from "./term-text";
 
 const sessionTitles: Record<SessionNumber, () => string> = {
   1: m.classes_basic_concepts_session_title,
@@ -46,7 +42,9 @@ export function CourseCalendarNotice({
   }
   return (
     <>
-      <p>{m.classes_term_notice({ term: termText(calendar.term) })}</p>
+      <p>
+        {m.classes_term_notice({ term: termText(calendar.term, "inSentence") })}
+      </p>
       <p>{weekText(calendar.week)}</p>
     </>
   );
@@ -58,19 +56,6 @@ function noCalendarText(role: Role): string {
       return m.classes_lecturer_no_calendar_notice();
     case "student":
       return m.classes_student_no_calendar_notice();
-  }
-}
-
-function termText(term: Term): string {
-  const years = {
-    firstYear: formatCalendarDatePart(term.academicYear.from, "year"),
-    secondYear: formatCalendarDatePart(term.academicYear.until, "year"),
-  };
-  switch (term.semester) {
-    case "odd":
-      return m.classes_odd_term_part(years);
-    case "even":
-      return m.classes_even_term_part(years);
   }
 }
 

@@ -53,6 +53,21 @@ export function missingQuoteText(
   );
 }
 
+/** The sentences that say why Portolab has no delayed price at all: it is fetching its first prices, or its latest attempt failed, in which case they say when the quote job tries again. */
+export function noPricesText(
+  attempt: UpdateAttempt | undefined,
+  { now, delayMinutes }: { now: Date; delayMinutes: number },
+): string {
+  return attempt?.succeeded === false
+    ? [
+        m.market_data_empty_failed_body({
+          time: formatMarketTime(attempt.attemptedAt),
+        }),
+        nextAttemptSentence(attempt, now, delayMinutes),
+      ].join(" ")
+    : m.market_data_empty_body();
+}
+
 // A sentence that says that Portolab uses the last price that it stored would be false for a price that Portolab never stored, because that price has no row.
 function failedPriceSentences(
   attempt: UpdateAttempt,
@@ -103,7 +118,7 @@ function sentenceForCodes(
 }
 
 /** When the quote job tries again after its latest attempt. The time comes from the schedule that the job follows, so a page never promises an attempt that the job does not make. Once that time has come, the job is making the attempt, because a page shows the latest attempt that the job finished. */
-export function nextAttemptSentence(
+function nextAttemptSentence(
   attempt: UpdateAttempt,
   now: Date,
   delayMinutes: number,

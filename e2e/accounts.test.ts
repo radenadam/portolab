@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import { nameMaximumLength } from "../app/features/accounts/account-limits.ts";
+import { createClassPath } from "../app/features/classes/class-path.ts";
 import { fieldMaximumLength } from "../app/form-size.ts";
 import { languageNames } from "../app/language-names.ts";
 import { locales } from "../app/paraglide/runtime.js";
@@ -17,6 +18,7 @@ import {
 } from "./accounts.ts";
 import { chooseLanguage } from "./choose-language.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
+import { openProfileMenu } from "./frame.ts";
 import { newDevice } from "./new-device.ts";
 import { studentOfNewClass } from "./student-of-new-class.ts";
 import { wideWord } from "./wide-word.ts";
@@ -337,8 +339,9 @@ for (const locale of locales) {
       .getByRole("main")
       .getByRole("button", { name: text.finishButton })
       .click();
-    await expect(page).toHaveURL("/classes");
+    await expect(page).toHaveURL(createClassPath);
 
+    await openProfileMenu(page);
     await page.getByRole("link", { name: text.accountLink }).click();
     await expect(page).toHaveTitle(`${text.accountTitle} | Portolab`);
     await expect(
@@ -428,7 +431,7 @@ for (const locale of locales) {
     const otherDevice = await newDevice(browser, locale);
     await otherDevice.goto("/sign-in");
     await submitSignIn(otherDevice, username, chosenPassword);
-    await expect(otherDevice).toHaveURL("/classes");
+    await expect(otherDevice).toHaveURL(createClassPath);
 
     await page.goto("/account");
     await changePassword(page, locale, "a wrong password");
@@ -595,7 +598,7 @@ for (const locale of locales) {
   });
 }
 
-test("sends a person who signs in with a return path to another site to the home page", async ({
+test("sends a person who signs in with a return path to another site to the home page, which opens the workspace of the person", async ({
   page,
 }) => {
   const username = await signInAsNewLecturer(page, longName);
@@ -609,7 +612,7 @@ test("sends a person who signs in with a return path to another site to the home
     `/sign-in?returnTo=${encodeURIComponent("//example.com/account")}`,
   );
   await submitSignIn(page, username, chosenPassword);
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL(createClassPath);
 });
 
 test("forbids every other site to show Portolab in a frame", async ({

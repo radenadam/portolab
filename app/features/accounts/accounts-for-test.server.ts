@@ -1,7 +1,10 @@
-import type { RouterContextProvider } from "react-router";
+import { eq } from "drizzle-orm";
+import { RouterContextProvider } from "react-router";
 import { expect } from "vitest";
+import { databaseContext } from "~/database/database.server";
 import type { Database } from "~/database/database.server";
 import type { Account } from "./account";
+import { users } from "./accounts.schema";
 import type { UserId } from "./accounts.schema";
 import {
   createLecturer,
@@ -12,6 +15,7 @@ import {
 } from "./account-store.server";
 import { currentSessionContext } from "./current-session.server";
 import { verifyPassword } from "./password.server";
+import { createSession, resumeSession } from "./session-store.server";
 import type { Username } from "./username";
 import { usernameForTest } from "./username-for-test";
 
@@ -40,6 +44,12 @@ export async function createReadyTestLecturer(
     name,
     consentedAt: new Date("2026-11-02T03:00:00.000Z"),
   });
+  // A lecturer chooses a password of their own when finishing the account, which a test leaves out, because hashing it takes long.
+  database
+    .update(users)
+    .set({ mustChangePassword: false })
+    .where(eq(users.id, account.id))
+    .run();
   return account.id;
 }
 
@@ -76,4 +86,26 @@ export async function expectPassword(
 /** Gives the context of a test the session of a visitor who is not signed in, as the session middleware does for a request without a session. */
 export function setVisitorForTest(context: RouterContextProvider): void {
   context.set(currentSessionContext, undefined);
+}
+
+/** The context that the server gives to a loader or a middleware of a person who is signed in at a moment, or of a visitor who is not signed in, with the database. */
+export function readerContextForTest(
+  database: Database,
+  reader: { userId: UserId; now: Date } | undefined,
+): RouterContextProvider {
+  const context = new RouterContextProvider();
+  context.set(databaseContext, database);
+  if (reader === undefined) {
+    setVisitorForTest(context);
+  } else {
+    context.set(
+      currentSessionContext,
+      resumeSession(
+        database,
+        createSession(database, reader.userId, reader.now),
+        reader.now,
+      ),
+    );
+  }
+  return context;
 }

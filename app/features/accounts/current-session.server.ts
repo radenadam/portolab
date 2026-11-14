@@ -99,6 +99,14 @@ export function findUser(
     : requireUser(context, url);
 }
 
+/** The person who is signed in and finished setting up the account, or undefined for a visitor who is not signed in and for a person who still has to finish the account, for a part that every page shows, such as the frame, which sends no one elsewhere. */
+export function readySignedInUser(
+  context: Readonly<RouterContextProvider>,
+): User | undefined {
+  const session = context.get(currentSessionContext);
+  return session === undefined ? undefined : readyUser(session.account);
+}
+
 /** The session of a person who is signed in, whether or not the account is ready, for the step that finishes it. A visitor who is not signed in goes to the sign-in page. */
 export function requireSession(
   context: Readonly<RouterContextProvider>,

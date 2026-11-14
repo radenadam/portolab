@@ -13,13 +13,9 @@ import { PageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
 import { failureOf } from "~/result";
 import type { Route } from "./+types/classes-page";
-import {
-  createClass,
-  listJoinedClasses,
-  listTaughtClasses,
-} from "./class-store.server";
-import type { JoinedClass, TaughtClass } from "./class-store.server";
-import { classPath } from "./class-path";
+import { createClass, listReaderClasses } from "./class-store.server";
+import type { ReaderClasses } from "./class-store.server";
+import { classPath, createClassSectionId } from "./class-path";
 import { ClassList } from "./class-list";
 import type { ListedClass } from "./class-list";
 import styles from "./classes.module.css";
@@ -28,26 +24,11 @@ import { classNameMaximumLength, defaultStartingCash } from "./class-rules";
 import { FirstSessionField } from "./first-session-field";
 import { parseFirstSessionDate } from "./parse-first-session-date";
 
-export function loader({
-  context,
-  url,
-}: Route.LoaderArgs):
-  | { role: "lecturer"; classes: TaughtClass[] }
-  | { role: "student"; classes: JoinedClass[] } {
-  const user = requireUser(context, url);
-  const database = context.get(databaseContext);
-  switch (user.role) {
-    case "lecturer":
-      return {
-        role: user.role,
-        classes: listTaughtClasses(database, user.id),
-      };
-    case "student":
-      return {
-        role: user.role,
-        classes: listJoinedClasses(database, user.id),
-      };
-  }
+export function loader({ context, url }: Route.LoaderArgs): ReaderClasses {
+  return listReaderClasses(
+    context.get(databaseContext),
+    requireUser(context, url),
+  );
 }
 
 export async function action({ context, request, url }: Route.ActionArgs) {
@@ -183,7 +164,7 @@ function NextStep({
     case "lecturer":
       return (
         <>
-          <h2>{m.classes_create_title()}</h2>
+          <h2 id={createClassSectionId}>{m.classes_create_title()}</h2>
           <NewClassForm fields={fields} />
         </>
       );

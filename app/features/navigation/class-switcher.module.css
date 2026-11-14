@@ -1,0 +1,94 @@
+/* The references draw the course small above the class on a phone, and the course and the class with the term beside them on a desktop. A class of Portolab has one name, as decision 0030 explains, so a phone shows that name on at most two lines, and a desktop, from the width at which app/frame.module.css shows the rail, shows it on one line with the term beside it. A longer name ends in an ellipsis. */
+.button {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  min-height: var(--size-touch-target);
+  margin-inline-start: calc(-1 * var(--space-2));
+  padding: var(--space-1) var(--space-2);
+  border: 0;
+  border-radius: var(--radius-item);
+  background: none;
+  color: var(--color-ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.current {
+  display: flex;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.name {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: var(--text-mark);
+  font-weight: 600;
+  line-clamp: 2;
+  overflow-wrap: anywhere;
+}
+
+.term {
+  display: none;
+  color: var(--color-muted);
+}
+
+.chevron {
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  color: var(--color-ink-secondary);
+}
+
+@media (width >= 60rem) {
+  .current {
+    align-items: baseline;
+    gap: var(--space-2);
+  }
+
+  .name {
+    display: block;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* A long name gives way to the term beside it, which stays whole. */
+  .term {
+    display: block;
+    flex: none;
+    font-size: var(--text-caption);
+    white-space: nowrap;
+  }
+}
+
+.classes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.classText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.details {
+  color: var(--color-muted);
+  font-size: var(--text-small);
+}
+
+.check {
+  flex: none;
+  width: 1.125rem;
+  height: 1.125rem;
+  color: var(--color-data);
+}

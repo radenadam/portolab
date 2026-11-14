@@ -1,117 +1,195 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { AppIcon } from "./app-icon";
+import chipStyles from "./chip.module.css";
 import styles from "./frame.module.css";
-import { formatMarketTime, formatNumber } from "./formatting";
+import { formatMarketTime } from "./formatting";
+import { Icon } from "./icon";
+import type { IconName } from "./icon";
+import { initialsOf } from "./initials-of";
 import { m } from "./paraglide/messages.js";
+import { Popover, PopoverButton } from "./popover";
 
-/** A page in the navigation of the frame, with whether it is the current page or the nearest page above it. */
-export interface FrameLink {
+/** An item of the navigation of the frame, with whether it is the current item: the item of the page, or of the nearest page above it. */
+export interface FrameItem {
   path: string;
   label: string;
+  icon: IconName;
   isCurrent: boolean;
 }
 
-/** The link that a phone shows in place of the mark on a page below another page, to that page. */
-export interface BackLink {
-  path: string;
-  /** The name of the page above, which the link shows. */
-  label: string;
-  /** The name of the link, which says that it leads back. */
+/** The person who is signed in, whose name the frame shows and whose menu it opens. */
+export interface FrameProfile {
   name: string;
+  /** The items of the menu of the profile, which the frame shows in a popover beside each button that opens it. */
+  menu: ReactNode;
 }
 
 interface FrameProps {
-  navigation: readonly FrameLink[];
-  backLink: BackLink | undefined;
-  /** The link to the account and the language switch. */
+  items: readonly FrameItem[];
+  /** The part at the start of the top bar, such as the switcher of the class of the workspace, or undefined outside a workspace, where a phone shows the app icon with the name of Portolab instead. */
+  start: ReactNode | undefined;
+  /** Undefined for a visitor and for a person who has not finished setting up the account. */
+  profile: FrameProfile | undefined;
+  /** The controls that the top bar shows before the badge of the simulation, such as the language of a visitor. */
   tools: ReactNode;
-  /** The delay of prices and when the latest price was quoted, or undefined while the frame has no data of the root, such as on an error page whose error came first. */
-  delayNotice: string | undefined;
-  /** Whether a phone shows the delay under the top bar, which a page whose first part gives the delay leaves out. */
-  showsDelayOnPhone: boolean;
+  /** The badge of the simulation, with the card that it opens. */
+  badge: ReactNode;
   children: ReactNode;
 }
 
-/** The frame of every page, as decision 0026 sets it: on a desktop, the sidebar with the mark, which is the app icon of decision 0028 beside the name of Portolab, the navigation, the account, the language, the mark of a simulation, and the delay of prices. On a phone, the top bar with the same parts and the navigation in a tab bar at the bottom. */
+// Each place that opens the menu of the profile has a popover of its own, so the menu opens beside the button that the reader chose.
+const railProfileId = "rail-profile";
+const topProfileId = "top-profile";
+
+/** The frame of every page, as decision 0028 sets it: on a desktop, the rail with the app icon, the items, and the profile at its foot, beside the top bar. On a phone, the top bar and the tab bar with the items of the rail. The content stays in the middle of the screen beyond its largest width. */
 export function Frame({
-  navigation,
-  backLink,
+  items,
+  start,
+  profile,
   tools,
-  delayNotice,
-  showsDelayOnPhone,
+  badge,
   children,
 }: FrameProps): ReactNode {
+  const profileLabel =
+    profile === undefined ? "" : m.app_profile_label({ name: profile.name });
+  const initials = profile === undefined ? "" : initialsOf(profile.name);
   return (
-    <div className={styles["frame"]}>
-      <header className={styles["bar"]}>
-        <Link
-          to="/"
-          className={classNames(
-            styles["mark"],
-            backLink !== undefined && styles["markBesideBack"],
-          )}
-        >
-          <AppIcon />
-          {m.app_name()}
-        </Link>
-        {backLink !== undefined && (
-          <Link
-            to={backLink.path}
-            aria-label={backLink.name}
-            className={styles["back"]}
-          >
-            <span aria-hidden="true">←</span>
-            {backLink.label}
+    <>
+      <a href="#main" className={styles["skip"]}>
+        {m.app_skip_link()}
+      </a>
+      <div className={styles["shell"]}>
+        <nav aria-label={m.app_navigation_label()} className={styles["rail"]}>
+          <Link to="/" aria-label={m.app_name()} className={styles["railIcon"]}>
+            <AppIcon />
           </Link>
-        )}
-        <nav aria-label={m.app_navigation_label()} className={styles["tabs"]}>
-          <ul className={styles["tabList"]}>
-            {navigation.map((link) => (
-              <li key={link.path}>
-                <Link
-                  to={link.path}
-                  aria-current={link.isCurrent ? "page" : undefined}
-                  className={styles["tabLink"]}
-                >
-                  {link.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-        <div className={styles["foot"]}>
-          <div className={styles["tools"]}>{tools}</div>
-          <p className={styles["pill"]}>{m.app_simulation_label()}</p>
-          {delayNotice !== undefined && (
-            <p
-              className={classNames(
-                styles["delay"],
-                !showsDelayOnPhone && styles["delayOnDesktop"],
-              )}
-            >
-              {delayNotice}
-            </p>
+          <ItemList items={items} placement="rail" />
+          {profile !== undefined && (
+            <div className={styles["railFoot"]}>
+              <PopoverButton
+                popover={railProfileId}
+                label={profileLabel}
+                className={styles["avatarButton"]}
+              >
+                <Avatar initials={initials} />
+              </PopoverButton>
+              <Popover
+                id={railProfileId}
+                label={m.app_profile_title()}
+                placement="aboveStart"
+              >
+                {profile.menu}
+              </Popover>
+            </div>
           )}
+        </nav>
+        <div className={styles["body"]}>
+          <header className={styles["topBar"]}>
+            <div className={styles["topBarContent"]} data-layout="content">
+              {start ?? (
+                <Link to="/" className={styles["mark"]}>
+                  <AppIcon />
+                  {m.app_name()}
+                </Link>
+              )}
+              <div className={styles["topBarEnd"]}>
+                {tools}
+                {profile !== undefined && (
+                  <span className={styles["nameChip"]}>
+                    <PopoverButton
+                      popover={topProfileId}
+                      label={profileLabel}
+                      className={chipStyles["chip"]}
+                    >
+                      <span className={chipStyles["text"]}>{profile.name}</span>
+                    </PopoverButton>
+                  </span>
+                )}
+                {badge}
+                {profile !== undefined && (
+                  <>
+                    <PopoverButton
+                      popover={topProfileId}
+                      label={profileLabel}
+                      className={styles["topAvatarButton"]}
+                    >
+                      <Avatar initials={initials} />
+                    </PopoverButton>
+                    <Popover
+                      id={topProfileId}
+                      label={m.app_profile_title()}
+                      placement="belowEnd"
+                    >
+                      {profile.menu}
+                    </Popover>
+                  </>
+                )}
+              </div>
+            </div>
+          </header>
+          <main
+            id="main"
+            tabIndex={-1}
+            className={classNames(
+              styles["main"],
+              items.length > 0 && styles["mainAboveTabBar"],
+            )}
+          >
+            <div className={styles["page"]} data-layout="content">
+              {children}
+            </div>
+          </main>
         </div>
-      </header>
-      <main className={styles["main"]}>{children}</main>
-    </div>
+        {items.length > 0 && (
+          <nav
+            aria-label={m.app_navigation_label()}
+            className={styles["tabBar"]}
+          >
+            <ItemList items={items} placement="tabBar" />
+          </nav>
+        )}
+      </div>
+    </>
   );
 }
 
-/** The text that gives the delay of prices and when the latest price that Portolab stores was quoted. */
-export function delayNoticeText(
-  delayMinutes: number,
-  latestQuotedAt: Date | undefined,
-): string {
-  const minutes = formatNumber(delayMinutes);
-  return latestQuotedAt === undefined
-    ? m.app_delay_without_prices_notice({ minutes })
-    : m.app_delay_notice({
-        minutes,
-        time: formatMarketTime(latestQuotedAt),
-      });
+/** The picture of the person who is signed in, a circle with the initials of the name. The name of its button says whose profile it opens, so the picture is drawn by its style and stays out of that name, as an image would. */
+function Avatar({ initials }: { initials: string }): ReactNode {
+  return <span className={styles["avatar"]} data-initials={initials} />;
+}
+
+/** The items of the navigation, which the rail of a desktop and the tab bar of a phone each show with the icon above the label. */
+function ItemList({
+  items,
+  placement,
+}: {
+  items: readonly FrameItem[];
+  placement: "rail" | "tabBar";
+}): ReactNode {
+  const listStyles = {
+    rail: { list: styles["railItems"], item: styles["railItem"] },
+    tabBar: { list: styles["tabItems"], item: styles["tabItem"] },
+  }[placement];
+  if (items.length === 0) {
+    return undefined;
+  }
+  return (
+    <ul className={listStyles.list}>
+      {items.map((item) => (
+        <li key={item.path}>
+          <Link
+            to={item.path}
+            aria-current={item.isCurrent ? "page" : undefined}
+            className={listStyles.item}
+          >
+            <Icon name={item.icon} className={styles["itemIcon"]} />
+            {item.label}
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
 }
 
 /** A page above the page in the header line, with the address of its page. */

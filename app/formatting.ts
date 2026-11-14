@@ -70,6 +70,18 @@ export function formatBytes(size: Bytes): string {
   }).format(size);
 }
 
+/** Formats a number of minutes with its unit, short for a badge, such as 10 mnt, or long for a sentence, such as 10 menit. */
+export function formatMinutes(
+  minutes: number,
+  length: "short" | "long",
+): string {
+  return new Intl.NumberFormat(intlLocale(), {
+    style: "unit",
+    unit: "minute",
+    unitDisplay: length,
+  }).format(minutes);
+}
+
 export function formatIndexLevel(level: IndexPoints): string {
   return new Intl.NumberFormat(intlLocale(), {
     minimumFractionDigits: 2,
