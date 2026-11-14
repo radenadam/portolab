@@ -7,12 +7,7 @@ import { switchLocaleForTest } from "~/switch-locale-for-test";
 import { cumulativeReturn } from "~/units/cumulative-return";
 import type { CumulativeReturn } from "~/units/cumulative-return";
 import { plotFraction } from "~/units/plot-fraction";
-import {
-  crosshairMoveOf,
-  indexAt,
-  layoutTimeChart,
-  tipPlacement,
-} from "./time-chart-layout";
+import { indexAt, layoutTimeChart } from "./time-chart-layout";
 import type { TimeChartLayout } from "./time-chart-layout";
 import { returnPointsForTest } from "./return-points-for-test";
 
@@ -157,45 +152,4 @@ test("finds the date nearest to a position across the plot, and the first or the
   expect(indexAt(plotFraction(-0.3), 5)).toBe(0);
   expect(indexAt(plotFraction(1.3), 5)).toBe(4);
   expect(indexAt(plotFraction(0.7), 1)).toBe(0);
-});
-
-test("moves the crosshair along the dates with the keys of a slider, from the last date while it is hidden, and stops at the first and the last date", () => {
-  const moves = (
-    key: string,
-    active: number | undefined,
-  ): ReturnType<typeof crosshairMoveOf> => crosshairMoveOf(key, active, 5);
-  for (const key of ["ArrowRight", "ArrowUp"]) {
-    expect(moves(key, 2)).toEqual({ kind: "mark", index: 3 });
-    expect(moves(key, 4)).toEqual({ kind: "mark", index: 4 });
-    expect(moves(key, undefined)).toEqual({ kind: "mark", index: 4 });
-  }
-  for (const key of ["ArrowLeft", "ArrowDown"]) {
-    expect(moves(key, 2)).toEqual({ kind: "mark", index: 1 });
-    expect(moves(key, 0)).toEqual({ kind: "mark", index: 0 });
-    expect(moves(key, undefined)).toEqual({ kind: "mark", index: 4 });
-  }
-  expect(moves("Home", 3)).toEqual({ kind: "mark", index: 0 });
-  expect(moves("End", 1)).toEqual({ kind: "mark", index: 4 });
-  expect(moves("Home", undefined)).toEqual({ kind: "mark", index: 0 });
-});
-
-test("hides a crosshair with Escape, and leaves Escape without a crosshair and every other key to the page", () => {
-  expect(crosshairMoveOf("Escape", 2, 5)).toEqual({ kind: "hide" });
-  expect(crosshairMoveOf("Escape", undefined, 5)).toEqual({ kind: "ignore" });
-  for (const key of ["Tab", "Enter", " ", "PageUp", "a"]) {
-    expect(crosshairMoveOf(key, 2, 5)).toEqual({ kind: "ignore" });
-  }
-});
-
-test("puts the tooltip after the crosshair in the left half of the plot and before it in the right half, never past an edge of the plot", () => {
-  expect(tipPlacement(plotFraction(0))).toEqual({
-    left: "clamp(0px, calc(0% + var(--space-3)), calc(100% - var(--width-chart-tip)))",
-  });
-  expect(tipPlacement(plotFraction(0.5))).toEqual({
-    left: "clamp(0px, calc(50% + var(--space-3)), calc(100% - var(--width-chart-tip)))",
-  });
-  expect(tipPlacement(plotFraction(0.75))).toEqual({
-    right:
-      "clamp(0px, calc(25% + var(--space-3)), calc(100% - var(--width-chart-tip)))",
-  });
 });

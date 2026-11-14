@@ -41,26 +41,17 @@
   vertical-align: middle;
 }
 
-/* The plot sets the font of its texts, so a width of a character of the font of codes holds a character of each text of a mark of returns. A vertical drag scrolls the page, and a horizontal one moves the crosshair. */
 .plot {
+  composes: plot from "./plot.module.css";
   block-size: var(--size-chart);
-  font-family: var(--font-code);
-  font-size: var(--text-chart);
-  touch-action: pan-y;
-  user-select: none;
 }
 
-/* The area holds the drawing and its tooltip, so a position across the drawing places the tooltip as well. */
 .area {
-  position: relative;
-  block-size: 100%;
+  composes: area from "./plot.module.css";
 }
 
 .drawing {
-  display: block;
-  inline-size: 100%;
-  block-size: 100%;
-  overflow: visible;
+  composes: drawing from "./plot.module.css";
 }
 
 .tick,
@@ -105,19 +96,10 @@
   stroke-width: var(--size-mark);
 }
 
+/* The tooltip of a chart over time stands at the top of the plot, beside the crosshair. */
 .tip {
-  position: absolute;
+  composes: tip from "./plot.module.css";
   inset-block-start: 0;
-  z-index: 1;
-  inline-size: var(--width-chart-tip);
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-button);
-  background: var(--color-ink);
-  color: var(--color-panel);
-  font-family: var(--font-text);
-  font-size: var(--text-caption);
-  line-height: 1.4;
-  pointer-events: none;
 }
 
 .tipDate {

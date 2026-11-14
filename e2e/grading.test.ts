@@ -163,7 +163,7 @@ const texts: Record<
     lineTitle: "Garis pasar sekuritas",
     lineNotice: (name) =>
       `Grafik ini menempatkan portofolio ${name} dan sahamnya terhadap garis pasar sekuritas dari bulan-bulan ukurannya, yang memberikan 60 imbal hasil bulanan dari Oktober 2021 sampai September 2026.`,
-    lineLegend: "Portofolio (p)Saham portofolio",
+    lineLegend: "PortofolioSaham portofolio, ukuran = bobotIHSGSML",
     linePoints: [
       ["Suku bunga bebas risiko (Rf)", "0,00", "0,48%", "0,00%"],
       ["IHSG (M)", "1,00", "0,05%", "0,00%"],
@@ -264,7 +264,7 @@ const texts: Record<
     lineTitle: "Security market line",
     lineNotice: (name) =>
       `The chart places the portfolio of ${name} and its stocks against the security market line of the months of its measures, which give 60 monthly returns from October 2021 to September 2026.`,
-    lineLegend: "Portfolio (p)Stocks of the portfolio",
+    lineLegend: "PortfolioStocks of the portfolio, size = weightIHSGSML",
     linePoints: [
       ["Risk-free rate (Rf)", "0.00", "0.48%", "0.00%"],
       ["IHSG (M)", "1.00", "0.05%", "0.00%"],
@@ -409,10 +409,12 @@ for (const locale of locales) {
     for (const summary of await main.locator("summary").all()) {
       await summary.click();
     }
-    // The chart places the portfolio and its stocks against the line of its months, and the table of its points lists each of them.
+    // The map places the portfolio and its stocks against the line of its months, and the table of its points lists each of them.
     await expect(main).toContainText(text.lineNotice(studentName));
     await expect(main.locator("ul")).toHaveText(text.lineLegend);
-    await expect(main.locator("svg[font-size]")).toBeVisible();
+    await expect(
+      main.getByRole("slider", { name: text.lineTitle }),
+    ).toBeVisible();
     const points = main.locator("details").last().locator("tbody tr");
     await expect(points).toHaveCount(text.linePoints.length);
     for (const [index, cells] of text.linePoints.entries()) {

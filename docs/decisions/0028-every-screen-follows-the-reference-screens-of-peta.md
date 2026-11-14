@@ -1,6 +1,6 @@
 # 0028. Every screen follows the reference screens of Peta
 
-- Status: Accepted
+- Status: Accepted. [Decision 0035](0035-the-map-names-its-points-in-words-and-keeps-the-name-of-the-reader.md) changes one of its rules: the font of the names of the points of a map, which is the font of the text, while DM Mono keeps the marks of the axes.
 - Date: 2026-11-14
 
 ## Context

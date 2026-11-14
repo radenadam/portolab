@@ -1,5 +1,6 @@
 import { expect, test } from "vitest";
 import {
+  axisMarkFormat,
   formatBeta,
   formatBytes,
   formatCalendarDate,
@@ -13,7 +14,10 @@ import {
   formatSignedRupiah,
   formatUtcDay,
   formatVariance,
+  smallestNumberStep,
+  smallestPercentStep,
 } from "./formatting";
+import type { AxisStyle } from "./formatting";
 import { languageNames } from "./language-names";
 import { locales } from "./paraglide/runtime.js";
 import type { Locale } from "./paraglide/runtime.js";
@@ -224,6 +228,56 @@ for (const locale of locales) {
     expect(formatCorrelation(correlation(-0.2501))).toBe(text.correlation);
     expect(formatSharpeRatio(sharpeRatio(-0.17094998531994998))).toBe(
       text.sharpeRatio,
+    );
+  });
+}
+
+const axisMarkTexts: Record<
+  Locale,
+  {
+    tenths: readonly string[];
+    wholes: readonly string[];
+    finest: readonly string[];
+    halfPercents: readonly string[];
+    wholePercents: readonly string[];
+    finestPercents: readonly string[];
+  }
+> = {
+  id: {
+    tenths: ["0,0", "0,2", "1,0", "1,6"],
+    wholes: ["-1", "0", "2"],
+    finest: ["0,000", "0,001"],
+    halfPercents: ["-0,5%", "0,0%", "1,5%"],
+    wholePercents: ["-2%", "0%", "2%"],
+    finestPercents: ["0,00%", "0,01%"],
+  },
+  en: {
+    tenths: ["0.0", "0.2", "1.0", "1.6"],
+    wholes: ["-1", "0", "2"],
+    finest: ["0.000", "0.001"],
+    halfPercents: ["-0.5%", "0.0%", "1.5%"],
+    wholePercents: ["-2%", "0%", "2%"],
+    finestPercents: ["0.00%", "0.01%"],
+  },
+};
+
+function axisMarks(values: readonly number[], style: AxisStyle): string[] {
+  return values.map(axisMarkFormat(values, style));
+}
+
+for (const locale of locales) {
+  test(`formats the marks of an axis with the same decimals each, the fewest that write every mark exactly, as numbers or as percentages, in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    const text = axisMarkTexts[locale];
+    // 0.2 + 1.4 is 1.5999999999999999 in binary, which still takes one decimal.
+    expect(axisMarks([0, 0.2, 1, 0.2 + 1.4], "decimal")).toEqual(text.tenths);
+    expect(axisMarks([-1, 0, 2], "decimal")).toEqual(text.wholes);
+    // The finest step of niceTicks for numbers is smallestNumberStep.
+    expect(axisMarks([0, smallestNumberStep], "decimal")).toEqual(text.finest);
+    expect(axisMarks([-0.005, 0, 0.015], "percent")).toEqual(text.halfPercents);
+    expect(axisMarks([-0.02, 0, 0.02], "percent")).toEqual(text.wholePercents);
+    expect(axisMarks([0, smallestPercentStep], "percent")).toEqual(
+      text.finestPercents,
     );
   });
 }

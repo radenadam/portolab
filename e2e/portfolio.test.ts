@@ -7,7 +7,7 @@ import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 import { expectMissingClassPages } from "./expect-missing-class-pages.ts";
 import { expectPageHeadings } from "./expect-page-headings.ts";
 import { itmgPortfolio } from "./itmg-portfolio.ts";
-import { joinNewClass } from "./join-new-class.ts";
+import { openAsNewStudent } from "./open-as-new-student.ts";
 import { storeTestPurchases } from "./store-test-purchases.ts";
 import { studentOfNewClass } from "./student-of-new-class.ts";
 import { widestClassNames } from "./widest-class-names.ts";
@@ -271,10 +271,17 @@ async function openItmgPortfolio(
 /** Checks that the chart of the returns draws the line of the portfolio and of the IHSG through the returns of the five closes of the test, and that its legend names each with its latest return. */
 async function expectChart(student: Page, locale: Locale): Promise<void> {
   const main = student.getByRole("main");
-  await expect(main.locator("svg").first()).toBeVisible();
+  // The map of the security market line on the same page draws the IHSG as a path too, so the test reads the lines in the section of the returns.
+  const section = main.locator("section").filter({
+    has: student.getByRole("heading", {
+      level: 2,
+      name: texts[locale].headings[1],
+    }),
+  });
+  await expect(section.locator("svg").first()).toBeVisible();
   // The line of the portfolio of cash alone is flat, and Playwright counts a flat line as hidden, because its box has no height, so the test reads the line from its path.
-  await expect(main.locator("svg path")).toHaveCount(2);
-  for (const path of await main.locator("svg path").all()) {
+  await expect(section.locator("svg path")).toHaveCount(2);
+  for (const path of await section.locator("svg path").all()) {
     await expect(path).toHaveAttribute("d", /^M0 [\d.]+(?:L[\d.]+ [\d.]+){4}$/);
   }
   for (const item of texts[locale].legend) {
@@ -441,13 +448,13 @@ for (const locale of locales) {
       page,
       browser,
     }) => {
-      // The lecturer uses a device of their own, so the page of the test, which runs no JavaScript, is the student.
-      const { lecturer, testClass } = await joinNewClass(page, browser, {
+      const { lecturer } = await openAsNewStudent(page, browser, {
         locale,
-        ...widestClassNames,
+        givePortfolio: (classId) => {
+          storeTestPurchases(classId, itmgPortfolio);
+        },
+        path: "/portfolio",
       });
-      storeTestPurchases(testClass.id, itmgPortfolio);
-      await page.goto(`${testClass.path}/portfolio`);
       await expectChart(page, locale);
       await expect(page.getByRole("slider")).toHaveCount(0);
       const main = page.getByRole("main");

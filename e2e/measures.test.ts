@@ -10,6 +10,7 @@ import { expectMissingClassPages } from "./expect-missing-class-pages.ts";
 import { expectTexts } from "./expect-texts.ts";
 import { expectPageHeadings } from "./expect-page-headings.ts";
 import { itmgPortfolio } from "./itmg-portfolio.ts";
+import { openAsNewStudent } from "./open-as-new-student.ts";
 import { storeTestHolding } from "./store-test-holding.ts";
 import { storeTestPurchases } from "./store-test-purchases.ts";
 import { studentWithPortfolio } from "./student-with-portfolio.ts";
@@ -18,6 +19,30 @@ import { widestClassNames } from "./widest-class-names.ts";
 
 // The server runs with the fixture price source, whose quotes are the closes of Friday 30 October 2026, and the global setup stores the month-end closes that give BBCA 60 monthly returns, AMMN 38, and AADI 21, and no closes of ADMR. bbca-holding.ts describes the portfolio of the student, in which BBCA has a weight of 0.496382. The measures of the portfolio follow from those of BBCA that the decimal module of Python computed, as measure-stock.test.ts gives them: an expected return of -0.000508, a variance of 0.000673, a standard deviation of 0.025947, a beta of 0.342192, a required return of 0.003308, a Jensen's alpha of -0.003816, a Sharpe ratio of -0.204236, and a Treynor ratio of -0.015486. BBCA is the only stock, so its covariance with the portfolio of 0.001356 is the whole variance of the portfolio, and it correlates perfectly with the portfolio.
 const { className } = widestClassNames;
+
+/** What a point of the map gives a reader: its name beside its mark, the text that a screen reader reads as the value of the slider, and the lines of its tooltip, its name and then each value after its measure, a change after its arrow. */
+interface MapPointText {
+  name: string;
+  spoken: string;
+  tip: readonly string[];
+}
+
+/** The texts of a point from its name and each of its values as a measure, the arrow of a change or none, and the value, joined into a list with the word for "and" of a language. */
+function mapPointText(
+  name: string,
+  values: readonly (readonly [string, string, string])[],
+  and: string,
+): MapPointText {
+  const spoken = values.map(([measure, , value]) => `${measure} ${value}`);
+  return {
+    name,
+    spoken: `${name}: ${spoken.slice(0, -1).join(", ")}, ${and} ${spoken.at(-1) ?? ""}`,
+    tip: [
+      name,
+      ...values.map(([measure, arrow, value]) => `${measure}${arrow}${value}`),
+    ],
+  };
+}
 
 const texts: Record<
   Locale,
@@ -44,6 +69,9 @@ const texts: Record<
     latestLine: string;
     portfolioLegend: string;
     latestLegend: string;
+    verticalNotice: string;
+    lineTitle: string;
+    mapPoints: Record<"portfolio" | "bbca" | "market", MapPointText>;
     formula: string;
     riskFreePoint: readonly string[];
     marketPoint: readonly string[];
@@ -107,8 +135,39 @@ const texts: Record<
       "Grafik ini menempatkan portofolio Anda, saham Anda, dan setiap saham lain yang ukurannya memakai bulan-bulan yang sama dengan portofolio Anda terhadap garis pasar sekuritas bulan-bulan tersebut, yang memberikan 60 imbal hasil bulanan dari Oktober 2021 sampai September 2026.",
     latestLine:
       "Portofolio Anda belum memiliki ukuran, sehingga grafik ini menempatkan setiap saham yang ukurannya memakai bulan-bulan lengkap terakhir IHSG terhadap garis pasar sekuritas bulan-bulan tersebut, yang memberikan 60 imbal hasil bulanan dari Oktober 2021 sampai September 2026.",
-    portfolioLegend: "Portofolio Anda (p)Saham Anda",
-    latestLegend: "Saham lain",
+    portfolioLegend: "Portofolio AndaSaham Anda, ukuran = bobotIHSGSML",
+    latestLegend: "Saham lainIHSGSML",
+    verticalNotice: "Tegak: imbal hasil yang diharapkan per bulan.",
+    lineTitle: "Garis pasar sekuritas",
+    mapPoints: {
+      portfolio: mapPointText(
+        "Portofolio Anda",
+        [
+          ["Beta terhadap IHSG", "", "0,34"],
+          ["Imbal hasil yang diharapkan", "", "-0,05%"],
+          ["Alpha Jensen", "▼ ", "-0,38%"],
+        ],
+        "dan",
+      ),
+      bbca: mapPointText(
+        "BBCA",
+        [
+          ["Beta terhadap IHSG", "", "0,69"],
+          ["Imbal hasil yang diharapkan", "", "-0,10%"],
+          ["Alpha Jensen", "▼ ", "-0,28%"],
+        ],
+        "dan",
+      ),
+      market: mapPointText(
+        "IHSG",
+        [
+          ["Beta terhadap IHSG", "", "1,00"],
+          ["Imbal hasil yang diharapkan", "", "0,05%"],
+          ["Alpha Jensen", "", "0,00%"],
+        ],
+        "dan",
+      ),
+    },
     formula: "k = Rf + β(E(RM) − Rf) = 0,48% + β × (0,05% − 0,48%)",
     riskFreePoint: ["Suku bunga bebas risiko (Rf)", "0,00", "0,48%", "0,00%"],
     marketPoint: ["IHSG (M)", "1,00", "0,05%", "0,00%"],
@@ -207,8 +266,39 @@ const texts: Record<
       "The chart places your portfolio, your stocks, and every other stock whose measures use the same months as your portfolio against the security market line of those months, which give 60 monthly returns from October 2021 to September 2026.",
     latestLine:
       "Your portfolio has no measures yet, so the chart places every stock whose measures use the latest complete months of the IHSG against the security market line of those months, which give 60 monthly returns from October 2021 to September 2026.",
-    portfolioLegend: "Your portfolio (p)Your stocks",
-    latestLegend: "Other stocks",
+    portfolioLegend: "Your portfolioYour stocks, size = weightIHSGSML",
+    latestLegend: "Other stocksIHSGSML",
+    verticalNotice: "Vertical: the expected return per month.",
+    lineTitle: "Security market line",
+    mapPoints: {
+      portfolio: mapPointText(
+        "Your portfolio",
+        [
+          ["Beta against the IHSG", "", "0.34"],
+          ["Expected return", "", "-0.05%"],
+          ["Jensen's alpha", "▼ ", "-0.38%"],
+        ],
+        "and",
+      ),
+      bbca: mapPointText(
+        "BBCA",
+        [
+          ["Beta against the IHSG", "", "0.69"],
+          ["Expected return", "", "-0.10%"],
+          ["Jensen's alpha", "▼ ", "-0.28%"],
+        ],
+        "and",
+      ),
+      market: mapPointText(
+        "IHSG",
+        [
+          ["Beta against the IHSG", "", "1.00"],
+          ["Expected return", "", "0.05%"],
+          ["Jensen's alpha", "", "0.00%"],
+        ],
+        "and",
+      ),
+    },
     formula: "k = Rf + β(E(RM) − Rf) = 0.48% + β × (0.05% − 0.48%)",
     riskFreePoint: ["Risk-free rate (Rf)", "0.00", "0.48%", "0.00%"],
     marketPoint: ["IHSG (M)", "1.00", "0.05%", "0.00%"],
@@ -300,7 +390,7 @@ async function openReturnTables(page: Page): Promise<void> {
   }
 }
 
-/** Checks the section of the security market line: what the chart places against which line, its legend, the formula of the line, each point in the table of the points, which stocks are not on the chart, and that the chart draws at the size of its frame once the browser measures it. */
+/** Checks the section of the security market line: what the map places against which line, its legend, the formula of the line, each point in the table of the points, and which stocks are not on the map. Once JavaScript runs, the map is a slider that reads its resting point, and the browser places the names of the points apart from each other. */
 async function expectMarketLine(
   main: Locator,
   section: {
@@ -308,19 +398,21 @@ async function expectMarketLine(
     notice: string;
     legend: string;
     points: readonly (readonly string[])[];
+    resting: MapPointText;
   },
 ): Promise<void> {
   const text = texts[section.locale];
   for (const notice of [
     section.notice,
     text.lineNotice,
+    text.verticalNotice,
     text.formula,
     text.ammnElsewhere,
     text.unmeasured,
   ]) {
     await expect(main).toContainText(notice);
   }
-  // The legend names the marks of the chart, which screen readers skip, as they skip the chart.
+  // The legend names the marks of the map, which screen readers skip, as they skip the drawing.
   await expect(main.locator("ul")).toHaveText(section.legend);
   const rows = main
     .locator("details")
@@ -330,20 +422,74 @@ async function expectMarketLine(
   for (const [index, cells] of section.points.entries()) {
     await expectRow(rows.nth(index), cells);
   }
-  const chart = main.locator("svg[font-size]");
-  await expect(chart).toBeVisible();
+  const map = riskMap(main, section.locale);
+  await expect(map).toHaveAttribute("aria-valuetext", section.resting.spoken);
+  await expectNamesApart(map);
+}
+
+// A phone answers a finger and a desktop a pointer.
+function isPhone(): boolean {
+  return test.info().project.name === "phone";
+}
+
+/** The map of the security market line, which is a slider named by the heading of its section once JavaScript runs. */
+function riskMap(main: Locator, locale: Locale): Locator {
+  return main.getByRole("slider", { name: texts[locale].lineTitle });
+}
+
+/** Checks that no two names or labels of the map overlap, as the browser measures them once the fonts load. The marks of the axes are in the font of codes and stand outside the plot, apart from the names. */
+async function expectNamesApart(map: Locator): Promise<void> {
   await expect
     .poll(() =>
-      chart.evaluate((svg) => {
-        const frame = svg.parentElement;
-        return (
-          frame !== null &&
-          svg.getAttribute("viewBox") ===
-            `0 0 ${String(frame.clientWidth)} ${String(frame.clientHeight)}`
-        );
+      map.evaluate(async (element) => {
+        await document.fonts.ready;
+        const boxes = Array.from(element.querySelectorAll("text"))
+          .filter(
+            (label) =>
+              label.getAttribute("visibility") !== "hidden" &&
+              !getComputedStyle(label).fontFamily.includes("DM Mono"),
+          )
+          .map((label) => ({
+            name: label.textContent,
+            box: label.getBoundingClientRect(),
+          }));
+        const overlaps: string[] = [];
+        for (const [index, first] of boxes.entries()) {
+          for (const second of boxes.slice(index + 1)) {
+            if (
+              first.box.left < second.box.right &&
+              second.box.left < first.box.right &&
+              first.box.top < second.box.bottom &&
+              second.box.top < first.box.bottom
+            ) {
+              overlaps.push(`${first.name} and ${second.name}`);
+            }
+          }
+        }
+        return overlaps;
       }),
     )
-    .toBe(true);
+    .toEqual([]);
+}
+
+/** Where the mark of a point lies on the screen, from the position of the plot at which the map places its name. */
+async function markPosition(
+  map: Locator,
+  name: string,
+): Promise<{ x: number; y: number }> {
+  const label = map
+    .locator("text")
+    .filter({ hasText: new RegExp(`^${name}$`) });
+  const area = await map.locator("svg").first().boundingBox();
+  const across = await label.getAttribute("x");
+  const down = await label.getAttribute("y");
+  if (area === null || across === null || down === null) {
+    throw new Error(`The map does not name ${name}.`);
+  }
+  return {
+    x: area.x + (Number.parseFloat(across) / 100) * area.width,
+    y: area.y + (Number.parseFloat(down) / 100) * area.height,
+  };
 }
 
 for (const locale of locales) {
@@ -400,6 +546,7 @@ for (const locale of locales) {
         text.portfolioPoint,
         text.bbcaPoint,
       ],
+      resting: text.mapPoints.portfolio,
     });
     // 60 returns and the close that starts the first of them.
     await expect(tables.nth(5).locator("tbody tr")).toHaveCount(61);
@@ -446,6 +593,62 @@ for (const locale of locales) {
     await student.context().close();
   });
 
+  test(`reads the points of the map in the order of their risk with the keys, and with a pointer on a desktop or a finger on a phone, in ${language}`, async ({
+    page,
+    browser,
+  }) => {
+    const { student, main } = await openMeasures(page, browser, {
+      locale,
+      givePortfolio: (classId) => {
+        storeTestHolding(classId, bbcaHolding);
+      },
+    });
+    const map = riskMap(main, locale);
+    const points = text.mapPoints;
+    // The tooltip is the only part of the map with paragraphs: the name of the point and a line for each of its values.
+    const tip = map.locator("p");
+    // Until a reader marks a point, the slider reads the portfolio, and no tooltip covers the map.
+    await expect(map).toHaveAttribute(
+      "aria-valuetext",
+      points.portfolio.spoken,
+    );
+    await expect(tip).toHaveCount(0);
+    await map.focus();
+    await expect(tip).toHaveText(points.portfolio.tip);
+    await expectAccessibleScreen(student);
+    // The portfolio has the smallest beta, BBCA the next, and the IHSG the largest.
+    for (const [key, point] of [
+      ["End", points.market],
+      ["Home", points.portfolio],
+      ["ArrowRight", points.bbca],
+      ["ArrowRight", points.market],
+      ["ArrowRight", points.market],
+      ["ArrowLeft", points.bbca],
+    ] as const) {
+      await student.keyboard.press(key);
+      await expect(map).toHaveAttribute("aria-valuetext", point.spoken);
+      await expect(tip).toHaveText(point.tip);
+    }
+    await student.keyboard.press("Escape");
+    await expect(tip).toHaveCount(0);
+    const bbca = await markPosition(map, "BBCA");
+    if (isPhone()) {
+      await student.touchscreen.tap(bbca.x, bbca.y);
+      await expect(tip).toHaveText(points.bbca.tip);
+    } else {
+      await student.mouse.move(bbca.x, bbca.y);
+      await expect(tip).toHaveText(points.bbca.tip);
+      // A pointer away from every point marks none.
+      const area = await map.boundingBox();
+      if (area === null) {
+        throw new Error("The map draws nothing.");
+      }
+      await student.mouse.move(area.x + area.width / 2, area.y - 20);
+      await expect(tip).toHaveCount(0);
+    }
+    await student.context().close();
+  });
+
   test(`says why a portfolio has no measures, places every stock against the line of the latest months instead, and leads from the portfolio to the measures, in ${language}`, async ({
     page,
     browser,
@@ -460,6 +663,7 @@ for (const locale of locales) {
       notice: text.latestLine,
       legend: text.latestLegend,
       points: [text.riskFreePoint, text.marketPoint, text.bbcaPoint],
+      resting: text.mapPoints.market,
     });
     await expectAccessibleScreen(student);
     await student.goto(`${classPath}/portfolio`);
@@ -496,6 +700,48 @@ for (const locale of locales) {
         { reader: "student", path: "/classes/999999999/measures/BBCA" },
         { reader: "student", path: `${classPath}/measures/BREN` },
       ],
+    });
+  });
+
+  test.describe(`before JavaScript loads in ${language}`, () => {
+    test.use({ javaScriptEnabled: false });
+
+    test("draws the map with the name of each point and the table of its points, without a slider that needs JavaScript", async ({
+      page,
+      browser,
+    }) => {
+      const { lecturer } = await openAsNewStudent(page, browser, {
+        locale,
+        givePortfolio: (classId) => {
+          storeTestHolding(classId, bbcaHolding);
+        },
+        path: "/measures",
+      });
+      const main = page.getByRole("main");
+      await expect(page.getByRole("slider")).toHaveCount(0);
+      for (const point of [text.mapPoints.portfolio, text.mapPoints.bbca]) {
+        await expect(
+          main
+            .locator("svg text")
+            .filter({ hasText: new RegExp(`^${point.name}$`) }),
+        ).toHaveCount(1);
+      }
+      await main.getByText(text.pointsLabel, { exact: true }).click();
+      const rows = main
+        .locator("details")
+        .filter({ hasText: text.pointsLabel })
+        .locator("tbody tr");
+      const points = [
+        text.riskFreePoint,
+        text.marketPoint,
+        text.portfolioPoint,
+        text.bbcaPoint,
+      ];
+      await expect(rows).toHaveCount(points.length);
+      for (const [index, cells] of points.entries()) {
+        await expectRow(rows.nth(index), cells);
+      }
+      await lecturer.context().close();
     });
   });
 }
