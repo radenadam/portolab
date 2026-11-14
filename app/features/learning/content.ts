@@ -64,10 +64,27 @@ export interface LocalizedLearningContent extends LearningContent {
   locale: Locale;
 }
 
-const unavailableSessions: readonly SessionNumber[] = [11, 12, 13, 14];
+const unavailableSessions = {
+  1: false,
+  2: false,
+  3: false,
+  4: false,
+  5: false,
+  6: false,
+  7: false,
+  8: false,
+  9: false,
+  10: false,
+  11: true,
+  12: true,
+  13: true,
+  14: true,
+  15: false,
+  16: false,
+} satisfies Record<SessionNumber, boolean>;
 
 export function cannotPractiseSession(session: SessionNumber): boolean {
-  return unavailableSessions.includes(session);
+  return unavailableSessions[session];
 }
 
 // The calendar owns the session numbers. This table makes a changed course fail to compile until its content structure is chosen.
