@@ -22,14 +22,12 @@ const testModifiers = new Set([
   "extend",
   "step",
 ]);
+const testFactories = new Set(["each", "for", "skipIf", "runIf", "extend"]);
 
 interface TestCalls {
   functions: Set<string>;
   namespaces: Set<string>;
 }
-
-const localeComparison =
-  'BinaryExpression[operator=/^(===|!==|==|!=)$/]:matches([left.name="locale"][right.type="Literal"], [right.name="locale"][left.type="Literal"], [left.name="locale"][right.type="TemplateLiteral"][right.expressions.length=0], [right.name="locale"][left.type="TemplateLiteral"][left.expressions.length=0])';
 
 /** Locale tables keep translated expectations together, and language names make test reports readable. */
 export const testLanguage: RuleDefinition = {
@@ -55,29 +53,32 @@ export const testLanguage: RuleDefinition = {
             registerTestImport(statement, calls);
         }
       },
-      [localeComparison](node: TSESTree.BinaryExpression) {
-        context.report({ node, messageId: "localeTable" });
-      },
-      'SwitchStatement[discriminant.name="locale"]'(
-        node: TSESTree.SwitchStatement,
+      "BinaryExpression[operator=/^(===|!==|==|!=)$/]"(
+        node: TSESTree.BinaryExpression,
       ) {
-        if (node.cases.some((branch) => branch.test !== null))
+        if (
+          (isLocaleExpression(node.left) && isStaticValue(node.right)) ||
+          (isLocaleExpression(node.right) && isStaticValue(node.left))
+        )
+          context.report({ node, messageId: "localeTable" });
+      },
+      SwitchStatement(node: TSESTree.SwitchStatement) {
+        if (
+          isLocaleExpression(node.discriminant) &&
+          node.cases.some((branch) => branch.test !== null)
+        )
           context.report({ node, messageId: "localeTable" });
       },
       'Identifier[name="locale"]'(node: TSESTree.Identifier) {
-        const parent = node.parent;
+        if (!isPropertyKey(node) && insideTestTitle(node, calls))
+          context.report({ node, messageId: "languageName" });
+      },
+      MemberExpression(node: TSESTree.MemberExpression) {
         if (
-          parent.type === AST_NODE_TYPES.MemberExpression &&
-          parent.property === node
-        ) {
-          if (
-            !parent.computed ||
-            (parent.object.type === AST_NODE_TYPES.Identifier &&
-              parent.object.name === "languageNames")
-          )
-            return;
-        }
-        if (insideTestTitle(node, calls))
+          propertyName(node) === "locale" &&
+          !isPropertyKey(node) &&
+          insideTestTitle(node, calls)
+        )
           context.report({ node, messageId: "languageName" });
       },
     };
@@ -111,18 +112,18 @@ function registerTestImport(
   }
 }
 
-function insideTestTitle(node: TSESTree.Identifier, calls: TestCalls): boolean {
-  let ancestor: TSESTree.Node = node.parent;
+function insideTestTitle(node: TSESTree.Node, calls: TestCalls): boolean {
+  let ancestor: TSESTree.Node = node;
   while (ancestor.type !== AST_NODE_TYPES.Program) {
-    if (ancestor.type === AST_NODE_TYPES.TemplateLiteral) {
-      const parent: TSESTree.Node = ancestor.parent;
-      if (
-        parent.type === AST_NODE_TYPES.CallExpression &&
-        parent.arguments[0] === ancestor &&
-        isTestCallee(parent.callee, calls)
-      )
-        return true;
-    }
+    const parent: TSESTree.Node = ancestor.parent;
+    if (
+      parent.type === AST_NODE_TYPES.CallExpression &&
+      parent.arguments[0] === ancestor &&
+      canBeTitle(ancestor) &&
+      isTestCallee(parent.callee, calls) &&
+      !isTestFactory(parent.callee)
+    )
+      return true;
     ancestor = ancestor.parent;
   }
   return false;
@@ -147,7 +148,7 @@ function isTestMember(
 ): boolean {
   const object = node.object;
   const objectName = memberName(object);
-  const name = memberName(node.property);
+  const name = propertyName(node);
   if (objectName !== undefined && calls.namespaces.has(objectName)) {
     return name !== undefined && testFunctions.has(name);
   }
@@ -156,7 +157,68 @@ function isTestMember(
 }
 
 function memberName(node: TSESTree.Node): string | undefined {
+  if (
+    node.type === AST_NODE_TYPES.TemplateLiteral &&
+    node.expressions.length === 0
+  )
+    return node.quasis.map((part) => part.value.cooked).join("");
   const name =
     "name" in node ? node.name : "value" in node ? node.value : undefined;
   return typeof name === "string" ? name : undefined;
+}
+
+function propertyName(
+  node: TSESTree.MemberExpression | TSESTree.JSXMemberExpression,
+): string | undefined {
+  if (
+    "computed" in node &&
+    node.computed &&
+    node.property.type === AST_NODE_TYPES.Identifier
+  )
+    return undefined;
+  return memberName(node.property);
+}
+
+function isLocaleExpression(node: TSESTree.Node): boolean {
+  if (node.type === AST_NODE_TYPES.Identifier) return node.name === "locale";
+  if (node.type === AST_NODE_TYPES.MemberExpression)
+    return propertyName(node) === "locale";
+  if ("expression" in node && typeof node.expression === "object")
+    return isLocaleExpression(node.expression);
+  return false;
+}
+
+function isStaticValue(node: TSESTree.Node): boolean {
+  return (
+    node.type === AST_NODE_TYPES.Literal ||
+    (node.type === AST_NODE_TYPES.TemplateLiteral &&
+      node.expressions.length === 0)
+  );
+}
+
+function isPropertyKey(node: TSESTree.Node): boolean {
+  if (node.type === AST_NODE_TYPES.Program) return false;
+  const parent = node.parent;
+  if ("expression" in parent && parent.expression === node)
+    return isPropertyKey(parent);
+  return (
+    parent.type === AST_NODE_TYPES.MemberExpression && parent.property === node
+  );
+}
+
+function canBeTitle(node: TSESTree.Node): boolean {
+  return (
+    node.type !== AST_NODE_TYPES.ArrowFunctionExpression &&
+    node.type !== AST_NODE_TYPES.FunctionExpression
+  );
+}
+
+function isTestFactory(node: TSESTree.Node): boolean {
+  if (node.type === AST_NODE_TYPES.MemberExpression) {
+    const name = propertyName(node);
+    return name !== undefined && testFactories.has(name);
+  }
+  if ("expression" in node && typeof node.expression === "object")
+    return isTestFactory(node.expression);
+  return false;
 }

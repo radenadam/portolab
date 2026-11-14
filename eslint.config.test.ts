@@ -25,6 +25,7 @@ const testCalls = [
   "test.describe.serial",
   "test.describe.skip",
   'test["skip"]',
+  "test[`skip`]",
   'test.describe["parallel"]',
   "test.each([1])",
   "test.each`value`",
@@ -47,6 +48,7 @@ const testCalls = [
   "vitest.test",
   "vitest.describe.only",
   'vitest["it"]',
+  "vitest[`it`]",
   "playwright.test.describe.parallel",
 ];
 const testImports = [
@@ -56,50 +58,91 @@ const testImports = [
   'import * as playwright from "@playwright/test";',
   'import { "test" as quotedTest } from "vitest";',
 ];
+const localeExpressions = [
+  "locale",
+  "options.locale",
+  'options["locale"]',
+  "options[`locale`]",
+  "options?.locale",
+  "(locale as string)",
+  "(options.locale as string)",
+  "locale!",
+  "options.locale!",
+];
+const titleForms = {
+  template: (value: string) => `\`shows cash in \${${value}}\``,
+  plus: (value: string) => `"shows cash in " + ${value}`,
+  concat: (value: string) => `"shows cash in ".concat(${value})`,
+  conversion: (value: string) => `String(${value})`,
+  direct: (value: string) => value,
+  array: (value: string) => `["shows cash in", ${value}].join(" ")`,
+  invoked: (value: string) => `(() => "shows cash in " + ${value})()`,
+  logical: (value: string) => `("shows cash in " + ${value}) || "fallback"`,
+  conditional: (value: string) =>
+    `true ? "shows cash in " + ${value} : "fallback"`,
+  tagged: (value: string) => `String.raw\`shows cash in \${${value}}\``,
+};
 const rejectedLanguageForms: string[] = [];
 for (const operator of ["===", "!==", "==", "!="]) {
-  for (const [left, right] of [
-    ["locale", '"id"'],
-    ['"en"', "locale"],
-    ["locale", "`id`"],
-    ["`en`", "locale"],
-  ] as const) {
-    rejectedLanguageForms.push(
-      `{ const value = ${left} ${operator} ${right} ? "one" : "two"; }`,
-    );
+  for (const expression of localeExpressions) {
+    for (const literal of ['"id"', "`en`"]) {
+      rejectedLanguageForms.push(
+        `{ const value = ${expression} ${operator} ${literal} ? "one" : "two"; }`,
+      );
+      rejectedLanguageForms.push(
+        `{ const value = ${literal} ${operator} ${expression} ? "one" : "two"; }`,
+      );
+    }
   }
 }
-rejectedLanguageForms.push(
-  'switch (locale) { case "id": break; case "en": break; default: break; }',
-  'if (locale !== "en") { expect(value).toBe("one"); }',
-  'const value = locale === "id" && "one";',
-);
-for (const call of testCalls) {
+for (const expression of localeExpressions) {
   rejectedLanguageForms.push(
-    `${call}(\`shows cash in \${locale}\`, () => {});`,
+    `switch (${expression}) { case "id": break; case "en": break; default: break; }`,
   );
+  for (const form of Object.values(titleForms)) {
+    rejectedLanguageForms.push(`test(${form(expression)}, () => {});`);
+  }
 }
-rejectedLanguageForms.push(
-  "test(`shows cash in ${String(locale)}`, () => {});",
-  "test(`shows cash in ${locale.toUpperCase()}`, () => {});",
-  "describe(`shows cash in ${`language ${locale}`}`, () => {});",
-);
+for (const call of testCalls) {
+  for (const form of [
+    titleForms.template,
+    titleForms.plus,
+    titleForms.concat,
+  ]) {
+    rejectedLanguageForms.push(`${call}(${form("locale")}, () => {});`);
+  }
+}
 const acceptedLanguageForms = [
   'const texts: Record<"id" | "en", string> = { id: "satu", en: "one" };',
   "const input = texts[locale];",
   "const found = entries.find((entry) => entry.locale === locale);",
   'const filename = locale + ".json";',
+  'const field = texts[locale] === "satu";',
   'switch (side) { case "buy": break; default: break; }',
   "switch (locale) { default: break; }",
+  "switch (options.locale) { default: break; }",
   "format(`a file in ${locale}`);",
   "object.test(`a field in ${locale}`);",
   "vitest.expect(`a field in ${locale}`);",
   "test.info().outputPath(`home-${locale}.png`);",
+  "test.each([locale])(`shows cash in ${languageNames[locale]}`, () => {});",
+  "test.for([options.locale])(`shows cash in ${languageNames[options.locale]}`, () => {});",
+  "test.each`locale ${locale}`(`shows cash in ${languageNames[locale]}`, () => {});",
+  'test.skip(() => Boolean(locale), "a condition");',
+  'test.fixme(() => Boolean(options.locale), "a condition");',
+  'test.extend({ locale }) ("shows cash", () => {});',
+  'test("shows " + texts[locale], () => {});',
 ];
 for (const call of testCalls) {
-  acceptedLanguageForms.push(
-    `${call}(\`shows cash in \${languageNames[locale]}\`, () => {});`,
-  );
+  for (const expression of [
+    "languageNames[locale]",
+    "languageNames[options.locale]",
+    "languageNames[options?.locale]",
+  ]) {
+    acceptedLanguageForms.push(
+      `${call}("shows cash in " + ${expression}, () => {});`,
+    );
+  }
 }
 
 const languageRule = "portolab-tests/language";
