@@ -1,6 +1,6 @@
 # 0007. Paraglide translates the interface
 
-- Status: Accepted
+- Status: Accepted. [Decision 0036](0036-lessons-and-the-glossary-are-content-in-both-languages.md) changes where lesson and glossary prose lives.
 - Date: 2026-10-31
 
 ## Context

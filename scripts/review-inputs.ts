@@ -1,7 +1,7 @@
 import { fail, succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
 import { describeValue, isRecord } from "../app/value-shapes.ts";
-import { notAnObject, parseStringAt } from "./json.ts";
+import { notAnObject, parseListField, parseStringAt } from "./json.ts";
 import { readTextFile } from "./read-text-file.ts";
 import type { Lens } from "./review-lenses.ts";
 
@@ -27,6 +27,35 @@ export function parseCommitHash(
     : fail(
         `${source} must be the full hash of a commit, but it is ${describeValue(value)}.`,
       );
+}
+
+export interface HistoryCommit {
+  head: string;
+  parents: string[];
+}
+
+export function parseHistoryCommit(
+  value: unknown,
+  source: string,
+): Result<HistoryCommit, string> {
+  if (typeof value !== "string") {
+    return fail(
+      `${source} must be commit hashes, but it is ${describeValue(value)}.`,
+    );
+  }
+  const [hash, ...parentHashes] = value.trim().split(" ");
+  const head = parseCommitHash(hash, `${source}: head`);
+  if (!head.ok) {
+    return head;
+  }
+  const parents = parseListField({ parents: parentHashes }, source, {
+    field: "parents",
+    itemName: "commit parent",
+    parseItem: parseCommitHash,
+  });
+  return parents.ok
+    ? succeed({ head: head.value, parents: parents.value })
+    : parents;
 }
 
 /** Reads a field that holds the full hash of a commit or nothing, such as the head of a state before any round finished. */

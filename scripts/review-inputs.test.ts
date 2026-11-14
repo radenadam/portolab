@@ -5,6 +5,7 @@ import {
   parseAgentTools,
   parseBranchName,
   parseCommitHash,
+  parseHistoryCommit,
   parseJobResults,
   parseOptionalCommitHashAt,
   parsePullRequestNumber,
@@ -124,5 +125,35 @@ test("reads the result of each job, and refuses an empty needs context or a job 
     ok: false,
     failure:
       "PANEL_RESULTS: job reviewer must have a string at result, but result is missing.",
+  });
+});
+
+test("parses every hash of a history commit, including a root commit", () => {
+  const head = "a".repeat(40);
+  const parents = ["b".repeat(40), "c".repeat(40)] as const;
+  for (const count of [0, 1, 2]) {
+    expect(
+      parseHistoryCommit(
+        [head, ...parents.slice(0, count)].join(" "),
+        "HISTORY",
+      ),
+    ).toEqual({
+      ok: true,
+      value: { head, parents: parents.slice(0, count) },
+    });
+  }
+  expect(parseHistoryCommit(42, "HISTORY")).toEqual({
+    ok: false,
+    failure: "HISTORY must be commit hashes, but it is 42.",
+  });
+  expect(parseHistoryCommit("bad", "HISTORY")).toEqual({
+    ok: false,
+    failure:
+      'HISTORY: head must be the full hash of a commit, but it is "bad".',
+  });
+  expect(parseHistoryCommit(`${head} ${parents[0]} bad`, "HISTORY")).toEqual({
+    ok: false,
+    failure:
+      'HISTORY: commit parent 2 must be the full hash of a commit, but it is "bad".',
   });
 });

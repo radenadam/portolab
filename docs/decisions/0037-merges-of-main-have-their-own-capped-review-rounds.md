@@ -1,4 +1,4 @@
-# 0036. Merges of main have their own capped review rounds
+# 0037. Merges of main have their own capped review rounds
 
 - Status: Accepted
 - Date: 2026-11-14
@@ -11,7 +11,7 @@ Pull request #139 used its ordinary review rounds and had no open finding. Other
 
 `scripts/review-plan.ts` sets three independent limits: `reviewRoundLimit` for ordinary reviews, `mergeReviewRoundLimit` for extra merge reviews, and `checkRoundLimit` for rounds that only check open findings. The total number of rounds that run an agent cannot exceed their sum. A round whose agent did not finish spends its allowance too.
 
-After the ordinary review rounds, a push that contains only merges of main since the head that the last finished round reviewed may use an extra merge review. Each merged parent must be an ancestor of the current base branch. The reviewer reads only the files whose conflicts those merges resolved, as the incremental history already selects them. The verifier checks any new findings and the open ones. A merge before the ordinary cap uses an ordinary round. A merge that resolves nothing uses no round and passes only when no finding is open.
+After the ordinary review rounds, a push that contains only merges of main since the head that the last finished round reviewed may use an extra merge review. Each merge has two parents, and its second parent must be an ancestor of the current base branch. The reviewer reads only manual integration work, which `git show --diff-merges=remerge` selects by comparing the recorded merge with the automatic merge that Git recreates. This includes edits made while resolving the merge and leaves out files Git combined automatically, even when both parents changed one file. A foreign merge or a merge with more parents needs an ordinary review, which includes its imported files. The verifier checks any new findings and the open ones. A merge before the ordinary cap uses an ordinary round. A merge that resolves nothing uses no round and passes only when no finding is open.
 
 A push with both merges and other author commits does not qualify for any round after the ordinary cap, even when they change the same files. A push with author commits alone may only fix open findings through the verifier-only allowance. Neither extra merge reviews nor verifier-only rounds replenish the other allowance. A change that no remaining round may read or check fails without an agent. The author then decides how the change continues, such as in a new pull request.
 
@@ -21,6 +21,7 @@ The saved state keeps the count of extra merge reviews apart from the total roun
 
 - **Start another pull request after each late merge.** This bounds each panel run but repeats the review of the whole change, which caused the waste in #148.
 - **Reset the ordinary cap after a merge.** This lets unrelated author changes enter another ordinary review and lets repeated merges restart the panel without end.
+- **Use a combined diff to select resolutions.** A combined diff also lists a file whose disjoint edits Git merged automatically, so a clean merge would spend a round. Real merge tests now cover automatic same-file merges and manual integration edits. The [Git documentation](https://git-scm.com/docs/git-show#Documentation/git-show.txt-remerge) describes the remerge comparison.
 - **Allow unlimited merge reviews.** Each round stays small, but parallel work could keep the panel running without a bound.
 
 ## Consequences

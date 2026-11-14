@@ -4,11 +4,10 @@ import { listOfWords } from "../app/sentences.ts";
 import { parseJsonWith } from "./json.ts";
 import {
   containedHead,
-  readCommitScopeSince,
   readChangedFiles,
-  readFilesChangedSince,
+  readReviewChangesSince,
 } from "./review-history.ts";
-import type { CommitScope } from "./review-history.ts";
+import type { ReviewChanges } from "./review-history.ts";
 import {
   parseBranchName,
   parsePullRequestNumber,
@@ -54,24 +53,23 @@ const since =
 if (!since.ok) {
   exitWithFailure([since.failure], writeScriptFailure);
 }
-const files =
+const changes =
   since.value === undefined
-    ? wholeChange
-    : readFilesChangedSince(
-        since.value,
-        wholeChange.value.map(({ path }) => path),
-      );
-const commitScope =
-  since.value === undefined
-    ? succeed<CommitScope>("author")
-    : readCommitScopeSince(since.value, base);
-if (!files.ok || !commitScope.ok) {
-  exitWithFailure(failuresOf([files, commitScope]), writeScriptFailure);
+    ? succeed<ReviewChanges>({
+        files: wholeChange.value,
+        commitScope: "author",
+      })
+    : readReviewChangesSince(since.value, {
+        base,
+        paths: wholeChange.value.map(({ path }) => path),
+      });
+if (!changes.ok) {
+  exitWithFailure([changes.failure], writeScriptFailure);
 }
 const plan = planReview(
   previous.value,
-  { since: since.value, commitScope: commitScope.value },
-  files.value,
+  { since: since.value, commitScope: changes.value.commitScope },
+  changes.value.files,
 );
 
 // The later jobs take the plan from this output, which no agent can change, and the JSON has no line breaks, as an output needs.

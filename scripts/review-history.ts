@@ -2,7 +2,8 @@ import { succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
 import { parseChangedFiles } from "./review-lenses.ts";
 import type { ChangedFile } from "./review-lenses.ts";
-import { parseCommitHash } from "./review-inputs.ts";
+import { parseHistoryCommit } from "./review-inputs.ts";
+import type { HistoryCommit } from "./review-inputs.ts";
 import { runCommand } from "./run-command.ts";
 
 /** Reads the files that a range of git diff changes, such as the whole change of a pull request, in the repository at cwd. */
@@ -46,88 +47,118 @@ export function containedHead(
   return succeed(contained.value ? head : undefined);
 }
 
-/** Reads the files of the change, among paths, that the commits of the pull request changed after a head, including each file whose conflict a merge resolved. A merge of the base branch adds no other file, because the pull request that changed it there had its own review. */
-export function readFilesChangedSince(
+/** Which allowance may read the first-parent commits since the reviewed head. A mixed push needs an ordinary review. */
+export type CommitScope = "author" | "base-merges" | "mixed";
+
+export interface ReviewChanges {
+  files: ChangedFile[];
+  commitScope: CommitScope;
+}
+
+/** Selects author changes and manual merge resolutions together with their allowance, so a foreign merge cannot hide imported files behind an empty combined diff. */
+export function readReviewChangesSince(
   since: string,
-  paths: readonly string[],
+  change: { base: string; paths: readonly string[] },
   cwd?: string,
-): Result<ChangedFile[], string> {
-  // The first parents are the commits of the pull request, and a dense combined diff of a merge holds only the files that differ from every parent, which are the resolved conflicts.
+): Result<ReviewChanges, string> {
   const log = runCommand(
     "git",
-    [
-      "log",
-      "--first-parent",
-      "--format=",
-      "--name-only",
-      "-z",
-      "--diff-merges=dense-combined",
-      `${since}..HEAD`,
-    ],
+    ["log", "--first-parent", "--format=%H %P", `${since}..HEAD`],
     { cwd },
   );
   if (!log.ok) {
     return log;
   }
-  const changePaths = new Set(paths);
+  const changePaths = new Set(change.paths);
   const touched = new Set<string>();
-  for (const path of log.value.stdout.split(/[\0\n]/)) {
-    if (changePaths.has(path)) {
-      touched.add(path);
+  let commitScope: CommitScope | undefined;
+  for (const line of log.value.stdout.trim().split("\n").filter(Boolean)) {
+    const commit = parseHistoryCommit(line, "git log");
+    if (!commit.ok) {
+      return commit;
+    }
+    const contribution = readCommitChanges(commit.value, change.base, cwd);
+    if (!contribution.ok) {
+      return contribution;
+    }
+    const scope = contribution.value.commitScope;
+    commitScope =
+      commitScope === undefined || commitScope === scope ? scope : "mixed";
+    for (const file of contribution.value.files) {
+      if (changePaths.has(file.path)) {
+        touched.add(file.path);
+      }
     }
   }
   // git diff without paths would compare every file.
-  return touched.size === 0
-    ? succeed([])
-    : readChangedFiles([since, "HEAD", "--", ...touched], cwd);
+  const files =
+    touched.size === 0
+      ? succeed([])
+      : readChangedFiles([since, "HEAD", "--", ...touched], cwd);
+  return files.ok
+    ? succeed({ files: files.value, commitScope: commitScope ?? "author" })
+    : files;
 }
 
-/** Which allowance may read the first-parent commits since the reviewed head. A mixed push needs an ordinary review. */
-export type CommitScope = "author" | "base-merges" | "mixed";
+function readCommitChanges(
+  commit: HistoryCommit,
+  base: string,
+  cwd?: string,
+): Result<ReviewChanges, string> {
+  const scope = classifyCommit(commit, base, cwd);
+  if (!scope.ok) {
+    return scope;
+  }
+  const modes: Record<CommitScope, string> = {
+    author: "first-parent",
+    "base-merges": "remerge",
+    mixed: "first-parent",
+  };
+  // A remerge compares the recorded result with Git's automatic merge, so disjoint edits in one file do not spend another review round.
+  const diff = runCommand(
+    "git",
+    [
+      "show",
+      "--format=",
+      "--name-status",
+      "--no-renames",
+      "-z",
+      `--diff-merges=${modes[scope.value]}`,
+      commit.head,
+    ],
+    { cwd },
+  );
+  const files = diff.ok
+    ? parseChangedFiles(diff.value.stdout, `git show ${commit.head}`)
+    : diff;
+  return files.ok
+    ? succeed({ files: files.value, commitScope: scope.value })
+    : files;
+}
 
-/** Classifies author commits and merges by their parents, so extra merge rounds cannot review new work. */
-export function readCommitScopeSince(
-  since: string,
+function classifyCommit(
+  commit: HistoryCommit,
   base: string,
   cwd?: string,
 ): Result<CommitScope, string> {
-  const commits = runCommand(
-    "git",
-    ["log", "--first-parent", "--format=%P", `${since}..HEAD`],
-    { cwd },
-  );
-  if (!commits.ok) {
-    return commits;
-  }
-  let hasAuthorCommits = false;
-  let hasMerges = false;
-  if (commits.value.stdout.trim() === "") {
+  if (commit.parents.length < 2) {
     return succeed("author");
   }
-  for (const line of commits.value.stdout.trim().split("\n")) {
-    const parents = line.trim().split(" ");
-    if (parents.length < 2) {
-      hasAuthorCommits = true;
-      continue;
+  // Git's remerge diff supports two parents. Other merges need an ordinary review of everything they import.
+  if (commit.parents.length !== 2) {
+    return succeed("mixed");
+  }
+  let scope: CommitScope = "base-merges";
+  for (const parent of commit.parents.slice(1)) {
+    const contained = isAncestor(parent, base, cwd);
+    if (!contained.ok) {
+      return contained;
     }
-    hasMerges = true;
-    for (const parent of parents.slice(1)) {
-      const hash = parseCommitHash(parent, "git log: merge parent");
-      if (!hash.ok) {
-        return hash;
-      }
-      const contained = isAncestor(hash.value, base, cwd);
-      if (!contained.ok) {
-        return contained;
-      }
-      if (!contained.value) {
-        return succeed("mixed");
-      }
+    if (!contained.value) {
+      scope = "mixed";
     }
   }
-  return succeed(
-    hasMerges ? (hasAuthorCommits ? "mixed" : "base-merges") : "author",
-  );
+  return succeed(scope);
 }
 
 function isAncestor(

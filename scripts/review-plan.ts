@@ -20,13 +20,13 @@ import {
 } from "./review-state.ts";
 import type { ReviewState } from "./review-state.ts";
 
-/** The rounds in which the reviewer reads any change, counting the rounds whose agent did not finish. */
+/** Ordinary reviews have their own allowance, so late merges cannot replenish it. Failed rounds count too. */
 export const reviewRoundLimit = 3;
 
 /** The verifier-only rounds for fixes after the ordinary review rounds. Extra merge reviews do not replenish them. */
 export const checkRoundLimit = 2;
 
-/** The extra review rounds for conflicts resolved by merges of the base branch alone. Failed rounds count too, so repeated merges cannot restart the panel without end. */
+/** Failed merge reviews count too, so repeated merges of the base branch cannot restart the panel without end. */
 export const mergeReviewRoundLimit = 2;
 
 const planKinds = ["review", "check", "pass", "unchanged", "capped"] as const;
