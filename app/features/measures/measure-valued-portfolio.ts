@@ -1,6 +1,6 @@
 import { succeed } from "~/result";
 import type { Result } from "~/result";
-import { portfolioWeightOf } from "~/units/portfolio-weight";
+import { portfolioWeightOf } from "~/features/trading/portfolio-weight-of";
 import type { PortfolioWeight } from "~/units/portfolio-weight";
 import { rupiah } from "~/units/rupiah";
 import type { Rupiah } from "~/units/rupiah";

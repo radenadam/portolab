@@ -19,6 +19,7 @@ export function TimeChart<Point extends { date: string }>({
   labelledBy,
   dateLabel,
   tableLabel,
+  coloredChanges = false,
 }: {
   /** The points of the chart, oldest first, at least one. */
   points: readonly Point[];
@@ -29,6 +30,7 @@ export function TimeChart<Point extends { date: string }>({
   dateLabel: string;
   /** The label that opens the table of points. */
   tableLabel: string;
+  coloredChanges?: boolean;
 }): ReactNode {
   if (points.length === 0) return null;
   const layout = layoutTimeChart(
@@ -48,7 +50,10 @@ export function TimeChart<Point extends { date: string }>({
       tableLabel={tableLabel}
       valueText={(value: CumulativeReturn) => formatSignedPercent(value).text}
       valueNode={(value: CumulativeReturn) => (
-        <ChangeText change={formatSignedPercent(value)} />
+        <ChangeText
+          colored={coloredChanges}
+          change={formatSignedPercent(value)}
+        />
       )}
     />
   );
@@ -91,7 +96,7 @@ export function TimeSeriesChart<
             <li key={line.name} className={styles["legendItem"]}>
               <LineKey kind={line.kind} />
               <NumberText>{line.name}</NumberText>{" "}
-              <NumberText>{valueNode(line.valueOf(latest))}</NumberText>
+              <NumberText whole>{valueNode(line.valueOf(latest))}</NumberText>
             </li>
           ))}
         </ul>
@@ -133,7 +138,9 @@ export function TimeSeriesChart<
                 </th>
                 {lines.map((line) => (
                   <td key={line.name} className={tableStyles["number"]}>
-                    <NumberText>{valueNode(line.valueOf(point))}</NumberText>
+                    <NumberText whole>
+                      {valueNode(line.valueOf(point))}
+                    </NumberText>
                   </td>
                 ))}
               </tr>

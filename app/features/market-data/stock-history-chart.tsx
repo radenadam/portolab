@@ -1,4 +1,3 @@
-import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { directionOf } from "~/charts/direction-of";
@@ -62,7 +61,7 @@ export function StockHistoryChart({
             to={`${path}?range=${choice}`}
             aria-current={choice === range ? "true" : undefined}
           >
-            <NumberText>{labels[choice]()}</NumberText>
+            {labels[choice]()}
           </Link>
         ))}
       </nav>
@@ -71,9 +70,7 @@ export function StockHistoryChart({
       ) : (
         <>
           <h2 id="price-chart-title" className={styles["title"]}>
-            <NumberText>
-              {m.market_data_price_chart_title({ code: history.code })}
-            </NumberText>
+            {m.market_data_price_chart_title({ code: history.code })}
           </h2>
           <TimeSeriesChart
             points={history.closes}

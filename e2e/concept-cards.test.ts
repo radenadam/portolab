@@ -238,10 +238,10 @@ for (const locale of locales) {
     }) => {
       const { lecturer } = await openConceptPage(page, browser, {
         locale,
-        path: "/portfolio",
+        path: "",
       });
       const address = page.url();
-      const card = await openConcept(page, locale, text.beta);
+      const card = await openConcept(page, locale, "Beta");
       await openCalculation(card, locale);
       await expectBetaCalculation(card);
       await expectCardInsideScreen(page, card);

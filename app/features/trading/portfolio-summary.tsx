@@ -111,7 +111,7 @@ function HoldingItems<Item extends { code: string }>({
       {holdings.map((holding) => (
         <li key={holding.code} className={styles["item"]}>
           <StockName code={holding.code} />
-          <NumberText>{details(holding)}</NumberText>
+          {details(holding)}
         </li>
       ))}
     </ul>

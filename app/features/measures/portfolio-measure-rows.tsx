@@ -17,6 +17,7 @@ export function portfolioMeasureRows(
   reader: PortfolioReader,
 ): MeasureRow[] {
   const concepts = portfolioConceptRows(portfolio, reader);
+  const ratios = portfolioRatioRows(portfolio);
   return [
     concepts.expectedReturn,
     {
@@ -26,12 +27,15 @@ export function portfolioMeasureRows(
     },
     concepts.risk,
     concepts.beta,
-    ...ratioRows(portfolio),
+    ratios.sharpe,
+    ratios.treynor,
     ...capmRows("p", portfolio),
   ];
 }
 
-function ratioRows(portfolio: PortfolioSummary): MeasureRow[] {
+export function portfolioRatioRows(
+  portfolio: PortfolioSummary,
+): Record<"sharpe" | "treynor", MeasureRow> {
   const excessReturn = {
     expectedReturn: portfolio.expectedReturn,
     riskFreeRate: portfolio.market.riskFreeRate.value,
@@ -48,8 +52,8 @@ function ratioRows(portfolio: PortfolioSummary): MeasureRow[] {
   const treynorFormula = (
     <TreynorRatioFormula inputs={{ ...excessReturn, beta: portfolio.beta }} />
   );
-  return [
-    {
+  return {
+    sharpe: {
       label: m.measures_sharpe_ratio_label(),
       concept: "sharpe",
       calculation: sharpeFormula,
@@ -63,7 +67,7 @@ function ratioRows(portfolio: PortfolioSummary): MeasureRow[] {
         : m.measures_no_value_label(),
       formula: (
         <>
-          <NumberText>{sharpeFormula}</NumberText>
+          {sharpeFormula}
           {!sharpeRatio.ok && (
             <span className={styles["formulaNote"]}>
               <NumberText>
@@ -74,7 +78,7 @@ function ratioRows(portfolio: PortfolioSummary): MeasureRow[] {
         </>
       ),
     },
-    {
+    treynor: {
       label: m.measures_treynor_ratio_label(),
       concept: "treynor",
       calculation: treynorFormula,
@@ -90,7 +94,7 @@ function ratioRows(portfolio: PortfolioSummary): MeasureRow[] {
         : m.measures_no_value_label(),
       formula: (
         <>
-          <NumberText>{treynorFormula}</NumberText>
+          {treynorFormula}
           {!treynorRatio.ok && (
             <span className={styles["formulaNote"]}>
               <NumberText>
@@ -101,5 +105,5 @@ function ratioRows(portfolio: PortfolioSummary): MeasureRow[] {
         </>
       ),
     },
-  ];
+  };
 }

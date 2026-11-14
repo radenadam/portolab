@@ -80,7 +80,7 @@ export function Frame({
                 label={m.app_profile_title()}
                 placement="aboveStart"
               >
-                <NumberText>{profile.menu}</NumberText>
+                {profile.menu}
               </Popover>
             </div>
           )}
@@ -95,7 +95,7 @@ export function Frame({
                 </Link>
               )}
               <div className={styles["topBarEnd"]}>
-                <NumberText>{tools}</NumberText>
+                {tools}
                 {profile !== undefined && (
                   <span className={styles["nameChip"]}>
                     <PopoverButton
@@ -109,7 +109,7 @@ export function Frame({
                     </PopoverButton>
                   </span>
                 )}
-                <NumberText>{badge}</NumberText>
+                {badge}
                 {profile !== undefined && (
                   <>
                     <PopoverButton
@@ -124,7 +124,7 @@ export function Frame({
                       label={m.app_profile_title()}
                       placement="belowEnd"
                     >
-                      <NumberText>{profile.menu}</NumberText>
+                      {profile.menu}
                     </Popover>
                   </>
                 )}
@@ -187,7 +187,7 @@ function ItemList({
             className={listStyles.item}
           >
             <Icon name={item.icon} className={styles["itemIcon"]} />
-            <NumberText>{item.label}</NumberText>
+            {item.label}
           </Link>
         </li>
       ))}
@@ -260,17 +260,15 @@ export function PageColumns({
         narrowPlacement === "hidden" && styles["asideOnWide"],
       )}
     >
-      <NumberText>{aside}</NumberText>
+      {aside}
     </div>
   );
   return (
     <div className={styles["columns"]}>
-      <NumberText>{header}</NumberText>
-      <NumberText>{narrowPlacement === "first" && asideColumn}</NumberText>
-      <div className={styles["content"]}>
-        <NumberText>{main}</NumberText>
-      </div>
-      <NumberText>{narrowPlacement === "hidden" && asideColumn}</NumberText>
+      {header}
+      {narrowPlacement === "first" && asideColumn}
+      <div className={styles["content"]}>{main}</div>
+      {narrowPlacement === "hidden" && asideColumn}
     </div>
   );
 }
@@ -285,12 +283,8 @@ export function PhoneAndDesktop({
 }): ReactNode {
   return (
     <>
-      <div className={styles["onPhone"]}>
-        <NumberText>{phone}</NumberText>
-      </div>
-      <div className={styles["onDesktop"]}>
-        <NumberText>{desktop}</NumberText>
-      </div>
+      <div className={styles["onPhone"]}>{phone}</div>
+      <div className={styles["onDesktop"]}>{desktop}</div>
     </>
   );
 }

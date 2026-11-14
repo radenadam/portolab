@@ -22,16 +22,10 @@ function CapmFormula({
   beta: Beta | undefined;
 }): ReactNode {
   const riskFree = formatPercent(line.riskFreeRate, "two");
-  const subscript =
-    of === undefined ? null : (
-      <sub>
-        <NumberText>{of}</NumberText>
-      </sub>
-    );
+  const subscript = of === undefined ? null : <sub>{of}</sub>;
   return (
     <>
-      k<NumberText>{subscript}</NumberText> = <RiskFree /> + β
-      <NumberText>{subscript}</NumberText>(
+      k{subscript} = <RiskFree /> + β{subscript}(
       <ExpectedReturn of="M" /> − <RiskFree />) ={" "}
       <NumberText>{riskFree}</NumberText> +{" "}
       {beta === undefined ? (
@@ -78,15 +72,7 @@ export function MarketLineFormula({
 }): ReactNode {
   return (
     <>
-      α
-      <sub>
-        <NumberText>{of}</NumberText>
-      </sub>{" "}
-      = <ExpectedReturn of={of} /> − k
-      <sub>
-        <NumberText>{of}</NumberText>
-      </sub>{" "}
-      ={" "}
+      α<sub>{of}</sub> = <ExpectedReturn of={of} /> − k<sub>{of}</sub> ={" "}
       <NumberText>
         {formatPercent(distance.inputs.expectedReturn, "two")}
       </NumberText>{" "}

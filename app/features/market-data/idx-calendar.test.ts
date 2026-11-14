@@ -6,6 +6,7 @@ import {
   isSameWibDay,
   isTradingDay,
   latestClosedTradingDay,
+  latestQuoteTradingDay,
   pricesFinalAt,
   tradingDayAfter,
   tradingDayBefore,
@@ -13,6 +14,46 @@ import {
 
 // The answers below were worked out by hand from the calendars in idx-calendar.ts for a source with this delay.
 const delayMinutes = 10;
+
+// IDX's recorded regular hours begin continuous trading at 09:00 WIB on both variants. With this source delay, its first quote can arrive at 09:10.
+for (const [date, previous] of [
+  ["2026-11-02", "2026-10-30"],
+  ["2026-11-06", "2026-11-05"],
+] as const) {
+  for (const [time, current] of [
+    ["00:00", false],
+    ["02:09", false],
+    ["02:10", true],
+    ["03:00", true],
+    ["04:29", true],
+    ["04:59", true],
+    ["05:30", true],
+    ["07:00", true],
+    ["08:49", true],
+    ["09:25", true],
+    ["09:26", true],
+  ] as const) {
+    test(`finds the quote session of ${date} at ${time} UTC`, () => {
+      expect(
+        latestQuoteTradingDay(new Date(`${date}T${time}:00Z`), delayMinutes),
+      ).toEqual({ ok: true, value: current ? date : previous });
+    });
+  }
+}
+
+test("keeps the previous quote session through a weekend and a holiday and rejects an uncovered year", () => {
+  for (const [date, day] of [
+    ["2026-11-07", "2026-11-06"],
+    ["2026-01-16", "2026-01-15"],
+  ] as const) {
+    expect(
+      latestQuoteTradingDay(new Date(`${date}T03:00:00Z`), delayMinutes),
+    ).toEqual({ ok: true, value: day });
+  }
+  expect(
+    latestQuoteTradingDay(new Date("2028-01-03T03:00:00Z"), delayMinutes).ok,
+  ).toBe(false);
+});
 
 // 03:00 UTC is 10:00 WIB, inside the trading hours, so these answers depend only on the day.
 

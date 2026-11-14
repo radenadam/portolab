@@ -8,7 +8,7 @@ import { requireUser } from "~/features/accounts/current-session.server";
 import { requireReaderClass } from "~/features/classes/require-reader-class.server";
 import { readStockMeasures } from "~/features/measures/read-measures.server";
 import { readStockCorrelation } from "~/features/measures/read-stock-correlation.server";
-import { monthSpanInputs, monthSpanOf } from "~/features/measures/month-span";
+import { StockStatisticsWindow } from "~/features/measures/stock-statistics-window";
 import { StockKeyMeasures } from "~/features/measures/stock-key-measures";
 import { StockMeasuresView } from "~/features/measures/stock-measures-view";
 import { MethodNotice } from "~/features/measures/method-notice";
@@ -214,14 +214,7 @@ export default function StockPage({
           <h2 id="statistics-title">{m.market_data_statistics_title()}</h2>
           {stock.measures.ok && (
             <span className={styles["muted"]}>
-              <NumberText>
-                {m.measures_stock_statistics_notice(
-                  monthSpanInputs(
-                    monthSpanOf(stock.measures.value.returns),
-                    "short",
-                  ),
-                )}
-              </NumberText>
+              <StockStatisticsWindow measures={stock.measures.value} />
             </span>
           )}
         </div>

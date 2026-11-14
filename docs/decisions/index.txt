@@ -37,3 +37,4 @@
 0037-merges-of-main-have-their-own-capped-review-rounds.md
 0038-client-javascript-is-budgeted-by-route.md
 0039-a-decision-catalog-makes-parallel-numbering-conflict.md
+0040-beranda-keeps-the-class-calendar-in-kelas.md

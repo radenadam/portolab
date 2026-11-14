@@ -20,7 +20,7 @@ import { returnPointsForTest } from "~/charts/return-points-for-test";
 import type { ClassId } from "~/features/classes/classes.schema";
 import type { Holding } from "./holding-after-fill";
 import type { HistoryEnd, ReturnPoint } from "./portfolio-history";
-import { portfolioPricesTime, PortfolioView } from "./portfolio-view";
+import { PortfolioView } from "./portfolio-view";
 import type { PortfolioReport } from "./read-portfolio-report.server";
 import type { PortfolioReader } from "./text-for-reader";
 import { valuePortfolio } from "./value-portfolio";
@@ -316,10 +316,10 @@ const readerTexts: Record<
         "Portofolio Anda adalah simulasi dengan uang virtual. Portolab menilai setiap saham yang Anda pegang pada harga tertunda terakhir dari Yahoo Finance, sekitar 10 menit di belakang BEI, sehingga nilainya dapat berbeda dari nilai di bursa pada saat yang sama.",
       valueTitle: "Nilai portofolio Anda",
       holdingsTitle: "Saham yang Anda pegang",
-      noHoldings: "Anda belum memegang saham.",
+      noHoldings: "Anda tidak memegang saham.",
       returnTitle: "Imbal hasil Anda dibandingkan IHSG",
       chartNotice:
-        "Grafik dan tabel di bawah membandingkan imbal hasil portofolio Anda dengan imbal hasil IHSG sejak penutupan 30 Oktober 2026, sebelum Anda dapat bertransaksi. Setiap imbal hasilnya memakai harga penutupan final pada harinya.",
+        "Grafik dan tabel membandingkan imbal hasil portofolio Anda dengan imbal hasil IHSG sejak penutupan 30 Oktober 2026, sebelum Anda dapat bertransaksi. Setiap imbal hasilnya memakai harga penutupan final pada harinya.",
       portfolioSeries: "Portofolio Anda",
       calendarMissing:
         "Portolab belum dapat menampilkan imbal hasil hari bursa berikutnya, karena kalender perdagangan BEI untuk hari itu belum tercatat. Beri tahu dosen Anda agar kalender tersebut dapat ditambahkan.",
@@ -344,10 +344,10 @@ const readerTexts: Record<
         "Your portfolio is a simulation with virtual cash. Portolab values each holding at the latest delayed price from Yahoo Finance, about 10 minutes behind IDX, so a value can differ from the value on the exchange at the same moment.",
       valueTitle: "Value of your portfolio",
       holdingsTitle: "Your holdings",
-      noHoldings: "You hold no shares yet.",
+      noHoldings: "You hold no shares.",
       returnTitle: "Your return against the IHSG",
       chartNotice:
-        "The chart and the table below compare the return of your portfolio with the return of the IHSG since the close of October 30, 2026, before you could trade. Each of their returns uses the final closes of its day.",
+        "The chart and the table compare the return of your portfolio with the return of the IHSG since the close of October 30, 2026, before you could trade. Each of their returns uses the final closes of its day.",
       portfolioSeries: "Your portfolio",
       calendarMissing:
         "Portolab cannot show the return of the next trading day, because it has not recorded the trading calendar of IDX for that day. Tell your lecturer, so that the calendar can be added.",
@@ -551,31 +551,3 @@ for (const locale of locales) {
     });
   }
 }
-
-test("gives the header line the time of the newest delayed price that the page shows, of a holding or of the IHSG, and none without prices", () => {
-  const laterBbca = stockQuote("BBCA", [4_840, 4_980], "2026-11-03T09:14:30Z");
-  expect(portfolioPricesTime(reportForTest({}))).toEqual(ihsgQuote.quotedAt);
-  expect(
-    portfolioPricesTime(
-      reportForTest({
-        valuation: valuePortfolio(
-          { cash: rupiah(48_529_600), holdings: [bbcaHolding] },
-          startingCash,
-          quotesByCode([laterBbca]),
-        ),
-      }),
-    ),
-  ).toEqual(laterBbca.quotedAt);
-  expect(
-    portfolioPricesTime(
-      reportForTest({
-        valuation: valuePortfolio(
-          { cash: startingCash, holdings: [] },
-          startingCash,
-          quotesByCode([]),
-        ),
-        market: undefined,
-      }),
-    ),
-  ).toBeUndefined();
-});

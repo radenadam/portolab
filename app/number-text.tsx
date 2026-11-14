@@ -3,27 +3,28 @@ import type { ReactNode } from "react";
 import { numberPattern } from "./number-pattern";
 import styles from "./number-text.module.css";
 
-/** Prose may wrap between words, but a number keeps its digits, sign, arrow, and unit together before JavaScript loads too. SVG text already stays on one line, so this renderer belongs only in HTML. */
-export function NumberText({
-  children,
-  whole = false,
-}: {
-  children: ReactNode;
-  whole?: boolean;
-}): ReactNode {
-  if (whole)
+type NumberTextValue =
+  string | number | null | undefined | readonly NumberTextValue[];
+
+/** Text-only children prevent a wrapper from silently skipping an element tree. A whole group is explicit because it may include an arrow element. SVG text already stays on one line, so this renderer belongs only in HTML. */
+export function NumberText(
+  properties:
+    | { children: NumberTextValue; whole?: false }
+    | { children: ReactNode; whole: true },
+): ReactNode {
+  if (properties.whole === true)
     return (
       <span className={styles["number"]} data-number="">
-        {children}
+        {properties.children}
       </span>
     );
-  return numberTextOf(children);
+  return numberTextOf(properties.children);
 }
 
-function numberTextOf(value: ReactNode): ReactNode {
-  if (Array.isArray(value))
-    return value.map((part: ReactNode) => numberTextOf(part));
-  if (typeof value !== "string" && typeof value !== "number") return value;
+function numberTextOf(value: NumberTextValue): ReactNode {
+  if (value === null || value === undefined) return value;
+  if (typeof value !== "string" && typeof value !== "number")
+    return value.map((part) => numberTextOf(part));
   const text = String(value);
   const parts: ReactNode[] = [];
   let start = 0;

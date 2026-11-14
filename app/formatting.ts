@@ -27,6 +27,13 @@ export function formatRupiah(amount: Rupiah): string {
   return new Intl.NumberFormat(intlLocale(), rupiahOptions).format(amount);
 }
 
+/** One format supplies both the currency and digits when a headline sizes them apart. */
+export function formatRupiahParts(amount: Rupiah): Intl.NumberFormatPart[] {
+  return new Intl.NumberFormat(intlLocale(), rupiahOptions).formatToParts(
+    amount,
+  );
+}
+
 /** How the active language groups the digits of a whole number: the character between groups, such as the dot in 100.000.000, and the number of digits in each group after the first, so that a parser can read a number as a person writes it. */
 export function digitGrouping(): { separator: string; size: number } {
   const locale = intlLocale();
@@ -52,14 +59,13 @@ export function digitGrouping(): { separator: string; size: number } {
 
 // A number shows at most three decimals, which is also the default of Intl.
 const mostNumberDecimals = 3;
+const numberOptions = { maximumFractionDigits: mostNumberDecimals };
 
 /** The smallest step between the marks of an axis whose texts formatNumber writes, so no two marks read the same. */
 export const smallestNumberStep = 10 ** -mostNumberDecimals;
 
 export function formatNumber(value: number): string {
-  return new Intl.NumberFormat(intlLocale(), {
-    maximumFractionDigits: mostNumberDecimals,
-  }).format(value);
+  return new Intl.NumberFormat(intlLocale(), numberOptions).format(value);
 }
 
 /** A split can divide a historic close into fractional rupiah, so it keeps the precision of other numbers rather than rounding to an amount of cash. */
@@ -67,7 +73,7 @@ export function formatSplitAdjustedRupiah(price: SplitAdjustedRupiah): string {
   return new Intl.NumberFormat(intlLocale(), {
     ...rupiahOptions,
     minimumFractionDigits: 0,
-    maximumFractionDigits: mostNumberDecimals,
+    ...numberOptions,
   }).format(price);
 }
 
@@ -188,11 +194,36 @@ export function formatSharpeRatio(ratio: SharpeRatio): string {
   return formatTwoDecimals(ratio);
 }
 
+const ratioOptions: Intl.NumberFormatOptions = {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+  signDisplay: "negative",
+};
+const precisionOptions = { number: numberOptions, ratio: ratioOptions };
+
 function formatTwoDecimals(value: number): string {
-  return new Intl.NumberFormat(intlLocale(), {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value);
+  return new Intl.NumberFormat(intlLocale(), ratioOptions).format(value);
+}
+
+/** Interpretations use the same Intl rounding as the text. The canonical format has no groups, so the program can read it back. */
+export function compareRoundedNumbers<Value extends number>(
+  first: Value,
+  second: NoInfer<Value>,
+  precision: keyof typeof precisionOptions,
+): ChangeDirection {
+  const format = new Intl.NumberFormat("en-US", {
+    ...precisionOptions[precision],
+    useGrouping: false,
+  });
+  const firstValue = Number(format.format(first));
+  const secondValue = Number(format.format(second));
+  if (firstValue > secondValue) return "rise";
+  return firstValue < secondValue ? "fall" : "none";
+}
+
+/** Formats a difference of returns in percentage points, without a percent sign. */
+export function formatPercentagePoints(fraction: number): string {
+  return formatTwoDecimals(fraction * 100);
 }
 
 /** How a calendar date reads: in words for a sentence, in words with the day of the week, or with the short month of a table. */

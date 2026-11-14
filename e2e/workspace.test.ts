@@ -192,7 +192,7 @@ for (const locale of locales) {
     );
     const itemsOf = (classPath: string): [string, string][] =>
       [
-        `${classPath}/portfolio`,
+        classPath,
         `${classPath}/market`,
         `${classPath}/orders`,
         `${classPath}/measures`,
@@ -215,7 +215,7 @@ for (const locale of locales) {
       [1, second, true],
     ] as const) {
       const link = classLinks.nth(index);
-      await expect(link).toHaveAttribute("href", `${testClass.path}/portfolio`);
+      await expect(link).toHaveAttribute("href", testClass.path);
       await expect(link).toContainText(widestClassNames.lecturerName);
       if (isCurrent) {
         await expect(link).toHaveAttribute("aria-current", "true");
@@ -228,7 +228,7 @@ for (const locale of locales) {
     ).toHaveAttribute("href", "/join");
     await expectAccessibleScreen(student);
     await classLinks.nth(0).click();
-    await expect(student).toHaveURL(`${first.path}/portfolio`);
+    await expect(student).toHaveURL(first.path);
     await expect(switcher).toBeHidden();
     await expectItems(student, locale, {
       items: itemsOf(first.path),
@@ -241,11 +241,11 @@ for (const locale of locales) {
     await student.keyboard.press("Escape");
     // The browser keeps the class that the student opened last, so signing in again lands there and not in the class that the student joined last.
     await signOutAndIn(student, locale, username);
-    await expect(student).toHaveURL(`${first.path}/portfolio`);
+    await expect(student).toHaveURL(first.path);
     const otherDevice = await newDevice(browser, locale);
     await otherDevice.goto("/sign-in");
     await submitSignIn(otherDevice, username, chosenPassword);
-    await expect(otherDevice).toHaveURL(`${second.path}/portfolio`);
+    await expect(otherDevice).toHaveURL(second.path);
     await otherDevice.context().close();
     await student.context().close();
   });
@@ -405,7 +405,7 @@ test("opens the switcher of the class, the menu of the profile, and the card of 
     student.locator("#class-switcher").getByRole("link").first(),
   ).toBeFocused();
   await student.keyboard.press("Enter");
-  await expect(student).toHaveURL(/\/classes\/\d+\/portfolio$/);
+  await expect(student).toHaveURL(/\/classes\/\d+$/);
   await student.context().close();
 });
 
@@ -418,11 +418,11 @@ test("opens the switcher of the class and leads to the chosen class before JavaS
     javaScriptEnabled: false,
     storageState: await student.context().storageState(),
   });
-  await reader.goto(`${first.path}/portfolio`);
+  await reader.goto(first.path);
   const switcher = await openClassSwitcher(reader);
   await switcher.getByRole("listitem").getByRole("link").nth(1).click();
-  await expect(reader).toHaveURL(/\/classes\/\d+\/portfolio$/);
-  await expect(reader).not.toHaveURL(`${first.path}/portfolio`);
+  await expect(reader).toHaveURL(/\/classes\/\d+$/);
+  await expect(reader).not.toHaveURL(first.path);
   await reader.context().close();
   await student.context().close();
 });

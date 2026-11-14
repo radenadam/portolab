@@ -174,7 +174,9 @@ export function TimePlot<Point extends { date: string }, Value extends number>({
                   <NumberText>{line.name}</NumberText>
                 </span>
                 <span className={styles["tipValue"]}>
-                  <NumberText>{valueNode(line.valueOf(point))}</NumberText>
+                  <NumberText whole>
+                    {valueNode(line.valueOf(point))}
+                  </NumberText>
                 </span>
               </p>
             ))}

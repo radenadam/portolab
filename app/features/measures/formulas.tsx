@@ -13,10 +13,7 @@ export type Subject = "i" | "j" | "p" | "M";
 function Return({ of }: { of: Subject }): ReactNode {
   return (
     <>
-      R
-      <sub>
-        <NumberText>{of}</NumberText>
-      </sub>
+      R<sub>{of}</sub>
     </>
   );
 }
@@ -57,10 +54,8 @@ export const riskFreeSymbol = { letter: "R", subscript: "f" } as const;
 export function RiskFree(): ReactNode {
   return (
     <>
-      <NumberText>{riskFreeSymbol.letter}</NumberText>
-      <sub>
-        <NumberText>{riskFreeSymbol.subscript}</NumberText>
-      </sub>
+      {riskFreeSymbol.letter}
+      <sub>{riskFreeSymbol.subscript}</sub>
     </>
   );
 }
@@ -86,10 +81,7 @@ export function VarianceFormula({ of }: { of: Subject }): ReactNode {
   return (
     <>
       σ²
-      <sub>
-        <NumberText>{of}</NumberText>
-      </sub>{" "}
-      = Σ<Deviation of={of} />² / (n − 1) (VAR.S)
+      <sub>{of}</sub> = Σ<Deviation of={of} />² / (n − 1) (VAR.S)
     </>
   );
 }
@@ -112,16 +104,9 @@ export function StandardDeviationFormula({
 }): ReactNode {
   return (
     <>
-      σ
-      <sub>
-        <NumberText>{of}</NumberText>
-      </sub>{" "}
-      = √σ²
-      <sub>
-        <NumberText>{of}</NumberText>
-      </sub>{" "}
-      = √<NumberText>{formatVariance(variance)}</NumberText>
-      <NumberText>{standardDeviationFunctions[of]}</NumberText>
+      σ<sub>{of}</sub> = √σ²
+      <sub>{of}</sub> = √<NumberText>{formatVariance(variance)}</NumberText>
+      {standardDeviationFunctions[of]}
     </>
   );
 }
@@ -138,8 +123,8 @@ export function CovarianceFormula({
     <>
       σ
       <sub>
-        <NumberText>{first}</NumberText>
-        <NumberText>{second}</NumberText>
+        {first}
+        {second}
       </sub>{" "}
       = Σ<Deviation of={first} />
       <Deviation of={second} /> / (n − 1) (COVARIANCE.S)
@@ -160,23 +145,8 @@ export function CorrelationFormula({
   const pair = `${first}${second}`;
   return (
     <>
-      ρ
-      <sub>
-        <NumberText>{pair}</NumberText>
-      </sub>{" "}
-      = σ
-      <sub>
-        <NumberText>{pair}</NumberText>
-      </sub>{" "}
-      / (σ
-      <sub>
-        <NumberText>{first}</NumberText>
-      </sub>{" "}
-      σ
-      <sub>
-        <NumberText>{second}</NumberText>
-      </sub>
-      )
+      ρ<sub>{pair}</sub> = σ<sub>{pair}</sub> / (σ
+      <sub>{first}</sub> σ<sub>{second}</sub>)
       {correlation !== undefined && (
         <>
           {" "}
@@ -243,11 +213,7 @@ export function WeightedSumFormula({
       </>
     ),
   };
-  return (
-    <>
-      <NumberText>{terms[measure]}</NumberText> (SUMPRODUCT)
-    </>
-  );
+  return <>{terms[measure]} (SUMPRODUCT)</>;
 }
 
 /** σ²ₚ = Σᵢ Σⱼ wᵢ wⱼ σᵢⱼ, the weights times the covariance matrix times the weights. */

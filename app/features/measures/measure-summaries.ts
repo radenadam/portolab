@@ -31,6 +31,7 @@ export interface MarketSummary {
   variance: MonthlyVariance;
   standardDeviation: MonthlyReturn;
   riskFreeRate: RiskFreeRateMeasure;
+  sharpeRatio: SharpeRatio;
 }
 
 /** The measures of one stock against the market that its page shows. */
@@ -116,6 +117,7 @@ export function summarizeMarket(market: MarketMeasures): MarketSummary {
     variance: market.variance.value,
     standardDeviation: market.standardDeviation.value,
     riskFreeRate: market.riskFreeRate,
+    sharpeRatio: market.sharpeRatio.value,
   };
 }
 

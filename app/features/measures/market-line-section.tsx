@@ -60,7 +60,7 @@ export function StudentMarketLine({
         }}
         labelledBy={headingId}
       />
-      <NumberText>{caption}</NumberText>
+      {caption}
       <OtherStocksNotices others={others} />
     </>
   );

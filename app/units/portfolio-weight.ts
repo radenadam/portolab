@@ -1,5 +1,3 @@
-import type { Rupiah } from "./rupiah.ts";
-
 /** The share of the value of a portfolio that one holding has, as a fraction from 0 to 1, such as 0.25. */
 export type PortfolioWeight = number & { readonly brand: "PortfolioWeight" };
 
@@ -13,11 +11,4 @@ export function portfolioWeight(fraction: number): PortfolioWeight {
     throw new Error(`${String(fraction)} is not a share of a portfolio.`);
   }
   return fraction;
-}
-
-export function portfolioWeightOf(
-  value: Rupiah,
-  whole: Rupiah,
-): PortfolioWeight {
-  return portfolioWeight(value / whole);
 }

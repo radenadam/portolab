@@ -40,7 +40,11 @@ export function MeasureTable({
         {rows.map((row) => (
           <tr key={row.key}>
             <th scope="row">
-              <NumberText>{row.name}</NumberText>
+              {typeof row.name === "string" || typeof row.name === "number" ? (
+                <NumberText>{row.name}</NumberText>
+              ) : (
+                row.name
+              )}
             </th>
             <RowCells cells={row.cells} columns={valueColumns} />
           </tr>
@@ -61,7 +65,7 @@ function RowCells({
     case "numbers":
       return cells.values.map((value, index) => (
         <td key={columns[index]} className={tableStyles["number"]}>
-          <NumberText>{value}</NumberText>
+          <NumberText whole>{value}</NumberText>
         </td>
       ));
     case "note":
@@ -83,7 +87,7 @@ export function StockLink({
 }): ReactNode {
   return (
     <Link to={stockPath(classId, code)} className={styles["link"]}>
-      <NumberText>{code}</NumberText>
+      {code}
     </Link>
   );
 }

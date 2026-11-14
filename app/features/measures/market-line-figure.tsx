@@ -238,13 +238,8 @@ function PointName({
 }): ReactNode {
   return (
     <>
-      <NumberText>{name}</NumberText> (<NumberText>{symbol.letter}</NumberText>
-      {symbol.subscript !== undefined && (
-        <sub>
-          <NumberText>{symbol.subscript}</NumberText>
-        </sub>
-      )}
-      )
+      <NumberText>{name}</NumberText> ({symbol.letter}
+      {symbol.subscript !== undefined && <sub>{symbol.subscript}</sub>})
     </>
   );
 }

@@ -97,7 +97,7 @@ function TicketBody({
       if (quote === undefined) {
         return (
           <>
-            <NumberText>{stock}</NumberText>
+            {stock}
             <p className={styles["details"]}>
               <NumberText>
                 {missingQuoteText(code, quoteAttempt, moment)}
@@ -108,21 +108,21 @@ function TicketBody({
                 {m.trading_no_price_order_notice({ code })}
               </NumberText>
             </p>
-            <NumberText>{otherStockLink}</NumberText>
+            {otherStockLink}
           </>
         );
       }
       const failure = quoteFailureText(quoteAttempt, [quote], moment);
       return (
         <>
-          <NumberText>{stock}</NumberText>
+          {stock}
           <QuoteLines quote={quote} delayMinutes={moment.delayMinutes} />
           {failure !== undefined && (
             <p className={styles["details"]}>
               <NumberText>{failure}</NumberText>
             </p>
           )}
-          <NumberText>{otherStockLink}</NumberText>
+          {otherStockLink}
           <OrderForm
             day={day.value}
             fields={answer?.fields}

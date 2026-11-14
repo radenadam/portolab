@@ -8,7 +8,7 @@ import {
   messageKeys,
   parseLocales,
   readMessages,
-  untestedMessageProblems,
+  messageTextProblems,
 } from "./messages.ts";
 import { writeScriptFailure } from "./write-script-failure.ts";
 
@@ -36,9 +36,7 @@ for (const locale of locales.value) {
   const messages = readMessages(path);
   if (messages.ok) {
     keysByLanguage.set(locale, messageKeys(messages.value));
-    problems.push(
-      ...untestedMessageProblems(path, messages.value, testSources),
-    );
+    problems.push(...messageTextProblems(path, messages.value, testSources));
   } else {
     problems.push(messages.failure);
   }

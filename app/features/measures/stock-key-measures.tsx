@@ -3,6 +3,7 @@ import { NumberText } from "~/number-text";
 import type { ClassId } from "~/features/classes/classes.schema";
 import type { ReactNode } from "react";
 import { ConceptCard } from "~/concept-card";
+import { homeTitle } from "~/features/trading/home-title";
 import { ConceptLesson } from "~/features/learning/concept-lesson";
 import { formatCorrelation, formatPercent } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
@@ -78,7 +79,7 @@ export function StockKeyMeasures({
                 <MeasureLabel row={{ ...row, label: row.statisticLabel }} />
               </dt>
               <dd>
-                <NumberText>{row.value}</NumberText>
+                <NumberText whole>{row.value}</NumberText>
               </dd>
               <dd className={styles["note"]}>
                 <NumberText>{row.comparison}</NumberText>
@@ -96,7 +97,11 @@ export function StockKeyMeasures({
                 calculation={
                   correlation.ok ? (
                     <>
-                      <p>{m.measures_correlation_prices_notice()}</p>
+                      <p>
+                        {m.measures_correlation_prices_notice({
+                          page: homeTitle(),
+                        })}
+                      </p>
                       <p>
                         <CorrelationFormula
                           first="i"
@@ -164,12 +169,10 @@ export function StockKeyMeasures({
             </dd>
             {correlation.ok && (
               <dd className={styles["note"]}>
-                <NumberText>
-                  {stockComparisonText({
-                    kind: "correlation",
-                    value: correlation.value.correlation.value,
-                  })}
-                </NumberText>
+                {stockComparisonText({
+                  kind: "correlation",
+                  value: correlation.value.correlation.value,
+                })}
               </dd>
             )}
           </dl>

@@ -12,7 +12,7 @@ import {
 } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import styles from "~/stat-grid.module.css";
-import { portfolioWeightOf } from "~/units/portfolio-weight";
+import { portfolioWeightOf } from "./portfolio-weight-of";
 import { lots } from "~/units/lots";
 import { rupiah } from "~/units/rupiah";
 import type { Rupiah } from "~/units/rupiah";

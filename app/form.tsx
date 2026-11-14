@@ -268,7 +268,7 @@ export function Rejection({
       <p>
         <NumberText>{text}</NumberText>
       </p>
-      <NumberText>{step}</NumberText>
+      {step}
     </div>
   );
 }

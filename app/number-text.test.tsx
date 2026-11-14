@@ -1,3 +1,4 @@
+import { languageNames } from "./language-names";
 import { renderToStaticMarkup } from "react-dom/server";
 import { expect, test } from "vitest";
 import { NumberText } from "./number-text";
@@ -51,7 +52,7 @@ const controls: Record<Locale, readonly [string, string]> = {
 };
 
 for (const locale of locales) {
-  test(`keeps every part of a number together within prose in ${locale}`, () => {
+  test(`keeps every part of a number together within prose in ${languageNames[locale]}`, () => {
     for (const value of values[locale]) {
       const text = `(${value}).`;
       expect(matchedNumbers(text)).toEqual([value]);
@@ -66,7 +67,7 @@ for (const locale of locales) {
     const text = adjacent[locale].join(" ");
     expect(matchedNumbers(text)).toEqual(adjacent[locale]);
   });
-  test(`keeps prose and its number within one control label in ${locale}`, () => {
+  test(`keeps prose and its number within one control label in ${languageNames[locale]}`, () => {
     const [verb, count] = controls[locale];
     const html = renderToStaticMarkup(
       <button type="button">
@@ -101,17 +102,21 @@ test("keeps numbers within adjacent text and nested arrays", () => {
   expect(html).toContain('data-number="">IDR 498,000,000,000</span>');
 });
 
-test("leaves words, instrument codes, and existing elements intact", () => {
+test("leaves words and instrument codes intact", () => {
   const text = "LQ45 BBCA AADI 1B 1M 5Y";
   expect(matchedNumbers(text)).toEqual([]);
+  expect(renderToStaticMarkup(<NumberText>{text}</NumberText>)).toBe(text);
+});
+
+test("requires an explicit whole group for an element", () => {
+  const element = <em>128.000 byte</em>;
+  // A default wrapper cannot inspect an element's text, so its type rejects this ineffective use.
+  // @ts-expect-error Only a whole number group accepts element children.
+  const ineffective = <NumberText>{element}</NumberText>;
+  expect(ineffective).toBeDefined();
   expect(
-    renderToStaticMarkup(
-      <NumberText>
-        {text}
-        <em>IHSG</em>
-      </NumberText>,
-    ),
-  ).toBe(`${text}<em>IHSG</em>`);
+    renderToStaticMarkup(<NumberText whole>{element}</NumberText>),
+  ).toContain('data-number=""><em>128.000 byte</em></span>');
 });
 
 function matchedNumbers(text: string): string[] {

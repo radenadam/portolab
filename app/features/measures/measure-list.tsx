@@ -43,7 +43,7 @@ export function MeasureList({
             <MeasureLabel row={row} />
           </dt>
           <dd>
-            <NumberText>{row.value}</NumberText>
+            <NumberText whole>{row.value}</NumberText>
           </dd>
           <dd className={styles["formula"]}>{row.formula}</dd>
         </Fragment>
@@ -69,7 +69,7 @@ export function MeasureLabel({ row }: { row: MeasureRow }): ReactNode {
               <>
                 <p>
                   <strong>
-                    <NumberText>{row.value}</NumberText>
+                    <NumberText whole>{row.value}</NumberText>
                   </strong>
                 </p>
                 {concept.monthly && (
@@ -80,9 +80,7 @@ export function MeasureLabel({ row }: { row: MeasureRow }): ReactNode {
           }
           calculation={
             <>
-              <p>
-                <NumberText>{row.calculation ?? row.formula}</NumberText>
-              </p>
+              <p>{row.calculation ?? row.formula}</p>
               {row.inputs}
             </>
           }

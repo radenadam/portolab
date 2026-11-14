@@ -335,14 +335,14 @@ const readerTexts: Record<
     owner: {
       weightsTitle: "Bobot portofolio Anda",
       weightsNotice:
-        "Bobot suatu saham adalah nilainya pada harga tertunda terakhir dari Yahoo Finance, sekitar 10 menit di belakang BEI, dibagi nilai total portofolio Anda, dan bobot kas Anda adalah bagiannya dari nilai total itu. Halaman portofolio Anda menunjukkan setiap harga tertunda dan waktu pencatatannya. Kas tidak menghasilkan imbal hasil di Portolab, sehingga kas tidak menambah imbal hasil yang diharapkan, varians, maupun beta.",
+        "Bobot suatu saham adalah nilainya pada harga tertunda terakhir dari Yahoo Finance, sekitar 10 menit di belakang BEI, dibagi nilai total portofolio Anda, dan bobot kas Anda adalah bagiannya dari nilai total itu. Beranda menunjukkan setiap harga tertunda dan waktu pencatatannya. Kas tidak menghasilkan imbal hasil di Portolab, sehingga kas tidak menambah imbal hasil yang diharapkan, varians, maupun beta.",
       holdingsTitle: "Saham Anda pada bulan-bulan ini",
       holdingsNotice:
         "Ukuran portofolio Anda berasal dari ukuran saham Anda ini pada bulan-bulan yang sama dengan portofolio, yang bisa lebih sedikit daripada bulan-bulan di halaman suatu saham.",
       pairsTitle: "Kovarians dan korelasi saham Anda",
       risksTitle: "Risiko yang ditambahkan setiap saham Anda",
       noHoldings:
-        "Anda belum memegang saham, sehingga portofolio Anda hanya berisi kas, yang tidak menghasilkan imbal hasil di Portolab. Portolab menghitung ukuran portofolio Anda setelah order beli Anda tereksekusi.",
+        "Anda tidak memegang saham, sehingga portofolio Anda hanya berisi kas, yang tidak menghasilkan imbal hasil di Portolab. Portolab menghitung ukuran portofolio Anda setelah order beli Anda tereksekusi.",
       oneUnpriced:
         "Portolab menghitung ukuran portofolio Anda setelah pembaruan harga berikutnya membawa harga tertunda TLKM, karena bobot setiap saham adalah nilainya pada harga tertundanya.",
       severalUnpriced:
@@ -369,14 +369,14 @@ const readerTexts: Record<
     owner: {
       weightsTitle: "Weights of your portfolio",
       weightsNotice:
-        "The weight of a stock is its value at the latest delayed price from Yahoo Finance, about 10 minutes behind IDX, divided by the total value of your portfolio, and the weight of your cash is its share of that total. The page of your portfolio shows each delayed price and when it was quoted. Cash earns no return in Portolab, so it adds nothing to the expected return, the variance, or the beta.",
+        "The weight of a stock is its value at the latest delayed price from Yahoo Finance, about 10 minutes behind IDX, divided by the total value of your portfolio, and the weight of your cash is its share of that total. Home shows each delayed price and when it was quoted. Cash earns no return in Portolab, so it adds nothing to the expected return, the variance, or the beta.",
       holdingsTitle: "Your stocks in these months",
       holdingsNotice:
         "The measures of your portfolio come from these measures of your stocks over the same months as the portfolio, which can be fewer than the months on the page of a stock.",
       pairsTitle: "Covariances and correlations of your stocks",
       risksTitle: "The risk that each of your stocks adds",
       noHoldings:
-        "You hold no shares yet, so your portfolio is cash alone, which earns no return in Portolab. Portolab computes the measures of your portfolio once a purchase of yours fills.",
+        "You hold no shares, so your portfolio is cash alone, which earns no return in Portolab. Portolab computes the measures of your portfolio once a purchase of yours fills.",
       oneUnpriced:
         "Portolab computes the measures of your portfolio once the next update of prices brings a delayed price of TLKM, because the weight of each stock is its value at its delayed price.",
       severalUnpriced:

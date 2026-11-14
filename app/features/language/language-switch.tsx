@@ -1,4 +1,3 @@
-import { NumberText } from "~/number-text";
 import { useId } from "react";
 import type { ReactNode } from "react";
 import { Form, useLocation } from "react-router";
@@ -38,7 +37,7 @@ export function LanguageSwitch(): ReactNode {
             aria-pressed={locale === currentLocale}
             className={styles["option"]}
           >
-            <NumberText>{languageNames[locale]}</NumberText>
+            {languageNames[locale]}
           </button>
         ))}
       </div>

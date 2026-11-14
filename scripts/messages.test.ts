@@ -5,7 +5,7 @@ import {
   messageKeys,
   parseLocales,
   readMessages,
-  untestedMessageProblems,
+  messageTextProblems,
 } from "./messages.ts";
 
 test("accepts keys that start with a feature folder or with app and end with a kind of text", () => {
@@ -119,7 +119,7 @@ test("accepts a message that a test shows as a whole string with any quote, and 
     "getByText(`Kode`)",
   ]) {
     expect(
-      untestedMessageProblems(
+      messageTextProblems(
         "messages/id.json",
         {
           market_data_code_label: "Kode",
@@ -138,7 +138,7 @@ test("accepts a message that a test shows as a whole string with any quote, and 
 
 test("rejects a message without placeholders that a test shows only inside a longer string", () => {
   expect(
-    untestedMessageProblems(
+    messageTextProblems(
       "messages/id.json",
       { language_switch_label: "Bahasa" },
       ['getByRole("button", { name: "Bahasa Indonesia" })'],
@@ -153,18 +153,18 @@ test("names each part of a message that no test shows, for one part and for seve
     market_data_delay_notice: "Prices at {time} WIB from {source}.",
   };
   expect(
-    untestedMessageProblems("messages/en.json", messages, ['" WIB from "']),
+    messageTextProblems("messages/en.json", messages, ['" WIB from "']),
   ).toEqual([
     'messages/en.json: no test checks the message "market_data_delay_notice" in full, so add a test that shows "Prices at ".',
   ]);
-  expect(untestedMessageProblems("messages/en.json", messages, [])).toEqual([
+  expect(messageTextProblems("messages/en.json", messages, [])).toEqual([
     'messages/en.json: no test checks the message "market_data_delay_notice" in full, so add a test that shows "Prices at " and " WIB from ".',
   ]);
 });
 
 test("rejects a message that is not text", () => {
   expect(
-    untestedMessageProblems(
+    messageTextProblems(
       "messages/en.json",
       { market_data_code_label: { match: {} } },
       [],
@@ -172,4 +172,18 @@ test("rejects a message that is not text", () => {
   ).toEqual([
     'messages/en.json: the message "market_data_code_label" must be text, but it is {"match":{}}.',
   ]);
+});
+
+test("rejects leading message fragments even when a test includes their whole text", () => {
+  for (const text of [" · LQ45", "· LQ45", " Username", ": value", ", held"]) {
+    expect(
+      messageTextProblems(
+        "messages/en.json",
+        { market_data_metadata_notice: text },
+        [JSON.stringify(text)],
+      ),
+    ).toEqual([
+      'messages/en.json: the message "market_data_metadata_notice" starts with whitespace or a separator, so write a complete message instead of a fragment that code joins.',
+    ]);
+  }
 });

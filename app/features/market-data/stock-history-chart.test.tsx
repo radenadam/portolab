@@ -1,3 +1,4 @@
+import { languageNames } from "~/language-names";
 import { expect, test } from "vitest";
 import { monthEndClosesForTest } from "~/features/measures/month-end-closes-for-test";
 import { locales } from "~/paraglide/runtime.js";
@@ -6,7 +7,7 @@ import { switchLocaleForTest } from "~/switch-locale-for-test";
 import { StockHistoryChart } from "./stock-history-chart";
 
 for (const locale of locales) {
-  test(`colors the selected stock range by its direction without a caption or single-line legend in ${locale}`, () => {
+  test(`colors the selected stock range by its direction without a caption or single-line legend in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     const history = monthEndClosesForTest("BBCA");
     if (history.kind !== "stock") throw new Error("BBCA has stock closes.");

@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+import { languageNames } from "~/language-names";
 import type { ClassId } from "~/features/classes/classes.schema";
 import { openDatabaseForTest } from "~/database/open-database-for-test.server";
 import { conceptLessonDataForTest } from "~/features/learning/concept-lesson-data-for-test";
@@ -10,12 +11,14 @@ import { fail, succeed } from "~/result";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
 import {
   databaseWithClosesForTest,
+  ammnValuationForTest,
   valuationForTest,
 } from "./measures-for-test.server";
 import { readStockMeasures } from "./read-measures.server";
 import { readStockCorrelation } from "./read-stock-correlation.server";
 import type { StockCorrelation } from "./read-stock-correlation.server";
 import { StockKeyMeasures } from "./stock-key-measures";
+import { StockStatisticsWindow } from "./stock-statistics-window";
 
 const failures = {
   noHoldings: { kind: "noHoldings" },
@@ -78,29 +81,36 @@ const failures = {
 
 const periods: Record<Locale, readonly string[]> = {
   id: [
+    "β, σ, E(R): 60 imbal hasil bulanan sampai Sep 2026",
     "Beta",
     "Volatilitas/bln",
     "Imbal hasil harapan/bln",
     "Ukuran di bawah memakai 60 imbal hasil bulanan dari Oktober 2021 sampai September 2026.",
     "IHSG 4,53%",
     "IHSG 0,05%",
-    "Bobot portofolio memakai harga tertunda. Halaman portofolio Anda menunjukkan waktu kutipan setiap harga.",
+    "Bobot portofolio memakai harga tertunda. Beranda menunjukkan waktu kutipan setiap harga.",
   ],
   en: [
+    "β, σ, E(R): 60 monthly returns through Sep 2026",
     "Beta",
     "Volatility/mo",
     "Expected return/mo",
     "The measures below use 60 monthly returns from October 2021 to September 2026.",
     "IHSG 4.53%",
     "IHSG 0.05%",
-    "Portfolio weights use delayed prices. Your portfolio page shows when each price was quoted.",
+    "Portfolio weights use delayed prices. Home shows when each price was quoted.",
   ],
+};
+
+const shorterPeriods: Record<Locale, string> = {
+  id: "Ukuran di bawah memakai 38 imbal hasil bulanan dari Agustus 2023 sampai September 2026.",
+  en: "The measures below use 38 monthly returns from August 2023 to September 2026.",
 };
 
 const failureTexts: Record<Locale, Record<keyof typeof failures, string>> = {
   id: {
     noHoldings:
-      "Anda belum memegang saham, sehingga portofolio Anda hanya berisi kas, yang tidak menghasilkan imbal hasil di Portolab. Portolab menghitung ukuran portofolio Anda setelah order beli Anda tereksekusi.",
+      "Anda tidak memegang saham, sehingga portofolio Anda hanya berisi kas, yang tidak menghasilkan imbal hasil di Portolab. Portolab menghitung ukuran portofolio Anda setelah order beli Anda tereksekusi.",
     unpricedOne:
       "Portolab menghitung ukuran portofolio Anda setelah pembaruan harga berikutnya membawa harga tertunda BBCA, karena bobot setiap saham adalah nilainya pada harga tertundanya.",
     unpricedSeveral:
@@ -124,7 +134,7 @@ const failureTexts: Record<Locale, Record<keyof typeof failures, string>> = {
   },
   en: {
     noHoldings:
-      "You hold no shares yet, so your portfolio is cash alone, which earns no return in Portolab. Portolab computes the measures of your portfolio once a purchase of yours fills.",
+      "You hold no shares, so your portfolio is cash alone, which earns no return in Portolab. Portolab computes the measures of your portfolio once a purchase of yours fills.",
     unpricedOne:
       "Portolab computes the measures of your portfolio once the next update of prices brings a delayed price of BBCA, because the weight of each stock is its value at its delayed price.",
     unpricedSeveral:
@@ -159,20 +169,23 @@ const labels: Record<Locale, string> = {
 };
 
 for (const locale of locales) {
-  test(`shows the periods and every correlation failure with its forecast and next step in ${locale}`, () => {
+  test(`shows the periods and every correlation failure with its forecast and next step in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     const database = databaseWithClosesForTest();
     const measures = readStockMeasures(database, "BBCA");
     function renderCorrelation(correlation: StockCorrelation): string {
       return renderInRouterForTest(
-        <StockKeyMeasures
-          classId={7 as ClassId}
-          code="BBCA"
-          measures={measures}
-          correlation={correlation}
-        >
-          {null}
-        </StockKeyMeasures>,
+        <>
+          {measures.ok && <StockStatisticsWindow measures={measures.value} />}
+          <StockKeyMeasures
+            classId={7 as ClassId}
+            code="BBCA"
+            measures={measures}
+            correlation={correlation}
+          >
+            {null}
+          </StockKeyMeasures>
+        </>,
         conceptLessonDataForTest(),
       );
     }
@@ -200,6 +213,22 @@ for (const locale of locales) {
       const key = state as keyof typeof failures;
       const html = renderCorrelation(fail(failures[key]));
       expect(html).toContain(markupTextForTest(failureTexts[locale][key]));
+    }
+    const shorter = readStockCorrelation(
+      database,
+      "BBCA",
+      ammnValuationForTest(),
+    );
+    if (!shorter.ok || !measures.ok)
+      throw new Error("The recorded histories have measures.");
+    expect(shorter.value.months.count).toBeLessThan(
+      measures.value.returns.length,
+    );
+    const shorterHtml = renderCorrelation(shorter);
+    for (const expected of [periods[locale][0], shorterPeriods[locale]]) {
+      if (expected === undefined)
+        throw new Error("The fixture names both windows.");
+      expect(shorterHtml).toContain(markupTextForTest(expected));
     }
   });
 }

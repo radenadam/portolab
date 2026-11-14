@@ -41,10 +41,22 @@ const monthNames: Record<Locale, readonly [string, string]> = {
   en: ["September 2026", "Sep 2026"],
 };
 for (const locale of locales) {
-  test(`formats the full month for help and its short name for a statistics header in ${locale}`, () => {
+  test(`formats the full month for help and its short name for a statistics header in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     expect(formatMonth("2026-09-30")).toBe(monthNames[locale][0]);
     expect(formatMonth("2026-09-30", "short")).toBe(monthNames[locale][1]);
+  });
+}
+
+const roundedZero: Record<Locale, string> = { id: "0,00", en: "0.00" };
+for (const locale of locales) {
+  test(`formats beta, correlation, and Sharpe without a minus sign when they round to zero in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    for (const value of [-0.0001, 0, 0.0001]) {
+      expect(formatBeta(beta(value))).toBe(roundedZero[locale]);
+      expect(formatCorrelation(correlation(value))).toBe(roundedZero[locale]);
+      expect(formatSharpeRatio(sharpeRatio(value))).toBe(roundedZero[locale]);
+    }
   });
 }
 
@@ -59,7 +71,7 @@ const splitPrices: Record<Locale, readonly string[]> = {
 };
 
 for (const locale of locales) {
-  test(`keeps fractional rupiah in a split-adjusted close and no decimals in a whole close, in ${locale}`, () => {
+  test(`keeps fractional rupiah in a split-adjusted close and no decimals in a whole close, in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     expect(
       [1_234.5, 4_980].map((value) =>

@@ -1,3 +1,4 @@
+import { compareRoundedNumbers } from "../formatting.ts";
 import type { SplitAdjustedRupiah } from "../units/split-adjusted-rupiah.ts";
 import type { ChangeDirection } from "../formatting.ts";
 
@@ -6,6 +7,5 @@ export function directionOf(
   first: SplitAdjustedRupiah,
   latest: SplitAdjustedRupiah,
 ): ChangeDirection {
-  if (latest > first) return "rise";
-  return latest < first ? "fall" : "none";
+  return compareRoundedNumbers(latest, first, "number");
 }
