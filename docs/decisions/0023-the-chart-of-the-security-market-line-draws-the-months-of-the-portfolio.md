@@ -1,6 +1,6 @@
 # 0023. The chart of the security market line draws the line of the months of the portfolio
 
-- Status: Accepted
+- Status: Accepted. [Decision 0035](0035-the-map-names-its-points-in-words-and-keeps-the-name-of-the-reader.md) changes these of its rules: how the chart labels its points and its axes, how a screen reader and a keyboard reach the chart, and how the chart takes the size of its frame. Its rules about which months the line uses and which stocks the chart places stay.
 - Date: 2026-11-11
 
 ## Context

@@ -7,7 +7,6 @@ import { cumulativeReturn } from "~/units/cumulative-return";
 import type { CumulativeReturn } from "~/units/cumulative-return";
 import { plotFraction } from "~/units/plot-fraction";
 import type { PlotFraction } from "~/units/plot-fraction";
-import { percentOf } from "./plot";
 import type { PlotPosition } from "./plot";
 import { fractionOf, niceTicks, paddedRange } from "./scale";
 import type { Range } from "./scale";
@@ -144,52 +143,4 @@ export function indexAt(across: PlotFraction, count: number): number {
     return 0;
   }
   return Math.min(count - 1, Math.max(0, Math.round(across * (count - 1))));
-}
-
-/** What a key does to the crosshair of a chart. It marks the date of an index, or it hides the crosshair, or the chart leaves the key to the page. */
-export type CrosshairMove =
-  { kind: "mark"; index: number } | { kind: "hide" } | { kind: "ignore" };
-
-/** The move of the crosshair for a key, as the keys of a slider move it. An arrow to the right or up marks the next date, an arrow to the left or down the date before, Home the first date, and End the last. An arrow marks the last date while the crosshair is hidden. Escape hides the crosshair, which a reader may need to see the line under its tooltip. */
-export function crosshairMoveOf(
-  key: string,
-  active: number | undefined,
-  count: number,
-): CrosshairMove {
-  const last = count - 1;
-  switch (key) {
-    case "ArrowRight":
-    case "ArrowUp":
-      return markAt(active === undefined ? last : Math.min(last, active + 1));
-    case "ArrowLeft":
-    case "ArrowDown":
-      return markAt(active === undefined ? last : Math.max(0, active - 1));
-    case "Home":
-      return markAt(0);
-    case "End":
-      return markAt(last);
-    case "Escape":
-      // A hidden crosshair leaves Escape to the page, such as to a sheet around the chart.
-      return active === undefined ? { kind: "ignore" } : { kind: "hide" };
-    default:
-      return { kind: "ignore" };
-  }
-}
-
-function markAt(index: number): CrosshairMove {
-  return { kind: "mark", index };
-}
-
-/** Where the tooltip of the date at a position across the plot stands: after the crosshair in the left half of the plot and before it in the right half, a space apart from it, and never past an edge of the plot. The tooltip has the width of the token --width-chart-tip. */
-export function tipPlacement(
-  across: PlotFraction,
-): { left: string } | { right: string } {
-  if (across <= 0.5) {
-    return { left: withinPlot(percentOf(across)) };
-  }
-  return { right: withinPlot(percentOf(plotFraction(1 - across))) };
-}
-
-function withinPlot(distance: string): string {
-  return `clamp(0px, calc(${distance} + var(--space-3)), calc(100% - var(--width-chart-tip)))`;
 }

@@ -17,6 +17,7 @@ import type { PriceSourceDescription, Quote } from "./price-source.server";
 import styles from "./prices-view.module.css";
 import { quoteChange } from "./quote-change";
 import { noPricesText, quoteFailureText } from "./quote-failure-text";
+import { StockName } from "./stock-name";
 import type { UpdateAttempt } from "./update-attempts.server";
 
 interface PricesViewProps {
@@ -64,7 +65,7 @@ export function PricesView({
           <table className={tableStyles["table"]}>
             <thead>
               <tr>
-                <th scope="col">{m.market_data_code_label()}</th>
+                <th scope="col">{m.market_data_stock_label()}</th>
                 <th scope="col">{m.market_data_last_label()}</th>
                 <th scope="col">{m.market_data_change_label()}</th>
                 <th scope="col">{m.market_data_time_label()}</th>
@@ -96,7 +97,13 @@ function QuoteRow({
 }): ReactNode {
   return (
     <tr>
-      <th scope="row">{quote.code}</th>
+      <th scope="row" className={styles["stock"]}>
+        {quote.kind === "stock" ? (
+          <StockName code={quote.code} withSector />
+        ) : (
+          quote.code
+        )}
+      </th>
       <td className={tableStyles["number"]}>
         {quote.kind === "stock"
           ? formatRupiah(quote.price)

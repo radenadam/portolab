@@ -1,4 +1,4 @@
-import { useRef, useState, useSyncExternalStore } from "react";
+import { useRef } from "react";
 import type { CSSProperties, PointerEvent, ReactNode } from "react";
 import { ChangeText } from "~/change-text";
 import {
@@ -11,14 +11,13 @@ import { plotFraction } from "~/units/plot-fraction";
 import { LineKey } from "./line-key";
 import { percentOf, PlotLine } from "./plot";
 import type { PlotPosition } from "./plot";
-import {
-  acrossOf,
-  crosshairMoveOf,
-  indexAt,
-  tipPlacement,
-} from "./time-chart-layout";
+import { ReturnMark, returnMarkGap } from "./return-mark";
+import { useChartSlider } from "./use-chart-slider";
+import { tipAcross } from "./tip-placement";
+import { acrossOf, indexAt } from "./time-chart-layout";
 import type { LineKind, TimeChartLayout, TimeLine } from "./time-chart-layout";
 import styles from "./time-chart.module.css";
+import { useIsInBrowser } from "./use-is-in-browser";
 
 const lineClasses: Record<LineKind, string | undefined> = {
   own: styles["own"],
@@ -29,15 +28,9 @@ const lineClasses: Record<LineKind, string | undefined> = {
 const drawOrder: Record<LineKind, number> = { reference: 0, own: 1 };
 
 // Every length around the plot is a multiple of the size of the text of the chart, so the chart keeps its proportions when a reader enlarges the text.
-const textGap = 0.75;
 const dateBaseline = 1.5;
 const headroom = 0.5;
 const dotRadius = 0.4;
-
-// Whether the page runs in a browser never changes, so the store never calls back.
-function subscribeToNothing(): () => void {
-  return () => undefined;
-}
 
 /** The plot with its axes, its lines, and a dot on each line at the marked date, which is the latest date until a reader marks another. In the browser it is a slider that marks a date with a crosshair and shows a tooltip of its returns. */
 export function TimePlot<Point extends { date: string }>({
@@ -51,19 +44,21 @@ export function TimePlot<Point extends { date: string }>({
   layout: TimeChartLayout;
   labelledBy: string;
 }): ReactNode {
-  // The server and the first render in the browser draw the plot alone, so a reader before JavaScript loads meets no slider that does nothing.
-  const isInBrowser = useSyncExternalStore(
-    subscribeToNothing,
-    () => true,
-    () => false,
-  );
-  const [active, setActive] = useState<number | undefined>(undefined);
+  const isInBrowser = useIsInBrowser();
+  const {
+    marked: active,
+    shown: marked,
+    setMarked: setActive,
+    sliderProps,
+  } = useChartSlider({
+    count: points.length,
+    resting: points.length - 1,
+    labelledBy,
+  });
   const drawingRef = useRef<SVGSVGElement>(null);
-  const last = points.length - 1;
-  const marked = active ?? last;
   const style: CSSProperties = {
     paddingBlock: `${String(headroom)}em ${String(dateBaseline + headroom)}em`,
-    paddingInline: `calc(${String(layout.returnTextLength)}ch + ${String(textGap)}em) ${String(dotRadius)}em`,
+    paddingInline: `calc(${String(layout.returnTextLength)}ch + ${String(returnMarkGap)}em) ${String(dotRadius)}em`,
   };
   const drawnLines = layout.lines.toSorted(
     (first, second) => drawOrder[first.kind] - drawOrder[second.kind],
@@ -71,25 +66,13 @@ export function TimePlot<Point extends { date: string }>({
   const drawing = (
     <svg ref={drawingRef} className={styles["drawing"]} aria-hidden>
       {layout.returnTicks.map((tick) => (
-        <g key={tick.at}>
-          <line
-            x1="0"
-            x2="100%"
-            y1={percentOf(tick.at)}
-            y2={percentOf(tick.at)}
-            className={tick.isZero ? styles["zeroLine"] : styles["gridLine"]}
-          />
-          <text
-            x="0"
-            y={percentOf(tick.at)}
-            dx={`${String(-textGap)}em`}
-            dy="0.35em"
-            textAnchor="end"
-            className={styles["tick"]}
-          >
-            {tick.text}
-          </text>
-        </g>
+        <ReturnMark
+          key={tick.at}
+          at={tick.at}
+          text={tick.text}
+          lineClassName={tick.isZero ? styles["zeroLine"] : styles["gridLine"]}
+          textClassName={styles["tick"]}
+        />
       ))}
       {layout.dateTicks.map((tick) => (
         <text
@@ -143,49 +126,16 @@ export function TimePlot<Point extends { date: string }>({
     <div
       className={styles["plot"]}
       style={style}
-      role="slider"
-      tabIndex={0}
-      aria-labelledby={labelledBy}
-      aria-valuemin={0}
-      aria-valuemax={last}
-      aria-valuenow={marked}
-      aria-valuetext={pointText(point, lines)}
-      onFocus={() => {
-        setActive((current) => current ?? last);
-      }}
-      onBlur={() => {
-        setActive(undefined);
-      }}
-      onKeyDown={(event) => {
-        const move = crosshairMoveOf(event.key, active, points.length);
-        switch (move.kind) {
-          case "mark":
-            event.preventDefault();
-            setActive(move.index);
-            return;
-          case "hide":
-            event.preventDefault();
-            setActive(undefined);
-            return;
-          case "ignore":
-            return;
-        }
-      }}
+      {...sliderProps(pointText(point, lines))}
       onPointerDown={markPointer}
       onPointerMove={markPointer}
-      onPointerLeave={(event) => {
-        // A finger that lifts leaves the crosshair where it was, so the reader can read the tooltip.
-        if (event.pointerType === "mouse") {
-          setActive(undefined);
-        }
-      }}
     >
       <div className={styles["area"]}>
         {drawing}
         {active !== undefined && (
           <div
             className={styles["tip"]}
-            style={tipPlacement(acrossOf(active, points.length))}
+            style={tipAcross(acrossOf(active, points.length))}
           >
             <p className={styles["tipDate"]}>
               {formatCalendarDate(point.date, "medium")}

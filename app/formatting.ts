@@ -111,6 +111,43 @@ export function formatPercent(
   );
 }
 
+/** How the marks of an axis write their values: as numbers, such as betas, or as percentages of fractions, such as returns. */
+export type AxisStyle = "decimal" | "percent";
+
+const axisScales: Record<AxisStyle, { factor: number; mostDecimals: number }> =
+  {
+    decimal: { factor: 1, mostDecimals: mostNumberDecimals },
+    percent: { factor: 100, mostDecimals: mostPercentDecimals },
+  };
+
+/** The format of the marks of an axis, which writes each of their values with the same decimals, the fewest that write every one of them exactly, such as 0.0, 0.5, and 1.0, or 0.5% and 1.0%, so the marks line up and none reads rounder than the others. niceTicks never steps finer than smallestNumberStep or smallestPercentStep, so the marks never need more decimals than formatNumber and formatPercent write. */
+export function axisMarkFormat(
+  values: readonly number[],
+  style: AxisStyle,
+): (value: number) => string {
+  const { factor, mostDecimals } = axisScales[style];
+  let decimals = 0;
+  for (const value of values) {
+    while (
+      decimals < mostDecimals &&
+      !isWhole(value * factor * 10 ** decimals)
+    ) {
+      decimals += 1;
+    }
+  }
+  const format = new Intl.NumberFormat(intlLocale(), {
+    style,
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  });
+  return (value) => format.format(value);
+}
+
+// A multiple of a step such as 0.1 is not exact in binary, so a value counts as whole within a millionth.
+function isWhole(value: number): boolean {
+  return Math.abs(value - Math.round(value)) < 1e-6;
+}
+
 function percentOptions(decimals: PercentDecimals): Intl.NumberFormatOptions {
   return {
     style: "percent",

@@ -50,6 +50,7 @@
   --text-row: 0.84375rem;
   --text-caption: 0.78125rem;
   --text-small: 0.75rem;
+  --text-tile: 0.6875rem;
   /* The texts of the marks of a chart are the smallest of a screen, as the references of decision 0028 draw them. */
   --text-chart: 0.65625rem;
   /* The label of an item of the rail or of the tab bar sits under its icon. */
@@ -75,6 +76,8 @@
   --width-popover: 16.25rem;
   /* The largest width of the content of a screen, which decision 0028 sets and e2e/expect-layout.ts checks every part marked as content against. */
   --width-content: 85rem;
+  /* The name of a company stands beside its tile while it has room for a word of about ten letters, and under the tile otherwise. */
+  --width-company-name: 5rem;
   /* The tooltip of a chart holds a date and a name with a return on each line. */
   --width-chart-tip: 12rem;
   /* The app icon takes the size that the rail of the references draws it at. */
@@ -94,7 +97,9 @@
   --size-mark: 2px;
   /* The smallest touch target, which AGENTS.md sets and e2e/expect-accessible-screen.ts checks every screen against. */
   --size-touch-target: 2.75rem;
+  --size-tile: 2rem;
   --radius-button: 0.375rem;
+  --radius-tile: 0.5625rem;
   --radius-item: 0.625rem;
   --radius-panel: 0.875rem;
   --shadow-popover:

@@ -5,6 +5,7 @@ import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
 import type { Beta } from "~/units/beta";
 import type { MonthlyReturn } from "~/units/monthly-return";
+import type { PortfolioWeight } from "~/units/portfolio-weight";
 import type { Rupiah } from "~/units/rupiah";
 import type { MarketLine } from "./capm";
 import {
@@ -114,6 +115,11 @@ export interface StockOnLine extends LinePoint {
   code: string;
 }
 
+/** A stock of a portfolio against the line of a chart, with its weight in the portfolio, which sizes its mark, or undefined while the portfolio has no measures to weigh it with. */
+export interface HoldingOnLine extends StockOnLine {
+  weight: PortfolioWeight | undefined;
+}
+
 /** The security market line that a chart draws, with the months whose returns give it. */
 export interface ChartedLine extends MarketLine {
   months: MonthSpan;
@@ -124,7 +130,7 @@ export interface PortfolioLine {
   line: ChartedLine;
   portfolio: LinePoint;
   /** In the order of the portfolio. */
-  holdings: StockOnLine[];
+  holdings: HoldingOnLine[];
 }
 
 /** The stocks that a portfolio does not hold against the line of a chart, and every stock that is not on the chart. */
@@ -144,7 +150,7 @@ export type StudentLine =
       kind: "latest";
       line: ChartedLine;
       /** In the order of every stock. */
-      holdings: StockOnLine[];
+      holdings: HoldingOnLine[];
       others: OtherStocks;
     };
 
@@ -164,11 +170,12 @@ export function readPortfolioLine(
       distance: portfolio.securityMarketLine.value,
     },
     holdings: portfolio.holdings.map(
-      ({ code, beta, expectedReturn, distance }) => ({
+      ({ code, beta, expectedReturn, distance, weight }) => ({
         code,
         beta,
         expectedReturn,
         distance,
+        weight,
       }),
     ),
   };
@@ -205,7 +212,9 @@ export function readStudentLine(
   return succeed({
     kind: "latest",
     line,
-    holdings: against.onLine.filter(isHeld),
+    holdings: against.onLine
+      .filter(isHeld)
+      .map((stock) => ({ ...stock, weight: undefined })),
     others: {
       ...against,
       onLine: against.onLine.filter((stock) => !isHeld(stock)),

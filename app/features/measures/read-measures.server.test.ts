@@ -243,7 +243,11 @@ test("gives the line of the months of a portfolio with measures, with the portfo
       expectedReturn: closeToForTest(-0.0021586726703076266, 16),
       distance: closeToForTest(-0.004259743653981885, 16),
     },
-    holdings: stocksOnFiveYearLine,
+    // The portfolio holds BBCA and TLKM with weights of 0.5 and 0.3, which size their marks.
+    holdings: stocksOnFiveYearLine.map((stock, index) => ({
+      ...stock,
+      weight: [0.5, 0.3][index],
+    })),
   });
   for (const valuation of [
     valuationForTest(["BBCA"]),
@@ -322,8 +326,12 @@ test("draws the line of the latest complete months of the IHSG while the portfol
   expect(studentLineForTest(database, aadiValuationForTest())).toEqual(
     latest([], stocksOnFiveYearLine),
   );
+  // A portfolio without measures has no weights to size the marks of its stocks with.
   expect(studentLineForTest(database, valuationForTest(["BBCA"]))).toEqual(
-    latest(stocksOnFiveYearLine, []),
+    latest(
+      stocksOnFiveYearLine.map((stock) => ({ ...stock, weight: undefined })),
+      [],
+    ),
   );
   expect(
     studentLineForTest(

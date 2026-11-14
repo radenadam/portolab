@@ -4,6 +4,8 @@ import { baseLocale, locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
 import routes from "../app/routes.ts";
 import { runAccountCommand, submitSignIn, uniqueUsername } from "./accounts.ts";
+import { rupiah } from "../app/units/rupiah.ts";
+import { shares } from "../app/units/shares.ts";
 import { bbcaHolding } from "./bbca-holding.ts";
 import type { BrowserProjectName } from "./browser-projects.ts";
 import { chooseLanguage } from "./choose-language.ts";
@@ -67,12 +69,13 @@ const routePages: Record<string, readonly RoutePage[]> = {
   "features/classes/calendar-page.tsx": [
     { reader: "lecturer", path: ({ classPath }) => `${classPath}/calendar` },
   ],
+  // Besides BBCA, the ticket shows PGAS, which has one of the longest names of a company, and HRTA and AMRT, whose sectors have the longest names in Bahasa Indonesia and in English.
   "features/trading/orders-page.tsx": [
     { reader: "student", path: ({ classPath }) => `${classPath}/orders` },
-    {
+    ...["BBCA", "PGAS", "HRTA", "AMRT"].map((code): RoutePage => ({
       reader: "student",
-      path: ({ classPath }) => `${classPath}/orders?code=BBCA`,
-    },
+      path: ({ classPath }) => `${classPath}/orders?code=${code}`,
+    })),
   ],
   "features/trading/portfolio-page.tsx": [
     {
@@ -162,7 +165,14 @@ test("lists every route of app/routes.ts", () => {
   );
 });
 
-/** Creates the class of the walk with the widest names, the most starting cash, a student who holds BBCA, and a lecturer who has not finished the account yet, and returns the page of each reader. */
+// Beside the holding of BBCA, the portfolio of the walk holds PGAS, which has one of the longest names of a company, with 35 characters, and AMMN, whose name holds the longest word, "Internasional". Each is 100 shares bought at the close of 29 October 2026 with the broker fee of 0.15%, PGAS at Rp1,215 for Rp121,682 and AMMN at Rp3,740 for Rp374,561, as the decimal module of Python computed with ROUND_HALF_UP. They leave Rp505,258,503,757 of the cash that the purchase of BBCA left.
+const widestNameHoldings = [
+  { code: "PGAS", shares: shares(100), cost: rupiah(121_682) },
+  { code: "AMMN", shares: shares(100), cost: rupiah(374_561) },
+];
+const walkedCash = rupiah(505_258_503_757);
+
+/** Creates the class of the walk with the widest names, the most starting cash, a student who holds BBCA, PGAS, and AMMN, and a lecturer who has not finished the account yet, and returns the page of each reader. */
 async function walkedReaders(
   page: Page,
   browser: Browser,
@@ -172,7 +182,11 @@ async function walkedReaders(
     browser,
     { locale: baseLocale, ...widestClassNames },
   );
-  storeTestHolding(classId, bbcaHolding);
+  storeTestHolding(
+    classId,
+    { ...bbcaHolding, cash: walkedCash },
+    widestNameHoldings,
+  );
   await page.goto(classPath);
   const { joinPath } = await readTestClass(page);
   const resetLink = page.locator(`main a[href$="/password"]`).first();
