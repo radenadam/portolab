@@ -3,10 +3,14 @@ import { fail, succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
 import { describeValue, isRecord, isStringArray } from "../app/value-shapes.ts";
 
+const assetKinds = ["javascript", "stylesheets"] as const;
+type ClientAssetKind = (typeof assetKinds)[number];
+
 interface ClientChunk {
   file: string;
   imports: string[];
   dynamicImports: string[];
+  stylesheets: string[];
   isEntry: boolean;
 }
 
@@ -53,6 +57,8 @@ function parseClientChunk(
       );
     }
   }
+  const stylesheets = parseStylesheetPaths(value["css"], `${source}.css`);
+  if (!stylesheets.ok) return stylesheets;
   if (value["isEntry"] !== undefined && typeof value["isEntry"] !== "boolean") {
     return fail(
       `${source}.isEntry must be a boolean, but it is ${describeValue(value["isEntry"])}.`,
@@ -64,8 +70,21 @@ function parseClientChunk(
     dynamicImports: isStringArray(value["dynamicImports"])
       ? value["dynamicImports"]
       : [],
+    stylesheets: stylesheets.value,
     isEntry: value["isEntry"] === true,
   });
+}
+
+function parseStylesheetPaths(
+  value: unknown,
+  source: string,
+): Result<string[], string> {
+  if (value === undefined) return succeed([]);
+  if (!isStringArray(value) || value.some((path) => path === ""))
+    return fail(
+      `${source} must be a list of nonempty stylesheet paths, but it is ${describeValue(value)}.`,
+    );
+  return succeed(value);
 }
 
 export function parseClientRoutes(
@@ -131,45 +150,90 @@ export function clientSizeChecks(
   }
   if (!routes.has("root")) return fail("The route manifest is missing root.");
   const knownFiles = new Set(clientFiles);
-  const chunkFiles = new Set(
-    [...chunks.values()].map((chunk) => `build/client/${chunk.file}`),
-  );
-  // React Router writes its browser manifest outside Vite's chunk graph, so any unlisted JavaScript counts on every route.
-  const extraFiles = clientFiles.filter((file) => !chunkFiles.has(file));
-  const checks: Check[] = [];
+  const chunkFiles = new Set<string>();
+  for (const chunk of chunks.values())
+    chunkFiles.add(`build/client/${chunk.file}`);
+  const routeAssets: RouteAssets[] = [];
   for (const [id] of routes) {
     const entries = ancestorEntries(routes, routeEntries, id);
     if (!entries.ok) return entries;
-    const files = javascriptFiles(chunks, [...bootstrap, ...entries.value], id);
+    const files = dependencyFiles(chunks, [...bootstrap, ...entries.value], id);
     if (!files.ok) return files;
-    const missing = files.value.filter((file) => !knownFiles.has(file));
-    if (missing.length > 0)
-      return fail(
-        `The client build is missing JavaScript files: ${missing.join(", ")}.`,
-      );
-    const budget =
-      id === "root"
-        ? { name: "Shared JavaScript", limit: "140 kB" }
-        : { name: `Route JavaScript: ${id}`, limit: "200 kB" };
-    checks.push({
-      ...budget,
-      path: [...files.value, ...extraFiles],
-      gzip: true,
-    });
+    routeAssets.push({ id, files: files.value });
   }
-  checks.push(
+  const routedStylesheets = new Set(
+    routeAssets.flatMap((route) => route.files.stylesheets),
+  );
+  // A stylesheet with no owner in the route graph still needs a budget, even when the manifest lists it as an asset.
+  const extraAssets: ClientAssets = {
+    javascript: clientFiles.filter(
+      (file) => file.endsWith(".js") && !chunkFiles.has(file),
+    ),
+    stylesheets: clientFiles.filter(
+      (file) => file.endsWith(".css") && !routedStylesheets.has(file),
+    ),
+  };
+  const checks = routeBudgetChecks(routeAssets, knownFiles, extraAssets);
+  if (!checks.ok) return checks;
+  checks.value.push(
     {
       name: "All client JavaScript (report only)",
       path: "build/client/**/*.js",
       gzip: true,
     },
     {
-      name: "Client CSS",
-      path: "build/client/assets/*.css",
-      limit: "20 kB",
+      name: "All client CSS (report only)",
+      path: "build/client/**/*.css",
       gzip: true,
     },
   );
+  return checks;
+}
+
+interface RouteAssets {
+  id: string;
+  files: ClientAssets;
+}
+
+function routeBudgetChecks(
+  routeAssets: readonly RouteAssets[],
+  knownFiles: ReadonlySet<string>,
+  extraAssets: ClientAssets,
+): Result<Check[], string> {
+  const checks: Check[] = [];
+  for (const { id, files } of routeAssets) {
+    const budgets: Record<
+      ClientAssetKind,
+      { name: string; limit: string; label: string }
+    > = {
+      javascript: {
+        name: id === "root" ? "Shared JavaScript" : `Route JavaScript: ${id}`,
+        limit: id === "root" ? "140 kB" : "200 kB",
+        label: "JavaScript",
+      },
+      stylesheets: {
+        name: id === "root" ? "Shared CSS" : `Route CSS: ${id}`,
+        limit: "20 kB",
+        label: "CSS",
+      },
+    };
+    for (const kind of assetKinds) {
+      const budget = budgets[kind];
+      const missing = files[kind].filter((file) => !knownFiles.has(file));
+      if (missing.length > 0)
+        return fail(
+          `The client build is missing ${budget.label} files: ${missing.join(", ")}.`,
+        );
+      const paths = [...files[kind], ...extraAssets[kind]];
+      if (paths.length > 0)
+        checks.push({
+          name: budget.name,
+          limit: budget.limit,
+          path: paths,
+          gzip: true,
+        });
+    }
+  }
   return succeed(checks);
 }
 
@@ -201,26 +265,37 @@ function ancestorEntries(
     : fail(`The route ${id} has no root ancestor.`);
 }
 
-function javascriptFiles(
+type ClientAssets = Record<ClientAssetKind, string[]>;
+
+function dependencyFiles(
   chunks: ReadonlyMap<string, ClientChunk>,
   entries: string[],
   routeId: string,
-): Result<string[], string> {
+): Result<ClientAssets, string> {
   const pending = [...entries];
   const visited = new Set<string>();
-  const files = new Set<string>();
+  const javascript = new Set<string>();
+  const stylesheets = new Set<string>();
   for (let key = pending.pop(); key !== undefined; key = pending.pop()) {
     if (visited.has(key)) continue;
     visited.add(key);
     const chunk = chunks.get(key);
     if (chunk === undefined)
       return fail(`The client manifest is missing imported chunk ${key}.`);
-    if (chunk.file.endsWith(".js")) files.add(`build/client/${chunk.file}`);
+    if (chunk.file.endsWith(".js"))
+      javascript.add(`build/client/${chunk.file}`);
+    if (chunk.file.endsWith(".css"))
+      stylesheets.add(`build/client/${chunk.file}`);
+    for (const stylesheet of chunk.stylesheets)
+      stylesheets.add(`build/client/${stylesheet}`);
     pending.push(...chunk.imports, ...chunk.dynamicImports);
   }
-  if (files.size === 0)
+  if (javascript.size === 0)
     return fail(
       `The client manifest contains no JavaScript for route ${routeId}.`,
     );
-  return succeed([...files].sort());
+  return succeed({
+    javascript: [...javascript].sort(),
+    stylesheets: [...stylesheets].sort(),
+  });
 }

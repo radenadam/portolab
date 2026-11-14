@@ -1,4 +1,4 @@
-# 0042. Finding fixes and merges share a push with separate charges
+# 0043. Finding fixes and merges share a push with separate charges
 
 - Status: Accepted
 - Date: 2026-11-15
