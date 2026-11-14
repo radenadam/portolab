@@ -16,7 +16,7 @@ Glossary search validates a POST before redirecting to its search address, so ov
 
 Each language has `session-<number>.md` for each course session and one `glossary.md`. The filename carries the session number, so the title contains no duplicate number. A file begins with one `#` title. Only `##` headings follow it. Paragraphs are separated by blank lines, and wrapped lines become one space. Inline Markdown, HTML, links, code, and handwritten formula notation are outside this format. Pages render paragraph strings as React text.
 
-Section headings in session files are stable ids. Their visible labels will be Paraglide messages on the lesson pages.
+Section headings in session files are stable ids. A visible section label on a page is a Paraglide message.
 
 | Session kind                 | Sections in order                                                 |
 | ---------------------------- | ----------------------------------------------------------------- |
@@ -28,7 +28,7 @@ The [`sessionKinds` table](../app/features/learning/content.ts) lists the format
 
 Each summary, key idea, and unavailable notice is one plain paragraph. A body can mix paragraphs and references. `terms` contains at least two unique glossary ids, each on its own `- ` bullet line. A line without that bullet fails parsing. `interactive` and `practice` are empty reserved sections, so no prose claims that their future controls exist.
 
-A glossary entry uses a heading such as `## beta | Beta | 9`, followed by paragraphs and optional references. Its three fields are the stable term id, its title in the file's language, and the session to open for more detail. The glossary title itself is source metadata. The page's heading remains an interface message.
+A glossary entry uses a heading such as `## beta | Beta | 9`, followed by paragraphs and optional references. Its three fields are the stable term id, its title in the file's language, and the short or full lesson to open for more detail. The parser rejects a link to a research review or exam, because those sessions have cards without lesson pages. The glossary title itself is source metadata. The page's heading remains an interface message.
 
 Every configured language must have the same sessions, sections, term ids, lesson links, and references. The parser compares each translation with the first one in `locales`. Lesson term lists must also agree and resolve to glossary entries. Paragraph counts and wording can differ to suit each language.
 

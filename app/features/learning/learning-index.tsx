@@ -38,10 +38,7 @@ export function LearningIndex({
             <>
               <span className={styles["session"]}>
                 <span className={styles["badge"]}>{sessionLabel(lesson)}</span>
-                <span>
-                  {sessionKindLabel(lesson.kind)}
-                  {current && m.learning_this_week_part()}
-                </span>
+                <span>{sessionKindLabel(lesson.kind, current)}</span>
               </span>
               <h2>{lesson.title}</h2>
               <ContentParagraphs

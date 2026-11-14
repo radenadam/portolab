@@ -29,14 +29,15 @@ function numberedSession(session: SessionNumber): string {
   return m.learning_session_label({ session: formatNumber(session) });
 }
 
-export function sessionKindLabel(kind: SessionKind): string {
+export function sessionKindLabel(kind: SessionKind, current = false): string {
   const labels: Record<SessionKind, () => string> = {
     short: m.learning_summary_label,
     full: m.learning_lesson_label,
     review: m.learning_review_label,
     exam: m.learning_exam_label,
   };
-  return labels[kind]();
+  const label = labels[kind]();
+  return current ? m.learning_this_week_label({ kind: label }) : label;
 }
 
 export function lessonLinkText(lesson: SessionContent): string {

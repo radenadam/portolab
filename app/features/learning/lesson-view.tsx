@@ -48,14 +48,9 @@ export function LessonView({
             );
           case "body":
             return (
-              <section
-                key={section.id}
-                className={styles["body"]}
-                aria-labelledby="key-idea-title"
-              >
-                <h2 id="key-idea-title">{m.learning_key_idea_title()}</h2>
+              <div key={section.id} className={styles["body"]}>
                 <ContentParagraphs blocks={section.blocks} />
-              </section>
+              </div>
             );
           case "unavailable":
             return (

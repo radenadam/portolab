@@ -26,6 +26,7 @@ A diff range, a set of paths, or a plan, with the intent behind it. In an audit,
 - Whether each sentence that a screen computes from its data, such as the headline above a chart, says what the numbers on the same screen show.
 - The sections "Interface text" and "Interface behavior" of `AGENTS.md`, as they appear in the running app.
 - The [learning content standards](../../app/features/learning/AGENTS.md) for lesson and glossary prose.
+- Whether a heading names the content that it introduces, under the [writing standard](../../AGENTS.md#writing) that a text holds in every branch that produces it.
 - Defaults, empty states, loading states, and failure states, including the state when the price source is unavailable.
 
 ## Findings

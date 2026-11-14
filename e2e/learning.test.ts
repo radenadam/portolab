@@ -22,7 +22,6 @@ const texts: Record<
     glossaryLink: string;
     searchField: string;
     terms: string;
-    idea: string;
     lesson: string;
     beta: string;
     sessionLink: string;
@@ -40,7 +39,6 @@ const texts: Record<
     glossaryLink: "Kamus istilah",
     searchField: "Cari istilah atau artinya",
     terms: "Istilah kunci",
-    idea: "Ide kunci",
     lesson: "CAPM dan garis pasar sekuritas",
     beta: "Beta",
     sessionLink: "Sesi 9: CAPM dan garis pasar sekuritas",
@@ -57,7 +55,6 @@ const texts: Record<
     glossaryLink: "Glossary",
     searchField: "Search terms or definitions",
     terms: "Key terms",
-    idea: "Key idea",
     lesson: "CAPM and the security market line",
     beta: "Beta",
     sessionLink: "Session 9: CAPM and the security market line",
@@ -121,9 +118,7 @@ for (const locale of locales) {
     for (const session of lessonSessionsForTest) {
       await page.goto(`${classPath}/learn/${String(session)}`);
       await expect(page.getByRole("heading", { level: 1 })).not.toBeEmpty();
-      await expect(
-        page.getByRole("heading", { name: text.idea, exact: true }),
-      ).toBeVisible();
+      await expect(page.getByRole("heading", { level: 2 })).toHaveCount(1);
       await expect(
         page.getByRole("heading", { name: text.terms, exact: true }),
       ).toBeVisible();
@@ -179,7 +174,10 @@ for (const locale of locales) {
       await expect(term.locator("p").first()).toBeVisible();
       await expect(term.getByRole("link")).toHaveAttribute(
         "href",
-        /\/learn\/\d+\?returnTo=/u,
+        new RegExp(
+          `/learn/(${lessonSessionsForTest.join("|")})\\?returnTo=`,
+          "u",
+        ),
       );
     }
     await expectRefusedSearch(page, "a".repeat(glossaryQueryMaximumLength + 1));

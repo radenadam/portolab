@@ -25,11 +25,11 @@ const texts: Record<
     glossaryLink: string;
     session: string;
     kinds: readonly string[];
+    currentKinds: readonly string[];
     exams: readonly string[];
     week: string;
     unavailable: string;
     terms: string;
-    idea: string;
     lessons: string;
     return: string;
     search: string;
@@ -44,11 +44,16 @@ const texts: Record<
     glossaryLink: "Kamus istilah",
     session: "Sesi 9",
     kinds: ["Ringkasan", "Pelajaran", "Pembahasan penelitian", "Ujian"],
+    currentKinds: [
+      "Ringkasan · minggu ini",
+      "Pelajaran · minggu ini",
+      "Pembahasan penelitian · minggu ini",
+      "Ujian · minggu ini",
+    ],
     exams: ["UTS", "UAS"],
     week: " · minggu ini",
     unavailable: "Belum dapat dipraktikkan",
     terms: "Istilah kunci",
-    idea: "Ide kunci",
     lessons: "Pelajaran lain",
     return: "Kembali ke halaman sebelumnya",
     search: "Cari di Kamus",
@@ -62,11 +67,16 @@ const texts: Record<
     glossaryLink: "Glossary",
     session: "Session 9",
     kinds: ["Summary", "Lesson", "Research review", "Exam"],
+    currentKinds: [
+      "Summary · this week",
+      "Lesson · this week",
+      "Research review · this week",
+      "Exam · this week",
+    ],
     exams: ["Midterm", "Final"],
     week: " · this week",
     unavailable: "Cannot be practised yet",
     terms: "Key terms",
-    idea: "Key idea",
     lessons: "Other lessons",
     return: "Back to the previous page",
     search: "Search Glossary",
@@ -154,6 +164,11 @@ for (const locale of locales) {
         return text.kinds[index];
       }),
     );
+    for (const [index, kind] of (
+      ["short", "full", "review", "exam"] as const
+    ).entries()) {
+      expect(sessionKindLabel(kind, true)).toBe(text.currentKinds[index]);
+    }
     expect(
       content.sessions
         .filter((entry) => entry.kind === "exam")
@@ -187,7 +202,7 @@ for (const locale of locales) {
       );
       expect(markup).toContain(text.return);
       expect(markup).toContain(text.terms);
-      expect(markup).toContain(text.idea);
+      expect(markup.match(/<h2[ >]/gu)).toHaveLength(1);
       expect(markup).toContain(`aria-label="${text.lessons}"`);
       const blocks = lesson.sections.flatMap((section) =>
         "blocks" in section && section.id !== "summary" ? section.blocks : [],
