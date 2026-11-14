@@ -1,12 +1,40 @@
 import { expect, test } from "vitest";
+import { marketIndex } from "../app/features/market-data/tracked-instruments.ts";
 import {
   isInterfaceTest,
+  literalIndexProblems,
   messageKeyProblems,
   messageKeys,
   parseLocales,
   readMessages,
   untestedMessageProblems,
 } from "./messages.ts";
+
+test("rejects a literal market index in every message and accepts placeholders and unrelated words", () => {
+  const code = marketIndex.code;
+  for (const path of ["messages/id.json", "messages/en.json"]) {
+    expect(
+      literalIndexProblems(
+        path,
+        {
+          first: `Compare with ${code}.`,
+          second: `(${code.toLowerCase()})`,
+          placeholder: `Compare with {${code}} and {index}.`,
+          unrelated: `A${code}B ${code}_field`,
+          notText: 7,
+          $schema: code,
+        },
+        code,
+      ),
+    ).toEqual([
+      `${path}: the message "first" writes the index "${code}" directly, so take its code through a placeholder.`,
+      `${path}: the message "second" writes the index "${code}" directly, so take its code through a placeholder.`,
+    ]);
+    expect(
+      literalIndexProblems(path, { empty: "", placeholder: "{index}" }, code),
+    ).toEqual([]);
+  }
+});
 
 test("accepts keys that start with a feature folder or with app and end with a kind of text", () => {
   const keys = ["app_name", "market_data_title", "market_data_code_label"];

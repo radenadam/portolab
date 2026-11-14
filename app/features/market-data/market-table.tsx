@@ -24,7 +24,7 @@ import { priceChartMonths } from "./price-chart-range";
 import type { MarketSort } from "./market-filters";
 import type { IndexQuote, Quote } from "./price-source.server";
 import { quoteChange } from "./quote-change";
-import { sectorNames } from "./sector-names";
+import { sectorName } from "./sector-name";
 import { StockName } from "./stock-name";
 import { MarketScale } from "./market-scale";
 import styles from "./market-view.module.css";
@@ -131,7 +131,7 @@ export function MarketTable({
               </Link>
             </th>
             <td className={styles["sectorCell"]}>
-              {sectorNames[companyOf(row.code).sector]()}
+              {sectorName(companyOf(row.code).sector)}
             </td>
             <td className={styles["sparkCell"]}>
               <Sparkline closes={row.closes} />

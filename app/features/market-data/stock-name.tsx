@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { companyOf } from "./company-of";
-import { sectorNames } from "./sector-names";
+import { sectorName } from "./sector-name";
 import styles from "./stock-name.module.css";
 
 /** A stock as decision 0028 shows it where stocks are listed or headlined: the tile of its company beside its code, with the name of the company under the code, and the sector of the company under the name when the screen shows the sector. */
@@ -9,11 +9,13 @@ export function StockName({
   withSector = false,
   heading = false,
   withCompanyName = true,
+  detail,
 }: {
   code: string;
   withSector?: boolean;
   heading?: boolean;
   withCompanyName?: boolean;
+  detail?: ReactNode;
 }): ReactNode {
   const company = companyOf(code);
   return (
@@ -36,10 +38,11 @@ export function StockName({
         {withCompanyName && (
           <span className={styles["detail"]}>{company.name}</span>
         )}
+        {detail !== undefined && (
+          <span className={styles["detail"]}>{detail}</span>
+        )}
         {withSector && (
-          <span className={styles["detail"]}>
-            {sectorNames[company.sector]()}
-          </span>
+          <span className={styles["detail"]}>{sectorName(company.sector)}</span>
         )}
       </div>
     </div>

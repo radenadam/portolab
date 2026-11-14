@@ -1,7 +1,7 @@
 import { m } from "~/paraglide/messages.js";
 import type { Sector } from "./company-of";
 
-export const sectorNames: Record<Sector, () => string> = {
+const sectorNames: Record<Sector, () => string> = {
   energy: () => m.market_data_energy_sector_name(),
   basicMaterials: () => m.market_data_basic_materials_sector_name(),
   industrials: () => m.market_data_industrials_sector_name(),
@@ -15,3 +15,7 @@ export const sectorNames: Record<Sector, () => string> = {
   technology: () => m.market_data_technology_sector_name(),
   infrastructures: () => m.market_data_infrastructures_sector_name(),
 };
+
+export function sectorName(sector: Sector): string {
+  return sectorNames[sector]();
+}

@@ -9,7 +9,7 @@ import type { Result } from "~/result";
 import { typeName } from "~/value-shapes";
 import { sectors } from "./company-of";
 import type { Sector } from "./company-of";
-import { sectorNames } from "./sector-names";
+import { sectorName } from "./sector-name";
 
 export const marketSorts = [
   "change",
@@ -90,7 +90,7 @@ export function marketRangeOptions(): FieldOption<MarketRange>[] {
 export function marketSectorOptions(): FieldOption<Sector | "all">[] {
   return [
     { value: "all", label: m.market_data_all_label() },
-    ...sectors.map((value) => ({ value, label: sectorNames[value]() })),
+    ...sectors.map((value) => ({ value, label: sectorName(value) })),
   ];
 }
 export function marketDirectionOptions(): FieldOption<
