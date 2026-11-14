@@ -18,7 +18,7 @@ jobs:
     name: check
     runs-on: ubuntu-latest
     # The steps before the checks take a minute or two, so the job still has a few minutes to upload the traces after the checks reach their own limit.
-    timeout-minutes: 30
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         timeout-minutes: 5
@@ -46,7 +46,7 @@ jobs:
         timeout-minutes: 10
       # The commit that set this limit gives the runs that it rests on and the growth of the browser tests that it leaves room for.
       - name: Run every check
-        timeout-minutes: 25
+        timeout-minutes: 30
         run: pnpm check
       - name: Upload end-to-end test traces
         timeout-minutes: 5
