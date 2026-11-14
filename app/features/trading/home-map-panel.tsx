@@ -146,7 +146,7 @@ function homeChartFailure(home: HomePortfolioData, classId: ClassId): string {
   if (!home.report.history.ok) return missingCalendarText(reader);
   switch (home.view) {
     case "map":
-      return m.trading_home_map_unavailable_notice();
+      return m.trading_home_map_unavailable_notice({ index: marketIndex.code });
     case "time":
       return historyEndText(home.report.history.value.end, reader);
   }

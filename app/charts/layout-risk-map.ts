@@ -12,7 +12,7 @@ import type { PlotPosition } from "./plot";
 import { fractionOf, niceTicks, paddedRange } from "./scale";
 import type { Range } from "./scale";
 
-/** How the map draws a point other than the IHSG, as decision 0035 sets: the point that the map is about, which is the reader's own portfolio or the one that the reader opened, in the color of the reader's own point with a ring around it, a stock that the portfolio holds as a filled dot whose area grows with its weight, and any other stock as a hollow dot. A holding without a weight, such as one of a portfolio without measures, takes the size of the smallest weight. */
+/** Different marks distinguish the subjects of the map from their background context, even without color. A holding without a usable weight still needs a visible mark. */
 export type MapMark =
   | { kind: "own" }
   | { kind: "held"; weight: PortfolioWeight | undefined }
@@ -122,7 +122,7 @@ const lineEndPlaces = [
   { dx: -3.33, dy: 1.33 },
 ];
 
-/** Lays out the map: the risk of every point, of the IHSG, and of the start of the line across, and their returns up, on axes that mark round values, with zero on the axis of returns. An axis whose values are never below zero, such as beta or a standard deviation, starts at zero at the lowest. */
+/** A comparison line needs room for its endpoints as well as the points. Zero separates gains from losses, and an axis whose values are never negative starts at zero at the lowest. */
 export function layoutRiskMap<
   Across extends number,
   Up extends number,

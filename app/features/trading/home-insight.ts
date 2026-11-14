@@ -12,6 +12,7 @@ import type { CumulativeReturn } from "~/units/cumulative-return";
 import type { HomePortfolioData } from "./read-home-portfolio.server";
 
 const materialCashWeight = portfolioWeight(0.05);
+const materialHoldingWeight = portfolioWeight(0.05);
 const concentratedSectorWeight = portfolioWeight(0.35);
 const largeRiskRatio = 1.5;
 
@@ -143,7 +144,7 @@ function holdingInsight(
 function riskInsight(positions: readonly InsightHolding[]): string | undefined {
   const risks = positions.flatMap((holding) =>
     holding.varianceShare !== undefined &&
-    holding.weight >= materialCashWeight &&
+    holding.weight >= materialHoldingWeight &&
     holding.varianceShare / holding.weight > largeRiskRatio
       ? [{ ...holding, share: holding.varianceShare }]
       : [],

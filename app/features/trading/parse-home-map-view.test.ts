@@ -6,7 +6,9 @@ test("chooses the time chart only for its named view and otherwise keeps the def
   for (const value of [null, "map"])
     expect(parseHomeMapView(value, "view")).toEqual({ ok: true, value: "map" });
 });
-expect(parseHomeMapView("unknown", "view")).toEqual({
-  ok: false,
-  failure: 'view must be "map" or "time", but it is "unknown".',
+test("rejects an unknown home map view", () => {
+  expect(parseHomeMapView("unknown", "view")).toEqual({
+    ok: false,
+    failure: 'view must be "map" or "time", but it is "unknown".',
+  });
 });

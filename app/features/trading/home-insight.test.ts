@@ -15,10 +15,8 @@ import { homeInsight, homeInsightData } from "./home-insight";
 import type { HomeInsightData } from "./home-insight";
 import { homePortfolioForTest } from "./home-portfolio-for-test";
 
-type InsightHolding = Extract<
-  HomeInsightData,
-  { kind: "measured" }
->["holdings"][number];
+type MeasuredHomeInsight = Extract<HomeInsightData, { kind: "measured" }>;
+type InsightHolding = MeasuredHomeInsight["holdings"][number];
 
 const cases = [
   "singleCash",
@@ -33,9 +31,13 @@ const cases = [
   "negativeBeta",
 ] as const;
 type Case = (typeof cases)[number];
-const topics: Record<Locale, readonly [string, string]> = {
-  id: ["Order", "Risiko"],
-  en: ["Orders", "Risk"],
+const topics: Record<Locale, readonly [string, string, string]> = {
+  id: ["Order", "Risiko", "Diversifikasi"],
+  en: ["Orders", "Risk", "Diversification"],
+};
+const boundaryCash: Record<Locale, string> = {
+  id: "BBCA satu-satunya saham Anda, dengan beta 0,50. Kas 5% menarik beta portofolio turun ke 0,48.",
+  en: "BBCA is your only holding, with beta 0.50. Cash at 5% brings portfolio beta down to 0.48.",
 };
 const texts: Record<Locale, Record<Case | "empty" | "unmeasured", string>> = {
   id: {
@@ -94,7 +96,7 @@ const portfolioBetas: Record<Case, number> = {
   negativeBeta: -0.4,
 };
 
-function scenario(kind: Case): HomeInsightData {
+function scenario(kind: Case): MeasuredHomeInsight {
   if (kind === "beta" || kind === "noVariation")
     return diversifiedScenario(kind);
   const single = ["singleCash", "singleNoCash", "negativeBeta"].includes(kind);
@@ -136,7 +138,9 @@ function scenario(kind: Case): HomeInsightData {
   };
 }
 
-function diversifiedScenario(kind: "beta" | "noVariation"): HomeInsightData {
+function diversifiedScenario(
+  kind: "beta" | "noVariation",
+): MeasuredHomeInsight {
   const betas = kind === "beta" ? [0.5, 1.5, 1] : [-0.5, 0.5, 0];
   return {
     kind: "measured",
@@ -156,6 +160,39 @@ function diversifiedScenario(kind: "beta" | "noVariation"): HomeInsightData {
 }
 
 for (const locale of locales) {
+  test(`applies the separate cash and holding thresholds at their boundaries in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    const single = scenario("singleCash");
+    for (const cashWeight of [0.05, 0.0499]) {
+      const portfolio = {
+        ...single,
+        beta: beta((1 - cashWeight) * 0.5),
+        cashWeight: portfolioWeight(cashWeight),
+        holdings: single.holdings.map((holding) => ({
+          ...holding,
+          weight: portfolioWeight(1 - cashWeight),
+        })),
+      };
+      expect(homeInsight(portfolio).text).toBe(
+        cashWeight === 0.05 ? boundaryCash[locale] : texts[locale].singleNoCash,
+      );
+    }
+    const risk = scenario("risk");
+    for (const weight of [0.05, 0.0499]) {
+      const portfolio = {
+        ...risk,
+        beta: beta((1 - weight) * 0.5 + weight * 1.5),
+        cashWeight: portfolioWeight(0),
+        holdings: risk.holdings.map((holding, index) => ({
+          ...holding,
+          weight: portfolioWeight(index === 0 ? 1 - weight : weight),
+        })),
+      };
+      expect(homeInsight(portfolio).topic).toBe(
+        topics[locale][weight === 0.05 ? 1 : 2],
+      );
+    }
+  });
   test(`chooses every insight and cash clause in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     for (const kind of cases)
