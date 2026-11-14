@@ -15,6 +15,7 @@ import {
   formatSignedRupiah,
   formatUtcDay,
   formatVariance,
+  formatSplitAdjustedRupiah,
   smallestNumberStep,
   smallestPercentStep,
 } from "./formatting";
@@ -29,6 +30,7 @@ import { correlation } from "./units/correlation";
 import { monthlyVariance } from "./units/monthly-variance";
 import { rupiah } from "./units/rupiah";
 import { sharpeRatio } from "./units/sharpe-ratio";
+import { splitAdjustedRupiah } from "./units/split-adjusted-rupiah";
 
 // 09:14:56 UTC on 16 October 2026 is 16:14 WIB.
 const quotedAt = new Date("2026-10-16T09:14:56.000Z");
@@ -37,6 +39,22 @@ const sizes: Record<Locale, string> = {
   id: "128.040 byte",
   en: "128,040 bytes",
 };
+
+const splitPrices: Record<Locale, readonly string[]> = {
+  id: ["Rp\u00a01.234,5", "Rp\u00a04.980"],
+  en: ["IDR\u00a01,234.5", "IDR\u00a04,980"],
+};
+
+for (const locale of locales) {
+  test(`keeps fractional rupiah in a split-adjusted close and no decimals in a whole close, in ${locale}`, () => {
+    switchLocaleForTest(locale);
+    expect(
+      [1_234.5, 4_980].map((value) =>
+        formatSplitAdjustedRupiah(splitAdjustedRupiah(value)),
+      ),
+    ).toEqual(splitPrices[locale]);
+  });
+}
 
 const parts: Record<Locale, { date: string; clock: string }> = {
   id: { date: "16 Okt 2026, ", clock: "16.14" },
@@ -118,6 +136,7 @@ const dates: Record<
     medium: string;
     year: string;
     dayAndMonth: string;
+    monthAndYear: string;
   }
 > = {
   id: {
@@ -128,6 +147,7 @@ const dates: Record<
     medium: "30 Okt 2026",
     year: "2026",
     dayAndMonth: "30 Okt",
+    monthAndYear: "Okt 26",
   },
   en: {
     long: "October 30, 2026",
@@ -137,6 +157,7 @@ const dates: Record<
     medium: "Oct 30, 2026",
     year: "2026",
     dayAndMonth: "Oct 30",
+    monthAndYear: "Oct 26",
   },
 };
 
@@ -191,6 +212,9 @@ for (const locale of locales) {
     expect(formatCalendarDatePart("2026-10-30", "year")).toBe(text.year);
     expect(formatCalendarDatePart("2026-10-30", "dayAndMonth")).toBe(
       text.dayAndMonth,
+    );
+    expect(formatCalendarDatePart("2026-10-30", "monthAndYear")).toBe(
+      text.monthAndYear,
     );
   });
 }

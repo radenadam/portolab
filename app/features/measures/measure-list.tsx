@@ -92,6 +92,7 @@ export function capmRows(
     requiredReturn: RequiredReturnMeasure;
     securityMarketLine: SecurityMarketLineMeasure;
   },
+  { colored = false }: { colored?: boolean } = {},
 ): MeasureRow[] {
   return [
     {
@@ -106,6 +107,7 @@ export function capmRows(
       concept: "alpha",
       value: (
         <ChangeText
+          colored={colored}
           change={formatSignedPercent(measures.securityMarketLine.value)}
         />
       ),

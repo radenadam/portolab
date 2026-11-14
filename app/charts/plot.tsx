@@ -21,9 +21,11 @@ function hundredthsOf(fraction: PlotFraction): number {
 export function PlotLine({
   positions,
   className,
+  area = false,
 }: {
   positions: readonly PlotPosition[];
   className: string | undefined;
+  area?: boolean;
 }): ReactNode {
   let path = "";
   for (const [index, { x, y }] of positions.entries()) {
@@ -37,6 +39,13 @@ export function PlotLine({
       height="100%"
       overflow="visible"
     >
+      {area && positions.length > 1 && (
+        <path
+          d={`${path} L100 100 L0 100 Z`}
+          fill="var(--line-color)"
+          opacity="0.1"
+        />
+      )}
       <path d={path} className={className} vectorEffect="non-scaling-stroke" />
     </svg>
   );
