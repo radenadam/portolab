@@ -1,11 +1,12 @@
 import { exitWithFailure } from "../app/exit-with-failure.server.ts";
 import { failuresOf, succeed } from "../app/result.ts";
+import type { Result } from "../app/result.ts";
 import { listOfWords } from "../app/sentences.ts";
 import { parseJsonWith } from "./json.ts";
 import {
   containedHead,
   readChangedFiles,
-  readFilesChangedSince,
+  readReviewChangesSince,
 } from "./review-history.ts";
 import {
   parseBranchName,
@@ -13,6 +14,8 @@ import {
   readLensTools,
 } from "./review-inputs.ts";
 import { describeReviewScope, planReview } from "./review-plan.ts";
+import type { ReviewHistory } from "./review-plan.ts";
+import type { ChangedFile } from "./review-lenses.ts";
 import { parseLatestReviewState } from "./review-state.ts";
 import { runCommand } from "./run-command.ts";
 import { writeScriptFailure } from "./write-script-failure.ts";
@@ -52,17 +55,15 @@ const since =
 if (!since.ok) {
   exitWithFailure([since.failure], writeScriptFailure);
 }
-const files =
-  since.value === undefined
-    ? wholeChange
-    : readFilesChangedSince(
-        since.value,
-        wholeChange.value.map(({ path }) => path),
-      );
-if (!files.ok) {
-  exitWithFailure([files.failure], writeScriptFailure);
+const changes = readChangesSince(since.value, wholeChange.value);
+if (!changes.ok) {
+  exitWithFailure([changes.failure], writeScriptFailure);
 }
-const plan = planReview(previous.value, since.value, files.value);
+const plan = planReview(
+  previous.value,
+  changes.value.history,
+  changes.value.files,
+);
 
 // The later jobs take the plan from this output, which no agent can change, and the JSON has no line breaks, as an output needs.
 const outputs = [
@@ -83,3 +84,22 @@ if (plan.kind === "review") {
   );
 }
 process.stdout.write(`${outputs.join("\n")}\n`);
+
+function readChangesSince(
+  since: string | undefined,
+  files: ChangedFile[],
+): Result<{ files: ChangedFile[]; history: ReviewHistory }, string> {
+  if (since === undefined) {
+    return succeed({ files, history: { since, commitScope: "author" } });
+  }
+  const changes = readReviewChangesSince(since, {
+    base,
+    paths: files.map(({ path }) => path),
+  });
+  return changes.ok
+    ? succeed({
+        files: changes.value.files,
+        history: { since, commitScope: changes.value.commitScope },
+      })
+    : changes;
+}

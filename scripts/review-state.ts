@@ -13,6 +13,8 @@ export interface ReviewState {
   head: string | undefined;
   /** The rounds in which an agent ran, whether or not they finished. */
   round: number;
+  /** The extra rounds that reviewed merges of the base branch, whether or not they finished. */
+  mergeRounds: number;
   /** The verified findings in the change that the last finished round left open. */
   openFindings: Finding[];
 }
@@ -20,6 +22,7 @@ export interface ReviewState {
 const stateBeforeFirstRound: ReviewState = {
   head: undefined,
   round: 0,
+  mergeRounds: 0,
   openFindings: [],
 };
 
@@ -114,6 +117,14 @@ export function parseReviewState(
   if (!round.ok) {
     return round;
   }
+  // Reviews posted before the merge allowance have no count and used none of it.
+  const mergeRounds =
+    value["mergeRounds"] === undefined
+      ? succeed(0)
+      : parseMergeRoundsAt(value, source, round.value);
+  if (!mergeRounds.ok) {
+    return mergeRounds;
+  }
   const openFindings = parseListField(value, source, {
     field: "openFindings",
     itemName: "open finding",
@@ -125,6 +136,7 @@ export function parseReviewState(
   return succeed({
     head: head.value,
     round: round.value,
+    mergeRounds: mergeRounds.value,
     openFindings: openFindings.value,
   });
 }
@@ -133,11 +145,29 @@ export function parseReviewState(
 export function parseRoundAt(
   value: unknown,
   source: string,
+  field = "round",
 ): Result<number, string> {
-  const round = isRecord(value) ? value["round"] : undefined;
+  const round = isRecord(value) ? value[field] : undefined;
   return typeof round === "number" && Number.isInteger(round) && round >= 0
     ? succeed(round)
     : fail(
-        `${source} must have a whole number from 0 at round, but round is ${describeValue(round)}.`,
+        `${source} must have a whole number from 0 at ${field}, but ${field} is ${describeValue(round)}.`,
       );
+}
+
+/** Extra merge rounds also count toward the total, so their count cannot exceed it. */
+export function parseMergeRoundsAt(
+  value: unknown,
+  source: string,
+  total: number,
+): Result<number, string> {
+  const mergeRounds = parseRoundAt(value, source, "mergeRounds");
+  if (!mergeRounds.ok) {
+    return mergeRounds;
+  }
+  return mergeRounds.value > total
+    ? fail(
+        `${source} must have mergeRounds at most round (${String(total)}), but mergeRounds is ${String(mergeRounds.value)}.`,
+      )
+    : mergeRounds;
 }

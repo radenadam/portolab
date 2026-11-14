@@ -12,6 +12,7 @@ const firstHead = "1".repeat(40);
 const stateBeforeFirstRound: ReviewState = {
   head: undefined,
   round: 0,
+  mergeRounds: 0,
   openFindings: [],
 };
 const secondHead = "2".repeat(40);
@@ -42,6 +43,7 @@ test("reads back the state that a review carries, even when a finding holds the 
   const state: ReviewState = {
     head: firstHead,
     round: 1,
+    mergeRounds: 0,
     openFindings: [openFinding],
   };
   expect(parseLatestReviewState([[stateReview(state)]], "reviews")).toEqual({
@@ -64,8 +66,18 @@ test("starts before the first round when no review carries a state", () => {
 });
 
 test("reads the newest state across pages, and ignores a later review without one", () => {
-  const first: ReviewState = { head: firstHead, round: 1, openFindings: [] };
-  const second: ReviewState = { head: secondHead, round: 2, openFindings: [] };
+  const first: ReviewState = {
+    head: firstHead,
+    round: 1,
+    mergeRounds: 0,
+    openFindings: [],
+  };
+  const second: ReviewState = {
+    head: secondHead,
+    round: 2,
+    mergeRounds: 0,
+    openFindings: [],
+  };
   expect(
     parseLatestReviewState(
       [
@@ -80,16 +92,31 @@ test("reads the newest state across pages, and ignores a later review without on
 test("ignores a state that another account posted, so that a comment cannot skip the review", () => {
   const forged = review(
     "someone",
-    stateMarker({ head: secondHead, round: 0, openFindings: [] }),
+    stateMarker({
+      head: secondHead,
+      round: 0,
+      mergeRounds: 0,
+      openFindings: [],
+    }),
   );
-  const real: ReviewState = { head: firstHead, round: 1, openFindings: [] };
+  const real: ReviewState = {
+    head: firstHead,
+    round: 1,
+    mergeRounds: 0,
+    openFindings: [],
+  };
   expect(
     parseLatestReviewState([[stateReview(real), forged]], "reviews"),
   ).toEqual({ ok: true, value: real });
 });
 
 test("keeps a state without a head, which a first round that did not finish leaves", () => {
-  const state: ReviewState = { head: undefined, round: 1, openFindings: [] };
+  const state: ReviewState = {
+    head: undefined,
+    round: 1,
+    mergeRounds: 0,
+    openFindings: [],
+  };
   expect(parseLatestReviewState([[stateReview(state)]], "reviews")).toEqual({
     ok: true,
     value: state,
@@ -143,6 +170,7 @@ test("reads only the marker at the end of a review, so a finding that quotes a m
   const state: ReviewState = {
     head: firstHead,
     round: 1,
+    mergeRounds: 0,
     openFindings: [
       {
         ...openFinding,
@@ -178,12 +206,52 @@ test("rejects a round that is not a whole number from 0", () => {
   );
 });
 
+test("reads old states without merge rounds as having used none of the allowance", () => {
+  expect(
+    parseReviewState({ head: firstHead, round: 3, openFindings: [] }, "state"),
+  ).toEqual({
+    ok: true,
+    value: { head: firstHead, round: 3, mergeRounds: 0, openFindings: [] },
+  });
+});
+
+test("reads a state with extra merge rounds through its saved marker", () => {
+  const state: ReviewState = {
+    head: secondHead,
+    round: 5,
+    mergeRounds: 2,
+    openFindings: [openFinding],
+  };
+  expect(parseLatestReviewState([[stateReview(state)]], "reviews")).toEqual({
+    ok: true,
+    value: state,
+  });
+});
+
+test("rejects merge rounds that are not a count within the total rounds", () => {
+  for (const mergeRounds of [-1, 1.5, "1", null]) {
+    expect(
+      parseReviewState({ round: 3, mergeRounds, openFindings: [] }, "state").ok,
+    ).toBe(false);
+  }
+  expect(
+    parseReviewState({ round: 3, mergeRounds: 4, openFindings: [] }, "state"),
+  ).toEqual({
+    ok: false,
+    failure:
+      "state must have mergeRounds at most round (3), but mergeRounds is 4.",
+  });
+});
+
 test("rejects an open finding without its id, because the verifier answers each finding by its id", () => {
   const withoutId = Object.fromEntries(
     Object.entries(openFinding).filter(([field]) => field !== "id"),
   );
   expect(
-    parseReviewState({ round: 1, openFindings: [withoutId] }, "state"),
+    parseReviewState(
+      { round: 1, mergeRounds: 0, openFindings: [withoutId] },
+      "state",
+    ),
   ).toEqual({
     ok: false,
     failure:
