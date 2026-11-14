@@ -83,7 +83,7 @@ export default async function globalSetup(): Promise<() => Promise<void>> {
   }
 }
 
-/** Stores the recorded month-end closes of the IHSG, of BBCA, which has the monthly returns that a purchase needs, of AMMN, which listed later and so lies against another security market line, and of AADI, which has too few, and the closes of the IHSG and ITMG in the last week of October 2026 that the fixture source records, which the chart of a portfolio needs. The history job of the server asks the fixture source for the closes of the latest trading day, which its closes of October 2026 lack, so it stores none. The closes of October leave that month without a later close of the IHSG, so the count of monthly returns stays as the month-end closes give it. It also stores the quote of UNVR, which the fixture source leaves out, as an update at a moment before the server starts, so every later update misses it. */
+/** Stores the recorded month-end closes of the IHSG, of BBCA, which has the monthly returns that a purchase needs, of AMMN, which listed later and so lies against another security market line, and of AADI, which has too few, and the closes of the IHSG, ITMG, BBCA, and AMMN in the last week of October 2026 that the fixture source records, which the return chart and the sparklines need. The history job of the server asks the fixture source for the closes of the latest trading day, which its closes of October 2026 lack, so it stores none. The closes of October leave that month without a later close of the IHSG, so the count of monthly returns stays as the month-end closes give it. It also stores the quote of UNVR, which the fixture source leaves out, as an update at a moment before the server starts, so every later update misses it. */
 function storePricesOfTests(databasePath: string, now: Date): void {
   const database = openDatabase(
     databasePath,
@@ -95,6 +95,8 @@ function storePricesOfTests(databasePath: string, now: Date): void {
   for (const instrument of [
     marketIndex,
     { kind: "stock", code: "ITMG" },
+    { kind: "stock", code: "BBCA" },
+    { kind: "stock", code: "AMMN" },
   ] as const) {
     const history = fixtureHistory(instrument, "2026-10-26");
     if (history === undefined) {

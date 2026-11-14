@@ -1,3 +1,4 @@
+import { languageNames } from "~/language-names";
 import { expect, test } from "vitest";
 import type { Locale } from "~/paraglide/runtime.js";
 import { locales } from "~/paraglide/runtime.js";
@@ -25,9 +26,12 @@ const texts: Record<
     calmer: readonly string[];
     medianBeta: string;
     marketBeta: string;
+    referenceSentence: string;
   }
 > = {
   id: {
+    referenceSentence:
+      "Median imbal hasil +0,41%, IHSG -1,75%, per periode mahasiswa. 23 dari 32 mahasiswa di atas pasar, dan 28 dari 31 portofolio lebih tenang dari pasar.",
     oneAhead: "Kelas unggul 1,00 poin dari IHSG",
     oneBehind: "Kelas tertinggal 1,00 poin dari IHSG",
     paired: "Kelas unggul 2,00 poin dari IHSG",
@@ -40,30 +44,32 @@ const texts: Record<
     market: "0,00%",
     comparison: [
       "Median imbal hasil ",
-      ", saat median IHSG ",
-      " untuk periode masing-masing mahasiswa. ",
+      ", IHSG ",
+      ", per periode mahasiswa. ",
       ", dan ",
     ],
     above: [
-      "Belum ada mahasiswa dengan data pembanding yang berada di atas pasar",
-      "Satu-satunya mahasiswa dengan data pembanding berada di atas pasar",
-      "Semua 3 mahasiswa dengan data pembanding berada di atas pasar",
-      "Satu dari 3 mahasiswa dengan data pembanding berada di atas pasar",
-      "2 dari 3 mahasiswa dengan data pembanding berada di atas pasar",
+      "Tidak ada mahasiswa di atas pasar",
+      "Mahasiswa di atas pasar",
+      "Semua 3 mahasiswa di atas pasar",
+      "Satu dari 3 mahasiswa di atas pasar",
+      "2 dari 3 mahasiswa di atas pasar",
     ],
     calmer: [
-      "belum ada portofolio yang memiliki ukuran risiko",
-      "satu-satunya portofolio terukur lebih tenang dari pasar",
-      "satu-satunya portofolio terukur tidak lebih tenang dari pasar",
-      "tidak ada portofolio terukur yang lebih tenang dari pasar",
-      "semua 3 portofolio terukur lebih tenang dari pasar",
-      "satu dari 3 portofolio terukur lebih tenang dari pasar",
-      "2 dari 3 portofolio terukur lebih tenang dari pasar",
+      "ukuran risiko belum tersedia",
+      "portofolio lebih tenang dari pasar",
+      "portofolio tidak lebih tenang dari pasar",
+      "tidak ada portofolio lebih tenang dari pasar",
+      "semua 3 portofolio lebih tenang dari pasar",
+      "satu dari 3 portofolio lebih tenang dari pasar",
+      "2 dari 3 portofolio lebih tenang dari pasar",
     ],
     medianBeta: "0,75",
     marketBeta: "1,00",
   },
   en: {
+    referenceSentence:
+      "Median return +0.41%, IHSG -1.75% over each student’s period. 23 of 32 students are above the market, and 28 of 31 portfolios are calmer than the market.",
     oneAhead: "Class leads IHSG by 1.00 point",
     oneBehind: "Class trails IHSG by 1.00 point",
     paired: "Class leads IHSG by 2.00 points",
@@ -75,26 +81,26 @@ const texts: Record<
     portfolio: "+10.00%",
     market: "0.00%",
     comparison: [
-      "Median return is ",
-      ", against a median IHSG return of ",
-      " over each student’s own period. ",
+      "Median return ",
+      ", IHSG ",
+      " over each student’s period. ",
       ", and ",
     ],
     above: [
-      "No student with comparable returns is above the market",
-      "The only student with comparable returns is above the market",
-      "All 3 students with comparable returns are above the market",
-      "One of 3 students with comparable returns is above the market",
-      "2 of 3 students with comparable returns are above the market",
+      "No student is above the market",
+      "The student is above the market",
+      "All 3 students are above the market",
+      "One of 3 students is above the market",
+      "2 of 3 students are above the market",
     ],
     calmer: [
-      "no portfolio has risk measures yet",
-      "the only measured portfolio is calmer than the market",
-      "the only measured portfolio is not calmer than the market",
-      "no measured portfolio is calmer than the market",
-      "all 3 measured portfolios are calmer than the market",
-      "one of 3 measured portfolios is calmer than the market",
-      "2 of 3 measured portfolios are calmer than the market",
+      "risk measures are pending",
+      "the portfolio is calmer than the market",
+      "the portfolio is not calmer than the market",
+      "no portfolio is calmer than the market",
+      "all 3 portfolios are calmer than the market",
+      "one of 3 portfolios is calmer than the market",
+      "2 of 3 portfolios are calmer than the market",
     ],
     medianBeta: "0.75",
     marketBeta: "1.00",
@@ -102,7 +108,22 @@ const texts: Record<
 };
 
 for (const locale of locales) {
-  test(`shows a pending comparison before any student's period can be compared in ${locale}`, () => {
+  test(`writes a short comparison with each student's own period in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    // By hand, 23 returns of 0.41% and 9 of -3% have a median of 0.41%, and 28 of the 31 betas are below the market's 1.
+    const compared = Array.from({ length: 32 }, (_value, index) => ({
+      portfolio: cumulativeReturn(index < 23 ? 0.0041 : -0.03),
+      market: cumulativeReturn(-0.0175),
+    }));
+    const risks = Array.from({ length: 31 }, (_value, index) =>
+      beta(index < 28 ? 0.5 : 1),
+    );
+    expect(classSummary(compared, risks).sentence).toBe(
+      texts[locale].referenceSentence,
+    );
+  });
+
+  test(`shows a pending comparison before any student's period can be compared in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     const summary = classSummary([], []);
     expect(summary.headline).toBe(texts[locale].pending);
@@ -110,7 +131,7 @@ for (const locale of locales) {
     expect(summary.medianReturn).toBeUndefined();
   });
 
-  test(`chooses the headline after rounding the median difference of each student's own period in ${locale}`, () => {
+  test(`chooses the headline after rounding the median difference of each student's own period in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     for (const [difference, expected] of [
       [0.01, texts[locale].oneAhead],
@@ -150,7 +171,7 @@ for (const locale of locales) {
     expect(summary.medianBeta).toBe(texts[locale].medianBeta);
   });
 
-  test(`writes the whole sentence for every count and for betas that round to the market beta in ${locale}`, () => {
+  test(`writes the whole sentence for every count and for betas that round to the market beta in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     const text = texts[locale];
     const aboveCases = [

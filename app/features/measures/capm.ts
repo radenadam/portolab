@@ -6,6 +6,8 @@ import { monthlyReturn } from "~/units/monthly-return";
 import type { MonthlyReturn } from "~/units/monthly-return";
 import type { MonthlyVariance } from "~/units/monthly-variance";
 import type { Measure, MeasureFailure } from "./measure";
+import { measureSharpeRatio } from "./performance-ratios";
+import type { SharpeRatioMeasure } from "./performance-ratios";
 import { measureRiskFreeRate } from "./measure-risk-free-rate";
 import type { RiskFreeRateMeasure } from "./measure-risk-free-rate";
 import type { AlignedReturns, ReturnMeasure } from "./aligned-returns";
@@ -49,6 +51,7 @@ export type SecurityMarketLineMeasure = Measure<
 /** The measures of the market, with the risk-free rate, which every stock and portfolio measured over the same months shares, so they all lie on one security market line. */
 export type MarketMeasures = SeriesMeasures & {
   riskFreeRate: RiskFreeRateMeasure;
+  sharpeRatio: SharpeRatioMeasure;
 };
 
 /** The measures of one stock against the market, from returns over the same months as those of the market. */
@@ -69,9 +72,17 @@ export function measureMarket(
   if (!riskFreeRate.ok) {
     return riskFreeRate;
   }
+  const series = measureSeries(returns.market);
   return succeed({
-    ...measureSeries(returns.market),
+    ...series,
     riskFreeRate: riskFreeRate.value,
+    sharpeRatio: measureSharpeRatio(
+      {
+        expectedReturn: series.expectedReturn.value,
+        riskFreeRate: riskFreeRate.value.value,
+      },
+      series.standardDeviation.value,
+    ),
   });
 }
 

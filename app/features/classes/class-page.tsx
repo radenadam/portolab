@@ -2,17 +2,17 @@ import type { ReactNode } from "react";
 import { data, Link } from "react-router";
 import { databaseContext } from "~/database/database.server";
 import { requireUser } from "~/features/accounts/current-session.server";
-import { formatMarketTime, formatRupiah } from "~/formatting";
+import { formatMarketTime } from "~/formatting";
 import { pageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
 import { parseRecordId } from "~/value-parsers";
 import { classPortfoliosPath } from "~/features/grading/grading-paths";
-import { measuresPath } from "~/features/measures/measures-path";
-import { ordersPath } from "~/features/trading/orders-path";
-import { portfolioPath } from "~/features/trading/portfolio-path";
+import { HomePortfolio } from "~/features/trading/home-portfolio";
+import { readHomePortfolio } from "~/features/trading/read-home-portfolio.server";
+import type { HomePortfolioData } from "~/features/trading/read-home-portfolio.server";
 import type { Route } from "./+types/class-page";
 import { findJoinedClass, findTaughtClass } from "./class-store.server";
-import type { ClassStudent, JoinedClass } from "./class-store.server";
+import type { ClassStudent } from "./class-store.server";
 import type { ClassId } from "./classes.schema";
 import { calendarPath, classPath } from "./class-path";
 import styles from "./classes.module.css";
@@ -28,7 +28,15 @@ import type { ClassMapAxis } from "./class-map";
 import { readPriceSourceDescription } from "~/features/market-data/price-source-context.server";
 
 export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
-  return [{ title: pageTitle(loaderData.name) }];
+  return [
+    {
+      title: pageTitle(
+        loaderData.role === "student"
+          ? m.classes_home_page_title({ class: loaderData.name })
+          : loaderData.name,
+      ),
+    },
+  ];
 }
 
 export function loader({ context, params, url, request }: Route.LoaderArgs):
@@ -41,10 +49,7 @@ export function loader({ context, params, url, request }: Route.LoaderArgs):
       calendar: ClassCalendar | undefined;
       points: ReturnType<typeof classMapPoints>;
     }
-  | ({ role: "student"; calendar: ClassCalendar | undefined } & Omit<
-      JoinedClass,
-      "firstSessionDate"
-    >) {
+  | { role: "student"; id: ClassId; name: string; home: HomePortfolioData } {
   const now = new Date();
   const user = requireUser(context, url);
   const classId = parseRecordId<ClassId>(params.classId, "classId");
@@ -86,11 +91,16 @@ export function loader({ context, params, url, request }: Route.LoaderArgs):
       if (joined === undefined) {
         throw notFound;
       }
-      const { firstSessionDate, ...joinedClass } = joined;
       return {
         role: user.role,
-        ...joinedClass,
-        calendar: classCalendarOf(firstSessionDate, now),
+        id: joined.id,
+        name: joined.name,
+        home: readHomePortfolio(context, {
+          request,
+          url,
+          classId: params.classId,
+          now,
+        }),
       };
     }
   }
@@ -133,35 +143,7 @@ export default function ClassPage({
         />
       );
     case "student":
-      return (
-        <>
-          <h1>{loaderData.name}</h1>
-          <p>{m.classes_taught_by_notice({ name: loaderData.lecturerName })}</p>
-          <CourseCalendarNotice
-            calendar={loaderData.calendar}
-            role={loaderData.role}
-          />
-          <p>
-            {m.classes_starting_cash_notice({
-              cash: formatRupiah(loaderData.startingCash),
-            })}
-          </p>
-          <p>
-            {m.classes_joined_notice({
-              time: formatMarketTime(loaderData.joinedAt),
-            })}
-          </p>
-          <Link to={portfolioPath(loaderData.id)} className={styles["link"]}>
-            {m.classes_portfolio_link()}
-          </Link>
-          <Link to={ordersPath(loaderData.id)} className={styles["link"]}>
-            {m.classes_orders_link()}
-          </Link>
-          <Link to={measuresPath(loaderData.id)} className={styles["link"]}>
-            {m.classes_measures_link()}
-          </Link>
-        </>
-      );
+      return <HomePortfolio home={loaderData.home} classId={loaderData.id} />;
   }
 }
 

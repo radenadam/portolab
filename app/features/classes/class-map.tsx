@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router";
+import { NumberText } from "~/number-text";
 import { RiskMap } from "~/charts/risk-map";
 import { RiskMapLegend } from "~/charts/risk-map-legend";
 import type { MapValue, MarkedPoint } from "~/charts/layout-risk-map";
@@ -202,8 +203,12 @@ export function ClassMap({
 function Stat({ value, label }: { value: string; label: string }): ReactNode {
   return (
     <div>
-      <strong>{value}</strong>
-      <span>{label}</span>
+      <strong>
+        <NumberText whole>{value}</NumberText>
+      </strong>
+      <span>
+        <NumberText>{label}</NumberText>
+      </span>
     </div>
   );
 }

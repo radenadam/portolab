@@ -73,16 +73,16 @@ for (const locale of locales) {
   test(`keeps the portfolio and holding names when a caller hides other point labels in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     const html = render(points.map((point) => ({ ...point, label: "" })));
-    expect(html).toContain(">Portofolio Anda</text>");
-    expect(html).toContain(">BBCA</text>");
-    expect(html).not.toContain(">TLKM</text>");
+    expect(html).toContain(">Portofolio Anda</tspan>");
+    expect(html).toContain(">BBCA</tspan>");
+    expect(html).not.toContain(">TLKM</tspan>");
   });
 }
 
 /** The text of a label at the position of its point, with any place beside it. */
 function label(text: string, at: { x: string; y: string }): RegExp {
   return new RegExp(
-    `<text x="${at.x}" y="${at.y}" dx="-?[0-9.]+em" dy="-?[0-9.]+em" text-anchor="(start|middle|end)">${text}</text>`,
+    `<text x="${at.x}" y="${at.y}" dx="-?[0-9.]+em" dy="-?[0-9.]+em" text-anchor="(start|middle|end)" data-map-label="(fixed|point)"><tspan>${text}</tspan></text>`,
   );
 }
 
@@ -128,7 +128,7 @@ for (const locale of locales) {
     const held = crowded.filter(({ mark }) => mark.kind === "held");
     const other = crowded.filter(({ mark }) => mark.kind === "other");
     const textsOf = (html: string): string[] =>
-      [...html.matchAll(/<text [^>]*>([^<]*)<\/text>/g)].map(
+      [...html.matchAll(/<tspan>([^<]*)<\/tspan>/g)].map(
         ([, text]) => text ?? "",
       );
     expect(held).toHaveLength(5);
@@ -146,7 +146,9 @@ for (const locale of locales) {
       ...held.map(({ name }) => name),
     ]) {
       const labelOf = (markup: string): string | undefined =>
-        new RegExp(`<text [^>]*>${name}</text>`).exec(markup)?.[0];
+        new RegExp(`<text [^>]*><tspan>${name}</tspan></text>`).exec(
+          markup,
+        )?.[0];
       expect(labelOf(reversed)).toBe(labelOf(html));
     }
     const withoutHoldings = textsOf(

@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router";
+import { NumberText } from "~/number-text";
 import type { CSSProperties, PointerEvent, ReactNode } from "react";
 import { ChangeText } from "~/change-text";
 import { formatList } from "~/formatting";
@@ -32,7 +33,7 @@ const spreadRoom = 3.5;
 // A point answers a pointer or a finger within this distance of its center, in sizes of the text of the labels, or within the reach of its mark when that is larger.
 const pointerReach = 0.83;
 
-/** A map of risk across against return up, as decisions 0028 and 0035 set: each point by its mark and its name, the IHSG as a diamond with a strong line through its risk and a dashed line at its return, and a line from a point through the IHSG, such as the security market line. The server draws it in SVG and places its labels from estimated widths of their texts. Once JavaScript runs, the browser places the labels again from their measured widths at the size of the plot, and the plot is a slider that a pointer, a finger, or the keys move over the points in the order of their risk, which shows the values of the marked point in a tooltip. */
+/** A map of risk across against return up, as decisions 0028 and 0035 set: each point by its mark and its name, the IHSG as a diamond with a strong line through its risk and a dashed line at its return, and an optional line from a point through the IHSG, such as the security market line. The server draws it in SVG and places its labels from estimated widths of their texts. Once JavaScript runs, the browser places the labels again from their measured widths at the size of the plot, and the plot is a slider that a pointer, a finger, or the keys move over the points in the order of their risk, which shows the values of the marked point in a tooltip. */
 export function RiskMap<Across extends number, Up extends number>({
   market,
   points,
@@ -86,12 +87,14 @@ export function RiskMap<Across extends number, Up extends number>({
         key: point.key,
         position: placed.position,
         outerRadius: placed.outerRadius,
+        selectionRadius: placed.outerRadius + markReach,
       })),
     [drawn],
   );
   const { placed, areaRef, drawingRef, measureRef, textSize } = useMapLabels(
     labels,
     marks,
+    layout.upTextLength,
   );
   const stops = useMemo(
     () =>
@@ -250,10 +253,14 @@ function MapTip({
         ...tipDown(drawn.placed.position.y),
       }}
     >
-      <p className={styles["tipName"]}>{drawn.point.name}</p>
+      <p className={styles["tipName"]}>
+        <NumberText>{drawn.point.name}</NumberText>
+      </p>
       {drawn.point.values.map(({ name, value }) => (
         <p key={name} className={styles["tipValue"]}>
-          <span>{name}</span>
+          <span>
+            <NumberText>{name}</NumberText>
+          </span>
           <span className={styles["tipNumber"]}>
             <ValueText value={value} colored={coloredValues === true} />
           </span>

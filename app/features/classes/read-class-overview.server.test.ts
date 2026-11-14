@@ -1,3 +1,4 @@
+import { languageNames } from "~/language-names";
 import { expect, test } from "vitest";
 import { listStudents } from "./class-store.server";
 import { classOfStudentsForTest } from "~/features/grading/class-of-students-for-test.server";
@@ -22,7 +23,7 @@ const texts: Record<Locale, { none: string; latest: string; price: string }> = {
 };
 
 for (const locale of locales) {
-  test(`counts orders in the WIB week and uses the latest order as activity, while keeping every unmeasured student in ${locale}`, async () => {
+  test(`counts orders in the WIB week and uses the latest order as activity, while keeping every unmeasured student in ${languageNames[locale]}`, async () => {
     switchLocaleForTest(locale);
     const { database, taughtClass } = await classOfStudentsForTest();
     const student = listStudents(database, taughtClass.id)[1];

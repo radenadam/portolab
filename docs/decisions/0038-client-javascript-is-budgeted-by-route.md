@@ -1,4 +1,4 @@
-# 0037. Client JavaScript is budgeted by route
+# 0038. Client JavaScript is budgeted by route
 
 - Status: Accepted
 - Date: 2026-11-14

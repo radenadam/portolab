@@ -121,8 +121,11 @@ const heldRadiusPerRootPercent = 0.175;
 const levelStart = 0.83;
 const levelStep = 2.67;
 const levelSteps = 8;
-const levelAbove = -0.5;
-const levelBelow = 1.17;
+// A band of points can fill the line, so labels try a little farther above and below it after the nearer places.
+const levelOffsets = [
+  [-0.5, 1.17],
+  [-1.5, 2.17],
+];
 const lineEndPlaces = [
   { dx: -0.33, dy: -0.67 },
   { dx: -0.33, dy: 1.33 },
@@ -229,12 +232,13 @@ export function layoutRiskMap<
 function levelPlaces(height: PlotFraction): LabelPlace[] {
   const at = { x: plotFraction(0), y: height };
   const places: LabelPlace[] = [];
-  for (let step = 0; step <= levelSteps; step += 1) {
-    const dx = levelStart + step * levelStep;
-    places.push(
-      { at, dx, dy: levelAbove, anchor: "start" },
-      { at, dx, dy: levelBelow, anchor: "start" },
-    );
+  for (const offsets of levelOffsets) {
+    for (let step = 0; step <= levelSteps; step += 1) {
+      const dx = levelStart + step * levelStep;
+      for (const dy of offsets) {
+        places.push({ at, dx, dy, anchor: "start" });
+      }
+    }
   }
   return places;
 }

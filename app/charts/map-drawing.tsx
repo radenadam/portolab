@@ -40,7 +40,7 @@ const drawOrder: Record<MarkKind, number> = {
 const tickBaseline = 1.5;
 const titleBaseline = 3;
 
-/** The drawing of the map in its plot: the marks of both axes with their lines, the strong line through the risk of the IHSG, the name of the axis of risk, the dashed line at the return of the IHSG, the line through the IHSG, the mark of each point, a ring around the marked point, and the labels where they have a place. It also holds a hidden text in the font of the labels, which the browser measures each label with. Screen readers skip it. */
+/** The drawing of the map in its plot: the marks of both axes with their lines, the strong line through the risk of the IHSG, the name of the axis of risk, the dashed line at the return of the IHSG, the optional line through the IHSG, the mark of each point, a ring around the marked point, and the labels where they have a place. It also holds a hidden text in the font of the labels, which the browser measures each label with. Screen readers skip it. */
 export function MapDrawing({
   layout,
   drawn,
@@ -143,6 +143,7 @@ export function MapDrawing({
           key={point.key}
           text={mapPointName({ point, kind })}
           place={placed.points.get(point.key)}
+          kind="point"
           className={styles["label"]}
         />
       ))}
@@ -293,10 +294,12 @@ function Label({
   text,
   place,
   className,
+  kind = "fixed",
 }: {
   text: string;
   place: LabelPlace | undefined;
   className: string | undefined;
+  kind?: "fixed" | "point";
 }): ReactNode {
   if (place === undefined) {
     return null;
@@ -308,9 +311,10 @@ function Label({
       dx={em(place.dx)}
       dy={em(place.dy)}
       textAnchor={place.anchor}
-      className={className}
+      data-map-label={kind}
     >
-      {text}
+      {/* The offsets use the drawing's text size, while the letters may use a smaller font. */}
+      <tspan className={className}>{text}</tspan>
     </text>
   );
 }

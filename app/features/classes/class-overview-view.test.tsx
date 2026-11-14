@@ -1,4 +1,5 @@
-import { renderToStaticMarkup } from "react-dom/server";
+import { languageNames } from "~/language-names";
+import { renderTextMarkupForTest } from "~/render-text-markup-for-test";
 import { MemoryRouter } from "react-router";
 import { expect, test } from "vitest";
 import { classOfStudentsForTest } from "~/features/grading/class-of-students-for-test.server";
@@ -10,6 +11,7 @@ import { ClassOverviewView } from "./class-overview-view";
 import { classMapPoints } from "./class-map-points.server";
 import type { ClassMapAxis } from "./class-map";
 import { readClassOverview } from "./read-class-overview.server";
+import { classSummary } from "./class-summary";
 
 const texts: Record<
   Locale,
@@ -35,7 +37,7 @@ const texts: Record<
       "Beta",
       "Simpangan baku",
       "Tentang peta kelas",
-      "Tegak: imbal hasil sejak mahasiswa dapat bertransaksi. IHSG di peta adalah median imbal hasil IHSG pada periode yang sama. Batang di tepi menunjukkan sebaran titik. Garis pendek menandai median imbal hasil kelas. Portofolio tanpa ukuran risiko tidak tampil di peta. Tabel di bawah memuat setiap mahasiswa dan waktu harga sahamnya.",
+      "Tegak: imbal hasil sejak mahasiswa dapat bertransaksi. IHSG di peta adalah median imbal hasil IHSG pada periode yang sama. Batang di tepi menunjukkan sebaran titik. Garis pendek menandai median imbal hasil kelas. Portofolio tanpa ukuran risiko tidak tampil di peta. Tabel di bawah memuat setiap mahasiswa dan waktu harga sahamnya. Perbandingan memakai mahasiswa dengan imbal hasil portofolio dan IHSG. Hitungan risiko memakai portofolio terukur.",
       "Imbal hasil",
       "Risiko",
       "Waktu harga",
@@ -74,7 +76,7 @@ const texts: Record<
       "Beta",
       "Standard deviation",
       "About the class map",
-      "Up: return since each student could trade. IHSG on the map is the median IHSG return over those periods. Edge bars show the distribution of points. The short line marks the median class return. Portfolios without risk measures do not appear on the map. The table below includes every student and the times of their stock prices.",
+      "Up: return since each student could trade. IHSG on the map is the median IHSG return over those periods. Edge bars show the distribution of points. The short line marks the median class return. Portfolios without risk measures do not appear on the map. The table below includes every student and the times of their stock prices. Comparison counts require portfolio and IHSG returns. Risk counts include measured portfolios.",
       "Return",
       "Risk",
       "Price times",
@@ -103,7 +105,7 @@ const texts: Record<
 };
 
 for (const locale of locales) {
-  test(`draws the class map and its data before JavaScript, with either risk axis and all count forms in ${locale}`, async () => {
+  test(`draws the class map and its data before JavaScript, with either risk axis and all count forms in ${languageNames[locale]}`, async () => {
     switchLocaleForTest(locale);
     const { database, taughtClass } = await classOfStudentsForTest();
     const overview = readClassOverview(database, taughtClass, {
@@ -112,6 +114,18 @@ for (const locale of locales) {
       delayMinutes: 10,
     });
     const renders: string[] = [];
+    const render = (shown: typeof overview, axis: ClassMapAxis): string =>
+      renderTextMarkupForTest(
+        <MemoryRouter>
+          <ClassOverviewView
+            classId={taughtClass.id}
+            overview={shown}
+            axis={axis}
+            points={classMapPoints(shown, { axis, classId: taughtClass.id })}
+            administration={null}
+          />
+        </MemoryRouter>,
+      );
     for (const axis of ["beta", "deviation"] satisfies ClassMapAxis[]) {
       for (const active of [0, 1, 2]) {
         const shown = {
@@ -127,35 +141,30 @@ for (const locale of locales) {
             marketReturn: cumulativeReturn(-0.1),
           },
         };
-        renders.push(
-          renderToStaticMarkup(
-            <MemoryRouter>
-              <ClassOverviewView
-                classId={taughtClass.id}
-                overview={shown}
-                axis={axis}
-                points={classMapPoints(shown, {
-                  axis,
-                  classId: taughtClass.id,
-                })}
-                administration={null}
-              />
-            </MemoryRouter>,
-          ),
-        );
+        renders.push(render(shown, axis));
       }
     }
     renders.push(
-      renderToStaticMarkup(
-        <MemoryRouter>
-          <ClassOverviewView
-            classId={taughtClass.id}
-            overview={{ ...overview, students: overview.students.slice(0, 1) }}
-            axis="beta"
-            points={[]}
-            administration={null}
-          />
-        </MemoryRouter>,
+      render({ ...overview, students: overview.students.slice(0, 1) }, "beta"),
+    );
+    const cashOnly = overview.students.filter(
+      (student) => student.return === 0 && student.risk === undefined,
+    );
+    expect(cashOnly.length).toBeGreaterThan(0);
+    renders.push(
+      render(
+        {
+          ...overview,
+          students: cashOnly,
+          summary: classSummary(
+            cashOnly.map(() => ({
+              portfolio: cumulativeReturn(0),
+              market: cumulativeReturn(-0.1),
+            })),
+            [],
+          ),
+        },
+        "beta",
       ),
     );
     const html = renders.join("");
@@ -169,7 +178,7 @@ for (const locale of locales) {
       ...text.inactive,
       ...text.stats,
     ]) {
-      expect(html).toContain(renderToStaticMarkup(<>{expected}</>));
+      expect(html).toContain(renderTextMarkupForTest(<>{expected}</>));
     }
     expect(html).toContain("<rect");
     expect(html).not.toContain('role="slider"');

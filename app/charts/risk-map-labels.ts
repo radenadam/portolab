@@ -20,7 +20,7 @@ const labelOrder: Record<MarkKind, number> = {
   other: 4,
 };
 
-/** The labels of the map in the order in which they take their places: the names of the points of the reader, the labels of the lines, and then the names of the other points by labelOrder. */
+/** The labels of the map in the order in which they take their places: the names of the points of the reader, the fixed labels, and then the names of the other points by labelOrder. */
 export function riskMapLabels(
   drawn: readonly DrawnPoint[],
   map: {
@@ -92,7 +92,7 @@ function spreadLabels(map: {
               y: plotFraction(index < 2 ? 0 : 1),
             },
             dx: index % 2 === 0 ? 0.25 : -0.25,
-            dy: index < 2 ? 1.5 : -0.75,
+            dy: index < 2 ? 1.25 : -0.5,
             anchor: index % 2 === 0 ? "start" : "end",
           },
         ],
@@ -121,6 +121,18 @@ function spreadLabels(map: {
             at: { x: plotFraction(1), y: map.layout.median },
             dx: -0.25,
             dy: 1.33,
+            anchor: "end",
+          },
+          {
+            at: { x: plotFraction(1), y: map.layout.median },
+            dx: -0.25,
+            dy: -1.67,
+            anchor: "end",
+          },
+          {
+            at: { x: plotFraction(1), y: map.layout.median },
+            dx: -0.25,
+            dy: 2.33,
             anchor: "end",
           },
         ],

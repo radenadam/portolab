@@ -33,6 +33,10 @@ function others(keys: string[]): MapLabels {
   return { kept: [], lines: [], others: names(...keys) };
 }
 
+function fixedLabel(places: readonly LabelPlace[]): MapLabels {
+  return { kept: [], others: [], lines: [{ key: "zero", text: "W", places }] };
+}
+
 const size = { width: 20, height: 10 };
 
 // A label stands 0.42 from the edge of its mark, and its baseline lies 0.375 below the middle of the mark, so the middle of its letters, which reach 1 above the baseline and 0.25 below it, meets the middle of the mark.
@@ -206,6 +210,100 @@ test("refuses a label of a point that the map has no mark of", () => {
   expect(() =>
     placeMapLabels(others(["BBCA"]), { size, marks: [], widthOf }),
   ).toThrow("The map has a label of BBCA but no mark of it.");
+});
+
+test("keeps a fixed label outside the selection ring before the reader selects its point", () => {
+  const point = mark("BBCA", { x: 0.4, y: 0.45 });
+  const places: LabelPlace[] = [0.3, 0.1].map((across) => ({
+    at: { x: plotFraction(across), y: plotFraction(0.5) },
+    dx: 0,
+    dy: 0,
+    anchor: "start",
+  }));
+  const labels = fixedLabel(places);
+  expect(
+    placeMapLabels(labels, { size, marks: [point], widthOf }).lines.get("zero"),
+  ).toEqual(places[0]);
+  expect(
+    placeMapLabels(labels, {
+      size,
+      marks: [{ ...point, selectionRadius: 1.5 }],
+      widthOf,
+    }).lines.get("zero"),
+  ).toEqual(places[1]);
+});
+
+test("keeps a server label clear of points that move through an offset from either edge as the plot grows", () => {
+  for (const edge of ["left", "right"] as const) {
+    const fromLeft = edge === "left";
+    const point = mark("BBCA", { x: fromLeft ? 0.2 : 0.8, y: 0.5 });
+    const places: LabelPlace[] = [
+      {
+        at: { x: plotFraction(fromLeft ? 0 : 1), y: plotFraction(0.5) },
+        dx: fromLeft ? 5 : -5,
+        dy: 0,
+        anchor: fromLeft ? "start" : "end",
+      },
+      {
+        at: { x: plotFraction(0.5), y: plotFraction(0.5) },
+        dx: fromLeft ? 1 : -1,
+        dy: 0,
+        anchor: fromLeft ? "start" : "end",
+      },
+    ];
+    const labels = fixedLabel(places);
+    expect(
+      placeMapLabels(labels, { size, marks: [point], widthOf }).lines.get(
+        "zero",
+      ),
+    ).toEqual(places[0]);
+    expect(
+      placeMapLabels(labels, {
+        size,
+        marks: [point],
+        widthOf,
+        canGrow: true,
+      }).lines.get("zero"),
+    ).toEqual(places[1]);
+  }
+});
+
+test("keeps fixed labels apart from names placed before and after them at every larger plot width", () => {
+  const point = mark("BBCA", { x: 0.2, y: 0.2 });
+  const places: LabelPlace[] = [0, 0.8].map((across) => ({
+    at: { x: plotFraction(across), y: plotFraction(0.3) },
+    dx: across === 0 ? 7 : 0,
+    dy: 0.6,
+    anchor: "start",
+  }));
+  for (const isKept of [true, false]) {
+    const labels: MapLabels = {
+      ...fixedLabel(places),
+      kept: isKept ? names("BBCA") : [],
+      others: isKept ? [] : names("BBCA"),
+    };
+    const placed = placeMapLabels(labels, {
+      size,
+      marks: [point],
+      widthOf,
+      canGrow: true,
+    });
+    const fixed = placed.lines.get("zero");
+    const name = placed.points.get("BBCA");
+    expect(fixed).toBeDefined();
+    expect(name).toBeDefined();
+    if (fixed === undefined || name === undefined)
+      throw new Error("Both labels have a clear place.");
+    for (const width of [20, 30, 40, 100]) {
+      const grown = { ...size, width };
+      expect(
+        overlaps(
+          boxOf(fixed, widthOf("W"), grown),
+          boxOf(name, widthOf("BBCA"), grown),
+        ),
+      ).toBe(false);
+    }
+  }
 });
 
 test("estimates the width of a name from the widths of the capitals, the small letters, the figures, the spaces, and the signs of the font of the labels", () => {

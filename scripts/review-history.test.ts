@@ -2,13 +2,12 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, expect, test } from "vitest";
-import { successValueForTest } from "../app/success-value-for-test.ts";
+import { gitForTest } from "./git-for-test.ts";
 import {
   containedHead,
   readChangedFiles,
   readReviewChangesSince,
 } from "./review-history.ts";
-import { runCommand } from "./run-command.ts";
 
 let repository = "";
 // The head of the pull request when the last round reviewed it, and a commit of the base branch that the pull request never merged.
@@ -43,23 +42,7 @@ function changes(since: string, paths: readonly string[], base = "main") {
 }
 
 function git(...commandArguments: string[]): string {
-  const run = runCommand(
-    "git",
-    [
-      "-c",
-      "user.name=Test",
-      "-c",
-      "user.email=test@example.com",
-      "-c",
-      "core.autocrlf=false",
-      ...commandArguments,
-    ],
-    { cwd: repository, answerCodes: [1] },
-  );
-  return successValueForTest(
-    run,
-    `git ${commandArguments.join(" ")}`,
-  ).stdout.trim();
+  return gitForTest(repository, commandArguments, [1]).stdout.trim();
 }
 
 function write(path: string, text: string): void {

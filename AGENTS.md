@@ -10,7 +10,7 @@ Every change, however small:
 
 1. Branch from an up-to-date `main` as `<type>/<summary-in-kebab-case>`. One coherent change goes on each branch. An improvement noticed along the way gets its own branch or a GitHub issue.
 2. Make the change complete: code, tests, and every doc, example, and standard that it affects. Nothing that the change needs is left for a follow-up. Instances of a defect elsewhere follow step 3 of the defect protocol.
-3. Run `pnpm check`. It passes before every commit.
+3. Run `pnpm check` before the first push of a pull request. Before each later push, run `pnpm check:fast` and the browser tests that cover the files the change touches, as the [README](README.md#contributing) describes. These checks pass before the push. CI still runs the full check on every push.
 4. Commit using Conventional Commits, push, and open a pull request titled with the final commit message. Its description explains why the change is needed, because it becomes the body of the squashed commit, so update it whenever a push changes what the pull request does. Before each push, compare it with `git diff origin/main...HEAD`, so that it names every change to a standard, a message, or a check, each in short sentences. Enable auto-merge with `gh pr merge --auto --squash`. The pull request merges when CI's check job and review job both pass. When the review job fails, fix each verified finding in the change through the defect protocol, and push all the fixes at once, because each push starts a round of the panel.
 
 Work that is noticed but not done becomes a GitHub issue: a flaw that is parked, an open question, or an idea. Nothing about the state of the project lives only in a conversation or in a comment in the code.
@@ -39,7 +39,7 @@ A defect is evidence about the process that produced it, wherever it surfaces: i
 1. **Trace.** Find what let it through: a standard that was never written or is too vague, a missing check, a lens that was not looking, or a wrong pattern.
 2. **Fix the process.** Write or sharpen the standard, add the check, or sharpen the lens.
 3. **Redo everything the flawed process produced**, not only the instance found. The root cause sets how far that reaches. The instances in what the pull request changes are fixed in it. Every other instance, including each existing file that a new or sharpened standard now covers, goes into one issue, and a pull request of its own fixes them right after, so that a round of review never grows with the size of the repository.
-4. **Record.** The commit message states the root cause and the scope. Write a decision record only when a real alternative was weighed and the choice has lasting consequences.
+4. **Record.** The commit message states the root cause and the scope. Write a decision record only when a real alternative was weighed and the choice has lasting consequences. Follow [the decision record workflow](CONTRIBUTING.md#decision-records) when adding one.
 
 Fixing only the instance leaves in place the process that produced it.
 

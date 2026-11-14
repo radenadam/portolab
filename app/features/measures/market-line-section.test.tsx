@@ -208,7 +208,7 @@ function withoutChart(html: string): string {
 /** Whether the map names a point beside its mark, at any of the places beside it. */
 function namesPoint(html: string, name: string): boolean {
   return new RegExp(
-    `<text x="[^"]+" y="[^"]+" dx="[^"]+" dy="[^"]+" text-anchor="[a-z]+">${name}</text>`,
+    `<text x="[^"]+" y="[^"]+" dx="[^"]+" dy="[^"]+" text-anchor="[a-z]+" data-map-label="point"><tspan>${name}</tspan></text>`,
   ).test(html);
 }
 

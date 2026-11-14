@@ -62,7 +62,18 @@ Portolab reads these environment variables when it starts, and it names every wr
 
 [`CONTRIBUTING.md`](CONTRIBUTING.md) explains how to propose a change.
 
-Run `pnpm check` to run every check that CI runs. To run checks at the same time, use a separate worktree for each run and give each a different `PORTOLAB_CHECK_SLOT` from `0` to `99`:
+The [workflow](AGENTS.md#workflow) sets which checks must pass before a push. `pnpm check` runs every check that CI runs. `pnpm check:fast` runs the same steps except the browser tests, including the dev server check, the production build, and the size check.
+
+For a later push, run the fast check and choose the browser test files that cover the changed behavior. For example, after changing the stock screen:
+
+```sh
+pnpm check:fast
+pnpm test:e2e e2e/stock.test.ts e2e/layout.test.ts
+```
+
+The browser command runs the selected files on both the phone and desktop projects, with their tests in both languages. Choose files by what they cover, including callers of shared code, rather than only test files that changed. A change to shared layout, styles, or browser test infrastructure can need the full browser suite, which runs with `pnpm test:e2e`. A change confined to docs or scripts with no browser behavior needs no browser tests.
+
+To run checks at the same time, use a separate worktree for each run and give each a different `PORTOLAB_CHECK_SLOT` from `0` to `99`:
 
 ```sh
 # In the first worktree

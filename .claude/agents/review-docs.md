@@ -13,7 +13,7 @@ A diff range, a set of paths, or a plan, with the intent behind it. In an audit,
 ## Look for
 
 - Claims in `README.md`, `CONTRIBUTING.md`, `SECURITY.md`, `AGENTS.md`, `docs/`, agent definitions, and comments that are false after the change, including commands, paths, and described behavior.
-- The section "Writing" of `AGENTS.md`, especially its rules on facts stated once and on padding.
+- The section "Writing" of `AGENTS.md`, especially its rules on facts stated once and on padding. For comparisons, trace each cost and the things it applies to back to its source or code.
 - The section "This file" of `AGENTS.md`, applied to `AGENTS.md` itself.
 - Decision records: a record for each choice that step 4 of the section "Defect protocol" of `AGENTS.md` calls for, and every superseded record marked as superseded with a link to its successor.
 

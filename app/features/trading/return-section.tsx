@@ -109,7 +109,10 @@ function Returns({
   );
 }
 
-function historyEndText(end: HistoryEnd, reader: PortfolioReader): string {
+export function historyEndText(
+  end: HistoryEnd,
+  reader: PortfolioReader,
+): string {
   switch (end.kind) {
     case "notFinal":
       return m.trading_chart_not_final_notice({
@@ -134,7 +137,7 @@ function historyEndText(end: HistoryEnd, reader: PortfolioReader): string {
 }
 
 /** The text that says that Portolab has not recorded the trading calendar of the next trading day, with the step of its reader. */
-function missingCalendarText(reader: PortfolioReader): string {
+export function missingCalendarText(reader: PortfolioReader): string {
   return textForReader(reader, {
     owner: () => m.trading_chart_calendar_missing_notice(),
     lecturer: () => m.trading_lecturer_chart_calendar_missing_notice(),

@@ -1,3 +1,4 @@
+import { languageNames } from "../app/language-names.ts";
 import { expect, test } from "@playwright/test";
 import { eq } from "drizzle-orm";
 import { memberships } from "../app/features/classes/classes.schema.ts";
@@ -13,6 +14,8 @@ import { studentOfNewClass } from "./student-of-new-class.ts";
 import { widestClassNames } from "./widest-class-names.ts";
 import { writeForTestStudent } from "./write-for-test-student.ts";
 import { withHeldClientScripts } from "./with-held-client-scripts.ts";
+import { expectMapLabelsClear } from "./expect-map-labels-clear.ts";
+import { fillClassMap } from "./fill-class-map.ts";
 
 const texts: Record<
   Locale,
@@ -28,9 +31,11 @@ const texts: Record<
     copy: string;
     chip: readonly [string, string];
     viewChip: readonly [string, string];
+    startingCash: string;
   }
 > = {
   id: {
+    startingCash: "Modal awal",
     title: "Peta risiko dan imbal hasil",
     deviation: "Simpangan baku",
     axis: "Simpangan baku per bulan",
@@ -44,6 +49,7 @@ const texts: Record<
     viewChip: ["Kode gabung ", ". Lihat kode dan alamat gabung"],
   },
   en: {
+    startingCash: "Starting cash",
     title: "Risk and return map",
     deviation: "Standard deviation",
     axis: "Standard deviation per month",
@@ -59,8 +65,68 @@ const texts: Record<
   },
 };
 
+const labelScenarios: {
+  width: number;
+  axis: string;
+  colorScheme: "light" | "dark";
+}[] = [];
+for (const width of [360, 1440, 1920]) {
+  for (const axis of ["beta", "deviation"]) {
+    for (const colorScheme of ["light", "dark"] as const) {
+      labelScenarios.push({ width, axis, colorScheme });
+    }
+  }
+}
+
 for (const locale of locales) {
-  test(`keeps the join details open and enables copying when JavaScript loads in ${locale}`, async ({
+  test(`keeps fixed map labels clear of a crowded class at every reference width, with and without JavaScript, in ${languageNames[locale]}`, async ({
+    page,
+    browser,
+  }) => {
+    const { student, classId, classPath } = await studentOfNewClass(
+      page,
+      browser,
+      { locale, ...widestClassNames },
+    );
+    const joinedAt = new Date("2026-10-26T03:00:00Z");
+    storeTestHolding(classId, bbcaHolding);
+    writeForTestStudent(classId, (database, membershipId) => {
+      database
+        .update(memberships)
+        .set({ joinedAt })
+        .where(eq(memberships.id, membershipId))
+        .run();
+    });
+    const studentCount = 12;
+    await fillClassMap(classId, { studentCount, now: joinedAt });
+    const plain = await newDevice(browser, locale, {
+      javaScriptEnabled: false,
+      storageState: await page.context().storageState(),
+    });
+    try {
+      for (const screen of [page, plain]) {
+        for (const { width, axis, colorScheme } of labelScenarios) {
+          await screen.emulateMedia({ colorScheme });
+          await screen.goto(`${classPath}?axis=${axis}`);
+          await screen.setViewportSize({ width, height: 1000 });
+          const drawing = screen.locator("main svg:has([data-map-label])");
+          await expect(drawing.locator("circle")).toHaveCount(studentCount);
+          await expect(
+            drawing
+              .locator('[data-map-label="fixed"]')
+              .filter({ hasText: texts[locale].startingCash }),
+          ).toBeVisible();
+          await expectMapLabelsClear(drawing);
+          expect(await layoutProblems(screen)).toEqual([]);
+        }
+      }
+    } finally {
+      await plain.context().close();
+      await student.context().close();
+    }
+  });
+
+  test(`keeps the join details open and enables copying when JavaScript loads in ${languageNames[locale]}`, async ({
     page,
     browser,
   }) => {
@@ -112,7 +178,7 @@ for (const locale of locales) {
     }
   });
 
-  test(`explores the class on either risk axis, opens a student, and shares its code in ${locale}`, async ({
+  test(`explores the class on either risk axis, opens a student, and shares its code in ${languageNames[locale]}`, async ({
     page,
     browser,
   }) => {

@@ -10,6 +10,7 @@ import globals from "globals";
 import typescriptEslint from "typescript-eslint";
 import { browserNavigation } from "./lint/browser-navigation.ts";
 import { fileNamedAfterExport } from "./lint/file-named-after-export.ts";
+import { testLanguageConfig } from "./lint/test-language-config.ts";
 
 // Abbreviations that read as noise. Names use full words instead.
 const abbreviations = [
@@ -309,4 +310,5 @@ export default defineConfig(
     },
   },
   featureNames.map(featureContextRules),
+  testLanguageConfig,
 );

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { ChangeText } from "~/change-text";
+import { NumberText } from "~/number-text";
 import { studentPortfolioPath } from "~/features/grading/grading-paths";
 import { formatBeta, formatPercent, formatSignedPercent } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
@@ -30,13 +31,23 @@ export function ClassOverviewView({
     <div className={styles["overview"]}>
       <div className={styles["heading"]}>
         {overview.pricesAt !== undefined && (
-          <p className={styles["time"]}>{overview.pricesAt}</p>
+          <p className={styles["time"]}>
+            <NumberText>{overview.pricesAt}</NumberText>
+          </p>
         )}
-        <h1>{overview.summary.headline}</h1>
-        <p>{overview.summary.sentence}</p>
+        <h1>
+          <NumberText>{overview.summary.headline}</NumberText>
+        </h1>
+        <p>
+          <NumberText>{overview.summary.sentence}</NumberText>
+        </p>
       </div>
       <ClassMap overview={overview} axis={axis} points={points} />
-      {overview.quoteFailure !== undefined && <p>{overview.quoteFailure}</p>}
+      {overview.quoteFailure !== undefined && (
+        <p>
+          <NumberText>{overview.quoteFailure}</NumberText>
+        </p>
+      )}
       <details className={styles["data"]}>
         <summary>{m.classes_map_table_label()}</summary>
         <div className={styles["tableFrame"]}>
@@ -55,37 +66,43 @@ export function ClassOverviewView({
                 <tr key={student.id}>
                   <th scope="row">
                     <Link to={studentPortfolioPath(classId, student.id)}>
-                      {student.name}
+                      <NumberText>{student.name}</NumberText>
                     </Link>
                   </th>
                   <td data-label={m.classes_map_return_label()}>
                     {student.return === undefined ? (
                       m.classes_measure_pending_label()
                     ) : (
-                      <ChangeText
-                        change={formatSignedPercent(student.return)}
-                        colored
-                      />
+                      <NumberText whole>
+                        <ChangeText
+                          change={formatSignedPercent(student.return)}
+                          colored
+                        />
+                      </NumberText>
                     )}
                   </td>
                   <td data-label={m.classes_map_risk_label()}>
                     {student.risk === undefined ? (
-                      student.reason
+                      <NumberText>{student.reason}</NumberText>
                     ) : (
                       <>
                         {m.classes_map_beta_label()}{" "}
-                        {formatBeta(student.risk.beta)}
+                        <NumberText whole>
+                          {formatBeta(student.risk.beta)}
+                        </NumberText>
                         <br />
                         {m.classes_map_deviation_label()}{" "}
-                        {formatPercent(student.risk.standardDeviation)}
+                        <NumberText whole>
+                          {formatPercent(student.risk.standardDeviation)}
+                        </NumberText>
                       </>
                     )}
                   </td>
                   <td data-label={m.classes_map_last_order_label()}>
-                    {student.lastOrder}
+                    <NumberText>{student.lastOrder}</NumberText>
                   </td>
                   <td data-label={m.classes_map_prices_label()}>
-                    {student.priceTimes}
+                    <NumberText>{student.priceTimes}</NumberText>
                   </td>
                 </tr>
               ))}
