@@ -1,5 +1,6 @@
 import type { ReactNode, Ref } from "react";
 import type { LabelPlace, PlacedLabels } from "./map-labels";
+import { keptNameRoom } from "./map-labels";
 import { percentOf } from "./plot";
 import { ReturnMark } from "./return-mark";
 import type {
@@ -125,6 +126,7 @@ function Axes({
           key={tick.at}
           at={tick.at}
           text={tick.text}
+          textShift={`calc(-${String(keptNameRoom)} * var(--text-small))`}
           lineClassName={
             tick.isZero ? styles["strongLine"] : styles["gridLine"]
           }

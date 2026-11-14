@@ -14,3 +14,6 @@ export const classNameMaximumLength = 100;
 
 /** The most days that the date of session 1 of a class lies before or after the day when a lecturer sets it. A class runs in the current semester or a near one, so a date further away is most likely a year that the lecturer mistyped. */
 export const firstSessionReachDays = 365;
+
+/** How long a browser keeps the class that a person opened last, as the privacy notice states. A course runs for a semester, so the class outlasts a semester and its break, after which a person who signs in most likely studies in a later class, which Portolab finds without the cookie. */
+export const lastClassLifetimeDays = 180;

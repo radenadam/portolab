@@ -10,6 +10,7 @@ import type { Beta } from "~/units/beta";
 import { monthlyReturn } from "~/units/monthly-return";
 import type { MonthlyReturn } from "~/units/monthly-return";
 import { portfolioWeight } from "~/units/portfolio-weight";
+import { crowdedMapForTest } from "./crowded-map-for-test";
 import { RiskMap } from "./risk-map";
 import { RiskMapLegend } from "./risk-map-legend";
 import type { MapPoint, MarkedPoint } from "./layout-risk-map";
@@ -51,11 +52,11 @@ const tickTexts: Record<Locale, { across: readonly string[] }> = {
   en: { across: ["0.0", "0.5", "1.0", "1.5", "2.0"] },
 };
 
-function render(): string {
+function render(mapPoints = points): string {
   return renderToStaticMarkup(
     <RiskMap
       market={mapPoint("IHSG", { beta: 1, return: 0.01 })}
-      points={points}
+      points={mapPoints}
       across={{ style: "decimal", toValue: beta, title: "Beta" }}
       up={{ style: "percent", toValue: monthlyReturn }}
       line={{
@@ -75,15 +76,94 @@ function label(text: string, at: { x: string; y: string }): RegExp {
   );
 }
 
+function crowdedPoints(
+  portfolioName: string,
+): MarkedPoint<Beta, MonthlyReturn>[] {
+  const { holdings, others } = crowdedMapForTest();
+  const stocks: MarkedPoint<Beta, MonthlyReturn>[] = [];
+  for (const point of [...holdings, ...others]) {
+    const holdingIndex = holdings.indexOf(point);
+    stocks.push({
+      ...mapPoint(point.key, {
+        beta: point.position.x * 2,
+        return: (point.position.y - 0.5) * 0.04,
+      }),
+      mark:
+        holdingIndex === -1
+          ? { kind: "other" }
+          : {
+              kind: "held",
+              weight: portfolioWeight((holdings.length - holdingIndex) * 0.05),
+            },
+    });
+  }
+  return [
+    ...stocks,
+    {
+      ...mapPoint(portfolioName, { beta: 1, return: 0 }),
+      mark: { kind: "own" },
+    },
+  ];
+}
+
+const portfolioNames: Record<Locale, string> = {
+  id: "Portofolio Anda",
+  en: "Your portfolio",
+};
+
 for (const locale of locales) {
+  test(`keeps the portfolio and every holding named on a crowded phone map before JavaScript loads, and leaves out other stock names first, in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    const crowded = crowdedPoints(portfolioNames[locale]);
+    const held = crowded.filter(({ mark }) => mark.kind === "held");
+    const other = crowded.filter(({ mark }) => mark.kind === "other");
+    const textsOf = (html: string): string[] =>
+      [...html.matchAll(/<text [^>]*>([^<]*)<\/text>/g)].map(
+        ([, text]) => text ?? "",
+      );
+    expect(held).toHaveLength(5);
+    expect(other).toHaveLength(40);
+    const html = render(crowded);
+    const names = textsOf(html);
+    expect(other.some(({ name }) => !names.includes(name))).toBe(true);
+    expect(names).toContain(portfolioNames[locale]);
+    for (const { name } of held) {
+      expect(names).toContain(name);
+    }
+    const reversed = render(crowded.toReversed());
+    for (const name of [
+      portfolioNames[locale],
+      ...held.map(({ name }) => name),
+    ]) {
+      const labelOf = (markup: string): string | undefined =>
+        new RegExp(`<text [^>]*>${name}</text>`).exec(markup)?.[0];
+      expect(labelOf(reversed)).toBe(labelOf(html));
+    }
+    const withoutHoldings = textsOf(
+      render(
+        crowded.map((point) =>
+          point.mark.kind === "held"
+            ? { ...point, mark: { kind: "other" } }
+            : point,
+        ),
+      ),
+    );
+    expect(held.some(({ name }) => !withoutHoldings.includes(name))).toBe(true);
+    expect(
+      other.some(
+        ({ name }) => withoutHoldings.includes(name) && !names.includes(name),
+      ),
+    ).toBe(true);
+  });
+
   test(`draws the map on the server with its axes, the lines of the IHSG and the line through it, a mark of each kind of point under the mark of the reader, and the name of each point beside it, in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     const html = render();
     for (const part of [
       // The texts of the marks of returns, 0% and 2%, are at most 2 characters long.
-      '<div style="padding-block:0.5em 3.5em;padding-inline:calc(2ch + 0.75em) 0.5em"><div><svg aria-hidden="true">',
-      '<line x1="0" x2="100%" y1="71.55%" y2="71.55%"></line><text x="0" y="71.55%" dx="-0.75em" dy="0.35em" text-anchor="end">0%</text>',
-      '<line x1="0" x2="100%" y1="28.45%" y2="28.45%"></line><text x="0" y="28.45%" dx="-0.75em" dy="0.35em" text-anchor="end">2%</text>',
+      '<div style="padding-block:0.5em 3.5em;padding-inline:calc(2ch + 0.75em + 1.5 * var(--text-small)) 0.5em"><div><svg aria-hidden="true">',
+      '<line x1="0" x2="100%" y1="71.55%" y2="71.55%"></line><text x="0" y="71.55%" dx="-0.75em" dy="0.35em" text-anchor="end" style="translate:calc(-1.5 * var(--text-small))">0%</text>',
+      '<line x1="0" x2="100%" y1="28.45%" y2="28.45%"></line><text x="0" y="28.45%" dx="-0.75em" dy="0.35em" text-anchor="end" style="translate:calc(-1.5 * var(--text-small))">2%</text>',
       ...tickTexts[locale].across.map(
         (text, index) =>
           `<text x="${["0%", "23.15%", "46.3%", "69.44%", "92.59%"][index] ?? ""}" y="100%" dy="1.5em" text-anchor="middle">${text}</text>`,

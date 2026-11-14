@@ -5,13 +5,14 @@ import { languageNames } from "../app/language-names.ts";
 import { baseLocale, locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
 import { chooseLanguage } from "./choose-language.ts";
+import { isPhone, openLanguageMenu } from "./frame.ts";
 
 const texts: Record<
   Locale,
   {
     tagline: string;
-    simulationLabel: string;
-    delayNotice: string;
+    badge: string;
+    longBadge: string;
     navigation: string;
     visitorLinks: readonly (readonly [string, string])[];
     switchLabel: string;
@@ -27,9 +28,8 @@ const texts: Record<
   id: {
     tagline:
       "Laboratorium manajemen portofolio dengan harga saham Indonesia yang nyata.",
-    simulationLabel: "Simulasi",
-    delayNotice:
-      "Harga tertunda sekitar 10 menit. Harga terakhir tercatat pada 30 Okt 2026, 16.14 WIB.",
+    badge: "Simulasi · ±10 mnt",
+    longBadge: "Simulasi · harga tertunda ±10 mnt",
     navigation: "Navigasi utama",
     visitorLinks: [
       ["Harga", "/prices"],
@@ -49,9 +49,8 @@ const texts: Record<
   },
   en: {
     tagline: "A portfolio management lab with real Indonesian stock prices.",
-    simulationLabel: "Simulation",
-    delayNotice:
-      "Prices are delayed by about 10 minutes. The latest price was quoted at Oct 30, 2026, 4:14 PM WIB.",
+    badge: "Simulation · ±10 min",
+    longBadge: "Simulation · prices delayed ±10 min",
     navigation: "Main navigation",
     visitorLinks: [
       ["Prices", "/prices"],
@@ -77,7 +76,7 @@ test(`opens the home page in ${languageNames[baseLocale]} for a reader who chose
   await page.goto("/");
   await expect(page.locator("html")).toHaveAttribute("lang", baseLocale);
   await expect(
-    page.getByText(texts[baseLocale].simulationLabel, { exact: true }),
+    page.getByRole("heading", { level: 1, name: "Portolab" }),
   ).toBeVisible();
 });
 
@@ -86,6 +85,8 @@ for (const locale of locales.filter((other) => other !== baseLocale)) {
     page,
   }) => {
     await chooseLanguage(page, locale);
+    await page.goto("/");
+    await openLanguageMenu(page);
     await page.getByRole("button", { name: languageNames[baseLocale] }).click();
     await expect(page.locator("html")).toHaveAttribute("lang", baseLocale);
   });
@@ -98,20 +99,21 @@ for (const locale of locales) {
     page,
   }) => {
     await chooseLanguage(page, locale);
+    await page.goto("/");
     await expect(page).toHaveTitle("Portolab");
     await expect(
       page.getByRole("heading", { level: 1, name: "Portolab" }),
     ).toBeVisible();
     await expect(page.getByText(text.tagline)).toBeVisible();
+    // A phone shows the short badge of the simulation, and a desktop the long one.
     await expect(
-      page.getByText(text.simulationLabel, { exact: true }),
+      page.getByRole("button", {
+        name: isPhone() ? text.badge : text.longBadge,
+      }),
     ).toBeVisible();
-    await expect(
-      page.getByText(text.delayNotice, { exact: true }),
-    ).toBeVisible();
-    // A visitor who is not signed in finds the prices, joining a class, and sign-in in the navigation, and no page of it is current on the home page.
+    // A visitor who is not signed in finds the prices, joining a class, and sign-in among the items of the navigation, and no item is current on the home page.
     const navigation = page.getByRole("navigation", { name: text.navigation });
-    await expect(navigation.getByRole("link")).toHaveCount(
+    await expect(navigation.getByRole("listitem")).toHaveCount(
       text.visitorLinks.length,
     );
     for (const [name, path] of text.visitorLinks) {
@@ -120,6 +122,7 @@ for (const locale of locales) {
       ).toHaveAttribute("href", path);
     }
     await expect(navigation.locator("[aria-current]")).toHaveCount(0);
+    await openLanguageMenu(page);
     await expect(
       page.getByRole("group", { name: text.switchLabel }),
     ).toBeVisible();

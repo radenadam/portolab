@@ -20,6 +20,16 @@ const warningStates: { name: string; date: string; warnings: string[] }[] = [
     warnings: [],
   },
   {
+    name: "on the last day before the incidental review",
+    date: "2026-11-17",
+    warnings: [],
+  },
+  {
+    name: "on the first day of the incidental review",
+    date: "2026-11-18",
+    warnings: [],
+  },
+  {
     name: "on the last date before the coming weeks reach a trading day without a rule",
     date: "2026-12-06",
     warnings: [],

@@ -32,8 +32,8 @@ export function loader({ context, request, url }: Route.LoaderArgs): {
   if (isSignedIn(context)) {
     throw redirect(returnDestination(returnTo, request));
   }
-  // A person who came to sign in without a page to return to goes to the classes, where every task starts.
-  return { returnTo: returnTo ?? "/classes" };
+  // A person who came to sign in without a page to return to goes to the home page, which opens the workspace of a class, as decision 0030 sets.
+  return { returnTo: returnTo ?? "/" };
 }
 
 export async function action({ context, request }: Route.ActionArgs) {

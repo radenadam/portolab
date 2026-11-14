@@ -1,8 +1,11 @@
 import { expect, test } from "vitest";
+import { fixtureHistory } from "~/features/market-data/fixture-history";
+import { fixturePriceSource } from "~/features/market-data/fixture-price-source.server";
+import { trackedStockCodes } from "~/features/market-data/tracked-instruments";
+import { successValueForTest } from "~/success-value-for-test";
 import { stockQuote } from "~/features/market-data/stock-quote";
 import {
   indexHistoryForTest,
-  stockClosesForTest,
   stockHistoryForTest,
   withClosesForTest,
 } from "~/features/market-data/history-for-test";
@@ -161,24 +164,64 @@ test("accepts a sale of shares that no other order sets aside, which sets aside 
   });
 });
 
-test("accepts a sale of a stock outside the universe, which a holding keeps from an earlier period", () => {
-  // BREN stands for a stock that a later review of the LQ45 removes after the account bought it. Portolab keeps tracking the stocks of every recorded period, so such a stock has a quote.
-  expect(
-    placeOrder(
-      sale({ code: "BREN" }),
-      account({
-        holdings: [{ code: "BREN", shares: shares(500), cost: rupiah(0) }],
-      }),
-      {
-        ...bbca,
-        quote: stockQuote("BREN", [7_250, 7_200], "2026-11-02T02:50:00Z"),
-        closes: stockClosesForTest("BREN", [["2026-10-30", 7_200]]),
-      },
-    ),
-  ).toMatchObject({
-    ok: true,
-    value: { code: "BREN", side: "sell", state: { kind: "waiting" } },
-  });
+test("keeps MAPI, NCKL, and PGEO priced and sellable after the incidental review, but refuses purchases for the new period", async () => {
+  for (const code of ["MAPI", "NCKL", "PGEO"]) {
+    expect(trackedStockCodes).toContain(code);
+    const quotes = successValueForTest(
+      await fixturePriceSource.fetchQuotes(
+        [{ kind: "stock", code }],
+        new AbortController().signal,
+      ),
+      "Former members keep their quotes",
+    );
+    const quote = quotes.quotes.find((candidate) => candidate.kind === "stock");
+    expect(quote).toMatchObject({ kind: "stock", code });
+    const closes = fixtureHistory({ kind: "stock", code }, "2026-10-26");
+    if (closes === undefined || quote === undefined) {
+      throw new Error(
+        `The fixture must have the quote and history of ${code}.`,
+      );
+    }
+    // An outage can leave a stale stored price, so the accepted sale waits for a quote of its own trading day.
+    const stock: StockState = {
+      ...bbca,
+      quote,
+      closes: stockHistoryForTest(closes),
+    };
+    const state = account({
+      holdings: [{ code, shares: shares(500), cost: rupiah(0) }],
+    });
+    for (const date of ["2026-11-17", "2026-11-18"]) {
+      expect(
+        placeOrder(
+          sale({ code, placedAt: new Date(`${date}T03:00:00Z`) }),
+          state,
+          stock,
+        ),
+      ).toMatchObject({
+        ok: true,
+        value: {
+          code,
+          side: "sell",
+          tradingDay: date,
+          state: { kind: "waiting" },
+        },
+      });
+    }
+    for (const placedAt of ["2026-11-17T13:00:00Z", "2026-11-18T03:00:00Z"]) {
+      expect(
+        placeOrder(
+          purchase({ code, placedAt: new Date(placedAt) }),
+          state,
+          stock,
+        ),
+      ).toEqual({
+        ok: false,
+        failure: { kind: "outsideUniverse", code, date: "2026-11-18" },
+      });
+    }
+    expect(state.holdings).toEqual([{ code, shares: 500, cost: 0 }]);
+  }
 });
 
 test("rejects a purchase of a stock outside the universe of its trading day, for which Portolab has no quote, because it tracks only the stocks of the universe", () => {

@@ -36,15 +36,15 @@ const stocksOfSectors: Record<Sector, StockOfSector> = {
     sector: { id: "Perindustrian", en: "Industrials" },
   },
   consumerNonCyclicals: {
-    code: "AMRT",
-    tile: "AM",
-    name: "Sumber Alfaria Trijaya Tbk",
+    code: "GGRM",
+    tile: "GG",
+    name: "Gudang Garam Tbk",
     sector: { id: "Barang Konsumen Primer", en: "Consumer Non-Cyclicals" },
   },
   consumerCyclicals: {
-    code: "HRTA",
-    tile: "HR",
-    name: "Hartadinata Abadi Tbk",
+    code: "ERAA",
+    tile: "ER",
+    name: "Erajaya Swasembada Tbk",
     sector: { id: "Barang Konsumen Non-Primer", en: "Consumer Cyclicals" },
   },
   healthcare: {
@@ -58,6 +58,15 @@ const stocksOfSectors: Record<Sector, StockOfSector> = {
     tile: "BB",
     name: "Bank Central Asia Tbk",
     sector: { id: "Keuangan", en: "Financials" },
+  },
+  propertiesAndRealEstate: {
+    code: "PWON",
+    tile: "PW",
+    name: "Pakuwon Jati Tbk",
+    sector: {
+      id: "Properti &amp; Real Estat",
+      en: "Properties &amp; Real Estate",
+    },
   },
   technology: {
     code: "GOTO",

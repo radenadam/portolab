@@ -1,7 +1,7 @@
 import { buildDailyHistory } from "./build-daily-history.ts";
 import type { DailyHistory, Instrument } from "./price-source.server.ts";
 
-// The closes of each instrument in the last week of October 2026, as Yahoo Finance returned them on 1 November 2026. The closes of BMRI are as Yahoo returned them, including 30 October.
+// The closes of each instrument in the last week of October 2026, as Yahoo Finance returned them on 1 November 2026, and ERAA, GGRM, and PWON on 14 November 2026. The closes of BMRI are as Yahoo returned them, including 30 October.
 const fixtureDates = [
   "2026-10-26",
   "2026-10-27",
@@ -30,8 +30,10 @@ const fixtureCloses: Record<string, readonly number[]> = {
   DEWA: [260, 242, 240, 226, 214],
   ELSA: [640, 685, 655, 620, 625],
   EMTK: [336, 318, 324, 304, 296],
+  ERAA: [560, 570, 550, 515, 482],
   ESSA: [515, 535, 525, 505, 500],
   EXCL: [1795, 1730, 1690, 1625, 1720],
+  GGRM: [16450, 17150, 16200, 16025, 16400],
   GOTO: [25, 24, 24, 23, 24],
   HRTA: [1660, 1605, 1595, 1510, 1430],
   ICBP: [5975, 5750, 5775, 5575, 5475],
@@ -51,6 +53,7 @@ const fixtureCloses: Record<string, readonly number[]> = {
   PGAS: [1315, 1240, 1280, 1215, 1320],
   PGEO: [1010, 980, 990, 960, 905],
   PTBA: [3220, 3170, 3250, 3060, 3240],
+  PWON: [284, 294, 290, 286, 282],
   SMGR: [1465, 1485, 1440, 1365, 1335],
   TLKM: [2250, 2140, 2070, 1980, 1980],
   UNTR: [25000, 26500, 25600, 24550, 24200],

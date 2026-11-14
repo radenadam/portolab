@@ -1,0 +1,37 @@
+/* A dot in the color of the warning opens the badge, as the references draw it. */
+.dot {
+  flex: none;
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* A phone has room for the short label beside the switcher of the class, and a desktop for the long one. */
+.long {
+  display: none;
+}
+
+@media (width >= 60rem) {
+  .long {
+    display: inline;
+  }
+
+  .short {
+    display: none;
+  }
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-width: 22rem;
+  padding: 0.625rem;
+  font-size: var(--text-row);
+}
+
+.title {
+  font-size: var(--text-mark);
+  font-weight: 600;
+}

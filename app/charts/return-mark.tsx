@@ -11,11 +11,13 @@ export function ReturnMark({
   text,
   lineClassName,
   textClassName,
+  textShift,
 }: {
   at: PlotFraction;
   text: string;
   lineClassName: string | undefined;
   textClassName: string | undefined;
+  textShift?: string;
 }): ReactNode {
   return (
     <g>
@@ -32,6 +34,7 @@ export function ReturnMark({
         dx={`${String(-returnMarkGap)}em`}
         dy="0.35em"
         textAnchor="end"
+        style={{ translate: textShift }}
         className={textClassName}
       >
         {text}
