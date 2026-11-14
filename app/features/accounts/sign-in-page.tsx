@@ -5,7 +5,6 @@ import { databaseContext } from "~/database/database.server";
 import { FormFailure, SubmitButton, TextField } from "~/form";
 import formStyles from "~/form.module.css";
 import { FormPage } from "~/form-page";
-import pageStyles from "~/page-layout.module.css";
 import { parseFilledText, typedText } from "~/form-text";
 import { pageTitle } from "~/page-title";
 import { failureOf } from "~/result";
@@ -137,10 +136,10 @@ export default function SignInPage({
         />
         <SubmitButton label={m.accounts_sign_in_label()} />
       </Form>
-      <p className={pageStyles["note"]}>
+      <p className={formStyles["hint"]}>
         {m.accounts_forgot_password_notice()}
       </p>
-      <Link to="/join" className={pageStyles["link"]}>
+      <Link to="/join" className={formStyles["link"]}>
         {m.accounts_join_link()}
       </Link>
     </FormPage>

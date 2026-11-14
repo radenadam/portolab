@@ -52,9 +52,7 @@ export function TextField({
         defaultValue={defaultValue}
         aria-invalid={failure !== undefined}
         aria-describedby={describedBy(id, { hint, failure })}
-        className={
-          inputMode === "numeric" ? styles["numberInput"] : styles["input"]
-        }
+        className={styles["input"]}
       />
     </DescribedField>
   );

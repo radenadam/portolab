@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import { isRouteErrorResponse, Link } from "react-router";
-import styles from "./error-page.module.css";
 import formStyles from "./form.module.css";
 import { FormPage } from "./form-page";
 import { PageTitle } from "./page-title";
@@ -36,10 +35,7 @@ export function NextStepLink({
   label: string;
 }): ReactNode {
   return (
-    <Link
-      to={to}
-      className={[formStyles["stepButton"], styles["nextStepLink"]].join(" ")}
-    >
+    <Link to={to} className={formStyles["stepButton"]}>
       {label}
     </Link>
   );

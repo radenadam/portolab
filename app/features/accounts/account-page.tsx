@@ -5,7 +5,6 @@ import { clientAddressContext } from "~/client-address.server";
 import { databaseContext } from "~/database/database.server";
 import { FormFailure, FormSuccess, SubmitButton, TextField } from "~/form";
 import formStyles from "~/form.module.css";
-import pageStyles from "~/page-layout.module.css";
 import { parseFilledText, typedText } from "~/form-text";
 import { pageTitle } from "~/page-title";
 import { failureOf } from "~/result";
@@ -225,19 +224,19 @@ export default function AccountPage({
 }: Route.ComponentProps): ReactNode {
   const { user } = loaderData;
   return (
-    <div className={pageStyles["formColumn"]} data-layout="reading">
+    <div className={formStyles["formColumn"]} data-layout="reading">
       <h1>{m.accounts_account_title()}</h1>
-      <section className={pageStyles["panel"]}>
+      <section className={formStyles["panel"]}>
         <AccountDetails user={user} />
-        <Link to="/privacy" className={pageStyles["link"]}>
+        <Link to="/privacy" className={formStyles["link"]}>
           {m.accounts_privacy_link()}
         </Link>
       </section>
-      <section className={pageStyles["panel"]}>
+      <section className={formStyles["panel"]}>
         <h2>{m.accounts_change_name_title()}</h2>
         <NameForm user={user} answer={actionData?.name} />
       </section>
-      <section className={pageStyles["panel"]}>
+      <section className={formStyles["panel"]}>
         <h2>{m.accounts_change_password_title()}</h2>
         <PasswordForm answer={actionData?.password} />
       </section>
