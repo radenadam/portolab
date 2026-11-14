@@ -85,8 +85,6 @@ const texts: Record<
     noHoldings: string;
     itmgFailure: string;
     stockTitle: string;
-    allMeasuresLink: string;
-    stockHeadings: readonly string[];
     stockMeasures: string;
     aadiTitle: string;
     aadiFailure: string;
@@ -189,9 +187,7 @@ const texts: Record<
       "Anda tidak memegang saham, sehingga portofolio Anda hanya berisi kas, yang tidak menghasilkan imbal hasil di Portolab. Portolab menghitung ukuran portofolio Anda setelah order beli Anda tereksekusi.",
     itmgFailure:
       "Saham Anda dan IHSG baru sama-sama memiliki 0 imbal hasil bulanan dalam 60 bulan lengkap terakhir, dan ITMG memiliki imbal hasil paling sedikit, sedangkan Portolab menghitung ukuran portofolio hanya dari paling sedikit 24 imbal hasil bulanan. Jika IHSG dan setiap saham Anda tetap memiliki harga penutupan di akhir setiap bulan, Portolab menghitung ukuran portofolio Anda setelah pembaruan riwayat harga yang menyimpan harga penutupan hari bursa pertama November 2028.",
-    stockTitle: "Imbal hasil dan risiko BBCA",
-    allMeasuresLink: `Kembali ke imbal hasil dan risiko di ${className}`,
-    stockHeadings: ["IHSG dan suku bunga bebas risiko", "Imbal hasil bulanan"],
+    stockTitle: "Saham BBCA",
     stockMeasures: [
       "Imbal hasil yang diharapkan",
       "-0,10%",
@@ -218,7 +214,7 @@ const texts: Record<
       "▼ -0,28%",
       "αi = E(Ri) − ki = -0,10% − 0,18%",
     ].join(""),
-    aadiTitle: "Imbal hasil dan risiko AADI",
+    aadiTitle: "Saham AADI",
     aadiFailure:
       "AADI dan IHSG baru sama-sama memiliki 21 imbal hasil bulanan dalam 60 bulan lengkap terakhir, sedangkan Portolab menghitung ukuran suatu saham hanya dari paling sedikit 24 imbal hasil bulanan. Jika AADI dan IHSG tetap memiliki harga penutupan di akhir setiap bulan, Portolab menghitung ukuran AADI setelah pembaruan riwayat harga yang menyimpan harga penutupan hari bursa pertama Januari 2027.",
     admrFailure:
@@ -320,9 +316,7 @@ const texts: Record<
       "You hold no shares, so your portfolio is cash alone, which earns no return in Portolab. Portolab computes the measures of your portfolio once a purchase of yours fills.",
     itmgFailure:
       "Your stocks and the IHSG share 0 monthly returns in the latest 60 complete months, and ITMG has the fewest returns, but Portolab computes the measures of a portfolio only from at least 24 monthly returns. If the IHSG and each of your stocks keep a close at the end of every month, Portolab computes the measures of your portfolio after the update of the price history that stores the close of the first trading day of November 2028.",
-    stockTitle: "Return and risk of BBCA",
-    allMeasuresLink: `Back to return and risk in ${className}`,
-    stockHeadings: ["The IHSG and the risk-free rate", "Monthly returns"],
+    stockTitle: "BBCA stock",
     stockMeasures: [
       "Expected return",
       "-0.10%",
@@ -349,7 +343,7 @@ const texts: Record<
       "▼ -0.28%",
       "αi = E(Ri) − ki = -0.10% − 0.18%",
     ].join(""),
-    aadiTitle: "Return and risk of AADI",
+    aadiTitle: "AADI stock",
     aadiFailure:
       "AADI and the IHSG share 21 monthly returns in the latest 60 complete months, but Portolab computes the measures of a stock only from at least 24 monthly returns. If AADI and the IHSG keep a close at the end of every month, Portolab computes the measures of AADI after the update of the price history that stores the close of the first trading day of January 2027.",
     admrFailure:
@@ -390,11 +384,11 @@ async function expectRow(
 
 /** Opens every table of monthly returns and of the points of the chart, so that a check sees the screen with its widest content. */
 async function openReturnTables(page: Page): Promise<void> {
-  for (const summary of await page
+  const summaries = page
     .getByRole("main")
-    .locator("summary:not([popover] *)")
-    .all()) {
-    await summary.click();
+    .locator("details:not([open]):not([popover] *) > summary");
+  while ((await summaries.count()) > 0) {
+    await summaries.first().click();
   }
 }
 
@@ -539,10 +533,9 @@ for (const locale of locales) {
     await expectRow(tables.nth(1).locator("tbody tr"), text.holding);
     await expectRow(tables.nth(2).locator("tbody tr"), text.pair);
     await expectRow(tables.nth(3).locator("tbody tr"), text.risk);
-    await expect(main.locator("summary:not([popover] *)")).toHaveText([
-      ...text.summaries,
-      text.pointsLabel,
-    ]);
+    await expect(
+      main.locator("details:not([open]):not([popover] *) > summary"),
+    ).toHaveText([...text.summaries, text.pointsLabel]);
     await openReturnTables(student);
     await expectMarketLine(main, {
       locale,
@@ -581,22 +574,27 @@ for (const locale of locales) {
       locale,
     });
     await main.getByRole("link", { name: "BBCA", exact: true }).click();
-    await expect(student).toHaveURL(`${classPath}/measures/BBCA`);
-    await expectPageHeadings(student, {
-      title: text.stockTitle,
-      headings: text.stockHeadings,
-    });
+    await expect(student).toHaveURL(`${classPath}/stocks/BBCA`);
+    await expect(student).toHaveTitle(`${text.stockTitle} | Portolab`);
+    const calculations = main
+      .locator("details:not([popover] *)")
+      .filter({ hasText: text.methodNotice })
+      .first();
+    await calculations.locator(":scope > summary").click();
     await expect(main).toContainText(text.methodNotice);
-    await expectMeasureList(main.locator("dl").first(), text.stockMeasures);
+    await expectMeasureList(
+      calculations.locator("dl").first(),
+      text.stockMeasures,
+    );
     await openReturnTables(student);
     await expectAccessibleScreen(student);
-    await main.getByRole("link", { name: text.allMeasuresLink }).click();
+    await student.goto(`${classPath}/measures`);
     await expect(student).toHaveURL(`${classPath}/measures`);
     await main.getByRole("link", { name: "AADI", exact: true }).click();
-    await expectPageHeadings(student, { title: text.aadiTitle, headings: [] });
+    await expect(student).toHaveTitle(`${text.aadiTitle} | Portolab`);
     await expect(main).toContainText(text.aadiFailure);
     await expectAccessibleScreen(student);
-    await student.goto(`${classPath}/measures/ADMR`);
+    await student.goto(`${classPath}/stocks/ADMR`);
     await expect(main).toContainText(text.admrFailure);
     await student.context().close();
   });
@@ -677,7 +675,7 @@ for (const locale of locales) {
     await student.goto(classPath);
     await main
       .getByRole("link", {
-        name: locale === "id" ? "Analisis" : "Analysis",
+        name: text.analysisLink,
         exact: true,
       })
       .click();
@@ -708,10 +706,9 @@ for (const locale of locales) {
       notFoundTitle: text.notFoundTitle,
       addresses: ({ classPath }) => [
         { reader: "lecturer", path: `${classPath}/measures` },
-        { reader: "lecturer", path: `${classPath}/measures/BBCA` },
         { reader: "student", path: "/classes/999999999/measures" },
-        { reader: "student", path: "/classes/999999999/measures/BBCA" },
-        { reader: "student", path: `${classPath}/measures/BREN` },
+        { reader: "student", path: "/classes/999999999/stocks/BBCA" },
+        { reader: "student", path: `${classPath}/stocks/BREN` },
       ],
     });
   });

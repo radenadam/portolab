@@ -1,0 +1,33 @@
+.range {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.track {
+  display: block;
+  width: 100%;
+  height: var(--space-2);
+  overflow: visible;
+  margin-block: var(--space-2);
+}
+
+.line {
+  stroke: var(--color-data);
+  stroke-opacity: 0.4;
+  stroke-width: var(--space-1);
+  stroke-linecap: round;
+}
+
+.mark {
+  stroke: var(--color-ink);
+  stroke-width: var(--size-mark);
+}
+
+.ends {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  color: var(--color-muted);
+  font-size: var(--text-small);
+  font-weight: 400;
+}

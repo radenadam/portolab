@@ -1,6 +1,6 @@
 # 0032. A class meets weekly from the date of its first session
 
-- Status: Accepted. [Decision 0028](0028-every-screen-follows-the-reference-screens-of-peta.md) changes the placement of the student's class calendar notice.
+- Status: Accepted. [Decision 0040](0040-beranda-keeps-the-class-calendar-in-kelas.md) changes the placement of the student calendar notice and the notice for a class without a first session date.
 - Date: 2026-11-14
 
 ## Context
@@ -33,10 +33,10 @@ The design that the maintainer approved on 13 November 2026 names the session of
 
   Sessions 7 and 15 review the research proposal and the research article of each student, and in sessions 8 and 16, the exams, the students submit the final proposal and the final article. None of the four is a lesson of the simulator.
 
-- A week runs from Monday to Sunday in WIB, and the session of a week is the one that meets in it, also on the days before its meeting. Before the week of session 1 the course lies ahead, and after the week of session 16 it is over. The calendar names session 1 ahead of the course, the session of the week during it, and session 16 after it, each with its topic and the day when it meets.
+- A week runs from Monday to Sunday in WIB, and the session of a week is the one that meets in it, also on the days before its meeting. Before the week of session 1 the course lies ahead, and after the week of session 16 it is over. The page of the class names session 1 ahead of the course, the session of the week during it, and session 16 after it, each with its topic and the day when it meets.
 - The term follows from the month of session 1. Session 1 from July to December makes the odd semester, and from January to June the even semester, of the academic year from July to June, such as 2026/2027. A university in Indonesia starts its odd semester in August or September and its even semester from January to March, so the half of the year names the semester, however early or late the semester starts.
 - The field of the date takes a date at most 365 days before or after the day on which the lecturer gives it, because a class runs in the current semester or a near one, so a date further away is most likely a mistyped year.
-- A class that Portolab created before it stored the date has none. Its calendar is unavailable until the lecturer sets the date.
+- A class that Portolab created before it stored the date has none. Its page tells the lecturer and the students that Portolab cannot show the session of the week until the lecturer sets the date.
 - The page of the calendar is below the page of the class, as the page that resets the password of a student is.
 
 ## Alternatives

@@ -10,6 +10,7 @@ import { openAsNewStudent } from "./open-as-new-student.ts";
 import { storeTestPurchases } from "./store-test-purchases.ts";
 import { studentOfNewClass } from "./student-of-new-class.ts";
 import { widestClassNames } from "./widest-class-names.ts";
+import { tokenColor } from "./token-color.ts";
 
 const texts: Record<
   Locale,
@@ -155,30 +156,26 @@ for (const locale of locales) {
     await expectAccessibleScreen(student);
     for (const colorScheme of ["light", "dark"] as const) {
       await student.emulateMedia({ colorScheme });
+      const palette = {
+        rise: [await tokenColor(student, "--color-gain")],
+        fall: [
+          await tokenColor(student, "--color-loss"),
+          await tokenColor(student, "--color-loss-on-soft"),
+        ],
+      };
       expect(
-        await main.evaluate((element) => {
+        await main.evaluate((element, colors) => {
           const problems: string[] = [];
-          const probe = document.createElement("span");
-          document.body.append(probe);
-          try {
-            for (const change of element.querySelectorAll("[data-change]")) {
-              const direction = change.getAttribute("data-change");
-              if (direction === "none" || change.getClientRects().length === 0)
-                continue;
-              probe.style.color =
-                direction === "rise"
-                  ? "var(--color-gain)"
-                  : "var(--color-loss)";
-              if (
-                getComputedStyle(change).color !== getComputedStyle(probe).color
-              )
-                problems.push(change.textContent);
-            }
-          } finally {
-            probe.remove();
+          for (const change of element.querySelectorAll("[data-change]")) {
+            const direction = change.getAttribute("data-change");
+            if (direction === "none" || change.getClientRects().length === 0)
+              continue;
+            const expected = direction === "rise" ? colors.rise : colors.fall;
+            if (!expected.includes(getComputedStyle(change).color))
+              problems.push(change.textContent);
           }
           return problems;
-        }),
+        }, palette),
       ).toEqual([]);
     }
     await main.getByRole("link", { name: text.analysis, exact: true }).click();
@@ -207,10 +204,10 @@ for (const locale of locales) {
       await expect(main.getByRole("table").first()).toBeVisible();
       await expect(holdingRow(page).getByRole("link")).toHaveAttribute(
         "href",
-        /\/measures\/ITMG$/,
+        /\/stocks\/ITMG$/,
       );
       await holdingRow(page).getByRole("link").click();
-      await expect(page).toHaveURL(/\/measures\/ITMG$/);
+      await expect(page).toHaveURL(/\/stocks\/ITMG$/);
       await expect(page.getByRole("heading", { level: 1 })).toContainText(
         "ITMG",
       );

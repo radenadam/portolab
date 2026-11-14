@@ -1,3 +1,4 @@
+import { languageNames } from "~/language-names";
 import { expect, test } from "vitest";
 import { locales } from "~/paraglide/runtime.js";
 import type { Locale } from "~/paraglide/runtime.js";
@@ -51,7 +52,7 @@ const texts: Record<
 };
 
 for (const locale of locales) {
-  test(`compares beta and Sharpe after rounding and keeps the market reference without a portfolio ratio in ${locale}`, () => {
+  test(`compares beta and Sharpe after rounding and keeps the market reference without a portfolio ratio in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     const report = portfolioAgainstMarketForTest();
     if (report.kind !== "measured")

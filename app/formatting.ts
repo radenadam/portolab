@@ -7,6 +7,7 @@ import type { Correlation } from "~/units/correlation";
 import type { IndexPoints } from "~/units/index-points";
 import type { MonthlyVariance } from "~/units/monthly-variance";
 import type { Rupiah } from "~/units/rupiah";
+import type { SplitAdjustedRupiah } from "~/units/split-adjusted-rupiah";
 import type { SharpeRatio } from "~/units/sharpe-ratio";
 import { wibTimeZone } from "~/wib";
 
@@ -66,6 +67,15 @@ export function formatNumber(value: number): string {
   return new Intl.NumberFormat(intlLocale(), {
     maximumFractionDigits: mostNumberDecimals,
   }).format(value);
+}
+
+/** A split can divide a historic close into fractional rupiah, so it keeps the precision of other numbers rather than rounding to an amount of cash. */
+export function formatSplitAdjustedRupiah(price: SplitAdjustedRupiah): string {
+  return new Intl.NumberFormat(intlLocale(), {
+    ...rupiahOptions,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: mostNumberDecimals,
+  }).format(price);
 }
 
 /** Formats a size in bytes, such as 128,000 bytes. */
@@ -234,11 +244,12 @@ export function formatUtcDay(
 /** Formats a part of a calendar date such as 2026-10-30: the year, such as 2026, or the day with the short month, such as 30 Okt, which a mark on a time axis shows. */
 export function formatCalendarDatePart(
   date: string,
-  part: "year" | "dayAndMonth",
+  part: "year" | "dayAndMonth" | "monthAndYear",
 ): string {
   const options: Record<typeof part, Intl.DateTimeFormatOptions> = {
     year: { year: "numeric" },
     dayAndMonth: { day: "numeric", month: "short" },
+    monthAndYear: { month: "short", year: "2-digit" },
   };
   // The part is formatted in UTC for the same reason as a calendar date.
   return new Intl.DateTimeFormat(intlLocale(), {

@@ -3,7 +3,7 @@ import { Link } from "react-router";
 import tableStyles from "~/data-table.module.css";
 import type { ClassId } from "~/features/classes/classes.schema";
 import styles from "./measures.module.css";
-import { stockMeasuresPath } from "./measures-path";
+import { stockPath } from "~/features/market-data/stock-path";
 
 /** A row of a table of measures: its name, such as the code of a stock, and a number for each other column, or a note that takes the place of all of them, such as why a stock has no measures. */
 export interface MeasureTableRow {
@@ -75,7 +75,7 @@ export function StockLink({
   code: string;
 }): ReactNode {
   return (
-    <Link to={stockMeasuresPath(classId, code)} className={styles["link"]}>
+    <Link to={stockPath(classId, code)} className={styles["link"]}>
       {code}
     </Link>
   );

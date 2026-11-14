@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import type { Locator, Page } from "@playwright/test";
+import { tokenColor } from "./token-color.ts";
 
 const colorSchemes = ["light", "dark"] as const;
 
@@ -29,18 +30,6 @@ async function drawnIcon(icon: Locator): Promise<DrawnIcon> {
       };
     }),
   }));
-}
-
-/** The color of a token of app/theme.css, in the form in which a page gives a computed stroke. */
-async function tokenColor(page: Page, token: string): Promise<string> {
-  return page.evaluate((name) => {
-    const probe = document.createElement("span");
-    probe.style.color = `var(${name})`;
-    document.body.append(probe);
-    const color = getComputedStyle(probe).color;
-    probe.remove();
-    return color;
-  }, token);
 }
 
 /** Shows a page in a theme, and checks that the page follows it, so a check of colors cannot pass in the other theme. */

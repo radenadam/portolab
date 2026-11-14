@@ -4,6 +4,37 @@ import { minuteMilliseconds } from "./app/time-units.ts";
 
 const eslint = new ESLint();
 
+test(
+  "requires locale tables and readable language names in tests",
+  async () => {
+    const filePath = "app/formatting.test.ts";
+    for (const code of [
+      'const input = locale === "id" ? "1.000" : "1,000";',
+      'expect(button).toBe("en" === locale);',
+      "test(`shows cash in ${locale}`, () => {});",
+      "test.skip(`shows cash in ${locale}`, () => {});",
+    ]) {
+      expect(await rulesReporting(code, filePath)).toContain(
+        "portolab-tests/language",
+      );
+    }
+    for (const code of [
+      "const input = texts[locale].amount;",
+      "const found = entries.find((entry) => entry.locale === locale);",
+      "test(`shows cash in ${languageNames[locale]}`, () => {});",
+      'const value = locale === "id" ? 1 : 2;',
+    ]) {
+      const target = code.startsWith("const value")
+        ? "app/formatting.ts"
+        : filePath;
+      expect(await rulesReporting(code, target)).not.toContain(
+        "portolab-tests/language",
+      );
+    }
+  },
+  minuteMilliseconds,
+);
+
 /** Lints code as if it were the file at the path, a file in scripts/ unless the test names another, and returns the rules that report it. The file must exist, because the type information that ESLint uses covers only files of the project. */
 async function rulesReporting(
   code: string,

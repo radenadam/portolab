@@ -28,6 +28,11 @@ import {
 } from "./traded-portfolio-for-test.server";
 import { orders } from "./trading.schema";
 import { purchasedPortfolioForTest } from "./purchased-portfolio-for-test.server";
+import {
+  sourceAnsweringForTest,
+  updateQuotesForTest,
+} from "~/features/market-data/quote-updates-for-test.server";
+import { stockQuote } from "~/features/market-data/stock-quote";
 
 // Python Decimal at 50 significant digits computed these comparisons from the recorded BBCA closes and the fills described by tradedPortfolioForTest. The previous close holds Rp250,600 and 20,000 shares at Rp4,980, or Rp99,850,600.
 function dayChange(
@@ -100,6 +105,62 @@ test("counts the purchase fee even when the share price has not moved", async ()
       referenceDate: "2026-10-30",
       amount: -149_400,
       return: closeToForTest(-0.001494, 15),
+    },
+  });
+});
+
+test("keeps the comparison of the quoted session before the open and while a later session has no new quote", async () => {
+  const { database, owner } = await tradedPortfolioForTest();
+  saveDailyHistory(database, recordedBbcaForTest());
+  for (const moment of [
+    "2026-11-04T00:00:00Z",
+    "2026-11-04T02:09:00Z",
+    "2026-11-04T02:10:00Z",
+    "2026-11-04T03:00:00Z",
+    "2026-11-04T09:25:00Z",
+    "2026-11-04T09:26:00Z",
+    "2026-11-07T03:00:00Z",
+  ]) {
+    expect(dayChange(database, owner, new Date(moment))).toEqual({
+      ok: true,
+      value: {
+        date: "2026-11-03",
+        referenceDate: "2026-11-02",
+        amount: -2_921_000,
+        return: closeToForTest(-0.029253705035322774, 15),
+      },
+    });
+  }
+});
+
+test("moves the comparison when the next session brings a quote", async () => {
+  const { database, owner } = await purchasedPortfolioForTest();
+  saveDailyHistory(database, recordedBbcaForTest());
+  expect(
+    dayChange(database, owner, new Date("2026-11-03T02:09:00Z")),
+  ).toMatchObject({
+    ok: true,
+    value: {
+      date: "2026-11-02",
+      referenceDate: "2026-10-30",
+      amount: -149_400,
+    },
+  });
+  await updateQuotesForTest(
+    database,
+    sourceAnsweringForTest([
+      stockQuote("BBCA", [4_840, 4_980], "2026-11-03T02:55:00Z"),
+    ]),
+    { at: new Date("2026-11-03T03:05:00Z") },
+  );
+  // Python Decimal at 50 digits gives (Rp250,600 + 20,000 × the recorded Tuesday close of Rp4,840) less Monday's Rp99,850,600, divided by Monday's value.
+  expect(dayChange(database, owner, new Date("2026-11-03T03:05:00Z"))).toEqual({
+    ok: true,
+    value: {
+      date: "2026-11-03",
+      referenceDate: "2026-11-02",
+      amount: -2_800_000,
+      return: closeToForTest(-0.028041894590518233, 15),
     },
   });
 });

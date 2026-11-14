@@ -1,17 +1,13 @@
 import { useRef } from "react";
 import type { CSSProperties, PointerEvent, ReactNode } from "react";
-import { ChangeText } from "~/change-text";
-import {
-  formatCalendarDate,
-  formatList,
-  formatSignedPercent,
-} from "~/formatting";
+import { formatCalendarDate, formatList } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { plotFraction } from "~/units/plot-fraction";
 import { LineKey } from "./line-key";
 import { percentOf, PlotLine } from "./plot";
 import type { PlotPosition } from "./plot";
-import { ReturnMark, returnMarkGap } from "./return-mark";
+import { ValueMark, valueMarkGap } from "./value-mark";
+import type { ValueAxisSide } from "./value-mark";
 import { useChartSlider } from "./use-chart-slider";
 import { tipAcross } from "./tip-placement";
 import { acrossOf, indexAt } from "./time-chart-layout";
@@ -32,19 +28,25 @@ const dateBaseline = 1.5;
 const headroom = 0.5;
 const dotRadius = 0.4;
 
-/** The plot with its axes, its lines, and a dot on each line at the marked date, which is the latest date until a reader marks another. In the browser it is a slider that marks a date with a crosshair and shows a tooltip of its returns. */
-export function TimePlot<Point extends { date: string }>({
+/** The plot with its axes, its lines, and a dot on each line at the marked date, which is the latest date until a reader marks another. In the browser it is a slider that marks a date with a crosshair and shows a tooltip of its values. */
+export function TimePlot<Point extends { date: string }, Value extends number>({
   points,
   lines,
   layout,
   labelledBy,
-  coloredChanges = false,
+  valueText,
+  valueNode,
+  area = false,
+  axisSide = "left",
 }: {
   points: readonly Point[];
-  lines: readonly TimeLine<Point>[];
+  lines: readonly TimeLine<Point, Value>[];
+  valueText: (value: Value) => string;
+  valueNode: (value: Value) => ReactNode;
+  area?: boolean;
+  axisSide?: ValueAxisSide;
   layout: TimeChartLayout;
   labelledBy: string;
-  coloredChanges?: boolean;
 }): ReactNode {
   const isInBrowser = useIsInBrowser();
   const {
@@ -58,20 +60,27 @@ export function TimePlot<Point extends { date: string }>({
     labelledBy,
   });
   const drawingRef = useRef<SVGSVGElement>(null);
+  const labelRoom = `calc(${String(layout.valueTextLength)}ch + ${String(valueMarkGap)}em)`;
+  const edgeRoom = `${String(dotRadius)}em`;
+  const inlinePadding: Record<ValueAxisSide, string> = {
+    left: `${labelRoom} ${edgeRoom}`,
+    right: `${edgeRoom} ${labelRoom}`,
+  };
   const style: CSSProperties = {
     paddingBlock: `${String(headroom)}em ${String(dateBaseline + headroom)}em`,
-    paddingInline: `calc(${String(layout.returnTextLength)}ch + ${String(returnMarkGap)}em) ${String(dotRadius)}em`,
+    paddingInline: inlinePadding[axisSide],
   };
   const drawnLines = layout.lines.toSorted(
     (first, second) => drawOrder[first.kind] - drawOrder[second.kind],
   );
   const drawing = (
     <svg ref={drawingRef} className={styles["drawing"]} aria-hidden>
-      {layout.returnTicks.map((tick) => (
-        <ReturnMark
+      {layout.valueTicks.map((tick) => (
+        <ValueMark
           key={tick.at}
           at={tick.at}
           text={tick.text}
+          side={axisSide}
           lineClassName={tick.isZero ? styles["zeroLine"] : styles["gridLine"]}
           textClassName={styles["tick"]}
         />
@@ -99,7 +108,11 @@ export function TimePlot<Point extends { date: string }>({
       )}
       {drawnLines.map(({ kind, positions }) => (
         <g key={kind} className={lineClasses[kind]}>
-          <PlotLine positions={positions} className={styles["line"]} />
+          <PlotLine
+            positions={positions}
+            className={styles["line"]}
+            area={area}
+          />
           <Dot position={positions[marked]} />
         </g>
       ))}
@@ -128,7 +141,7 @@ export function TimePlot<Point extends { date: string }>({
     <div
       className={styles["plot"]}
       style={style}
-      {...sliderProps(pointText(point, lines))}
+      {...sliderProps(pointText(point, lines, valueText))}
       onPointerDown={markPointer}
       onPointerMove={markPointer}
     >
@@ -146,11 +159,8 @@ export function TimePlot<Point extends { date: string }>({
               <p key={line.name} className={styles["tipLine"]}>
                 <LineKey kind={line.kind} />
                 <span>{line.name}</span>
-                <span className={styles["tipReturn"]}>
-                  <ChangeText
-                    colored={coloredChanges}
-                    change={formatSignedPercent(line.returnOf(point))}
-                  />
+                <span className={styles["tipValue"]}>
+                  {valueNode(line.valueOf(point))}
                 </span>
               </p>
             ))}
@@ -162,17 +172,18 @@ export function TimePlot<Point extends { date: string }>({
 }
 
 /** The text of a point that a screen reader reads as the value of the slider, such as 3 Nov 2026: Portofolio Anda -3,07% dan IHSG -3,02%. */
-function pointText<Point extends { date: string }>(
+function pointText<Point extends { date: string }, Value extends number>(
   point: Point,
-  lines: readonly TimeLine<Point>[],
+  lines: readonly TimeLine<Point, Value>[],
+  valueText: (value: Value) => string,
 ): string {
   return m.app_chart_point_label({
     date: formatCalendarDate(point.date, "medium"),
-    returns: formatList(
+    values: formatList(
       lines.map((line) =>
-        m.app_chart_line_return_part({
+        m.app_chart_line_value_part({
           line: line.name,
-          value: formatSignedPercent(line.returnOf(point)).text,
+          value: valueText(line.valueOf(point)),
         }),
       ),
       "conjunction",

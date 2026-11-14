@@ -41,7 +41,7 @@ Every screen of a class has an address under the class, in English words, which 
 ### The navigation
 
 - The items of a student are Beranda, Pasar, Aktivitas, Analisis, and Belajar. The items of a lecturer are Kelas, Mahasiswa, Portofolio, Pasar, and Belajar. Belajar joins both with the change that builds it, and Portofolio with the change that builds the demonstration portfolio, because an item that leads to another screen than its name would mislead.
-- A desktop shows the items in the rail, and a phone in the tab bar, each with its icon above its label, as decision 0028 sizes them. The current item is the item of the page, or of the nearest page above it, such as Analisis on the measures of one stock, and only on a page of the class of the workspace.
+- A desktop shows the items in the rail, and a phone in the tab bar, each with its icon above its label, as decision 0028 sizes them. The current item is the item of the page, or of the nearest page above it, such as Pasar on a stock, and only on a page of the class of the workspace.
 - A visitor who is not signed in has the items of the prices, joining a class, and signing in. A person without a class and a person who has not finished the account have none.
 
 ### Landing in a class

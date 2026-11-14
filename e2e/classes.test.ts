@@ -45,6 +45,7 @@ const otherClassName = wideWord("KelasLain", classNameMaximumLength);
 const texts: Record<
   Locale,
   {
+    homeTitle: string;
     classesTitle: string;
     noTaughtClasses: string;
     createTitle: string;
@@ -112,6 +113,7 @@ const texts: Record<
   }
 > = {
   id: {
+    homeTitle: `Beranda di ${className} | Portolab`,
     classesTitle: "Kelas Anda",
     noTaughtClasses:
       "Anda belum mengajar kelas. Buat kelas di bawah, lalu bagikan kodenya kepada mahasiswa Anda.",
@@ -220,6 +222,7 @@ const texts: Record<
     ],
   },
   en: {
+    homeTitle: `Home in ${className} | Portolab`,
     classesTitle: "Your classes",
     noTaughtClasses:
       "You teach no class yet. Create one below, then share its code with your students.",
@@ -595,9 +598,7 @@ for (const locale of locales) {
     await expectAccessibleScreen(student);
 
     await joinAsNewStudent(student, joinAddress, studentName);
-    await expect(student).toHaveTitle(
-      `${locale === "id" ? "Beranda di" : "Home in"} ${className} | Portolab`,
-    );
+    await expect(student).toHaveTitle(text.homeTitle);
     await expectAccessibleScreen(student);
 
     await student.goto("/classes");

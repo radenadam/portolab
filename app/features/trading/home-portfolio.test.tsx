@@ -1,3 +1,4 @@
+import { languageNames } from "~/language-names";
 import { readPortfolioDayChange } from "./read-portfolio-day-change.server";
 import { expect, test } from "vitest";
 import type { ClassId } from "~/features/classes/classes.schema";
@@ -27,11 +28,16 @@ import { HomePortfolio } from "./home-portfolio";
 import type { HomePortfolioData } from "./read-home-portfolio.server";
 import type { PortfolioValuation } from "./value-portfolio";
 import { valuePortfolio } from "./value-portfolio";
-
 const classId = 7 as ClassId;
 const texts: Record<
   Locale,
   {
+    cash: string;
+    currency: string;
+    noHoldings: string;
+    oneHolding: string;
+    today: string;
+    datedChange: string;
     common: readonly string[];
     measured: readonly string[];
     one: string;
@@ -40,13 +46,19 @@ const texts: Record<
   }
 > = {
   id: {
+    cash: "Kas",
+    currency: "Rp",
+    noHoldings: "Anda tidak memegang saham.",
+    oneHolding: "Saham Anda · 1",
+    today: "hari ini",
+    datedChange: "perubahan 30 Okt 2026",
     common: [
       "Beranda",
       "Nilai portofolio",
       "Nilai portofolio menjumlahkan kas dan nilai saham pada harga tertunda masing-masing. Waktu harga tercantum pada setiap saham di bawah. Grafik memakai harga penutupan final, sehingga imbal hasil terakhirnya dapat berbeda.",
       "hari ini",
       "Perubahan harian",
-      "Perubahan harian membandingkan nilai portofolio sekarang dengan nilainya pada penutupan 2 November 2026. Nilai sebelumnya memakai kas, saham, dan harga penutupan hari itu, sehingga transaksi sesudahnya, termasuk biaya dan pajaknya, ikut dihitung. Waktu harga sekarang tercantum pada setiap saham di bawah.",
+      "Perubahan harian membandingkan nilai portofolio sekarang dengan nilainya pada penutupan 29 Oktober 2026. Nilai sebelumnya memakai kas, saham, dan harga penutupan hari itu, sehingga transaksi sesudahnya, termasuk biaya dan pajaknya, ikut dihitung. Waktu harga sekarang tercantum pada setiap saham di bawah.",
       "Sejak 30 Okt",
       "Dasar imbal hasil",
       "Risiko dibanding pasar",
@@ -85,13 +97,19 @@ const texts: Record<
     failed: "Pembaruan terakhir tidak memperoleh harga ini.",
   },
   en: {
+    cash: "Cash",
+    currency: "IDR",
+    noHoldings: "You hold no shares.",
+    oneHolding: "Your holding · 1",
+    today: "today",
+    datedChange: "change on Oct 30, 2026",
     common: [
       "Home",
       "Portfolio value",
       "Portfolio value adds cash and the value of each holding at its delayed price. Each holding below shows its quote time. The chart uses final closes, so its latest return can differ.",
       "today",
       "Daily change",
-      "The daily change compares the current portfolio value with its value at the close of November 2, 2026. The earlier value uses the cash, shares, and closes of that day, so trades since then, including fees and taxes, count in the change. Each holding below shows its current quote time.",
+      "The daily change compares the current portfolio value with its value at the close of October 29, 2026. The earlier value uses the cash, shares, and closes of that day, so trades since then, including fees and taxes, count in the change. Each holding below shows its current quote time.",
       "Since Oct 30",
       "Return basis",
       "Risk against the market",
@@ -130,10 +148,9 @@ const texts: Record<
     failed: "The latest update could not fetch this price.",
   },
 };
-
 function homeForTest(
   valuation: PortfolioValuation = valuationForTest(["BBCA", "TLKM"]),
-  now = new Date("2026-11-03T03:30:00Z"),
+  now = new Date("2026-10-30T10:00:00Z"),
 ): HomePortfolioData {
   const database = databaseWithClosesForTest();
   return {
@@ -169,17 +186,15 @@ function homeForTest(
     delayMinutes: 10,
   };
 }
-
 function render(home: HomePortfolioData): string {
   return renderMarkupForTest(
     <HomePortfolio home={home} classId={classId} />,
     conceptLessonDataForTest(),
   );
 }
-
 for (const locale of locales) {
   const text = texts[locale];
-  test(`shows the summary, risk dots, and holdings at independently computed values in ${locale}`, () => {
+  test(`shows the summary, risk dots, and holdings at independently computed values in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     // The fixture in measures-for-test.server.ts gives the independently computed 50%, 30%, and 20% weights. By hand, Rp27,431,085 / 5,500 rounds to Rp4,987, and Rp16,458,651 / 8,300 rounds to Rp1,983.
     const home = homeForTest();
@@ -189,7 +204,8 @@ for (const locale of locales) {
       expect(html.replaceAll(/<[^>]*>/g, "")).toContain(
         markupTextForTest(sentence),
       );
-    expect(html).toContain('href="/classes/7/measures/BBCA"');
+    expect(html).toContain(`aria-hidden="true">${text.currency}</span>`);
+    expect(html).toContain('href="/classes/7/stocks/BBCA"');
     expect(html).toContain('href="/classes/7/measures"');
     expect(html.match(/<circle/g)).toHaveLength(5);
     for (const [orders, sentence] of [
@@ -204,8 +220,7 @@ for (const locale of locales) {
       ).toContain(markupTextForTest(sentence));
     }
   });
-
-  test(`keeps the holdings and cash when quotes or measures are missing, and after every stock is sold in ${locale}`, () => {
+  test(`keeps the holdings and cash when quotes or measures are missing, and after every stock is sold in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     for (const valuation of [
       valuationForTest([]),
@@ -221,24 +236,13 @@ for (const locale of locales) {
     ]) {
       const home = homeForTest(valuation);
       const html = render(home);
-      expect(html).toContain(
-        markupTextForTest(locale === "id" ? "Kas" : "Cash"),
-      );
+      expect(html).toContain(markupTextForTest(text.cash));
       if (valuation.holdings.length === 0)
-        expect(html).toContain(
-          locale === "id"
-            ? "Anda tidak memegang saham."
-            : "You hold no shares.",
-        );
+        expect(html).toContain(text.noHoldings);
       for (const holding of valuation.holdings)
         expect(html).toContain(holding.code);
-
       if (valuation.holdings.length === 1)
-        expect(html).toContain(
-          markupTextForTest(
-            locale === "id" ? "Saham Anda · 1" : "Your holding · 1",
-          ),
-        );
+        expect(html).toContain(markupTextForTest(text.oneHolding));
     }
     const home = homeForTest();
     const failed = render({
@@ -261,22 +265,16 @@ for (const locale of locales) {
       }),
     ).not.toContain('id="home-return-heading" class=');
   });
-
-  test(`names the comparison day and only calls the current day today in ${locale}`, () => {
+  test(`names the comparison day and only calls the current day today in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
-    expect(render(homeForTest())).toContain(
-      locale === "id" ? "hari ini" : "today",
-    );
+    expect(render(homeForTest())).toContain(text.today);
     const weekend = homeForTest(
       valuationForTest(["BBCA", "TLKM"]),
       new Date("2026-11-07T03:30:00Z"),
     );
-    expect(render(weekend)).toContain(
-      locale === "id" ? "perubahan 6 Nov 2026" : "change on Nov 6, 2026",
-    );
+    expect(render(weekend)).toContain(text.datedChange);
   });
-
-  test(`draws risk scales for a negative beta and withholds the Sharpe dot when variance is zero in ${locale}`, () => {
+  test(`draws risk scales for a negative beta and withholds the Sharpe dot when variance is zero in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     const home = homeForTest();
     for (const measures of [

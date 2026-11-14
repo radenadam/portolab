@@ -1,3 +1,4 @@
+import { languageNames } from "../app/language-names.ts";
 import { expect, test } from "@playwright/test";
 import { eq } from "drizzle-orm";
 import { memberships } from "../app/features/classes/classes.schema.ts";
@@ -12,7 +13,7 @@ import { studentOfNewClass } from "./student-of-new-class.ts";
 import { writeForTestStudent } from "./write-for-test-student.ts";
 
 for (const locale of locales) {
-  test(`keeps Beranda inside the frame at reference widths in ${locale}`, async ({
+  test(`keeps Beranda inside the frame at reference widths in ${languageNames[locale]}`, async ({
     page,
     browser,
   }) => {

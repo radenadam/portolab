@@ -1,0 +1,7 @@
+.change[data-change="rise"] {
+  color: var(--color-gain);
+}
+
+.change[data-change="fall"] {
+  color: var(--color-loss);
+}

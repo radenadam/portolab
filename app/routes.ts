@@ -15,9 +15,10 @@ export default [
   route("classes/:classId/market", "features/market-data/market-page.tsx"),
   route("classes/:classId/orders", "features/trading/orders-page.tsx"),
   route("classes/:classId/measures", "features/measures/measures-page.tsx"),
+  route("classes/:classId/stocks/:code", "features/market-data/stock-page.tsx"),
   route(
-    "classes/:classId/measures/:code",
-    "features/measures/stock-measures-page.tsx",
+    "classes/:classId/stocks/:code/:side",
+    "features/trading/stock-ticket-fallback.ts",
   ),
   route(
     "classes/:classId/portfolios",

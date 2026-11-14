@@ -14,10 +14,11 @@ import { ChangeText } from "~/change-text";
 import { countedText } from "~/counted-text";
 import type { ClassId } from "~/features/classes/classes.schema";
 import { StockName } from "~/features/market-data/stock-name";
-import { stockMeasuresPath } from "~/features/measures/measures-path";
+import { stockPath } from "~/features/market-data/stock-path";
 import {
   formatNumber,
   formatRupiah,
+  formatRupiahParts,
   formatSignedPercent,
   formatSignedRupiah,
 } from "~/formatting";
@@ -129,7 +130,7 @@ export function HomeHoldingsSection({
             ))}
             <tr>
               <th scope="row">
-                <CashName note={cashNote} />
+                <CashName note={cashNote} cash={home.report.valuation.cash} />
               </th>
               <td>
                 <WeightMark value={values.cashWeight} maximum={maximumWeight} />
@@ -148,7 +149,7 @@ export function HomeHoldingsSection({
         {values.holdings.map((row) => (
           <li key={row.holding.code} className={styles["holdingRow"]}>
             <Link
-              to={stockMeasuresPath(classId, row.holding.code)}
+              to={stockPath(classId, row.holding.code)}
               className={styles["stockLink"]}
             >
               <StockName code={row.holding.code} withCompanyName={false} />
@@ -200,7 +201,7 @@ export function HomeHoldingsSection({
           </li>
         ))}
         <li className={styles["holdingRow"]}>
-          <CashName note={cashNote} />
+          <CashName note={cashNote} cash={home.report.valuation.cash} />
           <strong className={styles["rowValue"]}>
             {formatRupiah(home.report.valuation.cash)}
           </strong>
@@ -234,7 +235,7 @@ function HoldingTableRow({
       <th scope="row">
         <Link
           className={styles["stockLink"]}
-          to={stockMeasuresPath(classId, holding.code)}
+          to={stockPath(classId, holding.code)}
         >
           <StockName code={holding.code} />
         </Link>
@@ -283,11 +284,14 @@ function HoldingTableRow({
   );
 }
 
-function CashName({ note }: { note: string }): ReactNode {
+function CashName({ note, cash }: { note: string; cash: Rupiah }): ReactNode {
   return (
     <div className={styles["cashName"]}>
       <span className={styles["cashTile"]} aria-hidden="true">
-        {m.trading_home_cash_symbol_label()}
+        {formatRupiahParts(cash)
+          .filter((part) => part.type === "currency")
+          .map((part) => part.value)
+          .join("")}
       </span>
       <span>
         {m.trading_cash_label()}

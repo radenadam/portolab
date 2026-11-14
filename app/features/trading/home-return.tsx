@@ -56,12 +56,12 @@ export function HomeReturn({
               {
                 name: m.trading_portfolio_series_label(),
                 kind: "own",
-                returnOf: (point) => point.portfolio,
+                valueOf: (point) => point.portfolio,
               },
               {
                 name: marketIndex.code,
                 kind: "reference",
-                returnOf: (point) => point.market,
+                valueOf: (point) => point.market,
               },
             ]}
             labelledBy="home-return-heading"

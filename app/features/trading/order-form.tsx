@@ -27,6 +27,7 @@ import {
   sideOptions,
 } from "./order-form-fields";
 import type { OrderFormFields } from "./order-form-fields";
+import type { OrderSide } from "./order";
 import type { OrderTradingDay } from "./order-trading-day";
 import { reasonMaximumLength } from "./reason-maximum-length";
 
@@ -52,6 +53,7 @@ export function orderDayOf(day: OrderTradingDay): OrderDay {
 
 interface OrderFormProps {
   day: OrderDay;
+  initialSide?: OrderSide | undefined;
   /** What the student sent, with the reason that each field was not accepted. */
   fields: OrderFormFields | undefined;
   /** Why Portolab did not accept the order as a whole, with the lots that its next step offers. */
@@ -61,9 +63,14 @@ interface OrderFormProps {
 /** The form with which a student places an order of the stock that the address of the page chose: buy or sell, a market or a limit order, the lots, the limit price, and the reason that the student may write, with the trading day of an order placed now. A rejection of the whole order stands above the fields, as decision 0026 sets, with a button that changes the lots of the rejected order to those that its text offers. The form sends the order to the address of the page, which keeps the stock. */
 export function OrderForm({
   day,
-  fields = blankOrderForm,
+  initialSide,
+  fields: givenFields,
   rejection,
 }: OrderFormProps): ReactNode {
+  const fields = givenFields ?? {
+    ...blankOrderForm,
+    side: initialSide ?? blankOrderForm.side,
+  };
   return (
     <>
       {rejection !== undefined && (

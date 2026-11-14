@@ -1,3 +1,4 @@
+import { languageNames } from "~/language-names";
 import { expect, test } from "vitest";
 import { locales } from "~/paraglide/runtime.js";
 import type { Locale } from "~/paraglide/runtime.js";
@@ -23,7 +24,7 @@ const texts: Record<Locale, readonly string[]> = {
 };
 
 for (const locale of locales) {
-  test(`chooses ahead, behind, and level from the difference after rounding in ${locale}`, () => {
+  test(`chooses ahead, behind, and level from the difference after rounding in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     // By hand, 1.86% minus -1.75% gives 3.61 percentage points. A difference of 0.004 points rounds to zero in either direction.
     for (const [portfolio, market, index] of [

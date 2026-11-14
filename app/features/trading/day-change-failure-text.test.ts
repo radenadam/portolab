@@ -1,3 +1,4 @@
+import { languageNames } from "~/language-names";
 import { expect, test } from "vitest";
 import { locales } from "~/paraglide/runtime.js";
 import type { Locale } from "~/paraglide/runtime.js";
@@ -21,7 +22,7 @@ const texts: Record<Locale, readonly string[]> = {
 };
 
 for (const locale of locales) {
-  test(`explains each daily comparison failure in ${locale}`, () => {
+  test(`explains each daily comparison failure in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     expect(dayChangeFailureText({ kind: "unpriced" })).toBeUndefined();
     expect([

@@ -85,6 +85,7 @@
 }
 .pill:has([data-change="fall"]) {
   background: var(--color-loss-soft);
+  --color-loss: var(--color-loss-on-soft);
 }
 .lead {
   margin-block: var(--space-3);

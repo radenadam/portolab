@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { ChangeDirection, SignedChange } from "./formatting";
+import styles from "./change-text.module.css";
 
 const arrows: Record<ChangeDirection, string | undefined> = {
   rise: "▲",
@@ -7,7 +8,7 @@ const arrows: Record<ChangeDirection, string | undefined> = {
   none: undefined,
 };
 
-/** The arrow and optional ink take the rounded direction, so neither can disagree with the number. */
+/** The rounded sign decides both the arrow and the optional gain or loss ink. */
 export function ChangeText({
   change,
   colored = false,
@@ -23,5 +24,11 @@ export function ChangeText({
       {change.text}
     </>
   );
-  return colored ? <span data-change={change.direction}>{text}</span> : text;
+  return colored ? (
+    <span className={styles["change"]} data-change={change.direction}>
+      {text}
+    </span>
+  ) : (
+    text
+  );
 }

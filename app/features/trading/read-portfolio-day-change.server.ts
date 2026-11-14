@@ -1,8 +1,8 @@
 import type { Database } from "~/database/database.server";
 import { listStockHistory } from "~/features/market-data/history-store.server";
+import { latestQuoteTime } from "~/features/market-data/latest-quote-time";
 import {
-  isTradingDay,
-  latestClosedTradingDay,
+  latestQuoteTradingDay,
   tradingDayBefore,
 } from "~/features/market-data/idx-calendar";
 import { fail, succeed } from "~/result";
@@ -43,14 +43,10 @@ export function readPortfolioDayChange(
 ): Result<PortfolioDayChange, PortfolioDayChangeFailure> {
   const { portfolio, valuation, now, delayMinutes } = input;
   if (valuation.total === undefined) return fail({ kind: "unpriced" });
-  const today = wibDateOf(now);
-  const trading = isTradingDay(today);
-  if (!trading.ok) return fail({ kind: "missingCalendar" });
-  const day = trading.value
-    ? succeed(today)
-    : latestClosedTradingDay(now, delayMinutes);
-  if (!day.ok) return fail({ kind: "missingCalendar" });
-  const reference = tradingDayBefore(day.value);
+  const session = latestQuoteTradingDay(now, delayMinutes);
+  if (!session.ok) return fail({ kind: "missingCalendar" });
+  const day = comparisonDay(portfolio, valuation, session.value);
+  const reference = tradingDayBefore(day);
   if (!reference.ok) return fail({ kind: "missingCalendar" });
   const before = portfolioValueAtClose(reference.value, {
     startingCash: valuation.startingCash,
@@ -72,9 +68,28 @@ export function readPortfolioDayChange(
       value: before.value,
     });
   return succeed({
-    date: day.value,
+    date: day,
     referenceDate: reference.value,
     amount: rupiah(valuation.total.value - before.value),
     return: cumulativeReturn(priceChange(valuation.total.value, before.value)),
   });
+}
+
+function comparisonDay(
+  portfolio: Portfolio,
+  valuation: PortfolioValuation,
+  session: string,
+): string {
+  const quotedAt = latestQuoteTime(
+    valuation.holdings.flatMap((holding) =>
+      holding.kind === "priced" ? [holding.quote] : [],
+    ),
+  );
+  // A complete sale removes its quote from the valuation but its cash change still belongs to its session.
+  let latest = quotedAt === undefined ? session : wibDateOf(quotedAt);
+  for (const order of portfolio.orders) {
+    if (order.state.kind === "filled" && order.tradingDay > latest)
+      latest = order.tradingDay;
+  }
+  return latest;
 }
