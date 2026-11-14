@@ -8,7 +8,7 @@ export function isPhone(): boolean {
 
 /** Opens a popover of the frame from the button that the screen shows for it, and returns the popover. */
 async function openPopover(page: Page, id: string): Promise<Locator> {
-  await page.locator(`button[popovertarget="${id}"]:visible`).first().click();
+  await page.locator(`button[popovertarget="${id}"]:visible`).click();
   const popover = page.locator(`#${id}`);
   await expect(popover).toBeVisible();
   return popover;

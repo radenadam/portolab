@@ -28,7 +28,7 @@ Imbal hasil yang diharapkan dari data historis berbeda dari imbal hasil yang dis
 
 {{formula:jensens-alpha}}
 
-Posisi di atas garis tidak membuktikan bahwa harga terlalu murah dan bukan perintah membeli. CAPM memiliki asumsi, dan perkiraan beta serta imbal hasil dapat berubah. Nilai setiap perbandingan dengan acuan, periode data, dan frekuensi yang sama.
+Posisi di atas garis tidak membuktikan bahwa harga terlalu murah dan bukan perintah membeli. CAPM memiliki asumsi, dan perkiraan beta serta imbal hasil dapat berubah. Bandingkan hasil dengan acuan, periode data, dan frekuensi yang sama.
 
 ## interactive
 
