@@ -21,13 +21,10 @@ export default [
     "features/trading/stock-ticket-fallback.ts",
   ),
   route(
-    "classes/:classId/portfolios",
+    "classes/:classId/students",
     "features/grading/class-portfolios-page.tsx",
   ),
-  route(
-    "classes/:classId/portfolios/export",
-    "features/grading/workbook-route.tsx",
-  ),
+  route("classes/:classId/workbook", "features/grading/workbook-route.tsx"),
   route(
     "classes/:classId/students/:studentId/portfolio",
     "features/grading/student-portfolio-page.tsx",
