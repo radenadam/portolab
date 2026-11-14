@@ -4,7 +4,7 @@ import type { MarkKind } from "./map-drawing";
 import styles from "./risk-map.module.css";
 
 /** What a key of the legend of a map shows: a mark, or a piece of the line. */
-type MapKeyKind = MarkKind | "line";
+type MapKeyKind = MarkKind | "line" | "gain" | "loss";
 
 const keyClasses: Record<MapKeyKind, string | undefined> = {
   own: styles["ownKey"],
@@ -12,6 +12,9 @@ const keyClasses: Record<MapKeyKind, string | undefined> = {
   other: styles["otherKey"],
   market: styles["marketKey"],
   line: styles["lineKey"],
+  average: styles["averageKey"],
+  gain: styles["gainKey"],
+  loss: styles["lossKey"],
 };
 
 /** The legend of a map, which names each kind of point and the line beside a sample of its mark. Screen readers skip it, as they skip the drawing, because the slider and the table of the points name every point. */

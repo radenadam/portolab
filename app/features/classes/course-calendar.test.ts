@@ -1,5 +1,14 @@
 import { expect, test } from "vitest";
-import { classCalendarOf } from "./course-calendar";
+import { classCalendarOf, courseSessionDates } from "./course-calendar";
+
+test("lists the dates of every weekly session or none without a calendar", () => {
+  expect(courseSessionDates(null)).toEqual([]);
+  const dates = courseSessionDates("2026-09-12");
+  expect(dates).toHaveLength(16);
+  expect(dates[0]).toEqual({ session: 1, date: "2026-09-12" });
+  expect(dates[8]).toEqual({ session: 9, date: "2026-11-07" });
+  expect(dates[15]).toEqual({ session: 16, date: "2026-12-26" });
+});
 
 // Session 1 of this class meets on Saturday 12 September 2026, so its week runs from Monday 7 September to Sunday 13 September, and session 16 meets on Saturday 26 December 2026. A day in WIB starts at 17:00 UTC of the day before.
 const saturdayClass = "2026-09-12";

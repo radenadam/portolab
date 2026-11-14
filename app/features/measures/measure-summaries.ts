@@ -52,6 +52,8 @@ export interface StockSummary {
 /** The measures of a stock that a table of every stock shows, with the line of its months and its distance from that line, which a chart of the security market line places it by. */
 export interface StockRowSummary {
   expectedReturn: MonthlyReturn;
+  variance: MonthlyVariance;
+  requiredReturn: RequiredReturnMeasure;
   standardDeviation: MonthlyReturn;
   beta: Beta;
   line: MarketLine;
@@ -65,6 +67,9 @@ interface HoldingSummary {
   value: Rupiah;
   weight: PortfolioWeight;
   expectedReturn: MonthlyReturn;
+  standardDeviation: MonthlyReturn;
+  variance: MonthlyVariance;
+  requiredReturn: RequiredReturnMeasure;
   beta: Beta;
   /** How far the expected return lies above the security market line of the months of the portfolio, or below it when negative, which is α. */
   distance: MonthlyReturn;
@@ -147,6 +152,8 @@ export function summarizeStockRow(stock: StockMeasures): StockRowSummary {
   const { riskFreeRate, marketExpectedReturn } = stock.requiredReturn.inputs;
   return {
     expectedReturn: stock.expectedReturn.value,
+    variance: stock.variance.value,
+    requiredReturn: stock.requiredReturn,
     standardDeviation: stock.standardDeviation.value,
     beta: stock.beta.value,
     line: { riskFreeRate, marketExpectedReturn },
@@ -217,6 +224,9 @@ export function summarizePortfolio(
       value: valueOf(holding.code, values.holdings),
       weight: holding.weight,
       expectedReturn: holding.expectedReturn.value,
+      standardDeviation: holding.standardDeviation.value,
+      variance: holding.variance.value,
+      requiredReturn: holding.requiredReturn,
       beta: holding.beta.value,
       distance: holding.securityMarketLine.value,
       returns: holding.returns,

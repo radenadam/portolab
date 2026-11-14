@@ -61,12 +61,15 @@
   --text-navigation: 0.6875rem;
   /* The pages that issue #127 has not rebuilt yet still open with a large title, and the code of a class stands out on its page. */
   --text-title: 1.75rem;
+  --text-analysis-title: 1.625rem;
   --text-heading: 1.25rem;
 
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
   --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-panel: 1.125rem;
   --space-6: 1.5rem;
   --space-8: 2rem;
   --space-section: 2.5rem;
@@ -79,6 +82,8 @@
   /* A menu that opens in place is wide enough for the name of a class beside its mark. */
   --width-popover: 16.25rem;
   --width-concept-card: 24rem;
+  --width-analysis-scale: 4.5rem;
+  --width-analysis-data: 46rem;
   --size-concept-mark: 0.9375rem;
   /* The largest width of the content of a screen, which decision 0028 sets and e2e/expect-layout.ts checks every part marked as content against. */
   --width-content: 85rem;
@@ -124,6 +129,7 @@
 /* A screen too narrow for the desktop references of Tenang takes the sizes of their phone references, which the screens that issue #127 has not rebuilt yet follow. */
 @media (width < 48rem) {
   :root {
+    --text-analysis-title: 1.375rem;
     --text-headline: 2.125rem;
     --text-stock-price: 2.125rem;
     --text-measure: 1.1875rem;

@@ -206,7 +206,7 @@ for (const locale of locales) {
       );
     expect(html).toContain(`aria-hidden="true">${text.currency}</span>`);
     expect(html).toContain('href="/classes/7/stocks/BBCA"');
-    expect(html).toContain('href="/classes/7/measures"');
+    expect(html).toContain('href="/classes/7/analysis"');
     expect(html.match(/<circle/g)).toHaveLength(5);
     for (const [orders, sentence] of [
       [1, text.one],

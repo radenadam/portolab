@@ -10,6 +10,26 @@
 .legendItem {
   color: var(--color-ink-secondary);
 }
+.legendHeader {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+}
+.legendHeader p {
+  color: var(--color-muted);
+  font-size: var(--text-small);
+}
+.tableCard {
+  inline-size: min(var(--width-concept-card), calc(100vw - 4 * var(--space-3)));
+  padding: var(--space-3);
+}
+.tableCard p {
+  margin-block-end: var(--space-3);
+  color: var(--color-muted);
+  font-size: var(--text-small);
+}
 
 .own {
   --line-color: var(--color-own);
@@ -46,6 +66,23 @@
   block-size: var(--size-chart);
 }
 
+.endLabelPlot {
+  --time-chart-end-room: var(--time-chart-end-width);
+}
+.endLabel {
+  fill: var(--color-ink-secondary);
+  font-family: var(--font-text);
+  font-size: var(--text-small);
+}
+@container (width < 26.25rem) {
+  .endLabelPlot {
+    --time-chart-end-room: 0.4em;
+  }
+  .endLabel {
+    display: none;
+  }
+}
+
 .area {
   composes: area from "./plot.module.css";
 }
@@ -55,13 +92,16 @@
 }
 
 .tick,
-.minorTick {
+.minorTick,
+.event,
+.minorEvent {
   fill: var(--color-muted);
 }
 
 /* Five dates overlap below this width, so a narrow chart shows the first, the middle, and the last. */
 @container (width < 26.25rem) {
-  .minorTick {
+  .minorTick,
+  .minorEvent {
     display: none;
   }
 }

@@ -1,6 +1,6 @@
 import type { Locale } from "../app/paraglide/runtime.js";
 
-/** The name, the value, and the formula of each measure of the portfolio of bbca-holding.ts, as a browser reads the list of its measures, which the page of the student and the page that the lecturer of the class reads show alike. e2e/measures.test.ts explains the values. */
+// Python Decimal computed these values from the stock measures in measure-stock.test.ts and the BBCA weight of bbca-holding.ts. The portfolio has an expected return of -0.000508, variance of 0.000673, standard deviation of 0.025947, beta of 0.342192, required return of 0.003308, alpha of -0.003816, Sharpe ratio of -0.204236, and Treynor ratio of -0.015486.
 export const bbcaPortfolioMeasures: Record<Locale, string> = {
   id: [
     "Imbal hasil yang diharapkan",

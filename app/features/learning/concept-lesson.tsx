@@ -15,6 +15,11 @@ export function ConceptLesson({
 }: {
   termId: ConceptTermId;
 }): ReactNode {
+  const session = useConceptSession(termId);
+  return m.app_concept_lesson_notice({ session: formatNumber(session) });
+}
+
+export function useConceptSession(termId: ConceptTermId): SessionNumber {
   const data = useRouteLoaderData<ConceptLessonData>("root");
   const session = data?.conceptLessons.find(
     (lesson) => lesson.termId === termId,
@@ -24,5 +29,5 @@ export function ConceptLesson({
       `The concept card's glossary term "${termId}" has no lesson.`,
     );
   }
-  return m.app_concept_lesson_notice({ session: formatNumber(session) });
+  return session;
 }

@@ -1,3 +1,4 @@
+import { Popover } from "~/popover";
 import type { ReactNode } from "react";
 import type { CumulativeReturn } from "~/units/cumulative-return";
 import { ChangeText } from "~/change-text";
@@ -10,6 +11,7 @@ import type { TimeChartLayout, TimeLine } from "./time-chart-layout";
 import styles from "./time-chart.module.css";
 import { TimePlot } from "./time-plot";
 import type { ValueAxisSide } from "./value-mark";
+import type { TimeEvent } from "./place-time-events";
 
 /** A chart of the returns of one or two lines at the close of each trading day, with a legend that names each line with its latest return, and a table of every point, as decision 0029 sets. The server draws it in SVG, so it shows before JavaScript loads. Once JavaScript runs, its plot is a slider that a pointer, a finger, or the keys move along the dates, which marks a date with a crosshair and shows the returns of the date in a tooltip. */
 export function TimeChart<Point extends { date: string }>({
@@ -19,6 +21,10 @@ export function TimeChart<Point extends { date: string }>({
   dateLabel,
   tableLabel,
   coloredChanges = false,
+  events,
+  legendNote,
+  tablePopover,
+  tableNotice,
 }: {
   /** The points of the chart, oldest first, at least one. */
   points: readonly Point[];
@@ -30,6 +36,10 @@ export function TimeChart<Point extends { date: string }>({
   /** The label that opens the table of points. */
   tableLabel: string;
   coloredChanges?: boolean;
+  events?: readonly TimeEvent[];
+  legendNote?: string | undefined;
+  tablePopover?: string | undefined;
+  tableNotice?: string | undefined;
 }): ReactNode {
   if (points.length === 0) return null;
   const layout = layoutTimeChart(
@@ -47,6 +57,10 @@ export function TimeChart<Point extends { date: string }>({
       labelledBy={labelledBy}
       dateLabel={dateLabel}
       tableLabel={tableLabel}
+      events={events}
+      legendNote={legendNote}
+      tablePopover={tablePopover}
+      tableNotice={tableNotice}
       valueText={(value: CumulativeReturn) => formatSignedPercent(value).text}
       valueNode={(value: CumulativeReturn) => (
         <ChangeText
@@ -73,6 +87,10 @@ export function TimeSeriesChart<
   valueNode,
   area = false,
   axisSide = "left",
+  events,
+  legendNote,
+  tablePopover,
+  tableNotice,
 }: {
   points: readonly Point[];
   lines: readonly TimeLine<Point, Value>[];
@@ -84,19 +102,59 @@ export function TimeSeriesChart<
   valueNode: (value: Value) => ReactNode;
   area?: boolean;
   axisSide?: ValueAxisSide;
+  events?: readonly TimeEvent[] | undefined;
+  legendNote?: string | undefined;
+  tablePopover?: string | undefined;
+  tableNotice?: string | undefined;
 }): ReactNode {
   const latest = points.at(-1);
   if (latest === undefined) return null;
+  const legend = (
+    <ul className={legendStyles["legend"]}>
+      {lines.map((line) => (
+        <li key={line.name} className={styles["legendItem"]}>
+          <LineKey kind={line.kind} />
+          {line.name} {valueNode(line.valueOf(latest))}
+        </li>
+      ))}
+    </ul>
+  );
+  const table = (
+    <table className={tableStyles["table"]}>
+      <thead>
+        <tr>
+          <th scope="col">{dateLabel}</th>
+          {lines.map((line) => (
+            <th key={line.name} scope="col">
+              {line.name}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {points.map((point) => (
+          <tr key={point.date}>
+            <th scope="row">{formatCalendarDate(point.date, "medium")}</th>
+            {lines.map((line) => (
+              <td key={line.name} className={tableStyles["number"]}>
+                {valueNode(line.valueOf(point))}
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
   return (
     <div className={styles["timeChart"]}>
-      <ul className={legendStyles["legend"]}>
-        {lines.map((line) => (
-          <li key={line.name} className={styles["legendItem"]}>
-            <LineKey kind={line.kind} />
-            {line.name} {valueNode(line.valueOf(latest))}
-          </li>
-        ))}
-      </ul>
+      {legendNote === undefined ? (
+        legend
+      ) : (
+        <div className={styles["legendHeader"]}>
+          {legend}
+          <p>{legendNote}</p>
+        </div>
+      )}
       <TimePlot
         points={points}
         lines={lines}
@@ -106,34 +164,22 @@ export function TimeSeriesChart<
         valueNode={valueNode}
         area={area}
         axisSide={axisSide}
+        events={events}
       />
-      <details className={styles["points"]}>
-        <summary>{tableLabel}</summary>
-        <table className={tableStyles["table"]}>
-          <thead>
-            <tr>
-              <th scope="col">{dateLabel}</th>
-              {lines.map((line) => (
-                <th key={line.name} scope="col">
-                  {line.name}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {points.map((point) => (
-              <tr key={point.date}>
-                <th scope="row">{formatCalendarDate(point.date, "medium")}</th>
-                {lines.map((line) => (
-                  <td key={line.name} className={tableStyles["number"]}>
-                    {valueNode(line.valueOf(point))}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </details>
+      {tablePopover === undefined ? (
+        <details className={styles["points"]}>
+          <summary>{tableLabel}</summary>
+          {table}
+        </details>
+      ) : (
+        <Popover id={tablePopover} label={tableLabel} placement="belowEnd">
+          <div className={styles["tableCard"]}>
+            <h2>{tableLabel}</h2>
+            {tableNotice !== undefined && <p>{tableNotice}</p>}
+            {table}
+          </div>
+        </Popover>
+      )}
     </div>
   );
 }

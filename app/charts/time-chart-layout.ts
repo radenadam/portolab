@@ -17,6 +17,7 @@ export type LineKind = "own" | "reference";
 /** A line of a chart over time: the name that its legend, its tooltip, and its table show, how it is drawn, and its value at each point of the chart. */
 export interface TimeLine<Point, Value extends number = CumulativeReturn> {
   name: string;
+  endName?: string;
   kind: LineKind;
   valueOf: (point: Point) => Value;
 }
@@ -83,7 +84,7 @@ export function layoutTimeSeries<Value extends number>(
   const range = paddedRange(
     lines.flatMap((line) => line.values),
     format.unit,
-    format.minimum,
+    { minimum: format.minimum },
   );
   const valueTicks = niceTicks(
     range,

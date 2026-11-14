@@ -106,19 +106,19 @@ export function formatIndexLevel(level: IndexPoints): string {
   }).format(level);
 }
 
-/** How many decimals a percentage shows: at most two, such as on the marks of an axis, or exactly two, so that the values of a column line up. */
-type PercentDecimals = "upToTwo" | "two";
+/** Columns align two decimals, and the monthly risk-free rate keeps three so its conversion stays visible. */
+type PercentDecimals = "upToTwo" | "two" | "three";
 
 const fewestPercentDecimals: Record<PercentDecimals, number> = {
   upToTwo: 0,
   two: 2,
+  three: 3,
 };
 const mostPercentDecimals = 2;
 
-/** The smallest step between the marks of an axis whose texts formatPercent or formatSignedPercent writes, a hundredth of a percent, so no two marks read the same. */
+/** Percent axes keep at most two decimals, so a hundredth of a percent is the smallest step that reads apart. */
 export const smallestPercentStep = 10 ** -(mostPercentDecimals + 2);
 
-/** Formats a fraction such as 0.07 as a percentage without a plus sign, such as 7% with at most two decimals or 7.00% with exactly two. */
 export function formatPercent(
   fraction: number,
   decimals: PercentDecimals = "upToTwo",
@@ -169,7 +169,10 @@ function percentOptions(decimals: PercentDecimals): Intl.NumberFormatOptions {
   return {
     style: "percent",
     minimumFractionDigits: fewestPercentDecimals[decimals],
-    maximumFractionDigits: mostPercentDecimals,
+    maximumFractionDigits: Math.max(
+      mostPercentDecimals,
+      fewestPercentDecimals[decimals],
+    ),
   };
 }
 
@@ -180,9 +183,9 @@ export function formatVariance(variance: MonthlyVariance): string {
   }).format(variance);
 }
 
-/** Formats a beta with two decimals, such as 0.69. */
-export function formatBeta(beta: Beta): string {
-  return formatTwoDecimals(beta);
+/** The axis names its market reference with one decimal, while measure columns align two decimals. */
+export function formatBeta(beta: Beta, decimals: 1 | 2 = 2): string {
+  return formatDecimalPlaces(beta, decimals);
 }
 
 /** Formats a correlation with two decimals, such as -0.25. */
@@ -195,17 +198,20 @@ export function formatSharpeRatio(ratio: SharpeRatio): string {
   return formatTwoDecimals(ratio);
 }
 
-function formatTwoDecimals(value: number): string {
-  return new Intl.NumberFormat(intlLocale(), {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-    signDisplay: "negative",
-  }).format(value);
-}
-
-/** Formats a difference of returns in percentage points, without a percent sign. */
 export function formatPercentagePoints(fraction: number): string {
   return formatTwoDecimals(fraction * 100);
+}
+
+function formatTwoDecimals(value: number): string {
+  return formatDecimalPlaces(value, 2);
+}
+
+function formatDecimalPlaces(value: number, decimals: number): string {
+  return new Intl.NumberFormat(intlLocale(), {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+    signDisplay: "negative",
+  }).format(value);
 }
 
 /** How a calendar date reads: in words for a sentence, in words with the day of the week, or with the short month of a table. */

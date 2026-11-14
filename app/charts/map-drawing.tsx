@@ -1,3 +1,4 @@
+import { MapArrow } from "./map-arrow";
 import type { ReactNode, Ref } from "react";
 import type { LabelPlace, PlacedLabels } from "./map-labels";
 import { keptNameRoom } from "./map-labels";
@@ -30,6 +31,7 @@ export const markReach = 0.33;
 // The marks of the stocks that the portfolio does not hold come first, so they never hide the marks of the portfolio, of its stocks, or of the IHSG, and the mark of the reader comes last.
 const drawOrder: Record<MarkKind, number> = {
   other: 0,
+  average: 0,
   held: 1,
   market: 2,
   own: 3,
@@ -45,6 +47,7 @@ export function MapDrawing({
   drawn,
   placed,
   texts,
+  showLine = true,
   active,
   drawingRef,
   measureRef,
@@ -53,6 +56,7 @@ export function MapDrawing({
   drawn: readonly DrawnPoint[];
   placed: PlacedLabels;
   texts: { title: string; level: string; line: string };
+  showLine?: boolean;
   active: DrawnPoint | undefined;
   drawingRef: Ref<SVGSVGElement>;
   measureRef: Ref<SVGTextElement>;
@@ -67,13 +71,41 @@ export function MapDrawing({
         y2={percentOf(layout.market.position.y)}
         className={styles["level"]}
       />
-      <line
-        x1={percentOf(layout.line.start.x)}
-        y1={percentOf(layout.line.start.y)}
-        x2={percentOf(layout.line.end.x)}
-        y2={percentOf(layout.line.end.y)}
-        className={styles["line"]}
-      />
+      {showLine && (
+        <line
+          x1={percentOf(layout.line.start.x)}
+          y1={percentOf(layout.line.start.y)}
+          x2={percentOf(layout.line.end.x)}
+          y2={percentOf(layout.line.end.y)}
+          className={styles["line"]}
+        />
+      )}
+      {drawn.map(({ point, placed: mark }) => (
+        <g key={`stem-${point.key}`}>
+          {mark.stem !== undefined && (
+            <line
+              x1={percentOf(mark.position.x)}
+              x2={percentOf(mark.position.x)}
+              y1={percentOf(mark.stem)}
+              y2={percentOf(mark.position.y)}
+              className={
+                mark.position.y < mark.stem
+                  ? styles["gainStem"]
+                  : styles["lossStem"]
+              }
+            />
+          )}
+          {point.arrowTo !== undefined && (
+            <MapArrow
+              from={mark}
+              to={
+                drawn.find((candidate) => candidate.point.key === point.arrowTo)
+                  ?.placed
+              }
+            />
+          )}
+        </g>
+      ))}
       {drawn
         .toSorted(
           (first, second) => drawOrder[first.kind] - drawOrder[second.kind],
@@ -217,6 +249,8 @@ function Mark({
       return dot(styles["held"]);
     case "other":
       return dot(styles["other"]);
+    case "average":
+      return dot(styles["average"]);
     case "market":
       return <Diamond placed={placed} />;
   }

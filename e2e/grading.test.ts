@@ -23,7 +23,7 @@ import { studentWithPortfolio } from "./student-with-portfolio.ts";
 import { wideWord } from "./wide-word.ts";
 import { widestClassNames } from "./widest-class-names.ts";
 
-// The server runs with the fixture price source and the closes of the global setup, which e2e/measures.test.ts and e2e/portfolio.test.ts describe. bbca-holding.ts describes the portfolio of the first student, whose measures e2e/measures.test.ts gives, and the second student holds only the most starting cash of a class. itmg-portfolio.ts describes a portfolio whose ITMG has no monthly returns. Each name is as long as its field takes, so the screens show their widest content.
+// Recorded prices keep the ranking reproducible, and bbca-portfolio-measures.ts records its independent expectations. Each name is as long as its field takes, so the screens show their widest content.
 const { className, lecturerName, studentName } = widestClassNames;
 const secondStudentName = wideWord("Kedua", nameMaximumLength);
 

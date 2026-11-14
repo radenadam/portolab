@@ -7,8 +7,7 @@ import { wibDateOf } from "~/wib";
 import { homeSparklineCloses } from "./home-sparkline-closes";
 import { cashSetAside } from "./open-orders";
 import { idxRulesOn } from "./idx-rules-on";
-import { readPortfolioReport } from "./read-portfolio-report.server";
-import { readStudentPortfolio } from "./read-student-portfolio.server";
+import { readStudentPortfolioReport } from "./read-student-portfolio-report.server";
 import { readPortfolioDayChange } from "./read-portfolio-day-change.server";
 
 /** Reads only the signed-in student's portfolio, after checking orders at this request's moment. */
@@ -21,17 +20,12 @@ export function readHomePortfolio(
     now: Date;
   },
 ) {
-  const { place, portfolio, source } = readStudentPortfolio(context, input);
+  const {
+    portfolio,
+    source,
+    report: fullReport,
+  } = readStudentPortfolioReport(context, input);
   const database = context.get(databaseContext);
-  const fullReport = readPortfolioReport(
-    database,
-    {
-      portfolio,
-      startingCash: place.owner.startingCash,
-      joinedAt: place.joinedAt,
-    },
-    { now: input.now, delayMinutes: source.delayMinutes },
-  );
   const report = {
     valuation: fullReport.valuation,
     history: fullReport.history,

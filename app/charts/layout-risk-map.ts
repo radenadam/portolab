@@ -16,6 +16,7 @@ import type { Range } from "./scale";
 export type MapMark =
   | { kind: "own" }
   | { kind: "held"; weight: PortfolioWeight | undefined }
+  | { kind: "average" }
   | { kind: "other" };
 
 /** A value that the tooltip of a point shows and a screen reader reads: the name of a measure with its value, as a text or as a change with a sign. */
@@ -32,6 +33,12 @@ export interface MapPoint<Across extends number, Up extends number> {
   name: string;
   across: Across;
   up: Up;
+  /** A calculation that a native point button opens, also before JavaScript loads. */
+  popover?: string;
+  /** The return from which an alpha stem runs to this point. */
+  stem?: Up;
+  /** The key of the point to which a diversification arrow runs. */
+  arrowTo?: string;
   values: readonly MapValue[];
 }
 
@@ -73,6 +80,7 @@ export interface PlacedMark {
   position: PlotPosition;
   radius: number;
   outerRadius: number;
+  stem?: PlotFraction;
 }
 
 /** Where the map draws each of its parts in its plot. */
@@ -130,26 +138,38 @@ export function layoutRiskMap<
   points: readonly Point[];
   across: MapAxis<Across>;
   up: MapAxis<Up>;
-  line: MapLine<Across, Up>;
+  line?: MapLine<Across, Up> | undefined;
 }): RiskMapLayout<Point> {
-  const { market, points, across, up, line } = map;
+  const { market, points, across, up } = map;
+  const line = map.line ?? {
+    name: "",
+    start: { across: across.toValue(0), up: market.up },
+  };
   const acrossRange = rangeOf(
-    [market, ...points, line.start].map((point) => point.across),
+    [
+      ...[market, ...points].map((point) => point.across),
+      ...(map.line === undefined ? [] : [line.start.across]),
+    ],
     across.toValue,
   );
-  if (market.across === line.start.across) {
+  if (map.line !== undefined && market.across === line.start.across) {
     throw new Error(
       `The line of the map starts at the risk of the IHSG, ${String(market.across)}, so it has no direction.`,
     );
   }
   const slope =
-    (market.up - line.start.up) / (market.across - line.start.across);
+    map.line === undefined
+      ? 0
+      : (market.up - line.start.up) / (market.across - line.start.across);
   const lineEnd = up.toValue(
     line.start.up + (acrossRange.max - line.start.across) * slope,
   );
   const upRange = rangeOf(
     [
       ...[market, ...points, line.start].map((point) => point.up),
+      ...points.flatMap((point) =>
+        point.stem === undefined ? [] : [point.stem],
+      ),
       up.toValue(0),
       lineEnd,
     ],
@@ -184,7 +204,13 @@ export function layoutRiskMap<
     line: { start: positionOf(line.start), end },
     points: points.map((point) => ({
       point,
-      placed: { position: positionOf(point), ...markSizeOf(point.mark) },
+      placed: {
+        position: positionOf(point),
+        ...markSizeOf(point.mark),
+        ...(point.stem === undefined
+          ? {}
+          : { stem: heightOf(upRange, point.stem) }),
+      },
     })),
     linePlaces: {
       level: levelPlaces(marketPosition.y),
@@ -279,6 +305,7 @@ function markSizeOf(mark: MapMark): { radius: number; outerRadius: number } {
       return { radius, outerRadius: radius };
     }
     case "other":
+    case "average":
       return { radius: otherRadius, outerRadius: otherRadius };
   }
 }

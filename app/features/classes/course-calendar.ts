@@ -112,3 +112,14 @@ export function termOf(firstSessionDate: string): Term {
 function sessionDate(firstSessionDate: string, session: SessionNumber): string {
   return addDays(firstSessionDate, (session - 1) * daysPerWeek);
 }
+
+export function courseSessionDates(
+  firstSessionDate: string | null,
+): { session: SessionNumber; date: string }[] {
+  return firstSessionDate === null
+    ? []
+    : sessionNumbers.map((session) => ({
+        session,
+        date: sessionDate(firstSessionDate, session),
+      }));
+}

@@ -12,6 +12,7 @@ export const conceptTermIds = [
   "harga-rata-rata",
   "laba-rugi",
   "rentang-52-minggu",
+  "diversifikasi",
 ] as const;
 
 export type ConceptTermId = (typeof conceptTermIds)[number];

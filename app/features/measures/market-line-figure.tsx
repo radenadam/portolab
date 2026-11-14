@@ -1,3 +1,4 @@
+import { marketBeta } from "./market-beta";
 import type { ReactNode } from "react";
 import { ChangeText } from "~/change-text";
 import { RiskMap } from "~/charts/risk-map";
@@ -67,7 +68,7 @@ export function MarketLineFigure({
 }): ReactNode {
   const index = marketIndex.code;
   const market: LinePoint = {
-    beta: beta(1),
+    beta: marketBeta,
     expectedReturn: line.marketExpectedReturn,
     distance: monthlyReturn(0),
   };
