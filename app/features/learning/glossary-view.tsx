@@ -31,16 +31,8 @@ export function GlossaryView({
         {m.learning_back_link()}
       </Link>
       <h1>{m.learning_glossary_title()}</h1>
-      <Form
-        method="post"
-        action={glossaryPath(classId)}
-        role="search"
-        className={styles["search"]}
-      >
+      <Form method="post" action={glossaryPath(classId)} role="search">
         <div className={styles["searchField"]}>
-          <label htmlFor="glossary-query" className={styles["visuallyHidden"]}>
-            {m.learning_search_hint()}
-          </label>
           <button
             type="submit"
             className={styles["searchSubmit"]}
@@ -49,9 +41,9 @@ export function GlossaryView({
             <Icon name="search" className={styles["icon"]} />
           </button>
           <input
-            id="glossary-query"
             type="search"
             name="q"
+            aria-label={m.learning_search_hint()}
             defaultValue={query}
             key={query}
             placeholder={m.learning_search_hint()}

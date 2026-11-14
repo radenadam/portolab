@@ -1,5 +1,5 @@
 .link {
-  composes: pathLink from "../../frame.module.css";
+  composes: link from "../../path-link.module.css";
   color: var(--color-link);
 }
 .details {
@@ -182,7 +182,7 @@
   text-decoration: none;
 }
 .avatar {
-  composes: avatar from "../../frame.module.css";
+  composes: avatar from "../../avatar.module.css";
   display: none;
   flex: none;
   align-items: center;

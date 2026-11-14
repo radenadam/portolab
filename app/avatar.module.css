@@ -1,0 +1,15 @@
+.avatar {
+  display: grid;
+  place-items: center;
+  width: var(--size-avatar);
+  height: var(--size-avatar);
+  border-radius: 50%;
+  background: var(--color-raised);
+  color: var(--color-ink-secondary);
+  font-size: var(--text-small);
+  font-weight: 600;
+}
+
+.avatar::before {
+  content: attr(data-initials);
+}
