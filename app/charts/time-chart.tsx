@@ -18,6 +18,7 @@ export function TimeChart<Point extends { date: string }>({
   labelledBy,
   dateLabel,
   tableLabel,
+  coloredChanges = false,
 }: {
   /** The points of the chart, oldest first, at least one. */
   points: readonly Point[];
@@ -28,6 +29,7 @@ export function TimeChart<Point extends { date: string }>({
   dateLabel: string;
   /** The label that opens the table of points. */
   tableLabel: string;
+  coloredChanges?: boolean;
 }): ReactNode {
   if (points.length === 0) return null;
   const layout = layoutTimeChart(
@@ -47,7 +49,10 @@ export function TimeChart<Point extends { date: string }>({
       tableLabel={tableLabel}
       valueText={(value: CumulativeReturn) => formatSignedPercent(value).text}
       valueNode={(value: CumulativeReturn) => (
-        <ChangeText change={formatSignedPercent(value)} />
+        <ChangeText
+          colored={coloredChanges}
+          change={formatSignedPercent(value)}
+        />
       )}
     />
   );

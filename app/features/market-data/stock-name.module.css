@@ -30,6 +30,15 @@
   line-height: 1.3;
 }
 
+.compact {
+  flex-wrap: nowrap;
+  align-items: center;
+}
+
+.compact .names {
+  flex-basis: auto;
+}
+
 .code {
   font-family: var(--font-code);
   font-weight: 500;

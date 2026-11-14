@@ -1,13 +1,12 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { databaseContext } from "~/database/database.server";
-import { classPath } from "~/features/classes/class-path";
 import type { ClassId } from "~/features/classes/classes.schema";
 import type { PriceSourceDescription } from "~/features/market-data/price-source.server";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
 import { holdingQuoteFailureText } from "~/features/trading/holding-quote-failure-text";
 import { ordersPath } from "~/features/trading/orders-path";
-import { portfolioPath } from "~/features/trading/portfolio-path";
+import { classPath } from "~/features/classes/class-path";
 import { readPortfolioValuation } from "~/features/trading/read-portfolio-report.server";
 import type { ValuationReport } from "~/features/trading/read-portfolio-report.server";
 import { readStudentPortfolio } from "~/features/trading/read-student-portfolio.server";
@@ -93,7 +92,7 @@ export default function MeasuresPage({
       <Link to={classPath(classId)} className={styles["link"]}>
         {m.measures_back_link({ class: className })}
       </Link>
-      <Link to={portfolioPath(classId)} className={styles["link"]}>
+      <Link to={classPath(classId)} className={styles["link"]}>
         {m.measures_portfolio_link()}
       </Link>
       <Link to={ordersPath(classId)} className={styles["link"]}>
