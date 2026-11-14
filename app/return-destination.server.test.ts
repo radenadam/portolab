@@ -19,6 +19,6 @@ test("sends a path to another site to the home page, and logs it as a warning wi
   expect(JSON.parse(writes[0] ?? "")).toMatchObject({
     level: "warning",
     message:
-      'returnTo must be a path on this site, such as /prices, but it is "//example.com".',
+      'returnTo must be a path on this site, such as /sign-in, but it is "//example.com".',
   });
 });

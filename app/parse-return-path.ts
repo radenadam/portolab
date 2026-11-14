@@ -39,6 +39,6 @@ function returnPathFailure(
   // A form gives null for a field that it did not send.
   const given = value === null ? "missing" : describeValue(value);
   return fail(
-    `${source} must be a path on this site, such as /prices, but it is ${given}.`,
+    `${source} must be a path on this site, such as /sign-in, but it is ${given}.`,
   );
 }

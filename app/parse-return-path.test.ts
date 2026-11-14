@@ -39,7 +39,7 @@ test("rejects a missing path and names the field", () => {
   expect(parseReturnPath(null, "returnTo", siteOrigin)).toEqual({
     ok: false,
     failure:
-      "returnTo must be a path on this site, such as /prices, but it is missing.",
+      "returnTo must be a path on this site, such as /sign-in, but it is missing.",
   });
 });
 
@@ -49,7 +49,7 @@ test("rejects a field that holds a file instead of text and names its type", () 
   ).toEqual({
     ok: false,
     failure:
-      "returnTo must be a path on this site, such as /prices, but it is a value of type File.",
+      "returnTo must be a path on this site, such as /sign-in, but it is a value of type File.",
   });
 });
 
@@ -68,7 +68,7 @@ test("rejects every value that a browser would resolve to another site", () => {
   ]) {
     expect(parseReturnPath(value, "returnTo", siteOrigin), value).toEqual({
       ok: false,
-      failure: `returnTo must be a path on this site, such as /prices, but it is ${JSON.stringify(value)}.`,
+      failure: `returnTo must be a path on this site, such as /sign-in, but it is ${JSON.stringify(value)}.`,
     });
   }
 });

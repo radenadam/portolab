@@ -35,14 +35,14 @@ Every screen of a class has an address under the class, in English words, which 
 - A view that a control of a screen chooses keeps its own address in the query of the screen, such as the map of Pasar instead of its list, a filter, a range of a chart, or the student whom Mahasiswa shows in its panel. A link sets it before JavaScript loads, and the back button returns to it.
 - A part of a page to which a link leads, such as the practice of a lesson or a term of Kamus, is the fragment of the address of its page.
 - A task of a lesson that opens another screen, such as the order ticket, names its lesson in the query of that screen, which shows the task in one line with the way back to the practice of the lesson.
-- Outside a class, the addresses stay as they are: signing in and out, the account and its setup, the privacy notice, the list of classes, where a lecturer creates one, joining a class with or without its code, the language, and the check of the health of the server. The guide for the lecturer gets `/guide`. The change that gives the pages outside a class the look of Peta sends a visitor from the home page to signing in and removes the public prices at `/prices`, as issue #127 tracks.
+- Outside a class, the addresses stay as they are: signing in and out, the account and its setup, the privacy notice, the list of classes, where a lecturer creates one, joining a class with or without its code, the language, and the check of the health of the server. The guide for the lecturer gets `/guide`. A visitor lands on sign-in with a link to join. Prices are available only in a class workspace.
 - Each screen takes its address in the change of issue #127 that rebuilds it. An item of the navigation leads to the page that holds it until then, and the address that a page leaves answers as one that does not exist, without a redirect, because no class has used it.
 
 ### The navigation
 
 - The items of a student are Beranda, Pasar, Aktivitas, Analisis, and Belajar. The items of a lecturer are Kelas, Mahasiswa, Portofolio, Pasar, and Belajar. Belajar joins both with the change that builds it, and Portofolio with the change that builds the demonstration portfolio, because an item that leads to another screen than its name would mislead.
 - A desktop shows the items in the rail, and a phone in the tab bar, each with its icon above its label, as decision 0028 sizes them. The current item is the item of the page, or of the nearest page above it, such as Pasar on a stock, and only on a page of the class of the workspace.
-- A visitor who is not signed in has the items of the prices, joining a class, and signing in. A person without a class and a person who has not finished the account have none.
+- A visitor who is not signed in has the items of joining a class and signing in. A person without a class and a person who has not finished the account have none.
 
 ### Landing in a class
 

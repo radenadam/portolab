@@ -1,3 +1,4 @@
+import { saveFixtureHistoryForTest } from "../app/features/market-data/save-fixture-history-for-test.server.ts";
 import { spawn } from "node:child_process";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -7,12 +8,8 @@ import {
   openDatabase,
 } from "../app/database/database.server.ts";
 import { migrationsFolderName } from "../app/database/migrations-folder-name.ts";
-import { fixtureHistory } from "../app/features/market-data/fixture-history.ts";
-import { saveDailyHistory } from "../app/features/market-data/history-store.server.ts";
 import { unvrCloseForTest } from "../app/features/market-data/left-out-quotes-for-test.ts";
 import { saveQuotes } from "../app/features/market-data/quote-store.server.ts";
-import { marketIndex } from "../app/features/market-data/tracked-instruments.ts";
-import { monthEndClosesForTest } from "../app/features/measures/month-end-closes-for-test.ts";
 import { waitForHealth, watchExit } from "../scripts/wait-for-health.ts";
 import { baseUrl, databasePathVariable, serverPort } from "./test-server.ts";
 
@@ -83,25 +80,13 @@ export default async function globalSetup(): Promise<() => Promise<void>> {
   }
 }
 
-/** Stores the recorded month-end closes of the IHSG, of BBCA, which has the monthly returns that a purchase needs, of AMMN, which listed later and so lies against another security market line, and of AADI, which has too few, and the closes of the IHSG and ITMG in the last week of October 2026 that the fixture source records, which the chart of a portfolio needs. The history job of the server asks the fixture source for the closes of the latest trading day, which its closes of October 2026 lack, so it stores none. The closes of October leave that month without a later close of the IHSG, so the count of monthly returns stays as the month-end closes give it. It also stores the quote of UNVR, which the fixture source leaves out, as an update at a moment before the server starts, so every later update misses it. */
+/** Seeding both month-end and daily histories lets the tests exercise measures and sparklines even when the fixture source lacks the history job's requested day. Keeping the older UNVR quote also distinguishes a missed update from a price never stored. */
 function storePricesOfTests(databasePath: string, now: Date): void {
   const database = openDatabase(
     databasePath,
     join(import.meta.dirname, "..", migrationsFolderName),
   );
-  for (const code of ["IHSG", "BBCA", "AMMN", "AADI"] as const) {
-    saveDailyHistory(database, monthEndClosesForTest(code));
-  }
-  for (const instrument of [
-    marketIndex,
-    { kind: "stock", code: "ITMG" },
-  ] as const) {
-    const history = fixtureHistory(instrument, "2026-10-26");
-    if (history === undefined) {
-      throw new Error(`The fixture records no closes of ${instrument.code}.`);
-    }
-    saveDailyHistory(database, history);
-  }
+  saveFixtureHistoryForTest(database, ["IHSG", "BBCA", "AMMN", "AADI"]);
   saveQuotes(database, [unvrCloseForTest], now);
   closeDatabase(database);
 }

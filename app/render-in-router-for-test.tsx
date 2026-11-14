@@ -6,13 +6,14 @@ import { createRoutesStub } from "react-router";
 export function renderInRouterForTest(
   part: ReactNode,
   rootData?: unknown,
+  initialPath = "/",
 ): string {
   const Stub = createRoutesStub([
-    { id: "root", path: "/", Component: () => part },
+    { id: "root", path: "*", Component: () => part },
   ]);
   return renderToStaticMarkup(
     <Stub
-      initialEntries={["/"]}
+      initialEntries={[initialPath]}
       hydrationData={{ loaderData: { root: rootData } }}
     />,
   );

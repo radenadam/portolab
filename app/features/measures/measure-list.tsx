@@ -12,7 +12,7 @@ import type { ReturnMeasure } from "./aligned-returns";
 import type { RequiredReturnMeasure, SecurityMarketLineMeasure } from "./capm";
 import { MarketLineFormula, RequiredReturnFormula } from "./formulas";
 import type { Subject } from "./formulas";
-import { measureConcept } from "./measure-concept";
+import { measureConcept, measureUnitText } from "./measure-concept";
 import type { MeasureConcept } from "./measure-concept";
 import styles from "./measures.module.css";
 import { monthSpanInputs, monthSpanOf } from "./month-span";
@@ -53,6 +53,8 @@ export function MeasureList({
 export function MeasureLabel({ row }: { row: MeasureRow }): ReactNode {
   const concept =
     row.concept === undefined ? undefined : measureConcept(row.concept);
+  const unit =
+    row.concept === undefined ? undefined : measureUnitText(row.concept);
   return (
     <>
       {row.label}
@@ -67,9 +69,7 @@ export function MeasureLabel({ row }: { row: MeasureRow }): ReactNode {
                 <p>
                   <strong>{row.value}</strong>
                 </p>
-                {concept.monthly && (
-                  <p>{m.measures_monthly_concept_notice()}</p>
-                )}
+                {unit !== undefined && <p>{unit}</p>}
               </>
             )
           }

@@ -68,6 +68,7 @@ export function TimeSeriesChart<
   valueNode,
   area = false,
   axisSide = "left",
+  legend = true,
 }: {
   points: readonly Point[];
   lines: readonly TimeLine<Point, Value>[];
@@ -79,19 +80,22 @@ export function TimeSeriesChart<
   valueNode: (value: Value) => ReactNode;
   area?: boolean;
   axisSide?: ValueAxisSide;
+  legend?: boolean;
 }): ReactNode {
   const latest = points.at(-1);
   if (latest === undefined) return null;
   return (
     <div className={styles["timeChart"]}>
-      <ul className={legendStyles["legend"]}>
-        {lines.map((line) => (
-          <li key={line.name} className={styles["legendItem"]}>
-            <LineKey kind={line.kind} />
-            {line.name} {valueNode(line.valueOf(latest))}
-          </li>
-        ))}
-      </ul>
+      {legend && (
+        <ul className={legendStyles["legend"]}>
+          {lines.map((line) => (
+            <li key={line.name} className={styles["legendItem"]}>
+              <LineKey kind={line.kind} />
+              {line.name} {valueNode(line.valueOf(latest))}
+            </li>
+          ))}
+        </ul>
+      )}
       <TimePlot
         points={points}
         lines={lines}

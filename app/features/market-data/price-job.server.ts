@@ -68,7 +68,7 @@ export function startPriceJob(
 }
 
 /**
- * Returns a function that runs an update. A call while the update runs asks for one more run right after it instead of a second one at the same time. So a run of the schedule that arrives during a long startup run still happens within its minute, as the prices page promises. An error is logged with this message instead of ending the process.
+ * Returns a function that runs an update. A call while the update runs asks for one more run right after it instead of a second one at the same time. So a run of the schedule that arrives during a long startup run still happens within its minute, as the class market page promises. An error is logged with this message instead of ending the process.
  * @internal Tests call it directly, because calling it through startPriceJob also starts the schedule.
  */
 export function serializeUpdates(
@@ -137,7 +137,7 @@ export async function runQuoteUpdate(
   });
 }
 
-// Returns the quotes that it stored. An answer without a usable quote is a failure too, so the job backs off and the prices page says so.
+// A successful response can still leave every stored price stale, so an empty batch counts as a failure.
 async function fetchAndSaveQuotes(
   settings: PriceJobSettings,
   now: Date,

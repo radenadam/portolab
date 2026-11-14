@@ -1,6 +1,8 @@
+import { TableHead } from "~/table-head";
 import type { ReactNode } from "react";
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router";
 import tableStyles from "~/data-table.module.css";
+import { pathReturningTo } from "~/features/accounts/path-returning-to";
 import type { ClassId } from "~/features/classes/classes.schema";
 import styles from "./measures.module.css";
 import { stockPath } from "~/features/market-data/stock-path";
@@ -26,15 +28,7 @@ export function MeasureTable({
   const [, ...valueColumns] = header;
   return (
     <table className={tableStyles["table"]}>
-      <thead>
-        <tr>
-          {header.map((label) => (
-            <th key={label} scope="col">
-              {label}
-            </th>
-          ))}
-        </tr>
-      </thead>
+      <TableHead labels={header} />
       <tbody>
         {rows.map((row) => (
           <tr key={row.key}>
@@ -70,12 +64,22 @@ function RowCells({
 export function StockLink({
   classId,
   code,
+  id,
 }: {
   classId: ClassId;
   code: string;
+  id: string;
 }): ReactNode {
+  const { pathname, search } = useLocation();
   return (
-    <Link to={stockPath(classId, code)} className={styles["link"]}>
+    <Link
+      id={id}
+      to={pathReturningTo(
+        stockPath(classId, code),
+        `${pathname}${search}#${id}`,
+      )}
+      className={styles["link"]}
+    >
       {code}
     </Link>
   );

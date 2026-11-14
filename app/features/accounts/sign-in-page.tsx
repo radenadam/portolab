@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { data, Form, redirect } from "react-router";
+import { data, Form, Link, redirect } from "react-router";
 import { clientAddressContext } from "~/client-address.server";
 import { databaseContext } from "~/database/database.server";
 import { FormFailure, SubmitButton, TextField } from "~/form";
@@ -137,6 +137,9 @@ export default function SignInPage({
         <SubmitButton label={m.accounts_sign_in_label()} />
       </Form>
       <p>{m.accounts_forgot_password_notice()}</p>
+      <Link to="/join" className={formStyles["joinLink"]}>
+        {m.accounts_join_link()}
+      </Link>
     </>
   );
 }

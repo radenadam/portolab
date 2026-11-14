@@ -40,7 +40,7 @@ const texts: Record<
     createClass: string;
     oneStudent: string;
     signOut: string;
-    pricesTitle: string;
+    marketTitle: string;
     notFoundTitle: string;
     shortBadge: string;
     longBadge: string;
@@ -61,7 +61,7 @@ const texts: Record<
     createClass: "Buat kelas",
     oneStudent: "1 mahasiswa",
     signOut: "Keluar",
-    pricesTitle: "Harga saham",
+    marketTitle: "Pasar",
     notFoundTitle: "Halaman tidak ditemukan",
     shortBadge: "Simulasi · ±10 mnt",
     longBadge: "Simulasi · harga tertunda ±10 mnt",
@@ -87,7 +87,7 @@ const texts: Record<
     createClass: "Create a class",
     oneStudent: "1 student",
     signOut: "Sign out",
-    pricesTitle: "Stock prices",
+    marketTitle: "Market",
     notFoundTitle: "Page not found",
     shortBadge: "Simulation · ±10 min",
     longBadge: "Simulation · prices delayed ±10 min",
@@ -145,7 +145,7 @@ async function signOutAndIn(
 ): Promise<void> {
   const menu = await openProfileMenu(page);
   await menu.getByRole("button", { name: texts[locale].signOut }).click();
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL("/sign-in");
   await page.goto("/sign-in");
   await submitSignIn(page, username, chosenPassword);
 }
@@ -289,7 +289,7 @@ for (const locale of locales) {
       .click();
     await expect(page).toHaveURL(`${testClass.path}/market`);
     await expect(
-      page.getByRole("heading", { level: 1, name: text.pricesTitle }),
+      page.getByRole("heading", { level: 1, name: text.marketTitle }),
     ).toBeVisible();
     await expectItems(page, locale, {
       items: items,
@@ -331,7 +331,7 @@ for (const locale of locales) {
     page,
   }) => {
     await chooseLanguage(page, locale);
-    await page.goto("/prices");
+    await page.goto("/sign-in");
     await expect(
       page.getByRole("button", {
         name: isPhone() ? text.shortBadge : text.longBadge,

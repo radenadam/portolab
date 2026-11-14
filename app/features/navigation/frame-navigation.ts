@@ -18,7 +18,7 @@ type WorkspaceItem =
   "home" | "market" | "activity" | "analysis" | "class" | "students";
 
 /** An item of the navigation of a visitor who is not signed in. */
-type VisitorItem = "prices" | "join" | "signIn";
+type VisitorItem = "join" | "signIn";
 
 type NavigationItem = WorkspaceItem | VisitorItem;
 
@@ -28,7 +28,7 @@ const roleItems: Record<Role, readonly [WorkspaceItem, ...WorkspaceItem[]]> = {
   lecturer: ["class", "students", "market"],
 };
 
-const visitorItems: readonly VisitorItem[] = ["prices", "join", "signIn"];
+const visitorItems: readonly VisitorItem[] = ["join", "signIn"];
 
 // Each item leads to the page that holds it today. Decision 0030 gives the address that each page takes when the change of issue #127 rebuilds its screen.
 const workspacePaths: Record<WorkspaceItem, (classId: ClassId) => string> = {
@@ -41,7 +41,6 @@ const workspacePaths: Record<WorkspaceItem, (classId: ClassId) => string> = {
 };
 
 const visitorPaths: Record<VisitorItem, string> = {
-  prices: "/prices",
   join: "/join",
   signIn: "/sign-in",
 };
@@ -53,7 +52,6 @@ const itemLabels: Record<NavigationItem, () => string> = {
   analysis: m.navigation_analysis_link,
   class: m.navigation_class_link,
   students: m.navigation_students_link,
-  prices: m.navigation_prices_link,
   join: m.navigation_join_link,
   signIn: m.navigation_sign_in_link,
 };
@@ -65,7 +63,6 @@ const itemIcons: Record<NavigationItem, IconName> = {
   analysis: "pie",
   class: "cap",
   students: "users",
-  prices: "trend",
   join: "join",
   signIn: "signIn",
 };
@@ -76,7 +73,6 @@ type RouteId = Exclude<keyof Register["routeModules"], "root">;
 // The item that is current on each page: the item of the page itself, or of the nearest page above it, such as the analysis above the measures of one stock. A page outside the items has none.
 const currentItems: Record<RouteId, NavigationItem | undefined> = {
   "features/home/home-page": undefined,
-  "features/market-data/prices-page": "prices",
   "features/market-data/market-page": "market",
   "features/accounts/sign-in-page": "signIn",
   "features/accounts/sign-out-page": undefined,

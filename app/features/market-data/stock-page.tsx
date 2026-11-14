@@ -27,7 +27,7 @@ import { rupiah } from "~/units/rupiah";
 import { wibDateOf } from "~/wib";
 import type { Route } from "./+types/stock-page";
 import { listStockHistory } from "./history-store.server";
-import { marketPath } from "./market-path";
+import { stockReturnDestination } from "./stock-return-destination.server";
 import { readPrices } from "./read-prices.server";
 import {
   attemptForCodes,
@@ -94,6 +94,7 @@ export function loader({ context, params, request, url }: Route.LoaderArgs) {
         });
   return {
     classId,
+    ...stockReturnDestination({ classId, role: reader.role, url, request }),
     code,
     quote,
     quoteNotice:
@@ -134,9 +135,9 @@ export default function StockPage({
       <header className={styles["header"]}>
         <div className={styles["identity"]}>
           <Link
-            to={marketPath(classId)}
+            to={stock.returnPath}
             className={styles["back"]}
-            aria-label={m.market_data_back_to_market_link()}
+            aria-label={stock.returnLabel}
           >
             ‹
           </Link>
@@ -186,6 +187,7 @@ export default function StockPage({
           history={stock.history}
           path={stockPath(classId, code)}
           range={stock.chartRange}
+          returnTo={stock.returnTo}
         />
       </section>
       {holding !== undefined && (

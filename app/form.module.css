@@ -157,3 +157,9 @@
   font-size: var(--text-mark);
   font-weight: 600;
 }
+
+.joinLink {
+  display: flex;
+  align-items: center;
+  min-block-size: var(--size-touch-target);
+}
