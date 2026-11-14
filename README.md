@@ -71,7 +71,7 @@ pnpm check:fast
 pnpm test:e2e e2e/stock.test.ts e2e/layout.test.ts
 ```
 
-The browser command runs the selected files on both the phone and desktop projects, with their tests in both languages. Choose files by what they cover, including callers of shared code, rather than only test files that changed. A change to shared layout, styles, or browser test infrastructure can need the full browser suite, which runs with `pnpm test:e2e`. A change confined to docs or scripts with no browser behavior needs no browser tests. CI runs `pnpm check` on every push to the pull request.
+The browser command runs the selected files on both the phone and desktop projects, with their tests in both languages. Choose files by what they cover, including callers of shared code, rather than only test files that changed. A change to shared layout, styles, or browser test infrastructure can need the full browser suite, which runs with `pnpm test:e2e`. A change confined to docs or scripts with no browser behavior needs no browser tests.
 
 To run checks at the same time, use a separate worktree for each run and give each a different `PORTOLAB_CHECK_SLOT` from `0` to `99`:
 
