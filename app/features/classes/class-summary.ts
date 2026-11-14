@@ -5,6 +5,7 @@ import {
   formatSignedPercent,
 } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
+import { marketBeta } from "~/features/measures/market-beta";
 import { beta } from "~/units/beta";
 import type { Beta } from "~/units/beta";
 import { cumulativeReturn } from "~/units/cumulative-return";
@@ -60,7 +61,11 @@ export function classSummary(
       above += 1;
   }
   let calmer = 0;
-  for (const risk of risks) if (risk < 1) calmer += 1;
+  const displayedMarketBeta = formatBeta(marketBeta);
+  for (const risk of risks) {
+    if (risk < marketBeta && formatBeta(risk) !== displayedMarketBeta)
+      calmer += 1;
+  }
   const headline =
     difference === undefined
       ? m.classes_comparison_pending_title()

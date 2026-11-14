@@ -4,6 +4,57 @@ import { minuteMilliseconds } from "./app/time-units.ts";
 
 const eslint = new ESLint();
 
+test(
+  "rejects the browser Location globals and accepts React Router navigation in app modules",
+  async () => {
+    for (const filePath of [
+      "app/charts/risk-map.tsx",
+      "app/features/classes/class-summary.ts",
+    ]) {
+      for (const object of ["window", "globalThis", "document"]) {
+        for (const access of [
+          `${object}.location.assign('/classes/1');`,
+          `${object}['location'].replace('/classes/1');`,
+          `${object}[\`location\`].href = '/classes/1';`,
+          `${object}?.location?.assign('/classes/1');`,
+          `const { location: address } = ${object}; address.href = '/classes/1';`,
+          `const { ['location']: address } = ${object}; address.assign('/classes/1');`,
+          `const { [\`location\`]: address } = ${object}; address.assign('/classes/1');`,
+        ]) {
+          expect(await rulesReporting(access, filePath), access).toContain(
+            "no-restricted-properties",
+          );
+        }
+      }
+      for (const access of [
+        "location.assign('/classes/1');",
+        "location.href = '/classes/1';",
+        "const address = location;",
+      ]) {
+        expect(await rulesReporting(access, filePath), access).toContain(
+          "no-restricted-globals",
+        );
+      }
+    }
+    const router = `import { useLocation, useNavigate } from 'react-router';
+export function RiskMap() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  void navigate(location.pathname);
+  return null;
+}`;
+    const reports = await rulesReporting(router, "app/charts/risk-map.tsx");
+    expect(reports).not.toContain("no-restricted-properties");
+    expect(reports).not.toContain("no-restricted-globals");
+    const outside = await rulesReporting(
+      "window.location.assign('/classes/1');",
+      "e2e/class-map.test.ts",
+    );
+    expect(outside).not.toContain("no-restricted-properties");
+  },
+  2 * minuteMilliseconds,
+);
+
 /** Lints code as if it were the file at the path, a file in scripts/ unless the test names another, and returns the rules that report it. The file must exist, because the type information that ESLint uses covers only files of the project. */
 async function rulesReporting(
   code: string,

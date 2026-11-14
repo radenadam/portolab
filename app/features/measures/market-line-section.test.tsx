@@ -1,4 +1,4 @@
-import { renderToStaticMarkup } from "react-dom/server";
+import { renderMarkupForTest } from "~/render-markup-for-test";
 import type { ReactNode } from "react";
 import { expect, test } from "vitest";
 import { languageNames } from "~/language-names";
@@ -27,7 +27,7 @@ import {
 
 // The heading names the map by an id that React gives it, which the markup leaves out with the classes.
 function render(part: ReactNode): string {
-  return renderToStaticMarkup(part).replaceAll(/ (class|id)="[^"]*"/g, "");
+  return renderMarkupForTest(part).replaceAll(/ id="[^"]*"/g, "");
 }
 
 /** The legend of the map, which names the kinds of point that it draws, the IHSG, and the line, each after a sample of its mark. */

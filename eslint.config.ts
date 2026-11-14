@@ -8,6 +8,7 @@ import jsxA11y from "eslint-plugin-jsx-a11y-x";
 import reactHooks from "eslint-plugin-react-hooks";
 import globals from "globals";
 import typescriptEslint from "typescript-eslint";
+import { browserNavigation } from "./lint/browser-navigation.ts";
 import { fileNamedAfterExport } from "./lint/file-named-after-export.ts";
 
 // Abbreviations that read as noise. Names use full words instead.
@@ -254,6 +255,7 @@ export default defineConfig(
       "prefer-const": "error",
     },
   },
+  browserNavigation,
   {
     files: ["app/**/*.tsx"],
     extends: [

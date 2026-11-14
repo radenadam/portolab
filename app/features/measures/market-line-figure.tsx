@@ -12,6 +12,7 @@ import { monthlyReturn } from "~/units/monthly-return";
 import type { MonthlyReturn } from "~/units/monthly-return";
 import { riskFreeSymbol, SecurityMarketLineFormula } from "./formulas";
 import { MeasureTable } from "./measure-table";
+import { marketBeta } from "./market-beta";
 import type { MeasureTableRow } from "./measure-table";
 import styles from "./measures.module.css";
 import type {
@@ -67,7 +68,7 @@ export function MarketLineFigure({
 }): ReactNode {
   const index = marketIndex.code;
   const market: LinePoint = {
-    beta: beta(1),
+    beta: marketBeta,
     expectedReturn: line.marketExpectedReturn,
     distance: monthlyReturn(0),
   };

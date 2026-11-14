@@ -12,6 +12,7 @@ import { storeTestHolding } from "./store-test-holding.ts";
 import { studentOfNewClass } from "./student-of-new-class.ts";
 import { widestClassNames } from "./widest-class-names.ts";
 import { writeForTestStudent } from "./write-for-test-student.ts";
+import { withHeldClientScripts } from "./with-held-client-scripts.ts";
 
 const texts: Record<
   Locale,
@@ -59,11 +60,67 @@ const texts: Record<
 };
 
 for (const locale of locales) {
+  test(`keeps the join details open and enables copying when JavaScript loads in ${locale}`, async ({
+    page,
+    browser,
+  }) => {
+    const text = texts[locale];
+    const { student, classPath } = await studentOfNewClass(page, browser, {
+      locale,
+      ...widestClassNames,
+    });
+    await page
+      .context()
+      .grantPermissions(["clipboard-read", "clipboard-write"]);
+    try {
+      await withHeldClientScripts(
+        page,
+        async () => {
+          const chip = page.locator("[data-join-code]:visible");
+          const code = await chip.getAttribute("data-join-code");
+          if (code === null) throw new Error("The workspace has no join code.");
+          await expect(chip).toHaveAccessibleName(
+            `${text.viewChip[0]}${code}${text.viewChip[1]}`,
+          );
+          const card = await openJoinDetails(page);
+          await expect(card).toBeVisible();
+          await expect(
+            card.getByRole("button", { name: text.copy, exact: true }),
+          ).toHaveCount(0);
+          return { card, code, details: await card.locator("dl").innerText() };
+        },
+        async ({ card, code, details }) => {
+          await expect(
+            page.locator("[data-join-code]:visible"),
+          ).toHaveAccessibleName(`${text.chip[0]}${code}${text.chip[1]}`);
+          await expect(card).toBeVisible();
+          expect(await card.locator("dl").innerText()).toBe(details);
+          await expect(page).toHaveURL(classPath);
+          await card
+            .getByRole("button", { name: text.copy, exact: true })
+            .click();
+          await expect(card.getByRole("status")).toHaveText(
+            `${text.copied[0]}${code}${text.copied[1]}`,
+          );
+          expect(
+            await page.evaluate(() => navigator.clipboard.readText()),
+          ).toBe(code);
+        },
+      );
+    } finally {
+      await student.context().close();
+    }
+  });
+
   test(`explores the class on either risk axis, opens a student, and shares its code in ${locale}`, async ({
     page,
     browser,
   }) => {
     const text = texts[locale];
+    let documentRequests = 0;
+    page.on("request", (request) => {
+      if (request.isNavigationRequest()) documentRequests += 1;
+    });
     const { student, classId, classPath } = await studentOfNewClass(
       page,
       browser,
@@ -97,8 +154,10 @@ for (const locale of locales) {
     await expect(page).toHaveURL(classPath);
     await map.focus();
     await page.keyboard.press("Home");
+    const documentsBeforeKey = documentRequests;
     await page.keyboard.press("Enter");
     await expect(page).toHaveURL(/\/students\/\d+\/portfolio$/);
+    expect(documentRequests).toBe(documentsBeforeKey);
     await page.goto(classPath);
     await expect(map).toBeVisible();
     const point = await page.locator("main svg circle").first().boundingBox();
@@ -107,12 +166,14 @@ for (const locale of locales) {
       x: point.x + point.width / 2,
       y: point.y + point.height / 2,
     };
+    const documentsBeforePointer = documentRequests;
     if (test.info().project.use.hasTouch === true) {
       await page.touchscreen.tap(center.x, center.y);
     } else {
       await page.mouse.click(center.x, center.y);
     }
     await expect(page).toHaveURL(/\/students\/\d+\/portfolio$/);
+    expect(documentRequests).toBe(documentsBeforePointer);
     await page.goto(classPath);
     await page.getByRole("button", { name: text.help, exact: true }).click();
     await expect(page.getByRole("dialog", { name: text.help })).toBeVisible();

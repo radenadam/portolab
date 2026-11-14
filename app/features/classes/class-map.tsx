@@ -15,6 +15,7 @@ import type { Beta } from "~/units/beta";
 import type { MonthlyReturn } from "~/units/monthly-return";
 import type { CumulativeReturn } from "~/units/cumulative-return";
 import { beta } from "~/units/beta";
+import { marketBeta } from "~/features/measures/market-beta";
 import { monthlyReturn } from "~/units/monthly-return";
 import { cumulativeReturn } from "~/units/cumulative-return";
 import type { ClassOverview } from "./read-class-overview.server";
@@ -24,8 +25,6 @@ import styles from "./class-overview.module.css";
 export type ClassRisk = Beta | MonthlyReturn;
 
 export type { ClassMapAxis } from "./parse-class-map-axis";
-
-const marketBeta = beta(1);
 
 /** Links preserve the selected risk axis in the address, so the choice works before JavaScript loads. */
 export function ClassMap({

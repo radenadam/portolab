@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useNavigate } from "react-router";
 import type { CSSProperties, PointerEvent, ReactNode } from "react";
 import { ChangeText } from "~/change-text";
 import { formatList } from "~/formatting";
@@ -59,6 +60,7 @@ export function RiskMap<Across extends number, Up extends number>({
   /** The id of the heading that names the map, which also names its slider. */
   labelledBy: string;
 }): ReactNode {
+  const navigate = useNavigate();
   const isInBrowser = useIsInBrowser();
   const layout = useMemo(
     () =>
@@ -164,7 +166,7 @@ export function RiskMap<Across extends number, Up extends number>({
         onKeyDown={(event) => {
           if (event.key === "Enter" && shown.point.href !== undefined) {
             event.preventDefault();
-            window.location.assign(shown.point.href);
+            void navigate(shown.point.href);
           } else sliderProps.onKeyDown?.(event);
         }}
         onClick={(event) => {
@@ -173,7 +175,7 @@ export function RiskMap<Across extends number, Up extends number>({
           if (area === null || size === undefined) return;
           const stop = nearestStop(stops, { event, area, textSize: size });
           const href = stop === undefined ? undefined : stops[stop]?.point.href;
-          if (href !== undefined) window.location.assign(href);
+          if (href !== undefined) void navigate(href);
         }}
         onPointerDown={markPointer}
         onPointerMove={markPointer}

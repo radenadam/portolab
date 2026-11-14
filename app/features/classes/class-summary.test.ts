@@ -3,6 +3,7 @@ import type { Locale } from "~/paraglide/runtime.js";
 import { locales } from "~/paraglide/runtime.js";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
 import { beta } from "~/units/beta";
+import { formatBeta } from "~/formatting";
 import { cumulativeReturn } from "~/units/cumulative-return";
 import { classSummary } from "./class-summary";
 
@@ -23,6 +24,7 @@ const texts: Record<
     above: readonly string[];
     calmer: readonly string[];
     medianBeta: string;
+    marketBeta: string;
   }
 > = {
   id: {
@@ -59,6 +61,7 @@ const texts: Record<
       "2 dari 3 portofolio terukur lebih tenang dari pasar",
     ],
     medianBeta: "0,75",
+    marketBeta: "1,00",
   },
   en: {
     oneAhead: "Class leads IHSG by 1.00 point",
@@ -94,6 +97,7 @@ const texts: Record<
       "2 of 3 measured portfolios are calmer than the market",
     ],
     medianBeta: "0.75",
+    marketBeta: "1.00",
   },
 };
 
@@ -146,7 +150,7 @@ for (const locale of locales) {
     expect(summary.medianBeta).toBe(texts[locale].medianBeta);
   });
 
-  test(`writes the whole sentence for every count of students above the market and measured portfolios below beta one in ${locale}`, () => {
+  test(`writes the whole sentence for every count and for betas that round to the market beta in ${locale}`, () => {
     switchLocaleForTest(locale);
     const text = texts[locale];
     const aboveCases = [
@@ -156,29 +160,37 @@ for (const locale of locales) {
       [0.1, 0, 0],
       [0.1, 0.1, 0],
     ];
+    expect(formatBeta(beta(0.996))).toBe(text.marketBeta);
     const riskCases = [
-      [],
-      [0.5],
-      [1],
-      [1, 1.1, 1.2],
-      [0.5, 0.6, 0.7],
-      [0.5, 1, 1.1],
-      [0.5, 0.6, 1],
+      { values: [], calmerIndex: 0 },
+      { values: [0.5], calmerIndex: 1 },
+      { values: [1], calmerIndex: 2 },
+      { values: [1, 1.1, 1.2], calmerIndex: 3 },
+      { values: [0.5, 0.6, 0.7], calmerIndex: 4 },
+      { values: [0.5, 1, 1.1], calmerIndex: 5 },
+      { values: [0.5, 0.6, 1], calmerIndex: 6 },
+      { values: [0.9949], calmerIndex: 1 },
+      { values: [0.995], calmerIndex: 2 },
+      { values: [0.996], calmerIndex: 2 },
+      { values: [1.0049], calmerIndex: 2 },
+      { values: [1.005], calmerIndex: 2 },
+      { values: [0.9949, 0.995, 1], calmerIndex: 5 },
+      { values: [0.995, 0.996, 1], calmerIndex: 3 },
     ];
     for (const [aboveIndex, returns] of aboveCases.entries()) {
-      for (const [riskIndex, risks] of riskCases.entries()) {
+      for (const { values, calmerIndex } of riskCases) {
         const summary = classSummary(
           returns.map((value) => ({
             portfolio: cumulativeReturn(value),
             market: cumulativeReturn(0),
           })),
-          risks.map(beta),
+          values.map(beta),
         );
         const median =
           aboveIndex === 0 || aboveIndex === 3 ? text.market : text.portfolio;
         const [start, versus, period, and] = text.comparison;
         expect(summary.sentence).toBe(
-          `${start}${median}${versus}${text.market}${period}${text.above[aboveIndex] ?? ""}${and}${text.calmer[riskIndex] ?? ""}.`,
+          `${start}${median}${versus}${text.market}${period}${text.above[aboveIndex] ?? ""}${and}${text.calmer[calmerIndex] ?? ""}.`,
         );
       }
     }
