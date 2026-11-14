@@ -12,7 +12,7 @@ permissions:
   contents: read
   pull-requests: read
 
-# Each agent runs in a job of its own whose token can only read, because a diff can carry instructions for it. Jobs pass data only through their outputs, so an agent can change only the outputs of its own job, such as its answer and its measure, and the review job parses each of them. The review job runs no agent: it rebuilds the report of the round from those outputs, posts the review, and gives the verdict in code, which no agent can skip. scripts/review-plan.ts caps the rounds, and at the cap the plan runs no agent and the review fails with the next step. AGENTS.md describes the panel.
+# Each agent runs in a job of its own whose token can only read, because a diff can carry instructions for it. Jobs pass data only through their outputs, so an agent can change only the outputs of its own job, such as its answer and its measure, and the review job parses each of them. The review job runs no agent: it rebuilds the report of the round from those outputs, posts the review, and gives the verdict in code, which no agent can skip. scripts/review-plan.ts sets reviewRoundLimit for ordinary reviews, mergeReviewRoundLimit for extra reviews of merges of the base branch alone, and checkRoundLimit for rounds that only check open findings. Failed rounds count too, and no cap resets another. Extra merge reviews read only the files whose conflicts the merges resolved. A merge that resolves nothing uses no round. When no remaining round may read or check a change, the plan runs no agent and the review fails with the next step. AGENTS.md and decision 0036 describe the panel.
 jobs:
   plan:
     name: plan

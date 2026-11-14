@@ -7,19 +7,27 @@ import {
   parseListField,
   parseStringsAt,
 } from "./json.ts";
+import type { CommitScope } from "./review-history.ts";
 import { numberFindings } from "./review-findings.ts";
 import type { ReviewerReport, RoundReport } from "./review-findings.ts";
 import { parseOptionalCommitHashAt } from "./review-inputs.ts";
 import { chooseLenses, parseLens } from "./review-lenses.ts";
 import type { ChangedFile, Lens } from "./review-lenses.ts";
-import { parseReviewState, parseRoundAt } from "./review-state.ts";
+import {
+  parseMergeRoundsAt,
+  parseReviewState,
+  parseRoundAt,
+} from "./review-state.ts";
 import type { ReviewState } from "./review-state.ts";
 
-/** The rounds in which the reviewer reads what changed, counting the rounds whose agent did not finish. Later rounds only check that the open findings are fixed, so a pull request that keeps drawing new findings still ends. */
+/** The rounds in which the reviewer reads any change, counting the rounds whose agent did not finish. */
 export const reviewRoundLimit = 3;
 
-/** The rounds after the review rounds that check the open findings. After them the panel runs no agent, and the author decides how the change continues. */
+/** The verifier-only rounds for fixes after the ordinary review rounds. Extra merge reviews do not replenish them. */
 export const checkRoundLimit = 2;
+
+/** The extra review rounds for conflicts resolved by merges of the base branch alone. Failed rounds count too, so repeated merges cannot restart the panel without end. */
+export const mergeReviewRoundLimit = 2;
 
 const planKinds = ["review", "check", "pass", "unchanged", "capped"] as const;
 
@@ -27,7 +35,7 @@ const planKinds = ["review", "check", "pass", "unchanged", "capped"] as const;
 export interface ReviewPlan {
   /**
    * - review: the reviewer reads the files under review through the lenses, and the verifier checks its findings and the open ones.
-   * - check: the verifier checks only the open findings, because the review rounds are used.
+   * - check: the verifier checks only the open findings, because the ordinary review rounds are used.
    * - pass: no agent runs, because no file changed and no finding is open.
    * - unchanged: no agent runs, because no file changed that could have fixed the open findings, so they stay open.
    * - capped: no agent runs, because files changed or findings stay open after every round that could handle them.
@@ -35,6 +43,8 @@ export interface ReviewPlan {
   kind: (typeof planKinds)[number];
   /** The round of this run, which counts it only when an agent runs. */
   round: number;
+  /** The extra merge review rounds used, including this run when it uses one. */
+  mergeRounds: number;
   /** The head that the last finished round reviewed, when the head of the pull request still contains it, so that only the commits after it need review. */
   since: string | undefined;
   /** The lenses of the reviewer, empty unless the plan is a review. */
@@ -47,10 +57,17 @@ export interface ReviewPlan {
 /** Plans one run of the panel from the state of the earlier rounds and the files under review: the whole change, or the files that the commits of the pull request changed since the head that the last finished round reviewed. */
 export function planReview(
   previous: ReviewState,
-  since: string | undefined,
+  history: { since: string | undefined; commitScope: CommitScope },
   files: readonly ChangedFile[],
 ): ReviewPlan {
-  const plan = { since, lenses: [], files: [], previous };
+  const { since, commitScope } = history;
+  const plan = {
+    since,
+    lenses: [],
+    files: [],
+    previous,
+    mergeRounds: previous.mergeRounds,
+  };
   const hasOpenFindings = previous.openFindings.length > 0;
   if (files.length === 0) {
     return {
@@ -59,17 +76,25 @@ export function planReview(
       round: previous.round,
     };
   }
-  if (previous.round < reviewRoundLimit) {
+  const ordinaryRounds = previous.round - previous.mergeRounds;
+  const extraMergeReview =
+    ordinaryRounds >= reviewRoundLimit && canReviewMerge(previous, history);
+  if (ordinaryRounds < reviewRoundLimit || extraMergeReview) {
     return {
       ...plan,
       kind: "review",
       round: previous.round + 1,
+      mergeRounds: previous.mergeRounds + (extraMergeReview ? 1 : 0),
       lenses: chooseLenses(files),
       files: files.map(({ path }) => path),
     };
   }
-  // Without an open finding, nothing explains a change after the review rounds, so it never passes unread.
-  if (hasOpenFindings && previous.round < reviewRoundLimit + checkRoundLimit) {
+  // Only fixes may use a verifier-only round, because merge resolutions need a reviewer.
+  if (
+    hasOpenFindings &&
+    commitScope === "author" &&
+    ordinaryRounds < reviewRoundLimit + checkRoundLimit
+  ) {
     return {
       ...plan,
       kind: "check",
@@ -81,6 +106,17 @@ export function planReview(
     kind: "capped",
     round: previous.round,
   };
+}
+
+function canReviewMerge(
+  previous: ReviewState,
+  history: { since: string | undefined; commitScope: CommitScope },
+): boolean {
+  return (
+    history.since !== undefined &&
+    history.commitScope === "base-merges" &&
+    previous.mergeRounds < mergeReviewRoundLimit
+  );
 }
 
 /** Tells the reviewer which part of the change the files under review hold, and how to read the diff of one of them, because the diff of a whole change can be too long for one read. */
@@ -118,6 +154,17 @@ export function parseReviewPlan(
   if (!round.ok) {
     return round;
   }
+  // The plan job checks out the pull request head, while the final job may read newer code from the merge with main.
+  const legacyPrevious =
+    isRecord(value["previous"]) &&
+    value["previous"]["mergeRounds"] === undefined;
+  const mergeRounds =
+    value["mergeRounds"] === undefined && legacyPrevious
+      ? succeed(0)
+      : parseMergeRoundsAt(value, source, round.value);
+  if (!mergeRounds.ok) {
+    return mergeRounds;
+  }
   const since = parseOptionalCommitHashAt(value, source, "since");
   if (!since.ok) {
     return since;
@@ -144,6 +191,7 @@ export function parseReviewPlan(
   return succeed({
     kind: kind.value,
     round: round.value,
+    mergeRounds: mergeRounds.value,
     since: since.value,
     lenses: chosenLenses.value,
     files: files.value,

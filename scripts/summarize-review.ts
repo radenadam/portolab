@@ -62,9 +62,9 @@ function scopeSentence(plan: ReviewPlan): string {
       : `the commits since ${plan.since}`;
   switch (plan.kind) {
     case "review":
-      return `Round ${String(plan.round)} reviewed ${commits}, in ${countOf(plan.files.length, "file", "files")}, through the ${listOfWords(plan.lenses)} ${singularOrPlural(plan.lenses.length, "lens", "lenses")}.`;
+      return `Round ${String(plan.round)} reviewed ${commits}, in ${countOf(plan.files.length, "file", "files")}, through the ${listOfWords(plan.lenses)} ${singularOrPlural(plan.lenses.length, "lens", "lenses")}.${plan.mergeRounds > plan.previous.mergeRounds ? " It used an extra merge review round." : ""}`;
     case "check":
-      return `Round ${String(plan.round)} only checked the open findings. No reviewer read ${commits}, because the panel has used its ${countOf(reviewRoundLimit, "review round", "review rounds")}.`;
+      return `Round ${String(plan.round)} only checked the open findings. No reviewer read ${commits}, because the panel has used its ${countOf(reviewRoundLimit, "ordinary review round", "ordinary review rounds")}.`;
     case "pass":
       return plan.since === undefined
         ? "No agent ran, because the pull request changes no file and no finding is open."

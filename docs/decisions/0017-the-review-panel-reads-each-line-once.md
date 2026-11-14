@@ -1,6 +1,6 @@
 # 0017. The review panel reads each line once
 
-- Status: Accepted
+- Status: Accepted. [Decision 0036](0036-merges-of-main-have-their-own-capped-review-rounds.md) changes which rounds may review merge resolutions after the ordinary cap and how the caps interact.
 - Date: 2026-11-03
 
 ## Context
@@ -13,7 +13,7 @@ The review panel ran a router agent, an agent for each lens that applied, and a 
 - **Evidence.** The reviewer names each file under review that it read and says what it checked through each lens, and the round fails when one is missing. A reviewer on Sonnet once passed a diff of 195 KB after 9 seconds with an empty answer, which nothing told apart from a clean review.
 - **Incremental rounds.** Each review records the head that it covered and the findings that stay open, in a marker that only the workflow's account can write. The next round reviews only the files that the commits of the pull request changed since that head, and the verifier checks whether each open finding is fixed. A push that changes no file under review runs no agent.
 - **Scope.** A finding blocks the merge only when the change causes it or leaves it incomplete. The job opens an issue for the verified findings outside the change and for the candidate standards, and a pull request of their own handles them. The defect protocol sweeps every other instance in that pull request too.
-- **Caps.** A round whose agent did not finish counts toward the review rounds that `scripts/review-plan.ts` allows. After them, a round only checks the open findings, and a change that no round may read fails. After the rounds that check, the job fails without an agent, and the author decides how the change continues, for example in a new pull request, which starts with new rounds.
+- **Caps.** A round whose agent did not finish counts toward the limits of `scripts/review-plan.ts`. [Decision 0036](0036-merges-of-main-have-their-own-capped-review-rounds.md) governs the rounds after the ordinary review cap.
 - **Measure.** Each review states the duration and the turns of each agent, which the job of the agent reads from its transcript. An agent could change them, as it can change every later step of its job, so they serve to compare rounds. A measure that cannot be read fails the round, like any output of a job that cannot be read.
 
 ## Alternatives
@@ -27,5 +27,5 @@ The review panel ran a router agent, an agent for each lens that applied, and a 
 
 - A round after the first reads a diff about the size of the fix, so it costs a fraction of a first round.
 - A finding that a lens would have reported on old code in a later round no longer appears, because no later round reads old code.
-- After the review rounds, a fix of an open finding is checked only by the verifier, and any other change fails the round. So after the cap, an author pushes only fixes of open findings and merges of `main`, as AGENTS.md says.
+- [Decision 0036](0036-merges-of-main-have-their-own-capped-review-rounds.md) governs what an author may push after the ordinary review rounds.
 - A sweep that a new standard needs lands in its own pull request, so `main` can hold old instances for a short time, and its issue names them.

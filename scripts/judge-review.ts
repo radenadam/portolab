@@ -1,6 +1,11 @@
 import { countOf, listOfWords, singularOrPlural } from "../app/sentences.ts";
 import type { Finding, RoundReport, Verdict } from "./review-findings.ts";
-import { checkRoundLimit, reviewRoundLimit, runsAgent } from "./review-plan.ts";
+import {
+  checkRoundLimit,
+  mergeReviewRoundLimit,
+  reviewRoundLimit,
+  runsAgent,
+} from "./review-plan.ts";
 import type { ReviewPlan } from "./review-plan.ts";
 import type { ReviewState } from "./review-state.ts";
 
@@ -66,8 +71,8 @@ function verdictWithoutAgent(plan: ReviewPlan): string | undefined {
   const openCount = plan.previous.openFindings.length;
   const reviewRounds = countOf(
     reviewRoundLimit,
-    "review round",
-    "review rounds",
+    "ordinary review round",
+    "ordinary review rounds",
   );
   const nextStep =
     "The author decides how the change continues, for example in a new pull request with the same commits, which starts with new rounds.";
@@ -79,8 +84,11 @@ function verdictWithoutAgent(plan: ReviewPlan): string | undefined {
     case "unchanged":
       return `${countOf(openCount, "verified finding in the change remains", "verified findings in the change remain")}, and no file of the pull request changed since the last finished round, so no agent ran. Push the fixes to start the next round.`;
     case "capped":
+      if (plan.mergeRounds >= mergeReviewRoundLimit) {
+        return `The panel has used its ${countOf(mergeReviewRoundLimit, "extra merge review round", "extra merge review rounds")}, so it ran no agent to read further changes. ${nextStep}`;
+      }
       if (openCount > 0) {
-        return `The panel has used its ${reviewRounds} and its ${countOf(checkRoundLimit, "round that checks open findings", "rounds that check open findings")}, and ${countOf(openCount, "finding stays open", "findings stay open")}, so it ran no agent. ${nextStep}`;
+        return `The panel has used its ${reviewRounds}, and this push cannot use a remaining merge review or one of its ${countOf(checkRoundLimit, "round that checks open findings", "rounds that check open findings")}. ${countOf(openCount, "finding stays open", "findings stay open")}, so it ran no agent. ${nextStep}`;
       }
       return `The panel has used its ${reviewRounds}, and ${
         plan.since === undefined
@@ -97,7 +105,7 @@ function unfinished(plan: ReviewPlan, verdict: string): Judgement {
     hasFinished: false,
     // A run whose agent did not finish still counts as a round, so that a failing agent cannot run without end.
     state: runsAgent(plan)
-      ? { ...plan.previous, round: plan.round }
+      ? { ...plan.previous, round: plan.round, mergeRounds: plan.mergeRounds }
       : undefined,
     verified: [],
     blocking: [],
@@ -206,6 +214,7 @@ function finished(input: ReviewInput): Judgement {
     state: {
       head: input.reviewedHead,
       round: input.plan.round,
+      mergeRounds: input.plan.mergeRounds,
       openFindings: blocking.map(withoutVerdict),
     },
     verified,

@@ -3,6 +3,7 @@ import type { Finding, Verdict } from "./review-findings.ts";
 import type { ChangedFile, Lens } from "./review-lenses.ts";
 import {
   checkRoundLimit,
+  mergeReviewRoundLimit,
   planReview,
   reviewRoundLimit,
 } from "./review-plan.ts";
@@ -62,7 +63,7 @@ function verdict(
 }
 
 function stateAfter(round: number, openFindings: Finding[]): ReviewState {
-  return { head: earlierHead, round, openFindings };
+  return { head: earlierHead, round, mergeRounds: 0, openFindings };
 }
 
 /** The coverage of a reviewer that read every file under review and checked through every lens. */
@@ -111,7 +112,11 @@ function finishedJobs(plan: ReviewPlan): Record<string, string> {
   return { plan: "success", reviewer, verifier };
 }
 
-const firstReview = planReview(stateBeforeFirstRound, undefined, [docs]);
+const firstReview = planReview(
+  stateBeforeFirstRound,
+  { since: undefined, commitScope: "author" },
+  [docs],
+);
 
 test("passes a first round without findings and records the reviewed head", () => {
   const outcome = summarizeReview(input(firstReview, [], undefined));
@@ -131,7 +136,7 @@ test("passes a first round without findings and records the reviewed head", () =
       "- docs: What the lens checked.",
       "- standards: What the lens checked.",
     ].join("\n"),
-    state: { head: reviewedHead, round: 1, openFindings: [] },
+    state: { head: reviewedHead, round: 1, mergeRounds: 0, openFindings: [] },
     outside: { round: 1, findings: [], candidateStandards: [] },
   });
 });
@@ -174,6 +179,7 @@ test("fails on a confirmed finding in the change, shows it with the verifier's s
   expect(outcome.state).toEqual({
     head: reviewedHead,
     round: 1,
+    mergeRounds: 0,
     openFindings: [
       { ...finding("1.1"), siblings: ["docs/decisions/0001.md:4"] },
     ],
@@ -230,7 +236,11 @@ test("passes with a confirmed finding outside the change and the candidate stand
 
 test("lists the open findings that the verifier found fixed, apart from the refuted and the duplicate findings", () => {
   const previous = stateAfter(1, [finding("1.1"), finding("1.2")]);
-  const plan = planReview(previous, earlierHead, [docs]);
+  const plan = planReview(
+    previous,
+    { since: earlierHead, commitScope: "author" },
+    [docs],
+  );
   const outcome = summarizeReview(
     input(
       plan,
@@ -297,7 +307,7 @@ test("counts several refuted and duplicate findings in the plural", () => {
 test("says that a round after the review rounds only checked the open findings, and that no reviewer read the new commits", () => {
   const plan = planReview(
     stateAfter(reviewRoundLimit, [finding("1.1")]),
-    earlierHead,
+    { since: earlierHead, commitScope: "author" },
     [docs],
   );
   expect(
@@ -306,18 +316,81 @@ test("says that a round after the review rounds only checked the open findings, 
       runs: ["The verifier ran for 2 minutes in 9 turns."],
     }).body,
   ).toContain(
-    `Round 4 only checked the open findings. No reviewer read the commits since ${earlierHead}, because the panel has used its 3 review rounds. The verifier ran for 2 minutes in 9 turns.`,
+    `Round 4 only checked the open findings. No reviewer read the commits since ${earlierHead}, because the panel has used its 3 ordinary review rounds. The verifier ran for 2 minutes in 9 turns.`,
+  );
+});
+
+test("records an extra merge review and checks its findings alongside earlier findings", () => {
+  const previous = stateAfter(reviewRoundLimit, [finding("1.1")]);
+  const plan = planReview(
+    previous,
+    { since: earlierHead, commitScope: "base-merges" },
+    [docs],
+  );
+  expect(plan.kind).toBe("review");
+  expect(plan.mergeRounds).toBe(1);
+  const outcome = summarizeReview(
+    input(
+      plan,
+      [finding("4.1"), finding("1.1")],
+      [verdict("4.1", "confirmed"), verdict("1.1", "refuted")],
+    ),
+  );
+  expect(outcome.passed).toBe(false);
+  expect(outcome.state).toMatchObject({
+    head: reviewedHead,
+    round: reviewRoundLimit + 1,
+    mergeRounds: 1,
+  });
+  expect(outcome.state?.openFindings.map(({ id }) => id)).toEqual(["4.1"]);
+  expect(outcome.body).toContain("It used an extra merge review round.");
+});
+
+test("counts failed merge reviews to their own cap without advancing the reviewed head", () => {
+  let previous = stateAfter(reviewRoundLimit, []);
+  for (let used = 0; used < mergeReviewRoundLimit; used += 1) {
+    const plan = planReview(
+      previous,
+      { since: earlierHead, commitScope: "base-merges" },
+      [docs],
+    );
+    expect(plan.kind).toBe("review");
+    const outcome = summarizeReview(input(plan, undefined, undefined));
+    expect(outcome.state).toEqual({
+      ...previous,
+      round: previous.round + 1,
+      mergeRounds: used + 1,
+    });
+    if (outcome.state === undefined) {
+      throw new Error("The failed merge round must save its counters.");
+    }
+    previous = outcome.state;
+  }
+  expect(previous.mergeRounds).toBe(mergeReviewRoundLimit);
+  expectFailureWithoutAgent(
+    planReview(previous, { since: earlierHead, commitScope: "base-merges" }, [
+      docs,
+    ]),
+    `The panel has used its 2 extra merge review rounds, so it ran no agent to read further changes. ${nextStep}`,
   );
 });
 
 test("passes without an agent when no file changed and no finding is open, with and without a reviewed head", () => {
   const sentences: [ReviewPlan, string][] = [
     [
-      planReview(stateBeforeFirstRound, undefined, []),
+      planReview(
+        stateBeforeFirstRound,
+        { since: undefined, commitScope: "author" },
+        [],
+      ),
       "No agent ran, because the pull request changes no file and no finding is open.",
     ],
     [
-      planReview(stateAfter(1, []), earlierHead, []),
+      planReview(
+        stateAfter(1, []),
+        { since: earlierHead, commitScope: "author" },
+        [],
+      ),
       `No agent ran, because the commits since ${earlierHead} changed no file of the pull request and no finding is open.`,
     ],
   ];
@@ -331,6 +404,7 @@ test("passes without an agent when no file changed and no finding is open, with 
     expect(outcome.state).toEqual({
       head: reviewedHead,
       round: plan.round,
+      mergeRounds: 0,
       openFindings: [],
     });
   }
@@ -366,7 +440,11 @@ test("fails without an agent and leaves the state as it was when no file changed
   ];
   for (const [openFindings, sentence] of cases) {
     expectFailureWithoutAgent(
-      planReview(stateAfter(1, openFindings), earlierHead, []),
+      planReview(
+        stateAfter(1, openFindings),
+        { since: earlierHead, commitScope: "author" },
+        [],
+      ),
       sentence,
     );
   }
@@ -380,16 +458,20 @@ test("fails without an agent after every round while one finding or several stay
   const cases: [Finding[], string][] = [
     [
       [finding("1.1")],
-      `The panel has used its 3 review rounds and its 2 rounds that check open findings, and 1 finding stays open, so it ran no agent. ${nextStep}`,
+      `The panel has used its 3 ordinary review rounds, and this push cannot use a remaining merge review or one of its 2 rounds that check open findings. 1 finding stays open, so it ran no agent. ${nextStep}`,
     ],
     [
       [finding("1.1"), finding("1.2")],
-      `The panel has used its 3 review rounds and its 2 rounds that check open findings, and 2 findings stay open, so it ran no agent. ${nextStep}`,
+      `The panel has used its 3 ordinary review rounds, and this push cannot use a remaining merge review or one of its 2 rounds that check open findings. 2 findings stay open, so it ran no agent. ${nextStep}`,
     ],
   ];
   for (const [openFindings, sentence] of cases) {
     expectFailureWithoutAgent(
-      planReview(stateAfter(lastCheck, openFindings), earlierHead, [docs]),
+      planReview(
+        stateAfter(lastCheck, openFindings),
+        { since: earlierHead, commitScope: "author" },
+        [docs],
+      ),
       sentence,
     );
   }
@@ -398,16 +480,25 @@ test("fails without an agent after every round while one finding or several stay
 test("fails without an agent when files change after the review rounds while no finding is open, and when no round finished reviewing the change", () => {
   const cases: [ReviewPlan, string][] = [
     [
-      planReview(stateAfter(reviewRoundLimit, []), earlierHead, [docs]),
-      `The panel has used its 3 review rounds, and the commits since ${earlierHead} changed files of the pull request while no finding was open, so no round may read them and no agent ran. ${nextStep}`,
+      planReview(
+        stateAfter(reviewRoundLimit, []),
+        { since: earlierHead, commitScope: "author" },
+        [docs],
+      ),
+      `The panel has used its 3 ordinary review rounds, and the commits since ${earlierHead} changed files of the pull request while no finding was open, so no round may read them and no agent ran. ${nextStep}`,
     ],
     [
       planReview(
-        { head: undefined, round: reviewRoundLimit, openFindings: [] },
-        undefined,
+        {
+          head: undefined,
+          round: reviewRoundLimit,
+          mergeRounds: 0,
+          openFindings: [],
+        },
+        { since: undefined, commitScope: "author" },
         [docs],
       ),
-      `The panel has used its 3 review rounds, and no round finished reviewing the change, so no round may read them and no agent ran. ${nextStep}`,
+      `The panel has used its 3 ordinary review rounds, and no round finished reviewing the change, so no round may read them and no agent ran. ${nextStep}`,
     ],
   ];
   for (const [plan, sentence] of cases) {
@@ -418,8 +509,16 @@ test("fails without an agent when files change after the review rounds while no 
 test("counts a round whose agent did not finish, but keeps the head and the open findings of the last finished round", () => {
   const afterOneRound = stateAfter(1, [finding("1.1")]);
   const afterReviews = stateAfter(reviewRoundLimit, [finding("1.1")]);
-  const review = planReview(afterOneRound, earlierHead, [order]);
-  const check = planReview(afterReviews, earlierHead, [order]);
+  const review = planReview(
+    afterOneRound,
+    { since: earlierHead, commitScope: "author" },
+    [order],
+  );
+  const check = planReview(
+    afterReviews,
+    { since: earlierHead, commitScope: "author" },
+    [order],
+  );
   const unfinished: [ReviewInput, ReviewState, string][] = [
     [
       input(review, undefined, undefined),
@@ -506,7 +605,11 @@ test("fails when one duplicate or several repeat no confirmed finding", () => {
 });
 
 test("fails a review whose report does not name a file under review as read, or one lens as checked", () => {
-  const plan = planReview(stateBeforeFirstRound, undefined, [docs]);
+  const plan = planReview(
+    stateBeforeFirstRound,
+    { since: undefined, commitScope: "author" },
+    [docs],
+  );
   const outcome = summarizeReview({
     ...input(plan, [], undefined),
     report: {
@@ -528,7 +631,11 @@ test("fails a review whose report does not name a file under review as read, or 
 });
 
 test("names several unread files and several unchecked lenses in the plural", () => {
-  const plan = planReview(stateBeforeFirstRound, undefined, [docs, order]);
+  const plan = planReview(
+    stateBeforeFirstRound,
+    { since: undefined, commitScope: "author" },
+    [docs, order],
+  );
   const outcome = summarizeReview({
     ...input(plan, [], undefined),
     report: {
@@ -588,7 +695,11 @@ test("refuses a review or an issue just past the length that GitHub takes, and a
 });
 
 test("fails a round when a job that the plan needs did not succeed, even after an answer, and points only at the logs of the jobs that ran", () => {
-  const review = planReview(stateBeforeFirstRound, undefined, [docs]);
+  const review = planReview(
+    stateBeforeFirstRound,
+    { since: undefined, commitScope: "author" },
+    [docs],
+  );
   const cases: [Record<string, string>, string][] = [
     [
       { plan: "success", reviewer: "success", verifier: "failure" },

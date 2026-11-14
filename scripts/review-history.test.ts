@@ -5,6 +5,7 @@ import { afterAll, beforeAll, expect, test } from "vitest";
 import { successValueForTest } from "../app/success-value-for-test.ts";
 import {
   containedHead,
+  readCommitScopeSince,
   readChangedFiles,
   readFilesChangedSince,
 } from "./review-history.ts";
@@ -14,6 +15,8 @@ let repository = "";
 // The head of the pull request when the last round reviewed it, and a commit of the base branch that the pull request never merged.
 let reviewedHead = "";
 let unmergedBaseCommit = "";
+let beforeMerge = "";
+let beforeCleanMerge = "";
 
 function git(...commandArguments: string[]): string {
   const run = runCommand(
@@ -63,10 +66,17 @@ beforeAll(() => {
   git("checkout", "--quiet", "feature");
   write("c.txt", "c of the pull request");
   git("commit", "--quiet", "--all", "--message=feature c");
+  beforeMerge = git("rev-parse", "HEAD");
   git("merge", "--quiet", "main", "--message=merge main");
   write("c.txt", "c resolved");
   git("add", "c.txt");
   git("commit", "--quiet", "--message=merge main");
+  beforeCleanMerge = git("rev-parse", "HEAD");
+  git("checkout", "--quiet", "main");
+  write("b.txt", "b updated again on main");
+  git("commit", "--quiet", "--all", "--message=main b again");
+  git("checkout", "--quiet", "feature");
+  git("merge", "--quiet", "main", "--message=merge main cleanly");
 });
 
 afterAll(() => {
@@ -94,6 +104,60 @@ test("reads the files that the commits of the pull request and a resolved confli
     ok: true,
     value: [{ path: "c.txt", change: "modified" }],
   });
+});
+
+test("recognizes merges of main alone, with and without conflict resolutions", () => {
+  for (const since of [beforeMerge, beforeCleanMerge]) {
+    expect(readCommitScopeSince(since, "main", repository)).toEqual({
+      ok: true,
+      value: "base-merges",
+    });
+  }
+  expect(
+    readFilesChangedSince(beforeCleanMerge, ["a.txt", "c.txt"], repository),
+  ).toEqual({ ok: true, value: [] });
+});
+
+test("rejects a merge allowance for author commits alongside a merge, even in the same resolved file", () => {
+  expect(
+    git("log", "--first-parent", "--format=%s", `${reviewedHead}..HEAD`),
+  ).toContain("feature c");
+  expect(readCommitScopeSince(reviewedHead, "main", repository)).toEqual({
+    ok: true,
+    value: "mixed",
+  });
+});
+
+test("rejects a merge of a branch outside main and an empty range", () => {
+  expect(readCommitScopeSince(beforeMerge, reviewedHead, repository)).toEqual({
+    ok: true,
+    value: "mixed",
+  });
+  expect(
+    readCommitScopeSince(git("rev-parse", "HEAD"), "main", repository),
+  ).toEqual({ ok: true, value: "author" });
+});
+
+test("classifies author commits without a merge for the verifier-only allowance", () => {
+  git("checkout", "--quiet", "--detach", beforeMerge);
+  try {
+    expect(readCommitScopeSince(reviewedHead, "main", repository)).toEqual({
+      ok: true,
+      value: "author",
+    });
+  } finally {
+    git("checkout", "--quiet", "feature");
+  }
+});
+
+test("passes on failures to read the merge history or the base", () => {
+  const cases: [string, string][] = [
+    ["missing-head", "main"],
+    [beforeMerge, "missing-base"],
+  ];
+  for (const [since, base] of cases) {
+    expect(readCommitScopeSince(since, base, repository).ok).toBe(false);
+  }
 });
 
 test("reads no file when no path of the change was touched", () => {
