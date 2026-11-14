@@ -41,6 +41,17 @@ export type LessonSection =
 
 export type SessionKind = "short" | "full" | "review" | "exam";
 
+export function isLessonKind(kind: SessionKind): boolean {
+  switch (kind) {
+    case "short":
+    case "full":
+      return true;
+    case "review":
+    case "exam":
+      return false;
+  }
+}
+
 export interface SessionContent {
   session: SessionNumber;
   kind: SessionKind;
@@ -62,6 +73,20 @@ export interface LearningContent {
 
 export interface LocalizedLearningContent extends LearningContent {
   locale: Locale;
+}
+
+export function lessonTerms(
+  lesson: SessionContent,
+  terms: readonly GlossaryTerm[],
+): GlossaryTerm[] {
+  const termIds = lesson.sections.flatMap((section) =>
+    section.id === "terms" ? section.termIds : [],
+  );
+  return terms
+    .filter((term) => termIds.includes(term.id))
+    .sort(
+      (first, second) => termIds.indexOf(first.id) - termIds.indexOf(second.id),
+    );
 }
 
 const unavailableSessions = {

@@ -69,14 +69,10 @@
 }
 
 .panel {
+  composes: panel from "../../panel.module.css";
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  min-width: 0;
-  padding: var(--space-4);
-  border: var(--size-line) solid var(--color-line);
-  border-radius: var(--radius-panel);
-  background: var(--color-panel);
 }
 
 .panel h2 {

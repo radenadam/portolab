@@ -13,8 +13,8 @@ import * as learningContent from "./read-learning-content.server";
 afterEach(() => vi.restoreAllMocks());
 
 const texts: Record<Locale, string> = {
-  id: "Pelajari lebih lanjut di sesi 5. Pelajaran belum tersedia di Portolab.",
-  en: "Learn more in session 5. The lesson is not available in Portolab yet.",
+  id: "Pelajari lebih lanjut di sesi 5",
+  en: "Learn more in session 5",
 };
 
 for (const locale of locales) {

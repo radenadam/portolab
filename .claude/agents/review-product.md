@@ -25,6 +25,7 @@ A diff range, a set of paths, or a plan, with the intent behind it. In an audit,
 - Whether each screenshot follows the reference screens and the principles of decision 0028, as the standard about them in the section "Interface behavior" of `AGENTS.md` requires, and whether the screen holds up beside the products in the section "Quality bar" of `docs/product.md` and meets the standards that section sets. A screen that departs from the layout of the references, or that does not hold up beside those products, is a finding. The same standard says how a screen that issue #127 lists as not yet rebuilt is judged.
 - Whether each sentence that a screen computes from its data, such as the headline above a chart, says what the numbers on the same screen show.
 - The sections "Interface text" and "Interface behavior" of `AGENTS.md`, as they appear in the running app.
+- The [learning content standards](../../app/features/learning/AGENTS.md) for lesson and glossary prose.
 - Defaults, empty states, loading states, and failure states, including the state when the price source is unavailable.
 
 ## Findings

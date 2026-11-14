@@ -81,20 +81,13 @@
   display: none;
 }
 
-.avatarButton,
-.topAvatarButton {
-  display: grid;
-  flex: none;
-  place-items: center;
-  width: var(--size-touch-target);
-  height: var(--size-touch-target);
-  padding: 0;
-  border: 0;
+.avatarButton {
+  composes: button from "./icon-button.module.css";
   border-radius: 50%;
-  background: none;
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
+}
+
+.topAvatarButton {
+  composes: avatarButton;
 }
 
 .avatar {

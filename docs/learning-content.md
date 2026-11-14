@@ -1,6 +1,6 @@
 # Learning content
 
-[Decision 0036](decisions/0036-lessons-and-the-glossary-are-content-in-both-languages.md) explains why lesson and glossary prose is Markdown. This content has no page yet. The remaining work of piece 22 in issue #127 adds the pages.
+[Decision 0036](decisions/0036-lessons-and-the-glossary-are-content-in-both-languages.md) explains why lesson and glossary prose is Markdown. Both roles open the learning pages at the addresses in [decision 0030](decisions/0030-each-class-is-one-workspace-with-its-own-addresses.md). The calendar and review cards follow [decision 0032](decisions/0032-a-class-meets-weekly-from-the-date-of-its-first-session.md).
 
 ## Reading content
 
@@ -8,7 +8,9 @@
 
 The module bundles `content/**/*.md` through Vite's raw imports. There is no content folder to locate at request time. `pnpm check` reads all shipped files through that entry in its unit tests. The parser also rejects unexpected Markdown files under the content folder, so a misspelled language or filename cannot disappear silently.
 
-Concept cards name a glossary term id. The root loader reads the glossary through `readConceptLessons` and supplies its term-to-session metadata to `ConceptLesson`, so cards follow the session in the content. The browser receives this metadata without the lesson prose. A regression test changes a glossary session and checks the notice through the server data and the card.
+Concept cards name a glossary term id. The root loader reads the glossary through `readConceptLessons` and supplies its term-to-session metadata to `ConceptLesson`, so a card in a class links to the session in the content and carries a path back to the page that opened it. Outside a class, the card names the session. The browser receives this metadata without the lesson prose. A regression test changes a glossary session and checks the lesson label through the server data and the card.
+
+Glossary search validates a POST before redirecting to its search address, so oversized text is refused before it becomes part of an address. The action and loader both use `parseGlossaryQuery`, whose limit comes from [`glossaryQueryMaximumLength`](../app/features/learning/glossary-query-maximum-length.ts).
 
 ## File format
 
@@ -32,7 +34,7 @@ Every configured language must have the same sessions, sections, term ids, lesso
 
 ## References
 
-A reference occupies one paragraph, such as `{{formula:beta}}` or `{{table:trading-rules}}`. Unknown names and inline references fail parsing. These are typed requests for the later page renderer, so they carry no duplicated formula or number. A page provides the relevant data and renders the named component or table in place. Content does not supply numerical fallback values.
+A reference occupies one paragraph, such as `{{formula:beta}}` or `{{table:trading-rules}}`. Unknown names and inline references fail parsing. These are typed requests for the lesson renderer, so they carry no duplicated formula or number. The current pages render all paragraphs and key terms. Formula and table references remain empty until pieces 23 and 30 provide their data and render the named components in place. Interactive and practice sections remain empty as well. Content supplies no numerical fallback values.
 
 | Formula id           | Existing component in the measures feature                                   |
 | -------------------- | ---------------------------------------------------------------------------- |
