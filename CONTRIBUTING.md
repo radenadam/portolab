@@ -11,4 +11,4 @@ After `pnpm build`, `pnpm size` reports the shared JavaScript, every route, the 
 
 ## Decision records
 
-Add a record in `docs/decisions/` with the next unused number in its filename and heading. Before pushing, merge `origin/main` into the branch and run `pnpm check`, which rejects duplicate decision numbers. If another pull request has taken the number, renumber the record that your pull request adds and update its heading, links, and mentions. Keep the number of the record already on main.
+Add a record in `docs/decisions/` with the next unused number in its filename and heading. Add its filename to [`docs/decisions/index.txt`](docs/decisions/index.txt) in number order, as [decision 0039](docs/decisions/0039-a-decision-catalog-makes-parallel-numbering-conflict.md) explains. Before pushing, merge `origin/main` into the branch and run `pnpm check`, which rejects duplicate decision numbers and an index that differs from the records. If another pull request has taken the number, renumber the record that your pull request adds and update its heading, links, mentions, and index entry. Keep the number of the record already on main.

@@ -30,10 +30,15 @@ export function Popover({
 }): ReactNode {
   const popoverRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
+  const previousLocationRef = useRef(location);
   useEffect(() => {
-    if (popoverRef.current?.matches(":popover-open") === true) {
+    if (
+      previousLocationRef.current !== location &&
+      popoverRef.current?.matches(":popover-open") === true
+    ) {
       popoverRef.current.hidePopover();
     }
+    previousLocationRef.current = location;
   }, [location]);
   return (
     <div
