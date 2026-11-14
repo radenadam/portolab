@@ -15,7 +15,7 @@ The author resolves the conflict by keeping the number already on main and renum
 
 ## Alternatives
 
-- **Require every branch to pass checks against the latest main.** [GitHub's strict status checks](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches#require-status-checks-before-merging) require branches to include the latest main before merging. Other merges can then force each screen branch to repeat its checks. The catalog requires an update only from a change to the set of decision records.
+- **Require every branch to pass checks against the latest main.** [GitHub's strict status checks](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches#require-status-checks-before-merging) require branches to include the latest main before merging. Other merges can then make every open pull request to main repeat its checks. The catalog requires an update only from a change to the set of decision records.
 - **Use a merge queue.** [GitHub requires an organization owner and workflows that check `merge_group`](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue). This would require moving the repository to an organization.
 - **Check filenames without a catalog.** Two passing pull requests can still merge duplicate numbers when neither includes the other.
 
