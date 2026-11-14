@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+import { fieldMaximumLength } from "./form-size";
 import { captureStderrForTest } from "./capture-stderr-for-test";
 import { returnDestination } from "./return-destination.server";
 
@@ -21,4 +22,16 @@ test("sends a path to another site to the home page, and logs it as a warning wi
     message:
       'returnTo must be a path on this site, such as /sign-in, but it is "//example.com".',
   });
+});
+
+test("keeps the selected student and full encoded search through sign-in", () => {
+  for (const character of ["W", "😀"]) {
+    const query = new URLSearchParams({
+      q: character.repeat(fieldMaximumLength),
+      measure: "sharpe",
+      student: "11",
+    });
+    const path = `/classes/7/students?${query.toString()}#selected-student`;
+    expect(returnDestination(path, request)).toBe(path);
+  }
 });

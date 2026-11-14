@@ -257,7 +257,8 @@ for (const locale of locales) {
       const card = page.getByRole("dialog", { name: "IHSG", exact: true });
       await card.getByText(text.calculation, { exact: true }).click();
       await expect(card.locator("details[open]")).toBeVisible();
-      await scripts.release();
+      scripts.release();
+      await page.waitForLoadState("load");
       await expect(
         page.getByRole("slider", { name: "IHSG", exact: true }),
       ).toBeVisible();

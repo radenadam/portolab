@@ -61,3 +61,11 @@
 .name {
   overflow-wrap: anywhere;
 }
+
+.reset {
+  composes: panel from "../../panel.module.css";
+  width: 100%;
+  max-width: var(--width-concept-card);
+  margin-inline: auto;
+  padding: var(--space-6);
+}

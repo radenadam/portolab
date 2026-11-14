@@ -207,7 +207,8 @@ for (const locale of locales) {
       const calculation = await openCalculation(card, locale);
       await expectBetaCalculation(card);
 
-      await scripts.release();
+      scripts.release();
+      await page.waitForLoadState("load");
       await expect(page.getByRole("slider").first()).toBeVisible();
       await expect(card).toBeVisible();
       await expect(calculation).toHaveAttribute("open", "");

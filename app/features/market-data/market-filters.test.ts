@@ -13,23 +13,36 @@ import {
 
 const texts: Record<
   Locale,
-  { field: string; invalid: string; notText: string; far: string }
+  {
+    field: string;
+    searchField: string;
+    invalid: string;
+    notText: string;
+    far: string;
+    maximum: string;
+  }
 > = {
   id: {
     field: "Urutan",
+    searchField: "Cari saham",
     invalid:
       'Kolom "Urutan" berisi "salah", yang bukan pilihan yang tersedia. Pilih Menurun atau Menaik, lalu terapkan lagi.',
     notText:
       'Formulir mengirim nilai bertipe number di kolom "Urutan", bukan teks. Muat ulang halaman, lalu isi formulirnya lagi.',
-    far: 'Kolom "Urutan" berisi {count} karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
+    far: 'Kolom "Urutan" berisi {count} karakter, lebih banyak daripada yang diterima kolom ini. Isi kolom itu dengan teks yang dimintanya.',
+    maximum:
+      'Kolom "Cari saham" memuat paling banyak {maximum} karakter, tetapi isinya {count} karakter. Persingkat isinya.',
   },
   en: {
     field: "Order",
+    searchField: "Search stocks",
     invalid:
       'The field "Order" holds "salah", which is not an available choice. Choose Descending or Ascending, then apply again.',
     notText:
       'The form sent a value of type number in the field "Order" instead of text. Reload the page and fill in the form again.',
-    far: 'The field "Order" has {count} characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
+    far: 'The field "Order" has {count} characters, more than this field takes. Fill it in with the text that it asks for.',
+    maximum:
+      'The field "Search stocks" holds at most {maximum} characters, but it has {count}. Shorten it.',
   },
 };
 for (const locale of locales) {
@@ -59,17 +72,33 @@ for (const locale of locales) {
       failure: texts[locale].notText,
     });
   });
-  test(`checks the size before normalizing a search at, past, and far past the limit in ${languageNames[locale]}`, () => {
+  test(`checks the size before normalizing a search or choice at, past, and far past the limit in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
-    expect(
-      parseMarketSearch("x".repeat(fieldMaximumLength), texts[locale].field).ok,
-    ).toBe(true);
-    for (const length of [fieldMaximumLength + 1, fieldMaximumLength * 10])
+    for (const [source, maximum, failure] of [
+      [texts[locale].field, "guard", texts[locale].far],
+      [texts[locale].searchField, "field", texts[locale].maximum],
+    ] as const) {
       expect(
-        parseMarketSearch(" ".repeat(length), texts[locale].field),
-      ).toEqual({
-        ok: false,
-        failure: texts[locale].far.replace("{count}", formatNumber(length)),
-      });
+        parseMarketSearch("x".repeat(fieldMaximumLength), source, maximum).ok,
+      ).toBe(true);
+      for (const length of [fieldMaximumLength + 1, fieldMaximumLength * 10]) {
+        const result = {
+          ok: false,
+          failure: failure
+            .replace("{count}", formatNumber(length))
+            .replace("{maximum}", formatNumber(fieldMaximumLength)),
+        };
+        const value = " ".repeat(length);
+        expect(parseMarketSearch(value, source, maximum)).toEqual(result);
+        if (maximum === "guard")
+          expect(
+            parseMarketChoice(value, source, {
+              options: marketDirectionOptions(),
+              fallback: "descending",
+            }),
+          ).toEqual(result);
+        else expect(parseMarketSearch(value, source)).toEqual(result);
+      }
+    }
   });
 }

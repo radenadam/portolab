@@ -23,8 +23,20 @@ const rupiahOptions: Intl.NumberFormatOptions = {
   maximumFractionDigits: 0,
 };
 
-export function formatRupiah(amount: Rupiah): string {
-  return new Intl.NumberFormat(intlLocale(), rupiahOptions).format(amount);
+type CurrencyNotation = "standard" | "compact";
+
+const rupiahFormats: Record<CurrencyNotation, Intl.NumberFormatOptions> = {
+  standard: rupiahOptions,
+  compact: { ...rupiahOptions, notation: "compact", maximumFractionDigits: 1 },
+};
+
+export function formatRupiah(
+  amount: Rupiah,
+  notation: CurrencyNotation = "standard",
+): string {
+  return new Intl.NumberFormat(intlLocale(), rupiahFormats[notation]).format(
+    amount,
+  );
 }
 
 /** One format supplies both the currency and digits when a headline sizes them apart. */

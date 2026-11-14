@@ -4,12 +4,12 @@ import type { ClassId } from "~/features/classes/classes.schema";
 
 /** The address of the portfolios of every student of a class, which only the lecturer of the class opens. */
 export function classPortfoliosPath(classId: ClassId): string {
-  return `${classPath(classId)}/portfolios`;
+  return `${classPath(classId)}/students`;
 }
 
 /** The address of the workbook that holds the portfolios of every student of a class. */
 export function portfoliosWorkbookPath(classId: ClassId): string {
-  return `${classPortfoliosPath(classId)}/export`;
+  return `${classPath(classId)}/workbook`;
 }
 
 /** The address of the portfolio of one student of a class, as the lecturer of the class reads it. */

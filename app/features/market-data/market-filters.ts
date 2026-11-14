@@ -39,11 +39,12 @@ export const defaultMarketFilters: MarketFilters = {
 export function parseMarketSearch(
   value: unknown,
   source: string,
+  maximum: "guard" | "field" = "field",
 ): Result<string, string> {
   if (value === null) return succeed("");
   if (typeof value !== "string")
     return fail(m.app_not_text_error({ field: source, type: typeName(value) }));
-  return checkFieldLengthForReader(value, source);
+  return checkFieldLengthForReader(value, source, maximum);
 }
 
 export function parseMarketChoice<Value extends string>(
@@ -54,7 +55,7 @@ export function parseMarketChoice<Value extends string>(
     fallback,
   }: { options: readonly FieldOption<Value>[]; fallback: Value },
 ): Result<Value, string> {
-  const text = parseMarketSearch(value, source);
+  const text = parseMarketSearch(value, source, "guard");
   if (!text.ok) return text;
   if (value === null) return succeed(fallback);
   const chosen = options.find((option) => option.value === text.value);
