@@ -171,7 +171,6 @@ function namedExport(
   return name === "default" ? undefined : name;
 }
 
-/** Turns a name such as quoteChange or PricesView into the file name quote-change or prices-view. */
 function kebabCase(name: string): string {
   return name
     .replace(/([a-z0-9])([A-Z])/g, "$1-$2")

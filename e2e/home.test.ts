@@ -10,14 +10,13 @@ import { isPhone, openLanguageMenu } from "./frame.ts";
 const texts: Record<
   Locale,
   {
-    tagline: string;
     badge: string;
     longBadge: string;
     navigation: string;
     visitorLinks: readonly (readonly [string, string])[];
     switchLabel: string;
-    pricesLink: string;
-    pricesTitle: string;
+    signInTitle: string;
+    joinLink: string;
     notFoundTitle: string;
     notFoundBody: string;
     backHomeLink: string;
@@ -26,19 +25,16 @@ const texts: Record<
   }
 > = {
   id: {
-    tagline:
-      "Laboratorium manajemen portofolio dengan harga saham Indonesia yang nyata.",
     badge: "Simulasi · ±10 mnt",
     longBadge: "Simulasi · harga tertunda ±10 mnt",
     navigation: "Navigasi utama",
     visitorLinks: [
-      ["Harga", "/prices"],
       ["Gabung ke kelas", "/join"],
       ["Masuk", "/sign-in"],
     ],
     switchLabel: "Bahasa",
-    pricesLink: "Lihat harga saham",
-    pricesTitle: "Harga saham",
+    signInTitle: "Masuk",
+    joinLink: "Gabung ke kelas dengan kodenya",
     notFoundTitle: "Halaman tidak ditemukan",
     notFoundBody:
       "Alamat ini tidak ada di Portolab. Periksa kembali alamatnya, atau kembali ke beranda.",
@@ -48,18 +44,16 @@ const texts: Record<
       "Portolab tidak dapat menampilkan halaman ini. Coba muat ulang halaman. Jika masalahnya berlanjut, beri tahu dosen Anda.",
   },
   en: {
-    tagline: "A portfolio management lab with real Indonesian stock prices.",
     badge: "Simulation · ±10 min",
     longBadge: "Simulation · prices delayed ±10 min",
     navigation: "Main navigation",
     visitorLinks: [
-      ["Prices", "/prices"],
       ["Join a class", "/join"],
       ["Sign in", "/sign-in"],
     ],
     switchLabel: "Language",
-    pricesLink: "See stock prices",
-    pricesTitle: "Stock prices",
+    signInTitle: "Sign in",
+    joinLink: "Join a class with its code",
     notFoundTitle: "Page not found",
     notFoundBody:
       "This address does not exist in Portolab. Check the address again, or go back to the home page.",
@@ -76,7 +70,7 @@ test(`opens the home page in ${languageNames[baseLocale]} for a reader who chose
   await page.goto("/");
   await expect(page.locator("html")).toHaveAttribute("lang", baseLocale);
   await expect(
-    page.getByRole("heading", { level: 1, name: "Portolab" }),
+    page.getByRole("heading", { level: 1, name: "Masuk" }),
   ).toBeVisible();
 });
 
@@ -95,23 +89,23 @@ for (const locale of locales.filter((other) => other !== baseLocale)) {
 for (const locale of locales) {
   const text = texts[locale];
 
-  test(`shows the home page and its link to the prices in ${languageNames[locale]}`, async ({
+  test(`opens sign-in with a link to join in ${languageNames[locale]}`, async ({
     page,
   }) => {
     await chooseLanguage(page, locale);
     await page.goto("/");
-    await expect(page).toHaveTitle("Portolab");
+    await expect(page).toHaveURL("/sign-in");
     await expect(
-      page.getByRole("heading", { level: 1, name: "Portolab" }),
+      page.getByRole("heading", { level: 1, name: text.signInTitle }),
     ).toBeVisible();
-    await expect(page.getByText(text.tagline)).toBeVisible();
+    await expect(page).toHaveTitle(`${text.signInTitle} | Portolab`);
     // A phone shows the short badge of the simulation, and a desktop the long one.
     await expect(
       page.getByRole("button", {
         name: isPhone() ? text.badge : text.longBadge,
       }),
     ).toBeVisible();
-    // A visitor who is not signed in finds the prices, joining a class, and sign-in among the items of the navigation, and no item is current on the home page.
+    // The redirected page keeps sign-in current in the visitor navigation.
     const navigation = page.getByRole("navigation", { name: text.navigation });
     await expect(navigation.getByRole("listitem")).toHaveCount(
       text.visitorLinks.length,
@@ -121,7 +115,7 @@ for (const locale of locales) {
         navigation.getByRole("link", { name, exact: true }),
       ).toHaveAttribute("href", path);
     }
-    await expect(navigation.locator("[aria-current]")).toHaveCount(0);
+    await expect(navigation.locator("[aria-current]")).toHaveCount(1);
     await openLanguageMenu(page);
     await expect(
       page.getByRole("group", { name: text.switchLabel }),
@@ -130,10 +124,8 @@ for (const locale of locales) {
       page.getByRole("button", { name: languageNames[locale] }),
     ).toHaveAttribute("aria-pressed", "true");
     await expectAccessibleScreen(page);
-    await page.getByRole("link", { name: text.pricesLink }).click();
-    await expect(
-      page.getByRole("heading", { level: 1, name: text.pricesTitle }),
-    ).toBeVisible();
+    await page.getByRole("link", { name: text.joinLink }).click();
+    await expect(page).toHaveURL("/join");
   });
 
   test(`shows the not found page for an unknown address in ${languageNames[locale]}`, async ({
@@ -177,7 +169,7 @@ async function failOnReturnTo(
   await page.goto(path);
   await page.waitForLoadState("networkidle");
   await page.getByRole("link", { name: linkName }).click();
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL("/sign-in");
   await page.route(/\.data(\?|$)/, (route) => route.fulfill({ status: 500 }));
   await page.goBack();
 }

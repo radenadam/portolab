@@ -1,3 +1,5 @@
+import { holdClientScripts } from "./hold-client-scripts.ts";
+import { screenshotWidths } from "./screenshot-widths.ts";
 import { expect, test } from "@playwright/test";
 import type { Browser, Locator, Page } from "@playwright/test";
 import type { Locale } from "../app/paraglide/runtime.js";
@@ -165,8 +167,7 @@ for (const locale of locales) {
     await openCalculation(card, locale);
     await expectBetaCalculation(card);
     await expectAccessibleScreen(page);
-    const widths = test.info().project.name === "phone" ? [360] : [1440, 1920];
-    for (const width of widths) {
+    for (const width of screenshotWidths(test.info())) {
       await page.setViewportSize({ width, height: 900 });
       for (const colorScheme of ["light", "dark"] as const) {
         await page.emulateMedia({ colorScheme });
@@ -198,33 +199,21 @@ for (const locale of locales) {
       locale,
       path: "/measures",
     });
-    const scripts = Promise.withResolvers<undefined>();
-    let heldScripts = 0;
-    await page.route("**/*", async (route) => {
-      if (route.request().resourceType() === "script") {
-        heldScripts += 1;
-        await scripts.promise;
-      }
-      await route.continue();
-    });
+    const scripts = await holdClientScripts(page);
     try {
-      await page.reload({ waitUntil: "commit" });
-      await expect.poll(() => heldScripts).toBeGreaterThan(0);
-      await expect(page.getByRole("slider")).toHaveCount(0);
+      await scripts.reloadNativePage();
       const address = page.url();
       const card = await openConcept(page, locale, text.beta);
       const calculation = await openCalculation(card, locale);
       await expectBetaCalculation(card);
 
-      scripts.resolve(undefined);
-      await page.waitForLoadState("load");
+      await scripts.release();
       await expect(page.getByRole("slider").first()).toBeVisible();
       await expect(card).toBeVisible();
       await expect(calculation).toHaveAttribute("open", "");
       await expect(page).toHaveURL(address);
     } finally {
-      scripts.resolve(undefined);
-      await page.unrouteAll({ behavior: "wait" });
+      await scripts.dispose();
       await lecturer.context().close();
     }
   });

@@ -44,7 +44,7 @@ const texts: Record<
 };
 
 function codeCell(code: string): string {
-  return `<th scope="row"><a href="/classes/7/stocks/${code}" data-discover="true">${code}</a></th>`;
+  return `<th scope="row"><a id="stock-${code}" href="/classes/7/stocks/${code}?returnTo=%2Fclasses%2F7%2Fmeasures%23stock-${code}" data-discover="true">${code}</a></th>`;
 }
 
 for (const locale of locales) {
@@ -56,6 +56,8 @@ for (const locale of locales) {
         classId={7 as ClassId}
         stocks={readStockRows(databaseWithClosesForTest())}
       />,
+      undefined,
+      "/classes/7/measures",
     ).replaceAll(/ class="[^"]*"/g, "");
     for (const part of [
       `<thead><tr>${text.header.map((label) => `<th scope="col">${label}</th>`).join("")}</tr></thead>`,

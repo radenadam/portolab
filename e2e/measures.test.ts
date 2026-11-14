@@ -85,6 +85,7 @@ const texts: Record<
     noHoldings: string;
     itmgFailure: string;
     stockTitle: string;
+    analysisLink: string;
     stockMeasures: string;
     aadiTitle: string;
     aadiFailure: string;
@@ -188,6 +189,7 @@ const texts: Record<
     itmgFailure:
       "Saham Anda dan IHSG baru sama-sama memiliki 0 imbal hasil bulanan dalam 60 bulan lengkap terakhir, dan ITMG memiliki imbal hasil paling sedikit, sedangkan Portolab menghitung ukuran portofolio hanya dari paling sedikit 24 imbal hasil bulanan. Jika IHSG dan setiap saham Anda tetap memiliki harga penutupan di akhir setiap bulan, Portolab menghitung ukuran portofolio Anda setelah pembaruan riwayat harga yang menyimpan harga penutupan hari bursa pertama November 2028.",
     stockTitle: "Saham BBCA",
+    analysisLink: "Kembali ke Analisis",
     stockMeasures: [
       "Imbal hasil yang diharapkan",
       "-0,10%",
@@ -317,6 +319,7 @@ const texts: Record<
     itmgFailure:
       "Your stocks and the IHSG share 0 monthly returns in the latest 60 complete months, and ITMG has the fewest returns, but Portolab computes the measures of a portfolio only from at least 24 monthly returns. If the IHSG and each of your stocks keep a close at the end of every month, Portolab computes the measures of your portfolio after the update of the price history that stores the close of the first trading day of November 2028.",
     stockTitle: "BBCA stock",
+    analysisLink: "Back to Analysis",
     stockMeasures: [
       "Expected return",
       "-0.10%",
@@ -570,7 +573,9 @@ for (const locale of locales) {
       locale,
     });
     await main.getByRole("link", { name: "BBCA", exact: true }).click();
-    await expect(student).toHaveURL(`${classPath}/stocks/BBCA`);
+    await expect(student).toHaveURL(
+      `${classPath}/stocks/BBCA?${new URLSearchParams({ returnTo: `${classPath}/measures#stock-BBCA` }).toString()}`,
+    );
     await expect(student).toHaveTitle(`${text.stockTitle} | Portolab`);
     const calculations = main
       .locator("details:not([popover] *)")
@@ -584,8 +589,8 @@ for (const locale of locales) {
     );
     await openReturnTables(student);
     await expectAccessibleScreen(student);
-    await student.goto(`${classPath}/measures`);
-    await expect(student).toHaveURL(`${classPath}/measures`);
+    await main.getByRole("link", { name: text.analysisLink }).click();
+    await expect(student).toHaveURL(`${classPath}/measures#stock-BBCA`);
     await main.getByRole("link", { name: "AADI", exact: true }).click();
     await expect(student).toHaveTitle(`${text.aadiTitle} | Portolab`);
     await expect(main).toContainText(text.aadiFailure);
@@ -688,7 +693,7 @@ for (const locale of locales) {
     await student.context().close();
   });
 
-  test(`answers a lecturer, a student who is not in the class, and a stock that Portolab does not track at the addresses of the measures as addresses that do not exist, in ${language}`, async ({
+  test(`refuses the portfolio measures of a lecturer, measures of another class, and an untracked stock, in ${language}`, async ({
     page,
     browser,
   }) => {

@@ -12,7 +12,7 @@ import { fractionOf, niceTicks, paddedRange } from "./scale";
 import type { Range } from "./scale";
 
 /** How a line of a chart over time is drawn: the portfolio that the chart is about, which is the reader's own or the one that the reader opened, in the color of the reader's own point, and a line that it is compared with, such as the IHSG, in the muted ink, as decision 0028 sets. */
-export type LineKind = "own" | "reference";
+export type LineKind = "own" | "reference" | "rise" | "fall" | "flat";
 
 /** A line of a chart over time: the name that its legend, its tooltip, and its table show, how it is drawn, and its value at each point of the chart. */
 export interface TimeLine<Point, Value extends number = CumulativeReturn> {

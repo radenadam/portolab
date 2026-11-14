@@ -472,7 +472,7 @@ test(
       forms: Record<string, LoadingForm>;
     }[] = [
       {
-        filePath: "app/features/market-data/prices-page.tsx",
+        filePath: "app/features/market-data/market-page.tsx",
         paths: [
           "./price-source-context.server",
           "~/features/market-data/price-source-context.server",
@@ -524,7 +524,7 @@ test(
 );
 
 // A module of market-data other than the one that the code of a test imports, because the type checker never finishes a module that imports itself and exports what it imports.
-const contextModule = "app/features/market-data/prices-page.tsx";
+const contextModule = "app/features/market-data/market-page.tsx";
 const createContextImport = 'import { createContext } from "react-router";\n';
 const namespaceImport = 'import * as Router from "react-router";\n';
 // A module that creates a context as it may, which a test then passes on.
@@ -673,7 +673,7 @@ const exportForms: Record<string, string> = {
 const otherFiles = [
   "app/formatting.ts",
   "app/features/market-data/quote-store.server.ts",
-  "app/features/market-data/prices-view.tsx",
+  "app/features/market-data/market-view.tsx",
   "scripts/json.ts",
   "server/server-options.ts",
   "e2e/choose-language.ts",
@@ -717,8 +717,8 @@ test(
         "export function quoteStore(): number { return 1; }",
       ],
       [
-        "app/features/market-data/prices-view.tsx",
-        "export function PricesView(): null { return null; }",
+        "app/features/market-data/market-view.tsx",
+        "export function MarketView(): null { return null; }",
       ],
       [
         "scripts/read-text-file.ts",
@@ -784,12 +784,12 @@ test(
       ),
     ).toContain(fileNameRule);
     const route =
-      "export function loader(): null { return null; }\nexport default function PricesPage(): null { return null; }";
+      "export function loader(): null { return null; }\nexport default function MarketPage(): null { return null; }";
     expect(
-      await rulesReporting(route, "app/features/market-data/prices-page.tsx"),
+      await rulesReporting(route, "app/features/market-data/market-page.tsx"),
     ).not.toContain(fileNameRule);
     expect(
-      await rulesReporting(route, "app/features/market-data/prices-view.tsx"),
+      await rulesReporting(route, "app/features/market-data/market-view.tsx"),
     ).toContain(fileNameRule);
   },
   minuteMilliseconds,

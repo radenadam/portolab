@@ -96,6 +96,20 @@
   /* A chart takes about a third of the screen of a phone held upright, so the text around it stays in view. */
   --size-chart: 16rem;
   /* A sparkline sits in a row of a list beside the price of its stock. */
+  --size-market-chart: 8.75rem;
+  --width-market-scale: 3.75rem;
+  --size-market-scale: 0.875rem;
+  --size-market-bar: 0.5rem;
+  --size-market-dot: 0.625rem;
+  --width-market-search: 18.75rem;
+  --width-market-sector: 12%;
+  --width-market-spark: 7%;
+  --width-market-price: 13%;
+  --width-market-change: 14%;
+  --width-market-measure: 12%;
+  --width-market-mobile-price: 6.5rem;
+  --width-market-mobile-spark: 3rem;
+  --text-index: 1.5rem;
   --width-sparkline: 4.75rem;
   --size-sparkline: 1.375rem;
   /* Fixed numeric columns let the date take the spare width in every table of closes and returns. */

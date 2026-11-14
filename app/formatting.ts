@@ -92,10 +92,13 @@ export function formatMinutes(
   }).format(minutes);
 }
 
+const indexLevelDecimals = 2;
+export const smallestIndexLevelStep = 10 ** -indexLevelDecimals;
+
 export function formatIndexLevel(level: IndexPoints): string {
   return new Intl.NumberFormat(intlLocale(), {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    minimumFractionDigits: indexLevelDecimals,
+    maximumFractionDigits: indexLevelDecimals,
   }).format(level);
 }
 

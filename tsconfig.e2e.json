@@ -57,6 +57,7 @@
     "app/features/market-data/market-data.schema.ts",
     "app/features/market-data/price-source.server.ts",
     "app/features/market-data/quote-store.server.ts",
+    "app/features/market-data/save-fixture-history-for-test.server.ts",
     "app/features/market-data/stock-quote.ts",
     "app/features/market-data/tracked-instruments.ts",
     "app/features/market-data/update-attempts.server.ts",

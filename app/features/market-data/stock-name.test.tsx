@@ -64,8 +64,8 @@ const stocksOfSectors: Record<Sector, StockOfSector> = {
     tile: "PW",
     name: "Pakuwon Jati Tbk",
     sector: {
-      id: "Properti &amp; Real Estat",
-      en: "Properties &amp; Real Estate",
+      id: "Properti & Real Estat",
+      en: "Properties & Real Estate",
     },
   },
   technology: {
@@ -84,9 +84,9 @@ const stocksOfSectors: Record<Sector, StockOfSector> = {
 
 /** The markup of a stock without the names of the classes of CSS modules, which carry a hash. */
 function renderStock(code: string, withSector: boolean): string {
-  return renderToStaticMarkup(
-    <StockName code={code} withSector={withSector} />,
-  ).replaceAll(/ class="[^"]*"/g, "");
+  return renderToStaticMarkup(<StockName code={code} withSector={withSector} />)
+    .replaceAll("&amp;", "&")
+    .replaceAll(/ class="[^"]*"/g, "");
 }
 
 for (const locale of locales) {

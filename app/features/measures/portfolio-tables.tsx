@@ -120,7 +120,13 @@ export function HoldingTable({
 function stockName(code: string, reader: PortfolioReader): ReactNode {
   switch (reader.kind) {
     case "owner":
-      return <StockLink classId={reader.classId} code={code} />;
+      return (
+        <StockLink
+          classId={reader.classId}
+          code={code}
+          id={`holding-${code}`}
+        />
+      );
     case "lecturer":
       return code;
   }

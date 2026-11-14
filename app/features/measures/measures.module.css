@@ -1,4 +1,5 @@
 .link {
+  scroll-margin-block-start: calc(var(--size-top-bar) + var(--space-4));
   display: inline-flex;
   align-items: center;
   min-height: var(--size-touch-target);

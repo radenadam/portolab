@@ -18,10 +18,19 @@ import { useIsInBrowser } from "./use-is-in-browser";
 const lineClasses: Record<LineKind, string | undefined> = {
   own: styles["own"],
   reference: styles["reference"],
+  rise: styles["rise"],
+  fall: styles["fall"],
+  flat: styles["flat"],
 };
 
 // The line that the chart is about comes last, so the line that it is compared with never hides it.
-const drawOrder: Record<LineKind, number> = { reference: 0, own: 1 };
+const drawOrder: Record<LineKind, number> = {
+  reference: 0,
+  own: 1,
+  rise: 1,
+  fall: 1,
+  flat: 1,
+};
 
 // Every length around the plot is a multiple of the size of the text of the chart, so the chart keeps its proportions when a reader enlarges the text.
 const dateBaseline = 1.5;

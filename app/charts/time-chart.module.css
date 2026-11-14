@@ -32,7 +32,10 @@
 }
 
 .ownKey,
-.referenceKey {
+.referenceKey,
+.riseKey,
+.fallKey,
+.flatKey {
   display: inline-block;
   inline-size: var(--space-4);
   block-size: var(--line-width);
@@ -121,4 +124,26 @@
 
 .points {
   align-self: stretch;
+}
+
+.rise {
+  --line-color: var(--color-gain);
+  --line-width: var(--size-mark);
+}
+.fall {
+  --line-color: var(--color-loss);
+  --line-width: var(--size-mark);
+}
+.flat {
+  --line-color: var(--color-muted);
+  --line-width: var(--size-mark);
+}
+.riseKey {
+  composes: rise;
+}
+.fallKey {
+  composes: fall;
+}
+.flatKey {
+  composes: flat;
 }

@@ -3,15 +3,33 @@ import { succeed } from "~/result";
 import { checkFieldLengthForReader } from "~/form-text";
 import type { Result } from "~/result";
 import { parseChoice } from "~/value-parsers";
+import type { FieldOption } from "~/form";
+import { formatNumber } from "~/formatting";
+import { m } from "~/paraglide/messages.js";
+import { monthsPerYear } from "~/time-units";
 
-export const priceChartRanges = ["1m", "3m", "1y", "5y"] as const;
+const priceChartRanges = ["1m", "3m", "1y", "5y"] as const;
 export type PriceChartRange = (typeof priceChartRanges)[number];
-const monthsOfRange: Record<PriceChartRange, number> = {
+export const priceChartMonths: Readonly<Record<PriceChartRange, number>> = {
   "1m": 1,
   "3m": 3,
-  "1y": 12,
-  "5y": 60,
+  "1y": monthsPerYear,
+  "5y": 5 * monthsPerYear,
 };
+
+export function priceChartRangeOptions(): FieldOption<PriceChartRange>[] {
+  return priceChartRanges.map((value) => ({
+    value,
+    label:
+      priceChartMonths[value] < monthsPerYear
+        ? m.market_data_month_range_label({
+            count: formatNumber(priceChartMonths[value]),
+          })
+        : m.market_data_year_range_label({
+            count: formatNumber(priceChartMonths[value] / monthsPerYear),
+          }),
+  }));
+}
 
 export function parsePriceChartRange(
   value: unknown,
@@ -27,7 +45,7 @@ export function parsePriceChartRange(
 
 /** A month may lack the starting day, so subtracting months must stay inside it. */
 export function priceChartStart(date: string, range: PriceChartRange): string {
-  const first = startOfMonth(date, -monthsOfRange[range]);
+  const first = startOfMonth(date, -priceChartMonths[range]);
   const last = addDays(startOfMonth(first, 1), -1);
   const day = Math.min(
     startOfUtcDate(date).getUTCDate(),

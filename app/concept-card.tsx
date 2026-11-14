@@ -36,10 +36,12 @@ export function ConceptCard({
             <p className={styles["label"]}>{m.app_concept_example_label()}</p>
             {example}
           </div>
-          <details>
-            <summary>{m.app_concept_calculation_label()}</summary>
-            <div className={styles["calculation"]}>{calculation}</div>
-          </details>
+          {calculation !== undefined && (
+            <details>
+              <summary>{m.app_concept_calculation_label()}</summary>
+              <div className={styles["calculation"]}>{calculation}</div>
+            </details>
+          )}
           <p className={styles["lesson"]}>{lesson}</p>
         </div>
       </Popover>

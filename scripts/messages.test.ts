@@ -96,17 +96,17 @@ test("reads the locales from the inlang settings and rejects settings without th
 
 test("chooses the browser tests and the tests of the app, and no other file", () => {
   for (const path of [
-    "e2e/prices.test.ts",
-    "app/features/market-data/prices-view.test.tsx",
+    "e2e/market.test.ts",
+    "app/features/market-data/market-view.test.tsx",
     "app/formatting.test.ts",
   ]) {
     expect(isInterfaceTest(path), path).toBe(true);
   }
   for (const path of [
     "e2e/languages.ts",
-    "app/features/market-data/prices-view.tsx",
+    "app/features/market-data/market-view.tsx",
     "scripts/messages.test.ts",
-    ".github/review/prices.test.ts",
+    ".github/review/market.test.ts",
   ]) {
     expect(isInterfaceTest(path), path).toBe(false);
   }

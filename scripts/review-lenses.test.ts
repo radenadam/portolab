@@ -68,7 +68,7 @@ const expectedLenses: [ChangedFile, Lens[]][] = [
     ["consistency", "craft", "docs", "reliability", "standards"],
   ],
   [
-    modified("e2e/prices.test.ts"),
+    modified("e2e/market.test.ts"),
     ["consistency", "craft", "docs", "reliability", "standards"],
   ],
   [

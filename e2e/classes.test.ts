@@ -362,7 +362,7 @@ async function signOutInAnotherTab(page: Page): Promise<void> {
     .getByRole("main")
     .locator("form[action='/sign-out'] button")
     .click();
-  await expect(otherTab).toHaveURL("/");
+  await expect(otherTab).toHaveURL("/sign-in");
   await otherTab.close();
 }
 
@@ -910,7 +910,7 @@ for (const locale of locales) {
       .getByRole("main")
       .getByRole("button", { name: text.signOutButton })
       .click();
-    await expect(otherLecturer).toHaveURL("/");
+    await expect(otherLecturer).toHaveURL("/sign-in");
     await otherLecturer.goto(testClass.joinPath);
     await expect(
       otherLecturer.getByRole("heading", {

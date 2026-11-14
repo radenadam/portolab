@@ -308,7 +308,7 @@ Delete the copies on your computer as well.
 
 ## When prices stop updating
 
-Portolab fetches delayed prices from Yahoo Finance, as [decision 0001](decisions/0001-delayed-prices-come-from-yahoo-finance.md) explains. When Yahoo fails to answer, Portolab keeps the last prices that it stored and tries again by itself. The prices page names each price that it could not update and the time of the next attempt. A restart does not make Portolab try sooner, because it keeps the time of the next attempt in its database.
+Portolab fetches delayed prices from Yahoo Finance, as [decision 0001](decisions/0001-delayed-prices-come-from-yahoo-finance.md) explains. When Yahoo fails to answer, Portolab keeps the last prices that it stored and tries again by itself. The class market page names each price that it could not update and the time of the next attempt. A restart does not make Portolab try sooner, because it keeps the time of the next attempt in its database.
 
 The log of Portolab names the reason of each failure:
 

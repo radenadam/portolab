@@ -5,6 +5,9 @@ import styles from "./time-chart.module.css";
 const keyClasses: Record<LineKind, string | undefined> = {
   own: styles["ownKey"],
   reference: styles["referenceKey"],
+  rise: styles["riseKey"],
+  fall: styles["fallKey"],
+  flat: styles["flatKey"],
 };
 
 /** A short piece of a line of a chart in its color, which names the line in a legend or a tooltip beside its name. */

@@ -3,7 +3,6 @@ import {
   currentOrNextSessionStart,
   isContinuousTradingTime,
   isPriceUpdateTime,
-  isSameWibDay,
   isTradingDay,
   latestClosedTradingDay,
   pricesFinalAt,
@@ -106,22 +105,6 @@ test("fails for a date that no calendar covers and names the date", () => {
     failure:
       "No IDX trading calendar covers 2025-12-31, so add the holidays and trading hours of that year to idx-calendar.ts.",
   });
-});
-
-test("compares days in WIB, not in UTC", () => {
-  // 18:00 UTC on 30 October 2026 is 01:00 WIB on 31 October, a day after 09:00 UTC on 30 October.
-  expect(
-    isSameWibDay(
-      new Date("2026-10-30T09:00:00Z"),
-      new Date("2026-10-30T18:00:00Z"),
-    ),
-  ).toBe(false);
-  expect(
-    isSameWibDay(
-      new Date("2026-10-30T02:00:00Z"),
-      new Date("2026-10-30T16:00:00Z"),
-    ),
-  ).toBe(true);
 });
 
 test("ends the price hours later for a source with a longer delay", () => {

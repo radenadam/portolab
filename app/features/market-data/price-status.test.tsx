@@ -7,7 +7,7 @@ import { switchLocaleForTest } from "~/switch-locale-for-test";
 import { indexPoints } from "~/units/index-points";
 import { rupiah } from "~/units/rupiah";
 import type { PriceSourceDescription, Quote } from "./price-source.server";
-import { PricesView } from "./prices-view";
+import { PriceStatus } from "./price-status";
 import {
   attemptInStateForTest,
   halfMinuteAfterForTest,
@@ -112,7 +112,7 @@ interface ScreenState {
   quotes: Quote[];
   latestAttempt: UpdateAttempt | undefined;
   now: Date;
-  shows: Record<Locale, string>;
+  shows: Record<Locale, string> | undefined;
   hides: Record<Locale, string>;
 }
 
@@ -144,10 +144,7 @@ const states: ScreenState[] = [
     quotes,
     latestAttempt: succeededAttempt,
     now: halfMinuteAfterFailure,
-    shows: {
-      id: "Harga tertunda sekitar 10 menit",
-      en: "Prices are delayed by about 10 minutes",
-    },
+    shows: undefined,
     hides: { id: "Portolab mencoba lagi", en: "Portolab tries again" },
   },
   {
@@ -278,51 +275,18 @@ for (const state of states) {
     test(`says the right thing for ${state.name} in ${languageNames[locale]}`, () => {
       switchLocaleForTest(locale);
       const html = renderToStaticMarkup(
-        <PricesView
+        <PriceStatus
           quotes={state.quotes}
           latestAttempt={state.latestAttempt}
           now={state.now}
           source={yahooFinance}
         />,
       );
-      expect(html).toContain(state.shows[locale]);
+      if (state.shows === undefined) expect(html).toBe("");
+      else expect(html).toContain(state.shows[locale]);
       expect(html).not.toContain(state.hides[locale]);
     });
   }
-}
-
-// The BBRI price is from two weeks before the newest price, and the BBCA price is from its day.
-const quoteTimes: Record<
-  Locale,
-  { otherDay: string; newestDay: string; clock: string }
-> = {
-  id: {
-    otherDay: ">16 Okt 2026, </span>",
-    newestDay: ">30 Okt 2026, </span>",
-    clock: ">16.14</span>",
-  },
-  en: {
-    otherDay: ">Oct 16, 2026, </span>",
-    newestDay: ">Oct 30, 2026, </span>",
-    clock: ">4:14 PM</span>",
-  },
-};
-
-for (const locale of locales) {
-  test(`dates a price from another day than the newest one in ${languageNames[locale]}`, () => {
-    switchLocaleForTest(locale);
-    const html = renderToStaticMarkup(
-      <PricesView
-        quotes={quotes}
-        latestAttempt={succeededAttempt}
-        now={halfMinuteAfterFailure}
-        source={yahooFinance}
-      />,
-    );
-    expect(html).toContain(quoteTimes[locale].otherDay);
-    expect(html).not.toContain(quoteTimes[locale].newestDay);
-    expect(html).toContain(quoteTimes[locale].clock);
-  });
 }
 
 // Each kind of failure that ends with the time of the next attempt.
@@ -353,7 +317,7 @@ for (const failureKind of failureKinds) {
       test(`says when the job tries again for ${failureKind.name} ${scheduleState.name} in ${languageNames[locale]}`, () => {
         switchLocaleForTest(locale);
         const html = renderToStaticMarkup(
-          <PricesView
+          <PriceStatus
             quotes={failureKind.quotes}
             latestAttempt={attemptInStateForTest(scheduleState, failureKind)}
             now={halfMinuteAfterForTest(scheduleState)}
@@ -372,89 +336,4 @@ for (const failureKind of failureKinds) {
       });
     }
   }
-}
-
-// A licensed source with another name and a longer delay.
-const licensedSource: PriceSourceDescription = {
-  name: "Data Berlisensi",
-  delayMinutes: 15,
-};
-const licensedDelayNotices: Record<Locale, string> = {
-  id: "Harga tertunda sekitar 15 menit dan berasal dari Data Berlisensi. Harga terakhir tercatat pada 30 Okt 2026, 16.14 WIB.",
-  en: "Prices are delayed by about 15 minutes and come from Data Berlisensi. The latest price was recorded at Oct 30, 2026, 4:14 PM WIB.",
-};
-
-for (const locale of locales) {
-  test(`names the source of the prices and its delay in ${languageNames[locale]}`, () => {
-    switchLocaleForTest(locale);
-    const html = renderToStaticMarkup(
-      <PricesView
-        quotes={quotes}
-        latestAttempt={succeededAttempt}
-        now={halfMinuteAfterFailure}
-        source={licensedSource}
-      />,
-    );
-    expect(html).toContain(licensedDelayNotices[locale]);
-  });
-}
-
-// IHSG moved by 0.02 points, which rounds to a change of 0.00%.
-const roundedToZero: Quote = {
-  kind: "index",
-  code: "IHSG",
-  level: indexPoints(5057.05),
-  previousLevel: indexPoints(5057.03),
-  quotedAt: new Date("2026-10-30T09:00:05.000Z"),
-};
-const zeroChanges: Record<Locale, string> = { id: ">0,00%<", en: ">0.00%<" };
-
-for (const locale of locales) {
-  test(`shows no arrow and no sign for a change that rounds to zero in ${languageNames[locale]}`, () => {
-    switchLocaleForTest(locale);
-    const html = renderToStaticMarkup(
-      <PricesView
-        quotes={[roundedToZero]}
-        latestAttempt={succeededAttempt}
-        now={halfMinuteAfterFailure}
-        source={yahooFinance}
-      />,
-    );
-    expect(html).toContain(zeroChanges[locale]);
-    expect(html).not.toContain("▲");
-    expect(html).not.toContain("▼");
-  });
-}
-
-// The IHSG is an index, so its row names it by its code alone. The names of the companies read the same in both languages, and their sectors take the names that IDX gives them in each language.
-const stockCells: Record<Locale, readonly string[]> = {
-  id: [
-    '<th scope="col">Saham</th>',
-    '<th scope="row">IHSG</th>',
-    '<th scope="row"><div><span aria-hidden="true">BB</span><div><span>BBCA</span><span>Bank Central Asia Tbk</span><span>Keuangan</span></div></div></th>',
-    '<th scope="row"><div><span aria-hidden="true">BB</span><div><span>BBRI</span><span>Bank Rakyat Indonesia (Persero) Tbk</span><span>Keuangan</span></div></div></th>',
-  ],
-  en: [
-    '<th scope="col">Stock</th>',
-    '<th scope="row">IHSG</th>',
-    '<th scope="row"><div><span aria-hidden="true">BB</span><div><span>BBCA</span><span>Bank Central Asia Tbk</span><span>Financials</span></div></div></th>',
-    '<th scope="row"><div><span aria-hidden="true">BB</span><div><span>BBRI</span><span>Bank Rakyat Indonesia (Persero) Tbk</span><span>Financials</span></div></div></th>',
-  ],
-};
-
-for (const locale of locales) {
-  test(`names the company of each stock under its code with its sector, beside the tile of the company, in ${languageNames[locale]}`, () => {
-    switchLocaleForTest(locale);
-    const html = renderToStaticMarkup(
-      <PricesView
-        quotes={quotes}
-        latestAttempt={succeededAttempt}
-        now={halfMinuteAfterFailure}
-        source={yahooFinance}
-      />,
-    ).replaceAll(/ class="[^"]*"/g, "");
-    for (const cell of stockCells[locale]) {
-      expect(html).toContain(cell);
-    }
-  });
 }

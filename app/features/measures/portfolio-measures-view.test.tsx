@@ -53,6 +53,7 @@ function renderView(
         source={yahooFinance}
       />,
       conceptLessonDataForTest(),
+      "/classes/7/measures",
     ),
   ).replaceAll(/ class="[^"]*"/g, "");
 }
@@ -78,7 +79,7 @@ function quoteFailureForTest(): string | undefined {
 // The name of a stock in the table of the stocks of the portfolio, which links to the page of the stock only for its owner.
 const stockNames: Record<PortfolioReader["kind"], (code: string) => string> = {
   owner: (code) =>
-    `<a href="/classes/7/stocks/${code}" data-discover="true">${code}</a>`,
+    `<a id="holding-${code}" href="/classes/7/stocks/${code}?returnTo=%2Fclasses%2F7%2Fmeasures%23holding-${code}" data-discover="true">${code}</a>`,
   lecturer: (code) => code,
 };
 

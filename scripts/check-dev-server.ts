@@ -21,7 +21,7 @@ import { writeScriptFailure } from "./write-script-failure.ts";
 const startupTimeoutSeconds = 60;
 // A request to a server that hangs ends after this, so the check names the failure and passes on the server's stderr instead of waiting until CI stops the job.
 const requestTimeoutSeconds = 10;
-const pages = ["/health", "/prices"];
+const pages = ["/health", "/sign-in"];
 const reloadSeconds = 2;
 
 // The check runs the dev script itself, through the same Node binary, so it tests exactly what contributors run.

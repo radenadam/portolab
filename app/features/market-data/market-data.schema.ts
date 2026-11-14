@@ -30,7 +30,7 @@ export const indexQuotes = sqliteTable("index_quotes", {
 });
 
 // Only the latest attempt of each job matters, so the table holds one row for each job.
-/** The latest attempt of each job that updates prices, so the job knows how long to wait after failures and the prices page can say when the source failed. */
+/** The latest attempt of each job that updates prices, so the job knows how long to wait after failures and the class market page can say when the source failed. */
 export const priceUpdates = sqliteTable("price_updates", {
   id: integer("id").primaryKey(),
   attemptedAt: integer("attempted_at", { mode: "timestamp_ms" }).notNull(),

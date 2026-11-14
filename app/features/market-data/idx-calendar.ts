@@ -292,8 +292,3 @@ function calendarFor(date: string): Result<TradingCalendar, string> {
   }
   return calendar;
 }
-
-/** Whether two moments fall on the same calendar day in WIB. */
-export function isSameWibDay(first: Date, second: Date): boolean {
-  return wibDateOf(first) === wibDateOf(second);
-}

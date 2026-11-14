@@ -14,3 +14,5 @@ export const dayMilliseconds = 24 * hourMilliseconds;
 export function minutesAfter(moment: Date, minutes: number): Date {
   return new Date(moment.getTime() + minutes * minuteMilliseconds);
 }
+
+export const monthsPerYear = 12;
