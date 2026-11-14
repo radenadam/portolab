@@ -2,7 +2,7 @@ import { expect, test } from "vitest";
 import { languageNames } from "~/language-names";
 import { locales } from "~/paraglide/runtime.js";
 import type { Locale } from "~/paraglide/runtime.js";
-import { renderInRouterForTest } from "~/render-in-router-for-test";
+import { renderMarkupForTest } from "~/render-markup-for-test";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
 import { ClassSwitcher } from "./class-switcher";
 import type { WorkspaceClass } from "./frame-reader";
@@ -54,11 +54,9 @@ const evenTerm: WorkspaceClass["term"] = {
   academicYear: { from: "2026-07-01", until: "2027-06-30" },
 };
 
-// The names of the classes of CSS modules carry a hash, and the icons are paths of their own, so the test leaves both out to read the text and the links.
-function withoutClassesAndIcons(html: string): string {
-  return html
-    .replaceAll(/ class="[^"]*"/g, "")
-    .replaceAll(/<svg.*?<\/svg>/g, "<svg/>");
+// The icons are paths of their own, so the test leaves them out to read the text and the links.
+function withoutIcons(html: string): string {
+  return html.replaceAll(/<svg.*?<\/svg>/g, "<svg/>");
 }
 
 function classLink({
@@ -94,8 +92,8 @@ for (const locale of locales) {
       people: { kind: "lecturer", name: "Rina Hartono" },
     };
     expect(
-      withoutClassesAndIcons(
-        renderInRouterForTest(
+      withoutIcons(
+        renderMarkupForTest(
           <ClassSwitcher
             readerRole="student"
             workspace={{ current: first, classes: [first, second] }}
@@ -137,8 +135,8 @@ for (const locale of locales) {
       term: oddTerm,
       people: { kind: "students", count: 32 },
     };
-    const html = withoutClassesAndIcons(
-      renderInRouterForTest(
+    const html = withoutIcons(
+      renderMarkupForTest(
         <ClassSwitcher
           readerRole="lecturer"
           workspace={{ current: first, classes: [first, second] }}

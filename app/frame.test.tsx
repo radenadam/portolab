@@ -7,6 +7,8 @@ import { locales } from "./paraglide/runtime.js";
 import type { Locale } from "./paraglide/runtime.js";
 import { renderInRouterForTest } from "./render-in-router-for-test";
 import { switchLocaleForTest } from "./switch-locale-for-test";
+import { renderMarkupForTest } from "./render-markup-for-test";
+import { withoutClassNamesForTest } from "./without-class-names-for-test";
 
 // 16:14 WIB on Friday 30 October 2026, when the fixture source quoted its latest prices.
 const quotedAt = new Date("2026-10-30T09:14:00Z");
@@ -36,11 +38,6 @@ const texts: Record<
     pricesTime: "Oct 30, 2026, 4:14 PM WIB",
   },
 };
-
-// The names of the classes of CSS modules carry a hash, so a test finds a class by its name inside the hash.
-function withoutClasses(html: string): string {
-  return html.replaceAll(/ class="[^"]*"/g, "");
-}
 
 // The icon of an item is a path of its own, which the test leaves out to read the items.
 function withoutIcons(html: string): string {
@@ -77,18 +74,16 @@ function frameForTest({
   frameProfile: FrameProfile | undefined;
 }): string {
   return withoutIcons(
-    withoutClasses(
-      renderInRouterForTest(
-        <Frame
-          items={frameItems}
-          start={start === undefined ? undefined : <span>{start}</span>}
-          profile={frameProfile}
-          tools={<span>tools</span>}
-          badge={<span>badge</span>}
-        >
-          <p>page</p>
-        </Frame>,
-      ),
+    renderMarkupForTest(
+      <Frame
+        items={frameItems}
+        start={start === undefined ? undefined : <span>{start}</span>}
+        profile={frameProfile}
+        tools={<span>tools</span>}
+        badge={<span>badge</span>}
+      >
+        <p>page</p>
+      </Frame>,
     ),
   );
 }
@@ -107,7 +102,7 @@ for (const locale of locales) {
       start: "switcher",
       frameProfile: profile,
     });
-    const icon = withoutClasses(renderInRouterForTest(<AppIcon />));
+    const icon = renderMarkupForTest(<AppIcon />);
     const profileButton = (popover: string, content: string): string =>
       `<button type="button" popoverTarget="${popover}" aria-label="${text.profile}" style="anchor-name:--${popover}">${content}</button>`;
     const profilePopover = (popover: string): string =>
@@ -130,14 +125,8 @@ for (const locale of locales) {
     switchLocaleForTest(locale);
     const path = [{ label: "Manajemen Portofolio", path: "/classes/7" }];
     expect(
-      withoutClasses(
-        renderInRouterForTest(
-          <PageHeader
-            path={path}
-            title="Portofolio Anda"
-            pricesAt={quotedAt}
-          />,
-        ),
+      renderMarkupForTest(
+        <PageHeader path={path} title="Portofolio Anda" pricesAt={quotedAt} />,
       ),
     ).toBe(
       `<div><div><span><a href="/classes/7" data-discover="true">Manajemen Portofolio</a><span aria-hidden="true">/</span></span><h1>Portofolio Anda</h1></div><p>${text.pricesTime}</p></div>`,
@@ -157,7 +146,7 @@ test("shows the app icon with the name of Portolab where no part starts the top 
     frameProfile: undefined,
   });
   expect(html).toContain(
-    `<header><div data-layout="content"><a href="/" data-discover="true">${withoutClasses(renderInRouterForTest(<AppIcon />))}Portolab</a><div><span>tools</span><span>badge</span></div></div></header>`,
+    `<header><div data-layout="content"><a href="/" data-discover="true">${renderMarkupForTest(<AppIcon />)}Portolab</a><div><span>tools</span><span>badge</span></div></div></header>`,
   );
   expect(html).not.toContain("popoverTarget");
   expect(html).not.toContain("<ul>");
@@ -174,10 +163,10 @@ test("places the right column under the header line or leaves it to a wide scree
         narrowPlacement={narrowPlacement}
       />,
     );
-  expect(withoutClasses(columns("first"))).toBe(
+  expect(withoutClassNamesForTest(columns("first"))).toBe(
     "<div><p>header</p><div><p>aside</p></div><div><p>main</p></div></div>",
   );
-  expect(withoutClasses(columns("hidden"))).toBe(
+  expect(withoutClassNamesForTest(columns("hidden"))).toBe(
     "<div><p>header</p><div><p>main</p></div><div><p>aside</p></div></div>",
   );
   expect(columns("hidden")).toMatch(/_asideOnWide_[^"]*"><p>aside/);

@@ -50,6 +50,7 @@ Every screen of a class has an address under the class, in English words, which 
 - The home page sends a person who is signed in to the first item of the workspace, which is the home of the class. A student without a class goes to joining one, and a lecturer without a class to the form that creates one. Signing in without a page to return to leads to the home page, so a person lands in a class after signing in, as after every other way home, such as the app icon in the rail.
 - The browser keeps the class that a person opened last in a cookie. A cookie stays when its person signs out, so the next sign-in on the same browser lands in that class. A page that another site made the browser load leaves the cookie as it was.
 - The switcher of the class opens a menu of every class of the reader, each with its lecturer or the number of its students and its term, and each leads to the home of its class. The menu ends with joining another class for a student and creating one for a lecturer.
+- A class has one name, which its lecturer gives, and no course apart from it, so the switcher shows that name where the references draw the course and the class. A phone shows the name on at most two lines without the term, as the references leave the term out on a phone, and a desktop shows the term beside the name.
 
 ### What opens in place and what navigates
 

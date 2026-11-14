@@ -2,7 +2,7 @@ import { expect, test } from "vitest";
 import { languageNames } from "~/language-names";
 import { locales } from "~/paraglide/runtime.js";
 import type { Locale } from "~/paraglide/runtime.js";
-import { renderInRouterForTest } from "~/render-in-router-for-test";
+import { renderMarkupForTest } from "~/render-markup-for-test";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
 import { ProfileMenu } from "./profile-menu";
 
@@ -32,11 +32,9 @@ const texts: Record<
   },
 };
 
-// The names of the classes of CSS modules carry a hash, and React gives the label of the language an id of its own, so the test leaves both out to read the text.
-function withoutClassesAndIds(html: string): string {
-  return html
-    .replaceAll(/ class="[^"]*"/g, "")
-    .replaceAll(/ (id|aria-labelledby)="[^"]*"/g, "");
+// React gives the label of the language an id of its own, so the test leaves it out to read the text.
+function withoutIds(html: string): string {
+  return html.replaceAll(/ (id|aria-labelledby)="[^"]*"/g, "");
 }
 
 for (const locale of locales) {
@@ -49,8 +47,8 @@ for (const locale of locales) {
       ["lecturer", text.lecturer],
       ["student", text.student],
     ] as const) {
-      const html = withoutClassesAndIds(
-        renderInRouterForTest(
+      const html = withoutIds(
+        renderMarkupForTest(
           <ProfileMenu name="Sari Wulandari" readerRole={role} />,
         ),
       );

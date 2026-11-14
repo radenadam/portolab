@@ -1,4 +1,3 @@
-import { eq } from "drizzle-orm";
 import type { RouterContextProvider } from "react-router";
 import { expect, test } from "vitest";
 import type { Database } from "~/database/database.server";
@@ -14,50 +13,34 @@ import {
   joinClass,
   setFirstSessionDate,
 } from "~/features/classes/class-store.server";
-import { classes } from "~/features/classes/classes.schema";
 import type { ClassId } from "~/features/classes/classes.schema";
-import { createClassForTest } from "~/features/classes/classes-for-test.server";
-import { lastClassMiddleware } from "~/features/classes/last-class.server";
+import {
+  createClassForTest,
+  createClassWithoutCalendarForTest,
+} from "~/features/classes/classes-for-test.server";
+import {
+  cookieOfForTest,
+  openPageForTest,
+} from "~/features/classes/last-class-for-test.server";
 import { landingPath, readFrameReader } from "./frame-reader.server";
 
 const now = new Date("2026-11-02T03:00:00.000Z");
 const homeUrl = new URL("/", "http://localhost");
-
-function contextOf(
-  database: Database,
-  userId: UserId | undefined,
-): RouterContextProvider {
-  return readerContextForTest(
-    database,
-    userId === undefined ? undefined : { userId, now },
-  );
-}
 
 /** A request of the browser of a person to the home page with the cookie that the page of a class gave the browser. */
 async function requestAfterOpening(
   context: RouterContextProvider,
   classId: ClassId,
 ): Promise<Request> {
-  const url = new URL(`/classes/${String(classId)}`, homeUrl);
-  const response = await lastClassMiddleware(
-    {
-      request: new Request(url),
-      url,
-      params: { classId: String(classId) },
-      pattern: "/classes/:classId",
-      context,
-    },
-    () => Promise.resolve(new Response("the page")),
-  );
-  if (!(response instanceof Response)) {
-    throw new Error("The middleware answered without a response.");
-  }
-  const [setCookie] = response.headers.getSetCookie();
+  const setCookie = await openPageForTest(context, {
+    path: `/classes/${String(classId)}`,
+    params: { classId: String(classId) },
+  });
   if (setCookie === undefined) {
     throw new Error(`The page of class ${String(classId)} set no cookie.`);
   }
   return new Request(homeUrl, {
-    headers: { Cookie: setCookie.split(";")[0] ?? "" },
+    headers: { Cookie: cookieOfForTest(setCookie) },
   });
 }
 
@@ -74,13 +57,12 @@ async function twoClasses(database: Database): Promise<{
     "Budi Santoso",
   );
   const first = createClassForTest(database, lecturerId, "Kelas A").classId;
-  const second = createClassForTest(database, lecturerId, "Kelas B").classId;
+  const second = createClassWithoutCalendarForTest(
+    database,
+    lecturerId,
+    "Kelas B",
+  );
   setFirstSessionDate(database, first, "2027-02-01");
-  database
-    .update(classes)
-    .set({ firstSessionDate: null })
-    .where(eq(classes.id, second))
-    .run();
   const studentId = await createTestStudent(database, "sari", "Sari Wulandari");
   joinClass(database, { classId: first, studentId }, now);
   joinClass(
@@ -95,7 +77,7 @@ test("reads a visitor and a person who has not finished the account without a wo
   const database = openDatabaseForTest();
   expect(
     await readFrameReader(
-      contextOf(database, undefined),
+      readerContextForTest(database, undefined),
       new Request(homeUrl),
       {},
     ),
@@ -103,7 +85,7 @@ test("reads a visitor and a person who has not finished the account without a wo
   const { account } = await createTestLecturer(database, "dosen");
   expect(
     await readFrameReader(
-      contextOf(database, account.id),
+      readerContextForTest(database, { userId: account.id, now }),
       new Request(homeUrl),
       {},
     ),
@@ -130,7 +112,7 @@ test("reads a student with the classes that the student joined, each with its le
   };
   expect(
     await readFrameReader(
-      contextOf(database, studentId),
+      readerContextForTest(database, { userId: studentId, now }),
       new Request(homeUrl),
       { classId: String(first) },
     ),
@@ -148,7 +130,7 @@ test("reads a lecturer with the classes that the lecturer teaches, each with the
   const otherStudent = await createTestStudent(database, "rudi", "Rudi");
   joinClass(database, { classId: first, studentId: otherStudent }, now);
   const reader = await readFrameReader(
-    contextOf(database, lecturerId),
+    readerContextForTest(database, { userId: lecturerId, now }),
     new Request(homeUrl),
     {},
   );
@@ -165,7 +147,7 @@ test("reads a lecturer with the classes that the lecturer teaches, each with the
 test("chooses the workspace from the class of the address, then from the class that the cookie names, then from the class that the person joined last", async () => {
   const database = openDatabaseForTest();
   const { studentId, first, second } = await twoClasses(database);
-  const context = contextOf(database, studentId);
+  const context = readerContextForTest(database, { userId: studentId, now });
   const afterFirst = await requestAfterOpening(context, first);
   const currentOf = async (
     request: Request,
@@ -186,7 +168,7 @@ test("reads a person without a class without a workspace", async () => {
   const lecturerId = await createReadyTestLecturer(database, "dosen", "Budi");
   expect(
     await readFrameReader(
-      contextOf(database, lecturerId),
+      readerContextForTest(database, { userId: lecturerId, now }),
       new Request(homeUrl),
       {},
     ),
@@ -201,7 +183,7 @@ test("reads a person without a class without a workspace", async () => {
 test("lands a person in the home of the class that the person opened last, else in the class that the person joined or created last", async () => {
   const database = openDatabaseForTest();
   const { lecturerId, studentId, first, second } = await twoClasses(database);
-  const student = contextOf(database, studentId);
+  const student = readerContextForTest(database, { userId: studentId, now });
   expect(
     await landingPath(
       student,
@@ -212,7 +194,7 @@ test("lands a person in the home of the class that the person opened last, else 
   expect(await landingPath(student, new Request(homeUrl), homeUrl)).toBe(
     `/classes/${String(second)}/portfolio`,
   );
-  const lecturer = contextOf(database, lecturerId);
+  const lecturer = readerContextForTest(database, { userId: lecturerId, now });
   expect(
     await landingPath(
       lecturer,
@@ -231,14 +213,14 @@ test("lands a student without a class on joining one, and a lecturer without a c
   const studentId = await createTestStudent(database, "sari", "Sari Wulandari");
   expect(
     await landingPath(
-      contextOf(database, studentId),
+      readerContextForTest(database, { userId: studentId, now }),
       new Request(homeUrl),
       homeUrl,
     ),
   ).toBe("/join");
   expect(
     await landingPath(
-      contextOf(database, lecturerId),
+      readerContextForTest(database, { userId: lecturerId, now }),
       new Request(homeUrl),
       homeUrl,
     ),
@@ -249,6 +231,10 @@ test("sends a person who has not finished the account to that step before landin
   const database = openDatabaseForTest();
   const { account } = await createTestLecturer(database, "dosen");
   await expect(
-    landingPath(contextOf(database, account.id), new Request(homeUrl), homeUrl),
+    landingPath(
+      readerContextForTest(database, { userId: account.id, now }),
+      new Request(homeUrl),
+      homeUrl,
+    ),
   ).rejects.toMatchObject({ status: 302 });
 });

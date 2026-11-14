@@ -2,7 +2,7 @@ import { expect, test } from "vitest";
 import { languageNames } from "~/language-names";
 import { locales } from "~/paraglide/runtime.js";
 import type { Locale } from "~/paraglide/runtime.js";
-import { renderInRouterForTest } from "~/render-in-router-for-test";
+import { renderMarkupForTest } from "~/render-markup-for-test";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
 import { SimulationBadge } from "./simulation-badge";
 
@@ -24,11 +24,6 @@ const texts: Record<
   },
 };
 
-// The names of the classes of CSS modules carry a hash, so the test leaves them out to read the text.
-function withoutClasses(html: string): string {
-  return html.replaceAll(/ class="[^"]*"/g, "");
-}
-
 for (const locale of locales) {
   const text = texts[locale];
   const language = languageNames[locale];
@@ -36,12 +31,10 @@ for (const locale of locales) {
   test(`labels every result as a simulation with the delay, long on a desktop and short on a phone, and opens the card with its paragraphs, in ${language}`, () => {
     switchLocaleForTest(locale);
     expect(
-      withoutClasses(
-        renderInRouterForTest(
-          <SimulationBadge
-            badge={{ delayMinutes: 10, card: ["The first.", "The second."] }}
-          />,
-        ),
+      renderMarkupForTest(
+        <SimulationBadge
+          badge={{ delayMinutes: 10, card: ["The first.", "The second."] }}
+        />,
       ),
     ).toBe(
       [
@@ -53,10 +46,8 @@ for (const locale of locales) {
 
   test(`labels a page without the data of the frame as a simulation alone, without a card, in ${language}`, () => {
     switchLocaleForTest(locale);
-    expect(
-      withoutClasses(
-        renderInRouterForTest(<SimulationBadge badge={undefined} />),
-      ),
-    ).toBe(`<span><span></span>${text.name}</span>`);
+    expect(renderMarkupForTest(<SimulationBadge badge={undefined} />)).toBe(
+      `<span><span></span>${text.name}</span>`,
+    );
   });
 }
