@@ -27,7 +27,7 @@ export function ClassList({
   return (
     <ul className={styles["list"]} data-layout="rows">
       {classes.map((listed) => (
-        <li key={listed.id} className={styles["item"]}>
+        <li key={listed.id} className={styles["classItem"]}>
           <Link to={classPath(listed.id)} className={styles["link"]}>
             <span className={styles["className"]}>{listed.name}</span>
             <span className={styles["details"]}>{listed.details}</span>

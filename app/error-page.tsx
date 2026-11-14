@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { isRouteErrorResponse, Link } from "react-router";
 import styles from "./error-page.module.css";
+import formStyles from "./form.module.css";
 import { FormPage } from "./form-page";
 import { PageTitle } from "./page-title";
 import { m } from "./paraglide/messages.js";
@@ -35,7 +36,10 @@ export function NextStepLink({
   label: string;
 }): ReactNode {
   return (
-    <Link to={to} className={styles["nextStepLink"]}>
+    <Link
+      to={to}
+      className={[formStyles["stepButton"], styles["nextStepLink"]].join(" ")}
+    >
       {label}
     </Link>
   );

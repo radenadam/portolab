@@ -7,17 +7,22 @@
   list-style: none;
 }
 
-.item {
+.item,
+.classItem {
   display: flex;
   flex-direction: column;
   border-block-end: var(--size-line) solid var(--color-line);
 }
 
-.item:last-child {
+.item {
+  padding-block: var(--space-3);
+}
+
+.classItem:last-child {
   border-block-end: 0;
 }
 
-.item > .link {
+.classItem > .link {
   flex-direction: column;
   align-items: stretch;
   justify-content: center;
