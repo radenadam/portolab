@@ -1,6 +1,6 @@
 import { parseArgs } from "node:util";
 import { errorMessage } from "../app/error-message.ts";
-import { fail, succeed } from "../app/result.ts";
+import { fail, failuresOf, succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
 import { parseChoice, parseFilePath } from "../app/value-parsers.ts";
 import { describeValue, isStringArray } from "../app/value-shapes.ts";
@@ -8,6 +8,11 @@ import { describeValue, isStringArray } from "../app/value-shapes.ts";
 const modes = ["development", "production"] as const;
 
 export type Mode = (typeof modes)[number];
+
+interface ServerArguments {
+  mode: Mode;
+  hotReloadPort: number | undefined;
+}
 
 const priceSourceNames = ["yahoo", "fixture"] as const;
 
@@ -24,11 +29,11 @@ export interface ServiceSettings {
   priceSource: (typeof priceSourceNames)[number];
 }
 
-/** Reads the command line of the server, whose only option is --mode. */
+/** The dev server check passes its WebSocket port here, so it needs no extra server environment variable. */
 export function parseCommandLine(
   value: unknown,
   source: string,
-): Result<Mode, string> {
+): Result<ServerArguments, string> {
   if (!isStringArray(value)) {
     return fail(
       `${source} must be a list of arguments, but it is ${describeValue(value)}.`,
@@ -37,12 +42,23 @@ export function parseCommandLine(
   try {
     const { values } = parseArgs({
       args: value,
-      options: { mode: { type: "string", default: "production" } },
+      options: {
+        mode: { type: "string", default: "production" },
+        "hot-reload-port": { type: "string" },
+      },
     });
-    return parseChoice(values.mode, "--mode", modes);
+    const mode = parseChoice(values.mode, "--mode", modes);
+    const hotReloadPort =
+      values["hot-reload-port"] === undefined
+        ? succeed(undefined)
+        : parsePort(values["hot-reload-port"], "--hot-reload-port");
+    if (!mode.ok || !hotReloadPort.ok) {
+      return fail(failuresOf([mode, hotReloadPort]).join("\n"));
+    }
+    return succeed({ mode: mode.value, hotReloadPort: hotReloadPort.value });
   } catch (error) {
     return fail(
-      `${source} must hold only the option --mode, but it is ${describeValue(value)}. Node reported: ${errorMessage(error)}`,
+      `${source} must hold only the options --mode and --hot-reload-port, but it is ${describeValue(value)}. Node reported: ${errorMessage(error)}`,
     );
   }
 }
