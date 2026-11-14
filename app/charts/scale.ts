@@ -12,11 +12,15 @@ const emptyRangePadding = 0.005;
 export function paddedRange<Value extends number>(
   values: readonly Value[],
   toValue: (value: number) => Value,
+  minimum?: Value,
 ): Range<Value> {
   const min = Math.min(...values);
   const max = Math.max(...values);
   const padding = max > min ? (max - min) * rangePadding : emptyRangePadding;
-  return { min: toValue(min - padding), max: toValue(max + padding) };
+  return {
+    min: toValue(Math.max(minimum ?? -Infinity, min - padding)),
+    max: toValue(max + padding),
+  };
 }
 
 /** Where a value lies in a range, as a fraction from 0 at its smallest value to 1 at its largest. */

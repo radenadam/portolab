@@ -58,9 +58,9 @@ function render(chartPoints: readonly Point[], locale: Locale): string {
         {
           name: texts[locale].portfolio,
           kind: "own",
-          returnOf: (point) => point.portfolio,
+          valueOf: (point) => point.portfolio,
         },
-        { name: "IHSG", kind: "reference", returnOf: (point) => point.market },
+        { name: "IHSG", kind: "reference", valueOf: (point) => point.market },
       ]}
       labelledBy="return-heading"
       dateLabel={texts[locale].dateLabel}

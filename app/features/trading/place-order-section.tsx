@@ -21,6 +21,7 @@ import {
 import { m } from "~/paraglide/messages.js";
 import type { OrdersAnswer } from "./order-actions.server";
 import type { OrderTicket } from "./order-ticket.server";
+import type { OrderSide } from "./order";
 import { OrderForm } from "./order-form";
 import type { TradingDayFailure } from "./order-trading-day";
 import styles from "./trading.module.css";
@@ -42,6 +43,7 @@ interface PlaceOrderSectionProps {
   moment: { now: Date; delayMinutes: number };
   /** The answer of the action to a form that it did not accept. */
   answer: OrdersAnswer | undefined;
+  initialSide?: OrderSide | undefined;
 }
 
 /** The order ticket, as decision 0026 draws it: the form that chooses a stock, and then the latest delayed price of that stock with the order form, or why Portolab cannot take an order now when a record that its trading day needs is missing. The notice of the simulation in full ends it. */
@@ -61,6 +63,7 @@ function TicketBody({
   pagePath,
   moment,
   answer,
+  initialSide,
 }: PlaceOrderSectionProps): ReactNode {
   if (!day.ok) {
     return <p>{missingDayTexts[day.failure.kind]()}</p>;
@@ -110,6 +113,7 @@ function TicketBody({
           <OrderForm
             day={day.value}
             fields={answer?.fields}
+            initialSide={initialSide}
             rejection={answer?.rejection}
           />
         </>

@@ -17,6 +17,8 @@ import { PlaceOrderSection } from "./place-order-section";
 import { orderTicketStatus, readOrderTicket } from "./order-ticket.server";
 import type { OrderTicket } from "./order-ticket.server";
 import { ordersPath } from "./orders-path";
+import type { OrderSide } from "./order";
+import { parseOrderSide } from "./order-form-fields";
 import type { Portfolio } from "./portfolio-store.server";
 import { readStudentPortfolio } from "./read-student-portfolio.server";
 import { CashSummary, HoldingList } from "./portfolio-summary";
@@ -33,6 +35,7 @@ interface OrdersPageData {
   source: PriceSourceDescription;
   ticket: OrderTicket;
   isPlaced: boolean;
+  initialSide: OrderSide | undefined;
 }
 
 export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
@@ -58,6 +61,10 @@ export function loader({
     url.searchParams.get("placed"),
     "placed",
   );
+  const side = parseOrderSide(
+    url.searchParams.get("side"),
+    m.trading_side_label(),
+  );
   const ticket = readOrderTicket(context.get(databaseContext), {
     url,
     now,
@@ -71,6 +78,7 @@ export function loader({
       now,
       source,
       ticket,
+      initialSide: side.ok ? side.value : undefined,
       // The notice confirms only an order of this portfolio, so an address with another number shows the orders without it.
       isPlaced:
         placed.ok &&
@@ -144,6 +152,7 @@ export default function OrdersPage({
           pagePath={ordersPath(classId)}
           moment={{ now, delayMinutes: source.delayMinutes }}
           answer={actionData}
+          initialSide={loaderData.initialSide}
         />
       }
       narrowPlacement="first"

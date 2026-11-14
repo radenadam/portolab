@@ -52,7 +52,7 @@ describe("shipped learning content", () => {
     for (const translation of content) {
       const expected = translations[translation.locale];
       expect(translation.sessions).toHaveLength(sessionCount);
-      expect(translation.terms).toHaveLength(43);
+      expect(translation.terms).toHaveLength(44);
       expect(
         translation.sessions.find((session) => session.session === 2)?.title,
       ).toBe(expected.title);

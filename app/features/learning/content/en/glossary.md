@@ -74,6 +74,10 @@ The base price for calculating order boundaries. Distinguish it from the latest 
 
 The cost per share of stocks still held. In Portolab, purchase costs are included in the cost basis, while sale costs have not yet occurred.
 
+## rentang-52-minggu | 52-week range | 6
+
+The lowest and highest closes that Portolab stores within 52 weeks, adjusted for stock splits. This range does not include intraday prices. When history is incomplete, it covers only the closes that are available.
+
 ## harga-tertunda | Delayed price | 6
 
 A quote received after the exchange trade happened. Its timestamp shows its age, so the displayed price is not a promise of the current market price.

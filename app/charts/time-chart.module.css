@@ -111,7 +111,7 @@
   align-items: center;
 }
 
-.tipReturn {
+.tipValue {
   margin-inline-start: auto;
   padding-inline-start: var(--space-3);
   font-variant-numeric: tabular-nums;
