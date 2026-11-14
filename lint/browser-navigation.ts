@@ -12,11 +12,8 @@ export const browserNavigation: Linter.Config = {
     ],
     "no-restricted-properties": [
       "error",
-      ...["window", "globalThis", "document"].map((object) => ({
-        object,
-        property: "location",
-        message: browserLocation,
-      })),
+      // The property restriction also reaches aliases and nested windows, which an object list misses.
+      { property: "location", message: browserLocation },
     ],
   },
 };

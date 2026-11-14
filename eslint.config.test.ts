@@ -8,33 +8,69 @@ test(
   "rejects the browser Location globals and accepts React Router navigation in app modules",
   async () => {
     for (const filePath of [
+      "app/root.tsx",
       "app/charts/risk-map.tsx",
       "app/features/classes/class-summary.ts",
     ]) {
-      for (const object of ["window", "globalThis", "document"]) {
-        for (const access of [
+      const accesses: string[] = [];
+      for (const object of [
+        "window",
+        "globalThis",
+        "document",
+        "self",
+        "top",
+        "parent",
+        "frames",
+        "window.top",
+        "window.parent",
+        "window.frames[0]",
+        "globalThis.window.self",
+        "document.defaultView",
+        "window.opener",
+        "currentWindow",
+        "this",
+        "readWindow()",
+      ]) {
+        accesses.push(
           `${object}.location.assign('/classes/1');`,
           `${object}['location'].replace('/classes/1');`,
           `${object}[\`location\`].href = '/classes/1';`,
           `${object}?.location?.assign('/classes/1');`,
+          `${object}?.['location']?.assign('/classes/1');`,
+          `${object}?.[\`location\`]?.assign('/classes/1');`,
+          `${object}.location = '/classes/1';`,
           `const { location: address } = ${object}; address.href = '/classes/1';`,
           `const { ['location']: address } = ${object}; address.assign('/classes/1');`,
           `const { [\`location\`]: address } = ${object}; address.assign('/classes/1');`,
-        ]) {
-          expect(await rulesReporting(access, filePath), access).toContain(
-            "no-restricted-properties",
-          );
-        }
+          `const { location } = ${object}; location.assign('/classes/1');`,
+          `let address; ({ location: address } = ${object}); address.assign('/classes/1');`,
+        );
       }
-      for (const access of [
+      accesses.push(
+        "const currentWindow = self; currentWindow.location.assign('/classes/1');",
+        "const { top: { location: address } } = window; address.assign('/classes/1');",
+        "top!.location.assign('/classes/1');",
+      );
+      const properties = await rulesReporting(
+        accesses.map((access) => `{ ${access} }`).join("\n"),
+        filePath,
+      );
+      expect(
+        properties.filter((rule) => rule === "no-restricted-properties"),
+      ).toHaveLength(accesses.length);
+      const globals = [
         "location.assign('/classes/1');",
         "location.href = '/classes/1';",
         "const address = location;",
-      ]) {
-        expect(await rulesReporting(access, filePath), access).toContain(
-          "no-restricted-globals",
-        );
-      }
+        "location = '/classes/1';",
+      ];
+      const identifiers = await rulesReporting(
+        globals.map((access) => `{ ${access} }`).join("\n"),
+        filePath,
+      );
+      expect(
+        identifiers.filter((rule) => rule === "no-restricted-globals"),
+      ).toHaveLength(globals.length);
     }
     const router = `import { useLocation, useNavigate } from 'react-router';
 export function RiskMap() {
