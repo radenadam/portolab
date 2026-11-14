@@ -232,24 +232,32 @@ test("rejects a manifest without root", () => {
   });
 });
 
-test("rejects a route graph without JavaScript", () => {
+test("names the route whose graph contains no JavaScript", () => {
   const chunks = successValueForTest(
     parseClientManifest(
       {
         bootstrap: { file: "boot.css", isEntry: true },
         "app/root.tsx?route": { file: "root.css", isEntry: true },
+        "app/child.tsx?route": { file: "child.css", isEntry: true },
       },
       "vite.json",
     ),
     "reads stylesheet entries",
   );
   const routes = successValueForTest(
-    parseClientRoutes({ root: { file: "app/root.tsx" } }, "routes.json"),
-    "reads root",
+    parseClientRoutes(
+      {
+        child: { file: "app/child.tsx", parentId: "root" },
+        root: { file: "app/root.tsx" },
+      },
+      "routes.json",
+    ),
+    "reads both routes",
   );
+  expect(routes.size).toBe(2);
   expect(clientSizeChecks(chunks, routes, [])).toEqual({
     ok: false,
-    failure: "The client manifest contains no JavaScript for the route.",
+    failure: "The client manifest contains no JavaScript for route child.",
   });
 });
 

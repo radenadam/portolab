@@ -11,11 +11,14 @@ import {
 test("reads the mode from the command line and uses production without it", () => {
   expect(parseCommandLine([], "The command line")).toEqual({
     ok: true,
-    value: "production",
+    value: { mode: "production", hotReloadPort: undefined },
   });
   expect(
     parseCommandLine(["--mode", "development"], "The command line"),
-  ).toEqual({ ok: true, value: "development" });
+  ).toEqual({
+    ok: true,
+    value: { mode: "development", hotReloadPort: undefined },
+  });
   expect(parseCommandLine(["--mode", "develop"], "The command line")).toEqual({
     ok: false,
     failure:
@@ -34,8 +37,30 @@ test("rejects a command line that is not a list of arguments and quotes it", () 
 test("rejects an unknown option and keeps the reason that Node gives", () => {
   const commandLine = parseCommandLine(["--bogus"], "The command line");
   expect(commandLine.ok ? "" : commandLine.failure).toMatch(
-    /^The command line must hold only the option --mode, but it is \["--bogus"\]\. Node reported: \S/,
+    /^The command line must hold only the options --mode and --hot-reload-port, but it is \["--bogus"\]\. Node reported: \S/,
   );
+});
+
+test("reads an explicit WebSocket port and names every wrong command-line value", () => {
+  expect(
+    parseCommandLine(
+      ["--mode", "development", "--hot-reload-port", "24679"],
+      "The command line",
+    ),
+  ).toEqual({
+    ok: true,
+    value: { mode: "development", hotReloadPort: 24_679 },
+  });
+  expect(
+    parseCommandLine(
+      ["--mode", "develop", "--hot-reload-port", "0"],
+      "The command line",
+    ),
+  ).toEqual({
+    ok: false,
+    failure:
+      '--mode must be "development" or "production", but it is "develop".\n--hot-reload-port must be a whole number from 1 to 65535, but it is "0".',
+  });
 });
 
 test("uses port 3000 without a port", () => {

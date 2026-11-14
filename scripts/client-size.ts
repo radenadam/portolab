@@ -140,7 +140,7 @@ export function clientSizeChecks(
   for (const [id] of routes) {
     const entries = ancestorEntries(routes, routeEntries, id);
     if (!entries.ok) return entries;
-    const files = javascriptFiles(chunks, [...bootstrap, ...entries.value]);
+    const files = javascriptFiles(chunks, [...bootstrap, ...entries.value], id);
     if (!files.ok) return files;
     const missing = files.value.filter((file) => !knownFiles.has(file));
     if (missing.length > 0)
@@ -204,6 +204,7 @@ function ancestorEntries(
 function javascriptFiles(
   chunks: ReadonlyMap<string, ClientChunk>,
   entries: string[],
+  routeId: string,
 ): Result<string[], string> {
   const pending = [...entries];
   const visited = new Set<string>();
@@ -218,6 +219,8 @@ function javascriptFiles(
     pending.push(...chunk.imports, ...chunk.dynamicImports);
   }
   if (files.size === 0)
-    return fail("The client manifest contains no JavaScript for the route.");
+    return fail(
+      `The client manifest contains no JavaScript for route ${routeId}.`,
+    );
   return succeed([...files].sort());
 }
