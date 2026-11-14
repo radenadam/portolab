@@ -11,6 +11,7 @@ import {
 } from "./accounts.ts";
 import { chooseLanguage } from "./choose-language.ts";
 import { createTestClass } from "./create-test-class.ts";
+import { isPhone } from "./frame.ts";
 import { newDevice } from "./new-device.ts";
 import { widestClassNames } from "./widest-class-names.ts";
 
@@ -26,11 +27,13 @@ for (const locale of locales) {
     page,
   }) => {
     await chooseLanguage(page, locale);
-    const overflowing = await page.getByRole("banner").evaluate((banner) => {
+    const bounds = await page.getByRole("banner").evaluate((banner) => {
       const failures: string[] = [];
+      let measured = 0;
       for (const control of banner.querySelectorAll("a, button")) {
         const box = control.getBoundingClientRect();
         if (box.width === 0 || box.height === 0) continue;
+        measured += 1;
         const content = document.createRange();
         content.selectNodeContents(control);
         const words = content.getBoundingClientRect();
@@ -38,9 +41,10 @@ for (const locale of locales) {
           failures.push(control.textContent.trim());
         }
       }
-      return failures;
+      return { measured, failures };
     });
-    expect(overflowing).toEqual([]);
+    expect(bounds.measured).toBe(isPhone() ? 3 : 2);
+    expect(bounds.failures).toEqual([]);
   });
 
   test(`creates a class, joins it, and resets a student password before JavaScript loads in ${languageNames[locale]}`, async ({
