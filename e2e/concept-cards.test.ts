@@ -1,8 +1,8 @@
 import { expect, test } from "@playwright/test";
-import type { Locator, Page } from "@playwright/test";
+import type { Browser, Locator, Page } from "@playwright/test";
+import type { Locale } from "../app/paraglide/runtime.js";
 import { languageNames } from "../app/language-names.ts";
 import { locales } from "../app/paraglide/runtime.js";
-import type { Locale } from "../app/paraglide/runtime.js";
 import { bbcaHolding } from "./bbca-holding.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 import { openSimulationCard } from "./frame.ts";
@@ -57,6 +57,20 @@ const texts: Record<
     ],
   },
 };
+
+function openConceptPage(
+  page: Page,
+  browser: Browser,
+  { locale, path }: { locale: Locale; path: string },
+): Promise<{ lecturer: Page }> {
+  return openAsNewStudent(page, browser, {
+    locale,
+    path,
+    givePortfolio: (classId) => {
+      storeTestHolding(classId, bbcaHolding);
+    },
+  });
+}
 
 async function openConcept(
   page: Page,
@@ -126,12 +140,9 @@ for (const locale of locales) {
     page,
     browser,
   }) => {
-    const { lecturer } = await openAsNewStudent(page, browser, {
+    const { lecturer } = await openConceptPage(page, browser, {
       locale,
       path: "/measures",
-      givePortfolio: (classId) => {
-        storeTestHolding(classId, bbcaHolding);
-      },
     });
     for (const [title, value, formula] of text.cards) {
       const card = await openConcept(page, locale, title);
@@ -179,6 +190,45 @@ for (const locale of locales) {
     await lecturer.context().close();
   });
 
+  test(`keeps an open concept and its calculation when JavaScript loads in ${languageNames[locale]}`, async ({
+    page,
+    browser,
+  }) => {
+    const { lecturer } = await openConceptPage(page, browser, {
+      locale,
+      path: "/measures",
+    });
+    const scripts = Promise.withResolvers<undefined>();
+    let heldScripts = 0;
+    await page.route("**/*", async (route) => {
+      if (route.request().resourceType() === "script") {
+        heldScripts += 1;
+        await scripts.promise;
+      }
+      await route.continue();
+    });
+    try {
+      await page.reload({ waitUntil: "commit" });
+      await expect.poll(() => heldScripts).toBeGreaterThan(0);
+      await expect(page.getByRole("slider")).toHaveCount(0);
+      const address = page.url();
+      const card = await openConcept(page, locale, text.beta);
+      const calculation = await openCalculation(card, locale);
+      await expectBetaCalculation(card);
+
+      scripts.resolve(undefined);
+      await page.waitForLoadState("load");
+      await expect(page.getByRole("slider").first()).toBeVisible();
+      await expect(card).toBeVisible();
+      await expect(calculation).toHaveAttribute("open", "");
+      await expect(page).toHaveURL(address);
+    } finally {
+      scripts.resolve(undefined);
+      await page.unrouteAll({ behavior: "wait" });
+      await lecturer.context().close();
+    }
+  });
+
   test.describe(`before JavaScript loads in ${languageNames[locale]}`, () => {
     test.use({ javaScriptEnabled: false });
 
@@ -186,12 +236,9 @@ for (const locale of locales) {
       page,
       browser,
     }) => {
-      const { lecturer } = await openAsNewStudent(page, browser, {
+      const { lecturer } = await openConceptPage(page, browser, {
         locale,
         path: "/portfolio",
-        givePortfolio: (classId) => {
-          storeTestHolding(classId, bbcaHolding);
-        },
       });
       const address = page.url();
       const card = await openConcept(page, locale, text.beta);
