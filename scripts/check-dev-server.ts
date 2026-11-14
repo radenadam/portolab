@@ -51,7 +51,12 @@ if (!devArguments.ok || !ports.ok || inputProblems.length > 0) {
 }
 
 const baseUrl = `http://localhost:${String(ports.value.development)}`;
-const server = spawn(process.execPath, devArguments.value, {
+const serverArguments = [
+  ...devArguments.value,
+  "--hot-reload-port",
+  String(ports.value.hotReload),
+];
+const server = spawn(process.execPath, serverArguments, {
   env: {
     ...process.env,
     PORT: String(ports.value.development),

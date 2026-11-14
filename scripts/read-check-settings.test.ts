@@ -72,13 +72,53 @@ test(
 );
 
 test(
+  "keeps check-only settings out of the normal server and reports every invalid startup input",
+  { timeout: 30 * secondMilliseconds },
+  () => {
+    const config = runCheckProgram(
+      ["--input-type=module", "-e", 'await import("./vite.config.ts")'],
+      { [checkSlotVariable]: "wrong" },
+    );
+    expect(config.status).toBe(0);
+    expect(config.stderr).toBe("");
+
+    const server = runCheckProgram(
+      [
+        "--conditions",
+        "development",
+        "server/main.ts",
+        "--mode",
+        "development",
+        "--hot-reload-port",
+        "0",
+      ],
+      {
+        [checkSlotVariable]: "wrong",
+        PORT: "0",
+        PRICE_SOURCE: "wrong",
+        DATABASE_PATH: "",
+      },
+    );
+    expect(server.status).toBe(1);
+    for (const reason of [
+      '--hot-reload-port must be a whole number from 1 to 65535, but it is "0".',
+      'PORT must be a whole number from 1 to 65535, but it is "0".',
+      'PRICE_SOURCE must be "yahoo" or "fixture", but it is "wrong".',
+      "DATABASE_PATH must be the path of a file, but it is empty.",
+    ]) {
+      expect(server.stderr).toContain(JSON.stringify(reason));
+    }
+    expect(server.stderr).not.toContain(checkSlotVariable);
+  },
+);
+
+test(
   "stops each check entry with the parser's reason for a wrong slot",
   { timeout: 60 * secondMilliseconds },
   () => {
     for (const argumentsOfCheck of [
       ["scripts/check-dev-server.ts"],
       ["--input-type=module", "-e", 'await import("./e2e/test-server.ts")'],
-      ["--input-type=module", "-e", 'await import("./vite.config.ts")'],
       ["--input-type=module", "-e", 'await import("./vitest.config.ts")'],
     ]) {
       const run = runCheckProgram(argumentsOfCheck, {

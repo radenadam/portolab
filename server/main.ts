@@ -33,7 +33,7 @@ const serverBuildPath = join(buildDirectory, "server", "index.js");
 const shutdownTimeoutMilliseconds = 10 * secondMilliseconds;
 
 // Every setting is read before the server stops on any of them, so the log names every wrong setting at once.
-const mode = parseCommandLine(process.argv.slice(2), "The command line");
+const commandLine = parseCommandLine(process.argv.slice(2), "The command line");
 const port = parsePort(process.env["PORT"], "PORT");
 const priceSource = parsePriceSource(
   process.env["PRICE_SOURCE"],
@@ -43,12 +43,13 @@ const databasePath = parseDatabasePath(
   process.env["DATABASE_PATH"],
   "DATABASE_PATH",
 );
-if (!mode.ok || !port.ok || !priceSource.ok || !databasePath.ok) {
+if (!commandLine.ok || !port.ok || !priceSource.ok || !databasePath.ok) {
   exitWithFailure(
-    failuresOf([mode, port, priceSource, databasePath]),
+    failuresOf([commandLine, port, priceSource, databasePath]),
     writeError,
   );
 }
+const { mode, hotReloadPort } = commandLine.value;
 const settings: ServiceSettings = {
   priceSource: priceSource.value,
   databasePath: databasePath.value,
@@ -59,7 +60,8 @@ const serveApp: Record<
   Mode,
   (server: Express, settings: ServiceSettings) => Promise<Services>
 > = {
-  development: serveWithDevServer,
+  development: (server, settings) =>
+    serveWithDevServer(server, settings, hotReloadPort),
   production: serveBuiltApp,
 };
 
@@ -67,7 +69,7 @@ const server = express();
 server.disable("x-powered-by");
 // Decision 0005 explains why Express trusts the headers of a proxy from these addresses only.
 server.set("trust proxy", ["loopback", "uniquelocal"]);
-const services = await serveApp[mode.value](server, settings);
+const services = await serveApp[mode](server, settings);
 
 const listener = server.listen(port.value, () => {
   const address = new URL(`http://localhost:${String(port.value)}/`);
@@ -75,7 +77,7 @@ const listener = server.listen(port.value, () => {
     "info",
     "Server started. Open the address on this computer. During a demonstration on a laptop, phones on the same Wi-Fi network open one of the local network addresses.",
     {
-      mode: mode.value,
+      mode,
       address: address.href,
       localNetworkAddresses: localNetworkAddresses(address),
     },
@@ -104,10 +106,14 @@ for (const signal of ["SIGINT", "SIGTERM"] as const) {
 async function serveWithDevServer(
   server: Express,
   settings: ServiceSettings,
+  hotReloadPort: number | undefined,
 ): Promise<Services> {
   const vite = await import("vite");
   const viteServer = await vite.createServer({
-    server: { middlewareMode: true },
+    server: {
+      middlewareMode: true,
+      ...(hotReloadPort === undefined ? {} : { ws: { port: hotReloadPort } }),
+    },
   });
   const loadBuild = async (): Promise<ServerBuild> =>
     (await viteServer.ssrLoadModule("./server/app.ts")) as ServerBuild;
