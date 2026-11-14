@@ -22,16 +22,14 @@ const texts: Record<
     short: "Simulasi · ±10 mnt",
     title: "Simulasi dan harga tertunda",
     fallback: "Simulasi · harga tertunda",
-    lesson:
-      "Pelajari lebih lanjut di sesi 6. Pelajaran belum tersedia di Portolab.",
+    lesson: "Pelajari lebih lanjut di sesi 6",
   },
   en: {
     long: "Simulation · prices delayed ±10 min",
     short: "Simulation · ±10 min",
     title: "Simulation and delayed prices",
     fallback: "Simulation · prices delayed",
-    lesson:
-      "Learn more in session 6. The lesson is not available in Portolab yet.",
+    lesson: "Learn more in session 6",
   },
 };
 

@@ -45,7 +45,7 @@
 }
 
 .reading > h1 {
-  font-size: var(--text-reading-title);
+  font-size: var(--text-lesson-title);
   letter-spacing: var(--tracking-reading-title);
 }
 
