@@ -8,7 +8,6 @@ import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
 import {
   chosenPassword,
-  joinAsNewStudent,
   signInAsNewLecturer,
   submitSignIn,
 } from "./accounts.ts";
@@ -25,6 +24,7 @@ import {
   openSimulationCard,
 } from "./frame.ts";
 import { newDevice } from "./new-device.ts";
+import { signInAsTestStudent } from "./sign-in-as-test-student.ts";
 import { widestClassNames } from "./widest-class-names.ts";
 import { writeForTestStudent } from "./write-for-test-student.ts";
 
@@ -161,9 +161,9 @@ async function studentOfTwoClasses(
   const first = await createTestClass(page, widestClassNames.className);
   const second = await createTestClass(page, otherClassName);
   const student = await newDevice(browser, locale);
-  const username = await joinAsNewStudent(
+  const username = await signInAsTestStudent(
     student,
-    first.joinPath,
+    first,
     widestClassNames.studentName,
   );
   await student.goto(second.joinPath);
@@ -255,11 +255,7 @@ for (const locale of locales) {
     await expect(navigationItems(page, locale)).toHaveCount(0);
     const testClass = await createTestClass(page, widestClassNames.className);
     const student = await newDevice(browser, locale);
-    await joinAsNewStudent(
-      student,
-      testClass.joinPath,
-      widestClassNames.studentName,
-    );
+    await signInAsTestStudent(student, testClass, widestClassNames.studentName);
     await student.context().close();
     await page.goto("/");
     await expect(page).toHaveURL(testClass.path);
@@ -305,9 +301,9 @@ for (const locale of locales) {
     await signInAsNewLecturer(page, widestClassNames.lecturerName);
     const testClass = await createTestClass(page, widestClassNames.className);
     const student = await newDevice(browser, locale);
-    const username = await joinAsNewStudent(
+    const username = await signInAsTestStudent(
       student,
-      testClass.joinPath,
+      testClass,
       widestClassNames.studentName,
     );
     writeForTestStudent(testClass.id, (database, membershipId) => {

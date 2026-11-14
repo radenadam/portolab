@@ -5,7 +5,8 @@ import { languageNames } from "../app/language-names.ts";
 import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
 import { readZipForTest } from "../app/workbook/read-zip-for-test.server.ts";
-import { joinAsNewStudent, signInAsNewLecturer } from "./accounts.ts";
+import { signInAsNewLecturer } from "./accounts.ts";
+import { signInAsTestStudent } from "./sign-in-as-test-student.ts";
 import { bbcaHolding } from "./bbca-holding.ts";
 import { bbcaPortfolioMeasures } from "./bbca-portfolio-measures.ts";
 import { chooseLanguage } from "./choose-language.ts";
@@ -304,11 +305,11 @@ for (const locale of locales) {
     await signInAsNewLecturer(page, lecturerName);
     const testClass = await createTestClass(page, className);
     const first = await newDevice(browser, locale);
-    await joinAsNewStudent(first, testClass.joinPath, studentName);
+    await signInAsTestStudent(first, testClass, studentName);
     // The holding goes to the one student of the class, so the second student joins after it.
     storeTestHolding(testClass.id, bbcaHolding);
     const second = await newDevice(browser, locale);
-    await joinAsNewStudent(second, testClass.joinPath, secondStudentName);
+    await signInAsTestStudent(second, testClass, secondStudentName);
     const main = await openPortfolios(page, locale, testClass.path);
     await expectPageHeadings(page, {
       title: text.title,

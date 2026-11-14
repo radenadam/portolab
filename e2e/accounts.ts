@@ -147,7 +147,7 @@ export async function signInAsNewLecturer(
   return username;
 }
 
-/** Opens the address of a class as a visitor, creates a student account on it, and returns the username, so that the page ends signed in on the page of the class. */
+/** Exercises signup and joining through the real form and its limits. Other flows prepare an existing student with signInAsTestStudent, as e2e/AGENTS.md requires. Returns the username and leaves the student on the class page. */
 export async function joinAsNewStudent(
   page: Page,
   joinAddress: string,

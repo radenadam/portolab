@@ -12,7 +12,7 @@ import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 import { expectMissingPage } from "./expect-missing-page.ts";
 import { expectPageHeadings } from "./expect-page-headings.ts";
 import { expectTexts } from "./expect-texts.ts";
-import { joinNewClass } from "./join-new-class.ts";
+import { studentOnNewClass } from "./student-on-new-class.ts";
 import { storeTestHolding } from "./store-test-holding.ts";
 import { studentOfNewClass } from "./student-of-new-class.ts";
 import { wideWord } from "./wide-word.ts";
@@ -888,7 +888,7 @@ for (const locale of locales) {
       browser,
     }) => {
       // The lecturer uses a device of their own, so the page of the test, which runs no JavaScript, is the student.
-      const { lecturer, testClass } = await joinNewClass(page, browser, {
+      const { lecturer, testClass } = await studentOnNewClass(page, browser, {
         locale,
         ...widestClassNames,
       });
