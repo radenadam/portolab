@@ -39,7 +39,7 @@ A defect is evidence about the process that produced it, wherever it surfaces: i
 1. **Trace.** Find what let it through: a standard that was never written or is too vague, a missing check, a lens that was not looking, or a wrong pattern.
 2. **Fix the process.** Write or sharpen the standard, add the check, or sharpen the lens.
 3. **Redo everything the flawed process produced**, not only the instance found. The root cause sets how far that reaches. The instances in what the pull request changes are fixed in it. Every other instance, including each existing file that a new or sharpened standard now covers, goes into one issue, and a pull request of its own fixes them right after, so that a round of review never grows with the size of the repository.
-4. **Record.** The commit message states the root cause and the scope. Write a decision record only when a real alternative was weighed and the choice has lasting consequences.
+4. **Record.** The commit message states the root cause and the scope. Write a decision record only when a real alternative was weighed and the choice has lasting consequences. Follow [the decision record workflow](CONTRIBUTING.md#decision-records) when adding one.
 
 Fixing only the instance leaves in place the process that produced it.
 
