@@ -12,10 +12,11 @@ import type { PlotPosition } from "./plot";
 import { fractionOf, niceTicks, paddedRange } from "./scale";
 import type { Range } from "./scale";
 
-/** How the map draws a point other than the IHSG, as decision 0035 sets: the point that the map is about, which is the reader's own portfolio or the one that the reader opened, in the color of the reader's own point with a ring around it, a stock that the portfolio holds as a filled dot whose area grows with its weight, and any other stock as a hollow dot. A holding without a weight, such as one of a portfolio without measures, takes the size of the smallest weight. */
+/** Different marks distinguish the subjects of the map from their background context, even without color. A holding without a usable weight still needs a visible mark. */
 export type MapMark =
   | { kind: "own" }
   | { kind: "held"; weight: PortfolioWeight | undefined }
+  | { kind: "classmate" }
   | { kind: "other" };
 
 /** A value that the tooltip of a point shows and a screen reader reads: the name of a measure with its value, as a text or as a change with a sign. */
@@ -30,6 +31,7 @@ export interface MapPoint<Across extends number, Up extends number> {
   key: string;
   /** The name beside the point and at the head of its tooltip. */
   name: string;
+  labelValue?: string;
   across: Across;
   up: Up;
   values: readonly MapValue[];
@@ -84,7 +86,7 @@ export interface RiskMapLayout<Point> {
   /** The characters of the longest text of a mark of returns. DM Mono, the font of the marks of axes, draws each character equally wide, so the plot leaves this many widths of a character for the texts. */
   upTextLength: number;
   market: PlacedMark;
-  line: { start: PlotPosition; end: PlotPosition };
+  line: { start: PlotPosition; end: PlotPosition } | undefined;
   /** Each point with its mark, in the order of the points. */
   points: { point: Point; placed: PlacedMark }[];
   /** The places of the label of the line of the return of the IHSG and of the label of the line, in order of preference. */
@@ -120,7 +122,7 @@ const lineEndPlaces = [
   { dx: -3.33, dy: 1.33 },
 ];
 
-/** Lays out the map: the risk of every point, of the IHSG, and of the start of the line across, and their returns up, on axes that mark round values, with zero on the axis of returns. An axis whose values are never below zero, such as beta or a standard deviation, starts at zero at the lowest. */
+/** A comparison line needs room for its endpoints as well as the points. Zero separates gains from losses, and an axis whose values are never negative starts at zero at the lowest. */
 export function layoutRiskMap<
   Across extends number,
   Up extends number,
@@ -130,28 +132,36 @@ export function layoutRiskMap<
   points: readonly Point[];
   across: MapAxis<Across>;
   up: MapAxis<Up>;
-  line: MapLine<Across, Up>;
+  line?: MapLine<Across, Up> | undefined;
 }): RiskMapLayout<Point> {
   const { market, points, across, up, line } = map;
   const acrossRange = rangeOf(
-    [market, ...points, line.start].map((point) => point.across),
+    [market, ...points, ...(line === undefined ? [] : [line.start])].map(
+      (point) => point.across,
+    ),
     across.toValue,
   );
-  if (market.across === line.start.across) {
+  if (market.across === line?.start.across) {
     throw new Error(
       `The line of the map starts at the risk of the IHSG, ${String(market.across)}, so it has no direction.`,
     );
   }
-  const slope =
-    (market.up - line.start.up) / (market.across - line.start.across);
-  const lineEnd = up.toValue(
-    line.start.up + (acrossRange.max - line.start.across) * slope,
-  );
+  const lineEnd =
+    line === undefined
+      ? undefined
+      : up.toValue(
+          line.start.up +
+            ((acrossRange.max - line.start.across) *
+              (market.up - line.start.up)) /
+              (market.across - line.start.across),
+        );
   const upRange = rangeOf(
     [
-      ...[market, ...points, line.start].map((point) => point.up),
+      ...[market, ...points, ...(line === undefined ? [] : [line.start])].map(
+        (point) => point.up,
+      ),
       up.toValue(0),
-      lineEnd,
+      ...(lineEnd === undefined ? [] : [lineEnd]),
     ],
     up.toValue,
   );
@@ -171,7 +181,13 @@ export function layoutRiskMap<
     upTextLength = Math.max(upTextLength, tick.text.length);
   }
   const marketPosition = positionOf(market);
-  const end = positionOf({ across: acrossRange.max, up: lineEnd });
+  const drawnLine =
+    line === undefined || lineEnd === undefined
+      ? undefined
+      : {
+          start: positionOf(line.start),
+          end: positionOf({ across: acrossRange.max, up: lineEnd }),
+        };
   return {
     acrossTicks: acrossTicksOf(acrossRange, across, market.across),
     upTicks,
@@ -181,19 +197,22 @@ export function layoutRiskMap<
       radius: marketRadius,
       outerRadius: marketRadius,
     },
-    line: { start: positionOf(line.start), end },
+    line: drawnLine,
     points: points.map((point) => ({
       point,
       placed: { position: positionOf(point), ...markSizeOf(point.mark) },
     })),
     linePlaces: {
       level: levelPlaces(marketPosition.y),
-      line: lineEndPlaces.map(({ dx, dy }) => ({
-        at: end,
-        dx,
-        dy,
-        anchor: "end",
-      })),
+      line:
+        drawnLine === undefined
+          ? []
+          : lineEndPlaces.map(({ dx, dy }) => ({
+              at: drawnLine.end,
+              dx,
+              dy,
+              anchor: "end",
+            })),
     },
   };
 }
@@ -280,5 +299,7 @@ function markSizeOf(mark: MapMark): { radius: number; outerRadius: number } {
     }
     case "other":
       return { radius: otherRadius, outerRadius: otherRadius };
+    case "classmate":
+      return { radius: 0.25, outerRadius: 0.25 };
   }
 }

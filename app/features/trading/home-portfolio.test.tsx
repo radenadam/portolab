@@ -1,16 +1,15 @@
+import { HomeRisk } from "./home-risk";
+import { homePortfolioForTest } from "./home-portfolio-for-test";
 import { languageNames } from "~/language-names";
-import { readPortfolioDayChange } from "./read-portfolio-day-change.server";
 import { expect, test } from "vitest";
 import type { ClassId } from "~/features/classes/classes.schema";
 import { conceptLessonDataForTest } from "~/features/learning/concept-lesson-data-for-test";
 import {
-  databaseWithClosesForTest,
   valuationForTest,
   cashValuationForTest,
   aadiValuationForTest,
   ammnValuationForTest,
 } from "~/features/measures/measures-for-test.server";
-import { readPortfolioMeasures } from "~/features/measures/read-measures.server";
 import {
   portfolioWithoutVariationForTest,
   portfolioAgainstMarketForTest,
@@ -19,14 +18,11 @@ import { markupTextForTest } from "~/markup-text-for-test";
 import { locales } from "~/paraglide/runtime.js";
 import type { Locale } from "~/paraglide/runtime.js";
 import { renderMarkupForTest } from "~/render-markup-for-test";
-import { succeed, fail } from "~/result";
+import { fail } from "~/result";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
-import { cumulativeReturn } from "~/units/cumulative-return";
 import { rupiah } from "~/units/rupiah";
-import { shares } from "~/units/shares";
 import { HomePortfolio } from "./home-portfolio";
 import type { HomePortfolioData } from "./read-home-portfolio.server";
-import type { PortfolioValuation } from "./value-portfolio";
 import { valuePortfolio } from "./value-portfolio";
 const classId = 7 as ClassId;
 const texts: Record<
@@ -55,10 +51,10 @@ const texts: Record<
     common: [
       "Beranda",
       "Nilai portofolio",
-      "Nilai portofolio menjumlahkan kas dan nilai saham pada harga tertunda masing-masing. Waktu harga tercantum pada setiap saham di bawah. Grafik memakai harga penutupan final, sehingga imbal hasil terakhirnya dapat berbeda.",
+      "Nilai portofolio menjumlahkan kas dan nilai saham pada harga tertunda masing-masing. Waktu harga tercantum pada tabel kepemilikan. Grafik memakai harga penutupan final, sehingga imbal hasil terakhirnya dapat berbeda.",
       "hari ini",
       "Perubahan harian",
-      "Perubahan harian membandingkan nilai portofolio sekarang dengan nilainya pada penutupan 29 Oktober 2026. Nilai sebelumnya memakai kas, saham, dan harga penutupan hari itu, sehingga transaksi sesudahnya, termasuk biaya dan pajaknya, ikut dihitung. Waktu harga sekarang tercantum pada setiap saham di bawah.",
+      "Perubahan harian membandingkan nilai portofolio sekarang dengan nilainya pada penutupan 29 Oktober 2026. Nilai sebelumnya memakai kas, saham, dan harga penutupan hari itu, sehingga transaksi sesudahnya, termasuk biaya dan pajaknya, ikut dihitung. Waktu harga sekarang tercantum pada tabel kepemilikan.",
       "Sejak 30 Okt",
       "Dasar imbal hasil",
       "Risiko dibanding pasar",
@@ -89,7 +85,7 @@ const texts: Record<
       "30,00%",
       "20,00%",
       "Rp 4.987",
-      "55 lot · Harga rata-rata Rp 4.987.",
+      "55 lot",
       "Rp 1.983",
     ],
     one: "Rp 2.989.478 disisihkan oleh 1 order terbuka.",
@@ -106,10 +102,10 @@ const texts: Record<
     common: [
       "Home",
       "Portfolio value",
-      "Portfolio value adds cash and the value of each holding at its delayed price. Each holding below shows its quote time. The chart uses final closes, so its latest return can differ.",
+      "Portfolio value adds cash and the value of each holding at its delayed price. The holdings table shows the quote times. The chart uses final closes, so its latest return can differ.",
       "today",
       "Daily change",
-      "The daily change compares the current portfolio value with its value at the close of October 29, 2026. The earlier value uses the cash, shares, and closes of that day, so trades since then, including fees and taxes, count in the change. Each holding below shows its current quote time.",
+      "The daily change compares the current portfolio value with its value at the close of October 29, 2026. The earlier value uses the cash, shares, and closes of that day, so trades since then, including fees and taxes, count in the change. The holdings table shows the current quote times.",
       "Since Oct 30",
       "Return basis",
       "Risk against the market",
@@ -140,7 +136,7 @@ const texts: Record<
       "30.00%",
       "20.00%",
       "IDR 4,987",
-      "55 lots · Average price IDR 4,987.",
+      "55 lots",
       "IDR 1,983",
     ],
     one: "IDR 2,989,478 set aside by 1 open order.",
@@ -148,44 +144,6 @@ const texts: Record<
     failed: "The latest update could not fetch this price.",
   },
 };
-function homeForTest(
-  valuation: PortfolioValuation = valuationForTest(["BBCA", "TLKM"]),
-  now = new Date("2026-10-30T10:00:00Z"),
-): HomePortfolioData {
-  const database = databaseWithClosesForTest();
-  return {
-    report: {
-      valuation,
-      quoteAttempt: undefined,
-      history: succeed({
-        points: [
-          {
-            date: "2026-10-30",
-            portfolio: cumulativeReturn(0),
-            market: cumulativeReturn(0),
-          },
-        ],
-        end: { kind: "missingCloses", date: "2026-11-02", codes: ["IHSG"] },
-      }),
-    },
-    measures: readPortfolioMeasures(database, valuation),
-    dayChange: readPortfolioDayChange(database, {
-      portfolio: {
-        cash: valuation.cash,
-        holdings: valuation.holdings,
-        orders: [],
-      },
-      valuation,
-      now,
-      delayMinutes: 10,
-    }),
-    setAside: { amount: rupiah(2_989_478), orders: 2 },
-    lotShares: shares(100),
-    histories: [],
-    now,
-    delayMinutes: 10,
-  };
-}
 function render(home: HomePortfolioData): string {
   return renderMarkupForTest(
     <HomePortfolio home={home} classId={classId} />,
@@ -197,7 +155,7 @@ for (const locale of locales) {
   test(`shows the summary, risk dots, and holdings at independently computed values in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     // The fixture in measures-for-test.server.ts gives the independently computed 50%, 30%, and 20% weights. By hand, Rp27,431,085 / 5,500 rounds to Rp4,987, and Rp16,458,651 / 8,300 rounds to Rp1,983.
-    const home = homeForTest();
+    const home = homePortfolioForTest();
     expect(home.report.valuation.total?.value).toBe(54_780_000);
     const html = render(home);
     for (const sentence of [...text.common, ...text.measured])
@@ -234,7 +192,7 @@ for (const locale of locales) {
         new Map(),
       ),
     ]) {
-      const home = homeForTest(valuation);
+      const home = homePortfolioForTest(valuation);
       const html = render(home);
       expect(html).toContain(markupTextForTest(text.cash));
       if (valuation.holdings.length === 0)
@@ -244,7 +202,7 @@ for (const locale of locales) {
       if (valuation.holdings.length === 1)
         expect(html).toContain(markupTextForTest(text.oneHolding));
     }
-    const home = homeForTest();
+    const home = homePortfolioForTest();
     const failed = render({
       ...home,
       report: {
@@ -267,8 +225,8 @@ for (const locale of locales) {
   });
   test(`names the comparison day and only calls the current day today in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
-    expect(render(homeForTest())).toContain(text.today);
-    const weekend = homeForTest(
+    expect(render(homePortfolioForTest())).toContain(text.today);
+    const weekend = homePortfolioForTest(
       valuationForTest(["BBCA", "TLKM"]),
       new Date("2026-11-07T03:30:00Z"),
     );
@@ -276,13 +234,15 @@ for (const locale of locales) {
   });
   test(`draws risk scales for a negative beta and withholds the Sharpe dot when variance is zero in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
-    const home = homeForTest();
     for (const measures of [
       portfolioAgainstMarketForTest(),
       portfolioWithoutVariationForTest(),
     ]) {
       expect(measures.kind).toBe("measured");
-      const html = render({ ...home, measures });
+      const html = renderMarkupForTest(
+        <HomeRisk report={measures} classId={classId} />,
+        conceptLessonDataForTest(),
+      );
       expect(html).not.toContain("NaN");
       expect(html).not.toContain("Infinity");
     }
