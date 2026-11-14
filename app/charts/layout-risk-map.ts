@@ -84,7 +84,7 @@ export interface RiskMapLayout<Point> {
   /** The characters of the longest text of a mark of returns. DM Mono, the font of the marks of axes, draws each character equally wide, so the plot leaves this many widths of a character for the texts. */
   upTextLength: number;
   market: PlacedMark;
-  line: { start: PlotPosition; end: PlotPosition };
+  line: { start: PlotPosition; end: PlotPosition } | undefined;
   /** Each point with its mark, in the order of the points. */
   points: { point: Point; placed: PlacedMark }[];
   /** The places of the label of the line of the return of the IHSG and of the label of the line, in order of preference. */
@@ -130,28 +130,26 @@ export function layoutRiskMap<
   points: readonly Point[];
   across: MapAxis<Across>;
   up: MapAxis<Up>;
-  line: MapLine<Across, Up>;
+  line?: MapLine<Across, Up> | undefined;
 }): RiskMapLayout<Point> {
   const { market, points, across, up, line } = map;
   const acrossRange = rangeOf(
-    [market, ...points, line.start].map((point) => point.across),
+    [market, ...points, ...(line === undefined ? [] : [line.start])].map(
+      (point) => point.across,
+    ),
     across.toValue,
   );
-  if (market.across === line.start.across) {
-    throw new Error(
-      `The line of the map starts at the risk of the IHSG, ${String(market.across)}, so it has no direction.`,
-    );
-  }
-  const slope =
-    (market.up - line.start.up) / (market.across - line.start.across);
-  const lineEnd = up.toValue(
-    line.start.up + (acrossRange.max - line.start.across) * slope,
-  );
+  const lineEnd =
+    line === undefined
+      ? undefined
+      : endOfLine(line, market, { end: acrossRange.max, toValue: up.toValue });
   const upRange = rangeOf(
     [
-      ...[market, ...points, line.start].map((point) => point.up),
+      ...[market, ...points, ...(line === undefined ? [] : [line.start])].map(
+        (point) => point.up,
+      ),
       up.toValue(0),
-      lineEnd,
+      ...(lineEnd === undefined ? [] : [lineEnd]),
     ],
     up.toValue,
   );
@@ -171,7 +169,10 @@ export function layoutRiskMap<
     upTextLength = Math.max(upTextLength, tick.text.length);
   }
   const marketPosition = positionOf(market);
-  const end = positionOf({ across: acrossRange.max, up: lineEnd });
+  const end =
+    lineEnd === undefined
+      ? undefined
+      : positionOf({ across: acrossRange.max, up: lineEnd });
   return {
     acrossTicks: acrossTicksOf(acrossRange, across, market.across),
     upTicks,
@@ -181,19 +182,25 @@ export function layoutRiskMap<
       radius: marketRadius,
       outerRadius: marketRadius,
     },
-    line: { start: positionOf(line.start), end },
+    line:
+      line === undefined || end === undefined
+        ? undefined
+        : { start: positionOf(line.start), end },
     points: points.map((point) => ({
       point,
       placed: { position: positionOf(point), ...markSizeOf(point.mark) },
     })),
     linePlaces: {
       level: levelPlaces(marketPosition.y),
-      line: lineEndPlaces.map(({ dx, dy }) => ({
-        at: end,
-        dx,
-        dy,
-        anchor: "end",
-      })),
+      line:
+        end === undefined
+          ? []
+          : lineEndPlaces.map(({ dx, dy }) => ({
+              at: end,
+              dx,
+              dy,
+              anchor: "end",
+            })),
     },
   };
 }
@@ -281,4 +288,19 @@ function markSizeOf(mark: MapMark): { radius: number; outerRadius: number } {
     case "other":
       return { radius: otherRadius, outerRadius: otherRadius };
   }
+}
+
+function endOfLine<Across extends number, Up extends number>(
+  line: MapLine<Across, Up>,
+  market: MapPoint<Across, Up>,
+  axis: { end: Across; toValue: (value: number) => Up },
+): Up {
+  if (market.across === line.start.across) {
+    throw new Error(
+      `The line of the map starts at the risk of the IHSG, ${String(market.across)}, so it has no direction.`,
+    );
+  }
+  const slope =
+    (market.up - line.start.up) / (market.across - line.start.across);
+  return axis.toValue(line.start.up + (axis.end - line.start.across) * slope);
 }

@@ -23,8 +23,20 @@ const rupiahOptions: Intl.NumberFormatOptions = {
   maximumFractionDigits: 0,
 };
 
-export function formatRupiah(amount: Rupiah): string {
-  return new Intl.NumberFormat(intlLocale(), rupiahOptions).format(amount);
+type CurrencyNotation = "standard" | "compact";
+
+const rupiahFormats: Record<CurrencyNotation, Intl.NumberFormatOptions> = {
+  standard: rupiahOptions,
+  compact: { ...rupiahOptions, notation: "compact", maximumFractionDigits: 1 },
+};
+
+export function formatRupiah(
+  amount: Rupiah,
+  notation: CurrencyNotation = "standard",
+): string {
+  return new Intl.NumberFormat(intlLocale(), rupiahFormats[notation]).format(
+    amount,
+  );
 }
 
 /** How the active language groups the digits of a whole number: the character between groups, such as the dot in 100.000.000, and the number of digits in each group after the first, so that a parser can read a number as a person writes it. */

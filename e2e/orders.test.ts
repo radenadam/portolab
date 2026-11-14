@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { selectFirstStudent } from "./select-first-student.ts";
 import type { Browser, Locator, Page } from "@playwright/test";
 import type { ClassId } from "../app/features/classes/classes.schema.ts";
 import { reasonMaximumLength } from "../app/features/trading/reason-maximum-length.ts";
@@ -19,7 +20,7 @@ import { wideWord } from "./wide-word.ts";
 import { widestClassNames } from "./widest-class-names.ts";
 
 // The server runs with the fixture price source, whose quotes are the closes of Friday 30 October 2026, which fixture-price-source.server.ts records. They are from no session of the trading day of an order that a test places, so every order waits. Every update lacks UNVR, whose quote the global setup stored before the server started, and WIFI, of which Portolab has no price. ITMG has the highest price and GOTO the widest change of the stocks that a student can choose. The global setup stores the month-end closes that give BBCA enough monthly returns and AADI too few. The class has the most starting cash that Portolab accepts, and the purchase has the largest order that IDX accepts at the highest price of the stocks that a student can buy, so the screens show their widest amounts. A text with a part that the test cannot know in advance, such as the time of an order or of the latest update of prices, is the tuple of its other parts.
-const { className, studentName } = widestClassNames;
+const { className } = widestClassNames;
 
 /** The stocks whose delayed price the tests show. */
 type QuotedCode = "AADI" | "BBCA" | "GOTO" | "ITMG" | "UNVR";
@@ -264,10 +265,10 @@ const texts: Record<
     reasonTooLong:
       'Kolom "Alasan (opsional)" memuat paling banyak 500 karakter, tetapi isinya 501 karakter. Persingkat isinya.',
     reasonFarTooLong:
-      'Kolom "Alasan (opsional)" berisi 8.001 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
+      'Kolom "Alasan (opsional)" berisi 8.001 karakter, lebih banyak daripada yang diterima kolom ini. Isi kolom itu dengan teks yang dimintanya.',
     reasonLabel: "Alasan Anda: ",
     purchaseOfOneLot: "Beli 1 lot BBCA pada harga pasar",
-    studentPortfolioLink: `Portofolio ${studentName}`,
+    studentPortfolioLink: "Buka portofolio",
     reasonsTitle: "Alasan order",
   },
   en: {
@@ -410,10 +411,10 @@ const texts: Record<
     reasonTooLong:
       'The field "Reason (optional)" holds at most 500 characters, but it has 501. Shorten it.',
     reasonFarTooLong:
-      'The field "Reason (optional)" has 8,001 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
+      'The field "Reason (optional)" has 8,001 characters, more than this field takes. Fill it in with the text that it asks for.',
     reasonLabel: "Your reason: ",
     purchaseOfOneLot: "Buy 1 lot of BBCA at the market price",
-    studentPortfolioLink: `Portfolio of ${studentName}`,
+    studentPortfolioLink: "Open portfolio",
     reasonsTitle: "Reasons for the orders",
   },
 };
@@ -787,9 +788,14 @@ for (const locale of locales) {
     ).toBeVisible();
     await expectAccessibleScreen(student);
 
-    await page.goto(`${classPath}/portfolios`);
+    await page.goto(`${classPath}/students`);
+    await selectFirstStudent(page);
     await page
-      .getByRole("link", { name: text.studentPortfolioLink, exact: true })
+      .getByRole("dialog")
+      .getByRole("link", {
+        name: text.studentPortfolioLink,
+        exact: true,
+      })
       .click();
     const reasons = page
       .getByRole("main")

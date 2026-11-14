@@ -55,7 +55,7 @@ export function RiskMap<Across extends number, Up extends number>({
     title: string;
   };
   up: MapAxis<Up>;
-  line: MapLine<Across, Up>;
+  line?: MapLine<Across, Up>;
   /** The label of the line at the return of the IHSG, such as IHSG 0.70%. */
   levelLabel: string;
   /** The id of the heading that names the map, which also names its slider. */
@@ -112,7 +112,7 @@ export function RiskMap<Across extends number, Up extends number>({
       layout={layout}
       drawn={drawn}
       placed={placed}
-      texts={{ title: across.title, level: levelLabel, line: line.name }}
+      texts={{ title: across.title, level: levelLabel, line: line?.name ?? "" }}
       active={active}
       drawingRef={drawingRef}
       measureRef={measureRef}
@@ -174,7 +174,7 @@ function drawnPoints<Across extends number, Up extends number>(
 function mapLabels(
   drawn: readonly DrawnPoint[],
   map: {
-    line: { name: string };
+    line: { name: string } | undefined;
     levelLabel: string;
     layout: RiskMapLayout<unknown>;
   },
@@ -208,7 +208,7 @@ function mapLabels(
       },
       {
         key: lineLabelKeys.line,
-        text: map.line.name,
+        text: map.line?.name ?? "",
         places: map.layout.linePlaces.line,
       },
     ],

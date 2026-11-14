@@ -1,33 +1,578 @@
 .link {
-  display: inline-flex;
-  align-items: center;
-  min-height: var(--size-touch-target);
-  overflow-wrap: anywhere;
+  composes: pathLink from "../../frame.module.css";
+  color: var(--color-link);
 }
-
-/* Each student is an item of a list with the name above the measures, so the list fits a phone, where a table with a column for each measure would not. */
-.list {
-  display: flex;
-  flex-direction: column;
-  align-self: stretch;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.item {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  padding-block: var(--space-3);
-  border-block-end: var(--size-line) solid var(--color-line);
-}
-
-.name {
-  font-weight: 600;
-}
-
 .details {
   color: var(--color-muted);
+  font-size: var(--text-small);
+}
+.students {
+  align-self: stretch;
+  display: grid;
+  gap: var(--space-6);
+  min-width: 0;
+}
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+.tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+.tools h1 {
+  font-size: var(--text-title);
+}
+.measures {
+  display: flex;
+  flex-wrap: wrap;
+  position: relative;
+  isolation: isolate;
+  padding-inline: var(--space-1);
+}
+.measures::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: var(--space-1) 0;
+  border-radius: var(--radius-item);
+  background: var(--color-raised);
+}
+.measures a,
+.filters a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--size-touch-target);
+  color: var(--color-ink-secondary);
+  font-size: var(--text-small);
+  text-decoration: none;
+}
+.measures a > span,
+.filters a > span {
+  padding: var(--space-1) var(--space-3);
+}
+.measures a[aria-current] > span {
+  border-radius: var(--radius-button);
+  background: var(--color-panel);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-choice);
+  font-weight: 600;
+}
+.search {
+  display: flex;
+  flex-wrap: wrap;
+  flex: 1 1 var(--width-ranking-search);
+  min-width: 0;
+  gap: var(--space-1);
+}
+.search input {
+  width: 0;
+  flex: 1;
+  min-width: 0;
+  min-height: var(--size-touch-target);
+  padding-inline: var(--space-3);
+  border: var(--size-line) solid var(--color-line);
+  border-radius: var(--radius-item);
+  background: var(--color-panel);
+  color: var(--color-ink);
+  font: inherit;
+}
+.button,
+.primary,
+.search button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--size-touch-target);
+  padding: var(--space-2) var(--space-3);
+  border: var(--size-line) solid var(--color-line-strong);
+  border-radius: var(--radius-item);
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+}
+.primary {
+  background: var(--color-button);
+  color: var(--color-on-button);
+}
+.export {
+  gap: var(--space-2);
+  min-width: var(--size-touch-target);
+}
+.export svg {
+  width: var(--size-icon);
+  height: var(--size-icon);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: var(--size-mark);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.export span {
+  display: none;
+}
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: var(--space-2);
+}
+.filters a > span {
+  border: var(--size-line) solid var(--color-line);
+  border-radius: var(--radius-panel);
+  background: var(--color-panel);
+}
+.filters a[aria-current] > span {
+  border-color: var(--color-button);
+  background: var(--color-button);
+  color: var(--color-on-button);
+  font-weight: 600;
+}
+.listPanel {
+  flex: 1;
+  overflow: hidden;
+  border: var(--size-line) solid var(--color-line);
+  border-radius: var(--radius-panel);
+  background: var(--color-panel);
+}
+.table {
+  display: block;
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-small);
+}
+.table thead {
+  display: none;
+}
+.table tbody {
+  display: block;
+}
+.table tr {
+  display: grid;
+  grid-template-columns: var(--width-ranking-rank) minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  column-gap: var(--space-2);
+  padding: var(--space-3);
+  border-block-end: var(--size-line) solid var(--color-line);
+}
+.table td {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.rank {
+  grid-column: 1;
+  grid-row: 1;
+  color: var(--color-muted);
+  font-size: var(--text-small);
+  text-align: right;
+}
+.rankHeading {
+  position: absolute;
+  width: var(--size-line);
+  height: var(--size-line);
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.who {
+  grid-column: 2;
+  grid-row: 1;
+}
+.who a {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--size-touch-target);
+  color: var(--color-ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+.avatar {
+  composes: avatar from "../../frame.module.css";
+  display: none;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+}
+.studentName {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.table small {
+  display: block;
+  color: var(--color-muted);
+  font-size: var(--text-chart);
+  font-weight: 400;
+}
+.studentName small {
+  font-family: var(--font-code);
+}
+.measureCell {
+  grid-column: 3;
+  grid-row: 1;
+  text-align: right;
+  font-weight: 600;
+}
+.returnCell {
+  grid-column: 2;
+  grid-row: 2;
+}
+.betaCell {
+  grid-column: 3;
+  grid-row: 2;
+}
+.returnCell,
+.betaCell {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-2);
+}
+.riskCell {
+  display: none;
+}
+.activityCell {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  grid-column: 2 / -1;
+  color: var(--color-muted);
+}
+.activityCell small {
+  display: inline;
+  margin-inline-start: var(--space-1);
+}
+.active {
+  color: var(--color-gain);
+}
+.inactive {
+  color: var(--color-line-strong);
+}
+.reasonCell {
+  grid-column: 2 / -1;
+  color: var(--color-muted);
+}
+.reasonCell summary {
+  font-size: var(--text-small);
+  line-height: 1.4;
+  padding-block: var(--space-3);
+}
+.scale {
+  display: block;
+  width: 100%;
+  height: var(--space-4);
+  overflow: visible;
+}
+.track {
+  stroke: var(--color-line);
+  stroke-width: var(--size-line);
+}
+.reference {
+  stroke: var(--color-ink);
+  stroke-width: var(--size-mark);
+}
+.rise {
+  fill: var(--color-gain);
+}
+.fall {
+  fill: var(--color-loss);
+}
+.none {
+  fill: var(--color-muted);
+}
+.dot {
+  fill: var(--color-data);
+}
+.tableNote {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  color: var(--color-muted);
+  font-size: var(--text-small);
+}
+.empty {
+  padding: var(--space-6);
+}
+.selected {
+  --color-gain: var(--color-gain-selected);
+  --color-loss: var(--color-loss-selected);
+  --color-muted: var(--color-ink-secondary);
+  background: var(--color-own-soft);
+}
+.studentPanel {
+  composes: panel from "../../panel.module.css";
+  width: 100%;
+  max-width: var(--width-aside);
+  margin: var(--space-4) auto;
+  color: var(--color-ink);
+}
+.studentPanel::backdrop {
+  background: var(--color-backdrop);
+}
+.studentPanel:modal {
+  position: fixed;
+  inset: auto 0 0;
+  max-width: 100%;
+  max-height: calc(100dvh - var(--space-8));
+  margin: 0;
+  overflow-y: auto;
+  border-end-start-radius: 0;
+  border-end-end-radius: 0;
+}
+.automaticPanel {
+  display: none;
+}
+.panelHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.panelHeader > div {
+  min-width: 0;
+}
+.panelHeader h2 {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--text-heading);
+}
+.panelHeader small {
+  color: var(--color-muted);
+  font-family: var(--font-code);
+  font-size: var(--text-small);
+  overflow-wrap: anywhere;
+}
+@media (width < 60rem) {
+  .panelHeader {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+  .panelHeader > div {
+    display: contents;
+  }
+  .panelHeader h2 {
+    grid-column: 1 / 3;
+    grid-row: 1;
+  }
+  .panelHeader .avatar {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .panelHeader small {
+    grid-column: 2 / -1;
+    grid-row: 2;
+  }
+  .panelHeader .close {
+    grid-column: 3;
+    grid-row: 1;
+  }
+}
+.panelHeader .avatar {
+  display: flex;
+  background: var(--color-own-soft);
+}
+.close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  min-width: var(--size-touch-target);
+  min-height: var(--size-touch-target);
+  margin-inline-start: auto;
+  color: var(--color-ink);
+  font-size: var(--text-heading);
+  text-decoration: none;
+}
+.keyValues {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4) var(--space-2);
+  margin: 0;
+}
+.keyValues > div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.keyValues dt {
+  color: var(--color-muted);
+  font-size: var(--text-small);
+}
+.keyValues dd {
+  order: -1;
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.note {
+  padding: var(--space-3);
+  border-radius: var(--radius-item);
+  background: var(--color-raised);
+}
+.allocation {
+  font-size: var(--text-small);
+  color: var(--color-ink-secondary);
+}
+.allocationBar {
+  display: flex;
+  gap: var(--size-mark);
+  height: var(--space-2);
+  margin-block-end: var(--space-2);
+}
+.allocationBar i {
+  min-width: 0;
+  border-radius: var(--radius-button);
+  background: var(--color-data);
+}
+.allocationBar .cash {
+  background: var(--color-line-strong);
+}
+.latestReason h2 {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--text-body);
+}
+.latestReason small {
+  color: var(--color-muted);
+  font-size: var(--text-small);
+}
+.panelActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+@media (width >= 60rem) {
+  .export span {
+    display: inline;
+  }
+  .table tr {
+    grid-template-columns:
+      var(--width-ranking-rank) minmax(0, 1fr) var(--width-ranking-return)
+      var(--width-ranking-beta) var(--width-ranking-number) var(
+        --width-ranking-number
+      )
+      var(--width-ranking-activity);
+    padding: 0 var(--space-3);
+  }
+  .table thead {
+    display: block;
+    color: var(--color-muted);
+    font-size: var(--text-chart);
+  }
+  .table th {
+    padding-block: var(--space-3);
+    text-align: left;
+    font-weight: 500;
+    overflow-wrap: anywhere;
+  }
+  .table td {
+    grid-column: auto;
+    grid-row: auto;
+  }
+  .table .avatar {
+    display: flex;
+  }
+  .table .riskCell {
+    display: block;
+    text-align: right;
+  }
+  .table .measureCell {
+    text-align: right;
+  }
+  .measureCell small {
+    display: none;
+  }
+  .table .activityCell {
+    padding-inline-start: var(--space-2);
+  }
+  .table .reasonCell {
+    grid-column: 2 / -1;
+  }
+  .studentPanel:modal {
+    inset: 0 0 0 auto;
+    width: var(--width-aside);
+    max-height: 100dvh;
+  }
+}
+@media (width >= 82.5rem) {
+  .students:has(.studentPanel) {
+    grid-template-columns: minmax(0, 2.7fr) minmax(0, 1fr);
+    align-items: stretch;
+  }
+  .studentPanel {
+    position: static;
+    display: flex;
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    margin: 0;
+  }
+  .automaticPanel .close {
+    display: none;
+  }
+  .tools .search {
+    margin-inline-start: auto;
+    max-width: var(--width-ranking-search);
+  }
+}
+
+.miniMap {
+  --size-chart: var(--size-chart-compact);
+}
+
+.content {
+  align-self: stretch;
+  min-width: 0;
+}
+.returnCell {
+  grid-template-columns: var(--width-ranking-return-value) minmax(0, 1fr);
+}
+.betaCell {
+  grid-template-columns: var(--size-touch-target) minmax(0, 1fr);
+}
+
+@media (width < 82.5rem) {
+  .selected[data-auto-selected] {
+    background: transparent;
+  }
+}
+
+.panelContents {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+.panelHeader h2,
+.table tr {
+  scroll-margin-block-start: calc(var(--size-top-bar) + var(--space-4));
+}
+@media (width >= 82.5rem) {
+  .studentPanel {
+    overflow: visible;
+  }
+  .panelContents {
+    position: sticky;
+    top: calc(var(--size-top-bar) + var(--space-4));
+    max-height: calc(100dvh - var(--size-top-bar) - 2 * var(--space-4));
+    overflow-y: auto;
+  }
+}
+
+.searchFailure {
+  flex-basis: 100%;
+  color: var(--color-loss);
   font-size: var(--text-small);
 }

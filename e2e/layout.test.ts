@@ -104,7 +104,7 @@ const routePages: Record<string, readonly RoutePage[]> = {
   "features/grading/class-portfolios-page.tsx": [
     {
       reader: "lecturer",
-      path: ({ classPath }) => `${classPath}/portfolios`,
+      path: ({ classPath }) => `${classPath}/students`,
     },
   ],
   // The address downloads a workbook, which no browser shows.

@@ -67,13 +67,15 @@ export function MapDrawing({
         y2={percentOf(layout.market.position.y)}
         className={styles["level"]}
       />
-      <line
-        x1={percentOf(layout.line.start.x)}
-        y1={percentOf(layout.line.start.y)}
-        x2={percentOf(layout.line.end.x)}
-        y2={percentOf(layout.line.end.y)}
-        className={styles["line"]}
-      />
+      {layout.line !== undefined && (
+        <line
+          x1={percentOf(layout.line.start.x)}
+          y1={percentOf(layout.line.start.y)}
+          x2={percentOf(layout.line.end.x)}
+          y2={percentOf(layout.line.end.y)}
+          className={styles["line"]}
+        />
+      )}
       {drawn
         .toSorted(
           (first, second) => drawOrder[first.kind] - drawOrder[second.kind],

@@ -102,7 +102,7 @@ export function ReasonSection({
     }
   }
   return (
-    <section>
+    <section id="student-reasons">
       <h2>{m.trading_lecturer_reasons_title()}</h2>
       {reasoned.length === 0 ? (
         <p>{m.trading_lecturer_no_reasons_body({ name: studentName })}</p>

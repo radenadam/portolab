@@ -96,7 +96,7 @@ const currentItems: Record<RouteId, NavigationItem | undefined> = {
   "features/grading/workbook-route": undefined,
   "features/grading/student-portfolio-page": "students",
   "features/grading/student-measures-page": "students",
-  "features/classes/reset-password-page": "class",
+  "features/classes/reset-password-page": "students",
   "features/classes/join-page": "join",
   "features/classes/join-class-page": "join",
   "features/language/language-page": undefined,

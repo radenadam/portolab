@@ -362,7 +362,7 @@ for (const locale of locales) {
         ),
       ),
     ).toBe(
-      `<section><h2>${reasons.title}</h2><ul>${reasons.items.join("")}</ul></section>`,
+      `<section id="student-reasons"><h2>${reasons.title}</h2><ul>${reasons.items.join("")}</ul></section>`,
     );
   });
 
@@ -377,7 +377,7 @@ for (const locale of locales) {
           ),
         ),
       ).toBe(
-        `<section><h2>${reasons.title}</h2><p>${reasons.noReasons}</p></section>`,
+        `<section id="student-reasons"><h2>${reasons.title}</h2><p>${reasons.noReasons}</p></section>`,
       );
     }
   });
