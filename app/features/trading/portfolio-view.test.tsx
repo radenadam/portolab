@@ -42,6 +42,9 @@ const tlkmHolding: Holding = {
   cost: rupiah(198_297),
 };
 const bbcaQuote = stockQuote("BBCA", [4_840, 4_980], "2026-11-03T02:55:00Z");
+// The tile of the company of BBCA beside its code and the name of the company, which read the same in both languages.
+const bbcaStock =
+  '<div><span aria-hidden="true">BB</span><div><span>BBCA</span><span>Bank Central Asia Tbk</span></div></div>';
 // The IHSG at its close of Tuesday 3 November 2026, quoted at 16:14 WIB, whose return since the close of 30 October is the one of the history at that close.
 const ihsgQuote: IndexQuote = {
   kind: "index",
@@ -387,8 +390,8 @@ for (const locale of locales) {
         ])}<p>${readerText.valuationNotice}</p></section>`,
         `<h2 id="holdings-heading">${readerText.holdingsTitle}</h2>`,
         `<tr><th scope="col">${label.stock}</th><th scope="col">${label.shares}</th><th scope="col">${label.cost}</th><th scope="col"><span>${label.delayedPrice}</span><span>${label.quotedAt}</span></th><th scope="col">${label.value}</th><th scope="col"><span>${label.gain}</span><span>${label.gainReturn}</span></th></tr>`,
-        `<tr><th scope="row">BBCA</th><td>${value.shares}</td><td>${value.cost}</td><td><span>${value.delayedPrice}</span><span>${value.quotedAt}</span></td><td>${value.holdingValue}</td><td><span>${value.gain}</span><span>${value.gainReturn}</span></td></tr>`,
-        `<li><div><p>BBCA</p><p>${value.holdingNotice}</p><p>${value.priceNotice}</p></div><div><p>${value.holdingValue}</p><p>${value.gain}</p><p>${value.gainReturn}</p></div></li>`,
+        `<tr><th scope="row">${bbcaStock}</th><td>${value.shares}</td><td>${value.cost}</td><td><span>${value.delayedPrice}</span><span>${value.quotedAt}</span></td><td>${value.holdingValue}</td><td><span>${value.gain}</span><span>${value.gainReturn}</span></td></tr>`,
+        `<li><div>${bbcaStock}<p>${value.holdingNotice}</p><p>${value.priceNotice}</p></div><div><p>${value.holdingValue}</p><p>${value.gain}</p><p>${value.gainReturn}</p></div></li>`,
         `<h2 id="return-heading">${readerText.returnTitle}</h2><p>${readerText.chartNotice}</p>`,
         `<li><span aria-hidden="true"></span>${readerText.portfolioSeries} ${value.return}</li><li><span aria-hidden="true"></span>IHSG ${value.marketReturn}</li>`,
         '<svg aria-hidden="true">',

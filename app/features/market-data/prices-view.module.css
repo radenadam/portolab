@@ -11,3 +11,8 @@
 .clock {
   white-space: nowrap;
 }
+
+/* On a phone, the numbers of a row leave the column of the stocks less room than the longest word of a name, so a name breaks inside a word where it must, and the table still fits the screen. */
+.stock {
+  overflow-wrap: anywhere;
+}

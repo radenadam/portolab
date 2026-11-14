@@ -1,8 +1,10 @@
 import type { ReactNode } from "react";
 import { Form, Link } from "react-router";
 import { ChangeText } from "~/change-text";
+import { companyOf } from "~/features/market-data/company-of";
 import type { StockQuote } from "~/features/market-data/price-source.server";
 import { quoteChange } from "~/features/market-data/quote-change";
+import { StockName } from "~/features/market-data/stock-name";
 import { trackedStockCodes } from "~/features/market-data/tracked-instruments";
 import {
   missingQuoteText,
@@ -73,6 +75,11 @@ function TicketBody({
       );
     case "chosen": {
       const { code, quote, quoteAttempt } = choice;
+      const stock = (
+        <div className={styles["ticketStock"]}>
+          <StockName code={code} withSector />
+        </div>
+      );
       const otherStockLink = (
         <Link to={pagePath} className={styles["link"]}>
           {m.trading_other_stock_link()}
@@ -82,7 +89,7 @@ function TicketBody({
       if (quote === undefined) {
         return (
           <>
-            <p className={styles["ticketStock"]}>{code}</p>
+            {stock}
             <p className={styles["details"]}>
               {missingQuoteText(code, quoteAttempt, moment)}
             </p>
@@ -94,7 +101,7 @@ function TicketBody({
       const failure = quoteFailureText(quoteAttempt, [quote], moment);
       return (
         <>
-          <p className={styles["ticketStock"]}>{code}</p>
+          {stock}
           <QuoteLines quote={quote} delayMinutes={moment.delayMinutes} />
           {failure !== undefined && (
             <p className={styles["details"]}>{failure}</p>
@@ -125,7 +132,13 @@ function StockChooser({
         name="code"
         label={m.trading_stock_label()}
         placeholder={m.trading_choose_stock_label()}
-        options={codes.map((code) => ({ value: code, label: code }))}
+        options={codes.map((code) => ({
+          value: code,
+          label: m.trading_stock_option_label({
+            code,
+            company: companyOf(code).name,
+          }),
+        }))}
         hint={m.trading_stock_hint()}
         failure={failure}
       />

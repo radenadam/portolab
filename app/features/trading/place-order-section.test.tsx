@@ -134,6 +134,8 @@ const texts: Record<
     noStock: string;
     unknownStock: string;
     placeButton: string;
+    options: readonly string[];
+    stock: string;
     quoteTerms: string;
     otherStockLink: string;
     tryAgain: string;
@@ -164,8 +166,14 @@ const texts: Record<
     unknownStock:
       "sebagai saham, tetapi Portolab hanya memperdagangkan saham yang ada di daftar kolom",
     placeButton: ">Pasang order</button>",
+    options: [
+      '<option value="BBCA">BBCA · Bank Central Asia Tbk</option>',
+      '<option value="TLKM">TLKM · Telkom Indonesia (Persero) Tbk</option>',
+    ],
+    stock:
+      '<div><div><span aria-hidden="true">BB</span><div><span>BBCA</span><span>Bank Central Asia Tbk</span><span>Keuangan</span></div></div></div>',
     quoteTerms:
-      '<p>BBCA</p><dl><dt>Harga tertunda</dt><dd>Rp 4.980</dd><dt>Perubahan dari harga penutupan sebelumnya</dt><dd><span aria-hidden="true">▲ </span>+0,81%</dd></dl><p>Harga tertunda sekitar 10 menit, tercatat pada 30 Okt 2026, 16.14 WIB.</p>',
+      '<dl><dt>Harga tertunda</dt><dd>Rp 4.980</dd><dt>Perubahan dari harga penutupan sebelumnya</dt><dd><span aria-hidden="true">▲ </span>+0,81%</dd></dl><p>Harga tertunda sekitar 10 menit, tercatat pada 30 Okt 2026, 16.14 WIB.</p>',
     otherStockLink: ">Pilih saham lain</a>",
     tryAgain: "Portolab mencoba lagi",
     staleNotice:
@@ -199,8 +207,14 @@ const texts: Record<
     unknownStock:
       "as the stock, but Portolab trades only the stocks in the list of the field",
     placeButton: ">Place the order</button>",
+    options: [
+      '<option value="BBCA">BBCA · Bank Central Asia Tbk</option>',
+      '<option value="TLKM">TLKM · Telkom Indonesia (Persero) Tbk</option>',
+    ],
+    stock:
+      '<div><div><span aria-hidden="true">BB</span><div><span>BBCA</span><span>Bank Central Asia Tbk</span><span>Financials</span></div></div></div>',
     quoteTerms:
-      '<p>BBCA</p><dl><dt>Delayed price</dt><dd>IDR 4,980</dd><dt>Change from the previous close</dt><dd><span aria-hidden="true">▲ </span>+0.81%</dd></dl><p>Delayed by about 10 minutes, quoted at Oct 30, 2026, 4:14 PM WIB.</p>',
+      '<dl><dt>Delayed price</dt><dd>IDR 4,980</dd><dt>Change from the previous close</dt><dd><span aria-hidden="true">▲ </span>+0.81%</dd></dl><p>Delayed by about 10 minutes, quoted at Oct 30, 2026, 4:14 PM WIB.</p>',
     otherStockLink: ">Choose another stock</a>",
     tryAgain: "Portolab tries again",
     staleNotice:
@@ -243,8 +257,7 @@ for (const locale of locales) {
       ...text.chooser,
       `<option value="" selected="">${text.placeholder}</option>`,
       'method="get"',
-      '<option value="BBCA">BBCA</option>',
-      '<option value="TLKM">TLKM</option>',
+      ...text.options,
     ]) {
       expect(html).toContain(expected);
     }
@@ -271,7 +284,7 @@ for (const locale of locales) {
       await choiceAfter("BBCA", updatesForTest.updated),
     );
     for (const expected of [
-      text.quoteTerms,
+      `${text.stock}${text.quoteTerms}`,
       text.otherStockLink,
       'href="/classes/1/orders"',
       text.placeButton,
@@ -290,7 +303,7 @@ for (const locale of locales) {
       [updatesForTest.failed, text.failedNotice],
     ] as const) {
       const html = renderSection(await choiceAfter("BBCA", updates));
-      expect(html).toContain(text.quoteTerms);
+      expect(html).toContain(`${text.stock}${text.quoteTerms}`);
       expect(html).toContain(`>${notice}</p>`);
       expect(html).toContain(text.placeButton);
     }
@@ -305,7 +318,7 @@ for (const locale of locales) {
       const html = renderSection(await choiceAfter("BBCA", updates));
       for (const expected of [
         "<h2>",
-        "<p>BBCA</p>",
+        `${text.stock}<p>`,
         `>${notice}</p>`,
         `<p>${text.noPriceOrder}</p>`,
         text.otherStockLink,

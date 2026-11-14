@@ -13,7 +13,7 @@ interface UniversePeriod extends DatePeriod {
 }
 
 // IDX reviews the LQ45 every three months, so each period is data with the first and the last trading day that IDX announced for it.
-const universePeriods: readonly UniversePeriod[] = [
+const universePeriods = [
   {
     from: "2026-11-02",
     until: "2027-01-29",
@@ -67,7 +67,11 @@ const universePeriods: readonly UniversePeriod[] = [
       "WIFI",
     ],
   },
-];
+] as const satisfies readonly UniversePeriod[];
+
+/** The code of a stock of a recorded period of the universe, so a table typed over it, such as the companies of the stocks, lacks no code of a period that a review of IDX adds. */
+export type TrackedStockCode =
+  (typeof universePeriods)[number]["codes"][number];
 
 /** The index that the measures take as the market, which Portolab always tracks. */
 export const marketIndex: Extract<Instrument, { kind: "index" }> = {

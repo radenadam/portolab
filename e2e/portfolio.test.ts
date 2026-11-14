@@ -14,6 +14,8 @@ import { widestClassNames } from "./widest-class-names.ts";
 
 // The server runs with the fixture price source, whose quotes are the closes of Friday 30 October 2026, and the global setup stores the closes of the IHSG and ITMG from Monday 26 to Friday 30 October 2026. The class has the most starting cash that Portolab accepts, so the screens show their widest amounts. itmg-portfolio.ts describes the purchases of the student. The values and the returns were computed with the decimal module of Python at 50 significant digits. The IHSG returns -5.88% from its close of 26 October, 5,373.09, to its delayed level, which is its close of 30 October, 5,057.05.
 const { className } = widestClassNames;
+// The name of the company of ITMG, which reads the same in both languages.
+const itmgCompany = "Indo Tambangraya Megah Tbk";
 
 const texts: Record<
   Locale,
@@ -93,7 +95,6 @@ const texts: Record<
       "Rp 1.000.000.000.000",
     ],
     tableRow: [
-      "ITMG",
       "35.000.000",
       "Rp 875.436.187.500",
       "Rp 24.90030 Okt 2026, 16.10",
@@ -101,7 +102,6 @@ const texts: Record<
       "▼ -Rp 3.936.187.500▼ -0,45%",
     ],
     listRow: [
-      "ITMG",
       "35.000.000 saham dengan biaya Rp 875.436.187.500, termasuk biaya broker.",
       "Harga tertunda Rp 24.900, tercatat pada 30 Okt 2026, 16.10 WIB.",
       "Rp 871.500.000.000",
@@ -185,7 +185,6 @@ const texts: Record<
       "IDR 1,000,000,000,000",
     ],
     tableRow: [
-      "ITMG",
       "35,000,000",
       "IDR 875,436,187,500",
       "IDR 24,900Oct 30, 2026, 4:10 PM",
@@ -193,7 +192,6 @@ const texts: Record<
       "▼ -IDR 3,936,187,500▼ -0.45%",
     ],
     listRow: [
-      "ITMG",
       "35,000,000 shares that cost IDR 875,436,187,500, broker fees included.",
       "Delayed price IDR 24,900, quoted at Oct 30, 2026, 4:10 PM WIB.",
       "IDR 871,500,000,000",
@@ -373,15 +371,15 @@ for (const locale of locales) {
     const main = student.getByRole("main");
     await expect(main.getByText(text.value, { exact: true })).toBeVisible();
     await expect(main.locator("dl").first()).toHaveText(text.facts.join(""));
-    if (isPhone()) {
-      await expect(
-        main.getByRole("listitem").filter({ hasText: "ITMG" }).locator("p"),
-      ).toHaveText(text.listRow);
-    } else {
-      await expect(
-        main.getByRole("row").filter({ hasText: "ITMG" }).locator("th, td"),
-      ).toHaveText(text.tableRow);
+    const holding = isPhone()
+      ? main.getByRole("listitem").filter({ hasText: "ITMG" })
+      : main.getByRole("row").filter({ hasText: "ITMG" });
+    for (const name of ["ITMG", itmgCompany]) {
+      await expect(holding.getByText(name, { exact: true })).toBeVisible();
     }
+    await expect(holding.locator(isPhone() ? "p" : "td")).toHaveText(
+      isPhone() ? text.listRow : text.tableRow,
+    );
     await expect(main).toContainText(text.chartNotice);
     await expectChart(student, locale);
     await main.getByText(text.tableLabel, { exact: true }).click();
