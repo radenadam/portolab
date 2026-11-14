@@ -5,6 +5,7 @@ import { languageNames } from "../app/language-names.ts";
 import { locales } from "../app/paraglide/runtime.js";
 import { bbcaHolding } from "./bbca-holding.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
+import { holdClientScripts } from "./hold-client-scripts.ts";
 import { openSimulationCard } from "./frame.ts";
 import { openAsNewStudent } from "./open-as-new-student.ts";
 import { storeTestHolding } from "./store-test-holding.ts";
@@ -198,33 +199,24 @@ for (const locale of locales) {
       locale,
       path: "/analysis",
     });
-    const scripts = Promise.withResolvers<undefined>();
-    let heldScripts = 0;
-    await page.route("**/*", async (route) => {
-      if (route.request().resourceType() === "script") {
-        heldScripts += 1;
-        await scripts.promise;
-      }
-      await route.continue();
-    });
+    const scripts = await holdClientScripts(page);
     try {
       await page.reload({ waitUntil: "commit" });
-      await expect.poll(() => heldScripts).toBeGreaterThan(0);
+      await expect.poll(scripts.heldCount).toBeGreaterThan(0);
       await expect(page.getByRole("slider")).toHaveCount(0);
       const address = page.url();
       const card = await openConcept(page, locale, text.beta);
       const calculation = await openCalculation(card, locale);
       await expectBetaCalculation(card);
 
-      scripts.resolve(undefined);
+      scripts.release();
       await page.waitForLoadState("load");
       await expect(page.getByRole("slider").first()).toBeVisible();
       await expect(card).toBeVisible();
       await expect(calculation).toHaveAttribute("open", "");
       await expect(page).toHaveURL(address);
     } finally {
-      scripts.resolve(undefined);
-      await page.unrouteAll({ behavior: "wait" });
+      await scripts.dispose();
       await lecturer.context().close();
     }
   });

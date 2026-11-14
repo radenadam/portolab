@@ -61,12 +61,12 @@ const texts: Record<
       'Kolom "Kata sandi baru" memuat paling banyak 128 karakter, tetapi isinya 8.000 karakter. Persingkat isinya.',
     pastAnyFieldMaximum: {
       justPast: [
-        'Kolom "Kata sandi baru" berisi 8.001 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
-        'Kolom "Ulangi kata sandi baru" berisi 8.001 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
+        'Kolom "Kata sandi baru" berisi 8.001 karakter, lebih banyak daripada yang diterima kolom ini. Isi kolom itu dengan teks yang dimintanya.',
+        'Kolom "Ulangi kata sandi baru" berisi 8.001 karakter, lebih banyak daripada yang diterima kolom ini. Isi kolom itu dengan teks yang dimintanya.',
       ],
       farPast: [
-        'Kolom "Kata sandi baru" berisi 1.000.000 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
-        'Kolom "Ulangi kata sandi baru" berisi 1.000.000 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
+        'Kolom "Kata sandi baru" berisi 1.000.000 karakter, lebih banyak daripada yang diterima kolom ini. Isi kolom itu dengan teks yang dimintanya.',
+        'Kolom "Ulangi kata sandi baru" berisi 1.000.000 karakter, lebih banyak daripada yang diterima kolom ini. Isi kolom itu dengan teks yang dimintanya.',
       ],
     },
   },
@@ -89,12 +89,12 @@ const texts: Record<
       'The field "New password" holds at most 128 characters, but it has 8,000. Shorten it.',
     pastAnyFieldMaximum: {
       justPast: [
-        'The field "New password" has 8,001 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
-        'The field "New password again" has 8,001 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
+        'The field "New password" has 8,001 characters, more than this field takes. Fill it in with the text that it asks for.',
+        'The field "New password again" has 8,001 characters, more than this field takes. Fill it in with the text that it asks for.',
       ],
       farPast: [
-        'The field "New password" has 1,000,000 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
-        'The field "New password again" has 1,000,000 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
+        'The field "New password" has 1,000,000 characters, more than this field takes. Fill it in with the text that it asks for.',
+        'The field "New password again" has 1,000,000 characters, more than this field takes. Fill it in with the text that it asks for.',
       ],
     },
   },

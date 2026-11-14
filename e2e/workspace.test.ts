@@ -266,7 +266,7 @@ for (const locale of locales) {
     await expect(page).toHaveURL(testClass.path);
     const items: [string, string][] = [
       testClass.path,
-      `${testClass.path}/portfolios`,
+      `${testClass.path}/students`,
       `${testClass.path}/market`,
     ].map((path, index) => [text.lecturerItems[index] ?? "", path]);
     await expectItems(page, locale, {

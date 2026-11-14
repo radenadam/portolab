@@ -14,6 +14,9 @@
   --color-own: #c97800;
   --color-gain: #0b7a53;
   --color-loss: #c73a28;
+  /* The prototype deepens gain and loss ink on a selected row so its saffron tint keeps enough contrast. */
+  --color-gain-selected: #096b49;
+  --color-loss-selected: #b02e1e;
   --color-warning: #8a5a00;
   --color-on-button: #ffffff;
   --color-link: #1a5fba;
@@ -76,6 +79,14 @@
   /* The space beside the content and inside the top bar, which a desktop widens. */
   --space-gutter: 1rem;
 
+  --width-ranking-rank: 1.5rem;
+  --width-ranking-return: 10rem;
+  --width-ranking-return-value: 4.75rem;
+  --width-ranking-beta: 6rem;
+  --width-ranking-number: 5.5rem;
+  --width-ranking-activity: 6.5rem;
+  --width-ranking-search: 14rem;
+  --color-backdrop: rgba(15, 24, 32, 0.48);
   --width-aside: 21.5rem;
   --width-rail: 4.75rem;
   --width-rail-item: 3.875rem;
@@ -100,6 +111,7 @@
   --size-avatar: 2rem;
   /* A chart takes about a third of the screen of a phone held upright, so the text around it stays in view. */
   --size-chart: 16rem;
+  --size-chart-compact: 14rem;
   /* A sparkline sits in a row of a list beside the price of its stock. */
   --width-sparkline: 4.75rem;
   --size-sparkline: 1.375rem;
@@ -161,6 +173,8 @@
     --color-own: #c98500;
     --color-gain: #3dcb8c;
     --color-loss: #ff7f6e;
+    --color-gain-selected: var(--color-gain);
+    --color-loss-selected: var(--color-loss);
     --color-warning: #e9b44c;
     --color-on-button: #0f1317;
     --color-link: #7db3f5;

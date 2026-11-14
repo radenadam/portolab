@@ -11,6 +11,7 @@ import { classOfStudentsForTest } from "./class-of-students-for-test.server";
 import { portfoliosWorksheet } from "./portfolios-worksheet";
 import { readClassPortfolios } from "./read-class-portfolios.server";
 
+// The new Sharpe and Treynor cells were computed independently with Python Decimal at 50 significant digits from the expected returns, standard deviations, betas, and the BI-Rate of 5.75% divided by 12, as read-class-portfolios.server.test.ts sources them.
 // class-of-students-for-test.server.ts describes the students, and read-class-portfolios.server.test.ts gives their measures and values with the source of each. A spreadsheet reads each number as it is, so the cells hold the values without rounding, and its format shows them in the language of the reader.
 const now = new Date("2026-10-30T09:20:00Z");
 const yahooFinance: PriceSourceDescription = {
@@ -32,6 +33,8 @@ function rupiahCell(value: number): WorkbookCell {
 
 const bbcaMeasures = [
   percent(-0.003815949696325831),
+  beta(-0.2042355307939299),
+  percent(-0.015486320989695494),
   percent(-0.0005076246462094883),
   percent(0.02594696080684926),
   beta(0.342191752088974),
@@ -39,7 +42,15 @@ const bbcaMeasures = [
   rupiahCell(100_325_900),
   percent(0.003259),
 ];
-const empty = [undefined, undefined, undefined, undefined, undefined];
+const empty = [
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+];
 
 const texts: Record<
   Locale,
@@ -57,17 +68,21 @@ const texts: Record<
     sheetName: "Portofolio",
     title: "Portofolio mahasiswa di Manajemen Portofolio A",
     notice:
-      "Simulasi dengan uang virtual, diunduh pada 30 Okt 2026, 16.20 WIB. Portolab menilai setiap saham yang dipegang pada harga tertunda terakhir dari Yahoo Finance, sekitar 10 menit di belakang BEI. Setiap ukuran berlaku per bulan, dan portofolio yang memiliki ukuran muncul lebih dulu, dari alpha Jensen yang tertinggi sampai yang terendah.",
+      "Simulasi dengan uang virtual, diunduh pada 30 Okt 2026, 16.20 WIB. Portolab menilai setiap saham yang dipegang pada harga tertunda terakhir dari Yahoo Finance, sekitar 10 menit di belakang BEI. Setiap ukuran berlaku per bulan, dan portofolio yang memiliki ukuran muncul lebih dulu, menurut Alpha Jensen dari yang tertinggi sampai yang terendah.",
     headings: [
       "Nama",
       "Nama pengguna",
       "Alpha Jensen",
+      "Sharpe",
+      "Treynor",
       "Imbal hasil harapan",
       "Simpangan baku",
       "Beta terhadap IHSG",
       "Imbal hasil yang disyaratkan CAPM",
       "Nilai total dalam rupiah",
       "Imbal hasil sejak awal",
+      "Alasan Sharpe belum tersedia",
+      "Alasan Treynor belum tersedia",
       "Alasan portofolio belum memiliki ukuran",
     ],
     dewi: "Saham Dewi Lestari dan IHSG baru sama-sama memiliki 21 imbal hasil bulanan",
@@ -78,17 +93,21 @@ const texts: Record<
     sheetName: "Portfolios",
     title: "Portfolios of the students in Manajemen Portofolio A",
     notice:
-      "A simulation with virtual cash, downloaded on Oct 30, 2026, 4:20 PM WIB. Portolab valued each holding at the latest delayed price from Yahoo Finance, about 10 minutes behind IDX. Every measure is per month, and the portfolios with measures come first, from the highest Jensen's alpha to the lowest.",
+      "A simulation with virtual cash, downloaded on Oct 30, 2026, 4:20 PM WIB. Portolab valued each holding at the latest delayed price from Yahoo Finance, about 10 minutes behind IDX. Every measure is per month, and the portfolios with measures come first, by Jensen's alpha from highest to lowest.",
     headings: [
       "Name",
       "Username",
       "Jensen's alpha",
+      "Sharpe",
+      "Treynor",
       "Expected return",
       "Standard deviation",
       "Beta against the IHSG",
       "Return that CAPM requires",
       "Total value in rupiah",
       "Return since the start",
+      "Why Sharpe is unavailable",
+      "Why Treynor is unavailable",
       "Why the portfolio has no measures",
     ],
     dewi: "The stocks of Dewi Lestari and the IHSG share 21 monthly returns",
@@ -104,7 +123,7 @@ for (const locale of locales) {
     switchLocaleForTest(locale);
     const { database, taughtClass } = await classOfStudentsForTest();
     const portfolios = readClassPortfolios(database, taughtClass, {
-      request: new Request("http://localhost/classes/1/portfolios/export"),
+      request: new Request("http://localhost/classes/1/workbook"),
       now,
       delayMinutes: 10,
     });
@@ -120,29 +139,42 @@ for (const locale of locales) {
     expect(rina?.reason).toContain(expected.rina);
     expect(sheet).toEqual({
       name: expected.sheetName,
-      columnWidths: [30, 24, 16, 16, 16, 16, 16, 16, 16, 80],
+      columnWidths: [30, 24, 16, 16, 16, 16, 16, 16, 16, 16, 16, 80, 80, 80],
       rows: [
         [headingCell(expected.title)],
         [textCell(expected.notice)],
         [],
         expected.headings.map(headingCell),
-        [textCell("Eko Prasetyo"), textCell("eko"), ...bbcaMeasures, undefined],
+        [
+          textCell("Eko Prasetyo"),
+          textCell("eko"),
+          ...bbcaMeasures,
+          undefined,
+          undefined,
+          undefined,
+        ],
         [
           textCell("Fajar Nugroho"),
           textCell("fajar"),
           ...bbcaMeasures,
+          undefined,
+          undefined,
           undefined,
         ],
         [
           textCell("Sari Wulandari"),
           textCell("sari"),
           percent(-0.004259743653981885),
+          beta(-0.17094998531995),
+          percent(-0.01119770989085248),
           percent(-0.0021586726703076266),
           percent(0.04065715082669377),
           beta(0.6206929278148288),
           percent(0.002101070983674259),
           rupiahCell(54_780_000),
           percent(-0.4522),
+          undefined,
+          undefined,
           undefined,
         ],
         [
@@ -151,6 +183,8 @@ for (const locale of locales) {
           ...empty,
           rupiahCell(21_475_000),
           percent(-0.78525),
+          undefined,
+          undefined,
           textCell(dewi?.reason ?? ""),
         ],
         [
@@ -159,12 +193,16 @@ for (const locale of locales) {
           ...empty,
           rupiahCell(100_000_000),
           percent(0),
+          undefined,
+          undefined,
           textCell(budi?.reason ?? ""),
         ],
         [
           textCell("Rina Kusuma"),
           textCell("rina"),
           ...empty,
+          undefined,
+          undefined,
           undefined,
           undefined,
           textCell(rina?.reason ?? ""),

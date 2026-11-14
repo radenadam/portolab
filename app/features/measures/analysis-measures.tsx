@@ -1,7 +1,6 @@
-import { beta } from "~/units/beta";
+import { beta, marketBeta } from "~/units/beta";
 import { sharpeRatio } from "~/units/sharpe-ratio";
 import type { MonthlyReturn } from "~/units/monthly-return";
-import { marketBeta } from "./market-beta";
 import type { ReactNode } from "react";
 import { ChangeText } from "~/change-text";
 import {

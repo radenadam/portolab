@@ -1,9 +1,8 @@
-import { marketBeta } from "./market-beta";
 import type { ReactNode } from "react";
 import { RiskMap } from "~/charts/risk-map";
 import { RiskMapLegend } from "~/charts/risk-map-legend";
 import { m } from "~/paraglide/messages.js";
-import { beta } from "~/units/beta";
+import { beta, marketBeta } from "~/units/beta";
 import type { Beta } from "~/units/beta";
 import { monthlyReturn } from "~/units/monthly-return";
 import type { MonthlyReturn } from "~/units/monthly-return";

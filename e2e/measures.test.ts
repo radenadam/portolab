@@ -13,10 +13,7 @@ import { openAsNewStudent } from "./open-as-new-student.ts";
 import { studentWithPortfolio } from "./student-with-portfolio.ts";
 import { storeTestHolding } from "./store-test-holding.ts";
 import { eq } from "drizzle-orm";
-import {
-  classes,
-  memberships,
-} from "../app/features/classes/classes.schema.ts";
+import { classes } from "../app/features/classes/classes.schema.ts";
 import { rupiah } from "../app/units/rupiah.ts";
 import { shares } from "../app/units/shares.ts";
 import { writeForTestStudent } from "./write-for-test-student.ts";
@@ -24,6 +21,7 @@ import { layoutProblems } from "./expect-layout.ts";
 import { isPhone } from "./frame.ts";
 import { itmgPortfolio } from "./itmg-portfolio.ts";
 import { storeTestPurchases } from "./store-test-purchases.ts";
+import { storeTestJoiningTime } from "./store-test-joining-time.ts";
 
 // Python Decimal computes the market comparisons from the recorded IHSG mean and variance in measure-stock.test.ts: standard deviation 0.04526752234036668, Sharpe -0.09576017242608941, and Treynor -0.004334825744615368. bbca-portfolio-measures.ts records the independent portfolio expectations.
 const analysisText: Record<
@@ -42,6 +40,7 @@ const analysisText: Record<
     axis: string;
     risk: string;
     data: string;
+    method: string;
     calculate: string;
     pointCalculation: (name: string) => string;
     portfolioPoint: string;
@@ -85,6 +84,8 @@ const analysisText: Record<
     axis: "Sumbu risiko",
     risk: "Simpangan baku",
     data: "Data dan metode",
+    method:
+      "Ukuran ini adalah simulasi dari harga penutupan masa lalu. Setiap imbal hasil bulanan adalah perubahan harga penutupan final dari hari bursa terakhir suatu bulan ke hari bursa terakhir bulan berikutnya, tanpa dividen. Ukuran suatu saham atau portofolio memakai bulan-bulan di antara 60 bulan lengkap terakhir yang di dalamnya IHSG dan setiap sahamnya memiliki imbal hasil, dan memerlukan paling sedikit 24. Setiap nilai berlaku per bulan.",
     calculate: "Lihat perhitungan",
     pointCalculation: (name) => `Lihat perhitungan ${name}`,
     portfolioPoint: "Lihat perhitungan Portofolio Anda",
@@ -147,6 +148,8 @@ const analysisText: Record<
     axis: "Risk axis",
     risk: "Standard deviation",
     data: "Data and method",
+    method:
+      "These measures are a simulation from past closes. Each monthly return is the change of the final close from the last trading day of one month to the last trading day of the next, without dividends. The measures of a stock or of a portfolio use the months, among the latest 60 complete months, in which the IHSG and each of its stocks have a return, and they need at least 24. Every value is per month.",
     calculate: "View calculation",
     pointCalculation: (name) => `See the calculation of ${name}`,
     portfolioPoint: "See the calculation of Your portfolio",
@@ -207,11 +210,11 @@ function setAnalysisDates(classId: ClassId): void {
       .set({ firstSessionDate: "2026-09-07" })
       .where(eq(classes.id, classId))
       .run();
-    database
-      .update(memberships)
-      .set({ joinedAt: new Date("2026-10-26T10:00:00Z") })
-      .where(eq(memberships.id, membershipId))
-      .run();
+    storeTestJoiningTime(
+      database,
+      membershipId,
+      new Date("2026-10-26T10:00:00Z"),
+    );
   });
 }
 
@@ -432,6 +435,7 @@ for (const locale of locales) {
       .getByRole("button", { name: text.data, exact: true })
       .click();
     const data = student.getByRole("dialog", { name: text.data, exact: true });
+    await expect(data).toContainText(text.method);
     await expect(
       data.getByRole("heading", { name: text.stocksTitle, exact: true }),
     ).toBeVisible();
