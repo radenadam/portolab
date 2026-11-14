@@ -48,6 +48,7 @@
   --text-stock-price: 2.5rem;
   --text-statistic: 1.125rem;
   --text-stock: 1.25rem;
+  --text-reading-title: 1.5rem;
   --text-mark: 0.9375rem;
   --text-body: 0.875rem;
   --text-row: 0.84375rem;
@@ -137,6 +138,7 @@
 /* A screen with room for the rail takes the top bar and the space beside the content of a desktop, at the width at which app/frame.module.css shows the rail. */
 @media (width >= 60rem) {
   :root {
+    --text-reading-title: var(--text-title);
     --size-top-bar: 3.625rem;
     --space-gutter: 1.75rem;
   }

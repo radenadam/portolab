@@ -43,6 +43,7 @@
 }
 
 .reading > h1 {
+  font-size: var(--text-reading-title);
   letter-spacing: -0.02em;
 }
 
