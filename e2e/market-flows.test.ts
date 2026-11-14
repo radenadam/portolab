@@ -117,15 +117,22 @@ for (const locale of locales) {
         );
         await expect(rows).toHaveCount(45);
         await student.getByLabel(text.search, { exact: true }).fill("INDY");
-        if (javaScriptEnabled) await expect(rows).toHaveCount(1);
+        if (javaScriptEnabled) {
+          await expect(rows).toHaveCount(1);
+          await expect(rows.first()).toContainText("INDY");
+        }
         await student
           .getByRole("button", { name: text.apply, exact: true })
           .click();
+        await expect(student).toHaveURL(/q=INDY/);
         await expect(rows).toHaveCount(1);
         await student
           .getByLabel(text.search, { exact: true })
           .fill("central asia");
-        if (javaScriptEnabled) await expect(rows).toHaveCount(1);
+        if (javaScriptEnabled) {
+          await expect(rows).toHaveCount(1);
+          await expect(rows.first()).toContainText("BBCA");
+        }
         await student
           .getByRole("button", { name: text.indexHelp, exact: true })
           .click();
@@ -177,12 +184,16 @@ for (const locale of locales) {
         await student
           .getByRole("button", { name: text.apply, exact: true })
           .click();
+        await expect(student).toHaveURL(
+          /sector=financials&sort=code&direction=ascending/,
+        );
         await expect(rows).toHaveCount(5);
         await expect(rows.first()).toContainText("BBCA");
         await student.getByLabel(text.search, { exact: true }).fill("tidakada");
         await student
           .getByRole("button", { name: text.apply, exact: true })
           .click();
+        await expect(student).toHaveURL(/q=tidakada/);
         await expect(student.getByText(text.noResults)).toBeVisible();
         await student.getByRole("link", { name: text.clear }).click();
         await expect(rows).toHaveCount(45);
@@ -200,6 +211,9 @@ for (const locale of locales) {
         await student
           .getByRole("button", { name: text.apply, exact: true })
           .click();
+        await expect(student).toHaveURL(
+          (url) => url.searchParams.get("q") === widestSearch,
+        );
         await expect(rows).toHaveCount(0);
         await expect(
           student.getByLabel(text.search, { exact: true }),

@@ -183,15 +183,29 @@ for (const locale of locales) {
     const context = await marketContextForTest();
     context.get(databaseContext).delete(indexQuotes).run();
     const withoutIndexQuote = readMarket(context, props.now, "3m");
-    for (const [query, hasMeasures] of [
-      ["BBCA", true],
-      ["GOTO", false],
+    for (const [market, hasIndexQuote] of [
+      [props, true],
+      [withoutIndexQuote, false],
     ] as const) {
-      const html = render(props, {
-        ...withoutIndexQuote,
-        filters: { ...defaultMarketFilters, query },
-      });
-      expect(html.includes(states[locale].referenceMarks)).toBe(hasMeasures);
+      expect(market.marketReference.ok).toBe(true);
+      expect(market.indexQuote !== undefined).toBe(hasIndexQuote);
+      for (const [query, hasMeasures] of [
+        ["BBCA", true],
+        ["GOTO", false],
+      ] as const) {
+        const row = market.rows.find((stock) => stock.code === query);
+        expect(row).toBeDefined();
+        expect(row?.quote).toBeDefined();
+        expect(row?.measures !== undefined).toBe(hasMeasures);
+        const html = render(props, {
+          ...market,
+          filters: { ...defaultMarketFilters, query },
+        });
+        expect(html).toContain(states[locale].one);
+        expect(html.includes(states[locale].referenceMarks)).toBe(
+          hasMeasures || hasIndexQuote,
+        );
+      }
     }
   });
   test(`keeps unavailable and constant market references out of calculation controls in ${languageNames[locale]}`, async () => {
