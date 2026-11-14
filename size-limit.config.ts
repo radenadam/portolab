@@ -22,7 +22,10 @@ if (!manifest.ok || !routes.ok) {
 const checks = clientSizeChecks(
   manifest.value,
   routes.value,
-  globSync("build/client/**/*.js").map((file) => file.replaceAll("\\", "/")),
+  [
+    ...globSync("build/client/**/*.js"),
+    ...globSync("build/client/**/*.css"),
+  ].map((file) => file.replaceAll("\\", "/")),
 );
 if (!checks.ok) {
   exitWithFailure([checks.failure], writeScriptFailure);
