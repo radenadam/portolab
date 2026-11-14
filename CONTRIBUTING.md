@@ -7,8 +7,10 @@ Coding agents make most changes to Portolab, and every change follows the same w
 
 To report a bug or suggest an idea, open an issue. To report a vulnerability, follow [`SECURITY.md`](SECURITY.md).
 
-After `pnpm build`, `pnpm size` reports the shared JavaScript, every route, the whole client, and CSS. [Decision 0038](docs/decisions/0038-client-javascript-is-budgeted-by-route.md) explains the budgets, their measurements, and how to keep an enhancement with its route.
+After `pnpm build`, `pnpm size` reports shared and per-route JavaScript and CSS, plus both whole-client totals. [Decision 0038](docs/decisions/0038-client-javascript-is-budgeted-by-route.md) explains the JavaScript budgets and how to keep an enhancement with its route. [Decision 0042](docs/decisions/0042-client-css-is-budgeted-by-route.md) explains the CSS budgets.
 
 ## Decision records
 
 Add a record in `docs/decisions/` with the next unused number in its filename and heading. Add its filename to [`docs/decisions/index.txt`](docs/decisions/index.txt) in number order, as [decision 0039](docs/decisions/0039-a-decision-catalog-makes-parallel-numbering-conflict.md) explains. Before pushing, merge `origin/main` into the branch and validate it as the [workflow](AGENTS.md#workflow) requires. The conventions check rejects duplicate decision numbers and an index that differs from the records. If another pull request has taken the number, renumber the record that your pull request adds and update its heading, links, mentions, and index entry. Keep the number of the record already on main.
+
+When a record changes part of an earlier decision, keep the earlier record Accepted and follow the status-line pattern of [decision 0029](docs/decisions/0029-the-server-draws-every-chart-as-svg.md): `[Decision NNNN](record-path) replaces its rule about ...`. Name the affected rules in that line.

@@ -92,7 +92,9 @@ export function ClassPortfoliosView({
                 placeholder={m.grading_search_label()}
                 aria-label={m.grading_search_label()}
               />
-              <button type="submit">{m.grading_search_button_label()}</button>
+              <button type="submit" className={styles["button"]}>
+                {m.grading_search_button_label()}
+              </button>
               {queryFailure !== undefined && (
                 <p
                   id="student-search-failure"

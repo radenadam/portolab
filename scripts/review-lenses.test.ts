@@ -44,6 +44,22 @@ test("chooses no lens for no file", () => {
 const expectedLenses: [ChangedFile, Lens[]][] = [
   [modified("docs/product.md"), ["consistency", "docs", "standards"]],
   [
+    modified("app/features/learning/content/id/session-9.md"),
+    ["consistency", "docs", "product", "standards"],
+  ],
+  [
+    modified("app/features/learning/content/en/session-11.md"),
+    ["consistency", "docs", "product", "standards"],
+  ],
+  [
+    modified("app/features/learning/content/id/glossary.md"),
+    ["consistency", "docs", "product", "standards"],
+  ],
+  [
+    modified("app/features/learning/content/en/glossary.md"),
+    ["consistency", "docs", "product", "standards"],
+  ],
+  [
     modified("messages/id.json"),
     ["consistency", "docs", "product", "standards"],
   ],

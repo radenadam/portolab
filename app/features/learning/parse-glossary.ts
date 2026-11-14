@@ -1,7 +1,12 @@
 import { fail, succeed } from "../../result.ts";
 import type { Result } from "../../result.ts";
 import { describeValue } from "../../value-shapes.ts";
-import { contentSession, termIdPattern } from "./content.ts";
+import {
+  contentSession,
+  isLessonKind,
+  sessionKinds,
+  termIdPattern,
+} from "./content.ts";
 import type { GlossaryTerm } from "./content.ts";
 import {
   parseContentBlocks,
@@ -57,6 +62,10 @@ function parseTermHeading(
       `${source} must head each term with an id, a title, and a course session separated by |, but a heading is ${describeValue(value)}.`,
     );
   }
+  if (!isLessonKind(sessionKinds[session]))
+    return fail(
+      `${source} must link each term to a short or full lesson, but heading ${describeValue(value)} names a review or exam session.`,
+    );
   const parsedTitle = parsePlainParagraph(title, `${source} term ${id} title`);
   if (!parsedTitle.ok) return parsedTitle;
   return succeed({ id, title: parsedTitle.value, session });
