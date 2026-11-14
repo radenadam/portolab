@@ -1,6 +1,6 @@
 # 0038. Client JavaScript is budgeted by route
 
-- Status: Accepted
+- Status: Accepted. The scope and reporting of the CSS budget are superseded by [0042](0042-client-css-is-budgeted-by-route.md).
 - Date: 2026-11-14
 
 ## Context
