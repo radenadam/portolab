@@ -12,7 +12,6 @@ import {
 } from "./formulas";
 import type { AnalysisHolding } from "./analysis-holdings";
 
-/** The portfolio's aligned months supply every point's inputs, rather than each stock's separate window. */
 export function AnalysisPointCalculations({
   holdings,
 }: {

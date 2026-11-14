@@ -21,7 +21,7 @@ export function TimeChart<Point extends { date: string }>({
   dateLabel,
   tableLabel,
   coloredChanges = false,
-  events,
+  annotations,
   legendNote,
   tablePopover,
   tableNotice,
@@ -36,7 +36,7 @@ export function TimeChart<Point extends { date: string }>({
   /** The label that opens the table of points. */
   tableLabel: string;
   coloredChanges?: boolean;
-  events?: readonly TimeEvent[];
+  annotations?: readonly TimeEvent[] | undefined;
   legendNote?: string | undefined;
   tablePopover?: string | undefined;
   tableNotice?: string | undefined;
@@ -57,7 +57,11 @@ export function TimeChart<Point extends { date: string }>({
       labelledBy={labelledBy}
       dateLabel={dateLabel}
       tableLabel={tableLabel}
-      events={events}
+      annotations={annotations}
+      columnWidths={[
+        "var(--width-close-column)",
+        ...lines.slice(0, -1).map(() => "var(--width-return-column)"),
+      ]}
       legendNote={legendNote}
       tablePopover={tablePopover}
       tableNotice={tableNotice}
@@ -87,7 +91,8 @@ export function TimeSeriesChart<
   valueNode,
   area = false,
   axisSide = "left",
-  events,
+  annotations,
+  columnWidths,
   legendNote,
   tablePopover,
   tableNotice,
@@ -102,7 +107,8 @@ export function TimeSeriesChart<
   valueNode: (value: Value) => ReactNode;
   area?: boolean;
   axisSide?: ValueAxisSide;
-  events?: readonly TimeEvent[] | undefined;
+  annotations?: readonly TimeEvent[] | undefined;
+  columnWidths?: readonly string[];
   legendNote?: string | undefined;
   tablePopover?: string | undefined;
   tableNotice?: string | undefined;
@@ -120,7 +126,22 @@ export function TimeSeriesChart<
     </ul>
   );
   const table = (
-    <table className={tableStyles["table"]}>
+    <table
+      className={[
+        tableStyles["table"],
+        columnWidths === undefined ? undefined : styles["fixedTable"],
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
+      {columnWidths !== undefined && (
+        <colgroup>
+          {columnWidths.map((width) => (
+            <col key={width} style={{ width }} />
+          ))}
+          <col />
+        </colgroup>
+      )}
       <thead>
         <tr>
           <th scope="col">{dateLabel}</th>
@@ -164,7 +185,7 @@ export function TimeSeriesChart<
         valueNode={valueNode}
         area={area}
         axisSide={axisSide}
-        events={events}
+        annotations={annotations}
       />
       {tablePopover === undefined ? (
         <details className={styles["points"]}>

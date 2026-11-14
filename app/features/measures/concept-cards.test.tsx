@@ -60,7 +60,7 @@ const texts: Record<
       `Pelajari lebih lanjut di sesi ${String(session)}. Pelajaran belum tersedia di Portolab.`,
     cards: [
       {
-        title: "Imbal hasil yang diharapkan",
+        title: "Imbal hasil harapan",
         meaning:
           "Portolab memakai rata-rata imbal hasil bulanan yang lalu sebagai perkiraan imbal hasil ke depan.",
         value: "-0,22%",
@@ -102,13 +102,13 @@ const texts: Record<
       {
         title: "Alpha Jensen",
         meaning:
-          "Alpha Jensen adalah selisih imbal hasil yang diharapkan dengan imbal hasil yang disyaratkan CAPM untuk beta yang sama.",
+          "Alpha Jensen adalah selisih imbal hasil harapan dengan imbal hasil yang disyaratkan CAPM untuk beta yang sama.",
         value: "-0,43%",
         session: 9,
         monthly: true,
       },
       {
-        title: "Imbal hasil yang diharapkan IHSG",
+        title: "Imbal hasil harapan IHSG",
         meaning:
           "IHSG mengukur pergerakan saham di BEI, dan Portolab memakainya sebagai portofolio pasar.",
         value: "0,05%",
@@ -125,7 +125,7 @@ const texts: Record<
       },
     ],
     stockValues: [
-      ["Imbal hasil yang diharapkan", "-0,10%"],
+      ["Imbal hasil harapan", "-0,10%"],
       ["Simpangan baku", "5,23%"],
       ["Beta terhadap IHSG", "0,69"],
       ["Alpha Jensen", "-0,28%"],

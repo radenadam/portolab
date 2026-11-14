@@ -1,7 +1,8 @@
-import { checkFieldLengthForReader } from "~/form-text";
-import { succeed } from "~/result";
+import { parseFilledText } from "~/form-text";
+import { formatList } from "~/formatting";
+import { m } from "~/paraglide/messages.js";
+import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
-import { parseChoice } from "~/value-parsers";
 import { analysisAxes } from "./analysis-axes";
 import type { AnalysisAxis } from "./analysis-axes";
 
@@ -10,9 +11,19 @@ export function parseAnalysisAxis(
   source: string,
 ): Result<AnalysisAxis, string> {
   if (value === null) return succeed("beta");
-  if (typeof value === "string") {
-    const length = checkFieldLengthForReader(value, source);
-    if (!length.ok) return length;
-  }
-  return parseChoice(value, source, analysisAxes);
+  const text = parseFilledText(value, source);
+  if (!text.ok) return text;
+  const axis = analysisAxes.find((candidate) => candidate === text.value);
+  return axis === undefined
+    ? fail(
+        m.measures_analysis_axis_error({
+          field: source,
+          value: text.value.trim(),
+          choices: formatList(
+            analysisAxes.map((choice) => `"${choice}"`),
+            "disjunction",
+          ),
+        }),
+      )
+    : succeed(axis);
 }

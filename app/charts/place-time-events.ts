@@ -1,4 +1,4 @@
-import { acrossOf } from "./time-chart-layout";
+import { annotationPosition } from "./annotation-position";
 import type { PlotFraction } from "~/units/plot-fraction";
 
 export interface TimeEvent {
@@ -6,20 +6,18 @@ export interface TimeEvent {
   label: string;
 }
 
-/** A meeting without a close stands at the first close after it. Events outside the history stay outside the plot. */
+/** Course dates use the same positions on every time chart, with fewer labels on a phone. */
 export function placeTimeEvents(
   dates: readonly string[],
   events: readonly TimeEvent[],
 ): { at: PlotFraction; label: string; minor: boolean }[] {
-  const first = dates.at(0);
+  const points = dates.map((date) => ({ date }));
   const placed: { at: PlotFraction; label: string; minor: boolean }[] = [];
-  if (first === undefined) return placed;
   for (const event of events) {
-    if (event.date < first) continue;
-    const index = dates.findIndex((date) => date >= event.date);
-    if (index !== -1)
+    const at = annotationPosition(points, event.date);
+    if (at !== undefined)
       placed.push({
-        at: acrossOf(index, dates.length),
+        at,
         label: event.label,
         minor: placed.length % 3 !== 0,
       });

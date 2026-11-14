@@ -42,7 +42,7 @@ export function TimePlot<Point extends { date: string }, Value extends number>({
   valueNode,
   area = false,
   axisSide = "left",
-  events = noEvents,
+  annotations = noEvents,
 }: {
   points: readonly Point[];
   lines: readonly TimeLine<Point, Value>[];
@@ -52,7 +52,7 @@ export function TimePlot<Point extends { date: string }, Value extends number>({
   axisSide?: ValueAxisSide;
   layout: TimeChartLayout;
   labelledBy: string;
-  events?: readonly TimeEvent[] | undefined;
+  annotations?: readonly TimeEvent[] | undefined;
 }): ReactNode {
   const isInBrowser = useIsInBrowser();
   const {
@@ -83,7 +83,7 @@ export function TimePlot<Point extends { date: string }, Value extends number>({
   };
   const style: CSSProperties = {
     ...(endLabels.length === 0 ? {} : { "--time-chart-end-width": endRoom }),
-    paddingBlock: `${String(events.length === 0 ? headroom : dateBaseline)}em ${String(dateBaseline + headroom)}em`,
+    paddingBlock: `${String(annotations.length === 0 ? headroom : dateBaseline)}em ${String(dateBaseline + headroom)}em`,
     paddingInline: inlinePadding[axisSide],
   };
   const drawnLines = layout.lines.toSorted(
@@ -93,7 +93,7 @@ export function TimePlot<Point extends { date: string }, Value extends number>({
     <svg ref={drawingRef} className={styles["drawing"]} aria-hidden>
       {placeTimeEvents(
         points.map((point) => point.date),
-        events,
+        annotations,
       ).map((event) => (
         <g key={event.label}>
           <line
@@ -101,7 +101,7 @@ export function TimePlot<Point extends { date: string }, Value extends number>({
             x2={percentOf(event.at)}
             y1="0"
             y2="100%"
-            className={styles["gridLine"]}
+            className={styles["sessionLine"]}
           />
           <text
             x={percentOf(event.at)}

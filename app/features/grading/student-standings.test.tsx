@@ -41,7 +41,7 @@ const texts: Record<
   id: {
     labels: {
       distance: "Alpha Jensen",
-      expectedReturn: "Imbal hasil yang diharapkan",
+      expectedReturn: "Imbal hasil harapan",
       standardDeviation: "Simpangan baku",
       beta: "Beta terhadap IHSG",
       requiredReturn: "Imbal hasil yang disyaratkan CAPM",

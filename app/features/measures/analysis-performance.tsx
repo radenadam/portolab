@@ -1,10 +1,11 @@
 import type { ReactNode } from "react";
 import { TimeChart } from "~/charts/time-chart";
 import type { ClassId } from "~/features/classes/classes.schema";
-import { courseSessionDates } from "~/features/classes/course-calendar";
+import { courseSessions } from "~/features/classes/course-calendar";
 import { placeTimeEvents } from "~/charts/place-time-events";
 import { PopoverButton } from "~/popover";
-import questionStyles from "~/concept-card.module.css";
+import { ConceptHelp } from "~/concept-card";
+import { formatCalendarDate } from "~/formatting";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
 import type { PortfolioReport } from "~/features/trading/read-portfolio-report.server";
 import {
@@ -28,7 +29,8 @@ export function AnalysisPerformance({
   const reader = { kind: "owner", classId } as const;
   const points = history.ok ? history.value.points : [];
   const latest = points.at(-1);
-  const events = courseSessionDates(firstSessionDate).map((session) => ({
+  const start = points[0];
+  const events = courseSessions(firstSessionDate).map((session) => ({
     date: session.date,
     label: courseSessionTitle(session.session, "short"),
   }));
@@ -47,18 +49,25 @@ export function AnalysisPerformance({
           <span id="analysis-performance-title">
             {m.measures_analysis_performance_title({ index: marketIndex.code })}
           </span>
-          {latest !== undefined && (
-            <PopoverButton
-              popover="analysis-performance-data"
-              label={m.app_concept_help_label({
-                concept: m.measures_analysis_performance_title({
-                  index: marketIndex.code,
-                }),
+          {start !== undefined && (
+            <ConceptHelp
+              title={m.measures_analysis_performance_title({
+                index: marketIndex.code,
               })}
-              className={questionStyles["question"]}
             >
-              <span aria-hidden>?</span>
-            </PopoverButton>
+              <p>
+                {m.trading_chart_notice({
+                  index: marketIndex.code,
+                  date: formatCalendarDate(start.date),
+                })}
+              </p>
+              <PopoverButton
+                popover="analysis-performance-data"
+                className={styles["link"]}
+              >
+                {m.trading_returns_table_label()}
+              </PopoverButton>
+            </ConceptHelp>
           )}
         </h2>
         {latest !== undefined && (
@@ -92,7 +101,7 @@ export function AnalysisPerformance({
           labelledBy="analysis-performance-title"
           dateLabel={m.trading_trading_day_label()}
           tableLabel={m.trading_returns_table_label()}
-          events={events}
+          annotations={events}
           legendNote={
             hasEvents ? m.measures_analysis_session_lines_notice() : undefined
           }

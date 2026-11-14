@@ -82,7 +82,7 @@ const texts: Record<
       "Spreadsheet ini adalah workbook Excel yang memuat nilai dan ukuran di halaman ini, dengan urutan yang sama. Excel, Google Sheets, dan LibreOffice dapat membukanya, dan masing-masing menulis angkanya dalam format bahasanya sendiri.",
     rankedTitle: "Portofolio yang memiliki ukuran",
     rankedNotice:
-      "Portolab mengurutkan portofolio ini menurut alpha Jensen, yaitu jarak imbal hasil yang diharapkannya dari garis pasar sekuritas, dari yang tertinggi sampai yang terendah. Jarak itu membandingkan imbal hasil yang diharapkan dengan imbal hasil yang disyaratkan CAPM untuk beta portofolio, sehingga urutannya menghargai imbal hasil sesuai risiko yang diambil portofolio, bukan imbal hasil saja.",
+      "Portolab mengurutkan portofolio ini menurut alpha Jensen, yaitu jarak imbal hasil harapannya dari garis pasar sekuritas, dari yang tertinggi sampai yang terendah. Jarak itu membandingkan imbal hasil harapan dengan imbal hasil yang disyaratkan CAPM untuk beta portofolio, sehingga urutannya menghargai imbal hasil sesuai risiko yang diambil portofolio, bukan imbal hasil saja.",
     unmeasuredTitle: "Portofolio yang belum memiliki ukuran",
     noRanked:
       "Belum ada portofolio di kelas ini yang memiliki ukuran, sehingga Portolab belum mengurutkan satu pun. Setiap portofolio di bawah menjelaskan alasannya.",
@@ -91,7 +91,7 @@ const texts: Record<
     bbcaStanding: [
       "Alpha Jensen",
       "▼ -0,38%",
-      "Imbal hasil yang diharapkan",
+      "Imbal hasil harapan",
       "-0,05%",
       "Simpangan baku",
       "2,59%",

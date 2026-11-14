@@ -106,19 +106,22 @@ export function formatIndexLevel(level: IndexPoints): string {
   }).format(level);
 }
 
-/** Columns align two decimals, and the monthly risk-free rate keeps three so its conversion stays visible. */
-type PercentDecimals = "upToTwo" | "two" | "three";
+/** Columns use a fixed precision so their values line up, while chart marks can omit trailing zeroes. */
+type PercentDecimals = "upToTwo" | "two" | "one" | "integer" | "three";
 
-const fewestPercentDecimals: Record<PercentDecimals, number> = {
-  upToTwo: 0,
-  two: 2,
-  three: 3,
-};
 const mostPercentDecimals = 2;
+const percentDecimals: Record<PercentDecimals, readonly [number, number]> = {
+  upToTwo: [0, mostPercentDecimals],
+  two: [mostPercentDecimals, mostPercentDecimals],
+  one: [1, 1],
+  integer: [0, 0],
+  three: [3, 3],
+};
 
 /** Percent axes keep at most two decimals, so a hundredth of a percent is the smallest step that reads apart. */
 export const smallestPercentStep = 10 ** -(mostPercentDecimals + 2);
 
+/** Formats a fraction as a percentage without a plus sign, at the precision of its caller. */
 export function formatPercent(
   fraction: number,
   decimals: PercentDecimals = "upToTwo",
@@ -166,14 +169,9 @@ function isWhole(value: number): boolean {
 }
 
 function percentOptions(decimals: PercentDecimals): Intl.NumberFormatOptions {
-  return {
-    style: "percent",
-    minimumFractionDigits: fewestPercentDecimals[decimals],
-    maximumFractionDigits: Math.max(
-      mostPercentDecimals,
-      fewestPercentDecimals[decimals],
-    ),
-  };
+  const [minimumFractionDigits, maximumFractionDigits] =
+    percentDecimals[decimals];
+  return { style: "percent", minimumFractionDigits, maximumFractionDigits };
 }
 
 /** Formats a variance or a covariance of monthly returns with four significant digits, such as 0.002732, because it is a square of returns and too small for a percentage. */

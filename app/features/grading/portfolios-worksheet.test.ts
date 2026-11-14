@@ -62,7 +62,7 @@ const texts: Record<
       "Nama",
       "Nama pengguna",
       "Alpha Jensen",
-      "Imbal hasil yang diharapkan",
+      "Imbal hasil harapan",
       "Simpangan baku",
       "Beta terhadap IHSG",
       "Imbal hasil yang disyaratkan CAPM",

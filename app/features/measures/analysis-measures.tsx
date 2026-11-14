@@ -98,11 +98,7 @@ export function analysisMeasures(
       continue;
     const comparison = comparisons[row.concept];
     const label =
-      row.concept === "expectedReturn"
-        ? m.measures_analysis_return_label()
-        : row.concept === "beta"
-          ? m.measures_analysis_beta_label()
-          : row.label;
+      row.concept === "beta" ? m.measures_analysis_beta_label() : row.label;
     measures.push({
       key: row.concept,
       row: {

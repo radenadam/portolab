@@ -82,7 +82,7 @@ const texts: Record<
     lecturerNotice:
       "Grafik ini menempatkan portofolio Siti Rahayu dan sahamnya terhadap garis pasar sekuritas dari bulan-bulan ukurannya, yang memberikan 60 imbal hasil bulanan dari Oktober 2021 sampai September 2026.",
     lineNotice:
-      "Garis ini melewati suku bunga bebas risiko pada beta 0 dan imbal hasil yang diharapkan IHSG pada beta 1, sehingga memberikan imbal hasil yang disyaratkan CAPM untuk setiap beta. Titik di atas garis memiliki imbal hasil yang diharapkan lebih tinggi daripada yang disyaratkan CAPM untuk betanya, dan titik di bawah garis memiliki imbal hasil yang diharapkan lebih rendah.",
+      "Garis ini melewati suku bunga bebas risiko pada beta 0 dan imbal hasil harapan IHSG pada beta 1, sehingga memberikan imbal hasil yang disyaratkan CAPM untuk setiap beta. Titik di atas garis memiliki imbal hasil harapan lebih tinggi daripada yang disyaratkan CAPM untuk betanya, dan titik di bawah garis memiliki imbal hasil harapan lebih rendah.",
     portfolioName: "Portofolio Anda",
     holdingsName: "Saham Anda",
     weightedHoldingsName: "Saham Anda, ukuran = bobot",
@@ -96,7 +96,7 @@ const texts: Record<
     header: [
       "Titik",
       "Beta terhadap IHSG",
-      "Imbal hasil yang diharapkan",
+      "Imbal hasil harapan",
       "Alpha Jensen",
     ],
     riskFreeRow: [

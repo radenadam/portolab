@@ -177,6 +177,20 @@ for (const locale of locales) {
           return problems;
         }, palette),
       ).toEqual([]);
+      const width = isPhone() ? 360 : 1440;
+      const height = await student
+        .locator("body")
+        .evaluate((body) => body.scrollHeight);
+      await student.setViewportSize({ width, height });
+      await student.screenshot({
+        path: test
+          .info()
+          .outputPath(
+            `home-widest-${locale}-${String(width)}-${colorScheme}.png`,
+          ),
+        fullPage: true,
+        scale: "css",
+      });
     }
     await main.getByRole("link", { name: text.analysis, exact: true }).click();
     await expect(student).toHaveURL(`${classPath}/analysis`);

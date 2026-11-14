@@ -212,6 +212,10 @@
   font-weight: 600;
 }
 
+.labelValue {
+  font-weight: 400;
+}
+
 .lineLabel {
   fill: var(--color-muted);
 }
@@ -276,4 +280,16 @@
   inline-size: 1.15em;
   block-size: calc(var(--size-mark) * 0.75);
   background: var(--color-ink-secondary);
+}
+
+.classmate {
+  fill: var(--color-muted);
+  opacity: 0.45;
+}
+.classmateKey {
+  inline-size: 0.5em;
+  block-size: 0.5em;
+  border-radius: 50%;
+  background: var(--color-muted);
+  opacity: 0.6;
 }

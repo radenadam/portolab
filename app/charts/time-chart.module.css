@@ -162,3 +162,13 @@
 .points {
   align-self: stretch;
 }
+
+.sessionLine {
+  stroke: var(--color-line-strong);
+  stroke-width: var(--size-line);
+  stroke-dasharray: 0.25em 0.25em;
+}
+
+.fixedTable {
+  table-layout: fixed;
+}

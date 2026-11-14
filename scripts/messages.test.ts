@@ -1,12 +1,43 @@
 import { expect, test } from "vitest";
+import { marketIndex } from "../app/features/market-data/tracked-instruments.ts";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import {
   isInterfaceTest,
+  literalIndexProblems,
   messageKeyProblems,
   messageKeys,
   parseLocales,
   readMessages,
   untestedMessageProblems,
 } from "./messages.ts";
+
+test("rejects a literal market index in every message and accepts placeholders and unrelated words", () => {
+  const code = marketIndex.code;
+  for (const path of ["messages/id.json", "messages/en.json"]) {
+    expect(
+      literalIndexProblems(
+        path,
+        {
+          first: `Compare with ${code}.`,
+          second: `(${code.toLowerCase()})`,
+          placeholder: `Compare with {${code}} and {index}.`,
+          unrelated: `A${code}B ${code}_field`,
+          notText: 7,
+          $schema: code,
+        },
+        code,
+      ),
+    ).toEqual([
+      `${path}: the message "first" writes the index "${code}" directly, so take its code through a placeholder.`,
+      `${path}: the message "second" writes the index "${code}" directly, so take its code through a placeholder.`,
+    ]);
+    expect(
+      literalIndexProblems(path, { empty: "", placeholder: "{index}" }, code),
+    ).toEqual([]);
+  }
+});
 
 test("accepts keys that start with a feature folder or with app and end with a kind of text", () => {
   const keys = ["app_name", "market_data_title", "market_data_code_label"];
@@ -73,6 +104,25 @@ test("lists the message keys without the schema key", () => {
 test("reads a language file of messages", () => {
   const messages = readMessages("messages/en.json");
   expect(messages.ok && messages.value["app_name"]).toBe("Portolab");
+});
+
+test("rejects repeated message keys before JSON parsing drops their earlier values", () => {
+  const folder = mkdtempSync(join(tmpdir(), "portolab-messages-"));
+  const path = join(folder, "messages.json");
+  try {
+    for (const text of [
+      '{"app_name":"First","app_name":"Last"}',
+      '{"app_name":"First","app_\\u006eame":"Last"}',
+    ]) {
+      writeFileSync(path, text);
+      expect(readMessages(path)).toEqual({
+        ok: false,
+        failure: `${path} must give each message key once, but it repeats "app_name".`,
+      });
+    }
+  } finally {
+    rmSync(folder, { recursive: true, force: true });
+  }
 });
 
 test("reports a messages file that cannot be read", () => {

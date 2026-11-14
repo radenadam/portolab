@@ -13,11 +13,11 @@ const positions: Record<
 > = {
   id: {
     above:
-      "Imbal hasil yang diharapkan berada di atas garis pasar sekuritas, sehingga lebih tinggi daripada imbal hasil yang disyaratkan CAPM untuk betanya.",
+      "Imbal hasil harapan berada di atas garis pasar sekuritas, sehingga lebih tinggi daripada imbal hasil yang disyaratkan CAPM untuk betanya.",
     below:
-      "Imbal hasil yang diharapkan berada di bawah garis pasar sekuritas, sehingga lebih rendah daripada imbal hasil yang disyaratkan CAPM untuk betanya.",
+      "Imbal hasil harapan berada di bawah garis pasar sekuritas, sehingga lebih rendah daripada imbal hasil yang disyaratkan CAPM untuk betanya.",
     onLine:
-      "Imbal hasil yang diharapkan berada pada garis pasar sekuritas dalam batas pembulatan jaraknya, sehingga sesuai dengan imbal hasil yang disyaratkan CAPM untuk betanya.",
+      "Imbal hasil harapan berada pada garis pasar sekuritas dalam batas pembulatan jaraknya, sehingga sesuai dengan imbal hasil yang disyaratkan CAPM untuk betanya.",
   },
   en: {
     above:

@@ -1,8 +1,14 @@
 import type { RouterContextProvider } from "react-router";
+import { courseSessions } from "~/features/classes/course-calendar";
+import { readAnonymousClassmates } from "~/features/grading/read-anonymous-classmates.server";
+import { parseHomeMapView } from "./parse-home-map-view";
+import { readInsightLessons } from "~/features/learning/read-insight-lessons.server";
 import { databaseContext } from "~/database/database.server";
 import { listStockHistory } from "~/features/market-data/history-store.server";
-import { attemptForCodes } from "~/features/market-data/quote-failure-text";
-import { readPortfolioMeasures } from "~/features/measures/read-measures.server";
+import {
+  readPortfolioMeasures,
+  readStockMeasures,
+} from "~/features/measures/read-measures.server";
 import { wibDateOf } from "~/wib";
 import { homeSparklineCloses } from "./home-sparkline-closes";
 import { cashSetAside } from "./open-orders";
@@ -10,7 +16,7 @@ import { idxRulesOn } from "./idx-rules-on";
 import { readStudentPortfolioReport } from "./read-student-portfolio-report.server";
 import { readPortfolioDayChange } from "./read-portfolio-day-change.server";
 
-/** Reads only the signed-in student's portfolio, after checking orders at this request's moment. */
+/** Membership is checked before reading either the student's portfolio or the anonymous class context. */
 export function readHomePortfolio(
   context: Readonly<RouterContextProvider>,
   input: {
@@ -18,27 +24,37 @@ export function readHomePortfolio(
     url: URL;
     classId: string;
     now: Date;
+    firstSessionDate: string | null;
   },
 ) {
-  const {
-    portfolio,
-    source,
-    report: fullReport,
-  } = readStudentPortfolioReport(context, input);
+  const { place, portfolio, source, report } = readStudentPortfolioReport(
+    context,
+    input,
+  );
   const database = context.get(databaseContext);
-  const report = {
-    valuation: fullReport.valuation,
-    history: fullReport.history,
-    quoteAttempt: attemptForCodes(
-      fullReport.quoteAttempt,
-      portfolio.holdings.map(({ code }) => code),
-    ),
-  };
   const today = wibDateOf(input.now);
   const rules = idxRulesOn(today);
+  const view = parseHomeMapView(input.url.searchParams.get("view"), "view");
+  const measures = readPortfolioMeasures(database, report.valuation);
   return {
+    lessons: readInsightLessons(),
+    view: view.ok ? view.value : ("map" as const),
+    sessions: courseSessions(input.firstSessionDate),
+    classmates: readAnonymousClassmates(database, {
+      ...place.owner,
+      classId: place.classId,
+      request: input.request,
+      now: input.now,
+    }),
+    stockBetas:
+      measures.kind === "measured" && measures.measures.ok
+        ? []
+        : portfolio.holdings.flatMap(({ code }) => {
+            const stock = readStockMeasures(database, code);
+            return stock.ok ? [{ code, beta: stock.value.beta.value }] : [];
+          }),
     report,
-    measures: readPortfolioMeasures(database, report.valuation),
+    measures,
     dayChange: readPortfolioDayChange(database, {
       portfolio,
       valuation: report.valuation,

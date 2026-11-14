@@ -61,6 +61,12 @@ const analysisText: Record<
     performance: string;
     noHoldings: string;
     returns: string;
+    performanceHelp: string;
+    performanceMeaning: string;
+    performanceData: string;
+    axisFailure: string;
+    axisHints: readonly string[];
+    apply: string;
   }
 > = {
   id: {
@@ -84,7 +90,7 @@ const analysisText: Record<
     portfolioPoint: "Lihat perhitungan Portofolio Anda",
     stockPoint: "Lihat perhitungan BBCA",
     stockSpoken:
-      "BBCA: Beta 0,69, Imbal hasil yang diharapkan -0,10%, dan Alpha Jensen -0,28%",
+      "BBCA: Beta 0,69, Imbal hasil harapan -0,10%, dan Alpha Jensen -0,28%",
     insufficient:
       "Saham Anda dan IHSG baru sama-sama memiliki 0 imbal hasil bulanan dalam 60 bulan lengkap terakhir, dan ITMG memiliki imbal hasil paling sedikit, sedangkan Portolab menghitung ukuran portofolio hanya dari paling sedikit 24 imbal hasil bulanan. Jika IHSG dan setiap saham Anda tetap memiliki harga penutupan di akhir setiap bulan, Portolab menghitung ukuran portofolio Anda setelah pembaruan riwayat harga yang menyimpan harga penutupan hari bursa pertama November 2028.",
     marketLink: "Buka Pasar",
@@ -116,6 +122,14 @@ const analysisText: Record<
     noHoldings:
       "Anda tidak memegang saham, sehingga portofolio Anda hanya berisi kas, yang tidak menghasilkan imbal hasil di Portolab. Portolab menghitung ukuran portofolio Anda setelah order beli Anda tereksekusi.",
     returns: "Imbal hasil bulanan IHSG",
+    performanceHelp: "Apa itu Kinerja vs IHSG?",
+    performanceMeaning:
+      "Grafik dan tabel membandingkan imbal hasil portofolio Anda dengan imbal hasil IHSG sejak penutupan 26 Oktober 2026, sebelum Anda dapat bertransaksi. Setiap imbal hasilnya memakai harga penutupan final pada harinya.",
+    performanceData: "Imbal hasil pada setiap penutupan",
+    axisFailure:
+      'Kolom "Sumbu risiko" menerima "beta" atau "risk", tetapi isinya "BETA". Pilih salah satu sumbu risiko yang tercantum.',
+    axisHints: ['Beta memakai "beta".', 'Simpangan baku memakai "risk".'],
+    apply: "Tampilkan analisis",
   },
   en: {
     stocksTitle: "Measures of each stock",
@@ -170,11 +184,35 @@ const analysisText: Record<
     noHoldings:
       "You hold no shares, so your portfolio is cash alone, which earns no return in Portolab. Portolab computes the measures of your portfolio once a purchase of yours fills.",
     returns: "Monthly returns of the IHSG",
+    performanceHelp: "What is Performance vs IHSG?",
+    performanceMeaning:
+      "The chart and the table compare the return of your portfolio with the return of the IHSG since the close of October 26, 2026, before you could trade. Each of their returns uses the final closes of its day.",
+    performanceData: "Returns at each close",
+    axisFailure:
+      'The field "Risk axis" takes "beta" or "risk", but it holds "BETA". Choose a listed risk axis.',
+    axisHints: ['Beta uses "beta".', 'Standard deviation uses "risk".'],
+    apply: "Show analysis",
   },
 };
 
 function giveBbcaPortfolio(classId: ClassId): void {
   storeTestHolding(classId, bbcaHolding);
+  setAnalysisDates(classId);
+}
+
+function setAnalysisDates(classId: ClassId): void {
+  writeForTestStudent(classId, (database, membershipId) => {
+    database
+      .update(classes)
+      .set({ firstSessionDate: "2026-09-07" })
+      .where(eq(classes.id, classId))
+      .run();
+    database
+      .update(memberships)
+      .set({ joinedAt: new Date("2026-10-26T10:00:00Z") })
+      .where(eq(memberships.id, membershipId))
+      .run();
+  });
 }
 
 function analysisStudent(page: Page, browser: Browser, locale: Locale) {
@@ -190,6 +228,55 @@ function openAnalysisOnPage(page: Page, browser: Browser, locale: Locale) {
     path: "/analysis",
     givePortfolio: giveBbcaPortfolio,
   });
+}
+
+async function expectPerformanceHelp(
+  page: Page,
+  locale: Locale,
+): Promise<void> {
+  const text = analysisText[locale];
+  await page
+    .getByRole("button", { name: text.performanceHelp, exact: true })
+    .click();
+  const help = page.getByRole("dialog", {
+    name: text.performance,
+    exact: true,
+  });
+  await expect(help).toContainText(text.performanceMeaning);
+  await help
+    .getByRole("button", { name: text.performanceData, exact: true })
+    .click();
+  const data = page.getByRole("dialog", {
+    name: text.performanceData,
+    exact: true,
+  });
+  await expect(data.locator("tbody tr")).toHaveCount(5);
+  expect(await layoutProblems(page)).toEqual([]);
+  await expectAccessibleScreen(page);
+  await page.keyboard.press("Escape");
+}
+
+async function correctAnalysisAxis(
+  page: Page,
+  classPath: string,
+  locale: Locale,
+): Promise<void> {
+  const text = analysisText[locale];
+  const response = await page.goto(`${classPath}/analysis?axis=%20BETA%20`);
+  expect(response?.status()).toBe(400);
+  const field = page.getByRole("textbox", { name: text.axis, exact: true });
+  await expect(field).toHaveValue(" BETA ");
+  await expect(field).toHaveAccessibleDescription(text.axisFailure);
+  for (const hint of text.axisHints)
+    await expect(page.getByText(hint, { exact: true })).toBeVisible();
+  expect(await layoutProblems(page)).toEqual([]);
+  await expectAccessibleScreen(page);
+  await field.fill("risk");
+  await page.getByRole("button", { name: text.apply, exact: true }).click();
+  await expect(page).toHaveURL(`${classPath}/analysis?axis=risk`);
+  await expect(
+    page.getByRole("region", { name: text.riskMap, exact: true }),
+  ).toBeVisible();
 }
 
 for (const locale of locales) {
@@ -315,7 +402,17 @@ for (const locale of locales) {
       text.meaning,
     );
     await student.keyboard.press("Escape");
+    await expectPerformanceHelp(student, locale);
     await expectAccessibleScreen(student);
+    await student.context().close();
+  });
+
+  test(`explains an invalid axis and accepts its correction in ${language}`, async ({
+    page,
+    browser,
+  }) => {
+    const { student, classPath } = await analysisStudent(page, browser, locale);
+    await correctAnalysisAxis(student, classPath, locale);
     await student.context().close();
   });
 
@@ -481,18 +578,7 @@ for (const locale of locales) {
             },
           ],
         );
-        writeForTestStudent(classId, (database, membershipId) => {
-          database
-            .update(classes)
-            .set({ firstSessionDate: "2026-09-07" })
-            .where(eq(classes.id, classId))
-            .run();
-          database
-            .update(memberships)
-            .set({ joinedAt: new Date("2026-10-26T10:00:00Z") })
-            .where(eq(memberships.id, membershipId))
-            .run();
-        });
+        setAnalysisDates(classId);
       },
     });
     const widths = info.project.name === "phone" ? [360] : [1440, 1920];
@@ -570,6 +656,11 @@ for (const locale of locales) {
       browser,
     }) => {
       const { lecturer } = await openAnalysisOnPage(page, browser, locale);
+      const classPath = new URL(page.url()).pathname.slice(
+        0,
+        -"/analysis".length,
+      );
+      await expectPerformanceHelp(page, locale);
       await page
         .getByRole("button", { name: text.portfolioPoint, exact: true })
         .click();
@@ -585,6 +676,8 @@ for (const locale of locales) {
         .getByRole("button", { name: text.portfolioPoint, exact: true })
         .click();
       await expect(page.locator("#analysis-risk")).toBeVisible();
+      await page.keyboard.press("Escape");
+      await correctAnalysisAxis(page, classPath, locale);
       await lecturer.context().close();
     });
   });

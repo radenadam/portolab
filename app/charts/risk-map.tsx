@@ -30,12 +30,13 @@ const labelOrder: Record<MarkKind, number> = {
   market: 2,
   other: 3,
   average: 2,
+  classmate: 4,
 };
 
 // Every length around the plot is a multiple of the size of the text of its marks, so the map keeps its proportions when a reader enlarges the text.
 const bottomRoom = 3.5;
 const sideRoom = 0.5;
-/** A map of risk across against return up, as decisions 0028 and 0035 set: each point by its mark and its name, the IHSG as a diamond with a strong line through its risk and a dashed line at its return, and a line from a point through the IHSG, such as the security market line. The server draws it in SVG and places its labels from estimated widths of their texts. Once JavaScript runs, the browser places the labels again from their measured widths at the size of the plot, and the plot is a slider that a pointer, a finger, or the keys move over the points in the order of their risk, which shows the values of the marked point in a tooltip. */
+/** The server's estimated label widths keep names visible before the browser can measure them. */
 export function RiskMap<Across extends number, Up extends number>({
   market,
   points,
@@ -56,7 +57,7 @@ export function RiskMap<Across extends number, Up extends number>({
   up: MapAxis<Up>;
   line?: MapLine<Across, Up>;
   /** The label of the line at the return of the IHSG, such as IHSG 0.70%. */
-  levelLabel: string;
+  levelLabel?: string;
   /** The id of the heading that names the map, which also names its slider. */
   labelledBy: string;
   fill?: boolean;
@@ -112,8 +113,7 @@ export function RiskMap<Across extends number, Up extends number>({
       layout={layout}
       drawn={drawn}
       placed={placed}
-      texts={{ title: across.title, level: levelLabel, line: line?.name ?? "" }}
-      showLine={line !== undefined}
+      texts={{ title: across.title, level: levelLabel, line: line?.name }}
       active={active}
       drawingRef={drawingRef}
       measureRef={measureRef}
@@ -218,7 +218,7 @@ function mapLabels(
   drawn: readonly DrawnPoint[],
   map: {
     line: { name: string } | undefined;
-    levelLabel: string;
+    levelLabel: string | undefined;
     layout: RiskMapLayout<unknown>;
   },
 ): MapLabels {
@@ -229,7 +229,7 @@ function mapLabels(
       labelOrder[first.kind] - labelOrder[second.kind] ||
       second.placed.outerRadius - first.placed.outerRadius,
   )) {
-    const label = { key: point.key, text: point.name };
+    const label = { key: point.key, text: point.name, value: point.labelValue };
     switch (kind) {
       case "own":
       case "held":
@@ -240,16 +240,22 @@ function mapLabels(
       case "other":
         others.push(label);
         break;
+      case "classmate":
+        break;
     }
   }
   return {
     kept,
     lines: [
-      {
-        key: lineLabelKeys.level,
-        text: map.levelLabel,
-        places: map.layout.linePlaces.level,
-      },
+      ...(map.levelLabel === undefined
+        ? []
+        : [
+            {
+              key: lineLabelKeys.level,
+              text: map.levelLabel,
+              places: map.layout.linePlaces.level,
+            },
+          ]),
       ...(map.line === undefined
         ? []
         : [
@@ -264,7 +270,7 @@ function mapLabels(
   };
 }
 
-/** The text of a point that a screen reader reads as the value of the slider, such as BBCA: Beta terhadap IHSG 0,69 dan Imbal hasil yang diharapkan -0,10%. */
+/** The text of a point that a screen reader reads as the value of the slider, such as BBCA: Beta terhadap IHSG 0,69 dan Imbal hasil harapan -0,10%. */
 function spokenPoint(point: MapPoint<number, number>): string {
   return m.app_map_point_label({
     name: point.name,

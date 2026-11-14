@@ -28,10 +28,11 @@ export const lineLabelKeys = { level: "level", line: "line" } as const;
 /** How far the ring of a marked point stands outside its mark, in sizes of the text of the labels, which is also how far beyond its mark a point answers a pointer. */
 export const markReach = 0.33;
 
-// The marks of the stocks that the portfolio does not hold come first, so they never hide the marks of the portfolio, of its stocks, or of the IHSG, and the mark of the reader comes last.
+// Background context must not hide the subjects of the map or the reader's own mark.
 const drawOrder: Record<MarkKind, number> = {
   other: 0,
   average: 0,
+  classmate: -1,
   held: 1,
   market: 2,
   own: 3,
@@ -41,13 +42,12 @@ const drawOrder: Record<MarkKind, number> = {
 const tickBaseline = 1.5;
 const titleBaseline = 3;
 
-/** The drawing of the map in its plot: the marks of both axes with their lines, the strong line through the risk of the IHSG, the name of the axis of risk, the dashed line at the return of the IHSG, the line through the IHSG, the mark of each point, a ring around the marked point, and the labels where they have a place. It also holds a hidden text in the font of the labels, which the browser measures each label with. Screen readers skip it. */
+/** Maps with different subjects share axes and label placement. A hidden text lets the browser measure labels in the font that draws them. */
 export function MapDrawing({
   layout,
   drawn,
   placed,
   texts,
-  showLine = true,
   active,
   drawingRef,
   measureRef,
@@ -55,8 +55,7 @@ export function MapDrawing({
   layout: RiskMapLayout<unknown>;
   drawn: readonly DrawnPoint[];
   placed: PlacedLabels;
-  texts: { title: string; level: string; line: string };
-  showLine?: boolean;
+  texts: { title: string; level: string | undefined; line: string | undefined };
   active: DrawnPoint | undefined;
   drawingRef: Ref<SVGSVGElement>;
   measureRef: Ref<SVGTextElement>;
@@ -64,14 +63,16 @@ export function MapDrawing({
   return (
     <svg ref={drawingRef} className={styles["drawing"]} aria-hidden>
       <Axes layout={layout} title={texts.title} />
-      <line
-        x1="0"
-        x2="100%"
-        y1={percentOf(layout.market.position.y)}
-        y2={percentOf(layout.market.position.y)}
-        className={styles["level"]}
-      />
-      {showLine && (
+      {texts.level !== undefined && (
+        <line
+          x1="0"
+          x2="100%"
+          y1={percentOf(layout.market.position.y)}
+          y2={percentOf(layout.market.position.y)}
+          className={styles["level"]}
+        />
+      )}
+      {layout.line !== undefined && (
         <line
           x1={percentOf(layout.line.start.x)}
           y1={percentOf(layout.line.start.y)}
@@ -135,6 +136,7 @@ export function MapDrawing({
         <Label
           key={point.key}
           text={point.name}
+          value={placed.values.has(point.key) ? point.labelValue : undefined}
           place={placed.points.get(point.key)}
           className={styles["label"]}
         />
@@ -251,6 +253,8 @@ function Mark({
       return dot(styles["other"]);
     case "average":
       return dot(styles["average"]);
+    case "classmate":
+      return dot(styles["classmate"]);
     case "market":
       return <Diamond placed={placed} />;
   }
@@ -285,14 +289,16 @@ function Diamond({ placed }: { placed: PlacedMark }): ReactNode {
 
 function Label({
   text,
+  value,
   place,
   className,
 }: {
-  text: string;
+  text: string | undefined;
+  value?: string | undefined;
   place: LabelPlace | undefined;
   className: string | undefined;
 }): ReactNode {
-  if (place === undefined) {
+  if (place === undefined || text === undefined) {
     return null;
   }
   return (
@@ -305,6 +311,9 @@ function Label({
       className={className}
     >
       {text}
+      {value !== undefined && (
+        <tspan className={styles["labelValue"]}> {value}</tspan>
+      )}
     </text>
   );
 }

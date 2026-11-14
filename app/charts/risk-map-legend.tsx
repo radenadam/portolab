@@ -15,6 +15,7 @@ const keyClasses: Record<MapKeyKind, string | undefined> = {
   average: styles["averageKey"],
   gain: styles["gainKey"],
   loss: styles["lossKey"],
+  classmate: styles["classmateKey"],
 };
 
 /** The legend of a map, which names each kind of point and the line beside a sample of its mark. Screen readers skip it, as they skip the drawing, because the slider and the table of the points name every point. */

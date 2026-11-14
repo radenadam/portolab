@@ -79,7 +79,7 @@ const failures = {
 
 const periods: Record<Locale, readonly string[]> = {
   id: [
-    "Beta terhadap IHSG, Simpangan baku, dan Imbal hasil yang diharapkan memakai 60 imbal hasil bulanan dari Oktober 2021 sampai September 2026.",
+    "Beta terhadap IHSG, Simpangan baku, dan Imbal hasil harapan memakai 60 imbal hasil bulanan dari Oktober 2021 sampai September 2026.",
     "60 imbal hasil bulanan · Oktober 2021 sampai September 2026",
     "Bobot portofolio memakai harga tertunda. Beranda menunjukkan waktu kutipan setiap harga.",
   ],
