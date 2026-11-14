@@ -46,7 +46,7 @@ function withoutIcons(html: string): string {
 
 const items = [
   {
-    path: "/classes/7/portfolio",
+    path: "/classes/7",
     label: "Beranda",
     icon: "map",
     isCurrent: true,
@@ -89,7 +89,7 @@ function frameForTest({
 }
 
 const itemList =
-  '<ul><li><a aria-current="page" href="/classes/7/portfolio" data-discover="true">Beranda</a></li><li><a href="/classes/7/market" data-discover="true">Pasar</a></li></ul>';
+  '<ul><li><a aria-current="page" href="/classes/7" data-discover="true">Beranda</a></li><li><a href="/classes/7/market" data-discover="true">Pasar</a></li></ul>';
 
 for (const locale of locales) {
   const text = texts[locale];

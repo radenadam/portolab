@@ -18,6 +18,30 @@ export function ConceptCard({
   calculation: ReactNode;
   lesson: ReactNode;
 }): ReactNode {
+  return (
+    <ConceptHelp title={title}>
+      <p>{meaning}</p>
+      <div className={styles["example"]}>
+        <p className={styles["label"]}>{m.app_concept_example_label()}</p>
+        {example}
+      </div>
+      <details>
+        <summary>{m.app_concept_calculation_label()}</summary>
+        <div className={styles["calculation"]}>{calculation}</div>
+      </details>
+      <p className={styles["lesson"]}>{lesson}</p>
+    </ConceptHelp>
+  );
+}
+
+/** Contextual help and measured concepts share the native question button and its card. */
+export function ConceptHelp({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}): ReactNode {
   const id = `concept-${useId().replaceAll(/[^a-zA-Z0-9_-]/g, "")}`;
   return (
     <>
@@ -31,16 +55,7 @@ export function ConceptCard({
       <Popover id={id} label={title} placement="belowEnd">
         <div className={styles["card"]}>
           <p className={styles["title"]}>{title}</p>
-          <p>{meaning}</p>
-          <div className={styles["example"]}>
-            <p className={styles["label"]}>{m.app_concept_example_label()}</p>
-            {example}
-          </div>
-          <details>
-            <summary>{m.app_concept_calculation_label()}</summary>
-            <div className={styles["calculation"]}>{calculation}</div>
-          </details>
-          <p className={styles["lesson"]}>{lesson}</p>
+          {children}
         </div>
       </Popover>
     </>

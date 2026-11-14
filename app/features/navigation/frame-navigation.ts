@@ -6,7 +6,6 @@ import { classPortfoliosPath } from "~/features/grading/grading-paths";
 import { marketPath } from "~/features/market-data/market-path";
 import { measuresPath } from "~/features/measures/measures-path";
 import { ordersPath } from "~/features/trading/orders-path";
-import { portfolioPath } from "~/features/trading/portfolio-path";
 import type { FrameItem } from "~/frame";
 import type { IconName } from "~/icon";
 import { m } from "~/paraglide/messages.js";
@@ -32,7 +31,7 @@ const visitorItems: readonly VisitorItem[] = ["prices", "join", "signIn"];
 
 // Each item leads to the page that holds it today. Decision 0030 gives the address that each page takes when the change of issue #127 rebuilds its screen.
 const workspacePaths: Record<WorkspaceItem, (classId: ClassId) => string> = {
-  home: portfolioPath,
+  home: classPath,
   market: marketPath,
   activity: ordersPath,
   analysis: measuresPath,
@@ -87,7 +86,6 @@ const currentItems: Record<RouteId, NavigationItem | undefined> = {
   "features/classes/class-page": "class",
   "features/classes/calendar-page": "class",
   "features/trading/orders-page": "activity",
-  "features/trading/portfolio-page": "home",
   "features/measures/measures-page": "analysis",
   "features/market-data/stock-page": "market",
   "features/trading/stock-ticket-fallback": "market",
@@ -115,7 +113,12 @@ export function frameItems(
   reader: FrameReader | undefined,
   page: FramedPage,
 ): FrameItem[] {
-  const current = currentItemOf(page.routeId);
+  const current =
+    page.routeId === "features/classes/class-page" &&
+    reader?.kind === "user" &&
+    reader.role === "student"
+      ? "home"
+      : currentItemOf(page.routeId);
   if (reader === undefined) {
     return [];
   }

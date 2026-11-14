@@ -35,6 +35,18 @@ import { splitAdjustedRupiah } from "./units/split-adjusted-rupiah";
 // 09:14:56 UTC on 16 October 2026 is 16:14 WIB.
 const quotedAt = new Date("2026-10-16T09:14:56.000Z");
 
+const roundedZero: Record<Locale, string> = { id: "0,00", en: "0.00" };
+for (const locale of locales) {
+  test(`formats beta, correlation, and Sharpe without a minus sign when they round to zero in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    for (const value of [-0.0001, 0, 0.0001]) {
+      expect(formatBeta(beta(value))).toBe(roundedZero[locale]);
+      expect(formatCorrelation(correlation(value))).toBe(roundedZero[locale]);
+      expect(formatSharpeRatio(sharpeRatio(value))).toBe(roundedZero[locale]);
+    }
+  });
+}
+
 const sizes: Record<Locale, string> = {
   id: "128.040 byte",
   en: "128,040 bytes",
@@ -46,7 +58,7 @@ const splitPrices: Record<Locale, readonly string[]> = {
 };
 
 for (const locale of locales) {
-  test(`keeps fractional rupiah in a split-adjusted close and no decimals in a whole close, in ${locale}`, () => {
+  test(`keeps fractional rupiah in a split-adjusted close and no decimals in a whole close, in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     expect(
       [1_234.5, 4_980].map((value) =>

@@ -58,7 +58,7 @@ const texts: Record<
 > = {
   id: {
     cash: "<dt>Kas</dt><dd>Rp\u00a0100.000.000</dd><dt>Kas yang disisihkan</dt><dd>Rp\u00a02.989.478</dd><dt>Kas yang tersedia</dt><dd>Rp\u00a097.010.522</dd>",
-    noHoldings: "<p>Anda belum memegang saham.</p>",
+    noHoldings: "<p>Anda tidak memegang saham.</p>",
     oneSale: [
       "BBCA",
       "500 saham dengan biaya Rp\u00a02.493.735, termasuk biaya broker.",
@@ -70,7 +70,7 @@ const texts: Record<
   },
   en: {
     cash: "<dt>Cash</dt><dd>IDR\u00a0100,000,000</dd><dt>Cash set aside</dt><dd>IDR\u00a02,989,478</dd><dt>Available cash</dt><dd>IDR\u00a097,010,522</dd>",
-    noHoldings: "<p>You hold no shares yet.</p>",
+    noHoldings: "<p>You hold no shares.</p>",
     oneSale: [
       "BBCA",
       "500 shares that cost IDR\u00a02,493,735, broker fees included.",

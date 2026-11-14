@@ -24,15 +24,21 @@ export function StockName({
   code,
   withSector = false,
   heading = false,
+  withCompanyName = true,
 }: {
   code: string;
   withSector?: boolean;
   heading?: boolean;
+  withCompanyName?: boolean;
 }): ReactNode {
   const company = companyOf(code);
   return (
     <div
-      className={[styles["stock"], heading ? styles["headline"] : undefined]
+      className={[
+        styles["stock"],
+        heading ? styles["headline"] : undefined,
+        withCompanyName || withSector ? undefined : styles["compact"],
+      ]
         .filter(Boolean)
         .join(" ")}
     >
@@ -43,7 +49,9 @@ export function StockName({
         ) : (
           <span className={styles["code"]}>{code}</span>
         )}
-        <span className={styles["detail"]}>{company.name}</span>
+        {withCompanyName && (
+          <span className={styles["detail"]}>{company.name}</span>
+        )}
         {withSector && (
           <span className={styles["detail"]}>
             {sectorNames[company.sector]()}

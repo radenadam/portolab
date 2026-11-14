@@ -10,6 +10,22 @@ import { monthEndClosesForTest } from "./month-end-closes-for-test";
 // The expected values were computed with the decimal module of Python at 50 significant digits, from the month-end closes in month-end-closes-for-test.ts and a BI-Rate of 5.75%, which Bank Indonesia announced on 18 June 2026. October 2026 is the month of the latest close, so the window ends on 30 September 2026.
 const ihsg = monthEndClosesForTest("IHSG");
 
+test("measures the IHSG Sharpe ratio over the same months as a stock", () => {
+  // Python Decimal at 50 significant digits computed mean monthly return less 0.0575 / 12, divided by sample standard deviation, from the recorded IHSG month ends. BBCA uses October 2021 to September 2026, and AMMN uses August 2023 to September 2026.
+  for (const [code, expected] of [
+    ["BBCA", -0.0957601724260894],
+    ["AMMN", -0.12589554600514632],
+  ] as const) {
+    const { market } = measured(code);
+    expect(market.sharpeRatio.value).toBeCloseTo(expected, 14);
+    expect(market.sharpeRatio.inputs).toEqual({
+      expectedReturn: market.expectedReturn.value,
+      riskFreeRate: market.riskFreeRate.value,
+      standardDeviation: market.standardDeviation.value,
+    });
+  }
+});
+
 function measured(code: "BBCA" | "AMMN"): {
   stock: StockMeasures;
   market: MarketMeasures;

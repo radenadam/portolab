@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+import { languageNames } from "~/language-names";
 import type { ClassId } from "~/features/classes/classes.schema";
 import { openDatabaseForTest } from "~/database/open-database-for-test.server";
 import { conceptLessonDataForTest } from "~/features/learning/concept-lesson-data-for-test";
@@ -80,19 +81,19 @@ const periods: Record<Locale, readonly string[]> = {
   id: [
     "Beta terhadap IHSG, Simpangan baku, dan Imbal hasil yang diharapkan memakai 60 imbal hasil bulanan dari Oktober 2021 sampai September 2026.",
     "60 imbal hasil bulanan · Oktober 2021 sampai September 2026",
-    "Bobot portofolio memakai harga tertunda. Halaman portofolio Anda menunjukkan waktu kutipan setiap harga.",
+    "Bobot portofolio memakai harga tertunda. Beranda menunjukkan waktu kutipan setiap harga.",
   ],
   en: [
     "Beta against the IHSG, Standard deviation, and Expected return use 60 monthly returns from October 2021 to September 2026.",
     "60 monthly returns · October 2021 to September 2026",
-    "Portfolio weights use delayed prices. Your portfolio page shows when each price was quoted.",
+    "Portfolio weights use delayed prices. Home shows when each price was quoted.",
   ],
 };
 
 const failureTexts: Record<Locale, Record<keyof typeof failures, string>> = {
   id: {
     noHoldings:
-      "Anda belum memegang saham, sehingga portofolio Anda hanya berisi kas, yang tidak menghasilkan imbal hasil di Portolab. Portolab menghitung ukuran portofolio Anda setelah order beli Anda tereksekusi.",
+      "Anda tidak memegang saham, sehingga portofolio Anda hanya berisi kas, yang tidak menghasilkan imbal hasil di Portolab. Portolab menghitung ukuran portofolio Anda setelah order beli Anda tereksekusi.",
     unpricedOne:
       "Portolab menghitung ukuran portofolio Anda setelah pembaruan harga berikutnya membawa harga tertunda BBCA, karena bobot setiap saham adalah nilainya pada harga tertundanya.",
     unpricedSeveral:
@@ -116,7 +117,7 @@ const failureTexts: Record<Locale, Record<keyof typeof failures, string>> = {
   },
   en: {
     noHoldings:
-      "You hold no shares yet, so your portfolio is cash alone, which earns no return in Portolab. Portolab computes the measures of your portfolio once a purchase of yours fills.",
+      "You hold no shares, so your portfolio is cash alone, which earns no return in Portolab. Portolab computes the measures of your portfolio once a purchase of yours fills.",
     unpricedOne:
       "Portolab computes the measures of your portfolio once the next update of prices brings a delayed price of BBCA, because the weight of each stock is its value at its delayed price.",
     unpricedSeveral:
@@ -151,7 +152,7 @@ const labels: Record<Locale, string> = {
 };
 
 for (const locale of locales) {
-  test(`shows the periods and every correlation failure with its forecast and next step in ${locale}`, () => {
+  test(`shows the periods and every correlation failure with its forecast and next step in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     const database = databaseWithClosesForTest();
     const measures = readStockMeasures(database, "BBCA");

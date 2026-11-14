@@ -22,8 +22,8 @@ interface TradingHours {
   /** The minute of the day when the post-closing session ends. */
   sessionEndMinute: number;
   /** Session I and session II, in which orders match continuously, on Monday to Thursday and on Friday. */
-  mondayToThursday: readonly MinuteSpan[];
-  friday: readonly MinuteSpan[];
+  mondayToThursday: readonly [MinuteSpan, ...MinuteSpan[]];
+  friday: readonly [MinuteSpan, ...MinuteSpan[]];
   /** The announcement of IDX that set the hours, and the reports they were read from. */
   source: string;
 }
@@ -146,6 +146,22 @@ export function latestClosedTradingDay(
   );
 }
 
+/** The latest session whose first continuous quote can have arrived with this delay. Cash alone has no quote timestamp, so it follows this session boundary. */
+export function latestQuoteTradingDay(
+  moment: Date,
+  delayMinutes: number,
+): Result<string, string> {
+  return searchDays(wibDateOf(moment), -1, (calendar, date) =>
+    isTradingDayIn(calendar, date) &&
+    wibMoment(
+      date,
+      continuousSessionsOn(calendar, date)[0].startMinute + delayMinutes,
+    ) <= moment
+      ? date
+      : undefined,
+  );
+}
+
 /** The moment from which the prices of a trading day with this delay can no longer change, which makes its closes final. It fails for a date that no calendar covers. */
 export function pricesFinalAt(
   date: string,
@@ -259,7 +275,7 @@ function startOfFirstSessionEndingAfter(
 function continuousSessionsOn(
   calendar: TradingCalendar,
   date: string,
-): readonly MinuteSpan[] {
+): readonly [MinuteSpan, ...MinuteSpan[]] {
   const friday = 5;
   return dayOfWeek(date) === friday
     ? calendar.hours.friday
