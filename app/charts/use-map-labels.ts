@@ -1,10 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { RefObject } from "react";
-import { estimatedLabelWidth, placeMapLabels } from "./map-labels";
+import {
+  estimatedLabelWidth,
+  keptNameRoom,
+  placeMapLabels,
+} from "./map-labels";
 import type { LabelledMark, MapLabels, PlacedLabels } from "./map-labels";
 
 // Before a browser measures the plot, the labels take their places in the plot of a phone 360 pixels wide, the narrowest that Portolab lays out, in which the marks lie closest together. Its size is in sizes of the text of the labels.
-const phonePlot = { width: 22, height: 17 };
+const phonePlot = { width: 22 - keptNameRoom, height: 17 };
 
 /** Where the labels of a map stand, as decision 0035 sets: where the server placed them from estimated widths in the plot of a phone, until the browser has measured each label and the plot, which it does once the fonts load and again whenever the plot changes its size. The refs go on the area of the plot, on the drawing, whose size of text every length of the map counts in, and on a hidden text in the font of the labels. textSize gives that size in pixels once the drawing is on the page. */
 export function useMapLabels(

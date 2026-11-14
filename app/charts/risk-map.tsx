@@ -16,17 +16,19 @@ import type {
 import { lineLabelKeys, MapDrawing, markReach } from "./map-drawing";
 import type { DrawnPoint, MarkKind } from "./map-drawing";
 import type { MapLabels } from "./map-labels";
+import { keptNameRoom } from "./map-labels";
 import { returnMarkGap } from "./return-mark";
 import styles from "./risk-map.module.css";
 import { tipAcross, tipDown } from "./tip-placement";
 import { useIsInBrowser } from "./use-is-in-browser";
 import { useMapLabels } from "./use-map-labels";
 
-// After the names of the reader and the labels of the lines, the names of the stocks of the portfolio take their places, then the name of the IHSG, and the names of the other stocks take the places that remain, as the prototype of decision 0028 orders them.
-const labelOrder: Record<Exclude<MarkKind, "own">, number> = {
-  held: 0,
-  market: 1,
-  other: 2,
+// The portfolio and every holding keep their names ahead of every other point, even when the caller lists the holdings before the portfolio. Larger marks leave less room for their names, so they take their places before smaller marks of the same kind.
+const labelOrder: Record<MarkKind, number> = {
+  own: 0,
+  held: 1,
+  market: 2,
+  other: 3,
 };
 
 // Every length around the plot is a multiple of the size of the text of its marks, so the map keeps its proportions when a reader enlarges the text.
@@ -102,7 +104,7 @@ export function RiskMap<Across extends number, Up extends number>({
   });
   const style: CSSProperties = {
     paddingBlock: `${String(sideRoom)}em ${String(bottomRoom)}em`,
-    paddingInline: `calc(${String(layout.upTextLength)}ch + ${String(returnMarkGap)}em) ${String(sideRoom)}em`,
+    paddingInline: `calc(${String(layout.upTextLength)}ch + ${String(returnMarkGap)}em + ${String(keptNameRoom)} * var(--text-small)) ${String(sideRoom)}em`,
   };
   const active = slider.marked === undefined ? undefined : stops[slider.marked];
   const drawing = (
@@ -178,17 +180,21 @@ function mapLabels(
   },
 ): MapLabels {
   const kept: { key: string; text: string }[] = [];
-  const others: { key: string; text: string; order: number }[] = [];
-  for (const { point, kind } of drawn) {
+  const others: { key: string; text: string }[] = [];
+  for (const { point, kind } of drawn.toSorted(
+    (first, second) =>
+      labelOrder[first.kind] - labelOrder[second.kind] ||
+      second.placed.outerRadius - first.placed.outerRadius,
+  )) {
     const label = { key: point.key, text: point.name };
     switch (kind) {
       case "own":
+      case "held":
         kept.push(label);
         break;
-      case "held":
       case "market":
       case "other":
-        others.push({ ...label, order: labelOrder[kind] });
+        others.push(label);
         break;
     }
   }
@@ -206,9 +212,7 @@ function mapLabels(
         places: map.layout.linePlaces.line,
       },
     ],
-    others: others
-      .toSorted((first, second) => first.order - second.order)
-      .map(({ key, text }) => ({ key, text })),
+    others,
   };
 }
 

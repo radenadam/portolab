@@ -1,6 +1,11 @@
 import { expect, test } from "vitest";
 import { plotFraction } from "~/units/plot-fraction";
-import { estimatedLabelWidth, placeMapLabels } from "./map-labels";
+import { crowdedMapForTest } from "./crowded-map-for-test";
+import {
+  estimatedLabelWidth,
+  keptNameRoom,
+  placeMapLabels,
+} from "./map-labels";
 import type { LabelledMark, LabelPlace, MapLabels } from "./map-labels";
 
 // Every length is in sizes of the text of the labels. A text of the tests is 0.6 of that size wide for each character.
@@ -30,9 +35,9 @@ function others(keys: string[]): MapLabels {
 
 const size = { width: 20, height: 10 };
 
-// A label stands 0.42 from the edge of its mark, and its baseline lies 0.335 below the middle of the mark, so the middle of its letters, which reach 0.92 above the baseline and 0.25 below it, meets the middle of the mark.
+// A label stands 0.42 from the edge of its mark, and its baseline lies 0.375 below the middle of the mark, so the middle of its letters, which reach 1 above the baseline and 0.25 below it, meets the middle of the mark.
 const beside = 0.5 + 0.42;
-const middle = 0.335;
+const middle = 0.375;
 
 test("places the name of a point to the right of its mark, where its letters face the middle of the mark", () => {
   const point = mark("BBCA", { x: 0.5, y: 0.5 });
@@ -81,17 +86,30 @@ test("places a name where it lies nearer to its own point than to any other poin
 });
 
 test("keeps a gap between two names, so a name moves away from a name beside it that it would only touch", () => {
-  // The points stand 1.2 apart, one above the other, so their names to the right would stand 0.03 apart, closer than the gap of 0.25 between labels.
+  // The points stand 1.25 apart, one above the other, so their names to the right would only touch instead of keeping a gap.
   const upper = mark("BBCA", { x: 0.2, y: 0.5 }, 0.3);
-  const lower = mark("BBRI", { x: 0.2, y: 0.62 }, 0.3);
+  const lower = mark("BBRI", { x: 0.2, y: 0.625 }, 0.3);
   const placed = placeMapLabels(others(["BBCA", "BBRI"]), {
     size,
     marks: [upper, lower],
     widthOf,
   }).points;
-  expect(placed.get("BBCA")).toMatchObject({ anchor: "start", dx: 0.72 });
-  expect(placed.get("BBRI")).not.toMatchObject({ dx: 0.72, dy: middle });
-  expect(placed.get("BBRI")).toBeDefined();
+  const first = placed.get("BBCA");
+  const second = placed.get("BBRI");
+  if (first === undefined || second === undefined) {
+    throw new Error("Both names have room beside their points.");
+  }
+  const firstBox = boxOf(first, widthOf("BBCA"), size);
+  const secondBox = boxOf(second, widthOf("BBRI"), size);
+  const across = Math.max(
+    firstBox.left - secondBox.right,
+    secondBox.left - firstBox.right,
+  );
+  const down = Math.max(
+    firstBox.top - secondBox.bottom,
+    secondBox.top - firstBox.bottom,
+  );
+  expect(across >= 0.67 || down >= 0.25).toBe(true);
 });
 
 /** Small marks 0.6 apart in 7 rows and 13 columns around a center, but not at the center. */
@@ -133,6 +151,26 @@ test("keeps the name of the reader beside its mark where every place breaks a ru
     { size, marks, widthOf },
   ).points;
   expect([...placed.keys()]).toEqual(["portfolio"]);
+});
+
+test("keeps a holding's name nearer its own point by using the gutter when its large mark has no clear place beside it inside the plot", () => {
+  const held = mark("BBCA", { x: 0.06, y: 0.5 }, 1.04);
+  const nearby = mark("BBRI", { x: 0.14, y: 0.5 });
+  const marks = [held, nearby];
+  const labels = { kept: names("BBCA"), lines: [], others: names("BBRI") };
+  const placed = placeMapLabels(labels, { size, marks, widthOf }).points;
+  const place = placed.get(held.key);
+  if (place === undefined) {
+    throw new Error("The holding keeps its name.");
+  }
+  const box = boxOf(place, widthOf(held.key), size);
+  expect(box.left).toBeLessThan(0);
+  expect(box.left).toBeGreaterThanOrEqual(-keptNameRoom);
+  expect(
+    distance(box, { x: held.position.x * size.width, y: size.height / 2 }),
+  ).toBeLessThan(
+    distance(box, { x: nearby.position.x * size.width, y: size.height / 2 }),
+  );
 });
 
 test("places the label of a line at the first of its places that clears every mark and every label placed before it, and leaves it out where none does", () => {
@@ -182,7 +220,7 @@ test("estimates the width of a name from the widths of the capitals, the small l
   );
 });
 
-// The letters of a label reach 0.92 above its baseline and 0.25 below it, and its box keeps 0.17 at each side.
+// The letters of a label reach 1 above its baseline and 0.25 below it, and its box keeps 0.17 at each side.
 interface Box {
   left: number;
   right: number;
@@ -202,7 +240,7 @@ function boxOf(
   return {
     left,
     right: left + width + 0.34,
-    top: baseline - 0.92,
+    top: baseline - 1,
     bottom: baseline + 0.25,
   };
 }
@@ -223,24 +261,9 @@ function distance(box: Box, point: { x: number; y: number }): number {
   return Math.hypot(point.x - nearest.x, point.y - nearest.y);
 }
 
-// The points of a crowded map: the portfolio, five stocks that it holds, and forty other stocks, at positions of a seeded random walk, so the test is the same on every run.
 function crowdedMarks(): LabelledMark[] {
-  let state = 7;
-  const next = (): number => {
-    state = (state * 1103515245 + 12345) % 2147483648;
-    return 0.05 + (state / 2147483648) * 0.9;
-  };
-  const marks: LabelledMark[] = [mark("portfolio", { x: 0.5, y: 0.5 }, 1.04)];
-  for (let index = 0; index < 45; index += 1) {
-    marks.push(
-      mark(
-        `S${String(index).padStart(3, "0")}`,
-        { x: next(), y: next() },
-        index < 5 ? 0.8 : 0.42,
-      ),
-    );
-  }
-  return marks;
+  const { portfolio, holdings, others } = crowdedMapForTest();
+  return [portfolio, ...holdings, ...others];
 }
 
 for (const plot of [
