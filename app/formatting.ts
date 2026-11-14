@@ -7,6 +7,7 @@ import type { Correlation } from "~/units/correlation";
 import type { IndexPoints } from "~/units/index-points";
 import type { MonthlyVariance } from "~/units/monthly-variance";
 import type { Rupiah } from "~/units/rupiah";
+import type { SharpeRatio } from "~/units/sharpe-ratio";
 import { wibTimeZone } from "~/wib";
 
 const intlLocales = { id: "id-ID", en: "en-US" } as const;
@@ -121,6 +122,11 @@ export function formatBeta(beta: Beta): string {
 /** Formats a correlation with two decimals, such as -0.25. */
 export function formatCorrelation(correlation: Correlation): string {
   return formatTwoDecimals(correlation);
+}
+
+/** Formats a Sharpe ratio with two decimals, such as -0.17. */
+export function formatSharpeRatio(ratio: SharpeRatio): string {
+  return formatTwoDecimals(ratio);
 }
 
 function formatTwoDecimals(value: number): string {

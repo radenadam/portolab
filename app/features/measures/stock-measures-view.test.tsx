@@ -79,7 +79,7 @@ const texts: Record<
         "k<sub>i</sub> = R<sub>f</sub> + β<sub>i</sub>(E(R<sub>M</sub>) − R<sub>f</sub>) = 0,48% + 0,69 × (0,05% − 0,48%)",
       ],
       [
-        "Jarak dari garis pasar sekuritas",
+        "Alpha Jensen",
         `${fall}-0,28%`,
         "α<sub>i</sub> = E(R<sub>i</sub>) − k<sub>i</sub> = -0,10% − 0,18%",
       ],
@@ -95,7 +95,7 @@ const texts: Record<
         "k<sub>i</sub> = R<sub>f</sub> + β<sub>i</sub>(E(R<sub>M</sub>) − R<sub>f</sub>) = 0,48% + 1,11 × (-0,20% − 0,48%)",
       ],
       [
-        "Jarak dari garis pasar sekuritas",
+        "Alpha Jensen",
         `${rise}+3,10%`,
         "α<sub>i</sub> = E(R<sub>i</sub>) − k<sub>i</sub> = 2,82% − (-0,28%)",
       ],
@@ -170,7 +170,7 @@ const texts: Record<
         "k<sub>i</sub> = R<sub>f</sub> + β<sub>i</sub>(E(R<sub>M</sub>) − R<sub>f</sub>) = 0.48% + 0.69 × (0.05% − 0.48%)",
       ],
       [
-        "Distance from the security market line",
+        "Jensen's alpha",
         `${fall}-0.28%`,
         "α<sub>i</sub> = E(R<sub>i</sub>) − k<sub>i</sub> = -0.10% − 0.18%",
       ],
@@ -186,7 +186,7 @@ const texts: Record<
         "k<sub>i</sub> = R<sub>f</sub> + β<sub>i</sub>(E(R<sub>M</sub>) − R<sub>f</sub>) = 0.48% + 1.11 × (-0.20% − 0.48%)",
       ],
       [
-        "Distance from the security market line",
+        "Jensen's alpha",
         `${rise}+3.10%`,
         "α<sub>i</sub> = E(R<sub>i</sub>) − k<sub>i</sub> = 2.82% − (-0.28%)",
       ],

@@ -9,9 +9,12 @@
  * - beta: β = σ_iM / σ_M², which is SLOPE of the returns of the stock on those of the market.
  * - ratePerMonth: R_f = the yearly rate / 12.
  * - capm: the required return R_f + β(E(R_M) - R_f).
- * - securityMarketLineDistance: α = E(R) - the required return, which is positive above the line.
- * - weightedSum: Σ w_i x_i, which is SUMPRODUCT.
+ * - securityMarketLineDistance: Jensen's alpha α = E(R) - the required return, which is positive above the line.
+ * - weightedSum: Σ w_i x_i, which is SUMPRODUCT. The covariance of a holding with its portfolio, σ_ip = Σ_j w_j σ_ij, is one too.
  * - portfolioVariance: σ_p² = Σ_i Σ_j w_i w_j σ_ij, which is MMULT of the weights, the covariance matrix, and the weights.
+ * - sharpeRatio: S_p = (E(R_p) - R_f) / σ_p.
+ * - treynorRatio: T_p = (E(R_p) - R_f) / β_p.
+ * - varianceShare: c_i = w_i σ_ip / σ_p², the share of the variance of a portfolio that one holding adds.
  */
 export interface Measure<Formula extends string, Value, Inputs> {
   formula: Formula;

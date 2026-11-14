@@ -1,9 +1,13 @@
+import { succeed } from "~/result";
+import type { Result } from "~/result";
 import type { Beta } from "~/units/beta";
 import type { Correlation } from "~/units/correlation";
 import type { MonthlyReturn } from "~/units/monthly-return";
 import type { MonthlyVariance } from "~/units/monthly-variance";
 import type { PortfolioWeight } from "~/units/portfolio-weight";
 import type { Rupiah } from "~/units/rupiah";
+import type { SharpeRatio } from "~/units/sharpe-ratio";
+import type { VarianceShare } from "~/units/variance-share";
 import type { ReturnMeasure } from "./aligned-returns";
 import type {
   MarketLine,
@@ -12,8 +16,10 @@ import type {
   SecurityMarketLineMeasure,
   StockMeasures,
 } from "./capm";
+import type { NoPortfolioVariation } from "./measure-portfolio";
+import type { ValuedPortfolioMeasures } from "./measure-valued-portfolio";
 import type { RiskFreeRateMeasure } from "./measure-risk-free-rate";
-import type { StoredPortfolioMeasures } from "./measure-stored.server";
+import type { BetaNotPositive } from "./performance-ratios";
 import type { CorrelationMeasure } from "./return-statistics";
 
 // A measure holds its inputs, so the returns of an instrument recur in the mean, the variance, and each covariance. A page shows each return once, in the table of its instrument, so these summaries keep the returns once and the other measures by their values, which keeps a page small on mobile data.
@@ -64,6 +70,15 @@ interface HoldingSummary {
   returns: readonly ReturnMeasure[];
 }
 
+/** The share of the variance of a portfolio that one of its stocks adds, with the weight of the stock and its covariance with the portfolio from which the share comes, and the correlation of the stock with the portfolio. */
+export interface HoldingRiskSummary {
+  code: string;
+  weight: PortfolioWeight;
+  covarianceWithPortfolio: MonthlyVariance;
+  varianceShare: VarianceShare;
+  correlationWithPortfolio: Correlation;
+}
+
 /** The covariance and the correlation of two stocks of a portfolio, or of one stock with itself, whose covariance is its variance. */
 interface PairSummary {
   first: string;
@@ -80,6 +95,10 @@ export interface PortfolioSummary {
   beta: Beta;
   requiredReturn: RequiredReturnMeasure;
   securityMarketLine: SecurityMarketLineMeasure;
+  sharpeRatio: Result<SharpeRatio, NoPortfolioVariation>;
+  treynorRatio: Result<MonthlyReturn, BetaNotPositive>;
+  /** In the order of the portfolio. */
+  holdingRisks: Result<HoldingRiskSummary[], NoPortfolioVariation>;
   cash: { value: Rupiah; weight: PortfolioWeight };
   /** The value of the holdings and the cash, of which each weight is a share. */
   totalValue: Rupiah;
@@ -133,9 +152,9 @@ export function summarizeStockRow(stock: StockMeasures): StockRowSummary {
   };
 }
 
-/** Summarizes the measures of a portfolio with the values from which measureStoredPortfolio weighed its holdings and its cash. */
+/** Summarizes the measures of a portfolio with the values from which measureValuedPortfolio weighed its holdings and its cash. */
 export function summarizePortfolio(
-  measures: StoredPortfolioMeasures,
+  measures: ValuedPortfolioMeasures,
   values: {
     holdings: readonly { code: string; value: Rupiah }[];
     cash: Rupiah;
@@ -171,6 +190,24 @@ export function summarizePortfolio(
     beta: measures.beta.value,
     requiredReturn: measures.requiredReturn,
     securityMarketLine: measures.securityMarketLine,
+    sharpeRatio: measures.sharpeRatio.ok
+      ? succeed(measures.sharpeRatio.value.value)
+      : measures.sharpeRatio,
+    treynorRatio: measures.treynorRatio.ok
+      ? succeed(measures.treynorRatio.value.value)
+      : measures.treynorRatio,
+    holdingRisks: measures.holdingRisks.ok
+      ? succeed(
+          measures.holdingRisks.value.map((risk) => ({
+            code: risk.code,
+            weight: risk.varianceShare.inputs.weight,
+            covarianceWithPortfolio:
+              risk.varianceShare.inputs.covarianceWithPortfolio,
+            varianceShare: risk.varianceShare.value,
+            correlationWithPortfolio: risk.correlationWithPortfolio.value,
+          })),
+        )
+      : measures.holdingRisks,
     cash: { value: values.cash, weight: measures.cashWeight },
     totalValue: values.total,
     holdings: measures.holdings.map((holding) => ({
