@@ -7,10 +7,14 @@ import type { NumberFormat, WorkbookCell } from "~/workbook/workbook-cells";
 import type { Worksheet } from "~/workbook/write-workbook.server";
 import type {
   ClassPortfolios,
-  ComparedMeasures,
   RankedStudent,
   UnmeasuredStudent,
 } from "./read-class-portfolios.server";
+
+import type { ComparedMeasures } from "./compared-measures";
+import { orderStudents } from "./order-students";
+import { rankingLabel } from "./ranking-measure";
+import type { RankingMeasure } from "./ranking-measure";
 
 type Student = RankedStudent | UnmeasuredStudent;
 
@@ -28,7 +32,7 @@ const numberWidth = 16;
 const reasonWidth = 80;
 
 function measure(
-  name: keyof ComparedMeasures,
+  name: Exclude<keyof ComparedMeasures, "sharpe" | "treynor" | "riskFreeRate">,
   format: NumberFormat,
 ): (student: Student) => WorkbookCell | undefined {
   return (student) =>
@@ -37,7 +41,7 @@ function measure(
       : undefined;
 }
 
-// The columns follow the page of the portfolios, with the username, which tells apart two students of the same name, and a last column for the reason why a portfolio has no measures.
+// The username distinguishes students of the same name, and reasons keep unavailable measures from looking like zero.
 const columns: readonly Column[] = [
   {
     heading: () => m.grading_name_label(),
@@ -53,6 +57,22 @@ const columns: readonly Column[] = [
     heading: () => m.grading_market_line_label(),
     width: numberWidth,
     cell: measure("distance", "percent"),
+  },
+  {
+    heading: () => m.grading_sharpe_label(),
+    width: numberWidth,
+    cell: (student) =>
+      "measures" in student && student.measures.sharpe.ok
+        ? numberCell(student.measures.sharpe.value, "twoDecimals")
+        : undefined,
+  },
+  {
+    heading: () => m.grading_treynor_label(),
+    width: numberWidth,
+    cell: (student) =>
+      "measures" in student && student.measures.treynor.ok
+        ? numberCell(student.measures.treynor.value, "percent")
+        : undefined,
   },
   {
     heading: () => m.grading_expected_return_label(),
@@ -91,6 +111,22 @@ const columns: readonly Column[] = [
         : numberCell(student.total.return, "percent"),
   },
   {
+    heading: () => m.grading_sharpe_reason_label(),
+    width: reasonWidth,
+    cell: (student) =>
+      "measures" in student && !student.measures.sharpe.ok
+        ? textCell(student.measures.sharpe.failure)
+        : undefined,
+  },
+  {
+    heading: () => m.grading_treynor_reason_label(),
+    width: reasonWidth,
+    cell: (student) =>
+      "measures" in student && !student.measures.treynor.ok
+        ? textCell(student.measures.treynor.failure)
+        : undefined,
+  },
+  {
     heading: () => m.grading_reason_label(),
     width: reasonWidth,
     cell: (student) =>
@@ -104,11 +140,13 @@ export function portfoliosWorksheet({
   portfolios,
   now,
   source,
+  ranking = "alpha",
 }: {
   className: string;
   portfolios: ClassPortfolios;
   now: Date;
   source: PriceSourceDescription;
+  ranking?: RankingMeasure;
 }): Worksheet {
   return {
     name: m.grading_sheet_name(),
@@ -118,6 +156,7 @@ export function portfoliosWorksheet({
       [
         textCell(
           m.grading_workbook_notice({
+            measure: rankingLabel(ranking),
             time: formatMarketTime(now),
             source: source.name,
             minutes: formatNumber(source.delayMinutes),
@@ -126,7 +165,7 @@ export function portfoliosWorksheet({
       ],
       [],
       columns.map((column) => headingCell(column.heading())),
-      ...[...portfolios.ranked, ...portfolios.unmeasured].map((student) =>
+      ...orderStudents(portfolios, ranking).map((student) =>
         columns.map((column) => column.cell(student)),
       ),
     ],

@@ -138,7 +138,7 @@ for (const locale of locales) {
       [
         { path: "/classes/7", label: label.class, icon: "cap" },
         {
-          path: "/classes/7/portfolios",
+          path: "/classes/7/students",
           label: label.students,
           icon: "users",
         },
@@ -151,7 +151,7 @@ for (const locale of locales) {
       [pageForTest("features/classes/calendar-page", inClass), label.class],
       [
         pageForTest("features/classes/reset-password-page", ofStudent),
-        label.class,
+        label.students,
       ],
       [
         pageForTest("features/grading/class-portfolios-page", inClass),

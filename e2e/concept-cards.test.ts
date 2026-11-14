@@ -191,19 +191,23 @@ for (const locale of locales) {
       locale,
       path: "/measures",
     });
-    await holdClientScripts(page, lecturer.context(), async (loadClient) => {
-      await expect(page.getByRole("slider")).toHaveCount(0);
-      const address = page.url();
-      const card = await openConcept(page, locale, text.beta);
-      const calculation = await openCalculation(card, locale);
-      await expectBetaCalculation(card);
+    await holdClientScripts(
+      page,
+      { otherDevice: lecturer.context() },
+      async (loadClient) => {
+        await expect(page.getByRole("slider")).toHaveCount(0);
+        const address = page.url();
+        const card = await openConcept(page, locale, text.beta);
+        const calculation = await openCalculation(card, locale);
+        await expectBetaCalculation(card);
 
-      await loadClient();
-      await expect(page.getByRole("slider").first()).toBeVisible();
-      await expect(card).toBeVisible();
-      await expect(calculation).toHaveAttribute("open", "");
-      await expect(page).toHaveURL(address);
-    });
+        await loadClient();
+        await expect(page.getByRole("slider").first()).toBeVisible();
+        await expect(card).toBeVisible();
+        await expect(calculation).toHaveAttribute("open", "");
+        await expect(page).toHaveURL(address);
+      },
+    );
   });
 
   test.describe(`before JavaScript loads in ${languageNames[locale]}`, () => {

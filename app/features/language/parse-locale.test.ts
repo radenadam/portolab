@@ -24,9 +24,9 @@ const failures: Record<
     ],
     pastAnyFieldMaximum: {
       justPast:
-        'Kolom "Bahasa" berisi 8.001 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
+        'Kolom "Bahasa" berisi 8.001 karakter, lebih banyak daripada yang diterima kolom ini. Isi kolom itu dengan teks yang dimintanya.',
       farPast:
-        'Kolom "Bahasa" berisi 1.000.000 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
+        'Kolom "Bahasa" berisi 1.000.000 karakter, lebih banyak daripada yang diterima kolom ini. Isi kolom itu dengan teks yang dimintanya.',
     },
     missingLanguage:
       'Formulir tidak mengirim bahasa di kolom "Bahasa". Pilih Bahasa Indonesia atau English di pengalih bahasa.',
@@ -41,9 +41,9 @@ const failures: Record<
     ],
     pastAnyFieldMaximum: {
       justPast:
-        'The field "Language" has 8,001 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
+        'The field "Language" has 8,001 characters, more than this field takes. Fill it in with the text that it asks for.',
       farPast:
-        'The field "Language" has 1,000,000 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
+        'The field "Language" has 1,000,000 characters, more than this field takes. Fill it in with the text that it asks for.',
     },
     missingLanguage:
       'The form sent no language in the field "Language". Choose Bahasa Indonesia or English in the language switch.',

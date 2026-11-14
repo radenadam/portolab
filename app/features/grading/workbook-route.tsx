@@ -1,3 +1,6 @@
+import { data } from "react-router";
+import { parseRankingControl } from "./parse-ranking-control";
+import { rankingMeasures } from "./ranking-measure";
 import type { ReactNode } from "react";
 import { attachmentHeader } from "~/attachment-header";
 import { databaseContext } from "~/database/database.server";
@@ -17,6 +20,12 @@ import { readClassPortfolios } from "./read-class-portfolios.server";
 export const middleware: Route.MiddlewareFunction[] = [
   ({ context, request, params, url }) => {
     const taughtClass = requireTaughtClass(context, url, params.classId);
+    const ranking = parseRankingControl(
+      url.searchParams.get("measure") ?? "alpha",
+      "measure",
+      rankingMeasures,
+    );
+    if (!ranking.ok) throw data(null, { status: 404 });
     const now = new Date();
     const source = readPriceSourceDescription(context);
     const workbook = writeWorkbook(
@@ -29,6 +38,7 @@ export const middleware: Route.MiddlewareFunction[] = [
         ),
         now,
         source,
+        ranking: ranking.value,
       }),
     );
     const fileName = `${m.grading_page_title({ class: taughtClass.name })}.xlsx`;

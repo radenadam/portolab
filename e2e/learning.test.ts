@@ -221,19 +221,23 @@ for (const locale of locales) {
       locale,
       path: "/glossary",
     });
-    await holdClientScripts(page, lecturer.context(), async (loadClient) => {
-      const search = page.getByRole("searchbox", { name: text.searchField });
-      await search.fill("ARA (");
-      await loadClient();
-      await expect(search).toHaveValue("ARA (");
-      const response = page.waitForResponse((answer) =>
-        new URL(answer.url()).pathname.endsWith("/glossary.data"),
-      );
-      await search.press("Enter");
-      await response;
-      await expect(page.getByRole("status")).toHaveText(text.one);
-      await expect(search).toHaveValue("ARA (");
-    });
+    await holdClientScripts(
+      page,
+      { otherDevice: lecturer.context() },
+      async (loadClient) => {
+        const search = page.getByRole("searchbox", { name: text.searchField });
+        await search.fill("ARA (");
+        await loadClient();
+        await expect(search).toHaveValue("ARA (");
+        const response = page.waitForResponse((answer) =>
+          new URL(answer.url()).pathname.endsWith("/glossary.data"),
+        );
+        await search.press("Enter");
+        await response;
+        await expect(page.getByRole("status")).toHaveText(text.one);
+        await expect(search).toHaveValue("ARA (");
+      },
+    );
   });
 
   test.describe(`before JavaScript loads in ${languageNames[locale]}`, () => {

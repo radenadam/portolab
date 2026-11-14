@@ -67,14 +67,14 @@ const texts: Record<
     openFormLink: "Buka formulirnya lagi",
     widestFieldErrors: {
       username:
-        'Kolom "Nama pengguna" berisi 100.000 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
-      code: 'Kolom "Kode kelas" berisi 100.000 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
+        'Kolom "Nama pengguna" berisi 100.000 karakter, lebih banyak daripada yang diterima kolom ini. Isi kolom itu dengan teks yang dimintanya.',
+      code: 'Kolom "Kode kelas" berisi 100.000 karakter, lebih banyak daripada yang diterima kolom ini. Isi kolom itu dengan teks yang dimintanya.',
       personName:
-        'Kolom "Nama Anda" berisi 100.000 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
+        'Kolom "Nama Anda" berisi 100.000 karakter, lebih banyak daripada yang diterima kolom ini. Isi kolom itu dengan teks yang dimintanya.',
       currentPassword:
-        'Kolom "Kata sandi saat ini" berisi 100.000 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
+        'Kolom "Kata sandi saat ini" berisi 100.000 karakter, lebih banyak daripada yang diterima kolom ini. Isi kolom itu dengan teks yang dimintanya.',
       className:
-        'Kolom "Nama kelas" berisi 100.000 karakter, jauh lebih banyak daripada yang diterima kolom mana pun di Portolab. Isi kolom itu dengan teks yang dimintanya.',
+        'Kolom "Nama kelas" berisi 100.000 karakter, lebih banyak daripada yang diterima kolom ini. Isi kolom itu dengan teks yang dimintanya.',
     },
   },
   en: {
@@ -93,14 +93,14 @@ const texts: Record<
     openFormLink: "Open the form again",
     widestFieldErrors: {
       username:
-        'The field "Username" has 100,000 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
-      code: 'The field "Code of the class" has 100,000 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
+        'The field "Username" has 100,000 characters, more than this field takes. Fill it in with the text that it asks for.',
+      code: 'The field "Code of the class" has 100,000 characters, more than this field takes. Fill it in with the text that it asks for.',
       personName:
-        'The field "Your name" has 100,000 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
+        'The field "Your name" has 100,000 characters, more than this field takes. Fill it in with the text that it asks for.',
       currentPassword:
-        'The field "Current password" has 100,000 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
+        'The field "Current password" has 100,000 characters, more than this field takes. Fill it in with the text that it asks for.',
       className:
-        'The field "Name of the class" has 100,000 characters, far more than any field of Portolab takes. Fill it in with the text that it asks for.',
+        'The field "Name of the class" has 100,000 characters, more than this field takes. Fill it in with the text that it asks for.',
     },
   },
 };

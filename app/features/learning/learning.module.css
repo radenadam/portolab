@@ -280,6 +280,7 @@
 
 .glossary {
   composes: panel from "../../panel.module.css";
+  display: block;
   padding: var(--space-1) var(--space-learning-section);
 }
 

@@ -17,16 +17,18 @@ export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
 
 export function loader({ context, request, params, url }: Route.LoaderArgs): {
   student: TaughtStudent;
+  returnPath: string;
   report: PortfolioReport;
   orders: StoredOrder[];
   now: Date;
   source: PriceSourceDescription;
 } {
   const now = new Date();
-  const { student, portfolio, startingCash, joinedAt, source } =
+  const { student, returnPath, portfolio, startingCash, joinedAt, source } =
     readTaughtPortfolio(context, { request, url, params, now });
   return {
     student,
+    returnPath,
     report: readPortfolioReport(
       context.get(databaseContext),
       { portfolio, startingCash, joinedAt },
@@ -44,7 +46,11 @@ export default function StudentPortfolioPage({
   const { student } = loaderData;
   return (
     <>
-      <TaughtStudentHeading page="portfolio" student={student} />
+      <TaughtStudentHeading
+        page="portfolio"
+        student={student}
+        returnPath={loaderData.returnPath}
+      />
       <PortfolioView
         report={loaderData.report}
         reader={{ kind: "lecturer", studentName: student.name }}

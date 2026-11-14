@@ -2,7 +2,7 @@ import type { BrowserContext, Page } from "@playwright/test";
 
 export async function holdClientScripts(
   page: Page,
-  otherDevice: BrowserContext,
+  { otherDevice, address }: { otherDevice: BrowserContext; address?: string },
   check: (loadClient: () => Promise<void>) => Promise<void>,
 ): Promise<void> {
   const started = Promise.withResolvers<undefined>();
@@ -15,7 +15,8 @@ export async function holdClientScripts(
     await route.continue();
   });
   try {
-    await page.reload({ waitUntil: "commit" });
+    if (address === undefined) await page.reload({ waitUntil: "commit" });
+    else await page.goto(address, { waitUntil: "commit" });
     await started.promise;
     await check(async () => {
       scripts.resolve(undefined);

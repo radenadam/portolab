@@ -37,6 +37,6 @@ Two inputs make a ratio meaningless. A portfolio whose returns are the same in e
 
 ## Consequences
 
-- The page of the measures of a portfolio shows the Sharpe ratio and the Treynor ratio with their formulas and inputs, Jensen's alpha under its name, and the risk that each stock adds. The ranking of decision 0021 names its order Jensen's alpha, and issue #93 tracks a choice of the Sharpe or the Treynor ratio.
+- The page of the measures of a portfolio shows the Sharpe ratio and the Treynor ratio with their formulas and inputs, Jensen's alpha under its name, and the risk that each stock adds. The ranking of decision 0021 names its order Jensen's alpha, and [decision 0041](0041-the-lecturer-chooses-the-measure-that-ranks-the-class.md) governs the choice of a ranking measure.
 - Cash earns no return in Portolab, so cash that a student leaves idle lowers the Sharpe ratio, the Treynor ratio, and Jensen's alpha alike.
 - The measures of a trade wait for the order ticket and the page of a stock of issue #127, which show them.

@@ -12,3 +12,6 @@ export function beta(value: number): Beta {
   }
   return value;
 }
+
+/** The market compared with itself, which is the reference of every beta. */
+export const marketBeta = beta(1);

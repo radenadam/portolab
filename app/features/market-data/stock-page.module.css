@@ -70,9 +70,6 @@
 
 .panel {
   composes: panel from "../../panel.module.css";
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
 }
 
 .panel h2 {
