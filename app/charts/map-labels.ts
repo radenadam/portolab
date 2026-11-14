@@ -26,7 +26,7 @@ interface PointLabel {
 
 /** The labels of a map, in the order in which they take their places. */
 export interface MapLabels {
-  /** The names of the points of the reader, which keep a place where no place follows every rule, as decision 0035 sets. */
+  /** The names of the portfolio and every holding, which keep a place where no place follows every rule, as decision 0035 sets. */
   kept: readonly PointLabel[];
   /** The labels of the lines of the map, each with its places in order of preference. A label takes the first place that follows every rule, or it is left out. */
   lines: readonly {
@@ -51,8 +51,8 @@ interface Box {
   bottom: number;
 }
 
-// The box of a label reaches from the top of its capitals to the bottom of its descenders, with a little room at its sides, as the prototype of decision 0028 measures it, at 12 pixels to the size of its text.
-const ascent = 0.92;
+// A name reserves the full height of the font, because a box that holds only capitals misses the letters below its baseline.
+const ascent = 1;
 const descent = 0.25;
 const sideRoom = 0.17;
 // Two labels keep this gap, so that they never read as one, and a label keeps a little room from a mark that is not its own.
@@ -60,14 +60,17 @@ const labelGap = { across: 0.67, down: 0.25 };
 const markRoom = 0.08;
 // A label may reach a little below the plot, over the room above the texts of the marks of the axis.
 const bottomOverhang = 0.33;
+// The gutter of the return marks can hold a kept name that has no place within the plot.
+export const keptNameRoom = 1.5;
 // A label stands this far from the edge of its mark, or farther in two steps where the nearer places break a rule.
 const markDistance = 0.42;
 const fartherSteps = [0, 0.67, 1.5];
 // A label at a corner of its mark stands on the diagonal at the same distance, so its corner touches the circle around the mark.
 const diagonal = Math.SQRT1_2;
-// A place that breaks a rule costs more than any distance from its point, so a cost from ruleBroken on means a broken rule. Lying nearer to another point is the lesser rule, so a name of the reader that has to break a rule rather lies near another point than covers a mark or a label.
+// Names keep their gap first and their link to their own point next, before they keep clear of other marks. A cost from ruleBroken on means a broken rule.
 const coverCost = 1000;
-const nearerCost = 500;
+const labelCoverCost = 1000000;
+const nearerCost = 10000;
 const ruleBroken = 100;
 const costPerDistance = 0.01;
 
@@ -77,7 +80,7 @@ const anchorShares: Record<TextAnchor, number> = {
   end: 1,
 };
 
-/** Places the labels of a map in a plot of a size in sizes of the text of the labels, as decision 0035 sets. A label of a point sits beside its mark, clear of every other mark, nearer to its own point than to any other point, and with a gap from every other label. A name of the reader keeps the place that breaks the fewest rules when none follows them all, and a name of another point without such a place is left out. Each label of a line takes the first of its places that clears every mark and every label placed before it. The names of the reader come first, then the labels of the lines, then the other names. */
+/** Places the labels of a map in a plot of a size in sizes of the text of the labels, as decision 0035 sets. A label of a point sits beside its mark, clear of every other mark, nearer to its own point than to any other point, and with a gap from every other label. A name of the portfolio or a holding keeps the place that breaks the fewest rules when none follows them all, and a name of another point without such a place is left out. Each label of a line takes the first of its places that clears every mark and every label placed before it. The portfolio and every holding come first, then the labels of the lines, then the other names. */
 export function placeMapLabels(
   labels: MapLabels,
   plot: {
@@ -98,11 +101,24 @@ export function placeMapLabels(
     }
     const width = widthOf(label.text);
     let best: { place: LabelPlace; box: Box; cost: number } | undefined;
-    for (const place of placesAround(mark)) {
+    const consider = (place: LabelPlace, leftRoom: number): void => {
       const box = boxOf(place, width, size);
-      const cost = costOf(box, mark, { size, marks, placedBoxes });
-      if (best === undefined || cost < best.cost) {
+      const cost = costOf(box, mark, { size, marks, placedBoxes, leftRoom });
+      if (best === undefined || cost + Number.EPSILON < best.cost) {
         best = { place, box, cost };
+      }
+    };
+    for (const place of placesAround(mark)) {
+      consider(place, 0);
+    }
+    if (isKept && (best === undefined || best.cost >= ruleBroken)) {
+      // A large dot can leave no room between its edge and a neighbor. Its name can cross its own mark and use the gutter before it reads as another point's name.
+      for (const place of placesAround(mark, markRoom)) {
+        const box = boxOf(place, width, size);
+        const shift =
+          Math.max(0, -keptNameRoom - box.left) -
+          Math.max(0, box.right - size.width);
+        consider({ ...place, dx: place.dx + shift }, keptNameRoom);
       }
     }
     if (
@@ -122,7 +138,7 @@ export function placeMapLabels(
     for (const place of label.places) {
       const box = boxOf(place, width, size);
       if (
-        contains(size, box, 0) &&
+        contains(size, box, { bottom: 0, left: 0 }) &&
         !marks.some((mark) => overlaps(box, boxAround(mark, size))) &&
         !hitsLabel(box, placedBoxes)
       ) {
@@ -160,11 +176,14 @@ function characterWidth(character: string): number {
   return 0.6;
 }
 
-function placesAround(mark: LabelledMark): LabelPlace[] {
+function placesAround(
+  mark: LabelledMark,
+  nearest = mark.outerRadius + markDistance,
+): LabelPlace[] {
   const places: LabelPlace[] = [];
   const middle = (ascent - descent) / 2;
   for (const farther of fartherSteps) {
-    const distance = mark.outerRadius + markDistance + farther;
+    const distance = nearest + farther;
     const corner = distance * diagonal;
     for (const [dx, dy, anchor] of [
       [distance, middle, "start"],
@@ -189,16 +208,23 @@ function costOf(
     size: { width: number; height: number };
     marks: readonly LabelledMark[];
     placedBoxes: readonly Box[];
+    leftRoom: number;
   },
 ): number {
   const { size, marks, placedBoxes } = map;
-  if (!contains(size, box, bottomOverhang)) {
+  if (!contains(size, box, { bottom: bottomOverhang, left: map.leftRoom })) {
     return Number.POSITIVE_INFINITY;
   }
-  const ownDistance = distanceTo(box, centerOf(mark, size));
+  // The padding separates names, but only their letters decide which point they read as belonging to.
+  const ink = {
+    ...box,
+    left: box.left + sideRoom,
+    right: box.right - sideRoom,
+  };
+  const ownDistance = distanceTo(ink, centerOf(mark, size));
   let cost = costPerDistance * ownDistance;
   if (hitsLabel(box, placedBoxes)) {
-    cost += coverCost;
+    cost += labelCoverCost;
   }
   for (const other of marks) {
     if (other.key === mark.key) {
@@ -207,7 +233,7 @@ function costOf(
     if (overlaps(box, boxAround(other, size))) {
       cost += coverCost;
     }
-    if (distanceTo(box, centerOf(other, size)) <= ownDistance + markRoom) {
+    if (distanceTo(ink, centerOf(other, size)) <= ownDistance + markRoom) {
       cost += nearerCost;
     }
   }
@@ -254,13 +280,13 @@ function boxAround(
 function contains(
   size: { width: number; height: number },
   box: Box,
-  overhang: number,
+  room: { bottom: number; left: number },
 ): boolean {
   return (
-    box.left >= 0 &&
+    box.left >= -room.left &&
     box.right <= size.width &&
     box.top >= 0 &&
-    box.bottom <= size.height + overhang
+    box.bottom <= size.height + room.bottom
   );
 }
 
