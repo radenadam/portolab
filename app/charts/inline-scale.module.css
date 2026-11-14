@@ -1,0 +1,8 @@
+.track {
+  stroke: var(--color-line);
+  stroke-width: var(--size-line);
+}
+.reference {
+  stroke: var(--color-ink);
+  stroke-width: var(--size-mark);
+}

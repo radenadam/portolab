@@ -27,6 +27,7 @@ export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
 
 export function loader({ context, request, params, url }: Route.LoaderArgs): {
   student: TaughtStudent;
+  returnPath: string;
   valuation: ValuationReport;
   portfolio: PortfolioMeasuresReport;
   marketLine: PortfolioLine | undefined;
@@ -34,10 +35,8 @@ export function loader({ context, request, params, url }: Route.LoaderArgs): {
   source: PriceSourceDescription;
 } {
   const now = new Date();
-  const { student, portfolio, startingCash, source } = readTaughtPortfolio(
-    context,
-    { request, url, params, now },
-  );
+  const { student, returnPath, portfolio, startingCash, source } =
+    readTaughtPortfolio(context, { request, url, params, now });
   const database = context.get(databaseContext);
   const valuation = readPortfolioValuation(database, {
     portfolio,
@@ -49,6 +48,7 @@ export function loader({ context, request, params, url }: Route.LoaderArgs): {
   );
   return {
     student,
+    returnPath,
     valuation,
     portfolio: portfolioMeasures,
     marketLine: readPortfolioLine(portfolioMeasures),
@@ -63,7 +63,11 @@ export default function StudentMeasuresPage({
   const { student, source, marketLine } = loaderData;
   return (
     <>
-      <TaughtStudentHeading page="measures" student={student} />
+      <TaughtStudentHeading
+        page="measures"
+        student={student}
+        returnPath={loaderData.returnPath}
+      />
       <MethodNotice />
       <h2>{m.grading_measures_title()}</h2>
       <PortfolioMeasuresView

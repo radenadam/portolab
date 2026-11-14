@@ -1,3 +1,4 @@
+import { studentReasonsSectionId } from "./student-reasons-section-id";
 import type { ReactNode } from "react";
 import { Form } from "react-router";
 import { SubmitButton } from "~/form";
@@ -102,7 +103,7 @@ export function ReasonSection({
     }
   }
   return (
-    <section>
+    <section id={studentReasonsSectionId}>
       <h2>{m.trading_lecturer_reasons_title()}</h2>
       {reasoned.length === 0 ? (
         <p>{m.trading_lecturer_no_reasons_body({ name: studentName })}</p>

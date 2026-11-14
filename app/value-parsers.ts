@@ -49,7 +49,7 @@ export function parseRecordId<Id extends number>(
     // The rule of an id allows far fewer characters, so the failure states no maximum, which would not be the one of the id.
     if (!checked.ok) {
       return fail(
-        `${expectation}, but it has ${String(checked.failure)} characters, far more than any field takes.`,
+        `${expectation}, but it has ${String(checked.failure)} characters, more than this input takes.`,
       );
     }
   }
