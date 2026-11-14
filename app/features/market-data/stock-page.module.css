@@ -1,0 +1,157 @@
+.page {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.header {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.identity,
+.quote {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.identity h1 {
+  font-size: var(--text-stock);
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: var(--size-touch-target);
+  min-height: var(--size-touch-target);
+  color: var(--color-ink-secondary);
+  font-size: var(--text-title);
+  text-decoration: none;
+}
+
+.quote {
+  flex-wrap: wrap;
+  align-items: baseline;
+  margin-block-start: var(--space-2);
+}
+
+.price {
+  font-size: var(--text-stock-price);
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.change {
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-button);
+  background: var(--color-raised);
+  font-size: var(--text-caption);
+  font-weight: 600;
+}
+
+.change:has([data-change="rise"]) {
+  background: var(--color-gain-soft);
+}
+
+.change:has([data-change="fall"]) {
+  background: var(--color-loss-soft);
+  --color-loss: var(--color-loss-on-soft);
+}
+
+.muted {
+  color: var(--color-muted);
+  font-size: var(--text-small);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+  padding: var(--space-4);
+  border: var(--size-line) solid var(--color-line);
+  border-radius: var(--radius-panel);
+  background: var(--color-panel);
+}
+
+.panel h2 {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--text-body);
+}
+
+.calculations {
+  min-width: 0;
+}
+
+.calculations > p {
+  margin-block: var(--space-3);
+}
+
+/* Closes and returns share one column template when their expansions are open. */
+.calculations table {
+  table-layout: fixed;
+}
+
+.calculations table th:nth-child(2) {
+  width: var(--width-close-column);
+}
+
+.calculations table th:nth-child(3) {
+  width: var(--width-return-column);
+}
+
+.calculations table td {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  position: sticky;
+  bottom: var(--size-tab-bar);
+  display: flex;
+  gap: var(--space-3);
+  padding-block: var(--space-3);
+  background: var(--color-panel);
+}
+
+.buy,
+.sell {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--size-touch-target);
+  border-radius: var(--radius-item);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.buy {
+  background: var(--color-buy);
+  color: var(--color-on-buy);
+}
+
+.sell {
+  background: var(--color-sell);
+  color: var(--color-on-sell);
+}
+
+@media (width >= 60rem) {
+  .panel {
+    padding: var(--space-6);
+  }
+
+  .actions {
+    position: static;
+    align-self: flex-start;
+    min-width: var(--width-aside);
+    padding: 0;
+    background: none;
+  }
+}

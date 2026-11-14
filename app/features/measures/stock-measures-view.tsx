@@ -1,19 +1,11 @@
 import type { ReactNode } from "react";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
-import {
-  formatBeta,
-  formatCorrelation,
-  formatPercent,
-  formatVariance,
-} from "~/formatting";
+import { formatCorrelation, formatVariance } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import type { Result } from "~/result";
 import {
-  BetaFormula,
   CorrelationFormula,
   CovarianceFormula,
-  MeanFormula,
-  StandardDeviationFormula,
   VarianceFormula,
 } from "./formulas";
 import { MarketSection } from "./market-section";
@@ -26,6 +18,7 @@ import {
 } from "./measure-list";
 import type { StoredMeasureFailure } from "./measure-stored.server";
 import type { StockSummary } from "./measure-summaries";
+import { stockConceptRows } from "./stock-concept-rows";
 import { ReturnTables } from "./return-tables";
 
 /** The measures of one stock against the IHSG, each with its formula and its inputs, and the closes and the returns that they use, or why the stock has none. */
@@ -43,36 +36,19 @@ export function StockMeasuresView({
   }
   const stock = measures.value;
   const index = marketIndex.code;
+  const concepts = stockConceptRows(stock);
   return (
     <>
       <MonthsNotice returns={stock.returns} />
       <MeasureList
         rows={[
-          {
-            label: m.measures_expected_return_label(),
-            concept: "expectedReturn",
-            inputs: (
-              <ReturnTables
-                showHeading={false}
-                instruments={[{ code, returns: stock.returns }]}
-              />
-            ),
-            value: formatPercent(stock.expectedReturn, "two"),
-            formula: <MeanFormula of="i" count={stock.returns.length} />,
-          },
+          concepts.expectedReturn,
           {
             label: m.measures_variance_label(),
             value: formatVariance(stock.variance),
             formula: <VarianceFormula of="i" />,
           },
-          {
-            label: m.measures_standard_deviation_label(),
-            concept: "risk",
-            value: formatPercent(stock.standardDeviation, "two"),
-            formula: (
-              <StandardDeviationFormula of="i" variance={stock.variance} />
-            ),
-          },
+          concepts.risk,
           {
             label: m.measures_covariance_label({ index }),
             value: formatVariance(stock.covarianceWithMarket),
@@ -89,13 +65,8 @@ export function StockMeasuresView({
               />
             ),
           },
-          {
-            label: m.measures_beta_label({ index }),
-            concept: "beta",
-            value: formatBeta(stock.beta.value),
-            formula: <BetaFormula beta={stock.beta} />,
-          },
-          ...capmRows("i", stock),
+          concepts.beta,
+          ...capmRows("i", stock, { colored: true }),
         ]}
       />
       <MarketLinePosition distance={stock.securityMarketLine.value} />

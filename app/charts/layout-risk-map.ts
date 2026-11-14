@@ -251,14 +251,11 @@ function rangeOf<Value extends number>(
   toValue: (value: number) => Value,
   roomForCorners = false,
 ): Range<Value> {
-  const range = paddedRange(
-    values,
-    toValue,
-    roomForCorners ? cornerPadding : undefined,
-  );
-  return !roomForCorners && Math.min(...values) >= 0 && range.min < 0
-    ? { min: toValue(0), max: range.max }
-    : range;
+  return paddedRange(values, toValue, {
+    paddingShare: roomForCorners ? cornerPadding : undefined,
+    minimum:
+      !roomForCorners && Math.min(...values) >= 0 ? toValue(0) : undefined,
+  });
 }
 
 function ticksOf<Value extends number>(

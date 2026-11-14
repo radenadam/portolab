@@ -1,7 +1,7 @@
-.colored[data-change="rise"] {
+.change[data-change="rise"] {
   color: var(--color-gain);
 }
 
-.colored[data-change="fall"] {
+.change[data-change="fall"] {
   color: var(--color-loss);
 }

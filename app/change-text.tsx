@@ -8,7 +8,7 @@ const arrows: Record<ChangeDirection, string | undefined> = {
   none: undefined,
 };
 
-/** A formatted change with its arrow. A rebuilt screen uses the gain and loss colors, while a screen still on Tenang keeps its ink. */
+/** The rounded sign decides both the arrow and the optional gain or loss ink. */
 export function ChangeText({
   change,
   colored = false,
@@ -17,7 +17,7 @@ export function ChangeText({
   colored?: boolean;
 }): ReactNode {
   const arrow = arrows[change.direction];
-  const content = (
+  const text = (
     <>
       {/* The arrow repeats the sign that the change shows for sighted readers, so screen readers skip it. The space belongs to the arrow, so a change without an arrow starts with its number. */}
       {arrow !== undefined && <span aria-hidden="true">{`${arrow} `}</span>}
@@ -25,10 +25,10 @@ export function ChangeText({
     </>
   );
   return colored ? (
-    <span className={styles["colored"]} data-change={change.direction}>
-      {content}
+    <span className={styles["change"]} data-change={change.direction}>
+      {text}
     </span>
   ) : (
-    content
+    text
   );
 }

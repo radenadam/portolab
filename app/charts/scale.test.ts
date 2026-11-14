@@ -25,7 +25,7 @@ test("leaves the requested share of a range for the corner labels of a class map
   const range = paddedRange(
     [0.03, -0.02].map(cumulativeReturn),
     cumulativeReturn,
-    0.2,
+    { paddingShare: 0.2 },
   );
   expect(range.min).toBeCloseTo(-0.03, 12);
   expect(range.max).toBeCloseTo(0.04, 12);

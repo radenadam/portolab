@@ -19,7 +19,7 @@ import type { DrawnPoint } from "./map-drawing";
 import { riskMapLabels } from "./risk-map-labels";
 import type { MapSpreadText } from "./risk-map-labels";
 import { keptNameRoom } from "./map-labels";
-import { returnMarkGap } from "./return-mark";
+import { valueMarkGap } from "./value-mark";
 import styles from "./risk-map.module.css";
 import { tipAcross, tipDown } from "./tip-placement";
 import { useIsInBrowser } from "./use-is-in-browser";
@@ -113,7 +113,7 @@ export function RiskMap<Across extends number, Up extends number>({
   });
   const style: CSSProperties = {
     paddingBlock: `${String(spread === undefined ? sideRoom : spreadRoom)}em ${String(bottomRoom)}em`,
-    paddingInline: `calc(${String(layout.upTextLength)}ch + ${String(returnMarkGap)}em + ${String(keptNameRoom)} * var(--text-small)) ${String(spread === undefined ? sideRoom : spreadRoom)}em`,
+    paddingInline: `calc(${String(layout.upTextLength)}ch + ${String(valueMarkGap)}em + ${String(keptNameRoom)} * var(--text-small)) ${String(spread === undefined ? sideRoom : spreadRoom)}em`,
   };
   const active = slider.marked === undefined ? undefined : stops[slider.marked];
   const drawing = (

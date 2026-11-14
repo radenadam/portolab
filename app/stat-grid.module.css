@@ -1,0 +1,42 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin: 0;
+}
+
+.stat {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* The range needs room for its price labels and dates. */
+.ranges {
+  grid-column: span 2;
+  min-width: 0;
+  margin: 0;
+}
+
+.stat dt,
+.note {
+  color: var(--color-muted);
+  font-size: var(--text-small);
+}
+
+.stat dd {
+  margin: 0;
+  font-size: var(--text-statistic);
+  font-weight: 600;
+}
+
+.stat .note {
+  font-size: var(--text-small);
+  font-weight: 400;
+}
+
+@media (width >= 60rem) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

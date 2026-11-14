@@ -44,7 +44,7 @@ const texts: Record<
 };
 
 function codeCell(code: string): string {
-  return `<th scope="row"><a href="/classes/7/measures/${code}" data-discover="true">${code}</a></th>`;
+  return `<th scope="row"><a href="/classes/7/stocks/${code}" data-discover="true">${code}</a></th>`;
 }
 
 for (const locale of locales) {

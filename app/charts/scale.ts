@@ -8,16 +8,22 @@ export interface Range<Value extends number> {
 const rangePadding = 0.08;
 const emptyRangePadding = 0.005;
 
-/** The range of an axis with a share of the spread left clear at each end. Values without a spread still get a range, so a constant return can be drawn. */
+/** Padding leaves room for marks and labels, and a lower bound keeps the scale within its unit. */
 export function paddedRange<Value extends number>(
   values: readonly Value[],
   toValue: (value: number) => Value,
-  paddingShare = rangePadding,
+  {
+    paddingShare = rangePadding,
+    minimum,
+  }: { paddingShare?: number | undefined; minimum?: Value | undefined } = {},
 ): Range<Value> {
   const min = Math.min(...values);
   const max = Math.max(...values);
   const padding = max > min ? (max - min) * paddingShare : emptyRangePadding;
-  return { min: toValue(min - padding), max: toValue(max + padding) };
+  return {
+    min: toValue(Math.max(minimum ?? -Infinity, min - padding)),
+    max: toValue(max + padding),
+  };
 }
 
 /** Where a value lies in a range, as a fraction from 0 at its smallest value to 1 at its largest. */

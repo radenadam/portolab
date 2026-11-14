@@ -21,6 +21,8 @@
   --color-own-soft: rgba(201, 120, 0, 0.14);
   --color-gain-soft: #e1f3eb;
   --color-loss-soft: #fbe8e4;
+  /* The darker loss ink of highlighted rows in the prototype keeps small text readable on the loss tint. */
+  --color-loss-on-soft: #b02e1e;
   --color-warning-soft: #fbf0d9;
   /* The button is ink, Beli is the green of gains, Jual is the red of losses, and each carries the text of a button, so these follow the colors of their role in each theme. */
   --color-button: var(--color-ink);
@@ -43,6 +45,8 @@
   --text-headline: 2.875rem;
   --text-measure: 1.375rem;
   --text-price: 1.375rem;
+  --text-stock-price: 2.5rem;
+  --text-statistic: 1.125rem;
   --text-stock: 1.25rem;
   --text-field: 1.0625rem;
   --text-mark: 0.9375rem;
@@ -96,6 +100,9 @@
   /* A sparkline sits in a row of a list beside the price of its stock. */
   --width-sparkline: 4.75rem;
   --size-sparkline: 1.375rem;
+  /* Fixed numeric columns let the date take the spare width in every table of closes and returns. */
+  --width-close-column: 7rem;
+  --width-return-column: 6rem;
   /* Thin lines separate the parts of a page, as decision 0028 sets. A mark, such as focus, hover, or the current choice, must stand out from them. */
   --size-line: 1px;
   --size-mark: 2px;
@@ -117,6 +124,7 @@
 @media (width < 48rem) {
   :root {
     --text-headline: 2.125rem;
+    --text-stock-price: 2.125rem;
     --text-measure: 1.1875rem;
     --space-section: 1.875rem;
   }
@@ -151,6 +159,7 @@
     --color-own-soft: rgba(201, 133, 0, 0.2);
     --color-gain-soft: rgba(61, 203, 140, 0.14);
     --color-loss-soft: rgba(255, 127, 110, 0.15);
+    --color-loss-on-soft: var(--color-loss);
     --color-warning-soft: rgba(233, 180, 76, 0.14);
     --shadow-popover:
       0 1rem 3rem rgba(0, 0, 0, 0.55), 0 0.125rem 0.5rem rgba(0, 0, 0, 0.4);

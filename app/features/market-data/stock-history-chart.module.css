@@ -1,0 +1,31 @@
+.ranges {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-1);
+}
+
+.ranges a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--size-touch-target);
+  min-height: var(--size-touch-target);
+  border-radius: var(--radius-item);
+  color: var(--color-muted);
+  font-family: var(--font-code);
+  font-size: var(--text-small);
+  text-decoration: none;
+}
+
+.ranges [aria-current] {
+  background: var(--color-data-soft);
+  color: var(--color-ink);
+}
+
+.title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}

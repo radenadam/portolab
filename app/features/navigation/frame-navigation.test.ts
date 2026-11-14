@@ -115,7 +115,8 @@ for (const locale of locales) {
       ["features/market-data/market-page", label.market],
       ["features/trading/orders-page", label.activity],
       ["features/measures/measures-page", label.analysis],
-      ["features/measures/stock-measures-page", label.analysis],
+      ["features/market-data/stock-page", label.market],
+      ["features/trading/stock-ticket-fallback", label.market],
     ] as const) {
       expect(
         frameItems(readerForTest("student"), pageForTest(routeId, inClass)),

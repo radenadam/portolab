@@ -61,11 +61,7 @@ export function readOrderForm(
   form: FormData,
   order: { code: string; maximumLots: Lots; placedAt: Date },
 ): Result<OrderRequest, OrderFormFields> {
-  const side = parseOrderChoice(
-    form.get("side"),
-    m.trading_side_label(),
-    sideOptions(),
-  );
+  const side = parseOrderSide(form.get("side"), m.trading_side_label());
   const priceKind = parseOrderChoice(
     form.get("priceKind"),
     m.trading_price_kind_label(),
@@ -244,4 +240,12 @@ function parseOptionalText(
     return fail(m.app_not_text_error({ field: source, type: typeName(value) }));
   }
   return checkFieldLengthForReader(value, source);
+}
+
+/** The form and the ticket address must reject the same sides. */
+export function parseOrderSide(
+  value: unknown,
+  source: string,
+): Result<OrderSide, string> {
+  return parseOrderChoice(value, source, sideOptions());
 }
