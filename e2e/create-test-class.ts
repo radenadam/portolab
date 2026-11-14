@@ -35,13 +35,17 @@ export async function createTestClass(
 /** Reads a class from its page, which its lecturer opened. */
 export async function readTestClass(page: Page): Promise<TestClass> {
   await expect(page).toHaveURL(/\/classes\/\d+$/);
+  const path = new URL(page.url()).pathname;
+  // The frame survives navigation, so its code can still belong to the previous class when the address changes.
+  await expect(
+    page.locator('nav a[aria-current="page"]:visible'),
+  ).toHaveAttribute("href", path);
   const joinCode = await page
     .locator("[data-join-code]:visible")
     .getAttribute("data-join-code");
   if (joinCode === null)
     throw new Error("The class workspace has no join code.");
   // The address that the page shows depends on the host that the lecturer opened, which the tests of that address check, so the other tests join at the path on the site that they opened.
-  const path = new URL(page.url()).pathname;
   return {
     id: successValueForTest(
       parseRecordId<ClassId>(path.split("/").at(-1), "classId"),

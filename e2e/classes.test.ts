@@ -702,6 +702,10 @@ for (const locale of locales) {
     const first = await createTestClass(page, className);
     const second = await createTestClass(page, otherClassName);
     const third = await createTestClass(page, className);
+    const created = [first, second, third];
+    expect(new Set(created.map((testClass) => testClass.joinCode)).size).toBe(
+      created.length,
+    );
 
     const student = await newDevice(browser, locale);
     await student.goto("/classes");
