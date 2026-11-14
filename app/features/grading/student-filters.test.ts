@@ -6,12 +6,12 @@ import { filterStudents, matchesStudentFilter } from "./student-filters";
 
 test("compares returns over the student's own market period and beta against one, and combines name or username search with the filter", async () => {
   const { portfolios } = await classRankingForTest();
-  const student = portfolios.ranked[0];
+  const student = portfolios.ranked.find((member) => member.username === "eko");
   if (student?.total === undefined)
     throw new Error("The fixture has a measured portfolio.");
   for (const [returns, market, matches] of [
     [0.01, 0.02, true],
-    [0.02, 0.02, true],
+    [0.02, 0.02, false],
     [0.03, 0.02, false],
   ] as const) {
     expect(

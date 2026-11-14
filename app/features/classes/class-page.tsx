@@ -21,7 +21,7 @@ import {
 } from "./class-store.server";
 import type { ClassStudent } from "./class-store.server";
 import type { ClassId } from "./classes.schema";
-import { calendarPath, classPath } from "./class-path";
+import { calendarPath, resetStudentPasswordPath } from "./class-path";
 import styles from "./classes.module.css";
 import { classCalendarOf } from "./course-calendar";
 import type { ClassCalendar } from "./course-calendar";
@@ -159,7 +159,7 @@ function Students({
             })}
           </p>
           <Link
-            to={`${classPath(classId)}/students/${String(student.id)}/password`}
+            to={resetStudentPasswordPath(classId, student.id)}
             className={styles["link"]}
           >
             {m.classes_reset_password_link({ name: student.name })}

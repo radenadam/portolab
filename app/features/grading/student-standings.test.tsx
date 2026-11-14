@@ -1,3 +1,5 @@
+import { orderStudents } from "./order-students";
+import { studentReasonsSectionId } from "~/features/trading/student-reasons-section-id";
 import { expect, test } from "vitest";
 import { listStudents } from "~/features/classes/class-store.server";
 import { readPortfolio } from "~/features/trading/portfolio-store.server";
@@ -30,6 +32,7 @@ const texts: Record<
     zeroValue: string;
     extreme: string;
     highExtreme: string;
+    lowExtreme: string;
     median: (returns: string, risk: string) => string;
     positions: readonly string[];
     parts: readonly string[];
@@ -49,8 +52,10 @@ const texts: Record<
     highExtreme:
       "Di kelas ini, imbal hasilnya tertinggi, risikonya terendah, dan alpha Jensen tertinggi. Alpha Jensen -0,38% berada di bawah garis pasar sekuritas, dengan beta 0,34.",
     only: "Satu-satunya portofolio yang memiliki ukuran di kelas.",
-    extreme:
+    lowExtreme:
       "Di kelas ini, imbal hasilnya terendah, risikonya tertinggi, dan alpha Jensen terendah. Alpha Jensen -0,43% berada di bawah garis pasar sekuritas, dengan beta 0,62.",
+    extreme:
+      "Di kelas ini, risikonya tertinggi dan alpha Jensen terendah. Alpha Jensen -0,43% berada di bawah garis pasar sekuritas, dengan beta 0,62.",
     median: (returns, risk) =>
       `Imbal hasilnya ${returns} median kelas, dan risikonya ${risk} median kelas. Alpha Jensen dibulatkan menjadi 0,00%, sehingga portofolio berada pada garis pasar sekuritas, dengan beta 0,62.`,
     positions: ["di bawah", "sama dengan", "di atas"],
@@ -96,8 +101,10 @@ const texts: Record<
     highExtreme:
       "In this class, the return is the highest, the risk is the lowest, and Jensen’s alpha is the highest. Jensen’s alpha of -0.38% lies below the security market line, with beta 0.34.",
     only: "The only portfolio with measures in the class.",
-    extreme:
+    lowExtreme:
       "In this class, the return is the lowest, the risk is the highest, and Jensen’s alpha is the lowest. Jensen’s alpha of -0.43% lies below the security market line, with beta 0.62.",
+    extreme:
+      "In this class, the risk is the highest and Jensen’s alpha is the lowest. Jensen’s alpha of -0.43% lies below the security market line, with beta 0.62.",
     median: (returns, risk) =>
       `The return is ${returns} the class median, and the risk is ${risk} the class median. Jensen’s alpha rounds to 0.00%, so the portfolio is on the security market line, with beta 0.62.`,
     positions: ["below", "equal to", "above"],
@@ -132,6 +139,65 @@ const texts: Record<
 };
 
 for (const locale of locales) {
+  test(`compares returns with classmates who have stocks without measures, cash alone, or no valuation in ${languageNames[locale]}`, async () => {
+    switchLocaleForTest(locale);
+    const { portfolios } = await classRankingForTest();
+    const sari = portfolios.ranked.find((member) => member.username === "sari");
+    const eko = portfolios.ranked.find((member) => member.username === "eko");
+    const fajar = portfolios.ranked.find(
+      (member) => member.username === "fajar",
+    );
+    const missing = portfolios.unmeasured.find(
+      (member) => member.username === "rina",
+    );
+    if (
+      sari === undefined ||
+      eko === undefined ||
+      fajar === undefined ||
+      missing === undefined
+    )
+      throw new Error(
+        "The fixture has three measured students and Rina without a price.",
+      );
+    expect(missing.total).toBeUndefined();
+    // Python statistics.median gives 1.5% with either Dewi's -78.525% or Budi's 0%, and 1% with both. The measured risk median is 3%.
+    const measured = (
+      [
+        [sari, 101_000_000, 0.01, 0.03, 0],
+        [eko, 102_000_000, 0.02, 0.02, -0.01],
+        [fajar, 103_000_000, 0.03, 0.04, 0.01],
+      ] as const
+    ).map(([member, value, returns, risk, alpha]) => ({
+      ...member,
+      total: { value: rupiah(value), return: cumulativeReturn(returns) },
+      measures: {
+        ...member.measures,
+        standardDeviation: monthlyReturn(risk),
+        distance: monthlyReturn(alpha),
+      },
+    }));
+    const selected = measured[0];
+    if (selected === undefined)
+      throw new Error("The selected student is in the comparison.");
+    for (const [usernames, position] of [
+      [["dewi"], 0],
+      [["budi"], 0],
+      [["dewi", "budi"], 1],
+    ] as const) {
+      const classmates = portfolios.unmeasured.filter((member) =>
+        usernames.some((username) => username === member.username),
+      );
+      expect(classmates).toHaveLength(usernames.length);
+      for (const member of classmates)
+        expect(member.hasHoldings).toBe(member.username === "dewi");
+      expect(studentNote(selected, [...measured, ...classmates, missing])).toBe(
+        texts[locale].median(
+          texts[locale].positions[position] ?? "",
+          texts[locale].positions[1] ?? "",
+        ),
+      );
+    }
+  });
   test(`keeps a student panel usable after the operator deletes the orders and holdings of a portfolio that spent its cash in ${languageNames[locale]}`, async () => {
     switchLocaleForTest(locale);
     const { taughtClass, portfolios } = await classRankingForTest();
@@ -191,7 +257,7 @@ for (const locale of locales) {
       <StudentPanel
         classId={taughtClass.id}
         student={student}
-        all={[...portfolios.ranked, ...portfolios.unmeasured]}
+        all={orderStudents(portfolios, "alpha")}
         options={{
           measure: "alpha",
           filter: "all",
@@ -203,21 +269,29 @@ for (const locale of locales) {
     );
     for (const text of texts[locale].panel)
       expect(html).toContain(markupTextForTest(text));
-    expect(html).toContain("#student-reasons");
+    expect(html).toContain(`#${studentReasonsSectionId}`);
     expect(html).toContain("returnTo=");
     // The fixture holds Rp27,390,000 of BBCA, Rp16,434,000 of TLKM, and Rp10,956,000 cash. Python Decimal independently gives 50%, 30%, and 20% of Rp54,780,000.
-    expect(
-      studentNote(student, [...portfolios.ranked, ...portfolios.unmeasured]),
-    ).toBe(texts[locale].extreme);
-    const top = portfolios.ranked[0];
+    expect(studentNote(student, orderStudents(portfolios, "alpha"))).toBe(
+      texts[locale].extreme,
+    );
+    const top = portfolios.ranked.find((member) => member.username === "eko");
     if (top === undefined) throw new Error("The fixture has a top portfolio.");
-    expect(
-      studentNote(top, [...portfolios.ranked, ...portfolios.unmeasured]),
-    ).toBe(texts[locale].highExtreme);
+    expect(studentNote(top, orderStudents(portfolios, "alpha"))).toBe(
+      texts[locale].highExtreme,
+    );
+    const low = {
+      ...student,
+      total: { value: rupiah(10_000_000), return: cumulativeReturn(-0.9) },
+    };
+    const lowGroup = orderStudents(portfolios, "alpha").map((member) =>
+      member.studentId === low.studentId ? low : member,
+    );
+    expect(studentNote(low, lowGroup)).toBe(texts[locale].lowExtreme);
     for (const part of texts[locale].parts)
-      expect(`${texts[locale].extreme} ${texts[locale].highExtreme}`).toContain(
-        part,
-      );
+      expect(
+        `${texts[locale].lowExtreme} ${texts[locale].highExtreme}`,
+      ).toContain(part);
     for (const [index, distance] of [0.01, -0.01, 0.000001].entries()) {
       const scenario = {
         ...student,
@@ -264,7 +338,7 @@ function expectMedianNotes({
     throw new Error("The measured fixture has a value.");
   const totalValue = student.total.value;
   // Python statistics.median gives 1.75%, 2%, or 2.25% for the return and 2.75%, 3%, or 3.25% for risk, so the selected portfolio lies below, on, or above each median without being an extreme.
-  const classmates = [...portfolios.ranked, ...portfolios.unmeasured].filter(
+  const classmates = orderStudents(portfolios, "alpha").filter(
     (item) => item.studentId !== student.studentId,
   );
   for (const [returnIndex, returns] of [0.015, 0.02, 0.025].entries()) {

@@ -1,4 +1,5 @@
 // The browser tests load this module without the aliases of the app, so its import is a relative path with its extension.
+import type { UserId } from "../accounts/accounts.schema.ts";
 import type { ClassId } from "./classes.schema.ts";
 
 /** The address of the page of a class. */
@@ -16,3 +17,10 @@ export const createClassSectionId = "create-class";
 
 /** The address of the form that creates a class, on the list of the classes of a lecturer. */
 export const createClassPath = `/classes#${createClassSectionId}`;
+
+export function resetStudentPasswordPath(
+  classId: ClassId,
+  studentId: UserId,
+): string {
+  return `${classPath(classId)}/students/${String(studentId)}/password`;
+}

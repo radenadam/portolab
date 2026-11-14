@@ -7,8 +7,6 @@ import { marketBeta } from "~/units/beta";
 import { formatBeta, formatNumber } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { classPortfoliosPath, portfoliosWorkbookPath } from "./grading-paths";
-import type { ClassPortfolios } from "./read-class-portfolios.server";
-import { orderStudents } from "./order-students";
 import { RankingHelp } from "./ranking-help";
 import { rankingLabel, rankingMeasures } from "./ranking-measure";
 import {
@@ -27,7 +25,8 @@ import styles from "./grading.module.css";
 
 export function ClassPortfoliosView({
   classId,
-  portfolios,
+  all,
+  quoteFailure,
   options,
   shown,
   selected,
@@ -35,14 +34,14 @@ export function ClassPortfoliosView({
   queryFailure,
 }: {
   classId: ClassId;
-  portfolios: ClassPortfolios;
+  all: readonly ComparedStudent[];
+  quoteFailure: string | undefined;
   options: StudentOptions;
   shown: readonly ComparedStudent[];
   selected: ComparedStudent | undefined;
   panel: StudentPanelData | undefined;
   queryFailure?: string | undefined;
 }): ReactNode {
-  const all = orderStudents(portfolios, options.measure);
   return (
     <div className={styles["content"]} data-layout="content">
       <div className={styles["students"]} data-layout="columns">
@@ -187,9 +186,7 @@ export function ClassPortfoliosView({
                   beta: formatBeta(marketBeta),
                 })}
               </p>
-              {portfolios.quoteFailure !== undefined && (
-                <p>{portfolios.quoteFailure}</p>
-              )}
+              {quoteFailure !== undefined && <p>{quoteFailure}</p>}
             </div>
           </section>
         </div>

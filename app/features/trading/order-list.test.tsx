@@ -1,3 +1,4 @@
+import { studentReasonsSectionId } from "./student-reasons-section-id";
 import { expect, test } from "vitest";
 import { languageNames } from "~/language-names";
 import { renderInRouterForTest } from "~/render-in-router-for-test";
@@ -362,7 +363,7 @@ for (const locale of locales) {
         ),
       ),
     ).toBe(
-      `<section id="student-reasons"><h2>${reasons.title}</h2><ul>${reasons.items.join("")}</ul></section>`,
+      `<section id="${studentReasonsSectionId}"><h2>${reasons.title}</h2><ul>${reasons.items.join("")}</ul></section>`,
     );
   });
 
@@ -377,7 +378,7 @@ for (const locale of locales) {
           ),
         ),
       ).toBe(
-        `<section id="student-reasons"><h2>${reasons.title}</h2><p>${reasons.noReasons}</p></section>`,
+        `<section id="${studentReasonsSectionId}"><h2>${reasons.title}</h2><p>${reasons.noReasons}</p></section>`,
       );
     }
   });

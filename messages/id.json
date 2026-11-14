@@ -651,7 +651,7 @@
   "grading_equal_median_part": "sama dengan",
   "grading_above_median_part": "di atas",
   "grading_below_median_part": "di bawah",
-  "grading_map_unavailable_notice": "Peta memerlukan imbal hasil IHSG sejak mahasiswa dapat bertransaksi. Buka portofolio untuk melihat harga dan riwayat yang tersedia.",
+  "grading_map_unavailable_notice": "Peta memerlukan imbal hasil {index} sejak mahasiswa dapat bertransaksi. Buka portofolio untuk melihat harga dan riwayat yang tersedia.",
   "grading_rank_notice": " · peringkat {rank} dari {total}",
   "grading_unranked_notice": " · belum ada peringkat",
   "grading_latest_purchase_notice": "Beli {lots} {code} · {time} WIB",

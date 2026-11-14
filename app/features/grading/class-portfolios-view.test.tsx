@@ -108,7 +108,8 @@ for (const locale of locales) {
       renderInRouterForTest(
         <ClassPortfoliosView
           classId={taughtClass.id}
-          portfolios={portfolios}
+          all={all}
+          quoteFailure={portfolios.quoteFailure}
           shown={shown}
           selected={undefined}
           panel={undefined}
@@ -135,7 +136,8 @@ for (const locale of locales) {
     const empty = renderInRouterForTest(
       <ClassPortfoliosView
         classId={taughtClass.id}
-        portfolios={{ ranked: [], unmeasured: [], quoteFailure: undefined }}
+        all={[]}
+        quoteFailure={undefined}
         shown={[]}
         selected={undefined}
         panel={undefined}
@@ -151,7 +153,8 @@ for (const locale of locales) {
     const noStocks = renderInRouterForTest(
       <ClassPortfoliosView
         classId={taughtClass.id}
-        portfolios={portfolios}
+        all={all}
+        quoteFailure={portfolios.quoteFailure}
         shown={all.filter((student) => !student.hasHoldings)}
         selected={undefined}
         panel={undefined}
@@ -170,11 +173,8 @@ for (const locale of locales) {
     const one = renderInRouterForTest(
       <ClassPortfoliosView
         classId={taughtClass.id}
-        portfolios={{
-          ranked: [first],
-          unmeasured: [],
-          quoteFailure: undefined,
-        }}
+        all={[first]}
+        quoteFailure={undefined}
         shown={[first]}
         selected={undefined}
         panel={undefined}

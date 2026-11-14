@@ -34,7 +34,6 @@ export function loader({ context, request, params, url }: Route.LoaderArgs) {
     request,
     now,
     delayMinutes: source.delayMinutes,
-    measure: options.value.measure,
   });
   const all = orderStudents(portfolios, options.value.measure);
   const shown = query.ok ? filterStudents(all, viewOptions) : [];
@@ -56,7 +55,8 @@ export function loader({ context, request, params, url }: Route.LoaderArgs) {
   return data(
     {
       classId: taughtClass.id,
-      portfolios,
+      all,
+      quoteFailure: portfolios.quoteFailure,
       options: viewOptions,
       queryFailure: failureOf(query),
       shown,

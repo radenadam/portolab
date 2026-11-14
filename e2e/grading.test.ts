@@ -1,3 +1,4 @@
+import { studentReasonsSectionId } from "../app/features/trading/student-reasons-section-id.ts";
 import { expect, test } from "@playwright/test";
 import { languageNames } from "../app/language-names.ts";
 import { locales } from "../app/paraglide/runtime.js";
@@ -49,12 +50,15 @@ const texts: Record<
     sharpeValue: string;
     treynorValue: string;
     resetTitle: string;
+    searchTooLong: string;
   }
 > = {
   id: {
     sharpeValue: "-0,20",
     treynorValue: "-1,55%",
     resetTitle: "Atur ulang kata sandi",
+    searchTooLong:
+      'Kolom "Cari nama atau nama pengguna" memuat paling banyak 8.000 karakter, tetapi isinya 8.001 karakter. Persingkat isinya.',
     portfolioTitle: `Portofolio ${widestClassNames.studentName} di ${widestClassNames.className}`,
     portfolioLink: `Portofolio ${widestClassNames.studentName}`,
     classLink: "Portofolio dan ukuran mahasiswa",
@@ -92,6 +96,8 @@ const texts: Record<
     sharpeValue: "-0.20",
     treynorValue: "-1.55%",
     resetTitle: "Reset a password",
+    searchTooLong:
+      'The field "Search name or username" holds at most 8,000 characters, but it has 8,001. Shorten it.',
     portfolioTitle: `Portfolio of ${widestClassNames.studentName} in ${widestClassNames.className}`,
     portfolioLink: `Portfolio of ${widestClassNames.studentName}`,
     classLink: "Portfolios and measures of the students",
@@ -184,7 +190,7 @@ for (const locale of locales) {
     ).toHaveAttribute("href", /\/measures(?:\?|$)/);
     await expect(
       panel.getByRole("link", { name: text.journal, exact: true }),
-    ).toHaveAttribute("href", /#student-reasons$/);
+    ).toHaveAttribute("href", new RegExp(`#${studentReasonsSectionId}$`));
     await expectAccessibleScreen(page);
     await panel.getByRole("link", { name: text.reset, exact: true }).click();
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
@@ -243,9 +249,7 @@ for (const locale of locales) {
     await expect(
       page.getByRole("searchbox", { name: text.search }),
     ).toHaveAttribute("aria-invalid", "true");
-    await expect(page.getByRole("alert")).toContainText(
-      '"' + text.search + '"',
-    );
+    await expect(page.getByRole("alert")).toHaveText(text.searchTooLong);
     await student.context().close();
     await other.context().close();
   });
@@ -354,11 +358,11 @@ for (const locale of locales) {
       .getByRole("dialog")
       .getByRole("link", { name: text.journal, exact: true })
       .click();
-    await expect(page).toHaveURL(/#student-reasons$/);
+    await expect(page).toHaveURL(new RegExp(`#${studentReasonsSectionId}$`));
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
       text.portfolioTitle,
     );
-    await expect(page.locator("#student-reasons")).toBeVisible();
+    await expect(page.locator(`#${studentReasonsSectionId}`)).toBeVisible();
     await page
       .getByRole("link", {
         name: text.measureLink + widestClassNames.studentName,

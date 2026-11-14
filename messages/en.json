@@ -651,7 +651,7 @@
   "grading_equal_median_part": "equal to",
   "grading_above_median_part": "above",
   "grading_below_median_part": "below",
-  "grading_map_unavailable_notice": "The map needs the IHSG return since the student could trade. Open the portfolio to see the available prices and history.",
+  "grading_map_unavailable_notice": "The map needs the {index} return since the student could trade. Open the portfolio to see the available prices and history.",
   "grading_rank_notice": " · rank {rank} of {total}",
   "grading_unranked_notice": " · unranked",
   "grading_latest_purchase_notice": "Bought {lots} of {code} · {time} WIB",

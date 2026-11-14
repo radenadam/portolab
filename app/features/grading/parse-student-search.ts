@@ -10,5 +10,5 @@ export function parseStudentSearch(
 ): Result<string, string> {
   if (typeof value !== "string")
     return fail(m.app_not_text_error({ field: source, type: typeName(value) }));
-  return checkFieldLengthForReader(value, source);
+  return checkFieldLengthForReader(value, source, "field");
 }

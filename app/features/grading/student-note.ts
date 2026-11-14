@@ -46,7 +46,7 @@ function comparisonNote(
   const metrics: Record<
     ComparisonMeasure,
     {
-      value: (item: RankedStudent) => number | undefined;
+      value: (item: ComparedStudent) => number | undefined;
       highest: () => string;
       lowest: () => string;
     }
@@ -57,21 +57,21 @@ function comparisonNote(
       lowest: m.grading_lowest_return_part,
     },
     risk: {
-      value: (item) => item.measures.standardDeviation,
+      value: (item) =>
+        "measures" in item ? item.measures.standardDeviation : undefined,
       highest: m.grading_highest_risk_part,
       lowest: m.grading_lowest_risk_part,
     },
     alpha: {
-      value: (item) => item.measures.distance,
+      value: (item) =>
+        "measures" in item ? item.measures.distance : undefined,
       highest: m.grading_highest_alpha_part,
       lowest: m.grading_lowest_alpha_part,
     },
   };
   const facts: string[] = [];
   for (const metric of Object.values(metrics)) {
-    const values = measured
-      .map(metric.value)
-      .filter((value) => value !== undefined);
+    const values = all.map(metric.value).filter((value) => value !== undefined);
     const minimum = Math.min(...values);
     const maximum = Math.max(...values);
     const value = metric.value(student);
@@ -89,7 +89,7 @@ function comparisonNote(
         ? m.grading_unavailable_label()
         : medianPosition(
             student.total.return,
-            measured.flatMap((item) =>
+            all.flatMap((item) =>
               item.total === undefined ? [] : [item.total.return],
             ),
             (value) => formatSignedPercent(value).text,

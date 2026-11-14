@@ -41,7 +41,7 @@ export function matchesStudentFilter(
       return (
         student.total !== undefined &&
         student.marketReturn !== undefined &&
-        student.total.return <= student.marketReturn
+        student.total.return < student.marketReturn
       );
     case "inactive":
       return !student.activeThisWeek;

@@ -52,7 +52,7 @@ const bbcaStudent = {
 for (const locale of locales) {
   const reason = reasons[locale];
 
-  test(`ranks the portfolios with measures by their distance from the security market line, keeps the order of joining for equal distances, and lists the others with the reason, in ${languageNames[locale]}`, async () => {
+  test(`reads the portfolios with measures and the others with their reasons in joining order, in ${languageNames[locale]}`, async () => {
     switchLocaleForTest(locale);
     const { database, taughtClass } = await classOfStudentsForTest();
     const portfolios = readClassPortfolios(database, taughtClass, {
@@ -61,18 +61,6 @@ for (const locale of locales) {
       delayMinutes: 10,
     });
     expect(portfolios.ranked).toMatchObject([
-      {
-        studentId: expect.any(Number) as number,
-        name: "Eko Prasetyo",
-        username: "eko",
-        ...bbcaStudent,
-      },
-      {
-        studentId: expect.any(Number) as number,
-        name: "Fajar Nugroho",
-        username: "fajar",
-        ...bbcaStudent,
-      },
       {
         studentId: expect.any(Number) as number,
         name: "Sari Wulandari",
@@ -85,6 +73,18 @@ for (const locale of locales) {
           beta: closeToForTest(0.6206929278148288, 14),
           requiredReturn: closeToForTest(0.002101070983674259, 16),
         },
+      },
+      {
+        studentId: expect.any(Number) as number,
+        name: "Eko Prasetyo",
+        username: "eko",
+        ...bbcaStudent,
+      },
+      {
+        studentId: expect.any(Number) as number,
+        name: "Fajar Nugroho",
+        username: "fajar",
+        ...bbcaStudent,
       },
     ]);
     expect(portfolios.unmeasured).toMatchObject([

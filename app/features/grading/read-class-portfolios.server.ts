@@ -14,8 +14,6 @@ import { wibDateOf, wibMoment } from "~/wib";
 import { startOfWeek } from "~/calendar-dates";
 import { comparedMeasures } from "./compared-measures";
 import type { ComparedMeasures } from "./compared-measures";
-import type { RankingMeasure } from "./ranking-measure";
-import { orderStudents } from "./order-students";
 import type { Rupiah } from "~/units/rupiah";
 
 /** A student of a class with the value of the portfolio of the student at delayed prices and its return since the starting cash, or undefined while a holding has no delayed price. */
@@ -39,7 +37,7 @@ export type UnmeasuredStudent = StudentValue & { reason: string };
 
 /** The portfolios of the students of a class as the lecturer compares them at a moment. */
 export interface ClassPortfolios {
-  /** The students whose portfolios have course measures, in the order of the measure of this request. */
+  /** The students whose portfolios have course measures, in joining order. */
   ranked: RankedStudent[];
   /** The students whose portfolios have no measures, in the order in which they joined. */
   unmeasured: UnmeasuredStudent[];
@@ -55,12 +53,10 @@ export function readClassPortfolios(
     request,
     now,
     delayMinutes,
-    measure = "alpha",
   }: {
     request: Request;
     now: Date;
     delayMinutes: number;
-    measure?: RankingMeasure;
   },
 ): ClassPortfolios {
   const ranked: RankedStudent[] = [];
@@ -117,12 +113,8 @@ export function readClassPortfolios(
       unmeasured.push({ ...studentValue, reason: measures.failure });
     }
   }
-  const ordered = orderStudents(
-    { ranked, unmeasured, quoteFailure: undefined },
-    measure,
-  );
   return {
-    ranked: ordered.filter((student) => "measures" in student),
+    ranked,
     unmeasured,
     quoteFailure: holdingQuoteFailureText(valuations, { now, delayMinutes }),
   };

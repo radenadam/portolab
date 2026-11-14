@@ -1,3 +1,6 @@
+import { marketIndex } from "~/features/market-data/tracked-instruments";
+import { resetStudentPasswordPath } from "~/features/classes/class-path";
+import { studentReasonsSectionId } from "~/features/trading/student-reasons-section-id";
 import { useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 import { Link, useNavigate } from "react-router";
@@ -249,17 +252,14 @@ export function StudentPanel({
           </Link>
           <Link
             className={styles["button"]}
-            to={`${pathReturningTo(studentPortfolioPath(classId, student.studentId), returnAddress)}#student-reasons`}
+            to={`${pathReturningTo(studentPortfolioPath(classId, student.studentId), returnAddress)}#${studentReasonsSectionId}`}
           >
             {m.grading_journal_link()}
           </Link>
           <Link
             className={styles["link"]}
             to={pathReturningTo(
-              studentPortfolioPath(classId, student.studentId).replace(
-                /portfolio$/,
-                "password",
-              ),
+              resetStudentPasswordPath(classId, student.studentId),
               returnAddress,
             )}
           >
@@ -275,7 +275,9 @@ function MapNotice({ student }: { student: ComparedStudent }): ReactNode {
   if (!("measures" in student) || student.marketReturn !== undefined)
     return null;
   return (
-    <p className={styles["details"]}>{m.grading_map_unavailable_notice()}</p>
+    <p className={styles["details"]}>
+      {m.grading_map_unavailable_notice({ index: marketIndex.code })}
+    </p>
   );
 }
 

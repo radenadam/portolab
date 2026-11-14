@@ -50,7 +50,9 @@ for (const locale of locales) {
   test(`opens each ranking concept with the selected student's calculation and sorts an unavailable ratio after valid ones in joining order in ${languageNames[locale]}`, async () => {
     switchLocaleForTest(locale);
     const { taughtClass, portfolios, now } = await classRankingForTest();
-    const student = portfolios.ranked[0];
+    const student = portfolios.ranked.find(
+      (member) => member.username === "eko",
+    );
     if (student === undefined)
       throw new Error("The fixture has ranked students.");
     const cards = rankingMeasures
@@ -81,7 +83,12 @@ for (const locale of locales) {
       const replacement = { ...student, measures: comparedMeasures(summary) };
       const changed = {
         ...portfolios,
-        ranked: [replacement, ...portfolios.ranked.slice(1)],
+        ranked: [
+          replacement,
+          ...portfolios.ranked.filter(
+            (member) => member.studentId !== student.studentId,
+          ),
+        ],
       };
       expect(
         orderStudents(changed, ranking).map((item) => item.username),

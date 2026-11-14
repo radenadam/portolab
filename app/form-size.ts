@@ -9,7 +9,7 @@ export const discardMaximumBytes = bytes(10_000_000);
 /** The most digits of the size that a request states for its body. A whole number of this many digits stays below the largest one that JavaScript holds exactly, and no browser states a size with more digits, so only a forged request sends one. */
 export const statedSizeMaximumDigits = 15;
 
-/** Product limits sit below this guard, so their own errors explain the text that a person types before this guard refuses a much larger input. */
+/** A raw bound keeps an unusually large input from making later field validation unbounded. */
 export const fieldMaximumLength = 8000;
 
 // Percent encoding expands a full field, and a return address also holds its route and controls.

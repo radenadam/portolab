@@ -10,15 +10,15 @@ const texts: Record<Locale, { label: string; failures: readonly string[] }> = {
   id: {
     label: "Cari nama atau nama pengguna",
     failures: [
-      'Kolom "Cari nama atau nama pengguna" berisi 8.001 karakter, lebih banyak daripada yang diterima kolom ini. Isi kolom itu dengan teks yang dimintanya.',
-      'Kolom "Cari nama atau nama pengguna" berisi 800.000 karakter, lebih banyak daripada yang diterima kolom ini. Isi kolom itu dengan teks yang dimintanya.',
+      'Kolom "Cari nama atau nama pengguna" memuat paling banyak 8.000 karakter, tetapi isinya 8.001 karakter. Persingkat isinya.',
+      'Kolom "Cari nama atau nama pengguna" memuat paling banyak 8.000 karakter, tetapi isinya 800.000 karakter. Persingkat isinya.',
     ],
   },
   en: {
     label: "Search name or username",
     failures: [
-      'The field "Search name or username" has 8,001 characters, more than this field takes. Fill it in with the text that it asks for.',
-      'The field "Search name or username" has 800,000 characters, more than this field takes. Fill it in with the text that it asks for.',
+      'The field "Search name or username" holds at most 8,000 characters, but it has 8,001. Shorten it.',
+      'The field "Search name or username" holds at most 8,000 characters, but it has 800,000. Shorten it.',
     ],
   },
 };
