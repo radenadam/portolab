@@ -34,7 +34,11 @@ The first restarted review of [#148](https://github.com/radenadam/portolab/pull/
 
 ## Decision
 
-Keep the caps together in `scripts/review-limits.ts`, which the planner and the verdict code read. Set its `reviewRoundLimit` to five. Keep the existing finding-check and merge-review limits. Two more ordinary rounds let a late author correction and a correction of its findings stay incremental. This avoids forcing a full restart at the point where the sample repeatedly reached its cap. Rounds run only when files change, so the 21 sampled pull requests that finished before round three would spend no more.
+Keep the caps together in `scripts/review-limits.ts`, which the planner and the verdict code read. Set its `reviewRoundLimit` to five. In #174, three ordinary reviews were followed by a merge of main and then an author correction. A merge before the ordinary cap uses an ordinary round. With a cap of four, that merge would consume the fourth round, and the author correction would still require a restart because no finding was open. Five is the smallest cap that admits this observed sequence. A regression test replays it and refuses further author work after its fifth ordinary round.
+
+Using the incremental median as an estimate, continuing #174 would spend 13 turns and 58.5 rounded seconds instead of the 55 turns and 324 rounded seconds of its restart. The earlier merge already had a reviewer, so moving its charge into the ordinary allowance adds no agent. The saving for the author correction is an estimated 42 turns and 265.5 seconds.
+
+The larger cap also gives [#180's fourth-push fix](https://github.com/radenadam/portolab/pull/180) a reviewer. Its existing finding check took six verifier turns and 22 seconds. An ordinary incremental round at the observed median would add about seven turns and 36.5 seconds. Across these two paths, the estimated net saving is 35 turns and 229 seconds. These are estimates from observed sequences, because the alternative ordinary rounds did not run.
 
 After ordinary reviews, a push may contain finding fixes, two-parent merges of main, or both. The history reader retains the author files and merge files separately, even when both touch one file. Foreign and octopus merges still require an ordinary review.
 
@@ -53,7 +57,8 @@ The plan carries the files whose author changes need checking. A current plan mu
 ## Alternatives
 
 - **Keep three ordinary rounds and restart.** The sample shows two completed full rereads after the cap and another restart awaiting review. This repeats work that an incremental round avoids.
-- **Allow four ordinary rounds.** This gives a late author correction a reviewer, but its next correction immediately needs the verifier-only allowance. Five leaves one incremental review for that correction too, at the measured incremental cost.
+- **Allow four ordinary rounds.** The merge in #174 would spend its fourth ordinary round. The next author correction would still need a restart, so this cap would add the reviewer to #180 without saving the full reread of #174.
+- **Allow more than five ordinary rounds.** The sample provides no measured reason to fund a sixth ordinary review.
 - **Reset a cap after merging main.** Repeated merges could then refill the loop, so its total work would have no bound.
 - **Treat the combined push as a merge alone.** This would let unrelated author work use a merge allowance and would not charge for checking the finding fixes.
 - **Run finding checks on conflicting pull requests through another trigger.** This needs a separate trusted execution path and still needs a final review of resolutions against main. Combining the existing jobs keeps that final head as the one judged.

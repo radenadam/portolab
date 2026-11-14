@@ -766,3 +766,45 @@ test("requires current check counters and infers them only for plans from an old
     },
   });
 });
+
+test("keeps three reviews, a late main merge, and an author correction in one pull request as measured in PR 174", () => {
+  const mergedHead = "2".repeat(40);
+  const correctedHead = "3".repeat(40);
+  const merge = planReview(
+    stateAfter(3, []),
+    { since: head, commitScope: "base-merges" },
+    [docs],
+  );
+  expect(merge).toMatchObject({
+    kind: "review",
+    round: 4,
+    mergeRounds: 0,
+    checkRounds: 0,
+  });
+  const afterMerge = {
+    ...stateAfter(merge.round, [], merge.mergeRounds),
+    head: mergedHead,
+  };
+  const correction = planReview(
+    afterMerge,
+    { since: mergedHead, commitScope: "author" },
+    [docs],
+  );
+  expect(correction).toMatchObject({
+    kind: "review",
+    round: 5,
+    mergeRounds: 0,
+    checkRounds: 0,
+  });
+  const afterCorrection = {
+    ...stateAfter(correction.round, [], correction.mergeRounds),
+    head: correctedHead,
+  };
+  expect(
+    planReview(
+      afterCorrection,
+      { since: correctedHead, commitScope: "author" },
+      [docs],
+    ),
+  ).toMatchObject({ kind: "capped", capReason: "unreviewed-change" });
+});
