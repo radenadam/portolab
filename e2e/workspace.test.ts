@@ -145,7 +145,7 @@ async function signOutAndIn(
 ): Promise<void> {
   const menu = await openProfileMenu(page);
   await menu.getByRole("button", { name: texts[locale].signOut }).click();
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL("/sign-in");
   await page.goto("/sign-in");
   await submitSignIn(page, username, chosenPassword);
 }

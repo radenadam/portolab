@@ -523,7 +523,7 @@ for (const locale of locales) {
       .getByRole("main")
       .getByRole("button", { name: text.signOutButton })
       .click();
-    await expect(page).toHaveURL("/");
+    await expect(page).toHaveURL("/sign-in");
     await expect(
       page.getByRole("link", { name: text.signInLink }),
     ).toBeVisible();
@@ -607,7 +607,7 @@ test("sends a person who signs in with a return path to another site to the home
     .getByRole("main")
     .locator("form[action='/sign-out'] button")
     .click();
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL("/sign-in");
   await page.goto(
     `/sign-in?returnTo=${encodeURIComponent("//example.com/account")}`,
   );
