@@ -38,6 +38,11 @@ const capReasons = [
 ] as const;
 type CapReason = (typeof capReasons)[number];
 
+/** The history reader cannot give a push merge scope without a reviewed head, so the type excludes that state. */
+export type ReviewHistory =
+  | { since: undefined; commitScope: "author" }
+  | { since: string; commitScope: CommitScope };
+
 /** What one run of the panel does. */
 export interface ReviewPlan {
   /**
@@ -66,7 +71,7 @@ export interface ReviewPlan {
 /** Plans one run of the panel from the state of the earlier rounds and the files under review: the whole change, or the files that the commits of the pull request changed since the head that the last finished round reviewed. */
 export function planReview(
   previous: ReviewState,
-  history: { since: string | undefined; commitScope: CommitScope },
+  history: ReviewHistory,
   files: readonly ChangedFile[],
 ): ReviewPlan {
   const { since, commitScope } = history;
@@ -88,7 +93,7 @@ export function planReview(
   }
   const ordinaryRounds = previous.round - previous.mergeRounds;
   const extraMergeReview =
-    ordinaryRounds >= reviewRoundLimit && canReviewMerge(previous, history);
+    ordinaryRounds >= reviewRoundLimit && canReviewMerge(previous, commitScope);
   if (ordinaryRounds < reviewRoundLimit || extraMergeReview) {
     return {
       ...plan,
@@ -114,20 +119,18 @@ export function planReview(
   return {
     ...plan,
     kind: "capped",
-    capReason: reasonForCap(history, hasOpenFindings),
+    capReason: reasonForCap(commitScope, hasOpenFindings),
     round: previous.round,
   };
 }
 
 function reasonForCap(
-  history: { since: string | undefined; commitScope: CommitScope },
+  commitScope: CommitScope,
   hasOpenFindings: boolean,
 ): CapReason {
-  switch (history.commitScope) {
+  switch (commitScope) {
     case "base-merges":
-      return history.since === undefined
-        ? "unreviewed-change"
-        : "merge-reviews";
+      return "merge-reviews";
     case "author":
       return hasOpenFindings ? "finding-checks" : "unreviewed-change";
     case "mixed":
@@ -137,11 +140,10 @@ function reasonForCap(
 
 function canReviewMerge(
   previous: ReviewState,
-  history: { since: string | undefined; commitScope: CommitScope },
+  commitScope: CommitScope,
 ): boolean {
   return (
-    history.since !== undefined &&
-    history.commitScope === "base-merges" &&
+    commitScope === "base-merges" &&
     previous.mergeRounds < mergeReviewRoundLimit
   );
 }

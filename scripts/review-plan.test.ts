@@ -352,13 +352,6 @@ test("records and parses the refusal reason independently of the other exhausted
       false,
     );
   }
-  expect(
-    planReview(
-      stateAfter(reviewRoundLimit, []),
-      { since: undefined, commitScope: "base-merges" },
-      [docs],
-    ),
-  ).toMatchObject({ kind: "capped", capReason: "unreviewed-change" });
 });
 
 test("rejects a plan with a missing or invalid merge round count", () => {
