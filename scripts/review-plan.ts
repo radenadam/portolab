@@ -157,9 +157,9 @@ function planCombinedAllowances(
   return {
     ...plan,
     kind: needsMerge ? "review" : "check",
-    round: previous.round + Number(needsCheck) + Number(needsMerge),
-    mergeRounds: previous.mergeRounds + Number(needsMerge),
-    checkRounds: previous.checkRounds + Number(needsCheck),
+    round: previous.round + (needsCheck ? 1 : 0) + (needsMerge ? 1 : 0),
+    mergeRounds: previous.mergeRounds + (needsMerge ? 1 : 0),
+    checkRounds: previous.checkRounds + (needsCheck ? 1 : 0),
     files: history.mergeFiles.map(({ path }) => path),
     lenses: needsMerge ? chooseLenses(history.mergeFiles) : [],
     fixFiles: history.authorFiles.map(({ path }) => path),
