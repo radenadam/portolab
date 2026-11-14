@@ -1,31 +1,70 @@
 .switch {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0 var(--space-3);
-  color: var(--color-muted);
-  font-size: var(--text-small);
+  flex-direction: column;
+  gap: var(--space-1);
 }
 
+.label {
+  color: var(--color-muted);
+  font-size: var(--text-small);
+  font-weight: 600;
+}
+
+/* The languages stand as a choice of equal parts on a track of the raised color, and the chosen one stands on the panel, as the prototype of decision 0028 draws a choice of options. The track and the chosen part are drawn inside the touch targets of the options. */
 .options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0 var(--space-3);
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+}
+
+.options::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0.25rem 0;
+  border-radius: var(--radius-item);
+  background: var(--color-raised);
+  content: "";
 }
 
 .option {
+  position: relative;
+  isolation: isolate;
   min-height: var(--size-touch-target);
-  padding: 0 var(--space-1);
+  padding-inline: var(--space-3);
   border: 0;
   background: none;
   color: var(--color-muted);
   font: inherit;
+  font-size: var(--text-small);
   cursor: pointer;
 }
 
-/* The chosen language is marked by its weight and by a line in the signal color, so it never depends on color alone. An inset shadow draws the line, because a border would push the text off the center of the button. */
+.option::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0.4375rem 0.25rem;
+  border-radius: 0.4375rem;
+  content: "";
+}
+
+/* The chosen language is in ink and semibold on the panel, so the mark never depends on color alone. */
 .option[aria-pressed="true"] {
-  box-shadow: inset 0 calc(-1 * var(--size-mark)) 0 var(--color-signal);
   color: var(--color-ink);
   font-weight: 600;
+}
+
+.option[aria-pressed="true"]::before {
+  background: var(--color-panel);
+  box-shadow: var(--shadow-choice);
+}
+
+.menuIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.menu {
+  padding: var(--space-1) 0.625rem var(--space-2);
 }

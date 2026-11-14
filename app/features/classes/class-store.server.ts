@@ -1,6 +1,6 @@
 import { and, asc, count, eq } from "drizzle-orm";
 import type { Database } from "../../database/database.server.ts";
-import type { UserId } from "../accounts/accounts.schema.ts";
+import type { Role, UserId } from "../accounts/accounts.schema.ts";
 import { findPeople } from "../accounts/account-store.server.ts";
 import type { Person } from "../accounts/account-store.server.ts";
 import { randomReadableText } from "../../random-text.server.ts";
@@ -10,19 +10,18 @@ import type { ClassId, MembershipId } from "./classes.schema.ts";
 import { joinCodeLength } from "./join-code.ts";
 import type { JoinCode } from "./join-code.ts";
 
-/** A class as its lecturer sees it in the list of classes. */
-export interface TaughtClass {
+/** A class as its lecturer sees it in the list of classes, with the calendar date when its first session meets, such as 2026-09-07. A class that Portolab created before it stored that date has none until its lecturer sets it. */
+interface TaughtClass {
   id: ClassId;
   name: string;
   startingCash: Rupiah;
   joinCode: JoinCode;
+  firstSessionDate: string | null;
   studentCount: number;
 }
 
-/** A class that a lecturer teaches, as its own pages read it, with the calendar date when its first session meets, such as 2026-09-07. A class that Portolab created before it stored that date has none until its lecturer sets it. */
-export interface TaughtClassRecord extends Omit<TaughtClass, "studentCount"> {
-  firstSessionDate: string | null;
-}
+/** A class that a lecturer teaches, as its own pages read it. */
+export type TaughtClassRecord = Omit<TaughtClass, "studentCount">;
 
 /** A class as a student sees it, or as a visitor with its code sees it before joining. */
 export interface ClassForStudents {
@@ -87,7 +86,7 @@ export function createClass(
 }
 
 /** Lists the classes that a lecturer teaches, in the order in which the lecturer created them, with the number of students in each. */
-export function listTaughtClasses(
+function listTaughtClasses(
   database: Database,
   lecturerId: UserId,
 ): TaughtClass[] {
@@ -97,6 +96,7 @@ export function listTaughtClasses(
       name: classes.name,
       startingCash: classes.startingCash,
       joinCode: classes.joinCode,
+      firstSessionDate: classes.firstSessionDate,
       studentCount: count(memberships.id),
     })
     .from(classes)
@@ -105,6 +105,30 @@ export function listTaughtClasses(
     .groupBy(classes.id)
     .orderBy(asc(classes.createdAt), asc(classes.id))
     .all();
+}
+
+/** The classes of a person who is signed in: those that a lecturer teaches, in the order in which the lecturer created them, or those that a student joined, in the order in which the student joined them. */
+export type ReaderClasses =
+  | { role: "lecturer"; classes: TaughtClass[] }
+  | { role: "student"; classes: JoinedClass[] };
+
+/** Lists the classes that a person teaches or joined, by the role of the person. */
+export function listReaderClasses(
+  database: Database,
+  reader: { id: UserId; role: Role },
+): ReaderClasses {
+  switch (reader.role) {
+    case "lecturer":
+      return {
+        role: reader.role,
+        classes: listTaughtClasses(database, reader.id),
+      };
+    case "student":
+      return {
+        role: reader.role,
+        classes: listJoinedClasses(database, reader.id),
+      };
+  }
 }
 
 /** Finds a class that a lecturer teaches, or undefined when the class does not exist or another lecturer teaches it. */
@@ -154,7 +178,7 @@ export function listStudents(
 }
 
 /** Lists the classes that a student joined, in the order in which the student joined them. */
-export function listJoinedClasses(
+function listJoinedClasses(
   database: Database,
   studentId: UserId,
 ): JoinedClass[] {
@@ -180,6 +204,20 @@ export function findJoinedClass(
     )
     .get();
   return row === undefined ? undefined : withLecturerNames(database, [row])[0];
+}
+
+/** Whether a person teaches or joined a class, by the role of the person. A class that does not exist belongs to no one. */
+export function isReaderClass(
+  database: Database,
+  reader: { id: UserId; role: Role },
+  classId: ClassId,
+): boolean {
+  switch (reader.role) {
+    case "lecturer":
+      return findTaughtClass(database, classId, reader.id) !== undefined;
+    case "student":
+      return findJoinedClass(database, classId, reader.id) !== undefined;
+  }
 }
 
 /** Finds the class that a code opens, or undefined when no class has the code. */

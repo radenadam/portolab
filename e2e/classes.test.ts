@@ -28,6 +28,7 @@ import { chooseLanguage } from "./choose-language.ts";
 import { createTestClass, readTestClass } from "./create-test-class.ts";
 import type { TestClass } from "./create-test-class.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
+import { openProfileMenu } from "./frame.ts";
 import { newDevice } from "./new-device.ts";
 import { expectPageHeadings } from "./expect-page-headings.ts";
 import { signInAsTestStudent } from "./sign-in-as-test-student.ts";
@@ -69,7 +70,6 @@ const texts: Record<
     joinedNotice: readonly [string, string];
     joinLink: string;
     homeJoinLink: string;
-    homeClassesLink: string;
     joinTitle: string;
     joinBody: string;
     codeFieldLabel: string;
@@ -148,7 +148,6 @@ const texts: Record<
     joinedNotice: ["Anda bergabung ke kelas ini pada ", " WIB."],
     joinLink: "Gabung ke kelas dengan kodenya",
     homeJoinLink: "Gabung ke kelas dengan kodenya",
-    homeClassesLink: "Kelas Anda",
     joinTitle: "Gabung ke kelas",
     joinBody: "Masukkan kode yang diberikan dosen Anda.",
     codeFieldLabel: "Kode kelas",
@@ -260,7 +259,6 @@ const texts: Record<
     joinedNotice: ["You joined this class on ", " WIB."],
     joinLink: "Join a class with its code",
     homeJoinLink: "Join a class with its code",
-    homeClassesLink: "Your classes",
     joinTitle: "Join a class",
     joinBody: "Enter the code that your lecturer gave you.",
     codeFieldLabel: "Code of the class",
@@ -571,7 +569,9 @@ for (const locale of locales) {
   test(`lets a visitor join a class on a public server with the address that its lecturer shares by creating a student account in ${language}`, async ({
     browser,
   }) => {
-    const lecturer = await newDevice(browser, locale, publicServerUrl);
+    const lecturer = await newDevice(browser, locale, {
+      siteUrl: publicServerUrl,
+    });
     await signInAsNewLecturer(lecturer, lecturerName);
     const testClass = await createTestClass(lecturer, className);
     // A public server keeps the address that the lecturer opened, which the phone of a student opens as well.
@@ -587,7 +587,9 @@ for (const locale of locales) {
     await expect(lecturer.getByText(text.localNetworkNotice)).toHaveCount(0);
     await expectAccessibleScreen(lecturer);
 
-    const student = await newDevice(browser, locale, publicServerUrl);
+    const student = await newDevice(browser, locale, {
+      siteUrl: publicServerUrl,
+    });
     await student.goto(joinAddress);
     await expect(student).toHaveTitle(`${text.joinClassTitle} | Portolab`);
     await expect(
@@ -620,12 +622,9 @@ for (const locale of locales) {
       student.getByRole("link", { name: text.joinLink }),
     ).toBeVisible();
     await expectAccessibleScreen(student);
+    // The home page sends a student to the workspace of the class.
     await student.goto("/");
-    await expect(
-      student
-        .getByRole("main")
-        .getByRole("link", { name: text.homeClassesLink }),
-    ).toBeVisible();
+    await expect(student).toHaveURL(`${testClass.path}/portfolio`);
     await student.context().close();
 
     await lecturer.goto("/classes");
@@ -759,7 +758,8 @@ for (const locale of locales) {
 
     // A link inside the app asks for its page as data, and the sign-in page still returns to the page itself.
     await signOutInAnotherTab(otherDevice);
-    await otherDevice.locator('header a[href="/account"]').click();
+    const profileMenu = await openProfileMenu(otherDevice);
+    await profileMenu.locator('a[href="/account"]').click();
     await expect(otherDevice).toHaveURL("/sign-in?returnTo=%2Faccount");
     await otherDevice.context().close();
   });

@@ -6,6 +6,7 @@ import {
   nameMaximumLength,
   passwordLength,
 } from "../app/features/accounts/account-limits.ts";
+import { createClassPath } from "../app/features/classes/class-path.ts";
 import {
   fieldMaximumLength,
   formMaximumBytes,
@@ -309,7 +310,7 @@ for (const locale of locales) {
       text.widestFieldErrors.personName,
     );
     await submitAccountForm(page, { name: "Dosen Uji" });
-    await expect(page).toHaveURL("/classes");
+    await expect(page).toHaveURL(createClassPath);
     await page.goto("/account");
     await expectWidestFieldError(
       page,

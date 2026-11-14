@@ -92,7 +92,7 @@ function courseWeekOf(firstSessionDate: string, now: Date): CourseWeek {
 }
 
 /** The term of a class from the date of its first session: the odd semester when session 1 meets from July to December, and the even semester when it meets from January to June. */
-function termOf(firstSessionDate: string): Term {
+export function termOf(firstSessionDate: string): Term {
   const monthsIntoAcademicYear =
     (startOfUtcDate(firstSessionDate).getUTCMonth() -
       academicYearStartMonth +

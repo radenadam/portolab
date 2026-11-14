@@ -1,68 +1,73 @@
 import { expect, test } from "vitest";
+import type { ClassId } from "~/features/classes/classes.schema";
 import { languageNames } from "~/language-names";
 import { locales } from "~/paraglide/runtime.js";
 import type { Locale } from "~/paraglide/runtime.js";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
-import { frameNavigation } from "./frame-navigation";
+import { frameItems, workspaceHomePath } from "./frame-navigation";
 import type { FramedPage } from "./frame-navigation";
+import type { FrameReader, WorkspaceClass } from "./frame-reader";
 
 const labels: Record<
   Locale,
   {
-    portfolio: string;
-    orders: string;
+    home: string;
+    market: string;
+    activity: string;
+    analysis: string;
     class: string;
-    ranking: string;
+    students: string;
     prices: string;
-    classes: string;
     join: string;
     signIn: string;
-    measures: string;
-    backToPortfolio: string;
-    backToMeasures: string;
-    backToRanking: string;
-    backToClass: string;
   }
 > = {
   id: {
-    portfolio: "Portofolio",
-    orders: "Order",
+    home: "Beranda",
+    market: "Pasar",
+    activity: "Aktivitas",
+    analysis: "Analisis",
     class: "Kelas",
-    ranking: "Peringkat",
+    students: "Mahasiswa",
     prices: "Harga",
-    classes: "Kelas Anda",
     join: "Gabung ke kelas",
     signIn: "Masuk",
-    measures: "Imbal hasil dan risiko",
-    backToPortfolio: "Kembali ke Portofolio",
-    backToMeasures: "Kembali ke Imbal hasil dan risiko",
-    backToRanking: "Kembali ke Peringkat",
-    backToClass: "Kembali ke Kelas",
   },
   en: {
-    portfolio: "Portfolio",
-    orders: "Orders",
+    home: "Home",
+    market: "Market",
+    activity: "Activity",
+    analysis: "Analysis",
     class: "Class",
-    ranking: "Ranking",
+    students: "Students",
     prices: "Prices",
-    classes: "Your classes",
     join: "Join a class",
     signIn: "Sign in",
-    measures: "Return and risk",
-    backToPortfolio: "Back to Portfolio",
-    backToMeasures: "Back to Return and risk",
-    backToRanking: "Back to Ranking",
-    backToClass: "Back to Class",
   },
 };
 
-/** A page of a route at an address with the parameters and the query of a test. */
+/** A page of a route at an address with the parameters of a test. */
 function pageForTest(
   routeId: string | undefined,
   params: FramedPage["params"] = {},
-  search = "",
 ): FramedPage {
-  return { routeId, params, search: new URLSearchParams(search) };
+  return { routeId, params };
+}
+
+const classOfWorkspace: WorkspaceClass = {
+  id: 7 as ClassId,
+  name: "Manajemen Portofolio A",
+  term: undefined,
+  people: { kind: "students", count: 2 },
+};
+
+function readerForTest(role: "student" | "lecturer"): FrameReader {
+  return {
+    kind: "user",
+    role,
+    name: "Sari Wulandari",
+    workspace: { current: classOfWorkspace, classes: [classOfWorkspace] },
+  };
 }
 
 const inClass = { classId: "7" };
@@ -74,202 +79,129 @@ for (const locale of locales) {
   test(`gives a visitor the prices, joining a class, and sign-in, with the page itself as the current one, in ${language}`, () => {
     switchLocaleForTest(locale);
     expect(
-      frameNavigation(
-        undefined,
+      frameItems(
+        { kind: "visitor" },
         pageForTest("features/market-data/prices-page"),
       ),
-    ).toEqual({
-      links: [
-        { path: "/prices", label: label.prices, isCurrent: true },
-        { path: "/join", label: label.join, isCurrent: false },
-        { path: "/sign-in", label: label.signIn, isCurrent: false },
-      ],
-      backLink: undefined,
-      showsDelayOnPhone: true,
-    });
+    ).toEqual([
+      { path: "/prices", label: label.prices, icon: "trend", isCurrent: true },
+      { path: "/join", label: label.join, icon: "join", isCurrent: false },
+      {
+        path: "/sign-in",
+        label: label.signIn,
+        icon: "signIn",
+        isCurrent: false,
+      },
+    ]);
     expect(
-      frameNavigation(
-        undefined,
+      frameItems(
+        { kind: "visitor" },
         pageForTest("features/classes/join-class-page"),
-      ).links[1],
-    ).toEqual({ path: "/join", label: label.join, isCurrent: true });
+      )[1]?.isCurrent,
+    ).toBe(true);
   });
 
-  test(`gives a person who is signed in the classes and the prices outside a class, also on a page with a class in its address that no number names, in ${language}`, () => {
+  test(`gives a student in a class Beranda, Pasar, Aktivitas, and Analisis, each leading to the page that holds it, with the current one on its pages and on the pages below them, in ${language}`, () => {
     switchLocaleForTest(locale);
-    const outside = [
-      { path: "/classes", label: label.classes, isCurrent: true },
-      { path: "/prices", label: label.prices, isCurrent: false },
-    ];
-    expect(
-      frameNavigation("student", pageForTest("features/classes/classes-page"))
-        .links,
-    ).toEqual(outside);
-    expect(
-      frameNavigation(
-        "lecturer",
-        pageForTest("features/classes/class-page", { classId: "abc" }),
-      ).links,
-    ).toEqual(outside.map((link) => ({ ...link, isCurrent: false })));
-  });
-
-  test(`gives a student in a class the portfolio, the prices, the orders, and the class, with the portfolio current on the pages below it, which link back to the page above them, in ${language}`, () => {
-    switchLocaleForTest(locale);
-    const links = [
-      { path: "/classes/7/portfolio", label: label.portfolio, isCurrent: true },
-      { path: "/prices", label: label.prices, isCurrent: false },
-      { path: "/classes/7/orders", label: label.orders, isCurrent: false },
-      { path: "/classes/7", label: label.class, isCurrent: false },
-    ];
-    expect(
-      frameNavigation(
-        "student",
-        pageForTest("features/trading/portfolio-page", inClass),
-      ),
-    ).toEqual({ links, backLink: undefined, showsDelayOnPhone: true });
-    expect(
-      frameNavigation(
-        "student",
-        pageForTest("features/measures/measures-page", inClass),
-      ),
-    ).toEqual({
-      links,
-      backLink: {
-        path: "/classes/7/portfolio",
-        label: label.portfolio,
-        name: label.backToPortfolio,
-      },
-      showsDelayOnPhone: true,
-    });
-    expect(
-      frameNavigation(
-        "student",
-        pageForTest("features/measures/stock-measures-page", {
-          ...inClass,
-          code: "BBCA",
-        }),
-      ),
-    ).toEqual({
-      links,
-      backLink: {
-        path: "/classes/7/measures",
-        label: label.measures,
-        name: label.backToMeasures,
-      },
-      showsDelayOnPhone: true,
-    });
-  });
-
-  test(`links the orders with a chosen stock back to the portfolio and leaves the delay to the order ticket on a phone, and the orders without one to neither, in ${language}`, () => {
-    switchLocaleForTest(locale);
-    const withStock = frameNavigation(
-      "student",
-      pageForTest("features/trading/orders-page", inClass, "?code=BBCA"),
-    );
-    expect(withStock.links[2]).toEqual({
-      path: "/classes/7/orders",
-      label: label.orders,
-      isCurrent: true,
-    });
-    expect(withStock.backLink).toEqual({
-      path: "/classes/7/portfolio",
-      label: label.portfolio,
-      name: label.backToPortfolio,
-    });
-    expect(withStock.showsDelayOnPhone).toBe(false);
-    const withoutStock = frameNavigation(
-      "student",
-      pageForTest("features/trading/orders-page", inClass),
-    );
-    expect(withoutStock.backLink).toBeUndefined();
-    expect(withoutStock.showsDelayOnPhone).toBe(true);
-  });
-
-  test(`gives a lecturer in a class the classes, the class, the ranking, and the prices, with the ranking current on the pages of a student and the class current on the pages below it, which link back to the page above them, in ${language}`, () => {
-    switchLocaleForTest(locale);
-    const links = (current: string): object[] =>
+    const items = (current: string): object[] =>
       [
-        { path: "/classes", label: label.classes },
-        { path: "/classes/7", label: label.class },
-        { path: "/classes/7/portfolios", label: label.ranking },
-        { path: "/prices", label: label.prices },
-      ].map((link) => ({ ...link, isCurrent: link.label === current }));
-    const ofStudent = { ...inClass, studentId: "9" };
-    expect(
-      frameNavigation(
-        "lecturer",
-        pageForTest("features/grading/class-portfolios-page", inClass),
-      ),
-    ).toEqual({
-      links: links(label.ranking),
-      backLink: undefined,
-      showsDelayOnPhone: true,
-    });
-    expect(
-      frameNavigation(
-        "lecturer",
-        pageForTest("features/grading/student-portfolio-page", ofStudent),
-      ).backLink,
-    ).toEqual({
-      path: "/classes/7/portfolios",
-      label: label.ranking,
-      name: label.backToRanking,
-    });
-    expect(
-      frameNavigation(
-        "lecturer",
-        pageForTest("features/grading/student-measures-page", ofStudent),
-      ),
-    ).toEqual({
-      links: links(label.ranking),
-      backLink: {
-        path: "/classes/7/students/9/portfolio",
-        label: label.portfolio,
-        name: label.backToPortfolio,
-      },
-      showsDelayOnPhone: true,
-    });
-    for (const pageBelowClass of [
-      pageForTest("features/classes/reset-password-page", ofStudent),
-      pageForTest("features/classes/calendar-page", inClass),
-    ]) {
-      expect(frameNavigation("lecturer", pageBelowClass)).toEqual({
-        links: links(label.class),
-        backLink: {
-          path: "/classes/7",
-          label: label.class,
-          name: label.backToClass,
+        { path: "/classes/7/portfolio", label: label.home, icon: "map" },
+        { path: "/classes/7/market", label: label.market, icon: "trend" },
+        { path: "/classes/7/orders", label: label.activity, icon: "list" },
+        { path: "/classes/7/measures", label: label.analysis, icon: "pie" },
+      ].map((item) => ({ ...item, isCurrent: item.label === current }));
+    for (const [routeId, current] of [
+      ["features/trading/portfolio-page", label.home],
+      ["features/market-data/market-page", label.market],
+      ["features/trading/orders-page", label.activity],
+      ["features/measures/measures-page", label.analysis],
+      ["features/measures/stock-measures-page", label.analysis],
+    ] as const) {
+      expect(
+        frameItems(readerForTest("student"), pageForTest(routeId, inClass)),
+        routeId,
+      ).toEqual(items(current));
+    }
+  });
+
+  test(`gives a lecturer in a class Kelas, Mahasiswa, and Pasar, with Mahasiswa current on the pages of a student and Kelas on the pages below the class, in ${language}`, () => {
+    switchLocaleForTest(locale);
+    const items = (current: string): object[] =>
+      [
+        { path: "/classes/7", label: label.class, icon: "cap" },
+        {
+          path: "/classes/7/portfolios",
+          label: label.students,
+          icon: "users",
         },
-        showsDelayOnPhone: true,
-      });
+        { path: "/classes/7/market", label: label.market, icon: "trend" },
+      ].map((item) => ({ ...item, isCurrent: item.label === current }));
+    const ofStudent = { ...inClass, studentId: "9" };
+    for (const [page, current] of [
+      [pageForTest("features/classes/class-page", inClass), label.class],
+      [pageForTest("features/classes/calendar-page", inClass), label.class],
+      [
+        pageForTest("features/classes/reset-password-page", ofStudent),
+        label.class,
+      ],
+      [
+        pageForTest("features/grading/class-portfolios-page", inClass),
+        label.students,
+      ],
+      [
+        pageForTest("features/grading/student-portfolio-page", ofStudent),
+        label.students,
+      ],
+      [
+        pageForTest("features/grading/student-measures-page", ofStudent),
+        label.students,
+      ],
+      [pageForTest("features/market-data/market-page", inClass), label.market],
+    ] as const) {
+      expect(frameItems(readerForTest("lecturer"), page), page.routeId).toEqual(
+        items(current),
+      );
     }
   });
 }
 
-test("marks no page current on a page that the navigation does not hold, nor on a route that it does not know", () => {
-  for (const routeId of [
-    "features/home/home-page",
-    "not-found-page",
-    "features/accounts/account-page",
-    undefined,
+test("marks no item current on a page outside the items, on a route that it does not know, on a page of another class than the workspace, and on a page of a class that its address names by no number", () => {
+  for (const page of [
+    pageForTest("features/accounts/account-page"),
+    pageForTest("features/classes/classes-page"),
+    pageForTest("not-found-page"),
+    pageForTest(undefined, inClass),
+    pageForTest("features/trading/portfolio-page", { classId: "8" }),
+    pageForTest("features/trading/portfolio-page", { classId: "abc" }),
+    // A student has no item of the page of a class until Beranda moves there.
+    pageForTest("features/classes/class-page", inClass),
   ]) {
     expect(
-      frameNavigation("student", pageForTest(routeId, inClass)).links.some(
-        (link) => link.isCurrent,
-      ),
-      String(routeId),
+      frameItems(readerForTest("student"), page).some((item) => item.isCurrent),
+      JSON.stringify(page),
     ).toBe(false);
   }
 });
 
-test("links a page of a student back to nothing when its address names the student by no number", () => {
+test("gives no items to a person without a class, to a person who has not finished the account, and to a page without the data of the frame", () => {
+  const page = pageForTest("features/classes/classes-page");
   expect(
-    frameNavigation(
-      "lecturer",
-      pageForTest("features/grading/student-measures-page", {
-        ...inClass,
-        studentId: "abc",
-      }),
-    ).backLink,
-  ).toBeUndefined();
+    frameItems(
+      { kind: "user", role: "lecturer", name: "Budi", workspace: undefined },
+      page,
+    ),
+  ).toEqual([]);
+  expect(frameItems({ kind: "settingUp" }, page)).toEqual([]);
+  expect(frameItems(undefined, page)).toEqual([]);
+});
+
+test("leads each role to the home of a class, which is the first item of its navigation", () => {
+  const classId = 7 as ClassId;
+  expect(workspaceHomePath("student", classId)).toBe("/classes/7/portfolio");
+  expect(workspaceHomePath("lecturer", classId)).toBe("/classes/7");
+  for (const role of ["student", "lecturer"] as const) {
+    expect(
+      frameItems(readerForTest(role), pageForTest(undefined))[0]?.path,
+    ).toBe(workspaceHomePath(role, classId));
+  }
 });

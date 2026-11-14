@@ -10,3 +10,9 @@ export function classPath(classId: ClassId): string {
 export function calendarPath(classId: ClassId): string {
   return `${classPath(classId)}/calendar`;
 }
+
+/** The id of the heading of the form that creates a class on the list of classes, to which a link leads. */
+export const createClassSectionId = "create-class";
+
+/** The address of the form that creates a class, on the list of the classes of a lecturer. */
+export const createClassPath = `/classes#${createClassSectionId}`;

@@ -1,223 +1,173 @@
 import type { Register } from "react-router";
-import type { Role, UserId } from "~/features/accounts/accounts.schema";
+import type { Role } from "~/features/accounts/accounts.schema";
 import { classPath } from "~/features/classes/class-path";
 import type { ClassId } from "~/features/classes/classes.schema";
-import {
-  classPortfoliosPath,
-  studentPortfolioPath,
-} from "~/features/grading/grading-paths";
+import { classPortfoliosPath } from "~/features/grading/grading-paths";
+import { marketPath } from "~/features/market-data/market-path";
 import { measuresPath } from "~/features/measures/measures-path";
 import { ordersPath } from "~/features/trading/orders-path";
 import { portfolioPath } from "~/features/trading/portfolio-path";
-import type { BackLink, FrameLink } from "~/frame";
+import type { FrameItem } from "~/frame";
+import type { IconName } from "~/icon";
 import { m } from "~/paraglide/messages.js";
 import { parseRecordId } from "~/value-parsers";
+import type { FrameReader } from "./frame-reader";
 
-/** The pages of a class that the navigation of a student or a lecturer holds. */
-type ClassPage = "portfolio" | "orders" | "class" | "ranking";
+/** An item of the navigation of a class. */
+type WorkspaceItem =
+  "home" | "market" | "activity" | "analysis" | "class" | "students";
 
-/** The pages outside a class that a navigation holds. */
-type OtherPage = "prices" | "classes" | "join" | "signIn";
+/** An item of the navigation of a visitor who is not signed in. */
+type VisitorItem = "prices" | "join" | "signIn";
 
-type NavigationPage = ClassPage | OtherPage;
+type NavigationItem = WorkspaceItem | VisitorItem;
 
-/** A page that other pages are below, to which a phone links back. */
-type PageAbove =
-  "portfolio" | "measures" | "ranking" | "studentPortfolio" | "class";
-
-interface PagePlace {
-  /** The page of the navigation that is current on this page: the page itself, or the nearest page above it that a navigation holds. */
-  current: NavigationPage | undefined;
-  above: PageAbove | undefined;
-  /** Whether the page shows the order ticket of the stock that its address chose, which a desktop shows beside the portfolio, so a phone links back to the portfolio, and whose first part gives the delay of prices. */
-  hasTicket: boolean;
-}
-
-/** The route of a page, by the id that React Router gives the module of the route. */
-type RouteId = Exclude<keyof Register["routeModules"], "root">;
-
-const nowhere: PagePlace = {
-  current: undefined,
-  above: undefined,
-  hasTicket: false,
+// Decision 0030 sets the items of each role and their order.
+const roleItems: Record<Role, readonly [WorkspaceItem, ...WorkspaceItem[]]> = {
+  student: ["home", "market", "activity", "analysis"],
+  lecturer: ["class", "students", "market"],
 };
 
-function place(current: NavigationPage, above?: PageAbove): PagePlace {
-  return { current, above, hasTicket: false };
-}
+const visitorItems: readonly VisitorItem[] = ["prices", "join", "signIn"];
 
-// Decision 0026 sets which pages are below another page and which page of the navigation is current on each.
-const pagePlaces: Record<RouteId, PagePlace> = {
-  "features/home/home-page": nowhere,
-  "features/market-data/prices-page": place("prices"),
-  "features/accounts/sign-in-page": place("signIn"),
-  "features/accounts/sign-out-page": nowhere,
-  "features/accounts/account-page": nowhere,
-  "features/accounts/account-setup-page": nowhere,
-  "features/accounts/privacy-page": nowhere,
-  "features/classes/classes-page": place("classes"),
-  "features/classes/class-page": place("class"),
-  "features/classes/calendar-page": place("class", "class"),
-  "features/trading/orders-page": { ...place("orders"), hasTicket: true },
-  "features/trading/portfolio-page": place("portfolio"),
-  "features/measures/measures-page": place("portfolio", "portfolio"),
-  "features/measures/stock-measures-page": place("portfolio", "measures"),
-  "features/grading/class-portfolios-page": place("ranking"),
-  // The workbook is a download, which opens no page.
-  "features/grading/workbook-route": nowhere,
-  "features/grading/student-portfolio-page": place("ranking", "ranking"),
-  "features/grading/student-measures-page": place(
-    "ranking",
-    "studentPortfolio",
-  ),
-  "features/classes/reset-password-page": place("class", "class"),
-  "features/classes/join-page": place("join"),
-  "features/classes/join-class-page": place("join"),
-  "features/language/language-page": nowhere,
-  "features/health/health-route": nowhere,
-  "not-found-page": nowhere,
-};
-
-const pageLabels: Record<NavigationPage | PageAbove, () => string> = {
-  portfolio: m.navigation_portfolio_link,
-  orders: m.navigation_orders_link,
-  class: m.navigation_class_link,
-  ranking: m.navigation_ranking_link,
-  prices: m.navigation_prices_link,
-  classes: m.navigation_classes_link,
-  join: m.navigation_join_link,
-  signIn: m.navigation_sign_in_link,
-  measures: m.navigation_measures_link,
-  studentPortfolio: m.navigation_portfolio_link,
-};
-
-const classPagePaths: Record<ClassPage, (classId: ClassId) => string> = {
-  portfolio: portfolioPath,
-  orders: ordersPath,
+// Each item leads to the page that holds it today. Decision 0030 gives the address that each page takes when the change of issue #127 rebuilds its screen.
+const workspacePaths: Record<WorkspaceItem, (classId: ClassId) => string> = {
+  home: portfolioPath,
+  market: marketPath,
+  activity: ordersPath,
+  analysis: measuresPath,
   class: classPath,
-  ranking: classPortfoliosPath,
+  students: classPortfoliosPath,
 };
 
-const otherPagePaths: Record<OtherPage, string> = {
+const visitorPaths: Record<VisitorItem, string> = {
   prices: "/prices",
-  classes: "/classes",
   join: "/join",
   signIn: "/sign-in",
 };
 
-/** The page that the frame shows: the id of its route, the parameters of its address, and the query of its address. */
+const itemLabels: Record<NavigationItem, () => string> = {
+  home: m.navigation_home_link,
+  market: m.navigation_market_link,
+  activity: m.navigation_activity_link,
+  analysis: m.navigation_analysis_link,
+  class: m.navigation_class_link,
+  students: m.navigation_students_link,
+  prices: m.navigation_prices_link,
+  join: m.navigation_join_link,
+  signIn: m.navigation_sign_in_link,
+};
+
+const itemIcons: Record<NavigationItem, IconName> = {
+  home: "map",
+  market: "trend",
+  activity: "list",
+  analysis: "pie",
+  class: "cap",
+  students: "users",
+  prices: "trend",
+  join: "join",
+  signIn: "signIn",
+};
+
+/** The route of a page, by the id that React Router gives the module of the route. */
+type RouteId = Exclude<keyof Register["routeModules"], "root">;
+
+// The item that is current on each page: the item of the page itself, or of the nearest page above it, such as the analysis above the measures of one stock. A page outside the items has none.
+const currentItems: Record<RouteId, NavigationItem | undefined> = {
+  "features/home/home-page": undefined,
+  "features/market-data/prices-page": "prices",
+  "features/market-data/market-page": "market",
+  "features/accounts/sign-in-page": "signIn",
+  "features/accounts/sign-out-page": undefined,
+  "features/accounts/account-page": undefined,
+  "features/accounts/account-setup-page": undefined,
+  "features/accounts/privacy-page": undefined,
+  "features/classes/classes-page": undefined,
+  "features/classes/class-page": "class",
+  "features/classes/calendar-page": "class",
+  "features/trading/orders-page": "activity",
+  "features/trading/portfolio-page": "home",
+  "features/measures/measures-page": "analysis",
+  "features/measures/stock-measures-page": "analysis",
+  "features/grading/class-portfolios-page": "students",
+  // The workbook is a download, which opens no page.
+  "features/grading/workbook-route": undefined,
+  "features/grading/student-portfolio-page": "students",
+  "features/grading/student-measures-page": "students",
+  "features/classes/reset-password-page": "class",
+  "features/classes/join-page": "join",
+  "features/classes/join-class-page": "join",
+  "features/language/language-page": undefined,
+  "features/health/health-route": undefined,
+  "not-found-page": undefined,
+};
+
+/** The page that the frame shows: the id of its route and the parameters of its address. */
 export interface FramedPage {
   routeId: string | undefined;
   params: Readonly<Record<string, string | undefined>>;
-  search: URLSearchParams;
 }
 
-/** What the frame shows of the navigation of a reader on a page. */
-export interface FrameNavigation {
-  links: FrameLink[];
-  backLink: BackLink | undefined;
-  /** Whether a phone shows the delay of prices under the top bar, which a page leaves out when its first part gives the delay. */
-  showsDelayOnPhone: boolean;
-}
-
-/** The navigation of a reader on a page, as decision 0026 sets it: the pages of the reader with the current one, and the link back to the page above it, which a phone shows in place of the mark. The role is undefined for a visitor who is not signed in. */
-export function frameNavigation(
-  role: Role | undefined,
+/** The items of the navigation of a reader on a page, as decision 0030 sets them: the items of the role in the class of the workspace, or the items of a visitor, each with whether it is current. A person without a class, a person who has not finished the account, and a page without the data of the frame have none. */
+export function frameItems(
+  reader: FrameReader | undefined,
   page: FramedPage,
-): FrameNavigation {
-  const pagePlace = placeOf(page.routeId);
-  const classId = parseRecordId<ClassId>(page.params["classId"], "classId");
-  const pages = readerPages(role, classId.ok ? classId.value : undefined);
-  const hasChosenStock = pagePlace.hasTicket && page.search.has("code");
-  const above = hasChosenStock ? "portfolio" : pagePlace.above;
+): FrameItem[] {
+  const current = currentItemOf(page.routeId);
+  if (reader === undefined) {
+    return [];
+  }
+  switch (reader.kind) {
+    case "visitor":
+      return visitorItems.map((item) => ({
+        ...itemOf(item, current),
+        path: visitorPaths[item],
+      }));
+    case "settingUp":
+      return [];
+    case "user": {
+      const { workspace } = reader;
+      if (workspace === undefined) {
+        return [];
+      }
+      const classId = workspace.current.id;
+      // A page of a class that the reader may not see answers as one that does not exist in the workspace of another class, so none of its items is current there.
+      const addressClassId = parseRecordId<ClassId>(
+        page.params["classId"],
+        "classId",
+      );
+      const isInWorkspace =
+        addressClassId.ok && addressClassId.value === classId;
+      return roleItems[reader.role].map((item) => ({
+        ...itemOf(item, isInWorkspace ? current : undefined),
+        path: workspacePaths[item](classId),
+      }));
+    }
+  }
+}
+
+/** The address of the home of a class for a role, which is the first item of its navigation and where a person lands in the class. */
+export function workspaceHomePath(role: Role, classId: ClassId): string {
+  return workspacePaths[roleItems[role][0]](classId);
+}
+
+function itemOf(
+  item: NavigationItem,
+  current: NavigationItem | undefined,
+): Omit<FrameItem, "path"> {
   return {
-    links: pages.map((navigationPage) => ({
-      path: navigationPage.path,
-      label: pageLabels[navigationPage.page](),
-      isCurrent: navigationPage.page === pagePlace.current,
-    })),
-    backLink:
-      above === undefined || !classId.ok
-        ? undefined
-        : backLinkTo(above, classId.value, page.params),
-    showsDelayOnPhone: !hasChosenStock,
+    label: itemLabels[item](),
+    icon: itemIcons[item],
+    isCurrent: item === current,
   };
 }
 
-function placeOf(routeId: string | undefined): PagePlace {
-  const places = new Map<string, PagePlace>(Object.entries(pagePlaces));
-  return (routeId === undefined ? undefined : places.get(routeId)) ?? nowhere;
-}
-
-/** The pages of the navigation of a reader, inside the class of the address or outside a class. */
-function readerPages(
-  role: Role | undefined,
-  classId: ClassId | undefined,
-): { page: NavigationPage; path: string }[] {
-  const other = (page: OtherPage): { page: NavigationPage; path: string } => ({
-    page,
-    path: otherPagePaths[page],
-  });
-  if (role === undefined) {
-    return [other("prices"), other("join"), other("signIn")];
-  }
-  if (classId === undefined) {
-    return [other("classes"), other("prices")];
-  }
-  const inClass = (
-    page: ClassPage,
-  ): { page: NavigationPage; path: string } => ({
-    page,
-    path: classPagePaths[page](classId),
-  });
-  switch (role) {
-    case "student":
-      return [
-        inClass("portfolio"),
-        other("prices"),
-        inClass("orders"),
-        inClass("class"),
-      ];
-    case "lecturer":
-      return [
-        other("classes"),
-        inClass("class"),
-        inClass("ranking"),
-        other("prices"),
-      ];
-  }
-}
-
-function backLinkTo(
-  above: PageAbove,
-  classId: ClassId,
-  params: FramedPage["params"],
-): BackLink | undefined {
-  const path = abovePath(above, classId, params);
-  if (path === undefined) {
-    return undefined;
-  }
-  const label = pageLabels[above]();
-  return { path, label, name: m.navigation_back_link({ page: label }) };
-}
-
-function abovePath(
-  above: PageAbove,
-  classId: ClassId,
-  params: FramedPage["params"],
-): string | undefined {
-  switch (above) {
-    case "portfolio":
-    case "class":
-    case "ranking":
-      return classPagePaths[above](classId);
-    case "measures":
-      return measuresPath(classId);
-    case "studentPortfolio": {
-      const studentId = parseRecordId<UserId>(params["studentId"], "studentId");
-      return studentId.ok
-        ? studentPortfolioPath(classId, studentId.value)
-        : undefined;
-    }
-  }
+function currentItemOf(
+  routeId: string | undefined,
+): NavigationItem | undefined {
+  const items = new Map<string, NavigationItem | undefined>(
+    Object.entries(currentItems),
+  );
+  return routeId === undefined ? undefined : items.get(routeId);
 }

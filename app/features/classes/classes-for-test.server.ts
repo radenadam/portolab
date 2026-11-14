@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import { RouterContextProvider } from "react-router";
 import { clientAddressContext } from "~/client-address.server";
 import { databaseContext } from "~/database/database.server";
@@ -9,6 +10,7 @@ import {
 } from "~/features/accounts/accounts-for-test.server";
 import { defaultStartingCash } from "./class-rules";
 import { createClass, findTaughtClass } from "./class-store.server";
+import { classes } from "./classes.schema";
 import type { ClassId } from "./classes.schema";
 import type { JoinCode } from "./join-code";
 import {
@@ -54,6 +56,21 @@ export function createClassForTest(
     throw new Error(`The test could not create the class ${name}.`);
   }
   return { classId, joinCode: taught.joinCode };
+}
+
+/** Creates a class of a lecturer for a test without the date of its first session, as Portolab created a class before it stored that date, and returns its id. */
+export function createClassWithoutCalendarForTest(
+  database: Database,
+  lecturerId: UserId,
+  name: string,
+): ClassId {
+  const { classId } = createClassForTest(database, lecturerId, name);
+  database
+    .update(classes)
+    .set({ firstSessionDate: null })
+    .where(eq(classes.id, classId))
+    .run();
+  return classId;
 }
 
 /** Creates the ready lecturer Budi Santoso, who signs in as dosen, with the class Manajemen Portofolio A, which most tests of classes need, and returns the ids of both and the code of the class. */

@@ -6,6 +6,7 @@ import { returnDestination } from "~/return-destination.server";
 import { m } from "~/paraglide/messages.js";
 import { cookieMaxAge, cookieName } from "~/paraglide/runtime.js";
 import type { Route } from "./+types/language-page";
+import { LanguageSwitch } from "./language-switch";
 import { parseLocale } from "./parse-locale";
 
 export async function action({ request }: Route.ActionArgs) {
@@ -22,7 +23,7 @@ export async function action({ request }: Route.ActionArgs) {
   });
 }
 
-/** The page of the language switch, which the header of every page holds. A plain visit points to the switch, and a rejected language shows why. */
+/** The page of the language switch, which the top bar of every page or the menu of the profile holds as well. A plain visit shows the switch, and a rejected language shows why above it. */
 export default function LanguagePage({
   actionData,
 }: Route.ComponentProps): ReactNode {
@@ -31,7 +32,7 @@ export default function LanguagePage({
       <>
         <PageTitle text={m.language_page_title()} />
         <h1>{m.language_page_title()}</h1>
-        <p>{m.language_page_body()}</p>
+        <LanguageSwitch />
       </>
     );
   }
@@ -41,6 +42,7 @@ export default function LanguagePage({
       <ErrorPage
         title={m.language_rejected_title()}
         body={actionData.failure}
+        nextStep={<LanguageSwitch />}
       />
     </>
   );

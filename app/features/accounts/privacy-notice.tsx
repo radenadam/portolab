@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { lastClassLifetimeDays } from "~/features/classes/class-rules";
 import { formatNumber } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import {
@@ -36,6 +37,11 @@ export function PrivacyNotice(): ReactNode {
           })}
         </li>
         <li>{m.accounts_privacy_language_body()}</li>
+        <li>
+          {m.accounts_privacy_last_class_body({
+            days: formatNumber(lastClassLifetimeDays),
+          })}
+        </li>
       </ul>
       <p>{m.accounts_privacy_not_stored_body()}</p>
       <h2>{m.accounts_privacy_access_title()}</h2>

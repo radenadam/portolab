@@ -5,6 +5,7 @@ import { expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import { secondMilliseconds } from "../app/time-units.ts";
 import { printedPasswordForTest } from "../app/features/accounts/printed-password-for-test.ts";
+import { createClassPath } from "../app/features/classes/class-path.ts";
 import type { AccountAction } from "../app/features/accounts/account-actions.ts";
 import { usernameLength } from "../app/features/accounts/username.ts";
 import { testDatabasePath } from "./test-database-path.ts";
@@ -126,7 +127,7 @@ export async function fillNewPassword(
   await page.locator('main input[name="repeatedPassword"]').fill(password);
 }
 
-/** Creates a lecturer with the account command of the test server, or of the server that the test names, signs in, and finishes the account with a name, a password, and consent, so that the page ends signed in on the classes of the lecturer. */
+/** Creates a lecturer with the account command of the test server, or of the server that the test names, signs in, and finishes the account with a name, a password, and consent, so that the page ends signed in on the form that creates the first class of the lecturer. */
 export async function signInAsNewLecturer(
   page: Page,
   name: string,
@@ -142,7 +143,7 @@ export async function signInAsNewLecturer(
   await submitSignIn(page, username, temporaryPassword);
   await expect(page).toHaveURL(/\/account\/setup/);
   await submitAccountForm(page, { name });
-  await expect(page).toHaveURL("/classes");
+  await expect(page).toHaveURL(createClassPath);
   return username;
 }
 
