@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
+import { expectDefinitionTerms } from "./expect-definition-terms.ts";
 import { sidewaysProblems } from "./expect-layout.ts";
 
 // The section "Interface behavior" of AGENTS.md sets this as the smallest touch target, and axe does not check it.
@@ -10,6 +11,7 @@ const colorSchemes = ["light", "dark"] as const;
 
 /** Checks the screen with axe in the light and the dark theme, checks that every visible link, button, and form field is at least as high as the smallest touch target, and checks that the page does not scroll sideways. */
 export async function expectAccessibleScreen(page: Page): Promise<void> {
+  await expectDefinitionTerms(page);
   // Until the fonts load, the browser draws text in a fallback font, whose widths differ.
   await page.evaluate(async () => {
     await document.fonts.ready;

@@ -1,4 +1,6 @@
-import { renderToStaticMarkup } from "react-dom/server";
+import { conceptLessonDataForTest } from "~/features/learning/concept-lesson-data-for-test";
+import { withoutConceptCardsForTest } from "~/concept-card-markup-for-test";
+import { renderInRouterForTest } from "~/render-in-router-for-test";
 import { expect, test } from "vitest";
 import { languageNames } from "~/language-names";
 import { locales } from "~/paraglide/runtime.js";
@@ -12,11 +14,14 @@ import { StockMeasuresView } from "./stock-measures-view";
 
 // The measures of BBCA and AMMN that the decimal module of Python computed, as measure-stock.test.ts gives them: for BBCA an expected return of -0.001023, a variance of 0.002732, a standard deviation of 0.052272, a covariance with the IHSG of 0.001413, a correlation of 0.596994, a beta of 0.689371, a required return of 0.001803, and a distance of -0.002826 from the security market line, and for AMMN an expected return of 0.028220, a beta of 1.110656, a required return of -0.002765, and a distance of 0.030986. The IHSG has an expected return of 0.000457 and a variance of 0.002049 over the months of BBCA, and an expected return of -0.002012 over those of AMMN. The standard deviation of the IHSG over the months of BBCA is the square root of its variance, 0.045268, and the risk-free rate is the BI-Rate of 5.75% that Bank Indonesia set on 18 June 2026, divided by 12.
 function render(code: string): string {
-  return renderToStaticMarkup(
-    <StockMeasuresView
-      code={code}
-      measures={readStockMeasures(databaseWithClosesForTest(), code)}
-    />,
+  return withoutConceptCardsForTest(
+    renderInRouterForTest(
+      <StockMeasuresView
+        code={code}
+        measures={readStockMeasures(databaseWithClosesForTest(), code)}
+      />,
+      conceptLessonDataForTest(),
+    ),
   ).replaceAll(/ class="[^"]*"/g, "");
 }
 
@@ -257,7 +262,7 @@ for (const locale of locales) {
       throw new Error("AADI has too few monthly returns for measures.");
     }
     expect(
-      renderToStaticMarkup(
+      renderInRouterForTest(
         <StockMeasuresView code="AADI" measures={measures} />,
       ),
     ).toBe(

@@ -23,6 +23,8 @@ import {
 } from "./features/accounts/refused-form";
 import { lastClassMiddleware } from "./features/classes/last-class.server";
 import { LanguageMenu } from "./features/language/language-menu";
+import type { ConceptLessonData } from "./features/learning/concept-lesson";
+import { readConceptLessons } from "./features/learning/read-concept-lessons.server";
 import { SimulationBadge } from "./features/market-data/simulation-badge";
 import { readSimulationBadge } from "./features/market-data/read-simulation-badge.server";
 import type { SimulationBadgeData } from "./features/market-data/read-simulation-badge.server";
@@ -62,11 +64,16 @@ export async function loader({
   context,
   request,
   params,
-}: Route.LoaderArgs): Promise<{
-  reader: FrameReader;
-  simulation: SimulationBadgeData;
-}> {
+}: Route.LoaderArgs): Promise<
+  ConceptLessonData & {
+    reader: FrameReader;
+    simulation: SimulationBadgeData;
+  }
+> {
+  const lessons = readConceptLessons();
+  if (!lessons.ok) throw new Error(lessons.failure);
   return {
+    ...lessons.value,
     reader: await readFrameReader(context, request, params),
     simulation: readSimulationBadge(context, new Date()),
   };

@@ -8,6 +8,8 @@
 
 The module bundles `content/**/*.md` through Vite's raw imports. There is no content folder to locate at request time. `pnpm check` reads all shipped files through that entry in its unit tests. The parser also rejects unexpected Markdown files under the content folder, so a misspelled language or filename cannot disappear silently.
 
+Concept cards name a glossary term id. The root loader reads the glossary through `readConceptLessons` and supplies its term-to-session metadata to `ConceptLesson`, so cards follow the session in the content. The browser receives this metadata without the lesson prose. A regression test changes a glossary session and checks the notice through the server data and the card.
+
 ## File format
 
 Each language has `session-<number>.md` for each course session and one `glossary.md`. The filename carries the session number, so the title contains no duplicate number. A file begins with one `#` title. Only `##` headings follow it. Paragraphs are separated by blank lines, and wrapped lines become one space. Inline Markdown, HTML, links, code, and handwritten formula notation are outside this format. Pages render paragraph strings as React text.

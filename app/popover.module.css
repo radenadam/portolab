@@ -17,7 +17,11 @@
   .popover {
     inset: auto;
     margin: 0;
-    position-try-fallbacks: flip-block;
+    position-try-fallbacks:
+      flip-block,
+      flip-inline,
+      flip-block flip-inline,
+      --popover-viewport;
   }
 
   .belowStart {
@@ -33,6 +37,13 @@
   .aboveStart {
     position-area: top span-right;
     margin-block: 0.375rem;
+  }
+
+  /* A calculation can leave too little room on either side of its button, so its card then uses the viewport. */
+  @position-try --popover-viewport {
+    position-area: none;
+    inset: var(--space-3);
+    margin: auto;
   }
 }
 
