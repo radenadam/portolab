@@ -3,6 +3,7 @@ import { rupiah } from "~/units/rupiah";
 import { mondayTradingDayForTest } from "./orders-for-test";
 import { ticketPriceStep } from "./ticket-price-step";
 
+// The expected prices were computed by hand from the dated IDX tick table in idx-rules-on.ts, without the step function.
 test("steps across every IDX tick boundary and rounds an off-tick draft toward the chosen direction", () => {
   for (const [price, below, above] of [
     [1, 1, 2],
