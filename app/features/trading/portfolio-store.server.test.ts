@@ -12,6 +12,7 @@ import {
   endOfMondayForTest,
   limitForTest,
   purchaseForTest,
+  priceRoseFailureForTest,
 } from "./orders-for-test";
 import { studentPortfolioForTest } from "./portfolios-for-test.server";
 import {
@@ -44,17 +45,7 @@ const states: Record<string, OrderState> = {
     kind: "rejected",
     rejectedAt: duringSessionForTest,
     quotedAt,
-    failure: {
-      kind: "priceRose",
-      code: "BBCA",
-      lots: lots(5),
-      checkedPrice: rupiah(4_980),
-      price: rupiah(5_025),
-      value: rupiah(2_512_500),
-      fee: rupiah(3_769),
-      tax: rupiah(0),
-      availableCash: rupiah(2_500_000),
-    },
+    failure: priceRoseFailureForTest(),
   },
   sharesGone: {
     kind: "rejected",

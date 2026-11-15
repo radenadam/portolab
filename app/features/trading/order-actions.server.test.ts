@@ -44,7 +44,7 @@ const texts: Record<
     missingOrder:
       "Portolab tidak menyimpan order tersebut di antara order Anda, sehingga tidak ada yang dibatalkan. Daftar di bawah menunjukkan setiap order yang masih terbuka dan dapat Anda batalkan.",
     endedOrder:
-      "Order Anda atas 5 lot BBCA yang dipasang pada 2 Nov 2026, 10.00 WIB tidak lagi terbuka, sehingga Portolab tidak dapat membatalkannya. Daftar order sebelumnya di bawah menunjukkan bagaimana order itu berakhir.",
+      "Order Anda atas 5 lot BBCA yang dipasang pada 2 Nov 2026, 10.00 WIB tidak lagi terbuka, sehingga Portolab tidak dapat membatalkannya. Daftar di bawah menunjukkan bagaimana order itu berakhir.",
     noReferenceClose:
       "BEI menetapkan rentang harga order limit dari harga penutupan terakhir BBCA sebelum hari bursa order ini, tetapi Portolab belum memiliki harga penutupan final BBCA untuk 2 November 2026. Order limit dapat dipasang setelah pembaruan riwayat harga menyimpan harga penutupan itu, jika BBCA diperdagangkan pada 2 November 2026, atau setelah Portolab memiliki harga BBCA dari hari bursa order ini. Order harga pasar tidak membutuhkan limit.",
     outsideLimits:
@@ -59,7 +59,7 @@ const texts: Record<
     missingOrder:
       "Portolab holds no such order among your orders, so it cancelled nothing. The list below shows each open order that you can cancel.",
     endedOrder:
-      "Your order of 5 lots of BBCA placed on Nov 2, 2026, 10:00 AM WIB is no longer open, so Portolab cannot cancel it. Your past orders below show how it ended.",
+      "Your order of 5 lots of BBCA placed on Nov 2, 2026, 10:00 AM WIB is no longer open, so Portolab cannot cancel it. The list below shows how it ended.",
     noReferenceClose:
       "IDX sets the range of prices of a limit order from the latest close of BBCA before the trading day of the order, but Portolab has no final close of BBCA for November 2, 2026 yet. A limit order becomes possible once an update of the price history stores that close, if BBCA traded on November 2, 2026, or once Portolab has a price of BBCA from the trading day of the order. A market order needs no limit.",
     outsideLimits:
@@ -113,6 +113,26 @@ const purchase = {
   lots: "5",
 };
 
+test("keeps the activity view and status filter after cancelling its order", async () => {
+  const { database, owner, request } = await studentRequestForTest();
+  const context = contextForTest(database);
+  placeFromForm(context, request(purchase, duringSessionForTest));
+  const order = readPortfolio(database, owner).orders[0];
+  expect(order?.state.kind).toBe("waiting");
+  const path = "/classes/1/activity?view=orders&status=waiting";
+  const answer = cancelFromForm(
+    context,
+    request({ cancel: String(order?.id) }, duringSessionForTest),
+    path,
+  );
+  expect(
+    answer instanceof Response ? answer.headers.get("Location") : undefined,
+  ).toBe(path);
+  expect(readPortfolio(database, owner).orders[0]?.state.kind).toBe(
+    "cancelled",
+  );
+});
+
 for (const locale of locales) {
   const text = texts[locale];
   const language = languageNames[locale];
@@ -131,7 +151,7 @@ for (const locale of locales) {
     expect(placed).toBeInstanceOf(Response);
     const location =
       placed instanceof Response ? placed.headers.get("Location") : null;
-    expect(location).toMatch(/^\/classes\/1\/orders\?placed=\d+$/);
+    expect(location).toMatch(/^\/classes\/1\/activity\?placed=\d+$/);
     expect(readPortfolio(database, owner).orders).toMatchObject([
       { reason: "Laba stabil.\n\nBeta di bawah 1." },
     ]);

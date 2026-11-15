@@ -3,7 +3,7 @@ import type { Page } from "@playwright/test";
 /** A viewport as tall as the page puts fixed navigation at the foot of the whole screen, as the Peta references show it, so it does not hide the middle of a full-height capture. */
 export async function screenshotFullHeight(
   page: Page,
-  options: { path: string },
+  options: { path: string; scale?: "css" | "device" },
 ): Promise<void> {
   const viewport = page.viewportSize();
   if (viewport === null)

@@ -1,3 +1,4 @@
+import { homeTitle } from "./home-title";
 import { countedText } from "~/counted-text";
 import { monthlyReturnCount } from "~/features/measures/monthly-return-count";
 import {
@@ -253,7 +254,7 @@ const failureTexts: FailureTexts = {
         ),
       );
     }
-    sentences.push(m.trading_check_holdings_error());
+    sentences.push(m.trading_check_holdings_error({ page: homeTitle() }));
     return sentences.join(" ");
   },
 };

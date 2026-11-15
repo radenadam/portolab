@@ -90,6 +90,13 @@ const routePages: Record<string, readonly RoutePage[]> = {
     { reader: "lecturer", path: ({ classPath }) => `${classPath}/calendar` },
   ],
   "features/trading/stock-ticket-fallback.ts": [],
+  "features/trading/activity-page.tsx": [
+    { reader: "student", path: ({ classPath }) => `${classPath}/activity` },
+    {
+      reader: "student",
+      path: ({ classPath }) => `${classPath}/activity?view=journal`,
+    },
+  ],
   // Besides BBCA, the ticket shows PGAS, which has one of the longest names of a company, and HRTA and AMRT, whose sectors have the longest names in Bahasa Indonesia and in English.
   "features/trading/orders-page.tsx": [
     { reader: "student", path: ({ classPath }) => `${classPath}/orders` },
