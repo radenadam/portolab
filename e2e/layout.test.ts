@@ -16,6 +16,7 @@ import { newDevice } from "./new-device.ts";
 import { storeTestHolding } from "./store-test-holding.ts";
 import { studentOfNewClass } from "./student-of-new-class.ts";
 import { widestClassNames } from "./widest-class-names.ts";
+import { lessonSessionsForTest } from "./lesson-sessions-for-test.ts";
 
 /** Who opens a page: a visitor who is not signed in, the lecturer of the class, its student, or a lecturer who has not finished the account yet. */
 type Reader = "visitor" | "lecturer" | "student" | "newLecturer";
@@ -37,6 +38,18 @@ interface RoutePage {
 
 // Each route of app/routes.ts, by its module, with the pages that the walk opens. The data of the walk has the widest content, so each page shows it at its widest.
 const routePages: Record<string, readonly RoutePage[]> = {
+  "features/learning/learn-page.tsx": [
+    { reader: "student", path: ({ classPath }) => `${classPath}/learn` },
+  ],
+  "features/learning/lesson-page.tsx": lessonSessionsForTest.map(
+    (session): RoutePage => ({
+      reader: "student",
+      path: ({ classPath }) => `${classPath}/learn/${String(session)}`,
+    }),
+  ),
+  "features/learning/glossary-page.tsx": [
+    { reader: "student", path: ({ classPath }) => `${classPath}/glossary` },
+  ],
   "features/home/home-page.tsx": [{ reader: "visitor", path: () => "/" }],
   "features/market-data/market-page.tsx": [
     { reader: "student", path: ({ classPath }) => `${classPath}/market` },

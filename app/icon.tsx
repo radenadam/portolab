@@ -12,7 +12,9 @@ export type IconName =
   | "signIn"
   | "globe"
   | "chevronDown"
-  | "check";
+  | "check"
+  | "book"
+  | "search";
 
 // The prototype of decision 0028 draws these lines on a grid of 24 with round ends, so each icon takes the stroke of its text.
 const paths: Record<IconName, string> = {
@@ -29,6 +31,8 @@ const paths: Record<IconName, string> = {
     "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18ZM3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18",
   chevronDown: "M6 9l6 6 6-6",
   check: "M5 12.5l4.5 4.5L19 7.5",
+  book: "M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 3H20v19H6.5A2.5 2.5 0 0 1 4 19.5v-14A2.5 2.5 0 0 1 6.5 3Z",
+  search: "M21 21l-4.35-4.35M19 11a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z",
 };
 
 /** An icon beside the text that names its part, so a screen reader skips it. The part that holds it sets its size. */

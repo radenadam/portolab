@@ -3,6 +3,7 @@ import type { Role } from "~/features/accounts/accounts.schema";
 import { classPath } from "~/features/classes/class-path";
 import type { ClassId } from "~/features/classes/classes.schema";
 import { classPortfoliosPath } from "~/features/grading/grading-paths";
+import { learnPath } from "~/features/learning/learning-paths";
 import { marketPath } from "~/features/market-data/market-path";
 import { measuresPath } from "~/features/measures/measures-path";
 import { ordersPath } from "~/features/trading/orders-path";
@@ -14,7 +15,7 @@ import type { FrameReader } from "./frame-reader";
 
 /** An item of the navigation of a class. */
 type WorkspaceItem =
-  "home" | "market" | "activity" | "analysis" | "class" | "students";
+  "home" | "market" | "activity" | "analysis" | "class" | "students" | "learn";
 
 /** An item of the navigation of a visitor who is not signed in. */
 type VisitorItem = "join" | "signIn";
@@ -23,14 +24,15 @@ type NavigationItem = WorkspaceItem | VisitorItem;
 
 // Decision 0030 sets the items of each role and their order.
 const roleItems: Record<Role, readonly [WorkspaceItem, ...WorkspaceItem[]]> = {
-  student: ["home", "market", "activity", "analysis"],
-  lecturer: ["class", "students", "market"],
+  student: ["home", "market", "activity", "analysis", "learn"],
+  lecturer: ["class", "students", "market", "learn"],
 };
 
 const visitorItems: readonly VisitorItem[] = ["join", "signIn"];
 
 // Each item leads to the page that holds it today. Decision 0030 gives the address that each page takes when the change of issue #127 rebuilds its screen.
 const workspacePaths: Record<WorkspaceItem, (classId: ClassId) => string> = {
+  learn: learnPath,
   home: classPath,
   market: marketPath,
   activity: ordersPath,
@@ -45,6 +47,7 @@ const visitorPaths: Record<VisitorItem, string> = {
 };
 
 const itemLabels: Record<NavigationItem, () => string> = {
+  learn: m.navigation_learn_link,
   home: m.navigation_home_link,
   market: m.navigation_market_link,
   activity: m.navigation_activity_link,
@@ -56,6 +59,7 @@ const itemLabels: Record<NavigationItem, () => string> = {
 };
 
 const itemIcons: Record<NavigationItem, IconName> = {
+  learn: "book",
   home: "map",
   market: "trend",
   activity: "list",
@@ -72,6 +76,9 @@ type RouteId = Exclude<keyof Register["routeModules"], "root">;
 // The item that is current on each page: the item of the page itself, or of the nearest page above it, such as the analysis above the measures of one stock. A page outside the items has none.
 const currentItems: Record<RouteId, NavigationItem | undefined> = {
   "features/home/home-page": undefined,
+  "features/learning/learn-page": "learn",
+  "features/learning/lesson-page": "learn",
+  "features/learning/glossary-page": "learn",
   "features/market-data/market-page": "market",
   "features/accounts/sign-in-page": "signIn",
   "features/accounts/sign-out-page": undefined,

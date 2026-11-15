@@ -1,5 +1,5 @@
 import { holdClientScripts } from "./hold-client-scripts.ts";
-import { screenshotWidths } from "./screenshot-widths.ts";
+import { captureScreens } from "./capture-screens.ts";
 import { expect, test } from "@playwright/test";
 import type { Page, TestInfo } from "@playwright/test";
 import { fieldMaximumLength } from "../app/form-size.ts";
@@ -240,9 +240,8 @@ for (const locale of locales) {
     await chooseLanguage(page, locale);
     const testClass = await createMarketClass(page);
     await page.goto(`${testClass.path}/market`);
-    const scripts = await holdClientScripts(page);
-    try {
-      await scripts.reloadNativePage();
+    await holdClientScripts(page, {}, async (loadClient) => {
+      await expect(page.getByRole("slider")).toHaveCount(0);
       await page.getByLabel(text.search, { exact: true }).fill("central asia");
       await page
         .getByRole("radio", { name: text.financials, exact: true })
@@ -257,8 +256,7 @@ for (const locale of locales) {
       const card = page.getByRole("dialog", { name: "IHSG", exact: true });
       await card.getByText(text.calculation, { exact: true }).click();
       await expect(card.locator("details[open]")).toBeVisible();
-      scripts.release();
-      await page.waitForLoadState("load");
+      await loadClient();
       await expect(
         page.getByRole("slider", { name: "IHSG", exact: true }),
       ).toBeVisible();
@@ -292,9 +290,7 @@ for (const locale of locales) {
       expect(destination.searchParams.get("sector")).toBe("financials");
       expect(destination.searchParams.get("sort")).toBe("code");
       expect(destination.searchParams.get("direction")).toBe("ascending");
-    } finally {
-      await scripts.dispose();
-    }
+    });
   });
   test(`keeps the market private and the index explorable in ${languageNames[locale]}`, async ({
     page,
@@ -347,18 +343,18 @@ for (const locale of locales) {
     await expect(
       page.getByRole("heading", { level: 1, name: text.signIn, exact: true }),
     ).toBeVisible();
-    await captureScreens(page, testInfo, { screen: "sign-in", locale });
+    await captureMarketScreens(page, testInfo, { screen: "sign-in", locale });
     const testClass = await createMarketClass(page);
     await page.goto(`${testClass.path}/market`);
-    await captureScreens(page, testInfo, { screen: "market", locale });
+    await captureMarketScreens(page, testInfo, { screen: "market", locale });
     await page.getByRole("link", { name: /BBCA.*Bank Central Asia/ }).click();
     await page.waitForURL(/\/stocks\/BBCA(?:\?|$)/);
-    await captureScreens(page, testInfo, { screen: "stock", locale });
+    await captureMarketScreens(page, testInfo, { screen: "stock", locale });
     await expectAccessibleScreen(page);
   });
 }
 
-async function captureScreens(
+async function captureMarketScreens(
   page: Page,
   testInfo: TestInfo,
   {
@@ -366,12 +362,12 @@ async function captureScreens(
     locale,
   }: { screen: "market" | "stock" | "sign-in"; locale: Locale },
 ): Promise<void> {
-  for (const width of screenshotWidths(testInfo)) {
-    await page.setViewportSize({ width, height: 900 });
-    for (const colorScheme of ["light", "dark"] as const) {
-      await page.emulateMedia({ colorScheme });
-      const problems = await layoutProblems(page);
-      expect(problems).toEqual([]);
+  await captureScreens(page, testInfo, {
+    name: `${screen}-${locale}`,
+    fromTop: false,
+    fullPage: false,
+    beforeCapture: async () => {
+      expect(await layoutProblems(page)).toEqual([]);
       if (screen === "market" && testInfo.project.name === "desktop") {
         await expectMarketScales(page);
       }
@@ -382,13 +378,8 @@ async function captureScreens(
           testInfo.project.name === "phone",
         );
       }
-      await page.screenshot({
-        path: testInfo.outputPath(
-          `${screen}-${String(width)}-${colorScheme}-${locale}.png`,
-        ),
-      });
-    }
-  }
+    },
+  });
 }
 
 async function expectMarketHeaders(

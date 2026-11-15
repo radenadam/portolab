@@ -1,15 +1,15 @@
-import { holdClientScripts } from "./hold-client-scripts.ts";
-import { screenshotWidths } from "./screenshot-widths.ts";
 import { expect, test } from "@playwright/test";
 import type { Browser, Locator, Page } from "@playwright/test";
 import type { Locale } from "../app/paraglide/runtime.js";
 import { languageNames } from "../app/language-names.ts";
 import { locales } from "../app/paraglide/runtime.js";
+import { captureScreens } from "./capture-screens.ts";
 import { bbcaHolding } from "./bbca-holding.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 import { openSimulationCard } from "./frame.ts";
 import { openAsNewStudent } from "./open-as-new-student.ts";
 import { storeTestHolding } from "./store-test-holding.ts";
+import { holdClientScripts } from "./hold-client-scripts.ts";
 
 const texts: Record<
   Locale,
@@ -25,8 +25,7 @@ const texts: Record<
   id: {
     calculation: "Lihat perhitungan",
     example: "Angka pada halaman ini",
-    lesson:
-      "Pelajari lebih lanjut di sesi 9. Pelajaran belum tersedia di Portolab.",
+    lesson: "Pelajari lebih lanjut di sesi 9",
     beta: "Beta terhadap IHSG",
     help: (title) => `Apa itu ${title}?`,
     cards: [
@@ -43,8 +42,7 @@ const texts: Record<
   en: {
     calculation: "View calculation",
     example: "Value on this page",
-    lesson:
-      "Learn more in session 9. The lesson is not available in Portolab yet.",
+    lesson: "Learn more in session 9",
     beta: "Beta against the IHSG",
     help: (title) => `What is ${title}?`,
     cards: [
@@ -155,7 +153,7 @@ for (const locale of locales) {
       const calculation = await openCalculation(card, locale);
       await expect(calculation).toContainText(formula);
       await expectCardInsideScreen(page, card);
-      await expect(card.locator('a[href*="/learn/"]')).toHaveCount(0);
+      await expect(card.locator('a[href*="/learn/"]')).toHaveCount(1);
       await page.keyboard.press("Escape");
       await expect(card).toBeHidden();
       await expect(
@@ -167,17 +165,11 @@ for (const locale of locales) {
     await openCalculation(card, locale);
     await expectBetaCalculation(card);
     await expectAccessibleScreen(page);
-    for (const width of screenshotWidths(test.info())) {
-      await page.setViewportSize({ width, height: 900 });
-      for (const colorScheme of ["light", "dark"] as const) {
-        await page.emulateMedia({ colorScheme });
-        await page.screenshot({
-          path: test
-            .info()
-            .outputPath(`beta-${String(width)}-${colorScheme}.png`),
-        });
-      }
-    }
+    await captureScreens(page, test.info(), {
+      name: `beta-${locale}`,
+      fullPage: false,
+      fromTop: false,
+    });
     // The frame persists on a client navigation, so its card must close when the page changes.
     await page.keyboard.press("Escape");
     const simulation = await openSimulationCard(page);
@@ -199,24 +191,23 @@ for (const locale of locales) {
       locale,
       path: "/measures",
     });
-    const scripts = await holdClientScripts(page);
-    try {
-      await scripts.reloadNativePage();
-      const address = page.url();
-      const card = await openConcept(page, locale, text.beta);
-      const calculation = await openCalculation(card, locale);
-      await expectBetaCalculation(card);
+    await holdClientScripts(
+      page,
+      { otherDevice: lecturer.context() },
+      async (loadClient) => {
+        await expect(page.getByRole("slider")).toHaveCount(0);
+        const address = page.url();
+        const card = await openConcept(page, locale, text.beta);
+        const calculation = await openCalculation(card, locale);
+        await expectBetaCalculation(card);
 
-      scripts.release();
-      await page.waitForLoadState("load");
-      await expect(page.getByRole("slider").first()).toBeVisible();
-      await expect(card).toBeVisible();
-      await expect(calculation).toHaveAttribute("open", "");
-      await expect(page).toHaveURL(address);
-    } finally {
-      await scripts.dispose();
-      await lecturer.context().close();
-    }
+        await loadClient();
+        await expect(page.getByRole("slider").first()).toBeVisible();
+        await expect(card).toBeVisible();
+        await expect(calculation).toHaveAttribute("open", "");
+        await expect(page).toHaveURL(address);
+      },
+    );
   });
 
   test.describe(`before JavaScript loads in ${languageNames[locale]}`, () => {

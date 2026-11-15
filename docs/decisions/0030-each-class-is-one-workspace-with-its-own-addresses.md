@@ -56,6 +56,8 @@ Every screen of a class has an address under the class, in English words, which 
 
 What a reader asks for while doing something opens in place, as `AGENTS.md` requires, and closing it returns to the same place: the switcher of the class, the menu of the profile, the card of the badge of the simulation, a "?" card, a calculation, a key term, a lesson or Kamus opened from another screen, the panel of a selected student, and the order ticket of a stock, which docks beside the stock on a desktop and opens as a sheet over it on a phone. A screen that a reader goes to navigates to its address: an item of the navigation, a class in the switcher, a stock from a row, a point, or a code, a student from Kelas, the portfolio or the journal of a student, a lesson from Belajar, and a task of a lesson. The list of [the prototype](https://github.com/radenadam/portolab/blob/83171b2b5ad1f7a8a6af05c2127df0750885035c/links.md) names every such control.
 
+Issue #127 stages the learning flow. Piece 22 adds standalone lesson and glossary pages with return addresses. Until piece 31 builds lessons and terms over the current screen, a link from another screen navigates to those pages and returns to its originating address. This fallback does not keep unsent fields. Piece 31 must retain them by keeping the originating screen open, including an order draft when a concept card opens its lesson.
+
 ## Alternatives
 
 - **The addresses of the prototype, in Bahasa Indonesia after a hash.** A server never sees a hash, so no screen would work before JavaScript loads, and the addresses would be in another language than the code.

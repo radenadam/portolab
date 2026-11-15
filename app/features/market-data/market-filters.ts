@@ -1,12 +1,11 @@
 import type { FieldOption } from "~/form";
-import { checkFieldLengthForReader, typedText } from "~/form-text";
+import { parseOptionalText, typedText } from "~/form-text";
 import { formatList } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { priceChartRangeOptions } from "./price-chart-range";
 import type { PriceChartRange } from "./price-chart-range";
 import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
-import { typeName } from "~/value-shapes";
 import { sectors } from "./company-of";
 import type { Sector } from "./company-of";
 import { sectorName } from "./sector-name";
@@ -41,10 +40,7 @@ export function parseMarketSearch(
   source: string,
   maximum: "guard" | "field" = "field",
 ): Result<string, string> {
-  if (value === null) return succeed("");
-  if (typeof value !== "string")
-    return fail(m.app_not_text_error({ field: source, type: typeName(value) }));
-  return checkFieldLengthForReader(value, source, maximum);
+  return parseOptionalText(value, source, maximum);
 }
 
 export function parseMarketChoice<Value extends string>(
