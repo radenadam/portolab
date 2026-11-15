@@ -8,7 +8,7 @@ import {
   formatSignedPercent,
 } from "~/formatting";
 import { measureRiskFreeRate } from "~/features/measures/measure-risk-free-rate";
-import { averageClassCashShare } from "./average-class-cash-share";
+import { classCashShareText } from "./class-cash-share-text";
 import { cumulativeReturn } from "~/units/cumulative-return";
 import { beta } from "~/units/beta";
 import { m } from "~/paraglide/messages.js";
@@ -41,11 +41,11 @@ export function bondQuestions(
   now: Date,
 ): string[] {
   const rate = measureRiskFreeRate(wibDateOf(now));
-  const cashShare = averageClassCashShare(students);
+  const cashShare = classCashShareText(students);
   return [
     cashShare !== undefined && rate.ok
       ? m.classes_bonds_cash_notice({
-          cash: formatPercent(cashShare, "integer"),
+          cashShare,
           rate: formatPercent(rate.value.inputs.annualRate),
         })
       : m.classes_bonds_cash_pending_notice(),

@@ -1514,14 +1514,14 @@ const introductoryQuestions: Record<Locale, Record<string, string[]>> = {
     ],
     "one-1": [
       "The class has 1 student. What goals and cash needs should guide portfolio allocation?",
-      "The average cash share in the class is 39%. How does this allocation fit a portfolio’s time horizon?",
+      "Average class cash is 39% of portfolio value. How does this allocation fit a portfolio’s time horizon?",
     ],
     "one-2": [
       "Risk measures are available for 1 student. How do weights and correlations determine the risk of a portfolio?",
       "The class has 1 student with exactly one stock. Why does stock count alone not establish diversification?",
     ],
     "one-3": [
-      "The average cash share in the class is 39%. What rate and period would let us compare this cash with a future amount?",
+      "Average class cash is 39% of portfolio value. What rate and period would let us compare this cash with a future amount?",
       "The annual BI-Rate is 5.75%. Why might a suitable discount rate for class portfolios differ from it?",
     ],
     "one-4": [
@@ -1530,7 +1530,7 @@ const introductoryQuestions: Record<Locale, Record<string, string[]>> = {
     ],
     "one-5": [
       "The class has 1 student holding stocks. How do a shareholder’s rights differ from a bondholder’s rights?",
-      "The average cash share in the class is 39%. What risks does this figure leave out when comparing stocks, bonds, and funds?",
+      "Average class cash is 39% of portfolio value. What risks does this figure leave out when comparing stocks, bonds, and funds?",
     ],
     "one-6": [
       "The class has 0 students with orders but no recorded fill. How can price limits and trading sessions affect whether an order fills?",
@@ -1538,14 +1538,14 @@ const introductoryQuestions: Record<Locale, Record<string, string[]>> = {
     ],
     "several-1": [
       "The class has 2 students. What goals and cash needs should guide portfolio allocation?",
-      "The average cash share in the class is 39%. How does this allocation fit a portfolio’s time horizon?",
+      "Average class cash is 39% of portfolio value. How does this allocation fit a portfolio’s time horizon?",
     ],
     "several-2": [
       "Risk measures are available for 2 students. How do weights and correlations determine the risk of a portfolio?",
       "The class has 2 students with exactly one stock. Why does stock count alone not establish diversification?",
     ],
     "several-3": [
-      "The average cash share in the class is 39%. What rate and period would let us compare this cash with a future amount?",
+      "Average class cash is 39% of portfolio value. What rate and period would let us compare this cash with a future amount?",
       "The annual BI-Rate is 5.75%. Why might a suitable discount rate for class portfolios differ from it?",
     ],
     "several-4": [
@@ -1554,7 +1554,7 @@ const introductoryQuestions: Record<Locale, Record<string, string[]>> = {
     ],
     "several-5": [
       "The class has 2 students holding stocks. How do a shareholder’s rights differ from a bondholder’s rights?",
-      "The average cash share in the class is 39%. What risks does this figure leave out when comparing stocks, bonds, and funds?",
+      "Average class cash is 39% of portfolio value. What risks does this figure leave out when comparing stocks, bonds, and funds?",
     ],
     "several-6": [
       "The class has 0 students with orders but no recorded fill. How can price limits and trading sessions affect whether an order fills?",
@@ -1586,14 +1586,14 @@ const introductoryQuestions: Record<Locale, Record<string, string[]>> = {
     ],
     "cashOnly-1": [
       "The class has 2 students. What goals and cash needs should guide portfolio allocation?",
-      "The average cash share in the class is 100%. How does this allocation fit a portfolio’s time horizon?",
+      "Average class cash is 100% of portfolio value. How does this allocation fit a portfolio’s time horizon?",
     ],
     "cashOnly-2": [
       "Risk measures are available for 0 students. How do weights and correlations determine the risk of a portfolio?",
       "The class has 0 students with exactly one stock. Why does stock count alone not establish diversification?",
     ],
     "cashOnly-3": [
-      "The average cash share in the class is 100%. What rate and period would let us compare this cash with a future amount?",
+      "Average class cash is 100% of portfolio value. What rate and period would let us compare this cash with a future amount?",
       "The annual BI-Rate is 5.75%. Why might a suitable discount rate for class portfolios differ from it?",
     ],
     "cashOnly-4": [
@@ -1602,7 +1602,7 @@ const introductoryQuestions: Record<Locale, Record<string, string[]>> = {
     ],
     "cashOnly-5": [
       "The class has 0 students holding stocks. How do a shareholder’s rights differ from a bondholder’s rights?",
-      "The average cash share in the class is 100%. What risks does this figure leave out when comparing stocks, bonds, and funds?",
+      "Average class cash is 100% of portfolio value. What risks does this figure leave out when comparing stocks, bonds, and funds?",
     ],
     "cashOnly-6": [
       "The class has 2 students with orders but no recorded fill. How can price limits and trading sessions affect whether an order fills?",
