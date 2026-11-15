@@ -18,6 +18,7 @@ import {
 } from "./accounts.ts";
 import { chooseLanguage } from "./choose-language.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
+import { expectPageHeadings } from "./expect-page-headings.ts";
 import { openProfileMenu } from "./frame.ts";
 import { newDevice } from "./new-device.ts";
 import { studentOfNewClass } from "./student-of-new-class.ts";
@@ -288,10 +289,7 @@ for (const locale of locales) {
     const temporaryPassword = runAccountCommand("create-lecturer", username);
     await chooseLanguage(page, locale);
     await page.getByRole("link", { name: text.signInLink }).click();
-    await expect(page).toHaveTitle(`${text.signInTitle} | Portolab`);
-    await expect(
-      page.getByRole("heading", { level: 1, name: text.signInTitle }),
-    ).toBeVisible();
+    await expectPageHeadings(page, { title: text.signInTitle, headings: [] });
     await expect(page.getByText(text.forgotNotice)).toBeVisible();
     await expectAccessibleScreen(page);
 

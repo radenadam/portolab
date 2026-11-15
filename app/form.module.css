@@ -1,13 +1,19 @@
-/* A form takes the parts of the order ticket of the references, as decision 0026 sets. It fills the width of its column, so that its fields and its button can. */
-.form {
+/* Ticket controls keep the pages without their own reference consistent with Peta. */
+.form,
+.formColumn,
+.reading {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  align-self: stretch;
   gap: var(--space-4);
 }
 
-.field {
+.form {
+  align-items: flex-start;
+  align-self: stretch;
+}
+
+.field,
+.choices {
   display: flex;
   flex-direction: column;
   align-self: stretch;
@@ -15,6 +21,15 @@
 }
 
 .label,
+.failure {
+  font-size: var(--text-row);
+  font-weight: 600;
+}
+
+.label {
+  color: var(--color-ink-secondary);
+}
+
 .hint {
   color: var(--color-muted);
   font-size: var(--text-small);
@@ -22,10 +37,6 @@
 
 /* A group of options keeps the space of a field, without the frame that a browser draws around a group. */
 .choices {
-  display: flex;
-  flex-direction: column;
-  align-self: stretch;
-  gap: var(--space-1);
   min-inline-size: 0;
   margin: 0;
   padding: 0;
@@ -36,12 +47,13 @@
   padding: 0;
 }
 
-/* The options stand in a row of equal parts above a thin line. */
 .options {
   display: grid;
   grid-auto-columns: minmax(0, 1fr);
   grid-auto-flow: column;
-  border-block-end: var(--size-line) solid var(--color-line);
+  padding: var(--space-1);
+  border-radius: var(--radius-item);
+  background: var(--color-raised);
 }
 
 .option {
@@ -56,9 +68,11 @@
   cursor: pointer;
 }
 
-/* The chosen option is in ink and semibold, with a line of the signal color under it, which an inset shadow draws so that the text stays in the middle. */
+/* A raised selection stays clear when a reader cannot distinguish its color. */
 .option:has(.optionInput:checked) {
-  box-shadow: inset 0 calc(-1 * var(--size-mark)) 0 var(--color-signal);
+  border-radius: var(--radius-button);
+  background: var(--color-panel);
+  box-shadow: var(--shadow-choice);
   color: var(--color-ink);
   font-weight: 600;
 }
@@ -74,29 +88,22 @@
   cursor: pointer;
 }
 
-.failure,
-.success {
-  font-weight: 600;
+.failure {
+  color: var(--color-loss);
 }
 
-/* The value of a field stands on a line of ink without a box, and it takes the whole width of its form, so a long value stays visible on a phone. */
 .input,
-.numberInput,
 .textArea {
   width: 100%;
   min-height: var(--size-touch-target);
-  padding: 0;
-  border: 0;
-  border-block-end: var(--size-line) solid var(--color-ink);
-  border-radius: 0;
-  background: transparent;
+  min-width: 0;
+  padding: var(--space-2) var(--space-3);
+  border: var(--size-line) solid var(--color-line-strong);
+  border-radius: var(--radius-item);
+  background: var(--color-panel);
   color: inherit;
   font: inherit;
-  font-size: var(--text-field);
-}
-
-.numberInput {
-  font-family: var(--font-numbers);
+  font-size: var(--text-mark);
 }
 
 /* A field of several lines grows taller when the reader drags its corner, so a long text can be read whole, but never wider than its form. */
@@ -104,9 +111,9 @@
   resize: vertical;
 }
 
-/* A field whose value was not accepted gets a thicker line, so the mark does not depend on color. */
-:is(.input, .numberInput, .textArea)[aria-invalid="true"] {
-  border-block-end-width: var(--size-mark);
+/* A thicker border marks a refused value even when a reader cannot see the loss color. */
+:is(.input, .textArea)[aria-invalid="true"] {
+  border: var(--size-mark) solid var(--color-loss);
 }
 
 .checkbox {
@@ -120,20 +127,24 @@
   width: var(--size-touch-target);
   height: var(--size-touch-target);
   margin: 0;
-  accent-color: var(--color-signal);
+  accent-color: var(--color-data);
 }
 
 .button,
 .stepButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: var(--size-touch-target);
   padding-inline: var(--space-4);
   border: 0;
-  border-radius: var(--radius-button);
+  border-radius: var(--radius-item);
   background: var(--color-button);
   color: var(--color-on-button);
   font: inherit;
   font-weight: 600;
   cursor: pointer;
+  text-decoration: none;
 }
 
 /* The button that sends a form spans its width. */
@@ -141,16 +152,21 @@
   align-self: stretch;
 }
 
-/* A rejection and every other failure of a form opens with a line of ink above its title, and uses no color, box, or icon, as decision 0026 sets. */
-.rejection {
+.rejection,
+.success {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   align-self: stretch;
   gap: var(--space-3);
-  padding-block-start: var(--space-3);
-  border-block-start: var(--size-mark) solid var(--color-ink);
+  padding: var(--space-3);
+  border-radius: var(--radius-item);
+  background: var(--color-loss-soft);
   font-size: var(--text-row);
+}
+
+.success {
+  background: var(--color-gain-soft);
 }
 
 .rejectionTitle {
@@ -158,8 +174,56 @@
   font-weight: 600;
 }
 
-.joinLink {
-  display: flex;
+.formColumn,
+.reading,
+.formPage {
+  width: 100%;
+  min-width: 0;
+  margin-inline: auto;
+}
+
+.formColumn,
+.formPage {
+  max-width: var(--width-form);
+}
+
+.reading {
+  max-width: var(--width-reading);
+}
+
+.formPage {
+  composes: panel from "./panel.module.css";
+}
+
+.panel {
+  composes: panel from "./panel.module.css";
+}
+
+:is(.formPage, .formColumn) h1 {
+  font-size: var(--text-stock);
+}
+
+:is(.panel, .formPage, .reading) h2 {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--text-body);
+}
+
+.reading > h1 {
+  font-size: var(--text-lesson-title);
+  letter-spacing: var(--tracking-reading-title);
+}
+
+.link {
+  display: inline-flex;
   align-items: center;
-  min-block-size: var(--size-touch-target);
+  min-height: var(--size-touch-target);
+  overflow-wrap: anywhere;
+}
+
+@media (width >= 60rem) {
+  .panel,
+  .formPage {
+    padding: var(--space-6);
+  }
 }

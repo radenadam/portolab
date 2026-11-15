@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
+import { expectPageHeadings } from "./expect-page-headings.ts";
 import { languageNames } from "../app/language-names.ts";
 import { baseLocale, locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
@@ -12,6 +13,7 @@ const texts: Record<
   {
     badge: string;
     longBadge: string;
+    fallbackBadge: string;
     navigation: string;
     visitorLinks: readonly (readonly [string, string])[];
     switchLabel: string;
@@ -27,6 +29,7 @@ const texts: Record<
   id: {
     badge: "Simulasi · ±10 mnt",
     longBadge: "Simulasi · harga tertunda ±10 mnt",
+    fallbackBadge: "Simulasi · harga tertunda",
     navigation: "Navigasi utama",
     visitorLinks: [
       ["Gabung ke kelas", "/join"],
@@ -46,6 +49,7 @@ const texts: Record<
   en: {
     badge: "Simulation · ±10 min",
     longBadge: "Simulation · prices delayed ±10 min",
+    fallbackBadge: "Simulation · prices delayed",
     navigation: "Main navigation",
     visitorLinks: [
       ["Join a class", "/join"],
@@ -70,7 +74,10 @@ test(`opens the home page in ${languageNames[baseLocale]} for a reader who chose
   await page.goto("/");
   await expect(page.locator("html")).toHaveAttribute("lang", baseLocale);
   await expect(
-    page.getByRole("heading", { level: 1, name: "Masuk" }),
+    page.getByRole("heading", {
+      level: 1,
+      name: texts[baseLocale].signInTitle,
+    }),
   ).toBeVisible();
 });
 
@@ -95,17 +102,13 @@ for (const locale of locales) {
     await chooseLanguage(page, locale);
     await page.goto("/");
     await expect(page).toHaveURL("/sign-in");
-    await expect(
-      page.getByRole("heading", { level: 1, name: text.signInTitle }),
-    ).toBeVisible();
-    await expect(page).toHaveTitle(`${text.signInTitle} | Portolab`);
+    await expectPageHeadings(page, { title: text.signInTitle, headings: [] });
     // A phone shows the short badge of the simulation, and a desktop the long one.
     await expect(
       page.getByRole("button", {
         name: isPhone() ? text.badge : text.longBadge,
       }),
     ).toBeVisible();
-    // The redirected page keeps sign-in current in the visitor navigation.
     const navigation = page.getByRole("navigation", { name: text.navigation });
     await expect(navigation.getByRole("listitem")).toHaveCount(
       text.visitorLinks.length,
@@ -115,7 +118,9 @@ for (const locale of locales) {
         navigation.getByRole("link", { name, exact: true }),
       ).toHaveAttribute("href", path);
     }
-    await expect(navigation.locator("[aria-current]")).toHaveCount(1);
+    await expect(
+      navigation.getByRole("link", { name: text.signInTitle, exact: true }),
+    ).toHaveAttribute("aria-current", "page");
     await openLanguageMenu(page);
     await expect(
       page.getByRole("group", { name: text.switchLabel }),
@@ -124,7 +129,10 @@ for (const locale of locales) {
       page.getByRole("button", { name: languageNames[locale] }),
     ).toHaveAttribute("aria-pressed", "true");
     await expectAccessibleScreen(page);
-    await page.getByRole("link", { name: text.joinLink }).click();
+    await page
+      .getByRole("main")
+      .getByRole("link", { name: text.joinLink })
+      .click();
     await expect(page).toHaveURL("/join");
   });
 
@@ -156,6 +164,9 @@ for (const locale of locales) {
     ).toBeVisible();
     await expect(page).toHaveTitle(`${text.unexpectedErrorTitle} | Portolab`);
     await expect(page.getByText(text.unexpectedErrorBody)).toBeVisible();
+    await expect(
+      page.getByText(text.fallbackBadge, { exact: true }),
+    ).toBeVisible();
     await expectAccessibleScreen(page);
   });
 }

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { redirect } from "react-router";
 import { databaseContext } from "~/database/database.server";
+import { FormPage } from "~/form-page";
 import { pageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
 import type { Route } from "./+types/sign-out-page";
@@ -26,10 +27,9 @@ export async function action({ context, request }: Route.ActionArgs) {
 /** The page of the button that signs out, which the page of the account holds. A plain visit shows the button alone. */
 export default function SignOutPage(): ReactNode {
   return (
-    <>
-      <h1>{m.accounts_sign_out_title()}</h1>
+    <FormPage title={m.accounts_sign_out_title()}>
       <p>{m.accounts_sign_out_body()}</p>
       <SignOutButton />
-    </>
+    </FormPage>
   );
 }

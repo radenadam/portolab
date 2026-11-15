@@ -10,6 +10,7 @@ import { NewPasswordFields } from "~/features/accounts/new-password-fields";
 import { pathReturningTo } from "~/features/accounts/path-returning-to";
 import { FormFailure, SubmitButton } from "~/form";
 import formStyles from "~/form.module.css";
+import { FormPage } from "~/form-page";
 import { formatRupiah } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import type { ClassForStudents } from "./class-store.server";
@@ -28,8 +29,7 @@ export function ClassToJoin({
   failure: string | undefined;
 }): ReactNode {
   return (
-    <>
-      <h1>{m.classes_join_class_title({ class: classToJoin.name })}</h1>
+    <FormPage title={m.classes_join_class_title({ class: classToJoin.name })}>
       <p>
         {m.classes_join_class_body({
           lecturer: classToJoin.lecturerName,
@@ -44,7 +44,7 @@ export function ClassToJoin({
       ) : (
         <NewStudentForm fields={fields} failure={failure} />
       )}
-    </>
+    </FormPage>
   );
 }
 
