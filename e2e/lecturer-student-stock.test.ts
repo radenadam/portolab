@@ -79,11 +79,15 @@ for (const locale of locales) {
             await selectFirstStudent(page);
             const selected = new URL(page.url());
             selected.hash = "selected-student";
-            await page
+            const portfolioLink = page
               .getByRole("dialog")
-              .getByRole("link", { name: text.open, exact: true })
-              .click();
-            const address = new URL(page.url());
+              .getByRole("link", { name: text.open, exact: true });
+            const portfolioAddress = await portfolioLink.getAttribute("href");
+            if (portfolioAddress === null)
+              throw new Error("The selected student has no portfolio address.");
+            const address = new URL(portfolioAddress, page.url());
+            await portfolioLink.click();
+            await expect(page).toHaveURL(address.href);
             let link: Locator;
             switch (source) {
               case "holdings":
