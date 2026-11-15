@@ -88,9 +88,13 @@ export function Frame({
           <header className={styles["topBar"]}>
             <div className={styles["topBarContent"]} data-layout="content">
               {start ?? (
-                <Link to="/" className={styles["mark"]}>
+                <Link
+                  to="/"
+                  aria-label={m.app_name()}
+                  className={styles["mark"]}
+                >
                   <AppIcon />
-                  {m.app_name()}
+                  <span className={styles["markName"]}>{m.app_name()}</span>
                 </Link>
               )}
               <div className={styles["topBarEnd"]}>

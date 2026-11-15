@@ -3,6 +3,7 @@ import { data, redirect } from "react-router";
 import { databaseContext } from "~/database/database.server";
 import { findUser } from "~/features/accounts/current-session.server";
 import { typedText } from "~/form-text";
+import { FormPage } from "~/form-page";
 import { pageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
 import type { Route } from "./+types/join-page";
@@ -71,9 +72,8 @@ export default function JoinPage({
   return loaderData.isLecturer ? (
     <LecturerCannotJoin />
   ) : (
-    <>
-      <h1>{m.classes_join_title()}</h1>
+    <FormPage title={m.classes_join_title()}>
       <CodeForm code={actionData?.code} failure={actionData?.failure} />
-    </>
+    </FormPage>
   );
 }

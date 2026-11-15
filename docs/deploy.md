@@ -112,7 +112,7 @@ systemctl reload caddy
 
 When section 2 found Caddy on the server, the file `/etc/caddy/Caddyfile` holds its other sites, so write `>>` in place of `>` in the first command. The command then adds Portolab at the end of the file and keeps those sites.
 
-Caddy now gets a certificate for the domain from Let's Encrypt. Open `https://portolab.example.com` with your domain in a browser, and the home page of Portolab appears.
+Caddy now gets a certificate for the domain from Let's Encrypt. Open `https://portolab.example.com` with your domain in a browser to check that Portolab answers.
 
 When the page does not appear within a few minutes, the log of Caddy names the reason, such as a DNS record that does not lead to the server yet:
 

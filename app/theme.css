@@ -1,4 +1,4 @@
-/* Decision 0028 sets the palette, the fonts, which app/root.tsx loads, the frame, and the width of content of Peta. The other sizes of text, the spaces, and the widths of the columns are still those of decision 0026, because the screens that issue #127 has not rebuilt yet are laid out with them. */
+/* The screens that issue #127 has not rebuilt yet still need the older sizes beside the tokens of Peta. */
 :root {
   color-scheme: light dark;
 
@@ -51,7 +51,7 @@
   --text-stock-price: 2.5rem;
   --text-statistic: 1.125rem;
   --text-stock: 1.25rem;
-  --text-field: 1.0625rem;
+  --tracking-reading-title: -0.02em;
   --text-mark: 0.9375rem;
   --text-body: 0.875rem;
   --text-row: 0.84375rem;
@@ -90,6 +90,7 @@
   --width-ranking-search: 14rem;
   --color-backdrop: rgba(15, 24, 32, 0.48);
   --width-aside: 21.5rem;
+  --width-form: 25rem;
   --width-reading: 48.75rem;
   --size-learning-icon: 1rem;
   --width-rail: 4.75rem;
