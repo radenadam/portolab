@@ -240,7 +240,6 @@ export function RiskMap<Across extends number, Up extends number>({
   );
 }
 
-/** The IHSG and every other point with the kind of its mark, in the order of the points after the IHSG. */
 function riskMapClass(fill: boolean, compact: boolean): string {
   return [
     styles["riskMap"],

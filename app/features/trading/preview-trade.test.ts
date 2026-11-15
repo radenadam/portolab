@@ -1,8 +1,8 @@
 import { expect, test } from "vitest";
 import { successValueForTest } from "~/success-value-for-test";
+import { deleteStockClosesBeforeForTest } from "~/features/market-data/delete-stock-closes-before-for-test.server";
 import {
   cashValuationForTest,
-  aadiValuationForTest,
   ammnValuationForTest,
 } from "~/features/measures/measures-for-test.server";
 import { portfolioWeight } from "~/units/portfolio-weight";
@@ -168,14 +168,24 @@ test("measures cash alone before a first purchase and after a sale of the last h
   }
 });
 
-test("refuses to invent measures for a held stock with too few returns even when its sale removes it", async () => {
-  const { ticket } = await tradePortfolioForTest(
-    "AADI",
-    aadiValuationForTest(),
+test("refuses to invent measures after older closes of a held stock are deleted, even when its sale removes it", async () => {
+  const { database, portfolio } = await tradePortfolioForTest();
+  deleteStockClosesBeforeForTest(database, "BBCA", "2026-10-26");
+  const ticket = readTicket(database, portfolio, {
+    code: "BBCA",
+    now: duringSessionForTest,
+    delayMinutes: bbcaForTest.delayMinutes,
+  });
+  const input = successValueForTest(
+    ticket.impact,
+    "The holdings have their quotes",
   );
+  const selected = input.stocks.find((stock) => stock.code === "BBCA");
+  expect(selected?.closes).toEqual([{ date: "2026-10-30", close: 4980 }]);
+  expect(selected?.shares).toBe(5500);
   const result = previewTrade(
-    successValueForTest(ticket.impact, "AADI has its quote"),
-    saleForTest({ code: "AADI", lots: orderLotsForTest(10) }),
+    input,
+    saleForTest({ lots: orderLotsForTest(55) }),
     {
       day: successValueForTest(ticket.day, "The rules are stored"),
       quote: ticket.quote,
@@ -185,7 +195,7 @@ test("refuses to invent measures for a held stock with too few returns even when
     ok: false,
     failure: {
       kind: "measures",
-      failure: { kind: "tooFewReturns", code: "AADI", count: 21, minimum: 24 },
+      failure: { kind: "tooFewReturns", code: "BBCA", count: 0, minimum: 24 },
     },
   });
 });

@@ -60,8 +60,7 @@ const texts: Record<
     zeroWeight: "0,0%",
     months:
       "Portofolio Anda memakai 60 bulan. Perbandingan ini memakai 38 imbal hasil bulanan yang sama sebelum dan sesudah order, dari Agustus 2023 sampai September 2026, karena mencakup saham order ini.",
-    tooFew:
-      "Saham Anda dan IHSG baru sama-sama memiliki 21 imbal hasil bulanan",
+    tooFew: "Saham Anda dan IHSG baru sama-sama memiliki 0 imbal hasil bulanan",
     cap: "50.000",
   },
   en: {
@@ -91,7 +90,7 @@ const texts: Record<
     zeroWeight: "0.0%",
     months:
       "Your portfolio uses 60 months. This comparison uses the same 38 monthly returns before and after the order, from August 2023 to September 2026, because it includes the stock of this order.",
-    tooFew: "Your stocks and the IHSG share 21 monthly returns",
+    tooFew: "Your stocks and the IHSG share 0 monthly returns",
     cap: "50,000",
   },
 };

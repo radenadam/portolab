@@ -28,9 +28,11 @@ export async function tradeImpactStudent(
         cash: rupiah(10_000_000),
       },
       unmeasured: {
-        code: "AADI",
+        // ADMR had enough returns when bought, then its history was cleared. The shared fixture leaves its closes empty.
+        code: "ADMR",
         shares: shares(1_000),
-        cost: rupiah(11_492_213),
+        // Python Decimal gives Rp1,251,875 for the recorded Rp1,250 quote, 1,000 shares, and the 0.15% broker fee.
+        cost: rupiah(1_251_875),
         cash: rupiah(10_000_000),
       },
     };
