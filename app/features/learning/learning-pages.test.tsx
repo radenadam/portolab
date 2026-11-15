@@ -26,6 +26,7 @@ const texts: Record<
     interactive: string;
     interactiveWeek: string;
     availablePractice: string;
+    full: string;
     glossary: string;
     glossaryLink: string;
     session: string;
@@ -48,6 +49,7 @@ const texts: Record<
     interactiveWeek: "Pelajaran interaktif · minggu ini",
     availablePractice: "Ada praktik dengan portofolio Anda",
     title: "Belajar",
+    full: "Buka di Belajar",
     glossary: "Kamus",
     glossaryLink: "Kamus istilah",
     session: "Sesi 9",
@@ -74,6 +76,7 @@ const texts: Record<
     interactiveWeek: "Interactive lesson · this week",
     availablePractice: "Includes practice with your portfolio",
     title: "Learn",
+    full: "Open in Learn",
     glossary: "Glossary",
     glossaryLink: "Glossary",
     session: "Session 9",
@@ -207,17 +210,36 @@ for (const locale of locales) {
       const practice = hasLessonPractice(lesson.session)
         ? lessonPracticeForTest()
         : undefined;
-      const markup = renderMarkupForTest(
-        <LessonView
-          classId={classId}
-          lesson={lesson}
-          terms={terms}
-          practice={practice}
-          previous={lessons[index - 1]}
-          next={lessons[index + 1]}
-          returnTo="/classes/7/stocks/BBCA?range=3m"
-        />,
+      const props = {
+        classId,
+        lesson,
+        terms,
+        practice,
+        previous: lessons[index - 1],
+        next: lessons[index + 1],
+        returnTo: "/classes/7/stocks/BBCA?range=3m",
+      };
+      const markup = renderMarkupForTest(<LessonView {...props} />);
+      const sheet = renderMarkupForTest(
+        <LessonView {...props} inSheet idPrefix="sheet-" />,
       );
+      expect(sheet).toContain(text.full);
+      expect(sheet).not.toContain("<h1");
+      expect(sheet).not.toContain(`aria-label="${text.lessons}"`);
+      expect(sheet).toContain('id="sheet-key-terms"');
+      expect(sheet).toContain(`/learn/${String(lesson.session)}?returnTo=`);
+      if (practice !== undefined) {
+        expect(sheet).toContain('href="#sheet-practice"');
+        expect(sheet).toContain('id="sheet-practice"');
+        expect(sheet).not.toContain('id="practice"');
+        expect(sheet).toContain(
+          'aria-labelledby="sheet-lesson-interactive-title"',
+        );
+        if (lesson.session === 9) {
+          expect(sheet).toContain('id="sheet-lesson-alpha-TLKM"');
+          expect(sheet).toContain('popoverTarget="sheet-lesson-alpha-TLKM"');
+        }
+      }
       expect(markup).toContain(text.return);
       expect(markup).toContain(text.terms);
       if (practice === undefined)
@@ -226,10 +248,11 @@ for (const locale of locales) {
       const blocks = lesson.sections.flatMap((section) =>
         "blocks" in section && section.id !== "summary" ? section.blocks : [],
       );
-      expectParagraphs(markup, [
-        ...blocks,
-        ...terms.flatMap((term) => term.blocks),
-      ]);
+      for (const rendered of [markup, sheet])
+        expectParagraphs(rendered, [
+          ...blocks,
+          ...terms.flatMap((term) => term.blocks),
+        ]);
       expect(markup).not.toContain("{{");
       expect(markup.includes('id="practice"')).toBe(practice !== undefined);
       expect(markup).not.toContain("<input");

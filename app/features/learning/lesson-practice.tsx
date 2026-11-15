@@ -23,11 +23,15 @@ export function LessonPractice({
   lesson,
   practice,
   children,
+  idPrefix = "",
+  taskPage,
 }: {
   classId: ClassId;
   lesson: SessionContent;
   practice: LessonPracticeData;
   children: ReactNode;
+  idPrefix?: string;
+  taskPage?: string | undefined;
 }): ReactNode {
   const report = practice.report;
   const own = practicePortfolio(report);
@@ -46,12 +50,14 @@ export function LessonPractice({
       classId={classId}
       lesson={lesson}
       practice={practice}
+      idPrefix={idPrefix}
+      taskPage={taskPage}
     />
   );
   const practiceAlpha = (
-    <PracticePanel>
+    <PracticePanel idPrefix={idPrefix}>
       <p className={styles["muted"]}>{m.learning_alpha_practice_notice()}</p>
-      <LessonAlpha holdings={practice.holdings} />
+      <LessonAlpha holdings={practice.holdings} idPrefix={idPrefix} />
       <div className={styles["task"]}>
         <p>
           <strong>{m.learning_task_label()}</strong>{" "}
@@ -70,6 +76,7 @@ export function LessonPractice({
       portfolio={practice.simulation}
       own={own}
       explanation={explanation}
+      idPrefix={idPrefix}
     >
       {ownNumbers}
       {children}
@@ -81,6 +88,7 @@ export function LessonPractice({
         lesson={lesson}
         practice={practice}
         explanation={explanation}
+        idPrefix={idPrefix}
       />
       {ownNumbers}
       {children}
@@ -95,10 +103,12 @@ function UnavailableLessonInteractive({
   lesson,
   practice,
   explanation,
+  idPrefix,
 }: {
   lesson: SessionContent;
   practice: LessonPracticeData;
   explanation: ReactNode;
+  idPrefix: string;
 }): ReactNode {
   return practice.market === undefined ? (
     <section className={styles["interactive"]}>
@@ -119,7 +129,11 @@ function UnavailableLessonInteractive({
       {explanation}
     </section>
   ) : lesson.session === 9 ? (
-    <LessonCapm practice={practice} explanation={explanation} />
+    <LessonCapm
+      practice={practice}
+      explanation={explanation}
+      idPrefix={idPrefix}
+    />
   ) : (
     <section className={styles["interactive"]}>
       <h2>{m.learning_allocation_interactive_title()}</h2>

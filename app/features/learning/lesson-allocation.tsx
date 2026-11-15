@@ -25,11 +25,13 @@ export function LessonAllocation({
   own,
   explanation,
   children,
+  idPrefix = "",
 }: {
   portfolio: PortfolioSummary;
   own: PortfolioSummary | undefined;
   explanation: ReactNode;
   children: ReactNode;
+  idPrefix?: string;
 }): ReactNode {
   const [weights, setWeights] = useState<ReadonlyMap<string, PortfolioWeight>>(
     () => new Map(),
@@ -55,10 +57,10 @@ export function LessonAllocation({
     <>
       <section
         className={styles["interactive"]}
-        aria-labelledby="lesson-interactive-title"
+        aria-labelledby={`${idPrefix}lesson-interactive-title`}
       >
         <div className={styles["head"]}>
-          <h2 id="lesson-interactive-title">
+          <h2 id={`${idPrefix}lesson-interactive-title`}>
             {m.learning_allocation_interactive_title()}
           </h2>
           {interactive && (
@@ -80,7 +82,7 @@ export function LessonAllocation({
           <LessonSlider
             key={holding.code}
             kind="weight"
-            id={`lesson-weight-${holding.code}`}
+            id={`${idPrefix}lesson-weight-${holding.code}`}
             label={holding.code}
             text={formatPercent(holding.weight, "two")}
             value={holding.weight * 100}
@@ -153,6 +155,7 @@ export function LessonAllocation({
         <LessonRiskPractice
           portfolio={own}
           current={measured.standardDeviation.value}
+          idPrefix={idPrefix}
         />
       )}
     </>

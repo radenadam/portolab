@@ -105,6 +105,7 @@ export function loader({ context, params, request, url }: Route.LoaderArgs) {
   return {
     classId,
     task: readLessonTask(url),
+    draftKey: `${String(reader.id)}:${stockPath(classId, code)}`,
     ...stockReturnDestination({ classId, role: reader.role, url, request }),
     code,
     quote,
@@ -147,7 +148,7 @@ export default function StockPage({
   const location = useLocation();
   const visibleTask = ticket === null ? stock.task : undefined;
   return (
-    <TicketDraftMemory key={code}>
+    <TicketDraftMemory key={stock.draftKey} storageKey={stock.draftKey}>
       <div
         className={ticket === null ? undefined : styles["withTicket"]}
         data-layout={ticket === null ? undefined : "columns"}

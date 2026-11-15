@@ -16,8 +16,10 @@ import styles from "./lesson-practice.module.css";
 
 export function LessonAlpha({
   holdings,
+  idPrefix = "",
 }: {
   holdings: readonly AnalysisHolding[];
+  idPrefix?: string;
 }): ReactNode {
   const rows = holdings.toSorted(
     (first, second) => first.distance - second.distance,
@@ -30,7 +32,7 @@ export function LessonAlpha({
     <div>
       {rows.map((holding) => {
         const change = formatSignedPercent(holding.distance);
-        const id = `lesson-alpha-${holding.code}`;
+        const id = `${idPrefix}lesson-alpha-${holding.code}`;
         return (
           <div key={holding.code}>
             <PopoverButton

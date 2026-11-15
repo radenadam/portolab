@@ -38,6 +38,13 @@ export interface OrderFormFields {
   reasonFailure: string | undefined;
 }
 
+export const orderDraftFields = [
+  ["priceKind", "priceKindFailure"],
+  ["lots", "lotsFailure"],
+  ["limit", "limitFailure"],
+  ["reason", "reasonFailure"],
+] as const;
+
 // The example shows a group of digits in the format of the language, as the example of every whole number does.
 const limitExample = 1_000;
 

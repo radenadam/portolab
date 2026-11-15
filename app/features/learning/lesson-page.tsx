@@ -1,8 +1,7 @@
 import type { ReactNode } from "react";
 import { data } from "react-router";
 import { pageTitle } from "~/page-title";
-import { parseReturnPath } from "~/parse-return-path";
-import { writeLog } from "~/write-log.server";
+import { readLearningReturnPath } from "./read-learning-return-path.server";
 import type { Route } from "./+types/lesson-page";
 import { isLessonKind, lessonTerms } from "./content";
 import { parseSessionNumber } from "./parse-session-number";
@@ -23,12 +22,6 @@ export function loader({ context, params, url, request }: Route.LoaderArgs) {
   const index = lessons.findIndex((entry) => entry.session === session.value);
   const lesson = lessons[index];
   if (lesson === undefined) throw data(null, { status: 404 });
-  const returnTo = url.searchParams.get("returnTo");
-  const returnPath =
-    returnTo === null
-      ? undefined
-      : parseReturnPath(returnTo, "returnTo", url.origin);
-  if (returnPath?.ok === false) writeLog("warning", returnPath.failure);
   return {
     classId,
     lesson,
@@ -43,7 +36,7 @@ export function loader({ context, params, url, request }: Route.LoaderArgs) {
           now: new Date(),
         })
       : undefined,
-    returnTo: returnPath?.ok === true ? returnPath.value : undefined,
+    returnTo: readLearningReturnPath(url.searchParams.get("returnTo"), url),
   };
 }
 

@@ -22,14 +22,18 @@ export function LessonUnavailablePractice({
   classId,
   lesson,
   practice,
+  idPrefix = "",
+  taskPage,
 }: {
   classId: ClassId;
   lesson: SessionContent;
   practice: LessonPracticeData;
+  idPrefix?: string;
+  taskPage?: string | undefined;
 }): ReactNode {
   const report = practice.report;
   return (
-    <PracticePanel>
+    <PracticePanel idPrefix={idPrefix}>
       {report?.kind === "noHoldings" ? (
         <div className={styles["task"]}>
           <p>
@@ -37,12 +41,21 @@ export function LessonUnavailablePractice({
             {m.learning_first_stock_task_notice()}
           </p>
           <Link
-            className={styles["button"]}
-            to={pathWithQuery(marketPath(classId), {
-              [lessonTaskField]: String(lesson.session),
-            })}
+            className={
+              taskPage === undefined
+                ? styles["button"]
+                : learningStyles["button"]
+            }
+            to={
+              taskPage ??
+              pathWithQuery(marketPath(classId), {
+                [lessonTaskField]: String(lesson.session),
+              })
+            }
           >
-            {m.learning_first_stock_link()}
+            {taskPage === undefined
+              ? m.learning_first_stock_link()
+              : m.learning_open_practice_link()}
             <Icon name="arrowRight" className={learningStyles["icon"]} />
           </Link>
         </div>

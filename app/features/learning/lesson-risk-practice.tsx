@@ -20,9 +20,11 @@ import styles from "./lesson-practice.module.css";
 export function LessonRiskPractice({
   portfolio,
   current,
+  idPrefix = "",
 }: {
   portfolio: PortfolioSummary;
   current: MonthlyReturn;
+  idPrefix?: string;
 }): ReactNode {
   const risks = portfolio.holdingRisks;
   const rows = risks.ok
@@ -53,7 +55,7 @@ export function LessonRiskPractice({
   const position = (value: number): string =>
     percentOf(plotFraction((value - minimum) / (maximum - minimum)));
   return (
-    <PracticePanel>
+    <PracticePanel idPrefix={idPrefix}>
       {risks.ok ? (
         <>
           <p className={styles["muted"]}>{m.learning_risk_practice_notice()}</p>

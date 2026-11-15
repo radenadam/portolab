@@ -43,9 +43,11 @@ const texts: Record<
     done: string;
     missingComparison: string;
     negativePair: string;
+    openPractice: string;
   }
 > = {
   id: {
+    openPractice: "Kerjakan di halaman pelajaran",
     missingComparison: "sekarang Tidak ada",
     negativePair: "50,00% × 50,00% × (-0,572) = -0,143",
     zero: "Imbal hasil harapan 25,00%, risiko 0,00%, Sharpe Tidak ada, dan Treynor Tidak ada per bulan. Penggeser dimulai dari bobot portofolio Anda sekarang.",
@@ -63,6 +65,7 @@ const texts: Record<
     done: "Tercapai. Perhatikan juga apa yang terjadi pada imbal hasil harapan.",
   },
   en: {
+    openPractice: "Work on the lesson page",
     missingComparison: "current None",
     negativePair: "50.00% × 50.00% × (-0.572) = -0.143",
     zero: "Expected return is 25.00%, risk 0.00%, Sharpe None, and Treynor None per month. The sliders start at your current portfolio weights.",
@@ -242,6 +245,19 @@ for (const locale of locales) {
       if (prose?.kind !== "paragraph") throw new Error("The lesson has prose.");
       expect(markup).toContain(markupTextForTest(prose.text));
       const text = markup.replaceAll(/<[^>]+>/gu, "");
+      const taskPage = `/classes/7/learn/${String(lesson.session)}#practice`;
+      const sheet = renderMarkupForTest(
+        <LessonPractice
+          classId={7 as ClassId}
+          lesson={lesson}
+          practice={practice}
+          taskPage={taskPage}
+        >
+          {null}
+        </LessonPractice>,
+      );
+      expect(sheet).toContain(texts[locale].openPractice);
+      expect(sheet).toContain(`href="${taskPage}"`);
       if (lesson.session === 9) {
         expect(text).toContain("kp = Rf + βp(E(RM) − Rf)");
         expect(text).toContain("Rf = BI-Rate / 12");

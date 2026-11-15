@@ -45,9 +45,11 @@ const texts: Record<
     noValue: string;
     fractionalCash: string;
     changedFractionalCash: string;
+    full: string;
   }
 > = {
   id: {
+    full: "Buka di Belajar",
     apply: "Terapkan",
     clear: "Hapus filter",
     currentValues: [
@@ -92,6 +94,7 @@ const texts: Record<
     afterCash: "Kas 70,00%. Kas tidak berisiko dan tidak berbunga.",
   },
   en: {
+    full: "Open in Learn",
     apply: "Apply",
     clear: "Clear filters",
     currentValues: [
@@ -379,6 +382,73 @@ for (const locale of locales) {
       );
     });
   }
+
+  test(`uses the exercises inside lesson sheets in ${languageNames[locale]}`, async ({
+    page,
+    browser,
+  }, testInfo) => {
+    test.setTimeout(120_000);
+    const { lecturer, classPath } = await openAsNewStudent(page, browser, {
+      locale,
+      path: "/glossary",
+      givePortfolio: storeLessonPortfolio,
+    });
+    try {
+      for (const session of practiceSessions) {
+        await page.goto(
+          `${classPath}/glossary?q=${session === 9 ? "CAPM" : "divers"}`,
+        );
+        const address = page.url();
+        const source = page
+          .locator(`main a[href*="/learn/${String(session)}?"]`)
+          .first();
+        await source.click();
+        const lesson = page.getByRole("dialog").filter({
+          has: page.getByRole("link", { name: text.full, exact: true }),
+        });
+        await expect(lesson).toBeVisible();
+        await expect(lesson.getByRole("slider").first()).toBeVisible();
+        if (session === 9) {
+          await lesson
+            .getByRole("slider", { name: text.beta, exact: true })
+            .fill("1");
+          await expect(
+            lesson.getByText(text.capmResult, { exact: true }),
+          ).toBeVisible();
+          await lesson
+            .getByRole("button", { name: /TLKM.*(?:Buka|Open)/u })
+            .click();
+          await expect(
+            lesson.locator('[id$="lesson-alpha-TLKM"]'),
+          ).toBeVisible();
+          await page.keyboard.press("Escape");
+        } else {
+          await lesson
+            .getByRole("slider", { name: "BBCA", exact: true })
+            .fill("0");
+          await expect(
+            lesson.getByText(text.afterCash, { exact: true }),
+          ).toBeVisible();
+        }
+        await expectAccessibleScreen(page);
+        await captureScreens(page, testInfo, {
+          name: `lesson-sheet-${String(session)}-${locale}`,
+          fullPage: false,
+          fromTop: false,
+        });
+        await lesson
+          .getByRole("link", { name: text.skip, exact: true })
+          .click();
+        await expect(lesson.locator('[id$="practice"]')).toBeInViewport();
+        await expect(page).toHaveURL(address);
+        await page.keyboard.press("Escape");
+        await expect(lesson).toHaveCount(0);
+        await expect(source).toBeFocused();
+      }
+    } finally {
+      await lecturer.context().close();
+    }
+  });
 
   test.describe(`before JavaScript loads in ${languageNames[locale]}`, () => {
     test.use({ javaScriptEnabled: false });

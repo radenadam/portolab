@@ -23,9 +23,11 @@ import styles from "./lesson-practice.module.css";
 export function LessonCapm({
   practice,
   explanation,
+  idPrefix = "",
 }: {
   practice: LessonPracticeData;
   explanation: ReactNode;
+  idPrefix?: string;
 }): ReactNode {
   const [selected, setSelected] = useState(practice.initialBeta);
   const [showHoldings, setShowHoldings] = useState(true);
@@ -61,7 +63,7 @@ export function LessonCapm({
         up: holding.expectedReturn,
         stem: holding.requiredReturn.value,
         mark: { kind: "held", weight: undefined },
-        popover: `lesson-alpha-${holding.code}`,
+        popover: `${idPrefix}lesson-alpha-${holding.code}`,
         values: [
           {
             name: m.learning_analysis_beta_label(),
@@ -76,13 +78,13 @@ export function LessonCapm({
   return (
     <section
       className={styles["interactive"]}
-      aria-labelledby="lesson-interactive-title"
+      aria-labelledby={`${idPrefix}lesson-interactive-title`}
     >
-      <h2 id="lesson-interactive-title">
+      <h2 id={`${idPrefix}lesson-interactive-title`}>
         {m.learning_capm_interactive_title()}
       </h2>
       <LessonSlider
-        id="lesson-beta"
+        id={`${idPrefix}lesson-beta`}
         kind="beta"
         label={m.learning_analysis_beta_label()}
         text={formatBeta(selected)}
@@ -118,7 +120,7 @@ export function LessonCapm({
             name: "",
             start: { across: beta(0), up: market.riskFreeRate.value },
           }}
-          labelledBy="lesson-interactive-title"
+          labelledBy={`${idPrefix}lesson-interactive-title`}
           fill
         />
       </div>

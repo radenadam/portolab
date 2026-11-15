@@ -8,6 +8,7 @@ import { m } from "~/paraglide/messages.js";
 import type { SessionContent } from "./content";
 import { cannotPractiseSession, isLessonKind } from "./content";
 import { ContentParagraphs } from "./content-paragraphs";
+import { LearningLink } from "./learning-link";
 import { glossaryPath, lessonPath } from "./learning-paths";
 import { sessionKindLabel, sessionLabel } from "./session-text";
 import styles from "./learning.module.css";
@@ -26,10 +27,10 @@ export function LearningIndex({
     <div className={styles["index"]}>
       <header className={styles["tools"]}>
         <h1>{m.learning_title()}</h1>
-        <Link to={glossaryPath(classId)} className={styles["button"]}>
+        <LearningLink to={glossaryPath(classId)} className={styles["button"]}>
           <Icon name="book" className={styles["icon"]} />
           {m.learning_glossary_link()}
-        </Link>
+        </LearningLink>
       </header>
       <div className={styles["grid"]} data-layout="columns">
         {sessions.map((lesson) => {
