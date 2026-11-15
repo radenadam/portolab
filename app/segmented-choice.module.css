@@ -28,12 +28,12 @@
   text-decoration: none;
 }
 
-:where(.choice) a[aria-current="page"] {
+:where(.choice) a[aria-current] {
   color: var(--color-ink);
   font-weight: 600;
 }
 
-:where(.choice) a[aria-current="page"]::before {
+:where(.choice) a[aria-current]::before {
   position: absolute;
   inset: var(--choice-inset, calc(var(--space-2) - var(--size-line))) 0;
   z-index: -1;

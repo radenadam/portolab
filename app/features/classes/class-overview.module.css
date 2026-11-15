@@ -53,11 +53,6 @@
 
 .choice {
   composes: choice compact from "../../segmented-choice.module.css";
-  font-size: var(--text-caption);
-}
-
-.choice > [aria-current] {
-  font-weight: 600;
 }
 
 .strip {
