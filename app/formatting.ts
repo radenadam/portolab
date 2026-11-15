@@ -1,6 +1,6 @@
 import { decimalPlaceOptions } from "./decimal-place-options.ts";
 import { startOfUtcDate } from "~/calendar-dates";
-import { getLocale } from "~/paraglide/runtime.js";
+import { intlLocale } from "./intl-locale.ts";
 import { listOfWords } from "~/sentences";
 import type { Beta } from "~/units/beta";
 import type { Bytes } from "~/units/bytes";
@@ -11,12 +11,6 @@ import type { Rupiah } from "~/units/rupiah";
 import type { SplitAdjustedRupiah } from "~/units/split-adjusted-rupiah";
 import type { SharpeRatio } from "~/units/sharpe-ratio";
 import { wibTimeZone } from "~/wib";
-
-const intlLocales = { id: "id-ID", en: "en-US" } as const;
-
-function intlLocale(): string {
-  return intlLocales[getLocale()];
-}
 
 const rupiahOptions: Intl.NumberFormatOptions = {
   style: "currency",
@@ -77,8 +71,13 @@ const numberOptions = { maximumFractionDigits: mostNumberDecimals };
 /** The smallest step between the marks of an axis whose texts formatNumber writes, so no two marks read the same. */
 export const smallestNumberStep = 10 ** -mostNumberDecimals;
 
-export function formatNumber(value: number): string {
-  return new Intl.NumberFormat(intlLocale(), numberOptions).format(value);
+export function formatNumber(value: number, decimals?: number): string {
+  return formatDecimal(
+    value,
+    decimals === undefined
+      ? numberOptions
+      : decimalPlaceOptions(decimals, "auto"),
+  );
 }
 
 /** A split can divide a historic close into fractional rupiah, so it keeps the precision of other numbers rather than rounding to an amount of cash. */

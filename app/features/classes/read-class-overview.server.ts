@@ -1,3 +1,13 @@
+import { readLessonSessions } from "~/features/learning/read-lesson-sessions.server";
+import { classFlags } from "./class-flags";
+import { classDiscussion } from "./class-discussion";
+import { classCalendarOf } from "./course-calendar";
+import type { TeachingStudent } from "./class-teaching";
+import { lotCount } from "~/features/trading/count-parts";
+import { studentPortfolioPath } from "~/features/grading/grading-paths";
+import { pathReturningTo } from "~/features/accounts/path-returning-to";
+import { studentReasonsSectionId } from "~/features/trading/student-reasons-section-id";
+import { classPath } from "./class-path";
 import type { Database } from "~/database/database.server";
 import { startOfWeek } from "~/calendar-dates";
 import { holdingQuoteFailureText } from "~/features/trading/holding-quote-failure-text";
@@ -22,7 +32,17 @@ import { classSummary } from "./class-summary";
 // A name stays opaque when the view keeps formatted quantities together.
 const studentNameBoundary = "\u0000";
 
-type OverviewClass = Pick<TaughtClassRecord, "id" | "startingCash">;
+interface OverviewOptions {
+  request: Request;
+  now: Date;
+  delayMinutes: number;
+  sourcePath?: string | undefined;
+}
+
+type OverviewClass = Pick<
+  TaughtClassRecord,
+  "id" | "startingCash" | "firstSessionDate"
+>;
 
 interface OverviewStudent extends Pick<
   ClassStudent,
@@ -42,6 +62,15 @@ interface OverviewStudent extends Pick<
 /** The portfolios of a class, with only the values and texts that its overview draws. */
 export interface ClassOverview {
   students: OverviewStudent[];
+  flags: ReturnType<typeof classFlags>;
+  discussion: ReturnType<typeof classDiscussion>;
+  reasons: {
+    key: string;
+    name: string;
+    heading: string;
+    reason: string;
+    href: string;
+  }[];
   summary: ReturnType<typeof classSummary>;
   marketDeviation: MonthlyReturn | undefined;
   quoteFailure: string | undefined;
@@ -54,11 +83,7 @@ export interface ClassOverview {
 export function readClassOverview(
   database: Database,
   taught: OverviewClass,
-  {
-    request,
-    now,
-    delayMinutes,
-  }: { request: Request; now: Date; delayMinutes: number },
+  { request, now, delayMinutes, sourcePath }: OverviewOptions,
 ): ClassOverview {
   const rows: ReturnType<typeof readOverviewStudent>[] = [];
   const compared: { portfolio: CumulativeReturn; market: CumulativeReturn }[] =
@@ -74,6 +99,7 @@ export function readClassOverview(
         request,
         now,
         delayMinutes,
+        sourcePath,
       },
     );
     const { overview } = read;
@@ -93,12 +119,39 @@ export function readClassOverview(
     sharedQuoteTime(quotes) ??
     (latest === undefined ? undefined : formatMarketTime(latest));
   const market = measureStoredMarket(database);
+  const summary = classSummary(compared, risks);
+  const lessonSessions = readLessonSessions();
+  if (!lessonSessions.ok) throw new Error(lessonSessions.failure);
+  const facts: TeachingStudent[] = rows.map((row) => ({
+    ...row.overview,
+    ...row.facts,
+  }));
+  const reasons = rows
+    .flatMap((row) => row.reasons)
+    .toSorted(
+      (first, second) =>
+        second.time - first.time || second.orderId - first.orderId,
+    );
   return {
+    flags: classFlags(facts, taught.id),
+    discussion: classDiscussion(facts, {
+      lessonSessions: lessonSessions.value,
+      calendar: classCalendarOf(taught.firstSessionDate, now),
+      summary,
+      now,
+    }),
+    reasons: reasons.map(({ key, name, heading, reason, href }) => ({
+      key,
+      name,
+      heading,
+      reason,
+      href,
+    })),
     students: rows.map((row) => ({
       ...row.overview,
       priceTimes: portfolioPriceTimes(row, pricesAt),
     })),
-    summary: classSummary(compared, risks),
+    summary,
     marketDeviation: market.ok
       ? market.value.standardDeviation.value
       : undefined,
@@ -118,7 +171,7 @@ export function readClassOverview(
 function readOverviewStudent(
   database: Database,
   { taught, student }: { taught: OverviewClass; student: ClassStudent },
-  options: { request: Request; now: Date; delayMinutes: number },
+  options: OverviewOptions,
 ) {
   const portfolio = readCurrentPortfolio(
     database,
@@ -146,6 +199,48 @@ function readOverviewStudent(
   return {
     report,
     quotes,
+    facts: {
+      holdingCount: portfolio.holdings.length,
+      cash: portfolio.cash,
+      value: report.valuation.total?.value,
+      orderHistory:
+        portfolio.orders.length === 0
+          ? "none"
+          : portfolio.orders.some((order) => order.state.kind === "filled")
+            ? "filled"
+            : "unfilled",
+    } satisfies Pick<
+      TeachingStudent,
+      "holdingCount" | "cash" | "value" | "orderHistory"
+    >,
+    reasons: portfolio.orders.flatMap((order) => {
+      if (order.state.kind !== "filled" || order.reason === undefined)
+        return [];
+      const inputs = {
+        lots: lotCount(order.lots),
+        code: order.code,
+        time: formatMarketTime(order.state.fill.filledAt),
+      };
+      const headings = {
+        buy: m.classes_reason_purchase_notice,
+        sell: m.classes_reason_sale_notice,
+      };
+      return [
+        {
+          key: String(order.id),
+          orderId: order.id,
+          name: student.name,
+          heading: headings[order.side](inputs),
+          reason: order.reason,
+          time: order.state.fill.filledAt.getTime(),
+          href:
+            pathReturningTo(
+              studentPortfolioPath(taught.id, student.id),
+              `${options.sourcePath ?? classPath(taught.id)}#class-reasons`,
+            ) + `#${studentReasonsSectionId}`,
+        },
+      ];
+    }),
     overview: {
       id: student.id,
       name: student.name,

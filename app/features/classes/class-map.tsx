@@ -112,6 +112,7 @@ export function ClassMap({
         </p>
       ) : (
         <RiskMap
+          fill
           labelledBy="class-map-heading"
           coloredValues
           market={{
@@ -176,6 +177,11 @@ export function ClassMap({
           label={m.classes_median_beta_label()}
         />
       </div>
+      {overview.quoteFailure !== undefined && (
+        <p className={styles["empty"]}>
+          <NumberText>{overview.quoteFailure}</NumberText>
+        </p>
+      )}
     </section>
   );
 }

@@ -5,7 +5,7 @@ import { languageNames } from "~/language-names";
 import { renderTextMarkupForTest } from "~/render-text-markup-for-test";
 import { MemoryRouter } from "react-router";
 import { expect, test } from "vitest";
-import { classOfStudentsForTest } from "~/features/grading/class-of-students-for-test.server";
+import { classOverviewForTest } from "./class-overview-for-test.server";
 import type { Locale } from "~/paraglide/runtime.js";
 import { locales } from "~/paraglide/runtime.js";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
@@ -150,12 +150,7 @@ for (const locale of locales) {
   });
   test(`draws the class map and its data before JavaScript, with either risk axis and all count forms in ${languageNames[locale]}`, async () => {
     switchLocaleForTest(locale);
-    const { database, taughtClass } = await classOfStudentsForTest();
-    const overview = readClassOverview(database, taughtClass, {
-      request: new Request("http://localhost/"),
-      now: new Date("2026-10-30T09:20:00Z"),
-      delayMinutes: 10,
-    });
+    const { overview, taughtClass } = await classOverviewForTest();
     const renders: string[] = [];
     const render = (shown: typeof overview, axis: ClassMapAxis): string =>
       renderTextMarkupForTest(

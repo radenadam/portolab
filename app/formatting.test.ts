@@ -2,6 +2,7 @@ import { expect, test } from "vitest";
 import {
   axisMarkFormat,
   formatBeta,
+  formatNumber,
   formatBytes,
   formatCalendarDate,
   formatCalendarDatePart,
@@ -374,5 +375,17 @@ for (const locale of locales) {
         formatRupiah(rupiah(value), "compact"),
       ),
     ).toEqual(compactAmounts[locale]);
+  });
+}
+
+const fixedDecimals: Record<Locale, readonly [string, string]> = {
+  id: ["1,0", "1,3"],
+  en: ["1.0", "1.3"],
+};
+for (const locale of locales) {
+  test(`formats a fixed decimal count for class questions in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    expect(formatNumber(1, 1)).toBe(fixedDecimals[locale][0]);
+    expect(formatNumber(4 / 3, 1)).toBe(fixedDecimals[locale][1]);
   });
 }
