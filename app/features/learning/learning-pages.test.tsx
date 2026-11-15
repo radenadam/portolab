@@ -21,6 +21,7 @@ const texts: Record<
   Locale,
   {
     title: string;
+    full: string;
     glossary: string;
     glossaryLink: string;
     session: string;
@@ -40,6 +41,7 @@ const texts: Record<
 > = {
   id: {
     title: "Belajar",
+    full: "Buka di Belajar",
     glossary: "Kamus",
     glossaryLink: "Kamus istilah",
     session: "Sesi 9",
@@ -63,6 +65,7 @@ const texts: Record<
   },
   en: {
     title: "Learn",
+    full: "Open in Learn",
     glossary: "Glossary",
     glossaryLink: "Glossary",
     session: "Session 9",
@@ -190,16 +193,23 @@ for (const locale of locales) {
     );
     for (const [index, lesson] of lessons.entries()) {
       const terms = lessonTerms(lesson, content.terms);
-      const markup = renderMarkupForTest(
-        <LessonView
-          classId={classId}
-          lesson={lesson}
-          terms={terms}
-          previous={lessons[index - 1]}
-          next={lessons[index + 1]}
-          returnTo="/classes/7/stocks/BBCA?range=3m"
-        />,
+      const props = {
+        classId,
+        lesson,
+        terms,
+        previous: lessons[index - 1],
+        next: lessons[index + 1],
+        returnTo: "/classes/7/stocks/BBCA?range=3m",
+      };
+      const markup = renderMarkupForTest(<LessonView {...props} />);
+      const sheet = renderMarkupForTest(
+        <LessonView {...props} inSheet idPrefix="sheet-" />,
       );
+      expect(sheet).toContain(text.full);
+      expect(sheet).not.toContain("<h1");
+      expect(sheet).not.toContain(`aria-label="${text.lessons}"`);
+      expect(sheet).toContain('id="sheet-key-terms"');
+      expect(sheet).toContain(`/learn/${String(lesson.session)}?returnTo=`);
       expect(markup).toContain(text.return);
       expect(markup).toContain(text.terms);
       expect(markup.match(/<h2[ >]/gu)).toHaveLength(1);
@@ -207,10 +217,11 @@ for (const locale of locales) {
       const blocks = lesson.sections.flatMap((section) =>
         "blocks" in section && section.id !== "summary" ? section.blocks : [],
       );
-      expectParagraphs(markup, [
-        ...blocks,
-        ...terms.flatMap((term) => term.blocks),
-      ]);
+      for (const rendered of [markup, sheet])
+        expectParagraphs(rendered, [
+          ...blocks,
+          ...terms.flatMap((term) => term.blocks),
+        ]);
       expect(markup).not.toContain("{{");
       expect(markup).not.toContain('id="practice"');
       expect(markup).not.toContain("<input");

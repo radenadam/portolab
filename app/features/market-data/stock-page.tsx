@@ -95,6 +95,7 @@ export function loader({ context, params, request, url }: Route.LoaderArgs) {
   return data(
     {
       classId,
+      draftKey: `${String(reader.id)}:${stockPath(classId, code)}`,
       ...stockReturnDestination({ classId, role: reader.role, url, request }),
       code,
       quote,
@@ -142,7 +143,7 @@ function StockPageContent({
   const ticket = useOutlet();
   const location = useLocation();
   return (
-    <TicketDraftMemory key={code}>
+    <TicketDraftMemory key={stock.draftKey} storageKey={stock.draftKey}>
       <div
         className={ticket === null ? undefined : styles["withTicket"]}
         data-layout={ticket === null ? undefined : "columns"}

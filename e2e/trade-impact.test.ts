@@ -16,7 +16,6 @@ const texts: Record<
     help: string;
     lesson: string;
     lessonTitle: string;
-    back: string;
     lots: string;
     reason: string;
     axis: string;
@@ -40,7 +39,6 @@ const texts: Record<
     help: "Apa itu Dampak ke portofolio?",
     lesson: "Pelajari lebih lanjut di sesi 2",
     lessonTitle: "Teori portofolio",
-    back: "Kembali ke halaman sebelumnya",
     lots: "Jumlah lot",
     reason: "Alasan (opsional)",
     axis: "Sumbu risiko dampak order",
@@ -70,7 +68,6 @@ const texts: Record<
     help: "What is Portfolio impact?",
     lesson: "Learn more in session 2",
     lessonTitle: "Portfolio theory",
-    back: "Back to the previous page",
     lots: "Lots",
     reason: "Reason (optional)",
     axis: "Trade impact risk axis",
@@ -188,7 +185,7 @@ for (const locale of locales) {
     await student.context().close();
   });
 
-  test(`returns from the impact lesson to its ticket address in ${languageNames[locale]}`, async ({
+  test(`keeps a typed impact ticket while its lesson opens in place in ${languageNames[locale]}`, async ({
     page,
     browser,
   }) => {
@@ -201,23 +198,33 @@ for (const locale of locales) {
     await expect(
       student.locator('dialog form[data-ticket-ready="true"]'),
     ).toBeVisible();
-    await student
-      .locator("dialog")
-      .getByRole("button", { name: text.help, exact: true })
-      .click();
-    await student
+    const ticket = student.locator("dialog[open]");
+    const lots = ticket.getByRole("textbox", { name: text.lots, exact: true });
+    const reason = ticket.getByLabel(text.reason, { exact: true });
+    await lots.fill("11");
+    await reason.fill("Tesis tetap tersimpan.");
+    await ticket.getByRole("button", { name: text.help, exact: true }).click();
+    const more = student
       .locator("[popover]:popover-open")
-      .getByRole("link", { name: text.lesson, exact: true })
-      .click();
-    // Decision 0030 keeps standalone lessons until piece 31 supplies the sheet.
-    await expect(student.getByRole("heading", { level: 1 })).toHaveText(
-      text.lessonTitle,
-    );
-    await student.getByRole("link", { name: text.back, exact: true }).click();
+      .getByRole("link", { name: text.lesson, exact: true });
+    await more.click();
+    const lesson = student.getByRole("dialog", {
+      name: text.lessonTitle,
+      exact: true,
+    });
+    await expect(lesson).toBeVisible();
     await expect(student).toHaveURL(path);
-    await expect(student.locator('dialog input[name="lots"]')).toHaveValue(
-      "10",
-    );
+    await student.keyboard.press("Escape");
+    await expect(lesson).toHaveCount(0);
+    await expect(more).toBeFocused();
+    await expect(lots).toHaveValue("11");
+    await expect(reason).toHaveValue("Tesis tetap tersimpan.");
+    await expect(
+      ticket
+        .locator("[data-impact-rows] > div")
+        .first()
+        .locator(":scope > strong"),
+    ).toContainText(text.eleven);
     await student.context().close();
   });
 

@@ -1,0 +1,10 @@
+.links {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+.links > a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--size-touch-target);
+}

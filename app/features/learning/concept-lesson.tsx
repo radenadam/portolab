@@ -1,11 +1,14 @@
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
-import { Link, useLocation, useParams, useRouteLoaderData } from "react-router";
+import { useLocation, useParams, useRouteLoaderData } from "react-router";
 import { formatNumber } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import type { ClassId } from "~/features/classes/classes.schema";
 import { parseRecordId } from "~/value-parsers";
-import { lessonPath } from "./learning-paths";
+import { LearningLink } from "./learning-link";
+import styles from "./concept-lesson.module.css";
+import { LessonLink } from "./lesson-link";
+import { glossaryPath } from "./learning-paths";
 import type { SessionNumber } from "../classes/course-calendar";
 import type { ConceptTermId } from "./concept-term-ids";
 
@@ -28,15 +31,16 @@ export function ConceptLesson({
   });
   if (!classId.ok) return <NumberText>{label}</NumberText>;
   return (
-    <Link
-      to={lessonPath(
-        classId.value,
-        session,
-        `${location.pathname}${location.search}${location.hash}`,
-      )}
-    >
-      <NumberText>{label}</NumberText>
-    </Link>
+    <span className={styles["links"]}>
+      <LessonLink session={session}>
+        <NumberText>{label}</NumberText>
+      </LessonLink>
+      <LearningLink
+        to={`${glossaryPath(classId.value, "", `${location.pathname}${location.search}${location.hash}`)}#term-${termId}`}
+      >
+        {m.learning_glossary_link()}
+      </LearningLink>
+    </span>
   );
 }
 
