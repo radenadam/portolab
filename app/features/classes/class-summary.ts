@@ -1,3 +1,4 @@
+import { medianOf } from "./median-of";
 import { compareRoundedNumbers } from "~/compare-rounded-numbers";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
 import {
@@ -11,21 +12,6 @@ import { beta, marketBeta } from "~/units/beta";
 import type { Beta } from "~/units/beta";
 import { cumulativeReturn } from "~/units/cumulative-return";
 import type { CumulativeReturn } from "~/units/cumulative-return";
-
-/** A median keeps an extreme portfolio from dominating the class comparison. */
-function medianOf<Value extends number>(
-  values: readonly Value[],
-  toValue: (value: number) => Value,
-): Value | undefined {
-  const ordered = values.toSorted((first, second) => first - second);
-  const middle = Math.floor(ordered.length / 2);
-  const upper = ordered[middle];
-  if (upper === undefined) return undefined;
-  const lower = ordered[middle - 1];
-  return ordered.length % 2 === 0 && lower !== undefined
-    ? toValue((lower + upper) / 2)
-    : upper;
-}
 
 /** Students can join on different days, so the headline compares their own periods and takes its sign from the rounded display. */
 export function classSummary(

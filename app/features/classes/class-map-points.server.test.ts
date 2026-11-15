@@ -5,6 +5,7 @@ import { expect, test } from "vitest";
 import { classOfStudentsForTest } from "~/features/grading/class-of-students-for-test.server";
 import { readClassOverview } from "./read-class-overview.server";
 import { classMapPoints } from "./class-map-points.server";
+import { classMapPath } from "./class-path";
 
 // By hand, Eko's Rp50,525,900 in cash and 10,000 BBCA shares at Rp4,980 total Rp100,325,900. Against the starting Rp100,000,000, the return rounds to +0.33%.
 const returns: Record<Locale, string> = { id: "+0,33%", en: "+0.33%" };
@@ -16,6 +17,7 @@ test("names notable students by identity and adds their return in both languages
       request: new Request("http://localhost/"),
       now: new Date("2026-10-30T09:20:00Z"),
       delayMinutes: 10,
+      sourcePath: classMapPath(taughtClass.id, "beta"),
     });
     const repeated = "Eko Prasetyo";
     overview.students = overview.students.map((student, index) =>
