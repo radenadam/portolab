@@ -98,3 +98,7 @@ export function marketDirectionOptions(): FieldOption<
     { value: "ascending", label: m.market_data_ascending_label() },
   ];
 }
+
+export function marketChoiceLabel(value: string): string {
+  return value.trim() === "" ? m.market_data_no_selection_label() : value;
+}

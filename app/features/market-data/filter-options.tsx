@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { FieldOption } from "~/form";
+import { marketChoiceLabel } from "./market-filters";
 
 /** A refused choice stays visible so the reader can compare it with its error. */
 export function FilterOptions({
@@ -12,7 +13,7 @@ export function FilterOptions({
   return (
     <>
       {!options.some((option) => option.value === value) && (
-        <option value={value}>{value}</option>
+        <option value={value}>{marketChoiceLabel(value)}</option>
       )}
       {options.map((option) => (
         <option key={option.value} value={option.value}>

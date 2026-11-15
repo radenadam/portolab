@@ -587,6 +587,7 @@
   "measures_correlation_prices_notice": "Bobot portofolio memakai harga tertunda. {page} menunjukkan waktu kutipan setiap harga.",
   "measures_correlation_enough_returns_notice": "Jika saham ini, {index}, dan setiap saham Anda tetap memiliki harga penutupan di akhir setiap bulan, Portolab menghitung korelasi setelah pembaruan riwayat harga yang menyimpan harga penutupan hari bursa pertama {month}.",
   "app_chart_line_value_part": "{line} {value}",
+  "market_data_no_selection_label": "Belum dipilih",
   "market_data_search_label": "Cari saham",
   "market_data_search_hint": "Cari kode atau nama, misalnya BBRI",
   "market_data_apply_label": "Terapkan",

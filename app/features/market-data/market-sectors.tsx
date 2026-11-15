@@ -5,7 +5,7 @@ import { NumberText } from "~/number-text";
 import { m } from "~/paraglide/messages.js";
 import { companyOf } from "./company-of";
 import type { MarketRow } from "./filter-market-rows";
-import { marketSectorOptions } from "./market-filters";
+import { marketChoiceLabel, marketSectorOptions } from "./market-filters";
 import type { MarketFilters } from "./market-filters";
 import styles from "./market-view.module.css";
 
@@ -40,7 +40,7 @@ export function MarketSectors({
         {failure !== undefined && (
           <label className={styles["chip"]}>
             <input type="radio" name="sector" value={value} defaultChecked />
-            <NumberText verbatim>{value}</NumberText>
+            <NumberText verbatim>{marketChoiceLabel(value)}</NumberText>
           </label>
         )}
         {options.map(({ value: sector, label, count }) => (

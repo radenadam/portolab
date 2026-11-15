@@ -587,6 +587,7 @@
   "measures_correlation_prices_notice": "Portfolio weights use delayed prices. {page} shows when each price was quoted.",
   "measures_correlation_enough_returns_notice": "If this stock, the {index}, and each of your stocks keep a close at the end of every month, Portolab computes correlation after the update of the price history that stores the close of the first trading day of {month}.",
   "app_chart_line_value_part": "{line} {value}",
+  "market_data_no_selection_label": "No selection",
   "market_data_search_label": "Search stocks",
   "market_data_search_hint": "Search code or company, such as BBRI",
   "market_data_apply_label": "Apply",

@@ -6,6 +6,7 @@ import { locales } from "~/paraglide/runtime.js";
 import type { Locale } from "~/paraglide/runtime.js";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
 import {
+  marketChoiceLabel,
   marketDirectionOptions,
   parseMarketChoice,
   parseMarketSearch,
@@ -20,9 +21,11 @@ const texts: Record<
     notText: string;
     far: string;
     maximum: string;
+    noSelection: string;
   }
 > = {
   id: {
+    noSelection: "Belum dipilih",
     field: "Urutan",
     searchField: "Cari saham",
     invalid:
@@ -34,6 +37,7 @@ const texts: Record<
       'Kolom "Cari saham" memuat paling banyak {maximum} karakter, tetapi isinya {count} karakter. Persingkat isinya.',
   },
   en: {
+    noSelection: "No selection",
     field: "Order",
     searchField: "Search stocks",
     invalid:
@@ -46,6 +50,13 @@ const texts: Record<
   },
 };
 for (const locale of locales) {
+  test(`names empty refused choices in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    for (const value of ["", " \t "]) {
+      expect(marketChoiceLabel(value)).toBe(texts[locale].noSelection);
+    }
+    expect(marketChoiceLabel(" 42 ")).toBe(" 42 ");
+  });
   test(`parses a search and a choice, and refuses an unknown choice with its visible field and options in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     const options = {

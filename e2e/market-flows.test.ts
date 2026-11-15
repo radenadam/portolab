@@ -39,9 +39,11 @@ const texts: Record<
     back: string;
     unavailable: string;
     orderError: string;
+    noSelection: string;
   }
 > = {
   id: {
+    noSelection: "Belum dipilih",
     title: "Pasar",
     signIn: "Masuk",
     search: "Cari saham",
@@ -69,6 +71,7 @@ const texts: Record<
       'Kolom "Urutan" berisi "salah", yang bukan pilihan yang tersedia. Pilih Menurun atau Menaik, lalu terapkan lagi.',
   },
   en: {
+    noSelection: "No selection",
     title: "Market",
     signIn: "Sign in",
     search: "Search stocks",
@@ -240,6 +243,15 @@ for (const locale of locales) {
           student.getByLabel(text.direction, { exact: true }),
         ).toHaveValue(widestChoice);
         expect(await layoutProblems(student)).toEqual([]);
+        const emptyChoiceResponse = await student.goto(
+          `${testClass.path}/market?sector=`,
+        );
+        expect(emptyChoiceResponse?.status()).toBe(400);
+        await expect(
+          student.getByRole("radio", { name: text.noSelection, exact: true }),
+        ).toBeChecked();
+        if (javaScriptEnabled) await expectAccessibleScreen(student);
+        else expect(await layoutProblems(student)).toEqual([]);
       } finally {
         await student.context().close();
       }
