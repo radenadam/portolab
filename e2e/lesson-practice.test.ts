@@ -7,6 +7,7 @@ import { languageNames } from "../app/language-names.ts";
 import { openAsNewStudent } from "./open-as-new-student.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 import { layoutProblems } from "./expect-layout.ts";
+import { expectMapLabelsClear } from "./expect-map-labels-clear.ts";
 import { captureScreens } from "./capture-screens.ts";
 import { holdClientScripts } from "./hold-client-scripts.ts";
 
@@ -139,6 +140,10 @@ function practiceProgress(page: Page): Locator {
   return page.locator("#practice").getByRole("status");
 }
 
+function lessonMap(page: Page): Locator {
+  return page.locator("main svg:has([data-map-label])").first();
+}
+
 for (const locale of locales) {
   const text = texts[locale];
   test(`practises CAPM and allocation with the student's stocks in ${languageNames[locale]}`, async ({
@@ -165,6 +170,7 @@ for (const locale of locales) {
       name: `lesson-9-${locale}`,
       fullPage: true,
       fromTop: true,
+      check: () => expectMapLabelsClear(lessonMap(page)),
     });
     await beta.focus();
     await beta.press("Home");
@@ -177,6 +183,7 @@ for (const locale of locales) {
     await expect(
       page.getByText(text.capmResult, { exact: true }),
     ).toBeVisible();
+    await expectMapLabelsClear(lessonMap(page));
     await page.getByRole("checkbox", { name: text.show }).uncheck();
     await expect(
       page.locator("main svg text").filter({ hasText: /^BBCA$/u }),
@@ -329,6 +336,7 @@ for (const locale of locales) {
       async (loadClient) => {
         await expect(page.locator('input[type="range"]')).toHaveCount(0);
         await expect(page.locator("main svg").first()).toBeVisible();
+        await expectMapLabelsClear(lessonMap(page));
         await page
           .getByRole("button", { name: /TLKM.*(?:Buka|Open)/u })
           .click();
@@ -343,6 +351,7 @@ for (const locale of locales) {
         await expect(
           page.getByRole("slider", { name: text.beta, exact: true }),
         ).toHaveValue("0.6");
+        await expectMapLabelsClear(lessonMap(page));
       },
     );
   });
@@ -442,6 +451,12 @@ for (const locale of locales) {
         await expect(page).toHaveURL(
           `${classPath}/learn/${String(session)}#practice`,
         );
+        const taskLink = page.getByRole("link", {
+          name: text.task,
+          exact: true,
+        });
+        await expect(taskLink).toBeVisible();
+        await expect(taskLink).toBeInViewport();
       }
       await lecturer.context().close();
     });
