@@ -266,12 +266,16 @@ for (const locale of locales) {
   test(`starts each side of an order from a held stock and returns to the market in ${locale}`, async ({
     page,
     browser,
-  }) => {
+  }, testInfo) => {
     const { student, classPath, path } = await openHeldStock(
       page,
       browser,
       locale,
     );
+    await student.getByText(text.points, { exact: true }).click();
+    await expect(
+      student.getByRole("columnheader", { name: text.date }),
+    ).toBeVisible();
     for (const [side, label] of [
       ["buy", text.buy],
       ["sell", text.sell],
