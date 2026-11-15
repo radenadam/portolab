@@ -204,6 +204,7 @@ for (const locale of locales) {
     });
     const markup = renderMarkupForTest(
       <JournalList
+        readOnly={false}
         trades={tradeJournal([filledActivityForTest(1), sale], [])}
         prices={prices()}
         classId={classId}
@@ -221,6 +222,7 @@ for (const locale of locales) {
       const quote = stockQuote("BBCA", [price, 4_980], "2026-11-02T03:00:00Z");
       const markup = renderMarkupForTest(
         <JournalList
+          readOnly={false}
           trades={tradeJournal([filledActivityForTest(1)], [quote])}
           prices={prices()}
           classId={classId}
@@ -268,6 +270,7 @@ for (const locale of locales) {
     const markup = [
       renderMarkupForTest(
         <JournalList
+          readOnly={false}
           trades={tradeJournal([purchase, sale], [quote])}
           prices={prices()}
           classId={classId}
@@ -275,6 +278,7 @@ for (const locale of locales) {
       ),
       renderMarkupForTest(
         <JournalList
+          readOnly={false}
           trades={tradeJournal([purchase], [quote])}
           prices={prices()}
           classId={classId}
@@ -287,6 +291,7 @@ for (const locale of locales) {
     for (const order of [purchase, sale]) {
       const missing = renderMarkupForTest(
         <JournalList
+          readOnly={false}
           trades={tradeJournal([order], [])}
           prices={prices()}
           classId={classId}
@@ -314,7 +319,12 @@ for (const locale of locales) {
         />,
       ),
       renderMarkupForTest(
-        <JournalList trades={[]} prices={prices()} classId={classId} />,
+        <JournalList
+          readOnly={false}
+          trades={[]}
+          prices={prices()}
+          classId={classId}
+        />,
       ),
     ].join("");
     for (const text of texts[locale].empty) expect(empty).toContain(text);

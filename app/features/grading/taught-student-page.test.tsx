@@ -58,6 +58,7 @@ const texts: Record<
     | "notice"
     | "sections"
     | "username"
+    | "activity"
     | "back"
     | "value"
     | "map"
@@ -79,7 +80,8 @@ const texts: Record<
     journal: "Jurnal dan order",
     notice: "Tampilan dosen. Hanya baca.",
     sections: "Bagian portofolio mahasiswa",
-    username: "Nama pengguna raka",
+    username: "Nama pengguna raka · Belum pernah memasang order",
+    activity: "Nama pengguna raka · Order terakhir 29 Okt 2026, 10.10 WIB",
     back: "Kembali ke mahasiswa",
     value: "Nilai portofolio Raka",
     map: "Posisi Raka di peta",
@@ -100,7 +102,8 @@ const texts: Record<
     journal: "Journal and orders",
     notice: "Lecturer view. Read only.",
     sections: "Student portfolio sections",
-    username: "Username raka",
+    username: "Username raka · No orders yet",
+    activity: "Username raka · Latest order Oct 29, 2026, 10:10 AM WIB",
     back: "Back to students",
     value: "Portfolio value of Raka",
     map: "Position of Raka on the map",
@@ -156,6 +159,21 @@ for (const locale of locales) {
   test(`keeps the named student, read-only notice, and all tabs on the selected panel in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     const text = texts[locale];
+    const activityHeader = renderMarkupForTest(
+      <TaughtStudentPage
+        page="portfolio"
+        student={{
+          ...student,
+          latestActivity: new Date("2026-10-29T03:10:00Z"),
+        }}
+        returnPath={returnPath}
+      >
+        <span />
+      </TaughtStudentPage>,
+    )
+      .replaceAll(/<\/?time\b[^>]*>/gu, "")
+      .replaceAll("\u202f", " ");
+    expect(activityHeader).toContain(markupTextForTest(text.activity));
     expect(taughtStudentMeta("portfolio")({ loaderData: { student } })).toEqual(
       [{ title: text.pageTitle }],
     );

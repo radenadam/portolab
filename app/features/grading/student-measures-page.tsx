@@ -9,6 +9,7 @@ import { AnalysisAxisForm } from "~/features/measures/analysis-axis-form";
 import {
   readAnalysis,
   readAnalysisAxis,
+  readAnalysisData,
 } from "~/features/measures/read-analysis.server";
 import { readPortfolioReport } from "~/features/trading/read-portfolio-report.server";
 import type { Route } from "./+types/student-measures-page";
@@ -48,6 +49,7 @@ export function loader({ context, request, params, url }: Route.LoaderArgs) {
     now,
     source: taught.source,
     firstSessionDate: taught.firstSessionDate,
+    showData: readAnalysisData(url),
   };
 }
 
@@ -66,7 +68,6 @@ export default function StudentMeasuresPage({
       ) : (
         <AnalysisView
           {...loaderData}
-          showData={false}
           reader={{ kind: "lecturer", studentName: student.shortName }}
           summary={{
             path: pathReturningTo(

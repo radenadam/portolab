@@ -134,7 +134,11 @@ export function HomeMapPanel({
                     labelledBy="home-map-heading"
                   />
                 </div>
-                <HomeMapTable map={map} classId={classId} />
+                <HomeMapTable
+                  map={map}
+                  classId={classId}
+                  keepReturn={reader.kind === "lecturer"}
+                />
               </>
             )}
             {market !== undefined && (

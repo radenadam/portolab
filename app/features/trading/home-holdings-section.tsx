@@ -12,12 +12,11 @@ import { lots } from "~/units/lots";
 import { lotCount, shareCount } from "./count-parts";
 import { WeightMark, GainMark } from "./home-holding-marks";
 import type { ReactNode } from "react";
-import { Link } from "react-router";
 import { ChangeText } from "~/change-text";
 import { countedText } from "~/counted-text";
 import type { ClassId } from "~/features/classes/classes.schema";
 import { StockName } from "~/features/market-data/stock-name";
-import { stockPath } from "~/features/market-data/stock-path";
+import { StockPageLink } from "~/features/market-data/stock-page-link";
 import {
   formatNumber,
   formatRupiah,
@@ -151,6 +150,7 @@ export function HomeHoldingsSection({
                 maximumWeight={maximumWeight}
                 maximumGain={maximumGain}
                 sharedTime={sharedTime}
+                keepReturn={studentName !== undefined}
               />
             ))}
             <tr>
@@ -177,8 +177,11 @@ export function HomeHoldingsSection({
       <ul className={styles["phoneHoldings"]} data-layout="rows">
         {values.holdings.map((row) => (
           <li key={row.holding.code} className={styles["holdingRow"]}>
-            <Link
-              to={stockPath(classId, row.holding.code)}
+            <StockPageLink
+              classId={classId}
+              code={row.holding.code}
+              id={`home-holding-phone-${row.holding.code}`}
+              keepReturn={studentName !== undefined}
               className={styles["stockLink"]}
             >
               <StockName
@@ -206,7 +209,7 @@ export function HomeHoldingsSection({
                   </span>
                 }
               />
-            </Link>
+            </StockPageLink>
             <div className={styles["rowValue"]}>
               {row.holding.kind === "priced" && (
                 <>

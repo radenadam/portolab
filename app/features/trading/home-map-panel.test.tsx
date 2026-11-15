@@ -109,7 +109,8 @@ for (const locale of locales) {
     expect(html).not.toContain("stroke-dasharray");
     expect(html).not.toContain(">SML<");
     expect(html).toContain('href="/classes/7?view=time"');
-    const map = homeMapPoints(home);
+    const reader = { kind: "owner", classId: 7 as ClassId } as const;
+    const map = homeMapPoints(home, reader);
     expect(map?.points.map(({ mark }) => mark.kind)).toEqual([
       "classmate",
       "held",
@@ -142,13 +143,16 @@ for (const locale of locales) {
     home.measures = { kind: "unpriced", codes: ["TLKM"] };
     home.stockBetas = [{ code: "BBCA", beta: beta(0.69) }];
     expect(
-      homeMapPoints(home)?.points.find(({ key }) => key === "BBCA")?.values,
+      homeMapPoints(home, reader)?.points.find(({ key }) => key === "BBCA")
+        ?.values,
     ).toContainEqual({
       name: texts[locale].weight,
       value: texts[locale].unknownWeight,
     });
     expect(
-      homeMapPoints(home)?.points.some(({ mark }) => mark.kind === "own"),
+      homeMapPoints(home, reader)?.points.some(
+        ({ mark }) => mark.kind === "own",
+      ),
     ).toBe(false);
   });
 }

@@ -5,6 +5,8 @@ import type { Locale } from "~/paraglide/runtime.js";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
 import { rupiah } from "~/units/rupiah";
 import { dayChangeFailureText } from "./day-change-failure-text";
+import type { PortfolioReader } from "./text-for-reader";
+import type { ClassId } from "~/features/classes/classes.schema";
 
 const texts: Record<Locale, readonly string[]> = {
   id: [
@@ -39,19 +41,22 @@ const lecturerTexts: Record<Locale, readonly string[]> = {
 for (const locale of locales) {
   test(`explains each daily comparison failure in ${languageNames[locale]}`, () => {
     for (const lecturer of [false, true]) {
+      const reader: PortfolioReader = lecturer
+        ? { kind: "lecturer", studentName: "Raka" }
+        : { kind: "owner", classId: 7 as ClassId };
       switchLocaleForTest(locale);
       expect(
-        dayChangeFailureText({ kind: "unpriced" }, lecturer),
+        dayChangeFailureText({ kind: "unpriced" }, reader),
       ).toBeUndefined();
       expect([
-        dayChangeFailureText({ kind: "missingCalendar" }, lecturer),
+        dayChangeFailureText({ kind: "missingCalendar" }, reader),
         dayChangeFailureText(
           {
             kind: "missingCloses",
             date: "2026-11-02",
             codes: ["BBCA"],
           },
-          lecturer,
+          reader,
         ),
         dayChangeFailureText(
           {
@@ -59,7 +64,7 @@ for (const locale of locales) {
             date: "2026-11-02",
             codes: ["BBCA", "TLKM"],
           },
-          lecturer,
+          reader,
         ),
         dayChangeFailureText(
           {
@@ -67,7 +72,7 @@ for (const locale of locales) {
             date: "2026-11-02",
             value: rupiah(-3_229_000),
           },
-          lecturer,
+          reader,
         ),
       ]).toEqual((lecturer ? lecturerTexts : texts)[locale]);
     }

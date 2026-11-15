@@ -5,6 +5,7 @@ import type { UserId } from "~/features/accounts/accounts.schema";
 import type { ClassId } from "~/features/classes/classes.schema";
 import { pathReturningTo } from "~/features/accounts/path-returning-to";
 import { MarketTime } from "~/market-time";
+import { Message } from "~/message";
 import { initialsOf } from "~/initials-of";
 import { NumberText } from "~/number-text";
 import { pageTitle } from "~/page-title";
@@ -13,7 +14,9 @@ import {
   studentMeasuresPath,
   studentPortfolioPath,
   studentJournalPath,
+  studentPages,
 } from "./grading-paths";
+import type { StudentPage } from "./grading-paths";
 import styles from "./taught-student.module.css";
 
 export interface TaughtStudent {
@@ -26,8 +29,6 @@ export interface TaughtStudent {
   latestActivity: Date | undefined;
 }
 
-const pages = ["portfolio", "measures", "journal"] as const;
-type StudentPage = (typeof pages)[number];
 const tabs: Record<
   StudentPage,
   { label: () => string; path: typeof studentPortfolioPath }
@@ -82,15 +83,25 @@ export function TaughtStudentPage({
             <NumberText verbatim>{student.name}</NumberText>
           </h1>
           <p>
-            <NumberText verbatim>
-              {m.grading_student_username_label({ username: student.username })}
-            </NumberText>
-            {" · "}
-            {m.grading_last_activity_label()}{" "}
             {student.latestActivity === undefined ? (
-              m.grading_never_label()
+              <Message
+                text={m.grading_student_no_activity_notice}
+                values={{
+                  username: (
+                    <NumberText verbatim>{student.username}</NumberText>
+                  ),
+                }}
+              />
             ) : (
-              <MarketTime moment={student.latestActivity} />
+              <Message
+                text={m.grading_student_activity_notice}
+                values={{
+                  username: (
+                    <NumberText verbatim>{student.username}</NumberText>
+                  ),
+                  time: <MarketTime moment={student.latestActivity} />,
+                }}
+              />
             )}
           </p>
         </div>
@@ -103,7 +114,7 @@ export function TaughtStudentPage({
         className={styles["tabs"]}
         aria-label={m.grading_student_sections_label()}
       >
-        {pages.map((section) => (
+        {studentPages.map((section) => (
           <Link
             key={section}
             to={pathReturningTo(

@@ -5,6 +5,7 @@ import chipStyles from "~/chip.module.css";
 import type { ClassId } from "~/features/classes/classes.schema";
 import { StockName } from "~/features/market-data/stock-name";
 import { stockPath } from "~/features/market-data/stock-path";
+import { StockPageLink } from "~/features/market-data/stock-page-link";
 import { formatNumber, formatRupiah } from "~/formatting";
 import { Message } from "~/message";
 import { NumberText } from "~/number-text";
@@ -110,9 +111,12 @@ export function ActivityOrders({
               <li key={order.id} className={styles["order"]}>
                 <div className={styles["orderHeader"]}>
                   <SideTag side={order.side} />
-                  <Link
+                  <StockPageLink
+                    classId={classId}
+                    code={order.code}
+                    id={`order-${String(order.id)}`}
+                    keepReturn={readOnly}
                     className={styles["stock"]}
-                    to={stockPath(classId, order.code)}
                   >
                     <StockName
                       code={order.code}
@@ -146,7 +150,7 @@ export function ActivityOrders({
                         </>
                       }
                     />
-                  </Link>
+                  </StockPageLink>
                   <StatusChip status={activityStatus(order, now)} />
                 </div>
                 <div className={styles["orderBody"]}>

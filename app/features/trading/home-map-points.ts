@@ -14,7 +14,7 @@ import type { HomePortfolioData } from "./read-home-portfolio.server";
 /** The map compares current delayed values. The small chart keeps final daily closes. */
 export function homeMapPoints(
   home: HomePortfolioData,
-  reader?: PortfolioReader,
+  reader: PortfolioReader,
 ):
   | {
       market: MapPoint<Beta, CumulativeReturn>;
@@ -46,9 +46,7 @@ export function homeMapPoints(
       ...mapPoint(
         {
           key: "portfolio",
-          name: portfolioLabel(
-            reader === undefined ? undefined : portfolioStudentName(reader),
-          ),
+          name: portfolioLabel(portfolioStudentName(reader)),
         },
         measured.beta,
         home.report.valuation.total.return,

@@ -24,7 +24,7 @@ export function ActivityView({
   studentName,
   returnPath,
 }: ComponentProps<typeof ActivityOrders> &
-  ComponentProps<typeof JournalList> & {
+  Omit<ComponentProps<typeof JournalList>, "readOnly"> & {
     fields: ActivitySelectionFields | undefined;
     view: ActivityChoice;
     base: string;
@@ -68,7 +68,12 @@ export function ActivityView({
           studentName={studentName}
           basePath={readOnly ? `${base}${separator}view=orders` : base}
         />
-        <JournalList trades={trades} prices={prices} classId={classId} />
+        <JournalList
+          trades={trades}
+          prices={prices}
+          classId={classId}
+          readOnly={readOnly}
+        />
       </div>
     </div>
   );

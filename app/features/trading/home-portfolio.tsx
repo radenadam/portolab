@@ -49,7 +49,7 @@ export function HomePortfolio({
       : m.trading_home_today_label();
   const changeFailure = dayChange.ok
     ? undefined
-    : dayChangeFailureText(dayChange.failure, reader.kind === "lecturer");
+    : dayChangeFailureText(dayChange.failure, reader);
   const failure = holdingQuoteFailureText([report], {
     now,
     delayMinutes,

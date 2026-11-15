@@ -25,6 +25,7 @@ import { isPhone } from "./frame.ts";
 import { itmgPortfolio } from "./itmg-portfolio.ts";
 import { storeTestPurchases } from "./store-test-purchases.ts";
 import { storeTestJoiningTime } from "./store-test-joining-time.ts";
+import { expectStockRangeReturn } from "./expect-stock-range-return.ts";
 
 // Python Decimal computes the market comparisons from the recorded IHSG mean and variance in measure-stock.test.ts: standard deviation 0.04526752234036668, Sharpe -0.09576017242608941, and Treynor -0.004334825744615368. bbca-portfolio-measures.ts records the independent portfolio expectations.
 const analysisText: Record<
@@ -847,20 +848,12 @@ async function expectAnalysisStockReturn(
     await expect(page.locator("#stock-BBCA")).toBeVisible();
     await page.locator("#stock-BBCA").click();
     const returnPath = `${classPath}/analysis?axis=${axis}&data=stocks#stock-BBCA`;
-    await expect(page).toHaveURL(
-      (url) => url.searchParams.get("returnTo") === returnPath,
-    );
-    await page
-      .getByRole("navigation", { name: text.stockRange, exact: true })
-      .getByRole("link", { name: text.month, exact: true })
-      .click();
-    await expect(page).toHaveURL(
-      (url) =>
-        url.searchParams.get("range") === "1m" &&
-        url.searchParams.get("returnTo") === returnPath,
-    );
-    await page.getByRole("link", { name: text.backToAnalysis }).click();
-    await expect(page).toHaveURL(returnPath);
+    await expectStockRangeReturn(page, {
+      returnTo: returnPath,
+      range: text.stockRange,
+      month: text.month,
+      back: text.backToAnalysis,
+    });
     await expect(page.locator("#stock-BBCA")).toBeInViewport();
     expect(await layoutProblems(page)).toEqual([]);
     if (javaScriptEnabled) await expectAccessibleScreen(page);

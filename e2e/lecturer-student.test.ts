@@ -1,10 +1,5 @@
 import { storeActivityOrders } from "./store-activity-orders.ts";
-import { uniqueUsername } from "./accounts.ts";
-import { studentOfNewClass } from "./student-of-new-class.ts";
-import {
-  storeHomeDesignPortfolio,
-  homeDesignStartingCash,
-} from "./store-home-design-portfolio.ts";
+import { studentDesignClass } from "./student-design-class.ts";
 import type { Page } from "@playwright/test";
 import { expect, test } from "@playwright/test";
 import { locales } from "../app/paraglide/runtime.js";
@@ -224,21 +219,12 @@ for (const locale of locales) {
     page,
     browser,
   }) => {
-    const { student, classPath, classId } = await studentOfNewClass(
+    const { student, classPath } = await studentDesignClass(
       page,
       browser,
-      {
-        locale,
-        className: "Manajemen Portofolio A",
-        lecturerName: "Dosen",
-        studentName: "Raka Pratama",
-        studentUsername: `raka${uniqueUsername("raka").slice(-8)}`,
-        startingCash: homeDesignStartingCash,
-      },
+      locale,
     );
     try {
-      storeHomeDesignPortfolio(classId);
-      storeActivityOrders(classId);
       await page.goto(`${classPath}/students`);
       await selectFirstStudent(page);
       await page

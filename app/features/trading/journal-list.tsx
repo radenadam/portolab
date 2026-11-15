@@ -3,14 +3,13 @@ import { NumberText } from "~/number-text";
 import { cumulativeReturn } from "~/units/cumulative-return";
 import type { CumulativeReturn } from "~/units/cumulative-return";
 import type { ReactNode } from "react";
-import { Link } from "react-router";
 import { ChangeText } from "~/change-text";
 import { countedText } from "~/counted-text";
 import { percentOf } from "~/charts/plot";
 import { plotFraction } from "~/units/plot-fraction";
 import type { ClassId } from "~/features/classes/classes.schema";
 import { StockName } from "~/features/market-data/stock-name";
-import { stockPath } from "~/features/market-data/stock-path";
+import { StockPageLink } from "~/features/market-data/stock-page-link";
 import {
   attemptForCodes,
   missingQuoteText,
@@ -41,10 +40,12 @@ export function JournalList({
   trades,
   prices,
   classId,
+  readOnly,
 }: {
   trades: readonly JournalTrade[];
   prices: JournalPrices;
   classId: ClassId;
+  readOnly: boolean;
 }): ReactNode {
   const maximum = cumulativeReturn(
     Math.max(0.01, ...trades.map((trade) => Math.abs(trade.change ?? 0))),
@@ -80,16 +81,19 @@ export function JournalList({
               <li className={styles["journalRow"]} key={trade.order.id}>
                 <div className={styles["journalHeader"]}>
                   <SideTag side={trade.order.side} />
-                  <Link
+                  <StockPageLink
+                    classId={classId}
+                    code={trade.order.code}
+                    id={`journal-${String(trade.order.id)}`}
+                    keepReturn={readOnly}
                     className={styles["stock"]}
-                    to={stockPath(classId, trade.order.code)}
                   >
                     <StockName
                       code={trade.order.code}
                       withCompanyName={false}
                       smallTile
                     />
-                  </Link>
+                  </StockPageLink>
                   <span className={styles["tradePrice"]}>
                     <NumberText>{lotCount(trade.order.lots)}</NumberText> ·{" "}
                     <NumberText>{formatRupiah(trade.fill.price)}</NumberText>
