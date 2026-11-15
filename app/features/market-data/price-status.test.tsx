@@ -1,4 +1,4 @@
-import { renderToStaticMarkup } from "react-dom/server";
+import { renderTextMarkupForTest } from "~/render-text-markup-for-test";
 import { expect, test } from "vitest";
 import { languageNames } from "~/language-names";
 import { locales } from "~/paraglide/runtime.js";
@@ -274,7 +274,7 @@ for (const state of states) {
   for (const locale of locales) {
     test(`says the right thing for ${state.name} in ${languageNames[locale]}`, () => {
       switchLocaleForTest(locale);
-      const html = renderToStaticMarkup(
+      const html = renderTextMarkupForTest(
         <PriceStatus
           quotes={state.quotes}
           latestAttempt={state.latestAttempt}
@@ -316,7 +316,7 @@ for (const failureKind of failureKinds) {
     for (const locale of locales) {
       test(`says when the job tries again for ${failureKind.name} ${scheduleState.name} in ${languageNames[locale]}`, () => {
         switchLocaleForTest(locale);
-        const html = renderToStaticMarkup(
+        const html = renderTextMarkupForTest(
           <PriceStatus
             quotes={failureKind.quotes}
             latestAttempt={attemptInStateForTest(scheduleState, failureKind)}

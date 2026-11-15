@@ -130,20 +130,25 @@
   --line-color: var(--color-gain);
   --line-width: var(--size-mark);
 }
+
 .fall {
   --line-color: var(--color-loss);
   --line-width: var(--size-mark);
 }
+
 .flat {
   --line-color: var(--color-muted);
   --line-width: var(--size-mark);
 }
+
 .riseKey {
   composes: rise;
 }
+
 .fallKey {
   composes: fall;
 }
+
 .flatKey {
   composes: flat;
 }

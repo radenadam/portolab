@@ -9,6 +9,7 @@ import {
   formatSignedPercent,
 } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
+import { NumberText } from "~/number-text";
 import type { IndexQuote } from "./price-source.server";
 import { quoteChange } from "./quote-change";
 import { QuoteTime } from "./quote-time";
@@ -36,7 +37,9 @@ export function IndexHelp({
         ) : (
           <>
             <p>
-              <strong>{formatIndexLevel(quote.level)}</strong>
+              <strong>
+                <NumberText>{formatIndexLevel(quote.level)}</NumberText>
+              </strong>
             </p>
             <QuoteTime quotedAt={quote.quotedAt} />
             {missed && (
@@ -50,8 +53,9 @@ export function IndexHelp({
           <>
             <p>{m.market_data_change_label()}</p>
             <p className={styles["equation"]}>
-              {formatIndexLevel(quote.level)} ÷{" "}
-              {formatIndexLevel(quote.previousLevel)} − {formatNumber(1)} ={" "}
+              <NumberText>{formatIndexLevel(quote.level)}</NumberText> ÷{" "}
+              <NumberText>{formatIndexLevel(quote.previousLevel)}</NumberText> −{" "}
+              <NumberText>{formatNumber(1)}</NumberText> ={" "}
               <ChangeText
                 colored
                 change={formatSignedPercent(quoteChange(quote))}

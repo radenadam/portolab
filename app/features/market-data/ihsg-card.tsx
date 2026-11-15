@@ -6,6 +6,8 @@ import { TimeSeriesChart } from "~/charts/time-chart";
 import { layoutTimeSeries } from "~/charts/time-chart-layout";
 import type { LineKind } from "~/charts/time-chart-layout";
 import { ChangeText } from "~/change-text";
+import { compareRoundedNumbers } from "~/compare-rounded-numbers";
+import { NumberText } from "~/number-text";
 import {
   formatIndexLevel,
   formatSignedPercent,
@@ -38,11 +40,9 @@ export function IhsgCard({
   const first = closes[0];
   const last = closes.at(-1);
   const kind: LineKind =
-    first === undefined || last === undefined || first.close === last.close
-      ? "flat"
-      : last.close > first.close
-        ? "rise"
-        : "fall";
+    first === undefined || last === undefined
+      ? "none"
+      : compareRoundedNumbers(last.close, first.close, "indexLevel");
   return (
     <section
       className={styles["panel"]}
@@ -64,7 +64,7 @@ export function IhsgCard({
               to={marketSearch({ ...filters, range })}
               aria-current={filters.range === range ? "true" : undefined}
             >
-              {label}
+              <NumberText>{label}</NumberText>
             </Link>
           ))}
         </nav>
@@ -73,7 +73,9 @@ export function IhsgCard({
         <p>{m.market_data_no_price_notice({ code: index })}</p>
       ) : (
         <div className={styles["indexPrice"]}>
-          <strong>{formatIndexLevel(quote.level)}</strong>
+          <strong>
+            <NumberText>{formatIndexLevel(quote.level)}</NumberText>
+          </strong>
           <ChangeText
             colored
             change={formatSignedPercent(quoteChange(quote))}
@@ -113,7 +115,6 @@ export function IhsgCard({
             valueNode={formatIndexLevel}
             area
             axisSide="right"
-            legend={false}
             labelledBy="ihsg-heading"
             dateLabel={m.market_data_date_label()}
             tableLabel={m.market_data_index_table_label({ index })}

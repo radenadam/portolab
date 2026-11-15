@@ -1,4 +1,5 @@
 import { ConceptHelp } from "~/concept-card";
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { percentOf } from "~/charts/plot";
@@ -41,7 +42,11 @@ export function HomeRisk({
         </div>
         <Link to={measuresPath(classId)}>{m.trading_home_analysis_link()}</Link>
       </div>
-      {!result.ok && <p className={styles["note"]}>{result.failure}</p>}
+      {!result.ok && (
+        <p className={styles["note"]}>
+          <NumberText>{result.failure}</NumberText>
+        </p>
+      )}
       {result.ok && <RiskRows portfolio={result.value} reader={reader} />}
     </section>
   );
@@ -84,14 +89,16 @@ function RiskRows({
           <dt>
             <MeasureLabel row={row} />
           </dt>
-          <dd className={styles["riskValue"]}>{row.value}</dd>
+          <dd className={styles["riskValue"]}>
+            <NumberText whole>{row.value}</NumberText>
+          </dd>
           <dd className={styles["scale"]} aria-hidden="true">
             {value !== undefined && (
               <RiskScale value={value} reference={reference} />
             )}
           </dd>
           <dd className={styles["riskNote"]}>
-            {text}
+            <NumberText>{text}</NumberText>
             {value === undefined && row.example}
           </dd>
         </div>

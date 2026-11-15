@@ -8,6 +8,7 @@ import { Link } from "react-router";
 import { Sparkline } from "~/charts/sparkline";
 import { paddedRange } from "~/charts/scale";
 import { ChangeText } from "~/change-text";
+import { NumberText } from "~/number-text";
 import type { ClassId } from "~/features/classes/classes.schema";
 import { stockPath } from "./stock-path";
 import {
@@ -125,7 +126,9 @@ export function MarketTable({
                 {row.measures !== undefined &&
                   mobileMeasureText(row.measures, sort) !== undefined && (
                     <span className={styles["mobileMeasure"]}>
-                      {mobileMeasureText(row.measures, sort)}
+                      <NumberText>
+                        {mobileMeasureText(row.measures, sort)}
+                      </NumberText>
                     </span>
                   )}
               </Link>
@@ -141,7 +144,9 @@ export function MarketTable({
                 <span>{m.market_data_no_price_notice({ code: row.code })}</span>
               ) : (
                 <>
-                  <strong>{formatRupiah(row.quote.price)}</strong>
+                  <strong>
+                    <NumberText>{formatRupiah(row.quote.price)}</NumberText>
+                  </strong>
                   <QuoteTime quotedAt={row.quote.quotedAt} />
                 </>
               )}
@@ -171,13 +176,13 @@ export function MarketTable({
             </td>
             {row.measures === undefined ? (
               <td colSpan={2} className={styles["measureCell"]}>
-                {row.measureFailure}
+                <NumberText>{row.measureFailure}</NumberText>
               </td>
             ) : (
               <>
                 <td className={styles["measureCell"]}>
                   <span className={styles["cellScale"]}>
-                    {formatBeta(row.measures.beta)}
+                    <NumberText>{formatBeta(row.measures.beta)}</NumberText>
                     <MarketScale
                       value={row.measures.beta}
                       range={betaRange}
@@ -187,7 +192,9 @@ export function MarketTable({
                 </td>
                 <td className={styles["measureCell"]}>
                   <span className={styles["cellScale"]}>
-                    {formatPercent(row.measures.standardDeviation, "two")}
+                    <NumberText>
+                      {formatPercent(row.measures.standardDeviation, "two")}
+                    </NumberText>
                     <MarketScale
                       value={row.measures.standardDeviation}
                       range={deviationRange}

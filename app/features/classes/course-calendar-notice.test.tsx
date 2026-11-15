@@ -1,4 +1,4 @@
-import { renderToStaticMarkup } from "react-dom/server";
+import { renderTextMarkupForTest } from "~/render-text-markup-for-test";
 import { expect, test } from "vitest";
 import { classCalendarOf } from "./course-calendar";
 import { CourseCalendarNotice } from "./course-calendar-notice";
@@ -120,7 +120,7 @@ const texts: Record<
 
 // React writes a quote in text as an entity, so the paragraphs are compared in the form that React writes them.
 function paragraphs(...texts: readonly string[]): string {
-  return renderToStaticMarkup(
+  return renderTextMarkupForTest(
     <>
       {texts.map((text) => (
         <p key={text}>{text}</p>
@@ -134,7 +134,7 @@ function renderNotice(
   now: Date,
   role: Role,
 ): string {
-  return renderToStaticMarkup(
+  return renderTextMarkupForTest(
     <CourseCalendarNotice
       calendar={classCalendarOf(firstSessionDate, now)}
       role={role}

@@ -204,21 +204,23 @@ for (const locale of locales) {
         await expect(student.getByText(text.emptySector)).toBeVisible();
         await student.getByRole("link", { name: text.clear }).click();
         await expect(rows).toHaveCount(45);
-        const widestSearch = "x".repeat(fieldMaximumLength);
-        await student
-          .getByLabel(text.search, { exact: true })
-          .fill(widestSearch);
-        await student
-          .getByRole("button", { name: text.apply, exact: true })
-          .click();
-        await expect(student).toHaveURL(
-          (url) => url.searchParams.get("q") === widestSearch,
-        );
-        await expect(rows).toHaveCount(0);
-        await expect(
-          student.getByLabel(text.search, { exact: true }),
-        ).toHaveValue(widestSearch);
-        expect(await layoutProblems(student)).toEqual([]);
+        for (const character of ["x", "9"]) {
+          const widestSearch = character.repeat(fieldMaximumLength);
+          await student
+            .getByLabel(text.search, { exact: true })
+            .fill(widestSearch);
+          await student
+            .getByRole("button", { name: text.apply, exact: true })
+            .click();
+          await expect(student).toHaveURL(
+            (url) => url.searchParams.get("q") === widestSearch,
+          );
+          await expect(rows).toHaveCount(0);
+          await expect(
+            student.getByLabel(text.search, { exact: true }),
+          ).toHaveValue(widestSearch);
+          expect(await layoutProblems(student)).toEqual([]);
+        }
         const response = await student.goto(
           `${testClass.path}/market?direction=salah`,
         );

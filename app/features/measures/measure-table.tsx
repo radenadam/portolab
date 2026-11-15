@@ -1,4 +1,5 @@
 import { TableHead } from "~/table-head";
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { Link, useLocation } from "react-router";
 import tableStyles from "~/data-table.module.css";
@@ -32,7 +33,13 @@ export function MeasureTable({
       <tbody>
         {rows.map((row) => (
           <tr key={row.key}>
-            <th scope="row">{row.name}</th>
+            <th scope="row">
+              {typeof row.name === "string" || typeof row.name === "number" ? (
+                <NumberText>{row.name}</NumberText>
+              ) : (
+                row.name
+              )}
+            </th>
             <RowCells cells={row.cells} columns={valueColumns} />
           </tr>
         ))}
@@ -52,11 +59,15 @@ function RowCells({
     case "numbers":
       return cells.values.map((value, index) => (
         <td key={columns[index]} className={tableStyles["number"]}>
-          {value}
+          <NumberText whole>{value}</NumberText>
         </td>
       ));
     case "note":
-      return <td colSpan={columns.length}>{cells.text}</td>;
+      return (
+        <td colSpan={columns.length}>
+          <NumberText>{cells.text}</NumberText>
+        </td>
+      );
   }
 }
 

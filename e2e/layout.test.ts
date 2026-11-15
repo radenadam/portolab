@@ -1,5 +1,6 @@
+import { screenshotFullHeight } from "./screenshot-full-height.ts";
 import { expect, test } from "@playwright/test";
-import type { Browser, Page } from "@playwright/test";
+import type { Browser, Page, TestInfo } from "@playwright/test";
 import { baseLocale, locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
 import routes from "../app/routes.ts";
@@ -15,7 +16,10 @@ import type { LayoutRule } from "./expect-layout.ts";
 import { newDevice } from "./new-device.ts";
 import { storeTestHolding } from "./store-test-holding.ts";
 import { studentOfNewClass } from "./student-of-new-class.ts";
-import { widestClassNames } from "./widest-class-names.ts";
+import {
+  widestClassNames,
+  widestDigitClassNames,
+} from "./widest-class-names.ts";
 import { lessonSessionsForTest } from "./lesson-sessions-for-test.ts";
 
 /** Who opens a page: a visitor who is not signed in, the lecturer of the class, its student, or a lecturer who has not finished the account yet. */
@@ -164,8 +168,8 @@ const widthsOfProject: Record<BrowserProjectName, readonly number[]> = {
   desktop: [768, 1024, 1280, 1440, 1920, 2560],
 };
 
-// Text differs in length between the languages, so the narrowest phone and the width of the desktop references walk both, and the other widths walk the language of the references.
-const widthsInEveryLanguage = [360, 1440];
+// The widths used for visual review walk both languages, because their text differs in length.
+const widthsInEveryLanguage = [360, 1440, 1920];
 
 // The walk opens every page of the app in each language of its width, which takes several times as long as a test of one flow.
 const walkTimeoutMilliseconds = 180_000;
@@ -187,11 +191,12 @@ const walkedCash = rupiah(505_258_503_757);
 async function walkedReaders(
   page: Page,
   browser: Browser,
+  names: typeof widestClassNames,
 ): Promise<{ readers: Record<Reader, Page>; walked: WalkedClass }> {
   const { student, classId, classPath } = await studentOfNewClass(
     page,
     browser,
-    { locale: baseLocale, ...widestClassNames },
+    { locale: baseLocale, ...names },
   );
   storeTestHolding(
     classId,
@@ -224,52 +229,90 @@ async function walkedReaders(
   };
 }
 
+async function inspectScreen(
+  page: Page,
+  screen: {
+    screen: number;
+    locale: Locale;
+    width: number;
+    address: string;
+    brokenUntilRebuilt: readonly LayoutRule[];
+  },
+  testInfo: TestInfo,
+): Promise<string[]> {
+  const problems: string[] = [];
+  for (const colorScheme of ["light", "dark"] as const) {
+    await page.emulateMedia({ colorScheme });
+    const found = await layoutProblems(page);
+    problems.push(
+      ...found
+        .filter(({ rule }) => !screen.brokenUntilRebuilt.includes(rule))
+        .map(
+          ({ text }) =>
+            `${screen.locale} ${colorScheme} ${screen.address}: ${text}`,
+        ),
+    );
+    if (widthsInEveryLanguage.includes(screen.width))
+      await screenshotFullHeight(page, {
+        path: testInfo.outputPath(
+          `layout-${String(screen.screen)}-${screen.locale}-${String(screen.width)}-${colorScheme}.png`,
+        ),
+      });
+  }
+  return problems;
+}
+
 for (const [project, widths] of Object.entries(widthsOfProject)) {
   for (const width of widths) {
-    test(`keeps the layout of every page at ${String(width)} pixels`, async ({
-      page,
-      browser,
-    }, testInfo) => {
-      test.skip(
-        testInfo.project.name !== project,
-        `The ${project} project walks this width.`,
-      );
-      test.setTimeout(walkTimeoutMilliseconds);
-      const { readers, walked } = await walkedReaders(page, browser);
-      const walkedLocales: readonly Locale[] = widthsInEveryLanguage.includes(
-        width,
-      )
-        ? locales
-        : [baseLocale];
-      const problems: string[] = [];
-      for (const locale of walkedLocales) {
-        for (const reader of Object.values(readers)) {
-          await chooseLanguage(reader, locale);
-          await reader.setViewportSize({ width, height: 900 });
-        }
-        for (const {
-          reader,
-          path,
-          reading,
-          brokenUntilRebuilt = [],
-        } of Object.values(routePages).flat()) {
-          const address = path(walked);
-          await readers[reader].goto(address);
-          if (reading === true) {
-            await expect(
-              readers[reader].locator('main [data-layout="reading"]'),
-              address,
-            ).toHaveCount(1);
+    const namesAtWidth =
+      width === 360
+        ? { letters: widestClassNames, digits: widestDigitClassNames }
+        : { letters: widestClassNames };
+    for (const [nameKind, names] of Object.entries(namesAtWidth)) {
+      test(`keeps the layout of every page at ${String(width)} pixels with ${nameKind}`, async ({
+        page,
+        browser,
+      }, testInfo) => {
+        test.skip(
+          testInfo.project.name !== project,
+          `The ${project} project walks this width.`,
+        );
+        test.setTimeout(walkTimeoutMilliseconds);
+        const { readers, walked } = await walkedReaders(page, browser, names);
+        const walkedLocales: readonly Locale[] = widthsInEveryLanguage.includes(
+          width,
+        )
+          ? locales
+          : [baseLocale];
+        const problems: string[] = [];
+        for (const locale of walkedLocales) {
+          for (const reader of Object.values(readers)) {
+            await chooseLanguage(reader, locale);
+            await reader.setViewportSize({ width, height: 900 });
           }
-          const found = await layoutProblems(readers[reader]);
-          problems.push(
-            ...found
-              .filter(({ rule }) => !brokenUntilRebuilt.includes(rule))
-              .map(({ text }) => `${locale} ${address}: ${text}`),
-          );
+          for (const [
+            screen,
+            { reader, path, reading, brokenUntilRebuilt = [] },
+          ] of Object.values(routePages).flat().entries()) {
+            const address = path(walked);
+            await readers[reader].goto(address);
+            if (reading === true) {
+              await expect(
+                readers[reader].locator('main [data-layout="reading"]'),
+                address,
+              ).toHaveCount(1);
+            }
+            problems.push(
+              ...(await inspectScreen(
+                readers[reader],
+                { screen, locale, width, address, brokenUntilRebuilt },
+                testInfo,
+              )),
+            );
+          }
         }
-      }
-      expect(problems).toEqual([]);
-    });
+        expect(problems).toEqual([]);
+      });
+    }
   }
 }

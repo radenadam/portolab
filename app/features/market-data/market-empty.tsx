@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Link } from "react-router";
 import type { ClassId } from "~/features/classes/classes.schema";
 import { m } from "~/paraglide/messages.js";
+import { NumberText } from "~/number-text";
 import type { MarketFilters } from "./market-filters";
 import { marketPath } from "./market-path";
 import { marketSearch } from "./market-search";
@@ -18,9 +19,13 @@ export function MarketEmpty({
   return (
     <div className={styles["empty"]}>
       <p>
-        {query === ""
-          ? m.market_data_empty_sector_notice()
-          : m.market_data_no_results_notice({ query })}
+        <NumberText>
+          {(textValue) =>
+            query === ""
+              ? m.market_data_empty_sector_notice()
+              : m.market_data_no_results_notice({ query: textValue(query) })
+          }
+        </NumberText>
       </p>
       <Link
         to={`${marketPath(classId)}${marketSearch({ ...filters, query: "", sector: "all" })}`}

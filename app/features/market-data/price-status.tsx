@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { QuoteNotice } from "./quote-notice";
 import { noPricesText, quoteFailureText } from "./quote-failure-text";
 import type { PricesOfView } from "./read-prices.server";
 import styles from "./market-view.module.css";
@@ -15,5 +16,5 @@ export function PriceStatus({
     quotes.length === 0
       ? noPricesText(latestAttempt, schedule)
       : quoteFailureText(latestAttempt, quotes, schedule);
-  return text === undefined ? null : <p className={styles["notice"]}>{text}</p>;
+  return <QuoteNotice text={text} className={styles["notice"]} />;
 }

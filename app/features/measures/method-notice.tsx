@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
 import { formatNumber } from "~/formatting";
@@ -9,13 +10,15 @@ import { monthlyReturnCount } from "./monthly-return-count";
 export function MethodNotice(): ReactNode {
   return (
     <p>
-      {m.measures_method_notice({
-        index: marketIndex.code,
-        window: formatNumber(defaultEstimationSettings.returnCount),
-        minimum: monthlyReturnCount(
-          defaultEstimationSettings.minimumReturnCount,
-        ),
-      })}
+      <NumberText>
+        {m.measures_method_notice({
+          index: marketIndex.code,
+          window: formatNumber(defaultEstimationSettings.returnCount),
+          minimum: monthlyReturnCount(
+            defaultEstimationSettings.minimumReturnCount,
+          ),
+        })}
+      </NumberText>
     </p>
   );
 }

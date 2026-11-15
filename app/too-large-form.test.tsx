@@ -1,4 +1,4 @@
-import { renderToStaticMarkup } from "react-dom/server";
+import { renderTextMarkupForTest } from "~/render-text-markup-for-test";
 import { createRoutesStub } from "react-router";
 import { expect, test } from "vitest";
 import { statedSizeMaximumDigits } from "./form-size";
@@ -57,7 +57,7 @@ function renderTooLargeFormPage(statedSize: number | null): string {
       Component: () => <TooLargeFormPage refusal={refusal} />,
     },
   ]);
-  return renderToStaticMarkup(<Stub initialEntries={[formPath]} />);
+  return renderTextMarkupForTest(<Stub initialEntries={[formPath]} />);
 }
 
 for (const locale of locales) {

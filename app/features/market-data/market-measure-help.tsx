@@ -12,6 +12,7 @@ import {
 import { monthSpanInputs } from "~/features/measures/month-span";
 import { formatBeta, formatPercent } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
+import { NumberText } from "~/number-text";
 import type { readMarket } from "./read-market.server";
 
 type Reference = ReturnType<typeof readMarket>["marketReference"];
@@ -31,7 +32,7 @@ export function MarketMeasureHelp({
     beta: m.market_data_beta_label(),
     risk: m.market_data_volatility_label(),
   }[kind];
-  let value: ReactNode;
+  let value: string;
   let calculation: ReactNode;
   const unit = measureUnitText(kind);
   if (!reference.ok) {
@@ -58,15 +59,20 @@ export function MarketMeasureHelp({
       example={
         <>
           <p>
-            {reference.ok && index} <strong>{value}</strong>
+            {reference.ok && index}{" "}
+            <strong>
+              <NumberText>{value}</NumberText>
+            </strong>
           </p>
           {reference.ok && (
             <>
               {unit !== undefined && <p>{unit}</p>}
               <p>
-                {m.market_data_period_notice(
-                  monthSpanInputs(reference.value.months),
-                )}
+                <NumberText>
+                  {m.market_data_period_notice(
+                    monthSpanInputs(reference.value.months),
+                  )}
+                </NumberText>
               </p>
             </>
           )}

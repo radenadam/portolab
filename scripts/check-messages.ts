@@ -10,7 +10,7 @@ import {
   messageKeys,
   parseLocales,
   readMessages,
-  untestedMessageProblems,
+  messageTextProblems,
 } from "./messages.ts";
 import { writeScriptFailure } from "./write-script-failure.ts";
 
@@ -40,7 +40,7 @@ for (const locale of locales.value) {
     keysByLanguage.set(locale, messageKeys(messages.value));
     problems.push(
       ...literalIndexProblems(path, messages.value, marketIndex.code),
-      ...untestedMessageProblems(path, messages.value, testSources),
+      ...messageTextProblems(path, messages.value, testSources),
     );
   } else {
     problems.push(messages.failure);

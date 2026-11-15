@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { NumberText } from "~/number-text";
 
 export function TableHead({
   labels,
@@ -12,7 +13,7 @@ export function TableHead({
       <tr>
         {labels.map((label) => (
           <th key={label} scope="col">
-            {label}
+            <NumberText>{label}</NumberText>
             {help?.[label]}
           </th>
         ))}

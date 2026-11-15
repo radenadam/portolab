@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { monthSpanInputs } from "~/features/measures/month-span";
 import { m } from "~/paraglide/messages.js";
+import { NumberText } from "~/number-text";
 import type { MarketRow } from "./filter-market-rows";
 import type { IndexQuote } from "./price-source.server";
 import type { readMarket } from "./read-market.server";
@@ -30,10 +31,12 @@ export function MarketReferenceNotice({
           {m.market_data_reference_marks_notice({ index })}{" "}
         </span>
       )}
-      {m.market_data_reference_notice({
-        index,
-        ...monthSpanInputs(reference.value.months),
-      })}
+      <NumberText>
+        {m.market_data_reference_notice({
+          index,
+          ...monthSpanInputs(reference.value.months),
+        })}
+      </NumberText>
     </p>
   );
 }

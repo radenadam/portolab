@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { Form, Link } from "react-router";
 import type { ClassId } from "~/features/classes/classes.schema";
@@ -53,7 +54,7 @@ export function GlossaryView({
         </div>
         {error !== undefined && (
           <p id="query-error" className={styles["error"]} role="alert">
-            {error}
+            <NumberText>{error}</NumberText>
           </p>
         )}
       </Form>
@@ -61,19 +62,23 @@ export function GlossaryView({
         <>
           {terms.length > 0 && (
             <p className={styles["count"]} role="status">
-              {terms.length === 1
-                ? m.learning_one_term_notice({
-                    count: formatNumber(terms.length),
-                  })
-                : m.learning_several_terms_notice({
-                    count: formatNumber(terms.length),
-                  })}
+              <NumberText>
+                {terms.length === 1
+                  ? m.learning_one_term_notice({
+                      count: formatNumber(terms.length),
+                    })
+                  : m.learning_several_terms_notice({
+                      count: formatNumber(terms.length),
+                    })}
+              </NumberText>
             </p>
           )}
           <div className={styles["glossary"]}>
             {terms.length === 0 && (
               <p className={styles["empty"]} role="status">
-                {m.learning_no_terms_notice({ query })}
+                <NumberText verbatim>
+                  {m.learning_no_terms_notice({ query })}
+                </NumberText>
               </p>
             )}
             {terms.map((term) => {
@@ -83,7 +88,9 @@ export function GlossaryView({
                   id={`term-${term.id}`}
                   className={styles["glossRow"]}
                 >
-                  <h2>{term.title}</h2>
+                  <h2>
+                    <NumberText>{term.title}</NumberText>
+                  </h2>
                   <ContentParagraphs blocks={term.blocks} />
                   {sessions
                     .filter((entry) => entry.session === term.session)
@@ -97,7 +104,7 @@ export function GlossaryView({
                           `${returnPath}#term-${term.id}`,
                         )}
                       >
-                        {lessonLinkText(lesson)}
+                        <NumberText>{lessonLinkText(lesson)}</NumberText>
                       </Link>
                     ))}
                 </section>

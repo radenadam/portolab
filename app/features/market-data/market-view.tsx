@@ -10,6 +10,7 @@ import { countedText } from "~/counted-text";
 import { formatCalendarDate, formatNumber } from "~/formatting";
 import { wibDateOf } from "~/wib";
 import { m } from "~/paraglide/messages.js";
+import { NumberText } from "~/number-text";
 import { FieldFailure } from "~/described-field";
 import { companyOf } from "./company-of";
 import { MarketTable } from "./market-table";
@@ -143,7 +144,7 @@ export function MarketView(props: MarketViewProps): ReactNode {
                     value={values.sector}
                     defaultChecked
                   />
-                  <span>{values.sector}</span>
+                  <NumberText verbatim>{values.sector}</NumberText>
                 </label>
               )}
               {sectorOptions.map(({ value: sector, label, count }) => (
@@ -157,12 +158,14 @@ export function MarketView(props: MarketViewProps): ReactNode {
                       setLive({ ...live, sector });
                     }}
                   />
-                  <span>
-                    {m.market_data_chip_label({
-                      sector: label,
-                      count: formatNumber(count),
-                    })}
-                  </span>
+                  <NumberText>
+                    {(textValue) =>
+                      m.market_data_chip_label({
+                        sector: textValue(label),
+                        count: formatNumber(count),
+                      })
+                    }
+                  </NumberText>
                 </label>
               ))}
             </div>
@@ -238,9 +241,11 @@ export function MarketView(props: MarketViewProps): ReactNode {
       </Form>
       {!props.universeAvailable && (
         <p className={styles["notice"]}>
-          {m.market_data_universe_notice({
-            date: formatCalendarDate(wibDateOf(props.now)),
-          })}
+          <NumberText>
+            {m.market_data_universe_notice({
+              date: formatCalendarDate(wibDateOf(props.now)),
+            })}
+          </NumberText>
         </p>
       )}
       {props.universeAvailable && (
@@ -250,14 +255,16 @@ export function MarketView(props: MarketViewProps): ReactNode {
           data-layout="panel"
         >
           <h2 id="stocks-heading">
-            {countedText(
-              shown.length,
-              {
-                one: m.market_data_one_stock_title,
-                several: m.market_data_several_stocks_title,
-              },
-              { count: formatNumber(shown.length) },
-            )}
+            <NumberText>
+              {countedText(
+                shown.length,
+                {
+                  one: m.market_data_one_stock_title,
+                  several: m.market_data_several_stocks_title,
+                },
+                { count: formatNumber(shown.length) },
+              )}
+            </NumberText>
           </h2>
           {shown.length === 0 ? (
             <MarketEmpty classId={classId} filters={live} />

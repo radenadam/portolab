@@ -68,6 +68,21 @@
   font-size: var(--text-small);
 }
 
+.quoteDetails {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: var(--space-3);
+}
+
+.portfolioQuotes {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--size-touch-target);
+  padding-inline: var(--space-2);
+  font-size: var(--text-small);
+}
+
 .panel {
   composes: panel from "../../panel.module.css";
 }
@@ -147,4 +162,16 @@
     padding: 0;
     background: none;
   }
+}
+
+.statisticsHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.statisticsHeader > .muted {
+  font-size: var(--text-caption);
 }

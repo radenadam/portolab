@@ -1,4 +1,4 @@
-import { renderToStaticMarkup } from "react-dom/server";
+import { renderTextMarkupForTest } from "~/render-text-markup-for-test";
 import { expect, test } from "vitest";
 import type {
   IndexQuote,
@@ -99,7 +99,7 @@ function renderView(
   reader: PortfolioReader,
   now = wednesday,
 ): string {
-  return renderToStaticMarkup(
+  return renderTextMarkupForTest(
     <PortfolioView
       report={report}
       reader={reader}

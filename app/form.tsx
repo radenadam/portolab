@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import { useId } from "react";
 import type { ReactNode } from "react";
 import { Form, useNavigation } from "react-router";
@@ -119,7 +120,7 @@ export function CheckboxField({
           className={styles["box"]}
         />
         <label htmlFor={id} className={styles["label"]}>
-          {label}
+          <NumberText>{label}</NumberText>
         </label>
       </div>
     </div>
@@ -198,7 +199,9 @@ export function ChoiceField({
       aria-describedby={failure === undefined ? undefined : failureId}
       className={styles["choices"]}
     >
-      <legend className={styles["label"]}>{label}</legend>
+      <legend className={styles["label"]}>
+        <NumberText>{label}</NumberText>
+      </legend>
       <FieldFailure id={failureId} text={failure} />
       <div className={styles["options"]}>
         {options.map((option) => (
@@ -210,7 +213,7 @@ export function ChoiceField({
               defaultChecked={option.value === defaultValue}
               className={styles["optionInput"]}
             />
-            {option.label}
+            <NumberText>{option.label}</NumberText>
           </label>
         ))}
       </div>
@@ -231,7 +234,7 @@ export function SubmitButton({
   const isWaiting = useNavigation().state !== "idle";
   return (
     <button type="submit" disabled={isWaiting} className={className}>
-      {label}
+      <NumberText>{label}</NumberText>
     </button>
   );
 }
@@ -240,7 +243,7 @@ export function SubmitButton({
 export function FormFailure({ text }: { text: string }): ReactNode {
   return (
     <p role="alert" className={styles["rejection"]}>
-      {text}
+      <NumberText>{text}</NumberText>
     </p>
   );
 }
@@ -257,8 +260,12 @@ export function Rejection({
 }): ReactNode {
   return (
     <div role="alert" className={styles["rejection"]}>
-      <p className={styles["rejectionTitle"]}>{title}</p>
-      <p>{text}</p>
+      <p className={styles["rejectionTitle"]}>
+        <NumberText>{title}</NumberText>
+      </p>
+      <p>
+        <NumberText>{text}</NumberText>
+      </p>
       {step}
     </div>
   );
@@ -287,7 +294,7 @@ export function StepForm({
         value={step.value}
         className={styles["stepButton"]}
       >
-        {label}
+        <NumberText>{label}</NumberText>
       </button>
     </Form>
   );
@@ -297,7 +304,7 @@ export function StepForm({
 export function FormSuccess({ text }: { text: string }): ReactNode {
   return (
     <p role="status" className={styles["success"]}>
-      {text}
+      <NumberText verbatim>{text}</NumberText>
     </p>
   );
 }
