@@ -406,6 +406,7 @@
   "app_chart_point_label": "{date}: {values}",
   "app_map_point_label": "{name}: {values}",
   "app_map_value_part": "{name} {value}",
+  "app_chart_short_name_part": "{name}…",
   "app_concept_help_label": "Apa itu {concept}?",
   "app_concept_example_label": "Angka pada halaman ini",
   "app_concept_calculation_label": "Lihat perhitungan",

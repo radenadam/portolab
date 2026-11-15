@@ -1,6 +1,6 @@
 import { storeActivityOrders } from "./store-activity-orders.ts";
 import { studentDesignClass } from "./student-design-class.ts";
-import type { Page } from "@playwright/test";
+import type { Browser, Page } from "@playwright/test";
 import { expect, test } from "@playwright/test";
 import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
@@ -255,6 +255,11 @@ for (const locale of locales) {
           .getByRole("dialog")
           .getByRole("link", { name: text.open, exact: true })
           .click();
+        if (variant.studentName !== undefined)
+          await checkNativeStudentCharts(page, browser, {
+            locale,
+            studentName: variant.studentName,
+          });
         for (const [tab, name] of [
           [text.summary, "summary"],
           [text.analysis, "analysis"],
@@ -269,15 +274,13 @@ for (const locale of locales) {
               .getByRole("navigation", { name: text.sections })
               .getByRole("link", { name: tab, exact: true }),
           ).toHaveAttribute("aria-current", "page");
-          if (variant.studentName !== undefined && name !== "journal")
-            await expect(
-              page
-                .locator('[data-map-label="point"]')
-                .filter({ hasText: variant.studentName }),
-            ).toBeVisible();
           await captureStudentScreen(
             page,
             `${variant.capture}-${locale}-${name}`,
+            {
+              studentName: name === "journal" ? undefined : variant.studentName,
+              endLabels: name === "analysis",
+            },
           );
         }
       } finally {
@@ -423,13 +426,85 @@ async function correctStudentQueries(
   await expect(page).toHaveURL(selected);
 }
 
-async function captureStudentScreen(page: Page, name: string): Promise<void> {
+async function expectStudentChartName(
+  page: Page,
+  studentName: string,
+): Promise<void> {
+  const label = page
+    .locator('[data-map-label="point"]')
+    .filter({ hasText: studentName.slice(0, 3) });
+  await expect(label).toBeVisible();
+  await expect(label).toContainText("…");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(studentName);
+  await expect(
+    page.getByRole("listitem").filter({ hasText: studentName }).first(),
+  ).toBeVisible();
+}
+
+async function checkNativeStudentCharts(
+  page: Page,
+  browser: Browser,
+  { locale, studentName }: { locale: Locale; studentName: string },
+): Promise<void> {
+  const plain = await newDevice(browser, locale, {
+    javaScriptEnabled: false,
+    sessionFrom: page,
+  });
+  try {
+    await plain.goto(page.url());
+    for (const [tab, endLabels] of [
+      [texts[locale].summary, false],
+      [texts[locale].analysis, true],
+    ] as const) {
+      await plain
+        .getByRole("navigation", { name: texts[locale].sections })
+        .getByRole("link", { name: tab, exact: true })
+        .click();
+      await expectStudentChartName(plain, studentName);
+      expect(await layoutProblems(plain)).toEqual([]);
+      await expectEndLabelsInsidePlot(plain, endLabels);
+    }
+  } finally {
+    await plain.context().close();
+  }
+}
+
+async function captureStudentScreen(
+  page: Page,
+  name: string,
+  {
+    studentName,
+    endLabels = false,
+  }: { studentName?: string | undefined; endLabels?: boolean } = {},
+): Promise<void> {
   await captureScreens(page, test.info(), {
     name,
     fullPage: true,
     fromTop: true,
     check: async () => {
+      if (studentName !== undefined)
+        await expectStudentChartName(page, studentName);
       expect(await layoutProblems(page)).toEqual([]);
+      await expectEndLabelsInsidePlot(page, endLabels);
     },
   });
+}
+
+async function expectEndLabelsInsidePlot(
+  page: Page,
+  required: boolean,
+): Promise<void> {
+  const labels = page.locator('[data-time-label="end"]');
+  if (required) await expect(labels).toHaveCount(2);
+  for (const label of await labels.all()) {
+    if (!(await label.isVisible())) continue;
+    const ink = await label.boundingBox();
+    const plot = await label
+      .locator("xpath=ancestor::svg[1]/../..")
+      .boundingBox();
+    if (ink === null || plot === null)
+      throw new Error("A visible end label and its plot must have bounds.");
+    expect(ink.x).toBeGreaterThanOrEqual(plot.x);
+    expect(ink.x + ink.width).toBeLessThanOrEqual(plot.x + plot.width);
+  }
 }

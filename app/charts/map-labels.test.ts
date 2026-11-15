@@ -351,16 +351,12 @@ test("keeps fixed labels apart from names placed before and after them at every 
   }
 });
 
-test("estimates the width of a name from the widths of the capitals, the small letters, the figures, the spaces, and the signs of the font of the labels", () => {
-  expect(estimatedLabelWidth("BBCA")).toBeCloseTo(4 * 0.7, 12);
-  expect(estimatedLabelWidth("Portofolio Anda")).toBeCloseTo(
-    2 * 0.7 + 12 * 0.55 + 0.2,
-    12,
-  );
-  expect(estimatedLabelWidth("IHSG 0,05%")).toBeCloseTo(
-    4 * 0.7 + 0.2 + 5 * 0.6,
-    12,
-  );
+test("leaves room for the widest glyphs instead of their average width before the browser measures labels", () => {
+  expect(estimatedLabelWidth("BBCA")).toBeCloseTo(2.79, 12);
+  expect(estimatedLabelWidth("MWmw")).toBeCloseTo(3.75, 12);
+  expect(estimatedLabelWidth("Portofolio Anda")).toBeCloseTo(7.51, 12);
+  expect(estimatedLabelWidth("IHSG 0,05%")).toBeCloseTo(5.78, 12);
+  expect(estimatedLabelWidth("中😀")).toBe(4);
 });
 
 // The letters of a label reach 1 above its baseline and 0.25 below it, and its box keeps 0.25 for the outline at every edge.
