@@ -459,25 +459,9 @@
   font-size: var(--text-body);
 }
 .viewChoice {
-  display: inline-flex;
-  background: var(--color-raised);
-  padding: var(--space-1);
-  border-radius: var(--radius-item);
+  composes: choice from "../../segmented-choice.module.css";
 }
-.viewChoice a {
-  display: flex;
-  align-items: center;
-  min-block-size: var(--size-touch-target);
-  padding-inline: var(--space-3);
-  color: var(--color-ink-secondary);
-  text-decoration: none;
-  border-radius: var(--radius-button);
-}
-.viewChoice [aria-current] {
-  background: var(--color-panel);
-  box-shadow: var(--shadow-choice);
-  color: var(--color-ink);
-}
+
 .largeMap {
   --size-chart: var(--size-home-map);
 }

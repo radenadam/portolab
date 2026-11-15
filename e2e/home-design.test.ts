@@ -1,3 +1,5 @@
+import type { Locator } from "@playwright/test";
+import { expectMapLabelsClear } from "./expect-map-labels-clear.ts";
 import { languageNames } from "../app/language-names.ts";
 import { expect, test } from "@playwright/test";
 import { eq } from "drizzle-orm";
@@ -98,6 +100,7 @@ for (const locale of locales) {
             .getByRole("link", { name: texts[locale][view], exact: true })
             .click();
           expect(await layoutProblems(student)).toEqual([]);
+          await expectHomeMapLabels(panel, view);
           await student.mouse.move(0, 0);
           const height = await student
             .locator("body")
@@ -133,6 +136,10 @@ for (const locale of locales) {
       storageState: await student.context().storageState(),
     });
     await native.goto(student.url());
+    await expectHomeMapLabels(
+      native.getByRole("region", { name: texts[locale].title }),
+      "map",
+    );
     await native
       .getByRole("link", { name: texts[locale].time, exact: true })
       .click();
@@ -174,4 +181,12 @@ for (const locale of locales) {
     }
     await student.context().close();
   });
+}
+
+async function expectHomeMapLabels(
+  panel: Locator,
+  view: "map" | "time",
+): Promise<void> {
+  if (view === "map")
+    await expectMapLabelsClear(panel.locator("svg:has([data-map-label])"));
 }

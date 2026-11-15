@@ -1,3 +1,4 @@
+import { expectMapLabelsClear } from "./expect-map-labels-clear.ts";
 import { fieldMaximumLength } from "../app/form-size.ts";
 import { screenshotFullHeight } from "./screenshot-full-height.ts";
 import { captureScreens } from "./capture-screens.ts";
@@ -332,6 +333,17 @@ async function correctAnalysisAxis(
   ).toBeVisible();
 }
 
+async function openNativePointCalculation(
+  page: Page,
+  point: string,
+  calculation: string,
+): Promise<void> {
+  await expect(page.getByRole("slider")).toHaveCount(0);
+  await expectMapLabelsClear(page.locator("svg:has([data-map-label])").first());
+  await page.getByRole("button", { name: point, exact: true }).click();
+  await expect(page.locator(`#${calculation}`)).toBeVisible();
+}
+
 for (const locale of locales) {
   const text = analysisText[locale];
   const language = languageNames[locale];
@@ -385,6 +397,7 @@ for (const locale of locales) {
     await expect(
       mapPanel.locator("svg").getByText(text.betaAxis, { exact: true }),
     ).toBeVisible();
+    await expectMapLabelsClear(mapPanel.locator("svg:has([data-map-label])"));
     await expect(mapPanel).toContainText(text.insight);
     await expect(
       mapPanel.getByRole("link", { name: text.learn, exact: true }),
@@ -422,6 +435,7 @@ for (const locale of locales) {
       name: text.riskMap,
       exact: true,
     });
+    await expectMapLabelsClear(riskMap.locator("svg:has([data-map-label])"));
     await expect(riskMap).toContainText(text.riskInsight);
     await expect(
       riskMap.locator("svg").getByText(text.riskAxis, { exact: true }),
@@ -650,11 +664,11 @@ for (const locale of locales) {
     try {
       await page.reload({ waitUntil: "commit" });
       await expect.poll(() => held).toBeGreaterThan(0);
-      await expect(page.getByRole("slider")).toHaveCount(0);
-      await page
-        .getByRole("button", { name: text.portfolioPoint, exact: true })
-        .click();
-      await expect(page.locator("#analysis-alpha")).toBeVisible();
+      await openNativePointCalculation(
+        page,
+        text.portfolioPoint,
+        "analysis-alpha",
+      );
       scripts.resolve(undefined);
       await page.waitForLoadState("load");
       await expect(
@@ -744,6 +758,9 @@ for (const locale of locales) {
           await student.evaluate(async () => {
             await document.fonts.ready;
           });
+          await expectMapLabelsClear(
+            student.locator("svg:has([data-map-label])").first(),
+          );
           expect(await layoutProblems(student)).toEqual([]);
           const fullHeight = await student.evaluate(
             () => document.documentElement.scrollHeight,
@@ -775,21 +792,22 @@ for (const locale of locales) {
         locale,
       );
       await expectPerformanceHelp(page, locale);
-      await page
-        .getByRole("button", { name: text.portfolioPoint, exact: true })
-        .click();
-      await expect(page.locator("#analysis-alpha")).toBeVisible();
+      await openNativePointCalculation(
+        page,
+        text.portfolioPoint,
+        "analysis-alpha",
+      );
       await page.keyboard.press("Escape");
       await page
         .getByRole("navigation", { name: text.axis })
         .getByRole("link", { name: text.risk, exact: true })
         .click();
       await expect(page).toHaveURL(/axis=risk$/);
-      await expect(page.getByRole("slider")).toHaveCount(0);
-      await page
-        .getByRole("button", { name: text.portfolioPoint, exact: true })
-        .click();
-      await expect(page.locator("#analysis-risk")).toBeVisible();
+      await openNativePointCalculation(
+        page,
+        text.portfolioPoint,
+        "analysis-risk",
+      );
       await page.keyboard.press("Escape");
       const field = await openInvalidAnalysisAxis(page, classPath, {
         locale,

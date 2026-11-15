@@ -1,3 +1,4 @@
+import { isClassMapPath } from "./class-path";
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { Form, Link } from "react-router";
@@ -20,6 +21,7 @@ export function meta(): Route.MetaDescriptors {
 
 export function loader({ context, url, params }: Route.LoaderArgs): {
   returnPath: string;
+  returnLabel: string;
   student: ClassStudent;
 } {
   const { taughtClass, student } = requireTaughtStudent(context, url, params);
@@ -30,6 +32,10 @@ export function loader({ context, url, params }: Route.LoaderArgs): {
   );
   return {
     student,
+    returnLabel:
+      returnPath.ok && isClassMapPath(returnPath.value, taughtClass.id)
+        ? m.classes_back_link({ class: taughtClass.name })
+        : m.classes_students_back_link(),
     returnPath: returnPath.ok
       ? returnPath.value
       : studentsAddress(taughtClass.id, {
@@ -50,7 +56,7 @@ export default function ResetPasswordPage({
   loaderData,
   actionData,
 }: Route.ComponentProps): ReactNode {
-  const { student, returnPath } = loaderData;
+  const { student, returnPath, returnLabel } = loaderData;
   return (
     <FormPage title={m.classes_reset_title()}>
       {actionData === undefined ? (
@@ -78,7 +84,7 @@ export default function ResetPasswordPage({
         </>
       )}
       <Link to={returnPath} className={styles["link"]}>
-        {m.classes_students_back_link()}
+        <NumberText verbatim>{returnLabel}</NumberText>
       </Link>
     </FormPage>
   );
