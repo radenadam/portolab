@@ -1,19 +1,24 @@
+import {
+  checkRoundLimit,
+  mergeReviewRoundLimit,
+  reviewRoundLimit,
+} from "./review-limits.ts";
+import {
+  parseReviewPlan,
+  buildRoundReport,
+  describeReviewScope,
+  planReview,
+} from "./review-plan.ts";
+
 import { expect, test } from "vitest";
 import { parseReviewerReport } from "./review-findings.ts";
 import type { Finding } from "./review-findings.ts";
 import type { CommitScope } from "./review-history.ts";
 import type { ChangedFile } from "./review-lenses.ts";
-import {
-  buildRoundReport,
-  checkRoundLimit,
-  describeReviewScope,
-  mergeReviewRoundLimit,
-  parseReviewPlan,
-  planReview,
-  reviewRoundLimit,
-} from "./review-plan.ts";
-import type { ReviewPlan } from "./review-plan.ts";
-import { parseLatestReviewState } from "./review-state.ts";
+
+import type { ReviewHistory, ReviewPlan } from "./review-plan.ts";
+import { summarizeReview } from "./summarize-review.ts";
+import { parseLatestReviewState, parseReviewState } from "./review-state.ts";
 import type { ReviewState } from "./review-state.ts";
 import { successValueForTest } from "../app/success-value-for-test.ts";
 
@@ -41,12 +46,20 @@ function stateAfter(
   openFindings: Finding[],
   mergeRounds = 0,
 ): ReviewState {
-  return { head, round, mergeRounds, openFindings };
+  return {
+    head,
+    round,
+    mergeRounds,
+    checkRounds: Math.max(0, round - mergeRounds - reviewRoundLimit),
+    openFindings,
+  };
 }
 
-function withoutMergeRounds(value: object): Record<string, unknown> {
+function withoutModernFields(value: object): Record<string, unknown> {
   return Object.fromEntries(
-    Object.entries(value).filter(([field]) => field !== "mergeRounds"),
+    Object.entries(value).filter(
+      ([field]) => !["mergeRounds", "checkRounds", "fixFiles"].includes(field),
+    ),
   );
 }
 
@@ -58,6 +71,8 @@ test("reviews the whole change in the first round", () => {
       [docs],
     ),
   ).toEqual({
+    fixFiles: [],
+    checkRounds: 0,
     kind: "review",
     round: 1,
     mergeRounds: 0,
@@ -85,6 +100,8 @@ test("passes without an agent when no file changed and no finding is open", () =
   expect(
     planReview(previous, { since: head, commitScope: "author" }, []),
   ).toEqual({
+    fixFiles: [],
+    checkRounds: 0,
     kind: "pass",
     round: 1,
     mergeRounds: 0,
@@ -150,6 +167,7 @@ test("caps the rounds when every review round failed, so a change that no round 
     head: undefined,
     round: reviewRoundLimit,
     mergeRounds: 0,
+    checkRounds: 0,
     openFindings: [],
   };
   expect(
@@ -177,6 +195,8 @@ test("reviews only merge resolutions after the ordinary cap, through the last ex
           docs,
         ]),
       ).toEqual({
+        fixFiles: [],
+        checkRounds: 0,
         kind: "review",
         round: previous.round + 1,
         mergeRounds: mergeRounds + 1,
@@ -270,7 +290,11 @@ test("keeps the limits of checks and merge reviews independent", () => {
     mergeReviewRoundLimit,
   );
   for (let checks = 0; checks < checkRoundLimit; checks += 1) {
-    const previous = { ...afterMerges, round: afterMerges.round + checks };
+    const previous = {
+      ...afterMerges,
+      round: afterMerges.round + checks,
+      checkRounds: checks,
+    };
     expect(previous.round - previous.mergeRounds).toBe(
       reviewRoundLimit + checks,
     );
@@ -285,6 +309,7 @@ test("keeps the limits of checks and merge reviews independent", () => {
   const exhausted = {
     ...afterMerges,
     round: afterMerges.round + checkRoundLimit,
+    checkRounds: checkRoundLimit,
   };
   expect(
     planReview(exhausted, { since: head, commitScope: "author" }, [docs]),
@@ -299,6 +324,200 @@ test("keeps the limits of checks and merge reviews independent", () => {
     round: afterChecks.round + 1,
     mergeRounds: 1,
   });
+});
+
+test("reviews a combined push before the ordinary cap without spending reserved allowances", () => {
+  const previous = stateAfter(reviewRoundLimit - 1, [openFinding]);
+  expect(
+    planReview(
+      previous,
+      {
+        since: head,
+        commitScope: "fixes-and-merges",
+        authorFiles: [docs],
+        mergeFiles: [docs],
+      },
+      [docs],
+    ),
+  ).toMatchObject({
+    kind: "review",
+    round: reviewRoundLimit,
+    mergeRounds: 0,
+    files: [docs.path],
+    fixFiles: [],
+  });
+});
+
+test("charges a finding fix with a base merge to both allowances through their last rounds", () => {
+  const mergeFile: ChangedFile = { path: "app/theme.css", change: "modified" };
+  for (const checks of [0, checkRoundLimit - 1]) {
+    for (const merges of [0, mergeReviewRoundLimit - 1]) {
+      const previous = stateAfter(
+        reviewRoundLimit + checks + merges,
+        [openFinding],
+        merges,
+      );
+      expect(previous.round - previous.mergeRounds).toBe(
+        reviewRoundLimit + checks,
+      );
+      const plan = planReview(
+        previous,
+        {
+          since: head,
+          commitScope: "fixes-and-merges",
+          authorFiles: [docs],
+          mergeFiles: [mergeFile],
+        },
+        [docs, mergeFile],
+      );
+      expect(plan).toMatchObject({
+        kind: "review",
+        round: previous.round + 2,
+        mergeRounds: merges + 1,
+        checkRounds: checks + 1,
+        files: [mergeFile.path],
+        fixFiles: [docs.path],
+        lenses: ["consistency", "craft", "docs", "product", "standards"],
+      });
+      expect(parseReviewPlan(JSON.parse(JSON.stringify(plan)), "PLAN")).toEqual(
+        { ok: true, value: plan },
+      );
+    }
+  }
+});
+
+test("spends no merge allowance for a fix with a clean merge and no check allowance for a merge without author changes", () => {
+  for (const authorFiles of [[], [docs]]) {
+    const mergeFiles = authorFiles.length === 0 ? [docs] : [];
+    const previous = stateAfter(reviewRoundLimit, [openFinding]);
+    const plan = planReview(
+      previous,
+      { since: head, commitScope: "fixes-and-merges", authorFiles, mergeFiles },
+      [docs],
+    );
+    expect(plan).toMatchObject({
+      kind: mergeFiles.length === 0 ? "check" : "review",
+      round: previous.round + 1,
+      mergeRounds: mergeFiles.length,
+      files: mergeFiles.map(({ path }) => path),
+      fixFiles: authorFiles.map(({ path }) => path),
+    });
+  }
+});
+
+test("refuses a combined push when either allowance is exhausted or no finding is open", () => {
+  for (const [checks, merges, openFindings] of [
+    [checkRoundLimit, 0, [openFinding]],
+    [0, mergeReviewRoundLimit, [openFinding]],
+    [0, 0, []],
+  ] as const) {
+    const previous = stateAfter(
+      reviewRoundLimit + checks + merges,
+      [...openFindings],
+      merges,
+    );
+    expect(
+      planReview(
+        previous,
+        {
+          since: head,
+          commitScope: "fixes-and-merges",
+          authorFiles: [docs],
+          mergeFiles: [docs],
+        },
+        [docs],
+      ),
+    ).toMatchObject({
+      kind: "capped",
+      round: previous.round,
+      mergeRounds: merges,
+    });
+  }
+});
+
+test("fails combined fixes and merges with unrelated author work, missing checks, or unfinished jobs without refilling budgets", () => {
+  const other: ChangedFile = { path: "unrelated.ts", change: "added" };
+  const previous = stateAfter(reviewRoundLimit, [openFinding]);
+  const plan = planReview(
+    previous,
+    {
+      since: head,
+      commitScope: "fixes-and-merges",
+      authorFiles: [docs, other],
+      mergeFiles: [docs],
+    },
+    [docs, other],
+  );
+  expect(plan.kind).toBe("review");
+  expect(plan.fixFiles).toEqual([docs.path, other.path]);
+  const report = buildRoundReport(plan, {
+    findings: [],
+    candidateStandards: [],
+    readFiles: plan.files,
+    lensChecks: plan.lenses.map((lens) => ({
+      lens,
+      checked: "Read the merge resolutions.",
+    })),
+  });
+  for (const status of ["fix", "unrelated", undefined] as const) {
+    const outcome = summarizeReview({
+      plan,
+      reviewedHead: "2".repeat(40),
+      report,
+      verdicts: [
+        {
+          id: openFinding.id,
+          status: "refuted",
+          scope: "change",
+          siblings: [],
+          duplicateOf: "",
+          evidence: "The finding is fixed.",
+        },
+      ],
+      fixChecks:
+        status === undefined
+          ? undefined
+          : plan.fixFiles.map((file) => ({
+              file,
+              status: file === docs.path ? "fix" : status,
+              evidence: "Checked each author commit.",
+            })),
+      jobResults: { plan: "success", reviewer: "success", verifier: "success" },
+      runs: [],
+      inputProblems: [],
+    });
+    expect(outcome.passed).toBe(status === "fix");
+    expect(outcome.body).toContain(
+      "It used an extra merge review round. It also spent a finding-check round on the author files.",
+    );
+    expect(outcome.state).toMatchObject({
+      round: previous.round + 2,
+      mergeRounds: 1,
+    });
+  }
+  for (const job of ["reviewer", "verifier"]) {
+    const outcome = summarizeReview({
+      plan,
+      reviewedHead: head,
+      report,
+      verdicts: undefined,
+      jobResults: {
+        plan: "success",
+        reviewer: "success",
+        verifier: "success",
+        [job]: "failure",
+      },
+      runs: [],
+      inputProblems: [],
+    });
+    expect(outcome.passed).toBe(false);
+    expect(outcome.state).toEqual({
+      ...previous,
+      round: previous.round + 2,
+      mergeRounds: 1,
+      checkRounds: 1,
+    });
+  }
 });
 
 test("reads back the plan that the plan step writes, with and without a reviewed head", () => {
@@ -328,7 +547,11 @@ test("reads back the plan that the plan step writes, with and without a reviewed
 });
 
 test("records and parses the refusal reason independently of the other exhausted caps", () => {
-  const cases: [CommitScope, Finding[], ReviewPlan["capReason"]][] = [
+  const cases: [
+    Exclude<CommitScope, "fixes-and-merges">,
+    Finding[],
+    ReviewPlan["capReason"],
+  ][] = [
     ["base-merges", [], "merge-reviews"],
     ["base-merges", [openFinding], "merge-reviews"],
     ["author", [], "unreviewed-change"],
@@ -384,8 +607,8 @@ test("reads a plan from an older pull request head when the final job runs newer
     [docs],
   );
   const legacy = {
-    ...withoutMergeRounds(plan),
-    previous: withoutMergeRounds(plan.previous),
+    ...withoutModernFields(plan),
+    previous: withoutModernFields(plan.previous),
   };
   expect(parseReviewPlan(legacy, "PLAN")).toEqual({ ok: true, value: plan });
 });
@@ -410,13 +633,73 @@ test("rejects a plan that names a lens outside the panel or files that are not a
   });
 });
 
-test("tells the reviewer whether the files hold the whole change or what changed since a head, and how to read the diff of one", () => {
-  expect(describeReviewScope(undefined, "origin/main")).toBe(
+test("requires valid author-file lists in current plans", () => {
+  const plan = planReview(
+    stateAfter(reviewRoundLimit, [openFinding]),
+    { since: head, commitScope: "author" },
+    [docs],
+  );
+  for (const fixFiles of [undefined, null, "file.ts", [1]]) {
+    expect(parseReviewPlan({ ...plan, fixFiles }, "PLAN").ok).toBe(false);
+  }
+});
+
+test("describes the whole change and each ordinary incremental plan through the scope used by the workflow", () => {
+  const first = planReview(
+    stateBeforeFirstRound,
+    { since: undefined, commitScope: "author" },
+    [docs],
+  );
+  expect(describeReviewScope(first, "origin/main")).toBe(
     "They hold the whole change, and `git diff origin/main...HEAD -- <path>` shows what changed in one of them.",
   );
-  expect(describeReviewScope(head, "origin/main")).toBe(
-    `They hold what changed since ${head}, the head that the panel last reviewed, because earlier rounds reviewed the rest of the change. \`git diff ${head} HEAD -- <path>\` shows what changed in one of them since then, and \`git diff origin/main...HEAD -- <path>\` shows its whole change.`,
-  );
+  const histories: ReviewHistory[] = [
+    { since: head, commitScope: "author" },
+    { since: head, commitScope: "base-merges" },
+    {
+      since: head,
+      commitScope: "fixes-and-merges",
+      authorFiles: [docs],
+      mergeFiles: [docs],
+    },
+  ];
+  for (const history of histories) {
+    const plan = planReview(stateAfter(1, [openFinding]), history, [docs]);
+    expect(plan).toMatchObject({ kind: "review", mergeRounds: 0 });
+    expect(describeReviewScope(plan, "origin/main")).toBe(
+      `They hold what changed since ${head}, the head that the panel last reviewed, because earlier rounds reviewed the rest of the change. \`git diff ${head} HEAD -- <path>\` shows what changed in one of them since then, and \`git diff origin/main...HEAD -- <path>\` shows its whole change.`,
+    );
+  }
+});
+
+test("describes only manual resolutions for pure and combined extra merge plans", () => {
+  const cases: [Finding[], ReviewHistory][] = [
+    [[], { since: head, commitScope: "base-merges" }],
+    [[openFinding], { since: head, commitScope: "base-merges" }],
+    [
+      [openFinding],
+      {
+        since: head,
+        commitScope: "fixes-and-merges",
+        authorFiles: [docs],
+        mergeFiles: [docs],
+      },
+    ],
+  ];
+  for (const [openFindings, history] of cases) {
+    const previous = stateAfter(reviewRoundLimit, openFindings);
+    expect(previous.round - previous.mergeRounds - previous.checkRounds).toBe(
+      reviewRoundLimit,
+    );
+    const plan = planReview(previous, history, [docs]);
+    expect(plan).toMatchObject({
+      kind: "review",
+      mergeRounds: previous.mergeRounds + 1,
+    });
+    expect(describeReviewScope(plan, "origin/main")).toBe(
+      `They hold manual base merge resolutions since ${head}. Read only their remerge diffs with \`git log --first-parent --merges --diff-merges=remerge -p ${head}..HEAD -- <path>\`.`,
+    );
+  }
 });
 
 test("builds the report of a review round with its findings numbered after the round before the open ones, and of a round that checks with the open findings alone", () => {
@@ -460,4 +743,114 @@ test("builds the report of a review round with its findings numbered after the r
     readFiles: [],
     lensChecks: [],
   });
+});
+
+test("keeps earlier finding checks spent when a larger ordinary cap permits more reviews", () => {
+  for (const mergeRounds of [0, mergeReviewRoundLimit]) {
+    let previous = successValueForTest(
+      parseReviewState(
+        {
+          head,
+          round: 3 + checkRoundLimit + mergeRounds,
+          mergeRounds,
+          openFindings: [openFinding],
+        },
+        "legacy state",
+      ),
+      "The old state used both finding checks",
+    );
+    expect(previous.checkRounds).toBe(checkRoundLimit);
+    for (let ordinary = 3; ordinary < reviewRoundLimit; ordinary += 1) {
+      const plan = planReview(
+        previous,
+        { since: head, commitScope: "author" },
+        [docs],
+      );
+      expect(plan).toMatchObject({
+        kind: "review",
+        round: previous.round + 1,
+        checkRounds: checkRoundLimit,
+        mergeRounds,
+      });
+      previous = {
+        ...previous,
+        round: plan.round,
+        checkRounds: plan.checkRounds,
+        mergeRounds: plan.mergeRounds,
+      };
+    }
+    expect(
+      planReview(previous, { since: head, commitScope: "author" }, [docs]),
+    ).toMatchObject({ kind: "capped", capReason: "finding-checks" });
+  }
+});
+
+test("requires current check counters and infers them only for plans from an older head", () => {
+  const plan = planReview(
+    stateAfter(reviewRoundLimit, [openFinding]),
+    { since: head, commitScope: "author" },
+    [docs],
+  );
+  for (const checkRounds of [undefined, -1, 0.5, "1", plan.round + 1]) {
+    expect(parseReviewPlan({ ...plan, checkRounds }, "PLAN").ok).toBe(false);
+  }
+  const legacyPrevious = { ...plan.previous, round: 3, checkRounds: undefined };
+  const legacy = {
+    ...plan,
+    round: 4,
+    checkRounds: undefined,
+    fixFiles: undefined,
+    previous: legacyPrevious,
+  };
+  expect(parseReviewPlan(legacy, "PLAN")).toEqual({
+    ok: true,
+    value: {
+      ...legacy,
+      fixFiles: [],
+      checkRounds: 1,
+      previous: { ...legacyPrevious, checkRounds: 0 },
+    },
+  });
+});
+
+test("keeps three reviews, a late main merge, and an author correction in one pull request as measured in PR 174", () => {
+  const mergedHead = "2".repeat(40);
+  const correctedHead = "3".repeat(40);
+  const merge = planReview(
+    stateAfter(3, []),
+    { since: head, commitScope: "base-merges" },
+    [docs],
+  );
+  expect(merge).toMatchObject({
+    kind: "review",
+    round: 4,
+    mergeRounds: 0,
+    checkRounds: 0,
+  });
+  const afterMerge = {
+    ...stateAfter(merge.round, [], merge.mergeRounds),
+    head: mergedHead,
+  };
+  const correction = planReview(
+    afterMerge,
+    { since: mergedHead, commitScope: "author" },
+    [docs],
+  );
+  expect(correction).toMatchObject({
+    kind: "review",
+    round: 5,
+    mergeRounds: 0,
+    checkRounds: 0,
+  });
+  const afterCorrection = {
+    ...stateAfter(correction.round, [], correction.mergeRounds),
+    head: correctedHead,
+  };
+  expect(
+    planReview(
+      afterCorrection,
+      { since: correctedHead, commitScope: "author" },
+      [docs],
+    ),
+  ).toMatchObject({ kind: "capped", capReason: "unreviewed-change" });
 });

@@ -1,13 +1,14 @@
-import { expect, test } from "vitest";
-import type { Finding, Verdict } from "./review-findings.ts";
-import type { ChangedFile, Lens } from "./review-lenses.ts";
 import {
   checkRoundLimit,
   mergeReviewRoundLimit,
-  parseReviewPlan,
-  planReview,
   reviewRoundLimit,
-} from "./review-plan.ts";
+} from "./review-limits.ts";
+import { parseReviewPlan, planReview } from "./review-plan.ts";
+
+import { expect, test } from "vitest";
+import type { Finding, Verdict } from "./review-findings.ts";
+import type { ChangedFile, Lens } from "./review-lenses.ts";
+
 import type { ReviewPlan } from "./review-plan.ts";
 import { parseLatestReviewState } from "./review-state.ts";
 import type { ReviewState } from "./review-state.ts";
@@ -63,8 +64,18 @@ function verdict(
   };
 }
 
-function stateAfter(round: number, openFindings: Finding[]): ReviewState {
-  return { head: earlierHead, round, mergeRounds: 0, openFindings };
+function stateAfter(
+  round: number,
+  openFindings: Finding[],
+  mergeRounds = 0,
+): ReviewState {
+  return {
+    head: earlierHead,
+    round,
+    mergeRounds,
+    checkRounds: Math.max(0, round - mergeRounds - reviewRoundLimit),
+    openFindings,
+  };
 }
 
 /** The coverage of a reviewer that read every file under review and checked through every lens. */
@@ -94,6 +105,11 @@ function input(
         ? undefined
         : { findings, candidateStandards: [], ...coverageOf(plan) },
     verdicts,
+    fixChecks: plan.fixFiles.map((file) => ({
+      file,
+      status: "fix",
+      evidence: "The author changes fix finding 1.1.",
+    })),
     jobResults: finishedJobs(plan),
     runs: ["The reviewer ran for 6 minutes in 41 turns."],
     inputProblems: [],
@@ -137,7 +153,13 @@ test("passes a first round without findings and records the reviewed head", () =
       "- docs: What the lens checked.",
       "- standards: What the lens checked.",
     ].join("\n"),
-    state: { head: reviewedHead, round: 1, mergeRounds: 0, openFindings: [] },
+    state: {
+      head: reviewedHead,
+      round: 1,
+      mergeRounds: 0,
+      checkRounds: 0,
+      openFindings: [],
+    },
     outside: { round: 1, findings: [], candidateStandards: [] },
   });
 });
@@ -181,6 +203,7 @@ test("fails on a confirmed finding in the change, shows it with the verifier's s
     head: reviewedHead,
     round: 1,
     mergeRounds: 0,
+    checkRounds: 0,
     openFindings: [
       { ...finding("1.1"), siblings: ["docs/decisions/0001.md:4"] },
     ],
@@ -305,7 +328,7 @@ test("counts several refuted and duplicate findings in the plural", () => {
   );
 });
 
-test("says that a round after the review rounds only checked the open findings, and that no reviewer read the new commits", () => {
+test("checks open findings and author scope after ordinary reviews without running the reviewer", () => {
   const plan = planReview(
     stateAfter(reviewRoundLimit, [finding("1.1")]),
     { since: earlierHead, commitScope: "author" },
@@ -317,7 +340,7 @@ test("says that a round after the review rounds only checked the open findings, 
       runs: ["The verifier ran for 2 minutes in 9 turns."],
     }).body,
   ).toContain(
-    `Round 4 only checked the open findings. No reviewer read the commits since ${earlierHead}, because the panel has used its 3 ordinary review rounds. The verifier ran for 2 minutes in 9 turns.`,
+    `Round ${String(reviewRoundLimit + 1)} checked the open findings and whether every author change belongs to their fixes. No reviewer read the commits since ${earlierHead}, because the panel has used its ordinary review allowance. The verifier ran for 2 minutes in 9 turns.`,
   );
 });
 
@@ -330,11 +353,12 @@ test("records an extra merge review and checks its findings alongside earlier fi
   );
   expect(plan.kind).toBe("review");
   expect(plan.mergeRounds).toBe(1);
+  const findingId = `${String(plan.round)}.1`;
   const outcome = summarizeReview(
     input(
       plan,
-      [finding("4.1"), finding("1.1")],
-      [verdict("4.1", "confirmed"), verdict("1.1", "refuted")],
+      [finding(findingId), finding("1.1")],
+      [verdict(findingId, "confirmed"), verdict("1.1", "refuted")],
     ),
   );
   expect(outcome.passed).toBe(false);
@@ -343,7 +367,7 @@ test("records an extra merge review and checks its findings alongside earlier fi
     round: reviewRoundLimit + 1,
     mergeRounds: 1,
   });
-  expect(outcome.state?.openFindings.map(({ id }) => id)).toEqual(["4.1"]);
+  expect(outcome.state?.openFindings.map(({ id }) => id)).toEqual([findingId]);
   expect(outcome.body).toContain("It used an extra merge review round.");
 });
 
@@ -406,6 +430,7 @@ test("passes without an agent when no file changed and no finding is open, with 
       head: reviewedHead,
       round: plan.round,
       mergeRounds: 0,
+      checkRounds: 0,
       openFindings: [],
     });
   }
@@ -459,17 +484,17 @@ test("fails without an agent after every round while one finding or several stay
   const cases: [Finding[], string][] = [
     [
       [finding("1.1")],
-      `The panel has used its 3 ordinary review rounds and its 2 rounds that check open findings, and 1 finding stays open, so it ran no agent. ${nextStep}`,
+      `The panel has used its ordinary review allowance and its 2 rounds that check open findings, and 1 finding stays open, so it ran no agent. ${nextStep}`,
     ],
     [
       [finding("1.1"), finding("1.2")],
-      `The panel has used its 3 ordinary review rounds and its 2 rounds that check open findings, and 2 findings stay open, so it ran no agent. ${nextStep}`,
+      `The panel has used its ordinary review allowance and its 2 rounds that check open findings, and 2 findings stay open, so it ran no agent. ${nextStep}`,
     ],
   ];
   for (const [openFindings, sentence] of cases) {
     for (const mergeRounds of [0, mergeReviewRoundLimit]) {
       const previous = {
-        ...stateAfter(lastCheck + mergeRounds, openFindings),
+        ...stateAfter(lastCheck + mergeRounds, openFindings, mergeRounds),
         mergeRounds,
       };
       const plan = planReview(
@@ -491,18 +516,22 @@ test("fails without an agent when files change after the review rounds while no 
         { since: earlierHead, commitScope: "author" },
         [docs],
       ),
-      `The panel has used its 3 ordinary review rounds, and the commits since ${earlierHead} changed files of the pull request while no finding was open, so no round may read them and no agent ran. ${nextStep}`,
+      `The panel has used its ordinary review allowance, and the commits since ${earlierHead} changed files of the pull request while no finding was open, so no round may read them and no agent ran. ${nextStep}`,
     ],
     [
       planReview(
         {
-          ...stateAfter(reviewRoundLimit + mergeReviewRoundLimit, []),
+          ...stateAfter(
+            reviewRoundLimit + mergeReviewRoundLimit,
+            [],
+            mergeReviewRoundLimit,
+          ),
           mergeRounds: mergeReviewRoundLimit,
         },
         { since: earlierHead, commitScope: "author" },
         [docs],
       ),
-      `The panel has used its 3 ordinary review rounds, and the commits since ${earlierHead} changed files of the pull request while no finding was open, so no round may read them and no agent ran. ${nextStep}`,
+      `The panel has used its ordinary review allowance, and the commits since ${earlierHead} changed files of the pull request while no finding was open, so no round may read them and no agent ran. ${nextStep}`,
     ],
     [
       planReview(
@@ -510,12 +539,13 @@ test("fails without an agent when files change after the review rounds while no 
           head: undefined,
           round: reviewRoundLimit,
           mergeRounds: 0,
+          checkRounds: 0,
           openFindings: [],
         },
         { since: undefined, commitScope: "author" },
         [docs],
       ),
-      `The panel has used its 3 ordinary review rounds, and no round finished reviewing the change, so no round may read them and no agent ran. ${nextStep}`,
+      `The panel has used its ordinary review allowance, and no round finished reviewing the change, so no round may read them and no agent ran. ${nextStep}`,
     ],
   ];
   for (const [plan, sentence] of cases) {
@@ -534,6 +564,7 @@ test("names mixed pushes without blaming either exhausted allowance", () => {
         ...stateAfter(
           reviewRoundLimit + checkRoundLimit + mergeRounds,
           openFindings,
+          mergeRounds,
         ),
         mergeRounds,
       };
@@ -545,7 +576,7 @@ test("names mixed pushes without blaming either exhausted allowance", () => {
       expect(plan.capReason).toBe("mixed-push");
       expectFailureWithoutAgent(
         plan,
-        `The panel has used its 3 ordinary review rounds. A later push that changes files must contain author commits alone or two-parent merges of the base branch alone. This push has another combination of commits, so no agent ran. ${nextStep}`,
+        `The panel has used its ordinary review allowance. This push needs an ordinary review or a remaining allowance for each of its finding fixes and base merge resolutions, so no agent ran. ${nextStep}`,
       );
     }
   }
@@ -609,7 +640,11 @@ test("counts a round whose agent did not finish, but keeps the head and the open
     const outcome = summarizeReview(unfinishedInput);
     expect(outcome.passed).toBe(false);
     expect(outcome.verdict).toBe(verdictSentence);
-    expect(outcome.state).toEqual({ ...previous, round: previous.round + 1 });
+    expect(outcome.state).toEqual({
+      ...previous,
+      round: previous.round + 1,
+      checkRounds: unfinishedInput.plan.checkRounds,
+    });
     expect(outcome.outside).toEqual({
       round: previous.round + 1,
       findings: [],
@@ -788,4 +823,32 @@ test("fails a round when a job that the plan needs did not succeed, even after a
     expect(outcome.verdict).toBe(sentence);
     expect(outcome.state).toEqual({ ...stateBeforeFirstRound, round: 1 });
   }
+});
+
+test("describes an older finding check without claiming that it checked author files", () => {
+  const current = planReview(
+    stateAfter(reviewRoundLimit, [finding("1.1")]),
+    { since: earlierHead, commitScope: "author" },
+    [docs],
+  );
+  const legacy = successValueForTest(
+    parseReviewPlan(
+      {
+        ...current,
+        round: 4,
+        checkRounds: undefined,
+        fixFiles: undefined,
+        previous: { ...current.previous, round: 3, checkRounds: undefined },
+      },
+      "PLAN",
+    ),
+    "The older plan has no author files",
+  );
+  const outcome = summarizeReview(
+    input(legacy, [finding("1.1")], [verdict("1.1", "refuted")]),
+  );
+  expect(outcome.passed).toBe(true);
+  expect(outcome.body).toContain(
+    `Round ${String(legacy.round)} only checked the open findings. No reviewer read the commits since ${earlierHead}, because the panel has used its ordinary review allowance.`,
+  );
 });
