@@ -72,7 +72,7 @@ function CodeName({
 }
 
 // The repository carries no logos of other companies, so the tile shows the first two letters of the code, as decision 0034 explains. The code stands beside it, so a screen reader skips the tile.
-function CompanyTile({
+export function CompanyTile({
   code,
   small,
 }: {

@@ -1,6 +1,6 @@
 # 0034. A stock carries the name and the sector that IDX publishes
 
-- Status: Accepted
+- Status: Accepted. [Decision 0044](0044-the-ticket-shows-the-trade-before-confirmation.md) supersedes where the order ticket shows the company name and sector.
 - Date: 2026-11-14
 
 ## Context
@@ -26,6 +26,6 @@ Two classifications of sectors are common. IDX introduced IDX-IC on 25 January 2
 
 ## Consequences
 
-- The table of prices, the holdings of a portfolio on its page and on the page of its orders, and the order ticket show the name of each company under the code of its stock, beside the tile of the company. The table of prices and the order ticket show its sector too.
+- The table of prices and the holdings of a portfolio show the name of each company under the code of its stock, beside the tile of the company. The table of prices shows its sector too.
 - A review of the LQ45 that adds a stock now also needs the company of that stock, which the type check demands.
 - A company that changes its name or its sector keeps its old record until someone updates it, because Portolab does not watch IDX for such changes.

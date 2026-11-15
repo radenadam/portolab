@@ -6,11 +6,7 @@ import { locales } from "~/paraglide/runtime.js";
 import type { Locale } from "~/paraglide/runtime.js";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
 import { failureOf } from "~/result";
-import {
-  parseStockCode,
-  readOrderForm,
-  sideOptions,
-} from "./order-form-fields";
+import { parseStockCode, readOrderForm } from "./order-form-fields";
 import type { OrderFormFields } from "./order-form-fields";
 import {
   duringSessionForTest,
@@ -85,10 +81,10 @@ const texts: Record<
       '" di kolom "Beli atau jual", tetapi kolom itu hanya menerima "Beli" atau "Jual". Muat ulang halaman, lalu pilih salah satunya.',
     ],
     noPriceKind:
-      'Kolom "Jenis order" belum berisi pilihan. Pilih "Order harga pasar" atau "Order limit".',
+      'Kolom "Jenis order" belum berisi pilihan. Pilih "Pasar" atau "Limit".',
     unknownPriceKind: [
       'Formulir mengirim "',
-      '" di kolom "Jenis order", tetapi kolom itu hanya menerima "Order harga pasar" atau "Order limit". Muat ulang halaman, lalu pilih salah satunya.',
+      '" di kolom "Jenis order", tetapi kolom itu hanya menerima "Pasar" atau "Limit". Muat ulang halaman, lalu pilih salah satunya.',
     ],
     limits: [
       ["4980", 4_980],
@@ -148,10 +144,10 @@ const texts: Record<
       '" in the field "Buy or sell", but the field takes only "Buy" or "Sell". Reload the page and choose one of them.',
     ],
     noPriceKind:
-      'The field "Kind of order" holds no choice yet. Choose "Market order" or "Limit order".',
+      'The field "Kind of order" holds no choice yet. Choose "Market" or "Limit".',
     unknownPriceKind: [
       'The form sent "',
-      '" in the field "Kind of order", but the field takes only "Market order" or "Limit order". Reload the page and choose one of them.',
+      '" in the field "Kind of order", but the field takes only "Market" or "Limit". Reload the page and choose one of them.',
     ],
     limits: [
       ["4980", 4_980],
@@ -319,7 +315,7 @@ for (const locale of locales) {
 
   test(`reads the side and the kind of an order from their options, names the options when the field holds none of them, and rejects a file, in ${language}`, () => {
     switchLocaleForTest(locale);
-    for (const option of sideOptions()) {
+    for (const option of [{ value: "buy" }, { value: "sell" }]) {
       expect(
         readFields({ ...limitPurchase, side: option.value }),
       ).toMatchObject({

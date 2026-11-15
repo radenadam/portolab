@@ -18,7 +18,16 @@ import { parseOrderLots } from "./parse-order-lots";
 import { reasonMaximumLength } from "./reason-maximum-length";
 
 /** The kind of the price of an order: the delayed price when it fills, or a limit that the price must reach. */
-export type PriceKind = OrderRequest["price"]["kind"];
+type PriceKind = OrderRequest["price"]["kind"];
+
+const sideLabels: Record<OrderSide, () => string> = {
+  buy: m.trading_buy_label,
+  sell: m.trading_sell_label,
+};
+
+export function orderSideLabel(side: OrderSide): string {
+  return sideLabels[side]();
+}
 
 /** The fields of the order form as the student filled them in, so that the form can show them again, with the reason that each was not accepted. */
 export interface OrderFormFields {
@@ -34,38 +43,45 @@ export interface OrderFormFields {
   reasonFailure: string | undefined;
 }
 
-/** The name of the button of a rejection that changes the lots of the order form to those that it offers, which a form sends only when the student taps it. */
-export const lotsStepName = "lotsStep";
-
 // The example shows a group of digits in the format of the language, as the example of every whole number does.
 const limitExample = 1_000;
 
 /** The options of the side of an order, in the active language. */
 export function sideOptions(): FieldOption<OrderSide>[] {
   return [
-    { value: "buy", label: m.trading_buy_label() },
-    { value: "sell", label: m.trading_sell_label() },
+    { value: "buy", label: orderSideLabel("buy") },
+    { value: "sell", label: orderSideLabel("sell") },
   ];
 }
 
 /** The options of the kind of price of an order, in the active language. */
 export function priceKindOptions(): FieldOption<PriceKind>[] {
   return [
-    { value: "market", label: m.trading_market_order_label() },
-    { value: "limit", label: m.trading_limit_order_label() },
+    { value: "market", label: m.trading_ticket_market_label() },
+    { value: "limit", label: m.trading_ticket_limit_label() },
   ];
 }
 
 /** Reads an order of a stock from the form that a student sent at a moment, with the largest order of the trading day that orderTradingDay gives. The stock comes from the address of the page, which parseStockCode reads, because the form places the order of the stock whose price the page shows. It reads the limit price only for a limit order, because a market order has none, and the reason that the student may write. The failure holds what each field holds and why each was not accepted. */
 export function readOrderForm(
   form: FormData,
-  order: { code: string; maximumLots: Lots; placedAt: Date },
+  order: {
+    code: string;
+    maximumLots: Lots;
+    placedAt: Date;
+    unknownPriceKind?: typeof m.trading_unknown_choice_error;
+  },
 ): Result<OrderRequest, OrderFormFields> {
   const side = parseOrderSide(form.get("side"), m.trading_side_label());
   const priceKind = parseOrderChoice(
     form.get("priceKind"),
     m.trading_price_kind_label(),
-    { options: priceKindOptions() },
+    {
+      options: priceKindOptions(),
+      ...(order.unknownPriceKind === undefined
+        ? {}
+        : { unknownChoice: order.unknownPriceKind }),
+    },
   );
   const lots = parseOrderLots(
     form.get("lots"),
@@ -148,7 +164,7 @@ export function parseStockCode(
   source: string,
   codes: readonly string[],
 ): Result<string, string> {
-  const chosen = parseOptionalText(value, source);
+  const chosen = parseOptionalOrderText(value, source);
   if (!chosen.ok) {
     return chosen;
   }
@@ -181,7 +197,7 @@ export function parseOrderChoice<Value extends string>(
 ): Result<Value, string> {
   const { options, unknownChoice = m.trading_unknown_choice_error } =
     configuration;
-  const chosen = parseOptionalText(value, source);
+  const chosen = parseOptionalOrderText(value, source);
   if (!chosen.ok) {
     return chosen;
   }
@@ -205,7 +221,7 @@ export function parseOrderChoice<Value extends string>(
 }
 
 /** Reads the limit price of an order as a student writes it, in whole rupiah, as digits alone or with the separators of digit groups where the active language writes them. The check of the order compares it with the auto rejection limits of its trading day, which name the prices that IDX accepts, so a price with more digits than a whole number of rupiah holds exactly reads as the highest such amount, which lies above every price that IDX accepts. */
-function parseLimitPrice(
+export function parseLimitPrice(
   value: unknown,
   source: string,
 ): Result<Rupiah, string> {
@@ -225,7 +241,7 @@ function parseOrderReason(
   value: unknown,
   source: string,
 ): Result<string | undefined, string> {
-  const text = parseOptionalText(value, source);
+  const text = parseOptionalOrderText(value, source);
   if (!text.ok || text.value === undefined) {
     return text;
   }
@@ -238,7 +254,7 @@ function parseOrderReason(
 }
 
 /** Reads the text of a field that a person may leave empty, such as a field of choices, which is undefined when the field holds nothing. A text longer than any field takes fails before any other work on it. */
-function parseOptionalText(
+export function parseOptionalOrderText(
   value: unknown,
   source: string,
 ): Result<string | undefined, string> {

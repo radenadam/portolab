@@ -1,7 +1,7 @@
 import { NumberText } from "~/number-text";
 import { useId } from "react";
 import type { ReactNode } from "react";
-import { Form, useNavigation } from "react-router";
+import { useNavigation } from "react-router";
 import {
   DescribedField,
   describedBy,
@@ -54,39 +54,6 @@ export function TextField({
         aria-invalid={failure !== undefined}
         aria-describedby={describedBy(id, { hint, failure })}
         className={styles["input"]}
-      />
-    </DescribedField>
-  );
-}
-
-interface TextAreaFieldProps {
-  name: string;
-  label: string;
-  hint: string;
-  /** Why the value that the form sent was not accepted. */
-  failure: string | undefined;
-  defaultValue: string;
-}
-
-/** A field of several lines of text, such as the reason of an order, with its label, a hint, and the reason its value was not accepted, which a screen reader reads with it. */
-export function TextAreaField({
-  name,
-  label,
-  hint,
-  failure,
-  defaultValue,
-}: TextAreaFieldProps): ReactNode {
-  const id = useId();
-  return (
-    <DescribedField id={id} label={label} hint={hint} failure={failure}>
-      <textarea
-        id={id}
-        name={name}
-        rows={3}
-        defaultValue={defaultValue}
-        aria-invalid={failure !== undefined}
-        aria-describedby={describedBy(id, { hint, failure })}
-        className={styles["textArea"]}
       />
     </DescribedField>
   );
@@ -176,51 +143,6 @@ export function SelectField({
   );
 }
 
-interface ChoiceFieldProps {
-  name: string;
-  label: string;
-  options: readonly FieldOption[];
-  failure?: string | undefined;
-  defaultValue?: string | undefined;
-}
-
-/** A screen reader needs the group label and a refused choice together, so both belong to the fieldset. */
-export function ChoiceField({
-  name,
-  label,
-  options,
-  failure,
-  defaultValue,
-}: ChoiceFieldProps): ReactNode {
-  const id = useId();
-  const failureId = failureIdOf(id);
-  return (
-    <fieldset
-      aria-describedby={failure === undefined ? undefined : failureId}
-      className={styles["choices"]}
-    >
-      <legend className={styles["label"]}>
-        <NumberText>{label}</NumberText>
-      </legend>
-      <FieldFailure id={failureId} text={failure} />
-      <div className={styles["options"]}>
-        {options.map((option) => (
-          <label key={option.value} className={styles["option"]}>
-            <input
-              name={name}
-              type="radio"
-              value={option.value}
-              defaultChecked={option.value === defaultValue}
-              className={styles["optionInput"]}
-            />
-            <NumberText>{option.label}</NumberText>
-          </label>
-        ))}
-      </div>
-    </fieldset>
-  );
-}
-
 /** The button that sends its form. Once the app runs in the browser, the button waits while the page changes, because a second tap on a slow network would ask again for what the first one asked, such as a new account. */
 export function SubmitButton({
   label,
@@ -245,58 +167,6 @@ export function FormFailure({ text }: { text: string }): ReactNode {
     <p role="alert" className={styles["rejection"]}>
       <NumberText>{text}</NumberText>
     </p>
-  );
-}
-
-/** A refusal should let the reader take the offered fix in place, so its next step stays with the explanation. */
-export function Rejection({
-  title,
-  text,
-  step,
-}: {
-  title: string;
-  text: string;
-  step: ReactNode;
-}): ReactNode {
-  return (
-    <div role="alert" className={styles["rejection"]}>
-      <p className={styles["rejectionTitle"]}>
-        <NumberText>{title}</NumberText>
-      </p>
-      <p>
-        <NumberText>{text}</NumberText>
-      </p>
-      {step}
-    </div>
-  );
-}
-
-/** The button of a rejection that takes the next step that its text offers, in a form of its own that sends the step with the fields that the rejected form sent, so it works before JavaScript loads. A form sends with its first submit button when the reader presses Enter in a field, so the step never shares a form with the button that sends the fields. */
-export function StepForm({
-  fields,
-  step,
-  label,
-}: {
-  /** The fields that the rejected form sent, by name, which the step keeps. */
-  fields: Readonly<Record<string, string>>;
-  /** The name and the value of the step, which the action answers. */
-  step: { name: string; value: string };
-  label: string;
-}): ReactNode {
-  return (
-    <Form method="post">
-      {Object.entries(fields).map(([name, value]) => (
-        <input key={name} type="hidden" name={name} value={value} />
-      ))}
-      <button
-        type="submit"
-        name={step.name}
-        value={step.value}
-        className={styles["stepButton"]}
-      >
-        <NumberText>{label}</NumberText>
-      </button>
-    </Form>
   );
 }
 

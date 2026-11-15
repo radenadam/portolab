@@ -41,10 +41,8 @@ const texts: Record<
     noOrders: string;
     noTrades: string;
     open: string;
-    side: string;
-    lots: string;
-    place: string;
-    placed: string;
+    ticketWaiting: string;
+    activityLink: string;
     twoTrades: string;
     notFoundTitle: string;
     chooseStatus: string;
@@ -90,10 +88,8 @@ const texts: Record<
       "Belum ada order. Order pertama muncul di sini setelah Anda memasang order saham.",
     noTrades: "Transaksi yang terisi muncul di sini bersama alasannya.",
     open: "Buka tiket BBCA",
-    side: "Beli",
-    lots: "Jumlah lot",
-    place: "Pasang order",
-    placed: "Portolab menerima order Anda.",
+    ticketWaiting: "Order menunggu",
+    activityLink: "Lihat di Aktivitas",
   },
   en: {
     buyChange: "▲ +0.81%",
@@ -128,10 +124,8 @@ const texts: Record<
       "No orders yet. Your first stock order appears here once you place it.",
     noTrades: "Filled trades appear here with their reasons.",
     open: "Open ticket for BBCA",
-    side: "Buy",
-    lots: "Lots",
-    place: "Place the order",
-    placed: "Portolab accepted your order.",
+    ticketWaiting: "Order waiting",
+    activityLink: "View in Activity",
   },
 };
 
@@ -403,12 +397,16 @@ async function placeWaitingOrder(
   locale: Locale,
 ): Promise<void> {
   const text = texts[locale];
-  await student.goto(`${classPath}/orders?code=BBCA`);
-  await student.getByLabel(text.side, { exact: true }).check();
-  await student.getByLabel(text.lots, { exact: true }).fill("5");
-  await student.getByRole("button", { name: text.place, exact: true }).click();
-  await expect(student).toHaveURL(/\/activity\?placed=\d+$/);
-  await expect(student.getByRole("status")).toHaveText(text.placed);
+  await student.goto(`${classPath}/stocks/BBCA/buy?lots=5`);
+  await student.locator('dialog button[type="submit"]').click();
+  await expect(student).toHaveURL(/\/stocks\/BBCA\/buy\?placed=\d+$/);
+  await expect(
+    student.getByRole("heading", { name: text.ticketWaiting, exact: true }),
+  ).toBeVisible();
+  await student
+    .getByRole("link", { name: text.activityLink, exact: true })
+    .click();
+  await expect(student).toHaveURL(`${classPath}/activity`);
 }
 
 async function captureActivity(

@@ -38,9 +38,12 @@ const texts: Record<
     missingRules: string;
     noStock: string;
     unknownStock: string;
+    changed: string;
   }
 > = {
   id: {
+    changed:
+      "Total order berubah dari pratinjau yang Anda lihat. Periksa rincian biaya, lalu konfirmasi lagi.",
     missingOrder:
       "Portolab tidak menyimpan order tersebut di antara order Anda, sehingga tidak ada yang dibatalkan. Daftar di bawah menunjukkan setiap order yang masih terbuka dan dapat Anda batalkan.",
     endedOrder:
@@ -56,6 +59,8 @@ const texts: Record<
       'Alamat halaman ini menyebut "BREN" sebagai saham, tetapi Portolab hanya memperdagangkan saham yang ada di daftar kolom "Saham". Pilih salah satunya.',
   },
   en: {
+    changed:
+      "The order total changed from the preview you saw. Check the cost breakdown, then confirm again.",
     missingOrder:
       "Portolab holds no such order among your orders, so it cancelled nothing. The list below shows each open order that you can cancel.",
     endedOrder:
@@ -85,11 +90,7 @@ function contextForTest(database: Database): RouterContextProvider {
 async function studentRequestForTest(): Promise<{
   database: Database;
   owner: PortfolioOwner;
-  request: (
-    fields: Record<string, string>,
-    now: Date,
-    chosenStock?: string | null,
-  ) => SentOrderForm;
+  request: (fields: Record<string, string>, now: Date) => SentOrderForm;
 }> {
   const { database, owner } = await studentWithQuotesForTest(
     [bbcaCloseOfFridayForTest],
@@ -98,11 +99,12 @@ async function studentRequestForTest(): Promise<{
   return {
     database,
     owner,
-    request: (fields, now, chosenStock = "BBCA") => ({
-      form: formDataForTest(fields),
+    request: (fields, now) => ({
+      form: formDataForTest({ seenTotal: "2493735", ...fields }),
       place: { classId, owner },
       now,
-      chosenStock,
+      code: "BBCA",
+      ticketPath: "/classes/1/stocks/BBCA/buy",
     }),
   };
 }
@@ -137,7 +139,7 @@ for (const locale of locales) {
   const text = texts[locale];
   const language = languageNames[locale];
 
-  test(`places an order with its reason and opens the orders with its number, then refuses to cancel it once it ended, in ${language}`, async () => {
+  test(`places an order with its reason and opens the success ticket with its number, then refuses to cancel it once it ended, in ${language}`, async () => {
     switchLocaleForTest(locale);
     const { database, owner, request } = await studentRequestForTest();
     const context = contextForTest(database);
@@ -151,7 +153,7 @@ for (const locale of locales) {
     expect(placed).toBeInstanceOf(Response);
     const location =
       placed instanceof Response ? placed.headers.get("Location") : null;
-    expect(location).toMatch(/^\/classes\/1\/activity\?placed=\d+$/);
+    expect(location).toMatch(/^\/classes\/1\/stocks\/BBCA\/buy\?placed=\d+$/);
     expect(readPortfolio(database, owner).orders).toMatchObject([
       { reason: "Laba stabil.\n\nBeta di bawah 1." },
     ]);
@@ -233,30 +235,30 @@ for (const locale of locales) {
       init: { status: 503 },
     });
   });
-
-  test(`refuses an order from an address that chooses no stock or a stock that Portolab does not trade, with the reason for the field that chooses a stock, in ${language}`, async () => {
+  test(`returns the new preview without saving when the shown total differs, then accepts that total in ${language}`, async () => {
     switchLocaleForTest(locale);
-    const { database, request } = await studentRequestForTest();
-    for (const [chosenStock, stockFailure] of [
-      [null, text.noStock],
-      ["BREN", text.unknownStock],
-    ] as const) {
+    const { database, owner, request } = await studentRequestForTest();
+    const context = contextForTest(database);
+    // Python Decimal gives 5 * 100 * 4980 + ROUND(5 * 100 * 4980 * 0.0015) = 2493735.
+    for (const seenTotal of ["2493734", "2493736", "", "x"]) {
       expect(
         placeFromForm(
-          contextForTest(database),
-          request(purchase, duringSessionForTest, chosenStock),
+          context,
+          request({ ...purchase, seenTotal }, duringSessionForTest),
         ),
-        String(chosenStock),
       ).toMatchObject({
-        data: {
-          fields: undefined,
-          rejection: undefined,
-          stockFailure,
-          cancelFailure: undefined,
-        },
-        init: { status: 400 },
+        data: { rejection: { text: text.changed } },
+        init: { status: 409 },
       });
+      expect(readPortfolio(database, owner).orders).toEqual([]);
     }
+    expect(
+      placeFromForm(
+        context,
+        request({ ...purchase, seenTotal: "2493735" }, duringSessionForTest),
+      ),
+    ).toBeInstanceOf(Response);
+    expect(readPortfolio(database, owner).orders).toHaveLength(1);
   });
 }
 
@@ -282,30 +284,4 @@ test("rejects a purchase that the cash cannot pay for with the largest purchase 
     data: { rejection: { lotsStep: undefined } },
     init: { status: 400 },
   });
-});
-
-test("changes the lots of the order form to those of the step of a rejection, keeps the other fields with the reason as the student wrote it, and places no order", async () => {
-  const { database, owner, request } = await studentRequestForTest();
-  expect(
-    placeFromForm(
-      contextForTest(database),
-      request(
-        { ...purchase, lots: "300", reason: " Laba stabil. ", lotsStep: "200" },
-        duringSessionForTest,
-      ),
-    ),
-  ).toMatchObject({
-    data: {
-      fields: {
-        side: "buy",
-        priceKind: "market",
-        lots: "200",
-        reason: " Laba stabil. ",
-        lotsFailure: undefined,
-      },
-      rejection: undefined,
-    },
-    init: { status: 200 },
-  });
-  expect(readPortfolio(database, owner).orders).toEqual([]);
 });
