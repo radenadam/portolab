@@ -29,4 +29,15 @@ export async function expectStockRangeReturn(
   );
   await page.getByRole("link", { name: back, exact: true }).click();
   await expect(page).toHaveURL(returnTo);
+  const anchor = new URL(returnTo, page.url()).hash.slice(1);
+  const target = page.locator(`#${anchor}`);
+  await expect(target).toBeInViewport();
+  const headerBottom = await page
+    .getByRole("banner")
+    .evaluate((banner) => banner.getBoundingClientRect().bottom);
+  await expect
+    .poll(() =>
+      target.evaluate((element) => element.getBoundingClientRect().top),
+    )
+    .toBeGreaterThanOrEqual(headerBottom);
 }

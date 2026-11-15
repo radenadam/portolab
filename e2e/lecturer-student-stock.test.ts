@@ -146,7 +146,6 @@ for (const locale of locales) {
               month: text.month,
               back: text.returns[source],
             });
-            await expect(page.locator(`#${anchor}`)).toBeInViewport();
             await page
               .getByRole("link", { name: text.back, exact: true })
               .click();

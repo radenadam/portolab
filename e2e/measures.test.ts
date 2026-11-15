@@ -854,7 +854,6 @@ async function expectAnalysisStockReturn(
       month: text.month,
       back: text.backToAnalysis,
     });
-    await expect(page.locator("#stock-BBCA")).toBeInViewport();
     expect(await layoutProblems(page)).toEqual([]);
     if (javaScriptEnabled) await expectAccessibleScreen(page);
     if (javaScriptEnabled && axis === "risk")
