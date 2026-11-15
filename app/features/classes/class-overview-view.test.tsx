@@ -1,3 +1,4 @@
+import { studentPortfolioPath } from "~/features/grading/grading-paths";
 import { openDatabaseForTest } from "~/database/open-database-for-test.server";
 import { createLecturerWithClassForTest } from "./classes-for-test.server";
 import { findTaughtClass } from "./class-store.server";
@@ -251,8 +252,8 @@ for (const locale of locales) {
     expect(html).toContain("<rect");
     expect(html).not.toContain('role="slider"');
     expect(html).toContain('href="/?axis=deviation"');
-    expect(html).toContain(
-      `/students/${String(overview.students[0]?.id)}/portfolio`,
-    );
+    for (const student of overview.students) {
+      expect(html).toContain(studentPortfolioPath(taughtClass.id, student.id));
+    }
   });
 }

@@ -396,7 +396,7 @@ for (const locale of locales) {
     await page.keyboard.press("Home");
     const documentsBeforeKey = documentRequests;
     await page.keyboard.press("Enter");
-    await expect(page).toHaveURL(/\/students\/\d+\/portfolio\?returnTo=/);
+    await expect(page).toHaveURL(/\/students\/\d+\?returnTo=/);
     expect(documentRequests).toBe(documentsBeforeKey);
     await page
       .getByRole("link", {
@@ -419,7 +419,7 @@ for (const locale of locales) {
     } else {
       await page.mouse.click(center.x, center.y);
     }
-    await expect(page).toHaveURL(/\/students\/\d+\/portfolio\?returnTo=/);
+    await expect(page).toHaveURL(/\/students\/\d+\?returnTo=/);
     expect(documentRequests).toBe(documentsBeforePointer);
     await page.goto(classPath);
     await page.getByRole("button", { name: text.help, exact: true }).click();
@@ -435,7 +435,7 @@ for (const locale of locales) {
     expect(await layoutProblems(page)).toEqual([]);
     await expectAccessibleScreen(page);
     await studentLink.click();
-    await expect(page).toHaveURL(/\/students\/\d+\/portfolio\?returnTo=/);
+    await expect(page).toHaveURL(/\/students\/\d+\?returnTo=/);
     await page.goto(classPath);
     await page
       .context()
