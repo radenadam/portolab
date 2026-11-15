@@ -3,6 +3,7 @@ import { ConceptHelp } from "~/concept-card";
 import { ConceptLesson } from "~/features/learning/concept-lesson";
 import { formatRupiah } from "~/formatting";
 import { NumberText } from "~/number-text";
+import { SelectField } from "~/form";
 import { m } from "~/paraglide/messages.js";
 import { priceKindOptions } from "./order-form-fields";
 import { TicketDraftLink } from "./ticket-draft-link";
@@ -13,6 +14,8 @@ import { TicketSchedule } from "./ticket-schedule";
 export function TicketKind({ draft }: { draft: TicketDraft }): ReactNode {
   const { values, ticket } = draft;
   const { quote, day } = ticket;
+  const options = priceKindOptions();
+  const hasChoice = options.some((option) => option.value === values.priceKind);
   return (
     <section className={styles["section"]}>
       <div className={styles["label"]}>
@@ -25,9 +28,8 @@ export function TicketKind({ draft }: { draft: TicketDraft }): ReactNode {
       <nav
         className={styles["segments"]}
         aria-label={m.trading_price_kind_label()}
-        aria-describedby="ticket-kind-failure"
       >
-        {priceKindOptions().map(({ value, label }) => (
+        {options.map(({ value, label }) => (
           <span key={value} data-selected={values.priceKind === value}>
             <TicketDraftLink
               draft={draft}
@@ -38,14 +40,20 @@ export function TicketKind({ draft }: { draft: TicketDraft }): ReactNode {
           </span>
         ))}
       </nav>
-      <p
-        id="ticket-kind-failure"
-        role="alert"
-        className={styles["issue"]}
-        hidden={values.priceKindFailure === undefined}
-      >
-        {values.priceKindFailure}
-      </p>
+      {hasChoice ? (
+        <input type="hidden" name="priceKind" value={values.priceKind} />
+      ) : (
+        <SelectField
+          name="priceKind"
+          label={m.trading_price_kind_label()}
+          options={[
+            { value: values.priceKind, label: values.priceKind },
+            ...options,
+          ]}
+          defaultValue={values.priceKind}
+          failure={values.priceKindFailure}
+        />
+      )}
       {values.priceKind === "market" && (
         <p className={styles["muted"]}>
           {ticket.canFillNow ? (

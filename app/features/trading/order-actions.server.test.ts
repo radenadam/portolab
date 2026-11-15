@@ -14,6 +14,7 @@ import { successValueForTest } from "~/success-value-for-test";
 import { parseRecordId } from "~/value-parsers";
 import { cancelFromForm, placeFromForm } from "./order-actions.server";
 import type { SentOrderForm } from "./order-actions.server";
+import { parseOrderSide } from "./order-form-fields";
 import {
   bbcaCloseOfFridayForTest,
   duringSessionForTest,
@@ -99,13 +100,22 @@ async function studentRequestForTest(): Promise<{
   return {
     database,
     owner,
-    request: (fields, now) => ({
-      form: formDataForTest({ seenTotal: "2493735", ...fields }),
-      place: { classId, owner },
-      now,
-      code: "BBCA",
-      ticketPath: "/classes/1/stocks/BBCA/buy",
-    }),
+    request: (fields, now) => {
+      const side = successValueForTest(
+        parseOrderSide(fields["side"] ?? "buy", "side"),
+        "The fixture chooses a ticket address.",
+      );
+      const form = formDataForTest({ seenTotal: "2493735", ...fields });
+      form.delete("side");
+      return {
+        form,
+        place: { classId, owner },
+        now,
+        code: "BBCA",
+        side,
+        ticketPath: `/classes/1/stocks/BBCA/${side}`,
+      };
+    },
   };
 }
 
@@ -114,6 +124,18 @@ const purchase = {
   priceKind: "market",
   lots: "5",
 };
+
+test("places the side of the ticket address even when the body names another side", async () => {
+  const { database, owner, request } = await studentRequestForTest();
+  const sent = request(purchase, duringSessionForTest);
+  sent.form.set("side", "sell");
+  expect(placeFromForm(contextForTest(database), sent)).toBeInstanceOf(
+    Response,
+  );
+  expect(readPortfolio(database, owner).orders).toMatchObject([
+    { side: "buy", state: { kind: "waiting" } },
+  ]);
+});
 
 test("keeps the activity view and status filter after cancelling its order", async () => {
   const { database, owner, request } = await studentRequestForTest();
@@ -212,7 +234,7 @@ for (const locale of locales) {
       placeFromForm(context, request(limit, new Date("2026-11-03T01:50:00Z"))),
     ).toMatchObject({
       data: {
-        fields: { side: "buy", limitFailure: undefined },
+        fields: { lots: "5", limitFailure: undefined },
         rejection: { text: text.noReferenceClose, lotsStep: undefined },
       },
       init: { status: 503 },
@@ -229,7 +251,7 @@ for (const locale of locales) {
       ),
     ).toMatchObject({
       data: {
-        fields: { side: "buy" },
+        fields: { lots: "5" },
         rejection: { text: text.missingRules, lotsStep: undefined },
       },
       init: { status: 503 },

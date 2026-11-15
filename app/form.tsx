@@ -104,7 +104,7 @@ interface SelectFieldProps {
   name: string;
   label: string;
   /** The label of the first option, which chooses nothing, so that the reader makes the choice. */
-  placeholder: string;
+  placeholder?: string;
   options: readonly FieldOption[];
   hint?: string | undefined;
   failure?: string | undefined;
@@ -132,7 +132,7 @@ export function SelectField({
         aria-describedby={describedBy(id, { hint, failure })}
         className={styles["input"]}
       >
-        <option value="">{placeholder}</option>
+        {placeholder !== undefined && <option value="">{placeholder}</option>}
         {options.map((option) => (
           <option key={option.value} value={option.value}>
             {option.label}

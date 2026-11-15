@@ -31,12 +31,10 @@ export function orderSideLabel(side: OrderSide): string {
 
 /** The fields of the order form as the student filled them in, so that the form can show them again, with the reason that each was not accepted. */
 export interface OrderFormFields {
-  side: string;
   priceKind: string;
   lots: string;
   limit: string;
   reason: string;
-  sideFailure: string | undefined;
   priceKindFailure: string | undefined;
   lotsFailure: string | undefined;
   limitFailure: string | undefined;
@@ -67,12 +65,12 @@ export function readOrderForm(
   form: FormData,
   order: {
     code: string;
+    side: OrderSide;
     maximumLots: Lots;
     placedAt: Date;
     unknownPriceKind?: typeof m.trading_unknown_choice_error;
   },
 ): Result<OrderRequest, OrderFormFields> {
-  const side = parseOrderSide(form.get("side"), m.trading_side_label());
   const priceKind = parseOrderChoice(
     form.get("priceKind"),
     m.trading_price_kind_label(),
@@ -91,10 +89,9 @@ export function readOrderForm(
   // The price of an order depends on its kind, so a form without a valid kind has no price to read.
   const price = priceKind.ok ? readPrice(form, priceKind.value) : undefined;
   const reason = parseOrderReason(form.get("reason"), m.trading_reason_label());
-  if (!side.ok || !lots.ok || !price?.ok || !reason.ok) {
+  if (!lots.ok || !price?.ok || !reason.ok) {
     return fail({
       ...typedOrderForm(form),
-      sideFailure: failureOf(side),
       priceKindFailure: failureOf(priceKind),
       lotsFailure: failureOf(lots),
       limitFailure: price === undefined ? undefined : failureOf(price),
@@ -103,7 +100,7 @@ export function readOrderForm(
   }
   return succeed({
     code: order.code,
-    side: side.value,
+    side: order.side,
     lots: lots.value,
     price: price.value,
     reason: reason.value,
@@ -130,12 +127,10 @@ function readPrice(
 
 /** The order form before the student sends it, which chooses a market order, because it needs no price. */
 export const blankOrderForm: OrderFormFields = {
-  side: "",
   priceKind: "market",
   lots: "",
   limit: "",
   reason: "",
-  sideFailure: undefined,
   priceKindFailure: undefined,
   lotsFailure: undefined,
   limitFailure: undefined,
@@ -145,12 +140,10 @@ export const blankOrderForm: OrderFormFields = {
 /** What each field of the order form holds as the student typed it, without a reason for any field. */
 export function typedOrderForm(form: FormData): OrderFormFields {
   return {
-    side: typedText(form.get("side")),
     priceKind: typedText(form.get("priceKind")),
     lots: typedText(form.get("lots")),
     limit: typedText(form.get("limit")),
     reason: typedText(form.get("reason")),
-    sideFailure: undefined,
     priceKindFailure: undefined,
     lotsFailure: undefined,
     limitFailure: undefined,
@@ -267,7 +260,7 @@ export function parseOptionalOrderText(
   return checkFieldLengthForReader(value, source);
 }
 
-/** The form and the ticket address must reject the same sides. */
+/** The address chooses the side, so a form cannot change it. */
 export function parseOrderSide(
   value: unknown,
   source: string,

@@ -12,7 +12,7 @@ import { cancelPortfolioOrder } from "./cancel-portfolio-order.server";
 import type { CancelFailure } from "./cancel-portfolio-order.server";
 import { lotCount } from "./count-parts";
 import type { StudentPlace } from "./find-student-place.server";
-import type { OrderFailure, OrderRequest } from "./order";
+import type { OrderFailure, OrderRequest, OrderSide } from "./order";
 import { lotsStepOf } from "./lots-step";
 import { limitPriceFailureText, orderFailureText } from "./order-failure-text";
 import {
@@ -50,6 +50,7 @@ export interface OrdersForm {
 
 export interface SentOrderForm extends OrdersForm {
   code: string;
+  side: OrderSide;
   ticketPath: string;
 }
 
@@ -72,7 +73,7 @@ const failureStatuses: Record<OrderFailure["kind"], number> = {
 /** A different total needs another confirmation, including when the reader edited the form before JavaScript loaded. */
 export function placeFromForm(
   context: Readonly<RouterContextProvider>,
-  { form, place, now, code, ticketPath }: SentOrderForm,
+  { form, place, now, code, side, ticketPath }: SentOrderForm,
 ): Response | ReturnType<typeof data<OrdersAnswer>> {
   const { delayMinutes } = readPriceSourceDescription(context);
   const day = orderTradingDay(now, delayMinutes);
@@ -99,6 +100,7 @@ export function placeFromForm(
     );
   const request = readOrderForm(form, {
     code,
+    side,
     maximumLots: day.value.rules.maximumLots,
     placedAt: now,
   });

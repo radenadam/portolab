@@ -74,13 +74,13 @@ for (const locale of locales) {
         const submit = (lots: string, seenTotal: string) =>
           placeFromForm(context, {
             form: formDataForTest({
-              side,
               lots,
               priceKind: "market",
               seenTotal,
             }),
             place: { classId, owner },
             code: "BBCA",
+            side,
             ticketPath: `/classes/1/stocks/BBCA/${side}`,
             now,
           });

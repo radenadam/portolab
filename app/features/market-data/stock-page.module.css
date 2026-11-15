@@ -17,6 +17,10 @@
     gap: calc(var(--space-4) + var(--space-1));
     align-items: stretch;
   }
+
+  .withTicket .page > .panel:last-of-type {
+    flex: 1;
+  }
 }
 
 .header {

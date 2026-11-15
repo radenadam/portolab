@@ -40,14 +40,15 @@ export function useTicketDraft({
       if (form === null) return;
       const native = typedOrderForm(new FormData(form));
       const next = { ...fields };
-      for (const name of [
-        "side",
-        "priceKind",
-        "lots",
-        "limit",
-        "reason",
-      ] as const)
+      for (const [name, failure] of [
+        ["priceKind", "priceKindFailure"],
+        ["lots", "lotsFailure"],
+        ["limit", "limitFailure"],
+        ["reason", "reasonFailure"],
+      ] as const) {
         next[name] = native[name];
+        if (native[name] !== fields[name]) next[failure] = undefined;
+      }
       memory?.set(initialSide, next);
       setValues(next);
     },
@@ -84,7 +85,7 @@ export function useTicketDraft({
     values,
     unchanged:
       side === initialSide &&
-      (["side", "priceKind", "lots", "limit", "reason"] as const).every(
+      (["priceKind", "lots", "limit", "reason"] as const).every(
         (name) => values[name] === fields[name],
       ),
     formRef,
@@ -93,7 +94,7 @@ export function useTicketDraft({
       const current =
         form === null ? values : typedOrderForm(new FormData(form));
       remember(current);
-      memory?.set(next, { ...current, side: next });
+      memory?.set(next, current);
       setSide(next);
     },
     count,

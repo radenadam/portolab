@@ -45,6 +45,11 @@ const texts: Record<
     noPrice: string;
     lotsFix: string;
     badKind: string;
+    kind: string;
+    priceUp: string;
+    priceDown: string;
+    nextPrice: string;
+    previousPrice: string;
   }
 > = {
   id: {
@@ -80,6 +85,11 @@ const texts: Record<
     lotsFix: "Ubah ke 5 lot",
     badKind:
       'Kolom "Jenis order" berisi "wrong", tetapi kolom itu hanya menerima "Pasar" atau "Limit". Pilih salah satunya.',
+    kind: "Jenis order",
+    priceUp: "Naikkan harga satu fraksi",
+    priceDown: "Turunkan harga satu fraksi",
+    nextPrice: "4.990",
+    previousPrice: "4.980",
   },
   en: {
     maxLotsValue: "50,000",
@@ -114,6 +124,11 @@ const texts: Record<
     lotsFix: "Change to 5 lots",
     badKind:
       'The field "Kind of order" holds "wrong", but the field takes only "Market" or "Limit". Choose one of them.',
+    kind: "Kind of order",
+    priceUp: "Increase the price by one tick",
+    priceDown: "Decrease the price by one tick",
+    nextPrice: "4,990",
+    previousPrice: "4,980",
   },
 };
 
@@ -172,12 +187,18 @@ for (const locale of locales) {
       await student.locator('a[href*="range=1m"]').first().click();
       await expect(student).toHaveURL(`${classPath}/stocks/BBCA/buy?range=1m`);
       await expect(
+        student.locator('a[href*="range=1m"]').first(),
+      ).toHaveAttribute("aria-current", "true");
+      await expect(
         ticket.getByRole("textbox", { name: text.lots, exact: true }),
       ).toHaveValue("2");
       await expect(ticket.getByLabel(text.reason, { exact: true })).toHaveValue(
         "Kredit tumbuh.\n\nBeta di bawah 1.",
       );
       await student.locator('a[href*="range=1y"]').first().click();
+      await expect(
+        student.locator('a[href*="range=1y"]').first(),
+      ).toHaveAttribute("aria-current", "true");
     }
     await ticket.getByRole("link", { name: text.sell, exact: true }).click();
     await expect(ticket).toHaveAttribute("data-side", "sell");
@@ -277,12 +298,19 @@ for (const locale of locales) {
       `${classPath}/stocks/BBCA/buy?priceKind=wrong`,
     );
     expect(invalidKind?.status()).toBe(400);
-    await expect(student.getByRole("alert")).toHaveText(text.badKind);
+    await expect(
+      student.getByText(text.badKind, { exact: true }),
+    ).toBeVisible();
+    await expect(
+      student.getByRole("combobox", { name: text.kind, exact: true }),
+    ).toHaveValue("wrong");
     await student
       .locator("dialog")
       .getByRole("link", { name: text.market, exact: true })
       .click();
-    await expect(student.getByRole("alert")).toHaveCount(0);
+    await expect(student.getByText(text.badKind, { exact: true })).toHaveCount(
+      0,
+    );
     for (const [device, path] of [
       [page, `${classPath}/stocks/BBCA/buy`],
       [student, "/classes/999999999/stocks/BBCA/buy"],
@@ -375,6 +403,22 @@ for (const locale of locales) {
         await expect(page.locator('dialog input[name="lots"]')).toHaveValue(
           "2",
         );
+        await page
+          .locator("dialog")
+          .getByRole("link", { name: text.limit, exact: true })
+          .click({ noWaitAfter: true });
+        await expect(
+          page.getByRole("textbox", { name: text.price, exact: true }),
+        ).toHaveValue(text.previousPrice);
+        await page
+          .getByRole("link", { name: text.priceUp, exact: true })
+          .click({ noWaitAfter: true });
+        await expect
+          .poll(() => new URL(page.url()).searchParams.get("price"))
+          .toBe(text.nextPrice);
+        await expect(
+          page.getByRole("textbox", { name: text.price, exact: true }),
+        ).toHaveValue(text.nextPrice);
         await page.locator('dialog input[name="lots"]').fill("7");
         await page.locator('dialog textarea[name="reason"]').fill("Tesis");
         await loadClient();
@@ -382,7 +426,26 @@ for (const locale of locales) {
           "data-ticket-ready",
           "true",
         );
+        await page
+          .getByRole("link", { name: text.priceDown, exact: true })
+          .click();
+        await expect(
+          page.getByRole("textbox", { name: text.price, exact: true }),
+        ).toHaveValue(text.previousPrice);
+        expect(new URL(page.url()).searchParams.get("price")).toBe(
+          text.nextPrice,
+        );
+        await page
+          .locator("dialog")
+          .getByRole("link", { name: text.market, exact: true })
+          .click();
+        await expect(
+          page.getByRole("textbox", { name: text.price, exact: true }),
+        ).toHaveCount(0);
         await page.locator("dialog a").filter({ hasText: "50%" }).click();
+        await expect(page.locator('dialog input[name="lots"]')).toHaveValue(
+          text.maxLotsValue,
+        );
         await expect(
           page.locator('dialog textarea[name="reason"]'),
         ).toHaveValue("Tesis");

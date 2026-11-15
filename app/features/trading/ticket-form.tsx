@@ -96,8 +96,6 @@ function TicketFields(
       data-side={side}
       data-ticket-ready={isInBrowser}
     >
-      <input type="hidden" name="side" value={side} />
-      <input type="hidden" name="priceKind" value={values.priceKind} />
       <input type="hidden" name="seenTotal" value={amounts?.total ?? ""} />
       <div className={styles["phoneQuote"]}>
         <CompanyTile code={props.code} small />

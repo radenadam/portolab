@@ -175,7 +175,7 @@ for (const locale of locales) {
           path="/classes/1/stocks/BBCA"
           search=""
           ticket={ticket}
-          fields={{ ...blankOrderForm, side: "buy", lots: "5" }}
+          fields={{ ...blankOrderForm, lots: "5" }}
           rejection={{ text: "Cash", lotsStep: lots(4), field: "lots" }}
           limitSteps={undefined}
           restoreDraft={false}
@@ -246,7 +246,6 @@ for (const locale of locales) {
         ticket={ticket}
         fields={{
           ...blankOrderForm,
-          side: "sell",
           priceKind: "limit",
           lots: "1",
           limit: "4980",

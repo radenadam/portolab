@@ -66,10 +66,10 @@ export function loader({ context, request, params, url }: Route.LoaderArgs) {
         "",
     );
   }
-  form.set("side", side);
   const parsed = ticket.day.ok
     ? readOrderForm(form, {
         code,
+        side,
         maximumLots: ticket.day.value.rules.maximumLots,
         placedAt: now,
         unknownPriceKind: m.trading_activity_unknown_choice_error,
@@ -141,12 +141,12 @@ export async function action({
   const place = findStudentPlace(context, url, params.classId);
   const { code, side } = ticketAddress(params);
   const form = await request.formData();
-  form.set("side", side);
   return placeFromForm(context, {
     form,
     place,
     now,
     code,
+    side,
     ticketPath: `${stockPath(place.classId, code)}/${side}${ticketContextSearch(url.searchParams)}`,
   });
 }
@@ -245,7 +245,7 @@ export default function TicketPage({
         </header>
         {order === undefined ? (
           <TicketForm
-            key={JSON.stringify(actionData?.fields ?? loaderData.fields)}
+            key={`${side}:${JSON.stringify(actionData?.fields ?? loaderData.fields)}`}
             code={code}
             side={side}
             path={stockPagePath}
