@@ -73,7 +73,7 @@ for (const locale of locales) {
           const { student, classPath } = await studentDesignClass(
             page,
             browser,
-            locale,
+            { locale },
           );
           try {
             await page.goto(`${classPath}/students?measure=treynor&q=Raka`);

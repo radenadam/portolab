@@ -11,13 +11,16 @@ import {
 export async function studentDesignClass(
   page: Page,
   browser: Browser,
-  locale: Locale,
+  {
+    locale,
+    studentName = "Raka Pratama",
+  }: { locale: Locale; studentName?: string | undefined },
 ) {
   const place = await studentOfNewClass(page, browser, {
     locale,
     className: "Manajemen Portofolio A",
     lecturerName: "Dosen",
-    studentName: "Raka Pratama",
+    studentName,
     studentUsername: `raka${uniqueUsername("raka").slice(-8)}`,
     startingCash: homeDesignStartingCash,
   });

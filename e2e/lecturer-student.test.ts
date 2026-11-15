@@ -13,7 +13,10 @@ import { layoutProblems } from "./expect-layout.ts";
 import { newDevice } from "./new-device.ts";
 import { selectFirstStudent } from "./select-first-student.ts";
 import { studentWithPortfolio } from "./student-with-portfolio.ts";
-import { widestClassNames } from "./widest-class-names.ts";
+import {
+  widestClassNames,
+  widestDigitClassNames,
+} from "./widest-class-names.ts";
 import { itmgPortfolio } from "./itmg-portfolio.ts";
 import { storeTestPurchases } from "./store-test-purchases.ts";
 import { wideWord } from "./wide-word.ts";
@@ -220,42 +223,67 @@ for (const locale of locales) {
       await student.context().close();
     }
   });
-  test(`shows the lecturer's student screens at reference widths in ${languageNames[locale]}`, async ({
-    page,
-    browser,
-  }) => {
-    const { student, classPath } = await studentDesignClass(
+  for (const variant of [
+    {
+      label: "reference names",
+      capture: "student-reference",
+      studentName: undefined,
+    },
+    {
+      label: "maximum letter names",
+      capture: "student-measured-letters",
+      studentName: widestClassNames.studentName,
+    },
+    {
+      label: "maximum digit names",
+      capture: "student-measured-digits",
+      studentName: widestDigitClassNames.studentName,
+    },
+  ])
+    test(`shows the lecturer's student screens at reference widths with ${variant.label} in ${languageNames[locale]}`, async ({
       page,
       browser,
-      locale,
-    );
-    try {
-      await page.goto(`${classPath}/students`);
-      await selectFirstStudent(page);
-      await page
-        .getByRole("dialog")
-        .getByRole("link", { name: text.open, exact: true })
-        .click();
-      for (const [tab, name] of [
-        [text.summary, "summary"],
-        [text.analysis, "analysis"],
-        [text.journal, "journal"],
-      ] as const) {
+    }) => {
+      const { student, classPath } = await studentDesignClass(page, browser, {
+        locale,
+        studentName: variant.studentName,
+      });
+      try {
+        await page.goto(`${classPath}/students`);
+        await selectFirstStudent(page);
         await page
-          .getByRole("navigation", { name: text.sections })
-          .getByRole("link", { name: tab, exact: true })
+          .getByRole("dialog")
+          .getByRole("link", { name: text.open, exact: true })
           .click();
-        await expect(
-          page
+        for (const [tab, name] of [
+          [text.summary, "summary"],
+          [text.analysis, "analysis"],
+          [text.journal, "journal"],
+        ] as const) {
+          await page
             .getByRole("navigation", { name: text.sections })
-            .getByRole("link", { name: tab, exact: true }),
-        ).toHaveAttribute("aria-current", "page");
-        await captureStudentScreen(page, `student-reference-${locale}-${name}`);
+            .getByRole("link", { name: tab, exact: true })
+            .click();
+          await expect(
+            page
+              .getByRole("navigation", { name: text.sections })
+              .getByRole("link", { name: tab, exact: true }),
+          ).toHaveAttribute("aria-current", "page");
+          if (variant.studentName !== undefined && name !== "journal")
+            await expect(
+              page
+                .locator('[data-map-label="point"]')
+                .filter({ hasText: variant.studentName }),
+            ).toBeVisible();
+          await captureStudentScreen(
+            page,
+            `${variant.capture}-${locale}-${name}`,
+          );
+        }
+      } finally {
+        await student.context().close();
       }
-    } finally {
-      await student.context().close();
-    }
-  });
+    });
   test(`shows recorded order outcomes without controls that change them in ${languageNames[locale]}`, async ({
     page,
     browser,
