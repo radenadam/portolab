@@ -23,7 +23,7 @@ const texts: Record<
     time: readonly string[];
     unknownWeight: string;
     weight: string;
-    demonstration: readonly string[];
+    classmates: Record<PortfolioKind, { legend: string; point: string }>;
   }
 > = {
   id: {
@@ -34,8 +34,6 @@ const texts: Record<
       "Grafik waktu",
       "Portofolio Anda",
       "Saham Anda, ukuran = bobot",
-      "Teman sekelas",
-      "Teman sekelas tanpa nama",
       "Tegak: imbal hasil. Saham dihitung sejak dibeli, portofolio sejak 30 Okt.",
       "Beta (1 = pasar)",
       "Tabel titik pada peta",
@@ -49,7 +47,16 @@ const texts: Record<
       "S1",
       "Portolab belum menyimpan harga penutupan IHSG pada 30 Oktober 2026. Portolab menampilkan imbal hasil mulai hari itu setelah pembaruan riwayat harga menyimpan harga penutupan IHSG pada hari itu atau hari sesudahnya.",
     ],
-    demonstration: ["Mahasiswa kelas", "Mahasiswa kelas tanpa nama"],
+    classmates: {
+      membership: {
+        legend: "Teman sekelas",
+        point: "Teman sekelas tanpa nama",
+      },
+      demonstration: {
+        legend: "Mahasiswa kelas",
+        point: "Mahasiswa kelas tanpa nama",
+      },
+    },
     unknownWeight: "Bobot belum tersedia",
     weight: "Bobot",
   },
@@ -61,8 +68,6 @@ const texts: Record<
       "Time chart",
       "Your portfolio",
       "Your holdings, size = weight",
-      "Classmates",
-      "Unnamed classmate",
       "Vertical: return. Holdings count since purchase, the portfolio since Oct 30.",
       "Beta (1 = market)",
       "Table of map points",
@@ -76,7 +81,13 @@ const texts: Record<
       "S1",
       "Portolab has not stored the close of IHSG on October 30, 2026 yet. It shows the returns from that day on once an update of the price history stores a close of IHSG on that day or on a later day.",
     ],
-    demonstration: ["Class students", "Unnamed class student"],
+    classmates: {
+      membership: { legend: "Classmates", point: "Unnamed classmate" },
+      demonstration: {
+        legend: "Class students",
+        point: "Unnamed class student",
+      },
+    },
     unknownWeight: "Weight unavailable",
     weight: "Weight",
   },
@@ -109,8 +120,15 @@ for (const locale of locales) {
         />,
       );
     const html = render();
-    for (const label of texts[locale].demonstration)
-      expect(render("demonstration")).toContain(label);
+    for (const kind of ["membership", "demonstration"] as const) {
+      const text = texts[locale].classmates[kind];
+      expect(render(kind)).toContain(`<li><span></span>${text.legend}</li>`);
+      expect(
+        homeMapPoints(home, kind)?.points.find(
+          ({ mark }) => mark.kind === "classmate",
+        )?.name,
+      ).toBe(text.point);
+    }
     for (const sentence of texts[locale].common.slice(0, -1))
       expect(html).toContain(markupTextForTest(sentence));
     expect(html).not.toContain("stroke-dasharray");

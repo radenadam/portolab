@@ -824,6 +824,7 @@
   "navigation_portfolio_link": "Portfolio",
   "trading_demonstration_title": "Demonstration portfolio",
   "trading_demonstration_summary_label": "Summary",
+  "trading_demonstration_activity_label": "Activity",
   "trading_demonstration_analysis_label": "Analysis",
   "trading_demonstration_body": "Your own portfolio for demonstrations in class, with starting cash of {cash} like the students. This portfolio is excluded from class statistics, maps, and rankings, and students cannot see it.",
   "trading_lecturer_missing_rules_error": "Portolab cannot take this order yet, because it has not recorded the rules of IDX for the trading day of the order. Tell the person who runs this Portolab server, so that the rules can be added.",

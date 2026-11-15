@@ -39,7 +39,7 @@ export default function DemonstrationPage({
             {m.trading_demonstration_summary_label()}
           </NavLink>
           <NavLink to={activityPath(loaderData.classId, "demonstration")}>
-            {m.trading_activity_title()}
+            {m.trading_demonstration_activity_label()}
           </NavLink>
           <NavLink to={measuresPath(loaderData.classId, "demonstration")}>
             {m.trading_demonstration_analysis_label()}

@@ -16,7 +16,7 @@ Identify every family that the change touches, then compare the change against i
 
 - Feature folders in `app/features/`: the kinds of files each holds and how they are named.
 - Route modules: the shape of loaders and actions, how they parse input, how they return errors, and how pages render the results.
-- Paraglide messages in `messages/`: key names, the voice and structure of each kind of text, such as titles, labels, notices, and errors, and how the two languages correspond.
+- Paraglide messages in `messages/`: key names, the voice and structure of each kind of text, such as titles, labels, notices, and errors, and how the two languages correspond. Compare each message's kind with the role of the element that uses it, even when another kind has the same words.
 - Assembled labels and each use of a message part, against [Interface text](../../AGENTS.md#interface-text).
 - Branded unit types and typed results: how they are defined, created, and handled.
 - CSS modules: spacing, layout at narrow widths, and how they use the design tokens.
