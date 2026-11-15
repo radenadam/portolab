@@ -420,50 +420,50 @@ const expected: Record<Locale, Record<string, unknown>> = {
     ],
     "session-1": {
       badge: "Sesi 1",
-      lesson: 9,
+      lesson: 1,
       questions: [
-        "Belum ada portofolio terukur. Beta berapa yang cocok untuk portofolio pertama, dan mengapa?",
-        "Belum ada alpha untuk dibahas. Apa arti alpha positif terhadap garis pasar sekuritas?",
+        "Kelas memiliki 0 mahasiswa. Tujuan dan kebutuhan kas apa yang perlu mendasari alokasi portofolio?",
+        "Kebutuhan kas dan nilai portofolio apa yang membantu kita menilai alokasi kas portofolio?",
       ],
     },
     "session-2": {
       badge: "Sesi 2",
-      lesson: 9,
+      lesson: 2,
       questions: [
-        "Belum ada portofolio terukur. Beta berapa yang cocok untuk portofolio pertama, dan mengapa?",
-        "Belum ada alpha untuk dibahas. Apa arti alpha positif terhadap garis pasar sekuritas?",
+        "Ukuran risiko tersedia untuk 0 mahasiswa. Bagaimana bobot dan korelasi menentukan risiko portofolio?",
+        "Kelas memiliki 0 mahasiswa dengan tepat satu saham. Mengapa jumlah saham saja tidak membuktikan diversifikasi?",
       ],
     },
     "session-3": {
       badge: "Sesi 3",
-      lesson: 9,
+      lesson: 3,
       questions: [
-        "Belum ada portofolio terukur. Beta berapa yang cocok untuk portofolio pertama, dan mengapa?",
-        "Belum ada alpha untuk dibahas. Apa arti alpha positif terhadap garis pasar sekuritas?",
+        "Tingkat diskonto dan periode apa yang memungkinkan kita membandingkan kas hari ini dengan nilai masa depan?",
+        "BI-Rate tahunan sebesar 5,75%. Mengapa tingkat diskonto yang sesuai untuk portofolio kelas dapat berbeda darinya?",
       ],
     },
     "session-4": {
       badge: "Sesi 4",
-      lesson: 9,
+      lesson: 4,
       questions: [
-        "Belum ada portofolio terukur. Beta berapa yang cocok untuk portofolio pertama, dan mengapa?",
-        "Belum ada alpha untuk dibahas. Apa arti alpha positif terhadap garis pasar sekuritas?",
+        "Kelas memiliki 0 mahasiswa yang memegang saham. Apa perbedaan membeli saham yang sudah beredar dan memesan saham terbitan baru?",
+        "Kelas memiliki 0 mahasiswa. Apa yang dapat dijelaskan IHSG kepada kelas ini tentang pasar, dan apa yang tidak dapat dijelaskannya tentang satu perusahaan?",
       ],
     },
     "session-5": {
       badge: "Sesi 5",
-      lesson: 9,
+      lesson: 5,
       questions: [
-        "Belum ada portofolio terukur. Beta berapa yang cocok untuk portofolio pertama, dan mengapa?",
-        "Belum ada alpha untuk dibahas. Apa arti alpha positif terhadap garis pasar sekuritas?",
+        "Kelas memiliki 0 mahasiswa yang memegang saham. Apa perbedaan hak pemegang saham dan hak pemegang obligasi?",
+        "Hak, arus kas, dan risiko apa yang perlu dibandingkan antara saham, obligasi, dan reksa dana?",
       ],
     },
     "session-6": {
       badge: "Sesi 6",
-      lesson: 9,
+      lesson: 6,
       questions: [
-        "Belum ada portofolio terukur. Beta berapa yang cocok untuk portofolio pertama, dan mengapa?",
-        "Belum ada alpha untuk dibahas. Apa arti alpha positif terhadap garis pasar sekuritas?",
+        "Kelas memiliki 0 mahasiswa dengan order tetapi belum ada catatan eksekusi. Bagaimana batas harga dan sesi perdagangan memengaruhi apakah order terisi?",
+        "Kelas memasang 0 order minggu ini. Bagaimana biaya broker dan pajak penjualan memengaruhi kas yang diperlukan untuk transaksi?",
       ],
     },
     "session-7": {
@@ -868,50 +868,50 @@ const expected: Record<Locale, Record<string, unknown>> = {
     ],
     "session-1": {
       badge: "Session 1",
-      lesson: 9,
+      lesson: 1,
       questions: [
-        "No portfolio has risk measures yet. What beta would suit a first portfolio, and why?",
-        "There is no alpha to discuss yet. What does positive alpha mean relative to the security market line?",
+        "The class has 0 students. What goals and cash needs should guide portfolio allocation?",
+        "What cash needs and portfolio values would help us judge a portfolio’s cash allocation?",
       ],
     },
     "session-2": {
       badge: "Session 2",
-      lesson: 9,
+      lesson: 2,
       questions: [
-        "No portfolio has risk measures yet. What beta would suit a first portfolio, and why?",
-        "There is no alpha to discuss yet. What does positive alpha mean relative to the security market line?",
+        "Risk measures are available for 0 students. How do weights and correlations determine the risk of a portfolio?",
+        "The class has 0 students with exactly one stock. Why does stock count alone not establish diversification?",
       ],
     },
     "session-3": {
       badge: "Session 3",
-      lesson: 9,
+      lesson: 3,
       questions: [
-        "No portfolio has risk measures yet. What beta would suit a first portfolio, and why?",
-        "There is no alpha to discuss yet. What does positive alpha mean relative to the security market line?",
+        "What rate and period would let us compare cash today with a future amount?",
+        "The annual BI-Rate is 5.75%. Why might a suitable discount rate for class portfolios differ from it?",
       ],
     },
     "session-4": {
       badge: "Session 4",
-      lesson: 9,
+      lesson: 4,
       questions: [
-        "No portfolio has risk measures yet. What beta would suit a first portfolio, and why?",
-        "There is no alpha to discuss yet. What does positive alpha mean relative to the security market line?",
+        "The class has 0 students holding stocks. How does buying an existing stock differ from subscribing to a new issue?",
+        "The class has 0 students. What can the IHSG tell this class about the market, and what can it not tell about one company?",
       ],
     },
     "session-5": {
       badge: "Session 5",
-      lesson: 9,
+      lesson: 5,
       questions: [
-        "No portfolio has risk measures yet. What beta would suit a first portfolio, and why?",
-        "There is no alpha to discuss yet. What does positive alpha mean relative to the security market line?",
+        "The class has 0 students holding stocks. How do a shareholder’s rights differ from a bondholder’s rights?",
+        "What rights, cash flows, and risks should we compare across stocks, bonds, and funds?",
       ],
     },
     "session-6": {
       badge: "Session 6",
-      lesson: 9,
+      lesson: 6,
       questions: [
-        "No portfolio has risk measures yet. What beta would suit a first portfolio, and why?",
-        "There is no alpha to discuss yet. What does positive alpha mean relative to the security market line?",
+        "The class has 0 students with orders but no recorded fill. How can price limits and trading sessions affect whether an order fills?",
+        "The class placed 0 orders this week. How do broker fees and the tax on sales affect the cash needed for a trade?",
       ],
     },
     "session-7": {
@@ -1333,5 +1333,369 @@ for (const locale of locales) {
     ];
     const questions = renderedQuestions(discussion(students, 10), students);
     expect(questions[1]).toBe(scopedLeaders[locale]);
+  });
+}
+
+const introductoryQuestions: Record<Locale, Record<string, string[]>> = {
+  id: {
+    "empty-1": [
+      "Kelas memiliki 0 mahasiswa. Tujuan dan kebutuhan kas apa yang perlu mendasari alokasi portofolio?",
+      "Kebutuhan kas dan nilai portofolio apa yang membantu kita menilai alokasi kas portofolio?",
+    ],
+    "empty-2": [
+      "Ukuran risiko tersedia untuk 0 mahasiswa. Bagaimana bobot dan korelasi menentukan risiko portofolio?",
+      "Kelas memiliki 0 mahasiswa dengan tepat satu saham. Mengapa jumlah saham saja tidak membuktikan diversifikasi?",
+    ],
+    "empty-3": [
+      "Tingkat diskonto dan periode apa yang memungkinkan kita membandingkan kas hari ini dengan nilai masa depan?",
+      "BI-Rate tahunan sebesar 5,75%. Mengapa tingkat diskonto yang sesuai untuk portofolio kelas dapat berbeda darinya?",
+    ],
+    "empty-4": [
+      "Kelas memiliki 0 mahasiswa yang memegang saham. Apa perbedaan membeli saham yang sudah beredar dan memesan saham terbitan baru?",
+      "Kelas memiliki 0 mahasiswa. Apa yang dapat dijelaskan IHSG kepada kelas ini tentang pasar, dan apa yang tidak dapat dijelaskannya tentang satu perusahaan?",
+    ],
+    "empty-5": [
+      "Kelas memiliki 0 mahasiswa yang memegang saham. Apa perbedaan hak pemegang saham dan hak pemegang obligasi?",
+      "Hak, arus kas, dan risiko apa yang perlu dibandingkan antara saham, obligasi, dan reksa dana?",
+    ],
+    "empty-6": [
+      "Kelas memiliki 0 mahasiswa dengan order tetapi belum ada catatan eksekusi. Bagaimana batas harga dan sesi perdagangan memengaruhi apakah order terisi?",
+      "Kelas memasang 0 order minggu ini. Bagaimana biaya broker dan pajak penjualan memengaruhi kas yang diperlukan untuk transaksi?",
+    ],
+    "one-1": [
+      "Kelas memiliki 1 mahasiswa. Tujuan dan kebutuhan kas apa yang perlu mendasari alokasi portofolio?",
+      "Rata-rata kas di kelas 39% dari nilai portofolio. Bagaimana alokasi ini sesuai dengan jangka waktu portofolio?",
+    ],
+    "one-2": [
+      "Ukuran risiko tersedia untuk 1 mahasiswa. Bagaimana bobot dan korelasi menentukan risiko portofolio?",
+      "Kelas memiliki 1 mahasiswa dengan tepat satu saham. Mengapa jumlah saham saja tidak membuktikan diversifikasi?",
+    ],
+    "one-3": [
+      "Rata-rata kas di kelas 39% dari nilai portofolio. Tingkat diskonto dan periode apa yang memungkinkan kita membandingkan kas ini dengan nilai masa depan?",
+      "BI-Rate tahunan sebesar 5,75%. Mengapa tingkat diskonto yang sesuai untuk portofolio kelas dapat berbeda darinya?",
+    ],
+    "one-4": [
+      "Kelas memiliki 1 mahasiswa yang memegang saham. Apa perbedaan membeli saham yang sudah beredar dan memesan saham terbitan baru?",
+      "Kelas memiliki 1 mahasiswa. Apa yang dapat dijelaskan IHSG kepada kelas ini tentang pasar, dan apa yang tidak dapat dijelaskannya tentang satu perusahaan?",
+    ],
+    "one-5": [
+      "Kelas memiliki 1 mahasiswa yang memegang saham. Apa perbedaan hak pemegang saham dan hak pemegang obligasi?",
+      "Rata-rata kas di kelas 39% dari nilai portofolio. Risiko apa yang tidak tercakup dalam angka ini saat membandingkan saham, obligasi, dan reksa dana?",
+    ],
+    "one-6": [
+      "Kelas memiliki 0 mahasiswa dengan order tetapi belum ada catatan eksekusi. Bagaimana batas harga dan sesi perdagangan memengaruhi apakah order terisi?",
+      "Kelas memasang 1 order minggu ini. Bagaimana biaya broker dan pajak penjualan memengaruhi kas yang diperlukan untuk transaksi?",
+    ],
+    "several-1": [
+      "Kelas memiliki 2 mahasiswa. Tujuan dan kebutuhan kas apa yang perlu mendasari alokasi portofolio?",
+      "Rata-rata kas di kelas 39% dari nilai portofolio. Bagaimana alokasi ini sesuai dengan jangka waktu portofolio?",
+    ],
+    "several-2": [
+      "Ukuran risiko tersedia untuk 2 mahasiswa. Bagaimana bobot dan korelasi menentukan risiko portofolio?",
+      "Kelas memiliki 2 mahasiswa dengan tepat satu saham. Mengapa jumlah saham saja tidak membuktikan diversifikasi?",
+    ],
+    "several-3": [
+      "Rata-rata kas di kelas 39% dari nilai portofolio. Tingkat diskonto dan periode apa yang memungkinkan kita membandingkan kas ini dengan nilai masa depan?",
+      "BI-Rate tahunan sebesar 5,75%. Mengapa tingkat diskonto yang sesuai untuk portofolio kelas dapat berbeda darinya?",
+    ],
+    "several-4": [
+      "Kelas memiliki 2 mahasiswa yang memegang saham. Apa perbedaan membeli saham yang sudah beredar dan memesan saham terbitan baru?",
+      "Kelas memiliki 2 mahasiswa. Apa yang dapat dijelaskan IHSG kepada kelas ini tentang pasar, dan apa yang tidak dapat dijelaskannya tentang satu perusahaan?",
+    ],
+    "several-5": [
+      "Kelas memiliki 2 mahasiswa yang memegang saham. Apa perbedaan hak pemegang saham dan hak pemegang obligasi?",
+      "Rata-rata kas di kelas 39% dari nilai portofolio. Risiko apa yang tidak tercakup dalam angka ini saat membandingkan saham, obligasi, dan reksa dana?",
+    ],
+    "several-6": [
+      "Kelas memiliki 0 mahasiswa dengan order tetapi belum ada catatan eksekusi. Bagaimana batas harga dan sesi perdagangan memengaruhi apakah order terisi?",
+      "Kelas memasang 2 order minggu ini. Bagaimana biaya broker dan pajak penjualan memengaruhi kas yang diperlukan untuk transaksi?",
+    ],
+    "pending-1": [
+      "Kelas memiliki 1 mahasiswa. Tujuan dan kebutuhan kas apa yang perlu mendasari alokasi portofolio?",
+      "Kebutuhan kas dan nilai portofolio apa yang membantu kita menilai alokasi kas portofolio?",
+    ],
+    "pending-2": [
+      "Ukuran risiko tersedia untuk 0 mahasiswa. Bagaimana bobot dan korelasi menentukan risiko portofolio?",
+      "Kelas memiliki 1 mahasiswa dengan tepat satu saham. Mengapa jumlah saham saja tidak membuktikan diversifikasi?",
+    ],
+    "pending-3": [
+      "Tingkat diskonto dan periode apa yang memungkinkan kita membandingkan kas hari ini dengan nilai masa depan?",
+      "BI-Rate tahunan sebesar 5,75%. Mengapa tingkat diskonto yang sesuai untuk portofolio kelas dapat berbeda darinya?",
+    ],
+    "pending-4": [
+      "Kelas memiliki 1 mahasiswa yang memegang saham. Apa perbedaan membeli saham yang sudah beredar dan memesan saham terbitan baru?",
+      "Kelas memiliki 1 mahasiswa. Apa yang dapat dijelaskan IHSG kepada kelas ini tentang pasar, dan apa yang tidak dapat dijelaskannya tentang satu perusahaan?",
+    ],
+    "pending-5": [
+      "Kelas memiliki 1 mahasiswa yang memegang saham. Apa perbedaan hak pemegang saham dan hak pemegang obligasi?",
+      "Hak, arus kas, dan risiko apa yang perlu dibandingkan antara saham, obligasi, dan reksa dana?",
+    ],
+    "pending-6": [
+      "Kelas memiliki 1 mahasiswa dengan order tetapi belum ada catatan eksekusi. Bagaimana batas harga dan sesi perdagangan memengaruhi apakah order terisi?",
+      "Kelas memasang 1 order minggu ini. Bagaimana biaya broker dan pajak penjualan memengaruhi kas yang diperlukan untuk transaksi?",
+    ],
+    "cashOnly-1": [
+      "Kelas memiliki 2 mahasiswa. Tujuan dan kebutuhan kas apa yang perlu mendasari alokasi portofolio?",
+      "Rata-rata kas di kelas 100% dari nilai portofolio. Bagaimana alokasi ini sesuai dengan jangka waktu portofolio?",
+    ],
+    "cashOnly-2": [
+      "Ukuran risiko tersedia untuk 0 mahasiswa. Bagaimana bobot dan korelasi menentukan risiko portofolio?",
+      "Kelas memiliki 0 mahasiswa dengan tepat satu saham. Mengapa jumlah saham saja tidak membuktikan diversifikasi?",
+    ],
+    "cashOnly-3": [
+      "Rata-rata kas di kelas 100% dari nilai portofolio. Tingkat diskonto dan periode apa yang memungkinkan kita membandingkan kas ini dengan nilai masa depan?",
+      "BI-Rate tahunan sebesar 5,75%. Mengapa tingkat diskonto yang sesuai untuk portofolio kelas dapat berbeda darinya?",
+    ],
+    "cashOnly-4": [
+      "Kelas memiliki 0 mahasiswa yang memegang saham. Apa perbedaan membeli saham yang sudah beredar dan memesan saham terbitan baru?",
+      "Kelas memiliki 2 mahasiswa. Apa yang dapat dijelaskan IHSG kepada kelas ini tentang pasar, dan apa yang tidak dapat dijelaskannya tentang satu perusahaan?",
+    ],
+    "cashOnly-5": [
+      "Kelas memiliki 0 mahasiswa yang memegang saham. Apa perbedaan hak pemegang saham dan hak pemegang obligasi?",
+      "Rata-rata kas di kelas 100% dari nilai portofolio. Risiko apa yang tidak tercakup dalam angka ini saat membandingkan saham, obligasi, dan reksa dana?",
+    ],
+    "cashOnly-6": [
+      "Kelas memiliki 2 mahasiswa dengan order tetapi belum ada catatan eksekusi. Bagaimana batas harga dan sesi perdagangan memengaruhi apakah order terisi?",
+      "Kelas memasang 0 order minggu ini. Bagaimana biaya broker dan pajak penjualan memengaruhi kas yang diperlukan untuk transaksi?",
+    ],
+    "zero-1": [
+      "Kelas memiliki 1 mahasiswa. Tujuan dan kebutuhan kas apa yang perlu mendasari alokasi portofolio?",
+      "Kebutuhan kas dan nilai portofolio apa yang membantu kita menilai alokasi kas portofolio?",
+    ],
+    "zero-2": [
+      "Ukuran risiko tersedia untuk 0 mahasiswa. Bagaimana bobot dan korelasi menentukan risiko portofolio?",
+      "Kelas memiliki 0 mahasiswa dengan tepat satu saham. Mengapa jumlah saham saja tidak membuktikan diversifikasi?",
+    ],
+    "zero-3": [
+      "Tingkat diskonto dan periode apa yang memungkinkan kita membandingkan kas hari ini dengan nilai masa depan?",
+      "BI-Rate tahunan sebesar 5,75%. Mengapa tingkat diskonto yang sesuai untuk portofolio kelas dapat berbeda darinya?",
+    ],
+    "zero-4": [
+      "Kelas memiliki 0 mahasiswa yang memegang saham. Apa perbedaan membeli saham yang sudah beredar dan memesan saham terbitan baru?",
+      "Kelas memiliki 1 mahasiswa. Apa yang dapat dijelaskan IHSG kepada kelas ini tentang pasar, dan apa yang tidak dapat dijelaskannya tentang satu perusahaan?",
+    ],
+    "zero-5": [
+      "Kelas memiliki 0 mahasiswa yang memegang saham. Apa perbedaan hak pemegang saham dan hak pemegang obligasi?",
+      "Hak, arus kas, dan risiko apa yang perlu dibandingkan antara saham, obligasi, dan reksa dana?",
+    ],
+    "zero-6": [
+      "Kelas memiliki 0 mahasiswa dengan order tetapi belum ada catatan eksekusi. Bagaimana batas harga dan sesi perdagangan memengaruhi apakah order terisi?",
+      "Kelas memasang 1 order minggu ini. Bagaimana biaya broker dan pajak penjualan memengaruhi kas yang diperlukan untuk transaksi?",
+    ],
+    "rate-missing": [
+      "Tingkat diskonto dan periode apa yang memungkinkan kita membandingkan kas hari ini dengan nilai masa depan?",
+      "BI-Rate belum tersedia untuk tanggal ini. Bagaimana tingkat diskonto perlu sesuai dengan risiko dan periode arus kas?",
+    ],
+  },
+  en: {
+    "empty-1": [
+      "The class has 0 students. What goals and cash needs should guide portfolio allocation?",
+      "What cash needs and portfolio values would help us judge a portfolio’s cash allocation?",
+    ],
+    "empty-2": [
+      "Risk measures are available for 0 students. How do weights and correlations determine the risk of a portfolio?",
+      "The class has 0 students with exactly one stock. Why does stock count alone not establish diversification?",
+    ],
+    "empty-3": [
+      "What rate and period would let us compare cash today with a future amount?",
+      "The annual BI-Rate is 5.75%. Why might a suitable discount rate for class portfolios differ from it?",
+    ],
+    "empty-4": [
+      "The class has 0 students holding stocks. How does buying an existing stock differ from subscribing to a new issue?",
+      "The class has 0 students. What can the IHSG tell this class about the market, and what can it not tell about one company?",
+    ],
+    "empty-5": [
+      "The class has 0 students holding stocks. How do a shareholder’s rights differ from a bondholder’s rights?",
+      "What rights, cash flows, and risks should we compare across stocks, bonds, and funds?",
+    ],
+    "empty-6": [
+      "The class has 0 students with orders but no recorded fill. How can price limits and trading sessions affect whether an order fills?",
+      "The class placed 0 orders this week. How do broker fees and the tax on sales affect the cash needed for a trade?",
+    ],
+    "one-1": [
+      "The class has 1 student. What goals and cash needs should guide portfolio allocation?",
+      "The average cash share in the class is 39%. How does this allocation fit a portfolio’s time horizon?",
+    ],
+    "one-2": [
+      "Risk measures are available for 1 student. How do weights and correlations determine the risk of a portfolio?",
+      "The class has 1 student with exactly one stock. Why does stock count alone not establish diversification?",
+    ],
+    "one-3": [
+      "The average cash share in the class is 39%. What rate and period would let us compare this cash with a future amount?",
+      "The annual BI-Rate is 5.75%. Why might a suitable discount rate for class portfolios differ from it?",
+    ],
+    "one-4": [
+      "The class has 1 student holding stocks. How does buying an existing stock differ from subscribing to a new issue?",
+      "The class has 1 student. What can the IHSG tell this class about the market, and what can it not tell about one company?",
+    ],
+    "one-5": [
+      "The class has 1 student holding stocks. How do a shareholder’s rights differ from a bondholder’s rights?",
+      "The average cash share in the class is 39%. What risks does this figure leave out when comparing stocks, bonds, and funds?",
+    ],
+    "one-6": [
+      "The class has 0 students with orders but no recorded fill. How can price limits and trading sessions affect whether an order fills?",
+      "The class placed 1 order this week. How do broker fees and the tax on sales affect the cash needed for a trade?",
+    ],
+    "several-1": [
+      "The class has 2 students. What goals and cash needs should guide portfolio allocation?",
+      "The average cash share in the class is 39%. How does this allocation fit a portfolio’s time horizon?",
+    ],
+    "several-2": [
+      "Risk measures are available for 2 students. How do weights and correlations determine the risk of a portfolio?",
+      "The class has 2 students with exactly one stock. Why does stock count alone not establish diversification?",
+    ],
+    "several-3": [
+      "The average cash share in the class is 39%. What rate and period would let us compare this cash with a future amount?",
+      "The annual BI-Rate is 5.75%. Why might a suitable discount rate for class portfolios differ from it?",
+    ],
+    "several-4": [
+      "The class has 2 students holding stocks. How does buying an existing stock differ from subscribing to a new issue?",
+      "The class has 2 students. What can the IHSG tell this class about the market, and what can it not tell about one company?",
+    ],
+    "several-5": [
+      "The class has 2 students holding stocks. How do a shareholder’s rights differ from a bondholder’s rights?",
+      "The average cash share in the class is 39%. What risks does this figure leave out when comparing stocks, bonds, and funds?",
+    ],
+    "several-6": [
+      "The class has 0 students with orders but no recorded fill. How can price limits and trading sessions affect whether an order fills?",
+      "The class placed 2 orders this week. How do broker fees and the tax on sales affect the cash needed for a trade?",
+    ],
+    "pending-1": [
+      "The class has 1 student. What goals and cash needs should guide portfolio allocation?",
+      "What cash needs and portfolio values would help us judge a portfolio’s cash allocation?",
+    ],
+    "pending-2": [
+      "Risk measures are available for 0 students. How do weights and correlations determine the risk of a portfolio?",
+      "The class has 1 student with exactly one stock. Why does stock count alone not establish diversification?",
+    ],
+    "pending-3": [
+      "What rate and period would let us compare cash today with a future amount?",
+      "The annual BI-Rate is 5.75%. Why might a suitable discount rate for class portfolios differ from it?",
+    ],
+    "pending-4": [
+      "The class has 1 student holding stocks. How does buying an existing stock differ from subscribing to a new issue?",
+      "The class has 1 student. What can the IHSG tell this class about the market, and what can it not tell about one company?",
+    ],
+    "pending-5": [
+      "The class has 1 student holding stocks. How do a shareholder’s rights differ from a bondholder’s rights?",
+      "What rights, cash flows, and risks should we compare across stocks, bonds, and funds?",
+    ],
+    "pending-6": [
+      "The class has 1 student with orders but no recorded fill. How can price limits and trading sessions affect whether an order fills?",
+      "The class placed 1 order this week. How do broker fees and the tax on sales affect the cash needed for a trade?",
+    ],
+    "cashOnly-1": [
+      "The class has 2 students. What goals and cash needs should guide portfolio allocation?",
+      "The average cash share in the class is 100%. How does this allocation fit a portfolio’s time horizon?",
+    ],
+    "cashOnly-2": [
+      "Risk measures are available for 0 students. How do weights and correlations determine the risk of a portfolio?",
+      "The class has 0 students with exactly one stock. Why does stock count alone not establish diversification?",
+    ],
+    "cashOnly-3": [
+      "The average cash share in the class is 100%. What rate and period would let us compare this cash with a future amount?",
+      "The annual BI-Rate is 5.75%. Why might a suitable discount rate for class portfolios differ from it?",
+    ],
+    "cashOnly-4": [
+      "The class has 0 students holding stocks. How does buying an existing stock differ from subscribing to a new issue?",
+      "The class has 2 students. What can the IHSG tell this class about the market, and what can it not tell about one company?",
+    ],
+    "cashOnly-5": [
+      "The class has 0 students holding stocks. How do a shareholder’s rights differ from a bondholder’s rights?",
+      "The average cash share in the class is 100%. What risks does this figure leave out when comparing stocks, bonds, and funds?",
+    ],
+    "cashOnly-6": [
+      "The class has 2 students with orders but no recorded fill. How can price limits and trading sessions affect whether an order fills?",
+      "The class placed 0 orders this week. How do broker fees and the tax on sales affect the cash needed for a trade?",
+    ],
+    "zero-1": [
+      "The class has 1 student. What goals and cash needs should guide portfolio allocation?",
+      "What cash needs and portfolio values would help us judge a portfolio’s cash allocation?",
+    ],
+    "zero-2": [
+      "Risk measures are available for 0 students. How do weights and correlations determine the risk of a portfolio?",
+      "The class has 0 students with exactly one stock. Why does stock count alone not establish diversification?",
+    ],
+    "zero-3": [
+      "What rate and period would let us compare cash today with a future amount?",
+      "The annual BI-Rate is 5.75%. Why might a suitable discount rate for class portfolios differ from it?",
+    ],
+    "zero-4": [
+      "The class has 0 students holding stocks. How does buying an existing stock differ from subscribing to a new issue?",
+      "The class has 1 student. What can the IHSG tell this class about the market, and what can it not tell about one company?",
+    ],
+    "zero-5": [
+      "The class has 0 students holding stocks. How do a shareholder’s rights differ from a bondholder’s rights?",
+      "What rights, cash flows, and risks should we compare across stocks, bonds, and funds?",
+    ],
+    "zero-6": [
+      "The class has 0 students with orders but no recorded fill. How can price limits and trading sessions affect whether an order fills?",
+      "The class placed 1 order this week. How do broker fees and the tax on sales affect the cash needed for a trade?",
+    ],
+    "rate-missing": [
+      "What rate and period would let us compare cash today with a future amount?",
+      "BI-Rate is unavailable for this date. How should the discount rate match the risk and period of a cash flow?",
+    ],
+  },
+};
+
+for (const locale of locales) {
+  test(`keeps the calendar, discussion topic, and lesson together in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    for (const session of lessonSessionsForTest()) {
+      const current = discussion([], session);
+      expect(current.lesson).toBe(session);
+      expect(current.questions).toHaveLength(2);
+    }
+    // Deleted fills can leave holdings, and deleted holdings can leave no value.
+    const cases: Record<string, TeachingStudent[]> = {
+      empty: [],
+      one: [student(1)],
+      several: [student(1), student(2)],
+      pending: [
+        student(1, {
+          return: undefined,
+          risk: undefined,
+          holdingCount: 1,
+          orderHistory: "unfilled",
+        }),
+      ],
+      cashOnly: [
+        student(1, {
+          return: cumulativeReturn(0),
+          risk: undefined,
+          holdingCount: 0,
+          orderHistory: "unfilled",
+          ordersThisWeek: 0,
+        }),
+        student(2, {
+          return: cumulativeReturn(0),
+          risk: undefined,
+          holdingCount: 0,
+          orderHistory: "unfilled",
+          ordersThisWeek: 0,
+        }),
+      ],
+      zero: [
+        student(1, {
+          return: cumulativeReturn(-1),
+          risk: undefined,
+          holdingCount: 0,
+        }),
+      ],
+    };
+    const outputs: Record<string, string[]> = {};
+    for (const [name, students] of Object.entries(cases)) {
+      for (const session of [1, 2, 3, 4, 5, 6] as const)
+        outputs[`${name}-${String(session)}`] = renderedQuestions(
+          discussion(students, session),
+          students,
+        );
+    }
+    outputs["rate-missing"] = renderedQuestions(
+      discussion([], 3, "2020-01-06"),
+      [],
+    );
+    expect(outputs).toEqual(introductoryQuestions[locale]);
   });
 }

@@ -8,7 +8,7 @@ import {
   formatSignedPercent,
 } from "~/formatting";
 import { measureRiskFreeRate } from "~/features/measures/measure-risk-free-rate";
-import { portfolioWeight } from "~/units/portfolio-weight";
+import { averageClassCashShare } from "./average-class-cash-share";
 import { cumulativeReturn } from "~/units/cumulative-return";
 import { beta } from "~/units/beta";
 import { m } from "~/paraglide/messages.js";
@@ -41,19 +41,11 @@ export function bondQuestions(
   now: Date,
 ): string[] {
   const rate = measureRiskFreeRate(wibDateOf(now));
-  let cashShares = 0;
-  let complete = students.length > 0;
-  for (const student of students) {
-    if (student.value === undefined || student.value === 0) complete = false;
-    else cashShares += student.cash / student.value;
-  }
+  const cashShare = averageClassCashShare(students);
   return [
-    complete && rate.ok
+    cashShare !== undefined && rate.ok
       ? m.classes_bonds_cash_notice({
-          cash: formatPercent(
-            portfolioWeight(cashShares / students.length),
-            "integer",
-          ),
+          cash: formatPercent(cashShare, "integer"),
           rate: formatPercent(rate.value.inputs.annualRate),
         })
       : m.classes_bonds_cash_pending_notice(),

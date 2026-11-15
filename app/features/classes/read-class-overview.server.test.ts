@@ -237,7 +237,7 @@ for (const locale of locales) {
 function overviewAt(
   { database, taughtClass }: Awaited<ReturnType<typeof classOfStudentsForTest>>,
   now: Date,
-  sourcePath?: string,
+  sourcePath = classMapPath(taughtClass.id, "beta"),
 ): ReturnType<typeof readClassOverview> {
   return readClassOverview(database, taughtClass, {
     request: new Request("http://localhost/"),

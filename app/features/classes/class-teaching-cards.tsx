@@ -7,6 +7,7 @@ import { Popover, PopoverButton } from "~/popover";
 import { formatNumber } from "~/formatting";
 import { lessonPath } from "~/features/learning/learning-paths";
 import { LearningLink } from "~/features/learning/learning-link";
+import { studentNamePlaceholder } from "./student-name-placeholder";
 import { m } from "~/paraglide/messages.js";
 import type { ClassId } from "./classes.schema";
 import type { ClassMapAxis } from "./class-map";
@@ -99,7 +100,7 @@ export function ClassTeachingCards({
                     let text = question;
                     for (const student of overview.students)
                       text = text
-                        .split(`\u0000${String(student.id)}\u0000`)
+                        .split(studentNamePlaceholder(student.id))
                         .join(textValue(student.name));
                     return text;
                   }}

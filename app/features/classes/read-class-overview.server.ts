@@ -1,5 +1,6 @@
 import { readLessonSessions } from "~/features/learning/read-lesson-sessions.server";
 import { classFlags } from "./class-flags";
+import { classActivity } from "./class-activity";
 import { classDiscussion } from "./class-discussion";
 import { classCalendarOf } from "./course-calendar";
 import type { TeachingStudent } from "./class-teaching";
@@ -7,7 +8,7 @@ import { lotCount } from "~/features/trading/count-parts";
 import { studentPortfolioPath } from "~/features/grading/grading-paths";
 import { pathReturningTo } from "~/features/accounts/path-returning-to";
 import { studentReasonsSectionId } from "~/features/trading/student-reasons-section-id";
-import { classPath } from "./class-path";
+import { studentNameBoundary } from "./student-name-placeholder";
 import type { Database } from "~/database/database.server";
 import { startOfWeek } from "~/calendar-dates";
 import { holdingQuoteFailureText } from "~/features/trading/holding-quote-failure-text";
@@ -29,14 +30,11 @@ import { listStudents } from "./class-store.server";
 import type { ClassStudent, TaughtClassRecord } from "./class-store.server";
 import { classSummary } from "./class-summary";
 
-// A name stays opaque when the view keeps formatted quantities together.
-const studentNameBoundary = "\u0000";
-
 interface OverviewOptions {
   request: Request;
   now: Date;
   delayMinutes: number;
-  sourcePath?: string | undefined;
+  sourcePath: string;
 }
 
 type OverviewClass = Pick<
@@ -89,8 +87,6 @@ export function readClassOverview(
   const compared: { portfolio: CumulativeReturn; market: CumulativeReturn }[] =
     [];
   const risks: Beta[] = [];
-  let active = 0;
-  let ordersThisWeek = 0;
   for (const student of listStudents(database, taught.id)) {
     const read = readOverviewStudent(
       database,
@@ -110,9 +106,10 @@ export function readClassOverview(
         portfolio: overview.return,
         market: overview.marketReturn,
       });
-    if (overview.ordersThisWeek > 0) active += 1;
-    ordersThisWeek += overview.ordersThisWeek;
   }
+  const { active, ordersThisWeek } = classActivity(
+    rows.map((row) => row.overview),
+  );
   const quotes = rows.flatMap((row) => row.quotes);
   const latest = latestQuoteTime(quotes);
   const pricesAt =
@@ -236,7 +233,7 @@ function readOverviewStudent(
           href:
             pathReturningTo(
               studentPortfolioPath(taught.id, student.id),
-              `${options.sourcePath ?? classPath(taught.id)}#class-reasons`,
+              `${options.sourcePath}#class-reasons`,
             ) + `#${studentReasonsSectionId}`,
         },
       ];

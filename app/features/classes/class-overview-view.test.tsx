@@ -15,6 +15,7 @@ import { classMapPoints } from "./class-map-points.server";
 import type { ClassMapAxis } from "./class-map";
 import { readClassOverview } from "./read-class-overview.server";
 import { classSummary } from "./class-summary";
+import { classMapPath } from "./class-path";
 
 const texts: Record<
   Locale,
@@ -127,6 +128,7 @@ for (const locale of locales) {
       request: new Request("http://localhost/classes/1"),
       now: new Date("2026-11-02T03:00:00Z"),
       delayMinutes: 10,
+      sourcePath: classMapPath(classId, "beta"),
     });
     expect(overview.students).toEqual([]);
     for (const axis of ["beta", "deviation"] satisfies ClassMapAxis[]) {

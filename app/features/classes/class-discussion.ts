@@ -19,9 +19,8 @@ import { courseSessionTitle } from "./course-session-title";
 import type { ClassDiscussion, TeachingStudent } from "./class-teaching";
 import type { classSummary } from "./class-summary";
 import { extremeOf } from "./extreme-of";
-
-const discussionSessions = [9, 10, 11, 12, 13, 14] as const;
-type DiscussionSession = (typeof discussionSessions)[number];
+import { studentNamePlaceholder } from "./student-name-placeholder";
+import { classIntroQuestions } from "./class-intro-questions";
 
 export function classDiscussion(
   students: readonly TeachingStudent[],
@@ -59,32 +58,34 @@ export function classDiscussion(
         title: courseSessionTitle(session),
       }),
     };
-  const lesson =
-    discussionSessions.filter((number) => number <= session).at(-1) ??
-    discussionSessions[0];
-  const questions = questionsFor(lesson, students, { summary, now });
-  return { badge, notice: undefined, lesson, questions };
+  const questions = questionsFor(session, students, { summary, now });
+  return { badge, notice: undefined, lesson: session, questions };
 }
 
 function questionsFor(
-  lesson: DiscussionSession,
+  lesson: SessionNumber,
   students: readonly TeachingStudent[],
   { summary, now }: { summary: ReturnType<typeof classSummary>; now: Date },
 ): string[] {
-  switch (lesson) {
-    case 9:
-      return [betaQuestion(students), alphaQuestion(students)];
-    case 10:
-      return [betaQuestion(students), leaderQuestion(students)];
-    case 11:
-      return futuresQuestions(students, summary);
-    case 12:
-      return fundQuestions(students);
-    case 13:
-      return optionQuestions(students);
-    case 14:
-      return bondQuestions(students, now);
-  }
+  const questions: Record<SessionNumber, () => string[]> = {
+    1: () => classIntroQuestions(1, students, now),
+    2: () => classIntroQuestions(2, students, now),
+    3: () => classIntroQuestions(3, students, now),
+    4: () => classIntroQuestions(4, students, now),
+    5: () => classIntroQuestions(5, students, now),
+    6: () => classIntroQuestions(6, students, now),
+    7: () => [],
+    8: () => [],
+    9: () => [betaQuestion(students), alphaQuestion(students)],
+    10: () => [betaQuestion(students), leaderQuestion(students)],
+    11: () => futuresQuestions(students, summary),
+    12: () => fundQuestions(students),
+    13: () => optionQuestions(students),
+    14: () => bondQuestions(students, now),
+    15: () => [],
+    16: () => [],
+  };
+  return questions[lesson]();
 }
 
 function betaQuestion(students: readonly TeachingStudent[]): string {
@@ -166,7 +167,7 @@ function leaderQuestion(students: readonly TeachingStudent[]): string {
   if (top?.return === undefined || best?.risk === undefined)
     return m.classes_leader_empty_notice();
   const inputs = {
-    name: `\u0000${String(top.id)}\u0000`,
+    name: studentNamePlaceholder(top.id),
     change: formatSignedPercent(top.return).text,
     alpha: formatSignedPercent(best.risk.alpha).text,
   };
@@ -177,7 +178,7 @@ function leaderQuestion(students: readonly TeachingStudent[]): string {
       ? m.classes_leader_same_notice(inputs)
       : m.classes_leader_different_notice({
           ...inputs,
-          best: `\u0000${String(best.id)}\u0000`,
+          best: studentNamePlaceholder(best.id),
         });
   const topReturn = top.return;
   const higherOutside = students.some(
