@@ -19,6 +19,7 @@ const texts: Record<
     lesson: string;
     beta: string;
     help: (title: string) => string;
+    market: string;
     cards: readonly (readonly [string, string, string])[];
   }
 > = {
@@ -26,16 +27,16 @@ const texts: Record<
     calculation: "Lihat perhitungan",
     example: "Angka pada halaman ini",
     lesson: "Pelajari lebih lanjut di sesi 9",
-    beta: "Beta terhadap IHSG",
+    beta: "Beta",
     help: (title) => `Apa itu ${title}?`,
+    market: "Pasar",
     cards: [
-      ["Imbal hasil yang diharapkan", "-0,05%", "SUMPRODUCT"],
+      ["Imbal hasil harapan", "-0,05%", "SUMPRODUCT"],
       ["Simpangan baku", "2,59%", "√0,0006732"],
-      ["Beta terhadap IHSG", "0,34", "SUMPRODUCT"],
+      ["Beta", "0,34", "SUMPRODUCT"],
       ["Rasio Sharpe", "-0,20", "(-0,05% − 0,48%) / 2,59%"],
       ["Rasio Treynor", "-1,55%", "(-0,05% − 0,48%) / 0,34"],
       ["Alpha Jensen", "-0,38%", "-0,05% − 0,33%"],
-      ["Imbal hasil yang diharapkan IHSG", "0,05%", "AVERAGE"],
       ["Suku bunga bebas risiko", "0,48%", "5,75% / 12"],
     ],
   },
@@ -43,16 +44,16 @@ const texts: Record<
     calculation: "View calculation",
     example: "Value on this page",
     lesson: "Learn more in session 9",
-    beta: "Beta against the IHSG",
+    beta: "Beta",
     help: (title) => `What is ${title}?`,
+    market: "Market",
     cards: [
       ["Expected return", "-0.05%", "SUMPRODUCT"],
       ["Standard deviation", "2.59%", "√0.0006732"],
-      ["Beta against the IHSG", "0.34", "SUMPRODUCT"],
+      ["Beta", "0.34", "SUMPRODUCT"],
       ["Sharpe ratio", "-0.20", "(-0.05% − 0.48%) / 2.59%"],
       ["Treynor ratio", "-1.55%", "(-0.05% − 0.48%) / 0.34"],
       ["Jensen's alpha", "-0.38%", "-0.05% − 0.33%"],
-      ["Expected return of the IHSG", "0.05%", "AVERAGE"],
       ["Risk-free rate", "0.48%", "5.75% / 12"],
     ],
   },
@@ -142,7 +143,7 @@ for (const locale of locales) {
   }) => {
     const { lecturer } = await openConceptPage(page, browser, {
       locale,
-      path: "/measures",
+      path: "/analysis",
     });
     for (const [title, value, formula] of text.cards) {
       const card = await openConcept(page, locale, title);
@@ -174,8 +175,7 @@ for (const locale of locales) {
     await page.keyboard.press("Escape");
     const simulation = await openSimulationCard(page);
     const stockLink = page
-      .getByRole("main")
-      .getByRole("link", { name: "BBCA", exact: true })
+      .getByRole("link", { name: text.market, exact: true })
       .first();
     await stockLink.focus();
     await page.keyboard.press("Enter");
@@ -189,7 +189,7 @@ for (const locale of locales) {
   }) => {
     const { lecturer } = await openConceptPage(page, browser, {
       locale,
-      path: "/measures",
+      path: "/analysis",
     });
     await holdClientScripts(
       page,
@@ -219,10 +219,10 @@ for (const locale of locales) {
     }) => {
       const { lecturer } = await openConceptPage(page, browser, {
         locale,
-        path: "",
+        path: "/analysis",
       });
       const address = page.url();
-      const card = await openConcept(page, locale, "Beta");
+      const card = await openConcept(page, locale, text.beta);
       await openCalculation(card, locale);
       await expectBetaCalculation(card);
       await expectCardInsideScreen(page, card);

@@ -1,3 +1,4 @@
+import { MapArrow } from "./map-arrow";
 import type { ReactNode, Ref } from "react";
 import type { LabelPlace, PlacedLabels } from "./map-labels";
 import { keptNameRoom } from "./map-labels";
@@ -30,6 +31,7 @@ export const markReach = 0.33;
 // Background context must not hide the subjects of the map or the reader's own mark.
 const drawOrder: Record<MarkKind, number> = {
   other: 0,
+  average: 0,
   classmate: -1,
   held: 1,
   market: 2,
@@ -79,6 +81,32 @@ export function MapDrawing({
           className={styles["line"]}
         />
       )}
+      {drawn.map(({ point, placed: mark }) => (
+        <g key={`stem-${point.key}`}>
+          {mark.stem !== undefined && (
+            <line
+              x1={percentOf(mark.position.x)}
+              x2={percentOf(mark.position.x)}
+              y1={percentOf(mark.stem)}
+              y2={percentOf(mark.position.y)}
+              className={
+                mark.position.y < mark.stem
+                  ? styles["gainStem"]
+                  : styles["lossStem"]
+              }
+            />
+          )}
+          {point.arrowTo !== undefined && (
+            <MapArrow
+              from={mark}
+              to={
+                drawn.find((candidate) => candidate.point.key === point.arrowTo)
+                  ?.placed
+              }
+            />
+          )}
+        </g>
+      ))}
       {drawn
         .toSorted(
           (first, second) => drawOrder[first.kind] - drawOrder[second.kind],
@@ -223,6 +251,8 @@ function Mark({
       return dot(styles["held"]);
     case "other":
       return dot(styles["other"]);
+    case "average":
+      return dot(styles["average"]);
     case "classmate":
       return dot(styles["classmate"]);
     case "market":

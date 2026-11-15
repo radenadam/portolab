@@ -1,5 +1,8 @@
 import type { Result } from "../app/result.ts";
-import { parseJsonObject, parseStringsAt, readJsonFile } from "./json.ts";
+import { fail } from "../app/result.ts";
+import ts from "typescript";
+import { parseJsonObject, parseJsonWith, parseStringsAt } from "./json.ts";
+import { readTextFile } from "./read-text-file.ts";
 import { listOfWords } from "../app/sentences.ts";
 import { describeValue } from "../app/value-shapes.ts";
 
@@ -18,7 +21,35 @@ export function parseLocales(
 export function readMessages(
   path: string,
 ): Result<Record<string, unknown>, string> {
-  return readJsonFile(path, parseJsonObject);
+  const text = readTextFile(path);
+  if (!text.ok) return text;
+  const parsed = parseJsonWith(text.value, path, parseJsonObject);
+  if (!parsed.ok) return parsed;
+  // JSON.parse keeps only the last copy, so the parsed object cannot reveal a duplicate message.
+  const keys = new Set<string>();
+  const duplicates = new Set<string>();
+  function visit(node: ts.Node): void {
+    if (!ts.isObjectLiteralExpression(node)) {
+      ts.forEachChild(node, visit);
+      return;
+    }
+    for (const property of node.properties) {
+      if (
+        ts.isPropertyAssignment(property) &&
+        ts.isStringLiteral(property.name)
+      ) {
+        const key = property.name.text;
+        if (keys.has(key)) duplicates.add(describeValue(key));
+        keys.add(key);
+      }
+    }
+  }
+  visit(ts.parseJsonText(path, text.value));
+  return duplicates.size > 0
+    ? fail(
+        `${path} must give each message key once, but it repeats ${listOfWords([...duplicates])}.`,
+      )
+    : parsed;
 }
 
 /** Returns the keys of the messages in one language file, without the key that names the file's schema. */

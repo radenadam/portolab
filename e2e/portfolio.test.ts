@@ -193,7 +193,7 @@ for (const locale of locales) {
       });
     }
     await main.getByRole("link", { name: text.analysis, exact: true }).click();
-    await expect(student).toHaveURL(`${classPath}/measures`);
+    await expect(student).toHaveURL(`${classPath}/analysis`);
     await student.context().close();
   });
 

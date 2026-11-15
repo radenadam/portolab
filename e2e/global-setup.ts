@@ -89,7 +89,7 @@ function storePricesOfTests(databasePath: string, now: Date): void {
     databasePath,
     join(import.meta.dirname, "..", migrationsFolderName),
   );
-  for (const code of ["IHSG", "BBCA", "AMMN", "AADI"] as const) {
+  for (const code of ["IHSG", "BBCA", "TLKM", "AMMN", "AADI"] as const) {
     saveDailyHistory(database, monthEndClosesForTest(code));
   }
   for (const instrument of [

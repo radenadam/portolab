@@ -76,7 +76,7 @@ function Returns({
               {(textValue) =>
                 textForReader(reader, {
                   owner: () =>
-                    m.trading_chart_notice({
+                    m.app_returns_chart_notice({
                       index: marketIndex.code,
                       date: formatCalendarDate(start.date),
                     }),
@@ -108,8 +108,8 @@ function Returns({
               },
             ]}
             labelledBy={headingId}
-            dateLabel={m.trading_trading_day_label()}
-            tableLabel={m.trading_returns_table_label()}
+            dateLabel={m.app_trading_day_label()}
+            tableLabel={m.app_returns_table_label()}
           />
         </>
       )}

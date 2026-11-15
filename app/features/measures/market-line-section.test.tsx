@@ -82,11 +82,11 @@ const texts: Record<
     lecturerNotice:
       "Grafik ini menempatkan portofolio Siti Rahayu dan sahamnya terhadap garis pasar sekuritas dari bulan-bulan ukurannya, yang memberikan 60 imbal hasil bulanan dari Oktober 2021 sampai September 2026.",
     lineNotice:
-      "Garis ini melewati suku bunga bebas risiko pada beta 0 dan imbal hasil yang diharapkan IHSG pada beta 1, sehingga memberikan imbal hasil yang disyaratkan CAPM untuk setiap beta. Titik di atas garis memiliki imbal hasil yang diharapkan lebih tinggi daripada yang disyaratkan CAPM untuk betanya, dan titik di bawah garis memiliki imbal hasil yang diharapkan lebih rendah.",
+      "Garis ini melewati suku bunga bebas risiko pada beta 0 dan imbal hasil harapan IHSG pada beta 1, sehingga memberikan imbal hasil yang disyaratkan CAPM untuk setiap beta. Titik di atas garis memiliki imbal hasil harapan lebih tinggi daripada yang disyaratkan CAPM untuk betanya, dan titik di bawah garis memiliki imbal hasil harapan lebih rendah.",
     portfolioName: "Portofolio Anda",
     holdingsName: "Saham Anda",
     weightedHoldingsName: "Saham Anda, ukuran = bobot",
-    verticalNotice: "Tegak: imbal hasil yang diharapkan per bulan.",
+    verticalNotice: "Tegak: imbal hasil harapan per bulan.",
     lecturerPortfolioName: "Portofolio",
     lecturerHoldingsName: "Saham portofolio, ukuran = bobot",
     otherStocksName: "Saham lain",
@@ -96,7 +96,7 @@ const texts: Record<
     header: [
       "Titik",
       "Beta terhadap IHSG",
-      "Imbal hasil yang diharapkan",
+      "Imbal hasil harapan",
       "Alpha Jensen",
     ],
     riskFreeRow: [
@@ -136,7 +136,7 @@ const texts: Record<
     portfolioName: "Your portfolio",
     holdingsName: "Your stocks",
     weightedHoldingsName: "Your stocks, size = weight",
-    verticalNotice: "Vertical: the expected return per month.",
+    verticalNotice: "Vertical: expected return per month.",
     lecturerPortfolioName: "Portfolio",
     lecturerHoldingsName: "Stocks of the portfolio, size = weight",
     otherStocksName: "Other stocks",

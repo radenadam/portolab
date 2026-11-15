@@ -347,6 +347,20 @@ for (const locale of locales) {
   });
 }
 
+const analysisPrecision: Record<Locale, readonly [string, string]> = {
+  id: ["0,479%", "1,0"],
+  en: ["0.479%", "1.0"],
+};
+for (const locale of locales) {
+  test(`keeps three decimals of the monthly risk-free rate and one of the market axis in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    expect(formatPercent(0.0575 / 12, "three")).toBe(
+      analysisPrecision[locale][0],
+    );
+    expect(formatBeta(beta(1), 1)).toBe(analysisPrecision[locale][1]);
+  });
+}
+
 const compactAmounts: Record<Locale, readonly string[]> = {
   id: ["Rp\u00a00", "Rp\u00a054,8\u00a0jt", "Rp\u00a01\u00a0T"],
   en: ["IDR\u00a00", "IDR\u00a054.8M", "IDR\u00a01T"],
