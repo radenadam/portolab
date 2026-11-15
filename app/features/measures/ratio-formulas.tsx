@@ -30,18 +30,25 @@ function ExcessReturnNumbers({
 export function SharpeRatioFormula({
   inputs,
 }: {
-  inputs: SharpeRatioMeasure["inputs"];
+  inputs: SharpeRatioMeasure["inputs"] | undefined;
 }): ReactNode {
   return (
     <>
-      S<sub>p</sub> = (<ExpectedReturn of="p" /> − <RiskFree />) / σ<sub>p</sub>{" "}
-      = (
-      <ExcessReturnNumbers
-        expectedReturn={inputs.expectedReturn}
-        riskFreeRate={inputs.riskFreeRate}
-      />
-      ) /{" "}
-      <NumberText>{formatPercent(inputs.standardDeviation, "two")}</NumberText>
+      S<sub>p</sub> = (<ExpectedReturn of="p" /> − <RiskFree />) / σ<sub>p</sub>
+      {inputs !== undefined && (
+        <>
+          {" "}
+          = (
+          <ExcessReturnNumbers
+            expectedReturn={inputs.expectedReturn}
+            riskFreeRate={inputs.riskFreeRate}
+          />
+          ) /{" "}
+          <NumberText>
+            {formatPercent(inputs.standardDeviation, "two")}
+          </NumberText>
+        </>
+      )}
     </>
   );
 }
@@ -50,17 +57,22 @@ export function SharpeRatioFormula({
 export function TreynorRatioFormula({
   inputs,
 }: {
-  inputs: TreynorRatioMeasure["inputs"];
+  inputs: TreynorRatioMeasure["inputs"] | undefined;
 }): ReactNode {
   return (
     <>
-      T<sub>p</sub> = (<ExpectedReturn of="p" /> − <RiskFree />) / β<sub>p</sub>{" "}
-      = (
-      <ExcessReturnNumbers
-        expectedReturn={inputs.expectedReturn}
-        riskFreeRate={inputs.riskFreeRate}
-      />
-      ) / <Operand value={inputs.beta} text={formatBeta(inputs.beta)} />
+      T<sub>p</sub> = (<ExpectedReturn of="p" /> − <RiskFree />) / β<sub>p</sub>
+      {inputs !== undefined && (
+        <>
+          {" "}
+          = (
+          <ExcessReturnNumbers
+            expectedReturn={inputs.expectedReturn}
+            riskFreeRate={inputs.riskFreeRate}
+          />
+          ) / <Operand value={inputs.beta} text={formatBeta(inputs.beta)} />
+        </>
+      )}
     </>
   );
 }

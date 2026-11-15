@@ -1,3 +1,6 @@
+import { readLessonTask } from "~/features/learning/read-lesson-task.server";
+import { withLessonTask } from "~/features/learning/lesson-task";
+import { LessonTaskBanner } from "~/features/learning/lesson-task-banner";
 import { StockQuoteDetails } from "./stock-quote-details";
 import { QuoteNotice } from "~/features/market-data/quote-notice";
 import { NumberText } from "~/number-text";
@@ -99,6 +102,7 @@ export function loader({ context, params, request, url }: Route.LoaderArgs) {
         });
   return {
     classId,
+    task: readLessonTask(url),
     code,
     quote,
     quoteNotice:
@@ -148,10 +152,11 @@ export default function StockPage({
     stock.correlation?.ok === true;
   return (
     <div className={styles["page"]}>
+      <LessonTaskBanner classId={classId} task={stock.task} />
       <header className={styles["header"]}>
         <div className={styles["identity"]}>
           <Link
-            to={marketPath(classId)}
+            to={withLessonTask(marketPath(classId), stock.task)}
             className={styles["back"]}
             aria-label={m.market_data_back_to_market_link()}
           >
@@ -206,6 +211,7 @@ export default function StockPage({
           history={stock.history}
           path={stockPath(classId, code)}
           range={stock.chartRange}
+          task={stock.task}
         />
       </section>
       {holding !== undefined && (
@@ -249,13 +255,13 @@ export default function StockPage({
         >
           <Link
             className={styles["buy"]}
-            to={`${stockPath(classId, code)}/buy`}
+            to={withLessonTask(`${stockPath(classId, code)}/buy`, stock.task)}
           >
             {m.market_data_buy_link()}
           </Link>
           <Link
             className={styles["sell"]}
-            to={`${stockPath(classId, code)}/sell`}
+            to={withLessonTask(`${stockPath(classId, code)}/sell`, stock.task)}
           >
             {m.market_data_sell_link()}
           </Link>

@@ -98,6 +98,13 @@
 
 .foot {
   margin-block-start: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.foot svg {
+  color: var(--color-data);
 }
 
 .reading {
@@ -125,6 +132,20 @@
   font-size: var(--text-lesson-title);
   letter-spacing: -0.02em;
   line-height: 1.4;
+}
+
+.heroRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.heroRow > .badge {
+  align-self: center;
+}
+
+.heroRow > .link {
+  margin-block: calc((1.5 * var(--text-row) - var(--size-touch-target)) / 2);
 }
 
 .keyIdea {

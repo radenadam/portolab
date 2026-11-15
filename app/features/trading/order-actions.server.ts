@@ -1,3 +1,6 @@
+import { readLessonTask } from "~/features/learning/read-lesson-task.server";
+import { withLessonTask } from "~/features/learning/lesson-task";
+import type { LessonTask } from "~/features/learning/lesson-task";
 import { data, redirect } from "react-router";
 import type { RouterContextProvider } from "react-router";
 import { databaseContext } from "~/database/database.server";
@@ -52,6 +55,7 @@ export interface OrdersForm {
 /** An order form that a student sent, with the stock that the address of the page chose, as the address sends it. @internal Tests send it to placeFromForm directly, because ticketAction reaches it only with the real clock. */
 export interface SentOrderForm extends OrdersForm {
   chosenStock: string | null;
+  task?: LessonTask | undefined;
 }
 
 // A failure that the order causes is a wrong value. A record or a price that Portolab lacks keeps it from taking any such order for now.
@@ -73,7 +77,7 @@ const failureStatuses: Record<OrderFailure["kind"], number> = {
 /** Places the order of the form for the stock that the address chose and opens the orders with the notice that Portolab accepted it, or answers with the reason that the form, the stock, or the order was not accepted. The step of a rejection changes the lots of the form instead. @internal Tests call it directly, because ticketAction reaches it only with the real clock. */
 export function placeFromForm(
   context: Readonly<RouterContextProvider>,
-  { form, place, now, chosenStock }: SentOrderForm,
+  { form, place, now, chosenStock, task }: SentOrderForm,
 ): Response | ReturnType<typeof data<OrdersAnswer>> {
   // The step of a rejection changes the lots of the order form to those that it offers, and the student sends the order again after reading it.
   if (form.has(lotsStepName)) {
@@ -122,7 +126,10 @@ export function placeFromForm(
   );
   if (placed.ok) {
     return redirect(
-      `${activityPath(place.classId)}?placed=${String(placed.value)}`,
+      withLessonTask(
+        `${activityPath(place.classId)}?placed=${String(placed.value)}`,
+        task,
+      ),
     );
   }
   const { failure } = placed;
@@ -231,5 +238,6 @@ export async function ticketAction({
     place,
     now,
     chosenStock: url.searchParams.get("code"),
+    task: readLessonTask(url),
   });
 }

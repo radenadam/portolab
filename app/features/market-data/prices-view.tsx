@@ -20,9 +20,16 @@ import styles from "./prices-view.module.css";
 import { quoteChange } from "./quote-change";
 import { noPricesText, quoteFailureText } from "./quote-failure-text";
 import { StockName } from "./stock-name";
+import { Link } from "react-router";
+import type { ClassId } from "~/features/classes/classes.schema";
+import type { LessonTask } from "~/features/learning/lesson-task";
+import { withLessonTask } from "~/features/learning/lesson-task";
+import { stockPath } from "./stock-path";
 import type { UpdateAttempt } from "./update-attempts.server";
 
 interface PricesViewProps {
+  classId?: ClassId;
+  task?: LessonTask | undefined;
   quotes: readonly Quote[];
   latestAttempt: UpdateAttempt | undefined;
   /** The moment that the page shows, which decides whether the next attempt is still to come. */
@@ -36,6 +43,8 @@ export function PricesView({
   latestAttempt,
   now,
   source,
+  classId,
+  task,
 }: PricesViewProps): ReactNode {
   const latestQuotedAt = latestQuoteTime(quotes);
   const failure = quoteFailureText(latestAttempt, quotes, {
@@ -81,6 +90,8 @@ export function PricesView({
                   key={quote.code}
                   quote={quote}
                   latestQuotedAt={latestQuotedAt}
+                  classId={classId}
+                  task={task}
                 />
               ))}
             </tbody>
@@ -95,15 +106,25 @@ export function PricesView({
 function QuoteRow({
   quote,
   latestQuotedAt,
+  classId,
+  task,
 }: {
   quote: Quote;
   latestQuotedAt: Date;
+  classId: ClassId | undefined;
+  task: LessonTask | undefined;
 }): ReactNode {
   return (
     <tr>
       <th scope="row" className={styles["stock"]}>
         {quote.kind === "stock" ? (
-          <StockName code={quote.code} withSector />
+          classId === undefined || task === undefined ? (
+            <StockName code={quote.code} withSector />
+          ) : (
+            <Link to={withLessonTask(stockPath(classId, quote.code), task)}>
+              <StockName code={quote.code} withSector />
+            </Link>
+          )
         ) : (
           quote.code
         )}

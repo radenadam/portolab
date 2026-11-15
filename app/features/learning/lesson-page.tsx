@@ -8,12 +8,14 @@ import { isLessonKind, lessonTerms } from "./content";
 import { parseSessionNumber } from "./parse-session-number";
 import { LessonView } from "./lesson-view";
 import { readLearningPage } from "./read-learning-page.server";
+import { readLessonPractice } from "./read-lesson-practice.server";
+import { hasLessonPractice } from "./lesson-practice-sessions";
 
 export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
   return [{ title: pageTitle(loaderData.lesson.title) }];
 }
 
-export function loader({ context, params, url }: Route.LoaderArgs) {
+export function loader({ context, params, url, request }: Route.LoaderArgs) {
   const { classId, content } = readLearningPage(context, url, params.classId);
   const lessons = content.sessions.filter((entry) => isLessonKind(entry.kind));
   const session = parseSessionNumber(params.session, "session");
@@ -33,6 +35,14 @@ export function loader({ context, params, url }: Route.LoaderArgs) {
     terms: lessonTerms(lesson, content.terms),
     previous: lessons[index - 1],
     next: lessons[index + 1],
+    practice: hasLessonPractice(lesson.session)
+      ? readLessonPractice(context, {
+          request,
+          url,
+          classId: params.classId,
+          now: new Date(),
+        })
+      : undefined,
     returnTo: returnPath?.ok === true ? returnPath.value : undefined,
   };
 }

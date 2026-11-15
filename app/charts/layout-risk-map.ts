@@ -53,6 +53,11 @@ export interface MapAxis<Value extends number> {
   toValue: (value: number) => Value;
 }
 
+export interface MapAcrossAxis<Value extends number> extends MapAxis<Value> {
+  /** Keeps the full range of an exercise visible while its selected point moves. */
+  include?: readonly Value[];
+}
+
 /** A straight line that runs from a point, such as the risk-free rate at a beta of 0, through the IHSG to the right edge of the plot, such as the security market line. */
 export interface MapLine<Across extends number, Up extends number> {
   name: string;
@@ -135,15 +140,18 @@ export function layoutRiskMap<
 >(map: {
   market: MapPoint<Across, Up>;
   points: readonly Point[];
-  across: MapAxis<Across>;
+  across: MapAcrossAxis<Across>;
   up: MapAxis<Up>;
   line?: MapLine<Across, Up> | undefined;
 }): RiskMapLayout<Point> {
   const { market, points, across, up, line } = map;
   const acrossRange = rangeOf(
-    [market, ...points, ...(line === undefined ? [] : [line.start])].map(
-      (point) => point.across,
-    ),
+    [
+      ...[market, ...points, ...(line === undefined ? [] : [line.start])].map(
+        (point) => point.across,
+      ),
+      ...(across.include ?? []),
+    ],
     across.toValue,
   );
   if (market.across === line?.start.across) {

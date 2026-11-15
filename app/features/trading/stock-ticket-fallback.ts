@@ -1,3 +1,5 @@
+import { readLessonTask } from "~/features/learning/read-lesson-task.server";
+import { withLessonTask } from "~/features/learning/lesson-task";
 import { data, redirect } from "react-router";
 import { findStudentPlace } from "./find-student-place.server";
 import { parseStockCode, parseOrderSide } from "./order-form-fields";
@@ -12,6 +14,9 @@ export function loader({ context, params, url }: Route.LoaderArgs): Response {
   const side = parseOrderSide(params.side, "side");
   if (!code.ok || !side.ok) throw data(null, { status: 404 });
   return redirect(
-    `${ordersPath(place.classId)}?code=${code.value}&side=${side.value}`,
+    withLessonTask(
+      `${ordersPath(place.classId)}?code=${code.value}&side=${side.value}`,
+      readLessonTask(url),
+    ),
   );
 }

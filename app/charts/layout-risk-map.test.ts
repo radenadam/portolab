@@ -95,6 +95,19 @@ test("starts the axis of risk below zero when a point lies below zero, such as a
   expect(map.line?.start.x).toBeCloseTo(0.62 / 1.74, 12);
 });
 
+test("keeps an exercise range on the axis while the selected point moves inside it", () => {
+  const map = layoutRiskMap({
+    market,
+    points: [],
+    up: axes.up,
+    across: { ...axes.across, include: [beta(0), beta(2)] },
+    line,
+  });
+  // By hand, the range from 0 to 2 has the same padded maximum 2.16 as the fixture with a stock at beta 2.
+  expect(map.market.position.x).toBeCloseTo(across(1), 12);
+  expect(map.line?.end.x).toBe(1);
+});
+
 test("sizes the dot of a stock that the portfolio holds by the root of its weight, keeps the smallest size for a small weight and for a stock without a weight, and rings the point of the reader", () => {
   const radii = layout([
     markedPoint("own", { beta: 1, return: 0 }, { kind: "own" }),

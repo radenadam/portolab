@@ -1,3 +1,5 @@
+import { lessonPracticeForTest } from "./lesson-practice-for-test";
+import { hasLessonPractice } from "./lesson-practice-sessions";
 import { languageNames } from "~/language-names";
 import { expect, test } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -21,6 +23,9 @@ const texts: Record<
   Locale,
   {
     title: string;
+    interactive: string;
+    interactiveWeek: string;
+    availablePractice: string;
     glossary: string;
     glossaryLink: string;
     session: string;
@@ -39,6 +44,9 @@ const texts: Record<
   }
 > = {
   id: {
+    interactive: "Pelajaran interaktif",
+    interactiveWeek: "Pelajaran interaktif · minggu ini",
+    availablePractice: "Ada praktik dengan portofolio Anda",
     title: "Belajar",
     glossary: "Kamus",
     glossaryLink: "Kamus istilah",
@@ -62,6 +70,9 @@ const texts: Record<
     empty: 'Tidak ada istilah yang memuat "xyz". Coba kata yang lebih pendek.',
   },
   en: {
+    interactive: "Interactive lesson",
+    interactiveWeek: "Interactive lesson · this week",
+    availablePractice: "Includes practice with your portfolio",
     title: "Learn",
     glossary: "Glossary",
     glossaryLink: "Glossary",
@@ -157,6 +168,9 @@ for (const locale of locales) {
         expect(markup.includes(link)).toBe(isLessonKind(session.kind));
       }
       expect(markup).toContain(text.unavailable);
+      expect(markup).toContain(text.availablePractice);
+      expect(markup).toContain(text.interactive);
+      if (currentSession === 9) expect(markup).toContain(text.interactiveWeek);
     }
     expect(content.sessions.map(sessionKindLabelFromContent)).toEqual(
       content.sessions.map((session) => {
@@ -179,7 +193,7 @@ for (const locale of locales) {
     expect(sessionLabel(ninth)).toBe(text.session);
   });
 
-  test(`renders every lesson paragraph and term without future activities in ${languageNames[locale]}`, () => {
+  test(`renders every lesson paragraph and term with its implemented practice in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     const content = successValueForTest(
       localizedLearningContent(),
@@ -190,11 +204,15 @@ for (const locale of locales) {
     );
     for (const [index, lesson] of lessons.entries()) {
       const terms = lessonTerms(lesson, content.terms);
+      const practice = hasLessonPractice(lesson.session)
+        ? lessonPracticeForTest()
+        : undefined;
       const markup = renderMarkupForTest(
         <LessonView
           classId={classId}
           lesson={lesson}
           terms={terms}
+          practice={practice}
           previous={lessons[index - 1]}
           next={lessons[index + 1]}
           returnTo="/classes/7/stocks/BBCA?range=3m"
@@ -202,7 +220,8 @@ for (const locale of locales) {
       );
       expect(markup).toContain(text.return);
       expect(markup).toContain(text.terms);
-      expect(markup.match(/<h2[ >]/gu)).toHaveLength(1);
+      if (practice === undefined)
+        expect(markup.match(/<h2[ >]/gu)).toHaveLength(1);
       expect(markup).toContain(`aria-label="${text.lessons}"`);
       const blocks = lesson.sections.flatMap((section) =>
         "blocks" in section && section.id !== "summary" ? section.blocks : [],
@@ -212,9 +231,11 @@ for (const locale of locales) {
         ...terms.flatMap((term) => term.blocks),
       ]);
       expect(markup).not.toContain("{{");
-      expect(markup).not.toContain('id="practice"');
+      expect(markup.includes('id="practice"')).toBe(practice !== undefined);
       expect(markup).not.toContain("<input");
-      expect(markup.match(/<details /gu)).toHaveLength(terms.length);
+      expect(markup.match(/<details[^>]*id="term-/gu)).toHaveLength(
+        terms.length,
+      );
     }
   });
 

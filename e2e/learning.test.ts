@@ -118,12 +118,17 @@ for (const locale of locales) {
     for (const session of lessonSessionsForTest) {
       await page.goto(`${classPath}/learn/${String(session)}`);
       await expect(page.getByRole("heading", { level: 1 })).not.toBeEmpty();
-      await expect(page.getByRole("heading", { level: 2 })).toHaveCount(1);
+      await expect(page.getByRole("heading", { level: 2 })).toHaveCount(
+        session === 9 || session === 10 ? 3 : 1,
+      );
       await expect(
         page.getByRole("heading", { name: text.terms, exact: true }),
       ).toBeVisible();
-      await expect(page.locator("main input")).toHaveCount(0);
-      for (const term of await page.locator("main details").all()) {
+      if (session !== 9 && session !== 10)
+        await expect(page.locator("main input")).toHaveCount(0);
+      for (const term of await page
+        .locator('main details[id^="term-"]')
+        .all()) {
         await term.locator("summary").click();
         await expect(term.locator("p").first()).toBeVisible();
         await term.locator("summary").click();

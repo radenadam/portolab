@@ -9,6 +9,7 @@ import { useChartSlider } from "./use-chart-slider";
 import { layoutRiskMap } from "./layout-risk-map";
 import type {
   MapAxis,
+  MapAcrossAxis,
   MapLine,
   MapPoint,
   MarkedPoint,
@@ -50,7 +51,7 @@ export function RiskMap<Across extends number, Up extends number>({
   /** The IHSG. */
   market: MapPoint<Across, Up>;
   points: readonly MarkedPoint<Across, Up>[];
-  across: MapAxis<Across> & {
+  across: MapAcrossAxis<Across> & {
     /** The name of the axis, which the map writes below its right end. */
     title: string;
   };

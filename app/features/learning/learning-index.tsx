@@ -11,6 +11,7 @@ import { ContentParagraphs } from "./content-paragraphs";
 import { glossaryPath, lessonPath } from "./learning-paths";
 import { sessionKindLabel, sessionLabel } from "./session-text";
 import styles from "./learning.module.css";
+import { hasLessonPractice } from "./lesson-practice-sessions";
 
 export function LearningIndex({
   classId,
@@ -41,7 +42,13 @@ export function LearningIndex({
                 <span className={styles["badge"]}>
                   <NumberText whole>{sessionLabel(lesson)}</NumberText>
                 </span>
-                <span>{sessionKindLabel(lesson.kind, current)}</span>
+                <span>
+                  {sessionKindLabel(
+                    lesson.kind,
+                    current,
+                    hasLessonPractice(lesson.session),
+                  )}
+                </span>
               </span>
               <h2>
                 <NumberText>{lesson.title}</NumberText>
@@ -54,6 +61,12 @@ export function LearningIndex({
               {cannotPractiseSession(lesson.session) && (
                 <span className={styles["foot"]}>
                   {m.learning_unavailable_notice()}
+                </span>
+              )}
+              {hasLessonPractice(lesson.session) && (
+                <span className={styles["foot"]}>
+                  <Icon name="flask" className={styles["icon"]} />
+                  {m.learning_available_practice_notice()}
                 </span>
               )}
             </>

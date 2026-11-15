@@ -9,6 +9,8 @@ import { learnPath, lessonPath } from "./learning-paths";
 import { lessonLinkText, sessionLabel } from "./session-text";
 import { TermList } from "./term-list";
 import styles from "./learning.module.css";
+import { LessonPractice } from "./lesson-practice";
+import type { LessonPracticeData } from "./lesson-practice-data";
 
 export function LessonView({
   classId,
@@ -17,6 +19,7 @@ export function LessonView({
   previous,
   next,
   returnTo,
+  practice,
 }: {
   classId: ClassId;
   lesson: SessionContent;
@@ -24,6 +27,7 @@ export function LessonView({
   previous: SessionContent | undefined;
   next: SessionContent | undefined;
   returnTo: string | undefined;
+  practice?: LessonPracticeData | undefined;
 }): ReactNode {
   return (
     <article className={styles["reading"]} data-layout="reading">
@@ -34,9 +38,16 @@ export function LessonView({
             ? m.learning_back_link()
             : m.learning_return_link()}
         </Link>
-        <span className={styles["badge"]}>
-          <NumberText whole>{sessionLabel(lesson)}</NumberText>
-        </span>
+        <div className={styles["heroRow"]}>
+          <span className={styles["badge"]}>
+            <NumberText whole>{sessionLabel(lesson)}</NumberText>
+          </span>
+          {practice !== undefined && (
+            <a className={styles["link"]} href="#practice">
+              {m.learning_skip_practice_link()} <span aria-hidden>⌄</span>
+            </a>
+          )}
+        </div>
         <h1>
           <NumberText>{lesson.title}</NumberText>
         </h1>
@@ -52,6 +63,7 @@ export function LessonView({
               </div>
             );
           case "body":
+            if (practice !== undefined) return null;
             return (
               <div key={section.id} className={styles["body"]}>
                 <ContentParagraphs blocks={section.blocks} />
@@ -64,8 +76,19 @@ export function LessonView({
               </div>
             );
           case "terms":
+            if (practice !== undefined) return null;
             return <TermList key={section.id} terms={terms} />;
           case "interactive":
+            return practice === undefined ? null : (
+              <LessonPractice
+                key={lesson.session}
+                classId={classId}
+                lesson={lesson}
+                practice={practice}
+              >
+                <TermList terms={terms} />
+              </LessonPractice>
+            );
           case "practice":
             return null;
         }

@@ -1,3 +1,6 @@
+import { readLessonTask } from "~/features/learning/read-lesson-task.server";
+import { LessonTaskBanner } from "~/features/learning/lesson-task-banner";
+import type { LessonTask } from "~/features/learning/lesson-task";
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { data, Link } from "react-router";
@@ -27,6 +30,7 @@ import styles from "./trading.module.css";
 /** What the page of the orders of a student shows. */
 interface OrdersPageData {
   classId: ClassId;
+  task: LessonTask | undefined;
   className: string;
   portfolio: Portfolio;
   now: Date;
@@ -66,6 +70,7 @@ export function loader({
   return data<OrdersPageData>(
     {
       classId: place.classId,
+      task: readLessonTask(url),
       className: place.className,
       portfolio,
       now,
@@ -97,6 +102,7 @@ export default function OrdersPage({
       }
       main={
         <>
+          <LessonTaskBanner classId={classId} task={loaderData.task} />
           <p className={styles["details"]}>
             <NumberText>
               {m.trading_fill_notice({

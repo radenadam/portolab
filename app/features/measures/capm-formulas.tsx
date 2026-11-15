@@ -8,6 +8,7 @@ import type {
   SecurityMarketLineMeasure,
 } from "./capm";
 import type { RiskFreeRateMeasure } from "./measure-risk-free-rate";
+import { monthsPerYear } from "./measure-risk-free-rate";
 import { ExpectedReturn, Operand, RiskFree } from "./formulas";
 import type { Subject } from "./formulas";
 
@@ -16,26 +17,37 @@ function CapmFormula({
   of,
   line,
   beta,
+  decimals = "two",
+  stacked = false,
 }: {
   of: Subject | undefined;
-  line: MarketLine;
+  line: MarketLine | undefined;
   beta: Beta | undefined;
+  decimals?: "two" | "three";
+  stacked?: boolean;
 }): ReactNode {
-  const riskFree = formatPercent(line.riskFreeRate, "two");
+  const riskFree =
+    line === undefined ? undefined : formatPercent(line.riskFreeRate, decimals);
   const subscript = of === undefined ? null : <sub>{of}</sub>;
   return (
     <>
       k{subscript} = <RiskFree /> + β{subscript}(
-      <ExpectedReturn of="M" /> − <RiskFree />) ={" "}
-      <NumberText>{riskFree}</NumberText> +{" "}
-      {beta === undefined ? (
-        "β"
-      ) : (
-        <Operand value={beta} text={formatBeta(beta)} />
-      )}{" "}
-      × (
-      <NumberText>{formatPercent(line.marketExpectedReturn, "two")}</NumberText>{" "}
-      − <NumberText>{riskFree}</NumberText>)
+      <ExpectedReturn of="M" /> − <RiskFree />)
+      {line !== undefined && (
+        <>
+          {stacked ? <br /> : " "}= <NumberText>{riskFree}</NumberText> +{" "}
+          {beta === undefined ? (
+            "β"
+          ) : (
+            <Operand value={beta} text={formatBeta(beta)} />
+          )}{" "}
+          × (
+          <NumberText>
+            {formatPercent(line.marketExpectedReturn, decimals)}
+          </NumberText>{" "}
+          − <NumberText>{riskFree}</NumberText>)
+        </>
+      )}
     </>
   );
 }
@@ -44,12 +56,22 @@ function CapmFormula({
 export function RequiredReturnFormula({
   of,
   required,
+  decimals,
+  stacked,
 }: {
   of: Subject;
-  required: RequiredReturnMeasure;
+  required: RequiredReturnMeasure | undefined;
+  decimals?: "two" | "three" | undefined;
+  stacked?: boolean | undefined;
 }): ReactNode {
   return (
-    <CapmFormula of={of} line={required.inputs} beta={required.inputs.beta} />
+    <CapmFormula
+      of={of}
+      line={required?.inputs}
+      beta={required?.inputs.beta}
+      decimals={decimals ?? "two"}
+      stacked={stacked ?? false}
+    />
   );
 }
 
@@ -68,19 +90,25 @@ export function MarketLineFormula({
   distance,
 }: {
   of: Subject;
-  distance: SecurityMarketLineMeasure;
+  distance: SecurityMarketLineMeasure | undefined;
 }): ReactNode {
   return (
     <>
-      α<sub>{of}</sub> = <ExpectedReturn of={of} /> − k<sub>{of}</sub> ={" "}
-      <NumberText>
-        {formatPercent(distance.inputs.expectedReturn, "two")}
-      </NumberText>{" "}
-      −{" "}
-      <Operand
-        value={distance.inputs.requiredReturn}
-        text={formatPercent(distance.inputs.requiredReturn, "two")}
-      />
+      α<sub>{of}</sub> = <ExpectedReturn of={of} /> − k<sub>{of}</sub>
+      {distance !== undefined && (
+        <>
+          {" "}
+          ={" "}
+          <NumberText>
+            {formatPercent(distance.inputs.expectedReturn, "two")}
+          </NumberText>{" "}
+          −{" "}
+          <Operand
+            value={distance.inputs.requiredReturn}
+            text={formatPercent(distance.inputs.requiredReturn, "two")}
+          />
+        </>
+      )}
     </>
   );
 }
@@ -89,14 +117,20 @@ export function MarketLineFormula({
 export function RiskFreeFormula({
   rate,
 }: {
-  rate: RiskFreeRateMeasure;
+  rate: RiskFreeRateMeasure | undefined;
 }): ReactNode {
-  const months = formatNumber(rate.inputs.monthsPerYear);
+  const months = formatNumber(rate?.inputs.monthsPerYear ?? monthsPerYear);
   return (
     <>
-      <RiskFree /> = BI-Rate / <NumberText>{months}</NumberText> ={" "}
-      <NumberText>{formatPercent(rate.inputs.annualRate)}</NumberText> /{" "}
-      <NumberText>{months}</NumberText>
+      <RiskFree /> = BI-Rate / <NumberText>{months}</NumberText>
+      {rate !== undefined && (
+        <>
+          {" "}
+          = <NumberText>
+            {formatPercent(rate.inputs.annualRate)}
+          </NumberText> / <NumberText>{months}</NumberText>
+        </>
+      )}
     </>
   );
 }

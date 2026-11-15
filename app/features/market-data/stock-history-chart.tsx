@@ -1,3 +1,5 @@
+import type { LessonTask } from "~/features/learning/lesson-task";
+import { withLessonTask } from "~/features/learning/lesson-task";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { directionOf } from "~/charts/direction-of";
@@ -38,10 +40,12 @@ export function StockHistoryChart({
   history,
   range,
   path,
+  task,
 }: {
   history: StockHistory;
   range: PriceChartRange;
   path: string;
+  task?: LessonTask | undefined;
 }): ReactNode {
   const first = history.closes[0];
   const latest = history.closes.at(-1);
@@ -58,7 +62,7 @@ export function StockHistoryChart({
         {priceChartRanges.map((choice) => (
           <Link
             key={choice}
-            to={`${path}?range=${choice}`}
+            to={withLessonTask(`${path}?range=${choice}`, task)}
             aria-current={choice === range ? "true" : undefined}
           >
             {labels[choice]()}

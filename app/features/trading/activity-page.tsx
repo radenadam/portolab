@@ -1,3 +1,5 @@
+import { readLessonTask } from "~/features/learning/read-lesson-task.server";
+import { LessonTaskBanner } from "~/features/learning/lesson-task-banner";
 import { ActivitySelectionForm } from "./activity-selection-form";
 import type { ReactNode } from "react";
 import { data, Link } from "react-router";
@@ -56,6 +58,7 @@ export function loader({ context, request, params, url }: Route.LoaderArgs) {
               viewFailure: view.ok ? undefined : view.failure,
             },
       classId: place.classId,
+      task: readLessonTask(url),
       orders: portfolio.orders,
       trades: tradeJournal(
         portfolio.orders,
@@ -108,6 +111,7 @@ export default function ActivityPage({
   const base = activityPath(classId);
   return (
     <div className={styles["activity"]}>
+      <LessonTaskBanner classId={classId} task={loaderData.task} />
       <h1>{m.trading_activity_title()}</h1>
       {loaderData.fields !== undefined && (
         <ActivitySelectionForm fields={loaderData.fields} />
