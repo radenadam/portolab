@@ -4,15 +4,13 @@ import {
   memberships,
 } from "../app/features/classes/classes.schema.ts";
 import type { ClassId } from "../app/features/classes/classes.schema.ts";
-import {
-  holdings,
-  portfolios,
-} from "../app/features/trading/trading.schema.ts";
+import { holdings } from "../app/features/trading/trading.schema.ts";
 import { rupiah } from "../app/units/rupiah.ts";
 import { shares } from "../app/units/shares.ts";
 import { createClassStudent } from "./create-class-student.ts";
 import { bbcaHolding } from "./bbca-holding.ts";
 import { writeTestDatabase } from "./write-test-database.ts";
+import { storeTestPortfolio } from "./store-test-portfolio.ts";
 
 /** Fills a class with BBCA portfolios of different cash weights, so a band of nearby points can cover a fixed label. */
 export async function fillClassMap(
@@ -42,17 +40,15 @@ export async function fillClassMap(
       const percent = Math.floor((index * 100) / studentCount);
       const shareCount = shares((bbcaHolding.shares / 100) * percent);
       const cost = rupiah((bbcaHolding.cost / 100) * percent);
-      database
-        .insert(portfolios)
-        .values({
-          membershipId: membership.id,
-          cash: rupiah(taught.startingCash - cost),
-        })
-        .run();
+      const portfolioId = storeTestPortfolio(
+        database,
+        { membershipId: membership.id },
+        rupiah(taught.startingCash - cost),
+      );
       database
         .insert(holdings)
         .values({
-          membershipId: membership.id,
+          portfolioId,
           code: bbcaHolding.code,
           shares: shareCount,
           cost,

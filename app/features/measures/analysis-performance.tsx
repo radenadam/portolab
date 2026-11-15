@@ -1,3 +1,4 @@
+import type { PortfolioKind } from "~/features/trading/portfolio-store.server";
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { TimeChart } from "~/charts/time-chart";
@@ -22,12 +23,14 @@ export function AnalysisPerformance({
   history,
   classId,
   firstSessionDate,
+  portfolioKind = "membership",
 }: {
   history: PortfolioReport["history"];
   classId: ClassId;
   firstSessionDate: string | null;
+  portfolioKind?: PortfolioKind;
 }): ReactNode {
-  const reader = { kind: "owner", classId } as const;
+  const reader = { kind: "owner", classId, portfolioKind } as const;
   const points = history.ok ? history.value.points : [];
   const latest = points.at(-1);
   const start = points[0];

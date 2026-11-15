@@ -185,6 +185,42 @@ test("discovers a new route without adding a budget entry by hand", () => {
   expect(added?.path).toContain("build/client/assets/new.js");
 });
 
+test("keeps the Kelas CSS allowance on its complete route alone", () => {
+  const { chunks, routes, files } = fixture();
+  routes.set("features/classes/class-page", {
+    file: "app/class.tsx",
+    parentId: "root",
+  });
+  routes.set("class-child", {
+    file: "app/other.tsx",
+    parentId: "features/classes/class-page",
+  });
+  const checks = successValueForTest(
+    clientSizeChecks(chunks, routes, files),
+    "plans the class allowance",
+  );
+  expect(
+    checks
+      .filter(
+        (check) =>
+          check.name === "Shared CSS" || check.name?.startsWith("Route CSS:"),
+      )
+      .map((check) => [check.name, check.limit]),
+  ).toEqual([
+    ["Shared CSS", "20 kB"],
+    ["Route CSS: class", "20 kB"],
+    ["Route CSS: market", "20 kB"],
+    ["Route CSS: other", "20 kB"],
+    ["Route CSS: features/classes/class-page", "21 kB"],
+    ["Route CSS: class-child", "20 kB"],
+  ]);
+  expect(
+    checks.find(
+      (check) => check.name === "Route CSS: features/classes/class-page",
+    )?.path,
+  ).toEqual(checks.find((check) => check.name === "Route CSS: class")?.path);
+});
+
 test("rejects missing files even when the other files of the route exist", () => {
   const { chunks, routes, files } = fixture();
   expect(

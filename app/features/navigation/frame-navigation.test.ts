@@ -18,11 +18,13 @@ const labels: Record<
     class: string;
     students: string;
     learn: string;
+    portfolio: string;
     join: string;
     signIn: string;
   }
 > = {
   id: {
+    portfolio: "Portofolio",
     home: "Beranda",
     market: "Pasar",
     activity: "Aktivitas",
@@ -34,6 +36,7 @@ const labels: Record<
     signIn: "Masuk",
   },
   en: {
+    portfolio: "Portfolio",
     home: "Home",
     market: "Market",
     activity: "Activity",
@@ -128,7 +131,7 @@ for (const locale of locales) {
     }
   });
 
-  test(`gives a lecturer in a class Kelas, Mahasiswa, Pasar, and Belajar, with Mahasiswa current on the pages of a student and Kelas on the pages below the class, in ${language}`, () => {
+  test(`gives a lecturer in a class Kelas, Mahasiswa, Portofolio, Pasar, and Belajar, with Mahasiswa current on the pages of a student and Kelas on the pages below the class, in ${language}`, () => {
     switchLocaleForTest(locale);
     const items = (current: string): object[] =>
       [
@@ -138,6 +141,11 @@ for (const locale of locales) {
           label: label.students,
           icon: "users",
         },
+        {
+          path: "/classes/7/demonstration",
+          label: label.portfolio,
+          icon: "briefcase",
+        },
         { path: "/classes/7/market", label: label.market, icon: "trend" },
         { path: "/classes/7/learn", label: label.learn, icon: "book" },
       ].map((item) => ({ ...item, isCurrent: item.label === current }));
@@ -145,6 +153,14 @@ for (const locale of locales) {
     for (const [page, current] of [
       [pageForTest("features/classes/class-page", inClass), label.class],
       [pageForTest("features/classes/calendar-page", inClass), label.class],
+      ...[
+        "features/trading/demonstration-page",
+        "features/trading/demonstration-summary-page",
+        "features/trading/demonstration-activity-page",
+        "features/measures/demonstration-analysis-page",
+      ].map(
+        (routeId) => [pageForTest(routeId, inClass), label.portfolio] as const,
+      ),
       [
         pageForTest("features/classes/reset-password-page", ofStudent),
         label.students,

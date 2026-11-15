@@ -297,10 +297,11 @@ function storeClassReasons(classId: ClassId): void {
   storeActivityOrders(classId);
   writeForTestStudent(classId, (database, membershipId) => {
     const reason = database
-      .select()
+      .select({ order: orders })
       .from(orders)
-      .where(eq(orders.membershipId, membershipId))
-      .get();
+      .innerJoin(portfolios, eq(orders.portfolioId, portfolios.id))
+      .where(eq(portfolios.membershipId, membershipId))
+      .get()?.order;
     if (reason === undefined)
       throw new Error("The test has no reasoned order.");
     database

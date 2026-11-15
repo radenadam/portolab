@@ -13,7 +13,7 @@ export function readAnonymousClassmates(
   database: Database,
   input: {
     classId: ClassId;
-    membershipId: MembershipId;
+    membershipId: MembershipId | undefined;
     startingCash: Rupiah;
     request: Request;
     now: Date;
@@ -23,6 +23,7 @@ export function readAnonymousClassmates(
   for (const student of listStudents(database, input.classId)) {
     if (student.membershipId === input.membershipId) continue;
     const owner = {
+      kind: "membership" as const,
       membershipId: student.membershipId,
       startingCash: input.startingCash,
     };

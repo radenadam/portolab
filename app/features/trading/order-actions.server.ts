@@ -1,3 +1,4 @@
+import type { PortfolioKind } from "./portfolio-store.server";
 import { data, redirect } from "react-router";
 import type { RouterContextProvider } from "react-router";
 import { databaseContext } from "~/database/database.server";
@@ -11,10 +12,11 @@ import { parseRecordId } from "~/value-parsers";
 import { cancelPortfolioOrder } from "./cancel-portfolio-order.server";
 import type { CancelFailure } from "./cancel-portfolio-order.server";
 import { lotCount } from "./count-parts";
-import type { StudentPlace } from "./find-student-place.server";
+import type { TradingPlace } from "./find-trading-place.server";
 import type { OrderFailure, OrderRequest, OrderSide } from "./order";
 import { lotsStepOf } from "./lots-step";
-import { limitPriceFailureText, orderFailureText } from "./order-failure-text";
+import { limitPriceFailureText } from "./limit-price-failure-text";
+import { orderFailureText } from "./order-failure-text";
 import { readOrderForm, typedOrderForm } from "./order-form-fields";
 import type { OrderFormFields } from "./order-form-fields";
 import { orderTradingDay } from "./order-trading-day";
@@ -41,7 +43,7 @@ export interface OrdersAnswer {
 
 export interface OrdersForm {
   form: FormData;
-  place: Pick<StudentPlace, "classId" | "owner">;
+  place: Pick<TradingPlace, "classId" | "owner">;
   now: Date;
 }
 
@@ -78,7 +80,10 @@ export function placeFromForm(
     return answer(
       {
         fields: typedOrderForm(form),
-        rejection: { text: orderFailureText(day.failure), lotsStep: undefined },
+        rejection: {
+          text: orderFailureText(day.failure, place.owner.kind),
+          lotsStep: undefined,
+        },
       },
       failureStatuses[day.failure.kind],
     );
@@ -132,13 +137,24 @@ export function placeFromForm(
       409,
     );
   }
-  return rejectOrder(failure, fields, request.value);
+  return rejectOrder(failure, {
+    fields,
+    request: request.value,
+    portfolioKind: place.owner.kind,
+  });
 }
 
 function rejectOrder(
   failure: OrderFailure,
-  fields: OrderFormFields,
-  request: OrderRequest,
+  {
+    fields,
+    request,
+    portfolioKind,
+  }: {
+    fields: OrderFormFields;
+    request: OrderRequest;
+    portfolioKind: PortfolioKind;
+  },
 ): ReturnType<typeof data<OrdersAnswer>> {
   const status = failureStatuses[failure.kind];
   // A failure of the limit price concerns the value of its field, and every other failure concerns the order as a whole, which orderFailureText explains.
@@ -170,7 +186,7 @@ function rejectOrder(
     {
       fields,
       rejection: {
-        text: orderFailureText(failure),
+        text: orderFailureText(failure, portfolioKind),
         lotsStep,
         ...(lotsStep === undefined ? {} : { field: "lots" as const }),
       },
@@ -179,17 +195,17 @@ function rejectOrder(
   );
 }
 
-/** A forged form or a manual deletion can name an order that the student does not have. */
+/** A forged form or a manual deletion can name an order that the owner does not have. */
 export function cancelFromForm(
   context: Readonly<RouterContextProvider>,
   { form, place, now }: OrdersForm,
-  returnPath = activityPath(place.classId),
+  returnPath = activityPath(place.classId, place.owner.kind),
 ): Response | ReturnType<typeof data<OrdersAnswer>> {
   const orderId = parseRecordId<OrderId>(form.get("cancel"), "cancel");
   const cancelled = orderId.ok
     ? cancelPortfolioOrder(
         context.get(databaseContext),
-        { membershipId: place.owner.membershipId, orderId: orderId.value },
+        { owner: place.owner, orderId: orderId.value },
         now,
       )
     : fail<CancelFailure>({ kind: "missing" });

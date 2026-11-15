@@ -1,3 +1,4 @@
+import { activityPath } from "./activity-path";
 import { languageNames } from "~/language-names";
 import { expect, test } from "vitest";
 import type { Locale } from "~/paraglide/runtime.js";
@@ -212,7 +213,7 @@ for (const locale of locales) {
         <TicketDone
           closePath="/classes/1/stocks/BBCA"
           order={{ ...waitingOrder, state: checked }}
-          classId={waitingClassId}
+          activity={activityPath(waitingClassId)}
           now={now}
         />,
       );
@@ -284,7 +285,7 @@ for (const locale of locales) {
       <TicketDone
         closePath="/classes/1/stocks/BBCA"
         order={{ ...order, state }}
-        classId={classId}
+        activity={activityPath(classId)}
         now={duringSessionForTest}
       />,
     );
@@ -294,7 +295,7 @@ for (const locale of locales) {
       <TicketDone
         closePath="/classes/1/stocks/BBCA"
         order={order}
-        classId={classId}
+        activity={activityPath(classId)}
         now={order.expiresAt}
       />,
     );

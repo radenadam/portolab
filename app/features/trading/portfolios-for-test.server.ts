@@ -22,7 +22,8 @@ import { placePortfolioOrder } from "./place-portfolio-order.server";
 import type { PortfolioOwner } from "./portfolio-store.server";
 import { holdings, portfolios } from "./trading.schema";
 import type { OrderId } from "./trading.schema";
-import { readPortfolio } from "./portfolio-store.server";
+import { findPortfolioId, readPortfolio } from "./portfolio-store.server";
+import { portfolioOwnerColumns } from "./portfolio-owner-columns";
 import { readTicket } from "./read-ticket.server";
 import { ticketAmounts } from "./ticket-amounts";
 import { shares } from "~/units/shares";
@@ -31,7 +32,7 @@ import { shares } from "~/units/shares";
 export async function studentPortfolioForTest(
   database: Database,
   username = "mahasiswa",
-): Promise<PortfolioOwner> {
+): Promise<Extract<PortfolioOwner, { kind: "membership" }>> {
   const { classId } = await classOfTest(database);
   const studentId = await createTestStudent(database, username, "Siti Rahayu");
   joinClass(database, { classId, studentId }, duringSessionForTest);
@@ -40,6 +41,7 @@ export async function studentPortfolioForTest(
     throw new Error(`The test could not add ${username} to its class.`);
   }
   return {
+    kind: "membership" as const,
     membershipId: joined.membershipId,
     startingCash: joined.startingCash,
   };
@@ -55,7 +57,10 @@ export function storeBbcaHistoryForTest(database: Database): void {
 export async function studentWithQuotesForTest(
   quotes: readonly Quote[],
   fetchedAt: Date,
-): Promise<{ database: Database; owner: PortfolioOwner }> {
+): Promise<{
+  database: Database;
+  owner: Extract<PortfolioOwner, { kind: "membership" }>;
+}> {
   const database = openDatabaseForTest();
   storeBbcaHistoryForTest(database);
   const owner = await studentPortfolioForTest(database);
@@ -71,16 +76,27 @@ export function storeHoldingsForTest(
   owner: PortfolioOwner,
   portfolio: { cash: Rupiah; holdings: readonly Holding[] },
 ): void {
-  database
+  const { id: portfolioId } = database
     .insert(portfolios)
-    .values({ membershipId: owner.membershipId, cash: portfolio.cash })
-    .run();
+    .values({ ...portfolioOwnerColumns(owner), cash: portfolio.cash })
+    .returning({ id: portfolios.id })
+    .get();
   for (const holding of portfolio.holdings) {
     database
       .insert(holdings)
-      .values({ membershipId: owner.membershipId, ...holding })
+      .values({ portfolioId, ...holding })
       .run();
   }
+}
+
+export function storedPortfolioIdForTest(
+  database: Database,
+  owner: PortfolioOwner,
+) {
+  const portfolioId = findPortfolioId(database, owner);
+  if (portfolioId === undefined)
+    throw new Error("The test owner has no stored portfolio.");
+  return portfolioId;
 }
 
 /** Places an order that the test knows Portolab accepts, with the delay of the source of the tests of orders, and returns its number. */
