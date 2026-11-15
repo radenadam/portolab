@@ -327,10 +327,15 @@ for (const locale of locales) {
         value: { side: option.value },
       });
     }
-    expect(failuresOfForm(withoutFields(["side", "priceKind"]))).toMatchObject({
-      sideFailure: text.noSide,
-      priceKindFailure: text.noPriceKind,
-    });
+    for (const missing of [
+      withoutFields(["side", "priceKind"]),
+      { ...limitPurchase, side: "", priceKind: "" },
+    ]) {
+      expect(failuresOfForm(missing)).toMatchObject({
+        sideFailure: text.noSide,
+        priceKindFailure: text.noPriceKind,
+      });
+    }
     expect(
       failuresOfForm({ ...limitPurchase, side: "hold" })?.sideFailure,
     ).toBe(`${text.unknownSide[0]}hold${text.unknownSide[1]}`);

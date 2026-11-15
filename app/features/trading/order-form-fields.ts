@@ -1,9 +1,5 @@
 import type { FieldOption } from "~/form";
-import {
-  checkFieldLengthForReader,
-  checkMaximumLength,
-  typedText,
-} from "~/form-text";
+import { checkMaximumLength, parseOptionalText, typedText } from "~/form-text";
 import { formatList } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { failureOf, fail, succeed } from "~/result";
@@ -11,7 +7,6 @@ import type { Result } from "~/result";
 import type { Lots } from "~/units/lots";
 import { isRupiah, rupiah } from "~/units/rupiah";
 import type { Rupiah } from "~/units/rupiah";
-import { typeName } from "~/value-shapes";
 import { parseWrittenWholeNumber } from "~/written-whole-number";
 import type { OrderRequest, OrderSide } from "./order";
 import { parseOrderLots } from "./parse-order-lots";
@@ -152,7 +147,7 @@ export function parseStockCode(
   if (!chosen.ok) {
     return chosen;
   }
-  if (chosen.value === undefined) {
+  if (chosen.value === "") {
     return fail(m.trading_no_stock_error({ field: source }));
   }
   const code = codes.find((candidate) => candidate === chosen.value);
@@ -180,7 +175,7 @@ function parseOrderChoice<Value extends string>(
     options.map((option) => `"${option.label}"`),
     "disjunction",
   );
-  if (chosen.value === undefined) {
+  if (chosen.value === "") {
     return fail(m.trading_no_choice_error({ field: source, choices }));
   }
   const option = options.find((candidate) => candidate.value === chosen.value);
@@ -217,7 +212,7 @@ function parseOrderReason(
   source: string,
 ): Result<string | undefined, string> {
   const text = parseOptionalText(value, source);
-  if (!text.ok || text.value === undefined) {
+  if (!text.ok) {
     return text;
   }
   // A browser sends each line break of a field of several lines as a carriage return and a line feed, which a reader counts as one character.
@@ -226,20 +221,6 @@ function parseOrderReason(
     return succeed(undefined);
   }
   return checkMaximumLength(tidied, source, reasonMaximumLength);
-}
-
-/** Reads the text of a field that a person may leave empty, such as a field of choices, which is undefined when the field holds nothing. A text longer than any field takes fails before any other work on it. */
-function parseOptionalText(
-  value: unknown,
-  source: string,
-): Result<string | undefined, string> {
-  if (value === null || value === "") {
-    return succeed(undefined);
-  }
-  if (typeof value !== "string") {
-    return fail(m.app_not_text_error({ field: source, type: typeName(value) }));
-  }
-  return checkFieldLengthForReader(value, source);
 }
 
 /** The form and the ticket address must reject the same sides. */
