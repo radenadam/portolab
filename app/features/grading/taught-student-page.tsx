@@ -75,11 +75,7 @@ export function TaughtStudentHeading({
         <NumberText verbatim>{titles[page](student)}</NumberText>
       </h1>
       {isClassMapPath(returnPath, student.classId) ? (
-        <ClassBackLink
-          classId={student.classId}
-          className={student.className}
-          to={returnPath}
-        />
+        <ClassBackLink className={student.className} to={returnPath} />
       ) : (
         <Link to={returnPath} className={styles["link"]}>
           <NumberText verbatim>

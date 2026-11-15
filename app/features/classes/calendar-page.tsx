@@ -21,14 +21,12 @@ export function meta(): Route.MetaDescriptors {
 }
 
 export function loader({ context, params, url }: Route.LoaderArgs): {
-  classId: ClassId;
   className: string;
   firstSessionDate: string | null;
   returnPath: string;
 } {
   const taught = requireTaughtClass(context, url, params.classId);
   return {
-    classId: taught.id,
     className: taught.name,
     returnPath: calendarReturnPath(url, taught.id),
     firstSessionDate: taught.firstSessionDate,
@@ -71,7 +69,7 @@ export default function CalendarPage({
   loaderData,
   actionData,
 }: Route.ComponentProps): ReactNode {
-  const { classId, className, firstSessionDate, returnPath } = loaderData;
+  const { className, firstSessionDate, returnPath } = loaderData;
   return (
     <>
       <h1>{m.classes_calendar_title()}</h1>
@@ -84,7 +82,7 @@ export default function CalendarPage({
         />
         <SubmitButton label={m.classes_save_calendar_label()} />
       </Form>
-      <ClassBackLink classId={classId} className={className} to={returnPath} />
+      <ClassBackLink className={className} to={returnPath} />
     </>
   );
 }
