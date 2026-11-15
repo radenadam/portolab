@@ -1,6 +1,7 @@
 import { activityFilters, activityStatusLabel } from "./activity-options";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
+import chipStyles from "~/chip.module.css";
 import type { ClassId } from "~/features/classes/classes.schema";
 import { StockName } from "~/features/market-data/stock-name";
 import { stockPath } from "~/features/market-data/stock-path";
@@ -62,6 +63,7 @@ export function ActivityOrders({
           <Link
             key={status}
             to={`${activityPath(classId)}?status=${status}`}
+            className={chipStyles["filter"]}
             aria-current={filter === status ? "page" : undefined}
           >
             <span>

@@ -1,6 +1,7 @@
 import { HomeHoldingTableRow } from "./home-holding-table-row";
 import { CashName } from "./cash-name";
-import { sharedQuoteTime } from "./shared-quote-time";
+import { sharedQuoteTime } from "~/features/market-data/shared-quote-time";
+import { SharedQuoteTimeNotice } from "~/features/market-data/shared-quote-time-notice";
 import { HomeHoldingPrice } from "./home-holding-price";
 import { NumberText } from "~/number-text";
 import { homeHoldingsSectionId } from "./home-holdings-section-id";
@@ -41,7 +42,11 @@ export function HomeHoldingsSection({
   values,
   classId,
 }: HoldingsProps): ReactNode {
-  const sharedTime = sharedQuoteTime(home.report.valuation.holdings);
+  const sharedTime = sharedQuoteTime(
+    home.report.valuation.holdings.map((holding) =>
+      holding.kind === "priced" ? holding.quote : undefined,
+    ),
+  );
   const maximumWeight = portfolioWeight(
     Math.max(
       values.cashWeight ?? 0,
@@ -228,11 +233,7 @@ export function HomeHoldingsSection({
       </ul>
       <div className={styles["tableNote"]}>
         {sharedTime !== undefined && (
-          <p>
-            <NumberText>
-              {m.trading_home_prices_time_notice({ time: sharedTime })}
-            </NumberText>
-          </p>
+          <SharedQuoteTimeNotice time={sharedTime} />
         )}
         <p>{m.trading_home_average_notice()}</p>
       </div>

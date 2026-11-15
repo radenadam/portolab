@@ -233,16 +233,11 @@
 [data-negative="true"] {
   color: var(--color-loss);
 }
-.section textarea {
+.reason {
+  composes: control from "../../form.module.css";
   box-sizing: border-box;
-  width: 100%;
-  min-height: var(--size-touch-target);
   padding: var(--space-3);
-  border: var(--size-line) solid var(--color-line-strong);
-  border-radius: var(--radius-item);
-  background: var(--color-panel);
   color: var(--color-ink);
-  font: inherit;
   resize: vertical;
 }
 .confirm {

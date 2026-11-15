@@ -8,12 +8,12 @@ export async function openAsNewStudent(
   page: Page,
   browser: Browser,
   student: PortfolioOfTest & { path: string },
-): Promise<{ lecturer: Page }> {
+): Promise<{ lecturer: Page; classPath: string }> {
   const { lecturer, testClass } = await studentOnNewClass(page, browser, {
     locale: student.locale,
     ...widestClassNames,
   });
   student.givePortfolio?.(testClass.id);
   await page.goto(`${testClass.path}${student.path}`);
-  return { lecturer };
+  return { lecturer, classPath: testClass.path };
 }

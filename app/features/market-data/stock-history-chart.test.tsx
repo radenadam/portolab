@@ -25,6 +25,7 @@ for (const locale of locales) {
           history={{ ...history, closes }}
           range="1m"
           path="/classes/7/stocks/BBCA"
+          returnTo={undefined}
         />,
       );
       expect(html).toContain(`data-line="${direction}"`);
