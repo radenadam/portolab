@@ -1,3 +1,5 @@
+import { ClassBackLink } from "~/features/classes/class-back-link";
+import { isClassMapPath } from "~/features/classes/class-path";
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
@@ -72,11 +74,15 @@ export function TaughtStudentHeading({
       <h1>
         <NumberText verbatim>{titles[page](student)}</NumberText>
       </h1>
-      <Link to={returnPath} className={styles["link"]}>
-        <NumberText verbatim>
-          {m.grading_all_portfolios_link({ class: student.className })}
-        </NumberText>
-      </Link>
+      {isClassMapPath(returnPath, student.classId) ? (
+        <ClassBackLink className={student.className} to={returnPath} />
+      ) : (
+        <Link to={returnPath} className={styles["link"]}>
+          <NumberText verbatim>
+            {m.grading_all_portfolios_link({ class: student.className })}
+          </NumberText>
+        </Link>
+      )}
       <Link
         to={pathReturningTo(other.path, returnPath)}
         className={styles["link"]}

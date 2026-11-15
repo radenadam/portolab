@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import type { ReactNode, MouseEventHandler } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { useLocation } from "react-router";
 import styles from "./popover.module.css";
 
@@ -63,25 +63,29 @@ export function Popover({
 export function PopoverButton({
   popover,
   label,
-  className,
   children,
-  onClick,
+  ...buttonProps
 }: {
   /** The id of the popover. */
   popover: string;
   /** The name of the button when its content does not say what it opens, such as initials. */
   label?: string | undefined;
-  className: string | undefined;
   children: ReactNode;
-  onClick?: MouseEventHandler<HTMLButtonElement>;
-}): ReactNode {
+} & Omit<
+  ComponentProps<"button">,
+  | "popover"
+  | "type"
+  | "popoverTarget"
+  | "popoverTargetAction"
+  | "style"
+  | "aria-label"
+>): ReactNode {
   return (
     <button
+      {...buttonProps}
       type="button"
       popoverTarget={popover}
-      onClick={onClick}
       aria-label={label}
-      className={className}
       style={{ anchorName: anchorName(popover) }}
     >
       {children}
