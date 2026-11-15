@@ -1,3 +1,19 @@
+import { classMapPath } from "./class-path";
+import {
+  purchaseForTest,
+  acceptedForTest,
+  accountForTest,
+  bbcaForTest,
+  orderLotsForTest,
+  saleForTest,
+} from "~/features/trading/orders-for-test";
+import { checkOrder } from "~/features/trading/check-order";
+import {
+  savePlacedOrder,
+  saveOrderState,
+} from "~/features/trading/portfolio-store.server";
+import { shares } from "~/units/shares";
+import { rupiah } from "~/units/rupiah";
 import { ne } from "drizzle-orm";
 import { memberships } from "./classes.schema";
 import {
@@ -10,7 +26,6 @@ import { expect, test } from "vitest";
 import { listStudents } from "./class-store.server";
 import { classOfStudentsForTest } from "~/features/grading/class-of-students-for-test.server";
 import { placedOrderForTest } from "~/features/trading/portfolios-for-test.server";
-import { purchaseForTest } from "~/features/trading/orders-for-test";
 import type { Locale } from "~/paraglide/runtime.js";
 import { locales } from "~/paraglide/runtime.js";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
@@ -45,7 +60,97 @@ const texts: Record<
   },
 };
 
+const reasonHeadings: Record<Locale, readonly string[]> = {
+  id: [
+    "beli 1 lot BBCA · 2 Nov 2026, 11.00",
+    "jual 5 lot BBCA · 2 Nov 2026, 10.30",
+  ],
+  en: [
+    "bought 1 lot of BBCA · Nov 2, 2026, 11:00 AM",
+    "sold 5 lots of BBCA · Nov 2, 2026, 10:30 AM",
+  ],
+};
+
 for (const locale of locales) {
+  test(`orders written reasons by fill time and excludes unfinished orders in ${languageNames[locale]}`, async () => {
+    switchLocaleForTest(locale);
+    const fixture = await classOfStudentsForTest();
+    const member = listStudents(fixture.database, fixture.taughtClass.id)[0];
+    if (member === undefined)
+      throw new Error("The fixture class has a student.");
+    const owner = {
+      membershipId: member.membershipId,
+      startingCash: fixture.taughtClass.startingCash,
+    };
+    const account = accountForTest({
+      holdings: [
+        { code: "BBCA", shares: shares(1000), cost: rupiah(4_980_000) },
+      ],
+    });
+    const requests = [
+      {
+        request: purchaseForTest({
+          lots: orderLotsForTest(1),
+          reason: "First reason",
+        }),
+        fill: new Date("2026-11-02T04:00:00Z"),
+      },
+      {
+        request: saleForTest({ reason: "Second reason" }),
+        fill: new Date("2026-11-02T03:30:00Z"),
+      },
+      {
+        request: purchaseForTest({ reason: "Pending reason" }),
+        fill: undefined,
+      },
+      { request: purchaseForTest(), fill: new Date("2026-11-02T04:01:00Z") },
+    ];
+    for (const { request, fill } of requests) {
+      const order = acceptedForTest(request, account, bbcaForTest);
+      const id = savePlacedOrder(fixture.database, owner, order);
+      if (fill === undefined) continue;
+      const state = checkOrder({
+        order,
+        quote: bbcaForTest.quote,
+        moment: fill,
+        availableCash: owner.startingCash,
+        sharesOfStock: {
+          held: shares(1000),
+          setAside: { amount: shares(0), orders: 0 },
+        },
+      });
+      expect(state.kind).toBe("filled");
+      saveOrderState(fixture.database, id, state);
+    }
+    const sourcePath = classMapPath(fixture.taughtClass.id, "deviation");
+    const overview = overviewAt(
+      fixture,
+      new Date("2026-11-02T04:02:00Z"),
+      sourcePath,
+    );
+    expect(overview.reasons.map((reason) => reason.reason)).toEqual([
+      "First reason",
+      "Second reason",
+    ]);
+    expect(overview.reasons.map((reason) => reason.heading)).toEqual(
+      reasonHeadings[locale],
+    );
+    expect(
+      overview.reasons.every((reason) => reason.name === member.name),
+    ).toBe(true);
+    const firstReason = overview.reasons[0];
+    if (firstReason === undefined)
+      throw new Error("The overview has a filled reason.");
+    expect(
+      new URL(firstReason.href, "http://localhost").searchParams.get(
+        "returnTo",
+      ),
+    ).toBe(`${sourcePath}#class-reasons`);
+    expect(overview.reasons[0]?.href).toContain(
+      `/students/${String(member.id)}/portfolio?returnTo=`,
+    );
+  });
+
   test(`counts orders in the WIB week and uses the latest order as activity, while keeping every unmeasured student in ${languageNames[locale]}`, async () => {
     switchLocaleForTest(locale);
     const { database, taughtClass } = await classOfStudentsForTest();
@@ -132,10 +237,12 @@ for (const locale of locales) {
 function overviewAt(
   { database, taughtClass }: Awaited<ReturnType<typeof classOfStudentsForTest>>,
   now: Date,
+  sourcePath = classMapPath(taughtClass.id, "beta"),
 ): ReturnType<typeof readClassOverview> {
   return readClassOverview(database, taughtClass, {
     request: new Request("http://localhost/"),
     now,
     delayMinutes: 10,
+    sourcePath,
   });
 }
