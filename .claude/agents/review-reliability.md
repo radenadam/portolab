@@ -14,6 +14,7 @@ A diff range, a set of paths, or a plan, with the intent behind it. In an audit,
 
 - Correctness at the edges: rounding of rupiah, lots, tick sizes, auto rejection limits, fees and tax, empty portfolios, a single data point, and dates. IDX runs on Western Indonesia Time (WIB, UTC+7), while the server may run in another time zone. Trading days exclude weekends and exchange holidays.
 - Error paths: what happens when the price source fails, throttles, or returns malformed data, and when the database is busy.
+- Browser records across reloads and code versions, including rejected stored values and refused storage access, against [Code](../../AGENTS.md#code) and [Tests](../../AGENTS.md#tests).
 - Security: open redirects, cookies and sessions, cross-site request forgery, secrets, permissions in CI workflows, and the sections "Privacy and security" and "Dependencies" of `AGENTS.md`.
 - Gates in CI, against the section "CI" of `AGENTS.md`.
 - Performance: work that blocks the event loop, queries without a suitable index, and requests to the price source that grow with the number of students.

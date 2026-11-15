@@ -1,4 +1,4 @@
-import { pathReturningTo } from "../accounts/path-returning-to.ts";
+import { pathWithQuery } from "../../path-with-query.ts";
 import type { ClassId } from "../classes/classes.schema.ts";
 import { classPath } from "../classes/class-path.ts";
 import type { SessionNumber } from "../classes/course-calendar.ts";
@@ -13,12 +13,20 @@ export function lessonPath(
   returnTo?: string,
 ): string {
   const path = `${learnPath(classId)}/${String(session)}`;
-  return returnTo === undefined ? path : pathReturningTo(path, returnTo);
+  return returnTo === undefined ? path : pathWithQuery(path, { returnTo });
 }
 
-export function glossaryPath(classId: ClassId, query = ""): string {
+export function glossaryPath(
+  classId: ClassId,
+  query = "",
+  returnTo?: string,
+): string {
   const path = `${classPath(classId)}/glossary`;
-  return query === ""
-    ? path
-    : `${path}?${new URLSearchParams({ q: query }).toString()}`;
+  const destination =
+    query === ""
+      ? path
+      : `${path}?${new URLSearchParams({ q: query }).toString()}`;
+  return returnTo === undefined
+    ? destination
+    : pathWithQuery(destination, { returnTo });
 }

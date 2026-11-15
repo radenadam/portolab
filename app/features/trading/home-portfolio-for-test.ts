@@ -1,4 +1,3 @@
-import { readInsightLessons } from "~/features/learning/read-insight-lessons.server";
 import {
   databaseWithClosesForTest,
   valuationForTest,
@@ -22,7 +21,6 @@ export function homePortfolioForTest(
     classmates: [],
     sessions: [],
     stockBetas: [],
-    lessons: readInsightLessons(),
     report: {
       market: undefined,
       valuation,
