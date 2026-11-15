@@ -21,12 +21,14 @@ export function Popover({
   label,
   placement,
   children,
+  className,
 }: {
   id: string;
   /** The name of the popover, which a screen reader reads when it opens. */
   label: string;
   placement: PopoverPlacement;
   children: ReactNode;
+  className?: string | undefined;
 }): ReactNode {
   const popoverRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
@@ -47,7 +49,9 @@ export function Popover({
       popover="auto"
       role="dialog"
       aria-label={label}
-      className={[styles["popover"], styles[placement]].join(" ")}
+      className={[styles["popover"], styles[placement], className]
+        .filter(Boolean)
+        .join(" ")}
       style={{ positionAnchor: anchorName(id) }}
     >
       {children}

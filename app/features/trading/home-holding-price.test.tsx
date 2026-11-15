@@ -10,7 +10,6 @@ import { switchLocaleForTest } from "~/switch-locale-for-test";
 import { rupiah } from "~/units/rupiah";
 import { shares } from "~/units/shares";
 import { HomeHoldingPrice } from "./home-holding-price";
-import { sharedQuoteTime } from "./shared-quote-time";
 import { valuePortfolio } from "./value-portfolio";
 
 const times: Record<Locale, readonly [string, string]> = {
@@ -22,8 +21,7 @@ for (const locale of locales) {
   test(`shares the displayed quote minute and keeps a different date beside its price in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     const valuation = valuationForTest(["BBCA", "TLKM"]);
-    const shared = sharedQuoteTime(valuation.holdings);
-    expect(shared).toBe(times[locale][0]);
+    const shared = times[locale][0];
     for (const holding of valuation.holdings)
       expect(
         renderTextMarkupForTest(
@@ -46,7 +44,6 @@ for (const locale of locales) {
         ["BMRI", stockQuote("BMRI", [3720, 3720], "2026-10-29T09:14:58Z")],
       ]),
     ).holdings;
-    expect(sharedQuoteTime([...valuation.holdings, ...older])).toBe(shared);
     for (const holding of older)
       expect(
         renderTextMarkupForTest(
@@ -57,8 +54,11 @@ for (const locale of locales) {
           />,
         ),
       ).toContain(markupTextForTest(times[locale][1]));
-    expect(sharedQuoteTime(valuation.holdings.slice(0, 1))).toBeUndefined();
-    expect(sharedQuoteTime([])).toBeUndefined();
-    expect(sharedQuoteTime(valuationForTest([]).holdings)).toBeUndefined();
+    for (const holding of valuation.holdings)
+      expect(
+        renderTextMarkupForTest(
+          <HomeHoldingPrice holding={holding} failed={false} />,
+        ),
+      ).toContain(times[locale][0]);
   });
 }

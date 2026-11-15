@@ -313,13 +313,19 @@ for (const locale of locales) {
         value: option.value,
       });
     }
-    expect(parseOrderSide(null, text.labels.side)).toEqual({
-      ok: false,
-      failure: text.noSide,
-    });
-    expect(failuresOfForm(withoutFields(["priceKind"]))).toMatchObject({
-      priceKindFailure: text.noPriceKind,
-    });
+    for (const missing of [null, ""]) {
+      expect(parseOrderSide(missing, text.labels.side)).toEqual({
+        ok: false,
+        failure: text.noSide,
+      });
+    }
+    for (const fields of [
+      withoutFields(["priceKind"]),
+      { ...limitPurchase, priceKind: "" },
+    ])
+      expect(failuresOfForm(fields)).toMatchObject({
+        priceKindFailure: text.noPriceKind,
+      });
     expect(parseOrderSide("hold", text.labels.side)).toEqual({
       ok: false,
       failure: `${text.unknownSide[0]}hold${text.unknownSide[1]}`,

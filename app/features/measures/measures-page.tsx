@@ -4,12 +4,14 @@ import { databaseContext } from "~/database/database.server";
 import { readStudentPortfolioReport } from "~/features/trading/read-student-portfolio-report.server";
 import { pageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
+import { parseOptionalText } from "~/form-text";
 import type { Route } from "./+types/measures-page";
 import { AnalysisView } from "./analysis-view";
 import { AnalysisAxisForm } from "./analysis-axis-form";
 import { measureStoredMarket } from "./measure-stored.server";
 import { summarizeMarket } from "./measure-summaries";
 import { parseAnalysisAxis } from "./parse-analysis-axis";
+import { analysisDataReturn } from "./analysis-data-return";
 import {
   readPortfolioMeasures,
   readStockRows,
@@ -44,6 +46,11 @@ export function loader({ context, request, params, url }: Route.LoaderArgs) {
   }
   const measures = readPortfolioMeasures(database, report.valuation);
   const stocks = readStockRows(database);
+  // The hint restores a return address, so a forged hint must not block the normal page.
+  const dataReturn = parseOptionalText(
+    url.searchParams.get(analysisDataReturn.parameter),
+    m.measures_analysis_data_label(),
+  );
   const market = measureStoredMarket(database);
   return {
     kind: "analysis" as const,
@@ -61,6 +68,7 @@ export function loader({ context, request, params, url }: Route.LoaderArgs) {
     now,
     source,
     firstSessionDate: place.firstSessionDate,
+    showData: dataReturn.ok && dataReturn.value === analysisDataReturn.value,
   };
 }
 
