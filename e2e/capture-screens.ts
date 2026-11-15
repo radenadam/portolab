@@ -1,9 +1,15 @@
 import type { Page, TestInfo } from "@playwright/test";
+import { screenshotFullHeight } from "./screenshot-full-height.ts";
 
 export async function captureScreens(
   page: Page,
   testInfo: TestInfo,
-  screen: { name: string; fullPage: boolean; fromTop: boolean },
+  screen: {
+    name: string;
+    fullPage: boolean;
+    fromTop: boolean;
+    check?: () => Promise<void>;
+  },
 ): Promise<void> {
   if (screen.fromTop) {
     await page.getByRole("heading", { level: 1 }).click();
@@ -17,21 +23,13 @@ export async function captureScreens(
     await page.setViewportSize({ width, height: 900 });
     for (const colorScheme of ["light", "dark"] as const) {
       await page.emulateMedia({ colorScheme });
-      if (screen.fullPage) {
-        // The references show the whole page, so fixed frame parts need that height in the capture too.
-        const height = await page.evaluate(
-          () => document.documentElement.scrollHeight,
-        );
-        await page.setViewportSize({ width, height });
-      }
-      await page.screenshot({
-        path: testInfo.outputPath(
-          `${screen.name}-${String(width)}-${colorScheme}.png`,
-        ),
-        fullPage: screen.fullPage,
-        scale: "css",
-      });
-      await page.setViewportSize({ width, height: 900 });
+      await screen.check?.();
+      const path = testInfo.outputPath(
+        `${screen.name}-${String(width)}-${colorScheme}.png`,
+      );
+      if (screen.fullPage)
+        await screenshotFullHeight(page, { path, scale: "css" });
+      else await page.screenshot({ path, scale: "css" });
     }
   }
 }

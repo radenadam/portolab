@@ -10,14 +10,19 @@ export function StockName({
   heading = false,
   withCompanyName = true,
   detail,
+  codeDetail,
+  smallTile = false,
 }: {
   code: string;
   withSector?: boolean;
   heading?: boolean;
   withCompanyName?: boolean;
   detail?: ReactNode;
+  codeDetail?: ReactNode;
+  smallTile?: boolean;
 }): ReactNode {
   const company = companyOf(code);
+  const codeLabel = <CodeName code={code} heading={heading} />;
   return (
     <div
       className={[
@@ -28,12 +33,15 @@ export function StockName({
         .filter(Boolean)
         .join(" ")}
     >
-      <CompanyTile code={code} />
+      <CompanyTile code={code} small={smallTile} />
       <div className={styles["names"]}>
-        {heading ? (
-          <h1 className={styles["code"]}>{code}</h1>
+        {codeDetail === undefined ? (
+          codeLabel
         ) : (
-          <span className={styles["code"]}>{code}</span>
+          <div className={styles["codeLine"]}>
+            {codeLabel}
+            <span className={styles["codeDetail"]}>{codeDetail}</span>
+          </div>
         )}
         {withCompanyName && (
           <span className={styles["detail"]}>{company.name}</span>
@@ -49,10 +57,35 @@ export function StockName({
   );
 }
 
+function CodeName({
+  code,
+  heading,
+}: {
+  code: string;
+  heading: boolean;
+}): ReactNode {
+  return heading ? (
+    <h1 className={styles["code"]}>{code}</h1>
+  ) : (
+    <span className={styles["code"]}>{code}</span>
+  );
+}
+
 // The repository carries no logos of other companies, so the tile shows the first two letters of the code, as decision 0034 explains. The code stands beside it, so a screen reader skips the tile.
-function CompanyTile({ code }: { code: string }): ReactNode {
+function CompanyTile({
+  code,
+  small,
+}: {
+  code: string;
+  small: boolean;
+}): ReactNode {
   return (
-    <span className={styles["tile"]} aria-hidden="true">
+    <span
+      className={[styles["tile"], small ? styles["smallTile"] : undefined]
+        .filter(Boolean)
+        .join(" ")}
+      aria-hidden="true"
+    >
       {code.slice(0, 2)}
     </span>
   );

@@ -13,6 +13,7 @@ const stateBeforeFirstRound: ReviewState = {
   head: undefined,
   round: 0,
   mergeRounds: 0,
+  checkRounds: 0,
   openFindings: [],
 };
 const secondHead = "2".repeat(40);
@@ -44,6 +45,7 @@ test("reads back the state that a review carries, even when a finding holds the 
     head: firstHead,
     round: 1,
     mergeRounds: 0,
+    checkRounds: 0,
     openFindings: [openFinding],
   };
   expect(parseLatestReviewState([[stateReview(state)]], "reviews")).toEqual({
@@ -70,12 +72,14 @@ test("reads the newest state across pages, and ignores a later review without on
     head: firstHead,
     round: 1,
     mergeRounds: 0,
+    checkRounds: 0,
     openFindings: [],
   };
   const second: ReviewState = {
     head: secondHead,
     round: 2,
     mergeRounds: 0,
+    checkRounds: 0,
     openFindings: [],
   };
   expect(
@@ -96,6 +100,7 @@ test("ignores a state that another account posted, so that a comment cannot skip
       head: secondHead,
       round: 0,
       mergeRounds: 0,
+      checkRounds: 0,
       openFindings: [],
     }),
   );
@@ -103,6 +108,7 @@ test("ignores a state that another account posted, so that a comment cannot skip
     head: firstHead,
     round: 1,
     mergeRounds: 0,
+    checkRounds: 0,
     openFindings: [],
   };
   expect(
@@ -115,6 +121,7 @@ test("keeps a state without a head, which a first round that did not finish leav
     head: undefined,
     round: 1,
     mergeRounds: 0,
+    checkRounds: 0,
     openFindings: [],
   };
   expect(parseLatestReviewState([[stateReview(state)]], "reviews")).toEqual({
@@ -171,6 +178,7 @@ test("reads only the marker at the end of a review, so a finding that quotes a m
     head: firstHead,
     round: 1,
     mergeRounds: 0,
+    checkRounds: 0,
     openFindings: [
       {
         ...openFinding,
@@ -211,7 +219,13 @@ test("reads old states without merge rounds as having used none of the allowance
     parseReviewState({ head: firstHead, round: 3, openFindings: [] }, "state"),
   ).toEqual({
     ok: true,
-    value: { head: firstHead, round: 3, mergeRounds: 0, openFindings: [] },
+    value: {
+      head: firstHead,
+      round: 3,
+      mergeRounds: 0,
+      checkRounds: 0,
+      openFindings: [],
+    },
   });
 });
 
@@ -220,6 +234,7 @@ test("reads a state with extra merge rounds through its saved marker", () => {
     head: secondHead,
     round: 5,
     mergeRounds: 2,
+    checkRounds: 0,
     openFindings: [openFinding],
   };
   expect(parseLatestReviewState([[stateReview(state)]], "reviews")).toEqual({
@@ -240,6 +255,45 @@ test("rejects merge rounds that are not a count within the total rounds", () => 
     ok: false,
     failure:
       "state must have mergeRounds at most round (3), but mergeRounds is 4.",
+  });
+});
+
+test("preserves checks spent under the earlier ordinary cap, apart from merge rounds", () => {
+  for (const mergeRounds of [0, 1, 2]) {
+    for (const checkRounds of [0, 1, 2]) {
+      const round = 3 + mergeRounds + checkRounds;
+      const legacy = {
+        head: firstHead,
+        round,
+        mergeRounds,
+        openFindings: [openFinding],
+      };
+      expect(parseReviewState(legacy, "state")).toEqual({
+        ok: true,
+        value: { ...legacy, checkRounds },
+      });
+    }
+  }
+});
+
+test("rejects check counts outside the total that remains after merge rounds", () => {
+  for (const checkRounds of [-1, 0.5, "1", null]) {
+    expect(
+      parseReviewState(
+        { round: 3, mergeRounds: 1, checkRounds, openFindings: [] },
+        "state",
+      ).ok,
+    ).toBe(false);
+  }
+  expect(
+    parseReviewState(
+      { round: 3, mergeRounds: 1, checkRounds: 3, openFindings: [] },
+      "state",
+    ),
+  ).toEqual({
+    ok: false,
+    failure:
+      "state must have checkRounds at most round minus mergeRounds (2), but checkRounds is 3.",
   });
 });
 

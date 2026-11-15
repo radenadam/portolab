@@ -98,7 +98,7 @@ const texts: Record<
     title: `Imbal hasil dan risiko di ${className}`,
     backLink: `Kembali ke ${className}`,
     portfolioLink: "Lihat nilai dan imbal hasil portofolio Anda",
-    ordersLink: "Pasang dan pantau order Anda",
+    ordersLink: "Aktivitas",
     measuresLink:
       "Lihat imbal hasil dan risiko portofolio Anda dan setiap saham",
     methodNotice:
@@ -227,7 +227,7 @@ const texts: Record<
     title: `Return and risk in ${className}`,
     backLink: `Back to ${className}`,
     portfolioLink: "See the value and the return of your portfolio",
-    ordersLink: "Place and follow your orders",
+    ordersLink: "Activity",
     measuresLink:
       "See the return and the risk of your portfolio and of each stock",
     methodNotice:
@@ -481,7 +481,7 @@ for (const locale of locales) {
     for (const [name, path] of [
       [text.backLink, classPath],
       [text.portfolioLink, classPath],
-      [text.ordersLink, `${classPath}/orders`],
+      [text.ordersLink, `${classPath}/activity`],
     ] as const) {
       await expect(main.getByRole("link", { name })).toHaveAttribute(
         "href",

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { databaseContext } from "~/database/database.server";
 import type { PriceSourceDescription } from "~/features/market-data/price-source.server";
-import { ReasonSection } from "~/features/trading/order-list";
+import { ReasonSection } from "~/features/trading/reason-section";
 import type { StoredOrder } from "~/features/trading/order-rows";
 import { PortfolioView } from "~/features/trading/portfolio-view";
 import { readPortfolioReport } from "~/features/trading/read-portfolio-report.server";
