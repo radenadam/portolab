@@ -3,7 +3,11 @@ import {
   listIndexHistory,
   listStockHistory,
 } from "~/features/market-data/history-store.server";
-import type { StockHistory } from "~/features/market-data/price-source.server";
+import type {
+  ClosePrice,
+  DailyClose,
+  StockHistory,
+} from "~/features/market-data/price-source.server";
 import { findStockQuote } from "~/features/market-data/quote-store.server";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
 import { fail, succeed } from "~/result";
@@ -34,21 +38,14 @@ export function readTradePortfolio(
   }: {
     code: string;
     now: Date;
-    day: Result<
-      Pick<OrderTradingDay, "date" | "previousDate">,
-      TradingDayFailure
-    >;
+    day: Result<Pick<OrderTradingDay, "date">, TradingDayFailure>;
   },
 ) {
   const history = listIndexHistory(database, marketIndex.code);
   const dates = measureCloseDates(history, defaultEstimationSettings);
-  // A close in a later month makes the latest month end final.
-  const latestMarket = history.closes.at(-1);
   const market = {
     ...history,
-    closes: history.closes.filter(
-      (close) => dates.has(close.date) || close === latestMarket,
-    ),
+    closes: selectPreviewCloses(history.closes, dates),
   };
   const codes = new Set([
     ...portfolio.holdings.map((holding) => holding.code),
@@ -66,17 +63,9 @@ export function readTradePortfolio(
       unpriced.push(stockCode);
     } else {
       const stock = listStockHistory(database, stockCode);
-      const latest = stock.closes.at(-1);
       stocks.push({
         ...stock,
-        closes: stock.closes.filter(
-          (close) =>
-            dates.has(close.date) ||
-            close === latest ||
-            (stockCode === code &&
-              day.ok &&
-              close.date === day.value.previousDate),
-        ),
+        closes: selectPreviewCloses(stock.closes, dates),
         price: quote.price,
         quotedAt: quote.quotedAt,
         buyable: day.ok
@@ -109,4 +98,13 @@ export function readTradePortfolio(
         .map((order) => ({ ...order, reason: undefined })),
     },
   });
+}
+
+/** The market needs a later close to complete its last month, and forecasts need an instrument's latest close even when it has no month end. */
+function selectPreviewCloses<Price extends ClosePrice>(
+  closes: readonly DailyClose<Price>[],
+  dates: ReadonlySet<string>,
+): DailyClose<Price>[] {
+  const latest = closes.at(-1);
+  return closes.filter((close) => dates.has(close.date) || close === latest);
 }

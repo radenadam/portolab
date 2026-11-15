@@ -42,7 +42,7 @@ test("bounds recorded daily histories by the monthly window while preserving acc
   expect(full.market.closes.length).toBeGreaterThan(count + 2);
   expect(compact.market.closes.length).toBeLessThanOrEqual(count + 2);
   for (const stock of compact.stocks) {
-    expect(stock.closes.length).toBeLessThanOrEqual(count + 3);
+    expect(stock.closes.length).toBeLessThanOrEqual(count + 2);
     expect(stock.closes.some((close) => close.date === "2026-10-26")).toBe(
       false,
     );

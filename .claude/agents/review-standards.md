@@ -15,7 +15,7 @@ A diff range, a set of paths, or a plan, with the intent behind it. In an audit,
 - Every standard in `AGENTS.md` and in any nested `AGENTS.md` whose directory the change touches, every requirement in `docs/product.md` that the change affects, and every record in `docs/decisions/` whose subject the change touches.
 - Every text in the change that the section "Writing" of `AGENTS.md` covers, including the text that code generates. The sections "Writing" and "Interface text" say which rules a tool enforces, so judge the rules that they leave to a reader.
 - Trace each visible or spoken sentence through its placeholders when checking [Interface text](../../AGENTS.md#interface-text). Compare the translations as sentences, including their subjects, instead of only matching their keys and test copies.
-- Trace recorded prices and trading dates to their fixture source when checking [Tests](../../AGENTS.md#tests). Follow each test to the branch it claims to exercise, including after a dependency moves to another layer.
+- Trace recorded prices and trading dates to their fixture source when checking [Tests](../../AGENTS.md#tests). Follow each test to the branch it claims to exercise, including after a dependency moves to another layer. When only an invented state distinguishes a branch, check whether a current caller needs it under [Code](../../AGENTS.md#code).
 - The section "Workflow" of `AGENTS.md`, including the pull request title and description.
 
 ## Findings
