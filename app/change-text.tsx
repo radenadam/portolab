@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { ChangeDirection, SignedChange } from "./formatting";
 import styles from "./change-text.module.css";
+import { NumberText } from "./number-text";
 
 const arrows: Record<ChangeDirection, string | undefined> = {
   rise: "▲",
@@ -18,11 +19,11 @@ export function ChangeText({
 }): ReactNode {
   const arrow = arrows[change.direction];
   const text = (
-    <>
+    <NumberText whole>
       {/* The arrow repeats the sign that the change shows for sighted readers, so screen readers skip it. The space belongs to the arrow, so a change without an arrow starts with its number. */}
       {arrow !== undefined && <span aria-hidden="true">{`${arrow} `}</span>}
       {change.text}
-    </>
+    </NumberText>
   );
   return colored ? (
     <span className={styles["change"]} data-change={change.direction}>

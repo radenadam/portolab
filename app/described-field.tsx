@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import styles from "./form.module.css";
 
@@ -22,13 +23,13 @@ export function DescribedField({
   return (
     <div className={styles["field"]}>
       <label htmlFor={id} className={styles["label"]}>
-        {label}
+        <NumberText>{label}</NumberText>
       </label>
       <FieldFailure id={failureIdOf(id)} text={failure} />
       {children}
       {hint !== undefined && (
         <p id={hintIdOf(id)} className={styles["hint"]}>
-          {hint}
+          <NumberText>{hint}</NumberText>
         </p>
       )}
     </div>
@@ -69,7 +70,7 @@ export function FieldFailure({
 }): ReactNode {
   return text === undefined ? null : (
     <p id={id} className={styles["failure"]}>
-      {text}
+      <NumberText>{text}</NumberText>
     </p>
   );
 }

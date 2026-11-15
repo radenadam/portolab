@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { ChangeText } from "~/change-text";
 import { estimatedLabelWidth } from "~/charts/estimated-label-width";
@@ -66,19 +67,21 @@ export function HomePortfolio({
               </div>
               {report.valuation.total === undefined ? (
                 <p>
-                  {countedText(
-                    report.valuation.unpricedCodes.length,
-                    {
-                      one: m.trading_one_unpriced_holding_notice,
-                      several: m.trading_several_unpriced_holdings_notice,
-                    },
-                    {
-                      codes: formatList(
-                        report.valuation.unpricedCodes,
-                        "conjunction",
-                      ),
-                    },
-                  )}
+                  <NumberText>
+                    {countedText(
+                      report.valuation.unpricedCodes.length,
+                      {
+                        one: m.trading_one_unpriced_holding_notice,
+                        several: m.trading_several_unpriced_holdings_notice,
+                      },
+                      {
+                        codes: formatList(
+                          report.valuation.unpricedCodes,
+                          "conjunction",
+                        ),
+                      },
+                    )}
+                  </NumberText>
                 </p>
               ) : (
                 <p
@@ -87,14 +90,16 @@ export function HomePortfolio({
                     fontSize: `min(var(--text-headline), calc(100cqi / ${String(estimatedLabelWidth(formatRupiah(report.valuation.total.value)))}))`,
                   }}
                 >
-                  {formatRupiahParts(report.valuation.total.value).map(
-                    (part) =>
-                      part.type === "currency" ? (
-                        <small key={part.type}>{part.value}</small>
-                      ) : (
-                        part.value
-                      ),
-                  )}
+                  <NumberText whole>
+                    {formatRupiahParts(report.valuation.total.value).map(
+                      (part) =>
+                        part.type === "currency" ? (
+                          <small key={part.type}>{part.value}</small>
+                        ) : (
+                          part.value
+                        ),
+                    )}
+                  </NumberText>
                 </p>
               )}
               {dayChange.ok && (
@@ -112,24 +117,32 @@ export function HomePortfolio({
                     />
                   </span>
                   <span className={styles["changeExplanation"]}>
-                    <span>{changeLabel}</span>
+                    <span>
+                      <NumberText>{changeLabel}</NumberText>
+                    </span>
                     <ConceptHelp title={m.trading_home_daily_title()}>
                       <p>
-                        {m.trading_home_today_body({
-                          date: formatCalendarDate(
-                            dayChange.value.referenceDate,
-                          ),
-                        })}
+                        <NumberText>
+                          {m.trading_home_today_body({
+                            date: formatCalendarDate(
+                              dayChange.value.referenceDate,
+                            ),
+                          })}
+                        </NumberText>
                       </p>
                     </ConceptHelp>
                   </span>
                 </div>
               )}
               {changeFailure !== undefined && (
-                <p className={styles["note"]}>{changeFailure}</p>
+                <p className={styles["note"]}>
+                  <NumberText>{changeFailure}</NumberText>
+                </p>
               )}
               {failure !== undefined && (
-                <p className={styles["note"]}>{failure}</p>
+                <p className={styles["note"]}>
+                  <NumberText>{failure}</NumberText>
+                </p>
               )}
             </section>
           </div>

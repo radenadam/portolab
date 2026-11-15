@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { Form } from "react-router";
 import {
@@ -163,11 +164,13 @@ function OrderFields({
         defaultValue={fields.reason}
       />
       <p className={formStyles["hint"]}>
-        {m.trading_day_notice({
-          date: formatCalendarDate(day.date),
-          start: formatMarketClock(day.tradesFrom),
-          end: formatMarketClock(day.expiresAt),
-        })}
+        <NumberText>
+          {m.trading_day_notice({
+            date: formatCalendarDate(day.date),
+            start: formatMarketClock(day.tradesFrom),
+            end: formatMarketClock(day.expiresAt),
+          })}
+        </NumberText>
       </p>
       <SubmitButton label={m.trading_place_label()} />
     </Form>

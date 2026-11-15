@@ -1,4 +1,4 @@
-import { renderToStaticMarkup } from "react-dom/server";
+import { renderTextMarkupForTest } from "~/render-text-markup-for-test";
 import { expect, test } from "vitest";
 import { languageNames } from "~/language-names";
 import { locales } from "~/paraglide/runtime.js";
@@ -64,7 +64,7 @@ function render(
     },
     { name: "IHSG", kind: "reference", valueOf: (point) => point.market },
   ];
-  return renderToStaticMarkup(
+  return renderTextMarkupForTest(
     <TimeChart
       points={chartPoints}
       lines={lines.slice(0, lineCount)}
@@ -72,7 +72,7 @@ function render(
       dateLabel={texts[locale].dateLabel}
       tableLabel={texts[locale].tableLabel}
     />,
-  ).replaceAll(/ class="[^"]*"/g, "");
+  ).replaceAll(/ (?:class|data-line)="[^"]*"/g, "");
 }
 
 function line(path: string, dot: string): string {

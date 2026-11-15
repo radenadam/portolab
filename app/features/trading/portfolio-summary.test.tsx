@@ -1,4 +1,4 @@
-import { renderToStaticMarkup } from "react-dom/server";
+import { renderTextMarkupForTest } from "~/render-text-markup-for-test";
 import { expect, test } from "vitest";
 import { languageNames } from "~/language-names";
 import { locales } from "~/paraglide/runtime.js";
@@ -89,7 +89,7 @@ for (const locale of locales) {
   test(`shows the cash, what the open buy orders set aside, and the cash that is left, in ${language}`, () => {
     switchLocaleForTest(locale);
     expect(
-      renderToStaticMarkup(
+      renderTextMarkupForTest(
         <CashSummary
           cash={account.cash}
           orders={[...purchases, oneLotSale]}
@@ -101,7 +101,7 @@ for (const locale of locales) {
 
   test(`shows each holding with its shares, its cost, and what one open sale or several set aside of it, in ${language}`, () => {
     switchLocaleForTest(locale);
-    const withOneSale = renderToStaticMarkup(
+    const withOneSale = renderTextMarkupForTest(
       <HoldingList
         holdings={[bbcaHolding]}
         orders={[oneLotSale]}
@@ -112,7 +112,7 @@ for (const locale of locales) {
       expect(withOneSale).toContain(sentence);
     }
     expect(
-      renderToStaticMarkup(
+      renderTextMarkupForTest(
         <HoldingList
           holdings={[bbcaHolding]}
           orders={[oneLotSale, oneLotSale]}
@@ -124,7 +124,7 @@ for (const locale of locales) {
 
   test(`shows a holding of 1 share in the singular, and no sale for a holding that no order sells, in ${language}`, () => {
     switchLocaleForTest(locale);
-    const html = renderToStaticMarkup(
+    const html = renderTextMarkupForTest(
       <HoldingList
         holdings={[oneShare]}
         orders={[oneLotSale]}
@@ -138,7 +138,7 @@ for (const locale of locales) {
   test(`says that the portfolio holds no shares, in ${language}`, () => {
     switchLocaleForTest(locale);
     expect(
-      renderToStaticMarkup(
+      renderTextMarkupForTest(
         <HoldingList holdings={[]} orders={[]} now={duringSessionForTest} />,
       ),
     ).toBe(text.noHoldings);

@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { data, Link } from "react-router";
 import { databaseContext } from "~/database/database.server";
@@ -109,7 +110,9 @@ export default function ClassPage({
     case "lecturer":
       return (
         <>
-          <h1>{loaderData.name}</h1>
+          <h1>
+            <NumberText verbatim>{loaderData.name}</NumberText>
+          </h1>
           <JoinDetails
             joinCode={loaderData.joinCode}
             joinAddresses={loaderData.joinAddresses}
@@ -121,7 +124,7 @@ export default function ClassPage({
             role={loaderData.role}
           />
           <Link to={calendarPath(loaderData.id)} className={styles["link"]}>
-            {m.classes_calendar_link()}
+            <NumberText>{m.classes_calendar_link()}</NumberText>
           </Link>
           <h2>{m.classes_students_title()}</h2>
           <Link
@@ -152,18 +155,26 @@ function Students({
     <ul className={styles["list"]}>
       {students.map((student) => (
         <li key={student.id} className={styles["item"]}>
-          <strong className={styles["name"]}>{student.name}</strong>
+          <strong className={styles["name"]}>
+            <NumberText verbatim>{student.name}</NumberText>
+          </strong>
           <p className={styles["details"]}>
-            {m.classes_student_notice({
-              username: student.username,
-              time: formatMarketTime(student.joinedAt),
-            })}
+            <NumberText>
+              {(textValue) =>
+                m.classes_student_notice({
+                  username: textValue(student.username),
+                  time: formatMarketTime(student.joinedAt),
+                })
+              }
+            </NumberText>
           </p>
           <Link
             to={resetStudentPasswordPath(classId, student.id)}
             className={styles["link"]}
           >
-            {m.classes_reset_password_link({ name: student.name })}
+            <NumberText verbatim>
+              {m.classes_reset_password_link({ name: student.name })}
+            </NumberText>
           </Link>
         </li>
       ))}

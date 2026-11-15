@@ -16,7 +16,6 @@ const texts: Record<Locale, readonly string[]> = {
     "Penutupan tersimpan dari 2 Jan 2026 sampai 30 Okt 2026 berkisar dari 1.000 sampai 2.000 rupiah per lembar.",
     "MIN = 1.000 pada 2 Jan 2026. MAX = 2.000 pada 30 Okt 2026.",
     "1.000 sampai 2.000",
-    "Penutupan tersimpan dari 2 Jan 2026 sampai 30 Okt 2026.",
   ],
   en: [
     "52-week range",
@@ -24,7 +23,6 @@ const texts: Record<Locale, readonly string[]> = {
     "Stored closes from Jan 2, 2026 to Oct 30, 2026 range from 1,000 to 2,000 rupiah per share.",
     "MIN = 1,000 on Jan 2, 2026. MAX = 2,000 on Oct 30, 2026.",
     "1,000 to 2,000",
-    "Stored closes from Jan 2, 2026 to Oct 30, 2026.",
   ],
 };
 const noCloses: Record<Locale, string> = {

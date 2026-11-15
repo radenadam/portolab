@@ -1,3 +1,4 @@
+import { screenshotFullHeight } from "./screenshot-full-height.ts";
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import { tokenColor } from "./token-color.ts";
@@ -18,6 +19,7 @@ const texts: Record<
     held: string;
     position: string;
     statistics: string;
+    statisticsWindow: string;
     chart: string;
     chartLast: string;
     range: string;
@@ -33,18 +35,21 @@ const texts: Record<
     trade: string;
     rangeHelp: string;
     betaHelp: string;
+    portfolioQuotes: string;
   }
 > = {
   id: {
+    portfolioQuotes: "Waktu harga portofolio di Beranda",
     rangeHelp: "Apa itu Rentang 52 minggu?",
-    betaHelp: "Apa itu Beta terhadap IHSG?",
+    betaHelp: "Apa itu Beta?",
     quote: "30 Okt 2026, 16.14 · penutupan sebelumnya Rp 4.940",
     trade: "Order saham",
     title: "Saham BBCA",
     back: "Kembali ke Pasar",
-    held: "Ada di portofolio Anda",
+    held: "Keuangan · LQ45 · ada di portofolio Anda",
     position: "Posisi Anda",
     statistics: "Statistik",
+    statisticsWindow: "β, σ, E(R): 60 imbal hasil bulanan sampai Sep 2026",
     chart: "Harga penutupan BBCA",
     chartLast: "30 Okt 2026: BBCA Rp\u00a04.980",
     range: "Rentang grafik harga",
@@ -59,15 +64,17 @@ const texts: Record<
       "Belum ada harga penutupan dalam rentang ini. Periksa kembali setelah pembaruan riwayat harga menyimpan penutupan dalam rentang ini.",
   },
   en: {
+    portfolioQuotes: "Portfolio quote times in Home",
     rangeHelp: "What is 52-week range?",
-    betaHelp: "What is Beta against the IHSG?",
+    betaHelp: "What is Beta?",
     quote: "Oct 30, 2026, 4:14 PM · previous close IDR 4,940",
     trade: "Stock order",
     title: "BBCA stock",
     back: "Back to Market",
-    held: "Held in your portfolio",
+    held: "Financials · LQ45 · held in your portfolio",
     position: "Your position",
     statistics: "Statistics",
+    statisticsWindow: "β, σ, E(R): 60 monthly returns through Sep 2026",
     chart: "BBCA closing prices",
     chartLast: "Oct 30, 2026: BBCA IDR\u00a04,980",
     range: "Price chart range",
@@ -84,6 +91,17 @@ const texts: Record<
 };
 
 async function expectChangeInk(page: Page): Promise<void> {
+  const chartTokens = {
+    rise: "--color-gain",
+    fall: "--color-loss",
+    none: "--color-muted",
+  } as const;
+  for (const [direction, token] of Object.entries(chartTokens)) {
+    for (const line of await page
+      .locator(`[data-line="${direction}"] path[vector-effect]`)
+      .all())
+      await expect(line).toHaveCSS("stroke", await tokenColor(page, token));
+  }
   const tokens = {
     rise: {
       ink: "--color-gain",
@@ -139,6 +157,21 @@ for (const locale of locales) {
     await expect(
       student.getByRole("heading", { name: text.statistics }),
     ).toBeVisible();
+    await expect(
+      student.getByText(text.statisticsWindow, { exact: true }),
+    ).toBeVisible();
+    const quoteTimes = student.getByRole("link", {
+      name: text.portfolioQuotes,
+    });
+    await expect(quoteTimes).toBeVisible();
+    await expect(quoteTimes).toHaveAttribute(
+      "href",
+      `${classPath}#home-holdings-heading`,
+    );
+    await quoteTimes.click();
+    await expect(student.locator("#home-holdings-heading")).toBeInViewport();
+    await student.goBack();
+    await expect(student).toHaveURL(path);
     const range = student.getByRole("navigation", { name: text.range });
     await expect(range.getByRole("link")).toHaveText(text.ranges);
     const values = ["1m", "3m", "1y", "5y"];
@@ -187,11 +220,10 @@ for (const locale of locales) {
         } else {
           expect(beta.top).toBeCloseTo(rangeGroup.top, 0);
         }
-        await student.screenshot({
+        await screenshotFullHeight(student, {
           path: testInfo.outputPath(
             `stock-${locale}-${String(width)}-${colorScheme}.png`,
           ),
-          fullPage: true,
         });
       }
     }
@@ -258,6 +290,9 @@ for (const locale of locales) {
         locale,
         path: "/stocks/BBCA",
       });
+      await expect(
+        page.getByRole("link", { name: text.portfolioQuotes }),
+      ).toHaveCount(0);
       await expect(page.getByRole("slider")).toHaveCount(0);
       await expect(page.locator("main svg path").first()).toBeVisible();
       await page

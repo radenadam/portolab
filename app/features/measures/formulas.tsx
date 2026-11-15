@@ -1,19 +1,8 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
-import {
-  formatBeta,
-  formatNumber,
-  formatPercent,
-  formatVariance,
-} from "~/formatting";
-import type { Beta } from "~/units/beta";
+import { formatNumber, formatPercent, formatVariance } from "~/formatting";
 import type { MonthlyVariance } from "~/units/monthly-variance";
-import type {
-  MarketLine,
-  RequiredReturnMeasure,
-  SecurityMarketLineMeasure,
-  StockMeasures,
-} from "./capm";
-import type { RiskFreeRateMeasure } from "./measure-risk-free-rate";
+import type { StockMeasures } from "./capm";
 import type { CorrelationMeasure } from "./return-statistics";
 
 // Decision 0020 explains why a formula is markup and not a message, and what each symbol and subscript stands for.
@@ -55,7 +44,7 @@ export function Operand({
   value: number;
   text: string;
 }): ReactNode {
-  return value < 0 ? `(${text})` : text;
+  return <NumberText>{value < 0 ? `(${text})` : text}</NumberText>;
 }
 
 /** The symbol of the rate free of risk, R with the subscript f, which a chart writes as well. */
@@ -82,7 +71,7 @@ export function MeanFormula({
   return (
     <>
       <ExpectedReturn of={of} /> = Σ<Return of={of} /> / n, n ={" "}
-      {formatNumber(count)} (AVERAGE)
+      <NumberText>{formatNumber(count)}</NumberText> (AVERAGE)
     </>
   );
 }
@@ -91,7 +80,8 @@ export function MeanFormula({
 export function VarianceFormula({ of }: { of: Subject }): ReactNode {
   return (
     <>
-      σ²<sub>{of}</sub> = Σ<Deviation of={of} />² / (n − 1) (VAR.S)
+      σ²
+      <sub>{of}</sub> = Σ<Deviation of={of} />² / (n − 1) (VAR.S)
     </>
   );
 }
@@ -114,7 +104,8 @@ export function StandardDeviationFormula({
 }): ReactNode {
   return (
     <>
-      σ<sub>{of}</sub> = √σ²<sub>{of}</sub> = √{formatVariance(variance)}
+      σ<sub>{of}</sub> = √σ²
+      <sub>{of}</sub> = √<NumberText>{formatVariance(variance)}</NumberText>
       {standardDeviationFunctions[of]}
     </>
   );
@@ -154,14 +145,24 @@ export function CorrelationFormula({
   const pair = `${first}${second}`;
   return (
     <>
-      ρ<sub>{pair}</sub> = σ<sub>{pair}</sub> / (σ<sub>{first}</sub> σ
-      <sub>{second}</sub>)
+      ρ<sub>{pair}</sub> = σ<sub>{pair}</sub> / (σ
+      <sub>{first}</sub> σ<sub>{second}</sub>)
       {correlation !== undefined && (
         <>
           {" "}
-          = {formatVariance(correlation.inputs.covariance)} / (
-          {formatPercent(correlation.inputs.firstStandardDeviation, "two")} ×{" "}
-          {formatPercent(correlation.inputs.secondStandardDeviation, "two")})
+          ={" "}
+          <NumberText>
+            {formatVariance(correlation.inputs.covariance)}
+          </NumberText>{" "}
+          / (
+          <NumberText>
+            {formatPercent(correlation.inputs.firstStandardDeviation, "two")}
+          </NumberText>{" "}
+          ×{" "}
+          <NumberText>
+            {formatPercent(correlation.inputs.secondStandardDeviation, "two")}
+          </NumberText>
+          )
         </>
       )}{" "}
       (CORREL)
@@ -181,8 +182,12 @@ export function BetaFormula({
       {beta !== undefined && (
         <>
           {" "}
-          = {formatVariance(beta.inputs.covarianceWithMarket)} /{" "}
-          {formatVariance(beta.inputs.marketVariance)}
+          ={" "}
+          <NumberText>
+            {formatVariance(beta.inputs.covarianceWithMarket)}
+          </NumberText>{" "}
+          /{" "}
+          <NumberText>{formatVariance(beta.inputs.marketVariance)}</NumberText>
         </>
       )}{" "}
       (SLOPE)
@@ -217,89 +222,6 @@ export function PortfolioVarianceFormula(): ReactNode {
     <>
       σ²<sub>p</sub> = Σ<sub>i</sub> Σ<sub>j</sub> w<sub>i</sub> w<sub>j</sub> σ
       <sub>ij</sub> (MMULT)
-    </>
-  );
-}
-
-/** k = R_f + β(E(Rₘ) − R_f) with the numbers of a line, for a stock or a portfolio with the subscript and the number of its beta, or for the whole line with the symbol of beta. */
-function CapmFormula({
-  of,
-  line,
-  beta,
-}: {
-  of: Subject | undefined;
-  line: MarketLine;
-  beta: Beta | undefined;
-}): ReactNode {
-  const riskFree = formatPercent(line.riskFreeRate, "two");
-  const subscript = of === undefined ? null : <sub>{of}</sub>;
-  return (
-    <>
-      k{subscript} = <RiskFree /> + β{subscript}(
-      <ExpectedReturn of="M" /> − <RiskFree />) = {riskFree} +{" "}
-      {beta === undefined ? (
-        "β"
-      ) : (
-        <Operand value={beta} text={formatBeta(beta)} />
-      )}{" "}
-      × ({formatPercent(line.marketExpectedReturn, "two")} − {riskFree})
-    </>
-  );
-}
-
-/** kᵢ = R_f + βᵢ(E(Rₘ) − R_f), with the rate free of risk, the beta, and the expected return of the market. */
-export function RequiredReturnFormula({
-  of,
-  required,
-}: {
-  of: Subject;
-  required: RequiredReturnMeasure;
-}): ReactNode {
-  return (
-    <CapmFormula of={of} line={required.inputs} beta={required.inputs.beta} />
-  );
-}
-
-/** k = R_f + β(E(Rₘ) − R_f), the security market line, with the rate free of risk and the expected return of the market. */
-export function SecurityMarketLineFormula({
-  line,
-}: {
-  line: MarketLine;
-}): ReactNode {
-  return <CapmFormula of={undefined} line={line} beta={undefined} />;
-}
-
-/** αᵢ = E(Rᵢ) − kᵢ, with the expected return and the required return. */
-export function MarketLineFormula({
-  of,
-  distance,
-}: {
-  of: Subject;
-  distance: SecurityMarketLineMeasure;
-}): ReactNode {
-  return (
-    <>
-      α<sub>{of}</sub> = <ExpectedReturn of={of} /> − k<sub>{of}</sub> ={" "}
-      {formatPercent(distance.inputs.expectedReturn, "two")} −{" "}
-      <Operand
-        value={distance.inputs.requiredReturn}
-        text={formatPercent(distance.inputs.requiredReturn, "two")}
-      />
-    </>
-  );
-}
-
-/** R_f = BI-Rate / 12, with the yearly rate. */
-export function RiskFreeFormula({
-  rate,
-}: {
-  rate: RiskFreeRateMeasure;
-}): ReactNode {
-  const months = formatNumber(rate.inputs.monthsPerYear);
-  return (
-    <>
-      <RiskFree /> = BI-Rate / {months} ={" "}
-      {formatPercent(rate.inputs.annualRate)} / {months}
     </>
   );
 }

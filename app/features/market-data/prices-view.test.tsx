@@ -1,4 +1,4 @@
-import { renderToStaticMarkup } from "react-dom/server";
+import { renderTextMarkupForTest } from "~/render-text-markup-for-test";
 import { expect, test } from "vitest";
 import { languageNames } from "~/language-names";
 import { locales } from "~/paraglide/runtime.js";
@@ -277,7 +277,7 @@ for (const state of states) {
   for (const locale of locales) {
     test(`says the right thing for ${state.name} in ${languageNames[locale]}`, () => {
       switchLocaleForTest(locale);
-      const html = renderToStaticMarkup(
+      const html = renderTextMarkupForTest(
         <PricesView
           quotes={state.quotes}
           latestAttempt={state.latestAttempt}
@@ -311,7 +311,7 @@ const quoteTimes: Record<
 for (const locale of locales) {
   test(`dates a price from another day than the newest one in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
-    const html = renderToStaticMarkup(
+    const html = renderTextMarkupForTest(
       <PricesView
         quotes={quotes}
         latestAttempt={succeededAttempt}
@@ -352,7 +352,7 @@ for (const failureKind of failureKinds) {
     for (const locale of locales) {
       test(`says when the job tries again for ${failureKind.name} ${scheduleState.name} in ${languageNames[locale]}`, () => {
         switchLocaleForTest(locale);
-        const html = renderToStaticMarkup(
+        const html = renderTextMarkupForTest(
           <PricesView
             quotes={failureKind.quotes}
             latestAttempt={attemptInStateForTest(scheduleState, failureKind)}
@@ -387,7 +387,7 @@ const licensedDelayNotices: Record<Locale, string> = {
 for (const locale of locales) {
   test(`names the source of the prices and its delay in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
-    const html = renderToStaticMarkup(
+    const html = renderTextMarkupForTest(
       <PricesView
         quotes={quotes}
         latestAttempt={succeededAttempt}
@@ -412,7 +412,7 @@ const zeroChanges: Record<Locale, string> = { id: ">0,00%<", en: ">0.00%<" };
 for (const locale of locales) {
   test(`shows no arrow and no sign for a change that rounds to zero in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
-    const html = renderToStaticMarkup(
+    const html = renderTextMarkupForTest(
       <PricesView
         quotes={[roundedToZero]}
         latestAttempt={succeededAttempt}
@@ -445,7 +445,7 @@ const stockCells: Record<Locale, readonly string[]> = {
 for (const locale of locales) {
   test(`names the company of each stock under its code with its sector, beside the tile of the company, in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
-    const html = renderToStaticMarkup(
+    const html = renderTextMarkupForTest(
       <PricesView
         quotes={quotes}
         latestAttempt={succeededAttempt}

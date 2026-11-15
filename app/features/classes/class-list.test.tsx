@@ -1,4 +1,4 @@
-import { renderToStaticMarkup } from "react-dom/server";
+import { renderTextMarkupForTest } from "~/render-text-markup-for-test";
 import { expect, test } from "vitest";
 import type { Role } from "~/features/accounts/accounts.schema";
 import { languageNames } from "~/language-names";
@@ -26,9 +26,9 @@ for (const locale of locales) {
   test(`tells a lecturer and a student without a class what each can do in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     for (const role of ["lecturer", "student"] as const) {
-      expect(renderToStaticMarkup(<ClassList role={role} classes={[]} />)).toBe(
-        `<p>${texts[locale][role]}</p>`,
-      );
+      expect(
+        renderTextMarkupForTest(<ClassList role={role} classes={[]} />),
+      ).toBe(`<p>${texts[locale][role]}</p>`);
     }
   });
 }

@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { ChangeText } from "~/change-text";
@@ -33,15 +34,17 @@ export function HomeMapTable({
             <tr key={point.key}>
               <th scope="row">
                 {point.mark.kind === "held" ? (
-                  <Link to={stockPath(classId, point.key)}>{point.name}</Link>
+                  <Link to={stockPath(classId, point.key)}>
+                    <NumberText verbatim>{point.name}</NumberText>
+                  </Link>
                 ) : (
-                  point.name
+                  <NumberText verbatim>{point.name}</NumberText>
                 )}
               </th>
               {point.values.slice(0, 2).map(({ name, value }) => (
                 <td key={name}>
                   {typeof value === "string" ? (
-                    value
+                    <NumberText>{value}</NumberText>
                   ) : (
                     <ChangeText change={value} />
                   )}

@@ -27,14 +27,17 @@ export function monthSpanOf(returns: readonly ReturnMeasure[]): MonthSpan {
 }
 
 /** The inputs of a text that names the months of measures: the number of returns with its noun, and the first and the last month in words. */
-export function monthSpanInputs(span: MonthSpan): {
+export function monthSpanInputs(
+  span: MonthSpan,
+  month: "long" | "short" = "long",
+): {
   returns: string;
   first: string;
   last: string;
 } {
   return {
     returns: monthlyReturnCount(span.count),
-    first: formatMonth(span.first),
-    last: formatMonth(span.last),
+    first: formatMonth(span.first, month),
+    last: formatMonth(span.last, month),
   };
 }

@@ -1,4 +1,5 @@
 import styles from "./home-portfolio.module.css";
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { priceChange } from "~/features/market-data/price-change";
 import {
@@ -23,7 +24,9 @@ export function HomeHoldingPrice({
     <>
       {holding.kind === "priced" ? (
         <>
-          <span>{formatNumber(holding.quote.price)}</span>
+          <span>
+            <NumberText>{formatNumber(holding.quote.price)}</NumberText>
+          </span>
           <small>
             <ChangeText
               colored
@@ -34,9 +37,11 @@ export function HomeHoldingPrice({
           </small>
           {formatMarketTime(holding.quote.quotedAt) !== sharedTime && (
             <small className={styles["quoteTime"]}>
-              {m.trading_home_price_time_notice({
-                time: formatMarketTime(holding.quote.quotedAt),
-              })}
+              <NumberText>
+                {m.trading_home_price_time_notice({
+                  time: formatMarketTime(holding.quote.quotedAt),
+                })}
+              </NumberText>
             </small>
           )}
           {failed && <small>{m.trading_home_quote_failed_notice()}</small>}

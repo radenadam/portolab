@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { isRouteErrorResponse, Link } from "react-router";
 import formStyles from "./form.module.css";
@@ -20,7 +21,9 @@ export function ErrorPage({
 }: ErrorPageProps): ReactNode {
   return (
     <FormPage title={title}>
-      <p>{body}</p>
+      <p>
+        <NumberText>{body}</NumberText>
+      </p>
       {nextStep ?? <NextStepLink to="/" label={m.app_back_home_link()} />}
     </FormPage>
   );
@@ -36,7 +39,7 @@ export function NextStepLink({
 }): ReactNode {
   return (
     <Link to={to} className={formStyles["stepButton"]}>
-      {label}
+      <NumberText>{label}</NumberText>
     </Link>
   );
 }

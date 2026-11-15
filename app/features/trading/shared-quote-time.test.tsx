@@ -1,4 +1,4 @@
-import { renderToStaticMarkup } from "react-dom/server";
+import { renderTextMarkupForTest } from "~/render-text-markup-for-test";
 import { expect, test } from "vitest";
 import { stockQuote } from "~/features/market-data/stock-quote";
 import { valuationForTest } from "~/features/measures/measures-for-test.server";
@@ -26,7 +26,7 @@ for (const locale of locales) {
     expect(shared).toBe(times[locale][0]);
     for (const holding of valuation.holdings)
       expect(
-        renderToStaticMarkup(
+        renderTextMarkupForTest(
           <HomeHoldingPrice
             holding={holding}
             failed={false}
@@ -49,7 +49,7 @@ for (const locale of locales) {
     expect(sharedQuoteTime([...valuation.holdings, ...older])).toBe(shared);
     for (const holding of older)
       expect(
-        renderToStaticMarkup(
+        renderTextMarkupForTest(
           <HomeHoldingPrice
             holding={holding}
             failed={false}
