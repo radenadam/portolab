@@ -10,6 +10,7 @@ import { stockQuotes, indexQuotes } from "./market-data.schema";
 import { readMarket } from "./read-market.server";
 import {
   marketViewPropsForTest,
+  marketRowForTest,
   renderMarketForTest,
 } from "./market-view-for-test";
 
@@ -39,15 +40,6 @@ const texts: Record<
   },
 };
 
-function stockRow(html: string, code: string): string {
-  const row = new RegExp(`<tr[^>]*id="stock-${code}"[^>]*>(.*?)</tr>`).exec(
-    html,
-  )?.[1];
-  if (row === undefined)
-    throw new Error(`The market row of ${code} is missing.`);
-  return row;
-}
-
 for (const locale of locales) {
   test(`states one shared quote time and keeps exceptions beside their prices in ${languageNames[locale]}`, async () => {
     switchLocaleForTest(locale);
@@ -55,29 +47,29 @@ for (const locale of locales) {
     const html = renderMarketForTest(props);
     expect(html.split(texts[locale].shared)).toHaveLength(2);
     for (const code of ["BBCA", "TLKM", "GOTO", "UNVR"])
-      expect(stockRow(html, code)).not.toContain("<time");
+      expect(marketRowForTest(html, code)).not.toContain("<time");
     for (const [code, date] of [
       ["BMRI", "2026-10-29T"],
       ["KLBF", "2026-10-30T09:13:"],
       ["ITMG", "2026-10-30T09:10:"],
     ] as const)
-      expect(stockRow(html, code)).toMatch(
+      expect(marketRowForTest(html, code)).toMatch(
         new RegExp(`<time datetime="${date}`, "i"),
       );
-    expect(stockRow(html, "WIFI")).toContain(texts[locale].missing);
-    expect(stockRow(html, "WIFI")).not.toContain("<time");
+    expect(marketRowForTest(html, "WIFI")).toContain(texts[locale].missing);
+    expect(marketRowForTest(html, "WIFI")).not.toContain("<time");
     const single = renderMarketForTest(props, {
       filters: { ...defaultMarketFilters, query: "BBCA" },
     });
     expect(single).not.toContain(texts[locale].shared);
-    expect(stockRow(single, "BBCA")).toContain("<time");
+    expect(marketRowForTest(single, "BBCA")).toContain("<time");
   });
 
   test(`keeps missing measures in value cells and explains each reason once below the table in ${languageNames[locale]}`, async () => {
     switchLocaleForTest(locale);
     const props = await marketViewPropsForTest();
     const html = renderMarketForTest(props);
-    const row = stockRow(html, "GOTO");
+    const row = marketRowForTest(html, "GOTO");
     expect(row.match(/aria-describedby="market-measure-notes"/g)).toHaveLength(
       2,
     );

@@ -9,6 +9,15 @@ import { readMarket } from "./read-market.server";
 
 type Props = ComponentProps<typeof MarketView>;
 
+export function marketRowForTest(html: string, code: string): string {
+  const row = new RegExp(`<tr[^>]*id="stock-${code}"[^>]*>(.*?)</tr>`).exec(
+    html,
+  )?.[1];
+  if (row === undefined)
+    throw new Error(`The market row of ${code} is missing.`);
+  return row;
+}
+
 export function renderMarketForTest(
   props: Props,
   overrides: Partial<Props> = {},

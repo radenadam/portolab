@@ -9,7 +9,7 @@ import { chooseLanguage } from "./choose-language.ts";
 import { expectMarketPriceNotes } from "./expect-market-price-notes.ts";
 
 // The server runs with the fixture price source, and fixture-price-source.server.ts describes its quotes. ITMG has the highest price of the universe, the quotes of GOTO and BMRI hold the widest change and a date from an earlier day, and the table names the company of every stock with a price, so it holds the widest content of each column. Every update lacks UNVR, whose quote the global setup stored before the server started, and WIFI, of which Portolab has no price. The notice of those prices is a tuple of its parts around the time of the latest update, and the time of the next attempt depends on the moment of the test.
-// The expected changes of ERAA, GGRM, and PWON were computed from the fixture closes with Python's decimal module and ROUND_HALF_UP, so they check the rounded signs independently.
+// Python's decimal module and ROUND_HALF_UP give the expected daily changes independently of the formatter.
 
 const texts: Record<
   Locale,

@@ -1,6 +1,7 @@
 import type { Beta } from "~/units/beta";
 import type { MonthlyReturn } from "~/units/monthly-return";
 import type { SplitAdjustedRupiah } from "~/units/split-adjusted-rupiah";
+import { getLocale } from "~/paraglide/runtime.js";
 import { companyOf } from "./company-of";
 import type { MarketFilters, MarketSort } from "./market-filters";
 import type { StockQuote } from "./price-source.server";
@@ -25,6 +26,7 @@ export function filterMarketRows(
 ): MarketRow[] {
   // A device can use another language than Portolab, so search must use the same casing in the server and browser.
   const query = filters.query.trim().toLowerCase();
+  const collator = new Intl.Collator(getLocale());
   return rows
     .filter((row) => {
       const company = companyOf(row.code);
@@ -39,16 +41,16 @@ export function filterMarketRows(
       const secondValue = sortValue(second, filters.sort);
       if (firstValue === undefined)
         return secondValue === undefined
-          ? first.code.localeCompare(second.code)
+          ? collator.compare(first.code, second.code)
           : 1;
       if (secondValue === undefined) return -1;
       const comparison =
         typeof firstValue === "string" && typeof secondValue === "string"
-          ? firstValue.localeCompare(secondValue)
+          ? collator.compare(firstValue, secondValue)
           : Number(firstValue) - Number(secondValue);
       return (
         directions[filters.direction] * comparison ||
-        first.code.localeCompare(second.code)
+        collator.compare(first.code, second.code)
       );
     });
 }
