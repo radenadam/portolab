@@ -74,7 +74,7 @@ export function ClassOverviewView({
                           classMapPath(classId, axis),
                         )}
                       >
-                        <NumberText>{student.name}</NumberText>
+                        {student.name}
                       </Link>
                     </th>
                     <td data-label={m.classes_map_return_label()}>
@@ -91,7 +91,7 @@ export function ClassOverviewView({
                     </td>
                     <td data-label={m.classes_map_risk_label()}>
                       {student.risk === undefined ? (
-                        <NumberText>{student.reason}</NumberText>
+                        measureReason(student.reasonParts, student.name)
                       ) : (
                         <>
                           {m.classes_map_beta_label()}{" "}
@@ -125,4 +125,21 @@ export function ClassOverviewView({
       </details>
     </div>
   );
+}
+
+function measureReason(
+  parts: readonly string[] | undefined,
+  name: string,
+): ReactNode {
+  let text: ReactNode;
+  for (const part of parts ?? []) {
+    text = (
+      <>
+        {text}
+        {text !== undefined && name}
+        <NumberText>{part}</NumberText>
+      </>
+    );
+  }
+  return text;
 }

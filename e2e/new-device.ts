@@ -9,11 +9,15 @@ export async function newDevice(
   locale: Locale,
   {
     siteUrl = test.info().project.use.baseURL,
+    sessionFrom,
     ...settings
   }: { siteUrl?: string | undefined } & Pick<
     BrowserContextOptions,
     "javaScriptEnabled" | "storageState"
-  > = {},
+  > &
+    (
+      { sessionFrom?: never } | { sessionFrom: Page; storageState?: never }
+    ) = {},
 ): Promise<Page> {
   const { viewport, userAgent, deviceScaleFactor, isMobile, hasTouch } =
     test.info().project.use;
@@ -25,6 +29,9 @@ export async function newDevice(
     ...(isMobile === undefined ? {} : { isMobile }),
     ...(hasTouch === undefined ? {} : { hasTouch }),
     ...settings,
+    ...(sessionFrom === undefined
+      ? {}
+      : { storageState: await sessionFrom.context().storageState() }),
   });
   const page = await context.newPage();
   await chooseLanguage(page, locale);

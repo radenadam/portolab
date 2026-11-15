@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { numberPattern } from "./number-pattern";
 import styles from "./number-text.module.css";
 
-/** Prose may wrap between words, but a number keeps its digits, sign, arrow, and unit together before JavaScript loads too. SVG text already stays on one line, so this renderer belongs only in HTML. */
+/** Formatted quantities keep their digits, sign, arrow, and unit together before JavaScript loads too. Names and identifiers can need to wrap. SVG text already stays on one line, so this renderer belongs only in HTML. */
 export function NumberText({
   children,
   whole = false,

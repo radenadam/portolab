@@ -17,6 +17,9 @@ import { listStudents } from "./class-store.server";
 import type { ClassStudent, TaughtClassRecord } from "./class-store.server";
 import { classSummary } from "./class-summary";
 
+// A name stays opaque when the view keeps formatted quantities together.
+const studentNameBoundary = "\u0000";
+
 type OverviewClass = Pick<TaughtClassRecord, "id" | "startingCash">;
 
 interface OverviewStudent extends Pick<
@@ -28,7 +31,7 @@ interface OverviewStudent extends Pick<
   risk:
     | { beta: Beta; standardDeviation: MonthlyReturn; alpha: MonthlyReturn }
     | undefined;
-  reason: string | undefined;
+  reasonParts: string[] | undefined;
   ordersThisWeek: number;
   lastOrder: string;
   priceTimes: string;
@@ -128,7 +131,7 @@ function readOverviewStudent(
   );
   const measures = explainPortfolioMeasures(
     readPortfolioMeasures(database, report.valuation),
-    { kind: "lecturer", studentName: student.name },
+    { kind: "lecturer", studentName: studentNameBoundary },
   );
   const prices = portfolioPriceTimes(report);
   return {
@@ -148,7 +151,9 @@ function readOverviewStudent(
             alpha: measures.value.securityMarketLine.value,
           }
         : undefined,
-      reason: measures.ok ? undefined : measures.failure,
+      reasonParts: measures.ok
+        ? undefined
+        : measures.failure.split(studentNameBoundary),
       ...orderActivity(portfolio.orders, options.now),
       priceTimes: prices.text,
     },

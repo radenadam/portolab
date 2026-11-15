@@ -3,8 +3,8 @@ import { signInAsNewLecturer } from "./accounts.ts";
 import { createTestClass } from "./create-test-class.ts";
 import { languageNames } from "../app/language-names.ts";
 import { expect, test } from "@playwright/test";
-import { eq } from "drizzle-orm";
-import { memberships } from "../app/features/classes/classes.schema.ts";
+import type { ClassId } from "../app/features/classes/classes.schema.ts";
+import { storeTestJoiningTime } from "./store-test-joining-time.ts";
 import type { Locale } from "../app/paraglide/runtime.js";
 import { locales } from "../app/paraglide/runtime.js";
 import { bbcaHolding } from "./bbca-holding.ts";
@@ -76,6 +76,8 @@ const texts: Record<
   },
 };
 
+const classMapJoinedAt = new Date("2026-10-26T03:00:00Z");
+
 const labelScenarios: {
   width: number;
   axis: string;
@@ -99,7 +101,7 @@ for (const locale of locales) {
     const taught = await createTestClass(page, widestClassNames.className);
     const plain = await newDevice(browser, locale, {
       javaScriptEnabled: false,
-      storageState: await page.context().storageState(),
+      sessionFrom: page,
     });
     try {
       for (const screen of [page, plain]) {
@@ -121,6 +123,55 @@ for (const locale of locales) {
       await plain.context().close();
     }
   });
+  test(`keeps a numeric student name inside the map tooltip and data table in ${languageNames[locale]}`, async ({
+    page,
+    browser,
+  }) => {
+    const studentName = "9".repeat(widestClassNames.studentName.length);
+    const { student, classId, classPath } = await studentOfNewClass(
+      page,
+      browser,
+      { locale, ...widestClassNames, studentName },
+    );
+    const plain = await newDevice(browser, locale, {
+      javaScriptEnabled: false,
+      sessionFrom: page,
+    });
+    try {
+      for (const screen of [page, plain]) {
+        await screen.goto(classPath);
+        await screen.getByText(texts[locale].table, { exact: true }).click();
+        expect(await layoutProblems(screen)).toEqual([]);
+      }
+      storeClassMapHolding(classId);
+      for (const screen of [page, plain]) {
+        await screen.goto(classPath);
+        if (screen === page) {
+          const map = screen.getByRole("slider", { name: texts[locale].title });
+          await map.focus();
+          await screen.keyboard.press("Home");
+          await expect(
+            screen
+              .locator("main p")
+              .filter({ hasText: new RegExp(`^${studentName}$`) }),
+          ).toBeVisible();
+          expect(await layoutProblems(screen)).toEqual([]);
+          await screen.keyboard.press("Escape");
+        }
+        await screen.getByText(texts[locale].table, { exact: true }).click();
+        await expect(
+          screen
+            .locator("main table")
+            .getByRole("link", { name: studentName, exact: true }),
+        ).toBeVisible();
+        expect(await layoutProblems(screen)).toEqual([]);
+      }
+    } finally {
+      await plain.context().close();
+      await student.context().close();
+    }
+  });
+
   test(`keeps fixed map labels clear of a crowded class at every reference width, with and without JavaScript, in ${languageNames[locale]}`, async ({
     page,
     browser,
@@ -130,20 +181,12 @@ for (const locale of locales) {
       browser,
       { locale, ...widestClassNames },
     );
-    const joinedAt = new Date("2026-10-26T03:00:00Z");
-    storeTestHolding(classId, bbcaHolding);
-    writeForTestStudent(classId, (database, membershipId) => {
-      database
-        .update(memberships)
-        .set({ joinedAt })
-        .where(eq(memberships.id, membershipId))
-        .run();
-    });
+    storeClassMapHolding(classId);
     const studentCount = 12;
-    await fillClassMap(classId, { studentCount, now: joinedAt });
+    await fillClassMap(classId, { studentCount, now: classMapJoinedAt });
     const plain = await newDevice(browser, locale, {
       javaScriptEnabled: false,
-      storageState: await page.context().storageState(),
+      sessionFrom: page,
     });
     try {
       for (const screen of [page, plain]) {
@@ -231,14 +274,7 @@ for (const locale of locales) {
       browser,
       { locale, ...widestClassNames },
     );
-    storeTestHolding(classId, bbcaHolding);
-    writeForTestStudent(classId, (database, membershipId) => {
-      database
-        .update(memberships)
-        .set({ joinedAt: new Date("2026-10-26T03:00:00Z") })
-        .where(eq(memberships.id, membershipId))
-        .run();
-    });
+    storeClassMapHolding(classId);
     await page.goto(classPath);
     const map = page.getByRole("slider", { name: text.title });
     await expect(map).toBeVisible();
@@ -339,7 +375,7 @@ for (const locale of locales) {
 
     const plain = await newDevice(browser, locale, {
       javaScriptEnabled: false,
-      storageState: await page.context().storageState(),
+      sessionFrom: page,
     });
     await plain.goto(classPath);
     await expect(
@@ -362,5 +398,12 @@ for (const locale of locales) {
     ).toHaveCount(0);
     await plain.context().close();
     await student.context().close();
+  });
+}
+
+function storeClassMapHolding(classId: ClassId): void {
+  storeTestHolding(classId, bbcaHolding);
+  writeForTestStudent(classId, (database, membershipId) => {
+    storeTestJoiningTime(database, membershipId, classMapJoinedAt);
   });
 }

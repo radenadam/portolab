@@ -72,25 +72,31 @@ export function ClassMap({
           items={[
             {
               kind: "active",
-              name:
-                active === 1
-                  ? m.classes_one_active_student_label({
-                      count: formatNumber(active),
-                    })
-                  : m.classes_several_active_students_label({
-                      count: formatNumber(active),
-                    }),
+              name: (
+                <NumberText>
+                  {active === 1
+                    ? m.classes_one_active_student_label({
+                        count: formatNumber(active),
+                      })
+                    : m.classes_several_active_students_label({
+                        count: formatNumber(active),
+                      })}
+                </NumberText>
+              ),
             },
             {
               kind: "other",
-              name:
-                inactive === 1
-                  ? m.classes_one_inactive_student_label({
-                      count: formatNumber(inactive),
-                    })
-                  : m.classes_several_inactive_students_label({
-                      count: formatNumber(inactive),
-                    }),
+              name: (
+                <NumberText>
+                  {inactive === 1
+                    ? m.classes_one_inactive_student_label({
+                        count: formatNumber(inactive),
+                      })
+                    : m.classes_several_inactive_students_label({
+                        count: formatNumber(inactive),
+                      })}
+                </NumberText>
+              ),
             },
             { kind: "market", name: marketIndex.code },
           ]}

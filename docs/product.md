@@ -62,7 +62,7 @@ Each later release lets students practice the next course topic in the simulatio
 ## Constraints
 
 - **Platforms**: current browsers on phones, tablets, and computers, from a screen 360 pixels wide.
-- **Client code**: each route and the JavaScript shared by every route have budgets, as [decision 0038](decisions/0038-client-javascript-is-budgeted-by-route.md) explains. All client CSS has a budget too, as [decision 0042](decisions/0042-the-class-overview-keeps-a-measured-css-budget.md) explains.
+- **Client code**: each route and the JavaScript shared by every route have budgets, as [decision 0038](decisions/0038-client-javascript-is-budgeted-by-route.md) explains. Each route's CSS has a budget too, as [decision 0042](decisions/0042-client-css-is-budgeted-by-route.md) explains.
 - **Hosting**: one Linux VPS that the lecturer owns. Its owner deploys and updates Portolab from the public repository by following [the deployment guide](deploy.md), so the guide must work step by step on a fresh server, and also on a server that already runs other work, which the guide leaves as it is. Demonstrations also run on a laptop and serve phones on the same Wi-Fi network. The project uses no paid service.
 - **Market data**: delayed prices come from Yahoo Finance, which has no license for this use and limits automated requests. The source sits behind one interface, every price is cached, and the app keeps working with the last known prices when the source fails. A licensed source can replace it without changes elsewhere.
 - **Privacy**: Indonesia's personal data protection law applies. Portolab stores only what a class needs, asks for explicit consent, and holds no real financial data.

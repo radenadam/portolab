@@ -137,21 +137,22 @@ for (const locale of locales) {
       ),
     ).not.toContain("<p");
   });
-}
 
-test("shows the app icon with the name of Portolab where no part starts the top bar, and leaves out the tab bar without items and the profile without a person", () => {
-  const html = frameForTest({
-    frameItems: [],
-    start: undefined,
-    frameProfile: undefined,
+  test(`keeps the app icon named outside a workspace when the wordmark can be hidden in ${language}`, () => {
+    switchLocaleForTest(locale);
+    const html = frameForTest({
+      frameItems: [],
+      start: undefined,
+      frameProfile: undefined,
+    });
+    expect(html).toContain(
+      `<header><div data-layout="content"><a aria-label="Portolab" href="/" data-discover="true">${renderMarkupForTest(<AppIcon />)}<span>Portolab</span></a><div><span>tools</span><span>badge</span></div></div></header>`,
+    );
+    expect(html).not.toContain("popoverTarget");
+    expect(html).not.toContain("<ul>");
+    expect(html).toMatch(/<\/main><\/div><\/div>$/);
   });
-  expect(html).toContain(
-    `<header><div data-layout="content"><a href="/" data-discover="true">${renderMarkupForTest(<AppIcon />)}Portolab</a><div><span>tools</span><span>badge</span></div></div></header>`,
-  );
-  expect(html).not.toContain("popoverTarget");
-  expect(html).not.toContain("<ul>");
-  expect(html).toMatch(/<\/main><\/div><\/div>$/);
-});
+}
 
 test("places the right column under the header line or leaves it to a wide screen, with the main column after the header line", () => {
   const columns = (narrowPlacement: "first" | "hidden"): string =>

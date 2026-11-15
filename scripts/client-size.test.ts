@@ -12,35 +12,59 @@ function fixture() {
       file: "assets/bootstrap.js",
       isEntry: true,
       imports: ["vendor"],
+      css: ["assets/bootstrap.css"],
     },
     "app/root.tsx?route": {
       file: "assets/root.js",
       isEntry: true,
       imports: ["shared"],
+      css: ["assets/root.css"],
     },
     "app/class.tsx?route": {
       file: "assets/class.js",
       isEntry: true,
       imports: ["shared"],
+      css: ["assets/class.css"],
     },
     "app/market.tsx?route": {
       file: "assets/market.js",
       isEntry: true,
       imports: ["map"],
       dynamicImports: ["sheet"],
+      css: ["assets/market.css"],
     },
     "app/market.tsx?clientLoader": {
       file: "assets/client-loader.js",
       isEntry: true,
       imports: ["ticket"],
     },
-    "app/other.tsx?route": { file: "assets/other.js", isEntry: true },
+    "app/other.tsx?route": {
+      file: "assets/other.js",
+      isEntry: true,
+      css: ["assets/other.css"],
+    },
     vendor: { file: "assets/vendor.js", imports: ["shared"] },
-    shared: { file: "assets/shared.js", imports: ["vendor"] },
-    map: { file: "assets/map.js", imports: ["shared", "map-alias"] },
-    "map-alias": { file: "assets/map.js" },
-    sheet: { file: "assets/sheet.js", dynamicImports: ["ticket"] },
-    ticket: { file: "assets/ticket.js" },
+    shared: {
+      file: "assets/shared.js",
+      imports: ["vendor"],
+      css: ["assets/shared.css"],
+    },
+    map: {
+      file: "assets/map.js",
+      imports: ["shared", "map-alias", "stylesheet"],
+      css: ["assets/map.css"],
+    },
+    "map-alias": {
+      file: "assets/map.js",
+      css: ["assets/map.css", "assets/shared.css"],
+    },
+    sheet: {
+      file: "assets/sheet.js",
+      dynamicImports: ["ticket"],
+      css: ["assets/sheet.css"],
+    },
+    ticket: { file: "assets/ticket.js", css: ["assets/ticket.css"] },
+    stylesheet: { file: "assets/standalone.css" },
     font: { file: "assets/font.woff2" },
   };
   const routeManifest: Record<string, unknown> = {
@@ -57,15 +81,17 @@ function fixture() {
     parseClientRoutes(routeManifest, "routes.json"),
     "reads the route fixture",
   );
-  const files = [
-    ...new Set(
-      [...chunks.values()]
-        .filter((chunk) => chunk.file.endsWith(".js"))
-        .map((chunk) => `build/client/${chunk.file}`),
-    ),
+  const files = new Set([
     "build/client/assets/manifest-hash.js",
-  ];
-  return { chunks, routes, files };
+    "build/client/assets/manual.css",
+  ]);
+  for (const chunk of chunks.values()) {
+    if (chunk.file.endsWith(".js") || chunk.file.endsWith(".css"))
+      files.add(`build/client/${chunk.file}`);
+    for (const stylesheet of chunk.stylesheets)
+      files.add(`build/client/${stylesheet}`);
+  }
+  return { chunks, routes, files: [...files] };
 }
 
 test("budgets every route with its ancestors, split exports, static imports, and deferred enhancements", () => {
@@ -76,18 +102,24 @@ test("budgets every route with its ancestors, split exports, static imports, and
   );
   expect(checks.map((check) => [check.name, check.limit, check.gzip])).toEqual([
     ["Shared JavaScript", "140 kB", true],
+    ["Shared CSS", "20 kB", true],
     ["Route JavaScript: class", "200 kB", true],
+    ["Route CSS: class", "20 kB", true],
     ["Route JavaScript: market", "200 kB", true],
+    ["Route CSS: market", "20 kB", true],
     ["Route JavaScript: other", "200 kB", true],
+    ["Route CSS: other", "20 kB", true],
     ["All client JavaScript (report only)", undefined, true],
-    ["Client CSS", "21 kB", true],
+    ["All client CSS (report only)", undefined, true],
   ]);
   const shared = ["bootstrap", "root", "shared", "vendor"].map(
     (name) => `build/client/assets/${name}.js`,
   );
   const extra = "build/client/assets/manifest-hash.js";
   expect(checks[0]?.path).toEqual([...shared, extra]);
-  expect(checks[2]?.path).toEqual([
+  expect(
+    checks.find((check) => check.name === "Route JavaScript: market")?.path,
+  ).toEqual([
     ...[
       "bootstrap",
       "class",
@@ -102,11 +134,35 @@ test("budgets every route with its ancestors, split exports, static imports, and
     ].map((name) => `build/client/assets/${name}.js`),
     extra,
   ]);
-  expect(checks[3]?.path).toEqual(
-    [...shared, "build/client/assets/other.js"].sort().concat(extra),
-  );
+  expect(
+    checks.find((check) => check.name === "Route JavaScript: other")?.path,
+  ).toEqual([...shared, "build/client/assets/other.js"].sort().concat(extra));
   expect(checks.at(-2)?.path).toBe("build/client/**/*.js");
-  expect(checks.at(-1)?.path).toBe("build/client/assets/*.css");
+  expect(
+    checks.find((check) => check.name === "Route CSS: market")?.path,
+  ).toEqual([
+    ...[
+      "bootstrap",
+      "class",
+      "map",
+      "market",
+      "root",
+      "shared",
+      "sheet",
+      "standalone",
+      "ticket",
+    ].map((name) => `build/client/assets/${name}.css`),
+    "build/client/assets/manual.css",
+  ]);
+  expect(
+    checks.find((check) => check.name === "Route CSS: other")?.path,
+  ).toEqual([
+    ...["bootstrap", "other", "root", "shared"].map(
+      (name) => `build/client/assets/${name}.css`,
+    ),
+    "build/client/assets/manual.css",
+  ]);
+  expect(checks.at(-1)?.path).toBe("build/client/**/*.css");
 });
 
 test("discovers a new route without adding a budget entry by hand", () => {
@@ -116,6 +172,7 @@ test("discovers a new route without adding a budget entry by hand", () => {
     isEntry: true,
     imports: [],
     dynamicImports: [],
+    stylesheets: [],
   });
   routes.set("new", { file: "app/new.tsx", parentId: "root" });
   files.push("build/client/assets/new.js");
@@ -143,6 +200,44 @@ test("rejects missing files even when the other files of the route exist", () =>
   });
 });
 
+test("rejects a stylesheet missing from the build, including one shared by aliases", () => {
+  const { chunks, routes, files } = fixture();
+  expect(
+    clientSizeChecks(
+      chunks,
+      routes,
+      files.filter((file) => !file.endsWith("/map.css")),
+    ),
+  ).toEqual({
+    ok: false,
+    failure:
+      "The client build is missing CSS files: build/client/assets/map.css.",
+  });
+});
+
+test("counts a stylesheet without a route owner on every route even when the manifest lists its asset", () => {
+  const { chunks, routes, files } = fixture();
+  const path = "build/client/assets/unassigned.css";
+  chunks.set("unassigned", {
+    file: "assets/unassigned.css",
+    imports: [],
+    dynamicImports: [],
+    stylesheets: [],
+    isEntry: false,
+  });
+  files.push(path);
+  const checks = successValueForTest(
+    clientSizeChecks(chunks, routes, files),
+    "budgets the unassigned asset",
+  );
+  const stylesheets = checks.filter(
+    (check) =>
+      check.name === "Shared CSS" || check.name?.startsWith("Route CSS:"),
+  );
+  expect(stylesheets).toHaveLength(routes.size);
+  for (const stylesheet of stylesheets) expect(stylesheet.path).toContain(path);
+});
+
 const brokenGraphs: [
   string,
   (data: ReturnType<typeof fixture>) => void,
@@ -162,6 +257,7 @@ const brokenGraphs: [
         file: "unknown.js",
         imports: [],
         dynamicImports: [],
+        stylesheets: [],
         isEntry: true,
       });
     },
@@ -284,6 +380,18 @@ const invalidChunks: [unknown, string][] = [
   [
     { chunk: { file: "a.js", isEntry: "true" } },
     'vite.json: chunk.isEntry must be a boolean, but it is "true".',
+  ],
+  [
+    { chunk: { file: "a.js", css: [1] } },
+    "vite.json: chunk.css must be a list of nonempty stylesheet paths, but it is [1].",
+  ],
+  [
+    { chunk: { file: "a.js", css: null } },
+    "vite.json: chunk.css must be a list of nonempty stylesheet paths, but it is null.",
+  ],
+  [
+    { chunk: { file: "a.js", css: [""] } },
+    'vite.json: chunk.css must be a list of nonempty stylesheet paths, but it is [""].',
   ],
 ];
 for (const [value, failure] of invalidChunks) {

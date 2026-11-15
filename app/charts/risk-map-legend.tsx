@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { NumberText } from "~/number-text";
 import legendStyles from "~/chart-legend.module.css";
 import type { MarkKind } from "./map-drawing";
 import styles from "./risk-map.module.css";
@@ -21,14 +20,14 @@ const keyClasses: Record<MapKeyKind, string | undefined> = {
 export function RiskMapLegend({
   items,
 }: {
-  items: readonly { kind: MapKeyKind; name: string }[];
+  items: readonly { kind: MapKeyKind; name: ReactNode }[];
 }): ReactNode {
   return (
     <ul className={legendStyles["legend"]} aria-hidden>
       {items.map(({ kind, name }) => (
         <li key={kind} className={styles["legendItem"]}>
           <span className={keyClasses[kind]} />
-          <NumberText>{name}</NumberText>
+          {name}
         </li>
       ))}
     </ul>

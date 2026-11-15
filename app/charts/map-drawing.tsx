@@ -28,7 +28,7 @@ export interface DrawnPoint {
 /** How far the ring of a marked point stands outside its mark, in sizes of the text of the labels, which is also how far beyond its mark a point answers a pointer. */
 export const markReach = 0.33;
 
-// The marks of the stocks that the portfolio does not hold come first, so they never hide the marks of the portfolio, of its stocks, or of the IHSG, and the mark of the reader comes last.
+// Background context must not hide the subjects of the map or the reader's own mark.
 const drawOrder: Record<MarkKind, number> = {
   other: 0,
   classmate: -1,
@@ -42,7 +42,7 @@ const drawOrder: Record<MarkKind, number> = {
 const tickBaseline = 1.5;
 const titleBaseline = 3;
 
-/** The drawing of the map in its plot: the marks of both axes with their lines, the strong line through the risk of the IHSG, the name of the axis of risk, the dashed line at the return of the IHSG, the optional line through the IHSG, the mark of each point, a ring around the marked point, and the labels where they have a place. It also holds a hidden text in the font of the labels, which the browser measures each label with. Screen readers skip it. */
+/** Maps with different subjects share axes and label placement. A hidden text lets the browser measure labels in the font that draws them. */
 export function MapDrawing({
   layout,
   drawn,

@@ -252,14 +252,10 @@ function MapTip({
         ...tipDown(drawn.placed.position.y),
       }}
     >
-      <p className={styles["tipName"]}>
-        <NumberText>{drawn.point.name}</NumberText>
-      </p>
+      <p className={styles["tipName"]}>{drawn.point.name}</p>
       {drawn.point.values.map(({ name, value }) => (
         <p key={name} className={styles["tipValue"]}>
-          <span>
-            <NumberText>{name}</NumberText>
-          </span>
+          <span>{name}</span>
           <span className={styles["tipNumber"]}>
             <ValueText value={value} colored={coloredValues === true} />
           </span>
@@ -277,9 +273,11 @@ function ValueText({
   colored: boolean;
 }): ReactNode {
   return typeof value === "string" ? (
-    value
+    <NumberText>{value}</NumberText>
   ) : (
-    <ChangeText change={value} colored={colored} />
+    <NumberText whole>
+      <ChangeText change={value} colored={colored} />
+    </NumberText>
   );
 }
 
