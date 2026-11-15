@@ -1,3 +1,4 @@
+import type { PortfolioKind } from "./portfolio-store.server";
 import { useIsInBrowser } from "~/use-is-in-browser";
 import { TicketKind } from "./ticket-kind";
 import { ChangeText } from "~/change-text";
@@ -39,6 +40,7 @@ export function TicketForm({
   rejection,
   limitSteps,
   restoreDraft,
+  portfolioKind = "membership",
 }: {
   code: string;
   side: OrderSide;
@@ -49,9 +51,10 @@ export function TicketForm({
   rejection: OrderRejection | undefined;
   limitSteps: readonly Rupiah[] | undefined;
   restoreDraft: boolean;
+  portfolioKind?: PortfolioKind;
 }): ReactNode {
   const { day, quote } = ticket;
-  if (!day.ok) return <p>{orderFailureText(day.failure)}</p>;
+  if (!day.ok) return <p>{orderFailureText(day.failure, portfolioKind)}</p>;
   if (quote === undefined)
     return (
       <div className={styles["done"]}>
@@ -62,6 +65,7 @@ export function TicketForm({
   return (
     <TicketFields
       code={code}
+      portfolioKind={portfolioKind}
       side={initialSide}
       path={path}
       search={search}
@@ -77,6 +81,7 @@ export function TicketForm({
 function TicketFields(
   props: Parameters<typeof useTicketDraft>[0] & {
     code: string;
+    portfolioKind: PortfolioKind;
     rejection: OrderRejection | undefined;
     limitSteps: readonly Rupiah[] | undefined;
   },
@@ -86,7 +91,7 @@ function TicketFields(
   const { formRef, ...draft } = useTicketDraft(props);
   const { values, side, action, amounts, count, ticket } = draft;
   const { quote } = ticket;
-  const failure = ticketFailures(draft, props.rejection);
+  const failure = ticketFailures(draft, props.rejection, props.portfolioKind);
   return (
     <Form
       ref={formRef}
@@ -204,6 +209,7 @@ function TicketFields(
 function ticketFailures(
   draft: TicketDraft,
   rejection: OrderRejection | undefined,
+  portfolioKind: PortfolioKind,
 ) {
   const submitted = draft.unchanged ? rejection : undefined;
   const lots = submitted?.field === "lots" ? submitted : undefined;
@@ -213,7 +219,7 @@ function ticketFailures(
     draft.values.priceKind === "limit" &&
     draft.ticket.range?.ok === false
   )
-    general = orderFailureText(draft.ticket.range.failure);
+    general = orderFailureText(draft.ticket.range.failure, portfolioKind);
   return { lots, general };
 }
 

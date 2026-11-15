@@ -1,3 +1,4 @@
+import type { PortfolioKind } from "~/features/trading/portfolio-store.server";
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
@@ -26,15 +27,21 @@ import { ReturnTables } from "./return-tables";
 export function StockMeasuresView({
   code,
   measures,
+  portfolioKind = "membership",
 }: {
   code: string;
+  portfolioKind?: PortfolioKind;
   measures: Result<StockSummary, StoredMeasureFailure>;
 }): ReactNode {
   if (!measures.ok) {
     return (
       <p>
         <NumberText>
-          {measureFailureText(measures.failure, { kind: "stock", code })}
+          {measureFailureText(measures.failure, {
+            kind: "stock",
+            code,
+            reader: { kind: "owner", portfolioKind },
+          })}
         </NumberText>
       </p>
     );

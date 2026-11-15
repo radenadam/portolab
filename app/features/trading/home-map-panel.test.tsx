@@ -14,6 +14,7 @@ import { indexPoints } from "~/units/index-points";
 import { HomeMapPanel } from "./home-map-panel";
 import { homeMapPoints } from "./home-map-points";
 import { homePortfolioForTest } from "./home-portfolio-for-test";
+import type { PortfolioKind } from "./portfolio-store.server";
 
 const texts: Record<
   Locale,
@@ -22,6 +23,7 @@ const texts: Record<
     time: readonly string[];
     unknownWeight: string;
     weight: string;
+    classmates: Record<PortfolioKind, { legend: string; point: string }>;
   }
 > = {
   id: {
@@ -32,8 +34,6 @@ const texts: Record<
       "Grafik waktu",
       "Portofolio Anda",
       "Saham Anda, ukuran = bobot",
-      "Teman sekelas",
-      "Teman sekelas tanpa nama",
       "Tegak: imbal hasil. Saham dihitung sejak dibeli, portofolio sejak 30 Okt.",
       "Beta (1 = pasar)",
       "Tabel titik pada peta",
@@ -49,6 +49,16 @@ const texts: Record<
     ],
     unknownWeight: "Bobot belum tersedia",
     weight: "Bobot",
+    classmates: {
+      membership: {
+        legend: "Teman sekelas",
+        point: "Teman sekelas tanpa nama",
+      },
+      demonstration: {
+        legend: "Mahasiswa kelas",
+        point: "Mahasiswa kelas tanpa nama",
+      },
+    },
   },
   en: {
     common: [
@@ -58,8 +68,6 @@ const texts: Record<
       "Time chart",
       "Your portfolio",
       "Your holdings, size = weight",
-      "Classmates",
-      "Unnamed classmate",
       "Vertical: return. Holdings count since purchase, the portfolio since Oct 30.",
       "Beta (1 = market)",
       "Table of map points",
@@ -75,6 +83,13 @@ const texts: Record<
     ],
     unknownWeight: "Weight unavailable",
     weight: "Weight",
+    classmates: {
+      membership: { legend: "Classmates", point: "Unnamed classmate" },
+      demonstration: {
+        legend: "Class students",
+        point: "Unnamed class student",
+      },
+    },
   },
 };
 
@@ -95,12 +110,17 @@ for (const locale of locales) {
       return: cumulativeReturn(-0.01),
     };
     home.sessions = courseSessions("2026-10-30");
-    const render = () =>
+    const ownerReader = (portfolioKind: PortfolioKind = "membership") => ({
+      kind: "owner" as const,
+      classId: 7 as ClassId,
+      portfolioKind,
+    });
+    const render = (portfolioKind: PortfolioKind = "membership") =>
       renderMarkupForTest(
         <HomeMapPanel
           home={home}
           classId={7 as ClassId}
-          reader={{ kind: "owner", classId: 7 as ClassId }}
+          reader={ownerReader(portfolioKind)}
         />,
       );
     const html = render();
@@ -109,7 +129,16 @@ for (const locale of locales) {
     expect(html).not.toContain("stroke-dasharray");
     expect(html).not.toContain(">SML<");
     expect(html).toContain('href="/classes/7?view=time"');
-    const reader = { kind: "owner", classId: 7 as ClassId } as const;
+    for (const portfolioKind of ["membership", "demonstration"] as const) {
+      const labels = texts[locale].classmates[portfolioKind];
+      expect(render(portfolioKind)).toContain(labels.legend);
+      expect(
+        homeMapPoints(home, ownerReader(portfolioKind))?.points.find(
+          ({ mark }) => mark.kind === "classmate",
+        )?.name,
+      ).toBe(labels.point);
+    }
+    const reader = ownerReader();
     const map = homeMapPoints(home, reader);
     expect(map?.points.map(({ mark }) => mark.kind)).toEqual([
       "classmate",

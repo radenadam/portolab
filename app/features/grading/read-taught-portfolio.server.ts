@@ -57,14 +57,15 @@ export function readTaughtPortfolio(
     back.searchParams.set("student", String(student.id));
     back.hash = selectedStudentHeadingId;
   }
-  const portfolio = readCurrentPortfolio(
-    context.get(databaseContext),
-    {
-      membershipId: student.membershipId,
-      startingCash: taughtClass.startingCash,
-    },
-    { request, now },
-  );
+  const owner = {
+    kind: "membership" as const,
+    membershipId: student.membershipId,
+    startingCash: taughtClass.startingCash,
+  };
+  const portfolio = readCurrentPortfolio(context.get(databaseContext), owner, {
+    request,
+    now,
+  });
   return {
     returnPath: back.pathname + back.search + back.hash,
     student: {
@@ -77,10 +78,7 @@ export function readTaughtPortfolio(
       latestActivity: latestPortfolioActivity(portfolio),
     },
     portfolio,
-    owner: {
-      membershipId: student.membershipId,
-      startingCash: taughtClass.startingCash,
-    },
+    owner,
     startingCash: taughtClass.startingCash,
     joinedAt: student.joinedAt,
     firstSessionDate: taughtClass.firstSessionDate,

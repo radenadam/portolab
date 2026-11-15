@@ -11,19 +11,24 @@ export function AnalysisAxisForm({
   returnPath,
   value,
   failure,
+  path = ".",
+  showTitle = true,
 }: {
   returnPath?: string;
   value: string;
   failure: string;
+  path?: string;
+  showTitle?: boolean;
 }): ReactNode {
   return (
     <div className={styles["page"]}>
-      {returnPath === undefined ? (
-        <h1>{m.measures_analysis_title()}</h1>
-      ) : (
-        <h2>{m.measures_analysis_title()}</h2>
-      )}
-      <Form method="get" className={formStyles["form"]}>
+      {showTitle &&
+        (returnPath === undefined ? (
+          <h1>{m.measures_analysis_title()}</h1>
+        ) : (
+          <h2>{m.measures_analysis_title()}</h2>
+        ))}
+      <Form method="get" action={path} className={formStyles["form"]}>
         {returnPath !== undefined && (
           <input type="hidden" name="returnTo" value={returnPath} />
         )}

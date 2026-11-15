@@ -6,7 +6,7 @@ import {
 } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import type { HistoryEnd } from "./portfolio-history";
-import { textForReader } from "./text-for-reader";
+import { recordsStepForReader } from "./text-for-reader";
 import type { PortfolioReader } from "./text-for-reader";
 
 export function historyEndText(
@@ -38,8 +38,8 @@ export function historyEndText(
 
 /** The text that says that Portolab has not recorded the trading calendar of the next trading day, with the step of its reader. */
 export function missingCalendarText(reader: PortfolioReader): string {
-  return textForReader(reader, {
-    owner: () => m.trading_chart_calendar_missing_notice(),
-    lecturer: () => m.trading_lecturer_chart_calendar_missing_notice(),
+  return recordsStepForReader(reader, {
+    student: m.trading_chart_calendar_missing_notice,
+    lecturer: m.trading_lecturer_chart_calendar_missing_notice,
   });
 }

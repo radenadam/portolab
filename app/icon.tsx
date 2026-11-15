@@ -16,10 +16,12 @@ export type IconName =
   | "book"
   | "search"
   | "eye"
-  | "clock";
+  | "clock"
+  | "briefcase";
 
 // The prototype of decision 0028 draws these lines on a grid of 24 with round ends, so each icon takes the stroke of its text.
 const paths: Record<IconName, string> = {
+  briefcase: "M3 7h18v13H3ZM8 7V3h8v4M3 12h18M10 12v3h4v-3",
   map: "M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2ZM9 4v14M15 6v14",
   trend: "M3 17l6-6 4 4 8-8M14 7h7v7",
   list: "M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01",

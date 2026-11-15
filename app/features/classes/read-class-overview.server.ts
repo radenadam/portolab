@@ -174,7 +174,11 @@ function readOverviewStudent(
 ) {
   const portfolio = readCurrentPortfolio(
     database,
-    { membershipId: student.membershipId, startingCash: taught.startingCash },
+    {
+      kind: "membership",
+      membershipId: student.membershipId,
+      startingCash: taught.startingCash,
+    },
     options,
   );
   const report = readPortfolioReport(

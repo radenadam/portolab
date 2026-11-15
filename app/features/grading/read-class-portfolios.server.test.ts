@@ -143,6 +143,7 @@ test("counts any placed order as activity and starts the week at Monday midnight
   placedOrderForTest(
     database,
     {
+      kind: "membership" as const,
       membershipId: student.membershipId,
       startingCash: taughtClass.startingCash,
     },

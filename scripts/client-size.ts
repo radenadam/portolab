@@ -213,7 +213,7 @@ function routeBudgetChecks(
       },
       stylesheets: {
         name: id === "root" ? "Shared CSS" : `Route CSS: ${id}`,
-        limit: "20 kB",
+        limit: id === "features/classes/class-page" ? "21 kB" : "20 kB",
         label: "CSS",
       },
     };

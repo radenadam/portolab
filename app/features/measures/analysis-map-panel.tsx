@@ -1,4 +1,6 @@
 import { NumberText } from "~/number-text";
+import { portfolioStudentName } from "~/features/trading/text-for-reader";
+import type { PortfolioReader } from "~/features/trading/text-for-reader";
 import { analysisAxisDetails } from "./analysis-axis-details";
 import { analysisAxes } from "./analysis-axes";
 import { AnalysisCaption } from "./analysis-caption";
@@ -29,15 +31,16 @@ export function AnalysisMapPanel({
   marketLine,
   axis,
   holdings,
-  studentName,
+  reader,
 }: {
   market: MarketSummary | undefined;
   portfolio: PortfolioSummary | undefined;
   marketLine: Result<StudentLine, StoredMeasureFailure>;
   axis: AnalysisAxis;
   holdings: readonly AnalysisHolding[];
-  studentName?: string | undefined;
+  reader: PortfolioReader;
 }): ReactNode {
+  const studentName = portfolioStudentName(reader);
   const details = analysisAxisDetails(axis, studentName);
   const session = useConceptSession(details.termId);
   return (
@@ -73,7 +76,10 @@ export function AnalysisMapPanel({
           !marketLine.ok && (
             <p>
               <NumberText>
-                {measureFailureText(marketLine.failure, { kind: "market" })}
+                {measureFailureText(marketLine.failure, {
+                  kind: "market",
+                  reader,
+                })}
               </NumberText>
             </p>
           )
@@ -92,7 +98,11 @@ export function AnalysisMapPanel({
             }
             studentName={studentName}
           />
-          <LessonLink session={session} className={styles["link"]}>
+          <LessonLink
+            id="analysis-map-lesson"
+            session={session}
+            className={styles["link"]}
+          >
             {m.measures_analysis_learn_label()} <span aria-hidden>→</span>
           </LessonLink>
         </div>

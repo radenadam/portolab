@@ -1,3 +1,10 @@
+import {
+  storedPortfolioIdForTest,
+  placedOrderForTest,
+  storeBbcaHistoryForTest,
+  studentPortfolioForTest,
+  studentWithQuotesForTest,
+} from "./portfolios-for-test.server";
 import { eq } from "drizzle-orm";
 import { expect, test } from "vitest";
 import { openDatabaseForTest } from "~/database/open-database-for-test.server";
@@ -20,12 +27,6 @@ import {
   purchaseForTest,
   saleForTest,
 } from "./orders-for-test";
-import {
-  placedOrderForTest,
-  storeBbcaHistoryForTest,
-  studentPortfolioForTest,
-  studentWithQuotesForTest,
-} from "./portfolios-for-test.server";
 import { readStoredPortfolio } from "./portfolio-store.server";
 import { holdings } from "./trading.schema";
 
@@ -43,7 +44,7 @@ test("fills a market purchase at once with a quote of its session that the lates
     new Date("2026-11-02T02:51:00Z"),
   );
   const orderId = placedOrderForTest(database, owner, purchaseForTest());
-  expect(readStoredPortfolio(database, owner.membershipId)).toEqual({
+  expect(readStoredPortfolio(database, owner)).toEqual({
     cash: 97_506_265,
     holdings: [{ code: "BBCA", shares: 500, cost: 2_493_735 }],
     orders: [
@@ -85,7 +86,7 @@ test("keeps an order waiting while the latest update could not fetch its stock, 
     owner,
     purchaseForTest({ price: limitForTest(5_000) }),
   );
-  const waiting = readStoredPortfolio(database, owner.membershipId);
+  const waiting = readStoredPortfolio(database, owner);
   expect(waiting?.orders[0]?.state).toEqual({ kind: "waiting" });
   expect(waiting?.holdings).toEqual([]);
   // Quoted at 09:51 and fetched at 10:01, below the limit.
@@ -95,7 +96,7 @@ test("keeps an order waiting while the latest update could not fetch its stock, 
     at: fetchedAt,
   });
   checkAllOpenOrders(database, fetchedAt);
-  const filled = readStoredPortfolio(database, owner.membershipId);
+  const filled = readStoredPortfolio(database, owner);
   expect(filled?.orders[0]?.state).toEqual({
     kind: "filled",
     fill: {
@@ -121,11 +122,11 @@ test("fills no order while the latest update failed, and marks an order expired 
   expect(findStockQuote(database, "BBCA")).toEqual(atTen);
   expect(readLatestUpdateAttempt(database, "quotes")?.succeeded).toBe(false);
   placedOrderForTest(database, owner, purchaseForTest());
-  expect(
-    readStoredPortfolio(database, owner.membershipId)?.orders[0]?.state,
-  ).toEqual({ kind: "waiting" });
+  expect(readStoredPortfolio(database, owner)?.orders[0]?.state).toEqual({
+    kind: "waiting",
+  });
   checkAllOpenOrders(database, endOfMondayForTest);
-  expect(readStoredPortfolio(database, owner.membershipId)).toMatchObject({
+  expect(readStoredPortfolio(database, owner)).toMatchObject({
     cash: 100_000_000,
     orders: [{ state: { kind: "expired", expiredAt: endOfMondayForTest } }],
   });
@@ -148,7 +149,7 @@ test("checks the orders of a portfolio in the order in which they were placed, s
     );
   }
   expect(
-    readStoredPortfolio(database, owner.membershipId)?.orders.map(
+    readStoredPortfolio(database, owner)?.orders.map(
       (order) => order.setAsideCash,
     ),
   ).toEqual([49_874_700, 49_874_700]);
@@ -167,7 +168,7 @@ test("checks the orders of a portfolio in the order in which they were placed, s
     },
   );
   checkAllOpenOrders(database, checkedAt);
-  expect(readStoredPortfolio(database, owner.membershipId)).toMatchObject({
+  expect(readStoredPortfolio(database, owner)).toMatchObject({
     cash: 49_925_000,
     holdings: [{ code: "BBCA", shares: 10_000, cost: 50_075_000 }],
     orders: [
@@ -207,7 +208,7 @@ test("fills a sale of every share of a holding, pays in its value less its costs
     at: soldAt,
   });
   placedOrderForTest(database, owner, saleForTest({ placedAt: soldAt }));
-  expect(readStoredPortfolio(database, owner.membershipId)).toMatchObject({
+  expect(readStoredPortfolio(database, owner)).toMatchObject({
     cash: 99_995_027,
     holdings: [],
     orders: [
@@ -240,18 +241,16 @@ test("rejects a sale whose holding a deletion by hand removed, when a price reac
   placedOrderForTest(database, owner, saleForTest({ placedAt }));
   database
     .delete(holdings)
-    .where(eq(holdings.membershipId, owner.membershipId))
+    .where(eq(holdings.portfolioId, storedPortfolioIdForTest(database, owner)))
     .run();
-  expect(readStoredPortfolio(database, owner.membershipId)?.holdings).toEqual(
-    [],
-  );
+  expect(readStoredPortfolio(database, owner)?.holdings).toEqual([]);
   const later = stockQuote("BBCA", [4_990, 4_980], "2026-11-02T02:55:00Z");
   const checkedAt = new Date("2026-11-02T03:05:00Z");
   await updateQuotesForTest(database, sourceAnsweringForTest([later]), {
     at: checkedAt,
   });
   checkAllOpenOrders(database, checkedAt);
-  expect(readStoredPortfolio(database, owner.membershipId)).toMatchObject({
+  expect(readStoredPortfolio(database, owner)).toMatchObject({
     cash: 97_506_265,
     holdings: [],
     orders: [
@@ -292,7 +291,7 @@ test("checks the open orders of every portfolio", async () => {
   });
   checkAllOpenOrders(database, fetchedAt);
   for (const owner of [first, second]) {
-    expect(readStoredPortfolio(database, owner.membershipId)).toMatchObject({
+    expect(readStoredPortfolio(database, owner)).toMatchObject({
       cash: 97_506_265,
       orders: [{ state: { kind: "filled", fill: { filledAt: fetchedAt } } }],
     });

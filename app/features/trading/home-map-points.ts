@@ -1,5 +1,8 @@
 import { portfolioLabel } from "./portfolio-label";
-import { portfolioStudentName } from "./text-for-reader";
+import {
+  portfolioKindForReader,
+  portfolioStudentName,
+} from "./text-for-reader";
 import type { PortfolioReader } from "./text-for-reader";
 import type { MarkedPoint, MapPoint } from "~/charts/layout-risk-map";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
@@ -28,7 +31,10 @@ export function homeMapPoints(
       ...mapPoint(
         {
           key: `classmate-${String(index)}`,
-          name: m.trading_home_classmate_label(),
+          name: {
+            membership: m.trading_home_classmate_label,
+            demonstration: m.trading_demonstration_student_label,
+          }[portfolioKindForReader(reader)](),
         },
         classmate.beta,
         classmate.return,

@@ -1,4 +1,4 @@
-# 0045. Chart names use an ellipsis when they are too wide
+# 0047. Chart names use an ellipsis when they are too wide
 
 - Status: Accepted
 - Date: 2026-11-16

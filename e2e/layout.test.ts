@@ -100,6 +100,30 @@ const routePages: Record<string, readonly RoutePage[]> = {
       path: ({ classPath }) => `${classPath}/stocks/${code}/buy`,
     })),
   ],
+  "features/trading/demonstration-page.tsx": [
+    {
+      reader: "lecturer",
+      path: ({ classPath }) => `${classPath}/demonstration`,
+    },
+  ],
+  "features/trading/demonstration-summary-page.tsx": [],
+  "features/trading/demonstration-activity-page.tsx": [
+    {
+      reader: "lecturer",
+      path: ({ classPath }) => `${classPath}/demonstration/activity`,
+    },
+    {
+      reader: "lecturer",
+      path: ({ classPath }) =>
+        `${classPath}/demonstration/activity?view=journal`,
+    },
+  ],
+  "features/measures/demonstration-analysis-page.tsx": [
+    {
+      reader: "lecturer",
+      path: ({ classPath }) => `${classPath}/demonstration/analysis`,
+    },
+  ],
   "features/trading/activity-page.tsx": [
     { reader: "student", path: ({ classPath }) => `${classPath}/activity` },
     {

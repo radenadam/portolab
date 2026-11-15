@@ -245,6 +245,7 @@ for (const locale of locales) {
     if (student === undefined || member === undefined)
       throw new Error("The fixture has Sari in the class.");
     const portfolio = readPortfolio(database, {
+      kind: "membership" as const,
       membershipId: member.membershipId,
       startingCash: taughtClass.startingCash,
     });

@@ -1,6 +1,6 @@
 # 0035. The map names its points in words and keeps the names of the portfolio and every holding
 
-- Status: Accepted. [Decision 0045](0045-chart-names-use-an-ellipsis-when-they-are-too-wide.md) supersedes how a chart fits a name wider than its allowance.
+- Status: Accepted. [Decision 0047](0047-chart-names-use-an-ellipsis-when-they-are-too-wide.md) supersedes how a chart fits a name wider than its allowance.
 - Date: 2026-11-14
 
 ## Context

@@ -2,7 +2,7 @@ import { countedText } from "~/counted-text";
 import { formatCalendarDate, formatList, formatRupiah } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import type { PortfolioDayChangeFailure } from "./read-portfolio-day-change.server";
-import { textForReader } from "./text-for-reader";
+import { recordsStepForReader } from "./text-for-reader";
 import type { PortfolioReader } from "./text-for-reader";
 
 /** The value already explains an unpriced holding, so the daily comparison only adds reasons of its own. */
@@ -14,8 +14,8 @@ export function dayChangeFailureText(
     case "unpriced":
       return undefined;
     case "missingCalendar":
-      return textForReader(reader, {
-        owner: m.trading_home_daily_calendar_notice,
+      return recordsStepForReader(reader, {
+        student: m.trading_home_daily_calendar_notice,
         lecturer: m.trading_home_lecturer_daily_calendar_notice,
       });
     case "missingCloses":
@@ -35,8 +35,8 @@ export function dayChangeFailureText(
         date: formatCalendarDate(failure.date),
         value: formatRupiah(failure.value),
       };
-      return textForReader(reader, {
-        owner: () => m.trading_home_daily_reference_notice(values),
+      return recordsStepForReader(reader, {
+        student: () => m.trading_home_daily_reference_notice(values),
         lecturer: () => m.trading_home_lecturer_daily_reference_notice(values),
       });
     }

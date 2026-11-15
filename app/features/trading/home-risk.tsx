@@ -2,6 +2,7 @@ import { PortfolioMeasuresNotice } from "~/features/measures/portfolio-measures-
 import {
   portfolioStudentName,
   readerWithTextName,
+  portfolioKindForReader,
 } from "~/features/trading/text-for-reader";
 import { ConceptHelp } from "~/concept-card";
 import { NumberText } from "~/number-text";
@@ -47,7 +48,7 @@ export function HomeRisk({
           )}
         </div>
         {reader.kind === "owner" && (
-          <Link to={measuresPath(classId)}>
+          <Link to={measuresPath(classId, portfolioKindForReader(reader))}>
             {m.trading_home_analysis_link()}
           </Link>
         )}

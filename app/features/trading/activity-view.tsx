@@ -23,6 +23,8 @@ export function ActivityView({
   cancelFailure,
   studentName,
   returnPath,
+  portfolioKind,
+  showTitle = !readOnly,
 }: ComponentProps<typeof ActivityOrders> &
   Omit<ComponentProps<typeof JournalList>, "readOnly"> & {
     fields: ActivitySelectionFields | undefined;
@@ -31,12 +33,13 @@ export function ActivityView({
     readOnly?: boolean;
     cancelFailure?: string | undefined;
     returnPath?: string | undefined;
+    showTitle?: boolean;
   }): ReactNode {
   const separator = base.includes("?") ? "&" : "?";
 
   return (
     <div className={styles["activity"]} data-read-only={readOnly || undefined}>
-      {!readOnly && <h1>{m.trading_activity_title()}</h1>}
+      {showTitle && <h1>{m.trading_activity_title()}</h1>}
       {fields !== undefined && (
         <ActivitySelectionForm fields={fields} returnPath={returnPath} />
       )}
@@ -66,6 +69,7 @@ export function ActivityView({
           filter={filter}
           readOnly={readOnly}
           studentName={studentName}
+          portfolioKind={portfolioKind}
           basePath={readOnly ? `${base}${separator}view=orders` : base}
         />
         <JournalList

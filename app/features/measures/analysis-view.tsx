@@ -67,6 +67,7 @@ export function AnalysisView({
   reader,
   summary,
   showData,
+  showTitle,
 }: {
   classId: ClassId;
   report: PortfolioReport;
@@ -81,6 +82,7 @@ export function AnalysisView({
   reader: PortfolioReader;
   summary: SummaryLink;
   showData: boolean;
+  showTitle?: boolean;
 }): ReactNode {
   const studentName = portfolioStudentName(reader);
   const explained = explainPortfolioMeasures(measures, reader);
@@ -113,7 +115,8 @@ export function AnalysisView({
       <AnalysisHeader
         market={market}
         summary={summary}
-        studentName={studentName}
+        showTitle={showTitle}
+        reader={reader}
       />
       <div
         className={styles["top"]}
@@ -126,7 +129,7 @@ export function AnalysisView({
           portfolio={portfolio}
           marketLine={marketLine}
           axis={axis}
-          studentName={studentName}
+          reader={reader}
         />
         {portfolio !== undefined ? (
           <AnalysisMeasures measures={rows} studentName={studentName} />
@@ -180,10 +183,7 @@ export function AnalysisView({
             quoteFailure={quoteFailure}
             source={source}
           />
-          <StudentMarketLine
-            marketLine={marketLine}
-            studentName={studentName}
-          />
+          <StudentMarketLine marketLine={marketLine} reader={reader} />
           <h2>{m.measures_stocks_title()}</h2>
           <StockTable classId={classId} stocks={stocks} />
         </div>
@@ -210,16 +210,20 @@ export function AnalysisView({
 function AnalysisHeader({
   market,
   summary,
-  studentName,
+  showTitle,
+  reader,
 }: {
   market: MarketSummary | undefined;
   summary: SummaryLink;
-  studentName?: string | undefined;
+  showTitle: boolean | undefined;
+  reader: PortfolioReader;
 }): ReactNode {
   const riskFreeConcept = measureConcept("riskFree");
   return (
     <header className={styles["header"]}>
-      {studentName === undefined && <h1>{m.measures_analysis_title()}</h1>}
+      {(showTitle ?? reader.kind === "owner") && (
+        <h1>{m.measures_analysis_title()}</h1>
+      )}
       {market !== undefined && (
         <div className={styles["period"]}>
           <NumberText>

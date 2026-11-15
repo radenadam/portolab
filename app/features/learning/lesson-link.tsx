@@ -8,10 +8,12 @@ import { lessonPath } from "./learning-paths";
 
 export function LessonLink({
   session,
+  id,
   className,
   children,
 }: {
   session: SessionNumber;
+  id?: string | undefined;
   className?: string | undefined;
   children: ReactNode;
 }): ReactNode {
@@ -21,11 +23,12 @@ export function LessonLink({
   if (!classId.ok) return children;
   return (
     <LearningLink
+      id={id}
       className={className}
       to={lessonPath(
         classId.value,
         session,
-        `${location.pathname}${location.search}${location.hash}`,
+        `${location.pathname}${location.search}${id === undefined ? location.hash : `#${id}`}`,
       )}
     >
       {children}

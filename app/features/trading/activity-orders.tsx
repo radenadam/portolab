@@ -21,6 +21,7 @@ import type { OrderSide } from "./order";
 import { orderFailureText } from "./order-failure-text";
 import styles from "./activity.module.css";
 import { CancelOrder } from "./cancel-order";
+import type { PortfolioKind } from "./portfolio-store.server";
 
 const statusMarks: Record<ActivityStatus, string> = {
   waiting: "M9 3h6M9 21h6M9 3v4l6 10v4M15 3v4L9 17v4",
@@ -43,6 +44,7 @@ export function ActivityOrders({
   readOnly = false,
   studentName,
   basePath,
+  portfolioKind = "membership",
 }: {
   orders: readonly StoredOrder[];
   now: Date;
@@ -51,6 +53,7 @@ export function ActivityOrders({
   readOnly?: boolean;
   studentName?: string | undefined;
   basePath?: string;
+  portfolioKind?: PortfolioKind | undefined;
 }): ReactNode {
   const shown = orders
     .toReversed()
@@ -154,7 +157,7 @@ export function ActivityOrders({
                   <StatusChip status={activityStatus(order, now)} />
                 </div>
                 <div className={styles["orderBody"]}>
-                  <p>{orderDetail(order, now, readOnly)}</p>
+                  <p>{orderDetail(order, now, { readOnly, portfolioKind })}</p>
                   {order.reason !== undefined && (
                     <p className={styles["reason"]}>
                       <NumberText verbatim>
@@ -216,7 +219,10 @@ function StatusChip({ status }: { status: ActivityStatus }): ReactNode {
 function orderDetail(
   order: StoredOrder,
   now: Date,
-  readOnly: boolean,
+  {
+    readOnly,
+    portfolioKind,
+  }: { readOnly: boolean; portfolioKind: PortfolioKind },
 ): ReactNode {
   if (activityStatus(order, now) === "expired")
     return (
@@ -258,7 +264,9 @@ function orderDetail(
       );
     case "rejected": {
       const reason = (
-        <NumberText>{orderFailureText(order.state.failure)}</NumberText>
+        <NumberText>
+          {orderFailureText(order.state.failure, portfolioKind)}
+        </NumberText>
       );
       return (
         <Message

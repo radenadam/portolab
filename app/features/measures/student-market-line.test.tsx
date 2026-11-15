@@ -1,3 +1,4 @@
+import type { ClassId } from "~/features/classes/classes.schema";
 import { renderMarkupForTest } from "~/render-markup-for-test";
 import { markupTextForTest } from "~/markup-text-for-test";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -223,6 +224,7 @@ for (const locale of locales) {
     switchLocaleForTest(locale);
     const html = render(
       <StudentMarketLine
+        reader={{ kind: "owner", classId: 7 as ClassId }}
         marketLine={studentLineForTest(
           databaseWithClosesForTest(),
           valuationForTest(["BBCA", "TLKM"]),
@@ -260,6 +262,7 @@ for (const locale of locales) {
     switchLocaleForTest(locale);
     const html = render(
       <StudentMarketLine
+        reader={{ kind: "owner", classId: 7 as ClassId }}
         marketLine={studentLineForTest(
           databaseWithClosesForTest(),
           ammnValuationForTest(),
@@ -317,6 +320,7 @@ for (const locale of locales) {
       withoutChart(
         render(
           <StudentMarketLine
+            reader={{ kind: "owner", classId: 7 as ClassId }}
             marketLine={studentLineForTest(database, cashValuationForTest())}
           />,
         ),
@@ -328,6 +332,7 @@ for (const locale of locales) {
     );
     const held = render(
       <StudentMarketLine
+        reader={{ kind: "owner", classId: 7 as ClassId }}
         marketLine={studentLineForTest(database, valuationForTest(["BBCA"]))}
       />,
     );
@@ -341,6 +346,7 @@ for (const locale of locales) {
       withoutChart(
         render(
           <StudentMarketLine
+            reader={{ kind: "owner", classId: 7 as ClassId }}
             marketLine={studentLineForTest(
               database,
               cashValuationForTest(),
@@ -364,7 +370,7 @@ for (const locale of locales) {
       withoutChart(
         render(
           <StudentMarketLine
-            studentName="Siti Rahayu"
+            reader={{ kind: "lecturer", studentName: "Siti Rahayu" }}
             marketLine={marketLine}
           />,
         ),
@@ -407,7 +413,7 @@ for (const locale of locales) {
         const html = renderToStaticMarkup(
           <MemoryRouter>
             <StudentMarketLine
-              studentName={name}
+              reader={{ kind: "lecturer", studentName: name }}
               marketLine={studentLineForTest(database, valuation)}
             />
           </MemoryRouter>,
@@ -423,7 +429,14 @@ for (const locale of locales) {
   test(`says why the stored closes give no line, in ${language}`, () => {
     switchLocaleForTest(locale);
     const failure: StoredMeasureFailure = { kind: "noVariation", code: "IHSG" };
-    expect(render(<StudentMarketLine marketLine={fail(failure)} />)).toBe(
+    expect(
+      render(
+        <StudentMarketLine
+          marketLine={fail(failure)}
+          reader={{ kind: "owner", classId: 7 as ClassId }}
+        />,
+      ),
+    ).toBe(
       `<h2>${text.title}</h2><p>${measureFailureText(failure, { kind: "market" })}</p>`,
     );
   });

@@ -6,7 +6,8 @@ import { switchLocaleForTest } from "~/switch-locale-for-test";
 import { lots } from "~/units/lots";
 import { rupiah } from "~/units/rupiah";
 import type { OrderFailure } from "./order";
-import { limitPriceFailureText, orderFailureText } from "./order-failure-text";
+import { limitPriceFailureText } from "./limit-price-failure-text";
+import { orderFailureText } from "./order-failure-text";
 import { purchaseWithCashSetAsideForTest } from "./purchase-with-cash-set-aside-for-test";
 import { orderLotsForTest } from "./orders-for-test";
 import { oneRupiahLimit, rateLimit } from "./price-limits";
@@ -514,4 +515,53 @@ function failureNamed(name: string): OtherFailure {
     }
   }
   throw new Error(`The table of texts names ${name}, which no failure has.`);
+}
+
+const demonstrationTexts: Record<
+  Locale,
+  Record<"missingRules" | "missingCosts" | "missingUniverse", string>
+> = {
+  id: {
+    missingRules:
+      "Portolab belum dapat menerima order ini, karena aturan BEI untuk hari bursa order ini belum tercatat. Beri tahu orang yang menjalankan server Portolab ini agar aturan tersebut dapat ditambahkan.",
+    missingCosts:
+      "Portolab belum dapat menerima order ini, karena tarif biaya broker atau pajak final atas penjualan untuk hari bursa order ini belum tercatat. Beri tahu orang yang menjalankan server Portolab ini agar tarif yang belum tercatat itu dapat ditambahkan.",
+    missingUniverse:
+      "Portolab belum dapat menerima order ini, karena daftar saham LQ45 pada hari bursa order ini belum tercatat, dan di Portolab Anda hanya dapat membeli saham LQ45. Beri tahu orang yang menjalankan server Portolab ini agar daftar saham tersebut dapat ditambahkan.",
+  },
+  en: {
+    missingRules:
+      "Portolab cannot take this order yet, because it has not recorded the rules of IDX for the trading day of the order. Tell the person who runs this Portolab server, so that the rules can be added.",
+    missingCosts:
+      "Portolab cannot take this order yet, because it lacks a record of the broker fee or of the final tax on sales for the trading day of the order. Tell the person who runs this Portolab server, so that the missing rates can be added.",
+    missingUniverse:
+      "Portolab cannot take this order yet, because it has not recorded which stocks are in the LQ45 on the trading day of the order, and Portolab lets you buy only the stocks of the LQ45. Tell the person who runs this Portolab server, so that the stocks can be added.",
+  },
+};
+const portfolioTitles: Record<Locale, { home: string; demonstration: string }> =
+  {
+    id: { home: "Beranda", demonstration: "Portofolio demonstrasi" },
+    en: { home: "Home", demonstration: "Demonstration portfolio" },
+  };
+for (const locale of locales) {
+  test(`addresses demonstration recovery steps to the lecturer in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    for (const [name, expected] of Object.entries(demonstrationTexts[locale])) {
+      expect(orderFailureText(failureNamed(name), "demonstration")).toBe(
+        expected,
+      );
+    }
+    for (const name of [
+      "sharesGoneWithoutShares",
+      "sharesGoneToOtherSale",
+      "sharesGoneToOtherSales",
+    ] as const) {
+      expect(orderFailureText(failureNamed(name), "demonstration")).toBe(
+        texts[locale][name].replace(
+          portfolioTitles[locale].home,
+          portfolioTitles[locale].demonstration,
+        ),
+      );
+    }
+  });
 }

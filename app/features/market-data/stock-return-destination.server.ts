@@ -1,4 +1,4 @@
-import type { Role } from "~/features/accounts/accounts.schema";
+import type { PortfolioKind } from "~/features/trading/portfolio-store.server";
 import type { ClassId } from "~/features/classes/classes.schema";
 import { measuresPath } from "~/features/measures/measures-path";
 import { studentPageAt } from "~/features/grading/grading-paths";
@@ -10,12 +10,12 @@ import { marketPath } from "./market-path";
 /** The stock route serves both roles, so a forged return must not select a page of another role. */
 export function stockReturnDestination({
   classId,
-  role,
+  portfolioKind,
   url,
   request,
 }: {
   classId: ClassId;
-  role: Role;
+  portfolioKind: PortfolioKind;
   url: URL;
   request: Request;
 }) {
@@ -24,9 +24,9 @@ export function stockReturnDestination({
     url,
   );
   const analysis =
-    destination.pathname === measuresPath(classId) && role === "student";
+    destination.pathname === measuresPath(classId, portfolioKind);
   const studentPage =
-    role === "lecturer"
+    portfolioKind === "demonstration"
       ? studentPageAt(classId, destination.pathname)
       : undefined;
   const returnTo =

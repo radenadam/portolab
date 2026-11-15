@@ -1,3 +1,7 @@
+import {
+  storedPortfolioIdForTest,
+  placedOrderForTest,
+} from "./portfolios-for-test.server";
 import type { Database } from "~/database/database.server";
 import { buildDailyHistory } from "~/features/market-data/build-daily-history";
 import {
@@ -16,7 +20,6 @@ import { stockQuote } from "~/features/market-data/stock-quote";
 import { checkPortfolioOrders } from "./check-open-orders.server";
 import { orderLotsForTest, saleForTest } from "./orders-for-test";
 import type { PortfolioOwner } from "./portfolio-store.server";
-import { placedOrderForTest } from "./portfolios-for-test.server";
 import { purchasedPortfolioForTest } from "./purchased-portfolio-for-test.server";
 
 /** 10:00 WIB on Tuesday 3 November 2026, in session I. */
@@ -62,7 +65,11 @@ export async function tradedPortfolioForTest(): Promise<{
       placedAt: tuesdaySessionForTest,
     }),
   );
-  checkPortfolioOrders(database, owner.membershipId, tuesdaySessionForTest);
+  checkPortfolioOrders(
+    database,
+    storedPortfolioIdForTest(database, owner),
+    tuesdaySessionForTest,
+  );
   return { database, owner };
 }
 

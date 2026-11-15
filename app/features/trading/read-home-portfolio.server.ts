@@ -12,14 +12,14 @@ import { wibDateOf } from "~/wib";
 import { homeSparklineCloses } from "./home-sparkline-closes";
 import { cashSetAside } from "./open-orders";
 import { idxRulesOn } from "./idx-rules-on";
-import { readStudentPortfolioReport } from "./read-student-portfolio-report.server";
+import { readOwnedPortfolioReport } from "./read-owned-portfolio-report.server";
 import { readPortfolioDayChange } from "./read-portfolio-day-change.server";
 import type { Portfolio, PortfolioOwner } from "./portfolio-store.server";
 import type { PortfolioReport } from "./read-portfolio-report.server";
 import type { PriceSourceDescription } from "~/features/market-data/price-source.server";
 import type { ClassId } from "~/features/classes/classes.schema";
 
-/** Membership is checked before reading either the student's portfolio or the anonymous class context. */
+/** Class context is private, so owner authorization must precede both reads. */
 export function readHomePortfolio(
   context: Readonly<RouterContextProvider>,
   input: {
@@ -29,10 +29,12 @@ export function readHomePortfolio(
     now: Date;
     firstSessionDate: string | null;
   },
+  kind: PortfolioOwner["kind"] = "membership",
 ) {
-  const { place, portfolio, source, report } = readStudentPortfolioReport(
+  const { place, portfolio, source, report } = readOwnedPortfolioReport(
     context,
     input,
+    kind,
   );
   return readHomePortfolioData(context, {
     ...input,
@@ -69,7 +71,11 @@ export function readHomePortfolioData(
     view: view.ok ? view.value : ("map" as const),
     sessions: courseSessions(input.firstSessionDate),
     classmates: readAnonymousClassmates(database, {
-      ...input.owner,
+      membershipId:
+        input.owner.kind === "membership"
+          ? input.owner.membershipId
+          : undefined,
+      startingCash: input.owner.startingCash,
       classId: input.classId,
       request: input.request,
       now: input.now,

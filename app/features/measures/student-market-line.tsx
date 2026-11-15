@@ -1,4 +1,6 @@
 import { NumberText } from "~/number-text";
+import { portfolioStudentName } from "~/features/trading/text-for-reader";
+import type { PortfolioReader } from "~/features/trading/text-for-reader";
 import { useId } from "react";
 import type { ReactNode } from "react";
 import { countedText } from "~/counted-text";
@@ -23,13 +25,14 @@ import type {
 export function StudentMarketLine({
   marketLine,
   caption,
-  studentName,
+  reader,
 }: {
   marketLine: Result<StudentLine, StoredMeasureFailure>;
   /** What the chart shows about the portfolio, which the portfolio gives under the chart, as the references do, and the page of the measures gives above it with the other measures. */
   caption?: ReactNode;
-  studentName?: string | undefined;
+  reader: PortfolioReader;
 }): ReactNode {
+  const studentName = portfolioStudentName(reader);
   const headingId = useId();
   if (!marketLine.ok) {
     return (
@@ -37,7 +40,7 @@ export function StudentMarketLine({
         <h2>{m.measures_line_title()}</h2>
         <p>
           <NumberText>
-            {measureFailureText(marketLine.failure, { kind: "market" })}
+            {measureFailureText(marketLine.failure, { kind: "market", reader })}
           </NumberText>
         </p>
       </>

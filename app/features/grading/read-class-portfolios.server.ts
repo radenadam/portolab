@@ -73,6 +73,7 @@ export function readClassPortfolios(
     taughtClass.id,
   ).entries()) {
     const owner = {
+      kind: "membership" as const,
       membershipId: student.membershipId,
       startingCash: taughtClass.startingCash,
     };

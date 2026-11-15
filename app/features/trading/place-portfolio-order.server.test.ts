@@ -35,7 +35,7 @@ test("requires the shown total for placement and saves nothing for a missing or 
         seenTotal,
       }),
     ).toEqual({ ok: false, failure: { kind: "previewChanged" } });
-    expect(readStoredPortfolio(database, owner.membershipId)).toBeUndefined();
+    expect(readStoredPortfolio(database, owner)).toBeUndefined();
   }
   expect(
     placePortfolioOrder(database, purchaseForTest(), {
@@ -44,9 +44,7 @@ test("requires the shown total for placement and saves nothing for a missing or 
       seenTotal: rupiah(2_493_735),
     }),
   ).toMatchObject({ ok: true });
-  expect(
-    readStoredPortfolio(database, owner.membershipId)?.orders,
-  ).toHaveLength(1);
+  expect(readStoredPortfolio(database, owner)?.orders).toHaveLength(1);
 });
 
 test("stores the first order that Portolab accepts with a portfolio that holds the starting cash of the class, and stores nothing for an order that it rejects", async () => {
@@ -70,10 +68,10 @@ test("stores the first order that Portolab accepts with a portfolio that holds t
       setAside: { amount: 0, orders: 0 },
     },
   });
-  expect(readStoredPortfolio(database, owner.membershipId)).toBeUndefined();
+  expect(readStoredPortfolio(database, owner)).toBeUndefined();
   const orderId = placedOrderForTest(database, owner, purchaseForTest());
   // The quote of Friday is from no session of Monday, so the order waits.
-  expect(readStoredPortfolio(database, owner.membershipId)).toEqual({
+  expect(readStoredPortfolio(database, owner)).toEqual({
     cash: 100_000_000,
     holdings: [],
     orders: [
@@ -110,7 +108,7 @@ test("marks an order of an earlier trading day expired before it checks a new or
     owner,
     purchaseForTest({ lots, placedAt: tuesday }),
   );
-  expect(readStoredPortfolio(database, owner.membershipId)).toMatchObject({
+  expect(readStoredPortfolio(database, owner)).toMatchObject({
     orders: [
       {
         setAsideCash: 94_761_930,

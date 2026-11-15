@@ -33,10 +33,12 @@ export function HomePortfolio({
   home,
   classId,
   reader,
+  showTitle = reader.kind === "owner",
 }: {
   home: HomePortfolioData;
   classId: ClassId;
   reader: PortfolioReader;
+  showTitle?: boolean;
 }): ReactNode {
   const { report, now, delayMinutes } = home;
   const values = homeHoldings(report.valuation);
@@ -56,9 +58,7 @@ export function HomePortfolio({
   });
   return (
     <div className={styles["home"]} data-reader={reader.kind}>
-      {reader.kind === "owner" && (
-        <h1 className={styles["screenTitle"]}>{homeTitle()}</h1>
-      )}
+      {showTitle && <h1 className={styles["screenTitle"]}>{homeTitle()}</h1>}
       <div className={styles["columns"]} data-layout="columns">
         <div className={styles["leftColumn"]}>
           <div className={styles["summary"]}>

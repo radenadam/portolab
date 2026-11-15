@@ -1,9 +1,10 @@
-import { classPath } from "~/features/classes/class-path";
+import { portfolioPath } from "./portfolio-path";
 import { portfolioLabel } from "./portfolio-label";
 import {
   textForReader,
   portfolioStudentName,
   readerWithTextName,
+  portfolioKindForReader,
 } from "./text-for-reader";
 import type { PortfolioReader } from "./text-for-reader";
 import { NumberText } from "~/number-text";
@@ -40,8 +41,10 @@ export function HomeMapPanel({
   reader: PortfolioReader;
 }): ReactNode {
   const location = useLocation();
+  const portfolioKind = portfolioKindForReader(reader);
   const path = (view: string): string => {
-    if (reader.kind === "owner") return `${classPath(classId)}?view=${view}`;
+    if (reader.kind === "owner")
+      return `${portfolioPath(classId, portfolioKind)}?view=${view}`;
     const search = new URLSearchParams(location.search);
     search.set("view", view);
     return `${location.pathname}?${search.toString()}`;
@@ -102,7 +105,13 @@ export function HomeMapPanel({
                   }),
                 },
                 { kind: "market", name: marketIndex.code },
-                { kind: "classmate", name: m.trading_home_classmates_label() },
+                {
+                  kind: "classmate",
+                  name: {
+                    membership: m.trading_home_classmates_label,
+                    demonstration: m.trading_demonstration_students_label,
+                  }[portfolioKind](),
+                },
               ]}
             />
             {first !== undefined && (
