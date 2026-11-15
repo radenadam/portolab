@@ -1,3 +1,4 @@
+import { ClassTeachingCards } from "./class-teaching-cards";
 import { pathReturningTo } from "~/features/accounts/path-returning-to";
 import { classMapTargetId, classMapPath } from "./class-path";
 import type { ClassMapSection } from "./class-path";
@@ -17,7 +18,7 @@ import type { ClassRisk, ClassMapAxis } from "./class-map";
 import type { ClassOverview } from "./read-class-overview.server";
 import styles from "./class-overview.module.css";
 
-/** The lecturer's class overview. It fills the available column until the teaching cards of piece 29 have content. */
+/** One portfolio load keeps the map and teaching cards consistent. */
 export function ClassOverviewView({
   classId,
   overview,
@@ -35,25 +36,25 @@ export function ClassOverviewView({
 }): ReactNode {
   return (
     <div className={styles["overview"]}>
-      <div className={styles["heading"]}>
-        {overview.pricesAt !== undefined && (
-          <p className={styles["time"]}>
-            <NumberText>{overview.pricesAt}</NumberText>
-          </p>
-        )}
-        <h1>
-          <NumberText>{overview.summary.headline}</NumberText>
-        </h1>
-        <p>
-          <NumberText>{overview.summary.sentence}</NumberText>
-        </p>
+      <div className={styles["columns"]} data-layout="columns">
+        <div className={styles["main"]} data-layout="column">
+          <div className={styles["heading"]}>
+            {overview.pricesAt !== undefined && (
+              <p className={styles["time"]}>
+                <NumberText>{overview.pricesAt}</NumberText>
+              </p>
+            )}
+            <h1>
+              <NumberText>{overview.summary.headline}</NumberText>
+            </h1>
+            <p>
+              <NumberText>{overview.summary.sentence}</NumberText>
+            </p>
+          </div>
+          <ClassMap overview={overview} axis={axis} points={points} />
+        </div>
+        <ClassTeachingCards overview={overview} classId={classId} axis={axis} />
       </div>
-      <ClassMap overview={overview} axis={axis} points={points} />
-      {overview.quoteFailure !== undefined && (
-        <p>
-          <NumberText>{overview.quoteFailure}</NumberText>
-        </p>
-      )}
       {overview.students.length > 0 && (
         <details
           id={classMapTargetId("data")}

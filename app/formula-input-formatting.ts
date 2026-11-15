@@ -1,5 +1,6 @@
 import { formatNonzeroNumber } from "./format-nonzero-number.ts";
-import { intlLocale, numberPrecisionOptions } from "./formatting.ts";
+import { numberPrecisionOptions } from "./formatting.ts";
+import { intlLocale } from "./intl-locale.ts";
 import type { Beta } from "./units/beta.ts";
 import type { MonthlyReturn } from "./units/monthly-return.ts";
 

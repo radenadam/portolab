@@ -1,3 +1,4 @@
+import { extremeOf } from "./extreme-of";
 import { pathReturningTo } from "~/features/accounts/path-returning-to";
 import { classMapPath } from "./class-path";
 import type { UserId } from "~/features/accounts/accounts.schema";
@@ -69,15 +70,7 @@ function extremeIds(measured: ClassOverview["students"]): Set<UserId> {
     (student: (typeof measured)[number]) => student.risk?.standardDeviation,
     (student: (typeof measured)[number]) => student.risk?.alpha,
   ]) {
-    let highest: { id: UserId; value: number } | undefined;
-    for (const student of measured) {
-      const value = valueOf(student);
-      if (
-        value !== undefined &&
-        (highest === undefined || value > highest.value)
-      )
-        highest = { id: student.id, value };
-    }
+    const highest = extremeOf(measured, valueOf, true);
     if (highest !== undefined) named.add(highest.id);
   }
   return named;
