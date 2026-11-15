@@ -2,6 +2,7 @@ import type { OrderLots } from "~/units/lots";
 import { rupiah } from "~/units/rupiah";
 import { shares } from "~/units/shares";
 import type { StoredOrder } from "./order-rows";
+import type { Fill } from "./order";
 import {
   acceptedForTest,
   accountForTest,
@@ -57,7 +58,10 @@ export function filledActivityForTest(
 }
 
 /** Python Decimal gives 2,550,000 - 3,825 - 2,550 = 2,543,625 after the sale's fee and tax. */
-export function soldActivityForTest(id: number): StoredOrder {
+export function soldActivityForTest(
+  id: number,
+  fillChanges: Partial<Fill> = {},
+): StoredOrder {
   return filledActivityForTest(id, {
     side: "sell",
     state: {
@@ -70,6 +74,7 @@ export function soldActivityForTest(id: number): StoredOrder {
         cashChange: rupiah(2_543_625),
         quotedAt: new Date("2026-11-02T03:00:00Z"),
         filledAt: new Date("2026-11-02T03:10:00Z"),
+        ...fillChanges,
       },
     },
   });

@@ -45,7 +45,8 @@ const texts: Record<
     placed: string;
     twoTrades: string;
     notFoundTitle: string;
-    choose: string;
+    chooseStatus: string;
+    chooseView: string;
     apply: string;
     badStatus: string;
     badView: string;
@@ -57,7 +58,8 @@ const texts: Record<
   id: {
     buyChange: "▲ +0,81%",
     saleChange: "▼ -2,35%",
-    choose: "Pilih tampilan",
+    chooseStatus: "Pilih status",
+    chooseView: "Pilih tampilan",
     apply: "Tampilkan aktivitas",
     badStatus:
       'Kolom "Saring menurut status" berisi "wrong", tetapi kolom itu hanya menerima "Semua", "Menunggu", "Terisi", "Ditolak", "Kedaluwarsa", atau "Dibatalkan". Pilih salah satunya.',
@@ -94,7 +96,8 @@ const texts: Record<
   en: {
     buyChange: "▲ +0.81%",
     saleChange: "▼ -2.35%",
-    choose: "Choose a view",
+    chooseStatus: "Choose a status",
+    chooseView: "Choose a view",
     apply: "Show activity",
     badStatus:
       'The field "Filter by status" holds "wrong", but the field takes only "All", "Waiting", "Filled", "Rejected", "Expired", or "Cancelled". Choose one of them.',
@@ -351,7 +354,10 @@ async function correctActivityQuery(
   await expect(status).toHaveValue("wrong");
   await expect(view).toHaveValue("wrong");
   await expect(
-    status.getByRole("option", { name: text.choose, exact: true }),
+    status.getByRole("option", { name: text.chooseStatus, exact: true }),
+  ).toHaveCount(1);
+  await expect(
+    view.getByRole("option", { name: text.chooseView, exact: true }),
   ).toHaveCount(1);
   await status.selectOption("all");
   await view.selectOption("orders");

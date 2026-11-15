@@ -29,7 +29,7 @@ export function ActivitySelectionForm({
       <SelectField
         name="status"
         label={m.trading_activity_status_label()}
-        placeholder={m.trading_activity_choose_label()}
+        placeholder={m.trading_activity_choose_status_label()}
         options={statusOptions}
         defaultValue={fields.status}
         failure={fields.statusFailure}
@@ -37,7 +37,7 @@ export function ActivitySelectionForm({
       <SelectField
         name="view"
         label={m.trading_activity_view_label()}
-        placeholder={m.trading_activity_choose_label()}
+        placeholder={m.trading_activity_choose_view_label()}
         options={viewOptions}
         defaultValue={fields.view}
         failure={fields.viewFailure}

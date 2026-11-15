@@ -49,9 +49,11 @@ const texts: Record<
     noCost: string;
     noChange: string;
     returns: readonly string[];
+    saleLoss: string;
   }
 > = {
   id: {
+    saleLoss: "Laba atau rugi terealisasi ▼ -Rp\u00a099.735",
     returns: ["-2,11%", "0,00%", "+2,41%"],
     labels: [
       "Order",
@@ -83,7 +85,7 @@ const texts: Record<
       "Tanpa alasan.",
       "Sejak dibeli",
       "Harga sejak dijual",
-      "Laba terealisasi",
+      "Laba atau rugi terealisasi",
       "2 Nov 2026, 10.00 WIB",
     ],
     empty: [
@@ -91,11 +93,12 @@ const texts: Record<
       "Tidak ada order dengan status ini.",
       "Transaksi yang terisi muncul di sini bersama alasannya.",
     ],
-    noCost: "Belum dapat dihitung karena riwayat pembelian tidak lengkap.",
+    noCost: "Tidak dapat dihitung karena riwayat pembelian tidak lengkap.",
     noChange:
       "Perubahan sejak transaksi belum tersedia karena belum ada harga BBCA yang tercatat pada atau setelah transaksi.",
   },
   en: {
+    saleLoss: "Realised profit or loss ▼ -IDR\u00a099,735",
     returns: ["-2.11%", "0.00%", "+2.41%"],
     labels: [
       "Orders",
@@ -151,6 +154,27 @@ function prices(): PricesOfView {
 }
 
 for (const locale of locales) {
+  test(`names realised losses and keeps the sale's negative amount in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    // Python Decimal gives 500 × 4,800 - 3,600 - 2,400 = 2,394,000 in net proceeds, and 2,394,000 - 2,493,735 = -99,735 against the purchase cost.
+    const sale = soldActivityForTest(2, {
+      price: rupiah(4_800),
+      value: rupiah(2_400_000),
+      fee: rupiah(3_600),
+      tax: rupiah(2_400),
+      cashChange: rupiah(2_394_000),
+    });
+    const markup = renderMarkupForTest(
+      <JournalList
+        trades={tradeJournal([filledActivityForTest(1), sale], [])}
+        prices={prices()}
+        classId={classId}
+      />,
+    );
+    expect(markup.replace(/<[^>]+>/g, "")).toContain(
+      markupTextForTest(texts[locale].saleLoss),
+    );
+  });
   test(`shows a loss, zero change, and a gain from independently computed price returns in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     // Python Decimal gives 4,875 / 4,980 - 1 = -0.02108433735, zero at 4,980, and 5,100 / 4,980 - 1 = 0.02409638554.

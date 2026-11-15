@@ -63,3 +63,22 @@ test("withholds performance for missing or older quotes and a sale whose purchas
     ),
   ).toEqual([]);
 });
+
+test("keeps sale costs unavailable after missing purchases even when newer trades arrive", () => {
+  const missingPurchaseSale = soldActivityForTest(1, {
+    filledAt: new Date("2026-11-02T02:55:00Z"),
+    quotedAt: new Date("2026-11-02T02:50:00Z"),
+  });
+  const newerPurchase = filledActivityForTest(2);
+  const newerSale = soldActivityForTest(3);
+  const trades = tradeJournal(
+    [missingPurchaseSale, newerPurchase, newerSale],
+    [stockQuote("BBCA", [5_100, 4_980], "2026-11-02T03:00:00Z")],
+  );
+  expect(trades.map((trade) => trade.order.id)).toEqual([3, 2, 1]);
+  expect(trades.map((trade) => trade.realized)).toEqual([
+    undefined,
+    undefined,
+    undefined,
+  ]);
+});
