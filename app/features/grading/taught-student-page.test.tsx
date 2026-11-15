@@ -124,6 +124,7 @@ for (const locale of locales) {
       const home = homePortfolioForTest(valuationForTest(codes));
       const html = renderMarkupForTest(
         <AnalysisView
+          showData={false}
           classId={student.classId}
           report={home.report}
           {...readAnalysis(database, home.report)}

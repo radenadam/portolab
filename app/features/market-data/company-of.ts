@@ -1,17 +1,19 @@
 import type { TrackedStockCode } from "./tracked-instruments.ts";
 
 /** A sector of IDX-IC, the classification of IDX, that a company of a tracked stock belongs to, as decision 0034 explains. */
-export type Sector =
-  | "energy"
-  | "basicMaterials"
-  | "industrials"
-  | "consumerNonCyclicals"
-  | "consumerCyclicals"
-  | "healthcare"
-  | "financials"
-  | "propertiesAndRealEstate"
-  | "technology"
-  | "infrastructures";
+export const sectors = [
+  "energy",
+  "basicMaterials",
+  "industrials",
+  "consumerNonCyclicals",
+  "consumerCyclicals",
+  "healthcare",
+  "financials",
+  "propertiesAndRealEstate",
+  "technology",
+  "infrastructures",
+] as const;
+export type Sector = (typeof sectors)[number];
 
 /** The company behind a stock, as IDX publishes it. */
 interface Company {

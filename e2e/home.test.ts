@@ -32,7 +32,6 @@ const texts: Record<
     fallbackBadge: "Simulasi · harga tertunda",
     navigation: "Navigasi utama",
     visitorLinks: [
-      ["Harga", "/prices"],
       ["Gabung ke kelas", "/join"],
       ["Masuk", "/sign-in"],
     ],
@@ -53,7 +52,6 @@ const texts: Record<
     fallbackBadge: "Simulation · prices delayed",
     navigation: "Main navigation",
     visitorLinks: [
-      ["Prices", "/prices"],
       ["Join a class", "/join"],
       ["Sign in", "/sign-in"],
     ],

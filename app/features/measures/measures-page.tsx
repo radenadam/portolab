@@ -6,10 +6,12 @@ import { databaseContext } from "~/database/database.server";
 import { readStudentPortfolioReport } from "~/features/trading/read-student-portfolio-report.server";
 import { pageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
+import { parseOptionalText } from "~/form-text";
 import type { Route } from "./+types/measures-page";
 import { AnalysisView } from "./analysis-view";
 import { AnalysisAxisForm } from "./analysis-axis-form";
 import { readAnalysis, readAnalysisAxis } from "./read-analysis.server";
+import { analysisDataReturn } from "./analysis-data-return";
 
 export function meta(): Route.MetaDescriptors {
   return [{ title: pageTitle(m.measures_analysis_title()) }];
@@ -36,6 +38,11 @@ export function loader({ context, request, params, url }: Route.LoaderArgs) {
       { status: 400 },
     );
   }
+  // The hint restores a return address, so a forged hint must not block the normal page.
+  const dataReturn = parseOptionalText(
+    url.searchParams.get(analysisDataReturn.parameter),
+    m.measures_analysis_data_label(),
+  );
   return {
     kind: "analysis" as const,
     classId: place.classId,
@@ -45,6 +52,7 @@ export function loader({ context, request, params, url }: Route.LoaderArgs) {
     now,
     source,
     firstSessionDate: place.firstSessionDate,
+    showData: dataReturn.ok && dataReturn.value === analysisDataReturn.value,
   };
 }
 

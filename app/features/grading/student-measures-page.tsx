@@ -66,6 +66,7 @@ export default function StudentMeasuresPage({
       ) : (
         <AnalysisView
           {...loaderData}
+          showData={false}
           reader={{ kind: "lecturer", studentName: student.shortName }}
           summary={{
             path: pathReturningTo(

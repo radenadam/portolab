@@ -12,7 +12,7 @@ export async function newDevice(
     ...settings
   }: { siteUrl?: string | undefined } & Pick<
     BrowserContextOptions,
-    "javaScriptEnabled" | "storageState"
+    "javaScriptEnabled" | "storageState" | "locale"
   > = {},
 ): Promise<Page> {
   const { viewport, userAgent, deviceScaleFactor, isMobile, hasTouch } =

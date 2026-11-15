@@ -6,7 +6,7 @@ import { listLatestQuotes } from "./quote-store.server";
 import { readLatestUpdateAttempt } from "./update-attempts.server";
 import type { UpdateAttempt } from "./update-attempts.server";
 
-/** What the table of the latest delayed prices shows at a moment, which decides whether the next attempt of the quote job is still to come. */
+/** Sharing one moment keeps the price status and its next attempt consistent. */
 export interface PricesOfView {
   quotes: Quote[];
   latestAttempt: UpdateAttempt | undefined;

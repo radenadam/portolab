@@ -64,3 +64,10 @@ export function measureConcept(concept: MeasureConcept): ConceptDefinition {
   };
   return concepts[concept];
 }
+
+/** A shared unit notice keeps every card tied to the unit of its concept. */
+export function measureUnitText(concept: MeasureConcept): string | undefined {
+  return measureConcept(concept).monthly
+    ? m.measures_monthly_concept_notice()
+    : undefined;
+}

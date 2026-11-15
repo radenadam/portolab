@@ -66,6 +66,7 @@ export function AnalysisView({
   firstSessionDate,
   reader,
   summary,
+  showData,
 }: {
   classId: ClassId;
   report: PortfolioReport;
@@ -79,6 +80,7 @@ export function AnalysisView({
   firstSessionDate: string | null;
   reader: PortfolioReader;
   summary: SummaryLink;
+  showData: boolean;
 }): ReactNode {
   const studentName = portfolioStudentName(reader);
   const explained = explainPortfolioMeasures(measures, reader);
@@ -139,11 +141,9 @@ export function AnalysisView({
                 {analysisPortfolioTitle(studentName)}
               </NumberText>
             </h2>
-            {!explained.ok && (
-              <p>
-                <PortfolioMeasuresNotice report={measures} reader={reader} />
-              </p>
-            )}
+            <p>
+              <PortfolioMeasuresNotice report={measures} reader={reader} />
+            </p>
             {reader.kind === "owner" && (
               <Link to={marketPath(classId)} className={styles["link"]}>
                 {m.measures_analysis_market_link()}
@@ -169,6 +169,7 @@ export function AnalysisView({
         id={analysisDataId}
         label={m.measures_analysis_data_label()}
         placement="belowEnd"
+        className={showData ? styles["returnedData"] : undefined}
       >
         <div className={styles["data"]}>
           <h2>{m.measures_analysis_data_label()}</h2>
