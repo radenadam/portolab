@@ -77,7 +77,7 @@
       calc(100dvh - var(--space-6) * 2)
     );
     margin: auto;
-    border-radius: var(--radius-panel);
+    border-radius: var(--radius-learning-sheet-desktop);
     animation-name: dialog-enter;
   }
 
