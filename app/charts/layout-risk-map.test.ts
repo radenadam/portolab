@@ -207,7 +207,7 @@ test("offers places for the label of the line at the return of the IHSG along th
     { at: level, dx: 3.5, dy: -0.5, anchor: "start" },
     { at: level, dx: 3.5, dy: 1.17, anchor: "start" },
   ]);
-  expect(map.linePlaces.level).toHaveLength(18);
+  expect(map.linePlaces.level).toHaveLength(36);
   expect(map.linePlaces.line).toEqual([
     { at: map.line?.end, dx: -0.33, dy: -0.67, anchor: "end" },
     { at: map.line?.end, dx: -0.33, dy: 1.33, anchor: "end" },
@@ -232,6 +232,49 @@ const barelyMovingTexts: Record<Locale, readonly string[]> = {
   id: ["0%"],
   en: ["0%"],
 };
+
+test("places the median inside the return range and leaves space for class labels without a security market line", () => {
+  const map = layoutRiskMap({
+    market,
+    points,
+    ...axes,
+    median: monthlyReturn(-0.02),
+    roomForCorners: true,
+  });
+  // By hand, the returns from -2% to 3% gain 20% of their 5% spread at each end, giving -3% to 4%.
+  expect(map.median).toBeCloseTo(6 / 7, 12);
+  expect(map.zero).toBeCloseTo(4 / 7, 12);
+  expect(map.points[2]?.placed.position.y).toBeCloseTo(1 / 7, 12);
+  expect(map.line).toBeUndefined();
+});
+
+test("keeps starting cash inside a class map whose returns are all positive", () => {
+  const gainingPoints = points.map((point) => ({
+    ...point,
+    up: monthlyReturn(Math.max(0.01, point.up)),
+  }));
+  expect(gainingPoints.every(({ up }) => up > 0)).toBe(true);
+  const map = layoutRiskMap({
+    market: { ...market, up: monthlyReturn(0.02) },
+    points: gainingPoints,
+    ...axes,
+    roomForCorners: true,
+  });
+  // With zero included, the 0% to 3% spread gains 0.6 points at each end, so zero sits six sevenths down the plot.
+  expect(map.zero).toBeCloseTo(6 / 7, 12);
+});
+
+test("keeps starting cash in the middle when every class return is zero", () => {
+  const map = layoutRiskMap({
+    market: { ...market, up: monthlyReturn(0) },
+    points: [],
+    ...axes,
+    median: monthlyReturn(0),
+    roomForCorners: true,
+  });
+  expect(map.zero).toBe(0.5);
+  expect(map.median).toBe(0.5);
+});
 
 for (const locale of locales) {
   test(`writes each mark of returns apart from the others when the returns spread less than a hundredth of a percent, in ${languageNames[locale]}`, () => {

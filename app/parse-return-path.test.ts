@@ -72,3 +72,27 @@ test("rejects every value that a browser would resolve to another site", () => {
     });
   }
 });
+
+test("restricts a return to named pages while preserving its query and row fragment", () => {
+  const allowed = ["/classes/7", "/classes/7/students"];
+  const path = "/classes/7?axis=deviation&reveal=data#class-data-student-11";
+  expect(
+    parseReturnPath(path, "returnTo", {
+      origin: siteOrigin,
+      allowedPaths: allowed,
+    }),
+  ).toEqual({
+    ok: true,
+    value: path,
+  });
+  expect(
+    parseReturnPath("/classes/8", "returnTo", {
+      origin: siteOrigin,
+      allowedPaths: allowed,
+    }),
+  ).toEqual({
+    ok: false,
+    failure:
+      'returnTo must return to /classes/7 or /classes/7/students, but it is "/classes/8".',
+  });
+});

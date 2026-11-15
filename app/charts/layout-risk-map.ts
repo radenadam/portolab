@@ -9,13 +9,15 @@ import type { PlotFraction } from "~/units/plot-fraction";
 import type { PortfolioWeight } from "~/units/portfolio-weight";
 import type { LabelPlace } from "./map-labels";
 import type { PlotPosition } from "./plot";
-import { fractionOf, niceTicks, paddedRange } from "./scale";
+import { fractionOf, niceTicks } from "./scale";
 import type { Range } from "./scale";
+import { mapRange } from "./map-range";
 
 /** Different marks distinguish the subjects of the map from their background context, even without color. A holding without a usable weight still needs a visible mark. */
 export type MapMark =
   | { kind: "own" }
   | { kind: "held"; weight: PortfolioWeight | undefined }
+  | { kind: "active" }
   | { kind: "average" }
   | { kind: "classmate" }
   | { kind: "other" };
@@ -33,6 +35,10 @@ export interface MapPoint<Across extends number, Up extends number> {
   /** The name beside the point and at the head of its tooltip. */
   name: string;
   labelValue?: string;
+  /** A shorter name beside the mark, or an empty text when only the tooltip names it. */
+  label?: string;
+  /** The page that opens when the reader activates this point. */
+  href?: string;
   across: Across;
   up: Up;
   popover?: string;
@@ -96,6 +102,8 @@ export interface RiskMapLayout<Point> {
   /** The characters of the longest text of a mark of returns. DM Mono, the font of the marks of axes, draws each character equally wide, so the plot leaves this many widths of a character for the texts. */
   upTextLength: number;
   market: PlacedMark;
+  zero: PlotFraction;
+  median: PlotFraction | undefined;
   line: { start: PlotPosition; end: PlotPosition } | undefined;
   /** Each point with its mark, in the order of the points. */
   points: { point: Point; placed: PlacedMark }[];
@@ -124,8 +132,11 @@ const heldRadiusPerRootPercent = 0.175;
 const levelStart = 0.83;
 const levelStep = 2.67;
 const levelSteps = 8;
-const levelAbove = -0.5;
-const levelBelow = 1.17;
+// A band of points can fill the line, so labels try a little farther above and below it after the nearer places.
+const levelOffsets = [
+  [-0.5, 1.17],
+  [-1.5, 2.17],
+];
 const lineEndPlaces = [
   { dx: -0.33, dy: -0.67 },
   { dx: -0.33, dy: 1.33 },
@@ -143,16 +154,16 @@ export function layoutRiskMap<
   across: MapAcrossAxis<Across>;
   up: MapAxis<Up>;
   line?: MapLine<Across, Up> | undefined;
+  median?: Up;
+  roomForCorners?: boolean;
 }): RiskMapLayout<Point> {
   const { market, points, across, up, line } = map;
-  const acrossRange = rangeOf(
-    [
-      ...[market, ...points, ...(line === undefined ? [] : [line.start])].map(
-        (point) => point.across,
-      ),
-      ...(across.include ?? []),
-    ],
+  const acrossRange = mapRange(
+    [market, ...points, ...(line === undefined ? [] : [line.start])].map(
+      (point) => point.across,
+    ),
     across.toValue,
+    { include: across.include },
   );
   if (market.across === line?.start.across) {
     throw new Error(
@@ -168,7 +179,7 @@ export function layoutRiskMap<
               (market.up - line.start.up)) /
               (market.across - line.start.across),
         );
-  const upRange = rangeOf(
+  const upRange = mapRange(
     [
       ...[market, ...points, ...(line === undefined ? [] : [line.start])].map(
         (point) => point.up,
@@ -178,8 +189,10 @@ export function layoutRiskMap<
       ),
       up.toValue(0),
       ...(lineEnd === undefined ? [] : [lineEnd]),
+      ...(map.median === undefined ? [] : [map.median]),
     ],
     up.toValue,
+    { roomForCorners: map.roomForCorners },
   );
   const positionOf = (point: { across: Across; up: Up }): PlotPosition => ({
     x: plotFraction(fractionOf(acrossRange, point.across)),
@@ -208,6 +221,9 @@ export function layoutRiskMap<
     acrossTicks: acrossTicksOf(acrossRange, across, market.across),
     upTicks,
     upTextLength,
+    zero: heightOf(upRange, up.toValue(0)),
+    median:
+      map.median === undefined ? undefined : heightOf(upRange, map.median),
     market: {
       position: marketPosition,
       radius: marketRadius,
@@ -226,28 +242,33 @@ export function layoutRiskMap<
     })),
     linePlaces: {
       level: levelPlaces(marketPosition.y),
-      line:
-        drawnLine === undefined
-          ? []
-          : lineEndPlaces.map(({ dx, dy }) => ({
-              at: drawnLine.end,
-              dx,
-              dy,
-              anchor: "end",
-            })),
+      line: comparisonLinePlaces(drawnLine),
     },
   };
+}
+
+function comparisonLinePlaces(
+  line: { end: PlotPosition } | undefined,
+): LabelPlace[] {
+  if (line === undefined) return [];
+  return lineEndPlaces.map(({ dx, dy }) => ({
+    at: line.end,
+    dx,
+    dy,
+    anchor: "end",
+  }));
 }
 
 function levelPlaces(height: PlotFraction): LabelPlace[] {
   const at = { x: plotFraction(0), y: height };
   const places: LabelPlace[] = [];
-  for (let step = 0; step <= levelSteps; step += 1) {
-    const dx = levelStart + step * levelStep;
-    places.push(
-      { at, dx, dy: levelAbove, anchor: "start" },
-      { at, dx, dy: levelBelow, anchor: "start" },
-    );
+  for (const offsets of levelOffsets) {
+    for (let step = 0; step <= levelSteps; step += 1) {
+      const dx = levelStart + step * levelStep;
+      for (const dy of offsets) {
+        places.push({ at, dx, dy, anchor: "start" });
+      }
+    }
   }
   return places;
 }
@@ -257,16 +278,6 @@ function heightOf<Up extends number>(
   value: Up,
 ): PlotFraction {
   return plotFraction(1 - fractionOf(range, value));
-}
-
-function rangeOf<Value extends number>(
-  values: readonly Value[],
-  toValue: (value: number) => Value,
-): Range<Value> {
-  const range = paddedRange(values, toValue);
-  return Math.min(...values) >= 0 && range.min < 0
-    ? { min: toValue(0), max: range.max }
-    : range;
 }
 
 function ticksOf<Value extends number>(
@@ -319,6 +330,7 @@ function markSizeOf(mark: MapMark): { radius: number; outerRadius: number } {
             );
       return { radius, outerRadius: radius };
     }
+    case "active":
     case "other":
     case "average":
       return { radius: otherRadius, outerRadius: otherRadius };

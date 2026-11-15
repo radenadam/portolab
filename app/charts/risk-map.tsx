@@ -2,6 +2,7 @@ import { nearestMapStop } from "./nearest-map-stop";
 import { MapTip } from "./map-tip";
 import { MapPointActions } from "./map-point-actions";
 import { useMemo } from "react";
+import { useNavigate } from "react-router";
 import type { CSSProperties, PointerEvent, MouseEvent, ReactNode } from "react";
 import { formatList } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
@@ -15,29 +16,21 @@ import type {
   MarkedPoint,
   RiskMapLayout,
 } from "./layout-risk-map";
-import { lineLabelKeys, MapDrawing } from "./map-drawing";
-import type { DrawnPoint, MarkKind } from "./map-drawing";
-import type { MapLabels } from "./map-labels";
+import { MapDrawing, markReach } from "./map-drawing";
+import type { DrawnPoint } from "./map-drawing";
+import { riskMapLabels } from "./risk-map-labels";
+import type { MapSpreadText } from "./risk-map-labels";
 import { keptNameRoom } from "./map-labels";
 import { valueMarkGap } from "./value-mark";
 import styles from "./risk-map.module.css";
 import { useIsInBrowser } from "~/use-is-in-browser";
 import { useMapLabels } from "./use-map-labels";
 
-// The portfolio and every holding keep their names ahead of every other point, even when the caller lists the holdings before the portfolio. Larger marks leave less room for their names, so they take their places before smaller marks of the same kind.
-const labelOrder: Record<MarkKind, number> = {
-  own: 0,
-  held: 1,
-  market: 2,
-  other: 3,
-  average: 2,
-  classmate: 4,
-};
-
 // Every length around the plot is a multiple of the size of the text of its marks, so the map keeps its proportions when a reader enlarges the text.
 const bottomRoom = 3.5;
 const sideRoom = 0.5;
-/** The server's estimated label widths keep names visible before the browser can measure them. */
+const spreadRoom = 3.5;
+/** A map of risk across against return up, as decisions 0028 and 0035 set: each point by its mark and its name, the IHSG as a diamond with a strong line through its risk and a dashed line at its return, and an optional line from a point through the IHSG, such as the security market line. The server draws it in SVG and places its labels from estimated widths of their texts. Once JavaScript runs, the browser places the labels again from their measured widths at the size of the plot, and the plot is a slider that a pointer, a finger, or the keys move over the points in the order of their risk, which shows the values of the marked point in a tooltip. */
 export function RiskMap<Across extends number, Up extends number>({
   market,
   points,
@@ -46,6 +39,8 @@ export function RiskMap<Across extends number, Up extends number>({
   line,
   levelLabel,
   labelledBy,
+  spread,
+  coloredValues,
   fill = false,
 }: {
   /** The IHSG. */
@@ -57,21 +52,33 @@ export function RiskMap<Across extends number, Up extends number>({
   };
   up: MapAxis<Up>;
   line?: MapLine<Across, Up>;
+  spread?: MapSpreadText & { median: Up | undefined };
+  coloredValues?: boolean;
   /** The label of the line at the return of the IHSG, such as IHSG 0.70%. */
   levelLabel?: string;
   /** The id of the heading that names the map, which also names its slider. */
   labelledBy: string;
   fill?: boolean;
 }): ReactNode {
+  const navigate = useNavigate();
   const isInBrowser = useIsInBrowser();
   const layout = useMemo(
-    () => layoutRiskMap({ market, points, across, up, line }),
-    [market, points, across, up, line],
+    () =>
+      layoutRiskMap({
+        market,
+        points,
+        across,
+        up,
+        line,
+        roomForCorners: spread !== undefined,
+        ...(spread?.median === undefined ? {} : { median: spread.median }),
+      }),
+    [market, points, across, up, line, spread],
   );
   const drawn = useMemo(() => drawnPoints(market, layout), [market, layout]);
   const labels = useMemo(
-    () => mapLabels(drawn, { line, levelLabel, layout }),
-    [drawn, line, levelLabel, layout],
+    () => riskMapLabels(drawn, { line, levelLabel, layout, spread }),
+    [drawn, line, levelLabel, layout, spread],
   );
   const marks = useMemo(
     () =>
@@ -79,12 +86,14 @@ export function RiskMap<Across extends number, Up extends number>({
         key: point.key,
         position: placed.position,
         outerRadius: placed.outerRadius,
+        selectionRadius: placed.outerRadius + markReach,
       })),
     [drawn],
   );
   const { placed, areaRef, drawingRef, measureRef, textSize } = useMapLabels(
     labels,
     marks,
+    layout.upTextLength,
   );
   const stops = useMemo(
     () =>
@@ -104,9 +113,13 @@ export function RiskMap<Across extends number, Up extends number>({
         : ownStop,
     labelledBy,
   });
+  const outsideRoom = spread === undefined ? sideRoom : spreadRoom;
+  const plotClass =
+    spread === undefined ? styles["plot"] : styles["spreadPlot"];
+  const mapClass = [styles["riskMap"], fill ? styles["fill"] : ""].join(" ");
   const style: CSSProperties = {
-    paddingBlock: `${String(sideRoom)}em ${String(bottomRoom)}em`,
-    paddingInline: `calc(${String(layout.upTextLength)}ch + ${String(valueMarkGap)}em + ${String(keptNameRoom)} * var(--text-small)) ${String(sideRoom)}em`,
+    paddingBlock: `${String(outsideRoom)}em ${String(bottomRoom)}em`,
+    paddingInline: `calc(${String(layout.upTextLength)}ch + ${String(valueMarkGap)}em + ${String(keptNameRoom)} * var(--text-small)) ${String(outsideRoom)}em`,
   };
   const active = slider.marked === undefined ? undefined : stops[slider.marked];
   const drawing = (
@@ -115,6 +128,7 @@ export function RiskMap<Across extends number, Up extends number>({
       drawn={drawn}
       placed={placed}
       texts={{ title: across.title, level: levelLabel, line: line?.name }}
+      spread={spread}
       active={active}
       drawingRef={drawingRef}
       measureRef={measureRef}
@@ -141,10 +155,8 @@ export function RiskMap<Across extends number, Up extends number>({
   );
   if (!isInBrowser || shown === undefined) {
     return (
-      <div
-        className={[styles["riskMap"], fill ? styles["fill"] : ""].join(" ")}
-      >
-        <div className={styles["plot"]} style={style}>
+      <div className={mapClass}>
+        <div className={plotClass} style={style}>
           <div ref={areaRef} className={styles["area"]}>
             {drawing}
           </div>
@@ -163,35 +175,50 @@ export function RiskMap<Across extends number, Up extends number>({
   const sliderProps = slider.sliderProps(spokenPoint(shown.point));
   return (
     <div
-      className={[styles["riskMap"], fill ? styles["fill"] : ""].join(" ")}
+      className={mapClass}
       onPointerDown={markPointer}
       onPointerMove={markPointer}
       onPointerLeave={sliderProps.onPointerLeave}
     >
       <div
-        className={styles["plot"]}
+        className={plotClass}
         style={style}
         {...sliderProps}
         role="slider"
         tabIndex={0}
-        aria-valuenow={slider.shown}
+        aria-valuenow={sliderProps["aria-valuenow"]}
         onKeyDown={(event) => {
-          sliderProps.onKeyDown?.(event);
-          if (
-            (event.key === "Enter" || event.key === " ") &&
-            shown.point.popover !== undefined
-          ) {
+          if (event.key === "Enter" && shown.point.href !== undefined) {
             event.preventDefault();
-            document
-              .getElementById(shown.point.popover)
-              ?.showPopover({ source: event.currentTarget });
+            void navigate(shown.point.href);
+          } else {
+            sliderProps.onKeyDown?.(event);
+            if (
+              (event.key === "Enter" || event.key === " ") &&
+              shown.point.popover !== undefined
+            ) {
+              event.preventDefault();
+              document
+                .getElementById(shown.point.popover)
+                ?.showPopover({ source: event.currentTarget });
+            }
           }
+        }}
+        onClick={(event) => {
+          const area = areaRef.current;
+          const size = textSize();
+          if (area === null || size === undefined) return;
+          const stop = nearestMapStop(stops, { event, area, textSize: size });
+          const href = stop === undefined ? undefined : stops[stop]?.point.href;
+          if (href !== undefined) void navigate(href);
         }}
         onPointerLeave={undefined}
       >
         <div ref={areaRef} className={styles["area"]}>
           {drawing}
-          {active !== undefined && <MapTip drawn={active} />}
+          {active !== undefined && (
+            <MapTip drawn={active} coloredValues={coloredValues} />
+          )}
         </div>
       </div>
       {actions}
@@ -212,63 +239,6 @@ function drawnPoints<Across extends number, Up extends number>(
       placed,
     })),
   ];
-}
-
-/** The labels of the map in the order in which they take their places: the names of the points of the reader, the labels of the lines, and then the names of the other points by labelOrder. */
-function mapLabels(
-  drawn: readonly DrawnPoint[],
-  map: {
-    line: { name: string } | undefined;
-    levelLabel: string | undefined;
-    layout: RiskMapLayout<unknown>;
-  },
-): MapLabels {
-  const kept: { key: string; text: string }[] = [];
-  const others: { key: string; text: string }[] = [];
-  for (const { point, kind } of drawn.toSorted(
-    (first, second) =>
-      labelOrder[first.kind] - labelOrder[second.kind] ||
-      second.placed.outerRadius - first.placed.outerRadius,
-  )) {
-    const label = { key: point.key, text: point.name, value: point.labelValue };
-    switch (kind) {
-      case "own":
-      case "held":
-      case "average":
-        kept.push(label);
-        break;
-      case "market":
-      case "other":
-        others.push(label);
-        break;
-      case "classmate":
-        break;
-    }
-  }
-  return {
-    kept,
-    lines: [
-      ...(map.levelLabel === undefined
-        ? []
-        : [
-            {
-              key: lineLabelKeys.level,
-              text: map.levelLabel,
-              places: map.layout.linePlaces.level,
-            },
-          ]),
-      ...(map.line === undefined
-        ? []
-        : [
-            {
-              key: lineLabelKeys.line,
-              text: map.line.name,
-              places: map.layout.linePlaces.line,
-            },
-          ]),
-    ],
-    others,
-  };
 }
 
 /** The text of a point that a screen reader reads as the value of the slider, such as BBCA: Beta terhadap IHSG 0,69 dan Imbal hasil harapan -0,10%. */
