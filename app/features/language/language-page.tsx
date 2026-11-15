@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { data, redirect } from "react-router";
 import { ErrorPage } from "~/error-page";
+import { FormPage } from "~/form-page";
 import { PageTitle } from "~/page-title";
 import { returnDestination } from "~/return-destination.server";
 import { m } from "~/paraglide/messages.js";
@@ -31,8 +32,9 @@ export default function LanguagePage({
     return (
       <>
         <PageTitle text={m.language_page_title()} />
-        <h1>{m.language_page_title()}</h1>
-        <LanguageSwitch />
+        <FormPage title={m.language_page_title()}>
+          <LanguageSwitch />
+        </FormPage>
       </>
     );
   }

@@ -14,6 +14,7 @@ import {
   startSession,
 } from "~/features/accounts/current-session.server";
 import { isLoadedByAnotherSite } from "~/is-loaded-by-another-site.server";
+import { FormPage } from "~/form-page";
 import { PageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
 import type { Route } from "./+types/join-class-page";
@@ -230,8 +231,9 @@ export default function JoinClassPage({
       return (
         <>
           <PageTitle text={m.classes_join_title()} />
-          <h1>{m.classes_join_title()}</h1>
-          <CodeForm code={state.code} failure={state.failure} />
+          <FormPage title={m.classes_join_title()}>
+            <CodeForm code={state.code} failure={state.failure} />
+          </FormPage>
         </>
       );
     case "class":
