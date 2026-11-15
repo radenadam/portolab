@@ -30,6 +30,7 @@ const texts: Record<
     sections: string;
     time: string;
     map: string;
+    mapTitle: string;
     risk: string;
     prices: string;
     orders: string;
@@ -55,6 +56,7 @@ const texts: Record<
     sections: "Bagian portofolio mahasiswa",
     time: "Grafik waktu",
     map: "Peta",
+    mapTitle: `Posisi ${widestClassNames.studentName} di peta`,
     risk: "Simpangan baku",
     prices: "Waktu harga: Ringkasan",
     orders: "Order",
@@ -79,6 +81,7 @@ const texts: Record<
     sections: "Student portfolio sections",
     time: "Time chart",
     map: "Map",
+    mapTitle: `Position of ${widestClassNames.studentName} on the map`,
     risk: "Standard deviation",
     prices: "Price times: Summary",
     orders: "Orders",
@@ -152,6 +155,7 @@ for (const locale of locales) {
         await expectAccessibleScreen(page);
         expect(await layoutProblems(page)).toEqual([]);
         if (suffix === "") {
+          await expectSquareMapKeys(page, text.mapTitle);
           await page
             .getByRole("link", { name: text.time, exact: true })
             .click();
@@ -340,6 +344,21 @@ for (const locale of locales) {
       await student.context().close();
     }
   });
+}
+
+async function expectSquareMapKeys(page: Page, title: string): Promise<void> {
+  const mapKeys = page
+    .getByRole("region", { name: title, exact: true })
+    .locator("ul[aria-hidden] > li > span:first-child");
+  await expect(mapKeys.first()).toBeVisible();
+  for (const key of await mapKeys.all()) {
+    const shape = await key.evaluate((element) => {
+      const { width, height } = element.getBoundingClientRect();
+      return { width, height };
+    });
+    expect(shape.width).toBeGreaterThan(0);
+    expect(shape.width).toBeCloseTo(shape.height, 1);
+  }
 }
 
 async function correctStudentQueries(

@@ -255,6 +255,10 @@
   color: var(--color-ink-secondary);
 }
 
+.legendItem > :first-child {
+  flex-shrink: 0;
+}
+
 /* A key of the legend draws the mark of its kind at the size of the text beside it. */
 .ownKey,
 .heldKey,
