@@ -39,6 +39,15 @@ export function studentJournalPath(
   return `${studentPortfolioPath(classId, studentId)}/journal`;
 }
 
+export const studentPagePaths: Record<
+  StudentPage,
+  typeof studentPortfolioPath
+> = {
+  portfolio: studentPortfolioPath,
+  measures: studentMeasuresPath,
+  journal: studentJournalPath,
+};
+
 export function studentPageAt(
   classId: ClassId,
   pathname: string,
@@ -50,10 +59,7 @@ export function studentPageAt(
     "returnTo student",
   );
   if (!studentId.ok) return undefined;
-  const paths: Record<StudentPage, string> = {
-    portfolio: studentPortfolioPath(classId, studentId.value),
-    measures: studentMeasuresPath(classId, studentId.value),
-    journal: studentJournalPath(classId, studentId.value),
-  };
-  return studentPages.find((page) => paths[page] === pathname);
+  return studentPages.find(
+    (page) => studentPagePaths[page](classId, studentId.value) === pathname,
+  );
 }

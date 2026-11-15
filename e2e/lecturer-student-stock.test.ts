@@ -6,6 +6,7 @@ import type { Locale } from "../app/paraglide/runtime.js";
 import { selectFirstStudent } from "./select-first-student.ts";
 import { studentDesignClass } from "./student-design-class.ts";
 import { expectStockRangeReturn } from "./expect-stock-range-return.ts";
+import { isPhone } from "./frame.ts";
 
 const sources = ["holdings", "map", "analysis", "journal", "orders"] as const;
 type StockSource = (typeof sources)[number];
@@ -67,7 +68,7 @@ for (const locale of locales) {
         test(`returns from a stock to the selected student and ${source} row`, async ({
           page,
           browser,
-        }, info) => {
+        }) => {
           const text = texts[locale];
           const { student, classPath } = await studentDesignClass(
             page,
@@ -92,7 +93,7 @@ for (const locale of locales) {
             switch (source) {
               case "holdings":
                 link = page.locator(
-                  `#home-holding-${info.project.name === "phone" ? "phone" : "desktop"}-BBCA`,
+                  `#home-holding-${isPhone() ? "phone" : "desktop"}-BBCA`,
                 );
                 break;
               case "map":

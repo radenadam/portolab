@@ -12,12 +12,7 @@ import { initialsOf } from "~/initials-of";
 import { NumberText } from "~/number-text";
 import { pageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
-import {
-  studentMeasuresPath,
-  studentPortfolioPath,
-  studentJournalPath,
-  studentPages,
-} from "./grading-paths";
+import { studentPagePaths, studentPages } from "./grading-paths";
 import type { StudentPage } from "./grading-paths";
 import styles from "./taught-student.module.css";
 
@@ -31,13 +26,10 @@ export interface TaughtStudent {
   latestActivity: Date | undefined;
 }
 
-const tabs: Record<
-  StudentPage,
-  { label: () => string; path: typeof studentPortfolioPath }
-> = {
-  portfolio: { label: m.grading_summary_label, path: studentPortfolioPath },
-  measures: { label: m.grading_analysis_label, path: studentMeasuresPath },
-  journal: { label: m.grading_journal_label, path: studentJournalPath },
+const tabLabels: Record<StudentPage, () => string> = {
+  portfolio: m.grading_summary_label,
+  measures: m.grading_analysis_label,
+  journal: m.grading_journal_label,
 };
 
 export function taughtStudentMeta(
@@ -48,7 +40,7 @@ export function taughtStudentMeta(
       title: pageTitle(
         m.grading_student_page_title({
           name: student.name,
-          section: tabs[page].label(),
+          section: tabLabels[page](),
           class: student.className,
         }),
       ),
@@ -124,12 +116,12 @@ export function TaughtStudentPage({
           <Link
             key={section}
             to={pathReturningTo(
-              tabs[section].path(student.classId, student.studentId),
+              studentPagePaths[section](student.classId, student.studentId),
               returnPath,
             )}
             aria-current={page === section ? "page" : undefined}
           >
-            {tabs[section].label()}
+            {tabLabels[section]()}
           </Link>
         ))}
       </nav>

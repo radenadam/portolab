@@ -7,6 +7,7 @@ import type { Locale } from "../app/paraglide/runtime.js";
 import { languageNames } from "../app/language-names.ts";
 import { reasonMaximumLength } from "../app/features/trading/reason-maximum-length.ts";
 import { captureScreens } from "./capture-screens.ts";
+import { isPhone } from "./frame.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 import { layoutProblems } from "./expect-layout.ts";
 import { newDevice } from "./new-device.ts";
@@ -178,7 +179,7 @@ for (const locale of locales) {
             page.getByRole("button", { name: text.cancel }),
           ).toHaveCount(0);
         }
-        if (suffix === "/journal" && test.info().project.name === "phone")
+        if (suffix === "/journal" && isPhone())
           await captureStudentScreen(
             page,
             `student-wide-trades-${locale}-journal`,
@@ -266,7 +267,7 @@ for (const locale of locales) {
         .getByRole("dialog")
         .getByRole("link", { name: text.panelJournal, exact: true })
         .click();
-      if (test.info().project.name === "phone")
+      if (isPhone())
         await page
           .getByRole("link", { name: text.orders, exact: true })
           .click();
@@ -309,7 +310,7 @@ for (const locale of locales) {
         throw new Error("The student has a summary address.");
       const direct = new URL(address, page.url()).pathname;
       await page.goto(direct + "/journal");
-      if (test.info().project.name === "phone")
+      if (isPhone())
         await page
           .getByRole("link", { name: text.orders, exact: true })
           .click();
