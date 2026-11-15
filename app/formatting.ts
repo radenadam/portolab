@@ -1,3 +1,4 @@
+import { decimalPlaceOptions } from "./decimal-place-options.ts";
 import { startOfUtcDate } from "~/calendar-dates";
 import { getLocale } from "~/paraglide/runtime.js";
 import { listOfWords } from "~/sentences";
@@ -112,17 +113,14 @@ export function formatMinutes(
 
 const indexLevelDecimals = 2;
 export const smallestIndexLevelStep = 10 ** -indexLevelDecimals;
-const indexLevelOptions = {
-  minimumFractionDigits: indexLevelDecimals,
-  maximumFractionDigits: indexLevelDecimals,
-};
+const indexLevelOptions = decimalPlaceOptions(indexLevelDecimals, "auto");
 
 export function formatIndexLevel(level: IndexPoints): string {
   return new Intl.NumberFormat(intlLocale(), indexLevelOptions).format(level);
 }
 
 /** Columns use a fixed precision so their values line up, while chart marks can omit trailing zeroes. */
-type PercentDecimals = "upToTwo" | "two" | "one" | "integer";
+type PercentDecimals = "upToTwo" | "two" | "one" | "integer" | "three";
 
 const mostPercentDecimals = 2;
 const percentDecimals: Record<PercentDecimals, readonly [number, number]> = {
@@ -130,9 +128,10 @@ const percentDecimals: Record<PercentDecimals, readonly [number, number]> = {
   two: [mostPercentDecimals, mostPercentDecimals],
   one: [1, 1],
   integer: [0, 0],
+  three: [3, 3],
 };
 
-/** The smallest step between the marks of an axis whose texts formatPercent or formatSignedPercent writes, a hundredth of a percent, so no two marks read the same. */
+/** Percent axes keep at most two decimals, so a hundredth of a percent is the smallest step that reads apart. */
 export const smallestPercentStep = 10 ** -(mostPercentDecimals + 2);
 
 /** Formats a fraction as a percentage without a plus sign, at the precision of its caller. */
@@ -195,9 +194,9 @@ export function formatVariance(variance: MonthlyVariance): string {
   }).format(variance);
 }
 
-/** Formats a beta with two decimals, such as 0.69. */
-export function formatBeta(beta: Beta): string {
-  return formatTwoDecimals(beta);
+/** The axis names its market reference with one decimal, while measure columns align two decimals. */
+export function formatBeta(beta: Beta, decimals: 1 | 2 = 2): string {
+  return formatDecimal(beta, decimalPlaceOptions(decimals));
 }
 
 /** Formats a correlation with two decimals, such as -0.25. */
@@ -210,24 +209,26 @@ export function formatSharpeRatio(ratio: SharpeRatio): string {
   return formatTwoDecimals(ratio);
 }
 
-const ratioOptions: Intl.NumberFormatOptions = {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-  signDisplay: "negative",
-};
 export const numberPrecisionOptions = {
   number: numberOptions,
-  ratio: ratioOptions,
+  ratio: decimalPlaceOptions(2),
   indexLevel: indexLevelOptions,
 };
-
-function formatTwoDecimals(value: number): string {
-  return new Intl.NumberFormat(intlLocale(), ratioOptions).format(value);
-}
 
 /** Formats a difference of returns in percentage points, without a percent sign. */
 export function formatPercentagePoints(fraction: number): string {
   return formatTwoDecimals(fraction * 100);
+}
+
+function formatTwoDecimals(value: number): string {
+  return formatDecimal(value, numberPrecisionOptions.ratio);
+}
+
+function formatDecimal(
+  value: number,
+  options: Intl.NumberFormatOptions,
+): string {
+  return new Intl.NumberFormat(intlLocale(), options).format(value);
 }
 
 /** How a calendar date reads: in words for a sentence, in words with the day of the week, or with the short month of a table. */

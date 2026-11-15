@@ -7,6 +7,8 @@ import { pathReturningTo } from "~/features/accounts/path-returning-to";
 import type { ClassId } from "~/features/classes/classes.schema";
 import styles from "./measures.module.css";
 import { stockPath } from "~/features/market-data/stock-path";
+import { analysisDataReturn } from "./analysis-data-return";
+import { measuresPath } from "./measures-path";
 
 /** A row of a table of measures: its name, such as the code of a stock, and a number for each other column, or a note that takes the place of all of them, such as why a stock has no measures. */
 export interface MeasureTableRow {
@@ -82,12 +84,16 @@ export function StockLink({
   id: string;
 }): ReactNode {
   const { pathname, search } = useLocation();
+  const returnSearch = new URLSearchParams(search);
+  if (pathname === measuresPath(classId))
+    returnSearch.set(analysisDataReturn.parameter, analysisDataReturn.value);
+  const query = returnSearch.toString();
   return (
     <Link
       id={id}
       to={pathReturningTo(
         stockPath(classId, code),
-        `${pathname}${search}#${id}`,
+        `${pathname}${query === "" ? "" : `?${query}`}#${id}`,
       )}
       className={styles["link"]}
     >

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import type { ReactNode } from "react";
+import type { ReactNode, MouseEventHandler } from "react";
 import { useLocation } from "react-router";
 import styles from "./popover.module.css";
 
@@ -21,12 +21,14 @@ export function Popover({
   label,
   placement,
   children,
+  className,
 }: {
   id: string;
   /** The name of the popover, which a screen reader reads when it opens. */
   label: string;
   placement: PopoverPlacement;
   children: ReactNode;
+  className?: string | undefined;
 }): ReactNode {
   const popoverRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
@@ -47,7 +49,9 @@ export function Popover({
       popover="auto"
       role="dialog"
       aria-label={label}
-      className={[styles["popover"], styles[placement]].join(" ")}
+      className={[styles["popover"], styles[placement], className]
+        .filter(Boolean)
+        .join(" ")}
       style={{ positionAnchor: anchorName(id) }}
     >
       {children}
@@ -61,6 +65,7 @@ export function PopoverButton({
   label,
   className,
   children,
+  onClick,
 }: {
   /** The id of the popover. */
   popover: string;
@@ -68,11 +73,13 @@ export function PopoverButton({
   label?: string | undefined;
   className: string | undefined;
   children: ReactNode;
+  onClick?: MouseEventHandler<HTMLButtonElement>;
 }): ReactNode {
   return (
     <button
       type="button"
       popoverTarget={popover}
+      onClick={onClick}
       aria-label={label}
       className={className}
       style={{ anchorName: anchorName(popover) }}

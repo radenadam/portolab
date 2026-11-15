@@ -376,7 +376,7 @@ for (const locale of locales) {
     await page.waitForURL(/\/stocks\/BBCA(?:\?|$)/);
     await expect(page.getByRole("heading", { level: 1 })).toContainText("BBCA");
     const stockAddress = new URL(page.url());
-    stockAddress.searchParams.set("returnTo", `${testClass.path}/measures`);
+    stockAddress.searchParams.set("returnTo", `${testClass.path}/analysis`);
     await page.goto(stockAddress.href);
     await expect(page.getByRole("link", { name: text.back })).toHaveAttribute(
       "href",

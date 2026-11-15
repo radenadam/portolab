@@ -32,6 +32,16 @@
   align-self: stretch;
 }
 
+.returns table {
+  table-layout: fixed;
+}
+.returns :is(th, td):nth-child(2) {
+  inline-size: var(--width-close-column);
+}
+.returns :is(th, td):nth-child(3) {
+  inline-size: var(--width-return-column);
+}
+
 /* A few values of equal weight stand in a grid of four columns on a desktop and two on a phone, each under a small muted label, as decision 0026 sets. The width of a column is the one at which four fit beside each other in the main column of a desktop, and two on a phone. */
 .keyMeasures {
   display: grid;

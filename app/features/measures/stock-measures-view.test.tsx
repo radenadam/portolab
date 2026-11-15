@@ -49,7 +49,7 @@ const texts: Record<
       "Ukuran di bawah memakai 60 imbal hasil bulanan dari Oktober 2021 sampai September 2026.",
     bbcaRows: [
       [
-        "Imbal hasil yang diharapkan",
+        "Imbal hasil harapan",
         "-0,10%",
         "E(R<sub>i</sub>) = ΣR<sub>i</sub> / n, n = 60 (AVERAGE)",
       ],
@@ -90,7 +90,7 @@ const texts: Record<
       ],
     ],
     below:
-      "Imbal hasil yang diharapkan berada di bawah garis pasar sekuritas, sehingga lebih rendah daripada imbal hasil yang disyaratkan CAPM untuk betanya.",
+      "Imbal hasil harapan berada di bawah garis pasar sekuritas, sehingga lebih rendah daripada imbal hasil yang disyaratkan CAPM untuk betanya.",
     ammnMonths:
       "Ukuran di bawah memakai 38 imbal hasil bulanan dari Agustus 2023 sampai September 2026.",
     ammnRows: [
@@ -106,11 +106,11 @@ const texts: Record<
       ],
     ],
     above:
-      "Imbal hasil yang diharapkan berada di atas garis pasar sekuritas, sehingga lebih tinggi daripada imbal hasil yang disyaratkan CAPM untuk betanya.",
+      "Imbal hasil harapan berada di atas garis pasar sekuritas, sehingga lebih tinggi daripada imbal hasil yang disyaratkan CAPM untuk betanya.",
     marketTitle: "IHSG dan suku bunga bebas risiko",
     marketRows: [
       [
-        "Imbal hasil yang diharapkan IHSG",
+        "Imbal hasil harapan IHSG",
         "0,05%",
         "E(R<sub>M</sub>) = ΣR<sub>M</sub> / n, n = 60 (AVERAGE)",
       ],

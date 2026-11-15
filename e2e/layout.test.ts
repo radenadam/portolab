@@ -105,9 +105,7 @@ const routePages: Record<string, readonly RoutePage[]> = {
   "features/measures/measures-page.tsx": [
     {
       reader: "student",
-      path: ({ classPath }) => `${classPath}/measures`,
-      // Each table of closes and returns sizes its columns by its own cells. Piece 17 rebuilds the page.
-      brokenUntilRebuilt: ["tables"],
+      path: ({ classPath }) => `${classPath}/analysis`,
     },
   ],
   "features/market-data/stock-page.tsx": [

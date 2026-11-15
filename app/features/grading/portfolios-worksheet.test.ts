@@ -75,7 +75,7 @@ const texts: Record<
       "Alpha Jensen",
       "Sharpe",
       "Treynor",
-      "Imbal hasil yang diharapkan",
+      "Imbal hasil harapan",
       "Simpangan baku",
       "Beta terhadap IHSG",
       "Imbal hasil yang disyaratkan CAPM",

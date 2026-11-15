@@ -1,0 +1,274 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+.header {
+  display: grid;
+  gap: var(--space-2);
+}
+.page h1 {
+  font-size: var(--text-screen-title);
+}
+.period,
+.notice {
+  color: var(--color-muted);
+  font-size: var(--text-caption);
+}
+
+.pricesLink {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--size-touch-target);
+  margin-inline-start: var(--space-2);
+  margin-block: calc(
+    (1.5 * var(--text-caption) - var(--size-touch-target)) / 2
+  );
+}
+.top {
+  display: grid;
+  gap: var(--space-5);
+  min-inline-size: 0;
+}
+.mapPanel {
+  composes: surface from "../../panel.module.css";
+  display: flex;
+  flex-direction: column;
+}
+.mapHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-panel) 0;
+}
+.page h2 {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--text-body);
+  font-weight: 600;
+}
+.axis {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-item);
+  position: relative;
+  background: none;
+  padding: 0;
+}
+.axis::before {
+  content: "";
+  position: absolute;
+  inset: var(--space-1) 0;
+  border-radius: var(--radius-item);
+  background: var(--color-raised);
+}
+.axis a {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: var(--size-touch-target);
+  padding-inline: var(--space-3);
+  border-radius: var(--radius-button);
+  color: var(--color-ink-secondary);
+  font-size: var(--text-small);
+  text-decoration: none;
+}
+.axis a span {
+  position: relative;
+}
+.axis [aria-current]::before {
+  content: "";
+  position: absolute;
+  inset: calc(var(--space-1) + var(--size-mark)) var(--space-1);
+  background: var(--color-panel);
+  box-shadow: var(--shadow-choice);
+  border-radius: var(--radius-button);
+}
+.axis [aria-current] {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+.mapBody {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-2) var(--space-panel) 0;
+  flex: 1;
+}
+.mapKeys {
+  composes: row from "../../caption-row.module.css";
+}
+.mapKeys p {
+  margin-inline-start: auto;
+}
+.insight {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-panel);
+  border-block-start: var(--size-line) solid var(--color-line);
+  font-size: var(--text-row);
+  color: var(--color-ink-secondary);
+}
+.insight em {
+  border-radius: var(--radius-item);
+  padding: var(--space-1) var(--space-2);
+  background: var(--color-data-soft);
+  color: var(--color-ink);
+  font-size: var(--text-small);
+  font-style: normal;
+  font-weight: 600;
+}
+.insight > span {
+  flex: 1;
+  min-inline-size: min(100%, var(--width-concept-card));
+}
+.insight .link {
+  margin-inline-start: auto;
+}
+.measures {
+  composes: surface from "../../panel.module.css";
+  padding: var(--space-panel);
+}
+.measures > h2 {
+  color: var(--color-muted);
+  font-size: var(--text-caption);
+  margin-block-end: var(--space-3);
+}
+.measures dl {
+  margin: 0;
+}
+.measure {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto var(--width-analysis-scale);
+  align-items: center;
+  gap: 0 var(--space-3);
+  padding-block: calc(var(--space-1) / 2);
+  border-block-end: var(--size-line) solid var(--color-line);
+  font-size: var(--text-caption);
+}
+.measure:last-child {
+  border: 0;
+}
+.measure dt {
+  color: var(--color-muted);
+}
+.measure dd {
+  margin: 0;
+}
+.value {
+  font-weight: 600;
+  white-space: nowrap;
+}
+.comparison {
+  grid-column: 1 / -1;
+  color: var(--color-muted);
+  font-size: var(--text-small);
+}
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: var(--size-touch-target);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-link);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+.scale {
+  display: block;
+  position: relative;
+  block-size: var(--space-4);
+}
+.scale::before {
+  content: "";
+  position: absolute;
+  inset: 50% 0 auto;
+  border-block-start: var(--size-line) solid var(--color-line);
+}
+.reference,
+.dot {
+  display: block;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+.reference {
+  inline-size: var(--size-mark);
+  block-size: var(--space-3);
+  background: var(--color-ink-secondary);
+}
+.dot {
+  inline-size: var(--space-2);
+  block-size: var(--space-2);
+  border-radius: 50%;
+  background: var(--color-own);
+  box-shadow: 0 0 0 var(--size-mark) var(--color-panel);
+}
+.calculation,
+.data {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-3);
+  inline-size: min(var(--width-concept-card), calc(100vw - 4 * var(--space-3)));
+  padding: var(--space-3);
+  font-size: var(--text-row);
+}
+.data {
+  inline-size: min(
+    var(--width-analysis-data),
+    calc(100vw - 4 * var(--space-3))
+  );
+}
+.data :is(table, dl) {
+  min-inline-size: 0;
+}
+/* The return address must reveal its row before JavaScript loads, while the native data button still opens the same panel over the page. */
+.returnedData:not(:popover-open) {
+  display: block;
+  position: static;
+  inline-size: fit-content;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  max-block-size: none;
+  margin-inline: auto;
+  box-shadow: none;
+}
+.performance {
+  composes: surface from "../../panel.module.css";
+  padding: var(--space-panel);
+}
+.performanceHeader {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin-block-end: var(--space-4);
+}
+.performanceHeader p {
+  color: var(--color-muted);
+  font-size: var(--text-caption);
+}
+@media (width >= 73.75rem) {
+  .top {
+    grid-template-columns: minmax(0, 2.4fr) minmax(0, 1fr);
+    align-items: stretch;
+  }
+}
+@media (width < 60rem) {
+  .insight > span {
+    order: 3;
+    flex-basis: 100%;
+  }
+}

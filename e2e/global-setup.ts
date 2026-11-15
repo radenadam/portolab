@@ -86,7 +86,7 @@ function storePricesOfTests(databasePath: string, now: Date): void {
     databasePath,
     join(import.meta.dirname, "..", migrationsFolderName),
   );
-  saveFixtureHistoryForTest(database, ["IHSG", "BBCA", "AMMN", "AADI"]);
+  saveFixtureHistoryForTest(database, ["IHSG", "BBCA", "TLKM", "AMMN", "AADI"]);
   saveQuotes(database, [unvrCloseForTest], now);
   closeDatabase(database);
 }

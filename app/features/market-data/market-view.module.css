@@ -40,14 +40,11 @@
 .apply {
   composes: stepButton from "../../form.module.css";
 }
-.panel,
 .listPanel {
-  min-inline-size: 0;
-  border: var(--size-line) solid var(--color-line);
-  border-radius: var(--radius-panel);
-  background: var(--color-panel);
+  composes: surface from "../../panel.module.css";
 }
 .panel {
+  composes: surface from "../../panel.module.css";
   padding: var(--space-4);
 }
 .panel h2,

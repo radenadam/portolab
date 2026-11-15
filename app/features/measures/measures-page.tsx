@@ -1,129 +1,82 @@
-import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
-import { Link } from "react-router";
+import { data } from "react-router";
 import { databaseContext } from "~/database/database.server";
-import type { ClassId } from "~/features/classes/classes.schema";
-import type { PriceSourceDescription } from "~/features/market-data/price-source.server";
-import { marketIndex } from "~/features/market-data/tracked-instruments";
-import { holdingQuoteFailureText } from "~/features/trading/holding-quote-failure-text";
-import { activityPath } from "~/features/trading/activity-path";
-import { classPath } from "~/features/classes/class-path";
-import { readPortfolioValuation } from "~/features/trading/read-portfolio-report.server";
-import type { ValuationReport } from "~/features/trading/read-portfolio-report.server";
-import { readStudentPortfolio } from "~/features/trading/read-student-portfolio.server";
+import { readStudentPortfolioReport } from "~/features/trading/read-student-portfolio-report.server";
 import { pageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
-import type { Result } from "~/result";
+import { parseOptionalText } from "~/form-text";
 import type { Route } from "./+types/measures-page";
-import { StudentMarketLine } from "./market-line-section";
-import type { StoredMeasureFailure } from "./measure-stored.server";
-import styles from "./measures.module.css";
-import { MethodNotice } from "./method-notice";
-import { PortfolioMeasuresView } from "./portfolio-measures-view";
+import { AnalysisView } from "./analysis-view";
+import { AnalysisAxisForm } from "./analysis-axis-form";
+import { measureStoredMarket } from "./measure-stored.server";
+import { summarizeMarket } from "./measure-summaries";
+import { parseAnalysisAxis } from "./parse-analysis-axis";
+import { analysisDataReturn } from "./analysis-data-return";
 import {
   readPortfolioMeasures,
   readStockRows,
   readStudentLine,
 } from "./read-measures.server";
-import type {
-  PortfolioMeasuresReport,
-  StockRow,
-  StudentLine,
-} from "./read-measures.server";
-import { StockTable } from "./stock-table";
 
-export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
-  return [
-    {
-      title: pageTitle(m.measures_page_title({ class: loaderData.className })),
-    },
-  ];
+export function meta(): Route.MetaDescriptors {
+  return [{ title: pageTitle(m.measures_analysis_title()) }];
 }
 
-export function loader({ context, request, params, url }: Route.LoaderArgs): {
-  classId: ClassId;
-  className: string;
-  valuation: ValuationReport;
-  portfolio: PortfolioMeasuresReport;
-  marketLine: Result<StudentLine, StoredMeasureFailure>;
-  stocks: StockRow[];
-  now: Date;
-  source: PriceSourceDescription;
-} {
+export function loader({ context, request, params, url }: Route.LoaderArgs) {
   const now = new Date();
-  const { place, portfolio, source } = readStudentPortfolio(context, {
+  const database = context.get(databaseContext);
+  const { place, report, source } = readStudentPortfolioReport(context, {
     request,
     url,
     classId: params.classId,
     now,
   });
-  const database = context.get(databaseContext);
-  const valuation = readPortfolioValuation(database, {
-    portfolio,
-    startingCash: place.owner.startingCash,
-  });
-  const portfolioMeasures = readPortfolioMeasures(
-    database,
-    valuation.valuation,
-  );
+  const axisValue = url.searchParams.get("axis");
+  const axis = parseAnalysisAxis(axisValue, m.measures_analysis_axis_label());
+  if (!axis.ok) {
+    return data(
+      {
+        kind: "axisFailure" as const,
+        classId: place.classId,
+        value: axisValue ?? "",
+        failure: axis.failure,
+      },
+      { status: 400 },
+    );
+  }
+  const measures = readPortfolioMeasures(database, report.valuation);
   const stocks = readStockRows(database);
+  // The hint restores a return address, so a forged hint must not block the normal page.
+  const dataReturn = parseOptionalText(
+    url.searchParams.get(analysisDataReturn.parameter),
+    m.measures_analysis_data_label(),
+  );
+  const market = measureStoredMarket(database);
   return {
+    kind: "analysis" as const,
     classId: place.classId,
-    className: place.className,
-    valuation,
-    portfolio: portfolioMeasures,
+    report,
+    measures,
     marketLine: readStudentLine(
       database,
-      { valuation: valuation.valuation, report: portfolioMeasures },
+      { valuation: report.valuation, report: measures },
       stocks,
     ),
+    market: market.ok ? summarizeMarket(market.value) : undefined,
     stocks,
+    axis: axis.value,
     now,
     source,
+    firstSessionDate: place.firstSessionDate,
+    showData: dataReturn.ok && dataReturn.value === analysisDataReturn.value,
   };
 }
 
 export default function MeasuresPage({
   loaderData,
 }: Route.ComponentProps): ReactNode {
-  const { classId, className, source } = loaderData;
-  return (
-    <>
-      <h1>
-        <NumberText verbatim>
-          {m.measures_page_title({ class: className })}
-        </NumberText>
-      </h1>
-      <Link to={classPath(classId)} className={styles["link"]}>
-        <NumberText verbatim>
-          {m.measures_back_link({ class: className })}
-        </NumberText>
-      </Link>
-      <Link to={classPath(classId)} className={styles["link"]}>
-        {m.measures_portfolio_link()}
-      </Link>
-      <Link to={activityPath(classId)} className={styles["link"]}>
-        {m.measures_orders_link()}
-      </Link>
-      <MethodNotice />
-      <h2>{m.measures_portfolio_title()}</h2>
-      <PortfolioMeasuresView
-        reader={{ kind: "owner", classId }}
-        report={loaderData.portfolio}
-        quoteFailure={holdingQuoteFailureText([loaderData.valuation], {
-          now: loaderData.now,
-          delayMinutes: source.delayMinutes,
-        })}
-        source={source}
-      />
-      <StudentMarketLine marketLine={loaderData.marketLine} />
-      <h2>{m.measures_stocks_title()}</h2>
-      <p>
-        <NumberText>
-          {m.measures_stocks_notice({ index: marketIndex.code })}
-        </NumberText>
-      </p>
-      <StockTable classId={classId} stocks={loaderData.stocks} />
-    </>
-  );
+  if (loaderData.kind === "axisFailure") {
+    return <AnalysisAxisForm {...loaderData} />;
+  }
+  return <AnalysisView {...loaderData} />;
 }

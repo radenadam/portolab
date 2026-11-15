@@ -31,8 +31,8 @@ export function PortfolioReturnChart({
         },
       ]}
       labelledBy={labelledBy}
-      dateLabel={m.trading_trading_day_label()}
-      tableLabel={m.trading_returns_table_label()}
+      dateLabel={m.app_trading_day_label()}
+      tableLabel={m.app_returns_table_label()}
       annotations={annotations}
     />
   );

@@ -69,12 +69,7 @@
 }
 
 .session {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2);
-  color: var(--color-muted);
-  font-size: var(--text-small);
+  composes: row from "../../caption-row.module.css";
   font-weight: 500;
 }
 

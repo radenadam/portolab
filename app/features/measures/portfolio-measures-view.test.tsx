@@ -53,7 +53,7 @@ function renderView(
         source={yahooFinance}
       />,
       conceptLessonDataForTest(),
-      "/classes/7/measures",
+      "/classes/7/analysis",
     ),
   ).replaceAll(/ class="[^"]*"/g, "");
 }
@@ -79,7 +79,7 @@ function quoteFailureForTest(): string | undefined {
 // The name of a stock in the table of the stocks of the portfolio, which links to the page of the stock only for its owner.
 const stockNames: Record<PortfolioReader["kind"], (code: string) => string> = {
   owner: (code) =>
-    `<a id="holding-${code}" href="/classes/7/stocks/${code}?returnTo=%2Fclasses%2F7%2Fmeasures%23holding-${code}" data-discover="true">${code}</a>`,
+    `<a id="holding-${code}" href="/classes/7/stocks/${code}?returnTo=%2Fclasses%2F7%2Fanalysis%3Fdata%3Dstocks%23holding-${code}" data-discover="true">${code}</a>`,
   lecturer: (code) => code,
 };
 
@@ -109,7 +109,7 @@ const texts: Record<
       "Ukuran di bawah memakai 60 imbal hasil bulanan dari Oktober 2021 sampai September 2026.",
     rows: [
       [
-        "Imbal hasil yang diharapkan",
+        "Imbal hasil harapan",
         "-0,22%",
         "E(R<sub>p</sub>) = Σ w<sub>i</sub> E(R<sub>i</sub>) (SUMPRODUCT)",
       ],
@@ -150,7 +150,7 @@ const texts: Record<
       ],
     ],
     below:
-      "Imbal hasil yang diharapkan berada di bawah garis pasar sekuritas, sehingga lebih rendah daripada imbal hasil yang disyaratkan CAPM untuk betanya.",
+      "Imbal hasil harapan berada di bawah garis pasar sekuritas, sehingga lebih rendah daripada imbal hasil yang disyaratkan CAPM untuk betanya.",
     weightsTable: measureTableForTest(
       ["Saham", "Nilai", "Bobot"],
       [
@@ -163,7 +163,7 @@ const texts: Record<
     holdingsHeader: [
       "Saham",
       "Bobot",
-      "Imbal hasil yang diharapkan",
+      "Imbal hasil harapan",
       "Beta terhadap IHSG",
     ],
     holdingsRows: [
@@ -336,7 +336,7 @@ const readerTexts: Record<
     owner: {
       weightsTitle: "Bobot portofolio Anda",
       weightsNotice:
-        "Bobot suatu saham adalah nilainya pada harga tertunda terakhir dari Yahoo Finance, sekitar 10 menit di belakang BEI, dibagi nilai total portofolio Anda, dan bobot kas Anda adalah bagiannya dari nilai total itu. Beranda menunjukkan setiap harga tertunda dan waktu pencatatannya. Kas tidak menghasilkan imbal hasil di Portolab, sehingga kas tidak menambah imbal hasil yang diharapkan, varians, maupun beta.",
+        "Bobot suatu saham adalah nilainya pada harga tertunda terakhir dari Yahoo Finance, sekitar 10 menit di belakang BEI, dibagi nilai total portofolio Anda, dan bobot kas Anda adalah bagiannya dari nilai total itu. Beranda menunjukkan setiap harga tertunda dan waktu pencatatannya. Kas tidak menghasilkan imbal hasil di Portolab, sehingga kas tidak menambah imbal hasil harapan, varians, maupun beta.",
       holdingsTitle: "Saham Anda pada bulan-bulan ini",
       holdingsNotice:
         "Ukuran portofolio Anda berasal dari ukuran saham Anda ini pada bulan-bulan yang sama dengan portofolio, yang bisa lebih sedikit daripada bulan-bulan di halaman suatu saham.",
@@ -352,7 +352,7 @@ const readerTexts: Record<
     lecturer: {
       weightsTitle: "Bobot portofolio",
       weightsNotice:
-        "Bobot suatu saham adalah nilainya pada harga tertunda terakhir dari Yahoo Finance, sekitar 10 menit di belakang BEI, dibagi nilai total portofolio, dan bobot kas adalah bagiannya dari nilai total itu. Halaman portofolio Siti Rahayu menunjukkan setiap harga tertunda dan waktu pencatatannya. Kas tidak menghasilkan imbal hasil di Portolab, sehingga kas tidak menambah imbal hasil yang diharapkan, varians, maupun beta.",
+        "Bobot suatu saham adalah nilainya pada harga tertunda terakhir dari Yahoo Finance, sekitar 10 menit di belakang BEI, dibagi nilai total portofolio, dan bobot kas adalah bagiannya dari nilai total itu. Halaman portofolio Siti Rahayu menunjukkan setiap harga tertunda dan waktu pencatatannya. Kas tidak menghasilkan imbal hasil di Portolab, sehingga kas tidak menambah imbal hasil harapan, varians, maupun beta.",
       holdingsTitle: "Saham portofolio pada bulan-bulan ini",
       holdingsNotice:
         "Ukuran portofolio berasal dari ukuran sahamnya ini pada bulan-bulan yang sama dengan portofolio, yang bisa lebih sedikit daripada bulan-bulan yang dipakai ukuran suatu saham sendiri.",
