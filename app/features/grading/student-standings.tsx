@@ -1,4 +1,5 @@
 import { NumberText } from "~/number-text";
+import { StudentMeasureNotice } from "./student-measure-notice";
 import type { ReactNode } from "react";
 import { beta, marketBeta } from "~/units/beta";
 import type { Beta } from "~/units/beta";
@@ -143,7 +144,7 @@ export function StudentStandings({
                   <details>
                     <summary>{m.grading_missing_measure_label()}</summary>
                     <p>
-                      <NumberText>{reason}</NumberText>
+                      <StudentMeasureNotice student={student} text={reason} />
                     </p>
                   </details>
                 </td>

@@ -1,5 +1,6 @@
 import { NumberText } from "~/number-text";
-import { marketIndex } from "~/features/market-data/tracked-instruments";
+import { StudentMeasureNotice } from "./student-measure-notice";
+import { StudentMapNotice } from "./student-map-notice";
 import { resetStudentPasswordPath } from "~/features/classes/class-path";
 import { studentReasonsSectionId } from "~/features/trading/student-reasons-section-id";
 import { useEffect, useRef } from "react";
@@ -137,7 +138,7 @@ export function StudentPanel({
               marketReturn={student.marketReturn}
             />
           )}
-        <MapNotice student={student} />
+        <StudentMapNotice student={student} />
         <dl className={styles["keyValues"]}>
           <div>
             <dt>{m.grading_short_return_label()}</dt>
@@ -203,7 +204,10 @@ export function StudentPanel({
           </div>
         </dl>
         <p className={styles["note"]}>
-          <NumberText>{studentNote(student, all)}</NumberText>
+          <StudentMeasureNotice
+            student={student}
+            text={studentNote(student, all)}
+          />
         </p>
         {value !== undefined && value.value > 0 && (
           <div className={styles["allocation"]}>
@@ -283,17 +287,5 @@ export function StudentPanel({
         </div>
       </div>
     </dialog>
-  );
-}
-
-function MapNotice({ student }: { student: ComparedStudent }): ReactNode {
-  if (!("measures" in student) || student.marketReturn !== undefined)
-    return null;
-  return (
-    <p className={styles["details"]}>
-      <NumberText>
-        {m.grading_map_unavailable_notice({ index: marketIndex.code })}
-      </NumberText>
-    </p>
   );
 }

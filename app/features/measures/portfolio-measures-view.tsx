@@ -8,7 +8,7 @@ import { homeTitle } from "~/features/trading/home-title";
 import type { PortfolioReader } from "~/features/trading/text-for-reader";
 import { formatNumber } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
-import { explainPortfolioMeasures } from "./explain-portfolio-measures";
+import { PortfolioMeasuresNotice } from "./portfolio-measures-notice";
 import {
   BetaFormula,
   CorrelationFormula,
@@ -47,11 +47,10 @@ export function PortfolioMeasuresView({
   quoteFailure,
   source,
 }: PortfolioMeasuresProps): ReactNode {
-  const measures = explainPortfolioMeasures(report, reader);
-  if (measures.ok) {
+  if (report.kind === "measured" && report.measures.ok) {
     return (
       <MeasuredPortfolio
-        portfolio={measures.value}
+        portfolio={report.measures.value}
         reader={reader}
         quoteFailure={quoteFailure}
         source={source}
@@ -65,7 +64,7 @@ export function PortfolioMeasuresView({
         <QuoteNotice text={quoteFailure} className={styles["details"]} />
       )}
       <p>
-        <NumberText>{measures.failure}</NumberText>
+        <PortfolioMeasuresNotice report={report} reader={reader} />
       </p>
     </>
   );
