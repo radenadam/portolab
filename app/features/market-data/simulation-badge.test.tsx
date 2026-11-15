@@ -9,20 +9,26 @@ import { SimulationBadge } from "./simulation-badge";
 
 const texts: Record<
   Locale,
-  { long: string; short: string; title: string; name: string; lesson: string }
+  {
+    long: string;
+    short: string;
+    title: string;
+    fallback: string;
+    lesson: string;
+  }
 > = {
   id: {
     long: "Simulasi · harga tertunda ±10 mnt",
     short: "Simulasi · ±10 mnt",
     title: "Simulasi dan harga tertunda",
-    name: "Simulasi",
+    fallback: "Simulasi · harga tertunda",
     lesson: "Pelajari lebih lanjut di sesi 6",
   },
   en: {
     long: "Simulation · prices delayed ±10 min",
     short: "Simulation · ±10 min",
     title: "Simulation and delayed prices",
-    name: "Simulation",
+    fallback: "Simulation · prices delayed",
     lesson: "Learn more in session 6",
   },
 };
@@ -48,10 +54,10 @@ for (const locale of locales) {
     );
   });
 
-  test(`labels a page without the data of the frame as a simulation alone, without a card, in ${language}`, () => {
+  test(`keeps simulation and delayed prices visible when frame data is unavailable in ${language}`, () => {
     switchLocaleForTest(locale);
     expect(renderMarkupForTest(<SimulationBadge badge={undefined} />)).toBe(
-      `<span><span></span>${text.name}</span>`,
+      `<span><span></span>${text.fallback}</span>`,
     );
   });
 }
