@@ -2,7 +2,7 @@ import { StockQuoteDetails } from "./stock-quote-details";
 import { QuoteNotice } from "~/features/market-data/quote-notice";
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
-import { data, Link } from "react-router";
+import { data, Link, useOutlet, useLocation } from "react-router";
 import { ChangeText } from "~/change-text";
 import { databaseContext } from "~/database/database.server";
 import { requireUser } from "~/features/accounts/current-session.server";
@@ -19,6 +19,7 @@ import { holdingQuoteFailureText } from "~/features/trading/holding-quote-failur
 import { idxRulesOn } from "~/features/trading/idx-rules-on";
 import { parseStockCode } from "~/features/trading/order-form-fields";
 import { StockPosition } from "~/features/trading/stock-position";
+import { TicketDraftMemory } from "~/features/trading/ticket-draft-memory";
 import {
   formatRupiah,
   formatSignedPercent,
@@ -144,125 +145,155 @@ export default function StockPage({
   loaderData: stock,
 }: Route.ComponentProps): ReactNode {
   const { classId, code, quote, holding } = stock;
-  const hasPortfolioQuotes =
-    (holding?.kind === "priced" && stock.totalValue !== undefined) ||
-    stock.correlation?.ok === true;
+  const ticket = useOutlet();
+  const location = useLocation();
   return (
-    <div className={styles["page"]}>
-      <header className={styles["header"]}>
-        <div className={styles["identity"]}>
-          <Link
-            to={stock.returnPath}
-            className={styles["back"]}
-            aria-label={stock.returnLabel}
-          >
-            ‹
-          </Link>
-          <StockName code={code} heading />
-        </div>
-        <p className={styles["muted"]}>
-          <StockMetadata
-            code={code}
-            held={holding !== undefined}
-            isLq45={stock.isLq45}
-          />
-        </p>
-        {quote?.kind === "stock" && (
-          <div className={styles["quote"]}>
-            <strong className={styles["price"]}>
-              <NumberText>{formatRupiah(quote.price)}</NumberText>
-            </strong>
-            <span className={styles["change"]}>
-              <ChangeText
-                colored
-                change={formatSignedRupiah(
-                  rupiah(quote.price - quote.previousClose),
-                )}
-              />
-            </span>
-            <span className={styles["change"]}>
-              <ChangeText
-                colored
-                change={formatSignedPercent(quoteChange(quote))}
-              />
-            </span>
-          </div>
-        )}
-        <StockQuoteDetails
-          classId={classId}
-          quote={
-            quote?.kind === "stock"
-              ? { quotedAt: quote.quotedAt, previousClose: quote.previousClose }
-              : undefined
-          }
-          hasPortfolioQuotes={hasPortfolioQuotes}
-        />
-        <QuoteNotice text={stock.quoteNotice} className={styles["muted"]} />
-      </header>
-      <section
-        className={styles["panel"]}
-        aria-label={m.market_data_price_chart_title({ code })}
+    <TicketDraftMemory key={code}>
+      <div
+        className={ticket === null ? undefined : styles["withTicket"]}
+        data-layout={ticket === null ? undefined : "columns"}
       >
-        <StockHistoryChart
-          history={stock.history}
-          path={stockPath(classId, code)}
-          range={stock.chartRange}
-          returnTo={stock.returnTo}
-        />
-      </section>
-      {holding !== undefined && (
-        <section className={styles["panel"]} aria-labelledby="position-title">
-          <h2 id="position-title">{m.market_data_position_title()}</h2>
-          <StockPosition
-            holding={holding}
-            lotShares={stock.lotShares}
-            totalValue={stock.totalValue}
-          />
-        </section>
-      )}
-      <section className={styles["panel"]} aria-labelledby="statistics-title">
-        <div className={styles["statisticsHeader"]}>
-          <h2 id="statistics-title">{m.market_data_statistics_title()}</h2>
-          {stock.measures.ok && (
-            <span className={styles["muted"]}>
-              <StockStatisticsWindow measures={stock.measures.value} />
-            </span>
+        <div className={styles["page"]}>
+          <header className={styles["header"]}>
+            <div className={styles["identity"]}>
+              <Link
+                to={stock.returnPath}
+                className={styles["back"]}
+                aria-label={stock.returnLabel}
+              >
+                ‹
+              </Link>
+              <StockName code={code} heading />
+            </div>
+            <p className={styles["muted"]}>
+              <StockMetadata
+                code={code}
+                held={holding !== undefined}
+                isLq45={stock.isLq45}
+              />
+            </p>
+            {quote?.kind === "stock" && (
+              <div className={styles["quote"]}>
+                <strong className={styles["price"]}>
+                  <NumberText>{formatRupiah(quote.price)}</NumberText>
+                </strong>
+                <span className={styles["change"]}>
+                  <ChangeText
+                    colored
+                    change={formatSignedRupiah(
+                      rupiah(quote.price - quote.previousClose),
+                    )}
+                  />
+                </span>
+                <span className={styles["change"]}>
+                  <ChangeText
+                    colored
+                    change={formatSignedPercent(quoteChange(quote))}
+                  />
+                </span>
+              </div>
+            )}
+            <StockQuoteDetails
+              classId={classId}
+              quote={quote?.kind === "stock" ? quote : undefined}
+              hasPortfolioQuotes={hasStockPortfolioQuotes(stock)}
+            />
+            <QuoteNotice text={stock.quoteNotice} className={styles["muted"]} />
+          </header>
+          <section
+            className={styles["panel"]}
+            aria-label={m.market_data_price_chart_title({ code })}
+          >
+            <StockHistoryChart
+              history={stock.history}
+              path={`${location.pathname}${location.search}`}
+              range={stock.chartRange}
+              returnTo={stock.returnTo}
+            />
+          </section>
+          {holding !== undefined && (
+            <section
+              className={styles["panel"]}
+              aria-labelledby="position-title"
+            >
+              <h2 id="position-title">{m.market_data_position_title()}</h2>
+              <StockPosition
+                holding={holding}
+                lotShares={stock.lotShares}
+                totalValue={stock.totalValue}
+              />
+            </section>
+          )}
+          <section
+            className={styles["panel"]}
+            aria-labelledby="statistics-title"
+          >
+            <div className={styles["statisticsHeader"]}>
+              <h2 id="statistics-title">{m.market_data_statistics_title()}</h2>
+              {stock.measures.ok && (
+                <span className={styles["muted"]}>
+                  <StockStatisticsWindow measures={stock.measures.value} />
+                </span>
+              )}
+            </div>
+            <StockKeyMeasures
+              classId={classId}
+              code={code}
+              measures={stock.measures}
+              correlation={stock.correlation}
+            >
+              <StockRange range={stock.range} />
+            </StockKeyMeasures>
+            <QuoteNotice
+              text={stock.portfolioNotice}
+              className={styles["muted"]}
+            />
+            <details className={styles["calculations"]}>
+              <summary>{m.market_data_all_calculations_label()}</summary>
+              <MethodNotice />
+              <StockMeasuresView code={code} measures={stock.measures} />
+            </details>
+          </section>
+          {stock.canTrade && (
+            <nav
+              className={styles["actions"]}
+              hidden={ticket !== null}
+              aria-label={m.market_data_trade_label()}
+            >
+              <Link
+                data-stock-trade="buy"
+                className={styles["buy"]}
+                to={{
+                  pathname: `${stockPath(classId, code)}/buy`,
+                  search: location.search,
+                }}
+                preventScrollReset
+              >
+                {m.market_data_buy_link()}
+              </Link>
+              <Link
+                data-stock-trade="sell"
+                className={styles["sell"]}
+                to={{
+                  pathname: `${stockPath(classId, code)}/sell`,
+                  search: location.search,
+                }}
+                preventScrollReset
+              >
+                {m.market_data_sell_link()}
+              </Link>
+            </nav>
           )}
         </div>
-        <StockKeyMeasures
-          classId={classId}
-          code={code}
-          measures={stock.measures}
-          correlation={stock.correlation}
-        >
-          <StockRange range={stock.range} />
-        </StockKeyMeasures>
-        <QuoteNotice text={stock.portfolioNotice} className={styles["muted"]} />
-        <details className={styles["calculations"]}>
-          <summary>{m.market_data_all_calculations_label()}</summary>
-          <MethodNotice />
-          <StockMeasuresView code={code} measures={stock.measures} />
-        </details>
-      </section>
-      {stock.canTrade && (
-        <nav
-          className={styles["actions"]}
-          aria-label={m.market_data_trade_label()}
-        >
-          <Link
-            className={styles["buy"]}
-            to={`${stockPath(classId, code)}/buy`}
-          >
-            {m.market_data_buy_link()}
-          </Link>
-          <Link
-            className={styles["sell"]}
-            to={`${stockPath(classId, code)}/sell`}
-          >
-            {m.market_data_sell_link()}
-          </Link>
-        </nav>
-      )}
-    </div>
+        {ticket}
+      </div>
+    </TicketDraftMemory>
+  );
+}
+
+function hasStockPortfolioQuotes(stock: ReturnType<typeof loader>): boolean {
+  return (
+    (stock.holding?.kind === "priced" && stock.totalValue !== undefined) ||
+    stock.correlation?.ok === true
   );
 }

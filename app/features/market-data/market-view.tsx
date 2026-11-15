@@ -75,6 +75,7 @@ export function MarketView(props: MarketViewProps): ReactNode {
               {m.market_data_search_label()}
             </label>
             <input
+              className={styles["control"]}
               id="market-search"
               name="q"
               type="search"
@@ -106,6 +107,7 @@ export function MarketView(props: MarketViewProps): ReactNode {
               {m.market_data_range_label({ index: props.index })}
             </label>
             <select
+              className={styles["control"]}
               id="market-range"
               name="range"
               defaultValue={values.range}
@@ -145,6 +147,7 @@ export function MarketView(props: MarketViewProps): ReactNode {
           <div className={styles["select"]}>
             <label htmlFor="market-sort">{m.market_data_sort_label()}</label>
             <select
+              className={styles["control"]}
               id="market-sort"
               name="sort"
               aria-label={m.market_data_sort_label()}
@@ -176,6 +179,7 @@ export function MarketView(props: MarketViewProps): ReactNode {
               {m.market_data_direction_label()}
             </label>
             <select
+              className={styles["control"]}
               id="market-direction"
               name="direction"
               aria-label={m.market_data_direction_label()}

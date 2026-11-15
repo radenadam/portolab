@@ -14,7 +14,7 @@ import { tipAcross } from "./tip-placement";
 import { acrossOf, indexAt } from "./time-chart-layout";
 import type { LineKind, TimeChartLayout, TimeLine } from "./time-chart-layout";
 import styles from "./time-chart.module.css";
-import { useIsInBrowser } from "./use-is-in-browser";
+import { useIsInBrowser } from "~/use-is-in-browser";
 import { placeTimeEvents } from "./place-time-events";
 import type { TimeEvent } from "./place-time-events";
 import { timeEndLabels } from "./time-end-labels";

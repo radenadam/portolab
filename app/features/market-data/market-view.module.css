@@ -25,17 +25,11 @@
   font-size: var(--text-small);
   color: var(--color-muted);
 }
-.search input,
-.select select {
-  min-block-size: var(--size-touch-target);
-  inline-size: 100%;
+.control {
+  composes: control from "../../form.module.css";
   min-inline-size: 0;
   padding-inline: var(--space-3);
-  border: var(--size-line) solid var(--color-line-strong);
-  border-radius: var(--radius-item);
-  background: var(--color-panel);
   color: var(--color-ink);
-  font: inherit;
 }
 .apply {
   composes: stepButton from "../../form.module.css";

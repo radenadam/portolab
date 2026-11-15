@@ -53,13 +53,17 @@ function tickBandOf(
   return found;
 }
 
+export function tickOfPrice(price: Rupiah, bands: readonly TickBand[]): Rupiah {
+  return tickBandOf(price, bands).band.tick;
+}
+
 // Each band starts at a multiple of the tick of the band below it, so rounding a price to the tick of its own band always reaches a price that IDX accepts.
 function validPriceRounded(
   price: Rupiah,
   bands: readonly TickBand[],
   rounding: Rounding,
 ): Rupiah {
-  const { tick } = tickBandOf(price, bands).band;
+  const tick = tickOfPrice(price, bands);
   return rupiah(
     roundedShare(price, { numerator: 1, denominator: tick }, rounding) * tick,
   );

@@ -20,7 +20,7 @@ import type { MapLabels } from "./map-labels";
 import { keptNameRoom } from "./map-labels";
 import { valueMarkGap } from "./value-mark";
 import styles from "./risk-map.module.css";
-import { useIsInBrowser } from "./use-is-in-browser";
+import { useIsInBrowser } from "~/use-is-in-browser";
 import { useMapLabels } from "./use-map-labels";
 
 // The portfolio and every holding keep their names ahead of every other point, even when the caller lists the holdings before the portfolio. Larger marks leave less room for their names, so they take their places before smaller marks of the same kind.

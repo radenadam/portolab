@@ -642,7 +642,7 @@ async function isLoadingRefused(
 }
 
 // A module of trading, with the paths to the context of the price source of market-data that it can write: the alias, a path to a sibling folder, and paths that climb to the folder of the features and of the app.
-const tradingModule = "app/features/trading/orders-page.tsx";
+const tradingModule = "app/features/trading/ticket-page.tsx";
 const otherFeatureContextPaths = [
   "~/features/market-data/price-source-context.server",
   "../market-data/price-source-context.server",

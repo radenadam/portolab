@@ -15,13 +15,12 @@ export default [
   route("classes/:classId/learn/:session", "features/learning/lesson-page.tsx"),
   route("classes/:classId/glossary", "features/learning/glossary-page.tsx"),
   route("classes/:classId/market", "features/market-data/market-page.tsx"),
-  route("classes/:classId/orders", "features/trading/orders-page.tsx"),
   route("classes/:classId/activity", "features/trading/activity-page.tsx"),
   route("classes/:classId/analysis", "features/measures/measures-page.tsx"),
-  route("classes/:classId/stocks/:code", "features/market-data/stock-page.tsx"),
   route(
-    "classes/:classId/stocks/:code/:side",
-    "features/trading/stock-ticket-fallback.ts",
+    "classes/:classId/stocks/:code",
+    "features/market-data/stock-page.tsx",
+    [route(":side", "features/trading/ticket-page.tsx")],
   ),
   route(
     "classes/:classId/students",

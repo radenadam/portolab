@@ -41,3 +41,4 @@
 0041-the-lecturer-chooses-the-measure-that-ranks-the-class.md
 0042-client-css-is-budgeted-by-route.md
 0043-finding-fixes-and-merges-share-a-push-with-separate-charges.md
+0044-the-ticket-shows-the-trade-before-confirmation.md

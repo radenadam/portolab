@@ -88,11 +88,10 @@ const currentItems: Record<RouteId, NavigationItem | undefined> = {
   "features/classes/classes-page": undefined,
   "features/classes/class-page": "class",
   "features/classes/calendar-page": "class",
-  "features/trading/orders-page": "market",
   "features/trading/activity-page": "activity",
   "features/measures/measures-page": "analysis",
   "features/market-data/stock-page": "market",
-  "features/trading/stock-ticket-fallback": "market",
+  "features/trading/ticket-page": "market",
   "features/grading/class-portfolios-page": "students",
   // The workbook is a download, which opens no page.
   "features/grading/workbook-route": undefined,

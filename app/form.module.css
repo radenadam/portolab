@@ -12,8 +12,7 @@
   align-self: stretch;
 }
 
-.field,
-.choices {
+.field {
   display: flex;
   flex-direction: column;
   align-self: stretch;
@@ -35,84 +34,29 @@
   font-size: var(--text-small);
 }
 
-/* A group of options keeps the space of a field, without the frame that a browser draws around a group. */
-.choices {
-  min-inline-size: 0;
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-
-.choices > .label {
-  padding: 0;
-}
-
-.options {
-  display: grid;
-  grid-auto-columns: minmax(0, 1fr);
-  grid-auto-flow: column;
-  padding: var(--space-1);
-  border-radius: var(--radius-item);
-  background: var(--color-raised);
-}
-
-.option {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: var(--size-touch-target);
-  padding-inline: var(--space-1);
-  color: var(--color-muted);
-  text-align: center;
-  cursor: pointer;
-}
-
-/* A raised selection stays clear when a reader cannot distinguish its color. */
-.option:has(.optionInput:checked) {
-  border-radius: var(--radius-button);
-  background: var(--color-panel);
-  box-shadow: var(--shadow-choice);
-  color: var(--color-ink);
-  font-weight: 600;
-}
-
-/* The radio button covers its whole option, so a tap anywhere on the option chooses it, and the option draws its look. */
-.optionInput {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  opacity: 0;
-  cursor: pointer;
-}
-
 .failure {
   color: var(--color-loss);
 }
 
-.input,
-.textArea {
-  width: 100%;
-  min-height: var(--size-touch-target);
-  min-width: 0;
-  padding: var(--space-2) var(--space-3);
+:where(.control) {
+  inline-size: 100%;
+  min-block-size: var(--size-touch-target);
   border: var(--size-line) solid var(--color-line-strong);
   border-radius: var(--radius-item);
   background: var(--color-panel);
-  color: inherit;
   font: inherit;
+}
+
+.input {
+  composes: control;
+  min-width: 0;
+  padding: var(--space-2) var(--space-3);
+  color: inherit;
   font-size: var(--text-mark);
 }
 
-/* A field of several lines grows taller when the reader drags its corner, so a long text can be read whole, but never wider than its form. */
-.textArea {
-  resize: vertical;
-}
-
 /* A thicker border marks a refused value even when a reader cannot see the loss color. */
-:is(.input, .textArea)[aria-invalid="true"] {
+.input[aria-invalid="true"] {
   border: var(--size-mark) solid var(--color-loss);
 }
 
@@ -167,11 +111,6 @@
 
 .success {
   background: var(--color-gain-soft);
-}
-
-.rejectionTitle {
-  font-size: var(--text-mark);
-  font-weight: 600;
 }
 
 .formColumn,

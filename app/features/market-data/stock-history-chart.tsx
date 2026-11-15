@@ -15,6 +15,7 @@ import type { StockHistory } from "./price-source.server";
 import { priceChartRangeOptions } from "./price-chart-range";
 import type { PriceChartRange } from "./price-chart-range";
 import styles from "./stock-history-chart.module.css";
+import { pathWithQuery } from "~/path-with-query";
 
 const dateParts: Record<
   PriceChartRange,
@@ -53,7 +54,8 @@ export function StockHistoryChart({
         {priceChartRangeOptions().map(({ value: choice, label }) => (
           <Link
             key={choice}
-            to={`${path}?${new URLSearchParams(returnTo === undefined ? { range: choice } : { range: choice, returnTo }).toString()}`}
+            to={pathWithQuery(path, { range: choice, returnTo })}
+            preventScrollReset
             aria-current={choice === range ? "true" : undefined}
           >
             {label}
