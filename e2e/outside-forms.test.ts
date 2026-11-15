@@ -10,6 +10,7 @@ import {
   submitSignIn,
 } from "./accounts.ts";
 import { chooseLanguage } from "./choose-language.ts";
+import { openClassAdministration } from "./class-controls.ts";
 import { createTestClass } from "./create-test-class.ts";
 import { isPhone } from "./frame.ts";
 import { newDevice } from "./new-device.ts";
@@ -74,8 +75,11 @@ for (const locale of locales) {
       widestClassNames.studentName,
     );
     await page.goto(testClass.path);
-    const resetLink = page.locator('main a[href$="/password"]').first();
-    await resetLink.click();
+    await openClassAdministration(page);
+    await page
+      .locator("[data-class-administration]")
+      .getByRole("link", { name: texts[locale].reset })
+      .click();
     await page
       .getByRole("main")
       .getByRole("button", { name: texts[locale].reset })

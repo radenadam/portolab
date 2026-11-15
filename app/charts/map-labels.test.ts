@@ -30,6 +30,10 @@ function others(keys: string[]): MapLabels {
   return { kept: [], lines: [], others: names(...keys) };
 }
 
+function fixedLabel(places: readonly LabelPlace[]): MapLabels {
+  return { kept: [], others: [], lines: [{ key: "zero", text: "W", places }] };
+}
+
 const size = { width: 20, height: 10 };
 
 // A label stands 0.42 from the edge of its mark, and its baseline lies 0.375 below the middle of the mark, so the middle of its letters, which reach 1 above the baseline and 0.25 below it, meets the middle of the mark.
@@ -234,6 +238,119 @@ test("refuses a label of a point that the map has no mark of", () => {
   ).toThrow("The map has a label of BBCA but no mark of it.");
 });
 
+test("keeps a fixed label clear of the outline above and below a kept name", () => {
+  const point = mark("portfolio", { x: 0.3, y: 0.4 });
+  // These baselines leave the letter boxes apart but make their outlines overlap.
+  const places: LabelPlace[] = [middle + 1.55, middle + 3].map((dy) => ({
+    at: point.position,
+    dx: beside,
+    dy,
+    anchor: "start",
+  }));
+  const labels = { ...fixedLabel(places), kept: names("portfolio") };
+  const placed = placeMapLabels(labels, { size, marks: [point], widthOf });
+  expect(placed.lines.get("zero")).toEqual(places[1]);
+});
+
+test("keeps a fixed label outside the selection ring before the reader selects its point", () => {
+  const point = mark("BBCA", { x: 0.4, y: 0.45 });
+  const places: LabelPlace[] = [0.3, 0.1].map((across) => ({
+    at: { x: plotFraction(across), y: plotFraction(0.5) },
+    dx: 0,
+    dy: 0,
+    anchor: "start",
+  }));
+  const labels = fixedLabel(places);
+  expect(
+    placeMapLabels(labels, { size, marks: [point], widthOf }).lines.get("zero"),
+  ).toEqual(places[0]);
+  expect(
+    placeMapLabels(labels, {
+      size,
+      marks: [{ ...point, selectionRadius: 1.5 }],
+      widthOf,
+    }).lines.get("zero"),
+  ).toEqual(places[1]);
+});
+
+test("keeps a server label clear of points that move through an offset from either edge as the plot grows", () => {
+  for (const edge of ["left", "right"] as const) {
+    const fromLeft = edge === "left";
+    const point = mark("BBCA", { x: fromLeft ? 0.2 : 0.8, y: 0.5 });
+    const places: LabelPlace[] = [
+      {
+        at: { x: plotFraction(fromLeft ? 0 : 1), y: plotFraction(0.5) },
+        dx: fromLeft ? 5 : -5,
+        dy: 0,
+        anchor: fromLeft ? "start" : "end",
+      },
+      {
+        at: { x: plotFraction(0.5), y: plotFraction(0.5) },
+        dx: fromLeft ? 1 : -1,
+        dy: 0,
+        anchor: fromLeft ? "start" : "end",
+      },
+    ];
+    const labels = fixedLabel(places);
+    expect(
+      placeMapLabels(labels, { size, marks: [point], widthOf }).lines.get(
+        "zero",
+      ),
+    ).toEqual(places[0]);
+    expect(
+      placeMapLabels(labels, {
+        size,
+        marks: [point],
+        widthOf,
+        canGrow: true,
+      }).lines.get("zero"),
+    ).toEqual(places[1]);
+  }
+});
+
+test("keeps fixed labels apart from names placed before and after them at every larger plot width", () => {
+  const point = mark("BBCA", { x: 0.2, y: 0.2 });
+  const places: LabelPlace[] = [0, 0.8].map((across) => ({
+    at: { x: plotFraction(across), y: plotFraction(0.3) },
+    dx: across === 0 ? 7 : 0,
+    dy: 0.6,
+    anchor: "start",
+  }));
+  for (const isKept of [true, false]) {
+    const pointNames = names("BBCA").map((label) => ({
+      ...label,
+      value: "+12%",
+    }));
+    const labels: MapLabels = {
+      ...fixedLabel(places),
+      kept: isKept ? pointNames : [],
+      others: isKept ? [] : pointNames,
+    };
+    const placed = placeMapLabels(labels, {
+      size,
+      marks: [point],
+      widthOf,
+      canGrow: true,
+    });
+    const fixed = placed.lines.get("zero");
+    const name = placed.points.get("BBCA");
+    expect(placed.values.has("BBCA")).toBe(true);
+    expect(fixed).toBeDefined();
+    expect(name).toBeDefined();
+    if (fixed === undefined || name === undefined)
+      throw new Error("Both labels have a clear place.");
+    for (const width of [20, 30, 40, 100]) {
+      const grown = { ...size, width };
+      expect(
+        overlaps(
+          boxOf(fixed, widthOf("W"), grown),
+          boxOf(name, widthOf("BBCA +12%"), grown),
+        ),
+      ).toBe(false);
+    }
+  }
+});
+
 test("estimates the width of a name from the widths of the capitals, the small letters, the figures, the spaces, and the signs of the font of the labels", () => {
   expect(estimatedLabelWidth("BBCA")).toBeCloseTo(4 * 0.7, 12);
   expect(estimatedLabelWidth("Portofolio Anda")).toBeCloseTo(
@@ -246,7 +363,7 @@ test("estimates the width of a name from the widths of the capitals, the small l
   );
 });
 
-// The letters of a label reach 1 above its baseline and 0.25 below it, and its box keeps 0.17 at each side.
+// The letters of a label reach 1 above its baseline and 0.25 below it, and its box keeps 0.25 for the outline at every edge.
 interface Box {
   left: number;
   right: number;
@@ -261,13 +378,13 @@ function boxOf(
 ): Box {
   const shares = { start: 0, middle: 0.5, end: 1 };
   const left =
-    place.at.x * plot.width + place.dx - shares[place.anchor] * width - 0.17;
+    place.at.x * plot.width + place.dx - shares[place.anchor] * width - 0.25;
   const baseline = place.at.y * plot.height + place.dy;
   return {
     left,
-    right: left + width + 0.34,
-    top: baseline - 1,
-    bottom: baseline + 0.25,
+    right: left + width + 0.5,
+    top: baseline - 1.25,
+    bottom: baseline + 0.5,
   };
 }
 

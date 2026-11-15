@@ -8,7 +8,7 @@ export interface Range<Value extends number> {
 const rangePadding = 0.08;
 const emptyRangePadding = 0.005;
 
-/** Comparison marks can need more room than a chart's usual padding. Values without a spread still need a range. */
+/** Padding leaves room for marks and labels, and a lower bound keeps the scale within its unit. */
 export function paddedRange<Value extends number>(
   values: readonly Value[],
   toValue: (value: number) => Value,

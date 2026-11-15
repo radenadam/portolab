@@ -35,19 +35,13 @@ export default function DemonstrationPage({
           className={styles["tabs"]}
           aria-label={m.trading_demonstration_title()}
         >
-          <NavLink className={() => styles["tab"]} to={path} end>
+          <NavLink to={path} end>
             {m.trading_demonstration_summary_label()}
           </NavLink>
-          <NavLink
-            className={() => styles["tab"]}
-            to={activityPath(loaderData.classId, "demonstration")}
-          >
+          <NavLink to={activityPath(loaderData.classId, "demonstration")}>
             {m.trading_activity_title()}
           </NavLink>
-          <NavLink
-            className={() => styles["tab"]}
-            to={measuresPath(loaderData.classId, "demonstration")}
-          >
+          <NavLink to={measuresPath(loaderData.classId, "demonstration")}>
             {m.trading_demonstration_analysis_label()}
           </NavLink>
         </nav>

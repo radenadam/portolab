@@ -1,34 +1,40 @@
+import { pathReturningTo } from "~/features/accounts/path-returning-to";
+import { parseChoice, parseRecordId } from "~/value-parsers";
+import {
+  classMapSections,
+  classMapTargetId,
+  calendarPath,
+  classMapPath,
+  resetStudentPasswordPath,
+} from "./class-path";
+import type { ClassMapSection } from "./class-path";
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { data, Link } from "react-router";
 import { databaseContext } from "~/database/database.server";
 import { requireUser } from "~/features/accounts/current-session.server";
 import { formatMarketTime } from "~/formatting";
-import { addressesForOthers } from "~/local-network.server";
-import type { AddressesForOthers } from "~/local-network.server";
 import { pageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
-import type { Rupiah } from "~/units/rupiah";
-import { parseRecordId } from "~/value-parsers";
 import { classPortfoliosPath } from "~/features/grading/grading-paths";
 import { HomePortfolio } from "~/features/trading/home-portfolio";
 import { readHomePortfolio } from "~/features/trading/read-home-portfolio.server";
 import type { HomePortfolioData } from "~/features/trading/read-home-portfolio.server";
 import type { Route } from "./+types/class-page";
-import {
-  findJoinedClass,
-  findTaughtClass,
-  listStudents,
-} from "./class-store.server";
+import { findJoinedClass, findTaughtClass } from "./class-store.server";
 import type { ClassStudent } from "./class-store.server";
 import type { ClassId } from "./classes.schema";
-import { calendarPath, resetStudentPasswordPath } from "./class-path";
 import styles from "./classes.module.css";
 import { classCalendarOf } from "./course-calendar";
 import type { ClassCalendar } from "./course-calendar";
 import { CourseCalendarNotice } from "./course-calendar-notice";
-import { formatJoinCode, joinPath } from "./join-code";
-import { JoinDetails } from "./join-details";
+import { parseClassMapAxis } from "./parse-class-map-axis";
+import { classMapPoints } from "./class-map-points.server";
+import { ClassOverviewView } from "./class-overview-view";
+import { readClassOverview } from "./read-class-overview.server";
+import type { ClassOverview } from "./read-class-overview.server";
+import type { ClassMapAxis } from "./class-map";
+import { readPriceSourceDescription } from "~/features/market-data/price-source-context.server";
 
 export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
   return [
@@ -42,16 +48,16 @@ export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
   ];
 }
 
-export function loader({ context, request, params, url }: Route.LoaderArgs):
+export function loader({ context, params, url, request }: Route.LoaderArgs):
   | {
       role: "lecturer";
       id: ClassId;
       name: string;
-      startingCash: Rupiah;
-      joinCode: string;
-      joinAddresses: AddressesForOthers;
+      overview: ClassOverview;
+      axis: ClassMapAxis;
+      reveal: ClassMapSection | undefined;
       calendar: ClassCalendar | undefined;
-      students: ClassStudent[];
+      points: ReturnType<typeof classMapPoints>;
     }
   | { role: "student"; id: ClassId; name: string; home: HomePortfolioData } {
   const now = new Date();
@@ -69,17 +75,32 @@ export function loader({ context, request, params, url }: Route.LoaderArgs):
       if (taught === undefined) {
         throw notFound;
       }
-      const joinCode = formatJoinCode(taught.joinCode);
+
+      const axis = parseClassMapAxis(url.searchParams.get("axis"), "axis");
+      if (!axis.ok) throw notFound;
+      const revealValue = url.searchParams.get("reveal");
+      const reveal =
+        revealValue === null
+          ? undefined
+          : parseChoice(revealValue, "reveal", classMapSections);
+      if (reveal !== undefined && !reveal.ok) throw notFound;
+      const overview = readClassOverview(database, taught, {
+        request,
+        now,
+        delayMinutes: readPriceSourceDescription(context).delayMinutes,
+      });
       return {
         role: user.role,
         id: taught.id,
         name: taught.name,
-        startingCash: taught.startingCash,
-        joinCode,
-        // The host comes from the request, so a forged Host header shows the addresses of the server on its networks only to the lecturer of the class, who reaches the server already.
-        joinAddresses: addressesForOthers(new URL(joinPath(joinCode), url)),
+        overview,
+        axis: axis.value,
+        reveal: reveal?.value,
+        points: classMapPoints(overview, {
+          axis: axis.value,
+          classId: taught.id,
+        }),
         calendar: classCalendarOf(taught.firstSessionDate, now),
-        students: listStudents(database, taught.id),
       };
     }
     case "student": {
@@ -109,32 +130,47 @@ export default function ClassPage({
   switch (loaderData.role) {
     case "lecturer":
       return (
-        <>
-          <h1>
-            <NumberText verbatim>{loaderData.name}</NumberText>
-          </h1>
-          <JoinDetails
-            joinCode={loaderData.joinCode}
-            joinAddresses={loaderData.joinAddresses}
-            startingCash={loaderData.startingCash}
-          />
-          <h2>{m.classes_calendar_title()}</h2>
-          <CourseCalendarNotice
-            calendar={loaderData.calendar}
-            role={loaderData.role}
-          />
-          <Link to={calendarPath(loaderData.id)} className={styles["link"]}>
-            <NumberText>{m.classes_calendar_link()}</NumberText>
-          </Link>
-          <h2>{m.classes_students_title()}</h2>
-          <Link
-            to={classPortfoliosPath(loaderData.id)}
-            className={styles["link"]}
-          >
-            {m.classes_portfolios_link()}
-          </Link>
-          <Students classId={loaderData.id} students={loaderData.students} />
-        </>
+        <ClassOverviewView
+          classId={loaderData.id}
+          overview={loaderData.overview}
+          axis={loaderData.axis}
+          reveal={loaderData.reveal}
+          points={loaderData.points}
+          administration={
+            <>
+              <h2>{m.classes_calendar_title()}</h2>
+              <CourseCalendarNotice
+                calendar={loaderData.calendar}
+                role={loaderData.role}
+              />
+              <Link
+                to={pathReturningTo(
+                  calendarPath(loaderData.id),
+                  classMapPath(loaderData.id, loaderData.axis, {
+                    section: "administration",
+                  }),
+                )}
+                className={styles["link"]}
+              >
+                {m.classes_calendar_link()}
+              </Link>
+              <h2>{m.classes_students_title()}</h2>
+              <Link
+                to={classPortfoliosPath(loaderData.id)}
+                className={styles["link"]}
+              >
+                {m.classes_portfolios_link()}
+              </Link>
+              {loaderData.overview.students.length > 0 && (
+                <Students
+                  classId={loaderData.id}
+                  students={loaderData.overview.students}
+                  axis={loaderData.axis}
+                />
+              )}
+            </>
+          }
+        />
       );
     case "student":
       return <HomePortfolio home={loaderData.home} classId={loaderData.id} />;
@@ -143,18 +179,24 @@ export default function ClassPage({
 
 function Students({
   classId,
+  axis,
   students,
 }: {
   classId: ClassId;
-  students: readonly ClassStudent[];
+  axis: ClassMapAxis;
+  students: readonly Pick<
+    ClassStudent,
+    "id" | "name" | "username" | "joinedAt"
+  >[];
 }): ReactNode {
-  if (students.length === 0) {
-    return <p>{m.classes_no_students_body()}</p>;
-  }
   return (
     <ul className={styles["list"]}>
       {students.map((student) => (
-        <li key={student.id} className={styles["item"]}>
+        <li
+          key={student.id}
+          id={classMapTargetId("administration", student.id)}
+          className={styles["item"]}
+        >
           <strong className={styles["name"]}>
             <NumberText verbatim>{student.name}</NumberText>
           </strong>
@@ -169,7 +211,13 @@ function Students({
             </NumberText>
           </p>
           <Link
-            to={resetStudentPasswordPath(classId, student.id)}
+            to={pathReturningTo(
+              resetStudentPasswordPath(classId, student.id),
+              classMapPath(classId, axis, {
+                section: "administration",
+                studentId: student.id,
+              }),
+            )}
             className={styles["link"]}
           >
             <NumberText verbatim>

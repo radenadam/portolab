@@ -16,6 +16,7 @@ import type { Range } from "./scale";
 export type MapMark =
   | { kind: "own" }
   | { kind: "held"; weight: PortfolioWeight | undefined }
+  | { kind: "active" }
   | { kind: "average" }
   | { kind: "classmate" }
   | { kind: "other" };
@@ -33,6 +34,10 @@ export interface MapPoint<Across extends number, Up extends number> {
   /** The name beside the point and at the head of its tooltip. */
   name: string;
   labelValue?: string;
+  /** A shorter name beside the mark, or an empty text when only the tooltip names it. */
+  label?: string;
+  /** The page that opens when the reader activates this point. */
+  href?: string;
   across: Across;
   up: Up;
   popover?: string;
@@ -91,6 +96,8 @@ export interface RiskMapLayout<Point> {
   /** The characters of the longest text of a mark of returns. DM Mono, the font of the marks of axes, draws each character equally wide, so the plot leaves this many widths of a character for the texts. */
   upTextLength: number;
   market: PlacedMark;
+  zero: PlotFraction;
+  median: PlotFraction | undefined;
   line: { start: PlotPosition; end: PlotPosition } | undefined;
   /** Each point with its mark, in the order of the points. */
   points: { point: Point; placed: PlacedMark }[];
@@ -101,6 +108,8 @@ export interface RiskMapLayout<Point> {
 // About ten marks fit across a wide map, as the references of decision 0028 draw them, and a narrow map shows every other one. Four fit up a map at the height of a phone.
 const acrossTickCount = 10;
 const upTickCount = 4;
+// The corner labels need a band above and below the class points, also on a phone.
+const cornerPadding = 0.2;
 
 const smallestSteps: Record<AxisStyle, number> = {
   decimal: smallestNumberStep,
@@ -119,8 +128,11 @@ const heldRadiusPerRootPercent = 0.175;
 const levelStart = 0.83;
 const levelStep = 2.67;
 const levelSteps = 8;
-const levelAbove = -0.5;
-const levelBelow = 1.17;
+// A band of points can fill the line, so labels try a little farther above and below it after the nearer places.
+const levelOffsets = [
+  [-0.5, 1.17],
+  [-1.5, 2.17],
+];
 const lineEndPlaces = [
   { dx: -0.33, dy: -0.67 },
   { dx: -0.33, dy: 1.33 },
@@ -138,6 +150,8 @@ export function layoutRiskMap<
   across: MapAxis<Across>;
   up: MapAxis<Up>;
   line?: MapLine<Across, Up> | undefined;
+  median?: Up;
+  roomForCorners?: boolean;
 }): RiskMapLayout<Point> {
   const { market, points, across, up, line } = map;
   const acrossRange = rangeOf(
@@ -170,8 +184,10 @@ export function layoutRiskMap<
       ),
       up.toValue(0),
       ...(lineEnd === undefined ? [] : [lineEnd]),
+      ...(map.median === undefined ? [] : [map.median]),
     ],
     up.toValue,
+    map.roomForCorners === true,
   );
   const positionOf = (point: { across: Across; up: Up }): PlotPosition => ({
     x: plotFraction(fractionOf(acrossRange, point.across)),
@@ -200,6 +216,9 @@ export function layoutRiskMap<
     acrossTicks: acrossTicksOf(acrossRange, across, market.across),
     upTicks,
     upTextLength,
+    zero: heightOf(upRange, up.toValue(0)),
+    median:
+      map.median === undefined ? undefined : heightOf(upRange, map.median),
     market: {
       position: marketPosition,
       radius: marketRadius,
@@ -218,28 +237,33 @@ export function layoutRiskMap<
     })),
     linePlaces: {
       level: levelPlaces(marketPosition.y),
-      line:
-        drawnLine === undefined
-          ? []
-          : lineEndPlaces.map(({ dx, dy }) => ({
-              at: drawnLine.end,
-              dx,
-              dy,
-              anchor: "end",
-            })),
+      line: comparisonLinePlaces(drawnLine),
     },
   };
+}
+
+function comparisonLinePlaces(
+  line: { end: PlotPosition } | undefined,
+): LabelPlace[] {
+  if (line === undefined) return [];
+  return lineEndPlaces.map(({ dx, dy }) => ({
+    at: line.end,
+    dx,
+    dy,
+    anchor: "end",
+  }));
 }
 
 function levelPlaces(height: PlotFraction): LabelPlace[] {
   const at = { x: plotFraction(0), y: height };
   const places: LabelPlace[] = [];
-  for (let step = 0; step <= levelSteps; step += 1) {
-    const dx = levelStart + step * levelStep;
-    places.push(
-      { at, dx, dy: levelAbove, anchor: "start" },
-      { at, dx, dy: levelBelow, anchor: "start" },
-    );
+  for (const offsets of levelOffsets) {
+    for (let step = 0; step <= levelSteps; step += 1) {
+      const dx = levelStart + step * levelStep;
+      for (const dy of offsets) {
+        places.push({ at, dx, dy, anchor: "start" });
+      }
+    }
   }
   return places;
 }
@@ -254,11 +278,13 @@ function heightOf<Up extends number>(
 function rangeOf<Value extends number>(
   values: readonly Value[],
   toValue: (value: number) => Value,
+  roomForCorners = false,
 ): Range<Value> {
-  const range = paddedRange(values, toValue);
-  return Math.min(...values) >= 0 && range.min < 0
-    ? { min: toValue(0), max: range.max }
-    : range;
+  return paddedRange(values, toValue, {
+    paddingShare: roomForCorners ? cornerPadding : undefined,
+    minimum:
+      !roomForCorners && Math.min(...values) >= 0 ? toValue(0) : undefined,
+  });
 }
 
 function ticksOf<Value extends number>(
@@ -311,6 +337,7 @@ function markSizeOf(mark: MapMark): { radius: number; outerRadius: number } {
             );
       return { radius, outerRadius: radius };
     }
+    case "active":
     case "other":
     case "average":
       return { radius: otherRadius, outerRadius: otherRadius };

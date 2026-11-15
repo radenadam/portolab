@@ -1,3 +1,4 @@
+import { openClassAdministration } from "./class-controls.ts";
 import { studentReasonsSectionId } from "../app/features/trading/student-reasons-section-id.ts";
 import { expect, test } from "@playwright/test";
 import { languageNames } from "../app/language-names.ts";
@@ -311,6 +312,7 @@ for (const locale of locales) {
       },
     });
     await page.goto(classPath);
+    await openClassAdministration(page);
     await page.getByRole("link", { name: text.classLink, exact: true }).click();
     await page.goto(
       `${classPath}/students?measure=treynor&q=${encodeURIComponent(widestClassNames.studentName)}`,

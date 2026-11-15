@@ -18,11 +18,7 @@
 }
 
 .tabs {
-  composes: choices from "../../segmented-choice.module.css";
-}
-
-.tab {
-  composes: option from "../../segmented-choice.module.css";
+  composes: choice from "../../segmented-choice.module.css";
   font-size: var(--text-caption);
 }
 

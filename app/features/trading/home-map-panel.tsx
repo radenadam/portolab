@@ -50,14 +50,12 @@ export function HomeMapPanel({
             aria-label={m.trading_home_map_view_label()}
           >
             <Link
-              className={styles["viewOption"]}
               to={path}
               aria-current={home.view === "map" ? "page" : undefined}
             >
               {m.trading_home_map_label()}
             </Link>
             <Link
-              className={styles["viewOption"]}
               to={`${path}?view=time`}
               aria-current={home.view === "time" ? "page" : undefined}
             >

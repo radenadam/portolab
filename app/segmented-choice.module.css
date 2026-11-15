@@ -1,23 +1,22 @@
-.choices {
+.choice {
   display: inline-flex;
-  flex-wrap: wrap;
-  background: var(--color-raised);
   padding: var(--space-1);
   border-radius: var(--radius-item);
+  background: var(--color-raised);
 }
 
-.option {
-  display: flex;
+.choice > a {
+  display: inline-flex;
   align-items: center;
-  min-block-size: var(--size-touch-target);
+  min-height: var(--size-touch-target);
   padding-inline: var(--space-3);
+  border-radius: var(--radius-button);
   color: var(--color-ink-secondary);
   text-decoration: none;
-  border-radius: var(--radius-button);
 }
 
-.option[aria-current] {
+.choice > [aria-current] {
   background: var(--color-panel);
-  box-shadow: var(--shadow-choice);
   color: var(--color-ink);
+  box-shadow: var(--shadow-choice);
 }

@@ -1,7 +1,14 @@
 import { expect, test } from "vitest";
 import { listStudents } from "~/features/classes/class-store.server";
+import { classMapPoints } from "~/features/classes/class-map-points.server";
+import { readClassOverview } from "~/features/classes/read-class-overview.server";
+import type { ClassMapAxis } from "~/features/classes/parse-class-map-axis";
 import { readPortfolioMeasures } from "~/features/measures/read-measures.server";
-import { storeHoldingsForTest } from "~/features/trading/portfolios-for-test.server";
+import {
+  placedOrderForTest,
+  storeHoldingsForTest,
+} from "~/features/trading/portfolios-for-test.server";
+import { purchaseForTest } from "~/features/trading/orders-for-test";
 import { readPortfolio } from "~/features/trading/portfolio-store.server";
 import { readPortfolioValuation } from "~/features/trading/read-portfolio-report.server";
 import { rupiah } from "~/units/rupiah";
@@ -15,11 +22,29 @@ import { readClassPortfolios } from "./read-class-portfolios.server";
 type ClassFixture = Awaited<ReturnType<typeof classOfStudentsForTest>>;
 const moment = {
   request: new Request("http://localhost/classes/1"),
-  now: new Date("2026-10-30T09:20:00Z"),
+  now: new Date("2026-11-02T03:01:00Z"),
   delayMinutes: 10,
 };
 
 const readers: { name: string; read: (fixture: ClassFixture) => unknown }[] = [
+  {
+    name: "class map with beta",
+    read: (fixture) => readMap(fixture, "beta"),
+  },
+  {
+    name: "class map with standard deviation",
+    read: (fixture) => readMap(fixture, "deviation"),
+  },
+  {
+    name: "class statistic strip",
+    read: (fixture) => {
+      const overview = overviewOf(fixture);
+      expect(overview.students).toHaveLength(6);
+      expect(overview.active).toBe(0);
+      expect(overview.ordersThisWeek).toBe(0);
+      return overview;
+    },
+  },
   {
     name: "ranking",
     read: ({ database, taughtClass }) =>
@@ -71,8 +96,13 @@ for (const reader of readers) {
         { code: "BBCA", shares: shares(10_000), cost: rupiah(49_874_700) },
       ],
     });
+    placedOrderForTest(database, owner, purchaseForTest());
     const portfolio = readPortfolio(database, owner);
     expect(portfolio.holdings).toHaveLength(1);
+    expect(portfolio.orders).toHaveLength(1);
+    expect(portfolio.orders[0]?.placedAt).toEqual(
+      new Date("2026-11-02T03:00:00Z"),
+    );
     const { valuation } = readPortfolioValuation(database, {
       portfolio,
       startingCash: owner.startingCash,
@@ -81,4 +111,17 @@ for (const reader of readers) {
     expect(measured.kind === "measured" && measured.measures.ok).toBe(true);
     expect(reader.read(fixture)).toEqual(before);
   });
+}
+
+function overviewOf({ database, taughtClass }: ClassFixture) {
+  return readClassOverview(database, taughtClass, moment);
+}
+
+function readMap(fixture: ClassFixture, axis: ClassMapAxis) {
+  const points = classMapPoints(overviewOf(fixture), {
+    axis,
+    classId: fixture.taughtClass.id,
+  });
+  expect(points).toHaveLength(3);
+  return points;
 }

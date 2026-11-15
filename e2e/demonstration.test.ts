@@ -108,18 +108,20 @@ const texts: Record<
   },
 };
 
-async function confirmTicket(
+async function confirmOrderAndOpenActivity(
   ticket: Locator,
   {
     javaScriptEnabled,
     changed,
     total,
     waiting,
+    activity,
   }: {
     javaScriptEnabled: boolean;
     changed: string;
     total: string;
     waiting: string;
+    activity: { label: string; path: string };
   },
 ): Promise<void> {
   await ticket.locator('button[type="submit"]').click();
@@ -131,6 +133,8 @@ async function confirmTicket(
   await expect(
     ticket.getByRole("heading", { name: waiting, exact: true }),
   ).toBeVisible();
+  await ticket.getByRole("link", { name: activity.label, exact: true }).click();
+  await expect(ticket.page()).toHaveURL(activity.path);
 }
 
 function storeComparedPortfolios(classId: ClassId): void {
@@ -283,6 +287,12 @@ for (const locale of locales) {
           { locale, ...widestClassNames },
         );
         const path = `${classPath}/demonstration`;
+        const confirmation = {
+          javaScriptEnabled,
+          changed: text.changed,
+          waiting: text.waiting,
+          activity: { label: text.activityLink, path: `${path}/activity` },
+        };
         storeComparedPortfolios(classId);
         const tabs = page.getByRole("navigation", {
           name: text.title,
@@ -319,16 +329,10 @@ for (const locale of locales) {
             fullPage: true,
             fromTop: false,
           });
-        await confirmTicket(ticket, {
-          javaScriptEnabled,
-          changed: text.changed,
+        await confirmOrderAndOpenActivity(ticket, {
+          ...confirmation,
           total: "997494",
-          waiting: text.waiting,
         });
-        await ticket
-          .getByRole("link", { name: text.activityLink, exact: true })
-          .click();
-        await expect(page).toHaveURL(`${path}/activity`);
         await expect(
           page.getByText("Demonstration only.", { exact: false }),
         ).toBeVisible();
@@ -382,16 +386,10 @@ for (const locale of locales) {
           .getByRole("textbox", { name: text.lots, exact: true })
           .fill("2");
         // Python Decimal gives a purchase cost of 997,494 for two lots at 4,980. A sale deducts the fee of 1,494 and final tax of 996 from 996,000, so it receives 993,510.
-        await confirmTicket(ticket, {
-          javaScriptEnabled,
-          changed: text.changed,
+        await confirmOrderAndOpenActivity(ticket, {
+          ...confirmation,
           total: "993510",
-          waiting: text.waiting,
         });
-        await ticket
-          .getByRole("link", { name: text.activityLink, exact: true })
-          .click();
-        await expect(page).toHaveURL(`${path}/activity`);
         await expect(
           page.getByText("Demonstration sale.", { exact: false }),
         ).toBeVisible();

@@ -459,11 +459,9 @@
   font-size: var(--text-body);
 }
 .viewChoice {
-  composes: choices from "../../segmented-choice.module.css";
+  composes: choice from "../../segmented-choice.module.css";
 }
-.viewOption {
-  composes: option from "../../segmented-choice.module.css";
-}
+
 .largeMap {
   --size-chart: var(--size-home-map);
 }
