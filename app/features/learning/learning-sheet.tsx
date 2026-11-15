@@ -69,7 +69,10 @@ export function LearningSheet({
         event.preventDefault();
         close();
       }}
-      onClose={onClose}
+      onClose={(event) => {
+        // A parent can reopen the sheet while changing its own modal mode.
+        if (!event.currentTarget.open) onClose();
+      }}
     >
       <div className={styles["grip"]} aria-hidden="true" />
       <header className={styles["head"]}>

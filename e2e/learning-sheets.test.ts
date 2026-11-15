@@ -3,6 +3,7 @@ import { expectRefusedGlossarySearch } from "./expect-refused-glossary-search.ts
 import { fieldMaximumLength } from "../app/form-size.ts";
 import { glossaryQueryMaximumLength } from "../app/features/learning/glossary-query-maximum-length.ts";
 import { returnFromLesson } from "./return-from-lesson.ts";
+import { isPhone } from "./frame.ts";
 import { expect, test } from "@playwright/test";
 import { languageNames } from "../app/language-names.ts";
 import { locales } from "../app/paraglide/runtime.js";
@@ -74,20 +75,33 @@ for (const locale of locales) {
         name: text.lesson,
         exact: true,
       });
+      const closeLessonAndHelp = async () => {
+        await page.keyboard.press("Escape");
+        await expect(lesson).toHaveCount(0);
+        await expect(more).toBeFocused();
+        await page.keyboard.press("Escape");
+        await expect(help).toBeFocused();
+        await expect(lots).toHaveValue("37");
+        await expect(reason).toHaveValue(text.reason);
+        await expect(page).toHaveURL(address);
+      };
       await expect(lesson).toBeVisible();
       await expect(page.locator("[popover]:popover-open")).toHaveCount(0);
       await expect(page).toHaveURL(address);
       await expect(lesson.getByRole("link", { name: text.full })).toBeVisible();
       await expectAccessibleScreen(page);
-      await page.keyboard.press("Escape");
-      await expect(lesson).toHaveCount(0);
-      await expect(more).toBeFocused();
-      await page.keyboard.press("Escape");
-      await expect(help).toBeFocused();
-      await expect(lots).toHaveValue("37");
-      await expect(reason).toHaveValue(text.reason);
-      await expect(page).toHaveURL(address);
+      await closeLessonAndHelp();
       expect(await screenPosition(page)).toEqual(position);
+      const viewport = page.viewportSize();
+      if (viewport === null)
+        throw new Error("The sheet test needs a fixed viewport.");
+      for (const width of [isPhone() ? 1440 : 360, viewport.width]) {
+        await help.click();
+        await more.click();
+        await expect(lesson).toBeVisible();
+        await page.setViewportSize({ ...viewport, width });
+        await closeLessonAndHelp();
+      }
       await help.click();
       await more.click();
       await captureScreens(page, testInfo, {
@@ -139,12 +153,18 @@ for (const locale of locales) {
         .filter({ has: page.getByRole("link", { name: text.full }) })
         .last();
       await expect(nested).toBeVisible();
+      await page.setViewportSize({
+        ...viewport,
+        width: isPhone() ? 1440 : 360,
+      });
+      await expect(nested).toBeVisible();
       await page.keyboard.press("Escape");
       await glossary
         .getByRole("button", { name: text.close, exact: true })
         .click();
       await expect(glossaryLink).toBeFocused();
       await page.keyboard.press("Escape");
+      await page.setViewportSize(viewport);
       await expect(lots).toHaveValue("37");
       await expect(reason).toHaveValue(text.reason);
       await help.click();
