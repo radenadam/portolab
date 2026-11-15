@@ -6,6 +6,7 @@ import { renderTextMarkupForTest } from "./render-text-markup-for-test";
 import { numberPattern } from "./number-pattern";
 import { locales } from "./paraglide/runtime.js";
 import type { Locale } from "./paraglide/runtime.js";
+import { withoutClassNamesForTest } from "./without-class-names-for-test";
 
 const values: Record<Locale, readonly string[]> = {
   id: [
@@ -76,11 +77,13 @@ for (const locale of locales) {
   });
   test(`keeps prose and its number within one control label in ${languageNames[locale]}`, () => {
     const [verb, count] = controls[locale];
-    const html = renderToStaticMarkup(
-      <button type="button">
-        <NumberText>{`${verb} ${count}`}</NumberText>
-      </button>,
-    ).replaceAll(/ class="[^"]*"/gu, "");
+    const html = withoutClassNamesForTest(
+      renderToStaticMarkup(
+        <button type="button">
+          <NumberText>{`${verb} ${count}`}</NumberText>
+        </button>,
+      ),
+    );
     expect(html).toBe(
       `<button type="button"><span data-number-text="">${verb} <span data-number="">${count}</span></span></button>`,
     );
@@ -118,9 +121,8 @@ test("leaves words and instrument codes intact", () => {
 test("leaves a long digit-only name as text", () => {
   const name = "8".repeat(100);
   expect(
-    renderToStaticMarkup(<NumberText verbatim>{name}</NumberText>).replaceAll(
-      / class="[^"]*"/gu,
-      "",
+    withoutClassNamesForTest(
+      renderToStaticMarkup(<NumberText verbatim>{name}</NumberText>),
     ),
   ).toBe(`<span data-text-value="">${name}</span>`);
 });
