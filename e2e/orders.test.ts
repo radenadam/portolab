@@ -2,6 +2,7 @@ import { languageNames } from "../app/language-names.ts";
 import { rupiah } from "../app/units/rupiah.ts";
 import { shares } from "../app/units/shares.ts";
 import { expect, test } from "@playwright/test";
+import type { Browser, Locator, Page } from "@playwright/test";
 import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
 import { bbcaHolding } from "./bbca-holding.ts";
@@ -132,23 +133,42 @@ const texts: Record<
   },
 };
 
+async function chooseMaximumLots(
+  ticket: Locator,
+  text: (typeof texts)[Locale],
+) {
+  await ticket.getByRole("link", { name: text.max, exact: true }).click();
+  await expect(
+    ticket.getByRole("textbox", { name: text.lots, exact: true }),
+  ).toHaveValue(text.maxLotsValue);
+}
+
+async function openHeldTicket(page: Page, browser: Browser, locale: Locale) {
+  const { student, classPath } = await studentWithPortfolio(page, browser, {
+    locale,
+    givePortfolio: (id) => {
+      storeTestHolding(id, bbcaHolding);
+    },
+  });
+  await student.goto(`${classPath}/stocks/BBCA?range=1y`);
+  await student.locator('[data-stock-trade="buy"]').click();
+  await expect(student).toHaveURL(`${classPath}/stocks/BBCA/buy?range=1y`);
+  const ticket = student.locator("dialog[open]");
+  await expect(ticket).toBeVisible();
+  return { student, classPath, ticket };
+}
+
 for (const locale of locales) {
   const text = texts[locale];
-  test(`previews a purchase and sale, preserves the draft through help and steppers, and confirms with Enter in ${languageNames[locale]}`, async ({
+  test(`previews purchases and sales and keeps the draft through help, steppers, and navigation in ${languageNames[locale]}`, async ({
     page,
     browser,
   }, testInfo) => {
-    const { student, classPath } = await studentWithPortfolio(page, browser, {
+    const { student, classPath, ticket } = await openHeldTicket(
+      page,
+      browser,
       locale,
-      givePortfolio: (id) => {
-        storeTestHolding(id, bbcaHolding);
-      },
-    });
-    await student.goto(`${classPath}/stocks/BBCA?range=1y`);
-    await student.locator('[data-stock-trade="buy"]').click();
-    await expect(student).toHaveURL(`${classPath}/stocks/BBCA/buy?range=1y`);
-    const ticket = student.locator("dialog[open]");
-    await expect(ticket).toBeVisible();
+    );
     expect(await student.title()).toContain(text.title);
     for (const value of [text.value, text.paid, text.after])
       await expect(ticket.getByText(value, { exact: true })).toBeVisible();
@@ -212,10 +232,31 @@ for (const locale of locales) {
     );
     await ticket.getByRole("link", { name: text.buy, exact: true }).click();
     await expect(ticket).toHaveAttribute("data-side", "buy");
-    await ticket.getByRole("link", { name: text.max, exact: true }).click();
-    await expect(
-      ticket.getByRole("textbox", { name: text.lots, exact: true }),
-    ).toHaveValue(text.maxLotsValue);
+    await chooseMaximumLots(ticket, text);
+    if (testInfo.project.name === "phone") {
+      await student.keyboard.press("Escape");
+      await expect(student).toHaveURL(`${classPath}/stocks/BBCA?range=1y`);
+      await expect(student.locator('[data-stock-trade="buy"]')).toBeFocused();
+      await student.locator('[data-stock-trade="buy"]').click();
+      await expect(
+        ticket.getByRole("textbox", { name: text.lots, exact: true }),
+      ).toHaveValue(text.maxLotsValue);
+      await expect(ticket.getByLabel(text.reason, { exact: true })).toHaveValue(
+        "Kredit tumbuh.\n\nBeta di bawah 1.",
+      );
+    }
+    await student.context().close();
+  });
+
+  test(`keeps the ticket layout and captures its reference widths in ${languageNames[locale]}`, async ({
+    page,
+    browser,
+  }, testInfo) => {
+    const { student, ticket } = await openHeldTicket(page, browser, locale);
+    await chooseMaximumLots(ticket, text);
+    await ticket
+      .getByLabel(text.reason, { exact: true })
+      .fill("Kredit tumbuh.\n\nBeta di bawah 1.");
     for (const width of testInfo.project.name === "phone"
       ? [360]
       : [1440, 1920]) {
@@ -238,18 +279,19 @@ for (const locale of locales) {
       }
     }
     await expectAccessibleScreen(student);
-    if (testInfo.project.name === "phone") {
-      await student.keyboard.press("Escape");
-      await expect(student).toHaveURL(`${classPath}/stocks/BBCA?range=1y`);
-      await expect(student.locator('[data-stock-trade="buy"]')).toBeFocused();
-      await student.locator('[data-stock-trade="buy"]').click();
-      await expect(
-        ticket.getByRole("textbox", { name: text.lots, exact: true }),
-      ).toHaveValue(text.maxLotsValue);
-      await expect(ticket.getByLabel(text.reason, { exact: true })).toHaveValue(
-        "Kredit tumbuh.\n\nBeta di bawah 1.",
-      );
-    }
+    await student.context().close();
+  });
+
+  test(`confirms an order with Enter and returns through Activity to the stock in ${languageNames[locale]}`, async ({
+    page,
+    browser,
+  }) => {
+    const { student, classPath, ticket } = await openHeldTicket(
+      page,
+      browser,
+      locale,
+    );
+    await expect(ticket.locator('button[type="submit"]')).toBeEnabled();
     await ticket
       .getByRole("textbox", { name: text.lots, exact: true })
       .fill("1");
