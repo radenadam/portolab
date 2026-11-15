@@ -1,3 +1,5 @@
+import { QuoteNotice } from "~/features/market-data/quote-notice";
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { ChangeText } from "~/change-text";
 import tableStyles from "~/data-table.module.css";
@@ -45,22 +47,24 @@ export function PricesView({
       <h1>{m.market_data_page_title()}</h1>
       {latestQuotedAt === undefined ? (
         <p>
-          {noPricesText(latestAttempt, {
-            now,
-            delayMinutes: source.delayMinutes,
-          })}
+          <NumberText>
+            {noPricesText(latestAttempt, {
+              now,
+              delayMinutes: source.delayMinutes,
+            })}
+          </NumberText>
         </p>
       ) : (
         <>
-          {failure !== undefined && (
-            <p className={styles["notice"]}>{failure}</p>
-          )}
+          <QuoteNotice text={failure} className={styles["notice"]} />
           <p className={styles["notice"]}>
-            {m.market_data_delay_notice({
-              minutes: formatNumber(source.delayMinutes),
-              source: source.name,
-              time: formatMarketTime(latestQuotedAt),
-            })}
+            <NumberText>
+              {m.market_data_delay_notice({
+                minutes: formatNumber(source.delayMinutes),
+                source: source.name,
+                time: formatMarketTime(latestQuotedAt),
+              })}
+            </NumberText>
           </p>
           <table className={tableStyles["table"]}>
             <thead>
@@ -105,9 +109,11 @@ function QuoteRow({
         )}
       </th>
       <td className={tableStyles["number"]}>
-        {quote.kind === "stock"
-          ? formatRupiah(quote.price)
-          : formatIndexLevel(quote.level)}
+        <NumberText>
+          {quote.kind === "stock"
+            ? formatRupiah(quote.price)
+            : formatIndexLevel(quote.level)}
+        </NumberText>
       </td>
       <td className={tableStyles["number"]}>
         <ChangeText change={formatSignedPercent(quoteChange(quote))} />
@@ -132,14 +138,20 @@ function QuoteTime({
 }): ReactNode {
   if (isNewestDay) {
     return (
-      <span className={styles["clock"]}>{formatMarketClock(quotedAt)}</span>
+      <span className={styles["clock"]}>
+        <NumberText>{formatMarketClock(quotedAt)}</NumberText>
+      </span>
     );
   }
   const { date, clock } = formatMarketTimeParts(quotedAt);
   return (
     <>
-      <span className={styles["date"]}>{date}</span>
-      <span className={styles["clock"]}>{clock}</span>
+      <span className={styles["date"]}>
+        <NumberText>{date}</NumberText>
+      </span>
+      <span className={styles["clock"]}>
+        <NumberText>{clock}</NumberText>
+      </span>
     </>
   );
 }

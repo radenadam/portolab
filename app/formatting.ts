@@ -71,14 +71,13 @@ export function digitGrouping(): { separator: string; size: number } {
 
 // A number shows at most three decimals, which is also the default of Intl.
 const mostNumberDecimals = 3;
+const numberOptions = { maximumFractionDigits: mostNumberDecimals };
 
 /** The smallest step between the marks of an axis whose texts formatNumber writes, so no two marks read the same. */
 export const smallestNumberStep = 10 ** -mostNumberDecimals;
 
 export function formatNumber(value: number): string {
-  return new Intl.NumberFormat(intlLocale(), {
-    maximumFractionDigits: mostNumberDecimals,
-  }).format(value);
+  return new Intl.NumberFormat(intlLocale(), numberOptions).format(value);
 }
 
 /** A split can divide a historic close into fractional rupiah, so it keeps the precision of other numbers rather than rounding to an amount of cash. */
@@ -86,7 +85,7 @@ export function formatSplitAdjustedRupiah(price: SplitAdjustedRupiah): string {
   return new Intl.NumberFormat(intlLocale(), {
     ...rupiahOptions,
     minimumFractionDigits: 0,
-    maximumFractionDigits: mostNumberDecimals,
+    ...numberOptions,
   }).format(price);
 }
 
@@ -207,12 +206,18 @@ export function formatSharpeRatio(ratio: SharpeRatio): string {
   return formatTwoDecimals(ratio);
 }
 
+const ratioOptions: Intl.NumberFormatOptions = {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+  signDisplay: "negative",
+};
+export const numberPrecisionOptions = {
+  number: numberOptions,
+  ratio: ratioOptions,
+};
+
 function formatTwoDecimals(value: number): string {
-  return new Intl.NumberFormat(intlLocale(), {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-    signDisplay: "negative",
-  }).format(value);
+  return new Intl.NumberFormat(intlLocale(), ratioOptions).format(value);
 }
 
 /** Formats a difference of returns in percentage points, without a percent sign. */
@@ -271,10 +276,13 @@ export function formatCalendarDatePart(
 }
 
 /** Formats the month of a calendar date such as 2027-01-01 in words, such as January 2027. */
-export function formatMonth(date: string): string {
+export function formatMonth(
+  date: string,
+  month: "long" | "short" = "long",
+): string {
   // The month is formatted in UTC for the same reason as a calendar date.
   return new Intl.DateTimeFormat(intlLocale(), {
-    month: "long",
+    month,
     year: "numeric",
     timeZone: "UTC",
   }).format(startOfUtcDate(date));

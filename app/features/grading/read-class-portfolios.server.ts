@@ -5,6 +5,7 @@ import { listStudents } from "~/features/classes/class-store.server";
 import type { TaughtClassDetails } from "~/features/classes/taught-class.server";
 import { explainPortfolioMeasures } from "~/features/measures/explain-portfolio-measures";
 import { readPortfolioMeasures } from "~/features/measures/read-measures.server";
+import type { PortfolioMeasuresReport } from "~/features/measures/read-measures.server";
 import { holdingQuoteFailureText } from "~/features/trading/holding-quote-failure-text";
 import { readCurrentPortfolio } from "~/features/trading/read-current-portfolio.server";
 import { readPortfolioReport } from "~/features/trading/read-portfolio-report.server";
@@ -33,7 +34,10 @@ interface StudentValue {
 export type RankedStudent = StudentValue & { measures: ComparedMeasures };
 
 /** A student whose portfolio has no measures, with the text that tells the lecturer why and when it gets them. */
-export type UnmeasuredStudent = StudentValue & { reason: string };
+export type UnmeasuredStudent = StudentValue & {
+  reason: string;
+  report: PortfolioMeasuresReport;
+};
 
 /** The portfolios of the students of a class as the lecturer compares them at a moment. */
 export interface ClassPortfolios {
@@ -99,10 +103,11 @@ export function readClassPortfolios(
           ? undefined
           : { value: total.value, return: total.return },
     };
-    const measures = explainPortfolioMeasures(
-      readPortfolioMeasures(database, valuation.valuation),
-      { kind: "lecturer", studentName: student.name },
-    );
+    const report = readPortfolioMeasures(database, valuation.valuation);
+    const measures = explainPortfolioMeasures(report, {
+      kind: "lecturer",
+      studentName: student.name,
+    });
     if (measures.ok) {
       const summary = measures.value;
       ranked.push({
@@ -110,7 +115,7 @@ export function readClassPortfolios(
         measures: comparedMeasures(summary),
       });
     } else {
-      unmeasured.push({ ...studentValue, reason: measures.failure });
+      unmeasured.push({ ...studentValue, reason: measures.failure, report });
     }
   }
   return {

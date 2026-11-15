@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Form } from "react-router";
 import { Popover, PopoverButton } from "~/popover";
 import { Message } from "~/message";
+import { NumberText } from "~/number-text";
 import { m } from "~/paraglide/messages.js";
 import { lotCount } from "./count-parts";
 import type { StoredOrder } from "./order-rows";
@@ -31,11 +32,7 @@ export function CancelOrder({
               text={m.trading_activity_cancel_body}
               values={{
                 side,
-                lots: (
-                  <span className={styles["amount"]}>
-                    {lotCount(order.lots)}
-                  </span>
-                ),
+                lots: <NumberText>{lotCount(order.lots)}</NumberText>,
                 code: order.code,
               }}
             />

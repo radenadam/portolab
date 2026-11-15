@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { ConceptCard } from "~/concept-card";
 import { ConceptLesson } from "~/features/learning/concept-lesson";
@@ -32,9 +33,11 @@ export function StockRange({
   return (
     <div className={styles["stat"]}>
       <dt>
-        {m.market_data_year_range_stat_label({
-          weeks: formatNumber(stockRangeWeeks),
-        })}
+        <NumberText>
+          {m.market_data_year_range_stat_label({
+            weeks: formatNumber(stockRangeWeeks),
+          })}
+        </NumberText>
         {range !== undefined && (
           <ConceptCard
             title={m.market_data_year_range_stat_label({
@@ -45,22 +48,26 @@ export function StockRange({
             })}
             example={
               <p>
-                {m.market_data_year_range_notice({
-                  low: formatNumber(range.low.close),
-                  high: formatNumber(range.high.close),
-                  first: formatCalendarDate(range.first, "medium"),
-                  last: formatCalendarDate(range.last, "medium"),
-                })}
+                <NumberText>
+                  {m.market_data_year_range_notice({
+                    low: formatNumber(range.low.close),
+                    high: formatNumber(range.high.close),
+                    first: formatCalendarDate(range.first, "medium"),
+                    last: formatCalendarDate(range.last, "medium"),
+                  })}
+                </NumberText>
               </p>
             }
             calculation={
               <p>
-                {m.market_data_year_range_calculation_notice({
-                  low: formatNumber(range.low.close),
-                  high: formatNumber(range.high.close),
-                  lowDate: formatCalendarDate(range.low.date, "medium"),
-                  highDate: formatCalendarDate(range.high.date, "medium"),
-                })}
+                <NumberText>
+                  {m.market_data_year_range_calculation_notice({
+                    low: formatNumber(range.low.close),
+                    high: formatNumber(range.high.close),
+                    lowDate: formatCalendarDate(range.low.date, "medium"),
+                    highDate: formatCalendarDate(range.high.date, "medium"),
+                  })}
+                </NumberText>
               </p>
             }
             lesson={<ConceptLesson termId="rentang-52-minggu" />}
@@ -98,20 +105,16 @@ export function StockRange({
               />
             </svg>
             <span className={rangeStyles["ends"]}>
-              <span>{formatNumber(range.low.close)}</span>
-              <span>{formatNumber(range.high.close)}</span>
+              <span>
+                <NumberText>{formatNumber(range.low.close)}</NumberText>
+              </span>
+              <span>
+                <NumberText>{formatNumber(range.high.close)}</NumberText>
+              </span>
             </span>
           </>
         )}
       </dd>
-      {range !== undefined && (
-        <dd className={styles["note"]}>
-          {m.market_data_history_period_notice({
-            first: formatCalendarDate(range.first, "medium"),
-            last: formatCalendarDate(range.last, "medium"),
-          })}
-        </dd>
-      )}
     </div>
   );
 }

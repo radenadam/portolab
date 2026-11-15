@@ -48,7 +48,6 @@
   font-family: var(--font-text);
   font-size: var(--text-row);
   font-weight: 400;
-  white-space: nowrap;
 }
 
 .compact {

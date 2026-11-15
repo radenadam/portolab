@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import type { SessionNumber } from "~/features/classes/course-calendar";
 import { formatNumber } from "~/formatting";
@@ -32,9 +33,13 @@ export function HomeInsightLesson({
       </PopoverButton>
       <Popover id="home-insight-lesson" label={title} placement="aboveStart">
         <div className={styles["lesson"]}>
-          <h2>{title}</h2>
+          <h2>
+            <NumberText>{title}</NumberText>
+          </h2>
           {lesson.paragraphs.map((paragraph) => (
-            <p key={paragraph}>{paragraph}</p>
+            <p key={paragraph}>
+              <NumberText>{paragraph}</NumberText>
+            </p>
           ))}
         </div>
       </Popover>

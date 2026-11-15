@@ -98,8 +98,8 @@ export function isInterfaceTest(path: string): boolean {
   return /^e2e\/.+\.test\.ts$/.test(path) || /^app\/.+\.test\.tsx?$/.test(path);
 }
 
-/** Returns one sentence for each message of a language file whose text no test shows in full. A message without placeholders must appear in a test as a whole string, because a short text such as a label also appears inside longer ones. Each part of a message between its placeholders must appear in a test. */
-export function untestedMessageProblems(
+/** Checks that messages are complete texts instead of leading fragments, and that tests show every text in full. A message without placeholders must appear as a whole string, because a short label also appears inside longer texts. Each part between placeholders must appear in a test. */
+export function messageTextProblems(
   path: string,
   messages: Record<string, unknown>,
   testSources: readonly string[],
@@ -113,6 +113,11 @@ export function untestedMessageProblems(
         `${path}: the message "${key}" must be text, but it is ${describeValue(text)}.`,
       );
       continue;
+    }
+    if (!key.endsWith("_part") && /^[\s·,:;]/u.test(text)) {
+      problems.push(
+        `${path}: the message "${key}" starts with whitespace or a separator, so write a complete message instead of a fragment that code joins.`,
+      );
     }
     const parts = text.split(/\{[^}]*\}/);
     if (parts.length === 1) {

@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { ChangeText } from "~/change-text";
 import type { ClosePrice } from "~/features/market-data/price-source.server";
@@ -35,7 +36,9 @@ export function ReturnTables({
       {instruments.map(({ code, returns }) => (
         <details key={code} className={styles["returns"]}>
           <summary>
-            {m.measures_returns_table_label({ code: instrumentName(code) })}
+            <NumberText>
+              {m.measures_returns_table_label({ code: instrumentName(code) })}
+            </NumberText>
           </summary>
           <MeasureTable
             header={[

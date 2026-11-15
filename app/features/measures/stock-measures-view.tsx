@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
 import { formatCorrelation, formatVariance } from "~/formatting";
@@ -31,7 +32,11 @@ export function StockMeasuresView({
 }): ReactNode {
   if (!measures.ok) {
     return (
-      <p>{measureFailureText(measures.failure, { kind: "stock", code })}</p>
+      <p>
+        <NumberText>
+          {measureFailureText(measures.failure, { kind: "stock", code })}
+        </NumberText>
+      </p>
     );
   }
   const stock = measures.value;

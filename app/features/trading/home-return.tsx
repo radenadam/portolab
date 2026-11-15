@@ -1,4 +1,5 @@
 import { ConceptHelp } from "~/concept-card";
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { PortfolioReturnChart } from "./portfolio-return-chart";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
@@ -26,28 +27,40 @@ export function HomeReturn({
     <section className={styles["card"]}>
       <div className={styles["valueLabel"]}>
         <h2 id="home-return-heading" className={styles["cardTitle"]}>
-          {first === undefined
-            ? m.trading_return_title({ index: marketIndex.code })
-            : m.trading_home_since_title({
-                date: formatCalendarDatePart(first.date, "dayAndMonth"),
-              })}
+          <NumberText>
+            {first === undefined
+              ? m.trading_return_title({ index: marketIndex.code })
+              : m.trading_home_since_title({
+                  date: formatCalendarDatePart(first.date, "dayAndMonth"),
+                })}
+          </NumberText>
         </h2>
         {first !== undefined && (
           <ConceptHelp title={m.trading_home_return_method_label()}>
             <p>
-              {m.trading_chart_notice({
-                index: marketIndex.code,
-                date: formatCalendarDate(first.date),
-              })}
+              <NumberText>
+                {m.trading_chart_notice({
+                  index: marketIndex.code,
+                  date: formatCalendarDate(first.date),
+                })}
+              </NumberText>
             </p>
-            <p>{history.ok && historyEndText(history.value.end, reader)}</p>
+            <p>
+              {history.ok && (
+                <NumberText>
+                  {historyEndText(history.value.end, reader)}
+                </NumberText>
+              )}
+            </p>
           </ConceptHelp>
         )}
       </div>
       {latest !== undefined && (
         <>
           <p className={styles["lead"]}>
-            {returnHeadline(latest.portfolio, latest.market)}
+            <NumberText>
+              {returnHeadline(latest.portfolio, latest.market)}
+            </NumberText>
           </p>
           <PortfolioReturnChart
             points={points}
@@ -57,9 +70,11 @@ export function HomeReturn({
       )}
       {first === undefined && (
         <p className={styles["note"]}>
-          {history.ok
-            ? historyEndText(history.value.end, reader)
-            : missingCalendarText(reader)}
+          <NumberText>
+            {history.ok
+              ? historyEndText(history.value.end, reader)
+              : missingCalendarText(reader)}
+          </NumberText>
         </p>
       )}
     </section>

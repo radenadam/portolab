@@ -735,40 +735,45 @@ for (const locale of locales) {
     await expectAccessibleScreen(student);
 
     // The longest reason that Portolab keeps, as one word, so each list that shows it is checked with its widest content.
-    const widestReason = wideWord("Alasan", reasonMaximumLength);
-    await placeOrder(student, locale, {
-      side: "buy",
-      lots: "1",
-      reason: widestReason,
-    });
-    await expect(student.getByRole("status")).toHaveText(text.placed);
-    await expect(
-      main.getByText(`${text.reasonLabel}${widestReason}”`, { exact: true }),
-    ).toBeVisible();
-    await expectAccessibleScreen(student);
-
-    await page.goto(`${classPath}/students`);
-    await selectFirstStudent(page);
-    await page
-      .getByRole("dialog")
-      .getByRole("link", {
-        name: text.studentPortfolioLink,
-        exact: true,
-      })
-      .click();
-    const reasons = page
-      .getByRole("main")
-      .locator("section")
-      .filter({
-        has: page.getByRole("heading", { level: 2, name: text.reasonsTitle }),
+    for (const [index, widestReason] of [
+      wideWord("Alasan", reasonMaximumLength),
+      "9".repeat(reasonMaximumLength),
+    ].entries()) {
+      await student.goto(`${classPath}/orders?code=BBCA`);
+      await placeOrder(student, locale, {
+        side: "buy",
+        lots: "1",
+        reason: widestReason,
       });
-    await expect(reasons.locator("li")).toHaveCount(1);
-    await expectTexts(reasons.locator("li"), [
-      text.purchaseOfOneLot,
-      widestReason,
-    ]);
-    await expect(reasons).not.toContainText(text.reasonLabel);
-    await expectAccessibleScreen(page);
+      await expect(student.getByRole("status")).toHaveText(text.placed);
+      await expect(
+        main.getByText(`${text.reasonLabel}${widestReason}”`, { exact: true }),
+      ).toBeVisible();
+      await expectAccessibleScreen(student);
+
+      await page.goto(`${classPath}/students`);
+      await selectFirstStudent(page);
+      await page
+        .getByRole("dialog")
+        .getByRole("link", {
+          name: text.studentPortfolioLink,
+          exact: true,
+        })
+        .click();
+      const reasons = page
+        .getByRole("main")
+        .locator("section")
+        .filter({
+          has: page.getByRole("heading", { level: 2, name: text.reasonsTitle }),
+        });
+      await expect(reasons.locator("li")).toHaveCount(index + 1);
+      await expectTexts(reasons.locator("li").first(), [
+        text.purchaseOfOneLot,
+        widestReason,
+      ]);
+      await expect(reasons).not.toContainText(text.reasonLabel);
+      await expectAccessibleScreen(page);
+    }
     await student.context().close();
   });
 

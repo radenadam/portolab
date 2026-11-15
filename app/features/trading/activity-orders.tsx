@@ -6,6 +6,7 @@ import { StockName } from "~/features/market-data/stock-name";
 import { stockPath } from "~/features/market-data/stock-path";
 import { formatNumber, formatRupiah } from "~/formatting";
 import { Message } from "~/message";
+import { NumberText } from "~/number-text";
 import { MarketTime } from "~/market-time";
 import { m } from "~/paraglide/messages.js";
 import { activityPath } from "./activity-path";
@@ -65,12 +66,14 @@ export function ActivityOrders({
           >
             <span>
               {activityStatusLabel(status)} ·{" "}
-              {formatNumber(
-                orders.filter(
-                  (order) =>
-                    status === "all" || activityStatus(order, now) === status,
-                ).length,
-              )}
+              <NumberText>
+                {formatNumber(
+                  orders.filter(
+                    (order) =>
+                      status === "all" || activityStatus(order, now) === status,
+                  ).length,
+                )}
+              </NumberText>
             </span>
           </Link>
         ))}
@@ -95,7 +98,9 @@ export function ActivityOrders({
                     <StockName
                       code={order.code}
                       withCompanyName={false}
-                      codeDetail={lotCount(order.lots)}
+                      codeDetail={
+                        <NumberText>{lotCount(order.lots)}</NumberText>
+                      }
                       detail={
                         <>
                           {order.price.kind === "market" ? (
@@ -105,9 +110,9 @@ export function ActivityOrders({
                               text={m.trading_activity_limit_label}
                               values={{
                                 price: (
-                                  <span className={styles["amount"]}>
+                                  <NumberText>
                                     {formatRupiah(order.price.limit)}
-                                  </span>
+                                  </NumberText>
                                 ),
                               }}
                             />
@@ -129,9 +134,11 @@ export function ActivityOrders({
                   <p>{orderDetail(order, now)}</p>
                   {order.reason !== undefined && (
                     <p className={styles["reason"]}>
-                      {m.trading_activity_reason_notice({
-                        reason: order.reason,
-                      })}
+                      <NumberText verbatim>
+                        {m.trading_activity_reason_notice({
+                          reason: order.reason,
+                        })}
+                      </NumberText>
                     </p>
                   )}
                   {order.state.kind === "rejected" && (
@@ -209,9 +216,7 @@ function orderDetail(order: StoredOrder, now: Date): ReactNode {
           text={m.trading_activity_fill_notice}
           values={{
             price: (
-              <span className={styles["amount"]}>
-                {formatRupiah(order.state.fill.price)}
-              </span>
+              <NumberText>{formatRupiah(order.state.fill.price)}</NumberText>
             ),
             time: <MarketTime moment={order.state.fill.quotedAt} />,
           }}
@@ -231,7 +236,9 @@ function orderDetail(order: StoredOrder, now: Date): ReactNode {
           values={{
             time: <MarketTime moment={order.state.rejectedAt} />,
             quotedTime: <MarketTime moment={order.state.quotedAt} />,
-            reason: orderFailureText(order.state.failure),
+            reason: (
+              <NumberText>{orderFailureText(order.state.failure)}</NumberText>
+            ),
           }}
         />
       );

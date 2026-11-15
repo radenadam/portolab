@@ -1,11 +1,9 @@
 import { eq } from "drizzle-orm";
 import type { ClassId } from "../app/features/classes/classes.schema.ts";
 import { orders, portfolios } from "../app/features/trading/trading.schema.ts";
-import { reasonMaximumLength } from "../app/features/trading/reason-maximum-length.ts";
 import type { OrderLots } from "../app/units/lots.ts";
 import { rupiah } from "../app/units/rupiah.ts";
 import { shares } from "../app/units/shares.ts";
-import { wideWord } from "./wide-word.ts";
 import { writeForTestStudent } from "./write-for-test-student.ts";
 
 /** Trades before the fixture quote expose both price comparisons. Python Decimal gives the purchase cost 500 × 4,940 × 1.0015 = 2,473,705 and the net sale gain 2,543,625 - 2,473,705 = 69,920. */
@@ -85,11 +83,11 @@ export function storeActivityOrders(classId: ClassId): void {
   });
 }
 
-export function widenActivityReasons(classId: ClassId): void {
+export function widenActivityReasons(classId: ClassId, reason: string): void {
   writeForTestStudent(classId, (database, membershipId) => {
     database
       .update(orders)
-      .set({ reason: wideWord("Alasan", reasonMaximumLength) })
+      .set({ reason })
       .where(eq(orders.membershipId, membershipId))
       .run();
   });

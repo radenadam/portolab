@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { formatRupiahParts } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
@@ -21,7 +22,9 @@ export function CashName({
       </span>
       <span>
         {m.trading_cash_label()}
-        <small>{note}</small>
+        <small>
+          <NumberText>{note}</NumberText>
+        </small>
       </span>
     </div>
   );

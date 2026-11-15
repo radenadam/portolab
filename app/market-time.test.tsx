@@ -18,7 +18,7 @@ for (const locale of locales) {
         <MarketTime moment={new Date("2026-11-02T02:50:00Z")} />,
       ),
     ).toBe(
-      `<time dateTime="2026-11-02T02:50:00.000Z">${text[locale].date}<span>${text[locale].clock}</span></time>`,
+      `<time dateTime="2026-11-02T02:50:00.000Z">${text[locale].date}${text[locale].clock}</time>`,
     );
   });
 }

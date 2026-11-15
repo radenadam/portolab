@@ -4,6 +4,7 @@ import type { Page } from "@playwright/test";
 import { expect, test } from "@playwright/test";
 import { languageNames } from "../app/language-names.ts";
 import { fieldMaximumLength } from "../app/form-size.ts";
+import { reasonMaximumLength } from "../app/features/trading/reason-maximum-length.ts";
 import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
@@ -17,6 +18,7 @@ import {
 } from "./store-activity-orders.ts";
 import { studentOfNewClass } from "./student-of-new-class.ts";
 import { widestClassNames } from "./widest-class-names.ts";
+import { wideWord } from "./wide-word.ts";
 
 const texts: Record<
   Locale,
@@ -321,17 +323,22 @@ for (const locale of locales) {
     await placeWaitingOrder(student, classPath, locale);
     await student.goto(`${classPath}/activity`);
     await captureActivity(student, classPath, locale);
-    widenActivityReasons(classId);
-    for (const view of ["orders", "journal"]) {
-      await student.goto(`${classPath}/activity?view=${view}`);
-      expect(await layoutProblems(student)).toEqual([]);
-      await expectAccessibleScreen(student);
-      if (isPhone())
-        await captureScreens(student, test.info(), {
-          name: `activity-${locale}-wide-${view}`,
-          fullPage: true,
-          fromTop: true,
-        });
+    for (const [kind, reason] of [
+      ["wide", wideWord("Alasan", reasonMaximumLength)],
+      ["digits", "9".repeat(reasonMaximumLength)],
+    ] as const) {
+      widenActivityReasons(classId, reason);
+      for (const view of ["orders", "journal"]) {
+        await student.goto(`${classPath}/activity?view=${view}`);
+        expect(await layoutProblems(student)).toEqual([]);
+        await expectAccessibleScreen(student);
+        if (isPhone())
+          await captureScreens(student, test.info(), {
+            name: `activity-${locale}-${kind}-${view}`,
+            fullPage: true,
+            fromTop: true,
+          });
+      }
     }
     await student.context().close();
   });
@@ -401,7 +408,7 @@ async function captureActivity(
       check: async () => {
         expect(await layoutProblems(student)).toEqual([]);
         const clockLines = await student
-          .locator("time > span:visible")
+          .locator("time > [data-number]:visible")
           .evaluateAll((clocks) =>
             clocks.map((clock) => clock.getClientRects().length),
           );

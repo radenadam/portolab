@@ -1,4 +1,4 @@
-import { renderToStaticMarkup } from "react-dom/server";
+import { renderTextMarkupForTest } from "~/render-text-markup-for-test";
 import { expect, test } from "vitest";
 import { languageNames } from "~/language-names";
 import { locales } from "~/paraglide/runtime.js";
@@ -53,7 +53,9 @@ for (const locale of locales) {
   test(`shows the name, the username, the role, and the time of consent of a lecturer and of a student in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     for (const role of ["lecturer", "student"] as const) {
-      const html = renderToStaticMarkup(<AccountDetails user={user(role)} />);
+      const html = renderTextMarkupForTest(
+        <AccountDetails user={user(role)} />,
+      );
       expect(html).toContain(
         `<dt>${text.nameLabel}</dt><dd>Sari Wulandari</dd><dt>${text.usernameLabel}</dt><dd>sari</dd><dt>${text.roleLabel}</dt><dd>${text[role]}</dd></dl><p>${text.consented}</p>`,
       );

@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { data, Link } from "react-router";
 import { databaseContext } from "~/database/database.server";
@@ -97,10 +98,12 @@ export default function OrdersPage({
       main={
         <>
           <p className={styles["details"]}>
-            {m.trading_fill_notice({
-              source: source.name,
-              minutes: formatNumber(source.delayMinutes),
-            })}
+            <NumberText>
+              {m.trading_fill_notice({
+                source: source.name,
+                minutes: formatNumber(source.delayMinutes),
+              })}
+            </NumberText>
           </p>
           <section>
             <h2>{m.trading_cash_title()}</h2>

@@ -10,6 +10,7 @@ import globals from "globals";
 import typescriptEslint from "typescript-eslint";
 import { fileNamedAfterExport } from "./lint/file-named-after-export.ts";
 import { testLanguageConfig } from "./lint/test-language-config.ts";
+import { messageFeature } from "./lint/message-feature.ts";
 
 // Abbreviations that read as noise. Names use full words instead.
 const abbreviations = [
@@ -216,7 +217,12 @@ export default defineConfig(
       },
     },
     plugins: {
-      portolab: { rules: { "file-named-after-export": fileNamedAfterExport } },
+      portolab: {
+        rules: {
+          "file-named-after-export": fileNamedAfterExport,
+          "message-feature": messageFeature,
+        },
+      },
     },
     rules: {
       "portolab/file-named-after-export": "error",
@@ -254,6 +260,11 @@ export default defineConfig(
       "no-warning-comments": "error",
       "prefer-const": "error",
     },
+  },
+  {
+    files: ["app/features/**/*.{ts,tsx}"],
+    ignores: ["**/*.test.*", "**/*-for-test.*"],
+    rules: { "portolab/message-feature": "error" },
   },
   {
     files: ["app/**/*.tsx"],

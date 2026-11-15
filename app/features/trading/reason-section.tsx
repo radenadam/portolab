@@ -1,4 +1,5 @@
 import { studentReasonsSectionId } from "./student-reasons-section-id";
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import {
   formatCalendarDate,
@@ -46,13 +47,19 @@ export function ReasonSection({
     <section id={studentReasonsSectionId}>
       <h2>{m.trading_lecturer_reasons_title()}</h2>
       {reasoned.length === 0 ? (
-        <p>{m.trading_lecturer_no_reasons_body({ name: studentName })}</p>
+        <p>
+          <NumberText verbatim>
+            {m.trading_lecturer_no_reasons_body({ name: studentName })}
+          </NumberText>
+        </p>
       ) : (
         <ul className={styles["list"]}>
           {reasoned.map(({ order, reason }) => (
             <li key={order.id} className={styles["item"]}>
               <OrderHeading order={order} />
-              <p className={styles["reason"]}>{reason}</p>
+              <p className={styles["reason"]}>
+                <NumberText verbatim>{reason}</NumberText>
+              </p>
             </li>
           ))}
         </ul>
@@ -64,12 +71,16 @@ export function ReasonSection({
 function OrderHeading({ order }: { order: Order }): ReactNode {
   return (
     <>
-      <p className={styles["title"]}>{orderTitle(order)}</p>
+      <p className={styles["title"]}>
+        <NumberText>{orderTitle(order)}</NumberText>
+      </p>
       <p className={styles["details"]}>
-        {m.trading_placed_at_notice({
-          time: formatMarketTime(order.placedAt),
-          date: formatCalendarDate(order.tradingDay),
-        })}
+        <NumberText>
+          {m.trading_placed_at_notice({
+            time: formatMarketTime(order.placedAt),
+            date: formatCalendarDate(order.tradingDay),
+          })}
+        </NumberText>
       </p>
     </>
   );

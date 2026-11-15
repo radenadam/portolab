@@ -1,4 +1,5 @@
 import { MarketTime } from "~/market-time";
+import { NumberText } from "~/number-text";
 import { cumulativeReturn } from "~/units/cumulative-return";
 import type { CumulativeReturn } from "~/units/cumulative-return";
 import type { ReactNode } from "react";
@@ -56,14 +57,16 @@ export function JournalList({
       <h2 id="journal-heading" className={styles["journalTitle"]}>
         {m.trading_activity_journal_title()}{" "}
         <span>
-          {countedText(
-            trades.length,
-            {
-              one: m.trading_activity_one_trade_label,
-              several: m.trading_activity_several_trades_label,
-            },
-            { count: formatNumber(trades.length) },
-          )}
+          <NumberText whole>
+            {countedText(
+              trades.length,
+              {
+                one: m.trading_activity_one_trade_label,
+                several: m.trading_activity_several_trades_label,
+              },
+              { count: formatNumber(trades.length) },
+            )}
+          </NumberText>
         </span>
       </h2>
       <div className={styles["panel"]}>
@@ -88,8 +91,8 @@ export function JournalList({
                     />
                   </Link>
                   <span className={styles["tradePrice"]}>
-                    <span>{lotCount(trade.order.lots)}</span> ·{" "}
-                    <span>{formatRupiah(trade.fill.price)}</span>
+                    <NumberText>{lotCount(trade.order.lots)}</NumberText> ·{" "}
+                    <NumberText>{formatRupiah(trade.fill.price)}</NumberText>
                   </span>
                   <small>
                     <MarketTime moment={trade.fill.quotedAt} />
@@ -100,7 +103,9 @@ export function JournalList({
                     {m.trading_activity_no_reason_body()}
                   </p>
                 ) : (
-                  <blockquote>{trade.order.reason}</blockquote>
+                  <blockquote>
+                    <NumberText verbatim>{trade.order.reason}</NumberText>
+                  </blockquote>
                 )}
                 <JournalPerformance
                   trade={trade}
@@ -142,7 +147,7 @@ function JournalPerformance({
           <p>
             {m.trading_activity_realized_label()}{" "}
             {trade.realized === undefined ? (
-              m.trading_activity_no_cost_notice()
+              <NumberText>{m.trading_activity_no_cost_notice()}</NumberText>
             ) : (
               <ChangeText colored change={formatSignedRupiah(trade.realized)} />
             )}
@@ -150,7 +155,9 @@ function JournalPerformance({
         )}
         {comparison === undefined ? (
           <p>
-            {m.trading_activity_no_change_notice({ code: trade.order.code })}
+            <NumberText>
+              {m.trading_activity_no_change_notice({ code: trade.order.code })}
+            </NumberText>
           </p>
         ) : (
           <div className={styles["since"]} data-side={trade.order.side}>
@@ -163,7 +170,7 @@ function JournalPerformance({
             </span>
             {trade.order.side === "buy" && (
               <span className={styles["currentPrice"]}>
-                {formatRupiah(comparison.quote.price)}
+                <NumberText>{formatRupiah(comparison.quote.price)}</NumberText>
               </span>
             )}
             {trade.order.side === "buy" && (
@@ -193,7 +200,11 @@ function JournalPerformance({
           <MarketTime moment={comparison.quote.quotedAt} />
         </small>
       )}
-      {notice !== undefined && <small>{notice}</small>}
+      {notice !== undefined && (
+        <small>
+          <NumberText>{notice}</NumberText>
+        </small>
+      )}
     </div>
   );
 }

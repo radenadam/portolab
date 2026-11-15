@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { AppIcon } from "./app-icon";
@@ -106,7 +107,9 @@ export function Frame({
                       label={profileLabel}
                       className={chipStyles["chip"]}
                     >
-                      <span className={chipStyles["text"]}>{profile.name}</span>
+                      <span className={chipStyles["text"]}>
+                        <NumberText verbatim>{profile.name}</NumberText>
+                      </span>
                     </PopoverButton>
                   </span>
                 )}
@@ -220,16 +223,20 @@ export function PageHeader({
         {path.map((part) => (
           <span key={part.path} className={styles["pathPart"]}>
             <Link to={part.path} className={styles["pathLink"]}>
-              {part.label}
+              <NumberText verbatim>{part.label}</NumberText>
             </Link>
             <span aria-hidden="true">/</span>
           </span>
         ))}
-        <h1 className={styles["title"]}>{title}</h1>
+        <h1 className={styles["title"]}>
+          <NumberText>{title}</NumberText>
+        </h1>
       </div>
       {pricesAt !== undefined && (
         <p className={styles["time"]}>
-          {m.app_prices_time_label({ time: formatMarketTime(pricesAt) })}
+          <NumberText>
+            {m.app_prices_time_label({ time: formatMarketTime(pricesAt) })}
+          </NumberText>
         </p>
       )}
     </div>
