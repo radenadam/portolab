@@ -792,5 +792,5 @@
   "trading_ticket_tax_label": "PPh final {rate}",
   "trading_ticket_price_up_label": "Naikkan harga satu fraksi",
   "trading_ticket_lots_down_label": "Kurangi lot",
-  "trading_ticket_preview_invalid_error": "Pratinjau dari {source} harus memuat total dalam rupiah bulat yang tidak negatif, tetapi isinya {value}. Periksa rincian biaya, lalu konfirmasi lagi."
+  "trading_ticket_preview_invalid_error": "Pratinjau dari {source} harus memuat total yang ditulis dengan angka saja, tetapi isinya {value}. Periksa rincian biaya, lalu konfirmasi lagi."
 }

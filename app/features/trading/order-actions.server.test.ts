@@ -12,6 +12,7 @@ import { switchLocaleForTest } from "~/switch-locale-for-test";
 import type { ClassId } from "~/features/classes/classes.schema";
 import { successValueForTest } from "~/success-value-for-test";
 import { parseRecordId } from "~/value-parsers";
+import { fieldMaximumLength } from "~/form-size";
 import { cancelFromForm, placeFromForm } from "./order-actions.server";
 import type { SentOrderForm } from "./order-actions.server";
 import { parseOrderSide } from "./order-form-fields";
@@ -43,7 +44,7 @@ const texts: Record<
 > = {
   id: {
     invalidPreview:
-      'Pratinjau dari Rincian biaya harus memuat total dalam rupiah bulat yang tidak negatif, tetapi isinya "x". Periksa rincian biaya, lalu konfirmasi lagi.',
+      'Pratinjau dari Rincian biaya harus memuat total yang ditulis dengan angka saja, tetapi isinya "x". Periksa rincian biaya, lalu konfirmasi lagi.',
     changed:
       "Total order berubah dari pratinjau yang Anda lihat. Periksa rincian biaya, lalu konfirmasi lagi.",
     missingOrder:
@@ -59,7 +60,7 @@ const texts: Record<
   },
   en: {
     invalidPreview:
-      'The preview from Cost breakdown must hold a nonnegative total in whole rupiah, but it holds "x". Check the cost breakdown, then confirm again.',
+      'The preview from Cost breakdown must hold a total written in digits only, but it holds "x". Check the cost breakdown, then confirm again.',
     changed:
       "The order total changed from the preview you saw. Check the cost breakdown, then confirm again.",
     missingOrder:
@@ -268,7 +269,13 @@ for (const locale of locales) {
       init: { status: 400 },
     });
     expect(readPortfolio(database, owner).orders).toEqual([]);
-    for (const seenTotal of ["2493734", "2493736", ""]) {
+    for (const seenTotal of [
+      "2493734",
+      "2493736",
+      "",
+      "9007199254740992",
+      "1".repeat(fieldMaximumLength),
+    ]) {
       expect(
         placeFromForm(
           context,

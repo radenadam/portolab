@@ -6,7 +6,7 @@ import type { Rupiah } from "~/units/rupiah";
 import { describeValue } from "~/value-shapes";
 import { parseOptionalOrderText } from "./order-form-fields";
 
-/** An absent preview still needs confirmation, while a malformed total cannot enter placement. */
+/** A total that cannot equal a computed rupiah amount needs a new preview, not a refusal of its numeric value. */
 export function parseSeenTotal(
   value: unknown,
   source: string,
@@ -14,13 +14,13 @@ export function parseSeenTotal(
   const text = parseOptionalOrderText(value, source);
   if (!text.ok) return text;
   if (text.value === undefined) return succeed(null);
+  if (!/^[0-9]+$/.test(text.value))
+    return fail(
+      m.trading_ticket_preview_invalid_error({
+        source,
+        value: describeValue(text.value),
+      }),
+    );
   const amount = Number(text.value);
-  return /^[0-9]+$/.test(text.value) && isRupiah(amount) && amount >= 0
-    ? succeed(amount)
-    : fail(
-        m.trading_ticket_preview_invalid_error({
-          source,
-          value: describeValue(text.value),
-        }),
-      );
+  return succeed(isRupiah(amount) ? amount : null);
 }

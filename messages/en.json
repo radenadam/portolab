@@ -792,5 +792,5 @@
   "trading_ticket_tax_label": "Final tax {rate}",
   "trading_ticket_price_up_label": "Increase the price by one tick",
   "trading_ticket_lots_down_label": "Decrease the lots",
-  "trading_ticket_preview_invalid_error": "The preview from {source} must hold a nonnegative total in whole rupiah, but it holds {value}. Check the cost breakdown, then confirm again."
+  "trading_ticket_preview_invalid_error": "The preview from {source} must hold a total written in digits only, but it holds {value}. Check the cost breakdown, then confirm again."
 }

@@ -19,7 +19,7 @@ const texts: Record<
   id: {
     source: "Rincian biaya",
     invalid: [
-      "Pratinjau dari Rincian biaya harus memuat total dalam rupiah bulat yang tidak negatif, tetapi isinya ",
+      "Pratinjau dari Rincian biaya harus memuat total yang ditulis dengan angka saja, tetapi isinya ",
       ". Periksa rincian biaya, lalu konfirmasi lagi.",
     ],
     file: 'Formulir mengirim nilai bertipe File di kolom "Rincian biaya", bukan teks. Muat ulang halaman, lalu isi formulirnya lagi.',
@@ -30,7 +30,7 @@ const texts: Record<
   en: {
     source: "Cost breakdown",
     invalid: [
-      "The preview from Cost breakdown must hold a nonnegative total in whole rupiah, but it holds ",
+      "The preview from Cost breakdown must hold a total written in digits only, but it holds ",
       ". Check the cost breakdown, then confirm again.",
     ],
     file: 'The form sent a value of type File in the field "Cost breakdown" instead of text. Reload the page and fill in the form again.',
@@ -49,6 +49,8 @@ for (const locale of locales) {
       ["2493735", 2_493_735],
       ["0002493735", 2_493_735],
       ["9007199254740991", Number.MAX_SAFE_INTEGER],
+      ["9007199254740992", null],
+      ["1".repeat(fieldMaximumLength), null],
       ["", null],
       [null, null],
     ] as const) {
@@ -57,15 +59,7 @@ for (const locale of locales) {
         value: amount,
       });
     }
-    for (const written of [
-      "x",
-      "-1",
-      "1.5",
-      "1e3",
-      " 1 ",
-      "9007199254740992",
-      "1".repeat(fieldMaximumLength),
-    ]) {
+    for (const written of ["x", "-1", "1.5", "1e3", " 1 "]) {
       expect(parseSeenTotal(written, text.source)).toEqual({
         ok: false,
         failure: `${text.invalid[0]}${JSON.stringify(written)}${text.invalid[1]}`,
