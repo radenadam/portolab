@@ -32,7 +32,6 @@ import {
 import type { PasswordFailure } from "./password-attempts.server";
 import { explainPasswordFailure } from "./explain-password-failure.server";
 import { SignOutButton } from "./sign-out-button";
-import styles from "./account-page.module.css";
 
 /** The answer to the form of the name: when Portolab saved the name, so that the form starts over, and the field as the form then shows it, which holds the name as the rule of names saved it, or the name as the person typed it with the reason that it does not follow the rule. */
 interface NameAnswer {
@@ -225,20 +224,24 @@ export default function AccountPage({
 }: Route.ComponentProps): ReactNode {
   const { user } = loaderData;
   return (
-    <>
+    <div className={formStyles["formColumn"]} data-layout="reading">
       <h1>{m.accounts_account_title()}</h1>
-      <AccountDetails user={user} />
-      <p>
-        <Link to="/privacy" className={styles["link"]}>
+      <section className={formStyles["panel"]}>
+        <AccountDetails user={user} />
+        <Link to="/privacy" className={formStyles["link"]}>
           {m.accounts_privacy_link()}
         </Link>
-      </p>
-      <h2>{m.accounts_change_name_title()}</h2>
-      <NameForm user={user} answer={actionData?.name} />
-      <h2>{m.accounts_change_password_title()}</h2>
-      <PasswordForm answer={actionData?.password} />
+      </section>
+      <section className={formStyles["panel"]}>
+        <h2>{m.accounts_change_name_title()}</h2>
+        <NameForm user={user} answer={actionData?.name} />
+      </section>
+      <section className={formStyles["panel"]}>
+        <h2>{m.accounts_change_password_title()}</h2>
+        <PasswordForm answer={actionData?.password} />
+      </section>
       <SignOutButton />
-    </>
+    </div>
   );
 }
 
