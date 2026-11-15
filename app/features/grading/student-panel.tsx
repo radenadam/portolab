@@ -1,4 +1,6 @@
-import { marketIndex } from "~/features/market-data/tracked-instruments";
+import { NumberText } from "~/number-text";
+import { StudentMeasureNotice } from "./student-measure-notice";
+import { StudentMapNotice } from "./student-map-notice";
 import { resetStudentPasswordPath } from "~/features/classes/class-path";
 import { studentReasonsSectionId } from "~/features/trading/student-reasons-section-id";
 import { useEffect, useRef } from "react";
@@ -9,8 +11,7 @@ import { ChangeText } from "~/change-text";
 import type { StudentPanelData } from "./student-panel-data.server";
 import { LatestStudentReason } from "./latest-student-reason";
 import { StudentLink } from "./student-link";
-import { studentRank } from "./ranking-measure";
-import type { RankingMeasure } from "./ranking-measure";
+import { StudentRank } from "./student-rank";
 import { StudentMap } from "./student-map";
 import type { ClassId } from "~/features/classes/classes.schema";
 import {
@@ -109,9 +110,10 @@ export function StudentPanel({
             {initialsOf(student.name)}
           </span>
           <div>
-            <h2 id={selectedStudentHeadingId}>{student.name}</h2>
+            <h2 id={selectedStudentHeadingId}>
+              <NumberText verbatim>{student.name}</NumberText>
+            </h2>
             <small>
-              {student.username}
               <StudentRank
                 student={student}
                 all={all}
@@ -136,7 +138,7 @@ export function StudentPanel({
               marketReturn={student.marketReturn}
             />
           )}
-        <MapNotice student={student} />
+        <StudentMapNotice student={student} />
         <dl className={styles["keyValues"]}>
           <div>
             <dt>{m.grading_short_return_label()}</dt>
@@ -154,17 +156,21 @@ export function StudentPanel({
           <div>
             <dt>{m.grading_short_beta_label()}</dt>
             <dd>
-              {"measures" in student
-                ? formatBeta(student.measures.beta)
-                : m.grading_unavailable_label()}
+              <NumberText>
+                {"measures" in student
+                  ? formatBeta(student.measures.beta)
+                  : m.grading_unavailable_label()}
+              </NumberText>
             </dd>
           </div>
           <div>
             <dt>{m.grading_risk_label()}</dt>
             <dd>
-              {"measures" in student
-                ? formatPercent(student.measures.standardDeviation, "two")
-                : m.grading_unavailable_label()}
+              <NumberText>
+                {"measures" in student
+                  ? formatPercent(student.measures.standardDeviation, "two")
+                  : m.grading_unavailable_label()}
+              </NumberText>
             </dd>
           </div>
           <div>
@@ -183,17 +189,26 @@ export function StudentPanel({
           <div>
             <dt>{m.grading_total_value_label()}</dt>
             <dd>
-              {student.total === undefined
-                ? m.grading_unavailable_label()
-                : formatRupiah(student.total.value, "compact")}
+              <NumberText whole>
+                {student.total === undefined
+                  ? m.grading_unavailable_label()
+                  : formatRupiah(student.total.value, "compact")}
+              </NumberText>
             </dd>
           </div>
           <div>
             <dt>{m.grading_orders_label()}</dt>
-            <dd>{formatNumber(panel.orderCount)}</dd>
+            <dd>
+              <NumberText>{formatNumber(panel.orderCount)}</NumberText>
+            </dd>
           </div>
         </dl>
-        <p className={styles["note"]}>{studentNote(student, all)}</p>
+        <p className={styles["note"]}>
+          <StudentMeasureNotice
+            student={student}
+            text={studentNote(student, all)}
+          />
+        </p>
         {value !== undefined && value.value > 0 && (
           <div className={styles["allocation"]}>
             <div className={styles["allocationBar"]} aria-hidden="true">
@@ -214,19 +229,23 @@ export function StudentPanel({
                   holding.kind === "priced" && (
                     <span key={holding.code}>
                       {holding.code}{" "}
-                      {formatPercent(
-                        portfolioWeightOf(holding.value, value.value),
-                        "two",
-                      )}{" "}
+                      <NumberText>
+                        {formatPercent(
+                          portfolioWeightOf(holding.value, value.value),
+                          "two",
+                        )}
+                      </NumberText>{" "}
                       ·{" "}
                     </span>
                   ),
               )}
               {m.grading_cash_label()}{" "}
-              {formatPercent(
-                portfolioWeightOf(panel.valuation.cash, value.value),
-                "two",
-              )}
+              <NumberText>
+                {formatPercent(
+                  portfolioWeightOf(panel.valuation.cash, value.value),
+                  "two",
+                )}
+              </NumberText>
             </p>
           </div>
         )}
@@ -269,32 +288,4 @@ export function StudentPanel({
       </div>
     </dialog>
   );
-}
-
-function MapNotice({ student }: { student: ComparedStudent }): ReactNode {
-  if (!("measures" in student) || student.marketReturn !== undefined)
-    return null;
-  return (
-    <p className={styles["details"]}>
-      {m.grading_map_unavailable_notice({ index: marketIndex.code })}
-    </p>
-  );
-}
-
-function StudentRank({
-  student,
-  all,
-  measure,
-}: {
-  student: ComparedStudent;
-  all: readonly ComparedStudent[];
-  measure: RankingMeasure;
-}): ReactNode {
-  const rank = studentRank(student, all, measure);
-  return rank === undefined
-    ? m.grading_unranked_notice()
-    : m.grading_rank_notice({
-        rank: formatNumber(rank.rank),
-        total: formatNumber(rank.total),
-      });
 }

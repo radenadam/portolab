@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { formatBeta, formatPercent } from "~/formatting";
 import type { MonthlyReturn } from "~/units/monthly-return";
@@ -19,8 +20,8 @@ function ExcessReturnNumbers({
 }): ReactNode {
   return (
     <>
-      {formatPercent(expectedReturn, "two")} −{" "}
-      {formatPercent(riskFreeRate, "two")}
+      <NumberText>{formatPercent(expectedReturn, "two")}</NumberText> −{" "}
+      <NumberText>{formatPercent(riskFreeRate, "two")}</NumberText>
     </>
   );
 }
@@ -39,7 +40,8 @@ export function SharpeRatioFormula({
         expectedReturn={inputs.expectedReturn}
         riskFreeRate={inputs.riskFreeRate}
       />
-      ) / {formatPercent(inputs.standardDeviation, "two")}
+      ) /{" "}
+      <NumberText>{formatPercent(inputs.standardDeviation, "two")}</NumberText>
     </>
   );
 }

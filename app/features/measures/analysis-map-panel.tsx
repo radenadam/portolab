@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import { analysisAxisDetails } from "./analysis-axis-details";
 import { analysisAxes } from "./analysis-axes";
 import { AnalysisCaption } from "./analysis-caption";
@@ -66,13 +67,21 @@ export function AnalysisMapPanel({
           />
         ) : (
           !marketLine.ok && (
-            <p>{measureFailureText(marketLine.failure, { kind: "market" })}</p>
+            <p>
+              <NumberText>
+                {measureFailureText(marketLine.failure, { kind: "market" })}
+              </NumberText>
+            </p>
           )
         )}
       </div>
       {portfolio !== undefined && (
         <div className={styles["insight"]}>
-          <em>{details.sessionLabel({ session: formatNumber(session) })}</em>
+          <em>
+            <NumberText>
+              {details.sessionLabel({ session: formatNumber(session) })}
+            </NumberText>
+          </em>
           <AnalysisCaption insight={details.insight(portfolio)} />
           <PopoverButton popover="analysis-map-help" className={styles["link"]}>
             {m.measures_analysis_learn_label()} <span aria-hidden>→</span>
@@ -124,12 +133,14 @@ function AnalysisMapHelp({
       meaning={details.meaning}
       example={
         <p>
-          {portfolio === undefined
-            ? m.measures_analysis_market_notice({
-                index: marketIndex.code,
-                value: formatPercent(market.expectedReturn, "two"),
-              })
-            : details.insight(portfolio).text}
+          <NumberText>
+            {portfolio === undefined
+              ? m.measures_analysis_market_notice({
+                  index: marketIndex.code,
+                  value: formatPercent(market.expectedReturn, "two"),
+                })
+              : details.insight(portfolio).text}
+          </NumberText>
         </p>
       }
       calculation={details.calculation(market)}

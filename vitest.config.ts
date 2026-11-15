@@ -16,6 +16,7 @@ export default defineConfig({
       "app/**/*.test.tsx",
       "server/**/*.test.ts",
       "scripts/**/*.test.ts",
+      "lint/**/*.test.ts",
       "eslint.config.test.ts",
     ],
     environment: "node",

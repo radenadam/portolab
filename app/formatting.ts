@@ -1,3 +1,4 @@
+import { decimalPlaceOptions } from "./decimal-place-options.ts";
 import { startOfUtcDate } from "~/calendar-dates";
 import { getLocale } from "~/paraglide/runtime.js";
 import { listOfWords } from "~/sentences";
@@ -71,14 +72,13 @@ export function digitGrouping(): { separator: string; size: number } {
 
 // A number shows at most three decimals, which is also the default of Intl.
 const mostNumberDecimals = 3;
+const numberOptions = { maximumFractionDigits: mostNumberDecimals };
 
 /** The smallest step between the marks of an axis whose texts formatNumber writes, so no two marks read the same. */
 export const smallestNumberStep = 10 ** -mostNumberDecimals;
 
 export function formatNumber(value: number): string {
-  return new Intl.NumberFormat(intlLocale(), {
-    maximumFractionDigits: mostNumberDecimals,
-  }).format(value);
+  return new Intl.NumberFormat(intlLocale(), numberOptions).format(value);
 }
 
 /** A split can divide a historic close into fractional rupiah, so it keeps the precision of other numbers rather than rounding to an amount of cash. */
@@ -86,7 +86,7 @@ export function formatSplitAdjustedRupiah(price: SplitAdjustedRupiah): string {
   return new Intl.NumberFormat(intlLocale(), {
     ...rupiahOptions,
     minimumFractionDigits: 0,
-    maximumFractionDigits: mostNumberDecimals,
+    ...numberOptions,
   }).format(price);
 }
 
@@ -195,7 +195,7 @@ export function formatVariance(variance: MonthlyVariance): string {
 
 /** The axis names its market reference with one decimal, while measure columns align two decimals. */
 export function formatBeta(beta: Beta, decimals: 1 | 2 = 2): string {
-  return formatDecimalPlaces(beta, decimals);
+  return formatDecimal(beta, decimalPlaceOptions(decimals));
 }
 
 /** Formats a correlation with two decimals, such as -0.25. */
@@ -208,20 +208,25 @@ export function formatSharpeRatio(ratio: SharpeRatio): string {
   return formatTwoDecimals(ratio);
 }
 
+export const numberPrecisionOptions = {
+  number: numberOptions,
+  ratio: decimalPlaceOptions(2),
+};
+
+/** Formats a difference of returns in percentage points, without a percent sign. */
 export function formatPercentagePoints(fraction: number): string {
   return formatTwoDecimals(fraction * 100);
 }
 
 function formatTwoDecimals(value: number): string {
-  return formatDecimalPlaces(value, 2);
+  return formatDecimal(value, numberPrecisionOptions.ratio);
 }
 
-function formatDecimalPlaces(value: number, decimals: number): string {
-  return new Intl.NumberFormat(intlLocale(), {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-    signDisplay: "negative",
-  }).format(value);
+function formatDecimal(
+  value: number,
+  options: Intl.NumberFormatOptions,
+): string {
+  return new Intl.NumberFormat(intlLocale(), options).format(value);
 }
 
 /** How a calendar date reads: in words for a sentence, in words with the day of the week, or with the short month of a table. */
@@ -275,10 +280,13 @@ export function formatCalendarDatePart(
 }
 
 /** Formats the month of a calendar date such as 2027-01-01 in words, such as January 2027. */
-export function formatMonth(date: string): string {
+export function formatMonth(
+  date: string,
+  month: "long" | "short" = "long",
+): string {
   // The month is formatted in UTC for the same reason as a calendar date.
   return new Intl.DateTimeFormat(intlLocale(), {
-    month: "long",
+    month,
     year: "numeric",
     timeZone: "UTC",
   }).format(startOfUtcDate(date));

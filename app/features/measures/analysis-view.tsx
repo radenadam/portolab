@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import type { ClassId } from "~/features/classes/classes.schema";
@@ -20,7 +21,8 @@ import { AnalysisMeasures, analysisMeasures } from "./analysis-measures";
 import { AnalysisPerformance } from "./analysis-performance";
 import { AnalysisPointCalculations } from "./analysis-point-calculations";
 import { explainPortfolioMeasures } from "./explain-portfolio-measures";
-import { RiskFree, RiskFreeFormula } from "./formulas";
+import { RiskFree } from "./formulas";
+import { RiskFreeFormula } from "./capm-formulas";
 import { measureConcept } from "./measure-concept";
 import type { MarketSummary } from "./measure-summaries";
 import type { StoredMeasureFailure } from "./measure-stored.server";
@@ -115,7 +117,11 @@ export function AnalysisView({
             <h2 id="analysis-measures-title">
               {m.measures_analysis_measures_title()}
             </h2>
-            {!explained.ok && <p>{explained.failure}</p>}
+            {!explained.ok && (
+              <p>
+                <NumberText>{explained.failure}</NumberText>
+              </p>
+            )}
             <Link to={marketPath(classId)} className={styles["link"]}>
               {m.measures_analysis_market_link()}
             </Link>
@@ -126,7 +132,9 @@ export function AnalysisView({
         )}
       </div>
       {quoteFailure !== undefined && (
-        <p className={styles["notice"]}>{quoteFailure}</p>
+        <p className={styles["notice"]}>
+          <NumberText>{quoteFailure}</NumberText>
+        </p>
       )}
       <AnalysisPerformance
         history={report.history}
@@ -184,19 +192,27 @@ function AnalysisHeader({
       <h1>{m.measures_analysis_title()}</h1>
       {market !== undefined && (
         <div className={styles["period"]}>
-          {m.measures_analysis_period_notice({
-            ...monthSpanInputs(monthSpanOf(market.returns)),
-          })}{" "}
-          <RiskFree />
-          {m.measures_analysis_rate_notice({
-            monthly: formatPercent(market.riskFreeRate.value, "three"),
-            annual: formatPercent(market.riskFreeRate.inputs.annualRate),
-          })}{" "}
+          <NumberText>
+            {m.measures_analysis_period_notice({
+              ...monthSpanInputs(monthSpanOf(market.returns)),
+            })}
+          </NumberText>{" "}
+          <RiskFree />{" "}
+          <NumberText>
+            {m.measures_analysis_rate_notice({
+              monthly: formatPercent(market.riskFreeRate.value, "three"),
+              annual: formatPercent(market.riskFreeRate.inputs.annualRate),
+            })}
+          </NumberText>{" "}
           <ConceptCard
             title={m.measures_risk_free_rate_label()}
             meaning={riskFreeConcept.meaning}
             example={
-              <strong>{formatPercent(market.riskFreeRate.value, "two")}</strong>
+              <strong>
+                <NumberText>
+                  {formatPercent(market.riskFreeRate.value, "two")}
+                </NumberText>
+              </strong>
             }
             calculation={<RiskFreeFormula rate={market.riskFreeRate} />}
             lesson={<ConceptLesson termId={riskFreeConcept.termId} />}

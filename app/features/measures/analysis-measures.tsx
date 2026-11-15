@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import { beta, marketBeta } from "~/units/beta";
 import { sharpeRatio } from "~/units/sharpe-ratio";
 import type { MonthlyReturn } from "~/units/monthly-return";
@@ -190,10 +191,13 @@ export function AnalysisMeasures({
             <dt>
               <MeasureLabel row={row} />
             </dt>
-            <dd className={styles["value"]}>{row.value}</dd>
+            <dd className={styles["value"]}>
+              <NumberText whole>{row.value}</NumberText>
+            </dd>
             <dd>{scale}</dd>
             <dd className={styles["comparison"]}>
-              {reference} <AnalysisCalculationButton id={`analysis-${key}`} />
+              <NumberText>{reference}</NumberText>{" "}
+              <AnalysisCalculationButton id={`analysis-${key}`} />
             </dd>
           </div>
         ))}

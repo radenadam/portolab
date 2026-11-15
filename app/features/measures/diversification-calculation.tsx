@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import { Fragment } from "react";
 import type { ReactNode } from "react";
 import { formatPercent } from "~/formatting";
@@ -6,7 +7,6 @@ import { AnalysisCalculation } from "./analysis-calculation";
 import { analysisDiversificationInsight } from "./analysis-insight";
 import type { PortfolioSummary } from "./measure-summaries";
 import { weightedHoldingRisk } from "./weighted-holding-risk";
-import styles from "./analysis.module.css";
 
 export function DiversificationCalculation({
   portfolio,
@@ -27,26 +27,27 @@ export function DiversificationCalculation({
             {portfolio.holdings.map((holding, index) => (
               <Fragment key={holding.code}>
                 {index === 0 ? "" : " + "}
-                <span className={styles["number"]}>
+                <NumberText whole>
                   {formatPercent(holding.weight, "two")} ×{" "}
                   {formatPercent(holding.standardDeviation, "two")}
-                </span>
+                </NumberText>
               </Fragment>
             ))}{" "}
-            ≈{" "}
-            <span className={styles["number"]}>
-              {formatPercent(average, "two")}
-            </span>
+            ≈ <NumberText whole>{formatPercent(average, "two")}</NumberText>
           </>
         ),
       }}
     >
-      <p>{m.measures_analysis_average_formula_notice()}</p>
       <p>
-        {
-          analysisDiversificationInsight(average, portfolio.standardDeviation)
-            .text
-        }
+        <NumberText>{m.measures_analysis_average_formula_notice()}</NumberText>
+      </p>
+      <p>
+        <NumberText>
+          {
+            analysisDiversificationInsight(average, portfolio.standardDeviation)
+              .text
+          }
+        </NumberText>
       </p>
     </AnalysisCalculation>
   );

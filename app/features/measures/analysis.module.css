@@ -239,9 +239,6 @@
 .data :is(table, dl) {
   min-inline-size: 0;
 }
-.number {
-  white-space: nowrap;
-}
 .performance {
   padding: var(--space-panel);
 }

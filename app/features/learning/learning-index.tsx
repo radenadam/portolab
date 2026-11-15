@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import type { ClassId } from "~/features/classes/classes.schema";
@@ -37,10 +38,14 @@ export function LearningIndex({
           const contents = (
             <>
               <span className={styles["session"]}>
-                <span className={styles["badge"]}>{sessionLabel(lesson)}</span>
+                <span className={styles["badge"]}>
+                  <NumberText whole>{sessionLabel(lesson)}</NumberText>
+                </span>
                 <span>{sessionKindLabel(lesson.kind, current)}</span>
               </span>
-              <h2>{lesson.title}</h2>
+              <h2>
+                <NumberText>{lesson.title}</NumberText>
+              </h2>
               <ContentParagraphs
                 blocks={lesson.sections.flatMap((section) =>
                   section.id === "summary" ? section.blocks : [],

@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { Form, Link } from "react-router";
 import { ChangeText } from "~/change-text";
@@ -66,7 +67,11 @@ function TicketBody({
   initialSide,
 }: PlaceOrderSectionProps): ReactNode {
   if (!day.ok) {
-    return <p>{missingDayTexts[day.failure.kind]()}</p>;
+    return (
+      <p>
+        <NumberText>{missingDayTexts[day.failure.kind]()}</NumberText>
+      </p>
+    );
   }
   switch (choice.kind) {
     case "choosing":
@@ -94,9 +99,15 @@ function TicketBody({
           <>
             {stock}
             <p className={styles["details"]}>
-              {missingQuoteText(code, quoteAttempt, moment)}
+              <NumberText>
+                {missingQuoteText(code, quoteAttempt, moment)}
+              </NumberText>
             </p>
-            <p>{m.trading_no_price_order_notice({ code })}</p>
+            <p>
+              <NumberText>
+                {m.trading_no_price_order_notice({ code })}
+              </NumberText>
+            </p>
             {otherStockLink}
           </>
         );
@@ -107,7 +118,9 @@ function TicketBody({
           {stock}
           <QuoteLines quote={quote} delayMinutes={moment.delayMinutes} />
           {failure !== undefined && (
-            <p className={styles["details"]}>{failure}</p>
+            <p className={styles["details"]}>
+              <NumberText>{failure}</NumberText>
+            </p>
           )}
           {otherStockLink}
           <OrderForm
@@ -165,17 +178,21 @@ function QuoteLines({
         <dt className={styles["visuallyHidden"]}>
           {m.trading_delayed_price_label()}
         </dt>
-        <dd className={styles["ticketPrice"]}>{formatRupiah(quote.price)}</dd>
+        <dd className={styles["ticketPrice"]}>
+          <NumberText>{formatRupiah(quote.price)}</NumberText>
+        </dd>
         <dt className={styles["visuallyHidden"]}>{m.trading_change_label()}</dt>
         <dd>
           <ChangeText change={formatSignedPercent(quoteChange(quote))} />
         </dd>
       </dl>
       <p className={styles["details"]}>
-        {m.trading_quote_notice({
-          minutes: formatNumber(delayMinutes),
-          time: formatMarketTime(quote.quotedAt),
-        })}
+        <NumberText>
+          {m.trading_quote_notice({
+            minutes: formatNumber(delayMinutes),
+            time: formatMarketTime(quote.quotedAt),
+          })}
+        </NumberText>
       </p>
     </>
   );

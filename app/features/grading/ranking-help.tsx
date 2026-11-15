@@ -1,7 +1,8 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { ConceptCard } from "~/concept-card";
 import { ConceptLesson } from "~/features/learning/concept-lesson";
-import { MarketLineFormula } from "~/features/measures/formulas";
+import { MarketLineFormula } from "~/features/measures/capm-formulas";
 import { measureConcept } from "~/features/measures/measure-concept";
 import {
   SharpeRatioFormula,
@@ -28,8 +29,10 @@ export function RankingHelp({
       meaning={concept.meaning}
       example={
         <p>
-          {student.name}{" "}
-          {value.ok ? rankingText(student.measures, measure) : value.failure}
+          <NumberText verbatim>{student.name}</NumberText>{" "}
+          <NumberText>
+            {value.ok ? rankingText(student.measures, measure) : value.failure}
+          </NumberText>
         </p>
       }
       calculation={

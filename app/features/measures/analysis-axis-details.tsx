@@ -7,7 +7,7 @@ import {
   analysisDiversificationInsight,
 } from "./analysis-insight";
 import type { AnalysisInsight } from "./analysis-insight";
-import { SecurityMarketLineFormula } from "./formulas";
+import { SecurityMarketLineFormula } from "./capm-formulas";
 import { measureConcept } from "./measure-concept";
 import type { MarketSummary, PortfolioSummary } from "./measure-summaries";
 import { weightedHoldingRisk } from "./weighted-holding-risk";

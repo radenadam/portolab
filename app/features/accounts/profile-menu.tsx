@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { LanguageSwitch } from "~/features/language/language-switch";
@@ -19,8 +20,12 @@ export function ProfileMenu({
   return (
     <>
       <p className={styles["person"]}>
-        <span className={styles["name"]}>{name}</span>
-        <span className={styles["role"]}>{roleName(readerRole)}</span>
+        <span className={styles["name"]}>
+          <NumberText verbatim>{name}</NumberText>
+        </span>
+        <span className={styles["role"]}>
+          <NumberText>{roleName(readerRole)}</NumberText>
+        </span>
       </p>
       <hr className={popoverStyles["separator"]} />
       <Link to="/account" className={popoverStyles["item"]}>

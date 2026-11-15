@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { ChangeText } from "~/change-text";
 import type { MapValue } from "./layout-risk-map";
@@ -14,12 +15,18 @@ export function MapTip({ drawn }: { drawn: DrawnPoint }): ReactNode {
         ...tipDown(drawn.placed.position.y),
       }}
     >
-      <p className={styles["tipName"]}>{drawn.point.name}</p>
+      <p className={styles["tipName"]}>
+        <NumberText verbatim>{drawn.point.name}</NumberText>
+      </p>
       {drawn.point.values.map(({ name, value }) => (
         <p key={name} className={styles["tipValue"]}>
-          <span>{name}</span>
+          <span>
+            <NumberText verbatim>{name}</NumberText>
+          </span>
           <span className={styles["tipNumber"]}>
-            <ValueText value={value} />
+            <NumberText whole>
+              <ValueText value={value} />
+            </NumberText>
           </span>
         </p>
       ))}

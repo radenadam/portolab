@@ -1,6 +1,6 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import type { AnalysisInsight } from "./analysis-insight";
-import styles from "./analysis.module.css";
 
 export function AnalysisCaption({
   insight,
@@ -28,11 +28,8 @@ function splitNumber(
   for (const [index, text] of part.split(number).entries()) {
     if (index > 0)
       parts.push(
-        <strong
-          className={styles["number"]}
-          key={`${number}-${String(startKey + parts.length)}`}
-        >
-          {number}
+        <strong key={`${number}-${String(startKey + parts.length)}`}>
+          <NumberText whole>{number}</NumberText>
         </strong>,
       );
     parts.push(text);

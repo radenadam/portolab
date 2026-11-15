@@ -1,3 +1,5 @@
+import { QuoteNotice } from "~/features/market-data/quote-notice";
+import { NumberText } from "~/number-text";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
 import type { ReactNode } from "react";
 import type { PriceSourceDescription } from "~/features/market-data/price-source.server";
@@ -6,7 +8,7 @@ import { homeTitle } from "~/features/trading/home-title";
 import type { PortfolioReader } from "~/features/trading/text-for-reader";
 import { formatNumber } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
-import { explainPortfolioMeasures } from "./explain-portfolio-measures";
+import { PortfolioMeasuresNotice } from "./portfolio-measures-notice";
 import {
   BetaFormula,
   CorrelationFormula,
@@ -45,11 +47,10 @@ export function PortfolioMeasuresView({
   quoteFailure,
   source,
 }: PortfolioMeasuresProps): ReactNode {
-  const measures = explainPortfolioMeasures(report, reader);
-  if (measures.ok) {
+  if (report.kind === "measured" && report.measures.ok) {
     return (
       <MeasuredPortfolio
-        portfolio={measures.value}
+        portfolio={report.measures.value}
         reader={reader}
         quoteFailure={quoteFailure}
         source={source}
@@ -59,10 +60,12 @@ export function PortfolioMeasuresView({
   return (
     <>
       {/* A holding without a delayed price keeps the measures away, so the prices that the quote job could not update explain it. */}
-      {report.kind === "unpriced" && quoteFailure !== undefined && (
-        <p className={styles["details"]}>{quoteFailure}</p>
+      {report.kind === "unpriced" && (
+        <QuoteNotice text={quoteFailure} className={styles["details"]} />
       )}
-      <p>{measures.failure}</p>
+      <p>
+        <PortfolioMeasuresNotice report={report} reader={reader} />
+      </p>
     </>
   );
 }
@@ -85,34 +88,45 @@ function MeasuredPortfolio({
       <MeasureList rows={portfolioMeasureRows(portfolio, reader)} />
       <MarketLinePosition distance={portfolio.securityMarketLine.value} />
       <h2>
-        {textForReader(reader, {
-          owner: () => m.measures_weights_title(),
-          lecturer: () => m.measures_lecturer_weights_title(),
-        })}
+        <NumberText>
+          {textForReader(reader, {
+            owner: () => m.measures_weights_title(),
+            lecturer: () => m.measures_lecturer_weights_title(),
+          })}
+        </NumberText>
       </h2>
       <p>
-        {textForReader(reader, {
-          owner: () =>
-            m.measures_weights_notice({ ...delay, page: homeTitle() }),
-          lecturer: (name) =>
-            m.measures_lecturer_weights_notice({ ...delay, name }),
-        })}
+        <NumberText>
+          {(textValue) =>
+            textForReader(reader, {
+              owner: () =>
+                m.measures_weights_notice({ ...delay, page: homeTitle() }),
+              lecturer: (name) =>
+                m.measures_lecturer_weights_notice({
+                  ...delay,
+                  name: textValue(name),
+                }),
+            })
+          }
+        </NumberText>
       </p>
-      {quoteFailure !== undefined && (
-        <p className={styles["details"]}>{quoteFailure}</p>
-      )}
+      <QuoteNotice text={quoteFailure} className={styles["details"]} />
       <WeightTable portfolio={portfolio} />
       <h2>
-        {textForReader(reader, {
-          owner: () => m.measures_holdings_title(),
-          lecturer: () => m.measures_lecturer_holdings_title(),
-        })}
+        <NumberText>
+          {textForReader(reader, {
+            owner: () => m.measures_holdings_title(),
+            lecturer: () => m.measures_lecturer_holdings_title(),
+          })}
+        </NumberText>
       </h2>
       <p>
-        {textForReader(reader, {
-          owner: () => m.measures_holdings_notice(),
-          lecturer: () => m.measures_lecturer_holdings_notice(),
-        })}
+        <NumberText>
+          {textForReader(reader, {
+            owner: () => m.measures_holdings_notice(),
+            lecturer: () => m.measures_lecturer_holdings_notice(),
+          })}
+        </NumberText>
       </p>
       <HoldingTable portfolio={portfolio} reader={reader} />
       <p className={styles["details"]}>
@@ -122,10 +136,12 @@ function MeasuredPortfolio({
         <BetaFormula beta={undefined} />
       </p>
       <h2>
-        {textForReader(reader, {
-          owner: () => m.measures_pairs_title(),
-          lecturer: () => m.measures_lecturer_pairs_title(),
-        })}
+        <NumberText>
+          {textForReader(reader, {
+            owner: () => m.measures_pairs_title(),
+            lecturer: () => m.measures_lecturer_pairs_title(),
+          })}
+        </NumberText>
       </h2>
       <p>{m.measures_pairs_notice()}</p>
       <PairTable portfolio={portfolio} />
@@ -136,10 +152,12 @@ function MeasuredPortfolio({
         <CorrelationFormula first="i" second="j" correlation={undefined} />
       </p>
       <h2>
-        {textForReader(reader, {
-          owner: () => m.measures_risks_title(),
-          lecturer: () => m.measures_lecturer_risks_title(),
-        })}
+        <NumberText>
+          {textForReader(reader, {
+            owner: () => m.measures_risks_title(),
+            lecturer: () => m.measures_lecturer_risks_title(),
+          })}
+        </NumberText>
       </h2>
       {portfolio.holdingRisks.ok ? (
         <>
@@ -156,7 +174,11 @@ function MeasuredPortfolio({
           </p>
         </>
       ) : (
-        <p>{riskMeasureFailureText(portfolio.holdingRisks.failure)}</p>
+        <p>
+          <NumberText>
+            {riskMeasureFailureText(portfolio.holdingRisks.failure)}
+          </NumberText>
+        </p>
       )}
       <MarketSection market={portfolio.market} />
       <ReturnTables

@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { ChangeText } from "~/change-text";
 import tableStyles from "~/data-table.module.css";
@@ -28,17 +29,21 @@ export function HoldingsSection({
   return (
     <section>
       <h2 id={holdingsHeadingId}>
-        {textForReader(reader, {
-          owner: () => m.trading_holdings_title(),
-          lecturer: () => m.trading_lecturer_holdings_title(),
-        })}
+        <NumberText>
+          {textForReader(reader, {
+            owner: () => m.trading_holdings_title(),
+            lecturer: () => m.trading_lecturer_holdings_title(),
+          })}
+        </NumberText>
       </h2>
       {holdings.length === 0 ? (
         <p>
-          {textForReader(reader, {
-            owner: () => m.trading_no_holdings_body(),
-            lecturer: (name) => m.trading_lecturer_no_holdings_body({ name }),
-          })}
+          <NumberText verbatim>
+            {textForReader(reader, {
+              owner: () => m.trading_no_holdings_body(),
+              lecturer: (name) => m.trading_lecturer_no_holdings_body({ name }),
+            })}
+          </NumberText>
         </p>
       ) : (
         <HoldingValues holdings={holdings} />
@@ -117,20 +122,26 @@ function HoldingTableRow({ holding }: { holding: ValuedHolding }): ReactNode {
       <th scope="row">
         <StockName code={holding.code} />
       </th>
-      <td className={tableStyles["number"]}>{formatNumber(holding.shares)}</td>
-      <td className={tableStyles["number"]}>{formatRupiah(holding.cost)}</td>
+      <td className={tableStyles["number"]}>
+        <NumberText>{formatNumber(holding.shares)}</NumberText>
+      </td>
+      <td className={tableStyles["number"]}>
+        <NumberText>{formatRupiah(holding.cost)}</NumberText>
+      </td>
       {holding.kind === "priced" ? (
         <>
           <td className={tableStyles["number"]}>
             <span className={styles["cellLine"]}>
-              {formatRupiah(holding.quote.price)}
+              <NumberText>{formatRupiah(holding.quote.price)}</NumberText>
             </span>
             <span className={styles["cellDetail"]}>
-              {formatMarketTime(holding.quote.quotedAt)}
+              <NumberText>
+                {formatMarketTime(holding.quote.quotedAt)}
+              </NumberText>
             </span>
           </td>
           <td className={tableStyles["number"]}>
-            {formatRupiah(holding.value)}
+            <NumberText>{formatRupiah(holding.value)}</NumberText>
           </td>
           <td className={tableStyles["number"]}>
             <span className={styles["cellLine"]}>
@@ -143,7 +154,9 @@ function HoldingTableRow({ holding }: { holding: ValuedHolding }): ReactNode {
         </>
       ) : (
         <td colSpan={3} className={styles["details"]}>
-          {m.trading_unpriced_notice({ code: holding.code })}
+          <NumberText>
+            {m.trading_unpriced_notice({ code: holding.code })}
+          </NumberText>
         </td>
       )}
     </tr>
@@ -156,23 +169,29 @@ function HoldingRow({ holding }: { holding: ValuedHolding }): ReactNode {
       <div className={styles["rowName"]}>
         <StockName code={holding.code} />
         <p className={styles["details"]}>
-          {m.trading_holding_notice({
-            shares: shareCount(holding.shares),
-            cost: formatRupiah(holding.cost),
-          })}
+          <NumberText>
+            {m.trading_holding_notice({
+              shares: shareCount(holding.shares),
+              cost: formatRupiah(holding.cost),
+            })}
+          </NumberText>
         </p>
         <p className={styles["details"]}>
-          {holding.kind === "priced"
-            ? m.trading_holding_price_notice({
-                price: formatRupiah(holding.quote.price),
-                time: formatMarketTime(holding.quote.quotedAt),
-              })
-            : m.trading_unpriced_notice({ code: holding.code })}
+          <NumberText>
+            {holding.kind === "priced"
+              ? m.trading_holding_price_notice({
+                  price: formatRupiah(holding.quote.price),
+                  time: formatMarketTime(holding.quote.quotedAt),
+                })
+              : m.trading_unpriced_notice({ code: holding.code })}
+          </NumberText>
         </p>
       </div>
       {holding.kind === "priced" && (
         <div className={styles["rowNumbers"]}>
-          <p>{formatRupiah(holding.value)}</p>
+          <p>
+            <NumberText>{formatRupiah(holding.value)}</NumberText>
+          </p>
           <p>
             <ChangeText change={formatSignedRupiah(holding.gain)} />
           </p>

@@ -5,11 +5,8 @@ import { formatPercent, formatSignedPercent } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { AnalysisCalculation } from "./analysis-calculation";
 import { measureSecurityMarketLineDistance } from "./capm";
-import {
-  MarketLineFormula,
-  RequiredReturnFormula,
-  StandardDeviationFormula,
-} from "./formulas";
+import { MarketLineFormula, RequiredReturnFormula } from "./capm-formulas";
+import { StandardDeviationFormula } from "./formulas";
 import type { AnalysisHolding } from "./analysis-holdings";
 
 export function AnalysisPointCalculations({

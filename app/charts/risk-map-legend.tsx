@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import legendStyles from "~/chart-legend.module.css";
 import type { MarkKind } from "./map-drawing";
@@ -29,7 +30,7 @@ export function RiskMapLegend({
       {items.map(({ kind, name }) => (
         <li key={kind} className={styles["legendItem"]}>
           <span className={keyClasses[kind]} />
-          {name}
+          <NumberText verbatim>{name}</NumberText>
         </li>
       ))}
     </ul>

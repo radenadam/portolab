@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import type { Role } from "~/features/accounts/accounts.schema";
 import { formatCalendarDate, formatNumber } from "~/formatting";
@@ -16,14 +17,24 @@ export function CourseCalendarNotice({
   role: Role;
 }): ReactNode {
   if (calendar === undefined) {
-    return <p>{noCalendarText(role)}</p>;
+    return (
+      <p>
+        <NumberText>{noCalendarText(role)}</NumberText>
+      </p>
+    );
   }
   return (
     <>
       <p>
-        {m.classes_term_notice({ term: termText(calendar.term, "inSentence") })}
+        <NumberText>
+          {m.classes_term_notice({
+            term: termText(calendar.term, "inSentence"),
+          })}
+        </NumberText>
       </p>
-      <p>{weekText(calendar.week)}</p>
+      <p>
+        <NumberText>{weekText(calendar.week)}</NumberText>
+      </p>
     </>
   );
 }

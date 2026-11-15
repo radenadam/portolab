@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import type { ClassId } from "~/features/classes/classes.schema";
@@ -33,8 +34,12 @@ export function LessonView({
             ? m.learning_back_link()
             : m.learning_return_link()}
         </Link>
-        <span className={styles["badge"]}>{sessionLabel(lesson)}</span>
-        <h1>{lesson.title}</h1>
+        <span className={styles["badge"]}>
+          <NumberText whole>{sessionLabel(lesson)}</NumberText>
+        </span>
+        <h1>
+          <NumberText>{lesson.title}</NumberText>
+        </h1>
       </header>
       {lesson.sections.map((section) => {
         switch (section.id) {
@@ -75,7 +80,7 @@ export function LessonView({
             to={lessonPath(classId, previous.session, returnTo)}
           >
             <span aria-hidden="true">‹</span>
-            {lessonLinkText(previous)}
+            <NumberText>{lessonLinkText(previous)}</NumberText>
           </Link>
         )}
         {next !== undefined && (
@@ -83,7 +88,7 @@ export function LessonView({
             className={styles["link"]}
             to={lessonPath(classId, next.session, returnTo)}
           >
-            {lessonLinkText(next)}
+            <NumberText>{lessonLinkText(next)}</NumberText>
             <span aria-hidden="true">›</span>
           </Link>
         )}

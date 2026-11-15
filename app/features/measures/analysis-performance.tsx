@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { TimeChart } from "~/charts/time-chart";
 import type { ClassId } from "~/features/classes/classes.schema";
@@ -56,29 +57,37 @@ export function AnalysisPerformance({
               })}
             >
               <p>
-                {m.trading_chart_notice({
-                  index: marketIndex.code,
-                  date: formatCalendarDate(start.date),
-                })}
+                <NumberText>
+                  {m.app_returns_chart_notice({
+                    index: marketIndex.code,
+                    date: formatCalendarDate(start.date),
+                  })}
+                </NumberText>
               </p>
               <PopoverButton
                 popover="analysis-performance-data"
                 className={styles["link"]}
               >
-                {m.trading_returns_table_label()}
+                {m.app_returns_table_label()}
               </PopoverButton>
             </ConceptHelp>
           )}
         </h2>
         {latest !== undefined && (
-          <p>{returnHeadline(latest.portfolio, latest.market)}</p>
+          <p>
+            <NumberText>
+              {returnHeadline(latest.portfolio, latest.market)}
+            </NumberText>
+          </p>
         )}
       </div>
       {latest === undefined ? (
         <p>
-          {history.ok
-            ? historyEndText(history.value.end, reader)
-            : missingCalendarText(reader)}
+          <NumberText>
+            {history.ok
+              ? historyEndText(history.value.end, reader)
+              : missingCalendarText(reader)}
+          </NumberText>
         </p>
       ) : (
         <TimeChart
@@ -99,8 +108,8 @@ export function AnalysisPerformance({
             },
           ]}
           labelledBy="analysis-performance-title"
-          dateLabel={m.trading_trading_day_label()}
-          tableLabel={m.trading_returns_table_label()}
+          dateLabel={m.app_trading_day_label()}
+          tableLabel={m.app_returns_table_label()}
           annotations={events}
           legendNote={
             hasEvents ? m.measures_analysis_session_lines_notice() : undefined

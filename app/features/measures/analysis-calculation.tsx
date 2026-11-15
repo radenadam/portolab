@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { m } from "~/paraglide/messages.js";
 import { Popover, PopoverButton } from "~/popover";
@@ -21,7 +22,9 @@ export function AnalysisCalculation({
     <Popover id={id} label={title} placement="belowEnd">
       <div className={styles["calculation"]}>
         <h2>{title}</h2>
-        <strong className={styles["number"]}>{row.value}</strong>
+        <strong>
+          <NumberText whole>{row.value}</NumberText>
+        </strong>
         <p>{row.formula}</p>
         {row.inputs}
         {children}
