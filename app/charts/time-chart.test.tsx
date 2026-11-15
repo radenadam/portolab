@@ -9,7 +9,7 @@ import { TimeChart } from "./time-chart";
 import type { TimeLine } from "./time-chart-layout";
 
 // time-chart-layout.test.ts gives the positions of the returns of returnPointsForTest. A return r lies at (0.0109518658 - r) / 0.0447414855 of the height of the plot, which the chart writes as a percentage with two decimals.
-type Point = (typeof returnPointsForTest)[number];
+type Point = (typeof returnPointsForTest)[number] & { measuredAt?: Date };
 
 const fall = '<span aria-hidden="true">▼ </span>';
 const rise = '<span aria-hidden="true">▲ </span>';
@@ -23,14 +23,18 @@ const texts: Record<
     latestReturns: readonly [string, string];
     dates: readonly [string, string, string];
     rows: readonly (readonly [string, string, string])[];
+    currentTime: string;
+    currentClock: string;
   }
 > = {
   id: {
     portfolio: "Portofolio Anda",
     dateLabel: "Hari bursa",
-    tableLabel: "Imbal hasil pada setiap penutupan",
+    tableLabel: "Imbal hasil dari waktu ke waktu",
     latestReturns: [`${fall}-3,07%`, `${fall}-3,02%`],
     dates: ["30 Okt", "2 Nov", "3 Nov"],
+    currentTime: "3 Nov 2026, 10.00 WIB",
+    currentClock: "10.00",
     rows: [
       ["30 Okt 2026", "0,00%", "0,00%"],
       ["2 Nov 2026", `${fall}-0,15%`, `${rise}+0,79%`],
@@ -40,9 +44,11 @@ const texts: Record<
   en: {
     portfolio: "Your portfolio",
     dateLabel: "Trading day",
-    tableLabel: "The return at each close",
+    tableLabel: "Returns over time",
     latestReturns: [`${fall}-3.07%`, `${fall}-3.02%`],
     dates: ["Oct 30", "Nov 2", "Nov 3"],
+    currentTime: "Nov 3, 2026, 10:00 AM WIB",
+    currentClock: "10:00 AM",
     rows: [
       ["Oct 30, 2026", "0.00%", "0.00%"],
       ["Nov 2, 2026", `${fall}-0.15%`, `${rise}+0.79%`],
@@ -81,6 +87,24 @@ function line(path: string, dot: string): string {
 
 for (const locale of locales) {
   const text = texts[locale];
+
+  test(`labels a current endpoint with its time on the server in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    // The independently computed returns are those of return-points-for-test.ts. Only their time changes here.
+    const points = returnPointsForTest.map((point, index) => ({
+      ...point,
+      ...(index === returnPointsForTest.length - 1
+        ? { measuredAt: new Date("2026-11-03T03:00:00Z") }
+        : {}),
+    }));
+    const html = render(points, locale);
+    expect(html).toContain(
+      `<th scope="row"><time dateTime="2026-11-03T03:00:00.000Z">${text.currentTime}</time></th>`,
+    );
+    expect(html).toContain(
+      `<text x="100%" y="100%" dy="1.5em" text-anchor="end">${text.currentClock}</text>`,
+    );
+  });
 
   test(`draws the chart on the server with its marks, a line of each series under the line of the reader, a dot on the latest return of each line, a legend that names each line with its latest return, and a table of every point, in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);

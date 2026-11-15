@@ -28,17 +28,20 @@ import type { SplitAdjustedRupiah } from "~/units/split-adjusted-rupiah";
 import { wibDateOf } from "~/wib";
 import type { Order } from "./order";
 
-/** The returns of a portfolio and of the IHSG at the close of one trading day, both since the close at the start of the history. */
+/** The returns of a portfolio and of the IHSG since the close at the start of the history. */
 export interface ReturnPoint {
   /** The trading day in WIB, such as 2026-10-30. */
   date: string;
-  /** The value of the cash and the holdings at the closes of the day, as a return on the starting cash. */
+  /** A current snapshot keeps its time so it cannot be mistaken for a final daily close. */
+  measuredAt?: Date;
+  /** A final close or the current valuation, as a return on starting cash. */
   portfolio: CumulativeReturn;
   market: CumulativeReturn;
 }
 
-/** Why the returns end at their latest close: the prices of the next trading day are not final yet, Portolab has not stored a close that the next day needs, or no IDX calendar covers the next day. */
+/** A quote snapshot can stop the displayed series before later stored closes, while a missing calendar still needs attention. */
 export type HistoryEnd =
+  | { kind: "snapshot" }
   | { kind: "notFinal"; date: string; finalAt: Date }
   | { kind: "missingCloses"; date: string; codes: string[] }
   | MissingCalendar;
@@ -50,9 +53,9 @@ export interface MissingCalendar {
 
 const missingCalendar: MissingCalendar = { kind: "missingCalendar" };
 
-/** The returns of a portfolio and of the IHSG at each final close since the start, as decision 0018 explains. */
+/** Final daily returns under decision 0018, with a possible current endpoint under decision 0047. */
 export interface PortfolioHistory {
-  /** The returns at the close of the base, which is the close of the IHSG on the start or the latest one before it, and of each later trading day, oldest first. It is empty while the close of the start is not final, or while neither it nor a later close of the IHSG is stored. */
+  /** Points run from the base close in time order. No series can start before a final base close is available. */
   points: ReturnPoint[];
   end: HistoryEnd;
 }
@@ -144,16 +147,17 @@ export function portfolioHistory(input: HistoryInput): PortfolioHistory {
   }
 }
 
-/** The return of the IHSG since the close from which portfolioHistory counts the returns of a portfolio, at a later level, such as its latest delayed level, so that it covers the same time as the return of the portfolio since its starting cash. It is undefined while portfolioHistory has no such close, because the prices of the start are not final or no close of the IHSG on the start or later is stored. */
+/** The return of the IHSG since the close from which portfolioHistory counts the returns of a portfolio, at a later level, such as its latest delayed level, so that it covers the same time as the return of the portfolio since its starting cash. It is undefined while portfolioHistory has no such close, because the prices of the start are not final, no close of the IHSG on the start or later is stored, or the quote predates the base day. */
 export function marketReturnSinceStart(
   input: Pick<HistoryInput, "startDate" | "market" | "now" | "delayMinutes">,
   level: IndexPoints,
+  quotedAt: Date,
 ): CumulativeReturn | undefined {
   if (unfinishedEnd(input.startDate, input) !== undefined) {
     return undefined;
   }
   const base = baseClose(closesByDate(input.market.closes), input.startDate);
-  return base === undefined
+  return base === undefined || wibDateOf(quotedAt) < base.date
     ? undefined
     : cumulativeReturn(priceChange(level, base.level));
 }

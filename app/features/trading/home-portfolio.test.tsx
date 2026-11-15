@@ -51,7 +51,7 @@ const texts: Record<
     common: [
       "Beranda",
       "Nilai portofolio",
-      "Nilai portofolio menjumlahkan kas dan nilai saham pada harga tertunda masing-masing. Waktu harga tercantum pada tabel kepemilikan. Grafik memakai harga penutupan final, sehingga imbal hasil terakhirnya dapat berbeda.",
+      "Nilai portofolio menjumlahkan kas dan nilai saham pada harga tertunda masing-masing. Waktu harga tercantum pada tabel kepemilikan. Titik grafik dengan waktu memakai nilai ini.",
       "hari ini",
       "Perubahan harian",
       "Perubahan harian membandingkan nilai portofolio sekarang dengan nilainya pada penutupan 29 Oktober 2026. Nilai sebelumnya memakai kas, saham, dan harga penutupan hari itu, sehingga transaksi sesudahnya, termasuk biaya dan pajaknya, ikut dihitung. Waktu harga sekarang tercantum pada tabel kepemilikan.",
@@ -102,7 +102,7 @@ const texts: Record<
     common: [
       "Home",
       "Portfolio value",
-      "Portfolio value adds cash and the value of each holding at its delayed price. The holdings table shows the quote times. The chart uses final closes, so its latest return can differ.",
+      "Portfolio value adds cash and the value of each holding at its delayed price. The holdings table shows the quote times. A timestamped chart endpoint uses this value.",
       "today",
       "Daily change",
       "The daily change compares the current portfolio value with its value at the close of October 29, 2026. The earlier value uses the cash, shares, and closes of that day, so trades since then, including fees and taxes, count in the change. The holdings table shows the current quote times.",

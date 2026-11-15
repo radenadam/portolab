@@ -76,16 +76,25 @@ export function startServices(settings: ServiceSettings): Services {
     missingOrderDataWarnings,
   );
   const stopSessionSweep = startSessionSweep(database);
+  return createRequestServices(database, priceSource, () => {
+    stopPriceJob();
+    stopSessionSweep();
+    closeDatabase(database);
+  });
+}
+
+/** Separating request services from scheduled jobs lets isolated browser fixtures keep their recorded prices. */
+export function createRequestServices(
+  database: Database,
+  priceSource: PriceSource,
+  stop: () => void,
+): Services {
   return {
     database,
     priceSource,
     passwordLimiters: createPasswordLimiters(),
     joinLimiters: createJoinLimiters(),
-    stop: () => {
-      stopPriceJob();
-      stopSessionSweep();
-      closeDatabase(database);
-    },
+    stop,
   };
 }
 

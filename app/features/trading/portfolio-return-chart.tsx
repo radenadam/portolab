@@ -4,7 +4,7 @@ import { marketIndex } from "~/features/market-data/tracked-instruments";
 import { m } from "~/paraglide/messages.js";
 import type { ReturnPoint } from "./portfolio-history";
 
-/** The small summary and the large view compare the same final closes. */
+/** Sharing every point keeps the small summary and the large view consistent. */
 export function PortfolioReturnChart({
   points,
   labelledBy,

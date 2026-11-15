@@ -12,7 +12,7 @@ import { historyEndText, missingCalendarText } from "./return-section";
 import { returnHeadline } from "./return-headline";
 import styles from "./home-portfolio.module.css";
 
-/** The headline and the lines use the same final close, even while delayed quotes have moved since it. */
+/** Reading the shared endpoint keeps the headline current with both charts. */
 export function HomeReturn({
   history,
   classId,

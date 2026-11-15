@@ -83,7 +83,7 @@ const analysisText: Record<
     month: "1B",
     backToAnalysis: "Kembali ke Analisis",
     title: "Analisis",
-    endValue: "Anda 0,00%",
+    endValue: "Anda +0,11%",
     sessionLines: "Garis tegak: awal setiap sesi kuliah.",
     mapLesson: "Teori portofolio",
     meaning:
@@ -138,8 +138,8 @@ const analysisText: Record<
     returns: "Imbal hasil bulanan IHSG",
     performanceHelp: "Apa itu Kinerja vs IHSG?",
     performanceMeaning:
-      "Grafik dan tabel membandingkan imbal hasil portofolio Anda dengan imbal hasil IHSG sejak penutupan 26 Oktober 2026, sebelum Anda dapat bertransaksi. Setiap imbal hasilnya memakai harga penutupan final pada harinya.",
-    performanceData: "Imbal hasil pada setiap penutupan",
+      "Grafik dan tabel membandingkan portofolio Anda dengan IHSG sejak penutupan 26 Oktober 2026, sebelum Anda dapat bertransaksi. Hari sebelumnya memakai harga penutupan final. Titik dengan waktu memakai nilai portofolio sekarang dan level tertunda terakhir IHSG.",
+    performanceData: "Imbal hasil dari waktu ke waktu",
     axisFailure:
       'Kolom "Sumbu risiko" menerima "beta" atau "risk", tetapi isinya "BETA". Pilih salah satu sumbu risiko yang tercantum.',
     longAxisFailure:
@@ -153,7 +153,7 @@ const analysisText: Record<
     month: "1M",
     backToAnalysis: "Back to Analysis",
     title: "Analysis",
-    endValue: "You 0.00%",
+    endValue: "You +0.11%",
     sessionLines: "Vertical lines: the start of each class session.",
     mapLesson: "Portfolio theory",
     meaning:
@@ -208,8 +208,8 @@ const analysisText: Record<
     returns: "Monthly returns of the IHSG",
     performanceHelp: "What is Performance vs IHSG?",
     performanceMeaning:
-      "The chart and the table compare the return of your portfolio with the return of the IHSG since the close of October 26, 2026, before you could trade. Each of their returns uses the final closes of its day.",
-    performanceData: "The return at each close",
+      "The chart and the table compare your portfolio with the IHSG since the close of October 26, 2026, before you could trade. Past days use final closes. A timestamped endpoint uses the current portfolio value and the latest delayed level of the IHSG.",
+    performanceData: "Returns over time",
     axisFailure:
       'The field "Risk axis" takes "beta" or "risk", but it holds "BETA". Choose a listed risk axis.',
     longAxisFailure:
@@ -689,7 +689,7 @@ for (const locale of locales) {
     const { student, classPath } = await studentWithPortfolio(page, browser, {
       locale,
       givePortfolio: (classId) => {
-        // The costs are the closes of 29 October 2026 with the broker fee, computed with Python Decimal. Deleted fills leave the holdings and cash, which the database permits, so the replayed history also exercises that state.
+        // Python Decimal gives the costs from the closes of 29 October 2026 with the broker fee. It adds 265,760,290,000 + 498,000,000,000 + 164,340,000,000 + 73,000,000,000 = 1,001,100,290,000, a return of 0.00110029. Deleted fills leave the holdings and cash, so the current endpoint must use those surviving values.
         storeTestHolding(
           classId,
           { ...bbcaHolding, cash: rupiah(265_760_290_000) },

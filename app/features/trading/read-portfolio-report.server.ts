@@ -29,6 +29,7 @@ import type { Portfolio } from "./portfolio-store.server";
 import { valuePortfolio } from "./value-portfolio";
 import { filledStockCodes } from "./filled-stock-codes";
 import type { PortfolioValuation } from "./value-portfolio";
+import { currentReturnHistory } from "./current-return-history";
 
 /** A portfolio in a class at the latest delayed prices of its holdings. */
 export interface ValuationReport {
@@ -72,7 +73,7 @@ export function readPortfolioValuation(
   };
 }
 
-/** Values a portfolio at the latest delayed prices, and replays its return since the start at the stored closes, from when its owner received the starting cash, with the return of the IHSG over the same time. */
+/** One valuation keeps current comparisons together, while stored closes keep past daily values final. */
 export function readPortfolioReport(
   database: Database,
   member: { portfolio: Portfolio; startingCash: Rupiah; joinedAt: Date },
@@ -93,31 +94,40 @@ export function readPortfolioReport(
             delayMinutes,
           },
           indexQuote.level,
+          indexQuote.quotedAt,
         )
       : undefined;
   const market =
     indexQuote === undefined || marketReturn === undefined
       ? undefined
       : { quote: indexQuote, return: marketReturn };
+  const valuation = readPortfolioValuation(
+    database,
+    { portfolio, startingCash },
+    market === undefined ? [] : [marketIndex.code],
+  );
   return {
-    ...readPortfolioValuation(
-      database,
-      { portfolio, startingCash },
-      market === undefined ? [] : [marketIndex.code],
-    ),
+    ...valuation,
     history: startDate.ok
       ? succeed(
-          portfolioHistory({
-            startingCash,
-            startDate: startDate.value,
-            orders: portfolio.orders,
-            market: marketHistory,
-            stocks: filledStockCodes(portfolio.orders).map((code) =>
-              listStockHistory(database, code, startDate.value),
-            ),
-            now,
-            delayMinutes,
-          }),
+          currentReturnHistory(
+            portfolioHistory({
+              startingCash,
+              startDate: startDate.value,
+              orders: portfolio.orders,
+              market: marketHistory,
+              stocks: filledStockCodes(portfolio.orders).map((code) =>
+                listStockHistory(database, code, startDate.value),
+              ),
+              now,
+              delayMinutes,
+            }),
+            {
+              valuation: valuation.valuation,
+              market,
+              orders: portfolio.orders,
+            },
+          ),
         )
       : startDate,
     market,

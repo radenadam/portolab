@@ -20,7 +20,7 @@ import { textForReader } from "./text-for-reader";
 import type { PortfolioReader } from "./text-for-reader";
 import styles from "./trading.module.css";
 
-/** The value of a portfolio at delayed prices as its headline, its return against the IHSG at each final close, and its holdings, which the page of the portfolio shows to its owner or to the lecturer of the class. */
+/** A shared report keeps an owner's view and a lecturer's view consistent. */
 export function PortfolioView({
   report,
   reader,

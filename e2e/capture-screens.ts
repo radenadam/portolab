@@ -13,8 +13,9 @@ export async function captureScreens(
   },
 ): Promise<void> {
   if (screen.fromTop) {
-    await page.getByRole("heading", { level: 1 }).click();
     await page.evaluate(() => {
+      const focused = document.activeElement;
+      if (focused instanceof HTMLElement) focused.blur();
       window.scrollTo({ top: 0, behavior: "instant" });
     });
   }

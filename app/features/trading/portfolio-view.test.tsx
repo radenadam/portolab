@@ -153,7 +153,7 @@ const labels: Record<
     gain: "Untung atau rugi",
     gainReturn: "Imbal hasil atas biaya",
     tradingDay: "Hari bursa",
-    returnsTable: "Imbal hasil pada setiap penutupan",
+    returnsTable: "Imbal hasil dari waktu ke waktu",
   },
   en: {
     cash: "Cash",
@@ -169,7 +169,7 @@ const labels: Record<
     gain: "Gain or loss",
     gainReturn: "Return on the cost",
     tradingDay: "Trading day",
-    returnsTable: "The return at each close",
+    returnsTable: "Returns over time",
   },
 };
 
@@ -259,16 +259,16 @@ const texts: Record<
 > = {
   id: {
     waiting:
-      "Harga tanggal 4 November 2026 menjadi final pada pukul 16.26 WIB, dan Portolab menampilkan imbal hasil mulai hari itu setelah pembaruan riwayat harga menyimpan harga penutupan hari itu atau hari sesudahnya.",
+      "Harga tanggal 4 November 2026 menjadi final pada pukul 16.26 WIB. Titik penutupan harian mulai hari itu memerlukan pembaruan riwayat harga yang menyimpan penutupan hari itu atau hari sesudahnya.",
     missingStart:
-      "Portolab belum menyimpan harga penutupan IHSG pada 30 Oktober 2026. Portolab menampilkan imbal hasil mulai hari itu setelah pembaruan riwayat harga menyimpan harga penutupan IHSG pada hari itu atau hari sesudahnya.",
+      "Portolab belum menyimpan harga penutupan IHSG pada 30 Oktober 2026. Titik penutupan harian mulai hari itu memerlukan pembaruan riwayat harga yang menyimpan penutupan IHSG pada hari itu atau hari sesudahnya.",
     oneUnpriced:
       "Portolab menampilkan nilai total dan imbal hasil setelah pembaruan harga berikutnya membawa harga tertunda TLKM.",
     severalUnpriced:
       "Portolab menampilkan nilai total dan imbal hasil setelah pembaruan harga berikutnya membawa harga tertunda BBCA dan TLKM.",
     unpricedHolding: "Portolab belum memiliki harga tertunda TLKM.",
     severalMissingCloses:
-      "Portolab belum menyimpan harga penutupan IHSG dan BBCA pada 4 November 2026. Portolab menampilkan imbal hasil mulai hari itu setelah pembaruan riwayat harga menyimpan harga penutupan masing-masing pada hari itu atau hari sesudahnya.",
+      "Portolab belum menyimpan harga penutupan IHSG dan BBCA pada 4 November 2026. Titik penutupan harian mulai hari itu memerlukan pembaruan riwayat harga yang menyimpan penutupan masing-masing pada hari itu atau hari sesudahnya.",
     quoteFailure:
       "Portolab tidak dapat memperbarui harga BBCA pada 3 Nov 2026, 10.30 WIB, jadi Portolab memakai harga terakhir BBCA yang tersimpan. Portolab mencoba lagi pada 3 Nov 2026, 10.31 WIB.",
     marketQuoteFailure:
@@ -276,16 +276,16 @@ const texts: Record<
   },
   en: {
     waiting:
-      "The prices of November 4, 2026 become final at 4:26 PM WIB, and Portolab shows the returns from that day on once an update of the price history stores closes of that day or of a later day.",
+      "The prices of November 4, 2026 become final at 4:26 PM WIB. Daily close points from that day on need a price history update that stores closes of that day or of a later day.",
     missingStart:
-      "Portolab has not stored the close of IHSG on October 30, 2026 yet. It shows the returns from that day on once an update of the price history stores a close of IHSG on that day or on a later day.",
+      "Portolab has not stored the close of IHSG on October 30, 2026 yet. Daily close points from that day on need a price history update that stores a close of IHSG on that day or on a later day.",
     oneUnpriced:
       "Portolab shows the total value and the return once the next update of prices brings a delayed price of TLKM.",
     severalUnpriced:
       "Portolab shows the total value and the return once the next update of prices brings the delayed prices of BBCA and TLKM.",
     unpricedHolding: "Portolab has no delayed price of TLKM yet.",
     severalMissingCloses:
-      "Portolab has not stored the closes of IHSG and BBCA on November 4, 2026 yet. It shows the returns from that day on once an update of the price history stores a close of each of them on that day or on a later day.",
+      "Portolab has not stored the closes of IHSG and BBCA on November 4, 2026 yet. Daily close points from that day on need a price history update that stores a close of each of them on that day or on a later day.",
     quoteFailure:
       "Portolab could not update the price of BBCA at Nov 3, 2026, 10:30 AM WIB, so it uses the last price of BBCA that it stored. Portolab tries again at Nov 3, 2026, 10:31 AM WIB.",
     marketQuoteFailure:
@@ -319,7 +319,7 @@ const readerTexts: Record<
       noHoldings: "Anda tidak memegang saham.",
       returnTitle: "Imbal hasil Anda dibandingkan IHSG",
       chartNotice:
-        "Grafik dan tabel membandingkan imbal hasil portofolio Anda dengan imbal hasil IHSG sejak penutupan 30 Oktober 2026, sebelum Anda dapat bertransaksi. Setiap imbal hasilnya memakai harga penutupan final pada harinya.",
+        "Grafik dan tabel membandingkan portofolio Anda dengan IHSG sejak penutupan 30 Oktober 2026, sebelum Anda dapat bertransaksi. Hari sebelumnya memakai harga penutupan final. Titik dengan waktu memakai nilai portofolio sekarang dan level tertunda terakhir IHSG.",
       portfolioSeries: "Portofolio Anda",
       calendarMissing:
         "Portolab belum dapat menampilkan imbal hasil hari bursa berikutnya, karena kalender perdagangan BEI untuk hari itu belum tercatat. Beri tahu dosen Anda agar kalender tersebut dapat ditambahkan.",
@@ -332,7 +332,7 @@ const readerTexts: Record<
       noHoldings: "Siti Rahayu belum memegang saham.",
       returnTitle: "Imbal hasil dibandingkan IHSG",
       chartNotice:
-        "Grafik dan tabel di bawah membandingkan imbal hasil portofolio Siti Rahayu dengan imbal hasil IHSG sejak penutupan 30 Oktober 2026, sebelum Siti Rahayu dapat bertransaksi. Setiap imbal hasilnya memakai harga penutupan final pada harinya.",
+        "Grafik dan tabel membandingkan portofolio Siti Rahayu dengan IHSG sejak penutupan 30 Oktober 2026, sebelum Siti Rahayu dapat bertransaksi. Hari sebelumnya memakai harga penutupan final. Titik dengan waktu memakai nilai portofolio sekarang dan level tertunda terakhir IHSG.",
       portfolioSeries: "Portofolio",
       calendarMissing:
         "Portolab belum dapat menampilkan imbal hasil hari bursa berikutnya, karena kalender perdagangan BEI untuk hari itu belum tercatat. Beri tahu orang yang menjalankan server Portolab ini agar kalender tersebut dapat ditambahkan.",
@@ -347,7 +347,7 @@ const readerTexts: Record<
       noHoldings: "You hold no shares.",
       returnTitle: "Your return against the IHSG",
       chartNotice:
-        "The chart and the table compare the return of your portfolio with the return of the IHSG since the close of October 30, 2026, before you could trade. Each of their returns uses the final closes of its day.",
+        "The chart and the table compare your portfolio with the IHSG since the close of October 30, 2026, before you could trade. Past days use final closes. A timestamped endpoint uses the current portfolio value and the latest delayed level of the IHSG.",
       portfolioSeries: "Your portfolio",
       calendarMissing:
         "Portolab cannot show the return of the next trading day, because it has not recorded the trading calendar of IDX for that day. Tell your lecturer, so that the calendar can be added.",
@@ -360,7 +360,7 @@ const readerTexts: Record<
       noHoldings: "Siti Rahayu holds no shares yet.",
       returnTitle: "Return against the IHSG",
       chartNotice:
-        "The chart and the table below compare the return of the portfolio of Siti Rahayu with the return of the IHSG since the close of October 30, 2026, before Siti Rahayu could trade. Each of their returns uses the final closes of its day.",
+        "The chart and the table compare the portfolio of Siti Rahayu with the IHSG since the close of October 30, 2026, before Siti Rahayu could trade. Past days use final closes. A timestamped endpoint uses the current portfolio value and the latest delayed level of the IHSG.",
       portfolioSeries: "Portfolio",
       calendarMissing:
         "Portolab cannot show the return of the next trading day, because it has not recorded the trading calendar of IDX for that day. Tell the person who runs this Portolab server, so that the calendar can be added.",

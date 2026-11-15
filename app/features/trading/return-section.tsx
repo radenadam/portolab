@@ -23,7 +23,7 @@ import styles from "./trading.module.css";
 // The heading of the section names the chart of the returns, whose plot is a slider in the browser.
 const headingId = "return-heading";
 
-/** The section of the return of a portfolio against the IHSG at each final close since the start, as a chart with the table of its points, and up to which day the returns reach, or why Portolab cannot show them. */
+/** Final daily closes and a separately timed current point let the reader reproduce both kinds of return. */
 export function ReturnSection({
   history,
   reader,
@@ -125,6 +125,8 @@ export function historyEndText(
   reader: PortfolioReader,
 ): string {
   switch (end.kind) {
+    case "snapshot":
+      return m.trading_history_snapshot_notice();
     case "notFinal":
       return m.trading_chart_not_final_notice({
         date: formatCalendarDate(end.date),
