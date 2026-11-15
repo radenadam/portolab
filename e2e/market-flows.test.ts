@@ -366,8 +366,8 @@ async function captureMarketScreens(
 ): Promise<void> {
   await captureScreens(page, testInfo, {
     name: `${screen}-${locale}`,
-    fromTop: false,
-    fullPage: false,
+    fromTop: true,
+    fullPage: true,
     beforeCapture: async () => {
       expect(await layoutProblems(page)).toEqual([]);
       if (screen === "market" && testInfo.project.name === "desktop") {
