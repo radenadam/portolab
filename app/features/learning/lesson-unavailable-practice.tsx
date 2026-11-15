@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router";
+import { Icon } from "~/icon";
 
 import type { ClassId } from "~/features/classes/classes.schema";
 
@@ -15,6 +16,7 @@ import { PracticePanel } from "./practice-panel";
 import { lessonTaskField } from "./lesson-task";
 import { pathWithQuery } from "~/path-with-query";
 import styles from "./lesson-practice.module.css";
+import learningStyles from "./learning.module.css";
 
 export function LessonUnavailablePractice({
   classId,
@@ -41,6 +43,7 @@ export function LessonUnavailablePractice({
             })}
           >
             {m.learning_first_stock_link()}
+            <Icon name="arrowRight" className={learningStyles["icon"]} />
           </Link>
         </div>
       ) : (

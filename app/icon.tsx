@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 
-/** An icon of the frame, by the part that it marks. */
 export type IconName =
   | "map"
   | "trend"
@@ -12,6 +11,8 @@ export type IconName =
   | "signIn"
   | "globe"
   | "chevronDown"
+  | "chevronLeft"
+  | "arrowRight"
   | "check"
   | "book"
   | "search"
@@ -31,6 +32,8 @@ const paths: Record<IconName, string> = {
   globe:
     "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18ZM3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18",
   chevronDown: "M6 9l6 6 6-6",
+  chevronLeft: "M15 6l-6 6 6 6",
+  arrowRight: "M5 12h14M13 6l6 6-6 6",
   check: "M5 12.5l4.5 4.5L19 7.5",
   book: "M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 3H20v19H6.5A2.5 2.5 0 0 1 4 19.5v-14A2.5 2.5 0 0 1 6.5 3Z",
   flask:

@@ -6,7 +6,7 @@ import type { Locale } from "../app/paraglide/runtime.js";
 import { languageNames } from "../app/language-names.ts";
 import { openAsNewStudent } from "./open-as-new-student.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
-import { layoutProblems } from "./expect-layout.ts";
+import { expectLayout } from "./expect-layout.ts";
 import { expectMapLabelsClear } from "./expect-map-labels-clear.ts";
 import { captureScreens } from "./capture-screens.ts";
 import { holdClientScripts } from "./hold-client-scripts.ts";
@@ -165,7 +165,7 @@ for (const locale of locales) {
         .locator("strong"),
     ).toHaveText([text.own, ...text.capmNumbers]);
     await expectAccessibleScreen(page);
-    expect(await layoutProblems(page)).toEqual([]);
+    await expectLayout(page);
     await captureScreens(page, testInfo, {
       name: `lesson-9-${locale}`,
       fullPage: true,
@@ -223,7 +223,7 @@ for (const locale of locales) {
     await page.getByText(text.covariance, { exact: true }).click();
     await expect(page.locator("main details[open]")).toContainText("ρ");
     await expectAccessibleScreen(page);
-    expect(await layoutProblems(page)).toEqual([]);
+    await expectLayout(page);
     await captureScreens(page, testInfo, {
       name: `lesson-10-changed-${locale}`,
       fullPage: true,
@@ -242,7 +242,7 @@ for (const locale of locales) {
       await page.getByRole("slider", { name: code, exact: true }).fill("0");
     await expect(page.locator("main")).toContainText(text.noValue);
     await expectAccessibleScreen(page);
-    expect(await layoutProblems(page)).toEqual([]);
+    await expectLayout(page);
     await lecturer.context().close();
   });
 
@@ -312,7 +312,7 @@ for (const locale of locales) {
     ).toBeVisible();
     await expect(practiceProgress(page)).toHaveText(text.done);
     await expectAccessibleScreen(page);
-    expect(await layoutProblems(page)).toEqual([]);
+    await expectLayout(page);
     await captureScreens(page, testInfo, {
       name: `lesson-10-tiny-${locale}`,
       fullPage: true,
@@ -371,6 +371,13 @@ for (const locale of locales) {
         /\/learn\/9$/u,
         "",
       );
+      const backLink = page.getByRole("link", {
+        name: text.back,
+        exact: true,
+      });
+      const checkTaskBanner = async (): Promise<void> => {
+        await expect(backLink.locator("svg")).toBeVisible();
+      };
       for (const session of [9, 10]) {
         await page.goto(`${classPath}/learn/${String(session)}`);
         await page.getByRole("link", { name: text.skip }).click();
@@ -380,7 +387,21 @@ for (const locale of locales) {
           ).toBeVisible();
           await expect(page.locator("main dl small")).toHaveCount(0);
         }
-        await page.getByRole("link", { name: text.task, exact: true }).click();
+        const taskLink = page.getByRole("link", {
+          name: text.task,
+          exact: true,
+        });
+        await expectAccessibleScreen(page);
+        await captureScreens(page, testInfo, {
+          name: `lesson-empty-${String(session)}-${locale}`,
+          fullPage: true,
+          fromTop: true,
+          check: async () => {
+            await expectLayout(page);
+            await expect(taskLink.locator("svg")).toBeVisible();
+          },
+        });
+        await taskLink.click();
         await expect(page).toHaveURL(
           `${classPath}/market?lessonTask=${String(session)}`,
         );
@@ -389,6 +410,7 @@ for (const locale of locales) {
             name: `lesson-task-market-${locale}`,
             fullPage: true,
             fromTop: true,
+            check: checkTaskBanner,
           });
         await page.locator("#market-search").fill("no matching company");
         await page
@@ -407,14 +429,13 @@ for (const locale of locales) {
         expect(filtered.searchParams.get("range")).toBe("1y");
         expect(filtered.searchParams.get("lessonTask")).toBe(String(session));
         await page.locator('main a[href*="/stocks/BBCA?"]').click();
-        await expect(
-          page.getByRole("link", { name: text.back, exact: true }),
-        ).toBeVisible();
+        await checkTaskBanner();
         if (session === 9)
           await captureScreens(page, testInfo, {
             name: `lesson-task-stock-${locale}`,
             fullPage: true,
             fromTop: true,
+            check: checkTaskBanner,
           });
         await page.getByRole("link", { name: text.buy, exact: true }).click();
         await expect(page).toHaveURL(
@@ -425,6 +446,7 @@ for (const locale of locales) {
             name: `lesson-task-ticket-${locale}`,
             fullPage: testInfo.project.name !== "phone",
             fromTop: false,
+            check: checkTaskBanner,
           });
         if (session === 10) {
           await page
@@ -445,16 +467,13 @@ for (const locale of locales) {
             name: `lesson-task-activity-${locale}`,
             fullPage: true,
             fromTop: true,
+            check: checkTaskBanner,
           });
         }
-        await page.getByRole("link", { name: text.back, exact: true }).click();
+        await backLink.click();
         await expect(page).toHaveURL(
           `${classPath}/learn/${String(session)}#practice`,
         );
-        const taskLink = page.getByRole("link", {
-          name: text.task,
-          exact: true,
-        });
         await expect(taskLink).toBeVisible();
         await expect(taskLink).toBeInViewport();
       }

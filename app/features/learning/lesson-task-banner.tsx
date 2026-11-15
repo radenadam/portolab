@@ -4,9 +4,11 @@ import type { ClassId } from "~/features/classes/classes.schema";
 import { m } from "~/paraglide/messages.js";
 import { formatNumber } from "~/formatting";
 import { NumberText } from "~/number-text";
+import { Icon } from "~/icon";
 import { lessonTaskReturnPath } from "./lesson-task";
 import type { LessonTask } from "./lesson-task";
 import styles from "./lesson-practice.module.css";
+import learningStyles from "./learning.module.css";
 
 export function LessonTaskBanner({
   classId,
@@ -25,6 +27,7 @@ export function LessonTaskBanner({
       </span>
       <p>{m.learning_first_stock_task_notice()}</p>
       <Link className={styles["link"]} to={lessonTaskReturnPath(classId, task)}>
+        <Icon name="chevronLeft" className={learningStyles["icon"]} />
         {m.learning_task_return_link()}
       </Link>
     </aside>
