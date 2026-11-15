@@ -1,3 +1,5 @@
+import { classPath } from "~/features/classes/class-path";
+import { homeTitle } from "~/features/trading/home-title";
 import type { ReactNode } from "react";
 import { data } from "react-router";
 import { databaseContext } from "~/database/database.server";
@@ -7,14 +9,7 @@ import { m } from "~/paraglide/messages.js";
 import type { Route } from "./+types/measures-page";
 import { AnalysisView } from "./analysis-view";
 import { AnalysisAxisForm } from "./analysis-axis-form";
-import { measureStoredMarket } from "./measure-stored.server";
-import { summarizeMarket } from "./measure-summaries";
-import { parseAnalysisAxis } from "./parse-analysis-axis";
-import {
-  readPortfolioMeasures,
-  readStockRows,
-  readStudentLine,
-} from "./read-measures.server";
+import { readAnalysis, readAnalysisAxis } from "./read-analysis.server";
 
 export function meta(): Route.MetaDescriptors {
   return [{ title: pageTitle(m.measures_analysis_title()) }];
@@ -30,33 +25,22 @@ export function loader({ context, request, params, url }: Route.LoaderArgs) {
     now,
   });
   const axisValue = url.searchParams.get("axis");
-  const axis = parseAnalysisAxis(axisValue, m.measures_analysis_axis_label());
+  const axis = readAnalysisAxis(url);
   if (!axis.ok) {
     return data(
       {
         kind: "axisFailure" as const,
-        classId: place.classId,
         value: axisValue ?? "",
         failure: axis.failure,
       },
       { status: 400 },
     );
   }
-  const measures = readPortfolioMeasures(database, report.valuation);
-  const stocks = readStockRows(database);
-  const market = measureStoredMarket(database);
   return {
     kind: "analysis" as const,
     classId: place.classId,
     report,
-    measures,
-    marketLine: readStudentLine(
-      database,
-      { valuation: report.valuation, report: measures },
-      stocks,
-    ),
-    market: market.ok ? summarizeMarket(market.value) : undefined,
-    stocks,
+    ...readAnalysis(database, report),
     axis: axis.value,
     now,
     source,
@@ -68,7 +52,15 @@ export default function MeasuresPage({
   loaderData,
 }: Route.ComponentProps): ReactNode {
   if (loaderData.kind === "axisFailure") {
-    return <AnalysisAxisForm {...loaderData} />;
+    return (
+      <AnalysisAxisForm value={loaderData.value} failure={loaderData.failure} />
+    );
   }
-  return <AnalysisView {...loaderData} />;
+  return (
+    <AnalysisView
+      {...loaderData}
+      reader={{ kind: "owner", classId: loaderData.classId }}
+      summary={{ path: classPath(loaderData.classId), label: homeTitle() }}
+    />
+  );
 }

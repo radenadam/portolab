@@ -277,22 +277,6 @@ export function PageColumns({
   );
 }
 
-/** A part that a phone shows in another form than a desktop, such as rows of one kind, which are a list on a phone and a table on a desktop. Each form shows only on its screen, so a screen reader reads one of them. */
-export function PhoneAndDesktop({
-  phone,
-  desktop,
-}: {
-  phone: ReactNode;
-  desktop: ReactNode;
-}): ReactNode {
-  return (
-    <>
-      <div className={styles["onPhone"]}>{phone}</div>
-      <div className={styles["onDesktop"]}>{desktop}</div>
-    </>
-  );
-}
-
 /** The classes of a CSS module that apply, leaving out those whose condition does not hold. */
 function classNames(...names: (string | false | undefined)[]): string {
   return names.filter((name) => typeof name === "string").join(" ");

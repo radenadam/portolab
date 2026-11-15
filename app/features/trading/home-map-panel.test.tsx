@@ -96,7 +96,13 @@ for (const locale of locales) {
     };
     home.sessions = courseSessions("2026-10-30");
     const render = () =>
-      renderMarkupForTest(<HomeMapPanel home={home} classId={7 as ClassId} />);
+      renderMarkupForTest(
+        <HomeMapPanel
+          home={home}
+          classId={7 as ClassId}
+          reader={{ kind: "owner", classId: 7 as ClassId }}
+        />,
+      );
     const html = render();
     for (const sentence of texts[locale].common.slice(0, -1))
       expect(html).toContain(markupTextForTest(sentence));

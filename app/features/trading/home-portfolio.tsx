@@ -1,3 +1,5 @@
+import { textForReader, portfolioStudentName } from "./text-for-reader";
+import type { PortfolioReader } from "./text-for-reader";
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { ChangeText } from "~/change-text";
@@ -30,9 +32,11 @@ import { HomeMapPanel } from "./home-map-panel";
 export function HomePortfolio({
   home,
   classId,
+  reader,
 }: {
   home: HomePortfolioData;
   classId: ClassId;
+  reader: PortfolioReader;
 }): ReactNode {
   const { report, now, delayMinutes } = home;
   const values = homeHoldings(report.valuation);
@@ -45,21 +49,27 @@ export function HomePortfolio({
       : m.trading_home_today_label();
   const changeFailure = dayChange.ok
     ? undefined
-    : dayChangeFailureText(dayChange.failure);
+    : dayChangeFailureText(dayChange.failure, reader.kind === "lecturer");
   const failure = holdingQuoteFailureText([report], {
     now,
     delayMinutes,
   });
   return (
-    <div className={styles["home"]}>
-      <h1 className={styles["screenTitle"]}>{homeTitle()}</h1>
+    <div className={styles["home"]} data-reader={reader.kind}>
+      {reader.kind === "owner" && (
+        <h1 className={styles["screenTitle"]}>{homeTitle()}</h1>
+      )}
       <div className={styles["columns"]} data-layout="columns">
         <div className={styles["leftColumn"]}>
           <div className={styles["summary"]}>
             <section className={styles["hero"]}>
               <div className={styles["valueLabel"]}>
                 <h2 className={styles["valueLabel"]}>
-                  {m.trading_home_value_title()}
+                  {textForReader(reader, {
+                    owner: m.trading_home_value_title,
+                    lecturer: (name) =>
+                      m.trading_home_student_value_title({ name }),
+                  })}
                 </h2>
                 <ConceptHelp title={m.trading_home_value_title()}>
                   <p>{m.trading_home_value_body()}</p>
@@ -147,15 +157,24 @@ export function HomePortfolio({
             </section>
           </div>
           <div className={styles["returnCard"]}>
-            <HomeReturn history={report.history} classId={classId} />
+            <HomeReturn history={report.history} reader={reader} />
           </div>
           <div className={styles["riskCard"]}>
-            <HomeRisk report={home.measures} classId={classId} />
+            <HomeRisk
+              report={home.measures}
+              classId={classId}
+              reader={reader}
+            />
           </div>
         </div>
-        <HomeMapPanel home={home} classId={classId} />
+        <HomeMapPanel home={home} classId={classId} reader={reader} />
       </div>
-      <HomeHoldingsSection home={home} values={values} classId={classId} />
+      <HomeHoldingsSection
+        home={home}
+        values={values}
+        classId={classId}
+        studentName={portfolioStudentName(reader)}
+      />
     </div>
   );
 }

@@ -30,12 +30,16 @@ export default [
   ),
   route("classes/:classId/workbook", "features/grading/workbook-route.tsx"),
   route(
-    "classes/:classId/students/:studentId/portfolio",
+    "classes/:classId/students/:studentId",
     "features/grading/student-portfolio-page.tsx",
   ),
   route(
-    "classes/:classId/students/:studentId/measures",
+    "classes/:classId/students/:studentId/analysis",
     "features/grading/student-measures-page.tsx",
+  ),
+  route(
+    "classes/:classId/students/:studentId/journal",
+    "features/grading/student-journal-page.tsx",
   ),
   route(
     "classes/:classId/students/:studentId/password",

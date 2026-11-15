@@ -38,11 +38,17 @@ export function ActivityOrders({
   now,
   classId,
   filter,
+  readOnly = false,
+  studentName,
+  basePath,
 }: {
   orders: readonly StoredOrder[];
   now: Date;
   classId: ClassId;
   filter: ActivityFilter;
+  readOnly?: boolean;
+  studentName?: string | undefined;
+  basePath?: string;
 }): ReactNode {
   const shown = orders
     .toReversed()
@@ -54,6 +60,11 @@ export function ActivityOrders({
       className={styles["orderSection"]}
       aria-label={m.trading_activity_orders_label()}
     >
+      {readOnly && (
+        <h2 className={styles["journalTitle"]}>
+          {m.trading_activity_orders_label()}
+        </h2>
+      )}
       <nav
         className={styles["filters"]}
         aria-label={m.trading_activity_status_label()}
@@ -61,7 +72,7 @@ export function ActivityOrders({
         {activityFilters.map((status) => (
           <Link
             key={status}
-            to={`${activityPath(classId)}?status=${status}`}
+            to={`${basePath ?? activityPath(classId)}${basePath?.includes("?") === true ? "&" : "?"}status=${status}`}
             aria-current={filter === status ? "page" : undefined}
           >
             <span>
@@ -82,7 +93,11 @@ export function ActivityOrders({
         {shown.length === 0 ? (
           <p className={styles["empty"]}>
             {orders.length === 0
-              ? m.trading_activity_no_orders_body()
+              ? studentName === undefined
+                ? m.trading_activity_no_orders_body()
+                : m.trading_activity_student_no_orders_body({
+                    name: studentName,
+                  })
               : m.trading_activity_no_status_body()}
           </p>
         ) : (
@@ -131,7 +146,7 @@ export function ActivityOrders({
                   <StatusChip status={activityStatus(order, now)} />
                 </div>
                 <div className={styles["orderBody"]}>
-                  <p>{orderDetail(order, now)}</p>
+                  <p>{orderDetail(order, now, readOnly)}</p>
                   {order.reason !== undefined && (
                     <p className={styles["reason"]}>
                       <NumberText verbatim>
@@ -141,7 +156,7 @@ export function ActivityOrders({
                       </NumberText>
                     </p>
                   )}
-                  {order.state.kind === "rejected" && (
+                  {!readOnly && order.state.kind === "rejected" && (
                     <Link
                       className={styles["button"]}
                       to={stockPath(classId, order.code)}
@@ -149,7 +164,7 @@ export function ActivityOrders({
                       {m.trading_activity_ticket_link({ code: order.code })}
                     </Link>
                   )}
-                  {isOpenOrder(order, now) && (
+                  {!readOnly && isOpenOrder(order, now) && (
                     <CancelOrder
                       order={order}
                       side={sideLabels[order.side]()}
@@ -190,7 +205,11 @@ function StatusChip({ status }: { status: ActivityStatus }): ReactNode {
   );
 }
 
-function orderDetail(order: StoredOrder, now: Date): ReactNode {
+function orderDetail(
+  order: StoredOrder,
+  now: Date,
+  readOnly: boolean,
+): ReactNode {
   if (activityStatus(order, now) === "expired")
     return (
       <Message
@@ -229,19 +248,21 @@ function orderDetail(order: StoredOrder, now: Date): ReactNode {
           values={{ time: <MarketTime moment={order.state.cancelledAt} /> }}
         />
       );
-    case "rejected":
+    case "rejected": {
+      const reason = (
+        <NumberText>{orderFailureText(order.state.failure)}</NumberText>
+      );
       return (
         <Message
           text={m.trading_activity_rejection_notice}
           values={{
             time: <MarketTime moment={order.state.rejectedAt} />,
             quotedTime: <MarketTime moment={order.state.quotedAt} />,
-            reason: (
-              <NumberText>{orderFailureText(order.state.failure)}</NumberText>
-            ),
+            reason: readOnly ? <q>{reason}</q> : reason,
           }}
         />
       );
+    }
     case "expired":
       return (
         <Message

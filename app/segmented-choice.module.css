@@ -1,0 +1,44 @@
+:where(.choice) {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  padding-inline: var(--space-1);
+}
+
+:where(.choice)::before {
+  position: absolute;
+  inset: var(--space-1) 0;
+  z-index: -1;
+  border-radius: var(--radius-item);
+  background: var(--color-raised);
+  content: "";
+}
+
+:where(.choice) a {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  min-block-size: var(--size-touch-target);
+  align-items: center;
+  justify-content: center;
+  color: var(--color-ink-secondary);
+  font-size: var(--text-row);
+  text-decoration: none;
+}
+
+:where(.choice) a[aria-current="page"] {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+:where(.choice) a[aria-current="page"]::before {
+  position: absolute;
+  inset: var(--choice-inset, calc(var(--space-2) - var(--size-line))) 0;
+  z-index: -1;
+  border-radius: var(--radius-button);
+  background: var(--color-panel);
+  box-shadow: var(--shadow-choice);
+  content: "";
+}

@@ -15,6 +15,10 @@ import { cashSetAside } from "./open-orders";
 import { idxRulesOn } from "./idx-rules-on";
 import { readStudentPortfolioReport } from "./read-student-portfolio-report.server";
 import { readPortfolioDayChange } from "./read-portfolio-day-change.server";
+import type { Portfolio, PortfolioOwner } from "./portfolio-store.server";
+import type { PortfolioReport } from "./read-portfolio-report.server";
+import type { PriceSourceDescription } from "~/features/market-data/price-source.server";
+import type { ClassId } from "~/features/classes/classes.schema";
 
 /** Membership is checked before reading either the student's portfolio or the anonymous class context. */
 export function readHomePortfolio(
@@ -31,6 +35,32 @@ export function readHomePortfolio(
     context,
     input,
   );
+  return readHomePortfolioData(context, {
+    ...input,
+    classId: place.classId,
+    owner: place.owner,
+    portfolio,
+    source,
+    report,
+  });
+}
+
+/** The caller authorizes the owner before reading the portfolio or its class context. */
+export function readHomePortfolioData(
+  context: Readonly<RouterContextProvider>,
+  input: {
+    request: Request;
+    url: URL;
+    now: Date;
+    firstSessionDate: string | null;
+    classId: ClassId;
+    owner: PortfolioOwner;
+    portfolio: Portfolio;
+    report: PortfolioReport;
+    source: PriceSourceDescription;
+  },
+) {
+  const { portfolio, source, report } = input;
   const database = context.get(databaseContext);
   const today = wibDateOf(input.now);
   const rules = idxRulesOn(today);
@@ -41,8 +71,8 @@ export function readHomePortfolio(
     view: view.ok ? view.value : ("map" as const),
     sessions: courseSessions(input.firstSessionDate),
     classmates: readAnonymousClassmates(database, {
-      ...place.owner,
-      classId: place.classId,
+      ...input.owner,
+      classId: input.classId,
       request: input.request,
       now: input.now,
     }),

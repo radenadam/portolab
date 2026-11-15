@@ -83,6 +83,53 @@ const texts: Record<Locale, Record<Case | "empty" | "unmeasured", string>> = {
   },
 };
 
+const studentTexts: Record<
+  Locale,
+  Record<Case | "empty" | "unmeasured", string>
+> = {
+  id: {
+    empty:
+      "Setelah order beli Raka tereksekusi, saham Raka dapat ditempatkan di peta dengan beta dari riwayat harganya.",
+    unmeasured:
+      "Beta portofolio membutuhkan bobot dari harga tertunda dan imbal hasil bulanan yang cukup untuk setiap saham.",
+    singleCash:
+      "BBCA satu-satunya saham Raka, dengan beta 0,50. Kas 20% menarik beta portofolio turun ke 0,40.",
+    singleNoCash: "BBCA satu-satunya saham Raka, dengan beta 0,50.",
+    highCash:
+      "TLKM memberi imbal hasil tertinggi dan juga beta tertinggi (1,50). Kas 40% menarik beta portofolio turun ke 0,60.",
+    highNoCash:
+      "TLKM memberi imbal hasil tertinggi dan juga beta tertinggi (1,50).",
+    low: "BBCA memberi imbal hasil tertinggi walau betanya terendah (0,50). Dalam jangka pendek, imbal hasil tidak selalu mengikuti beta.",
+    risk: "TLKM berbobot 30% tetapi menyumbang 60% varians portofolio Raka.",
+    sector:
+      "50% portofolio Raka ada di sektor Keuangan. Saham satu sektor cenderung bergerak searah.",
+    beta: "Beta portofolio Raka 0,90 merangkum kepekaannya terhadap pasar selama periode ukuran, bukan janji imbal hasil.",
+    noVariation:
+      "Beta portofolio Raka 0,00 merangkum kepekaannya terhadap pasar selama periode ukuran, bukan janji imbal hasil.",
+    negativeBeta: "BBCA satu-satunya saham Raka, dengan beta -0,50.",
+  },
+  en: {
+    empty:
+      "Once a purchase of Raka fills, a holding of Raka can appear on the map with beta from its price history.",
+    unmeasured:
+      "Portfolio beta needs weights from delayed prices and enough monthly returns for every holding.",
+    singleCash:
+      "BBCA is the only holding of Raka, with beta 0.50. Cash at 20% brings portfolio beta down to 0.40.",
+    singleNoCash: "BBCA is the only holding of Raka, with beta 0.50.",
+    highCash:
+      "TLKM has the highest return and the highest beta (1.50). Cash at 40% brings portfolio beta down to 0.60.",
+    highNoCash: "TLKM has the highest return and the highest beta (1.50).",
+    low: "BBCA has the highest return despite the lowest beta (0.50). Short term returns do not always follow beta.",
+    risk: "TLKM has a 30% weight but contributes 60% of the variance of the portfolio of Raka.",
+    sector:
+      "50% of the portfolio of Raka is in the Financials sector. Stocks in one sector tend to move together.",
+    beta: "Beta 0.90 for the portfolio of Raka summarizes its sensitivity to the market over the measurement period, rather than promising a return.",
+    noVariation:
+      "Beta 0.00 for the portfolio of Raka summarizes its sensitivity to the market over the measurement period, rather than promising a return.",
+    negativeBeta: "BBCA is the only holding of Raka, with beta -0.50.",
+  },
+};
+
 const portfolioBetas: Record<Case, number> = {
   singleCash: 0.4,
   singleNoCash: 0.48,
@@ -195,8 +242,16 @@ for (const locale of locales) {
   });
   test(`chooses every insight and cash clause in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
-    for (const kind of cases)
-      expect(homeInsight(scenario(kind)).text, kind).toBe(texts[locale][kind]);
+    for (const studentName of [undefined, "Raka"]) {
+      const expected =
+        studentName === undefined ? texts[locale] : studentTexts[locale];
+      for (const kind of cases)
+        expect(homeInsight(scenario(kind), studentName).text, kind).toBe(
+          expected[kind],
+        );
+      for (const kind of ["empty", "unmeasured"] as const)
+        expect(homeInsight({ kind }, studentName).text).toBe(expected[kind]);
+    }
     expect(homeInsight(scenario("risk")).topic).toBe(topics[locale][1]);
     expect(
       homeInsight(homeInsightData(homePortfolioForTest(cashValuationForTest())))

@@ -1,3 +1,4 @@
+import { readerWithTextName } from "~/features/trading/text-for-reader";
 import type { ReactNode } from "react";
 import type { PortfolioReader } from "~/features/trading/text-for-reader";
 import { NumberText } from "~/number-text";
@@ -19,9 +20,7 @@ export function PortfolioMeasuresNotice({
         failureOf(
           explainPortfolioMeasures(
             report,
-            reader.kind === "lecturer"
-              ? { ...reader, studentName: textValue(reader.studentName) }
-              : reader,
+            readerWithTextName(reader, textValue),
           ),
         )
       }

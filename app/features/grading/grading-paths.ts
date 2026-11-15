@@ -17,7 +17,7 @@ export function studentPortfolioPath(
   classId: ClassId,
   studentId: UserId,
 ): string {
-  return `${classPath(classId)}/students/${String(studentId)}/portfolio`;
+  return `${classPortfoliosPath(classId)}/${String(studentId)}`;
 }
 
 /** The address of the measures of the portfolio of one student of a class, as the lecturer of the class reads them. */
@@ -25,5 +25,12 @@ export function studentMeasuresPath(
   classId: ClassId,
   studentId: UserId,
 ): string {
-  return `${classPath(classId)}/students/${String(studentId)}/measures`;
+  return `${studentPortfolioPath(classId, studentId)}/analysis`;
+}
+
+export function studentJournalPath(
+  classId: ClassId,
+  studentId: UserId,
+): string {
+  return `${studentPortfolioPath(classId, studentId)}/journal`;
 }

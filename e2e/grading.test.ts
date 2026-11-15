@@ -1,4 +1,3 @@
-import { studentReasonsSectionId } from "../app/features/trading/student-reasons-section-id.ts";
 import { expect, test } from "@playwright/test";
 import { languageNames } from "../app/language-names.ts";
 import { locales } from "../app/paraglide/runtime.js";
@@ -14,16 +13,13 @@ import { selectFirstStudent } from "./select-first-student.ts";
 import { storeGradingPortfolio } from "./store-grading-portfolio.ts";
 import { studentWithPortfolio } from "./student-with-portfolio.ts";
 import { widestClassNames } from "./widest-class-names.ts";
-import { reasonMaximumLength } from "../app/features/trading/reason-maximum-length.ts";
 import { fieldMaximumLength } from "../app/form-size.ts";
-import { itmgPortfolio } from "./itmg-portfolio.ts";
-import { storeTestPurchases } from "./store-test-purchases.ts";
-import { wideWord } from "./wide-word.ts";
 
 const texts: Record<
   Locale,
   {
     title: string;
+    classLink: string;
     search: string;
     submit: string;
     all: string;
@@ -41,12 +37,6 @@ const texts: Record<
     missing: string;
     headings: readonly string[];
     row: readonly string[];
-    classLink: string;
-    measureLink: string;
-    allLink: string;
-    measureHeading: string;
-    portfolioTitle: string;
-    portfolioLink: string;
     sharpeValue: string;
     treynorValue: string;
     resetTitle: string;
@@ -59,13 +49,8 @@ const texts: Record<
     resetTitle: "Atur ulang kata sandi",
     searchTooLong:
       'Kolom "Cari nama atau nama pengguna" memuat paling banyak 8.000 karakter, tetapi isinya 8.001 karakter. Persingkat isinya.',
-    portfolioTitle: `Portofolio ${widestClassNames.studentName} di ${widestClassNames.className}`,
-    portfolioLink: `Portofolio ${widestClassNames.studentName}`,
-    classLink: "Portofolio dan ukuran mahasiswa",
-    measureLink: "Imbal hasil dan risiko portofolio ",
-    allLink: "Kembali ke portofolio mahasiswa di ",
-    measureHeading: "Ukuran portofolio",
     title: "Mahasiswa",
+    classLink: "Portofolio dan ukuran mahasiswa",
     search: "Cari nama atau nama pengguna",
     submit: "Cari",
     all: "Semua · 2",
@@ -98,13 +83,8 @@ const texts: Record<
     resetTitle: "Reset a password",
     searchTooLong:
       'The field "Search name or username" holds at most 8,000 characters, but it has 8,001. Shorten it.',
-    portfolioTitle: `Portfolio of ${widestClassNames.studentName} in ${widestClassNames.className}`,
-    portfolioLink: `Portfolio of ${widestClassNames.studentName}`,
-    classLink: "Portfolios and measures of the students",
-    measureLink: "Return and risk of the portfolio of ",
-    allLink: "Back to the portfolios of the students in ",
-    measureHeading: "Measures of the portfolio",
     title: "Students",
+    classLink: "Portfolios and measures of the students",
     search: "Search name or username",
     submit: "Search",
     all: "All · 2",
@@ -146,7 +126,7 @@ for (const locale of locales) {
     const testClass = await readTestClass(page);
     const other = await newDevice(browser, locale);
     await signInAsTestStudent(other, testClass, "Student without shares");
-    await page.goto(`${classPath}/students`);
+    await page.getByRole("link", { name: text.classLink, exact: true }).click();
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
       text.title,
     );
@@ -184,13 +164,13 @@ for (const locale of locales) {
     ).toBeVisible();
     await expect(
       panel.getByRole("link", { name: text.portfolio, exact: true }),
-    ).toHaveAttribute("href", /\/portfolio\?returnTo=/);
+    ).toHaveAttribute("href", /\/students\/\d+\?returnTo=/);
     await expect(
       panel.getByRole("link", { name: text.analysis, exact: true }),
-    ).toHaveAttribute("href", /\/measures(?:\?|$)/);
+    ).toHaveAttribute("href", /\/analysis(?:\?|$)/);
     await expect(
       panel.getByRole("link", { name: text.journal, exact: true }),
-    ).toHaveAttribute("href", new RegExp(`#${studentReasonsSectionId}$`));
+    ).toHaveAttribute("href", /\/journal\?returnTo=/);
     await expectAccessibleScreen(page);
     await panel.getByRole("link", { name: text.reset, exact: true }).click();
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
@@ -293,93 +273,6 @@ for (const locale of locales) {
     await student.context().close();
   });
 
-  test(`opens the portfolio, analysis, and exact reason journal from the panel in ${languageNames[locale]}`, async ({
-    page,
-    browser,
-  }) => {
-    const reason = wideWord("Alasan", reasonMaximumLength);
-    const { student, classPath } = await studentWithPortfolio(page, browser, {
-      locale,
-      givePortfolio: (classId) => {
-        storeTestPurchases(classId, {
-          ...itmgPortfolio,
-          purchases: itmgPortfolio.purchases.map((purchase) => ({
-            ...purchase,
-            reason,
-          })),
-        });
-      },
-    });
-    await page.goto(classPath);
-    await page.getByRole("link", { name: text.classLink, exact: true }).click();
-    await page.goto(
-      `${classPath}/students?measure=treynor&q=${encodeURIComponent(widestClassNames.studentName)}`,
-    );
-    await selectFirstStudent(page);
-    await expect(
-      page.getByRole("dialog").getByText(reason, { exact: true }),
-    ).toBeVisible();
-    await expectAccessibleScreen(page);
-    const selectedAddress = new URL(page.url());
-    selectedAddress.hash = "#selected-student";
-    await page.goto(selectedAddress.href);
-    await page
-      .getByRole("dialog")
-      .getByRole("link", { name: text.close })
-      .click();
-    await expect(
-      page.locator("main tbody tr").first().getByRole("link"),
-    ).toBeFocused();
-    await selectFirstStudent(page);
-    await page
-      .getByRole("dialog")
-      .getByRole("link", { name: text.analysis, exact: true })
-      .click();
-    await expect(
-      page.getByRole("heading", { name: text.measureHeading, exact: true }),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("link", { name: text.portfolioLink, exact: true }),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("link", {
-        name: text.allLink + widestClassNames.className,
-        exact: true,
-      }),
-    ).toBeVisible();
-    await page
-      .getByRole("link", {
-        name: text.allLink + widestClassNames.className,
-        exact: true,
-      })
-      .click();
-    await expect(page).toHaveURL(selectedAddress.href);
-    await page
-      .getByRole("dialog")
-      .getByRole("link", { name: text.journal, exact: true })
-      .click();
-    await expect(page).toHaveURL(new RegExp(`#${studentReasonsSectionId}$`));
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-      text.portfolioTitle,
-    );
-    await expect(page.locator(`#${studentReasonsSectionId}`)).toBeVisible();
-    await page
-      .getByRole("link", {
-        name: text.measureLink + widestClassNames.studentName,
-        exact: true,
-      })
-      .click();
-    await expect(page).toHaveURL(/\/measures(?:\?|$)/);
-    await page
-      .getByRole("link", {
-        name: text.allLink + widestClassNames.className,
-        exact: true,
-      })
-      .click();
-    await expect(page).toHaveURL(selectedAddress.href);
-    await student.context().close();
-  });
-
   test(`refuses access to another class and a selected student outside the class in ${languageNames[locale]}`, async ({
     page,
     browser,
@@ -389,7 +282,26 @@ for (const locale of locales) {
       notFoundTitle: text.missing,
       addresses: async ({ classPath, otherClassPath, lecturer }) => {
         await lecturer.goto(classPath);
+        await lecturer.goto(`${classPath}/students`);
+        await selectFirstStudent(lecturer);
+        const address = await lecturer
+          .getByRole("dialog")
+          .getByRole("link", { name: text.portfolio, exact: true })
+          .getAttribute("href");
+        if (address === null)
+          throw new Error("The selected student has a portfolio address.");
+        const studentPath = new URL(address, lecturer.url()).pathname;
         return [
+          ...["", "/analysis", "/journal"].flatMap((suffix) => [
+            { reader: "student" as const, path: studentPath + suffix },
+            { reader: "otherLecturer" as const, path: studentPath + suffix },
+            {
+              reader: "lecturer" as const,
+              path: `${classPath}/students/999999999${suffix}`,
+            },
+          ]),
+          { reader: "lecturer", path: studentPath + "/portfolio" },
+          { reader: "lecturer", path: studentPath + "/measures" },
           { reader: "student", path: `${classPath}/students` },
           { reader: "student", path: `${classPath}/workbook` },
           { reader: "otherLecturer", path: `${classPath}/students` },

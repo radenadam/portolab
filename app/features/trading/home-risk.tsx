@@ -1,3 +1,8 @@
+import { PortfolioMeasuresNotice } from "~/features/measures/portfolio-measures-notice";
+import {
+  portfolioStudentName,
+  readerWithTextName,
+} from "~/features/trading/text-for-reader";
 import { ConceptHelp } from "~/concept-card";
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
@@ -23,11 +28,12 @@ import { homeRiskNotes } from "./home-risk-notes";
 export function HomeRisk({
   report,
   classId,
+  reader,
 }: {
   report: PortfolioMeasuresReport;
   classId: ClassId;
+  reader: PortfolioReader;
 }): ReactNode {
-  const reader = { kind: "owner", classId } as const;
   const result = explainPortfolioMeasures(report, reader);
   return (
     <section className={styles["card"]}>
@@ -40,11 +46,15 @@ export function HomeRisk({
             </ConceptHelp>
           )}
         </div>
-        <Link to={measuresPath(classId)}>{m.trading_home_analysis_link()}</Link>
+        {reader.kind === "owner" && (
+          <Link to={measuresPath(classId)}>
+            {m.trading_home_analysis_link()}
+          </Link>
+        )}
       </div>
       {!result.ok && (
         <p className={styles["note"]}>
-          <NumberText>{result.failure}</NumberText>
+          <PortfolioMeasuresNotice report={report} reader={reader} />
         </p>
       )}
       {result.ok && <RiskRows portfolio={result.value} reader={reader} />}
@@ -61,30 +71,29 @@ function RiskRows({
 }): ReactNode {
   const concepts = portfolioConceptRows(portfolio, reader);
   const ratios = portfolioRatioRows(portfolio);
-  const notes = homeRiskNotes(portfolio);
   const rows = [
     {
       row: { ...concepts.beta, label: m.trading_home_beta_label() },
       value: portfolio.beta,
       reference: beta(1),
-      text: notes.beta,
+      note: "beta",
     },
     {
       row: { ...concepts.risk, label: m.trading_home_monthly_risk_label() },
       value: portfolio.standardDeviation,
       reference: portfolio.market.standardDeviation,
-      text: notes.risk,
+      note: "risk",
     },
     {
       row: { ...ratios.sharpe, label: m.trading_home_sharpe_label() },
       value: portfolio.sharpeRatio.ok ? portfolio.sharpeRatio.value : undefined,
       reference: portfolio.market.sharpeRatio,
-      text: notes.sharpe,
+      note: "sharpe",
     },
-  ];
+  ] as const;
   return (
     <dl className={styles["risks"]}>
-      {rows.map(({ row, value, reference, text }) => (
+      {rows.map(({ row, value, reference, note }) => (
         <div className={styles["risk"]} key={row.label}>
           <dt>
             <MeasureLabel row={row} />
@@ -98,7 +107,14 @@ function RiskRows({
             )}
           </dd>
           <dd className={styles["riskNote"]}>
-            <NumberText>{text}</NumberText>
+            <NumberText>
+              {(textValue) =>
+                homeRiskNotes(
+                  portfolio,
+                  portfolioStudentName(readerWithTextName(reader, textValue)),
+                )[note]
+              }
+            </NumberText>
             {value === undefined && row.example}
           </dd>
         </div>

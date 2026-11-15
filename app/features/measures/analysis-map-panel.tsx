@@ -29,14 +29,16 @@ export function AnalysisMapPanel({
   marketLine,
   axis,
   holdings,
+  studentName,
 }: {
   market: MarketSummary | undefined;
   portfolio: PortfolioSummary | undefined;
   marketLine: Result<StudentLine, StoredMeasureFailure>;
   axis: AnalysisAxis;
   holdings: readonly AnalysisHolding[];
+  studentName?: string | undefined;
 }): ReactNode {
-  const details = analysisAxisDetails(axis);
+  const details = analysisAxisDetails(axis, studentName);
   const session = useConceptSession(details.termId);
   return (
     <section
@@ -50,6 +52,7 @@ export function AnalysisMapPanel({
           {market !== undefined && (
             <AnalysisMapHelp
               axis={axis}
+              studentName={studentName}
               market={market}
               portfolio={portfolio}
             />
@@ -64,6 +67,7 @@ export function AnalysisMapPanel({
             market={market}
             holdings={holdings}
             axis={axis}
+            studentName={studentName}
           />
         ) : (
           !marketLine.ok && (
@@ -82,7 +86,12 @@ export function AnalysisMapPanel({
               {details.sessionLabel({ session: formatNumber(session) })}
             </NumberText>
           </em>
-          <AnalysisCaption insight={details.insight(portfolio)} />
+          <AnalysisCaption
+            insight={(name) =>
+              analysisAxisDetails(axis, name).insight(portfolio)
+            }
+            studentName={studentName}
+          />
           <PopoverButton popover="analysis-map-help" className={styles["link"]}>
             {m.measures_analysis_learn_label()} <span aria-hidden>→</span>
           </PopoverButton>
@@ -120,12 +129,14 @@ function AnalysisMapHelp({
   axis,
   market,
   portfolio,
+  studentName,
 }: {
   axis: AnalysisAxis;
   market: MarketSummary;
   portfolio: PortfolioSummary | undefined;
+  studentName?: string | undefined;
 }): ReactNode {
-  const details = analysisAxisDetails(axis);
+  const details = analysisAxisDetails(axis, studentName);
   return (
     <ConceptCard
       id="analysis-map-help"
@@ -134,12 +145,19 @@ function AnalysisMapHelp({
       example={
         <p>
           <NumberText>
-            {portfolio === undefined
-              ? m.measures_analysis_market_notice({
-                  index: marketIndex.code,
-                  value: formatPercent(market.expectedReturn, "two"),
-                })
-              : details.insight(portfolio).text}
+            {(textValue) =>
+              portfolio === undefined
+                ? m.measures_analysis_market_notice({
+                    index: marketIndex.code,
+                    value: formatPercent(market.expectedReturn, "two"),
+                  })
+                : analysisAxisDetails(
+                    axis,
+                    studentName === undefined
+                      ? undefined
+                      : textValue(studentName),
+                  ).insight(portfolio).text
+            }
           </NumberText>
         </p>
       }

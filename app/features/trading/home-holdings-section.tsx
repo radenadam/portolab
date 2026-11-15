@@ -33,6 +33,7 @@ interface HoldingsProps {
   home: HomePortfolioData;
   values: ReturnType<typeof homeHoldings>;
   classId: ClassId;
+  studentName?: string | undefined;
 }
 
 /** The widest amounts need the width of the whole page, so narrow screens use rows. */
@@ -40,6 +41,7 @@ export function HomeHoldingsSection({
   home,
   values,
   classId,
+  studentName,
 }: HoldingsProps): ReactNode {
   const sharedTime = sharedQuoteTime(home.report.valuation.holdings);
   const maximumWeight = portfolioWeight(
@@ -57,14 +59,21 @@ export function HomeHoldingsSection({
       ),
     ),
   );
-  const title = countedText(
-    values.holdings.length,
-    {
-      one: m.trading_home_one_holding_title,
-      several: m.trading_home_several_holdings_title,
-    },
-    {},
-  );
+  const title = (textValue: (value: string) => string): string =>
+    countedText(
+      values.holdings.length,
+      {
+        one:
+          studentName === undefined
+            ? m.trading_home_one_holding_title
+            : m.trading_home_student_one_holding_title,
+        several:
+          studentName === undefined
+            ? m.trading_home_several_holdings_title
+            : m.trading_home_student_several_holdings_title,
+      },
+      { name: studentName === undefined ? "" : textValue(studentName) },
+    );
   const cashNote =
     home.setAside.orders === 0
       ? m.trading_home_no_order_cash_notice()
@@ -85,7 +94,13 @@ export function HomeHoldingsSection({
         <NumberText>{title}</NumberText>
       </h2>
       {values.holdings.length === 0 && (
-        <p className={styles["empty"]}>{m.trading_no_holdings_body()}</p>
+        <p className={styles["empty"]}>
+          <NumberText verbatim>
+            {studentName === undefined
+              ? m.trading_no_holdings_body()
+              : m.trading_home_student_no_holdings_body({ name: studentName })}
+          </NumberText>
+        </p>
       )}
       <div className={styles["desktopHoldings"]}>
         <table className={styles["table"]}>

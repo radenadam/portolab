@@ -173,8 +173,10 @@ function comparisonOf<Value extends number>({
 
 export function AnalysisMeasures({
   measures,
+  studentName,
 }: {
   measures: readonly AnalysisMeasure[];
+  studentName?: string | undefined;
 }): ReactNode {
   return (
     <section
@@ -183,7 +185,7 @@ export function AnalysisMeasures({
       data-layout="card"
     >
       <h2 id="analysis-measures-title">
-        {m.measures_analysis_measures_title()}
+        {analysisPortfolioTitle(studentName)}
       </h2>
       <dl>
         {measures.map(({ key, row, reference, scale }) => (
@@ -212,4 +214,12 @@ export function AnalysisMeasures({
       ))}
     </section>
   );
+}
+
+export function analysisPortfolioTitle(
+  studentName: string | undefined,
+): string {
+  return studentName === undefined
+    ? m.measures_analysis_measures_title()
+    : m.measures_analysis_student_measures_title({ name: studentName });
 }

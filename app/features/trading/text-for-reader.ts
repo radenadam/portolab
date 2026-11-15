@@ -17,3 +17,26 @@ export function textForReader(
       return texts.lecturer(reader.studentName);
   }
 }
+
+export function portfolioStudentName(
+  reader: PortfolioReader,
+): string | undefined {
+  switch (reader.kind) {
+    case "owner":
+      return undefined;
+    case "lecturer":
+      return reader.studentName;
+  }
+}
+
+export function readerWithTextName(
+  reader: PortfolioReader,
+  textValue: (value: string) => string,
+): PortfolioReader {
+  switch (reader.kind) {
+    case "owner":
+      return reader;
+    case "lecturer":
+      return { ...reader, studentName: textValue(reader.studentName) };
+  }
+}

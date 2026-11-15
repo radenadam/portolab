@@ -1,3 +1,4 @@
+import { latestPortfolioActivity } from "~/features/trading/latest-portfolio-activity";
 import type { Database } from "~/database/database.server";
 import type { UserId } from "~/features/accounts/accounts.schema";
 import type { Username } from "~/features/accounts/username";
@@ -93,7 +94,7 @@ export function readClassPortfolios(
       username: student.username,
       joinOrder,
       marketReturn: valuation.market?.return,
-      lastActivity: portfolio.orders.at(-1)?.placedAt,
+      lastActivity: latestPortfolioActivity(portfolio),
       hasHoldings: portfolio.holdings.length > 0,
       activeThisWeek: portfolio.orders.some(
         (order) => order.placedAt >= weekStart,

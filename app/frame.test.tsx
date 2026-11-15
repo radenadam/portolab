@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { AppIcon } from "./app-icon";
-import { Frame, PageColumns, PageHeader, PhoneAndDesktop } from "./frame";
+import { Frame, PageColumns, PageHeader } from "./frame";
 import type { FrameProfile } from "./frame";
 import { languageNames } from "./language-names";
 import { locales } from "./paraglide/runtime.js";
@@ -172,13 +172,4 @@ test("places the right column under the header line or leaves it to a wide scree
   );
   expect(columns("hidden")).toMatch(/_asideOnWide_[^"]*"><p>aside/);
   expect(columns("first")).not.toContain("_asideOnWide_");
-});
-
-test("gives a part its form for a phone and its form for a desktop, each for its own screen", () => {
-  const html = renderInRouterForTest(
-    <PhoneAndDesktop phone={<p>rows</p>} desktop={<p>table</p>} />,
-  );
-  expect(html).toMatch(
-    /_onPhone_[^"]*"><p>rows<\/p><\/div><div class="[^"]*_onDesktop_[^"]*"><p>table<\/p>/,
-  );
 });

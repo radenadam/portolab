@@ -155,7 +155,7 @@ export type StudentLine =
     };
 
 /** The line of the months of a portfolio with its stocks, or undefined while the portfolio has no measures. */
-export function readPortfolioLine(
+function readPortfolioLine(
   report: PortfolioMeasuresReport,
 ): PortfolioLine | undefined {
   if (report.kind !== "measured" || !report.measures.ok) {

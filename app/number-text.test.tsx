@@ -117,9 +117,12 @@ test("leaves words and instrument codes intact", () => {
 
 test("leaves a long digit-only name as text", () => {
   const name = "8".repeat(100);
-  expect(renderToStaticMarkup(<NumberText verbatim>{name}</NumberText>)).toBe(
-    `<span data-text-value="">${name}</span>`,
-  );
+  expect(
+    renderToStaticMarkup(<NumberText verbatim>{name}</NumberText>).replaceAll(
+      / class="[^"]*"/gu,
+      "",
+    ),
+  ).toBe(`<span data-text-value="">${name}</span>`);
 });
 
 const mixedTexts: Record<Locale, { quantity: string; verb: string }> = {

@@ -345,18 +345,6 @@
   gap: var(--space-section);
 }
 
-@media (width < 48rem) {
-  .onDesktop {
-    display: none;
-  }
-}
-
-@media (width >= 48rem) {
-  .onPhone {
-    display: none;
-  }
-}
-
 /* A screen without room for a right column beside the main column places what it holds as a phone does. */
 @media (width < 70rem) {
   .asideOnWide {

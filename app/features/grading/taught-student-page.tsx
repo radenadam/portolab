@@ -1,88 +1,122 @@
-import { NumberText } from "~/number-text";
+import { Icon } from "~/icon";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import type { UserId } from "~/features/accounts/accounts.schema";
 import type { ClassId } from "~/features/classes/classes.schema";
 import { pathReturningTo } from "~/features/accounts/path-returning-to";
+import { MarketTime } from "~/market-time";
+import { initialsOf } from "~/initials-of";
+import { NumberText } from "~/number-text";
 import { pageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
-import styles from "./grading.module.css";
-import { studentMeasuresPath, studentPortfolioPath } from "./grading-paths";
+import {
+  studentMeasuresPath,
+  studentPortfolioPath,
+  studentJournalPath,
+} from "./grading-paths";
+import styles from "./taught-student.module.css";
 
-/** A student of a class as the pages of the portfolio of the student show the student to the lecturer of the class. */
 export interface TaughtStudent {
   classId: ClassId;
   className: string;
   studentId: UserId;
   name: string;
+  shortName: string;
+  username: string;
+  latestActivity: Date | undefined;
 }
 
-/** The pages of the portfolio of one student that the lecturer of the class reads. */
-type StudentPage = "portfolio" | "measures";
-
-const titles: Record<StudentPage, (student: TaughtStudent) => string> = {
-  portfolio: (student) =>
-    m.grading_student_portfolio_title({
-      name: student.name,
-      class: student.className,
-    }),
-  measures: (student) =>
-    m.grading_student_measures_title({
-      name: student.name,
-      class: student.className,
-    }),
-};
-
-// Each page leads to the other page of the same student.
-const otherPages: Record<
+const pages = ["portfolio", "measures", "journal"] as const;
+type StudentPage = (typeof pages)[number];
+const tabs: Record<
   StudentPage,
-  (student: TaughtStudent) => { path: string; label: string }
+  { label: () => string; path: typeof studentPortfolioPath }
 > = {
-  portfolio: (student) => ({
-    path: studentMeasuresPath(student.classId, student.studentId),
-    label: m.grading_measures_link({ name: student.name }),
-  }),
-  measures: (student) => ({
-    path: studentPortfolioPath(student.classId, student.studentId),
-    label: m.grading_portfolio_link({ name: student.name }),
-  }),
+  portfolio: { label: m.grading_summary_label, path: studentPortfolioPath },
+  measures: { label: m.grading_analysis_label, path: studentMeasuresPath },
+  journal: { label: m.grading_journal_label, path: studentJournalPath },
 };
 
-/** The meta tags of a page of the portfolio of a student, whose title the first heading of the page repeats. */
 export function taughtStudentMeta(
   page: StudentPage,
-  student: TaughtStudent,
-): { title: string }[] {
-  return [{ title: pageTitle(titles[page](student)) }];
+): (input: { loaderData: { student: TaughtStudent } }) => { title: string }[] {
+  return ({ loaderData: { student } }) => [
+    {
+      title: pageTitle(
+        m.grading_student_page_title({
+          name: student.name,
+          section: tabs[page].label(),
+          class: student.className,
+        }),
+      ),
+    },
+  ];
 }
 
-/** The title of a page of the portfolio of a student, the way back to the portfolios of the class, and the link to the other page of the student. */
-export function TaughtStudentHeading({
+export function TaughtStudentPage({
   page,
   student,
   returnPath,
+  children,
 }: {
   page: StudentPage;
   student: TaughtStudent;
   returnPath: string;
+  children: ReactNode;
 }): ReactNode {
-  const other = otherPages[page](student);
   return (
-    <>
-      <h1>
-        <NumberText verbatim>{titles[page](student)}</NumberText>
-      </h1>
-      <Link to={returnPath} className={styles["link"]}>
-        <NumberText verbatim>
-          {m.grading_all_portfolios_link({ class: student.className })}
-        </NumberText>
-      </Link>
-      <Link
-        to={pathReturningTo(other.path, returnPath)}
-        className={styles["link"]}
+    <div className={styles["page"]}>
+      <header className={styles["header"]}>
+        <Link
+          to={returnPath}
+          className={styles["back"]}
+          aria-label={m.grading_back_label()}
+        >
+          <Icon name="chevronDown" className={undefined} />
+        </Link>
+        <span className={styles["avatar"]} aria-hidden>
+          {initialsOf(student.name)}
+        </span>
+        <div className={styles["identity"]}>
+          <h1>
+            <NumberText verbatim>{student.name}</NumberText>
+          </h1>
+          <p>
+            <NumberText verbatim>
+              {m.grading_student_username_label({ username: student.username })}
+            </NumberText>
+            {" · "}
+            {m.grading_last_activity_label()}{" "}
+            {student.latestActivity === undefined ? (
+              m.grading_never_label()
+            ) : (
+              <MarketTime moment={student.latestActivity} />
+            )}
+          </p>
+        </div>
+      </header>
+      <p className={styles["notice"]}>
+        <Icon name="eye" className={undefined} />
+        {m.grading_read_only_notice()}
+      </p>
+      <nav
+        className={styles["tabs"]}
+        aria-label={m.grading_student_sections_label()}
       >
-        <NumberText verbatim>{other.label}</NumberText>
-      </Link>
-    </>
+        {pages.map((section) => (
+          <Link
+            key={section}
+            to={pathReturningTo(
+              tabs[section].path(student.classId, student.studentId),
+              returnPath,
+            )}
+            aria-current={page === section ? "page" : undefined}
+          >
+            {tabs[section].label()}
+          </Link>
+        ))}
+      </nav>
+      {children}
+    </div>
   );
 }

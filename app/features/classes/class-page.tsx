@@ -137,7 +137,13 @@ export default function ClassPage({
         </>
       );
     case "student":
-      return <HomePortfolio home={loaderData.home} classId={loaderData.id} />;
+      return (
+        <HomePortfolio
+          home={loaderData.home}
+          classId={loaderData.id}
+          reader={{ kind: "owner", classId: loaderData.id }}
+        />
+      );
   }
 }
 

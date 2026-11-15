@@ -575,3 +575,7 @@
 .rowValue [data-change] {
   white-space: nowrap;
 }
+
+.home[data-reader="lecturer"] {
+  padding-block-start: var(--space-1);
+}

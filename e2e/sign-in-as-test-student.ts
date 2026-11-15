@@ -11,17 +11,21 @@ import { writeTestDatabase } from "./write-test-database.ts";
 export async function signInAsTestStudent(
   page: Page,
   testClass: TestClass,
-  name: string,
+  student: string | { name: string; username: string },
 ): Promise<string> {
+  const details =
+    typeof student === "string"
+      ? { name: student, username: uniqueUsername("mhs") }
+      : student;
   const username = successValueForTest(
-    parseUsername(uniqueUsername("mhs"), "The username of the test student"),
+    parseUsername(details.username, "The username of the test student"),
     "The generated username is valid",
   );
   const now = new Date();
   await writeTestDatabase(async (database) => {
     const studentId = await createStudent(
       database,
-      { username, name, password: chosenPassword },
+      { username, name: details.name, password: chosenPassword },
       now,
     );
     if (studentId === undefined) {

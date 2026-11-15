@@ -1,3 +1,6 @@
+import { PortfolioMeasuresNotice } from "./portfolio-measures-notice";
+import { portfolioStudentName } from "~/features/trading/text-for-reader";
+import type { PortfolioReader } from "~/features/trading/text-for-reader";
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
@@ -7,7 +10,6 @@ import { ConceptLesson } from "~/features/learning/concept-lesson";
 import type { PriceSourceDescription } from "~/features/market-data/price-source.server";
 import { marketPath } from "~/features/market-data/market-path";
 import { holdingQuoteFailureText } from "~/features/trading/holding-quote-failure-text";
-import { classPath } from "~/features/classes/class-path";
 import type { PortfolioReport } from "~/features/trading/read-portfolio-report.server";
 import { formatPercent } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
@@ -17,7 +19,11 @@ import { analysisDataId } from "./analysis-calculation";
 import { DiversificationCalculation } from "./diversification-calculation";
 import { AnalysisMapPanel } from "./analysis-map-panel";
 import type { AnalysisAxis } from "./analysis-axes";
-import { AnalysisMeasures, analysisMeasures } from "./analysis-measures";
+import {
+  AnalysisMeasures,
+  analysisMeasures,
+  analysisPortfolioTitle,
+} from "./analysis-measures";
 import { AnalysisPerformance } from "./analysis-performance";
 import { AnalysisPointCalculations } from "./analysis-point-calculations";
 import { explainPortfolioMeasures } from "./explain-portfolio-measures";
@@ -34,13 +40,18 @@ import type {
   StockRow,
   StudentLine,
 } from "./read-measures.server";
-import { StudentMarketLine } from "./market-line-section";
+import { StudentMarketLine } from "./student-market-line";
 import { StockTable } from "./stock-table";
 import styles from "./analysis.module.css";
 import { analysisHoldings } from "./analysis-holdings";
 import { MarketSection } from "./market-section";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
 import { attemptForCodes } from "~/features/market-data/quote-failure-text";
+
+interface SummaryLink {
+  path: string;
+  label: string;
+}
 
 export function AnalysisView({
   classId,
@@ -53,6 +64,8 @@ export function AnalysisView({
   now,
   source,
   firstSessionDate,
+  reader,
+  summary,
 }: {
   classId: ClassId;
   report: PortfolioReport;
@@ -64,8 +77,10 @@ export function AnalysisView({
   now: Date;
   source: PriceSourceDescription;
   firstSessionDate: string | null;
+  reader: PortfolioReader;
+  summary: SummaryLink;
 }): ReactNode {
-  const reader = { kind: "owner", classId } as const;
+  const studentName = portfolioStudentName(reader);
   const explained = explainPortfolioMeasures(measures, reader);
   const portfolio = explained.ok ? explained.value : undefined;
   const market = portfolio?.market ?? latestMarket;
@@ -93,7 +108,11 @@ export function AnalysisView({
     portfolio === undefined ? [] : analysisMeasures(portfolio, reader);
   return (
     <div className={styles["page"]}>
-      <AnalysisHeader market={market} classId={classId} />
+      <AnalysisHeader
+        market={market}
+        summary={summary}
+        studentName={studentName}
+      />
       <div
         className={styles["top"]}
         data-layout="columns"
@@ -105,9 +124,10 @@ export function AnalysisView({
           portfolio={portfolio}
           marketLine={marketLine}
           axis={axis}
+          studentName={studentName}
         />
         {portfolio !== undefined ? (
-          <AnalysisMeasures measures={rows} />
+          <AnalysisMeasures measures={rows} studentName={studentName} />
         ) : (
           <section
             className={styles["measures"]}
@@ -115,16 +135,18 @@ export function AnalysisView({
             aria-labelledby="analysis-measures-title"
           >
             <h2 id="analysis-measures-title">
-              {m.measures_analysis_measures_title()}
+              {analysisPortfolioTitle(studentName)}
             </h2>
             {!explained.ok && (
               <p>
-                <NumberText>{explained.failure}</NumberText>
+                <PortfolioMeasuresNotice report={measures} reader={reader} />
               </p>
             )}
-            <Link to={marketPath(classId)} className={styles["link"]}>
-              {m.measures_analysis_market_link()}
-            </Link>
+            {reader.kind === "owner" && (
+              <Link to={marketPath(classId)} className={styles["link"]}>
+                {m.measures_analysis_market_link()}
+              </Link>
+            )}
             <PopoverButton popover={analysisDataId} className={styles["link"]}>
               {m.measures_analysis_data_label()}
             </PopoverButton>
@@ -138,8 +160,8 @@ export function AnalysisView({
       )}
       <AnalysisPerformance
         history={report.history}
-        classId={classId}
         firstSessionDate={firstSessionDate}
+        reader={reader}
       />
       <Popover
         id={analysisDataId}
@@ -155,7 +177,10 @@ export function AnalysisView({
             quoteFailure={quoteFailure}
             source={source}
           />
-          <StudentMarketLine marketLine={marketLine} />
+          <StudentMarketLine
+            marketLine={marketLine}
+            studentName={studentName}
+          />
           <h2>{m.measures_stocks_title()}</h2>
           <StockTable classId={classId} stocks={stocks} />
         </div>
@@ -181,15 +206,17 @@ export function AnalysisView({
 
 function AnalysisHeader({
   market,
-  classId,
+  summary,
+  studentName,
 }: {
   market: MarketSummary | undefined;
-  classId: ClassId;
+  summary: SummaryLink;
+  studentName?: string | undefined;
 }): ReactNode {
   const riskFreeConcept = measureConcept("riskFree");
   return (
     <header className={styles["header"]}>
-      <h1>{m.measures_analysis_title()}</h1>
+      {studentName === undefined && <h1>{m.measures_analysis_title()}</h1>}
       {market !== undefined && (
         <div className={styles["period"]}>
           <NumberText>
@@ -217,8 +244,8 @@ function AnalysisHeader({
             calculation={<RiskFreeFormula rate={market.riskFreeRate} />}
             lesson={<ConceptLesson termId={riskFreeConcept.termId} />}
           />
-          <Link className={styles["pricesLink"]} to={classPath(classId)}>
-            {m.measures_analysis_prices_link()}
+          <Link className={styles["pricesLink"]} to={summary.path}>
+            {m.measures_analysis_prices_link({ page: summary.label })}
           </Link>
         </div>
       )}

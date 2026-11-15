@@ -6,12 +6,15 @@ import type { PortfolioDayChangeFailure } from "./read-portfolio-day-change.serv
 /** The value already explains an unpriced holding, so the daily comparison only adds reasons of its own. */
 export function dayChangeFailureText(
   failure: PortfolioDayChangeFailure,
+  lecturer = false,
 ): string | undefined {
   switch (failure.kind) {
     case "unpriced":
       return undefined;
     case "missingCalendar":
-      return m.trading_home_daily_calendar_notice();
+      return lecturer
+        ? m.trading_home_lecturer_daily_calendar_notice()
+        : m.trading_home_daily_calendar_notice();
     case "missingCloses":
       return countedText(
         failure.codes.length,
@@ -25,7 +28,11 @@ export function dayChangeFailureText(
         },
       );
     case "nonPositiveReference":
-      return m.trading_home_daily_reference_notice({
+      return (
+        lecturer
+          ? m.trading_home_lecturer_daily_reference_notice
+          : m.trading_home_daily_reference_notice
+      )({
         date: formatCalendarDate(failure.date),
         value: formatRupiah(failure.value),
       });

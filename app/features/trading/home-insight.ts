@@ -69,7 +69,10 @@ export function homeInsightData(
 }
 
 /** One observation uses the student's holdings, without suggesting a security or treating beta as a forecast. */
-export function homeInsight(portfolio: HomeInsightData): {
+export function homeInsight(
+  portfolio: HomeInsightData,
+  studentName?: string,
+): {
   session: SessionNumber;
   topic: string;
   text: string;
@@ -78,29 +81,38 @@ export function homeInsight(portfolio: HomeInsightData): {
     return {
       session: 6,
       topic: m.trading_home_orders_label(),
-      text: m.trading_home_insight_empty_body(),
+      text:
+        studentName === undefined
+          ? m.trading_home_insight_empty_body()
+          : m.trading_home_student_insight_empty_body({ name: studentName }),
     };
   if (portfolio.kind === "unmeasured")
     return betaInsight(m.trading_home_insight_unmeasured_body());
   const positions = portfolio.holdings;
-  const holdingText = holdingInsight(positions, portfolio);
+  const holdingText = holdingInsight(positions, portfolio, studentName);
   if (holdingText !== undefined) return betaInsight(holdingText);
-  const riskText = riskInsight(positions);
+  const riskText = riskInsight(positions, studentName);
   if (riskText !== undefined)
     return {
       session: 10,
       topic: m.trading_home_risk_topic_label(),
       text: riskText,
     };
-  const sectorText = sectorInsight(positions);
+  const sectorText = sectorInsight(positions, studentName);
   if (sectorText !== undefined)
     return {
       session: 2,
       topic: m.trading_home_diversification_label(),
       text: sectorText,
     };
+  const inputs = { beta: formatBeta(portfolio.beta) };
   return betaInsight(
-    m.trading_home_insight_beta_body({ beta: formatBeta(portfolio.beta) }),
+    studentName === undefined
+      ? m.trading_home_insight_beta_body(inputs)
+      : m.trading_home_student_insight_beta_body({
+          ...inputs,
+          name: studentName,
+        }),
   );
 }
 
@@ -110,6 +122,7 @@ function betaInsight(text: string) {
 function holdingInsight(
   positions: readonly InsightHolding[],
   portfolio: MeasuredInsight,
+  studentName?: string,
 ): string | undefined {
   const single = positions.length === 1 ? positions[0] : undefined;
   const highest = positions.toSorted(
@@ -122,12 +135,15 @@ function holdingInsight(
     (first, second) => second.result - first.result,
   )[0];
   const cash = cashClause(portfolio);
-  if (single !== undefined)
-    return m.trading_home_insight_one_holding_body({
-      code: single.code,
-      beta: formatBeta(single.beta),
-      cash,
-    });
+  if (single !== undefined) {
+    const inputs = { code: single.code, beta: formatBeta(single.beta), cash };
+    return studentName === undefined
+      ? m.trading_home_insight_one_holding_body(inputs)
+      : m.trading_home_student_insight_one_holding_body({
+          ...inputs,
+          name: studentName,
+        });
+  }
   if (top !== undefined && top.result > 0 && top.code === highest?.code)
     return m.trading_home_insight_high_body({
       code: top.code,
@@ -141,7 +157,10 @@ function holdingInsight(
     });
   return undefined;
 }
-function riskInsight(positions: readonly InsightHolding[]): string | undefined {
+function riskInsight(
+  positions: readonly InsightHolding[],
+  studentName?: string,
+): string | undefined {
   const risks = positions.flatMap((holding) =>
     holding.varianceShare !== undefined &&
     holding.weight >= materialHoldingWeight &&
@@ -154,14 +173,21 @@ function riskInsight(positions: readonly InsightHolding[]): string | undefined {
       second.share / second.weight - first.share / first.weight,
   )[0];
   if (risk === undefined) return undefined;
-  return m.trading_home_insight_risk_body({
+  const inputs = {
     code: risk.code,
     weight: formatPercent(risk.weight, "integer"),
     share: formatPercent(risk.share, "integer"),
-  });
+  };
+  return studentName === undefined
+    ? m.trading_home_insight_risk_body(inputs)
+    : m.trading_home_student_insight_risk_body({
+        ...inputs,
+        name: studentName,
+      });
 }
 function sectorInsight(
   positions: readonly InsightHolding[],
+  studentName?: string,
 ): string | undefined {
   const sectors = new Map<Sector, PortfolioWeight>();
   for (const holding of positions) {
@@ -174,11 +200,18 @@ function sectorInsight(
   const sector = [...sectors].toSorted(
     (first, second) => second[1] - first[1],
   )[0];
-  if (sector !== undefined && sector[1] >= concentratedSectorWeight)
-    return m.trading_home_insight_sector_body({
+  if (sector !== undefined && sector[1] >= concentratedSectorWeight) {
+    const inputs = {
       weight: formatPercent(sector[1], "integer"),
       sector: sectorName(sector[0]),
-    });
+    };
+    return studentName === undefined
+      ? m.trading_home_insight_sector_body(inputs)
+      : m.trading_home_student_insight_sector_body({
+          ...inputs,
+          name: studentName,
+        });
+  }
   return undefined;
 }
 
