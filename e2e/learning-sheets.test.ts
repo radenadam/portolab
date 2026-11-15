@@ -327,7 +327,8 @@ async function visitNativeLessonAndReturn(
   text: (typeof texts)[Locale],
   address: string,
 ): Promise<void> {
-  await page.getByRole("button", { name: text.help, exact: true }).click();
+  const help = page.getByRole("button", { name: text.help, exact: true });
+  await help.click();
   await page
     .getByRole("link", { name: text.more, exact: true })
     .click({ noWaitAfter: true });
@@ -335,5 +336,6 @@ async function visitNativeLessonAndReturn(
     lesson: text.lesson,
     back: text.back,
     address,
+    source: help,
   });
 }

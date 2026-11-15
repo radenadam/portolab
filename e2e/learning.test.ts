@@ -188,6 +188,7 @@ for (const locale of locales) {
       lesson: text.lesson,
       back: text.back,
       address: `${classPath}/glossary?q=beta#term-beta`,
+      source: beta.getByRole("link", { name: text.sessionLink, exact: true }),
     });
     await expect(page.getByRole("searchbox")).toHaveValue("beta");
     await lecturer.context().close();

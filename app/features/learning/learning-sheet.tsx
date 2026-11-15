@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef } from "react";
 import type { ReactNode } from "react";
-import { useFetcher } from "react-router";
+import { parsePath, useFetcher } from "react-router";
 import { NumberText } from "~/number-text";
 import { m } from "~/paraglide/messages.js";
 import type { loader as lessonLoader } from "./lesson-page";
@@ -49,7 +49,7 @@ export function LearningSheet({
       : m.learning_glossary_title();
   useEffect(() => {
     if (content === undefined) return;
-    const fragment = new URL(address, window.location.origin).hash.slice(1);
+    const fragment = parsePath(address).hash?.slice(1) ?? "";
     const target = [
       ...(dialogRef.current?.querySelectorAll("[id]") ?? []),
     ].find((element) => element.id === `${titleId}${fragment}`);
