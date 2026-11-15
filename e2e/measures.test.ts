@@ -1,7 +1,8 @@
 import { expectMapLabelsClear } from "./expect-map-labels-clear.ts";
 import { fieldMaximumLength } from "../app/form-size.ts";
 import { screenshotFullHeight } from "./screenshot-full-height.ts";
-import type { Browser, Locator, Page } from "@playwright/test";
+import { captureScreens } from "./capture-screens.ts";
+import type { Browser, Locator, Page, TestInfo } from "@playwright/test";
 import type { ClassId } from "../app/features/classes/classes.schema.ts";
 import { expect, test } from "@playwright/test";
 import type { Locale } from "../app/paraglide/runtime.js";
@@ -70,10 +71,16 @@ const analysisText: Record<
     longAxisFailure: string;
     axisHints: readonly string[];
     apply: string;
+    stockRange: string;
+    month: string;
+    backToAnalysis: string;
   }
 > = {
   id: {
     stocksTitle: "Ukuran setiap saham",
+    stockRange: "Rentang grafik harga",
+    month: "1B",
+    backToAnalysis: "Kembali ke Analisis",
     title: "Analisis",
     endValue: "Anda 0,00%",
     sessionLines: "Garis tegak: awal setiap sesi kuliah.",
@@ -140,6 +147,9 @@ const analysisText: Record<
   },
   en: {
     stocksTitle: "Measures of each stock",
+    stockRange: "Price chart range",
+    month: "1M",
+    backToAnalysis: "Back to Analysis",
     title: "Analysis",
     endValue: "You 0.00%",
     sessionLines: "Vertical lines: the start of each class session.",
@@ -545,6 +555,25 @@ for (const locale of locales) {
     await student.context().close();
   });
 
+  for (const javaScriptEnabled of [true, false]) {
+    test.describe(`stock returns with JavaScript ${String(javaScriptEnabled)} in ${language}`, () => {
+      test.use({ javaScriptEnabled });
+      for (const axis of ["beta", "risk"] as const) {
+        test(`restores the stock row and the ${axis} axis after changing the stock chart range`, async ({
+          page,
+          browser,
+        }, info) => {
+          await expectAnalysisStockReturn(page, browser, {
+            locale,
+            axis,
+            javaScriptEnabled,
+            info,
+          });
+        });
+      }
+    });
+  }
+
   test(`shows an empty portfolio with the IHSG map and a way to the market in ${language}`, async ({
     page,
     browser,
@@ -751,10 +780,10 @@ for (const locale of locales) {
       page,
       browser,
     }) => {
-      const { lecturer } = await openAnalysisOnPage(page, browser, locale);
-      const classPath = new URL(page.url()).pathname.slice(
-        0,
-        -"/analysis".length,
+      const { lecturer, classPath } = await openAnalysisOnPage(
+        page,
+        browser,
+        locale,
       );
       await expectPerformanceHelp(page, locale);
       await openNativePointCalculation(
@@ -789,4 +818,80 @@ for (const locale of locales) {
       await lecturer.context().close();
     });
   });
+}
+
+async function expectAnalysisStockReturn(
+  page: Page,
+  browser: Browser,
+  {
+    locale,
+    axis,
+    javaScriptEnabled,
+    info,
+  }: {
+    locale: Locale;
+    axis: "beta" | "risk";
+    javaScriptEnabled: boolean;
+    info: TestInfo;
+  },
+): Promise<void> {
+  const text = analysisText[locale];
+  const { lecturer, classPath } = await openAnalysisOnPage(
+    page,
+    browser,
+    locale,
+  );
+  try {
+    const hints =
+      javaScriptEnabled && axis === "risk"
+        ? ["invalid", "9".repeat(fieldMaximumLength + 1)]
+        : ["invalid"];
+    for (const hint of hints) {
+      const response = await page.goto(
+        `${classPath}/analysis?${new URLSearchParams({ axis, data: hint }).toString()}`,
+      );
+      expect(response?.status()).toBe(200);
+      await expect(page.locator("#analysis-data")).toBeHidden();
+    }
+    await page
+      .getByRole("region", { name: text.measures, exact: true })
+      .getByRole("button", { name: text.calculate, exact: true })
+      .first()
+      .click();
+    await page
+      .locator("#analysis-expectedReturn")
+      .getByRole("button", { name: text.data, exact: true })
+      .click();
+    await expect(page.locator("#stock-BBCA")).toBeVisible();
+    await page.locator("#stock-BBCA").click();
+    const returnPath = `${classPath}/analysis?axis=${axis}&data=stocks#stock-BBCA`;
+    await expect(page).toHaveURL(
+      (url) => url.searchParams.get("returnTo") === returnPath,
+    );
+    await page
+      .getByRole("navigation", { name: text.stockRange, exact: true })
+      .getByRole("link", { name: text.month, exact: true })
+      .click();
+    await expect(page).toHaveURL(
+      (url) =>
+        url.searchParams.get("range") === "1m" &&
+        url.searchParams.get("returnTo") === returnPath,
+    );
+    await page.getByRole("link", { name: text.backToAnalysis }).click();
+    await expect(page).toHaveURL(returnPath);
+    await expect(page.locator("#stock-BBCA")).toBeInViewport();
+    expect(await layoutProblems(page)).toEqual([]);
+    if (javaScriptEnabled) await expectAccessibleScreen(page);
+    if (javaScriptEnabled && axis === "risk")
+      await captureScreens(page, info, {
+        name: `analysis-stock-return-${locale}`,
+        fullPage: true,
+        fromTop: true,
+        check: async () => {
+          expect(await layoutProblems(page)).toEqual([]);
+        },
+      });
+  } finally {
+    await lecturer.context().close();
+  }
 }

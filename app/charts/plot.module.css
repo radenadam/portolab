@@ -33,3 +33,7 @@
   line-height: 1.4;
   pointer-events: none;
 }
+
+.areaFill {
+  stroke: none;
+}

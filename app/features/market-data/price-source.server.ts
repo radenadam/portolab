@@ -70,7 +70,7 @@ export interface IndexHistory {
 /** The daily closes of one instrument. */
 export type DailyHistory = StockHistory | IndexHistory;
 
-/** What the prices page tells about the source of its prices. */
+/** The simulation badge and quote failures need the name and delay of their source from one place. */
 export interface PriceSourceDescription {
   /** The name of the source, such as Yahoo Finance. */
   name: string;

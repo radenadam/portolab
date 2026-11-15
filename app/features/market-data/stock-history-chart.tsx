@@ -12,17 +12,10 @@ import {
 import { m } from "~/paraglide/messages.js";
 import { splitAdjustedRupiah } from "~/units/split-adjusted-rupiah";
 import type { StockHistory } from "./price-source.server";
-import { priceChartRanges } from "./price-chart-range";
+import { priceChartRangeOptions } from "./price-chart-range";
 import type { PriceChartRange } from "./price-chart-range";
 import styles from "./stock-history-chart.module.css";
 import { pathWithQuery } from "~/path-with-query";
-
-const labels: Record<PriceChartRange, () => string> = {
-  "1m": () => m.market_data_month_range_label(),
-  "3m": () => m.market_data_quarter_range_label(),
-  "1y": () => m.market_data_year_range_label(),
-  "5y": () => m.market_data_five_year_range_label(),
-};
 
 const dateParts: Record<
   PriceChartRange,
@@ -39,10 +32,12 @@ export function StockHistoryChart({
   history,
   range,
   path,
+  returnTo,
 }: {
   history: StockHistory;
   range: PriceChartRange;
   path: string;
+  returnTo: string | undefined;
 }): ReactNode {
   const first = history.closes[0];
   const latest = history.closes.at(-1);
@@ -56,14 +51,14 @@ export function StockHistoryChart({
         className={styles["ranges"]}
         aria-label={m.market_data_chart_range_label()}
       >
-        {priceChartRanges.map((choice) => (
+        {priceChartRangeOptions().map(({ value: choice, label }) => (
           <Link
             key={choice}
-            to={pathWithQuery(path, { range: choice })}
+            to={pathWithQuery(path, { range: choice, returnTo })}
             preventScrollReset
             aria-current={choice === range ? "true" : undefined}
           >
-            {labels[choice]()}
+            {label}
           </Link>
         ))}
       </nav>

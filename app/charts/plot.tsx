@@ -1,3 +1,5 @@
+import { useId } from "react";
+import styles from "./plot.module.css";
 import type { ReactNode } from "react";
 import type { PlotFraction } from "~/units/plot-fraction";
 
@@ -27,6 +29,7 @@ export function PlotLine({
   className: string | undefined;
   area?: boolean;
 }): ReactNode {
+  const areaId = useId();
   let path = "";
   for (const [index, { x, y }] of positions.entries()) {
     path += `${index === 0 ? "M" : "L"}${String(hundredthsOf(x))} ${String(hundredthsOf(y))}`;
@@ -40,11 +43,23 @@ export function PlotLine({
       overflow="visible"
     >
       {area && positions.length > 1 && (
-        <path
-          d={`${path} L100 100 L0 100 Z`}
-          fill="var(--line-color)"
-          opacity="0.1"
-        />
+        <>
+          <defs>
+            <linearGradient id={areaId} x1="0" y1="0" x2="0" y2="1">
+              <stop
+                offset="0"
+                stopColor="var(--line-color)"
+                stopOpacity="0.18"
+              />
+              <stop offset="1" stopColor="var(--line-color)" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          <path
+            d={`${path}L100 100L0 100Z`}
+            className={styles["areaFill"]}
+            fill={`url(#${areaId})`}
+          />
+        </>
       )}
       <path d={path} className={className} vectorEffect="non-scaling-stroke" />
     </svg>

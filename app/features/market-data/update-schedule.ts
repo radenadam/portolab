@@ -31,7 +31,7 @@ export function nextScheduledAttempt(
     startOfMinute(latestAttempt.attemptedAt) + minuteMilliseconds,
     nextAttemptTime(latestAttempt).getTime(),
   );
-  // Each minute is tested with the rule that the job follows, so the time that the prices page promises cannot drift from what the job does.
+  // Each minute is tested with the rule that the job follows, so the time that the class market page promises cannot drift from what the job does.
   while (!isUpdateMinute(new Date(minute), delayMinutes)) {
     minute += minuteMilliseconds;
   }

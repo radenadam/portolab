@@ -95,6 +95,7 @@
 }
 
 .tableFrame {
+  container-type: inline-size;
   max-width: 100%;
   overflow-x: auto;
 }
@@ -128,7 +129,7 @@
   width: 32ch;
 }
 
-@media (width < 48rem) {
+@container (width < 60rem) {
   .table,
   .table tbody {
     display: block;

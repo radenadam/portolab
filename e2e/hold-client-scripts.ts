@@ -2,7 +2,7 @@ import type { BrowserContext, Page } from "@playwright/test";
 
 export async function holdClientScripts(
   page: Page,
-  { otherDevice, address }: { otherDevice: BrowserContext; address?: string },
+  { otherDevice, address }: { otherDevice?: BrowserContext; address?: string },
   check: (loadClient: () => Promise<void>) => Promise<void>,
 ): Promise<void> {
   const started = Promise.withResolvers<undefined>();
@@ -27,7 +27,7 @@ export async function holdClientScripts(
     try {
       await page.unrouteAll({ behavior: "wait" });
     } finally {
-      await otherDevice.close();
+      await otherDevice?.close();
     }
   }
 }

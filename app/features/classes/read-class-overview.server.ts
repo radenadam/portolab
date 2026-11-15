@@ -3,9 +3,11 @@ import { startOfWeek } from "~/calendar-dates";
 import { holdingQuoteFailureText } from "~/features/trading/holding-quote-failure-text";
 import { readCurrentPortfolio } from "~/features/trading/read-current-portfolio.server";
 import { readPortfolioReport } from "~/features/trading/read-portfolio-report.server";
-import type { ValuationReport } from "~/features/trading/read-portfolio-report.server";
 import { readPortfolioMeasures } from "~/features/measures/read-measures.server";
 import { explainPortfolioMeasures } from "~/features/measures/explain-portfolio-measures";
+import { sharedQuoteTime } from "~/features/market-data/shared-quote-time";
+import { latestQuoteTime } from "~/features/market-data/latest-quote-time";
+import type { Quote } from "~/features/market-data/price-source.server";
 import { measureStoredMarket } from "~/features/measures/measure-stored.server";
 import { formatMarketTime, formatList } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
@@ -58,14 +60,12 @@ export function readClassOverview(
     delayMinutes,
   }: { request: Request; now: Date; delayMinutes: number },
 ): ClassOverview {
-  const students: OverviewStudent[] = [];
-  const valuations: ValuationReport[] = [];
+  const rows: ReturnType<typeof readOverviewStudent>[] = [];
   const compared: { portfolio: CumulativeReturn; market: CumulativeReturn }[] =
     [];
   const risks: Beta[] = [];
   let active = 0;
   let ordersThisWeek = 0;
-  let pricesAt: Date | undefined;
   for (const student of listStudents(database, taught.id)) {
     const read = readOverviewStudent(
       database,
@@ -76,8 +76,8 @@ export function readClassOverview(
         delayMinutes,
       },
     );
-    const { overview, report } = read;
-    valuations.push(report);
+    const { overview } = read;
+    rows.push(read);
     if (overview.risk !== undefined) risks.push(overview.risk.beta);
     if (overview.return !== undefined && overview.marketReturn !== undefined)
       compared.push({
@@ -86,27 +86,32 @@ export function readClassOverview(
       });
     if (overview.ordersThisWeek > 0) active += 1;
     ordersThisWeek += overview.ordersThisWeek;
-    if (
-      read.pricesAt !== undefined &&
-      (pricesAt === undefined || read.pricesAt > pricesAt)
-    )
-      pricesAt = read.pricesAt;
-    students.push(overview);
   }
+  const quotes = rows.flatMap((row) => row.quotes);
+  const latest = latestQuoteTime(quotes);
+  const pricesAt =
+    sharedQuoteTime(quotes) ??
+    (latest === undefined ? undefined : formatMarketTime(latest));
   const market = measureStoredMarket(database);
   return {
-    students,
+    students: rows.map((row) => ({
+      ...row.overview,
+      priceTimes: portfolioPriceTimes(row, pricesAt),
+    })),
     summary: classSummary(compared, risks),
     marketDeviation: market.ok
       ? market.value.standardDeviation.value
       : undefined,
-    quoteFailure: holdingQuoteFailureText(valuations, { now, delayMinutes }),
+    quoteFailure: holdingQuoteFailureText(
+      rows.map((row) => row.report),
+      { now, delayMinutes },
+    ),
     active,
     ordersThisWeek,
     pricesAt:
       pricesAt === undefined
         ? undefined
-        : m.classes_prices_time_label({ time: formatMarketTime(pricesAt) }),
+        : m.classes_prices_time_label({ time: pricesAt }),
   };
 }
 
@@ -133,10 +138,14 @@ function readOverviewStudent(
     readPortfolioMeasures(database, report.valuation),
     { kind: "lecturer", studentName: studentNameBoundary },
   );
-  const prices = portfolioPriceTimes(report);
+  const quotes: Pick<Quote, "code" | "quotedAt">[] =
+    report.market === undefined ? [] : [report.market.quote];
+  for (const holding of report.valuation.holdings) {
+    if (holding.kind === "priced") quotes.push(holding.quote);
+  }
   return {
     report,
-    pricesAt: prices.latest,
+    quotes,
     overview: {
       id: student.id,
       name: student.name,
@@ -155,7 +164,6 @@ function readOverviewStudent(
         ? undefined
         : measures.failure.split(studentNameBoundary),
       ...orderActivity(portfolio.orders, options.now),
-      priceTimes: prices.text,
     },
   };
 }
@@ -182,38 +190,21 @@ function orderActivity(
   };
 }
 
-function portfolioPriceTimes(report: ReturnType<typeof readPortfolioReport>): {
-  latest: Date | undefined;
-  text: string;
-} {
-  const times: string[] =
-    report.market === undefined
-      ? []
-      : [
-          m.app_map_value_part({
-            name: report.market.quote.code,
-            value: formatMarketTime(report.market.quote.quotedAt),
-          }),
-        ];
-  let latest = report.market?.quote.quotedAt;
-  for (const holding of report.valuation.holdings) {
-    if (holding.kind !== "priced") continue;
-    const quotedAt = holding.quote.quotedAt;
-    if (latest === undefined || quotedAt > latest) latest = quotedAt;
-    times.push(
-      m.app_map_value_part({
-        name: holding.code,
-        value: formatMarketTime(quotedAt),
-      }),
-    );
-  }
-  return {
-    latest,
-    text:
-      times.length === 0
-        ? report.valuation.holdings.length === 0
-          ? m.classes_map_cash_label()
-          : m.classes_measure_pending_label()
-        : formatList(times, "conjunction"),
-  };
+function portfolioPriceTimes(
+  { report, quotes }: ReturnType<typeof readOverviewStudent>,
+  sharedTime: string | undefined,
+): string {
+  if (quotes.length === 0)
+    return report.valuation.holdings.length === 0
+      ? m.classes_map_cash_label()
+      : m.classes_measure_pending_label();
+  return formatList(
+    quotes.map((quote) => {
+      const time = formatMarketTime(quote.quotedAt);
+      return time === sharedTime
+        ? quote.code
+        : m.app_map_value_part({ name: quote.code, value: time });
+    }),
+    "conjunction",
+  );
 }

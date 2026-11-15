@@ -22,7 +22,7 @@ test("keeps a full search after URI encoding together with the selection and con
 });
 
 test("refuses another page, another class, an external address, and an oversized address", () => {
-  for (const path of ["/prices", "/classes/8/students", "/classes/8"]) {
+  for (const path of ["/sign-in", "/classes/8/students", "/classes/8"]) {
     expect(
       parseStudentReturnPath(path, "returnTo", { origin: siteOrigin, classId }),
     ).toEqual({

@@ -39,6 +39,7 @@ interface RoutePage {
   path: (walked: WalkedClass) => string;
   /** A form or a page of prose must mark its centered reading column, so omitting the mark cannot skip that rule. */
   reading?: boolean;
+  tableOpen?: boolean;
   /** The rules of the layout that a page of Tenang breaks until the piece of issue #127 that rebuilds it removes them here. The comment of the entry names that piece. */
   brokenUntilRebuilt?: readonly LayoutRule[];
 }
@@ -58,9 +59,6 @@ const routePages: Record<string, readonly RoutePage[]> = {
     { reader: "student", path: ({ classPath }) => `${classPath}/glossary` },
   ],
   "features/home/home-page.tsx": [{ reader: "visitor", path: () => "/" }],
-  "features/market-data/prices-page.tsx": [
-    { reader: "visitor", path: () => "/prices" },
-  ],
   "features/market-data/market-page.tsx": [
     { reader: "student", path: ({ classPath }) => `${classPath}/market` },
   ],
@@ -84,7 +82,11 @@ const routePages: Record<string, readonly RoutePage[]> = {
     { reader: "student", path: () => "/classes", reading: true },
   ],
   "features/classes/class-page.tsx": [
-    { reader: "lecturer", path: ({ classPath }) => classPath },
+    {
+      reader: "lecturer",
+      path: ({ classPath }) => `${classPath}?reveal=data`,
+      tableOpen: true,
+    },
     { reader: "student", path: ({ classPath }) => classPath },
   ],
   "features/classes/calendar-page.tsx": [
@@ -308,7 +310,7 @@ for (const [project, widths] of Object.entries(widthsOfProject)) {
           }
           for (const [
             screen,
-            { reader, path, reading, brokenUntilRebuilt = [] },
+            { reader, path, reading, tableOpen, brokenUntilRebuilt = [] },
           ] of Object.values(routePages).flat().entries()) {
             const address = path(walked);
             await readers[reader].goto(address);
@@ -317,6 +319,12 @@ for (const [project, widths] of Object.entries(widthsOfProject)) {
                 readers[reader].locator('main [data-layout="reading"]'),
                 address,
               ).toHaveCount(1);
+            }
+            if (tableOpen === true) {
+              await expect(
+                readers[reader].locator("main details:has(table)").first(),
+                address,
+              ).toHaveAttribute("open", "");
             }
             problems.push(
               ...(await inspectScreen(

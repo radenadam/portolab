@@ -13,7 +13,7 @@ export async function newDevice(
     ...settings
   }: { siteUrl?: string | undefined } & Pick<
     BrowserContextOptions,
-    "javaScriptEnabled" | "storageState"
+    "javaScriptEnabled" | "storageState" | "locale"
   > &
     (
       { sessionFrom?: never } | { sessionFrom: Page; storageState?: never }
