@@ -46,7 +46,7 @@ export function previewTrade(
     stock: {
       quote,
       closes: { kind: "stock", code: traded.code, closes: traded.closes },
-      marketCloses: portfolio.market,
+      buyable: traded.buyable,
     },
     day,
   });

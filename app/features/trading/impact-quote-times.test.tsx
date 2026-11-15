@@ -4,6 +4,7 @@ import { locales } from "~/paraglide/runtime.js";
 import type { Locale } from "~/paraglide/runtime.js";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
 import { renderMarkupForTest } from "~/render-markup-for-test";
+import { renderTextMarkupForTest } from "~/render-text-markup-for-test";
 import { markupTextForTest } from "~/markup-text-for-test";
 import { successValueForTest } from "~/success-value-for-test";
 import { shares } from "~/units/shares";
@@ -12,13 +13,13 @@ import { ImpactQuoteTimes } from "./impact-quote-times";
 
 const texts: Record<Locale, { one: string; several: string; time: string }> = {
   id: {
-    one: "Waktu harga TLKM:",
-    several: "Waktu harga BBCA dan TLKM:",
+    one: "Waktu harga TLKM: 29 Okt 2026, 16.14 WIB",
+    several: "Waktu harga BBCA dan TLKM: 29 Okt 2026, 16.14 WIB",
     time: "29 Okt 2026, 16.14 WIB",
   },
   en: {
-    one: "Price time for TLKM:",
-    several: "Price time for BBCA and TLKM:",
+    one: "Price time for TLKM: Oct 29, 2026, 4:14 PM WIB",
+    several: "Price time for BBCA and TLKM: Oct 29, 2026, 4:14 PM WIB",
     time: "Oct 29, 2026, 4:14 PM WIB",
   },
 };
@@ -43,10 +44,18 @@ for (const locale of locales) {
       ...stock,
       quotedAt: stock.code === "TLKM" ? earlier : stock.quotedAt,
     }));
-    expect(render(one)).toContain(markupTextForTest(texts[locale].one));
+    expect(
+      renderTextMarkupForTest(
+        <ImpactQuoteTimes stocks={one} quotedAt={quotedAt} />,
+      ),
+    ).toContain(markupTextForTest(texts[locale].one));
     const several = stocks.map((stock) => ({ ...stock, quotedAt: earlier }));
     const grouped = render(several);
-    expect(grouped).toContain(markupTextForTest(texts[locale].several));
+    expect(
+      renderTextMarkupForTest(
+        <ImpactQuoteTimes stocks={several} quotedAt={quotedAt} />,
+      ),
+    ).toContain(markupTextForTest(texts[locale].several));
     expect(grouped).toContain(markupTextForTest(texts[locale].time));
     expect(grouped.match(/<li>/g)).toHaveLength(1);
     expect(render(one.map((stock) => ({ ...stock, shares: shares(0) })))).toBe(

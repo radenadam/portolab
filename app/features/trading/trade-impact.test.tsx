@@ -31,11 +31,13 @@ const texts: Record<
     small: string;
     months: string;
     basis: string;
+    ticketAxis: string;
     missing: readonly string[];
     values: readonly string[];
   }
 > = {
   id: {
+    ticketAxis: "Sumbu risiko dampak order di tiket",
     labels: [
       "Dampak ke portofolio",
       "Perbandingan ini memakai harga tertunda yang sama dan bulan yang sama sebelum dan sesudah order, sehingga perubahannya berasal dari order dan biayanya. Order limit dihitung pada harga limit.",
@@ -47,7 +49,7 @@ const texts: Record<
       "Bobot Keuangan",
       "Bobot sektor",
       "Bobot sektor adalah jumlah bobot saham yang termasuk sektor IDX-IC yang sama. Kas tetap dihitung dalam nilai portofolio, tetapi tidak termasuk suatu sektor.",
-      "menjadi ",
+      "Beta 0,62 menjadi 0,68.",
       "Saham",
       "Sekarang",
       "Sesudah",
@@ -70,7 +72,7 @@ const texts: Record<
     months:
       "Portofolio Anda memakai 60 bulan. Perbandingan ini memakai 38 imbal hasil bulanan yang sama sebelum dan sesudah order, dari Agustus 2023 sampai September 2026, karena mencakup saham order ini.",
     basis:
-      "Tegak menunjukkan imbal hasil harapan per bulan. Kedua portofolio dan saham order memakai 60 imbal hasil bulanan yang sama, dari Oktober 2021 sampai September 2026. Pada sumbu beta, SML melewati tingkat bebas risiko dan IHSG.",
+      "Sumbu tegak menunjukkan imbal hasil harapan per bulan. Kedua portofolio dan saham order memakai 60 imbal hasil bulanan yang sama, dari Oktober 2021 sampai September 2026. Pada sumbu beta, SML melewati tingkat bebas risiko dan IHSG.",
     missing: [
       "Dampak belum dapat dihitung karena WIFI belum memiliki harga tertunda untuk menentukan bobotnya. Periksa kembali setelah pembaruan harga berikutnya membawa harga tertunda WIFI.",
       "Dampak belum dapat dihitung karena WIFI dan UNVR belum memiliki harga tertunda untuk menentukan bobotnya. Periksa kembali setelah pembaruan harga berikutnya membawa harga tertunda WIFI dan UNVR.",
@@ -87,6 +89,7 @@ const texts: Record<
     ],
   },
   en: {
+    ticketAxis: "Ticket trade impact risk axis",
     labels: [
       "Portfolio impact",
       "This comparison uses the same delayed prices and months before and after the order, so the change comes from the order and its costs. A limit order is calculated at its limit price.",
@@ -98,7 +101,7 @@ const texts: Record<
       "Financials weight",
       "Sector weight",
       "Sector weight is the sum of the weights of stocks in the same IDX-IC sector. Cash remains part of the portfolio value but belongs to no sector.",
-      "becomes ",
+      "Beta 0.62 becomes 0.68.",
       "Stock",
       "Now",
       "After",
@@ -211,11 +214,11 @@ for (const locale of locales) {
       ok: true,
       value: { originalMonths: { count: 60 } },
     });
-    expect(
-      renderMarkupForTest(
-        <TradeImpact preview={preview} code="AMMN" ticket />,
-        conceptLessonDataForTest(),
-      ),
-    ).toContain(markupTextForTest(text.months));
+    const html = renderMarkupForTest(
+      <TradeImpact preview={preview} code="AMMN" ticket />,
+      conceptLessonDataForTest(),
+    );
+    expect(html).toContain(markupTextForTest(text.months));
+    expect(html).toContain(`aria-label="${text.ticketAxis}"`);
   });
 }

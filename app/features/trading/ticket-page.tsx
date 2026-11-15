@@ -31,7 +31,6 @@ import type { Route } from "./+types/ticket-page";
 import styles from "./ticket.module.css";
 import { ticketContextSearch } from "./ticket-context-search";
 import { readImpactSelection } from "./read-impact-selection.server";
-import { TradeImpactSelectionForm } from "./trade-impact-selection-form";
 
 function ticketAddress(params: { code: string; side: string }) {
   const code = parseStockCode(params.code, "code", trackedStockCodes);
@@ -200,8 +199,6 @@ export default function TicketPage({
       });
     };
   }, []);
-  if (loaderData.selection.fields !== undefined)
-    return <TradeImpactSelectionForm fields={loaderData.selection.fields} />;
   return (
     <div className={styles["column"]}>
       <dialog

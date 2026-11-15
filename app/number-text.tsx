@@ -5,14 +5,20 @@ import styles from "./number-text.module.css";
 
 type NumberTextValue =
   string | number | null | undefined | readonly NumberTextValue[];
-type TextValue = (value: string) => string;
+type MarkValue = (value: string) => string;
+interface MarkedValue {
+  value: string;
+  kind: "text" | "number";
+}
 const textValuePattern = /\uE000(\d+)\uE001/gu;
 
 /** Text-only children prevent silently skipping an element tree. A whole group may include an arrow. Names and identifiers remain text, and a callback marks them before a message joins them with quantities, so identical text cannot disguise a quantity. SVG text already stays on one line. */
 export function NumberText(
   properties:
     | {
-        children: NumberTextValue | ((textValue: TextValue) => NumberTextValue);
+        children:
+          | NumberTextValue
+          | ((textValue: MarkValue, numberValue: MarkValue) => NumberTextValue);
         whole?: false;
         verbatim?: false;
       }
@@ -29,30 +35,38 @@ export function NumberText(
     return <span data-text-value="">{properties.children}</span>;
   if (typeof properties.children !== "function")
     return numberTextOf(properties.children, []);
-  const textValues: string[] = [];
-  const value = properties.children((text) => {
-    const index = textValues.push(text) - 1;
+  const markedValues: MarkedValue[] = [];
+  const mark = (value: string, kind: MarkedValue["kind"]) => {
+    const index = markedValues.push({ value, kind }) - 1;
     return `\uE000${String(index)}\uE001`;
-  });
-  return numberTextOf(value, textValues);
+  };
+  const value = properties.children(
+    (text) => mark(text, "text"),
+    (number) => mark(number, "number"),
+  );
+  return numberTextOf(value, markedValues);
 }
 
 function numberTextOf(
   value: NumberTextValue,
-  textValues: readonly string[],
+  markedValues: readonly MarkedValue[],
 ): ReactNode {
   const text = messageText(value);
-  if (textValues.length === 0) return numberRuns(text);
+  if (markedValues.length === 0) return numberRuns(text);
   const parts: ReactNode[] = [];
   let start = 0;
   for (const match of text.matchAll(textValuePattern)) {
-    const textValue = textValues[Number(match[1])];
-    if (textValue === undefined)
+    const marked = markedValues[Number(match[1])];
+    if (marked === undefined)
       throw new Error("A text placeholder needs its original value.");
+    const kinds: Record<MarkedValue["kind"], ReactNode> = {
+      text: <span data-text-value="">{marked.value}</span>,
+      number: <NumberText whole>{marked.value}</NumberText>,
+    };
     parts.push(
       <Fragment key={match.index}>
         {numberRuns(text.slice(start, match.index))}
-        <span data-text-value="">{textValue}</span>
+        {kinds[marked.kind]}
       </Fragment>,
     );
     start = match.index + match[0].length;

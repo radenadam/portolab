@@ -26,6 +26,7 @@ import styles from "./trade-impact.module.css";
 import { countedText } from "~/counted-text";
 import { portfolioWeightOf } from "./portfolio-weight-of";
 import { defaultImpactShare, impactShares } from "./impact-shares";
+import { ImpactChoices } from "./impact-choices";
 
 export function StockImpact({
   code,
@@ -52,21 +53,14 @@ export function StockImpact({
           id="stock-impact-title"
           months={ticket.impact.ok ? ticket.impact.value.months : undefined}
         />
-        <nav
-          className={styles["segments"]}
-          aria-label={m.trading_impact_share_label()}
-        >
-          {impactShares.map((choice) => (
-            <Link
-              key={choice}
-              to={`${pathWithQuery(`${location.pathname}${location.search}`, { impact: String(choice) })}#impact`}
-              preventScrollReset
-              aria-current={share === choice ? "true" : undefined}
-            >
-              <span>{formatPercent(choice, "integer")}</span>
-            </Link>
-          ))}
-        </nav>
+        <ImpactChoices
+          choices={impactShares}
+          selected={share}
+          label={m.trading_impact_share_label()}
+          name={(choice) => formatPercent(choice, "integer")}
+          field="impact"
+          anchor="impact"
+        />
       </div>
       {!ticket.day.ok ? (
         <p>

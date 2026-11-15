@@ -28,11 +28,13 @@ export function ImpactQuoteTimes({
     <ul className={styles["quoteTimes"]}>
       {[...different].map(([time, codes]) => (
         <li key={time}>
-          {m.trading_impact_price_time_label({
-            codes: formatList(codes, "conjunction"),
-          })}{" "}
-          <NumberText whole>
-            {m.trading_ticket_quote_notice({ time })}
+          <NumberText>
+            {(textValue, numberValue) =>
+              m.trading_impact_price_time_notice({
+                codes: textValue(formatList(codes, "conjunction")),
+                time: numberValue(m.trading_ticket_quote_notice({ time })),
+              })
+            }
           </NumberText>
         </li>
       ))}

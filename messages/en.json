@@ -890,12 +890,13 @@
   "trading_impact_weight_label": "{name} weight",
   "trading_impact_sector_title": "Sector weight",
   "trading_impact_sector_body": "Sector weight is the sum of the weights of stocks in the same IDX-IC sector. Cash remains part of the portfolio value but belongs to no sector.",
-  "trading_impact_becomes_part": "becomes ",
+  "trading_impact_change_notice": "{label} {before} becomes {after}.",
   "trading_impact_stock_label": "Stock",
   "trading_impact_before_label": "Now",
   "trading_impact_after_label": "After",
   "trading_impact_map_title": "Map before and after the order",
   "trading_impact_axis_label": "Trade impact risk axis",
+  "trading_impact_ticket_axis_label": "Ticket trade impact risk axis",
   "trading_impact_sml_label": "SML",
   "trading_impact_share_label": "Share of portfolio",
   "trading_impact_purchase_notice": "If you buy {lots} of {code} from cash, costing {total} or about {share} of the portfolio:",
@@ -912,5 +913,5 @@
   "trading_impact_weight_after_label": "Weight after",
   "trading_impact_apply_label": "Show impact",
   "trading_impact_long_share_error": "The field \"{field}\" has {length} characters, but it takes only {choices}. Choose one of them.",
-  "trading_impact_price_time_label": "Price time for {codes}:"
+  "trading_impact_price_time_notice": "Price time for {codes}: {time}"
 }

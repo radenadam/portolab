@@ -20,9 +20,11 @@ const texts: Record<
     lots: string;
     reason: string;
     axis: string;
+    ticketAxis: string;
     risk: string;
     beta: string;
     rows: readonly (readonly [string, string])[];
+    comparison: string;
     eleven: string;
     zero: string;
     zeroWeight: string;
@@ -42,6 +44,7 @@ const texts: Record<
     lots: "Jumlah lot",
     reason: "Alasan (opsional)",
     axis: "Sumbu risiko dampak order",
+    ticketAxis: "Sumbu risiko dampak order di tiket",
     risk: "Simpangan baku",
     beta: "Beta",
     rows: [
@@ -51,6 +54,7 @@ const texts: Record<
       ["50,0%", "59,1%"],
       ["50,0%", "59,1%"],
     ],
+    comparison: "Beta 0,62 menjadi 0,68.",
     eleven: "0,69",
     zero: "0,00",
     zeroWeight: "0,0%",
@@ -71,6 +75,7 @@ const texts: Record<
     lots: "Lots",
     reason: "Reason (optional)",
     axis: "Trade impact risk axis",
+    ticketAxis: "Ticket trade impact risk axis",
     risk: "Standard deviation",
     beta: "Beta",
     rows: [
@@ -80,6 +85,7 @@ const texts: Record<
       ["50.0%", "59.1%"],
       ["50.0%", "59.1%"],
     ],
+    comparison: "Beta 0.62 becomes 0.68.",
     eleven: "0.69",
     zero: "0.00",
     zeroWeight: "0.0%",
@@ -124,6 +130,9 @@ for (const locale of locales) {
       impact.getByRole("heading", { name: text.title, exact: true }),
     ).toBeVisible();
     await expectRows(impact, text.rows);
+    await expect(
+      impact.getByText(text.comparison, { exact: true }),
+    ).toHaveCount(1);
     const choices = impact.getByRole("navigation", { name: text.share });
     await expect(choices.getByRole("link")).toHaveText(["5%", "10%", "20%"]);
     await choices.getByRole("link", { name: "20%", exact: true }).click();
@@ -147,7 +156,7 @@ for (const locale of locales) {
         .first()
         .locator(":scope > strong"),
     ).toContainText(text.eleven);
-    const axis = ticket.getByRole("group", { name: text.axis });
+    const axis = ticket.getByRole("navigation", { name: text.ticketAxis });
     for (const [label, value] of [
       [text.risk, "risk"],
       [text.beta, "beta"],
@@ -283,12 +292,42 @@ for (const locale of locales) {
         .getByRole("link", { name: "20%", exact: true })
         .click();
       await expect(page).toHaveURL(/impact=0.2/);
+      await impact
+        .getByRole("navigation", { name: text.axis })
+        .getByRole("link", { name: text.risk, exact: true })
+        .click();
+      await expect(page).toHaveURL(
+        (url) =>
+          url.searchParams.get("impactAxis") === "risk" &&
+          url.hash === "#impact",
+      );
+      await expect(impact).toBeInViewport();
+      const heading = await impact
+        .getByRole("heading", { name: text.title, exact: true })
+        .boundingBox();
+      const topBar = await page.getByRole("banner").boundingBox();
+      if (heading === null || topBar === null)
+        throw new Error("The impact heading and top bar have visible boxes.");
+      expect(heading.y).toBeGreaterThanOrEqual(topBar.y + topBar.height);
       await impact.locator("a").last().click();
       await expect(page.locator('dialog input[name="lots"]')).toHaveValue(
         text.cap,
       );
       await expect(page.locator("dialog [data-impact-rows] > div")).toHaveCount(
         5,
+      );
+      await page
+        .locator("dialog")
+        .getByRole("navigation", { name: text.ticketAxis })
+        .getByRole("link", { name: text.beta, exact: true })
+        .click();
+      await expect(page).toHaveURL(
+        (url) =>
+          url.searchParams.get("impactAxis") === "beta" &&
+          url.hash === "#ticket-impact",
+      );
+      await expect(page.locator('dialog input[name="lots"]')).toHaveValue(
+        text.cap,
       );
       await lecturer.context().close();
     });

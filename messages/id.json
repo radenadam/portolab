@@ -890,12 +890,13 @@
   "trading_impact_weight_label": "Bobot {name}",
   "trading_impact_sector_title": "Bobot sektor",
   "trading_impact_sector_body": "Bobot sektor adalah jumlah bobot saham yang termasuk sektor IDX-IC yang sama. Kas tetap dihitung dalam nilai portofolio, tetapi tidak termasuk suatu sektor.",
-  "trading_impact_becomes_part": "menjadi ",
+  "trading_impact_change_notice": "{label} {before} menjadi {after}.",
   "trading_impact_stock_label": "Saham",
   "trading_impact_before_label": "Sekarang",
   "trading_impact_after_label": "Sesudah",
   "trading_impact_map_title": "Peta sebelum dan sesudah order",
   "trading_impact_axis_label": "Sumbu risiko dampak order",
+  "trading_impact_ticket_axis_label": "Sumbu risiko dampak order di tiket",
   "trading_impact_sml_label": "SML",
   "trading_impact_share_label": "Bagian portofolio",
   "trading_impact_purchase_notice": "Jika Anda membeli {lots} {code} dari kas, senilai {total} atau sekitar {share} portofolio:",
@@ -903,7 +904,7 @@
   "trading_impact_small_budget_notice": "Anggaran {share} portofolio belum cukup untuk {lots} {code} yang memerlukan {cost}. Buka tiket untuk menentukan jumlah lot.",
   "trading_impact_open_link": "Buka tiket dengan {lots}",
   "trading_impact_months_notice": "Portofolio Anda memakai {original} bulan. Perbandingan ini memakai {returns} yang sama sebelum dan sesudah order, dari {first} sampai {last}, karena mencakup saham order ini.",
-  "trading_impact_months_body": "Tegak menunjukkan imbal hasil harapan per bulan. Kedua portofolio dan saham order memakai {returns} yang sama, dari {first} sampai {last}. Pada sumbu beta, SML melewati tingkat bebas risiko dan {index}.",
+  "trading_impact_months_body": "Sumbu tegak menunjukkan imbal hasil harapan per bulan. Kedua portofolio dan saham order memakai {returns} yang sama, dari {first} sampai {last}. Pada sumbu beta, SML melewati tingkat bebas risiko dan {index}.",
   "trading_impact_one_unpriced_stock_notice": "Dampak belum dapat dihitung karena {codes} belum memiliki harga tertunda untuk menentukan bobotnya. Periksa kembali setelah pembaruan harga berikutnya membawa harga tertunda {codes}.",
   "trading_impact_several_unpriced_stocks_notice": "Dampak belum dapat dihitung karena {codes} belum memiliki harga tertunda untuk menentukan bobotnya. Periksa kembali setelah pembaruan harga berikutnya membawa harga tertunda {codes}.",
   "trading_impact_points_label": "Nilai pada peta dan SML",
@@ -912,5 +913,5 @@
   "trading_impact_weight_after_label": "Bobot sesudah",
   "trading_impact_apply_label": "Tampilkan dampak",
   "trading_impact_long_share_error": "Kolom \"{field}\" berisi {length} karakter, tetapi hanya menerima {choices}. Pilih salah satunya.",
-  "trading_impact_price_time_label": "Waktu harga {codes}:"
+  "trading_impact_price_time_notice": "Waktu harga {codes}: {time}"
 }

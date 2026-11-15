@@ -6,6 +6,8 @@ import type { StockHistories } from "./check-buyable";
 import type { OpenOrder, Order, OrderFailure, OrderRequest } from "./order";
 import { orderTradingDay } from "./order-trading-day";
 import { placeOrderOnDay } from "./place-order-on-day";
+import { checkBuyable } from "./check-buyable";
+import { succeed } from "~/result";
 
 /** What an account holds when a student places an order. */
 export interface AccountState {
@@ -31,6 +33,15 @@ export function placeOrder(
 ): Result<OpenOrder, OrderFailure> {
   const day = orderTradingDay(request.placedAt, stock.delayMinutes);
   return day.ok
-    ? placeOrderOnDay(request, account, { stock, day: day.value })
+    ? placeOrderOnDay(request, account, {
+        stock: {
+          ...stock,
+          buyable:
+            request.side === "buy"
+              ? checkBuyable(request.code, day.value.date, stock)
+              : succeed(undefined),
+        },
+        day: day.value,
+      })
     : day;
 }

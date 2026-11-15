@@ -72,6 +72,9 @@ export function ImpactRows({
   const order = ticket
     ? (["beta", "expectedReturn", "risk"] as const)
     : (["beta", "risk", "expectedReturn"] as const);
+  const sectorLabel = m.trading_impact_weight_label({
+    name: sectorName(companyOf(code).sector),
+  });
   return (
     <div className={styles["rows"]} data-impact-rows="">
       {order.map((key) => {
@@ -86,7 +89,8 @@ export function ImpactRows({
         return (
           <ImpactRow
             key={key}
-            label={<MeasureLabel row={row} />}
+            name={row.label}
+            label={<MeasureLabel row={row} hideText />}
             before={measure.value(before)}
             after={measure.value(after)}
             format={measure.format}
@@ -94,17 +98,16 @@ export function ImpactRows({
         );
       })}
       <ImpactRow
-        label={m.trading_impact_weight_label({ name: code })}
+        name={m.trading_impact_weight_label({ name: code })}
         before={stockWeight(before, code)}
         after={stockWeight(after, code)}
         format={(value) => formatPercent(value, "one")}
       />
       <ImpactRow
+        name={sectorLabel}
         label={
           <>
-            {m.trading_impact_weight_label({
-              name: sectorName(companyOf(code).sector),
-            })}
+            <span aria-hidden>{sectorLabel}</span>
             <ConceptHelp title={m.trading_impact_sector_title()}>
               <p>{m.trading_impact_sector_body()}</p>
               <ImpactInputs impact={impact} risk={false} />
@@ -131,12 +134,14 @@ function stockWeight(
 }
 
 function ImpactRow({
+  name,
   label,
   before,
   after,
   format,
 }: {
-  label: ReactNode;
+  name: string;
+  label?: ReactNode;
   before: number;
   after: number;
   format: (value: number) => string;
@@ -145,17 +150,16 @@ function ImpactRow({
   const second = format(after);
   return (
     <div className={styles["row"]}>
-      <span className={styles["rowLabel"]}>{label}</span>
-      <span className={styles["from"]}>
+      <span className={styles["rowLabel"]}>
+        {label ?? <span aria-hidden>{name}</span>}
+      </span>
+      <span className={styles["from"]} aria-hidden>
         <NumberText whole>{first}</NumberText>
       </span>
       <span className={styles["arrow"]} aria-hidden>
         →
       </span>
-      <strong>
-        <span className={styles["srOnly"]}>
-          {m.trading_impact_becomes_part()}
-        </span>
+      <strong aria-hidden>
         <NumberText whole>
           {second}
           {first !== second && (
@@ -165,6 +169,13 @@ function ImpactRow({
           )}
         </NumberText>
       </strong>
+      <span className={styles["srOnly"]}>
+        {m.trading_impact_change_notice({
+          label: name,
+          before: first,
+          after: second,
+        })}
+      </span>
     </div>
   );
 }

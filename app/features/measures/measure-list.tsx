@@ -53,14 +53,21 @@ export function MeasureList({
 }
 
 /** The summary and the full list share a label so their help cannot differ. */
-export function MeasureLabel({ row }: { row: MeasureRow }): ReactNode {
+export function MeasureLabel({
+  row,
+  hideText = false,
+}: {
+  row: MeasureRow;
+  hideText?: boolean;
+}): ReactNode {
   const concept =
     row.concept === undefined ? undefined : measureConcept(row.concept);
   const unit =
     row.concept === undefined ? undefined : measureUnitText(row.concept);
+  const label = <NumberText>{row.label}</NumberText>;
   return (
     <>
-      <NumberText>{row.label}</NumberText>
+      {hideText ? <span aria-hidden>{label}</span> : label}
       {concept !== undefined && (
         <ConceptCard
           title={row.label}

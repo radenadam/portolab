@@ -14,8 +14,6 @@ import type {
   RiskMapLayout,
 } from "./layout-risk-map";
 import styles from "./risk-map.module.css";
-import type { MapSpreadText } from "./risk-map-labels";
-import { MapSpread } from "./map-spread";
 
 /** How the map draws a mark: the mark of a kind of point, or the diamond of the IHSG. */
 export type MarkKind = MapMark["kind"] | "market";
@@ -62,7 +60,7 @@ export function MapDrawing({
   placed: PlacedLabels;
   texts: { title: string; level: string | undefined; line: string | undefined };
   active: DrawnPoint | undefined;
-  spread: MapSpreadText | undefined;
+  spread: ReactNode;
   drawingRef: Ref<SVGSVGElement>;
   measureRef: Ref<SVGTextElement>;
 }): ReactNode {
@@ -87,38 +85,7 @@ export function MapDrawing({
           className={styles["line"]}
         />
       )}
-      {spread !== undefined && (
-        <>
-          <MapSpread layout={layout} />
-          {layout.median !== undefined && (
-            <line
-              x1="86%"
-              x2="100%"
-              y1={percentOf(layout.median)}
-              y2={percentOf(layout.median)}
-              className={styles["line"]}
-            />
-          )}
-          <MapLabel
-            text={spread.zeroLabel}
-            place={placed.lines.get(mapLineLabelKeys.zero)}
-            className={styles["corner"]}
-          />
-          <MapLabel
-            text={spread.medianLabel}
-            place={placed.lines.get(mapLineLabelKeys.median)}
-            className={styles["medianLabel"]}
-          />
-          {spread.corners.map((text, index) => (
-            <MapLabel
-              key={text}
-              text={text}
-              place={placed.lines.get(mapLineLabelKeys.corners[index] ?? "")}
-              className={styles["corner"]}
-            />
-          ))}
-        </>
-      )}
+      {spread}
       {drawn.map(({ point, placed: mark }) => (
         <g key={`stem-${point.key}`}>
           {mark.stem !== undefined && (

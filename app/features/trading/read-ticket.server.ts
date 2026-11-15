@@ -47,7 +47,11 @@ export function readTicket(
         )
       : undefined;
   return {
-    impact: readTradePortfolio(database, portfolio, { code, now }),
+    impact: readTradePortfolio(database, portfolio, {
+      code,
+      now,
+      day,
+    }),
     now,
     day,
     quote,

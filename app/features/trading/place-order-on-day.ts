@@ -8,7 +8,6 @@ import type { Rupiah } from "~/units/rupiah";
 import { shares } from "~/units/shares";
 import type { Shares } from "~/units/shares";
 import { acceptedPriceRange, checkLimitPrice } from "./accepted-prices";
-import { checkBuyable } from "./check-buyable";
 import { checkCashForPurchase } from "./check-cash-for-purchase";
 import { referencePrice } from "./reference-price";
 import type { IdxRules } from "./idx-rules-on";
@@ -42,14 +41,15 @@ interface CheckedOrder extends SizedOrder {
 /** An account at the moment when the student places an order. */
 type AccountAtMoment = AccountState & { moment: Date };
 
+interface StockForTradingDay extends Pick<StockState, "quote" | "closes"> {
+  buyable: Result<undefined, OrderFailure>;
+}
+
 /** Applies the placement checks with an already resolved trading day, so a draft can use the server's day without downloading the exchange calendar. */
 export function placeOrderOnDay(
   request: OrderRequest,
   account: AccountState,
-  {
-    stock,
-    day,
-  }: { stock: Omit<StockState, "delayMinutes">; day: OrderTradingDay },
+  { stock, day }: { stock: StockForTradingDay; day: OrderTradingDay },
 ): Result<OpenOrder, OrderFailure> {
   const { rules } = day;
   const sized: SizedOrder = {
@@ -91,7 +91,7 @@ export function placeOrderOnDay(
 /** What Portolab knows of the account and of the stock when it checks an order. */
 interface OrderContext {
   account: AccountAtMoment;
-  stock: Omit<StockState, "delayMinutes">;
+  stock: StockForTradingDay;
 }
 
 /** Checks what an order needs before its price. A purchase needs a stock that can be bought on its trading day. A sale needs shares that no other open sell order sets aside, which a holding keeps even after its stock leaves the universe. Portolab fetches quotes only for the stocks that it tracks, so these checks come before the quote, and a stock without a quote that fails them gets their text instead of a wait for a price that never comes. */
@@ -102,7 +102,7 @@ function checkBeforePrice(
 ): Result<undefined, OrderFailure> {
   switch (order.side) {
     case "buy":
-      return checkBuyable(order.code, day.date, context.stock);
+      return context.stock.buyable;
     case "sell":
       return checkShares(order, context.account, day.rules);
   }
@@ -128,7 +128,7 @@ function checkShares(
 
 function checkedPrice(
   request: OrderRequest,
-  stock: Omit<StockState, "delayMinutes"> & { quote: StockQuote },
+  stock: StockForTradingDay & { quote: StockQuote },
   day: OrderTradingDay,
 ): Result<Rupiah, OrderFailure> {
   switch (request.price.kind) {

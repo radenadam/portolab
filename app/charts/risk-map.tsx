@@ -18,7 +18,7 @@ import type {
 import { MapDrawing, markReach } from "./map-drawing";
 import type { DrawnPoint } from "./map-drawing";
 import { riskMapLabels } from "./risk-map-labels";
-import type { MapSpreadText } from "./risk-map-labels";
+import type { MapLabels, PlacedLabels } from "./map-labels";
 import { keptNameRoom } from "./map-labels";
 import { valueMarkGap } from "./value-mark";
 import styles from "./risk-map.module.css";
@@ -52,7 +52,14 @@ export function RiskMap<Across extends number, Up extends number>({
   };
   up: MapAxis<Up>;
   line?: MapLine<Across, Up>;
-  spread?: MapSpreadText & { median: Up | undefined };
+  spread?: {
+    median: Up | undefined;
+    labels: (layout: RiskMapLayout<unknown>) => MapLabels["lines"];
+    drawing: (
+      layout: RiskMapLayout<unknown>,
+      placed: PlacedLabels,
+    ) => ReactNode;
+  };
   coloredValues?: boolean;
   /** The label of the line at the return of the IHSG, such as IHSG 0.70%. */
   levelLabel?: string;
@@ -78,7 +85,13 @@ export function RiskMap<Across extends number, Up extends number>({
   );
   const drawn = useMemo(() => drawnPoints(market, layout), [market, layout]);
   const labels = useMemo(
-    () => riskMapLabels(drawn, { line, levelLabel, layout, spread }),
+    () =>
+      riskMapLabels(drawn, {
+        line,
+        levelLabel,
+        layout,
+        extraLines: spread?.labels(layout) ?? [],
+      }),
     [drawn, line, levelLabel, layout, spread],
   );
   const marks = useMemo(
@@ -129,7 +142,7 @@ export function RiskMap<Across extends number, Up extends number>({
       drawn={drawn}
       placed={placed}
       texts={{ title: across.title, level: levelLabel, line: line?.name }}
-      spread={spread}
+      spread={spread?.drawing(layout, placed)}
       active={active}
       drawingRef={drawingRef}
       measureRef={measureRef}

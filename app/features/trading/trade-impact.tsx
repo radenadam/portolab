@@ -96,6 +96,7 @@ export function TradeImpact({
             code={code}
             labelledBy={headingId}
             axis={axis}
+            anchor={ticket ? "ticket-impact" : "impact"}
           />
           <div className={styles["inputs"]}>
             <ImpactPoints impact={impact} code={code} />

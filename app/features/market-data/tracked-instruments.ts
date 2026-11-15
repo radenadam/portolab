@@ -133,13 +133,20 @@ export const marketIndex: Extract<Instrument, { kind: "index" }> = {
 };
 
 /** The codes of the stocks of every recorded period of the universe, each once and in order, whose prices Portolab keeps current. A student can sell a holding of any of them, also after it left the universe. */
-export const trackedStockCodes: readonly string[] = listTrackedStockCodes();
+// The list builders only allocate their results, so an index-only import can omit them.
+export const trackedStockCodes: readonly string[] =
+  /* @__PURE__ */ listTrackedStockCodes();
 
 /** The instruments whose prices Portolab keeps current: the IHSG, and the stocks of every recorded period of the universe, each once and by code. */
-export const trackedInstruments: readonly Instrument[] = [
-  marketIndex,
-  ...trackedStockCodes.map((code): Instrument => ({ kind: "stock", code })),
-];
+export const trackedInstruments: readonly Instrument[] =
+  /* @__PURE__ */ listTrackedInstruments();
+
+function listTrackedInstruments(): Instrument[] {
+  return [
+    marketIndex,
+    ...trackedStockCodes.map((code): Instrument => ({ kind: "stock", code })),
+  ];
+}
 
 function listTrackedStockCodes(): string[] {
   const stockCodes = new Set<string>();

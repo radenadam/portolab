@@ -44,6 +44,7 @@ export function TicketImpact({
   if (count === undefined || price === undefined) return null;
   return (
     <section
+      id="ticket-impact"
       className={styles["ticket"]}
       aria-labelledby="ticket-title ticket-impact-title"
     >
