@@ -3,7 +3,7 @@ import { startingCashLimits } from "../app/features/classes/class-rules.ts";
 import { rupiah } from "../app/units/rupiah.ts";
 import { fillClassMap } from "./fill-class-map.ts";
 import { storeTestJoiningTime } from "./store-test-joining-time.ts";
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { eq } from "drizzle-orm";
 import { classes } from "../app/features/classes/classes.schema.ts";
 import { orders, portfolios } from "../app/features/trading/trading.schema.ts";
@@ -24,6 +24,7 @@ import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 import { layoutProblems } from "./expect-layout.ts";
 import { holdClientScripts } from "./hold-client-scripts.ts";
 import { widestClassNames } from "./widest-class-names.ts";
+import { returnFromLesson } from "./return-from-lesson.ts";
 
 const texts: Record<
   Locale,
@@ -34,6 +35,10 @@ const texts: Record<
     all: string;
     close: string;
     lesson: string;
+    lessonTitle: string;
+    closeLesson: string;
+    fullLesson: string;
+    back: string;
     students: string;
   }
 > = {
@@ -44,6 +49,10 @@ const texts: Record<
     all: "Semua",
     close: "Tutup alasan",
     lesson: "Buka materi sesi 9",
+    lessonTitle: "CAPM dan garis pasar sekuritas",
+    closeLesson: "Tutup",
+    fullLesson: "Buka di Belajar",
+    back: "Kembali ke halaman sebelumnya",
     students: "Mahasiswa",
   },
   en: {
@@ -53,6 +62,10 @@ const texts: Record<
     all: "All",
     close: "Close reasons",
     lesson: "Open session 9 lesson",
+    lessonTitle: "CAPM and the security market line",
+    closeLesson: "Close",
+    fullLesson: "Open in Learn",
+    back: "Back to the previous page",
     students: "Students",
   },
 };
@@ -95,16 +108,15 @@ for (const locale of locales) {
           name: text.lesson,
           exact: true,
         });
-        await lesson.click();
-        const returnLink = screen.locator(
-          `main a[href="${classPath}?axis=deviation#class-discussion"]`,
-        );
-        await expect(returnLink).toBeVisible();
-        await returnLink.click();
-        await expect(lesson).toBeInViewport({ ratio: 1 });
-        await expect(screen).toHaveURL(
-          `${classPath}?axis=deviation#class-discussion`,
-        );
+        if (screen === page) {
+          await checkDiscussionSheet(screen, text);
+          await lesson.click();
+          await screen
+            .getByRole("dialog", { name: text.lessonTitle, exact: true })
+            .getByRole("link", { name: text.fullLesson, exact: true })
+            .click({ noWaitAfter: true });
+        } else await lesson.click({ noWaitAfter: true });
+        await returnToDiscussion(screen, text, classPath);
         await expect(
           screen.getByRole("region", { name: text.reasons }).getByRole("link"),
         ).toHaveCount(2);
@@ -158,6 +170,15 @@ for (const locale of locales) {
           await expect(sheet).not.toBeVisible();
         },
       );
+      await holdClientScripts(page, {}, async (loadClient) => {
+        await page
+          .getByRole("link", { name: text.lesson, exact: true })
+          .click({ noWaitAfter: true });
+        await returnToDiscussion(page, text, classPath);
+        await loadClient();
+        await expect(page.getByRole("slider")).toBeVisible();
+        await checkDiscussionSheet(page, text);
+      });
       for (const reason of ["W", "9"]) {
         widenActivityReasons(classId, reason.repeat(reasonMaximumLength));
         await page.goto(classPath);
@@ -232,6 +253,44 @@ for (const locale of locales) {
       await student.context().close();
     }
   });
+}
+
+async function returnToDiscussion(
+  page: Page,
+  text: (typeof texts)[Locale],
+  classPath: string,
+): Promise<void> {
+  const source = page.getByRole("link", { name: text.lesson, exact: true });
+  await returnFromLesson(page, {
+    lesson: text.lessonTitle,
+    back: text.back,
+    address: `${classPath}?axis=deviation#class-discussion`,
+    source,
+  });
+  await expect(source).toBeInViewport({ ratio: 1 });
+}
+
+async function checkDiscussionSheet(
+  page: Page,
+  text: (typeof texts)[Locale],
+): Promise<void> {
+  const source = page.getByRole("link", { name: text.lesson, exact: true });
+  await source.scrollIntoViewIfNeeded();
+  const address = page.url();
+  const position = await page.evaluate(() => window.scrollY);
+  await source.click();
+  const sheet = page.getByRole("dialog", {
+    name: text.lessonTitle,
+    exact: true,
+  });
+  await expect(sheet).toBeVisible();
+  await expect(page).toHaveURL(address);
+  await sheet
+    .getByRole("button", { name: text.closeLesson, exact: true })
+    .click();
+  await expect(sheet).toHaveCount(0);
+  await expect(source).toBeFocused();
+  expect(await page.evaluate(() => window.scrollY)).toBe(position);
 }
 
 function storeClassReasons(classId: ClassId): void {

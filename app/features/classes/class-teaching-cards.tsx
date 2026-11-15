@@ -6,6 +6,7 @@ import { NumberText } from "~/number-text";
 import { Popover, PopoverButton } from "~/popover";
 import { formatNumber } from "~/formatting";
 import { lessonPath } from "~/features/learning/learning-paths";
+import { LearningLink } from "~/features/learning/learning-link";
 import { m } from "~/paraglide/messages.js";
 import type { ClassId } from "./classes.schema";
 import type { ClassMapAxis } from "./class-map";
@@ -108,7 +109,7 @@ export function ClassTeachingCards({
           </ul>
         )}
         {discussion.lesson !== undefined && (
-          <Link
+          <LearningLink
             className={styles["link"]}
             to={lessonPath(
               classId,
@@ -122,7 +123,7 @@ export function ClassTeachingCards({
               })}
             </NumberText>
             <CardArrow kind="lesson" />
-          </Link>
+          </LearningLink>
         )}
       </section>
       <section
