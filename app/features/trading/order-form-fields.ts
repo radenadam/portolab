@@ -13,6 +13,8 @@ import { isRupiah, rupiah } from "~/units/rupiah";
 import type { Rupiah } from "~/units/rupiah";
 import { typeName } from "~/value-shapes";
 import { parseWrittenWholeNumber } from "~/written-whole-number";
+import { checkFieldLength } from "~/check-field-length";
+import { parseChoice } from "~/value-parsers";
 import type { OrderRequest, OrderSide } from "./order";
 import { parseOrderLots } from "./parse-order-lots";
 import { reasonMaximumLength } from "./reason-maximum-length";
@@ -151,28 +153,20 @@ export function typedOrderForm(form: FormData): OrderFormFields {
   };
 }
 
-/** Reads the stock that the address of the orders chose, which is one of the stocks in the list of the field that chooses it. The form that chooses a stock sends its field in the address, so the source is the label of that field, and the failure is a sentence for the reader in the current language. */
+/** Stock routes answer 404 for an unknown code, so this boundary returns diagnostics rather than chooser-field messages. */
 export function parseStockCode(
   value: unknown,
   source: string,
   codes: readonly string[],
 ): Result<string, string> {
-  const chosen = parseOptionalOrderText(value, source);
-  if (!chosen.ok) {
-    return chosen;
+  if (typeof value === "string") {
+    const bounded = checkFieldLength(value);
+    if (!bounded.ok)
+      return fail(
+        `${source} must name a tracked stock, but it has ${String(bounded.failure)} characters, more than this input takes.`,
+      );
   }
-  if (chosen.value === undefined) {
-    return fail(m.trading_no_stock_error({ field: source }));
-  }
-  const code = codes.find((candidate) => candidate === chosen.value);
-  return code === undefined
-    ? fail(
-        m.trading_unknown_stock_error({
-          field: source,
-          value: chosen.value.trim(),
-        }),
-      )
-    : succeed(code);
+  return parseChoice(value, source, codes);
 }
 
 /** A field supplies the labels of its options so that a refusal names what the reader can choose. The source is the label of the field in the current language. */

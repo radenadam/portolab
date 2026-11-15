@@ -15,17 +15,14 @@ import type { StudentPlace } from "./find-student-place.server";
 import type { OrderFailure, OrderRequest, OrderSide } from "./order";
 import { lotsStepOf } from "./lots-step";
 import { limitPriceFailureText, orderFailureText } from "./order-failure-text";
-import {
-  readOrderForm,
-  typedOrderForm,
-  parseOptionalOrderText,
-} from "./order-form-fields";
+import { readOrderForm, typedOrderForm } from "./order-form-fields";
 import type { OrderFormFields } from "./order-form-fields";
 import { orderTradingDay } from "./order-trading-day";
 import { activityPath } from "./activity-path";
 import { placePortfolioOrder } from "./place-portfolio-order.server";
 import type { OrderId } from "./trading.schema";
 import { pathWithQuery } from "~/path-with-query";
+import { parseSeenTotal } from "./parse-seen-total";
 
 /** Why Portolab did not accept an order as a whole, with the lots of an order that it would accept in place of it, which the rejection offers as its next step, or undefined when no number of lots would do. */
 export interface OrderRejection {
@@ -86,7 +83,7 @@ export function placeFromForm(
       failureStatuses[day.failure.kind],
     );
   }
-  const seenTotal = parseOptionalOrderText(
+  const seenTotal = parseSeenTotal(
     form.get("seenTotal"),
     m.trading_ticket_breakdown_title(),
   );
@@ -113,7 +110,7 @@ export function placeFromForm(
     {
       owner: place.owner,
       delayMinutes,
-      seenTotal: seenTotal.value ?? null,
+      seenTotal: seenTotal.value,
     },
   );
   if (placed.ok) {

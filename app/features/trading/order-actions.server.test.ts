@@ -37,12 +37,13 @@ const texts: Record<
     noReferenceClose: string;
     outsideLimits: string;
     missingRules: string;
-    noStock: string;
-    unknownStock: string;
     changed: string;
+    invalidPreview: string;
   }
 > = {
   id: {
+    invalidPreview:
+      'Pratinjau dari Rincian biaya harus memuat total dalam rupiah bulat yang tidak negatif, tetapi isinya "x". Periksa rincian biaya, lalu konfirmasi lagi.',
     changed:
       "Total order berubah dari pratinjau yang Anda lihat. Periksa rincian biaya, lalu konfirmasi lagi.",
     missingOrder:
@@ -55,11 +56,10 @@ const texts: Record<
       'Kolom "Harga limit" berisi "9.000", tetapi BEI menolak harga itu untuk BBCA pada 2 November 2026 karena batas auto rejection. Batas itu mengizinkan harga paling jauh 25% di atas dan 7% di bawah harga acuan Rp\u00a04.980, dan setiap ujung rentangnya adalah harga sah terdekat di dalam batas itu. BEI menetapkan harga acuan dari harga penutupan terakhir BBCA sebelum hari itu. Pilih harga dari Rp\u00a04.640 sampai Rp\u00a06.225.',
     missingRules:
       "Portolab belum dapat menerima order ini, karena aturan BEI untuk hari bursa order ini belum tercatat. Beri tahu dosen Anda agar aturan tersebut dapat ditambahkan.",
-    noStock: 'Kolom "Saham" belum berisi saham. Pilih saham untuk order ini.',
-    unknownStock:
-      'Alamat halaman ini menyebut "BREN" sebagai saham, tetapi Portolab hanya memperdagangkan saham yang ada di daftar kolom "Saham". Pilih salah satunya.',
   },
   en: {
+    invalidPreview:
+      'The preview from Cost breakdown must hold a nonnegative total in whole rupiah, but it holds "x". Check the cost breakdown, then confirm again.',
     changed:
       "The order total changed from the preview you saw. Check the cost breakdown, then confirm again.",
     missingOrder:
@@ -72,10 +72,6 @@ const texts: Record<
       'The field "Limit price" holds "9,000", but IDX rejects that price for BBCA on November 2, 2026 by its auto rejection limits. They allow a price at most 25% above and 7% below the reference price of IDR\u00a04,980, and each end of the range is the nearest valid price inside those limits. IDX sets the reference price from the latest close of BBCA before that day. Choose a price from IDR\u00a04,640 to IDR\u00a06,225.',
     missingRules:
       "Portolab cannot take this order yet, because it has not recorded the rules of IDX for the trading day of the order. Tell your lecturer, so that the rules can be added.",
-    noStock:
-      'The field "Stock" holds no stock yet. Choose the stock of the order.',
-    unknownStock:
-      'The address of this page names "BREN" as the stock, but Portolab trades only the stocks in the list of the field "Stock". Choose one of them.',
   },
 };
 
@@ -262,7 +258,17 @@ for (const locale of locales) {
     const { database, owner, request } = await studentRequestForTest();
     const context = contextForTest(database);
     // Python Decimal gives 5 * 100 * 4980 + ROUND(5 * 100 * 4980 * 0.0015) = 2493735.
-    for (const seenTotal of ["2493734", "2493736", "", "x"]) {
+    expect(
+      placeFromForm(
+        context,
+        request({ ...purchase, seenTotal: "x" }, duringSessionForTest),
+      ),
+    ).toMatchObject({
+      data: { rejection: { text: text.invalidPreview } },
+      init: { status: 400 },
+    });
+    expect(readPortfolio(database, owner).orders).toEqual([]);
+    for (const seenTotal of ["2493734", "2493736", ""]) {
       expect(
         placeFromForm(
           context,

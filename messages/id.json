@@ -325,8 +325,6 @@
   "trading_reason_label": "Alasan (opsional)",
   "trading_reason_hint": "Tersimpan bersama order ini, dan dosen kelas ini dapat membacanya.",
   "trading_place_label": "Pasang order",
-  "trading_no_stock_error": "Kolom \"{field}\" belum berisi saham. Pilih saham untuk order ini.",
-  "trading_unknown_stock_error": "Alamat halaman ini menyebut \"{value}\" sebagai saham, tetapi Portolab hanya memperdagangkan saham yang ada di daftar kolom \"{field}\". Pilih salah satunya.",
   "trading_no_choice_error": "Kolom \"{field}\" belum berisi pilihan. Pilih {choices}.",
   "trading_unknown_choice_error": "Formulir mengirim \"{value}\" di kolom \"{field}\", tetapi kolom itu hanya menerima {choices}. Muat ulang halaman, lalu pilih salah satunya.",
   "trading_limit_not_whole_error": "Kolom \"{field}\" menerima harga dalam rupiah bulat, misalnya {example}, tetapi isinya \"{value}\". Tulis harganya dengan angka, dengan atau tanpa \"{separator}\" di antara kelompok angka seperti pada contoh.",
@@ -761,5 +759,6 @@
   "trading_ticket_band_body": "Harga acuan {reference} memberi rentang harga sah dari {low} sampai {high}. Harga limit harus mengikuti fraksi harga BEI.",
   "trading_ticket_tax_label": "PPh final {rate}",
   "trading_ticket_price_up_label": "Naikkan harga satu fraksi",
-  "trading_ticket_lots_down_label": "Kurangi lot"
+  "trading_ticket_lots_down_label": "Kurangi lot",
+  "trading_ticket_preview_invalid_error": "Pratinjau dari {source} harus memuat total dalam rupiah bulat yang tidak negatif, tetapi isinya {value}. Periksa rincian biaya, lalu konfirmasi lagi."
 }

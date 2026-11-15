@@ -325,8 +325,6 @@
   "trading_reason_label": "Reason (optional)",
   "trading_reason_hint": "Saved with this order, and the lecturer of this class can read it.",
   "trading_place_label": "Place the order",
-  "trading_no_stock_error": "The field \"{field}\" holds no stock yet. Choose the stock of the order.",
-  "trading_unknown_stock_error": "The address of this page names \"{value}\" as the stock, but Portolab trades only the stocks in the list of the field \"{field}\". Choose one of them.",
   "trading_no_choice_error": "The field \"{field}\" holds no choice yet. Choose {choices}.",
   "trading_unknown_choice_error": "The form sent \"{value}\" in the field \"{field}\", but the field takes only {choices}. Reload the page and choose one of them.",
   "trading_limit_not_whole_error": "The field \"{field}\" takes a price in whole rupiah, such as {example}, but it holds \"{value}\". Write the price in digits, with or without \"{separator}\" between groups of digits as the example shows.",
@@ -761,5 +759,6 @@
   "trading_ticket_band_body": "The reference price of {reference} gives a valid price range from {low} to {high}. A limit price must follow the tick sizes of IDX.",
   "trading_ticket_tax_label": "Final tax {rate}",
   "trading_ticket_price_up_label": "Increase the price by one tick",
-  "trading_ticket_lots_down_label": "Decrease the lots"
+  "trading_ticket_lots_down_label": "Decrease the lots",
+  "trading_ticket_preview_invalid_error": "The preview from {source} must hold a nonnegative total in whole rupiah, but it holds {value}. Check the cost breakdown, then confirm again."
 }

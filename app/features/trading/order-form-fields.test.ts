@@ -29,14 +29,11 @@ const texts: Record<
   Locale,
   {
     labels: {
-      stock: string;
       side: string;
       priceKind: string;
       limit: string;
       reason: string;
     };
-    noStock: string;
-    unknownStock: readonly [string, string];
     farTooLong: (field: string, length: string) => string;
     lengths: { atLimit: string; justPast: string; farPast: string };
     lotsLabel: string;
@@ -56,17 +53,11 @@ const texts: Record<
 > = {
   id: {
     labels: {
-      stock: "Saham",
       side: "Beli atau jual",
       priceKind: "Jenis order",
       limit: "Harga limit",
       reason: "Alasan (opsional)",
     },
-    noStock: 'Kolom "Saham" belum berisi saham. Pilih saham untuk order ini.',
-    unknownStock: [
-      'Alamat halaman ini menyebut "',
-      '" sebagai saham, tetapi Portolab hanya memperdagangkan saham yang ada di daftar kolom "Saham". Pilih salah satunya.',
-    ],
     farTooLong: (field, length) =>
       `Kolom "${field}" berisi ${length} karakter, lebih banyak daripada yang diterima kolom ini. Isi kolom itu dengan teks yang dimintanya.`,
     lengths: { atLimit: "8.000", justPast: "8.001", farPast: "1.000.000" },
@@ -116,18 +107,11 @@ const texts: Record<
   },
   en: {
     labels: {
-      stock: "Stock",
       side: "Buy or sell",
       priceKind: "Kind of order",
       limit: "Limit price",
       reason: "Reason (optional)",
     },
-    noStock:
-      'The field "Stock" holds no stock yet. Choose the stock of the order.',
-    unknownStock: [
-      'The address of this page names "',
-      '" as the stock, but Portolab trades only the stocks in the list of the field "Stock". Choose one of them.',
-    ],
     farTooLong: (field, length) =>
       `The field "${field}" has ${length} characters, more than this field takes. Fill it in with the text that it asks for.`,
     lengths: { atLimit: "8,000", justPast: "8,001", farPast: "1,000,000" },
@@ -215,39 +199,44 @@ function failuresOfForm(
   return failureOf(readFields(fields));
 }
 
+test("reads a tracked stock from an address and returns bounded diagnostics for invalid codes", () => {
+  expect(parseStockCode("TLKM", "code", codes)).toEqual({
+    ok: true,
+    value: "TLKM",
+  });
+  for (const [value, description] of [
+    [null, "null"],
+    ["", "empty"],
+    ["BREN", '"BREN"'],
+    ["bbca", '"bbca"'],
+    [" BBCA ", '" BBCA "'],
+  ] as const) {
+    expect(parseStockCode(value, "code", codes)).toEqual({
+      ok: false,
+      failure: `code must be "BBCA" or "TLKM", but it is ${description}.`,
+    });
+  }
+  const atLimit = "1".repeat(fieldMaximumLength);
+  expect(parseStockCode(atLimit, "code", codes)).toEqual({
+    ok: false,
+    failure: `code must be "BBCA" or "TLKM", but it is "${atLimit}".`,
+  });
+  for (const length of [fieldMaximumLength + 1, 1_000_000]) {
+    expect(parseStockCode("1".repeat(length), "code", codes)).toEqual({
+      ok: false,
+      failure: `code must name a tracked stock, but it has ${String(length)} characters, more than this input takes.`,
+    });
+  }
+});
+
 for (const locale of locales) {
   const text = texts[locale];
   const language = languageNames[locale];
 
-  test(`reads a stock of the list of the field from the address, and rejects an address without a stock or with another stock, in ${language}`, () => {
-    switchLocaleForTest(locale);
-    const source = text.labels.stock;
-    expect(parseStockCode("TLKM", source, codes)).toEqual({
-      ok: true,
-      value: "TLKM",
-    });
-    for (const missing of [null, ""]) {
-      expect(parseStockCode(missing, source, codes), String(missing)).toEqual({
-        ok: false,
-        failure: text.noStock,
-      });
-    }
-    for (const other of ["BREN", "bbca", " BBCA "]) {
-      expect(parseStockCode(other, source, codes), other).toEqual({
-        ok: false,
-        failure: `${text.unknownStock[0]}${other.trim()}${text.unknownStock[1]}`,
-      });
-    }
-  });
-
-  test(`judges the stock of the address and each field of the order form at the length of the longest field by its own rule, and rejects it just past and far past that length before any other work, in ${language}`, () => {
+  test(`judges each field of the order form at the length of the longest field by its own rule, and rejects it just past and far past that length before any other work, in ${language}`, () => {
     switchLocaleForTest(locale);
     const { labels } = text;
     const atLimit = "1".repeat(fieldMaximumLength);
-    expect(parseStockCode(atLimit, labels.stock, codes)).toEqual({
-      ok: false,
-      failure: `${text.unknownStock[0]}${atLimit}${text.unknownStock[1]}`,
-    });
     expect(parseOrderSide(atLimit, labels.side)).toEqual({
       ok: false,
       failure: `${text.unknownSide[0]}${atLimit}${text.unknownSide[1]}`,
@@ -283,10 +272,6 @@ for (const locale of locales) {
       [1_000_000, text.lengths.farPast],
     ] as const) {
       const long = "1".repeat(length);
-      expect(parseStockCode(long, labels.stock, codes)).toEqual({
-        ok: false,
-        failure: text.farTooLong(labels.stock, written),
-      });
       expect(parseOrderSide(long, labels.side)).toEqual({
         ok: false,
         failure: text.farTooLong(labels.side, written),

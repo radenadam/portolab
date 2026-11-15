@@ -22,6 +22,10 @@ import { placePortfolioOrder } from "./place-portfolio-order.server";
 import type { PortfolioOwner } from "./portfolio-store.server";
 import { holdings, portfolios } from "./trading.schema";
 import type { OrderId } from "./trading.schema";
+import { readPortfolio } from "./portfolio-store.server";
+import { readTicket } from "./read-ticket.server";
+import { ticketAmounts } from "./ticket-amounts";
+import { shares } from "~/units/shares";
 
 /** Creates a student who joined the class of the test, which has the default starting cash, at 10:00 WIB on Monday 2 November 2026, and returns the portfolio of the student, which holds that cash and nothing else. A test that needs a second student gives another username. */
 export async function studentPortfolioForTest(
@@ -85,10 +89,25 @@ export function placedOrderForTest(
   owner: PortfolioOwner,
   request: OrderRequest,
 ): OrderId {
+  const ticket = readTicket(database, readPortfolio(database, owner), {
+    code: request.code,
+    now: request.placedAt,
+    delayMinutes: bbcaForTest.delayMinutes,
+  });
+  const day = successValueForTest(ticket.day, "The order has trading rules");
+  if (ticket.quote === undefined) throw new Error("The order has a quote");
+  const preview = ticketAmounts(request.side, {
+    price:
+      request.price.kind === "limit" ? request.price.limit : ticket.quote.price,
+    shares: shares(request.lots * day.rules.lotShares),
+    rates: day.rates,
+    available: ticket.available,
+  });
   return successValueForTest(
     placePortfolioOrder(database, request, {
       owner,
       delayMinutes: bbcaForTest.delayMinutes,
+      seenTotal: preview.total,
     }),
     "Portolab accepts the order",
   );
