@@ -306,11 +306,11 @@ const texts: Record<Locale, Record<FailureName, string>> = {
     priceRoseByOneLot:
       "Portolab tidak mengeksekusi order harga pasar Anda untuk membeli 1 lot BBCA, karena harganya naik dari Rp\u00a04.980 menjadi Rp\u00a05.025 selama order menunggu. Pada harga Rp\u00a05.025, order tersebut membutuhkan Rp\u00a0503.254, yaitu Rp\u00a0502.500 untuk saham dan Rp\u00a0754 untuk biaya broker, sedangkan kas Anda yang tersedia hanya Rp\u00a0500.000. Pasang order baru jika Anda masih menginginkan BBCA, dan Portolab memeriksanya pada harga dan kas saat itu.",
     sharesGoneWithoutShares:
-      "Portolab tidak mengeksekusi order Anda untuk menjual 5 lot BBCA, karena saat sebuah harga mencapainya, Anda memegang 0 lot BBCA. Periksa saham yang Anda pegang sekarang di daftar saham Anda di atas sebelum menjual lagi.",
+      "Portolab tidak mengeksekusi order Anda untuk menjual 5 lot BBCA, karena saat sebuah harga mencapainya, Anda memegang 0 lot BBCA. Periksa saham yang Anda pegang sekarang di Beranda sebelum menjual lagi.",
     sharesGoneToOtherSale:
-      "Portolab tidak mengeksekusi order Anda untuk menjual 1 lot BBCA, karena saat sebuah harga mencapainya, Anda memegang 1 lot BBCA. Saat itu, order jual Anda yang lain yang masih terbuka menyisihkan 1 lot BBCA. Periksa saham yang Anda pegang sekarang di daftar saham Anda di atas sebelum menjual lagi.",
+      "Portolab tidak mengeksekusi order Anda untuk menjual 1 lot BBCA, karena saat sebuah harga mencapainya, Anda memegang 1 lot BBCA. Saat itu, order jual Anda yang lain yang masih terbuka menyisihkan 1 lot BBCA. Periksa saham yang Anda pegang sekarang di Beranda sebelum menjual lagi.",
     sharesGoneToOtherSales:
-      "Portolab tidak mengeksekusi order Anda untuk menjual 5 lot BBCA, karena saat sebuah harga mencapainya, Anda memegang 6 lot BBCA. Saat itu, sebanyak 2 order jual Anda yang lain yang masih terbuka menyisihkan 3 lot BBCA. Periksa saham yang Anda pegang sekarang di daftar saham Anda di atas sebelum menjual lagi.",
+      "Portolab tidak mengeksekusi order Anda untuk menjual 5 lot BBCA, karena saat sebuah harga mencapainya, Anda memegang 6 lot BBCA. Saat itu, sebanyak 2 order jual Anda yang lain yang masih terbuka menyisihkan 3 lot BBCA. Periksa saham yang Anda pegang sekarang di Beranda sebelum menjual lagi.",
   },
   en: {
     missingRules:
@@ -374,11 +374,11 @@ const texts: Record<Locale, Record<FailureName, string>> = {
     priceRoseByOneLot:
       "Portolab did not fill your market order to buy 1 lot of BBCA, because the price rose from IDR\u00a04,980 to IDR\u00a05,025 while the order waited. At IDR\u00a05,025 the order costs IDR\u00a0503,254, which is IDR\u00a0502,500 for the shares and IDR\u00a0754 for the broker fee, but your available cash was IDR\u00a0500,000. Place a new order if you still want BBCA, and Portolab checks it at the price and with the cash of that moment.",
     sharesGoneWithoutShares:
-      "Portolab did not fill your order to sell 5 lots of BBCA, because when a price reached it, you held 0 lots of BBCA. Check the shares that you hold now in your holdings above before you sell again.",
+      "Portolab did not fill your order to sell 5 lots of BBCA, because when a price reached it, you held 0 lots of BBCA. Check the shares that you hold now on Home before you sell again.",
     sharesGoneToOtherSale:
-      "Portolab did not fill your order to sell 1 lot of BBCA, because when a price reached it, you held 1 lot of BBCA. Your other open sell order set aside 1 lot of BBCA then. Check the shares that you hold now in your holdings above before you sell again.",
+      "Portolab did not fill your order to sell 1 lot of BBCA, because when a price reached it, you held 1 lot of BBCA. Your other open sell order set aside 1 lot of BBCA then. Check the shares that you hold now on Home before you sell again.",
     sharesGoneToOtherSales:
-      "Portolab did not fill your order to sell 5 lots of BBCA, because when a price reached it, you held 6 lots of BBCA. Your 2 other open sell orders set aside 3 lots of BBCA then. Check the shares that you hold now in your holdings above before you sell again.",
+      "Portolab did not fill your order to sell 5 lots of BBCA, because when a price reached it, you held 6 lots of BBCA. Your 2 other open sell orders set aside 3 lots of BBCA then. Check the shares that you hold now on Home before you sell again.",
   },
 };
 

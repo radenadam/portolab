@@ -25,7 +25,7 @@ import {
 } from "./order-form-fields";
 import type { OrderFormFields } from "./order-form-fields";
 import { orderTradingDay } from "./order-trading-day";
-import { ordersPath } from "./orders-path";
+import { activityPath } from "./activity-path";
 import { placePortfolioOrder } from "./place-portfolio-order.server";
 import type { OrderId } from "./trading.schema";
 
@@ -43,7 +43,6 @@ export interface OrdersAnswer {
   cancelFailure: string | undefined;
 }
 
-/** A form that a student sent to the orders of a class at a moment. @internal Tests send it to placeFromForm and cancelFromForm directly, because ticketAction reaches them only with the real clock. */
 export interface OrdersForm {
   form: FormData;
   place: Pick<StudentPlace, "classId" | "owner">;
@@ -123,7 +122,7 @@ export function placeFromForm(
   );
   if (placed.ok) {
     return redirect(
-      `${ordersPath(place.classId)}?placed=${String(placed.value)}`,
+      `${activityPath(place.classId)}?placed=${String(placed.value)}`,
     );
   }
   const { failure } = placed;
@@ -156,10 +155,11 @@ export function placeFromForm(
   );
 }
 
-/** Cancels the order that the form names and opens the orders again, or answers with the reason that no order was cancelled. A number that names no order of the student, which only a forged form or a deletion by hand leads to, is a missing order. @internal Tests call it directly, because ticketAction reaches it only with the real clock. */
+/** A forged form or a manual deletion can name an order that the student does not have. */
 export function cancelFromForm(
   context: Readonly<RouterContextProvider>,
   { form, place, now }: OrdersForm,
+  returnPath = activityPath(place.classId),
 ): Response | ReturnType<typeof data<OrdersAnswer>> {
   const orderId = parseRecordId<OrderId>(form.get("cancel"), "cancel");
   const cancelled = orderId.ok
@@ -170,7 +170,7 @@ export function cancelFromForm(
       )
     : fail<CancelFailure>({ kind: "missing" });
   if (cancelled.ok) {
-    return redirect(ordersPath(place.classId));
+    return redirect(returnPath);
   }
   switch (cancelled.failure.kind) {
     case "missing":
@@ -214,7 +214,7 @@ export interface TicketActionArgs {
   url: URL;
 }
 
-/** The action of a page with the order ticket, which answers the form that it sends: the order form, its step after a rejection, or a form that cancels an order of the list of the orders. Each order in the list has a form that sends only the number of the order to cancel, and the order form never sends it. */
+/** The order ticket and its rejection step share one action so both keep the stock that the address chose. */
 export async function ticketAction({
   context,
   request,
@@ -226,12 +226,10 @@ export async function ticketAction({
   const now = new Date();
   const place = findStudentPlace(context, url, params.classId);
   const form = await request.formData();
-  return form.has("cancel")
-    ? cancelFromForm(context, { form, place, now })
-    : placeFromForm(context, {
-        form,
-        place,
-        now,
-        chosenStock: url.searchParams.get("code"),
-      });
+  return placeFromForm(context, {
+    form,
+    place,
+    now,
+    chosenStock: url.searchParams.get("code"),
+  });
 }

@@ -471,6 +471,7 @@ for (const locale of locales) {
           await student.emulateMedia({ colorScheme: theme });
           expect(await layoutProblems(student)).toEqual([]);
           await screenshotFullHeight(student, {
+            scale: "css",
             path: info.outputPath(
               `analysis-axis-${locale}-${String(width)}-${kind}-${theme}.png`,
             ),

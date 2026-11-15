@@ -1,3 +1,4 @@
+import { lots } from "~/units/lots";
 import {
   indexHistoryForTest,
   stockHistoryForTest,
@@ -8,7 +9,7 @@ import { monthEndClosesForTest } from "~/features/measures/month-end-closes-for-
 import type { OrderLots } from "~/units/lots";
 import { successValueForTest } from "~/success-value-for-test";
 import { rupiah } from "~/units/rupiah";
-import type { OpenOrder, OrderRequest } from "./order";
+import type { FillFailure, OpenOrder, OrderRequest } from "./order";
 import { orderTradingDay } from "./order-trading-day";
 import { placeOrder } from "./place-order";
 import type { AccountState, StockState } from "./place-order";
@@ -98,4 +99,19 @@ export function accountForTest(
   changes: Partial<AccountState> = {},
 ): AccountState {
   return { cash: rupiah(100_000_000), holdings: [], orders: [], ...changes };
+}
+
+/** The price rise and amounts of the rejected five-lot purchase in check-order.test.ts, computed with Python Decimal and ROUND_HALF_UP. */
+export function priceRoseFailureForTest(): FillFailure {
+  return {
+    kind: "priceRose",
+    code: "BBCA",
+    lots: lots(5),
+    checkedPrice: rupiah(4_980),
+    price: rupiah(5_025),
+    value: rupiah(2_512_500),
+    fee: rupiah(3_769),
+    tax: rupiah(0),
+    availableCash: rupiah(2_500_000),
+  };
 }

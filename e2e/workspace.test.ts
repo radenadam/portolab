@@ -192,11 +192,11 @@ for (const locale of locales) {
       [
         classPath,
         `${classPath}/market`,
-        `${classPath}/orders`,
+        `${classPath}/activity`,
         `${classPath}/analysis`,
         `${classPath}/learn`,
       ].map((path, index) => [text.studentItems[index] ?? "", path]);
-    await student.goto(`${second.path}/orders`);
+    await student.goto(`${second.path}/activity`);
     await expectItems(student, locale, {
       items: itemsOf(second.path),
       current: text.studentItems[2] ?? "",
