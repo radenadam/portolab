@@ -23,8 +23,12 @@ function ExcessReturnNumbers({
 }): ReactNode {
   return (
     <>
-      <NumberText>{formatFormulaPercent(expectedReturn)}</NumberText> −{" "}
-      <NumberText>{formatFormulaPercent(riskFreeRate)}</NumberText>
+      <NumberText>{formatFormulaPercent(expectedReturn)}</NumberText>{" "}
+      <Operand
+        value={riskFreeRate}
+        text={formatFormulaPercent(riskFreeRate)}
+        operator="−"
+      />
     </>
   );
 }

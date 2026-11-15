@@ -64,8 +64,8 @@ const stocksOfSectors: Record<Sector, StockOfSector> = {
     tile: "PW",
     name: "Pakuwon Jati Tbk",
     sector: {
-      id: "Properti &amp; Real Estat",
-      en: "Properties &amp; Real Estate",
+      id: "Properti & Real Estat",
+      en: "Properties & Real Estate",
     },
   },
   technology: {
@@ -94,7 +94,9 @@ function renderStock(
       withSector={withSector}
       withCompanyName={withCompanyName}
     />,
-  ).replaceAll(/ class="[^"]*"/g, "");
+  )
+    .replaceAll("&amp;", "&")
+    .replaceAll(/ class="[^"]*"/g, "");
 }
 
 for (const locale of locales) {

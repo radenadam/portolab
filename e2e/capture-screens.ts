@@ -1,5 +1,6 @@
 import type { Page, TestInfo } from "@playwright/test";
 import { screenshotFullHeight } from "./screenshot-full-height.ts";
+import { screenshotWidths } from "./screenshot-widths.ts";
 
 export async function captureScreens(
   page: Page,
@@ -18,8 +19,7 @@ export async function captureScreens(
     });
   }
   await page.mouse.move(0, 0);
-  const widths = testInfo.project.name === "phone" ? [360] : [1440, 1920];
-  for (const width of widths) {
+  for (const width of screenshotWidths(testInfo)) {
     await page.setViewportSize({ width, height: 900 });
     for (const colorScheme of ["light", "dark"] as const) {
       await page.emulateMedia({ colorScheme });

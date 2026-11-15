@@ -1,13 +1,10 @@
 import { expect, test } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
+import { storeLessonPortfolio } from "./store-lesson-portfolio.ts";
 import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
 import { languageNames } from "../app/language-names.ts";
-import { rupiah } from "../app/units/rupiah.ts";
-import { shares } from "../app/units/shares.ts";
-import type { ClassId } from "../app/features/classes/classes.schema.ts";
-import { startingCashLimits } from "../app/features/classes/class-rules.ts";
 import { openAsNewStudent } from "./open-as-new-student.ts";
-import { storeTestHolding } from "./store-test-holding.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 import { layoutProblems } from "./expect-layout.ts";
 import { captureScreens } from "./capture-screens.ts";
@@ -35,6 +32,8 @@ const texts: Record<
     lots: string;
     activity: string;
     example: string;
+    apply: string;
+    clear: string;
     done: string;
     failed: string;
     capmResult: string;
@@ -46,6 +45,8 @@ const texts: Record<
   }
 > = {
   id: {
+    apply: "Terapkan",
+    clear: "Hapus filter",
     currentValues: [
       "sekarang -0,22%",
       "sekarang 4,07%",
@@ -60,9 +61,9 @@ const texts: Record<
       "Tp = (E(Rp) − Rf) / βp = (-0,00001182% − 0,48%) / 0,000034",
     ],
     tinyTask:
-      "Dengan penggeser di atas, naikkan risiko portofolio hingga di atas 0,01%. Sekarang 0,00%.",
+      "Tugas. Dengan penggeser di atas, naikkan risiko portofolio hingga di atas 0,01%. Sekarang 0,00%.",
     raisedTask:
-      "Dengan penggeser di atas, naikkan risiko portofolio hingga di atas 0,01%. Sekarang 0,05%.",
+      "Tugas. Dengan penggeser di atas, naikkan risiko portofolio hingga di atas 0,01%. Sekarang 0,05%.",
     capmNumbers: ["0,62", "0,21%", "-0,22%"],
     riskNumbers: ["-0,22%", "4,07%", "-0,17", "-1,12%"],
     beta: "Beta",
@@ -80,7 +81,7 @@ const texts: Record<
     lots: "Jumlah lot",
     activity: "Lihat di Aktivitas",
     example:
-      "Contoh dengan saham yang memiliki cukup imbal hasil bulanan. Bobot contoh tidak mengubah portofolio Anda.",
+      "Contoh dari imbal hasil bulanan saham yang tersimpan. Bobot contoh tidak mengubah portofolio Anda.",
     done: "Tercapai. Perhatikan juga apa yang terjadi pada imbal hasil harapan.",
     failed: "Belum tercapai.",
     capmResult: "= 0,046% per bulan",
@@ -88,6 +89,8 @@ const texts: Record<
     afterCash: "Kas 70,00%. Kas tidak berisiko dan tidak berbunga.",
   },
   en: {
+    apply: "Apply",
+    clear: "Clear filters",
     currentValues: [
       "current -0.22%",
       "current 4.07%",
@@ -102,9 +105,9 @@ const texts: Record<
       "Tp = (E(Rp) − Rf) / βp = (-0.00001182% − 0.48%) / 0.000034",
     ],
     tinyTask:
-      "Use the sliders above to raise portfolio risk above 0.01%. It is now 0.00%.",
+      "Task. Use the sliders above to raise portfolio risk above 0.01%. It is now 0.00%.",
     raisedTask:
-      "Use the sliders above to raise portfolio risk above 0.01%. It is now 0.05%.",
+      "Task. Use the sliders above to raise portfolio risk above 0.01%. It is now 0.05%.",
     capmNumbers: ["0.62", "0.21%", "-0.22%"],
     riskNumbers: ["-0.22%", "4.07%", "-0.17", "-1.12%"],
     beta: "Beta",
@@ -123,7 +126,7 @@ const texts: Record<
     lots: "Lots",
     activity: "View in Activity",
     example:
-      "An example using stocks with enough monthly returns. Example weights do not change your portfolio.",
+      "An example from stored monthly stock returns. Example weights do not change your portfolio.",
     done: "Achieved. Observe what also happens to expected return.",
     failed: "Not achieved yet.",
     capmResult: "= 0.046% per month",
@@ -132,35 +135,8 @@ const texts: Record<
   },
 };
 
-type LessonPortfolio = "recorded" | "fractional" | "tiny";
-
-function storeLessonPortfolio(
-  classId: ClassId,
-  shape: LessonPortfolio = "recorded",
-): void {
-  const fractional = shape === "fractional";
-  const cash: Record<LessonPortfolio, ReturnType<typeof rupiah>> = {
-    recorded: rupiah(10_956_000),
-    fractional: rupiah(304_000),
-    tiny: startingCashLimits.maximum,
-  };
-  // Recorded quotes and costs match measures-for-test.server.ts, so the fixture changes weights without invented returns. The smaller holdings value BBCA at Rp498,000 and TLKM at Rp198,000, which with Rp304,000 cash give 49.8%, 19.8%, and 30.4% by hand.
-  storeTestHolding(
-    classId,
-    {
-      code: "BBCA",
-      cash: cash[shape],
-      shares: shares(fractional ? 100 : 5500),
-      cost: rupiah(fractional ? 498_747 : 27_431_085),
-    },
-    [
-      {
-        code: "TLKM",
-        shares: shares(fractional ? 100 : 8300),
-        cost: rupiah(fractional ? 198_297 : 16_458_651),
-      },
-    ],
-  );
+function practiceProgress(page: Page): Locator {
+  return page.locator("#practice").getByRole("status");
 }
 
 for (const locale of locales) {
@@ -226,7 +202,7 @@ for (const locale of locales) {
         .getByRole("region", { name: text.own, exact: true })
         .locator("strong"),
     ).toHaveText([text.own, ...text.riskNumbers]);
-    await expect(page.getByRole("status")).toHaveText(text.failed);
+    await expect(practiceProgress(page)).toHaveText(text.failed);
     await expect(page.locator("main dl small")).toHaveText(text.currentValues);
     await captureScreens(page, testInfo, {
       name: `lesson-10-${locale}`,
@@ -235,7 +211,7 @@ for (const locale of locales) {
     });
     await page.getByRole("slider", { name: "BBCA", exact: true }).fill("0");
     await expect(page.getByText(text.afterCash, { exact: true })).toBeVisible();
-    await expect(page.getByRole("status")).toHaveText(text.done);
+    await expect(practiceProgress(page)).toHaveText(text.done);
     await expect(page.locator("main dl small")).toHaveText(text.currentValues);
     await page.getByText(text.covariance, { exact: true }).click();
     await expect(page.locator("main details[open]")).toContainText("ρ");
@@ -310,7 +286,7 @@ for (const locale of locales) {
       },
     });
     await expect(page.getByText(text.tinyTask, { exact: true })).toBeVisible();
-    await expect(page.getByRole("status")).toHaveText(text.failed);
+    await expect(practiceProgress(page)).toHaveText(text.failed);
     for (const formula of text.tinyFormulas)
       await expect(
         page.getByText(formula, { exact: true }).first(),
@@ -327,7 +303,7 @@ for (const locale of locales) {
     await expect(
       page.getByText(text.raisedTask, { exact: true }),
     ).toBeVisible();
-    await expect(page.getByRole("status")).toHaveText(text.done);
+    await expect(practiceProgress(page)).toHaveText(text.done);
     await expectAccessibleScreen(page);
     expect(await layoutProblems(page)).toEqual([]);
     await captureScreens(page, testInfo, {
@@ -402,9 +378,25 @@ for (const locale of locales) {
         if (session === 9)
           await captureScreens(page, testInfo, {
             name: `lesson-task-market-${locale}`,
-            fullPage: false,
+            fullPage: true,
             fromTop: true,
           });
+        await page.locator("#market-search").fill("no matching company");
+        await page
+          .getByRole("button", { name: text.apply, exact: true })
+          .click();
+        await page.getByRole("link", { name: text.clear, exact: true }).click();
+        await expect(page.locator("#market-search")).toHaveValue("");
+        await page.locator("#market-search").fill("BBCA");
+        await page
+          .getByRole("button", { name: text.apply, exact: true })
+          .click();
+        await page.locator('main a[href*="range=1y"]').click();
+        const filtered = new URL(page.url());
+        expect(filtered.pathname).toBe(`${classPath}/market`);
+        expect(filtered.searchParams.get("q")).toBe("BBCA");
+        expect(filtered.searchParams.get("range")).toBe("1y");
+        expect(filtered.searchParams.get("lessonTask")).toBe(String(session));
         await page.locator('main a[href*="/stocks/BBCA?"]').click();
         await expect(
           page.getByRole("link", { name: text.back, exact: true }),
@@ -422,8 +414,8 @@ for (const locale of locales) {
         if (session === 9)
           await captureScreens(page, testInfo, {
             name: `lesson-task-ticket-${locale}`,
-            fullPage: true,
-            fromTop: true,
+            fullPage: testInfo.project.name !== "phone",
+            fromTop: false,
           });
         if (session === 10) {
           await page
@@ -440,6 +432,11 @@ for (const locale of locales) {
           await expect(page).toHaveURL(
             `${classPath}/activity?status=waiting&lessonTask=10`,
           );
+          await captureScreens(page, testInfo, {
+            name: `lesson-task-activity-${locale}`,
+            fullPage: true,
+            fromTop: true,
+          });
         }
         await page.getByRole("link", { name: text.back, exact: true }).click();
         await expect(page).toHaveURL(

@@ -53,6 +53,7 @@ export function AnalysisView({
   now,
   source,
   firstSessionDate,
+  showData,
 }: {
   classId: ClassId;
   report: PortfolioReport;
@@ -64,6 +65,7 @@ export function AnalysisView({
   now: Date;
   source: PriceSourceDescription;
   firstSessionDate: string | null;
+  showData: boolean;
 }): ReactNode {
   const reader = { kind: "owner", classId } as const;
   const explained = explainPortfolioMeasures(measures, reader);
@@ -145,6 +147,7 @@ export function AnalysisView({
         id={analysisDataId}
         label={m.measures_analysis_data_label()}
         placement="belowEnd"
+        className={showData ? styles["returnedData"] : undefined}
       >
         <div className={styles["data"]}>
           <h2>{m.measures_analysis_data_label()}</h2>

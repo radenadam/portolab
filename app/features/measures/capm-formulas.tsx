@@ -35,17 +35,22 @@ function CapmFormula({
       <ExpectedReturn of="M" /> − <RiskFree />)
       {line !== undefined && (
         <>
-          {stacked ? <br /> : " "}= <NumberText>{riskFree}</NumberText> +{" "}
+          {stacked ? <br /> : " "}= <NumberText>{riskFree}</NumberText>{" "}
           {beta === undefined ? (
-            "β"
+            "+ β"
           ) : (
-            <Operand value={beta} text={formatBeta(beta)} />
+            <Operand value={beta} text={formatBeta(beta)} operator="+" />
           )}{" "}
           × (
           <NumberText>
             {formatPercent(line.marketExpectedReturn, decimals)}
           </NumberText>{" "}
-          − <NumberText>{riskFree}</NumberText>)
+          <Operand
+            value={line.riskFreeRate}
+            text={formatPercent(line.riskFreeRate, decimals)}
+            operator="−"
+          />
+          )
         </>
       )}
     </>
@@ -102,10 +107,10 @@ export function MarketLineFormula({
           <NumberText>
             {formatPercent(distance.inputs.expectedReturn, "two")}
           </NumberText>{" "}
-          −{" "}
           <Operand
             value={distance.inputs.requiredReturn}
             text={formatPercent(distance.inputs.requiredReturn, "two")}
+            operator="−"
           />
         </>
       )}

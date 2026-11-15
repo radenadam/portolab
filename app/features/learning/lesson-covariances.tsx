@@ -1,6 +1,9 @@
 import type { ReactNode } from "react";
 import type { PortfolioSummary } from "~/features/measures/measure-summaries";
-import { PortfolioVarianceFormula } from "~/features/measures/formulas";
+import {
+  Operand,
+  PortfolioVarianceFormula,
+} from "~/features/measures/formulas";
 import { formatCorrelation, formatPercent, formatVariance } from "~/formatting";
 import { NumberText } from "~/number-text";
 import { m } from "~/paraglide/messages.js";
@@ -60,10 +63,17 @@ export function LessonCovariances({
             </span>
             <span>
               <NumberText>{formatPercent(pair.firstWeight, "two")}</NumberText>{" "}
-              ×{" "}
-              <NumberText>{formatPercent(pair.secondWeight, "two")}</NumberText>{" "}
-              × <NumberText>{formatVariance(pair.covariance)}</NumberText> ={" "}
-              <NumberText>{formatVariance(pair.term)}</NumberText>
+              <Operand
+                value={pair.secondWeight}
+                text={formatPercent(pair.secondWeight, "two")}
+                operator="×"
+              />{" "}
+              <Operand
+                value={pair.covariance}
+                text={formatVariance(pair.covariance)}
+                operator="×"
+              />{" "}
+              = <NumberText>{formatVariance(pair.term)}</NumberText>
             </span>
           </div>
         ))}

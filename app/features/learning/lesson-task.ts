@@ -8,6 +8,7 @@ import { lessonPracticeSessions } from "./lesson-practice-sessions.ts";
 import type { LessonPracticeSession } from "./lesson-practice-sessions.ts";
 
 export type LessonTask = LessonPracticeSession;
+export const lessonTaskField = "lessonTask";
 
 export function parseLessonTask(
   value: unknown,
@@ -41,5 +42,5 @@ export function withLessonTask(
   task: LessonTask | undefined,
 ): string {
   if (task === undefined) return path;
-  return pathWithQuery(path, { lessonTask: String(task) });
+  return pathWithQuery(path, { [lessonTaskField]: String(task) });
 }

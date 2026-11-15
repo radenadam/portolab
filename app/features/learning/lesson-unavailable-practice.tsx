@@ -12,6 +12,8 @@ import type { SessionContent } from "./content";
 
 import type { LessonPracticeData } from "./lesson-practice-data";
 import { PracticePanel } from "./practice-panel";
+import { lessonTaskField } from "./lesson-task";
+import { pathWithQuery } from "~/path-with-query";
 import styles from "./lesson-practice.module.css";
 
 export function LessonUnavailablePractice({
@@ -34,7 +36,9 @@ export function LessonUnavailablePractice({
           </p>
           <Link
             className={styles["button"]}
-            to={`${marketPath(classId)}?lessonTask=${String(lesson.session)}`}
+            to={pathWithQuery(marketPath(classId), {
+              [lessonTaskField]: String(lesson.session),
+            })}
           >
             {m.learning_first_stock_link()}
           </Link>

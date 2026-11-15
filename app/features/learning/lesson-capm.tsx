@@ -11,6 +11,7 @@ import { formatBeta, formatPercent, formatNumber } from "~/formatting";
 import { monthlyReturnCount } from "~/features/measures/monthly-return-count";
 import { NumberText } from "~/number-text";
 import { m } from "~/paraglide/messages.js";
+import { singularOrPlural } from "~/sentences";
 import { beta, marketBeta } from "~/units/beta";
 import type { Beta } from "~/units/beta";
 import { monthlyReturn } from "~/units/monthly-return";
@@ -131,7 +132,11 @@ export function LessonCapm({
               setShowHoldings(event.currentTarget.checked);
             }}
           />
-          {m.learning_show_holdings_label()}
+          {singularOrPlural(
+            practice.holdings.length,
+            m.learning_one_stock_alpha_label,
+            m.learning_several_stocks_alpha_label,
+          )()}
         </label>
       )}
       <div className={styles["formula"]}>

@@ -111,11 +111,12 @@ export function formatMinutes(
   }).format(minutes);
 }
 
+const indexLevelDecimals = 2;
+export const smallestIndexLevelStep = 10 ** -indexLevelDecimals;
+const indexLevelOptions = decimalPlaceOptions(indexLevelDecimals, "auto");
+
 export function formatIndexLevel(level: IndexPoints): string {
-  return new Intl.NumberFormat(intlLocale(), {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(level);
+  return new Intl.NumberFormat(intlLocale(), indexLevelOptions).format(level);
 }
 
 /** Columns use a fixed precision so their values line up, while chart marks can omit trailing zeroes. */
@@ -211,6 +212,7 @@ export function formatSharpeRatio(ratio: SharpeRatio): string {
 export const numberPrecisionOptions = {
   number: numberOptions,
   ratio: decimalPlaceOptions(2),
+  indexLevel: indexLevelOptions,
 };
 
 /** Formats a difference of returns in percentage points, without a percent sign. */
@@ -362,9 +364,7 @@ export function formatMarketTimeParts(moment: Date): {
   let clock = "";
   let hasClockStarted = false;
   for (const part of marketTimeFormat().formatToParts(moment)) {
-    if (part.type === "hour") {
-      hasClockStarted = true;
-    }
+    hasClockStarted = hasClockStarted || part.type === "hour";
     if (hasClockStarted) {
       clock += part.value;
     } else {

@@ -1,0 +1,23 @@
+.ranges {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.ranges a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: var(--size-touch-target);
+  min-block-size: var(--size-touch-target);
+  border-radius: var(--radius-button);
+  color: var(--color-muted);
+  font-family: var(--font-code);
+  font-size: var(--text-small);
+  text-decoration: none;
+}
+
+.ranges [aria-current] {
+  background: var(--color-data-soft);
+  color: var(--color-ink);
+  font-weight: 600;
+}

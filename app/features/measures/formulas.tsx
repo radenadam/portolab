@@ -40,11 +40,18 @@ function Deviation({ of }: { of: Subject }): ReactNode {
 export function Operand({
   value,
   text,
+  operator,
 }: {
   value: number;
   text: string;
+  operator?: "+" | "−" | "×";
 }): ReactNode {
-  return <NumberText>{value < 0 ? `(${text})` : text}</NumberText>;
+  const operand = value < 0 ? `(${text})` : text;
+  return (
+    <NumberText whole>
+      {operator === undefined ? operand : `${operator} ${operand}`}
+    </NumberText>
+  );
 }
 
 /** The symbol of the rate free of risk, R with the subscript f, which a chart writes as well. */

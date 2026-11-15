@@ -63,13 +63,19 @@ export function LessonAllocationStatistics({
           <div key={label}>
             <dt>{label}</dt>
             <dd>
-              <NumberText whole>{value}</NumberText>
+              <NumberText whole>
+                <span data-layout="part">{value}</span>
+              </NumberText>
               {comparison !== undefined && (
                 <small className={styles["comparison"]}>
                   <Message
                     text={m.learning_current_value_notice}
                     values={{
-                      value: <NumberText whole>{comparison.value}</NumberText>,
+                      value: (
+                        <NumberText whole>
+                          <span data-layout="part">{comparison.value}</span>
+                        </NumberText>
+                      ),
                     }}
                   />
                 </small>

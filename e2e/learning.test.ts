@@ -286,7 +286,7 @@ for (const locale of locales) {
       const wideQuery = "あ".repeat(fieldMaximumLength);
       await expectRefusedSearch(page, wideQuery);
       await page.goto(`${classPath}/learn/9`);
-      await page.getByText(text.beta, { exact: true }).click();
+      await page.locator("#term-beta summary").click();
       await expect(page.locator("#term-beta p")).toBeVisible();
       expect(await layoutProblems(page)).toEqual([]);
       await page.goto(`${classPath}/stocks/BBCA?range=3m`);

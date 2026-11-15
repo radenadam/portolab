@@ -42,10 +42,12 @@ const texts: Record<
     tinyChangedTask: string;
     done: string;
     missingComparison: string;
+    negativePair: string;
   }
 > = {
   id: {
     missingComparison: "sekarang Tidak ada",
+    negativePair: "50,00% × 50,00% × (-0,572) = -0,143",
     zero: "Imbal hasil harapan 25,00%, risiko 0,00%, Sharpe Tidak ada, dan Treynor Tidak ada per bulan. Penggeser dimulai dari bobot portofolio Anda sekarang.",
     negative:
       "Imbal hasil harapan 0,08%, risiko 2,38%, Sharpe -0,17, dan Treynor Tidak ada per bulan. Penggeser dimulai dari bobot portofolio Anda sekarang.",
@@ -62,6 +64,7 @@ const texts: Record<
   },
   en: {
     missingComparison: "current None",
+    negativePair: "50.00% × 50.00% × (-0.572) = -0.143",
     zero: "Expected return is 25.00%, risk 0.00%, Sharpe None, and Treynor None per month. The sliders start at your current portfolio weights.",
     negative:
       "Expected return is 0.08%, risk 2.38%, Sharpe -0.17, and Treynor None per month. The sliders start at your current portfolio weights.",
@@ -136,6 +139,10 @@ for (const locale of locales) {
         allocation.split(markupTextForTest(texts[locale].missingComparison))
           .length - 1,
       ).toBe(missingCount);
+      if (!own.sharpeRatio.ok)
+        expect(allocation).toContain(
+          markupTextForTest(texts[locale].negativePair),
+        );
       if (own.beta < 0) expect(practice.initialBeta).toBe(-0.5);
     }
     const own = practicePortfolio(lessonPracticeForTest().report);

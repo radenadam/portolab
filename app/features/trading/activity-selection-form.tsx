@@ -1,4 +1,5 @@
 import type { LessonTask } from "~/features/learning/lesson-task";
+import { lessonTaskField } from "~/features/learning/lesson-task";
 import type { ReactNode } from "react";
 import { Form } from "react-router";
 import type { FieldOption } from "~/form";
@@ -30,7 +31,7 @@ export function ActivitySelectionForm({
   return (
     <Form method="get" className={styles["selectionForm"]}>
       {task !== undefined && (
-        <input type="hidden" name="lessonTask" value={String(task)} />
+        <input type="hidden" name={lessonTaskField} value={String(task)} />
       )}
       <SelectField
         name="status"

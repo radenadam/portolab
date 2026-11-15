@@ -1,4 +1,4 @@
-import type { Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 import { numberPattern } from "../app/number-pattern.ts";
 
 /** The token in app/theme.css that holds the largest width of the content of a screen, which decision 0028 sets. */
@@ -539,4 +539,8 @@ function inspectLayout({
   checkCells();
   checkNumbers();
   return problems;
+}
+
+export async function expectLayout(page: Page): Promise<void> {
+  expect(await layoutProblems(page)).toEqual([]);
 }

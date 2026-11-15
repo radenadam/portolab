@@ -1,12 +1,8 @@
 import { practicePortfolio } from "./practice-portfolio";
 import type { ReactNode } from "react";
-import { Link } from "react-router";
 import { Message } from "~/message";
 import { ChangeText } from "~/change-text";
 import type { ClassId } from "~/features/classes/classes.schema";
-import { classPath } from "~/features/classes/class-path";
-
-import { homeHoldingsSectionId } from "~/features/trading/home-holdings-section-id";
 import { PortfolioMeasuresNotice } from "~/features/measures/portfolio-measures-notice";
 
 import {
@@ -79,12 +75,9 @@ export function LessonOwnNumbers({
         </p>
       )}
       {own !== undefined && (
-        <Link
-          className={styles["provenance"]}
-          to={`${classPath(classId)}#${homeHoldingsSectionId}`}
-        >
-          {m.learning_price_times_link()}
-        </Link>
+        <p className={styles["provenance"]}>
+          {m.learning_price_times_notice()}
+        </p>
       )}
     </section>
   );
@@ -114,7 +107,7 @@ function CapmNumbers({
   );
 }
 
-function emphasizedNumber(value: string): ReactNode {
+export function emphasizedNumber(value: string): ReactNode {
   return (
     <strong>
       <NumberText whole>{value}</NumberText>

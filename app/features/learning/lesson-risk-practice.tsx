@@ -7,7 +7,9 @@ import type { MonthlyReturn } from "~/units/monthly-return";
 import { formatPercent, smallestPercentStep } from "~/formatting";
 import { monthlyReturn } from "~/units/monthly-return";
 import { NumberText } from "~/number-text";
+import { Message } from "~/message";
 import { m } from "~/paraglide/messages.js";
+import { emphasizedNumber } from "./lesson-own-numbers";
 import { PracticePanel } from "./practice-panel";
 import { riskMeasureFailureText } from "~/features/measures/measure-failure-text";
 import { practiceRiskTarget } from "./practice-risk-target";
@@ -39,6 +41,10 @@ export function LessonRiskPractice({
     : monthlyReturn(smallestPercentStep);
   const currentText = formatPercent(current, "two");
   const targetText = formatPercent(target, "two");
+  const taskValues = {
+    target: emphasizedNumber(targetText),
+    current: emphasizedNumber(currentText),
+  };
   const done =
     (lowerRisk ? current < target : current > target) &&
     currentText !== targetText;
@@ -85,17 +91,14 @@ export function LessonRiskPractice({
       <div className={styles["task"]}>
         <p>
           <strong>{m.learning_task_label()}</strong>{" "}
-          <NumberText>
-            {lowerRisk
-              ? lowerRiskTask(rows, {
-                  target: targetText,
-                  current: currentText,
-                })
-              : m.learning_zero_risk_task_notice({
-                  target: targetText,
-                  current: currentText,
-                })}
-          </NumberText>
+          {lowerRisk ? (
+            lowerRiskTask(rows, taskValues)
+          ) : (
+            <Message
+              text={m.learning_zero_risk_task_notice}
+              values={taskValues}
+            />
+          )}
         </p>
         <p role="status" data-complete={done}>
           {done
@@ -109,12 +112,17 @@ export function LessonRiskPractice({
 
 function lowerRiskTask(
   rows: readonly HoldingRiskSummary[],
-  values: { target: string; current: string },
-): string {
+  values: { target: ReactNode; current: ReactNode },
+): ReactNode {
   const first = rows[0];
   if (first === undefined)
     throw new Error(
       "A portfolio with positive risk has no holding risk share.",
     );
-  return m.learning_risk_task_notice({ ...values, code: first.code });
+  return (
+    <Message
+      text={m.learning_risk_task_notice}
+      values={{ ...values, code: first.code }}
+    />
+  );
 }

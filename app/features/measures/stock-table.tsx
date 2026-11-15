@@ -25,7 +25,7 @@ export function StockTable({
       ]}
       rows={stocks.map(({ code, measures }) => ({
         key: code,
-        name: <StockLink classId={classId} code={code} />,
+        name: <StockLink classId={classId} code={code} id={`stock-${code}`} />,
         cells: measures.ok
           ? {
               kind: "numbers",
