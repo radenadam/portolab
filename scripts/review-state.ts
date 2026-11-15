@@ -11,10 +11,12 @@ import type { Finding } from "./review-findings.ts";
 export interface ReviewState {
   /** The head that the last finished round reviewed, or undefined before any round finished. */
   head: string | undefined;
-  /** The rounds in which an agent ran, whether or not they finished. */
+  /** The allowances spent, including unfinished runs. A combined run spends two. */
   round: number;
   /** The extra rounds that reviewed merges of the base branch, whether or not they finished. */
   mergeRounds: number;
+  /** Finding-check allowances spent, including the check part of combined runs. */
+  checkRounds: number;
   /** The verified findings in the change that the last finished round left open. */
   openFindings: Finding[];
 }
@@ -23,6 +25,7 @@ const stateBeforeFirstRound: ReviewState = {
   head: undefined,
   round: 0,
   mergeRounds: 0,
+  checkRounds: 0,
   openFindings: [],
 };
 
@@ -113,18 +116,11 @@ export function parseReviewState(
   if (!head.ok) {
     return head;
   }
-  const round = parseRoundAt(value, source);
-  if (!round.ok) {
-    return round;
-  }
-  // Reviews posted before the merge allowance have no count and used none of it.
-  const mergeRounds =
-    value["mergeRounds"] === undefined
-      ? succeed(0)
-      : parseMergeRoundsAt(value, source, round.value);
-  if (!mergeRounds.ok) {
-    return mergeRounds;
-  }
+  const counts = parseReviewCounts(value, source, {
+    merges: true,
+    checks: true,
+  });
+  if (!counts.ok) return counts;
   const openFindings = parseListField(value, source, {
     field: "openFindings",
     itemName: "open finding",
@@ -135,14 +131,13 @@ export function parseReviewState(
   }
   return succeed({
     head: head.value,
-    round: round.value,
-    mergeRounds: mergeRounds.value,
+    ...counts.value,
     openFindings: openFindings.value,
   });
 }
 
 /** Reads the count of rounds that a state or a plan holds at round. */
-export function parseRoundAt(
+function parseRoundAt(
   value: unknown,
   source: string,
   field = "round",
@@ -156,7 +151,7 @@ export function parseRoundAt(
 }
 
 /** Extra merge rounds also count toward the total, so their count cannot exceed it. */
-export function parseMergeRoundsAt(
+function parseMergeRoundsAt(
   value: unknown,
   source: string,
   total: number,
@@ -170,4 +165,58 @@ export function parseMergeRoundsAt(
         `${source} must have mergeRounds at most round (${String(total)}), but mergeRounds is ${String(mergeRounds.value)}.`,
       )
     : mergeRounds;
+}
+
+// States before independent check counts used this ordinary cap, so its excess records checks already spent.
+const legacyOrdinaryRoundLimit = 3;
+
+/** Reads independent check usage without replenishing checks when the ordinary cap changes. */
+function parseCheckRoundsAt(
+  value: unknown,
+  source: string,
+  limits: { round: number; mergeRounds: number; legacy: boolean },
+): Result<number, string> {
+  const count =
+    isRecord(value) && value["checkRounds"] === undefined && limits.legacy
+      ? succeed(
+          Math.max(
+            0,
+            limits.round - limits.mergeRounds - legacyOrdinaryRoundLimit,
+          ),
+        )
+      : parseRoundAt(value, source, "checkRounds");
+  if (!count.ok) return count;
+  const maximum = limits.round - limits.mergeRounds;
+  return count.value > maximum
+    ? fail(
+        `${source} must have checkRounds at most round minus mergeRounds (${String(maximum)}), but checkRounds is ${String(count.value)}.`,
+      )
+    : count;
+}
+
+/** Reads shared allowance counts for saved states and plans, with compatibility only for older inputs. */
+export function parseReviewCounts(
+  value: unknown,
+  source: string,
+  legacy: { merges: boolean; checks: boolean },
+): Result<Pick<ReviewState, "round" | "mergeRounds" | "checkRounds">, string> {
+  const round = parseRoundAt(value, source);
+  if (!round.ok) return round;
+  const mergeRounds =
+    isRecord(value) && value["mergeRounds"] === undefined && legacy.merges
+      ? succeed(0)
+      : parseMergeRoundsAt(value, source, round.value);
+  if (!mergeRounds.ok) return mergeRounds;
+  const checkRounds = parseCheckRoundsAt(value, source, {
+    round: round.value,
+    mergeRounds: mergeRounds.value,
+    legacy: legacy.checks,
+  });
+  return checkRounds.ok
+    ? succeed({
+        round: round.value,
+        mergeRounds: mergeRounds.value,
+        checkRounds: checkRounds.value,
+      })
+    : checkRounds;
 }
