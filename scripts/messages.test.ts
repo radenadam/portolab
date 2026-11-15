@@ -106,12 +106,13 @@ test("reads a language file of messages", () => {
   expect(messages.ok && messages.value["app_name"]).toBe("Portolab");
 });
 
-test("rejects repeated message keys before JSON parsing drops their earlier values", () => {
+test("rejects only repeated message keys and lists each repeated key once", () => {
   const folder = mkdtempSync(join(tmpdir(), "portolab-messages-"));
   const path = join(folder, "messages.json");
   try {
     for (const text of [
       '{"app_name":"First","app_name":"Last"}',
+      '{"app_name":"First","app_name":"Middle","app_name":"Last"}',
       '{"app_name":"First","app_\\u006eame":"Last"}',
     ]) {
       writeFileSync(path, text);
@@ -120,6 +121,20 @@ test("rejects repeated message keys before JSON parsing drops their earlier valu
         failure: `${path} must give each message key once, but it repeats "app_name".`,
       });
     }
+    writeFileSync(
+      path,
+      '{"app_name":"First","app_title_label":"First","app_name":"Middle","app_title_label":"Last","app_name":"Last"}',
+    );
+    expect(readMessages(path)).toEqual({
+      ok: false,
+      failure: `${path} must give each message key once, but it repeats "app_name" and "app_title_label".`,
+    });
+    const nested = {
+      app_name: "Portolab",
+      app_example_label: { app_name: "Nested value" },
+    };
+    writeFileSync(path, JSON.stringify(nested));
+    expect(readMessages(path)).toEqual({ ok: true, value: nested });
   } finally {
     rmSync(folder, { recursive: true, force: true });
   }

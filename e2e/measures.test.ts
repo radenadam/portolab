@@ -1,4 +1,4 @@
-import type { Browser, Page } from "@playwright/test";
+import type { Browser, Locator, Page } from "@playwright/test";
 import type { ClassId } from "../app/features/classes/classes.schema.ts";
 import { expect, test } from "@playwright/test";
 import type { Locale } from "../app/paraglide/runtime.js";
@@ -85,7 +85,7 @@ const analysisText: Record<
     risk: "Simpangan baku",
     data: "Data dan metode",
     method:
-      "Ukuran ini adalah simulasi dari harga penutupan masa lalu. Setiap imbal hasil bulanan adalah perubahan harga penutupan final dari hari bursa terakhir suatu bulan ke hari bursa terakhir bulan berikutnya, tanpa dividen. Ukuran suatu saham atau portofolio memakai bulan-bulan di antara 60 bulan lengkap terakhir yang di dalamnya IHSG dan setiap sahamnya memiliki imbal hasil, dan memerlukan paling sedikit 24. Setiap nilai berlaku per bulan.",
+      "Ukuran ini adalah simulasi dari harga penutupan masa lalu. Setiap imbal hasil bulanan adalah perubahan harga penutupan final dari hari bursa terakhir suatu bulan ke hari bursa terakhir bulan berikutnya, tanpa dividen. Ukuran suatu saham atau portofolio memakai bulan-bulan di antara 60 bulan lengkap terakhir yang di dalamnya IHSG dan setiap sahamnya memiliki imbal hasil, dan memerlukan paling sedikit 24 imbal hasil bulanan. Setiap nilai berlaku per bulan.",
     calculate: "Lihat perhitungan",
     pointCalculation: (name) => `Lihat perhitungan ${name}`,
     portfolioPoint: "Lihat perhitungan Portofolio Anda",
@@ -149,7 +149,7 @@ const analysisText: Record<
     risk: "Standard deviation",
     data: "Data and method",
     method:
-      "These measures are a simulation from past closes. Each monthly return is the change of the final close from the last trading day of one month to the last trading day of the next, without dividends. The measures of a stock or of a portfolio use the months, among the latest 60 complete months, in which the IHSG and each of its stocks have a return, and they need at least 24. Every value is per month.",
+      "These measures are a simulation from past closes. Each monthly return is the change of the final close from the last trading day of one month to the last trading day of the next, without dividends. The measures of a stock or of a portfolio use the months, among the latest 60 complete months, in which the IHSG and each of its stocks have a return, and they need at least 24 monthly returns. Every value is per month.",
     calculate: "View calculation",
     pointCalculation: (name) => `See the calculation of ${name}`,
     portfolioPoint: "See the calculation of Your portfolio",
@@ -190,7 +190,7 @@ const analysisText: Record<
     performanceHelp: "What is Performance vs IHSG?",
     performanceMeaning:
       "The chart and the table compare the return of your portfolio with the return of the IHSG since the close of October 26, 2026, before you could trade. Each of their returns uses the final closes of its day.",
-    performanceData: "Returns at each close",
+    performanceData: "The return at each close",
     axisFailure:
       'The field "Risk axis" takes "beta" or "risk", but it holds "BETA". Choose a listed risk axis.',
     axisHints: ['Beta uses "beta".', 'Standard deviation uses "risk".'],
@@ -255,15 +255,13 @@ async function expectPerformanceHelp(
   });
   await expect(data.locator("tbody tr")).toHaveCount(5);
   expect(await layoutProblems(page)).toEqual([]);
-  await expectAccessibleScreen(page);
-  await page.keyboard.press("Escape");
 }
 
-async function correctAnalysisAxis(
+async function openInvalidAnalysisAxis(
   page: Page,
   classPath: string,
   locale: Locale,
-): Promise<void> {
+): Promise<Locator> {
   const text = analysisText[locale];
   const response = await page.goto(`${classPath}/analysis?axis=%20BETA%20`);
   expect(response?.status()).toBe(400);
@@ -273,7 +271,16 @@ async function correctAnalysisAxis(
   for (const hint of text.axisHints)
     await expect(page.getByText(hint, { exact: true })).toBeVisible();
   expect(await layoutProblems(page)).toEqual([]);
-  await expectAccessibleScreen(page);
+  return field;
+}
+
+async function correctAnalysisAxis(
+  field: Locator,
+  classPath: string,
+  locale: Locale,
+): Promise<void> {
+  const page = field.page();
+  const text = analysisText[locale];
   await field.fill("risk");
   await page.getByRole("button", { name: text.apply, exact: true }).click();
   await expect(page).toHaveURL(`${classPath}/analysis?axis=risk`);
@@ -407,6 +414,7 @@ for (const locale of locales) {
     await student.keyboard.press("Escape");
     await expectPerformanceHelp(student, locale);
     await expectAccessibleScreen(student);
+    await student.keyboard.press("Escape");
     await student.context().close();
   });
 
@@ -415,7 +423,9 @@ for (const locale of locales) {
     browser,
   }) => {
     const { student, classPath } = await analysisStudent(page, browser, locale);
-    await correctAnalysisAxis(student, classPath, locale);
+    const field = await openInvalidAnalysisAxis(student, classPath, locale);
+    await expectAccessibleScreen(student);
+    await correctAnalysisAxis(field, classPath, locale);
     await student.context().close();
   });
 
@@ -665,6 +675,7 @@ for (const locale of locales) {
         -"/analysis".length,
       );
       await expectPerformanceHelp(page, locale);
+      await page.keyboard.press("Escape");
       await page
         .getByRole("button", { name: text.portfolioPoint, exact: true })
         .click();
@@ -681,7 +692,8 @@ for (const locale of locales) {
         .click();
       await expect(page.locator("#analysis-risk")).toBeVisible();
       await page.keyboard.press("Escape");
-      await correctAnalysisAxis(page, classPath, locale);
+      const field = await openInvalidAnalysisAxis(page, classPath, locale);
+      await correctAnalysisAxis(field, classPath, locale);
       await lecturer.context().close();
     });
   });

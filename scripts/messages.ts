@@ -27,19 +27,27 @@ export function readMessages(
   if (!parsed.ok) return parsed;
   // JSON.parse keeps only the last copy, so the parsed object cannot reveal a duplicate message.
   const keys = new Set<string>();
-  const duplicates: string[] = [];
+  const duplicates = new Set<string>();
   function visit(node: ts.Node): void {
-    if (ts.isPropertyAssignment(node) && ts.isStringLiteral(node.name)) {
-      const key = node.name.text;
-      if (keys.has(key)) duplicates.push(describeValue(key));
-      keys.add(key);
+    if (!ts.isObjectLiteralExpression(node)) {
+      ts.forEachChild(node, visit);
+      return;
     }
-    ts.forEachChild(node, visit);
+    for (const property of node.properties) {
+      if (
+        ts.isPropertyAssignment(property) &&
+        ts.isStringLiteral(property.name)
+      ) {
+        const key = property.name.text;
+        if (keys.has(key)) duplicates.add(describeValue(key));
+        keys.add(key);
+      }
+    }
   }
   visit(ts.parseJsonText(path, text.value));
-  return duplicates.length > 0
+  return duplicates.size > 0
     ? fail(
-        `${path} must give each message key once, but it repeats ${listOfWords(duplicates)}.`,
+        `${path} must give each message key once, but it repeats ${listOfWords([...duplicates])}.`,
       )
     : parsed;
 }
