@@ -122,7 +122,9 @@ for (const locale of locales) {
         `${classPath}/students?measure=treynor&q=${encodeURIComponent(widestClassNames.studentName)}`,
       );
       await selectFirstStudent(page);
-      const selected = page.url();
+      const selectedAddress = new URL(page.url());
+      selectedAddress.hash = "selected-student";
+      const selected = selectedAddress.href;
       await page
         .getByRole("dialog")
         .getByRole("link", { name: text.open, exact: true })
@@ -247,6 +249,11 @@ for (const locale of locales) {
           .getByRole("navigation", { name: text.sections })
           .getByRole("link", { name: tab, exact: true })
           .click();
+        await expect(
+          page
+            .getByRole("navigation", { name: text.sections })
+            .getByRole("link", { name: tab, exact: true }),
+        ).toHaveAttribute("aria-current", "page");
         await captureStudentScreen(page, `student-reference-${locale}-${name}`);
       }
     } finally {

@@ -41,10 +41,7 @@ const texts: Record<
   },
 };
 
-const studentTexts: Record<
-  Locale,
-  { alpha: readonly string[]; diversification: readonly string[] }
-> = {
+const studentTexts: Record<Locale, { alpha: readonly string[] }> = {
   id: {
     alpha: [
       "Portofolio Raka di atas garis sejauh 0,03 poin per bulan. Pilih titik untuk melihat perhitungan alphanya.",
@@ -52,10 +49,6 @@ const studentTexts: Record<
       "Portofolio Raka tepat di garis. Pilih titik untuk melihat perhitungan alphanya.",
       "Portofolio Raka di atas garis sejauh 1,00 poin per bulan. Pilih titik untuk melihat perhitungan alphanya.",
       "Portofolio Raka di bawah garis sejauh 1,00 poin per bulan. Pilih titik untuk melihat perhitungan alphanya.",
-    ],
-    diversification: [
-      "Diversifikasi menurunkan risiko dari 5,00% ke 4,00% dengan imbal hasil harapan yang sama.",
-      "Risiko portofolio 5,00% sama dengan rata-rata tertimbang risiko saham 5,00%.",
     ],
   },
   en: {
@@ -65,10 +58,6 @@ const studentTexts: Record<
       "The portfolio of Raka is on the line. Select a point to see its alpha calculation.",
       "The portfolio of Raka is 1.00 point per month above the line. Select a point to see its alpha calculation.",
       "The portfolio of Raka is 1.00 point per month below the line. Select a point to see its alpha calculation.",
-    ],
-    diversification: [
-      "Diversification lowers risk from 5.00% to 4.00% at the same expected return.",
-      "Portfolio risk of 5.00% equals the weighted average stock risk of 5.00%.",
     ],
   },
 };
