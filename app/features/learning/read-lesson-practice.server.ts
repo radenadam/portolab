@@ -9,7 +9,7 @@ import { requireUser } from "~/features/accounts/current-session.server";
 import { measureStoredMarket } from "~/features/measures/measure-stored.server";
 import { summarizeMarket } from "~/features/measures/measure-summaries";
 import { readPortfolioMeasures } from "~/features/measures/read-measures.server";
-import { readStudentPortfolio } from "~/features/trading/read-student-portfolio.server";
+import { readTradingPortfolio } from "~/features/trading/read-trading-portfolio.server";
 import { readPortfolioValuation } from "~/features/trading/read-portfolio-report.server";
 
 import type { PortfolioMeasuresReport } from "~/features/measures/read-measures.server";
@@ -22,7 +22,11 @@ export function readLessonPractice(
   const database = context.get(databaseContext);
   let report: PortfolioMeasuresReport | undefined;
   if (reader.role === "student") {
-    const { place, portfolio } = readStudentPortfolio(context, input);
+    const { place, portfolio } = readTradingPortfolio(
+      context,
+      input,
+      "membership",
+    );
     const { valuation } = readPortfolioValuation(database, {
       portfolio,
       startingCash: place.owner.startingCash,

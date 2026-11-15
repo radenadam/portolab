@@ -1,9 +1,8 @@
+import { storeTestPortfolio } from "./store-test-portfolio.ts";
+import { eq } from "drizzle-orm";
+import { classes } from "../app/features/classes/classes.schema.ts";
 import type { ClassId } from "../app/features/classes/classes.schema.ts";
-import {
-  holdings,
-  orders,
-  portfolios,
-} from "../app/features/trading/trading.schema.ts";
+import { holdings, orders } from "../app/features/trading/trading.schema.ts";
 import { isOrderLots } from "../app/units/lots.ts";
 import type { OrderLots } from "../app/units/lots.ts";
 import { rupiah } from "../app/units/rupiah.ts";
@@ -40,6 +39,7 @@ export function storeTestPurchases(
   classId: ClassId,
   portfolio: {
     joinedAt: Date;
+    demonstration?: boolean;
     /** The cash and the holding that the purchases leave. */
     cash: Rupiah;
     holding: { code: string; shares: Shares; cost: Rupiah };
@@ -47,16 +47,27 @@ export function storeTestPurchases(
   },
 ): void {
   writeForTestStudent(classId, (database, membershipId) => {
-    storeTestJoiningTime(database, membershipId, portfolio.joinedAt);
-    database
-      .insert(portfolios)
-      .values({ membershipId, cash: portfolio.cash })
-      .run();
+    if (portfolio.demonstration === true) {
+      database
+        .update(classes)
+        .set({ createdAt: portfolio.joinedAt })
+        .where(eq(classes.id, classId))
+        .run();
+    } else {
+      storeTestJoiningTime(database, membershipId, portfolio.joinedAt);
+    }
+    const portfolioId = storeTestPortfolio(
+      database,
+      portfolio.demonstration === true
+        ? { demonstrationClassId: classId }
+        : { membershipId },
+      portfolio.cash,
+    );
     for (const purchase of portfolio.purchases) {
       database
         .insert(orders)
         .values({
-          membershipId,
+          portfolioId,
           code: purchase.code,
           side: "buy",
           reason: purchase.reason ?? null,
@@ -81,7 +92,7 @@ export function storeTestPurchases(
     }
     database
       .insert(holdings)
-      .values({ membershipId, ...portfolio.holding })
+      .values({ portfolioId, ...portfolio.holding })
       .run();
   });
 }

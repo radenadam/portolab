@@ -15,6 +15,7 @@ export interface TaughtClassDetails {
   name: string;
   startingCash: Rupiah;
   firstSessionDate: string | null;
+  createdAt: Date;
 }
 
 /** The class of an address, which the lecturer who is signed in teaches. A student, a class that does not exist, and a class of another lecturer answer as an address that does not exist, so a guessed address reveals nothing. The url is the one that React Router gives a loader or an action. */
@@ -36,6 +37,7 @@ export function requireTaughtClass(
     name: taught.name,
     startingCash: taught.startingCash,
     firstSessionDate: taught.firstSessionDate,
+    createdAt: taught.createdAt,
   };
 }
 

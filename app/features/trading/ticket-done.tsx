@@ -1,11 +1,9 @@
 import { withLessonTask } from "~/features/learning/lesson-task";
 import type { LessonTask } from "~/features/learning/lesson-task";
 import { orderSideLabel } from "./order-form-fields";
-import { activityPath } from "./activity-path";
 import type { ReactNode } from "react";
 import { useEffect, use } from "react";
 import { Link } from "react-router";
-import type { ClassId } from "~/features/classes/classes.schema";
 import { formatMarketTime, formatRupiah } from "~/formatting";
 import { NumberText } from "~/number-text";
 import { m } from "~/paraglide/messages.js";
@@ -19,16 +17,16 @@ import { Message } from "~/message";
 
 export function TicketDone({
   order,
-  classId,
   now,
   closePath,
   task,
+  activity,
 }: {
   order: Order;
-  classId: ClassId;
   now: Date;
   closePath: string;
   task?: LessonTask | undefined;
+  activity: string;
 }): ReactNode {
   const memory = use(TicketDraftContext);
   useEffect(() => {
@@ -82,10 +80,7 @@ export function TicketDone({
           </p>
         )
       )}
-      <Link
-        className={styles["fix"]}
-        to={withLessonTask(activityPath(classId), task)}
-      >
+      <Link className={styles["fix"]} to={withLessonTask(activity, task)}>
         {m.trading_ticket_activity_link()}
       </Link>
       <Link className={styles["fix"]} to={closePath} preventScrollReset>

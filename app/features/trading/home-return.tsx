@@ -1,3 +1,4 @@
+import type { PortfolioKind } from "./portfolio-store.server";
 import { ConceptHelp } from "~/concept-card";
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
@@ -15,11 +16,13 @@ import styles from "./home-portfolio.module.css";
 export function HomeReturn({
   history,
   classId,
+  portfolioKind,
 }: {
   history: PortfolioReport["history"];
   classId: ClassId;
+  portfolioKind: PortfolioKind;
 }): ReactNode {
-  const reader = { kind: "owner", classId } as const;
+  const reader = { kind: "owner", classId, portfolioKind } as const;
   const points = history.ok ? history.value.points : [];
   const first = points[0];
   const latest = points.at(-1);

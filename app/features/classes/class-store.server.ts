@@ -21,7 +21,9 @@ interface TaughtClass {
 }
 
 /** A class that a lecturer teaches, as its own pages read it. */
-export type TaughtClassRecord = Omit<TaughtClass, "studentCount">;
+export type TaughtClassRecord = Omit<TaughtClass, "studentCount"> & {
+  createdAt: Date;
+};
 
 /** A class as a student sees it, or as a visitor with its code sees it before joining. */
 export interface ClassForStudents {
@@ -144,6 +146,7 @@ export function findTaughtClass(
       startingCash: classes.startingCash,
       joinCode: classes.joinCode,
       firstSessionDate: classes.firstSessionDate,
+      createdAt: classes.createdAt,
     })
     .from(classes)
     .where(and(eq(classes.id, classId), eq(classes.lecturerId, lecturerId)))

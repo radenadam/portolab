@@ -38,7 +38,7 @@ test("chooses the most recently filled written reason rather than the last place
       accountForTest(),
       bbcaForTest,
     );
-    const id = savePlacedOrder(database, owner, order);
+    const { orderId: id } = savePlacedOrder(database, owner, order);
     if (filledAt === undefined) continue;
     const state = checkOrder({
       order,

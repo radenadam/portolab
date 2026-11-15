@@ -16,6 +16,7 @@
 }
 
 .choice > [aria-current] {
+  font-weight: 600;
   background: var(--color-panel);
   color: var(--color-ink);
   box-shadow: var(--shadow-choice);

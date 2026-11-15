@@ -1,35 +1,26 @@
-import { homeTitle } from "./home-title";
+import type { LimitPriceFailure } from "./limit-price-failure-text";
+import { portfolioTitle } from "./portfolio-home";
+import type { PortfolioKind } from "./portfolio-store.server";
 import { countedText } from "~/counted-text";
 import { monthlyReturnCount } from "~/features/measures/monthly-return-count";
 import {
   formatCalendarDate,
   formatList,
   formatMonth,
-  formatPercent,
   formatRupiah,
 } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
-import { basisPointsPerWhole } from "~/units/basis-points";
 import { smallestOrderLots } from "~/units/lots";
 import { rupiah } from "~/units/rupiah";
 import { lotCount } from "./count-parts";
 import { freeLotsOf } from "./lots-step";
-import type { PriceLimit } from "./price-limits";
 import type { FillFailure, OrderFailure } from "./order";
 import { purchaseCost } from "./trading-costs";
 
 type Failure = OrderFailure | FillFailure;
 
-/** A failure of the price of a limit order, which concerns the value that the student typed in the field of the price. */
-type LimitPriceFailure = Extract<
-  Failure,
-  { kind: "outsideLimits" | "offTick" }
->;
-
-/** A failure that concerns the order as a whole, or a fill that a check rejected. */
 type OtherFailure = Exclude<Failure, LimitPriceFailure>;
 
-/** A purchase that the available cash does not pay for. */
 type Shortfall = Extract<Failure, { kind: "notEnoughCash" | "priceRose" }>;
 
 type NotEnoughCash = Extract<Failure, { kind: "notEnoughCash" }>;
@@ -37,25 +28,10 @@ type NotEnoughCash = Extract<Failure, { kind: "notEnoughCash" }>;
 type FailureTexts = {
   [Kind in OtherFailure["kind"]]: (
     failure: Extract<OtherFailure, { kind: Kind }>,
+    portfolioKind: PortfolioKind,
   ) => string;
 };
 
-/** The field of the price of a limit order as the order form shows it: the label that the reader sees, and what the field holds, without the spaces around it. */
-export interface PriceField {
-  label: string;
-  written: string;
-}
-
-function formatLimit(limit: PriceLimit): string {
-  switch (limit.kind) {
-    case "rate":
-      return formatPercent(limit.rate / basisPointsPerWhole);
-    case "amount":
-      return formatRupiah(limit.amount);
-  }
-}
-
-/** The amounts of a purchase that the available cash does not pay for, as its texts give them. */
 function purchaseAmounts(failure: Shortfall): {
   lots: string;
   code: string;
@@ -140,9 +116,21 @@ function stepsWithoutAffordableLot(failure: NotEnoughCash): string[] {
 }
 
 const failureTexts: FailureTexts = {
-  missingRules: () => m.trading_missing_rules_error(),
-  missingCosts: () => m.trading_missing_costs_error(),
-  missingUniverse: () => m.trading_missing_universe_error(),
+  missingRules: (_failure, kind) =>
+    ({
+      membership: m.trading_missing_rules_error,
+      demonstration: m.trading_lecturer_missing_rules_error,
+    })[kind](),
+  missingCosts: (_failure, kind) =>
+    ({
+      membership: m.trading_missing_costs_error,
+      demonstration: m.trading_lecturer_missing_costs_error,
+    })[kind](),
+  missingUniverse: (_failure, kind) =>
+    ({
+      membership: m.trading_missing_universe_error,
+      demonstration: m.trading_lecturer_missing_universe_error,
+    })[kind](),
   noPrice: (failure) => m.trading_no_price_error({ code: failure.code }),
   outsideUniverse: (failure) =>
     m.trading_outside_universe_error({
@@ -234,7 +222,7 @@ const failureTexts: FailureTexts = {
       }),
       m.trading_new_order_error({ code: failure.code }),
     ].join(" "),
-  sharesGone: (failure) => {
+  sharesGone: (failure, kind) => {
     const sentences: string[] = [
       m.trading_shares_gone_error({
         lots: lotCount(failure.lots),
@@ -254,56 +242,26 @@ const failureTexts: FailureTexts = {
         ),
       );
     }
-    sentences.push(m.trading_check_holdings_error({ page: homeTitle() }));
+    sentences.push(
+      m.trading_check_holdings_error({ page: portfolioTitle(kind) }),
+    );
     return sentences.join(" ");
   },
 };
 
-/** The text that tells a student why Portolab rejected an order, in the active language, with the numbers of the failure, the rule behind it, and a next step. A failure of the price of a limit order takes limitPriceFailureText instead, because it names the field of the price. */
-export function orderFailureText(failure: OtherFailure): string {
-  return textOf(failure.kind, failure);
+/** The text that tells an owner why Portolab rejected an order, in the active language, with the numbers of the failure, the rule behind it, and a next step. A failure of the price of a limit order takes limitPriceFailureText instead, because it names the field of the price. */
+export function orderFailureText(
+  failure: OtherFailure,
+  portfolioKind: PortfolioKind = "membership",
+): string {
+  return textOf(failure.kind, failure, portfolioKind);
 }
 
 // Passing the kind on its own lets TypeScript match the text of each kind to the failures of that kind.
 function textOf<Kind extends OtherFailure["kind"]>(
   kind: Kind,
   failure: Extract<OtherFailure, { kind: Kind }>,
+  portfolioKind: PortfolioKind,
 ): string {
-  return failureTexts[kind](failure);
-}
-
-/** The text that tells a student why IDX rejects the price of a limit order, in the active language. It names the field of the price by its label and quotes what the field holds, gives the rule with its numbers, and offers the prices that IDX accepts. */
-export function limitPriceFailureText(
-  failure: LimitPriceFailure,
-  field: PriceField,
-): string {
-  const typed = { field: field.label, value: field.written };
-  switch (failure.kind) {
-    case "outsideLimits":
-      return m.trading_outside_limits_error({
-        ...typed,
-        code: failure.code,
-        date: formatCalendarDate(failure.date),
-        upper: formatLimit(failure.upper),
-        lower: formatLimit(failure.lower),
-        reference: formatRupiah(failure.reference),
-        lowest: formatRupiah(failure.lowest),
-        highest: formatRupiah(failure.highest),
-      });
-    case "offTick": {
-      const prices = {
-        ...typed,
-        from: formatRupiah(failure.bandFrom),
-        tick: formatRupiah(failure.tick),
-        below: formatRupiah(failure.below),
-        above: formatRupiah(failure.above),
-      };
-      return failure.nextBandFrom === undefined
-        ? m.trading_off_tick_top_error(prices)
-        : m.trading_off_tick_error({
-            ...prices,
-            to: formatRupiah(failure.nextBandFrom),
-          });
-    }
-  }
+  return failureTexts[kind](failure, portfolioKind);
 }

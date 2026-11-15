@@ -101,7 +101,7 @@ test("budgets every route with its ancestors, split exports, static imports, and
     "plans every budget",
   );
   expect(checks.map((check) => [check.name, check.limit, check.gzip])).toEqual([
-    ["Shared JavaScript", "140 kB", true],
+    ["Shared JavaScript", "141 kB", true],
     ["Shared CSS", "20 kB", true],
     ["Route JavaScript: class", "200 kB", true],
     ["Route CSS: class", "20 kB", true],
@@ -190,6 +190,9 @@ test("applies measured exercise allowances only to the named routes and asset ki
   const cases = [
     ["features/classes/class-page", "220 kB", "24 kB"],
     ["features/trading/ticket-page", "220 kB", "24 kB"],
+    ["features/measures/measures-page", "220 kB", "20 kB"],
+    ["features/trading/demonstration-summary-page", "220 kB", "24 kB"],
+    ["features/measures/demonstration-analysis-page", "220 kB", "24 kB"],
     ["features/market-data/market-page", "200 kB", "24 kB"],
     ["features/grading/student-portfolio-page", "200 kB", "24 kB"],
     ["features/learning/lesson-page", "200 kB", "20 kB"],
@@ -208,6 +211,42 @@ test("applies measured exercise allowances only to the named routes and asset ki
       checks.find((check) => check.name === `Route CSS: ${id}`)?.limit,
     ).toBe(stylesheets);
   }
+});
+
+test("keeps the Kelas CSS allowance on its complete route alone", () => {
+  const { chunks, routes, files } = fixture();
+  routes.set("features/classes/class-page", {
+    file: "app/class.tsx",
+    parentId: "root",
+  });
+  routes.set("class-child", {
+    file: "app/other.tsx",
+    parentId: "features/classes/class-page",
+  });
+  const checks = successValueForTest(
+    clientSizeChecks(chunks, routes, files),
+    "plans the class allowance",
+  );
+  expect(
+    checks
+      .filter(
+        (check) =>
+          check.name === "Shared CSS" || check.name?.startsWith("Route CSS:"),
+      )
+      .map((check) => [check.name, check.limit]),
+  ).toEqual([
+    ["Shared CSS", "20 kB"],
+    ["Route CSS: class", "20 kB"],
+    ["Route CSS: market", "20 kB"],
+    ["Route CSS: other", "20 kB"],
+    ["Route CSS: features/classes/class-page", "24 kB"],
+    ["Route CSS: class-child", "20 kB"],
+  ]);
+  expect(
+    checks.find(
+      (check) => check.name === "Route CSS: features/classes/class-page",
+    )?.path,
+  ).toEqual(checks.find((check) => check.name === "Route CSS: class")?.path);
 });
 
 test("rejects missing files even when the other files of the route exist", () => {

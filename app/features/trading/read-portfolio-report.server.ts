@@ -30,7 +30,7 @@ import { valuePortfolio } from "./value-portfolio";
 import { filledStockCodes } from "./filled-stock-codes";
 import type { PortfolioValuation } from "./value-portfolio";
 
-/** A portfolio of a student in a class at the latest delayed prices of its holdings. */
+/** A portfolio in a class at the latest delayed prices of its holdings. */
 export interface ValuationReport {
   valuation: PortfolioValuation;
   /** The latest attempt of the quote job, with only the codes of the prices that the page shows among the prices that it could not update. */
@@ -43,7 +43,7 @@ interface MarketSinceStart {
   return: CumulativeReturn;
 }
 
-/** A portfolio of a student in a class as its page shows it at a moment. */
+/** A portfolio in a class as its page shows it at a moment. */
 export type PortfolioReport = ValuationReport & {
   history: Result<PortfolioHistory, MissingCalendar>;
   /** Undefined while Portolab has no delayed level of the IHSG, or the history has no close to count from. */
@@ -72,7 +72,7 @@ export function readPortfolioValuation(
   };
 }
 
-/** Values a portfolio at the latest delayed prices, and replays its return since the start at the stored closes, for a student who joined the class at a moment with its starting cash, with the return of the IHSG over the same time. */
+/** Values a portfolio at the latest delayed prices, and replays its return since the start at the stored closes, from when its owner received the starting cash, with the return of the IHSG over the same time. */
 export function readPortfolioReport(
   database: Database,
   member: { portfolio: Portfolio; startingCash: Rupiah; joinedAt: Date },

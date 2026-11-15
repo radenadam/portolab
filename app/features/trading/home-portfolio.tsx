@@ -1,3 +1,5 @@
+import type { PortfolioKind } from "./portfolio-store.server";
+import { classPath } from "~/features/classes/class-path";
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { ChangeText } from "~/change-text";
@@ -30,9 +32,17 @@ import { HomeMapPanel } from "./home-map-panel";
 export function HomePortfolio({
   home,
   classId,
+  path,
+  analysisPath,
+  showTitle = true,
+  portfolioKind = "membership",
 }: {
   home: HomePortfolioData;
   classId: ClassId;
+  path?: string;
+  analysisPath?: string;
+  showTitle?: boolean;
+  portfolioKind?: PortfolioKind;
 }): ReactNode {
   const { report, now, delayMinutes } = home;
   const values = homeHoldings(report.valuation);
@@ -45,14 +55,14 @@ export function HomePortfolio({
       : m.trading_home_today_label();
   const changeFailure = dayChange.ok
     ? undefined
-    : dayChangeFailureText(dayChange.failure);
+    : dayChangeFailureText(dayChange.failure, portfolioKind);
   const failure = holdingQuoteFailureText([report], {
     now,
     delayMinutes,
   });
   return (
     <div className={styles["home"]}>
-      <h1 className={styles["screenTitle"]}>{homeTitle()}</h1>
+      {showTitle && <h1 className={styles["screenTitle"]}>{homeTitle()}</h1>}
       <div className={styles["columns"]} data-layout="columns">
         <div className={styles["leftColumn"]}>
           <div className={styles["summary"]}>
@@ -147,13 +157,27 @@ export function HomePortfolio({
             </section>
           </div>
           <div className={styles["returnCard"]}>
-            <HomeReturn history={report.history} classId={classId} />
+            <HomeReturn
+              history={report.history}
+              classId={classId}
+              portfolioKind={portfolioKind}
+            />
           </div>
           <div className={styles["riskCard"]}>
-            <HomeRisk report={home.measures} classId={classId} />
+            <HomeRisk
+              report={home.measures}
+              portfolioKind={portfolioKind}
+              classId={classId}
+              path={analysisPath}
+            />
           </div>
         </div>
-        <HomeMapPanel home={home} classId={classId} />
+        <HomeMapPanel
+          portfolioKind={portfolioKind}
+          home={home}
+          classId={classId}
+          path={path ?? classPath(classId)}
+        />
       </div>
       <HomeHoldingsSection home={home} values={values} classId={classId} />
     </div>

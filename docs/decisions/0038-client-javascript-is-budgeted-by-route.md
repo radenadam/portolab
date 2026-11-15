@@ -1,6 +1,6 @@
 # 0038. Client JavaScript is budgeted by route
 
-- Status: Accepted. [Decision 0042](0042-client-css-is-budgeted-by-route.md) replaces its rules about the scope and reporting of the CSS budget. [Decision 0046](0046-complete-lesson-sheets-have-measured-route-allowances.md) replaces its JavaScript ceiling for the class home and ticket routes.
+- Status: Accepted. [Decision 0042](0042-client-css-is-budgeted-by-route.md) replaces its rules about the scope and reporting of the CSS budget. [Decision 0046](0046-kelas-has-a-measured-css-allowance-for-reused-portfolio-styles.md) replaces its consequence that Kelas needs no handwritten CSS budget entry. [Decision 0048](0048-complete-lesson-sheets-have-measured-route-allowances.md) replaces its shared JavaScript ceiling and its route ceiling for class home, ticket, student analysis, demonstration summary, and demonstration analysis.
 - Date: 2026-11-14
 
 ## Context

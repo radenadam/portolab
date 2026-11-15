@@ -42,7 +42,13 @@ const readers: Record<PortfolioReader["kind"], PortfolioReader> = {
 function renderView(
   report: PortfolioMeasuresReport,
   reader: PortfolioReader,
-  quoteFailure: string | undefined,
+  {
+    quoteFailure,
+    initialPath = "/classes/7/analysis",
+  }: {
+    quoteFailure: string | undefined;
+    initialPath?: string;
+  },
 ): string {
   return withoutConceptCardsForTest(
     renderInRouterForTest(
@@ -53,7 +59,7 @@ function renderView(
         source={yahooFinance}
       />,
       conceptLessonDataForTest(),
-      "/classes/7/analysis",
+      initialPath,
     ),
   ).replaceAll(/ class="[^"]*"/g, "");
 }
@@ -402,7 +408,35 @@ const readerTexts: Record<
   },
 };
 
+const demonstrationWeightsNotices: Record<Locale, string> = {
+  id: "Bobot suatu saham adalah nilainya pada harga tertunda terakhir dari Yahoo Finance, sekitar 10 menit di belakang BEI, dibagi nilai total portofolio Anda, dan bobot kas Anda adalah bagiannya dari nilai total itu. Portofolio demonstrasi menunjukkan setiap harga tertunda dan waktu pencatatannya. Kas tidak menghasilkan imbal hasil di Portolab, sehingga kas tidak menambah imbal hasil harapan, varians, maupun beta.",
+  en: "The weight of a stock is its value at the latest delayed price from Yahoo Finance, about 10 minutes behind IDX, divided by the total value of your portfolio, and the weight of your cash is its share of that total. Demonstration portfolio shows each delayed price and when it was quoted. Cash earns no return in Portolab, so it adds nothing to the expected return, the variance, or the beta.",
+};
+
 for (const locale of locales) {
+  test(`names the demonstration as the source of its holding prices in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    const report = readPortfolioMeasures(
+      databaseWithClosesForTest(),
+      valuationForTest(["BBCA", "TLKM"]),
+    );
+    const html = renderView(
+      report,
+      {
+        kind: "owner",
+        classId: 7 as ClassId,
+        portfolioKind: "demonstration",
+      },
+      {
+        quoteFailure: undefined,
+        initialPath: "/classes/7/demonstration/analysis",
+      },
+    );
+    expect(html).toContain(`<p>${demonstrationWeightsNotices[locale]}</p>`);
+    expect(html).toContain(
+      '<a id="holding-BBCA" href="/classes/7/stocks/BBCA?returnTo=%2Fclasses%2F7%2Fdemonstration%2Fanalysis%3Fdata%3Dstocks%23holding-BBCA" data-discover="true">BBCA</a>',
+    );
+  });
   for (const [readerKind, reader] of Object.entries(readers)) {
     const text = texts[locale];
     const readerText = readerTexts[locale][reader.kind];
@@ -410,7 +444,7 @@ for (const locale of locales) {
     const render = (
       report: PortfolioMeasuresReport,
       quoteFailure: string | undefined,
-    ): string => renderView(report, reader, quoteFailure);
+    ): string => renderView(report, reader, { quoteFailure });
 
     test(`shows each measure of a portfolio with its formula, the weights, the measures of its stocks, their covariances and correlations, the risk that each stock adds, the IHSG, and the monthly returns, in ${language}`, () => {
       switchLocaleForTest(locale);
@@ -547,8 +581,8 @@ for (const locale of locales) {
       throw new Error("The portfolio against the market has measures.");
     }
     expect(report.measures.value.beta).toBeLessThan(0);
-    expect(renderView(report, readers.owner, undefined)).toContain(
-      measureDefinitionsForTest(againstMarketTexts[locale]),
-    );
+    expect(
+      renderView(report, readers.owner, { quoteFailure: undefined }),
+    ).toContain(measureDefinitionsForTest(againstMarketTexts[locale]));
   });
 }
