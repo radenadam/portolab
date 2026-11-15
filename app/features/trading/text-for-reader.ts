@@ -7,7 +7,7 @@ export type PortfolioReader =
 
 /** The text of a page of a portfolio for its reader. The owner reads about "your" portfolio, and the lecturer reads about the portfolio of the student, whose name the text of the lecturer receives. */
 export function textForReader(
-  reader: PortfolioReader,
+  reader: { kind: "owner" } | Extract<PortfolioReader, { kind: "lecturer" }>,
   texts: { owner: () => string; lecturer: (studentName: string) => string },
 ): string {
   switch (reader.kind) {

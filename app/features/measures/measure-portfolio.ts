@@ -1,3 +1,4 @@
+import { matrixCell } from "~/matrix-cell";
 import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
 import { beta as toBeta } from "~/units/beta";
@@ -279,19 +280,4 @@ function measureHoldingRisk(
       secondStandardDeviation: portfolio.standardDeviation.value,
     }),
   };
-}
-
-// Every matrix here has a row and a column for each holding, so a missing cell is a defect.
-function matrixCell<Cell>(
-  matrix: readonly (readonly Cell[])[],
-  rowIndex: number,
-  columnIndex: number,
-): Cell {
-  const cell = matrix[rowIndex]?.[columnIndex];
-  if (cell === undefined) {
-    throw new Error(
-      `The matrix has no cell in row ${String(rowIndex + 1)} and column ${String(columnIndex + 1)}.`,
-    );
-  }
-  return cell;
 }

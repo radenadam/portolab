@@ -19,6 +19,7 @@ import {
 } from "~/features/market-data/quote-failure-text";
 import { readLatestUpdateAttempt } from "~/features/market-data/update-attempts.server";
 import { isPriceOfOrder } from "./check-order";
+import { readTradePortfolio } from "./read-trade-portfolio.server";
 
 /** The browser needs draft quantities without the student's full order history. */
 export function readTicket(
@@ -46,6 +47,8 @@ export function readTicket(
         )
       : undefined;
   return {
+    impact: readTradePortfolio(database, portfolio, { code, now }),
+    now,
     day,
     quote,
     canFillNow:

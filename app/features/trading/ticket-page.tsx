@@ -30,6 +30,8 @@ import type { OrderId } from "./trading.schema";
 import type { Route } from "./+types/ticket-page";
 import styles from "./ticket.module.css";
 import { ticketContextSearch } from "./ticket-context-search";
+import { readImpactSelection } from "./read-impact-selection.server";
+import { TradeImpactSelectionForm } from "./trade-impact-selection-form";
 
 function ticketAddress(params: { code: string; side: string }) {
   const code = parseStockCode(params.code, "code", trackedStockCodes);
@@ -47,6 +49,7 @@ export function loader({ context, request, params, url }: Route.LoaderArgs) {
     classId: params.classId,
     now,
   });
+  const selection = readImpactSelection(url);
   const ticket = readTicket(context.get(databaseContext), portfolio, {
     code,
     now,
@@ -97,6 +100,7 @@ export function loader({ context, request, params, url }: Route.LoaderArgs) {
       code,
       side,
       ticket,
+      selection,
       fields,
       order,
       now,
@@ -106,10 +110,13 @@ export function loader({ context, request, params, url }: Route.LoaderArgs) {
       search: ticketContextSearch(url.searchParams),
     },
     {
-      status: ticketStatus(ticket, {
-        invalid: parsed?.ok === false,
-        isLimit: fields.priceKind === "limit",
-      }),
+      status:
+        selection.fields !== undefined
+          ? 400
+          : ticketStatus(ticket, {
+              invalid: parsed?.ok === false,
+              isLimit: fields.priceKind === "limit",
+            }),
     },
   );
 }
@@ -193,6 +200,8 @@ export default function TicketPage({
       });
     };
   }, []);
+  if (loaderData.selection.fields !== undefined)
+    return <TradeImpactSelectionForm fields={loaderData.selection.fields} />;
   return (
     <div className={styles["column"]}>
       <dialog
@@ -255,6 +264,7 @@ export default function TicketPage({
             rejection={actionData?.rejection}
             limitSteps={actionData?.limitSteps}
             restoreDraft={actionData === undefined && loaderData.restoreDraft}
+            impactAxis={loaderData.selection.axis}
           />
         ) : (
           <TicketDone

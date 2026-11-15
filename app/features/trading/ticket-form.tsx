@@ -5,6 +5,7 @@ import { quoteChange } from "~/features/market-data/quote-change";
 import { TicketPrice } from "./ticket-price";
 import { TicketLots } from "./ticket-lots";
 import { TicketBreakdown } from "./ticket-breakdown";
+import { TicketImpact } from "./ticket-impact";
 import { useTicketDraft } from "./use-ticket-draft";
 import type { TicketDraft } from "./use-ticket-draft";
 import type { ReactNode } from "react";
@@ -28,6 +29,7 @@ import { orderFailureText } from "./order-failure-text";
 import type { readTicket } from "./read-ticket.server";
 import styles from "./ticket.module.css";
 import type { Rupiah } from "~/units/rupiah";
+import type { AnalysisAxis } from "~/features/measures/analysis-axes";
 
 export function TicketForm({
   code,
@@ -39,6 +41,7 @@ export function TicketForm({
   rejection,
   limitSteps,
   restoreDraft,
+  impactAxis,
 }: {
   code: string;
   side: OrderSide;
@@ -49,6 +52,7 @@ export function TicketForm({
   rejection: OrderRejection | undefined;
   limitSteps: readonly Rupiah[] | undefined;
   restoreDraft: boolean;
+  impactAxis?: AnalysisAxis | undefined;
 }): ReactNode {
   const { day, quote } = ticket;
   if (!day.ok) return <p>{orderFailureText(day.failure)}</p>;
@@ -70,6 +74,7 @@ export function TicketForm({
       rejection={rejection}
       limitSteps={limitSteps}
       restoreDraft={restoreDraft}
+      impactAxis={impactAxis}
     />
   );
 }
@@ -79,6 +84,7 @@ function TicketFields(
     code: string;
     rejection: OrderRejection | undefined;
     limitSteps: readonly Rupiah[] | undefined;
+    impactAxis: AnalysisAxis | undefined;
   },
 ): ReactNode {
   const isInBrowser = useIsInBrowser();
@@ -151,6 +157,7 @@ function TicketFields(
       />
       <TicketLots draft={draft} rejection={failure.lots} />
       <TicketBreakdown draft={draft} />
+      <TicketImpact draft={draft} code={props.code} axis={props.impactAxis} />
       <section className={styles["section"]}>
         <label className={styles["label"]} htmlFor="ticket-reason">
           {m.trading_reason_label()}

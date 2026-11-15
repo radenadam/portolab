@@ -1,6 +1,5 @@
 import { marketIndex } from "~/features/market-data/tracked-instruments";
 import { textForReader } from "~/features/trading/text-for-reader";
-import type { PortfolioReader } from "~/features/trading/text-for-reader";
 import {
   formatBeta,
   formatCalendarDate,
@@ -19,7 +18,7 @@ import type { BetaNotPositive } from "./performance-ratios";
 /** The subject keeps the forecast and the next step specific to the calculation and its reader. */
 export type MeasuredSubject =
   | { kind: "stock"; code: string }
-  | { kind: "portfolio"; reader: PortfolioReader }
+  | { kind: "portfolio"; reader: Parameters<typeof textForReader>[0] }
   | { kind: "correlation" }
   | { kind: "market" };
 

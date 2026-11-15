@@ -221,6 +221,7 @@ for (const locale of locales) {
         const [rangeGroup, beta] = await Promise.all(
           [text.rangeHelp, text.betaHelp].map((label) =>
             student
+              .getByRole("region", { name: text.statistics, exact: true })
               .getByRole("button", { name: label, exact: true })
               .evaluate((element) => {
                 const box = element.closest("dl")?.getBoundingClientRect();

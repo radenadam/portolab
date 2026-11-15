@@ -484,6 +484,9 @@ for (const locale of locales) {
         await expect(
           page.getByRole("textbox", { name: text.price, exact: true }),
         ).toHaveCount(0);
+        await expect(
+          page.locator("dialog [data-impact-rows] > div"),
+        ).toHaveCount(5);
         await page.locator("dialog a").filter({ hasText: "50%" }).click();
         await expect(page.locator('dialog input[name="lots"]')).toHaveValue(
           text.maxLotsValue,

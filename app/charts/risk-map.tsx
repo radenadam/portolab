@@ -26,6 +26,7 @@ import { useMapLabels } from "./use-map-labels";
 // The portfolio and every holding keep their names ahead of every other point, even when the caller lists the holdings before the portfolio. Larger marks leave less room for their names, so they take their places before smaller marks of the same kind.
 const labelOrder: Record<MarkKind, number> = {
   own: 0,
+  before: 0,
   held: 1,
   market: 2,
   other: 3,
@@ -46,6 +47,7 @@ export function RiskMap<Across extends number, Up extends number>({
   levelLabel,
   labelledBy,
   fill = false,
+  compact = false,
 }: {
   /** The IHSG. */
   market: MapPoint<Across, Up>;
@@ -61,6 +63,7 @@ export function RiskMap<Across extends number, Up extends number>({
   /** The id of the heading that names the map, which also names its slider. */
   labelledBy: string;
   fill?: boolean;
+  compact?: boolean;
 }): ReactNode {
   const isInBrowser = useIsInBrowser();
   const layout = useMemo(
@@ -108,6 +111,11 @@ export function RiskMap<Across extends number, Up extends number>({
     paddingInline: `calc(${String(layout.upTextLength)}ch + ${String(valueMarkGap)}em + ${String(keptNameRoom)} * var(--text-small)) ${String(sideRoom)}em`,
   };
   const active = slider.marked === undefined ? undefined : stops[slider.marked];
+  const className = [
+    styles["riskMap"],
+    fill ? styles["fill"] : "",
+    compact ? styles["compact"] : "",
+  ].join(" ");
   const drawing = (
     <MapDrawing
       layout={layout}
@@ -140,9 +148,7 @@ export function RiskMap<Across extends number, Up extends number>({
   );
   if (!isInBrowser || shown === undefined) {
     return (
-      <div
-        className={[styles["riskMap"], fill ? styles["fill"] : ""].join(" ")}
-      >
+      <div className={className}>
         <div className={styles["plot"]} style={style}>
           <div ref={areaRef} className={styles["area"]}>
             {drawing}
@@ -162,7 +168,7 @@ export function RiskMap<Across extends number, Up extends number>({
   const sliderProps = slider.sliderProps(spokenPoint(shown.point));
   return (
     <div
-      className={[styles["riskMap"], fill ? styles["fill"] : ""].join(" ")}
+      className={className}
       onPointerDown={markPointer}
       onPointerMove={markPointer}
       onPointerLeave={sliderProps.onPointerLeave}
@@ -232,6 +238,7 @@ function mapLabels(
     const label = { key: point.key, text: point.name, value: point.labelValue };
     switch (kind) {
       case "own":
+      case "before":
       case "held":
       case "average":
         kept.push(label);

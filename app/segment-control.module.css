@@ -1,0 +1,12 @@
+.control {
+  position: relative;
+  isolation: isolate;
+}
+.control::before {
+  content: "";
+  position: absolute;
+  inset: var(--space-1) 0;
+  z-index: -1;
+  border-radius: var(--radius-item);
+  background: var(--color-raised);
+}

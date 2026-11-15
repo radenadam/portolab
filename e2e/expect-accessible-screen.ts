@@ -40,20 +40,29 @@ export async function expectAccessibleScreen(page: Page): Promise<void> {
     return height;
   });
   expect(tokenHeight).toBe(smallestTargetHeight);
-  const smallTargets: string[] = [];
   const targets = page.locator(
     "a, button, input, select, textarea, [role=button]",
   );
-  for (const target of await targets.all()) {
-    const box = (await target.isVisible()) ? await target.boundingBox() : null;
-    if (box !== null && box.height < smallestTargetHeight) {
-      // The opening tag names any target, including a form field that has no text.
-      const openingTag = await target.evaluate((element) =>
-        element.outerHTML.slice(0, element.outerHTML.indexOf(">") + 1),
-      );
-      smallTargets.push(`${openingTag} is ${String(box.height)} pixels high.`);
-    }
-  }
+  // One browser call keeps pages with many closed concept cards within the test deadline.
+  const smallTargets = await targets
+    .filter({ visible: true })
+    .evaluateAll((elements, minimum) => {
+      const undersized: string[] = [];
+      for (const element of elements) {
+        const box = element.getBoundingClientRect();
+        if (box.height < minimum) {
+          // The opening tag names any target, including a form field that has no text.
+          const openingTag = element.outerHTML.slice(
+            0,
+            element.outerHTML.indexOf(">") + 1,
+          );
+          undersized.push(
+            `${openingTag} is ${String(box.height)} pixels high.`,
+          );
+        }
+      }
+      return undersized;
+    }, smallestTargetHeight);
   expect(smallTargets).toEqual([]);
   // Axe does not check the width of the page.
   expect(await sidewaysProblems(page)).toEqual([]);

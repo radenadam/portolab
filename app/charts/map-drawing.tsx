@@ -36,6 +36,7 @@ const drawOrder: Record<MarkKind, number> = {
   held: 1,
   market: 2,
   own: 3,
+  before: 2,
 };
 
 // Every length around the plot is a multiple of the size of the text of its marks, so the map keeps its proportions when a reader enlarges the text.
@@ -253,6 +254,8 @@ function Mark({
       return dot(styles["other"]);
     case "average":
       return dot(styles["average"]);
+    case "before":
+      return dot(styles["before"]);
     case "classmate":
       return dot(styles["classmate"]);
     case "market":

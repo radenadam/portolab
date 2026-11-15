@@ -90,8 +90,7 @@
   gap: var(--space-2);
 }
 .segments {
-  position: relative;
-  isolation: isolate;
+  composes: control from "../../segment-control.module.css";
   display: flex;
   padding: 0;
   font-size: var(--text-learning-summary);
@@ -117,14 +116,6 @@
 .segments [data-selected="true"] {
   background: none;
   font-weight: 600;
-}
-.segments::before {
-  content: "";
-  position: absolute;
-  inset: var(--space-1) 0;
-  z-index: -1;
-  border-radius: var(--radius-item);
-  background: var(--color-raised);
 }
 .segments [data-selected="true"]::before {
   content: "";
