@@ -45,6 +45,7 @@
 
 .compact {
   display: inline-grid;
+  grid-auto-columns: auto;
   padding: var(--space-1);
   font-size: var(--text-caption);
   --choice-inset: 0;
@@ -53,6 +54,7 @@
   inset: 0;
 }
 .compact a {
+  border-radius: var(--radius-button);
   padding-inline: var(--space-3);
   font-size: inherit;
 }
