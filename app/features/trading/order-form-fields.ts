@@ -1,9 +1,5 @@
 import type { FieldOption } from "~/form";
-import {
-  checkFieldLengthForReader,
-  checkMaximumLength,
-  typedText,
-} from "~/form-text";
+import { checkMaximumLength, parseOptionalText, typedText } from "~/form-text";
 import { formatList } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { failureOf, fail, succeed } from "~/result";
@@ -11,7 +7,6 @@ import type { Result } from "~/result";
 import type { Lots } from "~/units/lots";
 import { isRupiah, rupiah } from "~/units/rupiah";
 import type { Rupiah } from "~/units/rupiah";
-import { typeName } from "~/value-shapes";
 import { parseWrittenWholeNumber } from "~/written-whole-number";
 import { checkFieldLength } from "~/check-field-length";
 import { parseChoice } from "~/value-parsers";
@@ -245,13 +240,9 @@ export function parseOptionalOrderText(
   value: unknown,
   source: string,
 ): Result<string | undefined, string> {
-  if (value === null || value === "") {
-    return succeed(undefined);
-  }
-  if (typeof value !== "string") {
-    return fail(m.app_not_text_error({ field: source, type: typeName(value) }));
-  }
-  return checkFieldLengthForReader(value, source);
+  const text = parseOptionalText(value, source);
+  if (!text.ok) return text;
+  return succeed(text.value === "" ? undefined : text.value);
 }
 
 /** The address chooses the side, so a form cannot change it. */

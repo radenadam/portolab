@@ -29,6 +29,10 @@ const texts: Record<
     prices: string;
     changed: string;
     sell: string;
+    data: string;
+    backToAnalysis: string;
+    measures: string;
+    calculate: string;
     reason: string;
     waiting: string;
     activityLink: string;
@@ -56,6 +60,10 @@ const texts: Record<
     changed:
       "Total order berubah dari pratinjau yang Anda lihat. Periksa rincian biaya, lalu konfirmasi lagi.",
     sell: "Jual",
+    data: "Data dan metode",
+    backToAnalysis: "Kembali ke Analisis",
+    measures: "Ukuran portofolio Anda",
+    calculate: "Lihat perhitungan",
     reason: "Alasan (opsional)",
     waiting: "Order menunggu",
     activityLink: "Lihat di Aktivitas",
@@ -82,6 +90,10 @@ const texts: Record<
     changed:
       "The order total changed from the preview you saw. Check the cost breakdown, then confirm again.",
     sell: "Sell",
+    data: "Data and method",
+    backToAnalysis: "Back to Analysis",
+    measures: "Your portfolio measures",
+    calculate: "View calculation",
     reason: "Reason (optional)",
     waiting: "Order waiting",
     activityLink: "View in Activity",
@@ -234,6 +246,26 @@ for (const locale of locales) {
           .getByRole("button", { name: text.apply, exact: true })
           .click();
         await expect(page).toHaveURL(`${path}/analysis?axis=beta`);
+        await page
+          .getByRole("region", { name: text.measures, exact: true })
+          .getByRole("button", { name: text.calculate, exact: true })
+          .first()
+          .click();
+        await expect(page.locator("#analysis-expectedReturn")).toBeVisible();
+        await page
+          .locator("#analysis-expectedReturn")
+          .getByRole("button", { name: text.data, exact: true })
+          .click();
+        await page.locator("#stock-BBCA").click();
+        const returnPath = `${path}/analysis?axis=beta&data=stocks#stock-BBCA`;
+        await expect(page).toHaveURL(
+          (url) => url.searchParams.get("returnTo") === returnPath,
+        );
+        await page
+          .getByRole("link", { name: text.backToAnalysis, exact: true })
+          .click();
+        await expect(page).toHaveURL(returnPath);
+        await expect(page.locator("#stock-BBCA")).toBeInViewport();
         await tabs
           .getByRole("link", { name: text.summary, exact: true })
           .click();

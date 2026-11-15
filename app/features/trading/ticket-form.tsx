@@ -161,6 +161,7 @@ function TicketFields(
           {m.trading_reason_label()}
         </label>
         <textarea
+          className={styles["reason"]}
           id="ticket-reason"
           name="reason"
           rows={3}

@@ -35,14 +35,14 @@ test("accepts pages that answer with success and names each page that does not, 
     pageProblems(
       [
         { path: "/health", outcome: { status: 200 } },
-        { path: "/prices", outcome: { status: 500 } },
+        { path: "/sign-in", outcome: { status: 500 } },
         { path: "/missing", outcome: { status: 404 } },
         { path: "/language", outcome: { connectionFailure: "socket hang up" } },
       ],
       "after an edit",
     ),
   ).toEqual([
-    "/prices answered with status 500 after an edit.",
+    "/sign-in answered with status 500 after an edit.",
     "/missing answered with status 404 after an edit.",
     "/language did not answer after an edit. The connection reported: socket hang up",
   ]);
@@ -51,13 +51,13 @@ test("accepts pages that answer with success and names each page that does not, 
 test("reads the modules of the app, and leaves out tests and the code that Paraglide generates", () => {
   for (const path of [
     "app/database/database.server.ts",
-    "app/features/market-data/prices-view.tsx",
+    "app/features/market-data/sign-in-view.tsx",
     "app/root.tsx",
   ]) {
     expect(isAppModule(path), path).toBe(true);
   }
   for (const path of [
-    "app/features/market-data/prices-view.test.tsx",
+    "app/features/market-data/sign-in-view.test.tsx",
     "app/formatting.test.ts",
     "app/paraglide/runtime.d.ts",
     "app/theme.css",
@@ -83,7 +83,7 @@ test("edits each module that creates a context and each schema, and no other mod
         text: 'export const stockQuotes = sqliteTable("stock_quotes", {});',
       },
       {
-        path: "app/features/market-data/prices-page.tsx",
+        path: "app/features/market-data/sign-in-page.tsx",
         text: "const database = context.get(databaseContext);",
       },
     ]),

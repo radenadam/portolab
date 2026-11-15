@@ -5,6 +5,9 @@ import { data } from "react-router";
 import { databaseContext } from "~/database/database.server";
 import { readOwnedPortfolioReport } from "~/features/trading/read-owned-portfolio-report.server";
 import { m } from "~/paraglide/messages.js";
+import { parseOptionalText } from "~/form-text";
+import { analysisDataReturn } from "./analysis-data-return";
+import { measuresPath } from "./measures-path";
 import { measureStoredMarket } from "./measure-stored.server";
 import { summarizeMarket } from "./measure-summaries";
 import { parseAnalysisAxis } from "./parse-analysis-axis";
@@ -36,7 +39,7 @@ export function readAnalysisPage(
     return data(
       {
         kind: "axisFailure" as const,
-        path: `${home.path}/analysis`,
+        path: measuresPath(place.classId, kind),
         showTitle: kind === "membership",
         value: axisValue ?? "",
         failure: axis.failure,
@@ -46,6 +49,11 @@ export function readAnalysisPage(
   }
   const measures = readPortfolioMeasures(database, report.valuation);
   const stocks = readStockRows(database);
+  // The hint restores a return address, so a forged hint must not block the normal page.
+  const dataReturn = parseOptionalText(
+    url.searchParams.get(analysisDataReturn.parameter),
+    m.measures_analysis_data_label(),
+  );
   const market = measureStoredMarket(database);
   return {
     kind: "analysis" as const,
@@ -66,5 +74,6 @@ export function readAnalysisPage(
     portfolioHome: home,
     portfolioKind: kind,
     showTitle: kind === "membership",
+    showData: dataReturn.ok && dataReturn.value === analysisDataReturn.value,
   };
 }

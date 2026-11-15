@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { measuresPath } from "~/features/measures/measures-path";
 import { demonstrationPath } from "./demonstration-path";
 import { HomePortfolio } from "./home-portfolio";
 import { readHomePortfolio } from "./read-home-portfolio.server";
@@ -36,7 +37,7 @@ export default function DemonstrationSummaryPage({
       home={loaderData.home}
       classId={loaderData.classId}
       path={path}
-      analysisPath={`${path}/analysis`}
+      analysisPath={measuresPath(loaderData.classId, "demonstration")}
       showTitle={false}
       portfolioKind="demonstration"
     />

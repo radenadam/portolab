@@ -17,7 +17,7 @@ import type { Shares } from "../../units/shares.ts";
 /** The number that identifies an order. */
 export type OrderId = number & { readonly brand: "OrderId" };
 
-/** The number that identifies a portfolio independently of its owner. */
+/** Membership and class numbers can overlap, so a portfolio needs an independent identity. */
 export type PortfolioId = number & { readonly brand: "PortfolioId" };
 
 // The store of orders writes the sides, states, and failures of order.ts into these columns and reads them back, so a name that one of them lacks is a type error there.

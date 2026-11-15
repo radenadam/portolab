@@ -23,7 +23,7 @@ export type TradingPlace = Omit<StudentPlace, "owner"> & {
   owner: PortfolioOwner;
 };
 
-/** Each page chooses its owner before it reads portfolio data. Stock pages serve the signed-in role. */
+/** Portfolio addresses fix their owner kind so a student cannot open a demonstration. */
 export function findTradingPlace(
   context: Readonly<RouterContextProvider>,
   url: URL,

@@ -4,7 +4,7 @@ import { readPriceSourceDescription } from "~/features/market-data/price-source-
 import type { PortfolioOwner } from "./portfolio-store.server";
 import { readCurrentPortfolio } from "./read-current-portfolio.server";
 import { findTradingPlace } from "./find-trading-place.server";
-/** The caller fixes the owner kind for a portfolio page, while a stock and its ticket serve either role. */
+/** Stock pages serve both roles, so only portfolio pages fix the owner kind. */
 export function readTradingPortfolio(
   context: Readonly<RouterContextProvider>,
   input: { request: Request; url: URL; classId: string; now: Date },

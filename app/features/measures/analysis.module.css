@@ -32,15 +32,8 @@
   gap: var(--space-5);
   min-inline-size: 0;
 }
-.mapPanel,
-.measures,
-.performance {
-  min-inline-size: 0;
-  border: var(--size-line) solid var(--color-line);
-  border-radius: var(--radius-panel);
-  background: var(--color-panel);
-}
 .mapPanel {
+  composes: surface from "../../panel.module.css";
   display: flex;
   flex-direction: column;
 }
@@ -139,6 +132,7 @@
   margin-inline-start: auto;
 }
 .measures {
+  composes: surface from "../../panel.module.css";
   padding: var(--space-panel);
 }
 .measures > h2 {
@@ -239,7 +233,19 @@
 .data :is(table, dl) {
   min-inline-size: 0;
 }
+/* The return address must reveal its row before JavaScript loads, while the native data button still opens the same panel over the page. */
+.returnedData:not(:popover-open) {
+  display: block;
+  position: static;
+  inline-size: fit-content;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  max-block-size: none;
+  margin-inline: auto;
+  box-shadow: none;
+}
 .performance {
+  composes: surface from "../../panel.module.css";
   padding: var(--space-panel);
 }
 .performanceHeader {

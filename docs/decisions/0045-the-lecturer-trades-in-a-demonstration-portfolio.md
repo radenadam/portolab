@@ -24,4 +24,4 @@
 
 ## Consequences
 
-The lecturer uses the established trading rules and the same views. The migration test upgrades a copy of a populated database and checks preservation and cascading deletion with foreign keys enabled. Reader tests keep a measured demonstration out of the map, statistics, flags, ranking, workbook, and student comparisons.
+The lecturer uses the established trading rules and the same views. The migration test upgrades a copy of a populated database and checks preservation and cascading deletion with foreign keys enabled. Each implemented reader of class statistics has an exclusion test for a measured demonstration.

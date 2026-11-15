@@ -4,6 +4,8 @@ import { formatRupiah } from "~/formatting";
 import { NumberText } from "~/number-text";
 import { pageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
+import { measuresPath } from "~/features/measures/measures-path";
+import { activityPath } from "./activity-path";
 import { demonstrationPath } from "./demonstration-path";
 import { findTradingPlace } from "./find-trading-place.server";
 import type { Route } from "./+types/demonstration-page";
@@ -36,10 +38,16 @@ export default function DemonstrationPage({
           <NavLink className={() => styles["tab"]} to={path} end>
             {m.trading_demonstration_summary_label()}
           </NavLink>
-          <NavLink className={() => styles["tab"]} to={`${path}/activity`}>
+          <NavLink
+            className={() => styles["tab"]}
+            to={activityPath(loaderData.classId, "demonstration")}
+          >
             {m.trading_activity_title()}
           </NavLink>
-          <NavLink className={() => styles["tab"]} to={`${path}/analysis`}>
+          <NavLink
+            className={() => styles["tab"]}
+            to={measuresPath(loaderData.classId, "demonstration")}
+          >
             {m.trading_demonstration_analysis_label()}
           </NavLink>
         </nav>

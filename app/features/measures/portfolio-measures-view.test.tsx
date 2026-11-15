@@ -42,7 +42,13 @@ const readers: Record<PortfolioReader["kind"], PortfolioReader> = {
 function renderView(
   report: PortfolioMeasuresReport,
   reader: PortfolioReader,
-  quoteFailure: string | undefined,
+  {
+    quoteFailure,
+    initialPath = "/classes/7/analysis",
+  }: {
+    quoteFailure: string | undefined;
+    initialPath?: string;
+  },
 ): string {
   return withoutConceptCardsForTest(
     renderInRouterForTest(
@@ -53,6 +59,7 @@ function renderView(
         source={yahooFinance}
       />,
       conceptLessonDataForTest(),
+      initialPath,
     ),
   ).replaceAll(/ class="[^"]*"/g, "");
 }
@@ -78,7 +85,7 @@ function quoteFailureForTest(): string | undefined {
 // The name of a stock in the table of the stocks of the portfolio, which links to the page of the stock only for its owner.
 const stockNames: Record<PortfolioReader["kind"], (code: string) => string> = {
   owner: (code) =>
-    `<a href="/classes/7/stocks/${code}" data-discover="true">${code}</a>`,
+    `<a id="holding-${code}" href="/classes/7/stocks/${code}?returnTo=%2Fclasses%2F7%2Fanalysis%3Fdata%3Dstocks%23holding-${code}" data-discover="true">${code}</a>`,
   lecturer: (code) => code,
 };
 
@@ -420,9 +427,15 @@ for (const locale of locales) {
         classId: 7 as ClassId,
         portfolioKind: "demonstration",
       },
-      undefined,
+      {
+        quoteFailure: undefined,
+        initialPath: "/classes/7/demonstration/analysis",
+      },
     );
     expect(html).toContain(`<p>${demonstrationWeightsNotices[locale]}</p>`);
+    expect(html).toContain(
+      '<a id="holding-BBCA" href="/classes/7/stocks/BBCA?returnTo=%2Fclasses%2F7%2Fdemonstration%2Fanalysis%3Fdata%3Dstocks%23holding-BBCA" data-discover="true">BBCA</a>',
+    );
   });
   for (const [readerKind, reader] of Object.entries(readers)) {
     const text = texts[locale];
@@ -431,7 +444,7 @@ for (const locale of locales) {
     const render = (
       report: PortfolioMeasuresReport,
       quoteFailure: string | undefined,
-    ): string => renderView(report, reader, quoteFailure);
+    ): string => renderView(report, reader, { quoteFailure });
 
     test(`shows each measure of a portfolio with its formula, the weights, the measures of its stocks, their covariances and correlations, the risk that each stock adds, the IHSG, and the monthly returns, in ${language}`, () => {
       switchLocaleForTest(locale);
@@ -568,8 +581,8 @@ for (const locale of locales) {
       throw new Error("The portfolio against the market has measures.");
     }
     expect(report.measures.value.beta).toBeLessThan(0);
-    expect(renderView(report, readers.owner, undefined)).toContain(
-      measureDefinitionsForTest(againstMarketTexts[locale]),
-    );
+    expect(
+      renderView(report, readers.owner, { quoteFailure: undefined }),
+    ).toContain(measureDefinitionsForTest(againstMarketTexts[locale]));
   });
 }

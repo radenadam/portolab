@@ -19,7 +19,6 @@ const labels: Record<
     students: string;
     learn: string;
     portfolio: string;
-    prices: string;
     join: string;
     signIn: string;
   }
@@ -33,7 +32,6 @@ const labels: Record<
     class: "Kelas",
     students: "Mahasiswa",
     learn: "Belajar",
-    prices: "Harga",
     join: "Gabung ke kelas",
     signIn: "Masuk",
   },
@@ -46,7 +44,6 @@ const labels: Record<
     class: "Class",
     students: "Students",
     learn: "Learn",
-    prices: "Prices",
     join: "Join a class",
     signIn: "Sign in",
   },
@@ -82,28 +79,27 @@ for (const locale of locales) {
   const label = labels[locale];
   const language = languageNames[locale];
 
-  test(`gives a visitor the prices, joining a class, and sign-in, with the page itself as the current one, in ${language}`, () => {
+  test(`gives a visitor joining a class and sign-in, with the page itself as the current one, in ${language}`, () => {
     switchLocaleForTest(locale);
     expect(
       frameItems(
         { kind: "visitor" },
-        pageForTest("features/market-data/prices-page"),
+        pageForTest("features/accounts/sign-in-page"),
       ),
     ).toEqual([
-      { path: "/prices", label: label.prices, icon: "trend", isCurrent: true },
       { path: "/join", label: label.join, icon: "join", isCurrent: false },
       {
         path: "/sign-in",
         label: label.signIn,
         icon: "signIn",
-        isCurrent: false,
+        isCurrent: true,
       },
     ]);
     expect(
       frameItems(
         { kind: "visitor" },
         pageForTest("features/classes/join-class-page"),
-      )[1]?.isCurrent,
+      )[0]?.isCurrent,
     ).toBe(true);
   });
 

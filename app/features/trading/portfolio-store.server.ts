@@ -40,7 +40,6 @@ export function readPortfolio(
   );
 }
 
-/** Reads a portfolio that an order stored, or undefined before the owner has placed an order. */
 export function readStoredPortfolio(
   database: DatabaseWriter,
   owner: PortfolioOwner,
@@ -71,7 +70,7 @@ function ownerCondition(owner: PortfolioOwner) {
   }
 }
 
-/** Creates the cash row only when work needs a stored portfolio. The caller holds the placement transaction. */
+/** Placement holds a transaction so accepted orders cannot create separate portfolios for one owner. */
 function ensurePortfolio(
   database: DatabaseWriter,
   owner: PortfolioOwner,

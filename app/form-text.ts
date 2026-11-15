@@ -7,6 +7,17 @@ import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
 import { typeName } from "~/value-shapes";
 
+export function parseOptionalText(
+  value: unknown,
+  source: string,
+  maximum: "guard" | "field" = "guard",
+): Result<string, string> {
+  if (value === null) return succeed("");
+  if (typeof value !== "string")
+    return fail(m.app_not_text_error({ field: source, type: typeName(value) }));
+  return checkFieldLengthForReader(value, source, maximum);
+}
+
 /** Reads the text of a field that a person must fill in, as the person typed it. It refuses a text longer than any field takes before any other work on the text, because that work grows with the length of the text. The source is the label of the field, and the failure is a sentence for the reader in the current language. */
 export function parseFilledText(
   value: unknown,
