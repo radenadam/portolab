@@ -11,7 +11,7 @@ import {
 } from "~/features/learning/concept-lesson";
 import { formatPercent, formatNumber } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
-import { PopoverButton } from "~/popover";
+import { LessonLink } from "~/features/learning/lesson-link";
 import type { Result } from "~/result";
 import { AnalysisMap } from "./analysis-map";
 import type { AnalysisAxis } from "./analysis-axes";
@@ -92,9 +92,9 @@ export function AnalysisMapPanel({
             }
             studentName={studentName}
           />
-          <PopoverButton popover="analysis-map-help" className={styles["link"]}>
+          <LessonLink session={session} className={styles["link"]}>
             {m.measures_analysis_learn_label()} <span aria-hidden>→</span>
-          </PopoverButton>
+          </LessonLink>
         </div>
       )}
     </section>

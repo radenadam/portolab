@@ -46,6 +46,8 @@ interface RoutePage {
 
 // Each route of app/routes.ts, by its module, with the pages that the walk opens. The data of the walk has the widest content, so each page shows it at its widest.
 const routePages: Record<string, readonly RoutePage[]> = {
+  // The layout has no address of its own, and every class page below renders it.
+  "features/learning/learning-overlay.tsx": [],
   "features/learning/learn-page.tsx": [
     { reader: "student", path: ({ classPath }) => `${classPath}/learn` },
   ],

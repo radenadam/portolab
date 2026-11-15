@@ -501,14 +501,7 @@
   font-size: var(--text-caption);
   cursor: pointer;
 }
-.lesson {
-  inline-size: min(var(--width-concept-card), calc(100vw - 2 * var(--space-4)));
-  padding: var(--space-4);
-}
-.lesson h2 {
-  margin: 0 0 var(--space-3);
-  color: var(--color-ink);
-}
+
 .mapTable {
   font-size: var(--text-small);
 }
