@@ -193,7 +193,7 @@ for (const locale of locales) {
         classPath,
         `${classPath}/market`,
         `${classPath}/activity`,
-        `${classPath}/measures`,
+        `${classPath}/analysis`,
         `${classPath}/learn`,
       ].map((path, index) => [text.studentItems[index] ?? "", path]);
     await student.goto(`${second.path}/activity`);

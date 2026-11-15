@@ -111,7 +111,7 @@ for (const locale of locales) {
         { path: "/classes/7", label: label.home, icon: "map" },
         { path: "/classes/7/market", label: label.market, icon: "trend" },
         { path: "/classes/7/activity", label: label.activity, icon: "list" },
-        { path: "/classes/7/measures", label: label.analysis, icon: "pie" },
+        { path: "/classes/7/analysis", label: label.analysis, icon: "pie" },
         { path: "/classes/7/learn", label: label.learn, icon: "book" },
       ].map((item) => ({ ...item, isCurrent: item.label === current }));
     for (const [routeId, current] of [

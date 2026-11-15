@@ -15,7 +15,9 @@ import { acrossOf, indexAt } from "./time-chart-layout";
 import type { LineKind, TimeChartLayout, TimeLine } from "./time-chart-layout";
 import styles from "./time-chart.module.css";
 import { useIsInBrowser } from "./use-is-in-browser";
-import { annotationPosition } from "./annotation-position";
+import { placeTimeEvents } from "./place-time-events";
+import type { TimeEvent } from "./place-time-events";
+import { timeEndLabels } from "./time-end-labels";
 
 const lineClasses: Record<LineKind, string | undefined> = {
   own: styles["own"],
@@ -38,8 +40,7 @@ const drawOrder: Record<LineKind, number> = {
 const dateBaseline = 1.5;
 const headroom = 0.5;
 const dotRadius = 0.4;
-
-const noAnnotations: readonly { date: string; label: string }[] = [];
+const noEvents: readonly TimeEvent[] = [];
 
 /** The plot with its axes, its lines, and a dot on each line at the marked date, which is the latest date until a reader marks another. In the browser it is a slider that marks a date with a crosshair and shows a tooltip of its values. */
 export function TimePlot<Point extends { date: string }, Value extends number>({
@@ -51,7 +52,7 @@ export function TimePlot<Point extends { date: string }, Value extends number>({
   valueNode,
   area = false,
   axisSide = "left",
-  annotations = noAnnotations,
+  annotations = noEvents,
 }: {
   points: readonly Point[];
   lines: readonly TimeLine<Point, Value>[];
@@ -61,7 +62,7 @@ export function TimePlot<Point extends { date: string }, Value extends number>({
   axisSide?: ValueAxisSide;
   layout: TimeChartLayout;
   labelledBy: string;
-  annotations?: readonly { date: string; label: string }[] | undefined;
+  annotations?: readonly TimeEvent[] | undefined;
 }): ReactNode {
   const isInBrowser = useIsInBrowser();
   const {
@@ -77,12 +78,22 @@ export function TimePlot<Point extends { date: string }, Value extends number>({
   const drawingRef = useRef<SVGSVGElement>(null);
   const labelRoom = `calc(${String(layout.valueTextLength)}ch + ${String(valueMarkGap)}em)`;
   const edgeRoom = `${String(dotRadius)}em`;
+  const latest = points.at(-1);
+  const endLabels = timeEndLabels(lines, { latest, layout, valueText });
+  const endRoom = `${String(Math.max(0, ...endLabels.map((label) => label.text.length)) * 0.6 + 1)}em`;
+  const rightRoom =
+    endLabels.length === 0 ? edgeRoom : "var(--time-chart-end-room)";
+  const plotClass = [
+    styles["plot"],
+    endLabels.length === 0 ? "" : styles["endLabelPlot"],
+  ].join(" ");
   const inlinePadding: Record<ValueAxisSide, string> = {
-    left: `${labelRoom} ${edgeRoom}`,
+    left: `${labelRoom} ${rightRoom}`,
     right: `${edgeRoom} ${labelRoom}`,
   };
   const style: CSSProperties = {
-    paddingBlock: `${String(annotations.length === 0 ? headroom : dateBaseline + headroom)}em ${String(dateBaseline + headroom)}em`,
+    ...(endLabels.length === 0 ? {} : { "--time-chart-end-width": endRoom }),
+    paddingBlock: `${String(annotations.length === 0 ? headroom : dateBaseline)}em ${String(dateBaseline + headroom)}em`,
     paddingInline: inlinePadding[axisSide],
   };
   const drawnLines = layout.lines.toSorted(
@@ -90,31 +101,31 @@ export function TimePlot<Point extends { date: string }, Value extends number>({
   );
   const drawing = (
     <svg ref={drawingRef} className={styles["drawing"]} aria-hidden>
-      {annotations.flatMap(({ date, label }) => {
-        const at = annotationPosition(points, date);
-        return at === undefined
-          ? []
-          : [
-              <g key={date}>
-                <line
-                  x1={percentOf(at)}
-                  x2={percentOf(at)}
-                  y1="0"
-                  y2="100%"
-                  className={styles["sessionLine"]}
-                />
-                <text
-                  x={percentOf(at)}
-                  y="0"
-                  dy="-0.5em"
-                  textAnchor={at < 0.1 ? "start" : at > 0.9 ? "end" : "middle"}
-                  className={styles["tick"]}
-                >
-                  {label}
-                </text>
-              </g>,
-            ];
-      })}
+      {placeTimeEvents(
+        points.map((point) => point.date),
+        annotations,
+      ).map((event) => (
+        <g key={event.label}>
+          <line
+            x1={percentOf(event.at)}
+            x2={percentOf(event.at)}
+            y1="0"
+            y2="100%"
+            className={styles["sessionLine"]}
+          />
+          <text
+            x={percentOf(event.at)}
+            y="0"
+            dy="-0.5em"
+            textAnchor={
+              event.at === 0 ? "start" : event.at === 1 ? "end" : "middle"
+            }
+            className={event.minor ? styles["minorEvent"] : styles["event"]}
+          >
+            {event.label}
+          </text>
+        </g>
+      ))}
       {layout.valueTicks.map((tick) => (
         <ValueMark
           key={tick.at}
@@ -156,12 +167,24 @@ export function TimePlot<Point extends { date: string }, Value extends number>({
           <Dot position={positions[marked]} />
         </g>
       ))}
+      {endLabels.map((label) => (
+        <text
+          key={label.text}
+          x={percentOf(label.position.x)}
+          y={percentOf(label.position.y)}
+          dx="0.75em"
+          dy={label.dy}
+          className={styles["endLabel"]}
+        >
+          {label.text}
+        </text>
+      ))}
     </svg>
   );
   const point = points[marked];
   if (!isInBrowser || point === undefined) {
     return (
-      <div className={styles["plot"]} style={style}>
+      <div className={plotClass} style={style}>
         <div className={styles["area"]}>{drawing}</div>
       </div>
     );
@@ -179,7 +202,7 @@ export function TimePlot<Point extends { date: string }, Value extends number>({
   };
   return (
     <div
-      className={styles["plot"]}
+      className={plotClass}
       style={style}
       {...sliderProps(pointText(point, lines, valueText))}
       onPointerDown={markPointer}

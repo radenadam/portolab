@@ -13,8 +13,7 @@ import { wibDateOf } from "~/wib";
 import { homeSparklineCloses } from "./home-sparkline-closes";
 import { cashSetAside } from "./open-orders";
 import { idxRulesOn } from "./idx-rules-on";
-import { readPortfolioReport } from "./read-portfolio-report.server";
-import { readStudentPortfolio } from "./read-student-portfolio.server";
+import { readStudentPortfolioReport } from "./read-student-portfolio-report.server";
 import { readPortfolioDayChange } from "./read-portfolio-day-change.server";
 
 /** Membership is checked before reading either the student's portfolio or the anonymous class context. */
@@ -28,17 +27,11 @@ export function readHomePortfolio(
     firstSessionDate: string | null;
   },
 ) {
-  const { place, portfolio, source } = readStudentPortfolio(context, input);
-  const database = context.get(databaseContext);
-  const report = readPortfolioReport(
-    database,
-    {
-      portfolio,
-      startingCash: place.owner.startingCash,
-      joinedAt: place.joinedAt,
-    },
-    { now: input.now, delayMinutes: source.delayMinutes },
+  const { place, portfolio, source, report } = readStudentPortfolioReport(
+    context,
+    input,
   );
+  const database = context.get(databaseContext);
   const today = wibDateOf(input.now);
   const rules = idxRulesOn(today);
   const view = parseHomeMapView(input.url.searchParams.get("view"), "view");

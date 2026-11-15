@@ -16,6 +16,7 @@ import type { Range } from "./scale";
 export type MapMark =
   | { kind: "own" }
   | { kind: "held"; weight: PortfolioWeight | undefined }
+  | { kind: "average" }
   | { kind: "classmate" }
   | { kind: "other" };
 
@@ -34,6 +35,9 @@ export interface MapPoint<Across extends number, Up extends number> {
   labelValue?: string;
   across: Across;
   up: Up;
+  popover?: string;
+  stem?: Up;
+  arrowTo?: string;
   values: readonly MapValue[];
 }
 
@@ -75,6 +79,7 @@ export interface PlacedMark {
   position: PlotPosition;
   radius: number;
   outerRadius: number;
+  stem?: PlotFraction;
 }
 
 /** Where the map draws each of its parts in its plot. */
@@ -160,6 +165,9 @@ export function layoutRiskMap<
       ...[market, ...points, ...(line === undefined ? [] : [line.start])].map(
         (point) => point.up,
       ),
+      ...points.flatMap((point) =>
+        point.stem === undefined ? [] : [point.stem],
+      ),
       up.toValue(0),
       ...(lineEnd === undefined ? [] : [lineEnd]),
     ],
@@ -200,7 +208,13 @@ export function layoutRiskMap<
     line: drawnLine,
     points: points.map((point) => ({
       point,
-      placed: { position: positionOf(point), ...markSizeOf(point.mark) },
+      placed: {
+        position: positionOf(point),
+        ...markSizeOf(point.mark),
+        ...(point.stem === undefined
+          ? {}
+          : { stem: heightOf(upRange, point.stem) }),
+      },
     })),
     linePlaces: {
       level: levelPlaces(marketPosition.y),
@@ -298,6 +312,7 @@ function markSizeOf(mark: MapMark): { radius: number; outerRadius: number } {
       return { radius, outerRadius: radius };
     }
     case "other":
+    case "average":
       return { radius: otherRadius, outerRadius: otherRadius };
     case "classmate":
       return { radius: 0.25, outerRadius: 0.25 };

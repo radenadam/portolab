@@ -13,6 +13,7 @@ export interface StudentPlace {
   className: string;
   owner: PortfolioOwner;
   joinedAt: Date;
+  firstSessionDate: string | null;
 }
 
 /** The class of an address and the portfolio of the student who is signed in. A lecturer, a class that does not exist, and a class that the student did not join answer as an address that does not exist, so a guessed address reveals nothing. The url is the one that React Router gives a loader or an action. */
@@ -43,5 +44,6 @@ export function findStudentPlace(
       startingCash: joined.startingCash,
     },
     joinedAt: joined.joinedAt,
+    firstSessionDate: joined.firstSessionDate,
   };
 }

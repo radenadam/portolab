@@ -1,15 +1,101 @@
 /* A map takes the width of its section, and its height grows with its width, so it is a container of its own. */
 .riskMap {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-self: stretch;
   container-type: inline-size;
 }
 
+.gainStem,
+.lossStem {
+  stroke-width: var(--size-mark);
+}
+
+.gainStem {
+  stroke: var(--color-gain);
+}
+.lossStem {
+  stroke: var(--color-loss);
+}
+.average {
+  fill: var(--color-panel);
+  stroke: var(--color-muted);
+  stroke-width: var(--size-mark);
+}
+.arrow {
+  fill: none;
+  stroke: var(--color-ink-secondary);
+  stroke-width: var(--size-line);
+}
+.averageKey {
+  inline-size: 0.8em;
+  block-size: 0.8em;
+  border: var(--size-line) solid var(--color-muted);
+  border-radius: 50%;
+}
+.gainKey,
+.lossKey {
+  inline-size: var(--size-mark);
+  block-size: 1em;
+}
+.gainKey {
+  background: var(--color-gain);
+}
+.lossKey {
+  background: var(--color-loss);
+}
+
+/* Native buttons remain separate from the enhanced slider's accessibility tree. */
+.actionLayer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  font: var(--text-chart) var(--font-code);
+}
+.actionArea {
+  position: relative;
+  block-size: 100%;
+}
+.pointAction {
+  position: absolute;
+  transform: translate(-50%, -50%);
+}
+.pointButton {
+  display: grid;
+  place-items: center;
+  inline-size: var(--size-touch-target);
+  block-size: var(--size-touch-target);
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.pointButton:hover .pointFocus {
+  border: var(--size-line) solid var(--color-ink);
+}
+.pointFocus {
+  inline-size: var(--space-6);
+  block-size: var(--space-6);
+  border-radius: 50%;
+}
+
 /* The map is as high as a chart on a phone, and higher on a wider screen, as the references of decision 0028 draw it. */
 .plot {
   composes: plot from "./plot.module.css";
   block-size: clamp(var(--size-chart), 60cqi, 2 * var(--size-chart));
+}
+
+.fill {
+  flex: 1;
+  min-block-size: var(--size-chart);
+}
+.fill .plot {
+  flex: 1;
+  block-size: 100%;
+  min-block-size: var(--size-chart);
 }
 
 .area {
