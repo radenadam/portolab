@@ -28,6 +28,8 @@ import { readConceptLessons } from "./features/learning/read-concept-lessons.ser
 import { SimulationBadge } from "./features/market-data/simulation-badge";
 import { readSimulationBadge } from "./features/market-data/read-simulation-badge.server";
 import type { SimulationBadgeData } from "./features/market-data/read-simulation-badge.server";
+import { JoinChip } from "./features/classes/join-chip";
+import { readClassJoinDetails } from "./features/classes/read-class-join-details.server";
 import { ClassSwitcher } from "./features/navigation/class-switcher";
 import { frameItems } from "./features/navigation/frame-navigation";
 import type { FrameReader } from "./features/navigation/frame-reader";
@@ -64,17 +66,26 @@ export async function loader({
   context,
   request,
   params,
+  url,
 }: Route.LoaderArgs): Promise<
   ConceptLessonData & {
     reader: FrameReader;
     simulation: SimulationBadgeData;
+    join: ReturnType<typeof readClassJoinDetails>;
   }
 > {
   const lessons = readConceptLessons();
   if (!lessons.ok) throw new Error(lessons.failure);
+  const reader = await readFrameReader(context, request, params);
   return {
     ...lessons.value,
-    reader: await readFrameReader(context, request, params),
+    reader,
+    join:
+      reader.kind === "user" &&
+      reader.role === "lecturer" &&
+      reader.workspace !== undefined
+        ? readClassJoinDetails(context, reader.workspace.current.id, url)
+        : undefined,
     simulation: readSimulationBadge(context, new Date()),
   };
 }
@@ -100,6 +111,11 @@ export function Layout({ children }: { children: ReactNode }): ReactNode {
             params: page?.params ?? {},
           })}
           {...readerParts(reader)}
+          workspaceTools={
+            rootData?.join === undefined ? undefined : (
+              <JoinChip details={rootData.join} />
+            )
+          }
           badge={<SimulationBadge badge={rootData?.simulation} />}
         >
           {children}

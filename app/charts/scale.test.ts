@@ -20,6 +20,17 @@ test("gives values without any spread half a percent on each side, so they still
   });
 });
 
+test("leaves the requested share of a range for the corner labels of a class map", () => {
+  // By hand, 20% of a spread of 5% is 1% at each end.
+  const range = paddedRange(
+    [0.03, -0.02].map(cumulativeReturn),
+    cumulativeReturn,
+    { paddingShare: 0.2 },
+  );
+  expect(range.min).toBeCloseTo(-0.03, 12);
+  expect(range.max).toBeCloseTo(0.04, 12);
+});
+
 test("places a value by its share of the range, from 0 at the smallest value to 1 at the largest", () => {
   const range = { min: cumulativeReturn(-0.02), max: cumulativeReturn(0.06) };
   expect(fractionOf(range, cumulativeReturn(-0.02))).toBe(0);

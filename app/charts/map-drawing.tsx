@@ -1,8 +1,11 @@
+import { MapLabel } from "./map-label";
+import { mapLineLabelKeys, mapPointName } from "./map-label-text";
+import { MapDiamond } from "./map-diamond";
 import { MapArrow } from "./map-arrow";
 import type { ReactNode, Ref } from "react";
-import type { LabelPlace, PlacedLabels } from "./map-labels";
+import type { PlacedLabels } from "./map-labels";
 import { keptNameRoom } from "./map-labels";
-import { percentOf } from "./plot";
+import { emOf, percentOf } from "./plot";
 import { ValueMark } from "./value-mark";
 import type {
   MapMark,
@@ -11,6 +14,8 @@ import type {
   RiskMapLayout,
 } from "./layout-risk-map";
 import styles from "./risk-map.module.css";
+import type { MapSpreadText } from "./risk-map-labels";
+import { MapSpread } from "./map-spread";
 
 /** How the map draws a mark: the mark of a kind of point, or the diamond of the IHSG. */
 export type MarkKind = MapMark["kind"] | "market";
@@ -22,9 +27,6 @@ export interface DrawnPoint {
   placed: PlacedMark;
 }
 
-/** The keys by which the map finds the place of the label of each of its lines. */
-export const lineLabelKeys = { level: "level", line: "line" } as const;
-
 /** How far the ring of a marked point stands outside its mark, in sizes of the text of the labels, which is also how far beyond its mark a point answers a pointer. */
 export const markReach = 0.33;
 
@@ -33,6 +35,7 @@ const drawOrder: Record<MarkKind, number> = {
   other: 0,
   average: 0,
   classmate: -1,
+  active: 1,
   held: 1,
   market: 2,
   own: 3,
@@ -49,6 +52,7 @@ export function MapDrawing({
   placed,
   texts,
   active,
+  spread,
   drawingRef,
   measureRef,
 }: {
@@ -57,6 +61,7 @@ export function MapDrawing({
   placed: PlacedLabels;
   texts: { title: string; level: string | undefined; line: string | undefined };
   active: DrawnPoint | undefined;
+  spread: MapSpreadText | undefined;
   drawingRef: Ref<SVGSVGElement>;
   measureRef: Ref<SVGTextElement>;
 }): ReactNode {
@@ -80,6 +85,38 @@ export function MapDrawing({
           y2={percentOf(layout.line.end.y)}
           className={styles["line"]}
         />
+      )}
+      {spread !== undefined && (
+        <>
+          <MapSpread layout={layout} />
+          {layout.median !== undefined && (
+            <line
+              x1="86%"
+              x2="100%"
+              y1={percentOf(layout.median)}
+              y2={percentOf(layout.median)}
+              className={styles["line"]}
+            />
+          )}
+          <MapLabel
+            text={spread.zeroLabel}
+            place={placed.lines.get(mapLineLabelKeys.zero)}
+            className={styles["corner"]}
+          />
+          <MapLabel
+            text={spread.medianLabel}
+            place={placed.lines.get(mapLineLabelKeys.median)}
+            className={styles["medianLabel"]}
+          />
+          {spread.corners.map((text, index) => (
+            <MapLabel
+              key={text}
+              text={text}
+              place={placed.lines.get(mapLineLabelKeys.corners[index] ?? "")}
+              className={styles["corner"]}
+            />
+          ))}
+        </>
       )}
       {drawn.map(({ point, placed: mark }) => (
         <g key={`stem-${point.key}`}>
@@ -118,26 +155,27 @@ export function MapDrawing({
         <circle
           cx={percentOf(active.placed.position.x)}
           cy={percentOf(active.placed.position.y)}
-          r={em(active.placed.outerRadius + markReach)}
+          r={emOf(active.placed.outerRadius + markReach)}
           className={styles["active"]}
         />
       )}
-      <Label
+      <MapLabel
         text={texts.level}
-        place={placed.lines.get(lineLabelKeys.level)}
+        place={placed.lines.get(mapLineLabelKeys.level)}
         className={styles["lineLabel"]}
       />
-      <Label
+      <MapLabel
         text={texts.line}
-        place={placed.lines.get(lineLabelKeys.line)}
+        place={placed.lines.get(mapLineLabelKeys.line)}
         className={styles["lineLabel"]}
       />
-      {drawn.map(({ point }) => (
-        <Label
+      {drawn.map(({ point, kind }) => (
+        <MapLabel
           key={point.key}
-          text={point.name}
+          text={mapPointName({ point, kind })}
           value={placed.values.has(point.key) ? point.labelValue : undefined}
           place={placed.points.get(point.key)}
+          kind="point"
           className={styles["label"]}
         />
       ))}
@@ -179,7 +217,7 @@ function Axes({
           <text
             x={percentOf(tick.at)}
             y="100%"
-            dy={em(tickBaseline)}
+            dy={emOf(tickBaseline)}
             textAnchor="middle"
             className={acrossTickClass(tick)}
           >
@@ -197,7 +235,7 @@ function Axes({
       <text
         x="100%"
         y="100%"
-        dy={em(titleBaseline)}
+        dy={emOf(titleBaseline)}
         textAnchor="end"
         className={styles["axisTitle"]}
       >
@@ -217,11 +255,6 @@ function acrossTickClass(tick: {
   return tick.isMinor ? styles["minorTick"] : styles["tick"];
 }
 
-// Two decimals of a size of the text place a mark within a tenth of a pixel, and they keep the page small.
-function em(length: number): string {
-  return `${String(Math.round(length * 100) / 100)}em`;
-}
-
 function Mark({
   kind,
   placed,
@@ -232,7 +265,7 @@ function Mark({
   const cx = percentOf(placed.position.x);
   const cy = percentOf(placed.position.y);
   const dot = (className: string | undefined): ReactNode => (
-    <circle cx={cx} cy={cy} r={em(placed.radius)} className={className} />
+    <circle cx={cx} cy={cy} r={emOf(placed.radius)} className={className} />
   );
   switch (kind) {
     case "own":
@@ -241,79 +274,22 @@ function Mark({
           <circle
             cx={cx}
             cy={cy}
-            r={em(placed.outerRadius)}
+            r={emOf(placed.outerRadius)}
             className={styles["ring"]}
           />
           {dot(styles["own"])}
         </g>
       );
+    case "active":
     case "held":
       return dot(styles["held"]);
-    case "other":
-      return dot(styles["other"]);
     case "average":
       return dot(styles["average"]);
     case "classmate":
       return dot(styles["classmate"]);
+    case "other":
+      return dot(styles["other"]);
     case "market":
-      return <Diamond placed={placed} />;
+      return <MapDiamond placed={placed} />;
   }
-}
-
-/** The diamond of the IHSG. A path cannot place a corner at a position of the plot plus a length in sizes of the text, so an inner drawing stands at the position of the IHSG, and the diamond fills a drawing of its own size around that position. */
-function Diamond({ placed }: { placed: PlacedMark }): ReactNode {
-  const size = em(2 * placed.radius);
-  return (
-    <svg
-      x={percentOf(placed.position.x)}
-      y={percentOf(placed.position.y)}
-      overflow="visible"
-    >
-      <svg
-        x={em(-placed.radius)}
-        y={em(-placed.radius)}
-        width={size}
-        height={size}
-        viewBox="-1 -1 2 2"
-        overflow="visible"
-      >
-        <path
-          d="M0 -1L1 0L0 1L-1 0Z"
-          vectorEffect="non-scaling-stroke"
-          className={styles["market"]}
-        />
-      </svg>
-    </svg>
-  );
-}
-
-function Label({
-  text,
-  value,
-  place,
-  className,
-}: {
-  text: string | undefined;
-  value?: string | undefined;
-  place: LabelPlace | undefined;
-  className: string | undefined;
-}): ReactNode {
-  if (place === undefined || text === undefined) {
-    return null;
-  }
-  return (
-    <text
-      x={percentOf(place.at.x)}
-      y={percentOf(place.at.y)}
-      dx={em(place.dx)}
-      dy={em(place.dy)}
-      textAnchor={place.anchor}
-      className={className}
-    >
-      {text}
-      {value !== undefined && (
-        <tspan className={styles["labelValue"]}> {value}</tspan>
-      )}
-    </text>
-  );
 }

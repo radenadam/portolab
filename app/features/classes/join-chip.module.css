@@ -1,0 +1,19 @@
+.code {
+  font-family: var(--font-code);
+  color: var(--color-ink);
+}
+
+.details {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.copy {
+  composes: button from "../../button.module.css";
+  cursor: pointer;
+}
+
+.copyIcon {
+  width: var(--text-small);
+  height: var(--text-small);
+}

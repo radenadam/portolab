@@ -6,10 +6,16 @@ import type { DrawnPoint } from "./map-drawing";
 import { tipAcross, tipDown } from "./tip-placement";
 import styles from "./risk-map.module.css";
 
-export function MapTip({ drawn }: { drawn: DrawnPoint }): ReactNode {
+export function MapTip({
+  drawn,
+  coloredValues,
+}: {
+  drawn: DrawnPoint;
+  coloredValues?: boolean | undefined;
+}): ReactNode {
   return (
     <div
-      className={styles["tip"]}
+      className={coloredValues ? styles["coloredTip"] : styles["tip"]}
       style={{
         ...tipAcross(drawn.placed.position.x),
         ...tipDown(drawn.placed.position.y),
@@ -24,9 +30,7 @@ export function MapTip({ drawn }: { drawn: DrawnPoint }): ReactNode {
             <NumberText verbatim>{name}</NumberText>
           </span>
           <span className={styles["tipNumber"]}>
-            <NumberText whole>
-              <ValueText value={value} />
-            </NumberText>
+            <ValueText value={value} colored={coloredValues === true} />
           </span>
         </p>
       ))}
@@ -34,6 +38,18 @@ export function MapTip({ drawn }: { drawn: DrawnPoint }): ReactNode {
   );
 }
 
-function ValueText({ value }: { value: MapValue["value"] }): ReactNode {
-  return typeof value === "string" ? value : <ChangeText change={value} />;
+function ValueText({
+  value,
+  colored,
+}: {
+  value: MapValue["value"];
+  colored: boolean;
+}): ReactNode {
+  return typeof value === "string" ? (
+    <NumberText>{value}</NumberText>
+  ) : (
+    <NumberText whole>
+      <ChangeText change={value} colored={colored} />
+    </NumberText>
+  );
 }
