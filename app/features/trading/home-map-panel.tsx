@@ -158,7 +158,7 @@ export function HomeMapPanel({
         <p>
           <NumberText>{insight.text}</NumberText>
         </p>
-        <HomeInsightLesson session={insight.session} lessons={home.lessons} />
+        <HomeInsightLesson session={insight.session} />
       </div>
     </section>
   );

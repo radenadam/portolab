@@ -3,7 +3,6 @@ import { courseSessions } from "~/features/classes/course-calendar";
 import { readAnonymousClassmates } from "~/features/grading/read-anonymous-classmates.server";
 import type { PortfolioOwner } from "./portfolio-store.server";
 import { parseHomeMapView } from "./parse-home-map-view";
-import { readInsightLessons } from "~/features/learning/read-insight-lessons.server";
 import { databaseContext } from "~/database/database.server";
 import { listStockHistory } from "~/features/market-data/history-store.server";
 import {
@@ -40,7 +39,6 @@ export function readHomePortfolio(
   const view = parseHomeMapView(input.url.searchParams.get("view"), "view");
   const measures = readPortfolioMeasures(database, report.valuation);
   return {
-    lessons: readInsightLessons(),
     view: view.ok ? view.value : ("map" as const),
     sessions: courseSessions(input.firstSessionDate),
     classmates: readAnonymousClassmates(database, {

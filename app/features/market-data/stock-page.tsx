@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import { data, Link, useOutlet, useLocation } from "react-router";
 import { ChangeText } from "~/change-text";
 import { databaseContext } from "~/database/database.server";
+import { requireUser } from "~/features/accounts/current-session.server";
 import { requireReaderClass } from "~/features/classes/require-reader-class.server";
 import { readStockMeasures } from "~/features/measures/read-measures.server";
 import { readStockCorrelation } from "~/features/measures/read-stock-correlation.server";
@@ -66,6 +67,7 @@ export function loader({ context, params, request, url }: Route.LoaderArgs) {
   const code = parsed.value;
   const now = new Date();
   const database = context.get(databaseContext);
+  const reader = requireUser(context, url);
   const prices = readPrices(context, now);
   const moment = { now, delayMinutes: prices.source.delayMinutes };
   const quote = prices.quotes.find(
@@ -93,6 +95,7 @@ export function loader({ context, params, request, url }: Route.LoaderArgs) {
   });
   return {
     classId,
+    draftKey: `${String(reader.id)}:${stockPath(classId, code)}`,
     portfolioHome: portfolioHome(classId, member.place.owner.kind),
     portfolioKind: member.place.owner.kind,
     ...stockReturnDestination({
@@ -139,7 +142,7 @@ export default function StockPage({
   const ticket = useOutlet();
   const location = useLocation();
   return (
-    <TicketDraftMemory key={code}>
+    <TicketDraftMemory key={stock.draftKey} storageKey={stock.draftKey}>
       <div
         className={ticket === null ? undefined : styles["withTicket"]}
         data-layout={ticket === null ? undefined : "columns"}

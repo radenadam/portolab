@@ -10,6 +10,7 @@ import { captureScreens } from "./capture-screens.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 import { expectMissingClassPages } from "./expect-missing-class-pages.ts";
 import { layoutProblems } from "./expect-layout.ts";
+import { returnFromLesson } from "./return-from-lesson.ts";
 import { storeTestPurchases } from "./store-test-purchases.ts";
 import { studentOfNewClass } from "./student-of-new-class.ts";
 import { widestClassNames } from "./widest-class-names.ts";
@@ -45,6 +46,11 @@ const texts: Record<
     apply: string;
     map: string;
     time: string;
+    learn: string;
+    portfolioLesson: string;
+    tradingLesson: string;
+    more: string;
+    back: string;
   }
 > = {
   id: {
@@ -77,6 +83,11 @@ const texts: Record<
     apply: "Tampilkan analisis",
     map: "Peta",
     time: "Grafik waktu",
+    learn: "Pelajari",
+    portfolioLesson: "CAPM dan garis pasar sekuritas",
+    tradingLesson: "Mekanisme perdagangan",
+    more: "Pelajari lebih lanjut di sesi 6",
+    back: "Kembali ke halaman sebelumnya",
   },
   en: {
     title: "Demonstration portfolio",
@@ -108,8 +119,58 @@ const texts: Record<
     apply: "Show analysis",
     map: "Map",
     time: "Time chart",
+    learn: "Learn",
+    portfolioLesson: "CAPM and the security market line",
+    tradingLesson: "The mechanism of trading",
+    more: "Learn more in session 6",
+    back: "Back to the previous page",
   },
 };
+
+async function visitLessonAndReturn(
+  source: Locator,
+  {
+    title,
+    back,
+    address,
+    javaScriptEnabled,
+  }: {
+    title: string;
+    back: string;
+    address: string;
+    javaScriptEnabled: boolean;
+  },
+): Promise<void> {
+  const page = source.page();
+  const sourceId = await source.getAttribute("id");
+  await source.click();
+  if (!javaScriptEnabled) {
+    if (sourceId === null)
+      throw new Error("The native lesson source has no return anchor.");
+    const returnAddress = new URL(address);
+    returnAddress.hash = sourceId;
+    await returnFromLesson(page, {
+      lesson: title,
+      back,
+      address: returnAddress.href,
+      source,
+    });
+    const sourceTop = await source.evaluate(
+      (element) => element.getBoundingClientRect().top,
+    );
+    const bannerBottom = await page
+      .getByRole("banner")
+      .evaluate((element) => element.getBoundingClientRect().bottom);
+    expect(sourceTop).toBeGreaterThanOrEqual(bannerBottom);
+    return;
+  }
+  const lesson = page.getByRole("dialog", { name: title, exact: true });
+  await expect(lesson).toBeVisible();
+  await expect(page).toHaveURL(address);
+  await page.keyboard.press("Escape");
+  await expect(lesson).toHaveCount(0);
+  await expect(source).toBeFocused();
+}
 
 async function confirmOrderAndOpenActivity(
   ticket: Locator,
@@ -219,10 +280,24 @@ for (const locale of locales) {
         await expect(
           summary.getByText(text.value, { exact: true }),
         ).toBeVisible();
-        for (const view of [text.time, text.map]) {
-          await page.getByRole("link", { name: view, exact: true }).click();
-          expect(new URL(page.url()).pathname).toBe(path);
+        for (const view of [
+          { label: text.time, address: `${path}?view=time` },
+          { label: text.map, address: path },
+        ]) {
+          await page
+            .getByRole("link", { name: view.label, exact: true })
+            .click();
+          await expect(page).toHaveURL(view.address);
         }
+        const lessonSource = page
+          .getByRole("main")
+          .getByRole("link", { name: text.learn, exact: true });
+        await visitLessonAndReturn(lessonSource, {
+          title: text.portfolioLesson,
+          back: text.back,
+          address: page.url(),
+          javaScriptEnabled,
+        });
         if (javaScriptEnabled) await expectAccessibleScreen(page);
         if (javaScriptEnabled)
           await captureScreens(page, testInfo, {
@@ -241,6 +316,17 @@ for (const locale of locales) {
           .getByRole("link", { name: text.analysis, exact: true })
           .click();
         await expect(page).toHaveURL(`${path}/analysis`);
+        await visitLessonAndReturn(
+          page
+            .getByRole("main")
+            .getByRole("link", { name: text.learn, exact: true }),
+          {
+            title: text.portfolioLesson,
+            back: text.back,
+            address: page.url(),
+            javaScriptEnabled,
+          },
+        );
         if (javaScriptEnabled) await expectAccessibleScreen(page);
         if (javaScriptEnabled)
           await captureScreens(page, testInfo, {
@@ -330,6 +416,18 @@ for (const locale of locales) {
           .getByRole("button", { name: text.lotsHelp, exact: true })
           .click();
         await expect(page.locator("[popover]:popover-open")).toBeVisible();
+        if (javaScriptEnabled) {
+          const more = ticket.getByRole("link", {
+            name: text.more,
+            exact: true,
+          });
+          await visitLessonAndReturn(more, {
+            title: text.tradingLesson,
+            back: text.back,
+            address: page.url(),
+            javaScriptEnabled,
+          });
+        }
         await page.keyboard.press("Escape");
         await expect(lots).toHaveValue("7");
         await expect(
