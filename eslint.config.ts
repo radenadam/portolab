@@ -8,6 +8,7 @@ import jsxA11y from "eslint-plugin-jsx-a11y-x";
 import reactHooks from "eslint-plugin-react-hooks";
 import globals from "globals";
 import typescriptEslint from "typescript-eslint";
+import { browserNavigation } from "./lint/browser-navigation.ts";
 import { fileNamedAfterExport } from "./lint/file-named-after-export.ts";
 import { testLanguageConfig } from "./lint/test-language-config.ts";
 import { messageFeature } from "./lint/message-feature.ts";
@@ -261,6 +262,7 @@ export default defineConfig(
       "prefer-const": "error",
     },
   },
+  browserNavigation,
   {
     files: ["app/features/**/*.{ts,tsx}"],
     ignores: ["**/*.test.*", "**/*-for-test.*"],

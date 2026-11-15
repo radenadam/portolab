@@ -1,3 +1,7 @@
+.returnTarget {
+  scroll-margin-block-start: calc(var(--size-top-bar) + var(--space-4));
+}
+
 .list {
   display: flex;
   flex-direction: column;
@@ -15,6 +19,7 @@
 }
 
 .item {
+  composes: returnTarget;
   padding-block: var(--space-3);
 }
 

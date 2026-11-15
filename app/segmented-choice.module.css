@@ -1,0 +1,22 @@
+.choice {
+  display: inline-flex;
+  padding: var(--space-1);
+  border-radius: var(--radius-item);
+  background: var(--color-raised);
+}
+
+.choice > a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--size-touch-target);
+  padding-inline: var(--space-3);
+  border-radius: var(--radius-button);
+  color: var(--color-ink-secondary);
+  text-decoration: none;
+}
+
+.choice > [aria-current] {
+  background: var(--color-panel);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-choice);
+}

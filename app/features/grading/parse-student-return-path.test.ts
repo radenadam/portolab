@@ -22,12 +22,12 @@ test("keeps a full search after URI encoding together with the selection and con
 });
 
 test("refuses another page, another class, an external address, and an oversized address", () => {
-  for (const path of ["/sign-in", "/classes/8/students"]) {
+  for (const path of ["/sign-in", "/classes/8/students", "/classes/8"]) {
     expect(
       parseStudentReturnPath(path, "returnTo", { origin: siteOrigin, classId }),
     ).toEqual({
       ok: false,
-      failure: `returnTo must return to /classes/7/students, but it is "${path}".`,
+      failure: `returnTo must return to /classes/7/students or /classes/7, but it is "${path}".`,
     });
   }
   expect(
@@ -47,4 +47,13 @@ test("refuses another page, another class, an external address, and an oversized
     failure:
       "returnTo must be a path on this site of at most 128000 characters, but it has 800000.",
   });
+});
+
+test("keeps the class map axis when a student opens from the map", () => {
+  for (const axis of ["beta", "deviation"]) {
+    const path = `/classes/7?axis=${axis}`;
+    expect(
+      parseStudentReturnPath(path, "returnTo", { origin: siteOrigin, classId }),
+    ).toEqual({ ok: true, value: path });
+  }
 });

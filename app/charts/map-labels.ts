@@ -1,3 +1,5 @@
+import { boxesOverlap, distanceToBox } from "./label-box";
+import type { LabelBox } from "./label-box";
 import { labelAscent, labelDescent, placesAroundMark } from "./label-places";
 import type { PlotPosition } from "./plot";
 
@@ -17,6 +19,8 @@ export interface LabelledMark {
   key: string;
   position: PlotPosition;
   outerRadius: number;
+  /** Fixed labels also leave room for the ring that selection adds. */
+  selectionRadius?: number;
 }
 
 /** A label of a point, by the key of the mark of the point. */
@@ -30,7 +34,7 @@ interface PointLabel {
 export interface MapLabels {
   /** The names of the portfolio and every holding, which keep a place where no place follows every rule, as decision 0035 sets. */
   kept: readonly PointLabel[];
-  /** The labels of the lines of the map, each with its places in order of preference. A label takes the first place that follows every rule, or it is left out. */
+  /** The fixed labels of the map, each with its places in order of preference. A label takes the first place that follows every rule, or it is left out. */
   lines: readonly {
     key: string;
     text: string;
@@ -47,14 +51,8 @@ export interface PlacedLabels {
   values: Set<string>;
 }
 
-interface Box {
-  left: number;
-  right: number;
-  top: number;
-  bottom: number;
-}
-
-const sideRoom = 0.17;
+// The outline and the small overhang beyond SVG text advances need room at every edge.
+const labelOutlineRoom = 0.25;
 // Two labels keep this gap, so that they never read as one, and a label keeps a little room from a mark that is not its own.
 const labelGap = { across: 0.67, down: 0.25 };
 const markRoom = 0.08;
@@ -75,17 +73,19 @@ const anchorShares: Record<TextAnchor, number> = {
   end: 1,
 };
 
-/** Places the labels of a map in a plot of a size in sizes of the text of the labels, as decision 0035 sets. A label of a point sits beside its mark, clear of every other mark, nearer to its own point than to any other point, and with a gap from every other label. A name of the portfolio or a holding keeps the place that breaks the fewest rules when none follows them all, and a name of another point without such a place is left out. Each label of a line takes the first of its places that clears every mark and every label placed before it. The portfolio and every holding come first, then the labels of the lines, then the other names. */
+/** Places the labels of a map in a plot of a size in sizes of the text of the labels, as decision 0035 sets. A label of a point sits beside its mark, clear of every other mark, nearer to its own point than to any other point, and with a gap from every other label. A name of the portfolio or a holding keeps the place that breaks the fewest rules when none follows them all, and a name of another point without such a place is left out. Each fixed label takes the first of its places that clears every mark and every label placed before it. The portfolio and every holding come first, then the fixed labels, then the other names. */
 export function placeMapLabels(
   labels: MapLabels,
   plot: {
     size: { width: number; height: number };
     marks: readonly LabelledMark[];
     widthOf: (text: string) => number;
+    /** A server estimate is a minimum size, so fixed labels must also clear marks and names as the plot grows. */
+    canGrow?: boolean;
   },
 ): PlacedLabels {
-  const { size, marks, widthOf } = plot;
-  const placedBoxes: Box[] = [];
+  const { size, marks, widthOf, canGrow = false } = plot;
+  const placedBoxes: LabelBox[] = [];
   const points = new Map<string, LabelPlace>();
   const lines = new Map<string, LabelPlace>();
   const markOf = new Map(marks.map((mark) => [mark.key, mark]));
@@ -95,10 +95,16 @@ export function placeMapLabels(
       throw new Error(`The map has a label of ${label.key} but no mark of it.`);
     }
     const width = widthOf(label.text);
-    let best: { place: LabelPlace; box: Box; cost: number } | undefined;
+    let best: { place: LabelPlace; box: LabelBox; cost: number } | undefined;
     const consider = (place: LabelPlace, leftRoom: number): void => {
       const box = boxOf(place, width, size);
-      const cost = costOf(box, mark, { size, marks, placedBoxes, leftRoom });
+      const cost = costOf(box, mark, {
+        size,
+        marks,
+        placedBoxes,
+        leftRoom,
+        canGrow,
+      });
       if (best === undefined || cost + Number.EPSILON < best.cost) {
         best = { place, box, cost };
       }
@@ -131,11 +137,17 @@ export function placeMapLabels(
   for (const label of labels.lines) {
     const width = widthOf(label.text);
     for (const place of label.places) {
-      const box = boxOf(place, width, size);
+      const box = { ...boxOf(place, width, size), fixed: true };
       if (
         contains(size, box, { bottom: 0, left: 0 }) &&
-        !marks.some((mark) => overlaps(box, boxAround(mark, size))) &&
-        !hitsLabel(box, placedBoxes)
+        !marks.some((mark) =>
+          boxesOverlap(
+            box,
+            boxAround(mark, size, mark.selectionRadius),
+            canGrow,
+          ),
+        ) &&
+        !hitsLabel(box, placedBoxes, canGrow)
       ) {
         placedBoxes.push(box);
         lines.set(label.key, place);
@@ -151,7 +163,7 @@ export function placeMapLabels(
     lines,
     values: extendPointValues(
       labels,
-      { size, marks, widthOf },
+      { size, marks, widthOf, canGrow },
       { points, placedBoxes, markOf },
     ),
   };
@@ -163,10 +175,11 @@ function extendPointValues(
     size: { width: number; height: number };
     marks: readonly LabelledMark[];
     widthOf: (text: string) => number;
+    canGrow: boolean;
   },
   placement: {
     points: Map<string, LabelPlace>;
-    placedBoxes: Box[];
+    placedBoxes: LabelBox[];
     markOf: Map<string, LabelledMark>;
   },
 ): Set<string> {
@@ -195,6 +208,7 @@ function extendPointValues(
         marks,
         placedBoxes: withoutOwn,
         leftRoom: keptNameRoom,
+        canGrow: plot.canGrow,
       }) < ruleBroken
     ) {
       points.set(label.key, fullPlace);
@@ -206,13 +220,14 @@ function extendPointValues(
 }
 
 function costOf(
-  box: Box,
+  box: LabelBox,
   mark: LabelledMark,
   map: {
     size: { width: number; height: number };
     marks: readonly LabelledMark[];
-    placedBoxes: readonly Box[];
+    placedBoxes: readonly LabelBox[];
     leftRoom: number;
+    canGrow: boolean;
   },
 ): number {
   const { size, marks, placedBoxes } = map;
@@ -222,22 +237,24 @@ function costOf(
   // The padding separates names, but only their letters decide which point they read as belonging to.
   const ink = {
     ...box,
-    left: box.left + sideRoom,
-    right: box.right - sideRoom,
+    left: box.left + labelOutlineRoom,
+    right: box.right - labelOutlineRoom,
+    top: box.top + labelOutlineRoom,
+    bottom: box.bottom - labelOutlineRoom,
   };
-  const ownDistance = distanceTo(ink, centerOf(mark, size));
+  const ownDistance = distanceToBox(ink, centerOf(mark, size));
   let cost = costPerDistance * ownDistance;
-  if (hitsLabel(box, placedBoxes)) {
+  if (hitsLabel(box, placedBoxes, map.canGrow)) {
     cost += labelCoverCost;
   }
   for (const other of marks) {
     if (other.key === mark.key) {
       continue;
     }
-    if (overlaps(box, boxAround(other, size))) {
+    if (boxesOverlap(box, boxAround(other, size))) {
       cost += coverCost;
     }
-    if (distanceTo(ink, centerOf(other, size)) <= ownDistance + markRoom) {
+    if (distanceToBox(ink, centerOf(other, size)) <= ownDistance + markRoom) {
       cost += nearerCost;
     }
   }
@@ -248,15 +265,17 @@ function boxOf(
   place: LabelPlace,
   width: number,
   size: { width: number; height: number },
-): Box {
+): LabelBox {
   const anchor = place.at.x * size.width + place.dx;
   const baseline = place.at.y * size.height + place.dy;
   const left = anchor - anchorShares[place.anchor] * width;
   return {
-    left: left - sideRoom,
-    right: left + width + sideRoom,
-    top: baseline - labelAscent,
-    bottom: baseline + labelDescent,
+    at: place.at,
+    fixed: false,
+    left: left - labelOutlineRoom,
+    right: left + width + labelOutlineRoom,
+    top: baseline - labelAscent - labelOutlineRoom,
+    bottom: baseline + labelDescent + labelOutlineRoom,
   };
 }
 
@@ -270,10 +289,13 @@ function centerOf(
 function boxAround(
   mark: LabelledMark,
   size: { width: number; height: number },
-): Box {
+  outerRadius = mark.outerRadius,
+): LabelBox {
   const center = centerOf(mark, size);
-  const radius = mark.outerRadius + markRoom;
+  const radius = outerRadius + markRoom;
   return {
+    at: mark.position,
+    fixed: false,
     left: center.x - radius,
     right: center.x + radius,
     top: center.y - radius,
@@ -283,7 +305,7 @@ function boxAround(
 
 function contains(
   size: { width: number; height: number },
-  box: Box,
+  box: LabelBox,
   room: { bottom: number; left: number },
 ): boolean {
   return (
@@ -294,28 +316,17 @@ function contains(
   );
 }
 
-function hitsLabel(box: Box, placedBoxes: readonly Box[]): boolean {
+function hitsLabel(
+  box: LabelBox,
+  placedBoxes: readonly LabelBox[],
+  canGrow: boolean,
+): boolean {
   const spaced = {
+    ...box,
     left: box.left - labelGap.across,
     right: box.right + labelGap.across,
     top: box.top - labelGap.down,
     bottom: box.bottom + labelGap.down,
   };
-  return placedBoxes.some((other) => overlaps(spaced, other));
-}
-
-function overlaps(first: Box, second: Box): boolean {
-  return (
-    first.left < second.right &&
-    second.left < first.right &&
-    first.top < second.bottom &&
-    second.top < first.bottom
-  );
-}
-
-function distanceTo(box: Box, point: { x: number; y: number }): number {
-  return Math.hypot(
-    Math.max(box.left - point.x, 0, point.x - box.right),
-    Math.max(box.top - point.y, 0, point.y - box.bottom),
-  );
+  return placedBoxes.some((other) => boxesOverlap(spaced, other, canGrow));
 }

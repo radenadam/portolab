@@ -11,6 +11,7 @@ const keyClasses: Record<MapKeyKind, string | undefined> = {
   own: styles["ownKey"],
   before: styles["beforeKey"],
   held: styles["heldKey"],
+  active: styles["heldKey"],
   other: styles["otherKey"],
   market: styles["marketKey"],
   line: styles["lineKey"],
@@ -24,14 +25,18 @@ const keyClasses: Record<MapKeyKind, string | undefined> = {
 export function RiskMapLegend({
   items,
 }: {
-  items: readonly { kind: MapKeyKind; name: string }[];
+  items: readonly { kind: MapKeyKind; name: ReactNode }[];
 }): ReactNode {
   return (
     <ul className={legendStyles["legend"]} aria-hidden>
       {items.map(({ kind, name }) => (
         <li key={kind} className={styles["legendItem"]}>
           <span className={keyClasses[kind]} />
-          <NumberText verbatim>{name}</NumberText>
+          {typeof name === "string" ? (
+            <NumberText verbatim>{name}</NumberText>
+          ) : (
+            name
+          )}
         </li>
       ))}
     </ul>
