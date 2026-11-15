@@ -185,7 +185,7 @@ export function AnalysisMeasures({
       data-layout="card"
     >
       <h2 id="analysis-measures-title">
-        {analysisPortfolioTitle(studentName)}
+        <NumberText verbatim>{analysisPortfolioTitle(studentName)}</NumberText>
       </h2>
       <dl>
         {measures.map(({ key, row, reference, scale }) => (

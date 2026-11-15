@@ -65,11 +65,13 @@ export function HomePortfolio({
             <section className={styles["hero"]}>
               <div className={styles["valueLabel"]}>
                 <h2 className={styles["valueLabel"]}>
-                  {textForReader(reader, {
-                    owner: m.trading_home_value_title,
-                    lecturer: (name) =>
-                      m.trading_home_student_value_title({ name }),
-                  })}
+                  <NumberText verbatim>
+                    {textForReader(reader, {
+                      owner: m.trading_home_value_title,
+                      lecturer: (name) =>
+                        m.trading_home_student_value_title({ name }),
+                    })}
+                  </NumberText>
                 </h2>
                 <ConceptHelp title={m.trading_home_value_title()}>
                   <p>{m.trading_home_value_body()}</p>

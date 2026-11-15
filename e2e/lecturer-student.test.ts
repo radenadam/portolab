@@ -183,6 +183,11 @@ for (const locale of locales) {
             page.getByRole("button", { name: text.cancel }),
           ).toHaveCount(0);
         }
+        if (suffix === "/journal" && test.info().project.name === "phone")
+          await captureStudentScreen(
+            page,
+            `student-wide-trades-${locale}-journal`,
+          );
         await page.getByRole("link", { name: text.back, exact: true }).click();
         await expect(page).toHaveURL(selected);
         await page

@@ -135,7 +135,9 @@ export function AnalysisView({
             aria-labelledby="analysis-measures-title"
           >
             <h2 id="analysis-measures-title">
-              {analysisPortfolioTitle(studentName)}
+              <NumberText verbatim>
+                {analysisPortfolioTitle(studentName)}
+              </NumberText>
             </h2>
             {!explained.ok && (
               <p>

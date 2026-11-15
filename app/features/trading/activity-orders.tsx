@@ -92,13 +92,15 @@ export function ActivityOrders({
       <div className={styles["panel"]}>
         {shown.length === 0 ? (
           <p className={styles["empty"]}>
-            {orders.length === 0
-              ? studentName === undefined
-                ? m.trading_activity_no_orders_body()
-                : m.trading_activity_student_no_orders_body({
-                    name: studentName,
-                  })
-              : m.trading_activity_no_status_body()}
+            <NumberText verbatim>
+              {orders.length === 0
+                ? studentName === undefined
+                  ? m.trading_activity_no_orders_body()
+                  : m.trading_activity_student_no_orders_body({
+                      name: studentName,
+                    })
+                : m.trading_activity_no_status_body()}
+            </NumberText>
           </p>
         ) : (
           <ul className={styles["list"]} data-layout="rows">

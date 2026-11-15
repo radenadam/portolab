@@ -60,10 +60,12 @@ export function HomeMapPanel({
       <div className={styles["mapContent"]}>
         <div className={styles["mapHeading"]}>
           <h2 id="home-map-heading">
-            {textForReader(reader, {
-              owner: m.trading_home_map_title,
-              lecturer: (name) => m.trading_home_student_map_title({ name }),
-            })}
+            <NumberText verbatim>
+              {textForReader(reader, {
+                owner: m.trading_home_map_title,
+                lecturer: (name) => m.trading_home_student_map_title({ name }),
+              })}
+            </NumberText>
           </h2>
           <nav
             className={styles["viewChoice"]}

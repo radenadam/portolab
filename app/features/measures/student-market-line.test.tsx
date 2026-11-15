@@ -1,5 +1,6 @@
 import { markupTextForTest } from "~/markup-text-for-test";
 import { renderTextMarkupForTest } from "~/render-text-markup-for-test";
+import { renderToStaticMarkup } from "react-dom/server";
 import type { ReactNode } from "react";
 import { expect, test } from "vitest";
 import { languageNames } from "~/language-names";
@@ -401,13 +402,19 @@ for (const locale of locales) {
       cashValuationForTest(),
       valuationForTest(["BBCA"]),
     ]) {
-      const html = render(
-        <StudentMarketLine
-          studentName="Raka"
-          marketLine={studentLineForTest(database, valuation)}
-        />,
-      );
-      expect(html).toContain(markupTextForTest(lecturerLatest[locale]));
+      for (const name of ["Raka", "60"]) {
+        const html = renderToStaticMarkup(
+          <StudentMarketLine
+            studentName={name}
+            marketLine={studentLineForTest(database, valuation)}
+          />,
+        );
+        expect(html.replaceAll(/<[^>]*>/g, "")).toContain(
+          markupTextForTest(lecturerLatest[locale].replace("Raka", name)),
+        );
+        expect(html).toContain(`data-text-value="">${name}</span>`);
+        expect(html).toContain('data-number="">60 ');
+      }
     }
   });
   test(`says why the stored closes give no line, in ${language}`, () => {

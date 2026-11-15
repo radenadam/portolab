@@ -117,7 +117,7 @@ function studentPlot(
   plot: StudentLine,
   studentName: string | undefined,
 ): {
-  notice: string;
+  notice: (textValue: (value: string) => string) => string;
   line: ChartedLine;
   portfolio: LinePoint | undefined;
   holdings: readonly HoldingOnLine[];
@@ -127,9 +127,10 @@ function studentPlot(
   switch (plot.kind) {
     case "portfolio":
       return {
-        notice: m.measures_portfolio_line_notice(
-          monthSpanInputs(plot.portfolioLine.line.months),
-        ),
+        notice: () =>
+          m.measures_portfolio_line_notice(
+            monthSpanInputs(plot.portfolioLine.line.months),
+          ),
         line: plot.portfolioLine.line,
         portfolio: plot.portfolioLine.portfolio,
         holdings: plot.portfolioLine.holdings,
@@ -138,13 +139,14 @@ function studentPlot(
       };
     case "latest":
       return {
-        notice: (studentName === undefined
-          ? m.measures_latest_line_notice
-          : m.measures_lecturer_latest_line_notice)({
-          name: studentName ?? "",
-          ...monthSpanInputs(plot.line.months),
-          index: marketIndex.code,
-        }),
+        notice: (textValue) =>
+          (studentName === undefined
+            ? m.measures_latest_line_notice
+            : m.measures_lecturer_latest_line_notice)({
+            name: studentName === undefined ? "" : textValue(studentName),
+            ...monthSpanInputs(plot.line.months),
+            index: marketIndex.code,
+          }),
         line: plot.line,
         portfolio: undefined,
         holdings: plot.holdings,
