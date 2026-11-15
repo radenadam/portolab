@@ -389,7 +389,7 @@ async function captureMarketScreens(
     name: `${screen}-${locale}`,
     fromTop: true,
     fullPage: true,
-    beforeCapture: async () => {
+    check: async () => {
       expect(await layoutProblems(page)).toEqual([]);
       if (screen === "market" && testInfo.project.name === "desktop") {
         await expectMarketScales(page);

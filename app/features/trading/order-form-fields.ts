@@ -60,7 +60,7 @@ export function readOrderForm(
   const priceKind = parseOrderChoice(
     form.get("priceKind"),
     m.trading_price_kind_label(),
-    priceKindOptions(),
+    { options: priceKindOptions() },
   );
   const lots = parseOrderLots(
     form.get("lots"),
@@ -161,12 +161,21 @@ export function parseStockCode(
     : succeed(code);
 }
 
-/** Reads the option that a field of the order form sent, which is one of the values of its options. The source is the label of the field, and the failure is a sentence for the reader in the current language that names the labels of the options. */
-function parseOrderChoice<Value extends string>(
+/** A field supplies the labels of its options so that a refusal names what the reader can choose. The source is the label of the field in the current language. */
+export function parseOrderChoice<Value extends string>(
   value: unknown,
   source: string,
-  options: readonly FieldOption<Value>[],
+  configuration: {
+    options: readonly FieldOption<Value>[];
+    unknownChoice?: (inputs: {
+      field: string;
+      value: string;
+      choices: string;
+    }) => string;
+  },
 ): Result<Value, string> {
+  const { options, unknownChoice = m.trading_unknown_choice_error } =
+    configuration;
   const chosen = parseOptionalText(value, source);
   if (!chosen.ok) {
     return chosen;
@@ -181,7 +190,7 @@ function parseOrderChoice<Value extends string>(
   const option = options.find((candidate) => candidate.value === chosen.value);
   return option === undefined
     ? fail(
-        m.trading_unknown_choice_error({
+        unknownChoice({
           field: source,
           value: chosen.value.trim(),
           choices,
@@ -228,5 +237,5 @@ export function parseOrderSide(
   value: unknown,
   source: string,
 ): Result<OrderSide, string> {
-  return parseOrderChoice(value, source, sideOptions());
+  return parseOrderChoice(value, source, { options: sideOptions() });
 }

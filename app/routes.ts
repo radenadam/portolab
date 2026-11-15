@@ -16,6 +16,7 @@ export default [
   route("classes/:classId/glossary", "features/learning/glossary-page.tsx"),
   route("classes/:classId/market", "features/market-data/market-page.tsx"),
   route("classes/:classId/orders", "features/trading/orders-page.tsx"),
+  route("classes/:classId/activity", "features/trading/activity-page.tsx"),
   route("classes/:classId/measures", "features/measures/measures-page.tsx"),
   route("classes/:classId/stocks/:code", "features/market-data/stock-page.tsx"),
   route(

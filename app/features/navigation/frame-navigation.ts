@@ -6,7 +6,7 @@ import { classPortfoliosPath } from "~/features/grading/grading-paths";
 import { learnPath } from "~/features/learning/learning-paths";
 import { marketPath } from "~/features/market-data/market-path";
 import { measuresPath } from "~/features/measures/measures-path";
-import { ordersPath } from "~/features/trading/orders-path";
+import { activityPath } from "~/features/trading/activity-path";
 import type { FrameItem } from "~/frame";
 import type { IconName } from "~/icon";
 import { m } from "~/paraglide/messages.js";
@@ -35,7 +35,7 @@ const workspacePaths: Record<WorkspaceItem, (classId: ClassId) => string> = {
   learn: learnPath,
   home: classPath,
   market: marketPath,
-  activity: ordersPath,
+  activity: activityPath,
   analysis: measuresPath,
   class: classPath,
   students: classPortfoliosPath,
@@ -88,7 +88,8 @@ const currentItems: Record<RouteId, NavigationItem | undefined> = {
   "features/classes/classes-page": undefined,
   "features/classes/class-page": "class",
   "features/classes/calendar-page": "class",
-  "features/trading/orders-page": "activity",
+  "features/trading/orders-page": "market",
+  "features/trading/activity-page": "activity",
   "features/measures/measures-page": "analysis",
   "features/market-data/stock-page": "market",
   "features/trading/stock-ticket-fallback": "market",

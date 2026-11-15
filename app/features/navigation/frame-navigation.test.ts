@@ -106,14 +106,14 @@ for (const locale of locales) {
       [
         { path: "/classes/7", label: label.home, icon: "map" },
         { path: "/classes/7/market", label: label.market, icon: "trend" },
-        { path: "/classes/7/orders", label: label.activity, icon: "list" },
+        { path: "/classes/7/activity", label: label.activity, icon: "list" },
         { path: "/classes/7/measures", label: label.analysis, icon: "pie" },
         { path: "/classes/7/learn", label: label.learn, icon: "book" },
       ].map((item) => ({ ...item, isCurrent: item.label === current }));
     for (const [routeId, current] of [
       ["features/classes/class-page", label.home],
       ["features/market-data/market-page", label.market],
-      ["features/trading/orders-page", label.activity],
+      ["features/trading/activity-page", label.activity],
       ["features/measures/measures-page", label.analysis],
       ["features/learning/learn-page", label.learn],
       ["features/learning/lesson-page", label.learn],
