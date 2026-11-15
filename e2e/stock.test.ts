@@ -1,6 +1,6 @@
 import { screenshotFullHeight } from "./screenshot-full-height.ts";
 import { expect, test } from "@playwright/test";
-import type { Page } from "@playwright/test";
+import type { Browser, Page } from "@playwright/test";
 import { tokenColor } from "./token-color.ts";
 import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
@@ -132,20 +132,33 @@ async function expectChangeInk(page: Page): Promise<void> {
   }
 }
 
+async function openHeldStock(
+  page: Page,
+  browser: Browser,
+  locale: Locale,
+): Promise<{ student: Page; classPath: string; path: string }> {
+  const { student, classPath } = await studentWithPortfolio(page, browser, {
+    locale,
+    givePortfolio: (classId) => {
+      storeTestHolding(classId, bbcaHolding);
+    },
+  });
+  const path = `${classPath}/stocks/BBCA`;
+  await student.goto(path);
+  return { student, classPath, path };
+}
+
 for (const locale of locales) {
   const text = texts[locale];
-  test(`opens a held stock, explores its closes and calculations, and starts each side of an order in ${locale}`, async ({
+  test(`opens a held stock and explores its closes in ${locale}`, async ({
     page,
     browser,
-  }, testInfo) => {
-    const { student, classPath } = await studentWithPortfolio(page, browser, {
+  }) => {
+    const { student, classPath, path } = await openHeldStock(
+      page,
+      browser,
       locale,
-      givePortfolio: (classId) => {
-        storeTestHolding(classId, bbcaHolding);
-      },
-    });
-    const path = `${classPath}/stocks/BBCA`;
-    await student.goto(path);
+    );
     await expect(student).toHaveTitle(`${text.title} | Portolab`);
     await expect(student.getByText(text.held, { exact: true })).toBeVisible();
     await expect(
@@ -190,6 +203,14 @@ for (const locale of locales) {
     await slider.press("Escape");
     await student.getByRole("heading", { level: 1 }).click();
     await expectAccessibleScreen(student);
+    await student.context().close();
+  });
+
+  test(`keeps the held stock layout and change ink at reference widths in ${locale}`, async ({
+    page,
+    browser,
+  }, testInfo) => {
+    const { student } = await openHeldStock(page, browser, locale);
     const widths = testInfo.project.name === "phone" ? [360] : [1440, 1920];
     for (const width of widths) {
       await student.setViewportSize({ width, height: 900 });
@@ -224,6 +245,14 @@ for (const locale of locales) {
         });
       }
     }
+    await student.context().close();
+  });
+
+  test(`opens the held stock closing data and calculations in ${locale}`, async ({
+    page,
+    browser,
+  }) => {
+    const { student } = await openHeldStock(page, browser, locale);
     await student.getByText(text.points, { exact: true }).click();
     await expect(
       student.getByRole("columnheader", { name: text.date }),
@@ -231,6 +260,18 @@ for (const locale of locales) {
     await student.getByText(text.calculations, { exact: true }).click();
     await expectAccessibleScreen(student);
     expect(await layoutProblems(student)).toEqual([]);
+    await student.context().close();
+  });
+
+  test(`starts each side of an order from a held stock and returns to the market in ${locale}`, async ({
+    page,
+    browser,
+  }) => {
+    const { student, classPath, path } = await openHeldStock(
+      page,
+      browser,
+      locale,
+    );
     for (const [side, label] of [
       ["buy", text.buy],
       ["sell", text.sell],

@@ -9,7 +9,7 @@ import {
 
 const isContinuousIntegration = process.env["CI"] === "true";
 
-// Every test shares one server, and the slowest ones hash passwords and scan each screen in two themes, so their time grows with the tests that run beside them. Alone they take about 13 seconds. Eight at once took 30 seconds on a machine with 16 cores, and a worker for each CPU of CI took 28 seconds on a slow runner. So the limit leaves twice that, while a test that hangs still fails by name.
+// The suite shares one server, so concurrent password hashes and accessibility scans need room within this deadline. Issue #184 records the stock case that exhausted it and its independent flows, because enlarging the deadline would also postpone a real failure.
 const testTimeoutSeconds = 60;
 
 export default defineConfig({
