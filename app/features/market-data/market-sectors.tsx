@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import chipStyles from "~/chip.module.css";
 import { FieldFailure } from "~/described-field";
 import { formatNumber } from "~/formatting";
 import { NumberText } from "~/number-text";
@@ -20,6 +21,7 @@ export function MarketSectors({
   failure: string | undefined;
   onChange: (sector: MarketFilters["sector"]) => void;
 }): ReactNode {
+  const chipClassName = [styles["chip"], chipStyles["filter"]].join(" ");
   const options = marketSectorOptions()
     .map((option) => ({
       ...option,
@@ -38,13 +40,13 @@ export function MarketSectors({
       <legend>{m.market_data_sector_label()}</legend>
       <div className={styles["chipList"]}>
         {failure !== undefined && (
-          <label className={styles["chip"]}>
+          <label className={chipClassName}>
             <input type="radio" name="sector" value={value} defaultChecked />
             <NumberText verbatim>{marketChoiceLabel(value)}</NumberText>
           </label>
         )}
         {options.map(({ value: sector, label, count }) => (
-          <label key={sector} className={styles["chip"]}>
+          <label key={sector} className={chipClassName}>
             <input
               type="radio"
               name="sector"
