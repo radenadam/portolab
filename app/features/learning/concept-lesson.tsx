@@ -19,15 +19,7 @@ export function ConceptLesson({
 }: {
   termId: ConceptTermId;
 }): ReactNode {
-  const data = useRouteLoaderData<ConceptLessonData>("root");
-  const session = data?.conceptLessons.find(
-    (lesson) => lesson.termId === termId,
-  )?.session;
-  if (session === undefined) {
-    throw new Error(
-      `The concept card's glossary term "${termId}" has no lesson.`,
-    );
-  }
+  const session = useConceptSession(termId);
   const params = useParams();
   const location = useLocation();
   const classId = parseRecordId<ClassId>(params["classId"], "classId");
@@ -46,4 +38,17 @@ export function ConceptLesson({
       <NumberText>{label}</NumberText>
     </Link>
   );
+}
+
+export function useConceptSession(termId: ConceptTermId): SessionNumber {
+  const data = useRouteLoaderData<ConceptLessonData>("root");
+  const session = data?.conceptLessons.find(
+    (lesson) => lesson.termId === termId,
+  )?.session;
+  if (session === undefined) {
+    throw new Error(
+      `The concept card's glossary term "${termId}" has no lesson.`,
+    );
+  }
+  return session;
 }

@@ -92,3 +92,12 @@ test("never steps finer than the smallest step that the texts of the marks write
     ),
   ).toEqual([-0.0001, 0, 0.0001, 0.0002]);
 });
+
+test("keeps zero at the start of a positive comparison scale with a quarter of its spread after it", () => {
+  expect(
+    paddedRange([0, 0.5, 1].map(cumulativeReturn), cumulativeReturn, {
+      minimum: cumulativeReturn(0),
+      paddingShare: 0.25,
+    }),
+  ).toEqual({ min: 0, max: 1.25 });
+});

@@ -1,5 +1,7 @@
 import { MapLabel } from "./map-label";
 import { mapLineLabelKeys, mapPointName } from "./map-label-text";
+import { MapDiamond } from "./map-diamond";
+import { MapArrow } from "./map-arrow";
 import type { ReactNode, Ref } from "react";
 import type { PlacedLabels } from "./map-labels";
 import { keptNameRoom } from "./map-labels";
@@ -31,6 +33,7 @@ export const markReach = 0.33;
 // Background context must not hide the subjects of the map or the reader's own mark.
 const drawOrder: Record<MarkKind, number> = {
   other: 0,
+  average: 0,
   classmate: -1,
   active: 1,
   held: 1,
@@ -115,6 +118,32 @@ export function MapDrawing({
           ))}
         </>
       )}
+      {drawn.map(({ point, placed: mark }) => (
+        <g key={`stem-${point.key}`}>
+          {mark.stem !== undefined && (
+            <line
+              x1={percentOf(mark.position.x)}
+              x2={percentOf(mark.position.x)}
+              y1={percentOf(mark.stem)}
+              y2={percentOf(mark.position.y)}
+              className={
+                mark.position.y < mark.stem
+                  ? styles["gainStem"]
+                  : styles["lossStem"]
+              }
+            />
+          )}
+          {point.arrowTo !== undefined && (
+            <MapArrow
+              from={mark}
+              to={
+                drawn.find((candidate) => candidate.point.key === point.arrowTo)
+                  ?.placed
+              }
+            />
+          )}
+        </g>
+      ))}
       {drawn
         .toSorted(
           (first, second) => drawOrder[first.kind] - drawOrder[second.kind],
@@ -254,38 +283,13 @@ function Mark({
     case "active":
     case "held":
       return dot(styles["held"]);
+    case "average":
+      return dot(styles["average"]);
     case "classmate":
       return dot(styles["classmate"]);
     case "other":
       return dot(styles["other"]);
     case "market":
-      return <Diamond placed={placed} />;
+      return <MapDiamond placed={placed} />;
   }
-}
-
-/** The diamond of the IHSG. A path cannot place a corner at a position of the plot plus a length in sizes of the text, so an inner drawing stands at the position of the IHSG, and the diamond fills a drawing of its own size around that position. */
-function Diamond({ placed }: { placed: PlacedMark }): ReactNode {
-  const size = emOf(2 * placed.radius);
-  return (
-    <svg
-      x={percentOf(placed.position.x)}
-      y={percentOf(placed.position.y)}
-      overflow="visible"
-    >
-      <svg
-        x={emOf(-placed.radius)}
-        y={emOf(-placed.radius)}
-        width={size}
-        height={size}
-        viewBox="-1 -1 2 2"
-        overflow="visible"
-      >
-        <path
-          d="M0 -1L1 0L0 1L-1 0Z"
-          vectorEffect="non-scaling-stroke"
-          className={styles["market"]}
-        />
-      </svg>
-    </svg>
-  );
 }

@@ -2,45 +2,41 @@ import { data, redirect } from "react-router";
 import type { RouterContextProvider } from "react-router";
 import { databaseContext } from "~/database/database.server";
 import { readPriceSourceDescription } from "~/features/market-data/price-source-context.server";
-import { trackedStockCodes } from "~/features/market-data/tracked-instruments";
 import { formatMarketTime } from "~/formatting";
-import { typedText } from "~/form-text";
 import { m } from "~/paraglide/messages.js";
 import { fail } from "~/result";
 import type { Lots } from "~/units/lots";
+import type { Rupiah } from "~/units/rupiah";
 import { parseRecordId } from "~/value-parsers";
 import { cancelPortfolioOrder } from "./cancel-portfolio-order.server";
 import type { CancelFailure } from "./cancel-portfolio-order.server";
 import { lotCount } from "./count-parts";
-import { findStudentPlace } from "./find-student-place.server";
 import type { StudentPlace } from "./find-student-place.server";
-import type { OrderFailure } from "./order";
+import type { OrderFailure, OrderRequest, OrderSide } from "./order";
 import { lotsStepOf } from "./lots-step";
 import { limitPriceFailureText, orderFailureText } from "./order-failure-text";
-import {
-  lotsStepName,
-  parseStockCode,
-  readOrderForm,
-  typedOrderForm,
-} from "./order-form-fields";
+import { readOrderForm, typedOrderForm } from "./order-form-fields";
 import type { OrderFormFields } from "./order-form-fields";
 import { orderTradingDay } from "./order-trading-day";
 import { activityPath } from "./activity-path";
 import { placePortfolioOrder } from "./place-portfolio-order.server";
 import type { OrderId } from "./trading.schema";
+import { pathWithQuery } from "~/path-with-query";
+import { parseSeenTotal } from "./parse-seen-total";
 
 /** Why Portolab did not accept an order as a whole, with the lots of an order that it would accept in place of it, which the rejection offers as its next step, or undefined when no number of lots would do. */
 export interface OrderRejection {
   text: string;
   lotsStep: Lots | undefined;
+  field?: "lots";
 }
 
-/** The answer of the action of the orders to a form that it did not accept, or to the step of a rejection: the order form as the student sent it with the reason for each field, why the order was not accepted as a whole, why the stock that the address chose was not accepted, and why no order was cancelled. */
+/** Refused forms keep typed values so a correction does not erase the reason. */
 export interface OrdersAnswer {
   fields: OrderFormFields | undefined;
   rejection: OrderRejection | undefined;
-  stockFailure: string | undefined;
   cancelFailure: string | undefined;
+  limitSteps: readonly Rupiah[] | undefined;
 }
 
 export interface OrdersForm {
@@ -49,9 +45,10 @@ export interface OrdersForm {
   now: Date;
 }
 
-/** An order form that a student sent, with the stock that the address of the page chose, as the address sends it. @internal Tests send it to placeFromForm directly, because ticketAction reaches it only with the real clock. */
 export interface SentOrderForm extends OrdersForm {
-  chosenStock: string | null;
+  code: string;
+  side: OrderSide;
+  ticketPath: string;
 }
 
 // A failure that the order causes is a wrong value. A record or a price that Portolab lacks keeps it from taking any such order for now.
@@ -70,23 +67,11 @@ const failureStatuses: Record<OrderFailure["kind"], number> = {
   notEnoughShares: 400,
 };
 
-/** Places the order of the form for the stock that the address chose and opens the orders with the notice that Portolab accepted it, or answers with the reason that the form, the stock, or the order was not accepted. The step of a rejection changes the lots of the form instead. @internal Tests call it directly, because ticketAction reaches it only with the real clock. */
+/** A different total needs another confirmation, including when the reader edited the form before JavaScript loaded. */
 export function placeFromForm(
   context: Readonly<RouterContextProvider>,
-  { form, place, now, chosenStock }: SentOrderForm,
+  { form, place, now, code, side, ticketPath }: SentOrderForm,
 ): Response | ReturnType<typeof data<OrdersAnswer>> {
-  // The step of a rejection changes the lots of the order form to those that it offers, and the student sends the order again after reading it.
-  if (form.has(lotsStepName)) {
-    return answer(
-      {
-        fields: {
-          ...typedOrderForm(form),
-          lots: typedText(form.get(lotsStepName)),
-        },
-      },
-      200,
-    );
-  }
   const { delayMinutes } = readPriceSourceDescription(context);
   const day = orderTradingDay(now, delayMinutes);
   if (!day.ok) {
@@ -98,17 +83,21 @@ export function placeFromForm(
       failureStatuses[day.failure.kind],
     );
   }
-  // The order form appears only on a page whose address holds a stock that Portolab trades, so this reason belongs to an address that someone changed, and the page shows it at the field that chooses a stock.
-  const code = parseStockCode(
-    chosenStock,
-    m.trading_stock_label(),
-    trackedStockCodes,
+  const seenTotal = parseSeenTotal(
+    form.get("seenTotal"),
+    m.trading_ticket_breakdown_title(),
   );
-  if (!code.ok) {
-    return answer({ stockFailure: code.failure }, 400);
-  }
+  if (!seenTotal.ok)
+    return answer(
+      {
+        fields: typedOrderForm(form),
+        rejection: { text: seenTotal.failure, lotsStep: undefined },
+      },
+      400,
+    );
   const request = readOrderForm(form, {
-    code: code.value,
+    code,
+    side,
     maximumLots: day.value.rules.maximumLots,
     placedAt: now,
   });
@@ -118,15 +107,39 @@ export function placeFromForm(
   const placed = placePortfolioOrder(
     context.get(databaseContext),
     request.value,
-    { owner: place.owner, delayMinutes },
+    {
+      owner: place.owner,
+      delayMinutes,
+      seenTotal: seenTotal.value,
+    },
   );
   if (placed.ok) {
     return redirect(
-      `${activityPath(place.classId)}?placed=${String(placed.value)}`,
+      pathWithQuery(ticketPath, { placed: String(placed.value) }),
     );
   }
   const { failure } = placed;
   const fields = typedOrderForm(form);
+  if (failure.kind === "previewChanged") {
+    return answer(
+      {
+        fields,
+        rejection: {
+          text: m.trading_preview_changed_notice(),
+          lotsStep: undefined,
+        },
+      },
+      409,
+    );
+  }
+  return rejectOrder(failure, fields, request.value);
+}
+
+function rejectOrder(
+  failure: OrderFailure,
+  fields: OrderFormFields,
+  request: OrderRequest,
+): ReturnType<typeof data<OrdersAnswer>> {
   const status = failureStatuses[failure.kind];
   // A failure of the limit price concerns the value of its field, and every other failure concerns the order as a whole, which orderFailureText explains.
   if (failure.kind === "outsideLimits" || failure.kind === "offTick") {
@@ -139,16 +152,27 @@ export function placeFromForm(
             written: fields.limit.trim(),
           }),
         },
+        limitSteps:
+          failure.kind === "offTick"
+            ? [failure.below, failure.above]
+            : [
+                request.price.kind === "limit" &&
+                request.price.limit < failure.lowest
+                  ? failure.lowest
+                  : failure.highest,
+              ],
       },
       status,
     );
   }
+  const lotsStep = lotsStepOf(failure);
   return answer(
     {
       fields,
       rejection: {
         text: orderFailureText(failure),
-        lotsStep: lotsStepOf(failure),
+        lotsStep,
+        ...(lotsStep === undefined ? {} : { field: "lots" as const }),
       },
     },
     status,
@@ -199,37 +223,9 @@ function answer(
     {
       fields: parts.fields,
       rejection: parts.rejection,
-      stockFailure: parts.stockFailure,
       cancelFailure: parts.cancelFailure,
+      limitSteps: parts.limitSteps,
     },
     { status },
   );
-}
-
-/** What the action of a page with the order ticket receives from React Router, of which the class of the address chooses the portfolio. The url is the one that React Router gives an action. */
-export interface TicketActionArgs {
-  context: Readonly<RouterContextProvider>;
-  request: Request;
-  params: { classId: string };
-  url: URL;
-}
-
-/** The order ticket and its rejection step share one action so both keep the stock that the address chose. */
-export async function ticketAction({
-  context,
-  request,
-  params,
-  url,
-}: TicketActionArgs): Promise<
-  Response | ReturnType<typeof data<OrdersAnswer>>
-> {
-  const now = new Date();
-  const place = findStudentPlace(context, url, params.classId);
-  const form = await request.formData();
-  return placeFromForm(context, {
-    form,
-    place,
-    now,
-    chosenStock: url.searchParams.get("code"),
-  });
 }

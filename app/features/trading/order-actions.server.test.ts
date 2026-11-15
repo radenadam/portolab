@@ -12,8 +12,10 @@ import { switchLocaleForTest } from "~/switch-locale-for-test";
 import type { ClassId } from "~/features/classes/classes.schema";
 import { successValueForTest } from "~/success-value-for-test";
 import { parseRecordId } from "~/value-parsers";
+import { fieldMaximumLength } from "~/form-size";
 import { cancelFromForm, placeFromForm } from "./order-actions.server";
 import type { SentOrderForm } from "./order-actions.server";
+import { parseOrderSide } from "./order-form-fields";
 import {
   bbcaCloseOfFridayForTest,
   duringSessionForTest,
@@ -36,11 +38,15 @@ const texts: Record<
     noReferenceClose: string;
     outsideLimits: string;
     missingRules: string;
-    noStock: string;
-    unknownStock: string;
+    changed: string;
+    invalidPreview: string;
   }
 > = {
   id: {
+    invalidPreview:
+      'Pratinjau dari Rincian biaya harus memuat total yang ditulis dengan angka saja, tetapi isinya "x". Periksa rincian biaya, lalu konfirmasi lagi.',
+    changed:
+      "Total order berubah dari pratinjau yang Anda lihat. Periksa rincian biaya, lalu konfirmasi lagi.",
     missingOrder:
       "Portolab tidak menyimpan order tersebut di antara order Anda, sehingga tidak ada yang dibatalkan. Daftar di bawah menunjukkan setiap order yang masih terbuka dan dapat Anda batalkan.",
     endedOrder:
@@ -51,11 +57,12 @@ const texts: Record<
       'Kolom "Harga limit" berisi "9.000", tetapi BEI menolak harga itu untuk BBCA pada 2 November 2026 karena batas auto rejection. Batas itu mengizinkan harga paling jauh 25% di atas dan 7% di bawah harga acuan Rp\u00a04.980, dan setiap ujung rentangnya adalah harga sah terdekat di dalam batas itu. BEI menetapkan harga acuan dari harga penutupan terakhir BBCA sebelum hari itu. Pilih harga dari Rp\u00a04.640 sampai Rp\u00a06.225.',
     missingRules:
       "Portolab belum dapat menerima order ini, karena aturan BEI untuk hari bursa order ini belum tercatat. Beri tahu dosen Anda agar aturan tersebut dapat ditambahkan.",
-    noStock: 'Kolom "Saham" belum berisi saham. Pilih saham untuk order ini.',
-    unknownStock:
-      'Alamat halaman ini menyebut "BREN" sebagai saham, tetapi Portolab hanya memperdagangkan saham yang ada di daftar kolom "Saham". Pilih salah satunya.',
   },
   en: {
+    invalidPreview:
+      'The preview from Cost breakdown must hold a total written in digits only, but it holds "x". Check the cost breakdown, then confirm again.',
+    changed:
+      "The order total changed from the preview you saw. Check the cost breakdown, then confirm again.",
     missingOrder:
       "Portolab holds no such order among your orders, so it cancelled nothing. The list below shows each open order that you can cancel.",
     endedOrder:
@@ -66,10 +73,6 @@ const texts: Record<
       'The field "Limit price" holds "9,000", but IDX rejects that price for BBCA on November 2, 2026 by its auto rejection limits. They allow a price at most 25% above and 7% below the reference price of IDR\u00a04,980, and each end of the range is the nearest valid price inside those limits. IDX sets the reference price from the latest close of BBCA before that day. Choose a price from IDR\u00a04,640 to IDR\u00a06,225.',
     missingRules:
       "Portolab cannot take this order yet, because it has not recorded the rules of IDX for the trading day of the order. Tell your lecturer, so that the rules can be added.",
-    noStock:
-      'The field "Stock" holds no stock yet. Choose the stock of the order.',
-    unknownStock:
-      'The address of this page names "BREN" as the stock, but Portolab trades only the stocks in the list of the field "Stock". Choose one of them.',
   },
 };
 
@@ -85,11 +88,7 @@ function contextForTest(database: Database): RouterContextProvider {
 async function studentRequestForTest(): Promise<{
   database: Database;
   owner: PortfolioOwner;
-  request: (
-    fields: Record<string, string>,
-    now: Date,
-    chosenStock?: string | null,
-  ) => SentOrderForm;
+  request: (fields: Record<string, string>, now: Date) => SentOrderForm;
 }> {
   const { database, owner } = await studentWithQuotesForTest(
     [bbcaCloseOfFridayForTest],
@@ -98,12 +97,22 @@ async function studentRequestForTest(): Promise<{
   return {
     database,
     owner,
-    request: (fields, now, chosenStock = "BBCA") => ({
-      form: formDataForTest(fields),
-      place: { classId, owner },
-      now,
-      chosenStock,
-    }),
+    request: (fields, now) => {
+      const side = successValueForTest(
+        parseOrderSide(fields["side"] ?? "buy", "side"),
+        "The fixture chooses a ticket address.",
+      );
+      const form = formDataForTest({ seenTotal: "2493735", ...fields });
+      form.delete("side");
+      return {
+        form,
+        place: { classId, owner },
+        now,
+        code: "BBCA",
+        side,
+        ticketPath: `/classes/1/stocks/BBCA/${side}`,
+      };
+    },
   };
 }
 
@@ -112,6 +121,18 @@ const purchase = {
   priceKind: "market",
   lots: "5",
 };
+
+test("places the side of the ticket address even when the body names another side", async () => {
+  const { database, owner, request } = await studentRequestForTest();
+  const sent = request(purchase, duringSessionForTest);
+  sent.form.set("side", "sell");
+  expect(placeFromForm(contextForTest(database), sent)).toBeInstanceOf(
+    Response,
+  );
+  expect(readPortfolio(database, owner).orders).toMatchObject([
+    { side: "buy", state: { kind: "waiting" } },
+  ]);
+});
 
 test("keeps the activity view and status filter after cancelling its order", async () => {
   const { database, owner, request } = await studentRequestForTest();
@@ -137,7 +158,7 @@ for (const locale of locales) {
   const text = texts[locale];
   const language = languageNames[locale];
 
-  test(`places an order with its reason and opens the orders with its number, then refuses to cancel it once it ended, in ${language}`, async () => {
+  test(`places an order with its reason and opens the success ticket with its number, then refuses to cancel it once it ended, in ${language}`, async () => {
     switchLocaleForTest(locale);
     const { database, owner, request } = await studentRequestForTest();
     const context = contextForTest(database);
@@ -151,7 +172,7 @@ for (const locale of locales) {
     expect(placed).toBeInstanceOf(Response);
     const location =
       placed instanceof Response ? placed.headers.get("Location") : null;
-    expect(location).toMatch(/^\/classes\/1\/activity\?placed=\d+$/);
+    expect(location).toMatch(/^\/classes\/1\/stocks\/BBCA\/buy\?placed=\d+$/);
     expect(readPortfolio(database, owner).orders).toMatchObject([
       { reason: "Laba stabil.\n\nBeta di bawah 1." },
     ]);
@@ -210,7 +231,7 @@ for (const locale of locales) {
       placeFromForm(context, request(limit, new Date("2026-11-03T01:50:00Z"))),
     ).toMatchObject({
       data: {
-        fields: { side: "buy", limitFailure: undefined },
+        fields: { lots: "5", limitFailure: undefined },
         rejection: { text: text.noReferenceClose, lotsStep: undefined },
       },
       init: { status: 503 },
@@ -227,36 +248,52 @@ for (const locale of locales) {
       ),
     ).toMatchObject({
       data: {
-        fields: { side: "buy" },
+        fields: { lots: "5" },
         rejection: { text: text.missingRules, lotsStep: undefined },
       },
       init: { status: 503 },
     });
   });
-
-  test(`refuses an order from an address that chooses no stock or a stock that Portolab does not trade, with the reason for the field that chooses a stock, in ${language}`, async () => {
+  test(`returns the new preview without saving when the shown total differs, then accepts that total in ${language}`, async () => {
     switchLocaleForTest(locale);
-    const { database, request } = await studentRequestForTest();
-    for (const [chosenStock, stockFailure] of [
-      [null, text.noStock],
-      ["BREN", text.unknownStock],
-    ] as const) {
+    const { database, owner, request } = await studentRequestForTest();
+    const context = contextForTest(database);
+    // Python Decimal gives 5 * 100 * 4980 + ROUND(5 * 100 * 4980 * 0.0015) = 2493735.
+    expect(
+      placeFromForm(
+        context,
+        request({ ...purchase, seenTotal: "x" }, duringSessionForTest),
+      ),
+    ).toMatchObject({
+      data: { rejection: { text: text.invalidPreview } },
+      init: { status: 400 },
+    });
+    expect(readPortfolio(database, owner).orders).toEqual([]);
+    for (const seenTotal of [
+      "2493734",
+      "2493736",
+      "",
+      "9007199254740992",
+      "1".repeat(fieldMaximumLength),
+    ]) {
       expect(
         placeFromForm(
-          contextForTest(database),
-          request(purchase, duringSessionForTest, chosenStock),
+          context,
+          request({ ...purchase, seenTotal }, duringSessionForTest),
         ),
-        String(chosenStock),
       ).toMatchObject({
-        data: {
-          fields: undefined,
-          rejection: undefined,
-          stockFailure,
-          cancelFailure: undefined,
-        },
-        init: { status: 400 },
+        data: { rejection: { text: text.changed } },
+        init: { status: 409 },
       });
+      expect(readPortfolio(database, owner).orders).toEqual([]);
     }
+    expect(
+      placeFromForm(
+        context,
+        request({ ...purchase, seenTotal: "2493735" }, duringSessionForTest),
+      ),
+    ).toBeInstanceOf(Response);
+    expect(readPortfolio(database, owner).orders).toHaveLength(1);
   });
 }
 
@@ -282,30 +319,4 @@ test("rejects a purchase that the cash cannot pay for with the largest purchase 
     data: { rejection: { lotsStep: undefined } },
     init: { status: 400 },
   });
-});
-
-test("changes the lots of the order form to those of the step of a rejection, keeps the other fields with the reason as the student wrote it, and places no order", async () => {
-  const { database, owner, request } = await studentRequestForTest();
-  expect(
-    placeFromForm(
-      contextForTest(database),
-      request(
-        { ...purchase, lots: "300", reason: " Laba stabil. ", lotsStep: "200" },
-        duringSessionForTest,
-      ),
-    ),
-  ).toMatchObject({
-    data: {
-      fields: {
-        side: "buy",
-        priceKind: "market",
-        lots: "200",
-        reason: " Laba stabil. ",
-        lotsFailure: undefined,
-      },
-      rejection: undefined,
-    },
-    init: { status: 200 },
-  });
-  expect(readPortfolio(database, owner).orders).toEqual([]);
 });

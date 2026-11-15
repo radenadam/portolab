@@ -6,6 +6,23 @@
   min-width: 0;
 }
 
+.withTicket {
+  min-width: 0;
+}
+
+@media (width >= 73.75rem) {
+  .withTicket {
+    display: grid;
+    grid-template-columns: minmax(0, 2.2fr) minmax(0, 1fr);
+    gap: calc(var(--space-4) + var(--space-1));
+    align-items: stretch;
+  }
+
+  .withTicket .page > .panel:last-of-type {
+    flex: 1;
+  }
+}
+
 .header {
   display: grid;
   gap: var(--space-1);
@@ -126,6 +143,16 @@
   gap: var(--space-3);
   padding-block: var(--space-3);
   background: var(--color-panel);
+}
+
+.actions[hidden] {
+  visibility: hidden;
+}
+
+@media (width >= 73.75rem) {
+  .actions[hidden] {
+    display: none;
+  }
 }
 
 .buy,

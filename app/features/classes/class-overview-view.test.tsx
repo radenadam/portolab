@@ -190,6 +190,31 @@ for (const locale of locales) {
     renders.push(
       render({ ...overview, students: overview.students.slice(0, 1) }, "beta"),
     );
+    const profitable = overview.students
+      .filter((student) => student.risk !== undefined)
+      .map((student) => ({
+        ...student,
+        return: cumulativeReturn(0.2),
+        marketReturn: cumulativeReturn(0.1),
+      }));
+    renders.push(
+      render(
+        {
+          ...overview,
+          students: profitable,
+          summary: classSummary(
+            profitable.map((student) => ({
+              portfolio: student.return,
+              market: student.marketReturn,
+            })),
+            profitable.flatMap((student) =>
+              student.risk === undefined ? [] : [student.risk.beta],
+            ),
+          ),
+        },
+        "beta",
+      ),
+    );
     const cashOnly = overview.students.filter(
       (student) => student.return === 0 && student.risk === undefined,
     );

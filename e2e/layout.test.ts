@@ -4,6 +4,7 @@ import type { Browser, Page, TestInfo } from "@playwright/test";
 import { baseLocale, locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
 import routes from "../app/routes.ts";
+import type { RouteConfigEntry } from "@react-router/dev/routes";
 import { runAccountCommand, submitSignIn, uniqueUsername } from "./accounts.ts";
 import { rupiah } from "../app/units/rupiah.ts";
 import { shares } from "../app/units/shares.ts";
@@ -89,7 +90,12 @@ const routePages: Record<string, readonly RoutePage[]> = {
   "features/classes/calendar-page.tsx": [
     { reader: "lecturer", path: ({ classPath }) => `${classPath}/calendar` },
   ],
-  "features/trading/stock-ticket-fallback.ts": [],
+  "features/trading/ticket-page.tsx": [
+    ...["BBCA", "PGAS", "HRTA", "AMRT"].map((code): RoutePage => ({
+      reader: "student",
+      path: ({ classPath }) => `${classPath}/stocks/${code}/buy`,
+    })),
+  ],
   "features/trading/activity-page.tsx": [
     { reader: "student", path: ({ classPath }) => `${classPath}/activity` },
     {
@@ -97,20 +103,10 @@ const routePages: Record<string, readonly RoutePage[]> = {
       path: ({ classPath }) => `${classPath}/activity?view=journal`,
     },
   ],
-  // Besides BBCA, the ticket shows PGAS, which has one of the longest names of a company, and HRTA and AMRT, whose sectors have the longest names in Bahasa Indonesia and in English.
-  "features/trading/orders-page.tsx": [
-    { reader: "student", path: ({ classPath }) => `${classPath}/orders` },
-    ...["BBCA", "PGAS", "HRTA", "AMRT"].map((code): RoutePage => ({
-      reader: "student",
-      path: ({ classPath }) => `${classPath}/orders?code=${code}`,
-    })),
-  ],
   "features/measures/measures-page.tsx": [
     {
       reader: "student",
-      path: ({ classPath }) => `${classPath}/measures`,
-      // Each table of closes and returns sizes its columns by its own cells. Piece 17 rebuilds the page.
-      brokenUntilRebuilt: ["tables"],
+      path: ({ classPath }) => `${classPath}/analysis`,
     },
   ],
   "features/market-data/stock-page.tsx": [
@@ -185,10 +181,17 @@ const widthsInEveryLanguage = [360, 1440, 1920];
 const walkTimeoutMilliseconds = 180_000;
 
 test("lists every route of app/routes.ts", () => {
-  expect(Object.keys(routePages).sort()).toEqual(
-    routes.map((route) => route.file).sort(),
-  );
+  expect(Object.keys(routePages).sort()).toEqual(routeFiles(routes).sort());
 });
+
+function routeFiles(entries: readonly RouteConfigEntry[]): string[] {
+  const files: string[] = [];
+  for (const entry of entries) {
+    files.push(entry.file);
+    if (entry.children !== undefined) files.push(...routeFiles(entry.children));
+  }
+  return files;
+}
 
 // Beside the holding of BBCA, the portfolio of the walk holds PGAS, which has one of the longest names of a company, with 35 characters, and AMMN, whose name holds the longest word, "Internasional". Each is 100 shares bought at the close of 29 October 2026 with the broker fee of 0.15%, PGAS at Rp1,215 for Rp121,682 and AMMN at Rp3,740 for Rp374,561, as the decimal module of Python computed with ROUND_HALF_UP. They leave Rp505,258,503,757 of the cash that the purchase of BBCA left.
 const widestNameHoldings = [

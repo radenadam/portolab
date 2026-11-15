@@ -5,7 +5,7 @@ import type { MarkKind } from "./map-drawing";
 import styles from "./risk-map.module.css";
 
 /** What a key of the legend of a map shows: a mark, or a piece of the line. */
-type MapKeyKind = MarkKind | "line";
+type MapKeyKind = MarkKind | "line" | "gain" | "loss";
 
 const keyClasses: Record<MapKeyKind, string | undefined> = {
   own: styles["ownKey"],
@@ -14,6 +14,9 @@ const keyClasses: Record<MapKeyKind, string | undefined> = {
   other: styles["otherKey"],
   market: styles["marketKey"],
   line: styles["lineKey"],
+  average: styles["averageKey"],
+  gain: styles["gainKey"],
+  loss: styles["lossKey"],
   classmate: styles["classmateKey"],
 };
 

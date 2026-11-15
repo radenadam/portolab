@@ -3,7 +3,7 @@ import type { ComponentProps, ReactNode } from "react";
 import chipStyles from "~/chip.module.css";
 import { m } from "~/paraglide/messages.js";
 import { Popover, PopoverButton } from "~/popover";
-import { useIsInBrowser } from "~/charts/use-is-in-browser";
+import { useIsInBrowser } from "~/use-is-in-browser";
 import { JoinDetails } from "./join-details";
 import styles from "./join-chip.module.css";
 

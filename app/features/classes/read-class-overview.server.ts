@@ -106,7 +106,7 @@ export function readClassOverview(
     pricesAt:
       pricesAt === undefined
         ? undefined
-        : m.app_prices_time_label({ time: formatMarketTime(pricesAt) }),
+        : m.classes_prices_time_label({ time: formatMarketTime(pricesAt) }),
   };
 }
 

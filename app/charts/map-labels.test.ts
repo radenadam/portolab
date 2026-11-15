@@ -238,6 +238,20 @@ test("refuses a label of a point that the map has no mark of", () => {
   ).toThrow("The map has a label of BBCA but no mark of it.");
 });
 
+test("keeps a fixed label clear of the outline above and below a kept name", () => {
+  const point = mark("portfolio", { x: 0.3, y: 0.4 });
+  // These baselines leave the letter boxes apart but make their outlines overlap.
+  const places: LabelPlace[] = [middle + 1.55, middle + 3].map((dy) => ({
+    at: point.position,
+    dx: beside,
+    dy,
+    anchor: "start",
+  }));
+  const labels = { ...fixedLabel(places), kept: names("portfolio") };
+  const placed = placeMapLabels(labels, { size, marks: [point], widthOf });
+  expect(placed.lines.get("zero")).toEqual(places[1]);
+});
+
 test("keeps a fixed label outside the selection ring before the reader selects its point", () => {
   const point = mark("BBCA", { x: 0.4, y: 0.45 });
   const places: LabelPlace[] = [0.3, 0.1].map((across) => ({
@@ -349,7 +363,7 @@ test("estimates the width of a name from the widths of the capitals, the small l
   );
 });
 
-// The letters of a label reach 1 above its baseline and 0.25 below it, and its box keeps 0.17 at each side.
+// The letters of a label reach 1 above its baseline and 0.25 below it, and its box keeps 0.25 for the outline at every edge.
 interface Box {
   left: number;
   right: number;
@@ -364,13 +378,13 @@ function boxOf(
 ): Box {
   const shares = { start: 0, middle: 0.5, end: 1 };
   const left =
-    place.at.x * plot.width + place.dx - shares[place.anchor] * width - 0.17;
+    place.at.x * plot.width + place.dx - shares[place.anchor] * width - 0.25;
   const baseline = place.at.y * plot.height + place.dy;
   return {
     left,
-    right: left + width + 0.34,
-    top: baseline - 1,
-    bottom: baseline + 0.25,
+    right: left + width + 0.5,
+    top: baseline - 1.25,
+    bottom: baseline + 0.5,
   };
 }
 

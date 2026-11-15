@@ -17,6 +17,7 @@ export type LineKind = "own" | "reference" | "rise" | "fall" | "none";
 /** A line of a chart over time: the name that its legend, its tooltip, and its table show, how it is drawn, and its value at each point of the chart. */
 export interface TimeLine<Point, Value extends number = CumulativeReturn> {
   name: string;
+  endName?: string;
   kind: LineKind;
   valueOf: (point: Point) => Value;
 }

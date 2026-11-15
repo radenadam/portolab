@@ -51,7 +51,8 @@ export interface PlacedLabels {
   values: Set<string>;
 }
 
-const sideRoom = 0.17;
+// The outline and the small overhang beyond SVG text advances need room at every edge.
+const labelOutlineRoom = 0.25;
 // Two labels keep this gap, so that they never read as one, and a label keeps a little room from a mark that is not its own.
 const labelGap = { across: 0.67, down: 0.25 };
 const markRoom = 0.08;
@@ -236,8 +237,10 @@ function costOf(
   // The padding separates names, but only their letters decide which point they read as belonging to.
   const ink = {
     ...box,
-    left: box.left + sideRoom,
-    right: box.right - sideRoom,
+    left: box.left + labelOutlineRoom,
+    right: box.right - labelOutlineRoom,
+    top: box.top + labelOutlineRoom,
+    bottom: box.bottom - labelOutlineRoom,
   };
   const ownDistance = distanceToBox(ink, centerOf(mark, size));
   let cost = costPerDistance * ownDistance;
@@ -269,10 +272,10 @@ function boxOf(
   return {
     at: place.at,
     fixed: false,
-    left: left - sideRoom,
-    right: left + width + sideRoom,
-    top: baseline - labelAscent,
-    bottom: baseline + labelDescent,
+    left: left - labelOutlineRoom,
+    right: left + width + labelOutlineRoom,
+    top: baseline - labelAscent - labelOutlineRoom,
+    bottom: baseline + labelDescent + labelOutlineRoom,
   };
 }
 

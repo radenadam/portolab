@@ -1,8 +1,9 @@
-import { NumberText } from "~/number-text";
+import { nearestMapStop } from "./nearest-map-stop";
+import { MapTip } from "./map-tip";
+import { MapPointActions } from "./map-point-actions";
 import { useMemo } from "react";
 import { useNavigate } from "react-router";
-import type { CSSProperties, PointerEvent, ReactNode } from "react";
-import { ChangeText } from "~/change-text";
+import type { CSSProperties, PointerEvent, MouseEvent, ReactNode } from "react";
 import { formatList } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { useChartSlider } from "./use-chart-slider";
@@ -11,7 +12,6 @@ import type {
   MapAxis,
   MapLine,
   MapPoint,
-  MapValue,
   MarkedPoint,
   RiskMapLayout,
 } from "./layout-risk-map";
@@ -22,17 +22,13 @@ import type { MapSpreadText } from "./risk-map-labels";
 import { keptNameRoom } from "./map-labels";
 import { valueMarkGap } from "./value-mark";
 import styles from "./risk-map.module.css";
-import { tipAcross, tipDown } from "./tip-placement";
-import { useIsInBrowser } from "./use-is-in-browser";
+import { useIsInBrowser } from "~/use-is-in-browser";
 import { useMapLabels } from "./use-map-labels";
 
 // Every length around the plot is a multiple of the size of the text of its marks, so the map keeps its proportions when a reader enlarges the text.
 const bottomRoom = 3.5;
 const sideRoom = 0.5;
 const spreadRoom = 3.5;
-// A point answers a pointer or a finger within this distance of its center, in sizes of the text of the labels, or within the reach of its mark when that is larger.
-const pointerReach = 0.83;
-
 /** A map of risk across against return up, as decisions 0028 and 0035 set: each point by its mark and its name, the IHSG as a diamond with a strong line through its risk and a dashed line at its return, and an optional line from a point through the IHSG, such as the security market line. The server draws it in SVG and places its labels from estimated widths of their texts. Once JavaScript runs, the browser places the labels again from their measured widths at the size of the plot, and the plot is a slider that a pointer, a finger, or the keys move over the points in the order of their risk, which shows the values of the marked point in a tooltip. */
 export function RiskMap<Across extends number, Up extends number>({
   market,
@@ -44,6 +40,7 @@ export function RiskMap<Across extends number, Up extends number>({
   labelledBy,
   spread,
   coloredValues,
+  fill = false,
 }: {
   /** The IHSG. */
   market: MapPoint<Across, Up>;
@@ -60,6 +57,7 @@ export function RiskMap<Across extends number, Up extends number>({
   levelLabel?: string;
   /** The id of the heading that names the map, which also names its slider. */
   labelledBy: string;
+  fill?: boolean;
 }): ReactNode {
   const navigate = useNavigate();
   const isInBrowser = useIsInBrowser();
@@ -114,9 +112,13 @@ export function RiskMap<Across extends number, Up extends number>({
         : ownStop,
     labelledBy,
   });
+  const outsideRoom = spread === undefined ? sideRoom : spreadRoom;
+  const plotClass =
+    spread === undefined ? styles["plot"] : styles["spreadPlot"];
+  const mapClass = [styles["riskMap"], fill ? styles["fill"] : ""].join(" ");
   const style: CSSProperties = {
-    paddingBlock: `${String(spread === undefined ? sideRoom : spreadRoom)}em ${String(bottomRoom)}em`,
-    paddingInline: `calc(${String(layout.upTextLength)}ch + ${String(valueMarkGap)}em + ${String(keptNameRoom)} * var(--text-small)) ${String(spread === undefined ? sideRoom : spreadRoom)}em`,
+    paddingBlock: `${String(outsideRoom)}em ${String(bottomRoom)}em`,
+    paddingInline: `calc(${String(layout.upTextLength)}ch + ${String(valueMarkGap)}em + ${String(keptNameRoom)} * var(--text-small)) ${String(outsideRoom)}em`,
   };
   const active = slider.marked === undefined ? undefined : stops[slider.marked];
   const drawing = (
@@ -132,19 +134,33 @@ export function RiskMap<Across extends number, Up extends number>({
     />
   );
   const shown = stops[slider.shown];
+  const activatePoint = (event: MouseEvent<HTMLButtonElement>): void => {
+    if (event.detail === 0) return;
+    const area = areaRef.current;
+    const size = textSize();
+    if (area === null || size === undefined) return;
+    const nearest = nearestMapStop(stops, { event, area, textSize: size });
+    const popover =
+      nearest === undefined ? undefined : stops[nearest]?.point.popover;
+    if (popover !== undefined) {
+      event.preventDefault();
+      document
+        .getElementById(popover)
+        ?.showPopover({ source: event.currentTarget });
+    }
+  };
+  const actions = (
+    <MapPointActions drawn={drawn} style={style} onActivate={activatePoint} />
+  );
   if (!isInBrowser || shown === undefined) {
     return (
-      <div className={styles["riskMap"]}>
-        <div
-          className={
-            spread === undefined ? styles["plot"] : styles["spreadPlot"]
-          }
-          style={style}
-        >
+      <div className={mapClass}>
+        <div className={plotClass} style={style}>
           <div ref={areaRef} className={styles["area"]}>
             {drawing}
           </div>
         </div>
+        {actions}
       </div>
     );
   }
@@ -152,35 +168,50 @@ export function RiskMap<Across extends number, Up extends number>({
     const area = areaRef.current;
     const size = textSize();
     if (area !== null && size !== undefined) {
-      slider.setMarked(nearestStop(stops, { event, area, textSize: size }));
+      slider.setMarked(nearestMapStop(stops, { event, area, textSize: size }));
     }
   };
   const sliderProps = slider.sliderProps(spokenPoint(shown.point));
   return (
-    <div className={styles["riskMap"]}>
+    <div
+      className={mapClass}
+      onPointerDown={markPointer}
+      onPointerMove={markPointer}
+      onPointerLeave={sliderProps.onPointerLeave}
+    >
       <div
-        className={spread === undefined ? styles["plot"] : styles["spreadPlot"]}
+        className={plotClass}
         style={style}
         {...sliderProps}
         role="slider"
-        aria-valuenow={sliderProps["aria-valuenow"]}
         tabIndex={0}
+        aria-valuenow={sliderProps["aria-valuenow"]}
         onKeyDown={(event) => {
           if (event.key === "Enter" && shown.point.href !== undefined) {
             event.preventDefault();
             void navigate(shown.point.href);
-          } else sliderProps.onKeyDown?.(event);
+          } else {
+            sliderProps.onKeyDown?.(event);
+            if (
+              (event.key === "Enter" || event.key === " ") &&
+              shown.point.popover !== undefined
+            ) {
+              event.preventDefault();
+              document
+                .getElementById(shown.point.popover)
+                ?.showPopover({ source: event.currentTarget });
+            }
+          }
         }}
         onClick={(event) => {
           const area = areaRef.current;
           const size = textSize();
           if (area === null || size === undefined) return;
-          const stop = nearestStop(stops, { event, area, textSize: size });
+          const stop = nearestMapStop(stops, { event, area, textSize: size });
           const href = stop === undefined ? undefined : stops[stop]?.point.href;
           if (href !== undefined) void navigate(href);
         }}
-        onPointerDown={markPointer}
-        onPointerMove={markPointer}
+        onPointerLeave={undefined}
       >
         <div ref={areaRef} className={styles["area"]}>
           {drawing}
@@ -189,6 +220,7 @@ export function RiskMap<Across extends number, Up extends number>({
           )}
         </div>
       </div>
+      {actions}
     </div>
   );
 }
@@ -208,84 +240,7 @@ function drawnPoints<Across extends number, Up extends number>(
   ];
 }
 
-/** The index of the point nearest to a pointer or a finger among the points within its reach, or undefined when none is. */
-function nearestStop(
-  stops: readonly DrawnPoint[],
-  pointer: {
-    event: Pick<PointerEvent<HTMLDivElement>, "clientX" | "clientY">;
-    area: HTMLDivElement;
-    textSize: number;
-  },
-): number | undefined {
-  const box = pointer.area.getBoundingClientRect();
-  let nearest: { index: number; distance: number } | undefined;
-  for (const [index, { placed }] of stops.entries()) {
-    const distance =
-      Math.hypot(
-        placed.position.x * box.width - (pointer.event.clientX - box.left),
-        placed.position.y * box.height - (pointer.event.clientY - box.top),
-      ) / pointer.textSize;
-    const reach = Math.max(pointerReach, placed.outerRadius + markReach);
-    if (
-      distance <= reach &&
-      (nearest === undefined || distance < nearest.distance)
-    ) {
-      nearest = { index, distance };
-    }
-  }
-  return nearest?.index;
-}
-
-/** The tooltip of a marked point: its name and each of its values, beside the point and toward the larger part of the plot. */
-function MapTip({
-  drawn,
-  coloredValues,
-}: {
-  drawn: DrawnPoint;
-  coloredValues: boolean | undefined;
-}): ReactNode {
-  return (
-    <div
-      className={coloredValues ? styles["coloredTip"] : styles["tip"]}
-      style={{
-        ...tipAcross(drawn.placed.position.x),
-        ...tipDown(drawn.placed.position.y),
-      }}
-    >
-      <p className={styles["tipName"]}>
-        <NumberText verbatim>{drawn.point.name}</NumberText>
-      </p>
-      {drawn.point.values.map(({ name, value }) => (
-        <p key={name} className={styles["tipValue"]}>
-          <span>
-            <NumberText verbatim>{name}</NumberText>
-          </span>
-          <span className={styles["tipNumber"]}>
-            <ValueText value={value} colored={coloredValues === true} />
-          </span>
-        </p>
-      ))}
-    </div>
-  );
-}
-
-function ValueText({
-  value,
-  colored,
-}: {
-  value: MapValue["value"];
-  colored: boolean;
-}): ReactNode {
-  return typeof value === "string" ? (
-    <NumberText>{value}</NumberText>
-  ) : (
-    <NumberText whole>
-      <ChangeText change={value} colored={colored} />
-    </NumberText>
-  );
-}
-
-/** The text of a point that a screen reader reads as the value of the slider, such as BBCA: Beta terhadap IHSG 0,69 dan Imbal hasil yang diharapkan -0,10%. */
+/** The text of a point that a screen reader reads as the value of the slider, such as BBCA: Beta terhadap IHSG 0,69 dan Imbal hasil harapan -0,10%. */
 function spokenPoint(point: MapPoint<number, number>): string {
   return m.app_map_point_label({
     name: point.name,

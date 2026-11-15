@@ -19,6 +19,7 @@ export function mapPointName({
       return "";
     case "own":
     case "held":
+    case "average":
       return point.name;
     case "market":
     case "active":

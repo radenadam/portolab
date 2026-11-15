@@ -16,6 +16,7 @@ const labelOrder: Record<MarkKind, number> = {
   own: 0,
   held: 1,
   market: 2,
+  average: 2,
   active: 3,
   other: 4,
   classmate: 5,
@@ -49,6 +50,7 @@ export function riskMapLabels(
         break;
       case "own":
       case "held":
+      case "average":
         kept.push(label);
         break;
       case "market":

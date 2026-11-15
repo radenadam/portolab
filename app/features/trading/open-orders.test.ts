@@ -15,7 +15,7 @@ import {
   holdsFreeShares,
   isOpenOrder,
   openSales,
-  sharesSetAside,
+  sharesOfStock,
 } from "./open-orders";
 
 // The comment of each moment gives the time in WIB on Monday 2 November 2026. The amount that a purchase sets aside was computed with the decimal module of Python, with a broker fee of 0.15% of the value rounded to a whole rupiah with ROUND_HALF_UP.
@@ -87,18 +87,21 @@ test("counts the cash that open purchases set aside, and none of orders that are
 
 test("counts the shares of a stock that open sales set aside, and none of other stocks, of purchases, or of orders that are done", () => {
   expect(
-    sharesSetAside(
-      [
-        order("sell", "BBCA", waiting),
-        order("sell", "BBCA", resting),
-        expiredOrder("sell", "BBCA"),
-        order("sell", "BBCA", cancelled),
-        order("sell", "TLKM", waiting),
-        order("buy", "BBCA", waiting),
-      ],
+    sharesOfStock(
+      {
+        holdings: [],
+        orders: [
+          order("sell", "BBCA", waiting),
+          order("sell", "BBCA", resting),
+          expiredOrder("sell", "BBCA"),
+          order("sell", "BBCA", cancelled),
+          order("sell", "TLKM", waiting),
+          order("buy", "BBCA", waiting),
+        ],
+      },
       "BBCA",
       placedAt,
-    ),
+    ).setAside,
   ).toEqual({ amount: 200, orders: 2 });
 });
 
@@ -117,7 +120,9 @@ test("counts an order that is still waiting as closed from its expiry, so it set
   const sale = order("sell", "BBCA", waiting);
   expect(isOpenOrder(purchase, endOfDay)).toBe(false);
   expect(cashSetAside([purchase], endOfDay)).toEqual({ amount: 0, orders: 0 });
-  expect(sharesSetAside([sale], "BBCA", endOfDay)).toEqual({
+  expect(
+    sharesOfStock({ holdings: [], orders: [sale] }, "BBCA", endOfDay).setAside,
+  ).toEqual({
     amount: 0,
     orders: 0,
   });

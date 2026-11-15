@@ -39,7 +39,7 @@ export function HomeReturn({
           <ConceptHelp title={m.trading_home_return_method_label()}>
             <p>
               <NumberText>
-                {m.trading_chart_notice({
+                {m.app_returns_chart_notice({
                   index: marketIndex.code,
                   date: formatCalendarDate(first.date),
                 })}

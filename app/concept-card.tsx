@@ -12,15 +12,17 @@ export function ConceptCard({
   example,
   calculation,
   lesson,
+  id,
 }: {
   title: string;
   meaning: string;
   example: ReactNode;
   calculation: ReactNode;
   lesson: ReactNode;
+  id?: string;
 }): ReactNode {
   return (
-    <ConceptHelp title={title}>
+    <ConceptHelp title={title} id={id}>
       <p>
         <NumberText>{meaning}</NumberText>
       </p>
@@ -41,11 +43,14 @@ export function ConceptCard({
 export function ConceptHelp({
   title,
   children,
+  id: providedId,
 }: {
   title: string;
   children: ReactNode;
+  id?: string | undefined;
 }): ReactNode {
-  const id = `concept-${useId().replaceAll(/[^a-zA-Z0-9_-]/g, "")}`;
+  const generatedId = `concept-${useId().replaceAll(/[^a-zA-Z0-9_-]/g, "")}`;
+  const id = providedId ?? generatedId;
   return (
     <>
       <PopoverButton

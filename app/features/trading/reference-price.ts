@@ -17,7 +17,7 @@ export function referencePrice(
   code: string,
   sources: { quote: StockQuote; closes: StockHistory },
   day: { date: string; previousDate: string },
-): Result<Rupiah, OrderFailure> {
+): Result<Rupiah, Extract<OrderFailure, { kind: "noReferenceClose" }>> {
   if (wibDateOf(sources.quote.quotedAt) === day.date) {
     return succeed(sources.quote.previousClose);
   }

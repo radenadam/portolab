@@ -9,16 +9,21 @@ import { locales } from "~/paraglide/runtime.js";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
 import { readClassOverview } from "./read-class-overview.server";
 
-const texts: Record<Locale, { none: string; latest: string; price: string }> = {
+const texts: Record<
+  Locale,
+  { none: string; latest: string; price: string; pricesAt: string }
+> = {
   id: {
     none: "Belum pernah memasang order",
     latest: "2 Nov 2026, 10.00",
     price: "BBCA 30 Okt 2026, 16.14",
+    pricesAt: "30 Okt 2026, 16.14 WIB",
   },
   en: {
     none: "No order placed yet",
     latest: "Nov 2, 2026, 10:00 AM",
     price: "BBCA Oct 30, 2026, 4:14 PM",
+    pricesAt: "Oct 30, 2026, 4:14 PM WIB",
   },
 };
 
@@ -43,6 +48,7 @@ for (const locale of locales) {
       now: new Date("2026-11-02T03:01:00Z"),
       delayMinutes: 10,
     });
+    expect(overview.pricesAt).toBe(texts[locale].pricesAt);
     expect(overview.students).toHaveLength(6);
     expect(overview.active).toBe(1);
     expect(overview.ordersThisWeek).toBe(1);

@@ -186,6 +186,15 @@ test("measures every stock that Portolab tracks, in their order, or says why a s
       value: {
         expectedReturn: closeToForTest(-0.0010226485841997692, 16),
         standardDeviation: closeToForTest(0.05227213243397345, 15),
+        variance: closeToForTest(0.0027323758291948595, 16),
+        requiredReturn: {
+          formula: "capm",
+          value: closeToForTest(0.0018033617934163425, 16),
+          inputs: {
+            ...fiveYearLine,
+            beta: closeToForTest(0.6893713956004657, 14),
+          },
+        },
         beta: closeToForTest(0.6893713956004657, 14),
         line: fiveYearLine,
         distance: closeToForTest(-0.002826010377616112, 16),

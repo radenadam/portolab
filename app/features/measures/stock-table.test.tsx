@@ -22,7 +22,7 @@ const texts: Record<
   id: {
     header: [
       "Saham",
-      "Imbal hasil yang diharapkan",
+      "Imbal hasil harapan",
       "Simpangan baku",
       "Beta terhadap IHSG",
     ],

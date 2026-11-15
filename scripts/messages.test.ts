@@ -1,5 +1,8 @@
 import { expect, test } from "vitest";
 import { marketIndex } from "../app/features/market-data/tracked-instruments.ts";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import {
   isInterfaceTest,
   literalIndexProblems,
@@ -101,6 +104,40 @@ test("lists the message keys without the schema key", () => {
 test("reads a language file of messages", () => {
   const messages = readMessages("messages/en.json");
   expect(messages.ok && messages.value["app_name"]).toBe("Portolab");
+});
+
+test("rejects only repeated message keys and lists each repeated key once", () => {
+  const folder = mkdtempSync(join(tmpdir(), "portolab-messages-"));
+  const path = join(folder, "messages.json");
+  try {
+    for (const text of [
+      '{"app_name":"First","app_name":"Last"}',
+      '{"app_name":"First","app_name":"Middle","app_name":"Last"}',
+      '{"app_name":"First","app_\\u006eame":"Last"}',
+    ]) {
+      writeFileSync(path, text);
+      expect(readMessages(path)).toEqual({
+        ok: false,
+        failure: `${path} must give each message key once, but it repeats "app_name".`,
+      });
+    }
+    writeFileSync(
+      path,
+      '{"app_name":"First","app_title_label":"First","app_name":"Middle","app_title_label":"Last","app_name":"Last"}',
+    );
+    expect(readMessages(path)).toEqual({
+      ok: false,
+      failure: `${path} must give each message key once, but it repeats "app_name" and "app_title_label".`,
+    });
+    const nested = {
+      app_name: "Portolab",
+      app_example_label: { app_name: "Nested value" },
+    };
+    writeFileSync(path, JSON.stringify(nested));
+    expect(readMessages(path)).toEqual({ ok: true, value: nested });
+  } finally {
+    rmSync(folder, { recursive: true, force: true });
+  }
 });
 
 test("reports a messages file that cannot be read", () => {

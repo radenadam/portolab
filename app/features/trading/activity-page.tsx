@@ -3,9 +3,8 @@ import type { ReactNode } from "react";
 import { data, Link } from "react-router";
 import { readPrices } from "~/features/market-data/read-prices.server";
 import { pageTitle } from "~/page-title";
-import { FormFailure, FormSuccess } from "~/form";
+import { FormFailure } from "~/form";
 import { m } from "~/paraglide/messages.js";
-import { parseRecordId } from "~/value-parsers";
 import type { Route } from "./+types/activity-page";
 import { activityPath } from "./activity-path";
 import { parseActivityFilter, parseActivityView } from "./activity-selection";
@@ -16,7 +15,6 @@ import { reloadsAfterEveryForm } from "./reloads-after-every-form";
 import { ActivityOrders } from "./activity-orders";
 import { JournalList } from "./journal-list";
 import { tradeJournal } from "./trade-journal";
-import type { OrderId } from "./trading.schema";
 import styles from "./activity.module.css";
 
 export function meta(): Route.MetaDescriptors {
@@ -38,10 +36,6 @@ export function loader({ context, request, params, url }: Route.LoaderArgs) {
   const view = parseActivityView(
     url.searchParams.get("view"),
     m.trading_activity_view_label(),
-  );
-  const placed = parseRecordId<OrderId>(
-    url.searchParams.get("placed"),
-    "placed",
   );
   const prices = readPrices(context, now);
   return data(
@@ -69,10 +63,6 @@ export function loader({ context, request, params, url }: Route.LoaderArgs) {
       now,
       filter: filter.ok ? filter.value : ("all" as const),
       view: view.ok ? view.value : ("orders" as const),
-      // The notice confirms only an order of this portfolio, so an address cannot confirm another student's order.
-      isPlaced:
-        placed.ok &&
-        portfolio.orders.some((order) => order.id === placed.value),
     },
     { status: filter.ok && view.ok ? 200 : 400 },
   );
@@ -112,7 +102,6 @@ export default function ActivityPage({
       {loaderData.fields !== undefined && (
         <ActivitySelectionForm fields={loaderData.fields} />
       )}
-      {loaderData.isPlaced && <FormSuccess text={m.trading_placed_notice()} />}
       {cancelFailure !== undefined && <FormFailure text={cancelFailure} />}
       <nav
         className={styles["toggle"]}
