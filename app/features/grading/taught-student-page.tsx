@@ -1,3 +1,5 @@
+import { classBackLabel } from "~/features/classes/class-back-label";
+import { isClassMapPath } from "~/features/classes/class-path";
 import { Icon } from "~/icon";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
@@ -71,7 +73,11 @@ export function TaughtStudentPage({
         <Link
           to={returnPath}
           className={styles["back"]}
-          aria-label={m.grading_back_label()}
+          aria-label={
+            isClassMapPath(returnPath, student.classId)
+              ? classBackLabel(student.className)
+              : m.grading_back_label()
+          }
         >
           <Icon name="chevronDown" className={undefined} />
         </Link>

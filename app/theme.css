@@ -120,6 +120,8 @@
   --size-student-avatar: 2.5rem;
   /* A chart takes about a third of the screen of a phone held upright, so the text around it stays in view. */
   --size-chart: 16rem;
+  /* The distribution bars and corner labels of a class need more height than a line chart. */
+  --size-class-map: 21.25rem;
   --size-market-chart: 8.75rem;
   --width-market-scale: 3.75rem;
   --size-market-scale: 0.875rem;

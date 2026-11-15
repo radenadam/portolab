@@ -8,8 +8,10 @@ import { describeValue } from "~/value-shapes";
 export function parseReturnPath(
   value: unknown,
   source: string,
-  origin: string,
+  site: string | { origin: string; allowedPaths: readonly string[] },
 ): Result<string, string> {
+  const { origin, allowedPaths } =
+    typeof site === "string" ? { origin: site, allowedPaths: undefined } : site;
   if (typeof value !== "string") {
     return returnPathFailure(value, source);
   }
@@ -25,6 +27,11 @@ export function parseReturnPath(
     const path = `${url.pathname}${url.search}${url.hash}`;
     // A value such as "/.//example.com" normalizes to "//example.com", which a browser reads as another site, so the returned path must resolve to this site too.
     if (URL.parse(path, origin)?.origin === origin) {
+      if (allowedPaths !== undefined && !allowedPaths.includes(url.pathname)) {
+        return fail(
+          `${source} must return to ${allowedPaths.join(" or ")}, but it is ${describeValue(path)}.`,
+        );
+      }
       return succeed(path);
     }
   }

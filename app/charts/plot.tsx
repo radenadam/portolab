@@ -65,3 +65,8 @@ export function PlotLine({
     </svg>
   );
 }
+
+// Two decimals of a size of the text place a mark within a tenth of a pixel, and they keep the page small.
+export function emOf(length: number): string {
+  return `${String(Math.round(length * 100) / 100)}em`;
+}

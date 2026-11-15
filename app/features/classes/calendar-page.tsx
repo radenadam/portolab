@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { data, Form, redirect } from "react-router";
 import { databaseContext } from "~/database/database.server";
 import { SubmitButton } from "~/form";
+import { parseReturnPath } from "~/parse-return-path";
 import { ClassBackLink } from "./class-back-link";
 import { FirstSessionField } from "./first-session-field";
 import formStyles from "~/form.module.css";
@@ -20,14 +21,14 @@ export function meta(): Route.MetaDescriptors {
 }
 
 export function loader({ context, params, url }: Route.LoaderArgs): {
-  classId: ClassId;
   className: string;
   firstSessionDate: string | null;
+  returnPath: string;
 } {
   const taught = requireTaughtClass(context, url, params.classId);
   return {
-    classId: taught.id,
     className: taught.name,
+    returnPath: calendarReturnPath(url, taught.id),
     firstSessionDate: taught.firstSessionDate,
   };
 }
@@ -61,14 +62,14 @@ export async function action({
     taught.id,
     firstSessionDate.value,
   );
-  return redirect(classPath(taught.id));
+  return redirect(calendarReturnPath(url, taught.id));
 }
 
 export default function CalendarPage({
   loaderData,
   actionData,
 }: Route.ComponentProps): ReactNode {
-  const { classId, className, firstSessionDate } = loaderData;
+  const { className, firstSessionDate, returnPath } = loaderData;
   return (
     <>
       <h1>{m.classes_calendar_title()}</h1>
@@ -81,7 +82,16 @@ export default function CalendarPage({
         />
         <SubmitButton label={m.classes_save_calendar_label()} />
       </Form>
-      <ClassBackLink classId={classId} className={className} />
+      <ClassBackLink className={className} to={returnPath} />
     </>
   );
+}
+
+function calendarReturnPath(url: URL, classId: ClassId): string {
+  const fallback = classPath(classId);
+  const parsed = parseReturnPath(url.searchParams.get("returnTo"), "returnTo", {
+    origin: url.origin,
+    allowedPaths: [fallback],
+  });
+  return parsed.ok ? parsed.value : fallback;
 }

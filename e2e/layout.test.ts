@@ -39,6 +39,7 @@ interface RoutePage {
   path: (walked: WalkedClass) => string;
   /** A form or a page of prose must mark its centered reading column, so omitting the mark cannot skip that rule. */
   reading?: boolean;
+  tableOpen?: boolean;
   /** The rules of the layout that a page of Tenang breaks until the piece of issue #127 that rebuilds it removes them here. The comment of the entry names that piece. */
   brokenUntilRebuilt?: readonly LayoutRule[];
 }
@@ -81,7 +82,11 @@ const routePages: Record<string, readonly RoutePage[]> = {
     { reader: "student", path: () => "/classes", reading: true },
   ],
   "features/classes/class-page.tsx": [
-    { reader: "lecturer", path: ({ classPath }) => classPath },
+    {
+      reader: "lecturer",
+      path: ({ classPath }) => `${classPath}?reveal=data`,
+      tableOpen: true,
+    },
     { reader: "student", path: ({ classPath }) => classPath },
   ],
   "features/classes/calendar-page.tsx": [
@@ -218,14 +223,17 @@ async function walkedReaders(
   );
   await page.goto(classPath);
   const { joinPath } = await readTestClass(page);
-  const resetLink = page.locator(`main a[href$="/password"]`).first();
-  const studentPath = (await resetLink.getAttribute("href"))?.replace(
+  const resetAddress = await page
+    .locator('main a[href*="/password"]')
+    .first()
+    .getAttribute("href");
+  if (resetAddress === null) {
+    throw new Error("The page of the class links to no reset of a password.");
+  }
+  const studentPath = new URL(resetAddress, page.url()).pathname.replace(
     /\/password$/,
     "",
   );
-  if (studentPath === undefined) {
-    throw new Error("The page of the class links to no reset of a password.");
-  }
   const visitor = await newDevice(browser, baseLocale);
   const newLecturer = await newDevice(browser, baseLocale);
   const username = uniqueUsername("dosen");
@@ -305,7 +313,7 @@ for (const [project, widths] of Object.entries(widthsOfProject)) {
           }
           for (const [
             screen,
-            { reader, path, reading, brokenUntilRebuilt = [] },
+            { reader, path, reading, tableOpen, brokenUntilRebuilt = [] },
           ] of Object.values(routePages).flat().entries()) {
             const address = path(walked);
             await readers[reader].goto(address);
@@ -314,6 +322,12 @@ for (const [project, widths] of Object.entries(widthsOfProject)) {
                 readers[reader].locator('main [data-layout="reading"]'),
                 address,
               ).toHaveCount(1);
+            }
+            if (tableOpen === true) {
+              await expect(
+                readers[reader].locator("main details:has(table)").first(),
+                address,
+              ).toHaveAttribute("open", "");
             }
             problems.push(
               ...(await inspectScreen(

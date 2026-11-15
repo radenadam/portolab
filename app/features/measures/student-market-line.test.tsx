@@ -1,6 +1,7 @@
+import { renderMarkupForTest } from "~/render-markup-for-test";
 import { markupTextForTest } from "~/markup-text-for-test";
-import { renderTextMarkupForTest } from "~/render-text-markup-for-test";
 import { renderToStaticMarkup } from "react-dom/server";
+import { MemoryRouter } from "react-router";
 import type { ReactNode } from "react";
 import { expect, test } from "vitest";
 import { languageNames } from "~/language-names";
@@ -25,7 +26,7 @@ import { readPortfolioMeasures, readStockRows } from "./read-measures.server";
 
 // The heading names the map by an id that React gives it, which the markup leaves out with the classes.
 function render(part: ReactNode): string {
-  return renderTextMarkupForTest(part).replaceAll(/ (class|id)="[^"]*"/g, "");
+  return renderMarkupForTest(part).replaceAll(/ id="[^"]*"/g, "");
 }
 
 /** The legend of the map, which names the kinds of point that it draws, the IHSG, and the line, each after a sample of its mark. */
@@ -206,7 +207,7 @@ function withoutChart(html: string): string {
 /** Whether the map names a point beside its mark, at any of the places beside it. */
 function namesPoint(html: string, name: string): boolean {
   return new RegExp(
-    `<text x="[^"]+" y="[^"]+" dx="[^"]+" dy="[^"]+" text-anchor="[a-z]+">${name}</text>`,
+    `<text x="[^"]+" y="[^"]+" dx="[^"]+" dy="[^"]+" text-anchor="[a-z]+" data-map-label="point"><tspan>${name}</tspan></text>`,
   ).test(html);
 }
 
@@ -404,10 +405,12 @@ for (const locale of locales) {
     ]) {
       for (const name of ["Raka", "60"]) {
         const html = renderToStaticMarkup(
-          <StudentMarketLine
-            studentName={name}
-            marketLine={studentLineForTest(database, valuation)}
-          />,
+          <MemoryRouter>
+            <StudentMarketLine
+              studentName={name}
+              marketLine={studentLineForTest(database, valuation)}
+            />
+          </MemoryRouter>,
         );
         expect(html.replaceAll(/<[^>]*>/g, "")).toContain(
           markupTextForTest(lecturerLatest[locale].replace("Raka", name)),

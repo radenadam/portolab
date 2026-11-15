@@ -14,7 +14,11 @@ export default defineConfig({
     },
   },
   plugins: [
-    paraglideVitePlugin({ project: "./project.inlang" }),
+    paraglideVitePlugin({
+      project: "./project.inlang",
+      // Match the CLI so the dev compiler does not replace its generated layout.
+      outputStructure: "message-modules",
+    }),
     reactRouter(),
   ],
   resolve: {

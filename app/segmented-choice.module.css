@@ -42,3 +42,17 @@
   box-shadow: var(--shadow-choice);
   content: "";
 }
+
+.compact {
+  display: inline-grid;
+  padding: var(--space-1);
+  font-size: var(--text-caption);
+  --choice-inset: 0;
+}
+.compact::before {
+  inset: 0;
+}
+.compact a {
+  padding-inline: var(--space-3);
+  font-size: inherit;
+}

@@ -1,3 +1,4 @@
+import { isClassMapPath } from "~/features/classes/class-path";
 import { latestPortfolioActivity } from "~/features/trading/latest-portfolio-activity";
 import type { RouterContextProvider } from "react-router";
 import { databaseContext } from "~/database/database.server";
@@ -52,8 +53,10 @@ export function readTaughtPortfolio(
     returnPath.ok ? returnPath.value : classPortfoliosPath(taughtClass.id),
     url,
   );
-  back.searchParams.set("student", String(student.id));
-  back.hash = selectedStudentHeadingId;
+  if (!isClassMapPath(back.pathname, taughtClass.id)) {
+    back.searchParams.set("student", String(student.id));
+    back.hash = selectedStudentHeadingId;
+  }
   const portfolio = readCurrentPortfolio(
     context.get(databaseContext),
     {
