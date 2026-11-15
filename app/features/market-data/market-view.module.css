@@ -223,6 +223,9 @@
   font-size: var(--text-small);
   color: var(--color-muted);
 }
+.priceCell time > span {
+  display: block;
+}
 .changeCell,
 .measureCell {
   text-align: end;
