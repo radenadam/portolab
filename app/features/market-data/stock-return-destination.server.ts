@@ -1,4 +1,4 @@
-import type { Role } from "~/features/accounts/accounts.schema";
+import type { PortfolioKind } from "~/features/trading/portfolio-store.server";
 import type { ClassId } from "~/features/classes/classes.schema";
 import { measuresPath } from "~/features/measures/measures-path";
 import { m } from "~/paraglide/messages.js";
@@ -8,12 +8,12 @@ import { marketPath } from "./market-path";
 /** A stock can be opened from either list, but its return must stay inside the reader's class. */
 export function stockReturnDestination({
   classId,
-  role,
+  portfolioKind,
   url,
   request,
 }: {
   classId: ClassId;
-  role: Role;
+  portfolioKind: PortfolioKind;
   url: URL;
   request: Request;
 }) {
@@ -22,7 +22,7 @@ export function stockReturnDestination({
     url,
   );
   const analysis =
-    destination.pathname === measuresPath(classId) && role === "student";
+    destination.pathname === measuresPath(classId, portfolioKind);
   const returnTo =
     destination.pathname === marketPath(classId) || analysis
       ? `${destination.pathname}${destination.search}${destination.hash}`

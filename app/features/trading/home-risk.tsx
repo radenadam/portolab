@@ -1,3 +1,4 @@
+import type { PortfolioKind } from "./portfolio-store.server";
 import { ConceptHelp } from "~/concept-card";
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
@@ -23,11 +24,15 @@ import { homeRiskNotes } from "./home-risk-notes";
 export function HomeRisk({
   report,
   classId,
+  portfolioKind = "membership",
+  path,
 }: {
   report: PortfolioMeasuresReport;
   classId: ClassId;
+  portfolioKind?: PortfolioKind;
+  path?: string | undefined;
 }): ReactNode {
-  const reader = { kind: "owner", classId } as const;
+  const reader = { kind: "owner", classId, portfolioKind } as const;
   const result = explainPortfolioMeasures(report, reader);
   return (
     <section className={styles["card"]}>
@@ -40,7 +45,9 @@ export function HomeRisk({
             </ConceptHelp>
           )}
         </div>
-        <Link to={measuresPath(classId)}>{m.trading_home_analysis_link()}</Link>
+        <Link to={path ?? measuresPath(classId)}>
+          {m.trading_home_analysis_link()}
+        </Link>
       </div>
       {!result.ok && (
         <p className={styles["note"]}>

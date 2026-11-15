@@ -1,3 +1,4 @@
+import type { PortfolioKind } from "./portfolio-store.server";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
 import { useId } from "react";
 import type { ReactNode } from "react";
@@ -49,16 +50,18 @@ export function TradeImpact({
   preview,
   code,
   ticket = false,
+  portfolioKind = "membership",
   axis,
 }: {
   preview: TradePreview;
   code: string;
   ticket?: boolean;
+  portfolioKind?: PortfolioKind;
   axis?: AnalysisAxis | undefined;
 }): ReactNode {
   const headingId = useId();
   if (!preview.ok) {
-    const text = failureText(preview.failure);
+    const text = failureText(preview.failure, portfolioKind);
     if (text === undefined) return null;
     return (
       <p className={styles["notice"]}>
@@ -109,18 +112,19 @@ export function TradeImpact({
 
 function failureText(
   failure: Extract<TradePreview, { ok: false }>["failure"],
+  portfolioKind: PortfolioKind,
 ): string | undefined {
   switch (failure.kind) {
     case "order": {
       const reason = failure.failure;
       if (reason.kind === "offTick" || reason.kind === "outsideLimits")
         return undefined;
-      return orderFailureText(reason);
+      return orderFailureText(reason, portfolioKind);
     }
     case "measures":
       return measureFailureText(failure.failure, {
         kind: "portfolio",
-        reader: { kind: "owner" },
+        reader: { kind: "owner", portfolioKind },
       });
   }
 }

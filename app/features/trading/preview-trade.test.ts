@@ -208,7 +208,7 @@ test("keeps reserved cash and shares unavailable to a preview and leaves the dat
     portfolio,
     bbcaForTest,
   );
-  const id = savePlacedOrder(database, owner, reservation);
+  const { orderId: id } = savePlacedOrder(database, owner, reservation);
   const ticket = readTicket(
     database,
     { ...portfolio, orders: [{ ...reservation, id }] },

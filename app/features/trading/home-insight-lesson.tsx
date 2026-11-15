@@ -11,7 +11,11 @@ export function HomeInsightLesson({
   session: SessionNumber;
 }): ReactNode {
   return (
-    <LessonLink className={styles["learnLink"]} session={session}>
+    <LessonLink
+      id="home-insight-lesson"
+      className={styles["learnLink"]}
+      session={session}
+    >
       <NumberText>{m.trading_home_learn_label()}</NumberText>{" "}
       <span aria-hidden="true">→</span>
     </LessonLink>

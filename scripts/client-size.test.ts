@@ -101,7 +101,7 @@ test("budgets every route with its ancestors, split exports, static imports, and
     "plans every budget",
   );
   expect(checks.map((check) => [check.name, check.limit, check.gzip])).toEqual([
-    ["Shared JavaScript", "140 kB", true],
+    ["Shared JavaScript", "141 kB", true],
     ["Shared CSS", "20 kB", true],
     ["Route JavaScript: class", "200 kB", true],
     ["Route CSS: class", "20 kB", true],
@@ -185,7 +185,7 @@ test("discovers a new route without adding a budget entry by hand", () => {
   expect(added?.path).toContain("build/client/assets/new.js");
 });
 
-test("keeps the larger ticket ceilings separate from the stock and shared ceilings", () => {
+test("keeps the measured stock and ticket allowances separate from other routes", () => {
   const { chunks, routes, files } = fixture();
   routes.delete("market");
   routes.delete("other");
@@ -212,14 +212,50 @@ test("keeps the larger ticket ceilings separate from the stock and shared ceilin
   ]);
   expect(limits).toContainEqual([
     "Route JavaScript: features/market-data/stock-page",
-    "200 kB",
+    "202 kB",
   ]);
   expect(limits).toContainEqual([
     "Route CSS: features/market-data/stock-page",
     "20 kB",
   ]);
-  expect(limits).toContainEqual(["Shared JavaScript", "140 kB"]);
+  expect(limits).toContainEqual(["Shared JavaScript", "141 kB"]);
   expect(limits).toContainEqual(["Shared CSS", "20 kB"]);
+});
+
+test("keeps the Kelas CSS allowance on its complete route alone", () => {
+  const { chunks, routes, files } = fixture();
+  routes.set("features/classes/class-page", {
+    file: "app/class.tsx",
+    parentId: "root",
+  });
+  routes.set("class-child", {
+    file: "app/other.tsx",
+    parentId: "features/classes/class-page",
+  });
+  const checks = successValueForTest(
+    clientSizeChecks(chunks, routes, files),
+    "plans the class allowance",
+  );
+  expect(
+    checks
+      .filter(
+        (check) =>
+          check.name === "Shared CSS" || check.name?.startsWith("Route CSS:"),
+      )
+      .map((check) => [check.name, check.limit]),
+  ).toEqual([
+    ["Shared CSS", "20 kB"],
+    ["Route CSS: class", "20 kB"],
+    ["Route CSS: market", "20 kB"],
+    ["Route CSS: other", "20 kB"],
+    ["Route CSS: features/classes/class-page", "21 kB"],
+    ["Route CSS: class-child", "20 kB"],
+  ]);
+  expect(
+    checks.find(
+      (check) => check.name === "Route CSS: features/classes/class-page",
+    )?.path,
+  ).toEqual(checks.find((check) => check.name === "Route CSS: class")?.path);
 });
 
 test("rejects missing files even when the other files of the route exist", () => {

@@ -1,3 +1,4 @@
+import { portfolioHome } from "~/features/trading/portfolio-home";
 import { StockQuoteDetails } from "./stock-quote-details";
 import { QuoteNotice } from "~/features/market-data/quote-notice";
 import { NumberText } from "~/number-text";
@@ -90,13 +91,18 @@ export function loader({ context, params, request, url }: Route.LoaderArgs) {
     code,
     ...moment,
   });
-  const selection =
-    portfolio.tradePreview === undefined ? undefined : readImpactSelection(url);
+  const selection = readImpactSelection(url);
   return data(
     {
       classId,
       draftKey: `${String(reader.id)}:${stockPath(classId, code)}`,
-      ...stockReturnDestination({ classId, role: reader.role, url, request }),
+      portfolioHome: portfolioHome(classId, portfolio.portfolioKind),
+      ...stockReturnDestination({
+        classId,
+        portfolioKind: portfolio.portfolioKind,
+        url,
+        request,
+      }),
       code,
       quote,
       quoteNotice:
@@ -117,14 +123,14 @@ export function loader({ context, params, request, url }: Route.LoaderArgs) {
       isLq45: universe.ok && universe.value.includes(code),
       lotShares: rules.ok ? rules.value.lotShares : undefined,
     },
-    { status: selection?.fields === undefined ? 200 : 400 },
+    { status: selection.fields === undefined ? 200 : 400 },
   );
 }
 
 export default function StockPage({
   loaderData: stock,
 }: Route.ComponentProps): ReactNode {
-  if (stock.selection?.fields !== undefined) {
+  if (stock.selection.fields !== undefined) {
     return (
       <div className={styles["page"]}>
         <TradeImpactSelectionForm fields={stock.selection.fields} />
@@ -145,8 +151,8 @@ function StockPageContent({
   return (
     <TicketDraftMemory key={stock.draftKey} storageKey={stock.draftKey}>
       <div
-        className={ticket === null ? undefined : styles["withTicket"]}
-        data-layout={ticket === null ? undefined : "columns"}
+        className={ticket === null ? styles["page"] : styles["withTicket"]}
+        data-layout={ticket === null ? "content" : "columns"}
       >
         <div className={styles["page"]}>
           <header className={styles["header"]}>
@@ -189,7 +195,7 @@ function StockPageContent({
               </div>
             )}
             <StockQuoteDetails
-              classId={classId}
+              portfolio={stock.portfolioHome}
               quote={quote?.kind === "stock" ? quote : undefined}
               hasPortfolioQuotes={hasStockPortfolioQuotes(stock)}
             />
@@ -232,6 +238,7 @@ function StockPageContent({
               )}
             </div>
             <StockKeyMeasures
+              portfolioKind={stock.portfolioKind}
               classId={classId}
               code={code}
               measures={stock.measures}
@@ -246,46 +253,47 @@ function StockPageContent({
             <details className={styles["calculations"]}>
               <summary>{m.market_data_all_calculations_label()}</summary>
               <MethodNotice />
-              <StockMeasuresView code={code} measures={stock.measures} />
+              <StockMeasuresView
+                code={code}
+                measures={stock.measures}
+                portfolioKind={stock.portfolioKind}
+              />
             </details>
           </section>
-          {stock.tradePreview !== undefined && (
-            <StockImpact
-              code={code}
-              ticket={stock.tradePreview}
-              {...stock.selection}
-            />
-          )}
-          {stock.tradePreview !== undefined && (
-            <nav
-              className={styles["actions"]}
-              hidden={ticket !== null}
-              aria-label={m.market_data_trade_label()}
+          <StockImpact
+            portfolioKind={stock.portfolioKind}
+            code={code}
+            ticket={stock.tradePreview}
+            {...stock.selection}
+          />
+          <nav
+            className={styles["actions"]}
+            hidden={ticket !== null}
+            aria-label={m.market_data_trade_label()}
+          >
+            <Link
+              data-stock-trade="buy"
+              className={styles["buy"]}
+              to={{
+                pathname: `${stockPath(classId, code)}/buy`,
+                search: location.search,
+              }}
+              preventScrollReset
             >
-              <Link
-                data-stock-trade="buy"
-                className={styles["buy"]}
-                to={{
-                  pathname: `${stockPath(classId, code)}/buy`,
-                  search: location.search,
-                }}
-                preventScrollReset
-              >
-                {m.market_data_buy_link()}
-              </Link>
-              <Link
-                data-stock-trade="sell"
-                className={styles["sell"]}
-                to={{
-                  pathname: `${stockPath(classId, code)}/sell`,
-                  search: location.search,
-                }}
-                preventScrollReset
-              >
-                {m.market_data_sell_link()}
-              </Link>
-            </nav>
-          )}
+              {m.market_data_buy_link()}
+            </Link>
+            <Link
+              data-stock-trade="sell"
+              className={styles["sell"]}
+              to={{
+                pathname: `${stockPath(classId, code)}/sell`,
+                search: location.search,
+              }}
+              preventScrollReset
+            >
+              {m.market_data_sell_link()}
+            </Link>
+          </nav>
         </div>
         {ticket}
       </div>

@@ -1,3 +1,4 @@
+import type { PortfolioKind } from "./portfolio-store.server";
 import type { ReactNode } from "react";
 import { Link, useLocation } from "react-router";
 import {
@@ -32,11 +33,13 @@ export function StockImpact({
   code,
   ticket,
   share = defaultImpactShare,
+  portfolioKind = "membership",
   axis,
 }: {
   code: string;
   ticket: ReturnType<typeof readTicket>;
   share?: PortfolioWeight | undefined;
+  portfolioKind?: PortfolioKind;
   axis?: AnalysisAxis | undefined;
 }): ReactNode {
   const location = useLocation();
@@ -64,7 +67,9 @@ export function StockImpact({
       </div>
       {!ticket.day.ok ? (
         <p>
-          <NumberText>{orderFailureText(ticket.day.failure)}</NumberText>
+          <NumberText>
+            {orderFailureText(ticket.day.failure, portfolioKind)}
+          </NumberText>
         </p>
       ) : ticket.quote === undefined ? (
         <p>
@@ -76,6 +81,7 @@ export function StockImpact({
         </p>
       ) : (
         <StockImpactPreview
+          portfolioKind={portfolioKind}
           code={code}
           ticket={{
             ...ticket,
@@ -96,6 +102,7 @@ function StockImpactPreview({
   code,
   ticket,
   share,
+  portfolioKind,
   path,
   axis,
 }: {
@@ -106,6 +113,7 @@ function StockImpactPreview({
     impact: { ok: true };
   };
   share: Parameters<typeof stockImpactLots>[0]["share"];
+  portfolioKind: PortfolioKind;
   path: string;
   axis: AnalysisAxis | undefined;
 }): ReactNode {
@@ -145,6 +153,7 @@ function StockImpactPreview({
       if (!minimum.ok) throw new Error(minimum.failure);
       return (
         <TradeImpact
+          portfolioKind={portfolioKind}
           axis={axis}
           code={code}
           preview={previewTrade(
@@ -202,7 +211,12 @@ function StockImpactPreview({
             : m.trading_impact_purchase_notice(inputs)}
         </NumberText>
       </p>
-      <TradeImpact code={code} preview={preview} axis={axis} />
+      <TradeImpact
+        code={code}
+        preview={preview}
+        axis={axis}
+        portfolioKind={portfolioKind}
+      />
       {preview.ok && (
         <Link
           className={styles["open"]}

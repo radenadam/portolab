@@ -1,3 +1,4 @@
+import { activityPath } from "./activity-path";
 import { smallestOrderLots } from "~/units/lots";
 import { CompanyTile } from "~/features/market-data/stock-name";
 import { NumberText } from "~/number-text";
@@ -20,8 +21,8 @@ import {
 } from "./order-form-fields";
 import type { OrdersAnswer } from "./order-actions.server";
 import { placeFromForm } from "./order-actions.server";
-import { findStudentPlace } from "./find-student-place.server";
-import { readStudentPortfolio } from "./read-student-portfolio.server";
+import { findTradingPlace } from "./find-trading-place.server";
+import { readTradingPortfolio } from "./read-trading-portfolio.server";
 import { readTicket } from "./read-ticket.server";
 import { reloadsAfterEveryForm } from "./reloads-after-every-form";
 import { TicketForm } from "./ticket-form";
@@ -42,7 +43,7 @@ function ticketAddress(params: { code: string; side: string }) {
 export function loader({ context, request, params, url }: Route.LoaderArgs) {
   const now = new Date();
   const { code, side } = ticketAddress(params);
-  const { place, portfolio, source } = readStudentPortfolio(context, {
+  const { place, portfolio, source } = readTradingPortfolio(context, {
     request,
     url,
     classId: params.classId,
@@ -96,6 +97,8 @@ export function loader({ context, request, params, url }: Route.LoaderArgs) {
   return data(
     {
       classId: place.classId,
+      activity: activityPath(place.classId, place.owner.kind),
+      portfolioKind: place.owner.kind,
       code,
       side,
       ticket,
@@ -144,7 +147,7 @@ export async function action({
   Response | ReturnType<typeof data<OrdersAnswer>>
 > {
   const now = new Date();
-  const place = findStudentPlace(context, url, params.classId);
+  const place = findTradingPlace(context, url, { classId: params.classId });
   const { code, side } = ticketAddress(params);
   const form = await request.formData();
   return placeFromForm(context, {
@@ -265,6 +268,7 @@ export default function TicketPage({
           <TicketForm
             key={`${side}:${JSON.stringify(actionData?.fields ?? loaderData.fields)}`}
             code={code}
+            portfolioKind={loaderData.portfolioKind}
             side={side}
             path={stockPagePath}
             search={loaderData.search}
@@ -278,8 +282,8 @@ export default function TicketPage({
         ) : (
           <TicketDone
             order={order}
-            classId={classId}
             now={now}
+            activity={loaderData.activity}
             closePath={closePath}
           />
         )}

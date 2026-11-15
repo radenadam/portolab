@@ -42,4 +42,6 @@
 0042-client-css-is-budgeted-by-route.md
 0043-finding-fixes-and-merges-share-a-push-with-separate-charges.md
 0044-the-ticket-shows-the-trade-before-confirmation.md
-0045-the-ticket-budget-includes-the-stock-and-learning-sheets.md
+0045-the-lecturer-trades-in-a-demonstration-portfolio.md
+0046-kelas-has-a-measured-css-allowance-for-reused-portfolio-styles.md
+0047-trade-impact-has-measured-allowances-for-its-combined-screens.md

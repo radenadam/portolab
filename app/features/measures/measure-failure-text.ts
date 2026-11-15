@@ -1,5 +1,10 @@
+import type { PortfolioKind } from "~/features/trading/portfolio-store.server";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
-import { textForReader } from "~/features/trading/text-for-reader";
+import {
+  recordsStepForPortfolio,
+  recordsStepForReader,
+  textForReader,
+} from "~/features/trading/text-for-reader";
 import {
   formatBeta,
   formatCalendarDate,
@@ -17,10 +22,10 @@ import type { BetaNotPositive } from "./performance-ratios";
 
 /** The subject keeps the forecast and the next step specific to the calculation and its reader. */
 export type MeasuredSubject =
-  | { kind: "stock"; code: string }
+  | { kind: "stock"; code: string; portfolioKind?: PortfolioKind }
   | { kind: "portfolio"; reader: Parameters<typeof textForReader>[0] }
-  | { kind: "correlation" }
-  | { kind: "market" };
+  | { kind: "correlation"; portfolioKind?: PortfolioKind }
+  | { kind: "market"; portfolioKind?: PortfolioKind };
 
 type TooFewReturns = Extract<StoredMeasureFailure, { kind: "tooFewReturns" }>;
 
@@ -153,10 +158,13 @@ function noRiskFreeRateText(date: string, subject: MeasuredSubject): string {
     case "stock":
     case "market":
     case "correlation":
-      return m.measures_no_risk_free_rate_notice({ date });
+      return recordsStepForPortfolio(subject.portfolioKind ?? "membership", {
+        student: () => m.measures_no_risk_free_rate_notice({ date }),
+        lecturer: () => m.measures_lecturer_no_risk_free_rate_notice({ date }),
+      });
     case "portfolio":
-      return textForReader(subject.reader, {
-        owner: () => m.measures_no_risk_free_rate_notice({ date }),
+      return recordsStepForReader(subject.reader, {
+        student: () => m.measures_no_risk_free_rate_notice({ date }),
         lecturer: () => m.measures_lecturer_no_risk_free_rate_notice({ date }),
       });
   }

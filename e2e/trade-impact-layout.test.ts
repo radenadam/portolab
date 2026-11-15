@@ -4,6 +4,7 @@ import { languageNames } from "../app/language-names.ts";
 import { locales } from "../app/paraglide/runtime.js";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 import { layoutProblems } from "./expect-layout.ts";
+import type { LayoutRule } from "./expect-layout.ts";
 import { tradeImpactStudent } from "./trade-impact-student.ts";
 
 for (const locale of locales) {
@@ -24,6 +25,14 @@ for (const locale of locales) {
           student.locator('dialog form[data-ticket-ready="true"]'),
         ).toBeVisible();
       }
+      const layouts: Record<typeof kind, LayoutRule> = {
+        stock: "content",
+        ticket: "columns",
+      };
+      // The frame's marker cannot check a nested stock wrapper.
+      await expect(
+        student.locator("#impact").locator("..").locator(".."),
+      ).toHaveAttribute("data-layout", layouts[kind]);
       await expectImpactLayout(student, testInfo);
       await expectAccessibleScreen(student);
       await student.context().close();

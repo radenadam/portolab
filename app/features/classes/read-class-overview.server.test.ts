@@ -79,6 +79,7 @@ for (const locale of locales) {
     if (member === undefined)
       throw new Error("The fixture class has a student.");
     const owner = {
+      kind: "membership" as const,
       membershipId: member.membershipId,
       startingCash: fixture.taughtClass.startingCash,
     };
@@ -107,7 +108,7 @@ for (const locale of locales) {
     ];
     for (const { request, fill } of requests) {
       const order = acceptedForTest(request, account, bbcaForTest);
-      const id = savePlacedOrder(fixture.database, owner, order);
+      const { orderId: id } = savePlacedOrder(fixture.database, owner, order);
       if (fill === undefined) continue;
       const state = checkOrder({
         order,
@@ -160,6 +161,7 @@ for (const locale of locales) {
     placedOrderForTest(
       database,
       {
+        kind: "membership",
         membershipId: student.membershipId,
         startingCash: taughtClass.startingCash,
       },

@@ -171,8 +171,8 @@ for (const locale of locales)
     const time = wholeTimes[locale];
     const html = renderToStaticMarkup(
       <NumberText>
-        {(textValue, numberValue) =>
-          `${textValue("2026")}: ${numberValue(time)}.`
+        {(textValue) =>
+          `${textValue("2026")}: ${textValue(<NumberText whole>{time}</NumberText>)}.`
         }
       </NumberText>,
     );

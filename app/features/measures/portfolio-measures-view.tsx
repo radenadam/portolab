@@ -4,7 +4,7 @@ import { marketIndex } from "~/features/market-data/tracked-instruments";
 import type { ReactNode } from "react";
 import type { PriceSourceDescription } from "~/features/market-data/price-source.server";
 import { textForReader } from "~/features/trading/text-for-reader";
-import { homeTitle } from "~/features/trading/home-title";
+import { portfolioTitle } from "~/features/trading/portfolio-home";
 import type { PortfolioReader } from "~/features/trading/text-for-reader";
 import { formatNumber } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
@@ -40,7 +40,7 @@ interface PortfolioMeasuresProps {
   source: PriceSourceDescription;
 }
 
-/** The measures of the portfolio of a student, each with its formula and its inputs, or why it has none, for the student or for the lecturer of the class. */
+/** An owner and a lecturer reading a student need different names for the same measures and inputs. */
 export function PortfolioMeasuresView({
   report,
   reader,
@@ -99,8 +99,11 @@ function MeasuredPortfolio({
         <NumberText>
           {(textValue) =>
             textForReader(reader, {
-              owner: () =>
-                m.measures_weights_notice({ ...delay, page: homeTitle() }),
+              owner: (kind) =>
+                m.measures_weights_notice({
+                  ...delay,
+                  page: portfolioTitle(kind),
+                }),
               lecturer: (name) =>
                 m.measures_lecturer_weights_notice({
                   ...delay,

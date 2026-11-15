@@ -1,4 +1,4 @@
-# 0045. The ticket budget includes the stock and learning sheets
+# 0047. Trade impact has measured allowances for its combined screens
 
 - Status: Accepted
 - Date: 2026-11-16
@@ -43,22 +43,61 @@ appears. First contentful paint is 3.40 seconds, and the hydrated form is ready
 after 10.30 seconds. The server renders the comparison and native form before
 that enhancement is ready.
 
+The probe's server used the system Node runtime, while the production build
+and checks used the project's pinned runtime. The linked controlled comparison
+also records those versions.
+
 The same probe with a fourfold CPU throttle measures 1,267 to 4,298 ms for six
 input updates. The host reports 100% CPU load. These local observations cannot
 establish physical phone latency. [Issue #257](https://github.com/radenadam/portolab/issues/257)
 tracks a controlled comparison with the same portfolio, separate paint,
 hydration, and input measurements, and a phone or an idle throttled host.
 
+## The demonstration merge
+
+The later merge of main `1a0ccf5` includes the demonstration portfolio of
+[#253](https://github.com/radenadam/portolab/pull/253). Both roles now use the
+same stock page and ticket. Their recovery steps select the correct portfolio
+owner. Its [passing CI build](https://github.com/radenadam/portolab/actions/runs/43760746237)
+has the same source tree as main `1a0ccf5`.
+
+| Dependency set | Main, JavaScript/CSS kB | Combined, JavaScript/CSS kB |
+| -------------- | ----------------------: | --------------------------: |
+| Shared         |           139.91 / 7.80 |               140.07 / 7.80 |
+| Saham          |          177.49 / 15.13 |              201.41 / 17.87 |
+| Ticket         |          189.37 / 17.54 |              209.20 / 20.30 |
+
+Trade impact adds 23.92/2.74 kB to Saham and 19.83/2.76 kB to the ticket.
+The rounded shared JavaScript increase is 0.16 kB. The combined stock page exceeds its
+JavaScript ceiling by 1.41 kB, and the shared set exceeds its ceiling by
+75 bytes. The ticket remains within the measured allowance above.
+
+The shared set includes the route manifest, which lists imports for every
+route. The combined manifest is 4,916 bytes gzip. The text formatter's
+explicitly grouped placeholders reuse its existing marker callback instead of
+adding a second callback and tagged objects. The same build's formatter and
+language runtime share a 2,386-byte chunk. The first combined implementation
+measured 140.13 kB for shared JavaScript. The smaller representation saved
+58 bytes before the closed-page layout correction. The reductions above remain in place. Removing approved stock
+controls, recovery steps, or lesson sheets would make the combined screen
+incomplete.
+
 ## Decision
 
-- Only `features/trading/ticket-page` has ceilings of 210 kB gzip JavaScript and
-  21 kB gzip CSS. This admits the combined required screen with 2.40/0.80 kB
-  left. The shared ceilings and every other route keep their existing limits.
+- `features/trading/ticket-page` has ceilings of 210 kB gzip JavaScript and
+  21 kB gzip CSS. `features/market-data/stock-page` has a JavaScript ceiling
+  of 202 kB gzip and keeps its 20 kB CSS ceiling. Shared JavaScript has a
+  ceiling of 141 kB gzip, and shared CSS keeps its 20 kB ceiling. These
+  leave 0.80/0.70 kB for the ticket, 0.59 kB for stock JavaScript, and
+  0.93 kB for shared JavaScript in the final combined build.
+- Other routes keep their existing ceilings, including the separate Kelas
+  CSS allowance of [decision 0046](0046-kelas-has-a-measured-css-allowance-for-reused-portfolio-styles.md).
 - The check still includes bootstrap, root, ancestors, static and deferred
-  imports, and unowned assets. A regression checks that the stock and shared
-  limits stay separate from the ticket limits.
+  imports, and unowned assets. Regression tests keep each allowance on its
+  named set and retain the default limits for other routes.
 
-The increase is 5% of each earlier ceiling. The ticket renders its comparison,
+The ticket increase is 5% of each earlier ceiling. The stock JavaScript
+increase is 1%, and the shared JavaScript increase is less than 1%. The ticket renders its comparison,
 map, fields, and submit action on the server, so the native flow remains usable
 before hydration. The phone browser checks cover typed lots, both map axes,
 help, lesson sheets, and submission in both languages. They also cover the
@@ -68,20 +107,20 @@ time promise for a physical phone.
 
 ## Alternatives
 
-- **Keep both ticket ceilings.** The current required dependency set fails.
+- **Keep the earlier ceilings.** The combined required dependency sets fail.
   Removing the impact, its explanations, or the lesson sheets would undo an
   accepted part of Peta.
-- **Raise every route ceiling.** Other routes fit, so they need no allowance.
+- **Raise every route ceiling.** Only the named sets exceed their earlier ceilings, so other routes need no allowance.
 - **Move code behind an interaction.** The complete dependency walk still
   counts those bytes, and the ticket needs its fields immediately.
 - **Replace the framework or redesign the calculation boundary.** Either would
   expand this screen change into a separate architecture change. The framework
-  and hydration chunks alone account for 108.08 kB here. The measured increase
+  and hydration chunks alone account for 108.08 kB in the final combined build. The measured increase
   does not justify that scope in this piece.
 
 ## Consequences
 
 The ticket remains the one route that loads the stock and a complete order form
-at once. Future ticket changes have its measured allowance, and the stock,
-shared code, and other routes still fail at their existing ceilings. No asset
-is removed from the dependency walk, and this decision changes no runtime code.
+at once. The stock, ticket, and shared JavaScript set have their measured
+allowances. Every other set retains its ceiling. No asset is removed from the
+dependency walk, and the ceiling changes add no runtime code.

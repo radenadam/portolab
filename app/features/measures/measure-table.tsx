@@ -85,7 +85,10 @@ export function StockLink({
 }): ReactNode {
   const { pathname, search } = useLocation();
   const returnSearch = new URLSearchParams(search);
-  if (pathname === measuresPath(classId))
+  if (
+    pathname === measuresPath(classId) ||
+    pathname === measuresPath(classId, "demonstration")
+  )
     returnSearch.set(analysisDataReturn.parameter, analysisDataReturn.value);
   const query = returnSearch.toString();
   return (

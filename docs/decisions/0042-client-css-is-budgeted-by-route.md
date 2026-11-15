@@ -1,6 +1,6 @@
 # 0042. Client CSS is budgeted by route
 
-- Status: Accepted. [Decision 0045](0045-the-ticket-budget-includes-the-stock-and-learning-sheets.md) replaces its CSS ceiling for the order ticket.
+- Status: Accepted. [Decision 0046](0046-kelas-has-a-measured-css-allowance-for-reused-portfolio-styles.md) replaces its CSS ceiling for the class overview route. [Decision 0047](0047-trade-impact-has-measured-allowances-for-its-combined-screens.md) replaces its CSS ceiling for the order ticket.
 - Date: 2026-11-15
 
 ## Context

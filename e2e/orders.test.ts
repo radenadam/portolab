@@ -355,7 +355,6 @@ for (const locale of locales) {
       0,
     );
     for (const [device, path] of [
-      [page, `${classPath}/stocks/BBCA/buy`],
       [student, "/classes/999999999/stocks/BBCA/buy"],
       [student, `${classPath}/stocks/BBCA/hold`],
       [student, `${classPath}/orders`],

@@ -43,7 +43,7 @@ async function waitingPurchaseForTest(): Promise<{
 
 test("cancels an open order up to the last minute of its trading day, which returns the cash that it set aside", async () => {
   const { database, owner, orderId } = await waitingPurchaseForTest();
-  const before = readStoredPortfolio(database, owner.membershipId);
+  const before = readStoredPortfolio(database, owner);
   expect(cashSetAside(before?.orders ?? [], lastMinuteOfMondayForTest)).toEqual(
     {
       amount: 2_493_735,
@@ -53,11 +53,11 @@ test("cancels an open order up to the last minute of its trading day, which retu
   expect(
     cancelPortfolioOrder(
       database,
-      { membershipId: owner.membershipId, orderId },
+      { owner, orderId },
       lastMinuteOfMondayForTest,
     ),
   ).toEqual({ ok: true, value: undefined });
-  const after = readStoredPortfolio(database, owner.membershipId);
+  const after = readStoredPortfolio(database, owner);
   expect(after?.orders[0]?.state).toEqual({
     kind: "cancelled",
     cancelledAt: lastMinuteOfMondayForTest,
@@ -72,7 +72,7 @@ test("cancels no order once it expired, and gives the order as it ended", async 
   const { database, owner, orderId } = await waitingPurchaseForTest();
   const cancelled = cancelPortfolioOrder(
     database,
-    { membershipId: owner.membershipId, orderId },
+    { owner, orderId },
     endOfMondayForTest,
   );
   expect(cancelled).toMatchObject({
@@ -97,7 +97,7 @@ test("cancels no order that filled", async () => {
   expect(
     cancelPortfolioOrder(
       database,
-      { membershipId: owner.membershipId, orderId },
+      { owner, orderId },
       new Date("2026-11-02T02:52:00Z"),
     ),
   ).toMatchObject({
@@ -117,7 +117,7 @@ test("cancels no order of another portfolio and no order that does not exist", a
     expect(
       cancelPortfolioOrder(
         database,
-        { membershipId: other.membershipId, orderId: missing },
+        { owner: other, orderId: missing },
         lastMinuteOfMondayForTest,
       ),
     ).toEqual({ ok: false, failure: { kind: "missing" } });

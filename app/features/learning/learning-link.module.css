@@ -1,0 +1,3 @@
+.source {
+  scroll-margin-block-start: calc(var(--size-top-bar) + var(--space-4));
+}

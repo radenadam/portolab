@@ -1,3 +1,4 @@
+import type { PortfolioKind } from "~/features/trading/portfolio-store.server";
 import { NumberText } from "~/number-text";
 import { useId } from "react";
 import type { ReactNode } from "react";
@@ -23,8 +24,10 @@ import type {
 export function StudentMarketLine({
   marketLine,
   caption,
+  portfolioKind = "membership",
 }: {
   marketLine: Result<StudentLine, StoredMeasureFailure>;
+  portfolioKind?: PortfolioKind;
   /** What the chart shows about the portfolio, which the portfolio gives under the chart, as the references do, and the page of the measures gives above it with the other measures. */
   caption?: ReactNode;
 }): ReactNode {
@@ -35,7 +38,10 @@ export function StudentMarketLine({
         <h2>{m.measures_line_title()}</h2>
         <p>
           <NumberText>
-            {measureFailureText(marketLine.failure, { kind: "market" })}
+            {measureFailureText(marketLine.failure, {
+              kind: "market",
+              portfolioKind,
+            })}
           </NumberText>
         </p>
       </>

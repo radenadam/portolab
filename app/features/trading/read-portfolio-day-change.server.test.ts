@@ -1,3 +1,9 @@
+import {
+  storedPortfolioIdForTest,
+  placedOrderForTest,
+  studentWithQuotesForTest,
+  storeHoldingsForTest,
+} from "./portfolios-for-test.server";
 import { eq } from "drizzle-orm";
 import { expect, test } from "vitest";
 import type { Database } from "~/database/database.server";
@@ -15,11 +21,6 @@ import {
 } from "./orders-for-test";
 import { readPortfolio } from "./portfolio-store.server";
 import type { PortfolioOwner } from "./portfolio-store.server";
-import {
-  placedOrderForTest,
-  studentWithQuotesForTest,
-  storeHoldingsForTest,
-} from "./portfolios-for-test.server";
 import { readPortfolioDayChange } from "./read-portfolio-day-change.server";
 import { readPortfolioValuation } from "./read-portfolio-report.server";
 import {
@@ -74,7 +75,7 @@ test("includes sold shares, broker fees, and tax in the daily change", async () 
   );
   checkPortfolioOrders(
     database,
-    owner.membershipId,
+    storedPortfolioIdForTest(database, owner),
     new Date("2026-11-03T03:00:00Z"),
   );
   expect(readPortfolio(database, owner).holdings).toEqual([]);
@@ -206,13 +207,21 @@ test("withholds a percentage when deleted sale orders leave a nonpositive refere
       owner,
       purchaseForTest({ lots: orderLotsForTest(100) }),
     );
-    checkPortfolioOrders(database, owner.membershipId, duringSessionForTest);
+    checkPortfolioOrders(
+      database,
+      storedPortfolioIdForTest(database, owner),
+      duringSessionForTest,
+    );
     placedOrderForTest(
       database,
       owner,
       saleForTest({ lots: orderLotsForTest(100) }),
     );
-    checkPortfolioOrders(database, owner.membershipId, duringSessionForTest);
+    checkPortfolioOrders(
+      database,
+      storedPortfolioIdForTest(database, owner),
+      duringSessionForTest,
+    );
   }
   expect(
     database.delete(orders).where(eq(orders.side, "sell")).run().changes,

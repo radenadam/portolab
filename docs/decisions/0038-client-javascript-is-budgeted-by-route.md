@@ -1,6 +1,6 @@
 # 0038. Client JavaScript is budgeted by route
 
-- Status: Accepted. [Decision 0042](0042-client-css-is-budgeted-by-route.md) replaces its rules about the scope and reporting of the CSS budget. [Decision 0045](0045-the-ticket-budget-includes-the-stock-and-learning-sheets.md) replaces its JavaScript ceiling for the order ticket.
+- Status: Accepted. [Decision 0042](0042-client-css-is-budgeted-by-route.md) replaces its rules about the scope and reporting of the CSS budget. [Decision 0046](0046-kelas-has-a-measured-css-allowance-for-reused-portfolio-styles.md) replaces its consequence that Kelas needs no handwritten CSS budget entry. [Decision 0047](0047-trade-impact-has-measured-allowances-for-its-combined-screens.md) replaces its JavaScript ceilings for shared code, the stock page, and the order ticket.
 - Date: 2026-11-14
 
 ## Context

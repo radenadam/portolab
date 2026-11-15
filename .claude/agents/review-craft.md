@@ -17,6 +17,7 @@ A diff range, a set of paths, or a plan, with the intent behind it. In an audit,
 - Code that duplicates something already in the repository, in a form that `pnpm check` cannot detect, such as a copy shorter than the `minTokens` of `.jscpd.json` or a copy with renamed variables. Compare each new function, test fixture, and browser locator chain with its neighbors in the same module and with the helpers of its feature. Check variants that read the same part through another scope or position.
 - Field lists and option tables, including their copies in tests, against the single source rule in [Writing](../../AGENTS.md#writing).
 - Departures from the idioms of the stack: React Router route modules, loaders, actions, and forms, Paraglide message functions, Drizzle queries, and CSS modules.
+- Text assertions against the [Tests](../../AGENTS.md#tests) and [Interface text](../../AGENTS.md#interface-text) standards. Check whether another element or a longer message could satisfy a substring assertion, and whether each language still checks the intended element.
 
 ## Findings
 

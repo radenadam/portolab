@@ -1,3 +1,4 @@
+import type { PortfolioKind } from "./portfolio-store.server";
 import { useMemo } from "react";
 import type { ReactNode } from "react";
 import { NumberText } from "~/number-text";
@@ -13,10 +14,12 @@ export function TicketImpact({
   draft,
   code,
   axis,
+  portfolioKind,
 }: {
   draft: TicketDraft;
   code: string;
   axis: AnalysisAxis | undefined;
+  portfolioKind: PortfolioKind;
 }): ReactNode {
   const { count, price, ticket, side, values } = draft;
   const priceKind = values.priceKind;
@@ -65,7 +68,13 @@ export function TicketImpact({
           </p>
         )
       ) : (
-        <TradeImpact preview={preview} code={code} ticket axis={axis} />
+        <TradeImpact
+          preview={preview}
+          code={code}
+          ticket
+          axis={axis}
+          portfolioKind={portfolioKind}
+        />
       )}
     </section>
   );

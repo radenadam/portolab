@@ -1,3 +1,8 @@
+import {
+  storedPortfolioIdForTest,
+  placedOrderForTest,
+  studentWithQuotesForTest,
+} from "./portfolios-for-test.server";
 import { checkPortfolioOrders } from "./check-open-orders.server";
 import {
   bbcaForTest,
@@ -5,10 +10,6 @@ import {
   orderLotsForTest,
   purchaseForTest,
 } from "./orders-for-test";
-import {
-  placedOrderForTest,
-  studentWithQuotesForTest,
-} from "./portfolios-for-test.server";
 
 /** The purchase of tradedPortfolioForTest also tests the daily change before its later sale. */
 export async function purchasedPortfolioForTest() {
@@ -23,7 +24,7 @@ export async function purchasedPortfolioForTest() {
   );
   checkPortfolioOrders(
     result.database,
-    result.owner.membershipId,
+    storedPortfolioIdForTest(result.database, result.owner),
     duringSessionForTest,
   );
   return result;

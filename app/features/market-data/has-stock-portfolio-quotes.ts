@@ -5,8 +5,8 @@ export function hasStockPortfolioQuotes(
 ): boolean {
   return (
     (stock.holding?.kind === "priced" && stock.totalValue !== undefined) ||
-    stock.correlation?.ok === true ||
-    (stock.tradePreview?.impact.ok === true &&
+    stock.correlation.ok ||
+    (stock.tradePreview.impact.ok &&
       stock.tradePreview.impact.value.account.holdings.length > 0)
   );
 }

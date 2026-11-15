@@ -11,7 +11,7 @@ import type { PortfolioOwner } from "./portfolio-store.server";
 export interface StudentPlace {
   classId: ClassId;
   className: string;
-  owner: PortfolioOwner;
+  owner: Extract<PortfolioOwner, { kind: "membership" }>;
   joinedAt: Date;
   firstSessionDate: string | null;
 }
@@ -40,6 +40,7 @@ export function findStudentPlace(
     classId: joined.id,
     className: joined.name,
     owner: {
+      kind: "membership" as const,
       membershipId: joined.membershipId,
       startingCash: joined.startingCash,
     },

@@ -16,6 +16,7 @@ import {
 } from "./orders-for-test";
 import { studentPortfolioForTest } from "./portfolios-for-test.server";
 import {
+  findPortfolioId,
   listPortfoliosWithOpenOrders,
   readPortfolio,
   readStoredPortfolio,
@@ -65,7 +66,7 @@ const states: Record<string, OrderState> = {
 test("gives a portfolio without an order the starting cash of its class and nothing else", async () => {
   const database = openDatabaseForTest();
   const owner = await studentPortfolioForTest(database);
-  expect(readStoredPortfolio(database, owner.membershipId)).toBeUndefined();
+  expect(readStoredPortfolio(database, owner)).toBeUndefined();
   expect(readPortfolio(database, owner)).toEqual({
     cash: 100_000_000,
     holdings: [],
@@ -82,25 +83,27 @@ test("gives back an order as it stored it, with its limit, its reason or none, a
     accountForTest(),
     bbcaForTest,
   );
-  const orderId = savePlacedOrder(database, owner, order);
+  const { orderId } = savePlacedOrder(database, owner, order);
   const withoutReason = acceptedForTest(
     purchaseForTest(),
     accountForTest(),
     bbcaForTest,
   );
-  const withoutReasonId = savePlacedOrder(database, owner, withoutReason);
+  const { orderId: withoutReasonId } = savePlacedOrder(
+    database,
+    owner,
+    withoutReason,
+  );
   expect(order.reason).toBe(reason);
   expect(withoutReason.reason).toBeUndefined();
-  expect(
-    readStoredPortfolio(database, owner.membershipId)?.orders,
-  ).toStrictEqual([
+  expect(readStoredPortfolio(database, owner)?.orders).toStrictEqual([
     { ...order, id: orderId },
     { ...withoutReason, id: withoutReasonId },
   ]);
   for (const [name, state] of Object.entries(states)) {
     saveOrderState(database, orderId, state);
     expect(
-      readStoredPortfolio(database, owner.membershipId)?.orders[0]?.state,
+      readStoredPortfolio(database, owner)?.orders[0]?.state,
       name,
     ).toEqual(state);
   }
@@ -119,16 +122,16 @@ test("lists the portfolios with an order that is waiting or resting", async () =
   savePlacedOrder(database, waiting, order);
   saveOrderState(
     database,
-    savePlacedOrder(database, resting, order),
+    savePlacedOrder(database, resting, order).orderId,
     states["resting"] ?? order.state,
   );
-  saveOrderState(database, savePlacedOrder(database, done, order), {
+  saveOrderState(database, savePlacedOrder(database, done, order).orderId, {
     kind: "cancelled",
     cancelledAt: duringSessionForTest,
   });
   expect(listPortfoliosWithOpenOrders(database)).toEqual([
-    waiting.membershipId,
-    resting.membershipId,
+    findPortfolioId(database, waiting),
+    findPortfolioId(database, resting),
   ]);
 });
 
@@ -140,13 +143,13 @@ test("fails with the order and the column when a column that its state needs is 
     accountForTest(),
     bbcaForTest,
   );
-  const orderId = savePlacedOrder(database, owner, order);
+  const { orderId } = savePlacedOrder(database, owner, order);
   database
     .update(orders)
     .set({ state: "expired" })
     .where(eq(orders.id, orderId))
     .run();
-  expect(() => readStoredPortfolio(database, owner.membershipId)).toThrow(
+  expect(() => readStoredPortfolio(database, owner)).toThrow(
     `The order ${String(orderId)} is expired, but its column endedAt is empty.`,
   );
 });

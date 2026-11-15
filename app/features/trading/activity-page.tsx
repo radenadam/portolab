@@ -1,88 +1,31 @@
+import {
+  readActivityPage,
+  cancelActivityOrder,
+} from "./read-activity-page.server";
 import { ActivitySelectionForm } from "./activity-selection-form";
 import type { ReactNode } from "react";
-import { data, Link } from "react-router";
-import { readPrices } from "~/features/market-data/read-prices.server";
+import { Link } from "react-router";
 import { pageTitle } from "~/page-title";
 import { FormFailure } from "~/form";
 import { m } from "~/paraglide/messages.js";
 import type { Route } from "./+types/activity-page";
-import { activityPath } from "./activity-path";
-import { parseActivityFilter, parseActivityView } from "./activity-selection";
-import { findStudentPlace } from "./find-student-place.server";
-import { cancelFromForm } from "./order-actions.server";
-import { readStudentPortfolio } from "./read-student-portfolio.server";
 import { reloadsAfterEveryForm } from "./reloads-after-every-form";
 import { ActivityOrders } from "./activity-orders";
 import { JournalList } from "./journal-list";
-import { tradeJournal } from "./trade-journal";
 import styles from "./activity.module.css";
 
 export function meta(): Route.MetaDescriptors {
   return [{ title: pageTitle(m.trading_activity_title()) }];
 }
 
-export function loader({ context, request, params, url }: Route.LoaderArgs) {
-  const now = new Date();
-  const { place, portfolio } = readStudentPortfolio(context, {
-    request,
-    url,
-    classId: params.classId,
-    now,
-  });
-  const filter = parseActivityFilter(
-    url.searchParams.get("status"),
-    m.trading_activity_status_label(),
-  );
-  const view = parseActivityView(
-    url.searchParams.get("view"),
-    m.trading_activity_view_label(),
-  );
-  const prices = readPrices(context, now);
-  return data(
-    {
-      fields:
-        filter.ok && view.ok
-          ? undefined
-          : {
-              status: url.searchParams.get("status") ?? "all",
-              view: url.searchParams.get("view") ?? "orders",
-              statusFailure: filter.ok ? undefined : filter.failure,
-              viewFailure: view.ok ? undefined : view.failure,
-            },
-      classId: place.classId,
-      orders: portfolio.orders,
-      trades: tradeJournal(
-        portfolio.orders,
-        prices.quotes.filter((quote) => quote.kind === "stock"),
-      ),
-      prices: {
-        now: prices.now,
-        source: prices.source,
-        latestAttempt: prices.latestAttempt,
-      },
-      now,
-      filter: filter.ok ? filter.value : ("all" as const),
-      view: view.ok ? view.value : ("orders" as const),
-    },
-    { status: filter.ok && view.ok ? 200 : 400 },
-  );
+export function loader(args: Route.LoaderArgs) {
+  return readActivityPage({ ...args, now: new Date() }, "membership");
 }
 
 export const shouldRevalidate = reloadsAfterEveryForm;
 
-export async function action({
-  context,
-  request,
-  params,
-  url,
-}: Route.ActionArgs) {
-  const now = new Date();
-  const place = findStudentPlace(context, url, params.classId);
-  return cancelFromForm(
-    context,
-    { form: await request.formData(), place, now },
-    `${activityPath(place.classId)}${url.search}`,
-  );
+export async function action(args: Route.ActionArgs) {
+  return cancelActivityOrder({ ...args, now: new Date() }, "membership");
 }
 
 export default function ActivityPage({
@@ -95,10 +38,10 @@ export default function ActivityPage({
     cancelFailure === undefined
       ? loaderData
       : { filter: "all" as const, view: "orders" as const };
-  const base = activityPath(classId);
+  const base = loaderData.path;
   return (
     <div className={styles["activity"]}>
-      <h1>{m.trading_activity_title()}</h1>
+      {!loaderData.demonstration && <h1>{m.trading_activity_title()}</h1>}
       {loaderData.fields !== undefined && (
         <ActivitySelectionForm fields={loaderData.fields} />
       )}
@@ -126,6 +69,8 @@ export default function ActivityPage({
           now={now}
           classId={classId}
           filter={filter}
+          path={base}
+          portfolioKind={loaderData.portfolioKind}
         />
         <JournalList trades={trades} prices={prices} classId={classId} />
       </div>

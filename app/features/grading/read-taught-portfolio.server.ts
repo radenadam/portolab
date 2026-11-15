@@ -54,6 +54,7 @@ export function readTaughtPortfolio(
     portfolio: readCurrentPortfolio(
       context.get(databaseContext),
       {
+        kind: "membership" as const,
         membershipId: student.membershipId,
         startingCash: taughtClass.startingCash,
       },

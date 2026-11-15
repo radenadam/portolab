@@ -1,3 +1,4 @@
+import type { PortfolioKind } from "./portfolio-store.server";
 import type { MarkedPoint, MapPoint } from "~/charts/layout-risk-map";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
 import { formatBeta, formatPercent, formatSignedPercent } from "~/formatting";
@@ -9,7 +10,10 @@ import { homeHoldings } from "./home-holdings";
 import type { HomePortfolioData } from "./read-home-portfolio.server";
 
 /** The map compares current delayed values. The small chart keeps final daily closes. */
-export function homeMapPoints(home: HomePortfolioData):
+export function homeMapPoints(
+  home: HomePortfolioData,
+  portfolioKind: PortfolioKind = "membership",
+):
   | {
       market: MapPoint<Beta, CumulativeReturn>;
       points: MarkedPoint<Beta, CumulativeReturn>[];
@@ -22,7 +26,10 @@ export function homeMapPoints(home: HomePortfolioData):
       ...mapPoint(
         {
           key: `classmate-${String(index)}`,
-          name: m.trading_home_classmate_label(),
+          name: {
+            membership: m.trading_home_classmate_label,
+            demonstration: m.trading_demonstration_student_label,
+          }[portfolioKind](),
         },
         classmate.beta,
         classmate.return,

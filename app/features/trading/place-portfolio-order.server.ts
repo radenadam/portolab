@@ -11,14 +11,18 @@ import { checkPortfolioOrders } from "./check-open-orders.server";
 import type { OrderFailure, OrderRequest } from "./order";
 import { placeOrder } from "./place-order";
 import type { StockState } from "./place-order";
-import { readPortfolio, savePlacedOrder } from "./portfolio-store.server";
+import {
+  findPortfolioId,
+  readPortfolio,
+  savePlacedOrder,
+} from "./portfolio-store.server";
 import type { PortfolioOwner } from "./portfolio-store.server";
 import type { OrderId } from "./trading.schema";
 import { orderTradingDay } from "./order-trading-day";
 import { ticketAmounts } from "./ticket-amounts";
 import type { Rupiah } from "~/units/rupiah";
 
-/** Places the order of a student by the rules of placeOrder and stores it. The portfolio is checked first at the moment of the order, so the order counts on the cash and the shares that fills and expiries left. After the order is stored, the check runs again, so an order that the latest quote fills fills at once. Every step runs in one transaction, so no other order can use the cash or the shares that the order counts on. */
+/** Places the order of a portfolio owner by the rules of placeOrder and stores it. The portfolio is checked first at the moment of the order, so the order counts on the cash and the shares that fills and expiries left. After the order is stored, the check runs again, so an order that the latest quote fills fills at once. Every step runs in one transaction, so no other order can use the cash or the shares that the order counts on. */
 export function placePortfolioOrder(
   database: Database,
   request: OrderRequest,
@@ -40,7 +44,9 @@ export function placePortfolioOrder(
       closes: listStockHistory(database, request.code),
       marketCloses: listIndexHistory(database, marketIndex.code),
     };
-    checkPortfolioOrders(transaction, owner.membershipId, request.placedAt);
+    const portfolioId = findPortfolioId(transaction, owner);
+    if (portfolioId !== undefined)
+      checkPortfolioOrders(transaction, portfolioId, request.placedAt);
     const placed = placeOrder(
       request,
       readPortfolio(transaction, owner),
@@ -58,8 +64,8 @@ export function placePortfolioOrder(
       available: owner.startingCash,
     });
     if (seenTotal !== amounts.total) return fail({ kind: "previewChanged" });
-    const orderId = savePlacedOrder(transaction, owner, placed.value);
-    checkPortfolioOrders(transaction, owner.membershipId, request.placedAt);
-    return succeed(orderId);
+    const saved = savePlacedOrder(transaction, owner, placed.value);
+    checkPortfolioOrders(transaction, saved.portfolioId, request.placedAt);
+    return succeed(saved.orderId);
   });
 }

@@ -1,11 +1,15 @@
 import type { Database } from "~/database/database.server";
-import type { MembershipId } from "~/features/classes/classes.schema";
+import type { PortfolioOwner } from "./portfolio-store.server";
 import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
 import { checkPortfolioOrders } from "./check-open-orders.server";
 import { isOpenOrder } from "./open-orders";
 import type { StoredOrder } from "./order-rows";
-import { readStoredPortfolio, saveOrderState } from "./portfolio-store.server";
+import {
+  findPortfolioId,
+  readStoredPortfolio,
+  saveOrderState,
+} from "./portfolio-store.server";
 import type { OrderId } from "./trading.schema";
 
 /** Why Portolab cancelled no order, which is a number that names no order of the portfolio, or an order that is no longer open, given as it ended. */
@@ -15,12 +19,14 @@ export type CancelFailure =
 /** Cancels an open order of a portfolio at a moment, which returns what the order set aside. The portfolio is checked first, so an order that a fill or an expiry ended before the moment stays as it ended. Both steps run in one transaction. */
 export function cancelPortfolioOrder(
   database: Database,
-  { membershipId, orderId }: { membershipId: MembershipId; orderId: OrderId },
+  { owner, orderId }: { owner: PortfolioOwner; orderId: OrderId },
   now: Date,
 ): Result<undefined, CancelFailure> {
   return database.transaction((transaction) => {
-    checkPortfolioOrders(transaction, membershipId, now);
-    const order = readStoredPortfolio(transaction, membershipId)?.orders.find(
+    const portfolioId = findPortfolioId(transaction, owner);
+    if (portfolioId !== undefined)
+      checkPortfolioOrders(transaction, portfolioId, now);
+    const order = readStoredPortfolio(transaction, owner)?.orders.find(
       (stored) => stored.id === orderId,
     );
     if (order === undefined) {

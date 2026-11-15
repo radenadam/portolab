@@ -221,7 +221,7 @@ docker compose stop app
 docker compose run --rm --user root app chown -R portolab:portolab /app/data
 ```
 
-These commands back up the database, download the new version, build it, start it, and reload the Caddyfile. Some installations of Docker keep the image of the previous version, so the last command deletes it. It deletes only images of Portolab, so the images of other work stay:
+These commands back up the database before they download the new version, build it, start it, and reload the Caddyfile. Some installations of Docker keep the image of the previous version, so the last command deletes it. It deletes only images of Portolab, so the images of other work stay:
 
 ```sh
 cd /opt/portolab
@@ -243,7 +243,7 @@ Each warning names its day and what it lacks. From the end of session II of the 
 
 ## Personal data
 
-The privacy notice at `https://portolab.example.com/privacy` tells each person what Portolab stores about them, how long it keeps each record, and that you keep the database. Portolab deletes each record by itself when the notice gives the record a time. It keeps every other record, which means the accounts, the classes, and the work of the students, until you delete it. The daily backups keep a copy of each record until each backup is 14 days old.
+The privacy notice at `https://portolab.example.com/privacy` tells each person what Portolab stores about them, how long it keeps each record, and that you keep the database. Portolab deletes each record by itself when the notice gives the record a time. It keeps every other record, which means the accounts, the classes, and the work of students and lecturers, until you delete it. The daily backups keep a copy of each record until each backup is 14 days old.
 
 The law on personal data protection of Indonesia gives each person the right to see, correct, and delete their data, and to withdraw their agreement to the privacy notice. A person changes their own name in Portolab, and the notice sends every other request to you, so the next sections show how to answer each one.
 
@@ -262,9 +262,10 @@ docker compose exec --no-TTY app sqlite3 "file:/app/data/portolab.sqlite?mode=rw
   ".print sessions" "SELECT id, user_id, last_used_at FROM sessions WHERE user_id IN person" \
   ".print classes" "SELECT * FROM classes WHERE lecturer_id IN person OR id IN (SELECT class_id FROM memberships WHERE id IN places)" \
   ".print memberships" "SELECT * FROM memberships WHERE id IN places" \
-  ".print portfolios" "SELECT * FROM portfolios WHERE membership_id IN places" \
-  ".print holdings" "SELECT * FROM holdings WHERE membership_id IN places" \
-  ".print orders" "SELECT * FROM orders WHERE membership_id IN places" \
+  "CREATE TEMP TABLE owned_portfolios AS SELECT id FROM portfolios WHERE membership_id IN places OR demonstration_class_id IN (SELECT id FROM classes WHERE lecturer_id IN person)" \
+  ".print portfolios" "SELECT * FROM portfolios WHERE id IN owned_portfolios" \
+  ".print holdings" "SELECT * FROM holdings WHERE portfolio_id IN owned_portfolios" \
+  ".print orders" "SELECT * FROM orders WHERE portfolio_id IN owned_portfolios" \
   > ~/portolab-mahasiswa1.txt
 ```
 
@@ -288,7 +289,7 @@ A person changes their name on the page of their account, at `https://portolab.e
 
 ### Delete the data of a person
 
-When a person asks for the deletion of their data, or withdraws their agreement, run these commands with their username in place of `mahasiswa1`. The deletion of a lecturer also deletes the classes of the lecturer and the work of every student in them, because a class cannot exist without its lecturer.
+When a person asks for the deletion of their data, or withdraws their agreement, run these commands with their username in place of `mahasiswa1`. The deletion of a lecturer also deletes their classes and all simulated work in them, because a class cannot exist without its lecturer.
 
 ```sh
 cd /opt/portolab

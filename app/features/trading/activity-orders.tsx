@@ -1,3 +1,4 @@
+import type { PortfolioKind } from "./portfolio-store.server";
 import { activityFilters, activityStatusLabel } from "./activity-options";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
@@ -39,11 +40,15 @@ export function ActivityOrders({
   now,
   classId,
   filter,
+  path,
+  portfolioKind = "membership",
 }: {
   orders: readonly StoredOrder[];
   now: Date;
   classId: ClassId;
   filter: ActivityFilter;
+  path?: string;
+  portfolioKind?: PortfolioKind;
 }): ReactNode {
   const shown = orders
     .toReversed()
@@ -62,7 +67,7 @@ export function ActivityOrders({
         {activityFilters.map((status) => (
           <Link
             key={status}
-            to={`${activityPath(classId)}?status=${status}`}
+            to={`${path ?? activityPath(classId)}?status=${status}`}
             className={chipStyles["filter"]}
             aria-current={filter === status ? "page" : undefined}
           >
@@ -133,7 +138,7 @@ export function ActivityOrders({
                   <StatusChip status={activityStatus(order, now)} />
                 </div>
                 <div className={styles["orderBody"]}>
-                  <p>{orderDetail(order, now)}</p>
+                  <p>{orderDetail(order, now, portfolioKind)}</p>
                   {order.reason !== undefined && (
                     <p className={styles["reason"]}>
                       <NumberText verbatim>
@@ -192,7 +197,11 @@ function StatusChip({ status }: { status: ActivityStatus }): ReactNode {
   );
 }
 
-function orderDetail(order: StoredOrder, now: Date): ReactNode {
+function orderDetail(
+  order: StoredOrder,
+  now: Date,
+  portfolioKind: PortfolioKind,
+): ReactNode {
   if (activityStatus(order, now) === "expired")
     return (
       <Message
@@ -239,7 +248,9 @@ function orderDetail(order: StoredOrder, now: Date): ReactNode {
             time: <MarketTime moment={order.state.rejectedAt} />,
             quotedTime: <MarketTime moment={order.state.quotedAt} />,
             reason: (
-              <NumberText>{orderFailureText(order.state.failure)}</NumberText>
+              <NumberText>
+                {orderFailureText(order.state.failure, portfolioKind)}
+              </NumberText>
             ),
           }}
         />

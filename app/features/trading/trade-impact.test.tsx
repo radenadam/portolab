@@ -1,3 +1,6 @@
+import { measureFailureText } from "~/features/measures/measure-failure-text";
+import { orderFailureText } from "./order-failure-text";
+import type { TradePreview } from "./preview-trade";
 import { languageNames } from "~/language-names";
 import { expect, test } from "vitest";
 import { locales } from "~/paraglide/runtime.js";
@@ -197,6 +200,48 @@ for (const locale of locales) {
           conceptLessonDataForTest(),
         ),
       ).toContain(markupTextForTest(expected ?? ""));
+    }
+  });
+  test(`keeps recovery steps specific to each portfolio owner in ${languageNames[locale]}`, async () => {
+    switchLocaleForTest(locale);
+    const { ticket } = await tradePortfolioForTest();
+    const records = {
+      kind: "missingRules",
+      reason: "The fixture has no calendar.",
+    } as const;
+    const rate = { kind: "noRiskFreeRate", date: "2026-10-31" } as const;
+    for (const portfolioKind of ["membership", "demonstration"] as const) {
+      const expected = orderFailureText(records, portfolioKind);
+      expect(
+        renderMarkupForTest(
+          <StockImpact
+            code="BBCA"
+            ticket={{ ...ticket, day: fail(records) }}
+            portfolioKind={portfolioKind}
+          />,
+          conceptLessonDataForTest(),
+        ),
+      ).toContain(markupTextForTest(expected));
+      const cases: { preview: TradePreview; text: string }[] = [
+        { preview: fail({ kind: "order", failure: records }), text: expected },
+        {
+          preview: fail({ kind: "measures", failure: rate }),
+          text: measureFailureText(rate, {
+            kind: "portfolio",
+            reader: { kind: "owner", portfolioKind },
+          }),
+        },
+      ];
+      for (const { preview, text } of cases)
+        expect(
+          renderMarkupForTest(
+            <TradeImpact
+              preview={preview}
+              code="BBCA"
+              portfolioKind={portfolioKind}
+            />,
+          ),
+        ).toContain(markupTextForTest(text));
     }
   });
   test(`names the common months when a new stock shortens the comparison in ${languageNames[locale]}`, async () => {

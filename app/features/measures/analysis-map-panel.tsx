@@ -1,3 +1,4 @@
+import type { PortfolioKind } from "~/features/trading/portfolio-store.server";
 import { NumberText } from "~/number-text";
 import { analysisAxisDetails } from "./analysis-axis-details";
 import { analysisAxes } from "./analysis-axes";
@@ -29,12 +30,14 @@ export function AnalysisMapPanel({
   marketLine,
   axis,
   holdings,
+  portfolioKind = "membership",
 }: {
   market: MarketSummary | undefined;
   portfolio: PortfolioSummary | undefined;
   marketLine: Result<StudentLine, StoredMeasureFailure>;
   axis: AnalysisAxis;
   holdings: readonly AnalysisHolding[];
+  portfolioKind?: PortfolioKind;
 }): ReactNode {
   const details = analysisAxisDetails(axis);
   const session = useConceptSession(details.termId);
@@ -69,7 +72,10 @@ export function AnalysisMapPanel({
           !marketLine.ok && (
             <p>
               <NumberText>
-                {measureFailureText(marketLine.failure, { kind: "market" })}
+                {measureFailureText(marketLine.failure, {
+                  kind: "market",
+                  portfolioKind,
+                })}
               </NumberText>
             </p>
           )
@@ -83,7 +89,11 @@ export function AnalysisMapPanel({
             </NumberText>
           </em>
           <AnalysisCaption insight={details.insight(portfolio)} />
-          <LessonLink session={session} className={styles["link"]}>
+          <LessonLink
+            id="analysis-map-lesson"
+            session={session}
+            className={styles["link"]}
+          >
             {m.measures_analysis_learn_label()} <span aria-hidden>→</span>
           </LessonLink>
         </div>

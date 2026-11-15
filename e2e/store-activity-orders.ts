@@ -1,3 +1,4 @@
+import { storeTestPortfolio } from "./store-test-portfolio.ts";
 import { eq } from "drizzle-orm";
 import type { ClassId } from "../app/features/classes/classes.schema.ts";
 import { orders, portfolios } from "../app/features/trading/trading.schema.ts";
@@ -9,13 +10,13 @@ import { writeForTestStudent } from "./write-for-test-student.ts";
 /** Trades before the fixture quote expose both price comparisons. Python Decimal gives the purchase cost 500 × 4,940 × 1.0015 = 2,473,705 and the net sale gain 2,543,625 - 2,473,705 = 69,920. */
 export function storeActivityOrders(classId: ClassId): void {
   writeForTestStudent(classId, (database, membershipId) => {
-    database
-      .insert(portfolios)
-      .values({ membershipId, cash: rupiah(100_000_000) })
-      .onConflictDoNothing()
-      .run();
+    const portfolioId = storeTestPortfolio(
+      database,
+      { membershipId },
+      rupiah(100_000_000),
+    );
     const base = {
-      membershipId,
+      portfolioId,
       code: "BBCA",
       side: "buy" as const,
       lots: 5 as OrderLots,
@@ -88,7 +89,15 @@ export function widenActivityReasons(classId: ClassId, reason: string): void {
     database
       .update(orders)
       .set({ reason })
-      .where(eq(orders.membershipId, membershipId))
+      .where(
+        eq(
+          orders.portfolioId,
+          database
+            .select({ id: portfolios.id })
+            .from(portfolios)
+            .where(eq(portfolios.membershipId, membershipId)),
+        ),
+      )
       .run();
   });
 }

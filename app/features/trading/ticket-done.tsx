@@ -1,9 +1,7 @@
 import { orderSideLabel } from "./order-form-fields";
-import { activityPath } from "./activity-path";
 import type { ReactNode } from "react";
 import { useEffect, use } from "react";
 import { Link } from "react-router";
-import type { ClassId } from "~/features/classes/classes.schema";
 import { formatMarketTime, formatRupiah } from "~/formatting";
 import { NumberText } from "~/number-text";
 import { m } from "~/paraglide/messages.js";
@@ -17,14 +15,14 @@ import { Message } from "~/message";
 
 export function TicketDone({
   order,
-  classId,
   now,
   closePath,
+  activity,
 }: {
   order: Order;
-  classId: ClassId;
   now: Date;
   closePath: string;
+  activity: string;
 }): ReactNode {
   const memory = use(TicketDraftContext);
   useEffect(() => {
@@ -78,7 +76,7 @@ export function TicketDone({
           </p>
         )
       )}
-      <Link className={styles["fix"]} to={activityPath(classId)}>
+      <Link className={styles["fix"]} to={activity}>
         {m.trading_ticket_activity_link()}
       </Link>
       <Link className={styles["fix"]} to={closePath} preventScrollReset>

@@ -205,19 +205,26 @@ function routeBudgetChecks(
     const routeLimits =
       id === "features/trading/ticket-page"
         ? { javascript: "210 kB", stylesheets: "21 kB" }
-        : { javascript: "200 kB", stylesheets: "20 kB" };
+        : {
+            javascript:
+              id === "features/market-data/stock-page" ? "202 kB" : "200 kB",
+            stylesheets: "20 kB",
+          };
     const budgets: Record<
       ClientAssetKind,
       { name: string; limit: string; label: string }
     > = {
       javascript: {
         name: id === "root" ? "Shared JavaScript" : `Route JavaScript: ${id}`,
-        limit: id === "root" ? "140 kB" : routeLimits.javascript,
+        limit: id === "root" ? "141 kB" : routeLimits.javascript,
         label: "JavaScript",
       },
       stylesheets: {
         name: id === "root" ? "Shared CSS" : `Route CSS: ${id}`,
-        limit: routeLimits.stylesheets,
+        limit:
+          id === "features/classes/class-page"
+            ? "21 kB"
+            : routeLimits.stylesheets,
         label: "CSS",
       },
     };
