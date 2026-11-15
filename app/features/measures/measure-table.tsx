@@ -1,12 +1,10 @@
 import { TableHead } from "~/table-head";
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
-import { Link, useLocation } from "react-router";
 import tableStyles from "~/data-table.module.css";
-import { pathReturningTo } from "~/features/accounts/path-returning-to";
 import type { ClassId } from "~/features/classes/classes.schema";
 import styles from "./measures.module.css";
-import { stockPath } from "~/features/market-data/stock-path";
+import { StockPageLink } from "~/features/market-data/stock-page-link";
 import { analysisDataReturn } from "./analysis-data-return";
 
 /** A row of a table of measures: its name, such as the code of a stock, and a number for each other column, or a note that takes the place of all of them, such as why a stock has no measures. */
@@ -72,7 +70,6 @@ function RowCells({
   }
 }
 
-/** The code of a stock as a link to the page of its measures, with the height of a touch target. */
 export function StockLink({
   classId,
   code,
@@ -82,20 +79,16 @@ export function StockLink({
   code: string;
   id: string;
 }): ReactNode {
-  const { pathname, search } = useLocation();
-  const returnSearch = new URLSearchParams(search);
-  returnSearch.set(analysisDataReturn.parameter, analysisDataReturn.value);
-  const query = returnSearch.toString();
   return (
-    <Link
+    <StockPageLink
+      classId={classId}
+      code={code}
       id={id}
-      to={pathReturningTo(
-        stockPath(classId, code),
-        `${pathname}${query === "" ? "" : `?${query}`}#${id}`,
-      )}
+      keepReturn
+      returnHint={analysisDataReturn}
       className={styles["link"]}
     >
       {code}
-    </Link>
+    </StockPageLink>
   );
 }

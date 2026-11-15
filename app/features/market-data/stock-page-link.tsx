@@ -10,6 +10,7 @@ export function StockPageLink({
   code,
   id,
   keepReturn,
+  returnHint,
   className,
   children,
 }: {
@@ -17,17 +18,26 @@ export function StockPageLink({
   code: string;
   id: string;
   keepReturn: boolean;
+  returnHint?: { parameter: string; value: string } | undefined;
   className?: string | undefined;
   children: ReactNode;
 }): ReactNode {
   const { pathname, search } = useLocation();
   const path = stockPath(classId, code);
+  let returnSearch = search;
+  if (returnHint !== undefined) {
+    const query = new URLSearchParams(search);
+    query.set(returnHint.parameter, returnHint.value);
+    returnSearch = `?${query.toString()}`;
+  }
   return (
     <Link
       id={id}
       className={[styles["target"], className].filter(Boolean).join(" ")}
       to={
-        keepReturn ? pathReturningTo(path, `${pathname}${search}#${id}`) : path
+        keepReturn
+          ? pathReturningTo(path, `${pathname}${returnSearch}#${id}`)
+          : path
       }
     >
       {children}
