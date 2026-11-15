@@ -1,3 +1,4 @@
+import { impactRowGroups } from "./trade-impact-rows.ts";
 import type { Page } from "@playwright/test";
 import { expect, test } from "@playwright/test";
 import { locales } from "../app/paraglide/runtime.js";
@@ -103,7 +104,7 @@ async function expectCorrectedImpact(
   path: string,
   ticket: boolean,
 ) {
-  await expect(student.locator("[data-impact-rows]").first()).toBeVisible();
+  await expect(impactRowGroups(student).first()).toBeVisible();
   const corrected = new URL(student.url());
   expect(corrected.pathname).toBe(path);
   for (const [name, expected] of [

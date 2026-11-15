@@ -1,3 +1,4 @@
+import { impactAfterValue, impactRows } from "./trade-impact-rows.ts";
 import { languageNames } from "../app/language-names.ts";
 import { expect, test } from "@playwright/test";
 import type { Locator } from "@playwright/test";
@@ -92,27 +93,18 @@ const texts: Record<
   },
 };
 
-function firstImpactAfterValue(section: Locator): Locator {
-  return section
-    .locator("[data-impact-rows] > div")
-    .first()
-    .locator(":scope > strong");
-}
-
 // Python Decimal independently computed the portfolio's values from the recorded month-end closes, as preview-trade.test.ts describes.
 async function expectRows(
   section: Locator,
   rows: readonly (readonly [string, string])[],
 ) {
-  const drawn = section.locator("[data-impact-rows] > div");
+  const drawn = impactRows(section);
   await expect(drawn).toHaveCount(rows.length);
   for (const [index, [before, after]] of rows.entries()) {
     await expect(drawn.nth(index).locator(":scope > span").nth(1)).toHaveText(
       before,
     );
-    await expect(drawn.nth(index).locator(":scope > strong")).toContainText(
-      after,
-    );
+    await expect(impactAfterValue(section, index)).toContainText(after);
   }
 }
 
@@ -153,7 +145,7 @@ for (const locale of locales) {
     await ticket
       .getByLabel(text.reason, { exact: true })
       .fill("Tesis tetap tersimpan.");
-    await expect(firstImpactAfterValue(ticket)).toContainText(text.eleven);
+    await expect(impactAfterValue(ticket, 0)).toContainText(text.eleven);
     const axis = ticket.getByRole("navigation", { name: text.ticketAxis });
     for (const [label, value] of [
       [text.risk, "risk"],
@@ -173,7 +165,7 @@ for (const locale of locales) {
     await student.keyboard.press("Escape");
     await expect(lots).toHaveValue("11");
     await lots.fill("10");
-    await expect(firstImpactAfterValue(ticket)).toContainText(
+    await expect(impactAfterValue(ticket, 0)).toContainText(
       text.rows[0]?.[1] ?? "",
     );
     const pointValues = ticket.locator("summary:visible").first();
@@ -218,7 +210,7 @@ for (const locale of locales) {
     await expect(more).toBeFocused();
     await expect(lots).toHaveValue("11");
     await expect(reason).toHaveValue("Tesis tetap tersimpan.");
-    await expect(firstImpactAfterValue(ticket)).toContainText(text.eleven);
+    await expect(impactAfterValue(ticket, 0)).toContainText(text.eleven);
     await student.context().close();
   });
 
@@ -246,10 +238,11 @@ for (const locale of locales) {
       kind: "lastHolding",
     });
     await student.goto(`${classPath}/stocks/BBCA/sell?lots=10`);
-    const rows = student.locator("dialog [data-impact-rows] > div");
+    const ticket = student.locator("dialog");
+    const rows = impactRows(ticket);
     await expect(rows).toHaveCount(5);
     for (const [index, suffix] of ["", "%", "%", "%", "%"].entries())
-      await expect(rows.nth(index).locator(":scope > strong")).toContainText(
+      await expect(impactAfterValue(ticket, index)).toContainText(
         index < 3 ? `${text.zero}${suffix}` : text.zeroWeight,
       );
     await student.context().close();
@@ -313,9 +306,7 @@ for (const locale of locales) {
       await expect(page.locator('dialog input[name="lots"]')).toHaveValue(
         text.cap,
       );
-      await expect(page.locator("dialog [data-impact-rows] > div")).toHaveCount(
-        5,
-      );
+      await expect(impactRows(page.locator("dialog"))).toHaveCount(5);
       await page
         .locator("dialog")
         .getByRole("navigation", { name: text.ticketAxis })
