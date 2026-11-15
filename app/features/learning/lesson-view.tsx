@@ -17,6 +17,8 @@ export function LessonView({
   previous,
   next,
   returnTo,
+  inSheet = false,
+  idPrefix = "",
 }: {
   classId: ClassId;
   lesson: SessionContent;
@@ -24,22 +26,38 @@ export function LessonView({
   previous: SessionContent | undefined;
   next: SessionContent | undefined;
   returnTo: string | undefined;
+  inSheet?: boolean;
+  idPrefix?: string;
 }): ReactNode {
   return (
     <article className={styles["reading"]} data-layout="reading">
       <header className={styles["hero"]}>
-        <Link className={styles["link"]} to={returnTo ?? learnPath(classId)}>
-          <span aria-hidden="true">‹</span>
-          {returnTo === undefined
-            ? m.learning_back_link()
-            : m.learning_return_link()}
-        </Link>
-        <span className={styles["badge"]}>
-          <NumberText whole>{sessionLabel(lesson)}</NumberText>
-        </span>
-        <h1>
-          <NumberText>{lesson.title}</NumberText>
-        </h1>
+        {!inSheet && (
+          <Link className={styles["link"]} to={returnTo ?? learnPath(classId)}>
+            <span aria-hidden="true">‹</span>
+            {returnTo === undefined
+              ? m.learning_back_link()
+              : m.learning_return_link()}
+          </Link>
+        )}
+        <div className={styles["sheetTools"]}>
+          <span className={styles["badge"]}>
+            <NumberText whole>{sessionLabel(lesson)}</NumberText>
+          </span>
+          {inSheet && (
+            <Link
+              className={styles["link"]}
+              to={lessonPath(classId, lesson.session, returnTo)}
+            >
+              {m.learning_open_lesson_link()} <span aria-hidden="true">→</span>
+            </Link>
+          )}
+        </div>
+        {!inSheet && (
+          <h1>
+            <NumberText>{lesson.title}</NumberText>
+          </h1>
+        )}
       </header>
       {lesson.sections.map((section) => {
         switch (section.id) {
@@ -64,35 +82,39 @@ export function LessonView({
               </div>
             );
           case "terms":
-            return <TermList key={section.id} terms={terms} />;
+            return (
+              <TermList key={section.id} terms={terms} idPrefix={idPrefix} />
+            );
           case "interactive":
           case "practice":
             return null;
         }
       })}
-      <nav
-        className={styles["lessonNav"]}
-        aria-label={m.learning_lessons_label()}
-      >
-        {previous !== undefined && (
-          <Link
-            className={styles["link"]}
-            to={lessonPath(classId, previous.session, returnTo)}
-          >
-            <span aria-hidden="true">‹</span>
-            <NumberText>{lessonLinkText(previous)}</NumberText>
-          </Link>
-        )}
-        {next !== undefined && (
-          <Link
-            className={styles["link"]}
-            to={lessonPath(classId, next.session, returnTo)}
-          >
-            <NumberText>{lessonLinkText(next)}</NumberText>
-            <span aria-hidden="true">›</span>
-          </Link>
-        )}
-      </nav>
+      {!inSheet && (
+        <nav
+          className={styles["lessonNav"]}
+          aria-label={m.learning_lessons_label()}
+        >
+          {previous !== undefined && (
+            <Link
+              className={styles["link"]}
+              to={lessonPath(classId, previous.session, returnTo)}
+            >
+              <span aria-hidden="true">‹</span>
+              <NumberText>{lessonLinkText(previous)}</NumberText>
+            </Link>
+          )}
+          {next !== undefined && (
+            <Link
+              className={styles["link"]}
+              to={lessonPath(classId, next.session, returnTo)}
+            >
+              <NumberText>{lessonLinkText(next)}</NumberText>
+              <span aria-hidden="true">›</span>
+            </Link>
+          )}
+        </nav>
+      )}
     </article>
   );
 }

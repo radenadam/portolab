@@ -171,15 +171,27 @@ export default function TicketPage({
     if (dialog === null) return;
     const narrow = window.matchMedia("(width < 73.75rem)");
     const resize = () => {
-      if (narrow.matches) {
-        if (!dialog.matches(":modal")) {
-          dialog.close();
-          dialog.showModal();
-        }
-      } else if (dialog.matches(":modal") || !dialog.open) {
-        dialog.close();
-        dialog.show();
+      if (dialog.open && dialog.matches(":modal") === narrow.matches) return;
+      const children = [
+        ...dialog.querySelectorAll<HTMLDialogElement>("dialog:modal"),
+      ];
+      // Help opened before hydration must survive the ticket's change to modal mode.
+      const popovers = [
+        ...dialog.querySelectorAll<HTMLElement>("[popover]:popover-open"),
+      ];
+      const focused = document.activeElement;
+      for (const child of [...children].reverse()) child.close();
+      dialog.close();
+      if (narrow.matches) dialog.showModal();
+      else dialog.show();
+      // A reopened parent can take Escape from its children, so keep them last without another entrance animation.
+      for (const child of children) {
+        child.showModal();
+        for (const animation of child.getAnimations()) animation.finish();
       }
+      for (const popover of popovers) popover.showPopover();
+      if (focused instanceof HTMLElement && dialog.contains(focused))
+        focused.focus({ preventScroll: true });
     };
     resize();
     narrow.addEventListener("change", resize);

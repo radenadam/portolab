@@ -5,9 +5,11 @@ import type { ClassId } from "~/features/classes/classes.schema";
 import { formatNumber } from "~/formatting";
 import { Icon } from "~/icon";
 import { m } from "~/paraglide/messages.js";
+import { pathWithQuery } from "~/path-with-query";
 import type { GlossaryTerm, SessionContent } from "./content";
 import { ContentParagraphs } from "./content-paragraphs";
 import { glossaryPath, learnPath, lessonPath } from "./learning-paths";
+import { LearningLink } from "./learning-link";
 import { lessonLinkText } from "./session-text";
 import styles from "./learning.module.css";
 
@@ -17,22 +19,37 @@ export function GlossaryView({
   terms,
   sessions,
   error,
+  returnTo,
+  inSheet = false,
+  idPrefix = "",
+  searchForm: SearchForm = Form,
 }: {
   classId: ClassId;
   query: string;
   terms: readonly GlossaryTerm[];
   sessions: readonly SessionContent[];
   error: string | undefined;
+  returnTo?: string | undefined;
+  inSheet?: boolean;
+  idPrefix?: string;
+  searchForm?: typeof Form;
 }): ReactNode {
-  const returnPath = glossaryPath(classId, query);
+  const returnPath = glossaryPath(classId, query, returnTo);
   return (
     <div className={styles["reading"]} data-layout="reading">
-      <Link to={learnPath(classId)} className={styles["link"]}>
-        <span aria-hidden="true">‹</span>
-        {m.learning_back_link()}
-      </Link>
-      <h1>{m.learning_glossary_title()}</h1>
-      <Form method="post" action={glossaryPath(classId)} role="search">
+      <GlossaryHeading
+        classId={classId}
+        returnTo={returnTo}
+        inSheet={inSheet}
+      />
+      <SearchForm
+        method="post"
+        action={pathWithQuery(glossaryPath(classId), {
+          inPlace: inSheet ? "" : undefined,
+        })}
+        role="search"
+      >
+        <input type="hidden" name="returnTo" value={returnTo} />
         <div className={styles["searchField"]}>
           <button
             type="submit"
@@ -49,15 +66,21 @@ export function GlossaryView({
             key={query}
             placeholder={m.learning_search_hint()}
             aria-invalid={error === undefined ? undefined : true}
-            aria-describedby={error === undefined ? undefined : "query-error"}
+            aria-describedby={
+              error === undefined ? undefined : `${idPrefix}query-error`
+            }
           />
         </div>
         {error !== undefined && (
-          <p id="query-error" className={styles["error"]} role="alert">
+          <p
+            id={`${idPrefix}query-error`}
+            className={styles["error"]}
+            role="alert"
+          >
             <NumberText>{error}</NumberText>
           </p>
         )}
-      </Form>
+      </SearchForm>
       {error === undefined && (
         <>
           {terms.length > 0 && (
@@ -85,7 +108,7 @@ export function GlossaryView({
               return (
                 <section
                   key={term.id}
-                  id={`term-${term.id}`}
+                  id={`${idPrefix}term-${term.id}`}
                   className={styles["glossRow"]}
                 >
                   <h2>
@@ -95,7 +118,7 @@ export function GlossaryView({
                   {sessions
                     .filter((entry) => entry.session === term.session)
                     .map((lesson) => (
-                      <Link
+                      <LearningLink
                         key={lesson.session}
                         className={styles["link"]}
                         to={lessonPath(
@@ -105,7 +128,7 @@ export function GlossaryView({
                         )}
                       >
                         <NumberText>{lessonLinkText(lesson)}</NumberText>
-                      </Link>
+                      </LearningLink>
                     ))}
                 </section>
               );
@@ -114,5 +137,28 @@ export function GlossaryView({
         </>
       )}
     </div>
+  );
+}
+
+function GlossaryHeading({
+  classId,
+  returnTo,
+  inSheet,
+}: {
+  classId: ClassId;
+  returnTo: string | undefined;
+  inSheet: boolean;
+}): ReactNode {
+  if (inSheet) return null;
+  return (
+    <>
+      <Link to={returnTo ?? learnPath(classId)} className={styles["link"]}>
+        <span aria-hidden="true">‹</span>
+        {returnTo === undefined
+          ? m.learning_back_link()
+          : m.learning_return_link()}
+      </Link>
+      <h1>{m.learning_glossary_title()}</h1>
+    </>
   );
 }
