@@ -1,6 +1,6 @@
 # 0042. Client CSS is budgeted by route
 
-- Status: Accepted
+- Status: Accepted. [Decision 0045](0045-the-ticket-budget-includes-the-stock-and-learning-sheets.md) replaces its CSS ceiling for the order ticket.
 - Date: 2026-11-15
 
 ## Context

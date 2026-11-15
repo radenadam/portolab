@@ -185,6 +185,43 @@ test("discovers a new route without adding a budget entry by hand", () => {
   expect(added?.path).toContain("build/client/assets/new.js");
 });
 
+test("keeps the larger ticket ceilings separate from the stock and shared ceilings", () => {
+  const { chunks, routes, files } = fixture();
+  routes.delete("market");
+  routes.delete("other");
+  routes.set("features/market-data/stock-page", {
+    file: "app/market.tsx",
+    parentId: "class",
+  });
+  routes.set("features/trading/ticket-page", {
+    file: "app/other.tsx",
+    parentId: "features/market-data/stock-page",
+  });
+  const checks = successValueForTest(
+    clientSizeChecks(chunks, routes, files),
+    "budgets the stock and its docked ticket",
+  );
+  const limits = checks.map((check) => [check.name, check.limit]);
+  expect(limits).toContainEqual([
+    "Route JavaScript: features/trading/ticket-page",
+    "210 kB",
+  ]);
+  expect(limits).toContainEqual([
+    "Route CSS: features/trading/ticket-page",
+    "21 kB",
+  ]);
+  expect(limits).toContainEqual([
+    "Route JavaScript: features/market-data/stock-page",
+    "200 kB",
+  ]);
+  expect(limits).toContainEqual([
+    "Route CSS: features/market-data/stock-page",
+    "20 kB",
+  ]);
+  expect(limits).toContainEqual(["Shared JavaScript", "140 kB"]);
+  expect(limits).toContainEqual(["Shared CSS", "20 kB"]);
+});
+
 test("rejects missing files even when the other files of the route exist", () => {
   const { chunks, routes, files } = fixture();
   expect(

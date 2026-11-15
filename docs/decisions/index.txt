@@ -42,3 +42,4 @@
 0042-client-css-is-budgeted-by-route.md
 0043-finding-fixes-and-merges-share-a-push-with-separate-charges.md
 0044-the-ticket-shows-the-trade-before-confirmation.md
+0045-the-ticket-budget-includes-the-stock-and-learning-sheets.md

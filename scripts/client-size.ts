@@ -202,18 +202,22 @@ function routeBudgetChecks(
 ): Result<Check[], string> {
   const checks: Check[] = [];
   for (const { id, files } of routeAssets) {
+    const routeLimits =
+      id === "features/trading/ticket-page"
+        ? { javascript: "210 kB", stylesheets: "21 kB" }
+        : { javascript: "200 kB", stylesheets: "20 kB" };
     const budgets: Record<
       ClientAssetKind,
       { name: string; limit: string; label: string }
     > = {
       javascript: {
         name: id === "root" ? "Shared JavaScript" : `Route JavaScript: ${id}`,
-        limit: id === "root" ? "140 kB" : "200 kB",
+        limit: id === "root" ? "140 kB" : routeLimits.javascript,
         label: "JavaScript",
       },
       stylesheets: {
         name: id === "root" ? "Shared CSS" : `Route CSS: ${id}`,
-        limit: "20 kB",
+        limit: routeLimits.stylesheets,
         label: "CSS",
       },
     };
