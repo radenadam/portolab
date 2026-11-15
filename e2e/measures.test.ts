@@ -33,6 +33,7 @@ const analysisText: Record<
     title: string;
     endValue: string;
     sessionLines: string;
+    mapLesson: string;
     meaning: string;
     prices: string;
     period: string;
@@ -76,6 +77,7 @@ const analysisText: Record<
     title: "Analisis",
     endValue: "Anda 0,00%",
     sessionLines: "Garis tegak: awal setiap sesi kuliah.",
+    mapLesson: "Teori portofolio",
     meaning:
       "Diversifikasi menggabungkan saham yang imbal hasilnya tidak bergerak persis bersama, sehingga risiko portofolio dapat lebih kecil daripada rata-rata tertimbang risiko saham.",
     prices: "Waktu harga: Beranda",
@@ -142,6 +144,7 @@ const analysisText: Record<
     title: "Analysis",
     endValue: "You 0.00%",
     sessionLines: "Vertical lines: the start of each class session.",
+    mapLesson: "Portfolio theory",
     meaning:
       "Diversification combines stocks whose returns do not move exactly together, so portfolio risk can be lower than the weighted average stock risk.",
     prices: "Price times: Home",
@@ -374,7 +377,7 @@ for (const locale of locales) {
     ).toBeVisible();
     await expect(mapPanel).toContainText(text.insight);
     await expect(
-      mapPanel.getByRole("button", { name: text.learn, exact: true }),
+      mapPanel.getByRole("link", { name: text.learn, exact: true }),
     ).toBeVisible();
     const map = mapPanel.getByRole("slider");
     await map.focus();
@@ -435,12 +438,15 @@ for (const locale of locales) {
       .click();
     await expect(student.locator("#analysis-stock-BBCA-risk")).toBeVisible();
     await student.keyboard.press("Escape");
-    await riskMap
-      .getByRole("button", { name: text.learn, exact: true })
-      .click();
+    await riskMap.locator('button[popovertarget="analysis-map-help"]').click();
     await expect(student.locator("#analysis-map-help")).toContainText(
       text.meaning,
     );
+    await student.keyboard.press("Escape");
+    await riskMap.getByRole("link", { name: text.learn, exact: true }).click();
+    await expect(
+      student.getByRole("dialog", { name: text.mapLesson, exact: true }),
+    ).toBeVisible();
     await student.keyboard.press("Escape");
     await expectPerformanceHelp(student, locale, async () => {
       await expectAccessibleScreen(student);

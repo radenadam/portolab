@@ -79,6 +79,7 @@ type RouteId = Exclude<keyof Register["routeModules"], "root">;
 // The item that is current on each page: the item of the page itself, or of the nearest page above it, such as the analysis above the measures of one stock. A page outside the items has none.
 const currentItems: Record<RouteId, NavigationItem | undefined> = {
   "features/home/home-page": undefined,
+  "features/learning/learning-overlay": undefined,
   "features/learning/learn-page": "learn",
   "features/learning/lesson-page": "learn",
   "features/learning/glossary-page": "learn",

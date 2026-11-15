@@ -1,6 +1,7 @@
+import { expectRefusedGlossarySearch } from "./expect-refused-glossary-search.ts";
+import { returnFromLesson } from "./return-from-lesson.ts";
 import { languageNames } from "../app/language-names.ts";
 import { expect, test } from "@playwright/test";
-import type { Page } from "@playwright/test";
 import { captureScreens } from "./capture-screens.ts";
 import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
@@ -19,6 +20,7 @@ const texts: Record<
   {
     learn: string;
     glossary: string;
+    openLesson: string;
     glossaryLink: string;
     searchField: string;
     terms: string;
@@ -36,6 +38,7 @@ const texts: Record<
   id: {
     learn: "Belajar",
     glossary: "Kamus",
+    openLesson: "Buka di Belajar",
     glossaryLink: "Kamus istilah",
     searchField: "Cari istilah atau artinya",
     terms: "Istilah kunci",
@@ -52,6 +55,7 @@ const texts: Record<
   en: {
     learn: "Learn",
     glossary: "Glossary",
+    openLesson: "Open in Learn",
     glossaryLink: "Glossary",
     searchField: "Search terms or definitions",
     terms: "Key terms",
@@ -66,19 +70,6 @@ const texts: Record<
     notFound: "Page not found",
   },
 };
-
-async function expectRefusedSearch(page: Page, query: string): Promise<void> {
-  const search = page.getByRole("searchbox");
-  await search.fill(query);
-  const submitted = page.waitForResponse(
-    (answer) => answer.request().method() === "POST",
-  );
-  await search.press("Enter");
-  expect((await submitted).status()).toBe(400);
-  await expect(page.getByRole("alert")).toBeVisible();
-  await expect(search).toHaveValue(query);
-  expect(await layoutProblems(page)).toEqual([]);
-}
 
 for (const locale of locales) {
   const text = texts[locale];
@@ -180,18 +171,24 @@ for (const locale of locales) {
         ),
       );
     }
-    await expectRefusedSearch(page, "a".repeat(glossaryQueryMaximumLength + 1));
+    await expectRefusedGlossarySearch(
+      page,
+      "a".repeat(glossaryQueryMaximumLength + 1),
+    );
     await page.getByRole("searchbox", { name: text.searchField }).fill("beta");
     await page.getByRole("searchbox").press("Enter");
     const beta = page.locator("#term-beta");
     await beta
       .getByRole("link", { name: text.sessionLink, exact: true })
       .click();
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-      text.lesson,
-    );
-    await page.getByRole("link", { name: text.back, exact: true }).click();
-    await expect(page).toHaveURL(`${classPath}/glossary?q=beta#term-beta`);
+    const sheet = page.getByRole("dialog", { name: text.lesson });
+    await expect(sheet).toBeVisible();
+    await sheet.getByRole("link", { name: text.openLesson }).click();
+    await returnFromLesson(page, {
+      lesson: text.lesson,
+      back: text.back,
+      address: `${classPath}/glossary?q=beta#term-beta`,
+    });
     await expect(page.getByRole("searchbox")).toHaveValue("beta");
     await lecturer.context().close();
   });
@@ -279,7 +276,7 @@ for (const locale of locales) {
       await expect(page.getByRole("alert")).toBeVisible();
       expect(await layoutProblems(page)).toEqual([]);
       const wideQuery = "あ".repeat(fieldMaximumLength);
-      await expectRefusedSearch(page, wideQuery);
+      await expectRefusedGlossarySearch(page, wideQuery);
       await page.goto(`${classPath}/learn/9`);
       await page.getByText(text.beta, { exact: true }).click();
       await expect(page.locator("#term-beta p")).toBeVisible();

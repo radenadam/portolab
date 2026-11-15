@@ -4,3 +4,4 @@
 - Follow the [content format](../../../docs/learning-content.md). Keep term ids stable because lessons and concept cards link to them. Review the meaning of both translations when their structural check passes, because it cannot judge meaning.
 - Use formula references for notation and table references for facts that code or dated rules own. Never copy their numbers into prose. A change to a supported instrument also updates the text that says it cannot be practised.
 - Check financial claims against primary sources and the measurement decisions of this repository. Describe the assumptions of a model and distinguish an estimate from a promise. The [source notes](../../../docs/learning-content.md#source-notes) record the sources for this content.
+- A sheet stays outside the form or popover that opens it, because a data refresh can replace that source while the reader studies. Closing returns focus to the live source, even when the refresh replaced its element.

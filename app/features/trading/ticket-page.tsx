@@ -171,15 +171,18 @@ export default function TicketPage({
     if (dialog === null) return;
     const narrow = window.matchMedia("(width < 73.75rem)");
     const resize = () => {
-      if (narrow.matches) {
-        if (!dialog.matches(":modal")) {
-          dialog.close();
-          dialog.showModal();
-        }
-      } else if (dialog.matches(":modal") || !dialog.open) {
-        dialog.close();
-        dialog.show();
-      }
+      if (dialog.open && dialog.matches(":modal") === narrow.matches) return;
+      // Help opened before hydration must survive the ticket's change to modal mode.
+      const popovers = [
+        ...dialog.querySelectorAll<HTMLElement>("[popover]:popover-open"),
+      ];
+      const focused = document.activeElement;
+      dialog.close();
+      if (narrow.matches) dialog.showModal();
+      else dialog.show();
+      for (const popover of popovers) popover.showPopover();
+      if (focused instanceof HTMLElement && dialog.contains(focused))
+        focused.focus({ preventScroll: true });
     };
     resize();
     narrow.addEventListener("change", resize);

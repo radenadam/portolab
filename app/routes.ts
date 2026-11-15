@@ -1,4 +1,4 @@
-import { index, route } from "@react-router/dev/routes";
+import { index, layout, route } from "@react-router/dev/routes";
 import type { RouteConfig } from "@react-router/dev/routes";
 
 export default [
@@ -10,36 +10,41 @@ export default [
   route("account/setup", "features/accounts/account-setup-page.tsx"),
   route("privacy", "features/accounts/privacy-page.tsx"),
   route("classes", "features/classes/classes-page.tsx"),
-  route("classes/:classId", "features/classes/class-page.tsx"),
-  route("classes/:classId/calendar", "features/classes/calendar-page.tsx"),
-  route("classes/:classId/learn", "features/learning/learn-page.tsx"),
-  route("classes/:classId/learn/:session", "features/learning/lesson-page.tsx"),
-  route("classes/:classId/glossary", "features/learning/glossary-page.tsx"),
-  route("classes/:classId/market", "features/market-data/market-page.tsx"),
-  route("classes/:classId/activity", "features/trading/activity-page.tsx"),
-  route("classes/:classId/analysis", "features/measures/measures-page.tsx"),
-  route(
-    "classes/:classId/stocks/:code",
-    "features/market-data/stock-page.tsx",
-    [route(":side", "features/trading/ticket-page.tsx")],
-  ),
-  route(
-    "classes/:classId/students",
-    "features/grading/class-portfolios-page.tsx",
-  ),
-  route("classes/:classId/workbook", "features/grading/workbook-route.tsx"),
-  route(
-    "classes/:classId/students/:studentId/portfolio",
-    "features/grading/student-portfolio-page.tsx",
-  ),
-  route(
-    "classes/:classId/students/:studentId/measures",
-    "features/grading/student-measures-page.tsx",
-  ),
-  route(
-    "classes/:classId/students/:studentId/password",
-    "features/classes/reset-password-page.tsx",
-  ),
+  layout("features/learning/learning-overlay.tsx", [
+    route("classes/:classId", "features/classes/class-page.tsx"),
+    route("classes/:classId/calendar", "features/classes/calendar-page.tsx"),
+    route("classes/:classId/learn", "features/learning/learn-page.tsx"),
+    route(
+      "classes/:classId/learn/:session",
+      "features/learning/lesson-page.tsx",
+    ),
+    route("classes/:classId/glossary", "features/learning/glossary-page.tsx"),
+    route("classes/:classId/market", "features/market-data/market-page.tsx"),
+    route("classes/:classId/activity", "features/trading/activity-page.tsx"),
+    route("classes/:classId/analysis", "features/measures/measures-page.tsx"),
+    route(
+      "classes/:classId/stocks/:code",
+      "features/market-data/stock-page.tsx",
+      [route(":side", "features/trading/ticket-page.tsx")],
+    ),
+    route(
+      "classes/:classId/students",
+      "features/grading/class-portfolios-page.tsx",
+    ),
+    route("classes/:classId/workbook", "features/grading/workbook-route.tsx"),
+    route(
+      "classes/:classId/students/:studentId/portfolio",
+      "features/grading/student-portfolio-page.tsx",
+    ),
+    route(
+      "classes/:classId/students/:studentId/measures",
+      "features/grading/student-measures-page.tsx",
+    ),
+    route(
+      "classes/:classId/students/:studentId/password",
+      "features/classes/reset-password-page.tsx",
+    ),
+  ]),
   route("join", "features/classes/join-page.tsx"),
   route("join/:code", "features/classes/join-class-page.tsx"),
   route("language", "features/language/language-page.tsx"),

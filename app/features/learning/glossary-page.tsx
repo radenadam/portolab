@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { data, redirect } from "react-router";
+import { readLearningReturnPath } from "./read-learning-return-path.server";
 import { typedText } from "~/form-text";
 import { pageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
@@ -14,18 +15,12 @@ export function meta(): Route.MetaDescriptors {
 }
 
 export function loader({ context, params, url }: Route.LoaderArgs) {
-  const { classId, content } = readLearningPage(context, url, params.classId);
-  const value = url.searchParams.get("q");
-  const query = parseGlossaryQuery(value, m.learning_search_hint());
-  return data(
-    {
-      classId,
-      query: query.ok ? query.value : typedText(value),
-      terms: query.ok ? searchGlossary(content.terms, query.value) : [],
-      sessions: content.sessions,
-      error: query.ok ? undefined : query.failure,
-    },
-    { status: query.ok ? 200 : 400 },
+  return glossaryResponse(
+    glossarySearchData(
+      readLearningPage(context, url, params.classId),
+      url.searchParams.get("q"),
+      readLearningReturnPath(url.searchParams.get("returnTo"), url),
+    ),
   );
 }
 
@@ -36,16 +31,39 @@ export async function action({
   url,
   request,
 }: Route.ActionArgs) {
-  const { classId } = readLearningPage(context, url, params.classId);
+  const page = readLearningPage(context, url, params.classId);
   const form = await request.formData();
-  const value = form.get("q");
+  const answer = glossarySearchData(
+    page,
+    form.get("q"),
+    readLearningReturnPath(form.get("returnTo"), url),
+  );
+  if (answer.error !== undefined || url.searchParams.has("inPlace"))
+    return glossaryResponse(answer);
+  return redirect(
+    glossaryPath(page.classId, answer.query, answer.returnTo),
+    303,
+  );
+}
+
+function glossarySearchData(
+  { classId, content }: ReturnType<typeof readLearningPage>,
+  value: unknown,
+  returnTo: string | undefined,
+) {
   const query = parseGlossaryQuery(value, m.learning_search_hint());
-  if (!query.ok)
-    return data(
-      { query: typedText(value), error: query.failure },
-      { status: 400 },
-    );
-  return redirect(glossaryPath(classId, query.value), 303);
+  return {
+    classId,
+    returnTo,
+    query: query.ok ? query.value : typedText(value),
+    terms: query.ok ? searchGlossary(content.terms, query.value) : [],
+    sessions: content.sessions,
+    error: query.ok ? undefined : query.failure,
+  };
+}
+
+function glossaryResponse(answer: ReturnType<typeof glossarySearchData>) {
+  return data(answer, { status: answer.error === undefined ? 200 : 400 });
 }
 
 export default function GlossaryPage({

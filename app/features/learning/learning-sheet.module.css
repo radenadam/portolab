@@ -1,0 +1,128 @@
+.lesson,
+.glossary {
+  position: fixed;
+  inset: auto 0 0;
+  width: 100%;
+  max-width: none;
+  max-height: calc(
+    100dvh - var(--size-sheet-gap) - env(safe-area-inset-top, 0px)
+  );
+  margin: 0;
+  padding: 0;
+  border: var(--size-line) solid var(--color-line);
+  border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
+  background: var(--color-panel);
+  color: var(--color-ink);
+  font: 400 var(--text-body) / 1.6 var(--font-text);
+  text-align: start;
+  box-shadow: var(--shadow-popover);
+  overflow: hidden;
+}
+
+.lesson[open],
+.glossary[open] {
+  display: flex;
+  flex-direction: column;
+  animation: sheet-enter var(--duration-learning-sheet)
+    var(--ease-learning-sheet);
+}
+
+.lesson::backdrop,
+.glossary::backdrop {
+  background: var(--color-backdrop);
+}
+
+.grip {
+  flex: none;
+  width: var(--size-sheet-grip);
+  height: calc(var(--size-mark) * 2);
+  margin: var(--space-2) auto;
+  border-radius: var(--radius-item);
+  background: var(--color-line);
+}
+
+.head {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-panel);
+}
+
+.head h2 {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--text-sheet-title);
+  color: var(--color-ink);
+}
+
+.close {
+  composes: button from "../../icon-button.module.css";
+  font-size: var(--text-heading);
+}
+
+.body {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--space-1) var(--space-panel) var(--space-panel);
+}
+
+@media (width >= 60rem) {
+  .lesson,
+  .glossary {
+    inset: 0;
+    width: min(var(--width-lesson-sheet), calc(100% - var(--space-6) * 2));
+    max-height: min(
+      var(--height-learning-sheet),
+      calc(100dvh - var(--space-6) * 2)
+    );
+    margin: auto;
+    border-radius: var(--radius-panel);
+    animation-name: dialog-enter;
+  }
+
+  .glossary {
+    width: min(var(--width-glossary-sheet), calc(100% - var(--space-6) * 2));
+  }
+
+  .grip {
+    display: none;
+  }
+
+  .head {
+    padding-block: var(--space-3) var(--space-2);
+    padding-inline-start: var(--space-sheet-desktop);
+  }
+
+  .body {
+    padding-inline: var(--space-sheet-desktop);
+    padding-block-end: var(--space-sheet-desktop);
+  }
+}
+
+@keyframes sheet-enter {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes dialog-enter {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-2));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lesson[open],
+  .glossary[open] {
+    animation: none;
+  }
+}

@@ -137,10 +137,12 @@ for (const locale of locales) {
       .getByRole("link", { name: texts[locale].time, exact: true })
       .click();
     await expect(native).toHaveURL(/\?view=time$/);
-    await native.getByRole("button", { name: texts[locale].learn }).click();
-    await expect(
-      native.getByRole("dialog").filter({ visible: true }),
-    ).toBeVisible();
+    await native
+      .getByRole("region", { name: texts[locale].title, exact: true })
+      .getByRole("link", { name: texts[locale].learn, exact: true })
+      .click();
+    await expect(native).toHaveURL(/\/learn\/\d+\?returnTo=/u);
+    await expect(native.getByRole("heading", { level: 1 })).toBeVisible();
     await native.context().close();
     const scriptGate = Promise.withResolvers<undefined>();
     await student.route(/\.js(?:\?|$)/, async (route) => {
@@ -150,13 +152,22 @@ for (const locale of locales) {
     try {
       await student.reload({ waitUntil: "commit" });
       await expect(panel.getByRole("slider")).toHaveCount(0);
-      await panel.getByRole("button", { name: texts[locale].learn }).click();
-      const lesson = student.locator("#home-insight-lesson");
-      await expect(lesson).toBeVisible();
+      const learn = panel.getByRole("link", {
+        name: texts[locale].learn,
+        exact: true,
+      });
+      await expect(learn).toHaveAttribute("href", /\/learn\/\d+\?returnTo=/u);
+      const address = student.url();
       scriptGate.resolve(undefined);
       await student.waitForLoadState("load");
       await expect(panel.getByRole("slider")).toBeVisible();
-      await expect(lesson).toBeVisible();
+      await learn.click();
+      await expect(
+        student.getByRole("dialog").filter({ has: student.locator("article") }),
+      ).toBeVisible();
+      await expect(student).toHaveURL(address);
+      await student.keyboard.press("Escape");
+      await expect(learn).toBeFocused();
     } finally {
       scriptGate.resolve(undefined);
       await student.unrouteAll({ behavior: "wait" });

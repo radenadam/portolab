@@ -31,9 +31,7 @@ export function useTicketDraft({
   restoreDraft: boolean;
 }) {
   const memory = use(TicketDraftContext);
-  const [values, setValues] = useState(() =>
-    restoreDraft ? (memory?.get(initialSide) ?? fields) : fields,
-  );
+  const [values, setValues] = useState(fields);
   const [side, setSide] = useState(initialSide);
   const formRef = useCallback(
     (form: HTMLFormElement | null) => {
@@ -49,10 +47,15 @@ export function useTicketDraft({
         next[name] = native[name];
         if (native[name] !== fields[name]) next[failure] = undefined;
       }
-      memory?.set(initialSide, next);
-      setValues(next);
+      const edited = (["priceKind", "lots", "limit", "reason"] as const).some(
+        (name) => native[name] !== fields[name],
+      );
+      const restored =
+        restoreDraft && !edited ? (memory?.get(initialSide) ?? next) : next;
+      memory?.set(initialSide, restored);
+      setValues(restored);
     },
-    [fields, initialSide, memory],
+    [fields, initialSide, memory, restoreDraft],
   );
   const { rules, rates } = ticket.day.value;
   const parsedLots = parseOrderLots(
