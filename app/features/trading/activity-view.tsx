@@ -1,6 +1,6 @@
 import type { ReactNode, ComponentProps } from "react";
 import { Link } from "react-router";
-import { FormFailure, FormSuccess } from "~/form";
+import { FormFailure } from "~/form";
 import { m } from "~/paraglide/messages.js";
 import { ActivitySelectionForm } from "./activity-selection-form";
 import type { ActivitySelectionFields } from "./activity-selection-form";
@@ -20,7 +20,6 @@ export function ActivityView({
   view,
   base,
   readOnly = false,
-  isPlaced = false,
   cancelFailure,
   studentName,
   returnPath,
@@ -30,7 +29,6 @@ export function ActivityView({
     view: ActivityChoice;
     base: string;
     readOnly?: boolean;
-    isPlaced?: boolean;
     cancelFailure?: string | undefined;
     returnPath?: string | undefined;
   }): ReactNode {
@@ -42,7 +40,6 @@ export function ActivityView({
       {fields !== undefined && (
         <ActivitySelectionForm fields={fields} returnPath={returnPath} />
       )}
-      {isPlaced && <FormSuccess text={m.trading_placed_notice()} />}
       {cancelFailure !== undefined && <FormFailure text={cancelFailure} />}
       <nav
         className={styles["toggle"]}

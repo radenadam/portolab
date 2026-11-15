@@ -4,7 +4,6 @@ import { Link } from "react-router";
 import { AppIcon } from "./app-icon";
 import chipStyles from "./chip.module.css";
 import styles from "./frame.module.css";
-import { formatMarketTime } from "./formatting";
 import { Icon } from "./icon";
 import type { IconName } from "./icon";
 import { initialsOf } from "./initials-of";
@@ -196,84 +195,6 @@ function ItemList({
         </li>
       ))}
     </ul>
-  );
-}
-
-/** A page above the page in the header line, with the address of its page. */
-export interface PathPart {
-  label: string;
-  path: string;
-}
-
-/** The header line that opens a page: the path of the page, which ends in its heading, and the time of the prices that it shows, which a phone leaves to the line of the delay. */
-export function PageHeader({
-  path,
-  title,
-  pricesAt,
-}: {
-  /** The pages above the page, starting with its class, each linking to its page. */
-  path: readonly PathPart[];
-  title: string;
-  /** When the newest price that the page shows was quoted, or undefined for a page without prices. */
-  pricesAt: Date | undefined;
-}): ReactNode {
-  return (
-    <div className={styles["header"]}>
-      <div className={styles["path"]}>
-        {path.map((part) => (
-          <span key={part.path} className={styles["pathPart"]}>
-            <Link to={part.path} className={styles["pathLink"]}>
-              <NumberText verbatim>{part.label}</NumberText>
-            </Link>
-            <span aria-hidden="true">/</span>
-          </span>
-        ))}
-        <h1 className={styles["title"]}>
-          <NumberText>{title}</NumberText>
-        </h1>
-      </div>
-      {pricesAt !== undefined && (
-        <p className={styles["time"]}>
-          <NumberText>
-            {m.app_prices_time_label({ time: formatMarketTime(pricesAt) })}
-          </NumberText>
-        </p>
-      )}
-    </div>
-  );
-}
-
-/** A page with a right column beside its main column, as the order ticket stands beside the portfolio. The header line opens the main column. */
-export function PageColumns({
-  header,
-  main,
-  aside,
-  narrowPlacement,
-}: {
-  /** The PageHeader of the page. */
-  header: ReactNode;
-  main: ReactNode;
-  aside: ReactNode;
-  /** Where a screen without room for the right column places it, as a phone does: under the header line, such as the order ticket on the page of the orders, or nowhere, such as the order ticket of the portfolio, which a phone shows on the page of the orders. */
-  narrowPlacement: "first" | "hidden";
-}): ReactNode {
-  const asideColumn = (
-    <div
-      className={classNames(
-        styles["aside"],
-        narrowPlacement === "hidden" && styles["asideOnWide"],
-      )}
-    >
-      {aside}
-    </div>
-  );
-  return (
-    <div className={styles["columns"]}>
-      {header}
-      {narrowPlacement === "first" && asideColumn}
-      <div className={styles["content"]}>{main}</div>
-      {narrowPlacement === "hidden" && asideColumn}
-    </div>
   );
 }
 

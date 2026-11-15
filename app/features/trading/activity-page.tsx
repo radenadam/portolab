@@ -4,14 +4,12 @@ import type { ReactNode } from "react";
 import { data } from "react-router";
 import { pageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
-import { parseRecordId } from "~/value-parsers";
 import type { Route } from "./+types/activity-page";
 import { activityPath } from "./activity-path";
 import { findStudentPlace } from "./find-student-place.server";
 import { cancelFromForm } from "./order-actions.server";
 import { readStudentPortfolio } from "./read-student-portfolio.server";
 import { reloadsAfterEveryForm } from "./reloads-after-every-form";
-import type { OrderId } from "./trading.schema";
 
 export function meta(): Route.MetaDescriptors {
   return [{ title: pageTitle(m.trading_activity_title()) }];
@@ -31,18 +29,10 @@ export function loader({ context, request, params, url }: Route.LoaderArgs) {
     now,
     initialView: "orders",
   });
-  const placed = parseRecordId<OrderId>(
-    url.searchParams.get("placed"),
-    "placed",
-  );
   return data(
     {
       ...activity,
       classId: place.classId,
-      // The notice confirms only an order of this portfolio, so an address cannot confirm another student's order.
-      isPlaced:
-        placed.ok &&
-        portfolio.orders.some((order) => order.id === placed.value),
     },
     { status: activity.status },
   );

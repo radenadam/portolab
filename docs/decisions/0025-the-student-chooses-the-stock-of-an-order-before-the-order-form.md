@@ -1,6 +1,6 @@
 # 0025. The student chooses the stock of an order before the order form
 
-- Status: Accepted. [Decision 0030](0030-each-class-is-one-workspace-with-its-own-addresses.md) changes one of its rules: which address names the stock of an order, once the change of issue #127 that builds the order ticket lands.
+- Status: Superseded by [decision 0044](0044-the-ticket-shows-the-trade-before-confirmation.md) for how a student chooses a stock, which address names it, where its price and order form appear, the response to an invalid stock, and what opens after accepting or cancelling an order. [Decision 0030](0030-each-class-is-one-workspace-with-its-own-addresses.md) first set the new addresses.
 - Date: 2026-11-11
 
 ## Context
