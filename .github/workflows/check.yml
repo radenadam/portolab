@@ -18,7 +18,7 @@ jobs:
     name: check
     runs-on: ubuntu-latest
     # The steps before the checks take a minute or two, so the job still has a few minutes to upload the traces after the checks reach their own limit.
-    timeout-minutes: 40
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         timeout-minutes: 5
@@ -44,9 +44,9 @@ jobs:
         uses: ./.github/actions/install-browser
         # The step ends long before the job does, so a stalled download fails here by name.
         timeout-minutes: 10
-      # The class-map run was still passing cases when its earlier allowance ended. Issue #227 records the measurement for this recalibration.
+      # The merged Pasar suite was still completing cases when its previous allowance ended. Issue #241 records the measurements for this recalibration.
       - name: Run every check
-        timeout-minutes: 35
+        timeout-minutes: 45
         run: pnpm check
       - name: Upload end-to-end test traces
         timeout-minutes: 5
