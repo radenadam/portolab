@@ -122,9 +122,16 @@ export default function ClassesPage({
   return (
     <>
       <PageTitle text={m.classes_page_title()} />
-      <h1>{m.classes_page_title()}</h1>
-      <ClassList role={loaderData.role} classes={listedClasses(loaderData)} />
-      <NextStep role={loaderData.role} fields={actionData?.fields} />
+      <div className={formStyles["formColumn"]} data-layout="reading">
+        <h1>{m.classes_page_title()}</h1>
+        <div className={formStyles["panel"]}>
+          <ClassList
+            role={loaderData.role}
+            classes={listedClasses(loaderData)}
+          />
+        </div>
+        <NextStep role={loaderData.role} fields={actionData?.fields} />
+      </div>
     </>
   );
 }
@@ -163,10 +170,10 @@ function NextStep({
   switch (role) {
     case "lecturer":
       return (
-        <>
+        <section className={formStyles["panel"]}>
           <h2 id={createClassSectionId}>{m.classes_create_title()}</h2>
           <NewClassForm fields={fields} />
-        </>
+        </section>
       );
     case "student":
       return (

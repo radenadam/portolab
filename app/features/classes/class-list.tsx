@@ -30,19 +30,23 @@ export function ClassList({
     );
   }
   return (
-    <ul className={styles["list"]}>
+    <ul className={styles["list"]} data-layout="rows">
       {classes.map((listed) => (
-        <li key={listed.id} className={styles["item"]}>
+        <li key={listed.id} className={styles["classItem"]}>
           <Link to={classPath(listed.id)} className={styles["link"]}>
-            <NumberText verbatim>{listed.name}</NumberText>
+            <span className={styles["className"]}>
+              <NumberText verbatim>{listed.name}</NumberText>
+            </span>
+            <span className={styles["details"]}>
+              <NumberText>
+                {(textValue) =>
+                  role === "student"
+                    ? textValue(listed.details)
+                    : listed.details
+                }
+              </NumberText>
+            </span>
           </Link>
-          <p className={styles["details"]}>
-            <NumberText>
-              {(textValue) =>
-                role === "student" ? textValue(listed.details) : listed.details
-              }
-            </NumberText>
-          </p>
         </li>
       ))}
     </ul>

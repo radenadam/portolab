@@ -10,7 +10,7 @@ import styles from "./simulation-badge.module.css";
 
 const cardId = "simulation-card";
 
-/** The badge of the top bar that labels every result as a simulation and says that prices are delayed, as decision 0028 sets. It opens a card that explains both, gives the time of the latest price, and names the prices that the latest update missed. A page without the data of the frame, such as the page of a form that another site sent, shows the label of the simulation alone. */
+/** The badge labels every result as a simulation with delayed prices. Without frame data, it keeps both facts visible because an error page still belongs to the simulation. */
 export function SimulationBadge({
   badge,
 }: {
@@ -21,7 +21,7 @@ export function SimulationBadge({
     return (
       <span className={chip}>
         <span className={styles["dot"]} />
-        {m.market_data_simulation_name()}
+        {m.market_data_simulation_fallback_label()}
       </span>
     );
   }

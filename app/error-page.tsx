@@ -1,7 +1,8 @@
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { isRouteErrorResponse, Link } from "react-router";
-import styles from "./error-page.module.css";
+import formStyles from "./form.module.css";
+import { FormPage } from "./form-page";
 import { PageTitle } from "./page-title";
 import { m } from "./paraglide/messages.js";
 
@@ -19,15 +20,12 @@ export function ErrorPage({
   nextStep,
 }: ErrorPageProps): ReactNode {
   return (
-    <>
-      <h1>
-        <NumberText>{title}</NumberText>
-      </h1>
+    <FormPage title={title}>
       <p>
         <NumberText>{body}</NumberText>
       </p>
       {nextStep ?? <NextStepLink to="/" label={m.app_back_home_link()} />}
-    </>
+    </FormPage>
   );
 }
 
@@ -40,7 +38,7 @@ export function NextStepLink({
   label: string;
 }): ReactNode {
   return (
-    <Link to={to} className={styles["nextStepLink"]}>
+    <Link to={to} className={formStyles["stepButton"]}>
       <NumberText>{label}</NumberText>
     </Link>
   );

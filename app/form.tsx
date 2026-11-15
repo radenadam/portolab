@@ -53,9 +53,7 @@ export function TextField({
         defaultValue={defaultValue}
         aria-invalid={failure !== undefined}
         aria-describedby={describedBy(id, { hint, failure })}
-        className={
-          inputMode === "numeric" ? styles["numberInput"] : styles["input"]
-        }
+        className={styles["input"]}
       />
     </DescribedField>
   );
@@ -186,7 +184,7 @@ interface ChoiceFieldProps {
   defaultValue?: string | undefined;
 }
 
-/** A group of options of which the reader chooses one, with the label of the group and the reason that the choice was not accepted, which a screen reader reads with the group. The options stand in a row of equal parts, and the chosen one carries a line of the signal color, as decision 0026 sets. */
+/** A screen reader needs the group label and a refused choice together, so both belong to the fieldset. */
 export function ChoiceField({
   name,
   label,
@@ -241,7 +239,7 @@ export function SubmitButton({
   );
 }
 
-/** A reason that the whole form was not accepted, which a screen reader announces when it appears. It opens with the line of ink of a rejection, as decision 0026 sets for every failure. */
+/** Whole-form failures need an announcement when an action returns without navigating. */
 export function FormFailure({ text }: { text: string }): ReactNode {
   return (
     <p role="alert" className={styles["rejection"]}>
@@ -250,7 +248,7 @@ export function FormFailure({ text }: { text: string }): ReactNode {
   );
 }
 
-/** A rejection of a whole form, as decision 0026 draws it: a line of ink, a title, the text, and the control of the next step when Portolab can take it, such as a button that changes the order to the largest one that the cash pays for. A screen reader announces it when it appears. */
+/** A refusal should let the reader take the offered fix in place, so its next step stays with the explanation. */
 export function Rejection({
   title,
   text,

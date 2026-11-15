@@ -7,11 +7,32 @@
   list-style: none;
 }
 
-.item {
+.item,
+.classItem {
   display: flex;
   flex-direction: column;
-  padding-block: var(--space-3);
   border-block-end: var(--size-line) solid var(--color-line);
+}
+
+.item {
+  padding-block: var(--space-3);
+}
+
+.classItem:last-child {
+  border-block-end: 0;
+}
+
+.classItem > .link {
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  padding-block: var(--space-3);
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.className {
+  font-weight: 600;
 }
 
 .link {
@@ -60,12 +81,4 @@
 
 .name {
   overflow-wrap: anywhere;
-}
-
-.reset {
-  composes: panel from "../../panel.module.css";
-  width: 100%;
-  max-width: var(--width-concept-card);
-  margin-inline: auto;
-  padding: var(--space-6);
 }
