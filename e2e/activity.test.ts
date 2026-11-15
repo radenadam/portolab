@@ -252,7 +252,10 @@ for (const locale of locales) {
       native.getByRole("button", { name: text.cancel, exact: true }),
     ).toHaveCount(1);
     const stale = await native.context().newPage();
-    await stale.goto(native.url());
+    await stale.setViewportSize({ width: 1440, height: 900 });
+    const staleAddress = new URL(native.url());
+    staleAddress.searchParams.set("view", "journal");
+    await stale.goto(staleAddress.href);
     await native
       .getByRole("button", { name: text.cancel, exact: true })
       .click();
@@ -275,6 +278,21 @@ for (const locale of locales) {
       .getByRole("button", { name: text.confirm, exact: true })
       .click();
     await expect(stale.getByRole("alert")).toBeVisible();
+    await stale.setViewportSize({ width: 360, height: 900 });
+    const staleOrders = stale.getByRole("region", {
+      name: text.orders,
+      exact: true,
+    });
+    await expect(staleOrders).toBeVisible();
+    await expect(
+      staleOrders.locator('ul[data-layout="rows"] > li'),
+    ).toHaveCount(6);
+    await expect(
+      stale
+        .getByRole("navigation", { name: text.view })
+        .getByRole("link", { name: text.orders, exact: true }),
+    ).toHaveAttribute("aria-current", "page");
+    expect(await layoutProblems(stale)).toEqual([]);
     for (const [status, count] of [
       [text.filled, 2],
       [text.expired, 1],

@@ -99,9 +99,12 @@ export default function ActivityPage({
   loaderData,
   actionData,
 }: Route.ComponentProps): ReactNode {
-  const { classId, orders, now, trades, prices, view } = loaderData;
-  const filter =
-    actionData?.cancelFailure === undefined ? loaderData.filter : "all";
+  const { classId, orders, now, trades, prices } = loaderData;
+  const cancelFailure = actionData?.cancelFailure;
+  const { filter, view } =
+    cancelFailure === undefined
+      ? loaderData
+      : { filter: "all" as const, view: "orders" as const };
   const base = activityPath(classId);
   return (
     <div className={styles["activity"]}>
@@ -110,9 +113,7 @@ export default function ActivityPage({
         <ActivitySelectionForm fields={loaderData.fields} />
       )}
       {loaderData.isPlaced && <FormSuccess text={m.trading_placed_notice()} />}
-      {actionData?.cancelFailure !== undefined && (
-        <FormFailure text={actionData.cancelFailure} />
-      )}
+      {cancelFailure !== undefined && <FormFailure text={cancelFailure} />}
       <nav
         className={styles["toggle"]}
         aria-label={m.trading_activity_view_label()}

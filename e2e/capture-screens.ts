@@ -27,7 +27,8 @@ export async function captureScreens(
       const path = testInfo.outputPath(
         `${screen.name}-${String(width)}-${colorScheme}.png`,
       );
-      if (screen.fullPage) await screenshotFullHeight(page, { path });
+      if (screen.fullPage)
+        await screenshotFullHeight(page, { path, scale: "css" });
       else await page.screenshot({ path, scale: "css" });
     }
   }
