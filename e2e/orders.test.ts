@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { selectFirstStudent } from "./select-first-student.ts";
+import { captureScreens } from "./capture-screens.ts";
+import { isPhone } from "./frame.ts";
 import type { Browser, Locator, Page } from "@playwright/test";
 import type { ClassId } from "../app/features/classes/classes.schema.ts";
 import { reasonMaximumLength } from "../app/features/trading/reason-maximum-length.ts";
@@ -132,13 +134,7 @@ const texts: Record<
     marketTab: "Pasar",
     fillNotice:
       "Portolab mengeksekusi order pada harga tertunda dari Yahoo Finance, sekitar 10 menit di belakang BEI, yang tercatat pada sesi I atau sesi II hari bursa order tersebut. Karena itu, harga eksekusi dapat berbeda dari harga di bursa pada saat yang sama.",
-    headings: [
-      "Kas Anda",
-      "Saham yang Anda pegang",
-      "Pasang order",
-      "Order yang masih terbuka",
-      "Order sebelumnya",
-    ],
+    headings: ["Kas Anda", "Saham yang Anda pegang", "Pasang order"],
     ticketTitle: "Pasang order",
     simulation:
       "Simulasi. Tidak ada uang sungguhan dan tidak ada transaksi sungguhan.",
@@ -146,7 +142,7 @@ const texts: Record<
     quoteNotice: ["Harga tertunda sekitar 10 menit, tercatat pada ", " WIB."],
     purchaseStep: "Ubah menjadi 4 lot",
     saleStep: "Ubah menjadi 3 lot",
-    saleOfTwoLots: "Jual 2 lot BBCA pada harga pasar",
+    saleOfTwoLots: "2 lot",
     startingCash: [
       "Kas",
       "Rp\u00a01.000.000.000.000",
@@ -230,8 +226,7 @@ const texts: Record<
       ", atau setelah Portolab memiliki harga BBCA dari hari bursa order ini. Order harga pasar tidak membutuhkan limit.",
     ],
     largestOrder: "50.000",
-    placed:
-      "Portolab menerima order Anda, dan daftar order di bawah menunjukkan statusnya.",
+    placed: "Portolab menerima order Anda.",
     purchase: [
       "Beli 50.000 lot BBCA pada harga pasar",
       "Order ini menunggu harga tertunda BBCA dari sesi I atau sesi II.",
@@ -245,7 +240,7 @@ const texts: Record<
     cancelled: ["Anda membatalkannya pada ", " WIB."],
     ended: [
       "Order Anda atas 50.000 lot BBCA yang dipasang pada ",
-      " WIB tidak lagi terbuka, sehingga Portolab tidak dapat membatalkannya. Daftar order sebelumnya di bawah menunjukkan bagaimana order itu berakhir.",
+      " WIB tidak lagi terbuka, sehingga Portolab tidak dapat membatalkannya. Daftar di bawah menunjukkan bagaimana order itu berakhir.",
     ],
     holding: [
       "GOTO",
@@ -253,8 +248,6 @@ const texts: Record<
       "41.604.260.200 saham dengan biaya Rp\u00a0999.999.998.167, termasuk biaya broker.",
     ],
     sale: [
-      "Jual 50.000 lot GOTO pada harga pasar",
-      "Order ini menyisihkan 5.000.000 saham GOTO.",
       "Order jual Anda yang masih terbuka menyisihkan 5.000.000 saham dari saham ini.",
     ],
     notEnoughCash:
@@ -266,7 +259,7 @@ const texts: Record<
       'Kolom "Alasan (opsional)" memuat paling banyak 500 karakter, tetapi isinya 501 karakter. Persingkat isinya.',
     reasonFarTooLong:
       'Kolom "Alasan (opsional)" berisi 8.001 karakter, lebih banyak daripada yang diterima kolom ini. Isi kolom itu dengan teks yang dimintanya.',
-    reasonLabel: "Alasan Anda: ",
+    reasonLabel: "“",
     purchaseOfOneLot: "Beli 1 lot BBCA pada harga pasar",
     studentPortfolioLink: "Buka portofolio",
     reasonsTitle: "Alasan order",
@@ -279,20 +272,14 @@ const texts: Record<
     marketTab: "Market",
     fillNotice:
       "Portolab fills an order at a delayed price from Yahoo Finance, about 10 minutes behind IDX, that was quoted in session I or session II of the trading day of the order. So a fill can differ from the price on the exchange at the same moment.",
-    headings: [
-      "Your cash",
-      "Your holdings",
-      "Place an order",
-      "Open orders",
-      "Past orders",
-    ],
+    headings: ["Your cash", "Your holdings", "Place an order"],
     ticketTitle: "Place an order",
     simulation: "Simulation. No real money and no real trades.",
     rejectedTitle: "Portolab did not accept this order",
     quoteNotice: ["Delayed by about 10 minutes, quoted at ", " WIB."],
     purchaseStep: "Change to 4 lots",
     saleStep: "Change to 3 lots",
-    saleOfTwoLots: "Sell 2 lots of BBCA at the market price",
+    saleOfTwoLots: "2 lots",
     startingCash: [
       "Cash",
       "IDR\u00a01,000,000,000,000",
@@ -376,8 +363,7 @@ const texts: Record<
       ", or once Portolab has a price of BBCA from the trading day of the order. A market order needs no limit.",
     ],
     largestOrder: "50,000",
-    placed:
-      "Portolab accepted your order, and your orders below show where it stands.",
+    placed: "Portolab accepted your order.",
     purchase: [
       "Buy 50,000 lots of BBCA at the market price",
       "It waits for a delayed price of BBCA from session I or session II.",
@@ -391,18 +377,14 @@ const texts: Record<
     cancelled: ["You cancelled it on ", " WIB."],
     ended: [
       "Your order of 50,000 lots of BBCA placed on ",
-      " WIB is no longer open, so Portolab cannot cancel it. Your past orders below show how it ended.",
+      " WIB is no longer open, so Portolab cannot cancel it. The list below shows how it ended.",
     ],
     holding: [
       "GOTO",
       "GoTo Gojek Tokopedia Tbk",
       "41,604,260,200 shares that cost IDR\u00a0999,999,998,167, broker fees included.",
     ],
-    sale: [
-      "Sell 50,000 lots of GOTO at the market price",
-      "It sets aside 5,000,000 shares of GOTO.",
-      "Your open sell order sets aside 5,000,000 shares of this holding.",
-    ],
+    sale: ["Your open sell order sets aside 5,000,000 shares of this holding."],
     notEnoughCash:
       "Buying 1 lot of BBCA at IDR\u00a04,980 costs IDR\u00a0498,747, which is IDR\u00a0498,000 for the shares and IDR\u00a0747 for the broker fee, but your available cash is IDR\u00a01,833. Your available cash pays for 1 lot of a stock only at a price of at most IDR\u00a018. This order needs IDR\u00a0496,914 more than your available cash, and selling shares that you hold adds to that cash. Your open sell order of GOTO brings cash when it fills.",
     notFoundTitle: "Page not found",
@@ -412,7 +394,7 @@ const texts: Record<
       'The field "Reason (optional)" holds at most 500 characters, but it has 501. Shorten it.',
     reasonFarTooLong:
       'The field "Reason (optional)" has 8,001 characters, more than this field takes. Fill it in with the text that it asks for.',
-    reasonLabel: "Your reason: ",
+    reasonLabel: "“",
     purchaseOfOneLot: "Buy 1 lot of BBCA at the market price",
     studentPortfolioLink: "Open portfolio",
     reasonsTitle: "Reasons for the orders",
@@ -429,9 +411,7 @@ async function openOrdersOfNewStudent(
     locale,
     ...widestClassNames,
   });
-  await joined.student
-    .getByRole("link", { name: texts[locale].activityLink, exact: true })
-    .click();
+  await joined.student.goto(`${joined.classPath}/orders`);
   await expect(joined.student).toHaveURL(`${joined.classPath}/orders`);
   return joined;
 }
@@ -547,7 +527,7 @@ for (const locale of locales) {
   const text = texts[locale];
   const language = languageNames[locale];
 
-  test(`places a market purchase, cancels it, and explains each order that Portolab refuses, in ${language}`, async ({
+  test(`places a market purchase and explains each order that Portolab refuses, in ${language}`, async ({
     page,
     browser,
   }) => {
@@ -579,8 +559,6 @@ for (const locale of locales) {
       text.fillNotice,
       text.noHoldings,
       text.stockHint,
-      text.noOpenOrders,
-      text.noPastOrders,
       text.simulation,
     ]);
     await expect(
@@ -632,40 +610,17 @@ for (const locale of locales) {
       side: "buy",
       lots: text.largestOrder,
     });
-    await expect(student).toHaveURL(/\/orders\?placed=\d+$/);
+    await expect(student).toHaveURL(/\/activity\?placed=\d+$/);
     await expect(student.getByRole("status")).toHaveText(text.placed);
-    await expectTexts(student.getByRole("main"), [
-      ...text.purchase,
-      ...text.cashWithPurchase,
-    ]);
     await expectAccessibleScreen(student);
-
-    // A second tab keeps the order open, as a page that the student opened before cancelling it elsewhere.
-    const staleTab = await student.context().newPage();
-    await staleTab.goto(student.url());
-    await student
-      .getByRole("main")
-      .getByRole("button", { name: text.labels.cancel })
-      .click();
-    await expect(student.getByText(text.cancelled[0])).toContainText(
-      text.cancelled[1],
-    );
-    await expectTexts(student.getByRole("main"), [
-      text.noOpenOrders,
-      ...text.startingCash,
-    ]);
-    await staleTab
-      .getByRole("main")
-      .getByRole("button", { name: text.labels.cancel })
-      .click();
-    await expect(staleTab.getByRole("alert")).toContainText(text.ended[0]);
-    await expect(staleTab.getByRole("alert")).toContainText(text.ended[1]);
-    // After the refusal, the page loads the orders as they stand, so the order shows how it ended.
-    await expect(staleTab.getByText(text.cancelled[0])).toContainText(
-      text.cancelled[1],
-    );
-    await expectTexts(staleTab.getByRole("main"), [text.noOpenOrders]);
-    await expectAccessibleScreen(staleTab);
+    if (isPhone())
+      await captureScreens(student, test.info(), {
+        name: `activity-${locale}-largest-order`,
+        fullPage: true,
+        fromTop: true,
+      });
+    await student.goto(`${classPath}/orders`);
+    await expectTexts(student.getByRole("main"), text.cashWithPurchase);
     await student.context().close();
   });
 
@@ -673,7 +628,7 @@ for (const locale of locales) {
     page,
     browser,
   }) => {
-    const { student, classId } = await openOrdersOfNewStudent(
+    const { student, classId, classPath } = await openOrdersOfNewStudent(
       page,
       browser,
       locale,
@@ -688,6 +643,7 @@ for (const locale of locales) {
       lots: text.largestOrder,
     });
     await expect(student.getByRole("status")).toHaveText(text.placed);
+    await student.goto(`${classPath}/orders`);
     await expectTexts(student.getByRole("main"), [
       ...text.holding,
       ...text.sale,
@@ -732,6 +688,9 @@ for (const locale of locales) {
     await expect(
       rejection.getByRole("button", { name: text.saleStep }),
     ).toBeVisible();
+    await expect(
+      student.getByRole("button", { name: text.labels.place, exact: true }),
+    ).toBeEnabled();
     await lotsField.fill("2");
     await lotsField.press("Enter");
     await expect(student.getByRole("status")).toHaveText(text.placed);
@@ -784,7 +743,7 @@ for (const locale of locales) {
     });
     await expect(student.getByRole("status")).toHaveText(text.placed);
     await expect(
-      main.getByText(`${text.reasonLabel}${widestReason}`, { exact: true }),
+      main.getByText(`${text.reasonLabel}${widestReason}”`, { exact: true }),
     ).toBeVisible();
     await expectAccessibleScreen(student);
 
@@ -923,10 +882,10 @@ for (const locale of locales) {
         .getByRole("main")
         .getByRole("button", { name: text.labels.place })
         .click();
-      await expect(page).toHaveURL(/\/orders\?placed=\d+$/);
+      await expect(page).toHaveURL(/\/activity\?placed=\d+$/);
       await expect(page.getByRole("status")).toHaveText(text.placed);
       await expect(
-        page.getByText(`${text.reasonLabel}${reason}`, { exact: true }),
+        page.getByText(`${text.reasonLabel}${reason}”`, { exact: true }),
       ).toBeVisible();
       await lecturer.context().close();
     });

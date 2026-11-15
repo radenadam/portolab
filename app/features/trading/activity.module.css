@@ -1,0 +1,447 @@
+.activity h1 {
+  font-size: var(--text-screen-title);
+}
+
+.activity {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.selectionForm {
+  composes: panel from "../../panel.module.css";
+  display: grid;
+  min-inline-size: 0;
+  gap: var(--space-3);
+  justify-items: stretch;
+  inline-size: 100%;
+}
+
+.selectionForm > * {
+  min-inline-size: 0;
+}
+
+.confirmation {
+  display: flex;
+  flex-wrap: wrap;
+  max-inline-size: var(--width-concept-card);
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+}
+
+.confirmation > p {
+  flex-basis: 100%;
+}
+
+.amount {
+  white-space: nowrap;
+}
+
+.columns {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.orderSection,
+.journalSection {
+  display: flex;
+  min-inline-size: 0;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.panel {
+  composes: panel from "../../panel.module.css";
+  flex: 1;
+  min-inline-size: 0;
+  padding-block: 0;
+  overflow-wrap: anywhere;
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.order,
+.journalRow {
+  display: grid;
+  gap: var(--space-2);
+  padding-block: var(--space-4);
+  border-block-end: var(--size-line) solid var(--color-line);
+}
+
+.journalSection .list {
+  display: grid;
+  grid-template-columns:
+    max-content minmax(max-content, var(--width-journal-change))
+    minmax(max-content, var(--width-journal-price))
+    minmax(0, 1fr);
+}
+
+.journalRow {
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+}
+
+.journalRow > * {
+  grid-column: 1 / -1;
+}
+
+.order:last-child,
+.journalRow:last-child {
+  border-block-end: 0;
+}
+
+.orderHeader {
+  display: grid;
+  grid-template-columns: var(--size-side-tag) minmax(0, 1fr) var(
+      --width-activity-status
+    );
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.side {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--size-side-tag);
+  min-block-size: var(--space-6);
+  justify-self: start;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-button);
+  font-size: var(--text-small);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.side[data-side="buy"] {
+  background: var(--color-buy);
+  color: var(--color-on-buy);
+}
+
+.side[data-side="sell"] {
+  background: var(--color-sell);
+  color: var(--color-on-sell);
+}
+
+.stock {
+  display: flex;
+  min-inline-size: 0;
+  min-block-size: var(--size-touch-target);
+  align-items: center;
+  color: inherit;
+  text-decoration: none;
+}
+
+.stock > div {
+  min-inline-size: 0;
+}
+
+.status {
+  display: inline-flex;
+  justify-self: end;
+  align-items: center;
+  gap: calc(var(--space-1) + var(--size-line));
+  padding: calc(var(--space-1) - var(--size-line))
+    calc(var(--space-2) + var(--size-line));
+  border-radius: var(--size-touch-target);
+  background: var(--color-raised);
+  color: var(--color-muted);
+  font-size: var(--text-small);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status svg {
+  inline-size: var(--text-small);
+  block-size: var(--text-small);
+}
+
+.status[data-status="waiting"] {
+  background: var(--color-data-soft);
+  color: var(--color-ink);
+}
+
+.status[data-status="waiting"] svg {
+  color: var(--color-data);
+}
+
+.status[data-status="filled"] {
+  background: var(--color-gain-soft);
+  color: var(--color-gain);
+}
+
+.status[data-status="rejected"] {
+  background: var(--color-loss-soft);
+  color: var(--color-loss-on-soft);
+}
+
+.orderBody {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-2);
+  color: var(--color-ink-secondary);
+  font-size: var(--text-row);
+}
+
+.reason {
+  color: var(--color-muted);
+  white-space: pre-line;
+}
+
+.button {
+  composes: button from "../../button.module.css";
+  background: var(--color-panel);
+  font-size: var(--text-row);
+}
+
+.filters {
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+  gap: var(--space-1) var(--space-2);
+}
+
+.filters a {
+  display: inline-flex;
+  flex: none;
+  min-block-size: var(--size-touch-target);
+  align-items: center;
+  color: var(--color-ink-secondary);
+  font-size: var(--text-row);
+  text-decoration: none;
+}
+
+.filters a > span {
+  padding: var(--space-1) var(--space-3);
+  border: var(--size-line) solid var(--color-line);
+  border-radius: var(--size-touch-target);
+  background: var(--color-panel);
+  white-space: nowrap;
+}
+
+.filters a[aria-current="page"] > span {
+  border-color: var(--color-button);
+  background: var(--color-button);
+  color: var(--color-on-button);
+  font-weight: 600;
+}
+
+.toggle {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding-inline: var(--space-1);
+}
+
+.toggle::before {
+  position: absolute;
+  inset: var(--space-1) 0;
+  z-index: -1;
+  border-radius: var(--radius-item);
+  background: var(--color-raised);
+  content: "";
+}
+
+.toggle a {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  min-block-size: var(--size-touch-target);
+  align-items: center;
+  justify-content: center;
+  color: var(--color-ink-secondary);
+  font-size: var(--text-row);
+  text-decoration: none;
+}
+
+.toggle a[aria-current="page"] {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+.toggle a[aria-current="page"]::before {
+  position: absolute;
+  inset: calc(var(--space-2) - var(--size-line)) 0;
+  z-index: -1;
+  border-radius: var(--radius-button);
+  background: var(--color-panel);
+  box-shadow: var(--shadow-choice);
+  content: "";
+}
+
+.journalTitle {
+  display: flex;
+  min-block-size: var(--size-touch-target);
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--text-mark);
+}
+
+.journalTitle span {
+  color: var(--color-muted);
+  font-size: var(--text-small);
+  font-weight: 400;
+}
+
+.journalHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.journalHeader small {
+  margin-inline-start: auto;
+  color: var(--color-muted);
+  font-size: var(--text-small);
+}
+
+.tradePrice {
+  color: var(--color-ink-secondary);
+  font-size: var(--text-row);
+}
+
+.tradePrice > span,
+.currentPrice {
+  white-space: nowrap;
+}
+
+.currentPrice::before {
+  content: "(";
+}
+.currentPrice::after {
+  content: ")";
+}
+
+.journalRow blockquote {
+  margin: 0;
+  padding-inline-start: var(--space-3);
+  border-inline-start: var(--size-mark) solid var(--color-line-strong);
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+
+.performance {
+  color: var(--color-ink-secondary);
+  font-size: var(--text-row);
+}
+
+.performance small {
+  display: block;
+  color: var(--color-muted);
+  font-size: var(--text-small);
+}
+
+.comparison,
+.since {
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: 1 / -1;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.journalRow > .performance:last-child {
+  display: grid;
+  grid-template-columns: subgrid;
+}
+
+.performance small,
+.comparison > p {
+  grid-column: 1 / -1;
+}
+
+.comparison[data-side="sell"],
+.since[data-side="sell"] {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.comparison[data-side="sell"] {
+  gap: var(--space-2) var(--space-4);
+}
+
+.bar {
+  position: relative;
+  display: block;
+  min-inline-size: 0;
+  max-inline-size: calc(
+    var(--width-journal-bar) - 2 * (var(--space-1) + var(--size-line))
+  );
+  block-size: var(--size-journal-mark);
+  margin-inline: calc(var(--space-1) + var(--size-line));
+}
+
+.bar::before {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 50%;
+  border-inline-start: var(--size-line) dotted var(--color-line-strong);
+  content: "";
+}
+
+.bar::after {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline: 0;
+  border-block-start: var(--size-line) solid var(--color-line);
+  content: "";
+}
+
+.bar > span {
+  position: absolute;
+  z-index: 1;
+  inset-block-start: calc(
+    (var(--size-journal-mark) - var(--size-home-bar)) / 2
+  );
+  block-size: var(--size-home-bar);
+  border-radius: var(--size-mark);
+}
+
+.bar > span[data-change="rise"] {
+  background: var(--color-gain);
+}
+.bar > span[data-change="fall"] {
+  background: var(--color-loss);
+}
+
+.empty {
+  padding-block: var(--space-6);
+  color: var(--color-muted);
+}
+
+@media (width < 60rem) {
+  .columns[data-view="orders"] > .journalSection,
+  .columns[data-view="journal"] > .orderSection {
+    display: none;
+  }
+
+  .journalSection .list {
+    grid-template-columns: max-content minmax(0, 1fr);
+  }
+
+  .since {
+    row-gap: var(--space-1);
+  }
+}
+
+@media (width >= 60rem) {
+  .toggle {
+    display: none;
+  }
+  .columns {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  }
+  .activity {
+    gap: var(--space-6);
+  }
+}

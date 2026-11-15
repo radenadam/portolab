@@ -5,7 +5,7 @@ import type { ClassId } from "~/features/classes/classes.schema";
 import type { PriceSourceDescription } from "~/features/market-data/price-source.server";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
 import { holdingQuoteFailureText } from "~/features/trading/holding-quote-failure-text";
-import { ordersPath } from "~/features/trading/orders-path";
+import { activityPath } from "~/features/trading/activity-path";
 import { classPath } from "~/features/classes/class-path";
 import { readPortfolioValuation } from "~/features/trading/read-portfolio-report.server";
 import type { ValuationReport } from "~/features/trading/read-portfolio-report.server";
@@ -95,7 +95,7 @@ export default function MeasuresPage({
       <Link to={classPath(classId)} className={styles["link"]}>
         {m.measures_portfolio_link()}
       </Link>
-      <Link to={ordersPath(classId)} className={styles["link"]}>
+      <Link to={activityPath(classId)} className={styles["link"]}>
         {m.measures_orders_link()}
       </Link>
       <MethodNotice />

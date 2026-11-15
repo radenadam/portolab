@@ -30,6 +30,27 @@
   line-height: 1.3;
 }
 
+.smallTile {
+  inline-size: var(--size-tile-small);
+  block-size: var(--size-tile-small);
+  border-radius: var(--radius-button);
+}
+
+.codeLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-2);
+}
+
+.codeDetail {
+  color: var(--color-ink-secondary);
+  font-family: var(--font-text);
+  font-size: var(--text-row);
+  font-weight: 400;
+  white-space: nowrap;
+}
+
 .compact {
   flex-wrap: nowrap;
   align-items: center;

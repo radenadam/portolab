@@ -1,18 +1,16 @@
 import type { ReactNode } from "react";
-import { data } from "react-router";
+import { data, Link } from "react-router";
 import { databaseContext } from "~/database/database.server";
 import { classPath } from "~/features/classes/class-path";
 import type { ClassId } from "~/features/classes/classes.schema";
 import type { PriceSourceDescription } from "~/features/market-data/price-source.server";
-import { FormFailure, FormSuccess } from "~/form";
 import { formatNumber } from "~/formatting";
 import { PageColumns, PageHeader } from "~/frame";
 import { pageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
-import { parseRecordId } from "~/value-parsers";
 import type { Route } from "./+types/orders-page";
 import { ticketAction } from "./order-actions.server";
-import { OpenOrderList, PastOrderList } from "./order-list";
+import { activityPath } from "./activity-path";
 import { PlaceOrderSection } from "./place-order-section";
 import { orderTicketStatus, readOrderTicket } from "./order-ticket.server";
 import type { OrderTicket } from "./order-ticket.server";
@@ -24,7 +22,6 @@ import { readStudentPortfolio } from "./read-student-portfolio.server";
 import { CashSummary, HoldingList } from "./portfolio-summary";
 import { reloadsAfterEveryForm } from "./reloads-after-every-form";
 import styles from "./trading.module.css";
-import type { OrderId } from "./trading.schema";
 
 /** What the page of the orders of a student shows. */
 interface OrdersPageData {
@@ -34,7 +31,6 @@ interface OrdersPageData {
   now: Date;
   source: PriceSourceDescription;
   ticket: OrderTicket;
-  isPlaced: boolean;
   initialSide: OrderSide | undefined;
 }
 
@@ -57,10 +53,6 @@ export function loader({
     classId: params.classId,
     now,
   });
-  const placed = parseRecordId<OrderId>(
-    url.searchParams.get("placed"),
-    "placed",
-  );
   const side = parseOrderSide(
     url.searchParams.get("side"),
     m.trading_side_label(),
@@ -79,10 +71,6 @@ export function loader({
       source,
       ticket,
       initialSide: side.ok ? side.value : undefined,
-      // The notice confirms only an order of this portfolio, so an address with another number shows the orders without it.
-      isPlaced:
-        placed.ok &&
-        portfolio.orders.some((order) => order.id === placed.value),
     },
     { status: orderTicketStatus(ticket) },
   );
@@ -108,9 +96,6 @@ export default function OrdersPage({
       }
       main={
         <>
-          {loaderData.isPlaced && (
-            <FormSuccess text={m.trading_placed_notice()} />
-          )}
           <p className={styles["details"]}>
             {m.trading_fill_notice({
               source: source.name,
@@ -133,17 +118,9 @@ export default function OrdersPage({
               now={now}
             />
           </section>
-          <section>
-            <h2>{m.trading_open_orders_title()}</h2>
-            {actionData?.cancelFailure !== undefined && (
-              <FormFailure text={actionData.cancelFailure} />
-            )}
-            <OpenOrderList orders={portfolio.orders} now={now} />
-          </section>
-          <section>
-            <h2>{m.trading_past_orders_title()}</h2>
-            <PastOrderList orders={portfolio.orders} now={now} />
-          </section>
+          <Link to={activityPath(classId)} className={styles["link"]}>
+            {m.trading_activity_title()}
+          </Link>
         </>
       }
       aside={
