@@ -22,6 +22,7 @@ const texts: Record<
     analysis: string;
     activity: string;
     body: string;
+    valueTitle: string;
     value: string;
     emptyValue: string;
     lots: string;
@@ -52,6 +53,7 @@ const texts: Record<
     analysis: "Analisis",
     activity: "Aktivitas",
     body: "Portofolio Anda sendiri untuk peragaan di kelas, dengan modal awal Rp 1.000.000.000.000 seperti mahasiswa. Portofolio ini tidak dihitung dalam statistik, peta, atau peringkat kelas, dan mahasiswa tidak melihatnya.",
+    valueTitle: "Nilai portofolio",
     value: "Rp 999.253.000.000",
     emptyValue: "Rp 1.000.000.000.000",
     lots: "Jumlah lot",
@@ -82,6 +84,7 @@ const texts: Record<
     analysis: "Analysis",
     activity: "Activity",
     body: "Your own portfolio for demonstrations in class, with starting cash of IDR 1,000,000,000,000 like the students. This portfolio is excluded from class statistics, maps, and rankings, and students cannot see it.",
+    valueTitle: "Portfolio value",
     value: "IDR 999,253,000,000",
     emptyValue: "IDR 1,000,000,000,000",
     lots: "Lots",
@@ -199,12 +202,23 @@ for (const locale of locales) {
         await page.goto(path);
         await expect(page).toHaveTitle(`${text.title} | Portolab`);
         await expect(page.getByText(text.body, { exact: true })).toBeVisible();
+        const summary = page
+          .getByRole("main")
+          .locator("section")
+          .filter({
+            has: page.getByRole("heading", {
+              name: text.valueTitle,
+              exact: true,
+            }),
+          });
         await expect(
-          page.getByText(text.emptyValue, { exact: true }).first(),
+          summary.getByText(text.emptyValue, { exact: true }),
         ).toBeVisible();
         storeComparedPortfolios(classId);
         await page.reload();
-        await expect(page.getByText(text.value, { exact: true })).toBeVisible();
+        await expect(
+          summary.getByText(text.value, { exact: true }),
+        ).toBeVisible();
         for (const view of [text.time, text.map]) {
           await page.getByRole("link", { name: view, exact: true }).click();
           expect(new URL(page.url()).pathname).toBe(path);

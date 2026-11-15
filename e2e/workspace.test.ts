@@ -32,8 +32,17 @@ const texts: Record<
   Locale,
   {
     navigation: string;
-    studentItems: readonly string[];
-    lecturerItems: readonly string[];
+    items: Record<
+      | "home"
+      | "class"
+      | "students"
+      | "portfolio"
+      | "market"
+      | "activity"
+      | "analysis"
+      | "learn",
+      string
+    >;
     joinedClasses: string;
     taughtClasses: string;
     join: string;
@@ -53,8 +62,16 @@ const texts: Record<
 > = {
   id: {
     navigation: "Navigasi utama",
-    studentItems: ["Beranda", "Pasar", "Aktivitas", "Analisis", "Belajar"],
-    lecturerItems: ["Kelas", "Mahasiswa", "Portofolio", "Pasar", "Belajar"],
+    items: {
+      home: "Beranda",
+      class: "Kelas",
+      students: "Mahasiswa",
+      portfolio: "Portofolio",
+      market: "Pasar",
+      activity: "Aktivitas",
+      analysis: "Analisis",
+      learn: "Belajar",
+    },
     joinedClasses: "Kelas Anda",
     taughtClasses: "Kelas yang Anda ajar",
     join: "Gabung ke kelas",
@@ -78,8 +95,16 @@ const texts: Record<
   },
   en: {
     navigation: "Main navigation",
-    studentItems: ["Home", "Market", "Activity", "Analysis", "Learn"],
-    lecturerItems: ["Class", "Students", "Portfolio", "Market", "Learn"],
+    items: {
+      home: "Home",
+      class: "Class",
+      students: "Students",
+      portfolio: "Portfolio",
+      market: "Market",
+      activity: "Activity",
+      analysis: "Analysis",
+      learn: "Learn",
+    },
     joinedClasses: "Your classes",
     taughtClasses: "Classes you teach",
     join: "Join a class",
@@ -188,18 +213,17 @@ for (const locale of locales) {
       browser,
       locale,
     );
-    const itemsOf = (classPath: string): [string, string][] =>
-      [
-        classPath,
-        `${classPath}/market`,
-        `${classPath}/activity`,
-        `${classPath}/analysis`,
-        `${classPath}/learn`,
-      ].map((path, index) => [text.studentItems[index] ?? "", path]);
+    const itemsOf = (classPath: string): [string, string][] => [
+      [text.items.home, classPath],
+      [text.items.market, `${classPath}/market`],
+      [text.items.activity, `${classPath}/activity`],
+      [text.items.analysis, `${classPath}/analysis`],
+      [text.items.learn, `${classPath}/learn`],
+    ];
     await student.goto(`${second.path}/activity`);
     await expectItems(student, locale, {
       items: itemsOf(second.path),
-      current: text.studentItems[2] ?? "",
+      current: text.items.activity,
     });
     await expect(
       student.locator('button[popovertarget="class-switcher"]'),
@@ -231,7 +255,7 @@ for (const locale of locales) {
     await expect(switcher).toBeHidden();
     await expectItems(student, locale, {
       items: itemsOf(first.path),
-      current: text.studentItems[0] ?? "",
+      current: text.items.home,
     });
 
     // The menu of the profile shows the widest name of a student.
@@ -264,14 +288,15 @@ for (const locale of locales) {
     await page.goto("/");
     await expect(page).toHaveURL(testClass.path);
     const items: [string, string][] = [
-      testClass.path,
-      `${testClass.path}/students`,
-      `${testClass.path}/market`,
-      `${testClass.path}/learn`,
-    ].map((path, index) => [text.lecturerItems[index] ?? "", path]);
+      [text.items.class, testClass.path],
+      [text.items.students, `${testClass.path}/students`],
+      [text.items.portfolio, `${testClass.path}/demonstration`],
+      [text.items.market, `${testClass.path}/market`],
+      [text.items.learn, `${testClass.path}/learn`],
+    ];
     await expectItems(page, locale, {
       items: items,
-      current: text.lecturerItems[0] ?? "",
+      current: text.items.class,
     });
     const switcher = await openClassSwitcher(page);
     await expect(switcher.getByText(text.taughtClasses)).toBeVisible();
@@ -285,7 +310,7 @@ for (const locale of locales) {
     await expect(switcher).toBeHidden();
 
     await navigationItems(page, locale)
-      .filter({ hasText: text.lecturerItems[2] ?? "" })
+      .filter({ hasText: text.items.market })
       .click();
     await expect(page).toHaveURL(`${testClass.path}/market`);
     await expect(
@@ -293,7 +318,7 @@ for (const locale of locales) {
     ).toBeVisible();
     await expectItems(page, locale, {
       items: items,
-      current: text.lecturerItems[2] ?? "",
+      current: text.items.market,
     });
     await expectAccessibleScreen(page);
   });
