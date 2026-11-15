@@ -243,6 +243,7 @@ function openAnalysisOnPage(page: Page, browser: Browser, locale: Locale) {
 async function expectPerformanceHelp(
   page: Page,
   locale: Locale,
+  checkOpenTable?: () => Promise<void>,
 ): Promise<void> {
   const text = analysisText[locale];
   await page
@@ -262,6 +263,11 @@ async function expectPerformanceHelp(
   });
   await expect(data.locator("tbody tr")).toHaveCount(5);
   expect(await layoutProblems(page)).toEqual([]);
+  if (checkOpenTable !== undefined) await checkOpenTable();
+  await page.keyboard.press("Escape");
+  await expect(data).toBeHidden();
+  await page.keyboard.press("Escape");
+  await expect(help).toBeHidden();
 }
 
 type InvalidAxisKind = "short" | "letters" | "digits";
@@ -436,9 +442,9 @@ for (const locale of locales) {
       text.meaning,
     );
     await student.keyboard.press("Escape");
-    await expectPerformanceHelp(student, locale);
-    await expectAccessibleScreen(student);
-    await student.keyboard.press("Escape");
+    await expectPerformanceHelp(student, locale, async () => {
+      await expectAccessibleScreen(student);
+    });
     await student.context().close();
   });
 
@@ -734,7 +740,6 @@ for (const locale of locales) {
         -"/analysis".length,
       );
       await expectPerformanceHelp(page, locale);
-      await page.keyboard.press("Escape");
       await page
         .getByRole("button", { name: text.portfolioPoint, exact: true })
         .click();
