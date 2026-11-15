@@ -92,6 +92,13 @@ const texts: Record<
   },
 };
 
+function firstImpactAfterValue(section: Locator): Locator {
+  return section
+    .locator("[data-impact-rows] > div")
+    .first()
+    .locator(":scope > strong");
+}
+
 // Python Decimal independently computed the portfolio's values from the recorded month-end closes, as preview-trade.test.ts describes.
 async function expectRows(
   section: Locator,
@@ -146,12 +153,7 @@ for (const locale of locales) {
     await ticket
       .getByLabel(text.reason, { exact: true })
       .fill("Tesis tetap tersimpan.");
-    await expect(
-      ticket
-        .locator("[data-impact-rows] > div")
-        .first()
-        .locator(":scope > strong"),
-    ).toContainText(text.eleven);
+    await expect(firstImpactAfterValue(ticket)).toContainText(text.eleven);
     const axis = ticket.getByRole("navigation", { name: text.ticketAxis });
     for (const [label, value] of [
       [text.risk, "risk"],
@@ -171,12 +173,9 @@ for (const locale of locales) {
     await student.keyboard.press("Escape");
     await expect(lots).toHaveValue("11");
     await lots.fill("10");
-    await expect(
-      ticket
-        .locator("[data-impact-rows] > div")
-        .first()
-        .locator(":scope > strong"),
-    ).toContainText(text.rows[0]?.[1] ?? "");
+    await expect(firstImpactAfterValue(ticket)).toContainText(
+      text.rows[0]?.[1] ?? "",
+    );
     const pointValues = ticket.locator("summary:visible").first();
     await pointValues.click();
     await expect(ticket.locator("table:visible")).toHaveCount(1);
@@ -219,12 +218,7 @@ for (const locale of locales) {
     await expect(more).toBeFocused();
     await expect(lots).toHaveValue("11");
     await expect(reason).toHaveValue("Tesis tetap tersimpan.");
-    await expect(
-      ticket
-        .locator("[data-impact-rows] > div")
-        .first()
-        .locator(":scope > strong"),
-    ).toContainText(text.eleven);
+    await expect(firstImpactAfterValue(ticket)).toContainText(text.eleven);
     await student.context().close();
   });
 
