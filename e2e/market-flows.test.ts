@@ -518,5 +518,16 @@ async function expectMarketScales(page: Page): Promise<void> {
       expect(mark.left).toBeCloseTo(first.left, 3);
       expect(mark.width).toBeCloseTo(first.width, 3);
     }
+    if (column !== 5) {
+      const edges = await page
+        .locator(
+          `main section[aria-labelledby="stocks-heading"] tbody > tr > td:nth-child(${String(column)}) [data-market-value]`,
+        )
+        .evaluateAll((values) =>
+          values.map((value) => value.getBoundingClientRect().right),
+        );
+      expect(edges.length).toBeGreaterThan(marks.length);
+      for (const edge of edges) expect(edge).toBeCloseTo(edges[0] ?? 0, 3);
+    }
   }
 }

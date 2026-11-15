@@ -189,7 +189,9 @@ export function MarketTable({
               <>
                 <td className={styles["measureCell"]}>
                   <span className={styles["cellScale"]}>
-                    <NumberText>{formatBeta(row.measures.beta)}</NumberText>
+                    <span data-market-value="">
+                      <NumberText>{formatBeta(row.measures.beta)}</NumberText>
+                    </span>
                     <MarketScale
                       value={row.measures.beta}
                       range={betaRange}
@@ -199,9 +201,11 @@ export function MarketTable({
                 </td>
                 <td className={styles["measureCell"]}>
                   <span className={styles["cellScale"]}>
-                    <NumberText>
-                      {formatPercent(row.measures.standardDeviation, "two")}
-                    </NumberText>
+                    <span data-market-value="">
+                      <NumberText>
+                        {formatPercent(row.measures.standardDeviation, "two")}
+                      </NumberText>
+                    </span>
                     <MarketScale
                       value={row.measures.standardDeviation}
                       range={deviationRange}
@@ -224,7 +228,11 @@ function UnavailableMeasure(): ReactNode {
       className={styles["measureCell"]}
       aria-describedby={marketMeasureNotesId}
     >
-      {m.market_data_unavailable_value_label()}
+      <span className={styles["cellScale"]}>
+        <span data-market-value="">
+          {m.market_data_unavailable_value_label()}
+        </span>
+      </span>
     </td>
   );
 }

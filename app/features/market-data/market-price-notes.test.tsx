@@ -81,7 +81,7 @@ for (const locale of locales) {
     expect(row.match(/aria-describedby="market-measure-notes"/g)).toHaveLength(
       2,
     );
-    expect(row.split(`>${texts[locale].missingValue}</td>`)).toHaveLength(3);
+    expect(row.split(`>${texts[locale].missingValue}</span>`)).toHaveLength(3);
     expect(row).not.toContain(texts[locale].reason);
     expect(html.split(texts[locale].reason)).toHaveLength(2);
     expect(html).toContain(texts[locale].heading);
