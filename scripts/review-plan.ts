@@ -192,14 +192,11 @@ function canReviewMerge(
 }
 
 /** Tells the reviewer which part of the change the files under review hold, and how to read the diff of one of them, because the diff of a whole change can be too long for one read. */
-export function describeReviewScope(
-  since: string | undefined,
-  base: string,
-  mergeOnly = false,
-): string {
+export function describeReviewScope(plan: ReviewPlan, base: string): string {
+  const { since } = plan;
   const wholeDiff = `\`git diff ${base}...HEAD -- <path>\``;
-  if (since !== undefined && mergeOnly) {
-    return `They hold manual base merge resolutions since ${since}. Read only their remerge diffs with \`git log --first-parent --merges --diff-merges=remerge -p ${since}..HEAD -- <path>\`. The verifier checks finding fixes from author commits in this push.`;
+  if (since !== undefined && plan.mergeRounds > plan.previous.mergeRounds) {
+    return `They hold manual base merge resolutions since ${since}. Read only their remerge diffs with \`git log --first-parent --merges --diff-merges=remerge -p ${since}..HEAD -- <path>\`.`;
   }
   return since === undefined
     ? `They hold the whole change, and ${wholeDiff} shows what changed in one of them.`

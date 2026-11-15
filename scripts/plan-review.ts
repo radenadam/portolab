@@ -80,7 +80,7 @@ if (plan.kind === "review") {
     `lenses=${listOfWords(plan.lenses)}`,
     `tools=${tools.value}`,
     `product=${String(plan.lenses.includes("product"))}`,
-    `scope=${describeReviewScope(since.value, base, plan.mergeRounds > plan.previous.mergeRounds)}`,
+    `scope=${describeReviewScope(plan, base)}`,
   );
 }
 process.stdout.write(`${outputs.join("\n")}\n`);

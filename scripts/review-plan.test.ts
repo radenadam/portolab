@@ -16,7 +16,7 @@ import type { Finding } from "./review-findings.ts";
 import type { CommitScope } from "./review-history.ts";
 import type { ChangedFile } from "./review-lenses.ts";
 
-import type { ReviewPlan } from "./review-plan.ts";
+import type { ReviewHistory, ReviewPlan } from "./review-plan.ts";
 import { summarizeReview } from "./summarize-review.ts";
 import { parseLatestReviewState, parseReviewState } from "./review-state.ts";
 import type { ReviewState } from "./review-state.ts";
@@ -644,16 +644,62 @@ test("requires valid author-file lists in current plans", () => {
   }
 });
 
-test("tells the reviewer whether the files hold the whole change or what changed since a head, and how to read the diff of one", () => {
-  expect(describeReviewScope(undefined, "origin/main")).toBe(
+test("describes the whole change and each ordinary incremental plan through the scope used by the workflow", () => {
+  const first = planReview(
+    stateBeforeFirstRound,
+    { since: undefined, commitScope: "author" },
+    [docs],
+  );
+  expect(describeReviewScope(first, "origin/main")).toBe(
     "They hold the whole change, and `git diff origin/main...HEAD -- <path>` shows what changed in one of them.",
   );
-  expect(describeReviewScope(head, "origin/main", true)).toBe(
-    `They hold manual base merge resolutions since ${head}. Read only their remerge diffs with \`git log --first-parent --merges --diff-merges=remerge -p ${head}..HEAD -- <path>\`. The verifier checks finding fixes from author commits in this push.`,
-  );
-  expect(describeReviewScope(head, "origin/main")).toBe(
-    `They hold what changed since ${head}, the head that the panel last reviewed, because earlier rounds reviewed the rest of the change. \`git diff ${head} HEAD -- <path>\` shows what changed in one of them since then, and \`git diff origin/main...HEAD -- <path>\` shows its whole change.`,
-  );
+  const histories: ReviewHistory[] = [
+    { since: head, commitScope: "author" },
+    { since: head, commitScope: "base-merges" },
+    {
+      since: head,
+      commitScope: "fixes-and-merges",
+      authorFiles: [docs],
+      mergeFiles: [docs],
+    },
+  ];
+  for (const history of histories) {
+    const plan = planReview(stateAfter(1, [openFinding]), history, [docs]);
+    expect(plan).toMatchObject({ kind: "review", mergeRounds: 0 });
+    expect(describeReviewScope(plan, "origin/main")).toBe(
+      `They hold what changed since ${head}, the head that the panel last reviewed, because earlier rounds reviewed the rest of the change. \`git diff ${head} HEAD -- <path>\` shows what changed in one of them since then, and \`git diff origin/main...HEAD -- <path>\` shows its whole change.`,
+    );
+  }
+});
+
+test("describes only manual resolutions for pure and combined extra merge plans", () => {
+  const cases: [Finding[], ReviewHistory][] = [
+    [[], { since: head, commitScope: "base-merges" }],
+    [[openFinding], { since: head, commitScope: "base-merges" }],
+    [
+      [openFinding],
+      {
+        since: head,
+        commitScope: "fixes-and-merges",
+        authorFiles: [docs],
+        mergeFiles: [docs],
+      },
+    ],
+  ];
+  for (const [openFindings, history] of cases) {
+    const previous = stateAfter(reviewRoundLimit, openFindings);
+    expect(previous.round - previous.mergeRounds - previous.checkRounds).toBe(
+      reviewRoundLimit,
+    );
+    const plan = planReview(previous, history, [docs]);
+    expect(plan).toMatchObject({
+      kind: "review",
+      mergeRounds: previous.mergeRounds + 1,
+    });
+    expect(describeReviewScope(plan, "origin/main")).toBe(
+      `They hold manual base merge resolutions since ${head}. Read only their remerge diffs with \`git log --first-parent --merges --diff-merges=remerge -p ${head}..HEAD -- <path>\`.`,
+    );
+  }
 });
 
 test("builds the report of a review round with its findings numbered after the round before the open ones, and of a round that checks with the open findings alone", () => {
