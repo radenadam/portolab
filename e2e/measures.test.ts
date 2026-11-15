@@ -1,3 +1,5 @@
+import { fieldMaximumLength } from "../app/form-size.ts";
+import { screenshotFullHeight } from "./screenshot-full-height.ts";
 import type { Browser, Locator, Page } from "@playwright/test";
 import type { ClassId } from "../app/features/classes/classes.schema.ts";
 import { expect, test } from "@playwright/test";
@@ -64,6 +66,7 @@ const analysisText: Record<
     performanceMeaning: string;
     performanceData: string;
     axisFailure: string;
+    longAxisFailure: string;
     axisHints: readonly string[];
     apply: string;
   }
@@ -129,6 +132,8 @@ const analysisText: Record<
     performanceData: "Imbal hasil pada setiap penutupan",
     axisFailure:
       'Kolom "Sumbu risiko" menerima "beta" atau "risk", tetapi isinya "BETA". Pilih salah satu sumbu risiko yang tercantum.',
+    longAxisFailure:
+      'Kolom "Sumbu risiko" berisi 8.000 karakter, tetapi hanya menerima "beta" atau "risk". Pilih salah satu sumbu risiko yang tercantum.',
     axisHints: ['Beta memakai "beta".', 'Simpangan baku memakai "risk".'],
     apply: "Tampilkan analisis",
   },
@@ -193,6 +198,8 @@ const analysisText: Record<
     performanceData: "The return at each close",
     axisFailure:
       'The field "Risk axis" takes "beta" or "risk", but it holds "BETA". Choose a listed risk axis.',
+    longAxisFailure:
+      'The field "Risk axis" has 8,000 characters, but it takes "beta" or "risk". Choose a listed risk axis.',
     axisHints: ['Beta uses "beta".', 'Standard deviation uses "risk".'],
     apply: "Show analysis",
   },
@@ -257,17 +264,29 @@ async function expectPerformanceHelp(
   expect(await layoutProblems(page)).toEqual([]);
 }
 
+type InvalidAxisKind = "short" | "letters" | "digits";
+const invalidAxes: Record<InvalidAxisKind, string> = {
+  short: " BETA ",
+  letters: "W".repeat(fieldMaximumLength),
+  digits: "8".repeat(fieldMaximumLength),
+};
+
 async function openInvalidAnalysisAxis(
   page: Page,
   classPath: string,
-  locale: Locale,
+  input: { locale: Locale; kind: InvalidAxisKind },
 ): Promise<Locator> {
-  const text = analysisText[locale];
-  const response = await page.goto(`${classPath}/analysis?axis=%20BETA%20`);
+  const text = analysisText[input.locale];
+  const value = invalidAxes[input.kind];
+  const response = await page.goto(
+    `${classPath}/analysis?axis=${encodeURIComponent(value)}`,
+  );
   expect(response?.status()).toBe(400);
   const field = page.getByRole("textbox", { name: text.axis, exact: true });
-  await expect(field).toHaveValue(" BETA ");
-  await expect(field).toHaveAccessibleDescription(text.axisFailure);
+  await expect(field).toHaveValue(value);
+  await expect(field).toHaveAccessibleDescription(
+    input.kind === "short" ? text.axisFailure : text.longAxisFailure,
+  );
   for (const hint of text.axisHints)
     await expect(page.getByText(hint, { exact: true })).toBeVisible();
   expect(await layoutProblems(page)).toEqual([]);
@@ -423,9 +442,43 @@ for (const locale of locales) {
     browser,
   }) => {
     const { student, classPath } = await analysisStudent(page, browser, locale);
-    const field = await openInvalidAnalysisAxis(student, classPath, locale);
+    const field = await openInvalidAnalysisAxis(student, classPath, {
+      locale,
+      kind: "short",
+    });
     await expectAccessibleScreen(student);
     await correctAnalysisAxis(field, classPath, locale);
+    await student.context().close();
+  });
+
+  test(`keeps the widest refused axes inside the page in ${language}`, async ({
+    page,
+    browser,
+  }, info) => {
+    const { student, classPath } = await analysisStudent(page, browser, locale);
+    for (const kind of ["letters", "digits"] as const) {
+      const field = await openInvalidAnalysisAxis(student, classPath, {
+        locale,
+        kind,
+      });
+      await expectAccessibleScreen(student);
+      await student.evaluate(async () => {
+        await document.fonts.ready;
+      });
+      for (const width of isPhone() ? [360] : [1440, 1920]) {
+        await student.setViewportSize({ width, height: 900 });
+        for (const theme of ["light", "dark"] as const) {
+          await student.emulateMedia({ colorScheme: theme });
+          expect(await layoutProblems(student)).toEqual([]);
+          await screenshotFullHeight(student, {
+            path: info.outputPath(
+              `analysis-axis-${locale}-${String(width)}-${kind}-${theme}.png`,
+            ),
+          });
+        }
+      }
+      await correctAnalysisAxis(field, classPath, locale);
+    }
     await student.context().close();
   });
 
@@ -692,8 +745,18 @@ for (const locale of locales) {
         .click();
       await expect(page.locator("#analysis-risk")).toBeVisible();
       await page.keyboard.press("Escape");
-      const field = await openInvalidAnalysisAxis(page, classPath, locale);
+      const field = await openInvalidAnalysisAxis(page, classPath, {
+        locale,
+        kind: "short",
+      });
       await correctAnalysisAxis(field, classPath, locale);
+      for (const kind of ["letters", "digits"] as const) {
+        const widestField = await openInvalidAnalysisAxis(page, classPath, {
+          locale,
+          kind,
+        });
+        await correctAnalysisAxis(widestField, classPath, locale);
+      }
       await lecturer.context().close();
     });
   });

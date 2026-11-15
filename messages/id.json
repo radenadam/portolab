@@ -624,6 +624,7 @@
   "classes_midterm_label": "UTS",
   "classes_final_label": "UAS",
   "measures_analysis_axis_error": "Kolom \"{field}\" menerima {choices}, tetapi isinya \"{value}\". Pilih salah satu sumbu risiko yang tercantum.",
+  "measures_analysis_long_axis_error": "Kolom \"{field}\" berisi {length} karakter, tetapi hanya menerima {choices}. Pilih salah satu sumbu risiko yang tercantum.",
   "measures_analysis_axis_hint": "{axis} memakai \"{value}\".",
   "measures_analysis_apply_label": "Tampilkan analisis",
   "navigation_learn_link": "Belajar",

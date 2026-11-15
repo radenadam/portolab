@@ -624,6 +624,7 @@
   "classes_midterm_label": "Midterm",
   "classes_final_label": "Final",
   "measures_analysis_axis_error": "The field \"{field}\" takes {choices}, but it holds \"{value}\". Choose a listed risk axis.",
+  "measures_analysis_long_axis_error": "The field \"{field}\" has {length} characters, but it takes {choices}. Choose a listed risk axis.",
   "measures_analysis_axis_hint": "{axis} uses \"{value}\".",
   "measures_analysis_apply_label": "Show analysis",
   "navigation_learn_link": "Learn",
