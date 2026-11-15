@@ -59,7 +59,6 @@
 }
 .tabs {
   composes: choice from "../../segmented-choice.module.css";
-  --choice-inset: var(--space-1);
 }
 .tabs a {
   padding-inline: var(--space-1);
