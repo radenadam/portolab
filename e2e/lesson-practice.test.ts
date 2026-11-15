@@ -1,9 +1,11 @@
 import { expect, test } from "@playwright/test";
+import { setTimeout as pause } from "node:timers/promises";
 import type { Locator, Page } from "@playwright/test";
 import { storeLessonPortfolio } from "./store-lesson-portfolio.ts";
 import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
 import { languageNames } from "../app/language-names.ts";
+import { secondMilliseconds } from "../app/time-units.ts";
 import { openAsNewStudent } from "./open-as-new-student.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 import { expectLayout } from "./expect-layout.ts";
@@ -210,20 +212,22 @@ for (const locale of locales) {
     await mapAlpha.focus();
     await mapAlpha.press("Enter");
     const mapCalculation = page.locator("#map-lesson-alpha-TLKM:popover-open");
-    await expect(mapCalculation).toBeInViewport();
+    await expect(mapCalculation).toBeInViewport({ ratio: 1 });
     await expectAccessibleScreen(page);
     await captureScreens(page, testInfo, {
       name: `lesson-9-alpha-${locale}`,
       fullPage: false,
       fromTop: false,
       check: async () => {
-        await expect(mapCalculation).toBeInViewport();
+        await expect(mapCalculation).toBeInViewport({ ratio: 1 });
       },
     });
     await page.keyboard.press("Escape");
     await expect(mapAlpha).toBeFocused();
     await page.getByRole("button", { name: /TLKM.*(?:Buka|Open)/u }).click();
-    await expect(page.locator("#lesson-alpha-TLKM:popover-open")).toBeVisible();
+    await expect(
+      page.locator("#lesson-alpha-TLKM:popover-open"),
+    ).toBeInViewport({ ratio: 1 });
     await expectAccessibleScreen(page);
     await page.keyboard.press("Escape");
     await page.getByRole("button", { name: text.formula, exact: true }).click();
@@ -398,10 +402,17 @@ for (const locale of locales) {
         locale,
         path: `/learn/${String(session)}`,
       });
+      let delayedStylesheets = 0;
+      await page.route("**/*.css", async (route) => {
+        delayedStylesheets++;
+        await pause(5 * secondMilliseconds);
+        await route.continue();
+      });
       await holdClientScripts(
         page,
         { otherDevice: lecturer.context() },
         async (loadClient) => {
+          await expect.poll(() => delayedStylesheets).toBeGreaterThan(0);
           await expectAccessibleScreen(page);
           await loadClient();
           await expect(page.getByRole("slider").first()).toBeVisible();
@@ -466,7 +477,7 @@ for (const locale of locales) {
           await mapAlpha.press("Enter");
           await expect(
             lesson.locator('[id$="map-lesson-alpha-TLKM"]:popover-open'),
-          ).toBeInViewport();
+          ).toBeInViewport({ ratio: 1 });
           await page.keyboard.press("Escape");
           await expect(mapAlpha).toBeFocused();
           await lesson
@@ -474,7 +485,7 @@ for (const locale of locales) {
             .click();
           await expect(
             lesson.locator('[id$="lesson-alpha-TLKM"]:popover-open'),
-          ).toBeVisible();
+          ).toBeInViewport({ ratio: 1 });
           await page.keyboard.press("Escape");
         } else {
           await lesson

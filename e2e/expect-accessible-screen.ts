@@ -11,6 +11,16 @@ const colorSchemes = ["light", "dark"] as const;
 
 /** Axe runs page scripts, so callers keep JavaScript enabled. holdClientScripts can pause the app's scripts while axe checks server HTML. */
 export async function expectAccessibleScreen(page: Page): Promise<void> {
+  // A caller can hold app scripts while styles load, which exposes both responsive navigation layouts to axe.
+  await page.waitForFunction(() => {
+    if (document.readyState === "loading") return false;
+    for (const link of document.querySelectorAll<HTMLLinkElement>(
+      'link[rel~="stylesheet"]',
+    )) {
+      if (link.sheet === null) return false;
+    }
+    return true;
+  });
   await expectDefinitionTerms(page);
   // Until the fonts load, the browser draws text in a fallback font, whose widths differ.
   await page.evaluate(async () => {

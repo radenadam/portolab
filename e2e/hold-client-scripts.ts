@@ -12,7 +12,7 @@ export async function holdClientScripts(
       started.resolve(undefined);
       await scripts.promise;
     }
-    await route.continue();
+    await route.fallback();
   });
   try {
     if (address === undefined) await page.reload({ waitUntil: "commit" });
