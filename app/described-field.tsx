@@ -64,13 +64,23 @@ export function failureIdOf(id: string): string {
 export function FieldFailure({
   id,
   text,
+  quotedValue,
 }: {
   id: string;
   text: string | undefined;
+  quotedValue?: string;
 }): ReactNode {
+  // The server sends a finished message, so only the quoted input is text. An unquoted quantity can have the same digits.
+  const value = quotedValue?.trim();
   return text === undefined ? null : (
     <p id={id} className={styles["failure"]}>
-      <NumberText>{text}</NumberText>
+      <NumberText>
+        {(textValue) =>
+          value === undefined
+            ? text
+            : text.replaceAll(`"${value}"`, () => `"${textValue(value)}"`)
+        }
+      </NumberText>
     </p>
   );
 }

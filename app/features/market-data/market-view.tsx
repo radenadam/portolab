@@ -1,3 +1,4 @@
+import { MarketSectors } from "./market-sectors";
 import { FilterOptions } from "./filter-options";
 import { MarketMeasureHelp } from "./market-measure-help";
 import { MarketReferenceNotice } from "./market-reference-notice";
@@ -12,7 +13,6 @@ import { wibDateOf } from "~/wib";
 import { m } from "~/paraglide/messages.js";
 import { NumberText } from "~/number-text";
 import { FieldFailure } from "~/described-field";
-import { companyOf } from "./company-of";
 import { MarketTable } from "./market-table";
 import { IhsgCard } from "./ihsg-card";
 import {
@@ -20,7 +20,6 @@ import {
   marketSortOptions,
   marketDirectionOptions,
   marketRangeOptions,
-  marketSectorOptions,
 } from "./market-filters";
 import type { MarketFilters, MarketSort } from "./market-filters";
 import { filterMarketRows } from "./filter-market-rows";
@@ -51,21 +50,6 @@ export function MarketView(props: MarketViewProps): ReactNode {
   const { live, setLive, formRef } = useMarketFilters(filters);
   const mobileConcept = mobileConcepts[live.sort];
   const shown = filterMarketRows(rows, live);
-  const sectorOptions = marketSectorOptions()
-    .map((option) => ({
-      ...option,
-      count:
-        option.value === "all"
-          ? rows.length
-          : rows.filter((row) => companyOf(row.code).sector === option.value)
-              .length,
-    }))
-    .filter(
-      (option) =>
-        option.value === "all" ||
-        option.count > 0 ||
-        option.value === values.sector,
-    );
   const failed = new Set(latestAttempt?.failedCodes);
   return (
     <div className={styles["market"]}>
@@ -96,7 +80,11 @@ export function MarketView(props: MarketViewProps): ReactNode {
                 failures.query === undefined ? undefined : "search-failure"
               }
             />
-            <FieldFailure id="search-failure" text={failures.query} />
+            <FieldFailure
+              id="search-failure"
+              text={failures.query}
+              quotedValue={values.query}
+            />
           </div>
           <button type="submit" className={styles["apply"]}>
             {m.market_data_apply_label()}
@@ -122,7 +110,11 @@ export function MarketView(props: MarketViewProps): ReactNode {
                 value={values.range}
               />
             </select>
-            <FieldFailure id="range-failure" text={failures.range} />
+            <FieldFailure
+              id="range-failure"
+              text={failures.range}
+              quotedValue={values.range}
+            />
           </div>
         )}
         <IhsgCard
@@ -133,44 +125,14 @@ export function MarketView(props: MarketViewProps): ReactNode {
           missed={failed.has("IHSG")}
         />
         <div className={styles["filters"]}>
-          <fieldset className={styles["sectors"]}>
-            <legend>{m.market_data_sector_label()}</legend>
-            <div className={styles["chipList"]}>
-              {failures.sector !== undefined && (
-                <label className={styles["chip"]}>
-                  <input
-                    type="radio"
-                    name="sector"
-                    value={values.sector}
-                    defaultChecked
-                  />
-                  <NumberText verbatim>{values.sector}</NumberText>
-                </label>
-              )}
-              {sectorOptions.map(({ value: sector, label, count }) => (
-                <label key={sector} className={styles["chip"]}>
-                  <input
-                    type="radio"
-                    name="sector"
-                    value={sector}
-                    defaultChecked={values.sector === sector}
-                    onChange={() => {
-                      setLive({ ...live, sector });
-                    }}
-                  />
-                  <NumberText>
-                    {(textValue) =>
-                      m.market_data_chip_label({
-                        sector: textValue(label),
-                        count: formatNumber(count),
-                      })
-                    }
-                  </NumberText>
-                </label>
-              ))}
-            </div>
-            <FieldFailure id="sector-failure" text={failures.sector} />
-          </fieldset>
+          <MarketSectors
+            rows={rows}
+            value={values.sector}
+            failure={failures.sector}
+            onChange={(sector) => {
+              setLive({ ...live, sector });
+            }}
+          />
           <div className={styles["select"]}>
             <label htmlFor="market-sort">{m.market_data_sort_label()}</label>
             <select
@@ -194,7 +156,11 @@ export function MarketView(props: MarketViewProps): ReactNode {
                 value={values.sort}
               />
             </select>
-            <FieldFailure id="sort-failure" text={failures.sort} />
+            <FieldFailure
+              id="sort-failure"
+              text={failures.sort}
+              quotedValue={values.sort}
+            />
           </div>
           <div className={styles["select"]}>
             <label htmlFor="market-direction">
@@ -226,7 +192,11 @@ export function MarketView(props: MarketViewProps): ReactNode {
                 value={values.direction}
               />
             </select>
-            <FieldFailure id="direction-failure" text={failures.direction} />
+            <FieldFailure
+              id="direction-failure"
+              text={failures.direction}
+              quotedValue={values.direction}
+            />
           </div>
           {mobileConcept !== undefined && (
             <div className={styles["mobileHelp"]}>

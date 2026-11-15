@@ -231,6 +231,15 @@ for (const locale of locales) {
         ).toHaveValue("salah");
         if (javaScriptEnabled) await expectAccessibleScreen(student);
         else expect(await layoutProblems(student)).toEqual([]);
+        const widestChoice = "9".repeat(fieldMaximumLength);
+        const choiceResponse = await student.goto(
+          `${testClass.path}/market?${new URLSearchParams({ direction: widestChoice }).toString()}`,
+        );
+        expect(choiceResponse?.status()).toBe(400);
+        await expect(
+          student.getByLabel(text.direction, { exact: true }),
+        ).toHaveValue(widestChoice);
+        expect(await layoutProblems(student)).toEqual([]);
       } finally {
         await student.context().close();
       }
