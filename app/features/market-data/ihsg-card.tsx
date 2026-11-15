@@ -30,12 +30,14 @@ export function IhsgCard({
   closes,
   filters,
   missed,
+  sharedTime,
 }: {
   index: IndexCode;
   quote: IndexQuote | undefined;
   closes: readonly DailyClose<IndexPoints>[];
   filters: MarketFilters;
   missed: boolean;
+  sharedTime?: string | undefined;
 }): ReactNode {
   const first = closes[0];
   const last = closes.at(-1);
@@ -80,7 +82,7 @@ export function IhsgCard({
             colored
             change={formatSignedPercent(quoteChange(quote))}
           />
-          <QuoteTime quotedAt={quote.quotedAt} />
+          <QuoteTime quotedAt={quote.quotedAt} sharedTime={sharedTime} />
           {missed && (
             <span className={styles["missed"]}>
               {m.market_data_missed_label()}

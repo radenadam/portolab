@@ -1,10 +1,17 @@
 import type { ReactNode } from "react";
-import { formatMarketTimeParts } from "~/formatting";
+import { formatMarketTime, formatMarketTimeParts } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { NumberText } from "~/number-text";
 
 /** One Intl format keeps the date and clock consistent when the layout wraps them. */
-export function QuoteTime({ quotedAt }: { quotedAt: Date }): ReactNode {
+export function QuoteTime({
+  quotedAt,
+  sharedTime,
+}: {
+  quotedAt: Date;
+  sharedTime?: string | undefined;
+}): ReactNode {
+  if (formatMarketTime(quotedAt) === sharedTime) return null;
   const { date, clock } = formatMarketTimeParts(quotedAt);
   return (
     <time dateTime={quotedAt.toISOString()}>

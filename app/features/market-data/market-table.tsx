@@ -28,6 +28,7 @@ import { quoteChange } from "./quote-change";
 import { sectorName } from "./sector-name";
 import { StockName } from "./stock-name";
 import { MarketScale } from "./market-scale";
+import { marketMeasureNotesId } from "./market-measure-notes";
 import styles from "./market-view.module.css";
 
 /** The market rows share scales, so a change or a risk compares at a glance. */
@@ -40,6 +41,7 @@ export function MarketTable({
   returnPath,
   reference,
   index,
+  sharedTime,
 }: {
   rows: readonly MarketRow[];
   classId: ClassId;
@@ -49,6 +51,7 @@ export function MarketTable({
   returnPath: string;
   reference: ReturnType<typeof readMarket>["marketReference"];
   index: string;
+  sharedTime: string | undefined;
 }): ReactNode {
   const marketDeviation = reference.ok
     ? reference.value.standardDeviation
@@ -147,7 +150,10 @@ export function MarketTable({
                   <strong>
                     <NumberText>{formatRupiah(row.quote.price)}</NumberText>
                   </strong>
-                  <QuoteTime quotedAt={row.quote.quotedAt} />
+                  <QuoteTime
+                    quotedAt={row.quote.quotedAt}
+                    sharedTime={sharedTime}
+                  />
                 </>
               )}
               {failed.has(row.code) && (
@@ -175,9 +181,10 @@ export function MarketTable({
               )}
             </td>
             {row.measures === undefined ? (
-              <td colSpan={2} className={styles["measureCell"]}>
-                <NumberText>{row.measureFailure}</NumberText>
-              </td>
+              <>
+                <UnavailableMeasure />
+                <UnavailableMeasure />
+              </>
             ) : (
               <>
                 <td className={styles["measureCell"]}>
@@ -208,6 +215,17 @@ export function MarketTable({
         ))}
       </tbody>
     </table>
+  );
+}
+
+function UnavailableMeasure(): ReactNode {
+  return (
+    <td
+      className={styles["measureCell"]}
+      aria-describedby={marketMeasureNotesId}
+    >
+      {m.market_data_unavailable_value_label()}
+    </td>
   );
 }
 

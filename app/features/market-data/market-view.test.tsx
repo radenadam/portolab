@@ -6,14 +6,17 @@ import type { ComponentProps } from "react";
 import { renderInRouterForTest } from "~/render-in-router-for-test";
 import { conceptLessonDataForTest } from "~/features/learning/concept-lesson-data-for-test";
 import { expect, test } from "vitest";
-import type { ClassId } from "~/features/classes/classes.schema";
+import {
+  renderMarketForTest,
+  marketViewPropsForTest,
+} from "./market-view-for-test";
 import { languageNames } from "~/language-names";
 import { locales } from "~/paraglide/runtime.js";
 import type { Locale } from "~/paraglide/runtime.js";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
 import { defaultMarketFilters } from "./market-filters";
 import { marketContextForTest } from "./market-context-for-test.server";
-import { MarketView } from "./market-view";
+import type { MarketView } from "./market-view";
 import { readMarket } from "./read-market.server";
 
 const texts: Record<Locale, readonly string[]> = {
@@ -130,40 +133,12 @@ const states: Record<
 };
 
 type Props = ComponentProps<typeof MarketView>;
-function render(props: Props, overrides: Partial<Props> = {}): string {
-  return renderInRouterForTest(
-    <MarketView {...props} {...overrides} />,
-    conceptLessonDataForTest(),
-    "/classes/1/market",
-  )
-    .replaceAll("&quot;", '"')
-    .replaceAll(/<\/?span\b[^>]*>/g, "");
-}
-async function propsForTest(): Promise<Props> {
-  return {
-    ...readMarket(
-      await marketContextForTest(),
-      new Date("2026-11-14T00:00:00.000Z"),
-      "3m",
-    ),
-    classId: 1 as ClassId,
-    filters: defaultMarketFilters,
-    values: defaultMarketFilters,
-    failures: {
-      query: undefined,
-      sector: undefined,
-      sort: undefined,
-      direction: undefined,
-      range: undefined,
-    },
-  };
-}
 for (const locale of locales) {
   test(`explains empty sectors and only describes reference marks when the table has them in ${languageNames[locale]}`, async () => {
     switchLocaleForTest(locale);
-    const props = await propsForTest();
+    const props = await marketViewPropsForTest();
     for (const query of ["", "   "]) {
-      const emptySector = render(props, {
+      const emptySector = renderMarketForTest(props, {
         filters: {
           ...defaultMarketFilters,
           query,
@@ -175,7 +150,7 @@ for (const locale of locales) {
       expect(emptySector).not.toContain(states[locale].referenceMarks);
     }
     for (const query of ["tidakada", "WIFI"]) {
-      const withoutMarks = render(props, {
+      const withoutMarks = renderMarketForTest(props, {
         filters: { ...defaultMarketFilters, query },
       });
       expect(withoutMarks).not.toContain(states[locale].referenceMarks);
@@ -197,7 +172,7 @@ for (const locale of locales) {
         expect(row).toBeDefined();
         expect(row?.quote).toBeDefined();
         expect(row?.measures !== undefined).toBe(hasMeasures);
-        const html = render(props, {
+        const html = renderMarketForTest(props, {
           ...market,
           filters: { ...defaultMarketFilters, query },
         });
@@ -243,8 +218,8 @@ for (const locale of locales) {
   });
   test(`shows the market form, index chart, quotes, missing prices, and explanations in ${languageNames[locale]}`, async () => {
     switchLocaleForTest(locale);
-    const props = await propsForTest();
-    const html = render(props);
+    const props = await marketViewPropsForTest();
+    const html = renderMarketForTest(props);
     for (const text of [
       ...texts[locale],
       states[locale].several,
@@ -260,13 +235,13 @@ for (const locale of locales) {
     expect(html).not.toContain('role="slider"');
     expect(html).toContain(states[locale].reference);
     expect(html).toContain(states[locale].referenceMarks);
-    const one = render(props, {
+    const one = renderMarketForTest(props, {
       filters: { ...defaultMarketFilters, query: "BBCA" },
     });
     expect(one).toContain(states[locale].one);
     const withoutIndexHistory = await marketContextForTest();
     withoutIndexHistory.get(databaseContext).delete(indexDailyCloses).run();
-    const empty = render(props, {
+    const empty = renderMarketForTest(props, {
       ...readMarket(withoutIndexHistory, props.now, "1y"),
       filters: { ...defaultMarketFilters, query: "tidakada", range: "1y" },
     });
@@ -276,7 +251,7 @@ for (const locale of locales) {
       states[locale].noChart,
     ])
       expect(empty).toContain(text);
-    const uncovered = render(
+    const uncovered = renderMarketForTest(
       props,
       readMarket(
         await marketContextForTest(),
@@ -286,7 +261,7 @@ for (const locale of locales) {
     );
     expect(uncovered).toContain(states[locale].unavailable);
     expect(uncovered).not.toContain(states[locale].none);
-    const missed = render(props, {
+    const missed = renderMarketForTest(props, {
       latestAttempt: {
         attemptedAt: new Date("2026-11-14T00:00:00.000Z"),
         succeeded: true,

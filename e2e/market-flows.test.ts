@@ -13,6 +13,7 @@ import { createMarketClass } from "./create-market-class.ts";
 import { newDevice } from "./new-device.ts";
 import { signInAsTestStudent } from "./sign-in-as-test-student.ts";
 import { layoutProblems } from "./expect-layout.ts";
+import { expectMarketPriceNotes } from "./expect-market-price-notes.ts";
 
 const texts: Record<
   Locale,
@@ -118,6 +119,7 @@ for (const locale of locales) {
             "main section[aria-labelledby=stocks-heading] tbody tr",
           );
           await expect(rows).toHaveCount(45);
+          await expectMarketPriceNotes(student, locale, javaScriptEnabled);
           await student.getByLabel(text.search, { exact: true }).fill("INDY");
           if (javaScriptEnabled) {
             await expect(rows).toHaveCount(1);
@@ -410,6 +412,12 @@ for (const locale of locales) {
     const testClass = await createMarketClass(page);
     await page.goto(`${testClass.path}/market`);
     await captureMarketScreens(page, testInfo, { screen: "market", locale });
+    await page.locator("#market-measure-notes").click();
+    await captureMarketScreens(page, testInfo, {
+      screen: "market-notes",
+      locale,
+    });
+    await page.locator("#market-measure-notes").click();
     await page.getByRole("link", { name: /BBCA.*Bank Central Asia/ }).click();
     await page.waitForURL(/\/stocks\/BBCA(?:\?|$)/);
     await captureMarketScreens(page, testInfo, { screen: "stock", locale });
@@ -446,7 +454,10 @@ async function captureMarketScreens(
   {
     screen,
     locale,
-  }: { screen: "market" | "stock" | "sign-in"; locale: Locale },
+  }: {
+    screen: "market" | "market-notes" | "stock" | "sign-in";
+    locale: Locale;
+  },
 ): Promise<void> {
   await captureScreens(page, testInfo, {
     name: `${screen}-${locale}`,
@@ -454,10 +465,11 @@ async function captureMarketScreens(
     fullPage: true,
     check: async () => {
       expect(await layoutProblems(page)).toEqual([]);
-      if (screen === "market" && testInfo.project.name === "desktop") {
+      const market = screen === "market" || screen === "market-notes";
+      if (market && testInfo.project.name === "desktop") {
         await expectMarketScales(page);
       }
-      if (screen === "market") {
+      if (market) {
         await expectMarketHeaders(
           page,
           locale,

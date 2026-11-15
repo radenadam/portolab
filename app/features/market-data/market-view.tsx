@@ -2,6 +2,9 @@ import { MarketSectors } from "./market-sectors";
 import { FilterOptions } from "./filter-options";
 import { MarketMeasureHelp } from "./market-measure-help";
 import { MarketReferenceNotice } from "./market-reference-notice";
+import { MarketMeasureNotes } from "./market-measure-notes";
+import { sharedQuoteTime } from "./shared-quote-time";
+import { SharedQuoteTimeNotice } from "./shared-quote-time-notice";
 import { MarketEmpty } from "./market-empty";
 import { useMarketFilters } from "./use-market-filters";
 import type { ReactNode } from "react";
@@ -51,6 +54,10 @@ export function MarketView(props: MarketViewProps): ReactNode {
   const { live, setLive, formRef } = useMarketFilters(filters);
   const mobileConcept = mobileConcepts[live.sort];
   const shown = filterMarketRows(rows, live);
+  const sharedTime = sharedQuoteTime([
+    props.indexQuote,
+    ...shown.map((row) => row.quote),
+  ]);
   const failed = new Set(latestAttempt?.failedCodes);
   return (
     <div className={styles["market"]}>
@@ -124,6 +131,7 @@ export function MarketView(props: MarketViewProps): ReactNode {
           closes={props.indexCloses}
           filters={live}
           missed={failed.has("IHSG")}
+          sharedTime={sharedTime}
         />
         <div className={styles["filters"]}>
           <MarketSectors
@@ -249,10 +257,15 @@ export function MarketView(props: MarketViewProps): ReactNode {
               returnPath={`${marketPath(classId)}${marketSearch(live)}`}
               reference={props.marketReference}
               index={props.index}
+              sharedTime={sharedTime}
             />
           )}
         </section>
       )}
+      {sharedTime !== undefined && (
+        <SharedQuoteTimeNotice time={sharedTime} className={styles["status"]} />
+      )}
+      <MarketMeasureNotes rows={shown} />
       <MarketReferenceNotice
         rows={shown}
         indexQuote={props.indexQuote}

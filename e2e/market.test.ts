@@ -6,6 +6,7 @@ import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
 import { createMarketClass } from "./create-market-class.ts";
 import { chooseLanguage } from "./choose-language.ts";
+import { expectMarketPriceNotes } from "./expect-market-price-notes.ts";
 
 // The server runs with the fixture price source, and fixture-price-source.server.ts describes its quotes. ITMG has the highest price of the universe, the quotes of GOTO and BMRI hold the widest change and a date from an earlier day, and the table names the company of every stock with a price, so it holds the widest content of each column. Every update lacks UNVR, whose quote the global setup stored before the server started, and WIFI, of which Portolab has no price. The notice of those prices is a tuple of its parts around the time of the latest update, and the time of the next attempt depends on the moment of the test.
 // The expected changes of ERAA, GGRM, and PWON were computed from the fixture closes with Python's decimal module and ROUND_HALF_UP, so they check the rounded signs independently.
@@ -42,25 +43,11 @@ const texts: Record<
       "Beta",
       "Volatilitas/bln",
     ],
-    bbca: [
-      "Bank Central Asia Tbk",
-      "Keuangan",
-      "4.980",
-      "▲",
-      "+0,81%",
-      "16.14",
-    ],
+    bbca: ["Bank Central Asia Tbk", "Keuangan", "4.980", "▲", "+0,81%"],
     ihsg: ["5.057,05", "▼", "-0,80%", "16.00"],
-    tlkm: ["1.980", "0,00%", "16.14"],
+    tlkm: ["1.980", "0,00%"],
     bmri: ["3.720", "29 Okt 2026", "16.14"],
-    goto: [
-      "GoTo Gojek Tokopedia Tbk",
-      "Teknologi",
-      "24",
-      "▲",
-      "+33,33%",
-      "16.14",
-    ],
+    goto: ["GoTo Gojek Tokopedia Tbk", "Teknologi", "24", "▲", "+33,33%"],
     itmg: [
       "Indo Tambangraya Megah Tbk",
       "Energi",
@@ -87,25 +74,11 @@ const texts: Record<
       "Beta",
       "Volatility/month",
     ],
-    bbca: [
-      "Bank Central Asia Tbk",
-      "Financials",
-      "IDR 4,980",
-      "▲",
-      "+0.81%",
-      "4:14 PM",
-    ],
+    bbca: ["Bank Central Asia Tbk", "Financials", "IDR 4,980", "▲", "+0.81%"],
     ihsg: ["5,057.05", "▼", "-0.80%", "4:00 PM"],
-    tlkm: ["IDR 1,980", "0.00%", "4:14 PM"],
+    tlkm: ["IDR 1,980", "0.00%"],
     bmri: ["IDR 3,720", "Oct 29, 2026", "4:14 PM"],
-    goto: [
-      "GoTo Gojek Tokopedia Tbk",
-      "Technology",
-      "IDR 24",
-      "▲",
-      "+33.33%",
-      "4:14 PM",
-    ],
+    goto: ["GoTo Gojek Tokopedia Tbk", "Technology", "IDR 24", "▲", "+33.33%"],
     itmg: [
       "Indo Tambangraya Megah Tbk",
       "Energy",
@@ -159,6 +132,7 @@ for (const locale of locales) {
     await expect(page.getByRole("row", { name: /WIFI/ })).toContainText(
       text.wifi,
     );
+    await expectMarketPriceNotes(page, locale, true);
     await expectAccessibleScreen(page);
   });
 }

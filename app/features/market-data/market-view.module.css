@@ -82,6 +82,21 @@
   font-size: var(--text-small);
   color: var(--color-muted);
 }
+
+.measureNotes {
+  font-size: var(--text-small);
+  color: var(--color-muted);
+}
+.measureNotes dl {
+  display: grid;
+  gap: var(--space-3);
+}
+.measureNotes dt {
+  font-weight: 600;
+}
+.measureNotes dd {
+  margin: 0;
+}
 .filters {
   display: flex;
   flex-wrap: wrap;
