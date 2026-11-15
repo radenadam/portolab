@@ -67,7 +67,11 @@ export function MarketSectors({
           </label>
         ))}
       </div>
-      <FieldFailure id="sector-failure" text={failure} quotedValue={value} />
+      <FieldFailure
+        id="sector-failure"
+        text={failure}
+        quotedValue={marketChoiceLabel(value)}
+      />
     </fieldset>
   );
 }

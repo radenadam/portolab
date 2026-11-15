@@ -22,10 +22,13 @@ const texts: Record<
     far: string;
     maximum: string;
     noSelection: string;
+    emptyChoice: string;
   }
 > = {
   id: {
     noSelection: "Belum dipilih",
+    emptyChoice:
+      'Kolom "Urutan" berisi "Belum dipilih", yang bukan pilihan yang tersedia. Pilih Menurun atau Menaik, lalu terapkan lagi.',
     field: "Urutan",
     searchField: "Cari saham",
     invalid:
@@ -38,6 +41,8 @@ const texts: Record<
   },
   en: {
     noSelection: "No selection",
+    emptyChoice:
+      'The field "Order" holds "No selection", which is not an available choice. Choose Descending or Ascending, then apply again.',
     field: "Order",
     searchField: "Search stocks",
     invalid:
@@ -54,6 +59,12 @@ for (const locale of locales) {
     switchLocaleForTest(locale);
     for (const value of ["", " \t "]) {
       expect(marketChoiceLabel(value)).toBe(texts[locale].noSelection);
+      expect(
+        parseMarketChoice(value, texts[locale].field, {
+          options: marketDirectionOptions(),
+          fallback: "descending",
+        }),
+      ).toEqual({ ok: false, failure: texts[locale].emptyChoice });
     }
     expect(marketChoiceLabel(" 42 ")).toBe(" 42 ");
   });

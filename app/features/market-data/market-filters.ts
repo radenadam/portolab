@@ -1,5 +1,5 @@
 import type { FieldOption } from "~/form";
-import { parseOptionalText, typedText } from "~/form-text";
+import { parseOptionalText } from "~/form-text";
 import { formatList } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { priceChartRangeOptions } from "./price-chart-range";
@@ -59,7 +59,7 @@ export function parseMarketChoice<Value extends string>(
     ? fail(
         m.market_data_filter_error({
           field: source,
-          value: typedText(value).trim(),
+          value: marketChoiceLabel(text.value).trim(),
           choices: formatList(
             options.map((option) => option.label),
             "disjunction",

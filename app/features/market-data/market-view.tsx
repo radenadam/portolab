@@ -16,6 +16,7 @@ import { FieldFailure } from "~/described-field";
 import { MarketTable } from "./market-table";
 import { IhsgCard } from "./ihsg-card";
 import {
+  marketChoiceLabel,
   marketSorts,
   marketSortOptions,
   marketDirectionOptions,
@@ -113,7 +114,7 @@ export function MarketView(props: MarketViewProps): ReactNode {
             <FieldFailure
               id="range-failure"
               text={failures.range}
-              quotedValue={values.range}
+              quotedValue={marketChoiceLabel(values.range)}
             />
           </div>
         )}
@@ -159,7 +160,7 @@ export function MarketView(props: MarketViewProps): ReactNode {
             <FieldFailure
               id="sort-failure"
               text={failures.sort}
-              quotedValue={values.sort}
+              quotedValue={marketChoiceLabel(values.sort)}
             />
           </div>
           <div className={styles["select"]}>
@@ -195,7 +196,7 @@ export function MarketView(props: MarketViewProps): ReactNode {
             <FieldFailure
               id="direction-failure"
               text={failures.direction}
-              quotedValue={values.direction}
+              quotedValue={marketChoiceLabel(values.direction)}
             />
           </div>
           {mobileConcept !== undefined && (

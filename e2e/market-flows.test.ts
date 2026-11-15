@@ -1,7 +1,7 @@
 import { holdClientScripts } from "./hold-client-scripts.ts";
 import { captureScreens } from "./capture-screens.ts";
 import { expect, test } from "@playwright/test";
-import type { Page, TestInfo } from "@playwright/test";
+import type { Browser, Page, TestInfo } from "@playwright/test";
 import { fieldMaximumLength } from "../app/form-size.ts";
 import { languageNames } from "../app/language-names.ts";
 import { locales } from "../app/paraglide/runtime.js";
@@ -40,10 +40,12 @@ const texts: Record<
     unavailable: string;
     orderError: string;
     noSelection: string;
+    sector: string;
   }
 > = {
   id: {
     noSelection: "Belum dipilih",
+    sector: "Sektor",
     title: "Pasar",
     signIn: "Masuk",
     search: "Cari saham",
@@ -72,6 +74,7 @@ const texts: Record<
   },
   en: {
     noSelection: "No selection",
+    sector: "Sector",
     title: "Market",
     signIn: "Sign in",
     search: "Search stocks",
@@ -106,155 +109,192 @@ for (const locale of locales) {
       page,
       browser,
     }) => {
-      await chooseLanguage(page, locale);
-      const testClass = await createMarketClass(page);
-      const student = await newDevice(browser, locale, {
-        javaScriptEnabled,
-        locale: "tr-TR",
-      });
-      try {
-        await signInAsTestStudent(student, testClass, "Mahasiswa Pasar");
-        await student.goto(`${testClass.path}/market`);
-        const rows = student.locator(
-          "main section[aria-labelledby=stocks-heading] tbody tr",
-        );
-        await expect(rows).toHaveCount(45);
-        await student.getByLabel(text.search, { exact: true }).fill("INDY");
-        if (javaScriptEnabled) {
+      await withMarketStudent(
+        page,
+        { browser, locale, javaScriptEnabled },
+        async (student, classPath) => {
+          await student.goto(`${classPath}/market`);
+          const rows = student.locator(
+            "main section[aria-labelledby=stocks-heading] tbody tr",
+          );
+          await expect(rows).toHaveCount(45);
+          await student.getByLabel(text.search, { exact: true }).fill("INDY");
+          if (javaScriptEnabled) {
+            await expect(rows).toHaveCount(1);
+            await expect(rows.first()).toContainText("INDY");
+          }
+          await student
+            .getByRole("button", { name: text.apply, exact: true })
+            .click();
+          await expect(student).toHaveURL(/q=INDY/);
           await expect(rows).toHaveCount(1);
-          await expect(rows.first()).toContainText("INDY");
-        }
-        await student
-          .getByRole("button", { name: text.apply, exact: true })
-          .click();
-        await expect(student).toHaveURL(/q=INDY/);
-        await expect(rows).toHaveCount(1);
-        await student
-          .getByLabel(text.search, { exact: true })
-          .fill("central asia");
-        if (javaScriptEnabled) {
-          await expect(rows).toHaveCount(1);
-          await expect(rows.first()).toContainText("BBCA");
-        }
-        await student
-          .getByRole("button", { name: text.indexHelp, exact: true })
-          .click();
-        const card = student.getByRole("dialog", { name: "IHSG", exact: true });
-        await expect(card).toBeVisible();
-        await card.getByText(text.calculation, { exact: true }).click();
-        await expect(card.locator("details[open]")).toBeVisible();
-        await student.keyboard.press("Escape");
-        await expect(card).toBeHidden();
-        await expect(
-          student.getByLabel(text.search, { exact: true }),
-        ).toHaveValue("central asia");
-        await student
-          .getByRole("button", { name: text.apply, exact: true })
-          .click();
-        await expect(student).toHaveURL(/q=central\+asia/);
-        await expect(rows).toHaveCount(1);
-        await student
-          .getByRole("navigation", { name: text.range })
-          .getByRole("link", { name: text.month, exact: true })
-          .click();
-        await expect(student).toHaveURL(/range=1m/);
-        await expect(
-          student.getByLabel(text.search, { exact: true }),
-        ).toHaveValue("central asia");
-        await student
-          .getByRole("link", { name: /BBCA.*Bank Central Asia/ })
-          .click();
-        await student.waitForURL(/\/stocks\/BBCA(?:\?|$)/);
-        await student
-          .getByRole("navigation", { name: text.stockRange })
-          .getByRole("link", { name: text.month, exact: true })
-          .click();
-        await student.getByRole("link", { name: text.back }).click();
-        await expect(student).toHaveURL(/#stock-BBCA$/);
-        await expect(
-          student.getByLabel(text.search, { exact: true }),
-        ).toHaveValue("central asia");
-        await student.getByLabel(text.search, { exact: true }).fill("");
-        await student
-          .getByRole("radio", { name: text.financials, exact: true })
-          .check();
-        await student
-          .getByLabel(text.sort, { exact: true })
-          .selectOption("code");
-        await student
-          .getByLabel(text.direction, { exact: true })
-          .selectOption("ascending");
-        await student
-          .getByRole("button", { name: text.apply, exact: true })
-          .click();
-        await expect(student).toHaveURL(
-          /sector=financials&sort=code&direction=ascending/,
-        );
-        await expect(rows).toHaveCount(5);
-        await expect(rows.first()).toContainText("BBCA");
-        await student.getByLabel(text.search, { exact: true }).fill("tidakada");
-        await student
-          .getByRole("button", { name: text.apply, exact: true })
-          .click();
-        await expect(student).toHaveURL(/q=tidakada/);
-        await expect(student.getByText(text.noResults)).toBeVisible();
-        await student.getByRole("link", { name: text.clear }).click();
-        await expect(rows).toHaveCount(45);
-        const emptySectorResponse = await student.goto(
-          `${testClass.path}/market?sector=propertiesAndRealEstate`,
-        );
-        expect(emptySectorResponse?.status()).toBe(200);
-        await expect(student.getByText(text.emptySector)).toBeVisible();
-        await student.getByRole("link", { name: text.clear }).click();
-        await expect(rows).toHaveCount(45);
-        for (const character of ["x", "9"]) {
-          const widestSearch = character.repeat(fieldMaximumLength);
           await student
             .getByLabel(text.search, { exact: true })
-            .fill(widestSearch);
+            .fill("central asia");
+          if (javaScriptEnabled) {
+            await expect(rows).toHaveCount(1);
+            await expect(rows.first()).toContainText("BBCA");
+          }
+          await student
+            .getByRole("button", { name: text.indexHelp, exact: true })
+            .click();
+          const card = student.getByRole("dialog", {
+            name: "IHSG",
+            exact: true,
+          });
+          await expect(card).toBeVisible();
+          await card.getByText(text.calculation, { exact: true }).click();
+          await expect(card.locator("details[open]")).toBeVisible();
+          await student.keyboard.press("Escape");
+          await expect(card).toBeHidden();
+          await expect(
+            student.getByLabel(text.search, { exact: true }),
+          ).toHaveValue("central asia");
+          await student
+            .getByRole("button", { name: text.apply, exact: true })
+            .click();
+          await expect(student).toHaveURL(/q=central\+asia/);
+          await expect(rows).toHaveCount(1);
+          await student
+            .getByRole("navigation", { name: text.range })
+            .getByRole("link", { name: text.month, exact: true })
+            .click();
+          await expect(student).toHaveURL(/range=1m/);
+          await expect(
+            student.getByLabel(text.search, { exact: true }),
+          ).toHaveValue("central asia");
+          await student
+            .getByRole("link", { name: /BBCA.*Bank Central Asia/ })
+            .click();
+          await student.waitForURL(/\/stocks\/BBCA(?:\?|$)/);
+          await student
+            .getByRole("navigation", { name: text.stockRange })
+            .getByRole("link", { name: text.month, exact: true })
+            .click();
+          await student.getByRole("link", { name: text.back }).click();
+          await expect(student).toHaveURL(/#stock-BBCA$/);
+          await expect(
+            student.getByLabel(text.search, { exact: true }),
+          ).toHaveValue("central asia");
+          await student.getByLabel(text.search, { exact: true }).fill("");
+          await student
+            .getByRole("radio", { name: text.financials, exact: true })
+            .check();
+          await student
+            .getByLabel(text.sort, { exact: true })
+            .selectOption("code");
+          await student
+            .getByLabel(text.direction, { exact: true })
+            .selectOption("ascending");
           await student
             .getByRole("button", { name: text.apply, exact: true })
             .click();
           await expect(student).toHaveURL(
-            (url) => url.searchParams.get("q") === widestSearch,
+            /sector=financials&sort=code&direction=ascending/,
           );
-          await expect(rows).toHaveCount(0);
+          await expect(rows).toHaveCount(5);
+          await expect(rows.first()).toContainText("BBCA");
+          await student
+            .getByLabel(text.search, { exact: true })
+            .fill("tidakada");
+          await student
+            .getByRole("button", { name: text.apply, exact: true })
+            .click();
+          await expect(student).toHaveURL(/q=tidakada/);
+          await expect(student.getByText(text.noResults)).toBeVisible();
+          await student.getByRole("link", { name: text.clear }).click();
+          await expect(rows).toHaveCount(45);
+          const emptySectorResponse = await student.goto(
+            `${classPath}/market?sector=propertiesAndRealEstate`,
+          );
+          expect(emptySectorResponse?.status()).toBe(200);
+          await expect(student.getByText(text.emptySector)).toBeVisible();
+          await student.getByRole("link", { name: text.clear }).click();
+          await expect(rows).toHaveCount(45);
+          for (const character of ["x", "9"]) {
+            const widestSearch = character.repeat(fieldMaximumLength);
+            await student
+              .getByLabel(text.search, { exact: true })
+              .fill(widestSearch);
+            await student
+              .getByRole("button", { name: text.apply, exact: true })
+              .click();
+            await expect(student).toHaveURL(
+              (url) => url.searchParams.get("q") === widestSearch,
+            );
+            await expect(rows).toHaveCount(0);
+            await expect(
+              student.getByLabel(text.search, { exact: true }),
+            ).toHaveValue(widestSearch);
+            expect(await layoutProblems(student)).toEqual([]);
+          }
+          const response = await student.goto(
+            `${classPath}/market?direction=salah`,
+          );
+          expect(response?.status()).toBe(400);
+          await expect(student.getByText(text.orderError)).toBeVisible();
           await expect(
-            student.getByLabel(text.search, { exact: true }),
-          ).toHaveValue(widestSearch);
+            student.getByLabel(text.direction, { exact: true }),
+          ).toHaveValue("salah");
+          if (javaScriptEnabled) await expectAccessibleScreen(student);
+          else expect(await layoutProblems(student)).toEqual([]);
+          const widestChoice = "9".repeat(fieldMaximumLength);
+          const choiceResponse = await student.goto(
+            `${classPath}/market?${new URLSearchParams({ direction: widestChoice }).toString()}`,
+          );
+          expect(choiceResponse?.status()).toBe(400);
+          await expect(
+            student.getByLabel(text.direction, { exact: true }),
+          ).toHaveValue(widestChoice);
           expect(await layoutProblems(student)).toEqual([]);
-        }
-        const response = await student.goto(
-          `${testClass.path}/market?direction=salah`,
-        );
-        expect(response?.status()).toBe(400);
-        await expect(student.getByText(text.orderError)).toBeVisible();
-        await expect(
-          student.getByLabel(text.direction, { exact: true }),
-        ).toHaveValue("salah");
-        if (javaScriptEnabled) await expectAccessibleScreen(student);
-        else expect(await layoutProblems(student)).toEqual([]);
-        const widestChoice = "9".repeat(fieldMaximumLength);
-        const choiceResponse = await student.goto(
-          `${testClass.path}/market?${new URLSearchParams({ direction: widestChoice }).toString()}`,
-        );
-        expect(choiceResponse?.status()).toBe(400);
-        await expect(
-          student.getByLabel(text.direction, { exact: true }),
-        ).toHaveValue(widestChoice);
-        expect(await layoutProblems(student)).toEqual([]);
-        const emptyChoiceResponse = await student.goto(
-          `${testClass.path}/market?sector=`,
-        );
-        expect(emptyChoiceResponse?.status()).toBe(400);
-        await expect(
-          student.getByRole("radio", { name: text.noSelection, exact: true }),
-        ).toBeChecked();
-        if (javaScriptEnabled) await expectAccessibleScreen(student);
-        else expect(await layoutProblems(student)).toEqual([]);
-      } finally {
-        await student.context().close();
-      }
+        },
+      );
+    });
+    test(`quotes empty market choices as their visible labels in ${languageNames[locale]} with JavaScript ${String(javaScriptEnabled)}`, async ({
+      page,
+      browser,
+    }) => {
+      await withMarketStudent(
+        page,
+        { browser, locale, javaScriptEnabled },
+        async (student, classPath) => {
+          for (const [name, label] of [
+            ["sector", text.sector],
+            ["sort", text.sort],
+            ["direction", text.direction],
+            ["range", text.range],
+          ] as const) {
+            for (const value of ["", " \t "]) {
+              const response = await student.goto(
+                `${classPath}/market?${new URLSearchParams({ [name]: value }).toString()}`,
+              );
+              expect(response?.status()).toBe(400);
+              if (name === "sector")
+                await expect(
+                  student.getByRole("radio", {
+                    name: text.noSelection,
+                    exact: true,
+                  }),
+                ).toBeChecked();
+              else {
+                const control = student.getByRole("combobox", {
+                  name: label,
+                  exact: true,
+                });
+                await expect(control).toHaveValue(value);
+                await expect(control.locator("option:checked")).toHaveText(
+                  text.noSelection,
+                );
+              }
+              const failure = student.locator(`#${name}-failure`);
+              await expect(failure).toContainText(`"${label}"`);
+              await expect(failure).toContainText(`"${text.noSelection}"`);
+              expect(await layoutProblems(student)).toEqual([]);
+            }
+          }
+          if (javaScriptEnabled) await expectAccessibleScreen(student);
+        },
+      );
     });
   }
   test(`keeps native market filters and help when JavaScript loads in ${languageNames[locale]}`, async ({
@@ -375,6 +415,29 @@ for (const locale of locales) {
     await captureMarketScreens(page, testInfo, { screen: "stock", locale });
     await expectAccessibleScreen(page);
   });
+}
+
+async function withMarketStudent(
+  page: Page,
+  {
+    browser,
+    locale,
+    javaScriptEnabled,
+  }: { browser: Browser; locale: Locale; javaScriptEnabled: boolean },
+  use: (student: Page, classPath: string) => Promise<void>,
+): Promise<void> {
+  await chooseLanguage(page, locale);
+  const testClass = await createMarketClass(page);
+  const student = await newDevice(browser, locale, {
+    javaScriptEnabled,
+    locale: "tr-TR",
+  });
+  try {
+    await signInAsTestStudent(student, testClass, "Mahasiswa Pasar");
+    await use(student, testClass.path);
+  } finally {
+    await student.context().close();
+  }
 }
 
 async function captureMarketScreens(
