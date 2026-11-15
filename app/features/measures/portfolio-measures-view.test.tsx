@@ -401,7 +401,29 @@ const readerTexts: Record<
   },
 };
 
+const demonstrationWeightsNotices: Record<Locale, string> = {
+  id: "Bobot suatu saham adalah nilainya pada harga tertunda terakhir dari Yahoo Finance, sekitar 10 menit di belakang BEI, dibagi nilai total portofolio Anda, dan bobot kas Anda adalah bagiannya dari nilai total itu. Portofolio demonstrasi menunjukkan setiap harga tertunda dan waktu pencatatannya. Kas tidak menghasilkan imbal hasil di Portolab, sehingga kas tidak menambah imbal hasil harapan, varians, maupun beta.",
+  en: "The weight of a stock is its value at the latest delayed price from Yahoo Finance, about 10 minutes behind IDX, divided by the total value of your portfolio, and the weight of your cash is its share of that total. Demonstration portfolio shows each delayed price and when it was quoted. Cash earns no return in Portolab, so it adds nothing to the expected return, the variance, or the beta.",
+};
+
 for (const locale of locales) {
+  test(`names the demonstration as the source of its holding prices in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    const report = readPortfolioMeasures(
+      databaseWithClosesForTest(),
+      valuationForTest(["BBCA", "TLKM"]),
+    );
+    const html = renderView(
+      report,
+      {
+        kind: "owner",
+        classId: 7 as ClassId,
+        portfolioKind: "demonstration",
+      },
+      undefined,
+    );
+    expect(html).toContain(`<p>${demonstrationWeightsNotices[locale]}</p>`);
+  });
   for (const [readerKind, reader] of Object.entries(readers)) {
     const text = texts[locale];
     const readerText = readerTexts[locale][reader.kind];

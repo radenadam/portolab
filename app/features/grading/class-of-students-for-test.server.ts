@@ -113,6 +113,7 @@ export async function classOfStudentsForTest(): Promise<{
       storeHoldingsForTest(
         database,
         {
+          kind: "membership" as const,
           membershipId: joined.membershipId,
           startingCash: taught.startingCash,
         },

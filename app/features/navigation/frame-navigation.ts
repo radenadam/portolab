@@ -6,6 +6,7 @@ import { classPortfoliosPath } from "~/features/grading/grading-paths";
 import { learnPath } from "~/features/learning/learning-paths";
 import { marketPath } from "~/features/market-data/market-path";
 import { measuresPath } from "~/features/measures/measures-path";
+import { demonstrationPath } from "~/features/trading/demonstration-path";
 import { activityPath } from "~/features/trading/activity-path";
 import type { FrameItem } from "~/frame";
 import type { IconName } from "~/icon";
@@ -15,7 +16,14 @@ import type { FrameReader } from "./frame-reader";
 
 /** An item of the navigation of a class. */
 type WorkspaceItem =
-  "home" | "market" | "activity" | "analysis" | "class" | "students" | "learn";
+  | "home"
+  | "market"
+  | "activity"
+  | "analysis"
+  | "class"
+  | "students"
+  | "learn"
+  | "portfolio";
 
 /** An item of the navigation of a visitor who is not signed in. */
 type VisitorItem = "prices" | "join" | "signIn";
@@ -25,13 +33,14 @@ type NavigationItem = WorkspaceItem | VisitorItem;
 // Decision 0030 sets the items of each role and their order.
 const roleItems: Record<Role, readonly [WorkspaceItem, ...WorkspaceItem[]]> = {
   student: ["home", "market", "activity", "analysis", "learn"],
-  lecturer: ["class", "students", "market", "learn"],
+  lecturer: ["class", "students", "portfolio", "market", "learn"],
 };
 
 const visitorItems: readonly VisitorItem[] = ["prices", "join", "signIn"];
 
 // Each item leads to the page that holds it today. Decision 0030 gives the address that each page takes when the change of issue #127 rebuilds its screen.
 const workspacePaths: Record<WorkspaceItem, (classId: ClassId) => string> = {
+  portfolio: demonstrationPath,
   learn: learnPath,
   home: classPath,
   market: marketPath,
@@ -48,6 +57,7 @@ const visitorPaths: Record<VisitorItem, string> = {
 };
 
 const itemLabels: Record<NavigationItem, () => string> = {
+  portfolio: m.navigation_portfolio_link,
   learn: m.navigation_learn_link,
   home: m.navigation_home_link,
   market: m.navigation_market_link,
@@ -61,6 +71,7 @@ const itemLabels: Record<NavigationItem, () => string> = {
 };
 
 const itemIcons: Record<NavigationItem, IconName> = {
+  portfolio: "briefcase",
   learn: "book",
   home: "map",
   market: "trend",
@@ -92,6 +103,10 @@ const currentItems: Record<RouteId, NavigationItem | undefined> = {
   "features/classes/classes-page": undefined,
   "features/classes/class-page": "class",
   "features/classes/calendar-page": "class",
+  "features/trading/demonstration-page": "portfolio",
+  "features/trading/demonstration-summary-page": "portfolio",
+  "features/trading/demonstration-activity-page": "portfolio",
+  "features/measures/demonstration-analysis-page": "portfolio",
   "features/trading/activity-page": "activity",
   "features/measures/measures-page": "analysis",
   "features/market-data/stock-page": "market",

@@ -1,3 +1,4 @@
+import type { PortfolioKind } from "./portfolio-store.server";
 import { expect, test } from "vitest";
 import type { ClassId } from "~/features/classes/classes.schema";
 import { courseSessions } from "~/features/classes/course-calendar";
@@ -22,6 +23,7 @@ const texts: Record<
     time: readonly string[];
     unknownWeight: string;
     weight: string;
+    demonstration: readonly string[];
   }
 > = {
   id: {
@@ -47,6 +49,7 @@ const texts: Record<
       "S1",
       "Portolab belum menyimpan harga penutupan IHSG pada 30 Oktober 2026. Portolab menampilkan imbal hasil mulai hari itu setelah pembaruan riwayat harga menyimpan harga penutupan IHSG pada hari itu atau hari sesudahnya.",
     ],
+    demonstration: ["Mahasiswa kelas", "Mahasiswa kelas tanpa nama"],
     unknownWeight: "Bobot belum tersedia",
     weight: "Bobot",
   },
@@ -73,6 +76,7 @@ const texts: Record<
       "S1",
       "Portolab has not stored the close of IHSG on October 30, 2026 yet. It shows the returns from that day on once an update of the price history stores a close of IHSG on that day or on a later day.",
     ],
+    demonstration: ["Class students", "Unnamed class student"],
     unknownWeight: "Weight unavailable",
     weight: "Weight",
   },
@@ -95,9 +99,18 @@ for (const locale of locales) {
       return: cumulativeReturn(-0.01),
     };
     home.sessions = courseSessions("2026-10-30");
-    const render = () =>
-      renderMarkupForTest(<HomeMapPanel home={home} classId={7 as ClassId} />);
+    const render = (portfolioKind: PortfolioKind = "membership") =>
+      renderMarkupForTest(
+        <HomeMapPanel
+          home={home}
+          classId={7 as ClassId}
+          path="/classes/7"
+          portfolioKind={portfolioKind}
+        />,
+      );
     const html = render();
+    for (const label of texts[locale].demonstration)
+      expect(render("demonstration")).toContain(label);
     for (const sentence of texts[locale].common.slice(0, -1))
       expect(html).toContain(markupTextForTest(sentence));
     expect(html).not.toContain("stroke-dasharray");

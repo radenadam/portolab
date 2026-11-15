@@ -1,3 +1,4 @@
+import type { PortfolioKind } from "~/features/trading/portfolio-store.server";
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
@@ -7,7 +8,6 @@ import { ConceptLesson } from "~/features/learning/concept-lesson";
 import type { PriceSourceDescription } from "~/features/market-data/price-source.server";
 import { marketPath } from "~/features/market-data/market-path";
 import { holdingQuoteFailureText } from "~/features/trading/holding-quote-failure-text";
-import { classPath } from "~/features/classes/class-path";
 import type { PortfolioReport } from "~/features/trading/read-portfolio-report.server";
 import { formatPercent } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
@@ -53,6 +53,9 @@ export function AnalysisView({
   now,
   source,
   firstSessionDate,
+  portfolioHome,
+  portfolioKind,
+  showTitle,
 }: {
   classId: ClassId;
   report: PortfolioReport;
@@ -64,8 +67,11 @@ export function AnalysisView({
   now: Date;
   source: PriceSourceDescription;
   firstSessionDate: string | null;
+  portfolioHome: { path: string; title: string };
+  portfolioKind: PortfolioKind;
+  showTitle: boolean;
 }): ReactNode {
-  const reader = { kind: "owner", classId } as const;
+  const reader = { kind: "owner", classId, portfolioKind } as const;
   const explained = explainPortfolioMeasures(measures, reader);
   const portfolio = explained.ok ? explained.value : undefined;
   const market = portfolio?.market ?? latestMarket;
@@ -93,13 +99,18 @@ export function AnalysisView({
     portfolio === undefined ? [] : analysisMeasures(portfolio, reader);
   return (
     <div className={styles["page"]}>
-      <AnalysisHeader market={market} classId={classId} />
+      <AnalysisHeader
+        market={market}
+        portfolioHome={portfolioHome}
+        showTitle={showTitle}
+      />
       <div
         className={styles["top"]}
         data-layout="columns"
         data-layout-ratio="2.4:1"
       >
         <AnalysisMapPanel
+          portfolioKind={portfolioKind}
           holdings={holdings}
           market={market}
           portfolio={portfolio}
@@ -140,6 +151,7 @@ export function AnalysisView({
         history={report.history}
         classId={classId}
         firstSessionDate={firstSessionDate}
+        portfolioKind={portfolioKind}
       />
       <Popover
         id={analysisDataId}
@@ -155,7 +167,10 @@ export function AnalysisView({
             quoteFailure={quoteFailure}
             source={source}
           />
-          <StudentMarketLine marketLine={marketLine} />
+          <StudentMarketLine
+            marketLine={marketLine}
+            portfolioKind={portfolioKind}
+          />
           <h2>{m.measures_stocks_title()}</h2>
           <StockTable classId={classId} stocks={stocks} />
         </div>
@@ -181,15 +196,17 @@ export function AnalysisView({
 
 function AnalysisHeader({
   market,
-  classId,
+  portfolioHome,
+  showTitle,
 }: {
   market: MarketSummary | undefined;
-  classId: ClassId;
+  portfolioHome: { path: string; title: string };
+  showTitle: boolean;
 }): ReactNode {
   const riskFreeConcept = measureConcept("riskFree");
   return (
     <header className={styles["header"]}>
-      <h1>{m.measures_analysis_title()}</h1>
+      {showTitle && <h1>{m.measures_analysis_title()}</h1>}
       {market !== undefined && (
         <div className={styles["period"]}>
           <NumberText>
@@ -217,8 +234,8 @@ function AnalysisHeader({
             calculation={<RiskFreeFormula rate={market.riskFreeRate} />}
             lesson={<ConceptLesson termId={riskFreeConcept.termId} />}
           />
-          <Link className={styles["pricesLink"]} to={classPath(classId)}>
-            {m.measures_analysis_prices_link()}
+          <Link className={styles["pricesLink"]} to={portfolioHome.path}>
+            {m.measures_analysis_prices_link({ page: portfolioHome.title })}
           </Link>
         </div>
       )}

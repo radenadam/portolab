@@ -1,8 +1,6 @@
+import { storeTestPortfolio } from "./store-test-portfolio.ts";
 import type { ClassId } from "../app/features/classes/classes.schema.ts";
-import {
-  holdings,
-  portfolios,
-} from "../app/features/trading/trading.schema.ts";
+import { holdings } from "../app/features/trading/trading.schema.ts";
 import type { Rupiah } from "../app/units/rupiah.ts";
 import type { Shares } from "../app/units/shares.ts";
 import { writeForTestStudent } from "./write-for-test-student.ts";
@@ -21,14 +19,15 @@ export function storeTestHolding(
   otherHoldings: readonly TestHolding[] = [],
 ): void {
   writeForTestStudent(classId, (database, membershipId) => {
-    database
-      .insert(portfolios)
-      .values({ membershipId, cash: portfolio.cash })
-      .run();
+    const portfolioId = storeTestPortfolio(
+      database,
+      { membershipId },
+      portfolio.cash,
+    );
     for (const { code, shares, cost } of [portfolio, ...otherHoldings]) {
       database
         .insert(holdings)
-        .values({ membershipId, code, shares, cost })
+        .values({ portfolioId, code, shares, cost })
         .run();
     }
   });

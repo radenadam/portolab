@@ -54,7 +54,7 @@ const texts: Record<
   id: {
     navigation: "Navigasi utama",
     studentItems: ["Beranda", "Pasar", "Aktivitas", "Analisis", "Belajar"],
-    lecturerItems: ["Kelas", "Mahasiswa", "Pasar", "Belajar"],
+    lecturerItems: ["Kelas", "Mahasiswa", "Portofolio", "Pasar", "Belajar"],
     joinedClasses: "Kelas Anda",
     taughtClasses: "Kelas yang Anda ajar",
     join: "Gabung ke kelas",
@@ -79,7 +79,7 @@ const texts: Record<
   en: {
     navigation: "Main navigation",
     studentItems: ["Home", "Market", "Activity", "Analysis", "Learn"],
-    lecturerItems: ["Class", "Students", "Market", "Learn"],
+    lecturerItems: ["Class", "Students", "Portfolio", "Market", "Learn"],
     joinedClasses: "Your classes",
     taughtClasses: "Classes you teach",
     join: "Join a class",

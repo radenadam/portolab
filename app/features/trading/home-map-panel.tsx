@@ -1,10 +1,10 @@
+import type { PortfolioKind } from "./portfolio-store.server";
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { RiskMap } from "~/charts/risk-map";
 import { RiskMapLegend } from "~/charts/risk-map-legend";
 import { PortfolioReturnChart } from "./portfolio-return-chart";
-import { classPath } from "~/features/classes/class-path";
 import type { ClassId } from "~/features/classes/classes.schema";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
 import {
@@ -26,16 +26,20 @@ import styles from "./home-portfolio.module.css";
 export function HomeMapPanel({
   home,
   classId,
+  portfolioKind,
+  path,
 }: {
   home: HomePortfolioData;
   classId: ClassId;
+  portfolioKind: PortfolioKind;
+  path: string;
 }): ReactNode {
-  const map = homeMapPoints(home);
+  const map = homeMapPoints(home, portfolioKind);
   const history = home.report.history;
   const first = history.ok ? history.value.points[0] : undefined;
   const insight = homeInsight(homeInsightData(home));
   const market = home.report.market;
-  const emptyText = homeChartFailure(home, classId);
+  const emptyText = homeChartFailure(home, classId, portfolioKind);
   return (
     <section className={styles["mapPanel"]} aria-labelledby="home-map-heading">
       <div className={styles["mapContent"]}>
@@ -46,13 +50,15 @@ export function HomeMapPanel({
             aria-label={m.trading_home_map_view_label()}
           >
             <Link
-              to={classPath(classId)}
+              className={styles["viewOption"]}
+              to={path}
               aria-current={home.view === "map" ? "page" : undefined}
             >
               {m.trading_home_map_label()}
             </Link>
             <Link
-              to={`${classPath(classId)}?view=time`}
+              className={styles["viewOption"]}
+              to={`${path}?view=time`}
               aria-current={home.view === "time" ? "page" : undefined}
             >
               {m.trading_home_time_label()}
@@ -66,7 +72,13 @@ export function HomeMapPanel({
                 { kind: "own", name: m.trading_home_portfolio_label() },
                 { kind: "held", name: m.trading_home_holdings_key_label() },
                 { kind: "market", name: marketIndex.code },
-                { kind: "classmate", name: m.trading_home_classmates_label() },
+                {
+                  kind: "classmate",
+                  name: {
+                    membership: m.trading_home_classmates_label,
+                    demonstration: m.trading_demonstration_students_label,
+                  }[portfolioKind](),
+                },
               ]}
             />
             {first !== undefined && (
@@ -154,8 +166,12 @@ export function HomeMapPanel({
   );
 }
 
-function homeChartFailure(home: HomePortfolioData, classId: ClassId): string {
-  const reader = { kind: "owner", classId } as const;
+function homeChartFailure(
+  home: HomePortfolioData,
+  classId: ClassId,
+  portfolioKind: PortfolioKind,
+): string {
+  const reader = { kind: "owner", classId, portfolioKind } as const;
   if (!home.report.history.ok) return missingCalendarText(reader);
   switch (home.view) {
     case "map":

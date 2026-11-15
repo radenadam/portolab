@@ -221,7 +221,7 @@ docker compose stop app
 docker compose run --rm --user root app chown -R portolab:portolab /app/data
 ```
 
-These commands back up the database, download the new version, build it, start it, and reload the Caddyfile. Some installations of Docker keep the image of the previous version, so the last command deletes it. It deletes only images of Portolab, so the images of other work stay:
+Back up before updating. The demonstration portfolio migration rebuilds portfolios, holdings, and orders and copies their rows, as [decision 0045](decisions/0045-the-lecturer-trades-in-a-demonstration-portfolio.md) explains. These commands back up the database, download the new version, build it, start it, and reload the Caddyfile. Some installations of Docker keep the image of the previous version, so the last command deletes it. It deletes only images of Portolab, so the images of other work stay:
 
 ```sh
 cd /opt/portolab
@@ -262,9 +262,10 @@ docker compose exec --no-TTY app sqlite3 "file:/app/data/portolab.sqlite?mode=rw
   ".print sessions" "SELECT id, user_id, last_used_at FROM sessions WHERE user_id IN person" \
   ".print classes" "SELECT * FROM classes WHERE lecturer_id IN person OR id IN (SELECT class_id FROM memberships WHERE id IN places)" \
   ".print memberships" "SELECT * FROM memberships WHERE id IN places" \
-  ".print portfolios" "SELECT * FROM portfolios WHERE membership_id IN places" \
-  ".print holdings" "SELECT * FROM holdings WHERE membership_id IN places" \
-  ".print orders" "SELECT * FROM orders WHERE membership_id IN places" \
+  "CREATE TEMP TABLE owned_portfolios AS SELECT id FROM portfolios WHERE membership_id IN places OR demonstration_class_id IN (SELECT id FROM classes WHERE lecturer_id IN person)" \
+  ".print portfolios" "SELECT * FROM portfolios WHERE id IN owned_portfolios" \
+  ".print holdings" "SELECT * FROM holdings WHERE portfolio_id IN owned_portfolios" \
+  ".print orders" "SELECT * FROM orders WHERE portfolio_id IN owned_portfolios" \
   > ~/portolab-mahasiswa1.txt
 ```
 

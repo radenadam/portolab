@@ -1,3 +1,4 @@
+import { portfolioHome } from "~/features/trading/portfolio-home";
 import { expect, test } from "vitest";
 import type { ClassId } from "~/features/classes/classes.schema";
 import { languageNames } from "~/language-names";
@@ -30,7 +31,7 @@ for (const locale of locales) {
       for (const hasPortfolioQuotes of [false, true]) {
         const html = renderInRouterForTest(
           <StockQuoteDetails
-            classId={classId.value}
+            portfolio={portfolioHome(classId.value, "membership")}
             quote={
               hasQuote
                 ? {

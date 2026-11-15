@@ -1,3 +1,4 @@
+import { portfolioHome } from "~/features/trading/portfolio-home";
 import { StockQuoteDetails } from "./stock-quote-details";
 import { QuoteNotice } from "~/features/market-data/quote-notice";
 import { NumberText } from "~/number-text";
@@ -5,7 +6,6 @@ import type { ReactNode } from "react";
 import { data, Link, useOutlet, useLocation } from "react-router";
 import { ChangeText } from "~/change-text";
 import { databaseContext } from "~/database/database.server";
-import { requireUser } from "~/features/accounts/current-session.server";
 import { requireReaderClass } from "~/features/classes/require-reader-class.server";
 import { readStockMeasures } from "~/features/measures/read-measures.server";
 import { readStockCorrelation } from "~/features/measures/read-stock-correlation.server";
@@ -13,7 +13,7 @@ import { StockStatisticsWindow } from "~/features/measures/stock-statistics-wind
 import { StockKeyMeasures } from "~/features/measures/stock-key-measures";
 import { StockMeasuresView } from "~/features/measures/stock-measures-view";
 import { MethodNotice } from "~/features/measures/method-notice";
-import { readStudentPortfolio } from "~/features/trading/read-student-portfolio.server";
+import { readTradingPortfolio } from "~/features/trading/read-trading-portfolio.server";
 import { readPortfolioValuation } from "~/features/trading/read-portfolio-report.server";
 import { holdingQuoteFailureText } from "~/features/trading/holding-quote-failure-text";
 import { idxRulesOn } from "~/features/trading/idx-rules-on";
@@ -66,7 +66,6 @@ export function loader({ context, params, request, url }: Route.LoaderArgs) {
   const code = parsed.value;
   const now = new Date();
   const database = context.get(databaseContext);
-  const reader = requireUser(context, url);
   const prices = readPrices(context, now);
   const moment = { now, delayMinutes: prices.source.delayMinutes };
   const quote = prices.quotes.find(
@@ -82,24 +81,20 @@ export function loader({ context, params, request, url }: Route.LoaderArgs) {
   const chartStart = priceChartStart(wibDateOf(now), chartRange);
   const rules = idxRulesOn(wibDateOf(now));
   const universe = universeOn(wibDateOf(now));
-  const member =
-    reader.role === "student"
-      ? readStudentPortfolio(context, {
-          request,
-          url,
-          classId: params.classId,
-          now,
-        })
-      : undefined;
-  const report =
-    member === undefined
-      ? undefined
-      : readPortfolioValuation(database, {
-          portfolio: member.portfolio,
-          startingCash: member.place.owner.startingCash,
-        });
+  const member = readTradingPortfolio(context, {
+    request,
+    url,
+    classId: params.classId,
+    now,
+  });
+  const report = readPortfolioValuation(database, {
+    portfolio: member.portfolio,
+    startingCash: member.place.owner.startingCash,
+  });
   return {
     classId,
+    portfolioHome: portfolioHome(classId, member.place.owner.kind),
+    portfolioKind: member.place.owner.kind,
     code,
     quote,
     quoteNotice:
@@ -115,21 +110,12 @@ export function loader({ context, params, request, url }: Route.LoaderArgs) {
     chartRange,
     range: stockPriceRange(history, wibDateOf(now)),
     measures: readStockMeasures(database, code),
-    correlation:
-      report === undefined
-        ? undefined
-        : readStockCorrelation(database, code, report.valuation),
-    totalValue: report?.valuation.total?.value,
+    correlation: readStockCorrelation(database, code, report.valuation),
+    totalValue: report.valuation.total?.value,
     isLq45: isLq45Stock(code, universe),
-    holding: report?.valuation.holdings.find(
-      (holding) => holding.code === code,
-    ),
-    portfolioNotice:
-      report === undefined
-        ? undefined
-        : holdingQuoteFailureText([report], moment),
+    holding: report.valuation.holdings.find((holding) => holding.code === code),
+    portfolioNotice: holdingQuoteFailureText([report], moment),
     lotShares: rules.ok ? rules.value.lotShares : undefined,
-    canTrade: reader.role === "student",
   };
 }
 
@@ -193,7 +179,7 @@ export default function StockPage({
               </div>
             )}
             <StockQuoteDetails
-              classId={classId}
+              portfolio={stock.portfolioHome}
               quote={
                 quote?.kind === "stock"
                   ? {
@@ -242,6 +228,7 @@ export default function StockPage({
               )}
             </div>
             <StockKeyMeasures
+              portfolioKind={stock.portfolioKind}
               classId={classId}
               code={code}
               measures={stock.measures}
@@ -256,39 +243,41 @@ export default function StockPage({
             <details className={styles["calculations"]}>
               <summary>{m.market_data_all_calculations_label()}</summary>
               <MethodNotice />
-              <StockMeasuresView code={code} measures={stock.measures} />
+              <StockMeasuresView
+                code={code}
+                measures={stock.measures}
+                portfolioKind={stock.portfolioKind}
+              />
             </details>
           </section>
-          {stock.canTrade && (
-            <nav
-              className={styles["actions"]}
-              hidden={ticket !== null}
-              aria-label={m.market_data_trade_label()}
+          <nav
+            className={styles["actions"]}
+            hidden={ticket !== null}
+            aria-label={m.market_data_trade_label()}
+          >
+            <Link
+              data-stock-trade="buy"
+              className={styles["buy"]}
+              to={{
+                pathname: `${stockPath(classId, code)}/buy`,
+                search: location.search,
+              }}
+              preventScrollReset
             >
-              <Link
-                data-stock-trade="buy"
-                className={styles["buy"]}
-                to={{
-                  pathname: `${stockPath(classId, code)}/buy`,
-                  search: location.search,
-                }}
-                preventScrollReset
-              >
-                {m.market_data_buy_link()}
-              </Link>
-              <Link
-                data-stock-trade="sell"
-                className={styles["sell"]}
-                to={{
-                  pathname: `${stockPath(classId, code)}/sell`,
-                  search: location.search,
-                }}
-                preventScrollReset
-              >
-                {m.market_data_sell_link()}
-              </Link>
-            </nav>
-          )}
+              {m.market_data_buy_link()}
+            </Link>
+            <Link
+              data-stock-trade="sell"
+              className={styles["sell"]}
+              to={{
+                pathname: `${stockPath(classId, code)}/sell`,
+                search: location.search,
+              }}
+              preventScrollReset
+            >
+              {m.market_data_sell_link()}
+            </Link>
+          </nav>
         </div>
         {ticket}
       </div>
@@ -299,6 +288,6 @@ export default function StockPage({
 function hasStockPortfolioQuotes(stock: ReturnType<typeof loader>): boolean {
   return (
     (stock.holding?.kind === "priced" && stock.totalValue !== undefined) ||
-    stock.correlation?.ok === true
+    stock.correlation.ok
   );
 }

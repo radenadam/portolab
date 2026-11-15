@@ -3,7 +3,8 @@ import { NumberText } from "~/number-text";
 import type { ClassId } from "~/features/classes/classes.schema";
 import type { ReactNode } from "react";
 import { ConceptCard } from "~/concept-card";
-import { homeTitle } from "~/features/trading/home-title";
+import { portfolioTitle } from "~/features/trading/portfolio-home";
+import type { PortfolioKind } from "~/features/trading/portfolio-store.server";
 import { ConceptLesson } from "~/features/learning/concept-lesson";
 import { formatCorrelation, formatPercent } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
@@ -30,8 +31,10 @@ export function StockKeyMeasures({
   measures,
   correlation,
   children,
+  portfolioKind = "membership",
 }: {
   children: ReactNode;
+  portfolioKind?: PortfolioKind;
   code: string;
   classId: ClassId;
   measures: Result<StockSummary, StoredMeasureFailure>;
@@ -57,7 +60,7 @@ export function StockKeyMeasures({
     ) : (
       <p>
         <NumberText>
-          {correlationFailure(correlation.failure, classId)}
+          {correlationFailure(correlation.failure, classId, portfolioKind)}
         </NumberText>
       </p>
     );
@@ -66,7 +69,11 @@ export function StockKeyMeasures({
       {!measures.ok && (
         <p className={styles["note"]}>
           <NumberText>
-            {measureFailureText(measures.failure, { kind: "stock", code })}
+            {measureFailureText(measures.failure, {
+              kind: "stock",
+              code,
+              portfolioKind,
+            })}
           </NumberText>
         </p>
       )}
@@ -99,7 +106,7 @@ export function StockKeyMeasures({
                     <>
                       <p>
                         {m.measures_correlation_prices_notice({
-                          page: homeTitle(),
+                          page: portfolioTitle(portfolioKind),
                         })}
                       </p>
                       <p>
@@ -162,7 +169,11 @@ export function StockKeyMeasures({
               ) : (
                 <span className={styles["note"]}>
                   <NumberText>
-                    {correlationFailure(correlation.failure, classId)}
+                    {correlationFailure(
+                      correlation.failure,
+                      classId,
+                      portfolioKind,
+                    )}
                   </NumberText>
                 </span>
               )}
@@ -185,6 +196,7 @@ export function StockKeyMeasures({
 function correlationFailure(
   failure: Extract<StockCorrelation, { ok: false }>["failure"],
   classId: ClassId,
+  portfolioKind: PortfolioKind,
 ): string {
   switch (failure.kind) {
     case "noPortfolioVariation":
@@ -194,12 +206,16 @@ function correlationFailure(
       const explained = explainPortfolioMeasures(failure, {
         kind: "owner",
         classId,
+        portfolioKind,
       });
       if (explained.ok)
         throw new Error("An unavailable portfolio has no measures.");
       return explained.failure;
     }
     case "unmeasured":
-      return measureFailureText(failure.failure, { kind: "correlation" });
+      return measureFailureText(failure.failure, {
+        kind: "correlation",
+        portfolioKind,
+      });
   }
 }
