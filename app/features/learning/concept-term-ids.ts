@@ -12,6 +12,10 @@ export const conceptTermIds = [
   "harga-rata-rata",
   "laba-rugi",
   "rentang-52-minggu",
+  "order-pasar",
+  "lot",
+  "biaya-broker",
+  "ara",
   "diversifikasi",
 ] as const;
 

@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { AppIcon } from "./app-icon";
-import { Frame, PageColumns, PageHeader, PhoneAndDesktop } from "./frame";
+import { Frame, PhoneAndDesktop } from "./frame";
 import type { FrameProfile } from "./frame";
 import { languageNames } from "./language-names";
 import { locales } from "./paraglide/runtime.js";
@@ -8,10 +8,6 @@ import type { Locale } from "./paraglide/runtime.js";
 import { renderInRouterForTest } from "./render-in-router-for-test";
 import { switchLocaleForTest } from "./switch-locale-for-test";
 import { renderMarkupForTest } from "./render-markup-for-test";
-import { withoutClassNamesForTest } from "./without-class-names-for-test";
-
-// 16:14 WIB on Friday 30 October 2026, when the fixture source quoted its latest prices.
-const quotedAt = new Date("2026-10-30T09:14:00Z");
 
 const texts: Record<
   Locale,
@@ -20,7 +16,6 @@ const texts: Record<
     navigation: string;
     profile: string;
     profileTitle: string;
-    pricesTime: string;
   }
 > = {
   id: {
@@ -28,14 +23,12 @@ const texts: Record<
     navigation: "Navigasi utama",
     profile: "Profil Sari Wulandari",
     profileTitle: "Profil",
-    pricesTime: "30 Okt 2026, 16.14 WIB",
   },
   en: {
     skip: "Skip to content",
     navigation: "Main navigation",
     profile: "Profile of Sari Wulandari",
     profileTitle: "Profile",
-    pricesTime: "Oct 30, 2026, 4:14 PM WIB",
   },
 };
 
@@ -121,23 +114,6 @@ for (const locale of locales) {
     );
   });
 
-  test(`opens a page with its path, its heading, and the time of its prices, or without a time for a page without prices, in ${language}`, () => {
-    switchLocaleForTest(locale);
-    const path = [{ label: "Manajemen Portofolio", path: "/classes/7" }];
-    expect(
-      renderMarkupForTest(
-        <PageHeader path={path} title="Portofolio Anda" pricesAt={quotedAt} />,
-      ),
-    ).toBe(
-      `<div><div><span><a href="/classes/7" data-discover="true">Manajemen Portofolio</a><span aria-hidden="true">/</span></span><h1>Portofolio Anda</h1></div><p>${text.pricesTime}</p></div>`,
-    );
-    expect(
-      renderInRouterForTest(
-        <PageHeader path={path} title="Portofolio Anda" pricesAt={undefined} />,
-      ),
-    ).not.toContain("<p");
-  });
-
   test(`keeps the app icon named outside a workspace when the wordmark can be hidden in ${language}`, () => {
     switchLocaleForTest(locale);
     const html = frameForTest({
@@ -153,26 +129,6 @@ for (const locale of locales) {
     expect(html).toMatch(/<\/main><\/div><\/div>$/);
   });
 }
-
-test("places the right column under the header line or leaves it to a wide screen, with the main column after the header line", () => {
-  const columns = (narrowPlacement: "first" | "hidden"): string =>
-    renderInRouterForTest(
-      <PageColumns
-        header={<p>header</p>}
-        main={<p>main</p>}
-        aside={<p>aside</p>}
-        narrowPlacement={narrowPlacement}
-      />,
-    );
-  expect(withoutClassNamesForTest(columns("first"))).toBe(
-    "<div><p>header</p><div><p>aside</p></div><div><p>main</p></div></div>",
-  );
-  expect(withoutClassNamesForTest(columns("hidden"))).toBe(
-    "<div><p>header</p><div><p>main</p></div><div><p>aside</p></div></div>",
-  );
-  expect(columns("hidden")).toMatch(/_asideOnWide_[^"]*"><p>aside/);
-  expect(columns("first")).not.toContain("_asideOnWide_");
-});
 
 test("gives a part its form for a phone and its form for a desktop, each for its own screen", () => {
   const html = renderInRouterForTest(

@@ -53,7 +53,10 @@ export function checkOrder(check: OrderCheck): OrderState {
   }
 }
 
-function isPriceOfOrder(order: Order, quotedAt: Date): boolean {
+export function isPriceOfOrder(
+  order: Pick<Order, "tradesFrom" | "tradingDay">,
+  quotedAt: Date,
+): boolean {
   if (quotedAt < order.tradesFrom || wibDateOf(quotedAt) !== order.tradingDay) {
     return false;
   }
