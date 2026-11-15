@@ -300,9 +300,14 @@ async function correctAnalysisAxis(
 ): Promise<void> {
   const page = field.page();
   const text = analysisText[locale];
+  const title = page.getByRole("heading", { name: text.title, exact: true });
+  const titleSize = await title.evaluate(
+    (element) => getComputedStyle(element).fontSize,
+  );
   await field.fill("risk");
   await page.getByRole("button", { name: text.apply, exact: true }).click();
   await expect(page).toHaveURL(`${classPath}/analysis?axis=risk`);
+  await expect(title).toHaveCSS("font-size", titleSize);
   await expect(
     page.getByRole("region", { name: text.riskMap, exact: true }),
   ).toBeVisible();
