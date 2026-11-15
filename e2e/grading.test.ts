@@ -1,3 +1,4 @@
+import { openClassAdministration } from "./class-controls.ts";
 import { expect, test } from "@playwright/test";
 import { languageNames } from "../app/language-names.ts";
 import { locales } from "../app/paraglide/runtime.js";
@@ -126,6 +127,7 @@ for (const locale of locales) {
     const testClass = await readTestClass(page);
     const other = await newDevice(browser, locale);
     await signInAsTestStudent(other, testClass, "Student without shares");
+    await openClassAdministration(page);
     await page.getByRole("link", { name: text.classLink, exact: true }).click();
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
       text.title,
