@@ -24,5 +24,12 @@ if (reviewerReport?.ok === false) {
 const roundReport = buildRoundReport(plan.value, reviewerReport?.value);
 // The verifier reads the findings from this file. The review job builds the same report from the outputs of the jobs, so it never trusts this file.
 mkdirSync("review", { recursive: true });
-writeFileSync("review/findings.json", JSON.stringify(roundReport, null, 2));
+writeFileSync(
+  "review/findings.json",
+  JSON.stringify(
+    { ...roundReport, fixFiles: plan.value.fixFiles, since: plan.value.since },
+    null,
+    2,
+  ),
+);
 process.stdout.write(`total=${String(roundReport.findings.length)}\n`);

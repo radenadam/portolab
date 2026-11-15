@@ -2,7 +2,6 @@ import { countOf, listOfWords, singularOrPlural } from "../app/sentences.ts";
 import { judgeReview } from "./judge-review.ts";
 import type { ReviewInput, VerifiedFinding } from "./judge-review.ts";
 import type { RoundReport } from "./review-findings.ts";
-import { reviewRoundLimit } from "./review-plan.ts";
 import type { ReviewPlan } from "./review-plan.ts";
 import type { ReviewState } from "./review-state.ts";
 
@@ -62,9 +61,9 @@ function scopeSentence(plan: ReviewPlan): string {
       : `the commits since ${plan.since}`;
   switch (plan.kind) {
     case "review":
-      return `Round ${String(plan.round)} reviewed ${commits}, in ${countOf(plan.files.length, "file", "files")}, through the ${listOfWords(plan.lenses)} ${singularOrPlural(plan.lenses.length, "lens", "lenses")}.${plan.mergeRounds > plan.previous.mergeRounds ? " It used an extra merge review round." : ""}`;
+      return `Round ${String(plan.round)} reviewed ${commits}, in ${countOf(plan.files.length, "file", "files")}, through the ${listOfWords(plan.lenses)} ${singularOrPlural(plan.lenses.length, "lens", "lenses")}.${plan.mergeRounds > plan.previous.mergeRounds ? " It used an extra merge review round." : ""}${plan.fixFiles.length > 0 ? " It also spent a finding-check round on the author files." : ""}`;
     case "check":
-      return `Round ${String(plan.round)} only checked the open findings. No reviewer read ${commits}, because the panel has used its ${countOf(reviewRoundLimit, "ordinary review round", "ordinary review rounds")}.`;
+      return `Round ${String(plan.round)} ${plan.fixFiles.length === 0 ? "only checked the open findings" : "checked the open findings and whether every author change belongs to their fixes"}. No reviewer read ${commits}, because the panel has used its ordinary review allowance.`;
     case "pass":
       return plan.since === undefined
         ? "No agent ran, because the pull request changes no file and no finding is open."

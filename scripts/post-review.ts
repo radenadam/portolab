@@ -3,6 +3,7 @@ import { fail, failuresOf, succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
 import { describeAgentRun, parseAgentRun } from "./agent-run.ts";
 import { parseJsonWith, parseOptionalJsonWith } from "./json.ts";
+import { parseFixChecks } from "./review-fix-checks.ts";
 import { parseReviewerReport, parseVerdicts } from "./review-findings.ts";
 import {
   parseCommitHash,
@@ -80,6 +81,14 @@ const verdicts = parseOptionalJsonWith(
   "VERIFIER_OUTPUT",
   parseVerdicts,
 );
+const fixChecks =
+  plan.value.fixFiles.length === 0
+    ? succeed(undefined)
+    : parseOptionalJsonWith(
+        process.env["VERIFIER_OUTPUT"],
+        "VERIFIER_OUTPUT",
+        parseFixChecks,
+      );
 const reviewerRun = parseOptionalJsonWith(
   process.env["REVIEWER_RUN"],
   "REVIEWER_RUN",
@@ -93,6 +102,7 @@ const verifierRun = parseOptionalJsonWith(
 const inputProblems = failuresOf([
   reviewerReport,
   verdicts,
+  fixChecks,
   reviewerRun,
   verifierRun,
 ]);
@@ -114,6 +124,7 @@ const outcome = summarizeReview({
       ? buildRoundReport(plan.value, reviewerAnswer)
       : undefined,
   verdicts: verdicts.ok ? verdicts.value : undefined,
+  fixChecks: fixChecks.ok ? fixChecks.value : undefined,
   jobResults: jobResults.value,
   runs,
   inputProblems,
