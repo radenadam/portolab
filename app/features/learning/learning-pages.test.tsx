@@ -236,6 +236,7 @@ for (const locale of locales) {
           'aria-labelledby="sheet-lesson-interactive-title"',
         );
         if (lesson.session === 9) {
+          expect(sheet).toContain('id="sheet-map-lesson-alpha-TLKM"');
           expect(sheet).toContain('id="sheet-lesson-alpha-TLKM"');
           expect(sheet).toContain('popoverTarget="sheet-lesson-alpha-TLKM"');
         }

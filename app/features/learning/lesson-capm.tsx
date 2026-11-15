@@ -18,6 +18,10 @@ import { monthlyReturn } from "~/units/monthly-return";
 import type { MonthlyReturn } from "~/units/monthly-return";
 import type { LessonPracticeData } from "./lesson-practice-data";
 import { LessonSlider } from "./lesson-slider";
+import {
+  LessonAlphaPopover,
+  lessonAlphaPopoverId,
+} from "./lesson-alpha-popover";
 import styles from "./lesson-practice.module.css";
 
 export function LessonCapm({
@@ -54,8 +58,10 @@ export function LessonCapm({
       ],
     },
   ];
+  const alphaPopovers: ReactNode[] = [];
   if (showHoldings)
-    for (const holding of practice.holdings)
+    for (const holding of practice.holdings) {
+      const popover = lessonAlphaPopoverId(holding.code, `${idPrefix}map-`);
       points.push({
         key: holding.code,
         name: holding.code,
@@ -63,7 +69,7 @@ export function LessonCapm({
         up: holding.expectedReturn,
         stem: holding.requiredReturn.value,
         mark: { kind: "held", weight: undefined },
-        popover: `${idPrefix}lesson-alpha-${holding.code}`,
+        popover,
         values: [
           {
             name: m.learning_analysis_beta_label(),
@@ -75,6 +81,14 @@ export function LessonCapm({
           },
         ],
       });
+      alphaPopovers.push(
+        <LessonAlphaPopover
+          key={holding.code}
+          id={popover}
+          holding={holding}
+        />,
+      );
+    }
   return (
     <section
       className={styles["interactive"]}
@@ -123,6 +137,7 @@ export function LessonCapm({
           labelledBy={`${idPrefix}lesson-interactive-title`}
           fill
         />
+        {alphaPopovers}
       </div>
       {interactive && practice.holdings.length > 0 && (
         <label className={styles["check"]}>

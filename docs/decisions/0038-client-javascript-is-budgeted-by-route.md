@@ -1,6 +1,6 @@
 # 0038. Client JavaScript is budgeted by route
 
-- Status: Accepted. [Decision 0042](0042-client-css-is-budgeted-by-route.md) replaces its rules about the scope and reporting of the CSS budget.
+- Status: Accepted. [Decision 0042](0042-client-css-is-budgeted-by-route.md) replaces its rules about the scope and reporting of the CSS budget. [Decision 0046](0046-complete-lesson-sheets-have-measured-route-allowances.md) replaces its JavaScript ceiling for the class home and ticket routes.
 - Date: 2026-11-14
 
 ## Context
@@ -66,7 +66,7 @@ This change alters the guard, and the runtime assets stay the same. The largest 
 
 ## Decision
 
-- The scaffold's 200 kB gzip ceiling applies to the complete JavaScript dependency set of each route. A separate 140 kB gzip ceiling guards the bootstrap and root dependencies shared by every page. The shared ceiling leaves 8.92 kB above the measured frame, which is already built, so a new screen has reason to keep its code out of that frame. The limits live in `scripts/client-size.ts`.
+- The scaffold's 200 kB gzip ceiling applies to the complete JavaScript dependency set of each route. A separate 140 kB gzip ceiling guards the bootstrap and root dependencies shared by every page. The shared ceiling leaves 8.92 kB above the measured frame, which is already built, so a new screen has reason to keep its code out of that frame. The current limits live in `scripts/client-route-limits.ts`.
 - `size-limit.config.ts` replaces `.size-limit.json`. It reads the Vite chunk manifest and the route manifest saved by the build. It discovers every route, including nested routes and split client exports. It follows static and deferred imports, counts each file once in each budget, and rejects missing entries, parents, imports, files, and parent cycles. JavaScript that Vite does not list counts on every route, so the browser manifest cannot escape the guard.
 - The whole-client JavaScript total stays in the report without a limit. The CSS check keeps its existing scope and limit.
 - An enhancement of a chart, sheet, or ticket belongs with the route that uses it. Shared components may live in `app/charts/` as decision 0029 sets, but a root or frame import must not load them on every page. Ordinary route imports already give this separation. A deferred import is useful when the reader needs it only after an interaction, and its bytes still count against that route.

@@ -11,7 +11,10 @@ import { expectMapLabelsClear } from "./expect-map-labels-clear.ts";
 import { captureScreens } from "./capture-screens.ts";
 import { holdClientScripts } from "./hold-client-scripts.ts";
 
-const practiceSessions = [9, 10] as const;
+const practiceSessions = [
+  { session: 9, query: "CAPM" },
+  { session: 10, query: "Sharpe" },
+] as const;
 
 const texts: Record<
   Locale,
@@ -46,9 +49,13 @@ const texts: Record<
     fractionalCash: string;
     changedFractionalCash: string;
     full: string;
+    openPractice: string;
+    mapAlpha: string;
   }
 > = {
   id: {
+    mapAlpha: "Lihat perhitungan TLKM",
+    openPractice: "Kerjakan di halaman pelajaran",
     full: "Buka di Belajar",
     apply: "Terapkan",
     clear: "Hapus filter",
@@ -94,6 +101,8 @@ const texts: Record<
     afterCash: "Kas 70,00%. Kas tidak berisiko dan tidak berbunga.",
   },
   en: {
+    mapAlpha: "See the calculation of TLKM",
+    openPractice: "Work on the lesson page",
     full: "Open in Learn",
     apply: "Apply",
     clear: "Clear filters",
@@ -194,6 +203,25 @@ for (const locale of locales) {
       page.locator("main svg text").filter({ hasText: /^BBCA$/u }),
     ).toHaveCount(0);
     await page.getByRole("checkbox", { name: text.show }).check();
+    const mapAlpha = page.getByRole("button", {
+      name: text.mapAlpha,
+      exact: true,
+    });
+    await mapAlpha.focus();
+    await mapAlpha.press("Enter");
+    const mapCalculation = page.locator("#map-lesson-alpha-TLKM:popover-open");
+    await expect(mapCalculation).toBeInViewport();
+    await expectAccessibleScreen(page);
+    await captureScreens(page, testInfo, {
+      name: `lesson-9-alpha-${locale}`,
+      fullPage: false,
+      fromTop: false,
+      check: async () => {
+        await expect(mapCalculation).toBeInViewport();
+      },
+    });
+    await page.keyboard.press("Escape");
+    await expect(mapAlpha).toBeFocused();
     await page.getByRole("button", { name: /TLKM.*(?:Buka|Open)/u }).click();
     await expect(page.locator("#lesson-alpha-TLKM:popover-open")).toBeVisible();
     await expectAccessibleScreen(page);
@@ -361,12 +389,12 @@ for (const locale of locales) {
     );
   });
 
-  for (const session of practiceSessions) {
+  for (const { session, query } of practiceSessions) {
     test(`keeps lesson ${String(session)} without holdings accessible before and after hydration in ${languageNames[locale]}`, async ({
       page,
       browser,
     }) => {
-      const { lecturer } = await openAsNewStudent(page, browser, {
+      const { lecturer, classPath } = await openAsNewStudent(page, browser, {
         locale,
         path: `/learn/${String(session)}`,
       });
@@ -380,6 +408,23 @@ for (const locale of locales) {
           await expectAccessibleScreen(page);
         },
       );
+      await page.goto(`${classPath}/glossary?q=${query}`);
+      await page
+        .locator(`main a[href*="/learn/${String(session)}?"]`)
+        .first()
+        .click();
+      const sheet = page.getByRole("dialog").filter({
+        has: page.getByRole("link", { name: text.full, exact: true }),
+      });
+      await sheet
+        .getByRole("link", { name: text.openPractice, exact: true })
+        .click();
+      await expect(page).toHaveURL(
+        new RegExp(`/learn/${String(session)}\\?returnTo=.+#practice$`, "u"),
+      );
+      await expect(
+        page.getByRole("link", { name: text.task, exact: true }),
+      ).toBeInViewport();
     });
   }
 
@@ -394,10 +439,8 @@ for (const locale of locales) {
       givePortfolio: storeLessonPortfolio,
     });
     try {
-      for (const session of practiceSessions) {
-        await page.goto(
-          `${classPath}/glossary?q=${session === 9 ? "CAPM" : "divers"}`,
-        );
+      for (const { session, query } of practiceSessions) {
+        await page.goto(`${classPath}/glossary?q=${query}`);
         const address = page.url();
         const source = page
           .locator(`main a[href*="/learn/${String(session)}?"]`)
@@ -415,11 +458,22 @@ for (const locale of locales) {
           await expect(
             lesson.getByText(text.capmResult, { exact: true }),
           ).toBeVisible();
+          const mapAlpha = lesson.getByRole("button", {
+            name: text.mapAlpha,
+            exact: true,
+          });
+          await mapAlpha.focus();
+          await mapAlpha.press("Enter");
+          await expect(
+            lesson.locator('[id$="map-lesson-alpha-TLKM"]:popover-open'),
+          ).toBeInViewport();
+          await page.keyboard.press("Escape");
+          await expect(mapAlpha).toBeFocused();
           await lesson
             .getByRole("button", { name: /TLKM.*(?:Buka|Open)/u })
             .click();
           await expect(
-            lesson.locator('[id$="lesson-alpha-TLKM"]'),
+            lesson.locator('[id$="lesson-alpha-TLKM"]:popover-open'),
           ).toBeVisible();
           await page.keyboard.press("Escape");
         } else {
@@ -472,7 +526,7 @@ for (const locale of locales) {
       const checkTaskBanner = async (): Promise<void> => {
         await expect(backLink.locator("svg")).toBeVisible();
       };
-      for (const session of practiceSessions) {
+      for (const { session } of practiceSessions) {
         await page.goto(`${classPath}/learn/${String(session)}`);
         await page.getByRole("link", { name: text.skip }).click();
         if (session === 10) {

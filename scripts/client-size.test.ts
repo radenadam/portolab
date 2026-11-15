@@ -185,6 +185,31 @@ test("discovers a new route without adding a budget entry by hand", () => {
   expect(added?.path).toContain("build/client/assets/new.js");
 });
 
+test("applies measured exercise allowances only to the named routes and asset kinds", () => {
+  const { chunks, routes, files } = fixture();
+  const cases = [
+    ["features/classes/class-page", "220 kB", "24 kB"],
+    ["features/trading/ticket-page", "220 kB", "24 kB"],
+    ["features/market-data/market-page", "200 kB", "24 kB"],
+    ["features/grading/student-portfolio-page", "200 kB", "24 kB"],
+    ["features/learning/lesson-page", "200 kB", "20 kB"],
+    ["features/trading/ticket-page-detail", "200 kB", "20 kB"],
+  ] as const;
+  for (const [id, javascript, stylesheets] of cases) {
+    routes.set(id, { file: "app/other.tsx", parentId: "root" });
+    const checks = successValueForTest(
+      clientSizeChecks(chunks, routes, files),
+      "plans measured route limits",
+    );
+    expect(
+      checks.find((check) => check.name === `Route JavaScript: ${id}`)?.limit,
+    ).toBe(javascript);
+    expect(
+      checks.find((check) => check.name === `Route CSS: ${id}`)?.limit,
+    ).toBe(stylesheets);
+  }
+});
+
 test("rejects missing files even when the other files of the route exist", () => {
   const { chunks, routes, files } = fixture();
   expect(

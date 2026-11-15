@@ -2,17 +2,15 @@ import type { ReactNode } from "react";
 import { ChangeText } from "~/change-text";
 import { formatSignedPercent } from "~/formatting";
 import type { AnalysisHolding } from "~/features/measures/analysis-holdings";
-import {
-  MarketLineFormula,
-  RequiredReturnFormula,
-} from "~/features/measures/capm-formulas";
-import { measureSecurityMarketLineDistance } from "~/features/measures/capm";
-import { NumberText } from "~/number-text";
-import { m } from "~/paraglide/messages.js";
-import { Popover, PopoverButton } from "~/popover";
+import { PopoverButton } from "~/popover";
 import { percentOf } from "~/charts/plot";
 import { plotFraction } from "~/units/plot-fraction";
 import styles from "./lesson-practice.module.css";
+import {
+  LessonAlphaPopover,
+  lessonAlphaPopoverId,
+  lessonAlphaLabel,
+} from "./lesson-alpha-popover";
 
 export function LessonAlpha({
   holdings,
@@ -32,16 +30,13 @@ export function LessonAlpha({
     <div>
       {rows.map((holding) => {
         const change = formatSignedPercent(holding.distance);
-        const id = `${idPrefix}lesson-alpha-${holding.code}`;
+        const id = lessonAlphaPopoverId(holding.code, idPrefix);
         return (
           <div key={holding.code}>
             <PopoverButton
               popover={id}
               className={styles["pair"]}
-              label={m.learning_alpha_calculation_label({
-                code: holding.code,
-                alpha: change.text,
-              })}
+              label={lessonAlphaLabel(holding)}
             >
               <span className={styles["code"]}>{holding.code}</span>
               <span className={styles["alphaBar"]} aria-hidden="true">
@@ -61,44 +56,7 @@ export function LessonAlpha({
               </span>
               <ChangeText colored change={change} />
             </PopoverButton>
-            <Popover
-              id={id}
-              label={m.learning_alpha_calculation_label({
-                code: holding.code,
-                alpha: change.text,
-              })}
-              placement="aboveStart"
-            >
-              <div className={styles["calculation"]}>
-                <h2>{holding.code}</h2>
-                <p>
-                  <MarketLineFormula
-                    of="i"
-                    distance={measureSecurityMarketLineDistance(
-                      holding.expectedReturn,
-                      holding.requiredReturn,
-                    )}
-                  />
-                </p>
-                <strong>
-                  <ChangeText colored change={change} />
-                </strong>
-                <p>
-                  <RequiredReturnFormula
-                    of="i"
-                    required={holding.requiredReturn}
-                  />
-                </p>
-                <p>
-                  <NumberText>
-                    {m.learning_monthly_result_notice({
-                      value: formatSignedPercent(holding.requiredReturn.value)
-                        .text,
-                    })}
-                  </NumberText>
-                </p>
-              </div>
-            </Popover>
+            <LessonAlphaPopover id={id} holding={holding} />
           </div>
         );
       })}

@@ -1,6 +1,6 @@
 # 0042. Client CSS is budgeted by route
 
-- Status: Accepted
+- Status: Accepted. [Decision 0046](0046-complete-lesson-sheets-have-measured-route-allowances.md) replaces its CSS ceiling for the class home, ticket, market, and lecturer's student portfolio routes.
 - Date: 2026-11-15
 
 ## Context
