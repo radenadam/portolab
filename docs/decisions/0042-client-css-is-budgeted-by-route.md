@@ -1,6 +1,6 @@
 # 0042. Client CSS is budgeted by route
 
-- Status: Accepted
+- Status: Accepted. [Decision 0046](0046-kelas-has-a-measured-css-allowance-for-reused-portfolio-styles.md) replaces its CSS ceiling for the class overview route.
 - Date: 2026-11-15
 
 ## Context

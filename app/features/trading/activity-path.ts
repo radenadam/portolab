@@ -1,10 +1,10 @@
 import type { PortfolioKind } from "./portfolio-store.server";
 import type { ClassId } from "~/features/classes/classes.schema";
-import { portfolioHome } from "./portfolio-home";
+import { portfolioPath } from "./portfolio-path";
 
 export function activityPath(
   classId: ClassId,
   kind: PortfolioKind = "membership",
 ): string {
-  return `${portfolioHome(classId, kind).path}/activity`;
+  return `${portfolioPath(classId, kind)}/activity`;
 }

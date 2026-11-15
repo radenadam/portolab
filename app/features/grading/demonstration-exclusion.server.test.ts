@@ -1,5 +1,6 @@
 import { expect, test } from "vitest";
 import { listStudents } from "~/features/classes/class-store.server";
+import { classPath } from "~/features/classes/class-path";
 import { classMapPoints } from "~/features/classes/class-map-points.server";
 import { readClassOverview } from "~/features/classes/read-class-overview.server";
 import type { ClassMapAxis } from "~/features/classes/parse-class-map-axis";
@@ -8,7 +9,7 @@ import {
   placedOrderForTest,
   storeHoldingsForTest,
 } from "~/features/trading/portfolios-for-test.server";
-import { purchaseForTest } from "~/features/trading/orders-for-test";
+import { saleForTest } from "~/features/trading/orders-for-test";
 import { readPortfolio } from "~/features/trading/portfolio-store.server";
 import { readPortfolioValuation } from "~/features/trading/read-portfolio-report.server";
 import { rupiah } from "~/units/rupiah";
@@ -43,6 +44,22 @@ const readers: { name: string; read: (fixture: ClassFixture) => unknown }[] = [
       expect(overview.active).toBe(0);
       expect(overview.ordersThisWeek).toBe(0);
       return overview;
+    },
+  },
+  {
+    name: "class attention flags",
+    read: (fixture) => {
+      const flags = overviewOf(fixture).flags;
+      expect(flags.length).toBeGreaterThan(0);
+      return flags;
+    },
+  },
+  {
+    name: "class discussion statistics",
+    read: (fixture) => {
+      const discussion = overviewOf(fixture).discussion;
+      expect(discussion.questions).toHaveLength(2);
+      return discussion;
     },
   },
   {
@@ -90,13 +107,14 @@ for (const reader of readers) {
       classId: taughtClass.id,
       startingCash: taughtClass.startingCash,
     };
+    // A holding deleted by hand can leave a large loss, which would replace the class loss flag if the demonstration entered its input.
     storeHoldingsForTest(database, owner, {
-      cash: rupiah(50_125_300),
+      cash: rupiah(0),
       holdings: [
-        { code: "BBCA", shares: shares(10_000), cost: rupiah(49_874_700) },
+        { code: "BBCA", shares: shares(1_000), cost: rupiah(4_987_470) },
       ],
     });
-    placedOrderForTest(database, owner, purchaseForTest());
+    placedOrderForTest(database, owner, saleForTest());
     const portfolio = readPortfolio(database, owner);
     expect(portfolio.holdings).toHaveLength(1);
     expect(portfolio.orders).toHaveLength(1);
@@ -109,12 +127,20 @@ for (const reader of readers) {
     });
     const measured = readPortfolioMeasures(database, valuation);
     expect(measured.kind === "measured" && measured.measures.ok).toBe(true);
+    const studentReturns = overviewOf(fixture).students.flatMap((student) =>
+      student.return === undefined ? [] : [student.return],
+    );
+    expect(studentReturns.length).toBeGreaterThan(0);
+    expect(valuation.total?.return).toBeLessThan(Math.min(...studentReturns));
     expect(reader.read(fixture)).toEqual(before);
   });
 }
 
 function overviewOf({ database, taughtClass }: ClassFixture) {
-  return readClassOverview(database, taughtClass, moment);
+  return readClassOverview(database, taughtClass, {
+    ...moment,
+    sourcePath: classPath(taughtClass.id),
+  });
 }
 
 function readMap(fixture: ClassFixture, axis: ClassMapAxis) {
