@@ -88,6 +88,7 @@ export function loader({ context, params, url, request }: Route.LoaderArgs):
         request,
         now,
         delayMinutes: readPriceSourceDescription(context).delayMinutes,
+        sourcePath: classMapPath(taught.id, axis.value),
       });
       return {
         role: user.role,

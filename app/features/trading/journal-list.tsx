@@ -24,6 +24,7 @@ import {
 } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { lotCount } from "./count-parts";
+import { journalEntryId } from "./journal-entry-id";
 import type { JournalTrade } from "./trade-journal";
 import type { OrderSide } from "./order";
 import { SideTag } from "./activity-orders";
@@ -84,7 +85,7 @@ export function JournalList({
                   <StockPageLink
                     classId={classId}
                     code={trade.order.code}
-                    id={`journal-${String(trade.order.id)}`}
+                    id={journalEntryId(trade.order.id)}
                     keepReturn={readOnly}
                     className={styles["stock"]}
                   >

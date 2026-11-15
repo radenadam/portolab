@@ -21,6 +21,7 @@
 }
 
 .panel {
+  --size-chart: var(--size-class-map);
   composes: panel from "../../panel.module.css";
   gap: 0;
   padding: 0;
@@ -189,4 +190,26 @@
 
 .administration {
   composes: returnTarget from "./classes.module.css";
+}
+
+.columns,
+.main {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.main {
+  grid-template-rows: auto 1fr;
+}
+
+@media (width >= 73.75rem) {
+  .columns {
+    grid-template-columns: minmax(0, 2.4fr) minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  .strip {
+    margin-block-start: auto;
+  }
 }
