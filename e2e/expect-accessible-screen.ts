@@ -9,7 +9,7 @@ const smallestTargetHeight = 44;
 
 const colorSchemes = ["light", "dark"] as const;
 
-/** Checks the screen with axe in the light and the dark theme, checks that every visible link, button, and form field is at least as high as the smallest touch target, and checks that the page does not scroll sideways. */
+/** Axe runs page scripts, so callers keep JavaScript enabled. holdClientScripts can pause the app's scripts while axe checks server HTML. */
 export async function expectAccessibleScreen(page: Page): Promise<void> {
   await expectDefinitionTerms(page);
   // Until the fonts load, the browser draws text in a fallback font, whose widths differ.

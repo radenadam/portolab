@@ -11,6 +11,8 @@ import { expectMapLabelsClear } from "./expect-map-labels-clear.ts";
 import { captureScreens } from "./capture-screens.ts";
 import { holdClientScripts } from "./hold-client-scripts.ts";
 
+const practiceSessions = [9, 10] as const;
+
 const texts: Record<
   Locale,
   {
@@ -356,6 +358,28 @@ for (const locale of locales) {
     );
   });
 
+  for (const session of practiceSessions) {
+    test(`keeps lesson ${String(session)} without holdings accessible before and after hydration in ${languageNames[locale]}`, async ({
+      page,
+      browser,
+    }) => {
+      const { lecturer } = await openAsNewStudent(page, browser, {
+        locale,
+        path: `/learn/${String(session)}`,
+      });
+      await holdClientScripts(
+        page,
+        { otherDevice: lecturer.context() },
+        async (loadClient) => {
+          await expectAccessibleScreen(page);
+          await loadClient();
+          await expect(page.getByRole("slider").first()).toBeVisible();
+          await expectAccessibleScreen(page);
+        },
+      );
+    });
+  }
+
   test.describe(`before JavaScript loads in ${languageNames[locale]}`, () => {
     test.use({ javaScriptEnabled: false });
     test("opens the first-stock task and returns to the same practice", async ({
@@ -378,7 +402,7 @@ for (const locale of locales) {
       const checkTaskBanner = async (): Promise<void> => {
         await expect(backLink.locator("svg")).toBeVisible();
       };
-      for (const session of [9, 10]) {
+      for (const session of practiceSessions) {
         await page.goto(`${classPath}/learn/${String(session)}`);
         await page.getByRole("link", { name: text.skip }).click();
         if (session === 10) {
@@ -391,7 +415,6 @@ for (const locale of locales) {
           name: text.task,
           exact: true,
         });
-        await expectAccessibleScreen(page);
         await captureScreens(page, testInfo, {
           name: `lesson-empty-${String(session)}-${locale}`,
           fullPage: true,
