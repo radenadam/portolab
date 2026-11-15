@@ -1,6 +1,6 @@
 # 0037. Merges of main have their own capped review rounds
 
-- Status: Accepted
+- Status: Accepted. [Decision 0043](0043-finding-fixes-and-merges-share-a-push-with-separate-charges.md) changes the rule for combining finding fixes and base merges, the accounting of a combined run, and the consequence that fixes and merges need separate pushes.
 - Date: 2026-11-14
 
 ## Context
@@ -9,11 +9,11 @@ Pull request #139 used its ordinary review rounds and had no open finding. Other
 
 ## Decision
 
-`scripts/review-plan.ts` sets three independent limits: `reviewRoundLimit` for ordinary reviews, `mergeReviewRoundLimit` for extra merge reviews, and `checkRoundLimit` for rounds that only check open findings. The total number of rounds that run an agent cannot exceed their sum. A round whose agent did not finish spends its allowance too.
+The gate has three independent limits: `reviewRoundLimit` for ordinary reviews, `mergeReviewRoundLimit` for extra merge reviews, and `checkRoundLimit` for finding-check rounds. The total number of rounds that run an agent cannot exceed their sum. A round whose agent did not finish spends its allowance too.
 
 After the ordinary review rounds, a push that contains only merges of main since the head that the last finished round reviewed may use an extra merge review. Each merge has two parents, and its second parent must be an ancestor of the current base branch. The reviewer reads only manual integration work, which `git show --diff-merges=remerge` selects by comparing the recorded merge with the automatic merge that Git recreates. This includes edits made while resolving the merge and leaves out files Git combined automatically, even when both parents changed one file. A foreign merge or a merge with more parents needs an ordinary review, which includes its imported files. The verifier checks any new findings and the open ones. A merge before the ordinary cap uses an ordinary round. A merge that resolves nothing uses no round and passes only when no finding is open.
 
-A push with both merges and other author commits does not qualify for any round after the ordinary cap, even when they change the same files. A push with author commits alone may only fix open findings through the verifier-only allowance. Neither extra merge reviews nor verifier-only rounds replenish the other allowance. A change that no remaining round may read or check fails without an agent. The author then decides how the change continues, such as in a new pull request.
+[Decision 0043](0043-finding-fixes-and-merges-share-a-push-with-separate-charges.md) governs combined pushes and author fixes after the ordinary cap. Neither allowance replenishes another. A change that no remaining round may read or check fails without an agent. The author then decides how the change continues, such as in a new pull request.
 
 The plan records the reason for a refusal, so the review text explains the rule that refused the push even when other allowances are exhausted too. An older plan that names no reason gets a general refusal text rather than a guess from its counters.
 
@@ -29,5 +29,5 @@ The saved state keeps the count of extra merge reviews apart from the total roun
 ## Consequences
 
 - A late merge with conflicts can finish in the same pull request without repeating its earlier review.
-- An author pushes merges separately from finding fixes after the ordinary cap, so the gate can identify which allowance the push may use.
+- [Decision 0043](0043-finding-fixes-and-merges-share-a-push-with-separate-charges.md) governs how a finding fix can accompany a merge.
 - Repeated conflicts can exhaust the merge allowance. The gate then fails, so a maintainer still decides how a change continues at the final cap.
