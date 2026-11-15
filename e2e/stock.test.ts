@@ -29,7 +29,6 @@ const texts: Record<
     calculations: string;
     buy: string;
     sell: string;
-    side: string;
     noCloses: string;
     quote: string;
     trade: string;
@@ -59,7 +58,6 @@ const texts: Record<
     calculations: "Semua perhitungan dan imbal hasil bulanan",
     buy: "Beli",
     sell: "Jual",
-    side: "Sisi order",
     noCloses:
       "Belum ada harga penutupan dalam rentang ini. Periksa kembali setelah pembaruan riwayat harga menyimpan penutupan dalam rentang ini.",
   },
@@ -84,7 +82,6 @@ const texts: Record<
     calculations: "All calculations and monthly returns",
     buy: "Buy",
     sell: "Sell",
-    side: "Side",
     noCloses:
       "There are no closing prices in this range yet. Check again when a price history update stores closes in this range.",
   },
@@ -269,24 +266,47 @@ for (const locale of locales) {
   test(`starts each side of an order from a held stock and returns to the market in ${locale}`, async ({
     page,
     browser,
-  }) => {
+  }, testInfo) => {
     const { student, classPath, path } = await openHeldStock(
       page,
       browser,
       locale,
     );
+    await student.goto(`${path}?range=1y`);
+    await student.getByText(text.points, { exact: true }).click();
+    await expect(
+      student.getByRole("columnheader", { name: text.date }),
+    ).toBeVisible();
     for (const [side, label] of [
       ["buy", text.buy],
       ["sell", text.sell],
     ] as const) {
-      await student.getByRole("link", { name: label, exact: true }).click();
+      const startTrade = student.getByRole("link", {
+        name: label,
+        exact: true,
+      });
+      await startTrade.scrollIntoViewIfNeeded();
+      const scroll = await student.evaluate(() => window.scrollY);
+      await startTrade.click();
       await expect(student).toHaveURL(
-        `${classPath}/orders?code=BBCA&side=${side}`,
+        `${classPath}/stocks/BBCA/${side}?range=1y`,
       );
       await expect(
-        student.getByRole("radio", { name: label, exact: true }),
-      ).toBeChecked();
-      await student.goto(path);
+        student.locator(`dialog a[data-side="${side}"]`),
+      ).toHaveAttribute("data-selected", "true");
+      if (testInfo.project.name === "phone") {
+        await student.keyboard.press("Escape");
+        await expect(student).toHaveURL(`${path}?range=1y`);
+        await expect(startTrade).toBeFocused();
+        await expect
+          .poll(() => student.evaluate(() => window.scrollY))
+          .toBeCloseTo(scroll, 0);
+        await expect(
+          student.getByRole("columnheader", { name: text.date }),
+        ).toBeVisible();
+      } else {
+        await student.goto(`${path}?range=1y`);
+      }
     }
     await student.getByRole("link", { name: text.back }).click();
     await expect(student).toHaveURL(`${classPath}/market`);
@@ -350,9 +370,10 @@ for (const locale of locales) {
         page.getByRole("columnheader", { name: text.date }),
       ).toBeVisible();
       await page.getByRole("link", { name: text.sell, exact: true }).click();
-      await expect(
-        page.getByRole("radio", { name: text.sell, exact: true }),
-      ).toBeChecked();
+      await expect(page.locator('dialog a[data-side="sell"]')).toHaveAttribute(
+        "data-selected",
+        "true",
+      );
       await lecturer.context().close();
     });
   });

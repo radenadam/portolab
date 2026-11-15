@@ -1,6 +1,9 @@
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
-import { formatBeta, formatPercent } from "~/formatting";
+import {
+  formatFormulaBeta,
+  formatFormulaPercent,
+} from "~/formula-input-formatting";
 import type { MonthlyReturn } from "~/units/monthly-return";
 import { ExpectedReturn, Operand, RiskFree } from "./formulas";
 import type {
@@ -20,8 +23,8 @@ function ExcessReturnNumbers({
 }): ReactNode {
   return (
     <>
-      <NumberText>{formatPercent(expectedReturn, "two")}</NumberText> −{" "}
-      <NumberText>{formatPercent(riskFreeRate, "two")}</NumberText>
+      <NumberText>{formatFormulaPercent(expectedReturn)}</NumberText> −{" "}
+      <NumberText>{formatFormulaPercent(riskFreeRate)}</NumberText>
     </>
   );
 }
@@ -45,7 +48,7 @@ export function SharpeRatioFormula({
           />
           ) /{" "}
           <NumberText>
-            {formatPercent(inputs.standardDeviation, "two")}
+            {formatFormulaPercent(inputs.standardDeviation)}
           </NumberText>
         </>
       )}
@@ -70,7 +73,8 @@ export function TreynorRatioFormula({
             expectedReturn={inputs.expectedReturn}
             riskFreeRate={inputs.riskFreeRate}
           />
-          ) / <Operand value={inputs.beta} text={formatBeta(inputs.beta)} />
+          ) /{" "}
+          <Operand value={inputs.beta} text={formatFormulaBeta(inputs.beta)} />
         </>
       )}
     </>

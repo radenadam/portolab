@@ -45,7 +45,7 @@ export function cashSetAside(
 }
 
 /** The shares of a stock that the sell orders that are open at a moment set aside, and how many orders they are. */
-export function sharesSetAside(
+function sharesSetAside(
   orders: readonly Order[],
   code: string,
   moment: Date,

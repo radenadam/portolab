@@ -14,7 +14,7 @@ import { wibTimeZone } from "~/wib";
 
 const intlLocales = { id: "id-ID", en: "en-US" } as const;
 
-function intlLocale(): string {
+export function intlLocale(): string {
   return intlLocales[getLocale()];
 }
 

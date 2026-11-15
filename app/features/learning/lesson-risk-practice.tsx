@@ -1,7 +1,10 @@
 import type { ReactNode } from "react";
-import type { PortfolioSummary } from "~/features/measures/measure-summaries";
+import type {
+  HoldingRiskSummary,
+  PortfolioSummary,
+} from "~/features/measures/measure-summaries";
 import type { MonthlyReturn } from "~/units/monthly-return";
-import { formatPercent } from "~/formatting";
+import { formatPercent, smallestPercentStep } from "~/formatting";
 import { monthlyReturn } from "~/units/monthly-return";
 import { NumberText } from "~/number-text";
 import { m } from "~/paraglide/messages.js";
@@ -25,13 +28,20 @@ export function LessonRiskPractice({
         (first, second) => second.varianceShare - first.varianceShare,
       )
     : [];
-  const target = monthlyReturn(
+  const proportionalTarget = monthlyReturn(
     portfolio.standardDeviation * practiceRiskTarget,
   );
-  const done = risks.ok
-    ? current < target &&
-      formatPercent(current, "two") !== formatPercent(target, "two")
-    : formatPercent(current, "two") !== formatPercent(monthlyReturn(0), "two");
+  const lowerRisk =
+    formatPercent(proportionalTarget, "two") !==
+    formatPercent(monthlyReturn(0), "two");
+  const target = lowerRisk
+    ? proportionalTarget
+    : monthlyReturn(smallestPercentStep);
+  const currentText = formatPercent(current, "two");
+  const targetText = formatPercent(target, "two");
+  const done =
+    (lowerRisk ? current < target : current > target) &&
+    currentText !== targetText;
   const minimum = Math.min(0, ...rows.map((row) => row.varianceShare));
   const maximum = Math.max(1, ...rows.map((row) => row.varianceShare));
   const position = (value: number): string =>
@@ -76,13 +86,14 @@ export function LessonRiskPractice({
         <p>
           <strong>{m.learning_task_label()}</strong>{" "}
           <NumberText>
-            {risks.ok
-              ? m.learning_risk_task_notice({
-                  target: formatPercent(target, "two"),
-                  current: formatPercent(current, "two"),
+            {lowerRisk
+              ? lowerRiskTask(rows, {
+                  target: targetText,
+                  current: currentText,
                 })
               : m.learning_zero_risk_task_notice({
-                  current: formatPercent(current, "two"),
+                  target: targetText,
+                  current: currentText,
                 })}
           </NumberText>
         </p>
@@ -94,4 +105,16 @@ export function LessonRiskPractice({
       </div>
     </PracticePanel>
   );
+}
+
+function lowerRiskTask(
+  rows: readonly HoldingRiskSummary[],
+  values: { target: string; current: string },
+): string {
+  const first = rows[0];
+  if (first === undefined)
+    throw new Error(
+      "A portfolio with positive risk has no holding risk share.",
+    );
+  return m.learning_risk_task_notice({ ...values, code: first.code });
 }

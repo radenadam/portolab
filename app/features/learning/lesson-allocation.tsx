@@ -1,13 +1,7 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
-import { useIsInBrowser } from "~/charts/use-is-in-browser";
-import { ChangeText } from "~/change-text";
-import {
-  formatBeta,
-  formatPercent,
-  formatSignedPercent,
-  formatSharpeRatio,
-} from "~/formatting";
+import { useIsInBrowser } from "~/use-is-in-browser";
+import { formatPercent } from "~/formatting";
 import type { PortfolioSummary } from "~/features/measures/measure-summaries";
 import { reweightPortfolio } from "~/features/measures/reweight-portfolio";
 import { riskMeasureFailureText } from "~/features/measures/measure-failure-text";
@@ -16,10 +10,12 @@ import {
   TreynorRatioFormula,
 } from "~/features/measures/ratio-formulas";
 import { NumberText } from "~/number-text";
+import { Message } from "~/message";
 import { m } from "~/paraglide/messages.js";
 import { portfolioWeight } from "~/units/portfolio-weight";
 import type { PortfolioWeight } from "~/units/portfolio-weight";
 import { LessonSlider } from "./lesson-slider";
+import { LessonAllocationStatistics } from "./lesson-allocation-statistics";
 import { LessonCovariances } from "./lesson-covariances";
 import { LessonRiskPractice } from "./lesson-risk-practice";
 import styles from "./lesson-practice.module.css";
@@ -55,41 +51,6 @@ export function LessonAllocation({
     expectedReturn: measured.expectedReturn.value,
     riskFreeRate: portfolio.market.riskFreeRate.value,
   };
-  const statistics: { label: string; value: ReactNode }[] = [
-    {
-      label: m.learning_expected_return_label(),
-      value: formatPercent(measured.expectedReturn.value, "two"),
-    },
-    {
-      label: m.learning_standard_deviation_label(),
-      value: formatPercent(measured.standardDeviation.value, "two"),
-    },
-    {
-      label: m.learning_analysis_beta_label(),
-      value: formatBeta(measured.beta.value),
-    },
-    {
-      label: m.learning_sharpe_ratio_label(),
-      value: measured.sharpeRatio.ok
-        ? formatSharpeRatio(measured.sharpeRatio.value.value)
-        : m.learning_no_value_label(),
-    },
-    {
-      label: m.learning_treynor_ratio_label(),
-      value: measured.treynorRatio.ok
-        ? formatPercent(measured.treynorRatio.value.value, "two")
-        : m.learning_no_value_label(),
-    },
-    {
-      label: m.learning_market_line_label(),
-      value: (
-        <ChangeText
-          colored
-          change={formatSignedPercent(measured.securityMarketLine.value)}
-        />
-      ),
-    },
-  ];
   return (
     <>
       <section
@@ -124,29 +85,27 @@ export function LessonAllocation({
             text={formatPercent(holding.weight, "two")}
             value={holding.weight * 100}
             maximum={100}
-            step={1}
+            step="any"
             onChange={(value) => {
               changeWeight(holding.code, value);
             }}
           />
         ))}
         <p>
-          <NumberText>
-            {m.learning_cash_notice({
-              cash: formatPercent(measured.cash, "two"),
-            })}
-          </NumberText>
+          <Message
+            text={m.learning_cash_notice}
+            values={{
+              cash: (
+                <strong>
+                  <NumberText whole>
+                    {formatPercent(measured.cash, "two")}
+                  </NumberText>
+                </strong>
+              ),
+            }}
+          />
         </p>
-        <dl className={styles["statistics"]}>
-          {statistics.map(({ label, value }) => (
-            <div key={label}>
-              <dt>{label}</dt>
-              <dd>
-                <NumberText whole>{value}</NumberText>
-              </dd>
-            </div>
-          ))}
-        </dl>
+        <LessonAllocationStatistics measured={measured} own={own} />
         {!measured.sharpeRatio.ok && (
           <p>
             <NumberText>

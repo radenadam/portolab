@@ -1,2 +1,2 @@
-// A proportional target stays meaningful when a portfolio changes size.
+// A proportional target lets the same task suit different portfolios.
 export const practiceRiskTarget = 0.9;

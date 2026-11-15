@@ -3,7 +3,7 @@ import { useState } from "react";
 import type { ReactNode } from "react";
 import { RiskMap } from "~/charts/risk-map";
 import type { MarkedPoint } from "~/charts/layout-risk-map";
-import { useIsInBrowser } from "~/charts/use-is-in-browser";
+import { useIsInBrowser } from "~/use-is-in-browser";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
 import { measureRequiredReturn } from "~/features/measures/capm";
 import { RequiredReturnFormula } from "~/features/measures/capm-formulas";

@@ -1,5 +1,3 @@
-import type { LessonTask } from "~/features/learning/lesson-task";
-import { withLessonTask } from "~/features/learning/lesson-task";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { directionOf } from "~/charts/direction-of";
@@ -17,6 +15,7 @@ import type { StockHistory } from "./price-source.server";
 import { priceChartRanges } from "./price-chart-range";
 import type { PriceChartRange } from "./price-chart-range";
 import styles from "./stock-history-chart.module.css";
+import { pathWithQuery } from "~/path-with-query";
 
 const labels: Record<PriceChartRange, () => string> = {
   "1m": () => m.market_data_month_range_label(),
@@ -40,12 +39,10 @@ export function StockHistoryChart({
   history,
   range,
   path,
-  task,
 }: {
   history: StockHistory;
   range: PriceChartRange;
   path: string;
-  task?: LessonTask | undefined;
 }): ReactNode {
   const first = history.closes[0];
   const latest = history.closes.at(-1);
@@ -62,7 +59,8 @@ export function StockHistoryChart({
         {priceChartRanges.map((choice) => (
           <Link
             key={choice}
-            to={withLessonTask(`${path}?range=${choice}`, task)}
+            to={pathWithQuery(path, { range: choice })}
+            preventScrollReset
             aria-current={choice === range ? "true" : undefined}
           >
             {labels[choice]()}

@@ -1,4 +1,4 @@
-import { useIsInBrowser } from "~/charts/use-is-in-browser";
+import { useIsInBrowser } from "~/use-is-in-browser";
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import styles from "./lesson-practice.module.css";
@@ -22,7 +22,7 @@ export function LessonSlider({
   value: number;
   minimum?: number;
   maximum: number;
-  step: number;
+  step: number | "any";
   onChange: (value: number) => void;
 }): ReactNode {
   const interactive = useIsInBrowser();

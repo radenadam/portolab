@@ -1,3 +1,4 @@
+import { withLessonTask } from "~/features/learning/lesson-task";
 import { readLessonTask } from "~/features/learning/read-lesson-task.server";
 import { LessonTaskBanner } from "~/features/learning/lesson-task-banner";
 import { ActivitySelectionForm } from "./activity-selection-form";
@@ -5,9 +6,8 @@ import type { ReactNode } from "react";
 import { data, Link } from "react-router";
 import { readPrices } from "~/features/market-data/read-prices.server";
 import { pageTitle } from "~/page-title";
-import { FormFailure, FormSuccess } from "~/form";
+import { FormFailure } from "~/form";
 import { m } from "~/paraglide/messages.js";
-import { parseRecordId } from "~/value-parsers";
 import type { Route } from "./+types/activity-page";
 import { activityPath } from "./activity-path";
 import { parseActivityFilter, parseActivityView } from "./activity-selection";
@@ -18,7 +18,6 @@ import { reloadsAfterEveryForm } from "./reloads-after-every-form";
 import { ActivityOrders } from "./activity-orders";
 import { JournalList } from "./journal-list";
 import { tradeJournal } from "./trade-journal";
-import type { OrderId } from "./trading.schema";
 import styles from "./activity.module.css";
 
 export function meta(): Route.MetaDescriptors {
@@ -40,10 +39,6 @@ export function loader({ context, request, params, url }: Route.LoaderArgs) {
   const view = parseActivityView(
     url.searchParams.get("view"),
     m.trading_activity_view_label(),
-  );
-  const placed = parseRecordId<OrderId>(
-    url.searchParams.get("placed"),
-    "placed",
   );
   const prices = readPrices(context, now);
   return data(
@@ -72,10 +67,6 @@ export function loader({ context, request, params, url }: Route.LoaderArgs) {
       now,
       filter: filter.ok ? filter.value : ("all" as const),
       view: view.ok ? view.value : ("orders" as const),
-      // The notice confirms only an order of this portfolio, so an address cannot confirm another student's order.
-      isPlaced:
-        placed.ok &&
-        portfolio.orders.some((order) => order.id === placed.value),
     },
     { status: filter.ok && view.ok ? 200 : 400 },
   );
@@ -114,22 +105,27 @@ export default function ActivityPage({
       <LessonTaskBanner classId={classId} task={loaderData.task} />
       <h1>{m.trading_activity_title()}</h1>
       {loaderData.fields !== undefined && (
-        <ActivitySelectionForm fields={loaderData.fields} />
+        <ActivitySelectionForm
+          fields={loaderData.fields}
+          task={loaderData.task}
+        />
       )}
-      {loaderData.isPlaced && <FormSuccess text={m.trading_placed_notice()} />}
       {cancelFailure !== undefined && <FormFailure text={cancelFailure} />}
       <nav
         className={styles["toggle"]}
         aria-label={m.trading_activity_view_label()}
       >
         <Link
-          to={`${base}?status=${filter}`}
+          to={withLessonTask(`${base}?status=${filter}`, loaderData.task)}
           aria-current={view === "orders" ? "page" : undefined}
         >
           {m.trading_activity_orders_label()}
         </Link>
         <Link
-          to={`${base}?view=journal&status=${filter}`}
+          to={withLessonTask(
+            `${base}?view=journal&status=${filter}`,
+            loaderData.task,
+          )}
           aria-current={view === "journal" ? "page" : undefined}
         >
           {m.trading_activity_journal_label()}
@@ -141,8 +137,14 @@ export default function ActivityPage({
           now={now}
           classId={classId}
           filter={filter}
+          task={loaderData.task}
         />
-        <JournalList trades={trades} prices={prices} classId={classId} />
+        <JournalList
+          trades={trades}
+          prices={prices}
+          classId={classId}
+          task={loaderData.task}
+        />
       </div>
     </div>
   );

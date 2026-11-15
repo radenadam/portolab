@@ -1,3 +1,5 @@
+import { withLessonTask } from "~/features/learning/lesson-task";
+import type { LessonTask } from "~/features/learning/lesson-task";
 import { MarketTime } from "~/market-time";
 import { NumberText } from "~/number-text";
 import { cumulativeReturn } from "~/units/cumulative-return";
@@ -41,10 +43,12 @@ export function JournalList({
   trades,
   prices,
   classId,
+  task,
 }: {
   trades: readonly JournalTrade[];
   prices: JournalPrices;
   classId: ClassId;
+  task?: LessonTask | undefined;
 }): ReactNode {
   const maximum = cumulativeReturn(
     Math.max(0.01, ...trades.map((trade) => Math.abs(trade.change ?? 0))),
@@ -82,7 +86,10 @@ export function JournalList({
                   <SideTag side={trade.order.side} />
                   <Link
                     className={styles["stock"]}
-                    to={stockPath(classId, trade.order.code)}
+                    to={withLessonTask(
+                      stockPath(classId, trade.order.code),
+                      task,
+                    )}
                   >
                     <StockName
                       code={trade.order.code}

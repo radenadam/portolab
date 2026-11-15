@@ -40,9 +40,18 @@ const texts: Record<
     taskLabel: string;
     capmInputs: string;
     numeric: readonly string[];
+    comparisons: readonly string[];
   }
 > = {
   id: {
+    comparisons: [
+      "sekarang -0,22%",
+      "sekarang 4,07%",
+      "sekarang 0,62",
+      "sekarang -0,17",
+      "sekarang -1,12%",
+      "sekarang ▼ -0,43%",
+    ],
     taskLabel: "Tugas.",
     positiveCapm:
       "Beta portofolio Anda 0,30, jadi CAPM meminta 0,28% per bulan. Imbal hasil yang diharapkan 0,75%, sehingga alpha Anda ▲ +0,48%.",
@@ -63,9 +72,9 @@ const texts: Record<
     ownRisk:
       "Imbal hasil harapan -0,22%, risiko 4,07%, Sharpe -0,17, dan Treynor -1,12% per bulan. Penggeser dimulai dari bobot portofolio Anda sekarang.",
     target:
-      "Tugas. Dengan penggeser di atas, turunkan risiko portofolio hingga di bawah 3,66%. Sekarang 4,07%. Perhatikan saham dengan bagian risiko terbesar.",
+      "Tugas. Dengan penggeser di atas, turunkan bobot BBCA, penyumbang risiko terbesar, sampai simpangan baku portofolio di bawah 3,66%. Sekarang 4,07%.",
     achievedTarget:
-      "Tugas. Dengan penggeser di atas, turunkan risiko portofolio hingga di bawah 3,66%. Sekarang 0,00%. Perhatikan saham dengan bagian risiko terbesar.",
+      "Tugas. Dengan penggeser di atas, turunkan bobot BBCA, penyumbang risiko terbesar, sampai simpangan baku portofolio di bawah 3,66%. Sekarang 0,00%.",
     labels: [
       "Geser beta di garis pasar sekuritas",
       "Ubah bobot, lihat ukurannya",
@@ -76,7 +85,7 @@ const texts: Record<
       "Cari saham pertama Anda",
       "Kembali ke pelajaran",
       "Waktu harga dan pembaruan yang gagal ada di kepemilikan Beranda.",
-      "Bagian risiko portofolio Anda dari setiap saham, dibandingkan dengan bobotnya. Batang menunjukkan bagian risiko dan garis menunjukkan bobot.",
+      "Bagian risiko portofolio Anda dari setiap saham, dibandingkan dengan bobotnya.",
       "Alpha setiap saham Anda per bulan adalah jarak titiknya dari garis pasar sekuritas di grafik atas.",
       "Setiap pasangan yang berbeda masuk dua kali dalam jumlah varians. Korelasi tetap berasal dari bulan yang sama ketika Anda mengubah bobot.",
     ],
@@ -95,6 +104,14 @@ const texts: Record<
       "60 imbal hasil bulanan, Oktober 2021 sampai September 2026. Semua ukuran per bulan.",
   },
   en: {
+    comparisons: [
+      "current -0.22%",
+      "current 4.07%",
+      "current 0.62",
+      "current -0.17",
+      "current -1.12%",
+      "current ▼ -0.43%",
+    ],
     taskLabel: "Task.",
     positiveCapm:
       "Your portfolio beta is 0.30, so CAPM requires 0.28% per month. Expected return is 0.75%, so your alpha is ▲ +0.48%.",
@@ -115,9 +132,9 @@ const texts: Record<
     ownRisk:
       "Expected return is -0.22%, risk 4.07%, Sharpe -0.17, and Treynor -1.12% per month. The sliders start at your current portfolio weights.",
     target:
-      "Task. Use the sliders above to lower portfolio risk below 3.66%. It is now 4.07%. Observe the stock with the largest risk share.",
+      "Task. Use the sliders above to lower the weight of BBCA, the largest risk contributor, until portfolio standard deviation is below 3.66%. It is now 4.07%.",
     achievedTarget:
-      "Task. Use the sliders above to lower portfolio risk below 3.66%. It is now 0.00%. Observe the stock with the largest risk share.",
+      "Task. Use the sliders above to lower the weight of BBCA, the largest risk contributor, until portfolio standard deviation is below 3.66%. It is now 0.00%.",
     labels: [
       "Move beta along the security market line",
       "Change weights and see the measures",
@@ -128,7 +145,7 @@ const texts: Record<
       "Find your first stock",
       "Back to the lesson",
       "Quote times and failed updates are in Home holdings.",
-      "Each stock’s share of your portfolio risk compared with its weight. The bar shows the risk share and the tick shows the weight.",
+      "Each stock’s share of your portfolio risk compared with its weight.",
       "Each stock’s monthly alpha is its point’s distance from the security market line above.",
       "Each pair of different stocks enters the variance sum twice. Correlations still come from the same months when you change weights.",
     ],
@@ -181,7 +198,12 @@ for (const locale of locales) {
       text.capmInputs,
     ])
       expect(textOf(capm)).toContain(markupTextForTest(sentence));
-    for (const sentence of [text.ownRisk, text.target, text.inputs])
+    for (const sentence of [
+      text.ownRisk,
+      text.target,
+      text.inputs,
+      ...text.comparisons,
+    ])
       expect(textOf(risk)).toContain(markupTextForTest(sentence));
     for (const value of text.numeric) expect(textOf(risk)).toContain(value);
     expect(capm).not.toContain('type="range"');

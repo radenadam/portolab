@@ -1,3 +1,4 @@
+import { pathWithQuery } from "../../path-with-query.ts";
 import type { ClassId } from "../classes/classes.schema.ts";
 import { fail, succeed } from "../../result.ts";
 import type { Result } from "../../result.ts";
@@ -40,8 +41,5 @@ export function withLessonTask(
   task: LessonTask | undefined,
 ): string {
   if (task === undefined) return path;
-  const [pathname, search = ""] = path.split("?");
-  const query = new URLSearchParams(search);
-  query.set("lessonTask", String(task));
-  return `${pathname ?? ""}?${query.toString()}`;
+  return pathWithQuery(path, { lessonTask: String(task) });
 }

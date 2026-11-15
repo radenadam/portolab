@@ -5,7 +5,7 @@ function subscribeToNothing(): () => void {
   return () => undefined;
 }
 
-/** Whether the page runs in a browser. The server and the first render in the browser give false, so a chart draws the same markup on both, and a reader before JavaScript loads meets no control that waits for it. */
+/** Whether the page runs in a browser. The server and the first render in the browser give false, so native controls keep their markup until hydration finishes. */
 export function useIsInBrowser(): boolean {
   return useSyncExternalStore(
     subscribeToNothing,

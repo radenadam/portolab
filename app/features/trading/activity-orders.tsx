@@ -1,3 +1,5 @@
+import { withLessonTask } from "~/features/learning/lesson-task";
+import type { LessonTask } from "~/features/learning/lesson-task";
 import { activityFilters, activityStatusLabel } from "./activity-options";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
@@ -38,11 +40,13 @@ export function ActivityOrders({
   now,
   classId,
   filter,
+  task,
 }: {
   orders: readonly StoredOrder[];
   now: Date;
   classId: ClassId;
   filter: ActivityFilter;
+  task?: LessonTask | undefined;
 }): ReactNode {
   const shown = orders
     .toReversed()
@@ -61,7 +65,10 @@ export function ActivityOrders({
         {activityFilters.map((status) => (
           <Link
             key={status}
-            to={`${activityPath(classId)}?status=${status}`}
+            to={withLessonTask(
+              `${activityPath(classId)}?status=${status}`,
+              task,
+            )}
             aria-current={filter === status ? "page" : undefined}
           >
             <span>
@@ -93,7 +100,7 @@ export function ActivityOrders({
                   <SideTag side={order.side} />
                   <Link
                     className={styles["stock"]}
-                    to={stockPath(classId, order.code)}
+                    to={withLessonTask(stockPath(classId, order.code), task)}
                   >
                     <StockName
                       code={order.code}
@@ -144,7 +151,10 @@ export function ActivityOrders({
                   {order.state.kind === "rejected" && (
                     <Link
                       className={styles["button"]}
-                      to={stockPath(classId, order.code)}
+                      to={withLessonTask(
+                        `${stockPath(classId, order.code)}/${order.side}`,
+                        task,
+                      )}
                     >
                       {m.trading_activity_ticket_link({ code: order.code })}
                     </Link>

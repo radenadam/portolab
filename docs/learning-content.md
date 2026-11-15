@@ -12,7 +12,7 @@ Concept cards name a glossary term id. The root loader reads the glossary throug
 
 Glossary search validates a POST before redirecting to its search address, so oversized text is refused before it becomes part of an address. The action and loader both use `parseGlossaryQuery`, whose limit comes from [`glossaryQueryMaximumLength`](../app/features/learning/glossary-query-maximum-length.ts).
 
-Sessions 9 and 10 fill their interactive and practice sections with server data. Their prose and formula references open in the lesson's question card. [Decision 0044](decisions/0044-lesson-practice-keeps-estimates-fixed-while-weights-change.md) sets the defaults, shared estimates, responsive covariance calculation, missing-data states, and task flow. The first-stock task uses `lessonTask` in its address and returns to `#practice` in the same session. The market, stock, ticket, and activity keep that task while the student follows the purchase flow.
+Sessions 9 and 10 fill their interactive and practice sections with server data. Their prose and formula references open in the lesson's question card. [Decision 0045](decisions/0045-lesson-practice-keeps-estimates-fixed-while-weights-change.md) sets the defaults, shared estimates, responsive covariance calculation, missing-data states, and task flow. The first-stock task uses `lessonTask` in its address and returns to `#practice` in the same session. The market, stock, ticket, and activity keep that task while the student follows the purchase flow.
 
 ## File format
 

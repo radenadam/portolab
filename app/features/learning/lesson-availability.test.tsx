@@ -1,7 +1,11 @@
 import { expect, test } from "vitest";
 import { openDatabaseForTest } from "~/database/open-database-for-test.server";
 import type { ClassId } from "~/features/classes/classes.schema";
-import { cashValuationForTest } from "~/features/measures/measures-for-test.server";
+import {
+  cashValuationForTest,
+  valuationForTest,
+} from "~/features/measures/measures-for-test.server";
+import { rupiah } from "~/units/rupiah";
 import {
   portfolioAgainstMarketForTest,
   portfolioWithoutVariationForTest,
@@ -15,8 +19,11 @@ import { successValueForTest } from "~/success-value-for-test";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
 import { portfolioWeight } from "~/units/portfolio-weight";
 import { monthlyReturn } from "~/units/monthly-return";
+import type { MonthlyReturn } from "~/units/monthly-return";
+import type { PortfolioSummary } from "~/features/measures/measure-summaries";
 import { defaultLessonBeta } from "./lesson-beta-range";
 import { LessonOwnNumbers } from "./lesson-own-numbers";
+import { LessonAllocation } from "./lesson-allocation";
 import { LessonPractice } from "./lesson-practice";
 import { lessonPracticeForTest } from "./lesson-practice-for-test";
 import { LessonRiskPractice } from "./lesson-risk-practice";
@@ -31,32 +38,59 @@ const texts: Record<
     pending: string;
     zeroTask: string;
     changedTask: string;
+    nearTask: string;
+    tinyChangedTask: string;
     done: string;
+    missingComparison: string;
   }
 > = {
   id: {
+    missingComparison: "sekarang Tidak ada",
     zero: "Imbal hasil harapan 25,00%, risiko 0,00%, Sharpe Tidak ada, dan Treynor Tidak ada per bulan. Penggeser dimulai dari bobot portofolio Anda sekarang.",
     negative:
       "Imbal hasil harapan 0,08%, risiko 2,38%, Sharpe -0,17, dan Treynor Tidak ada per bulan. Penggeser dimulai dari bobot portofolio Anda sekarang.",
     pending: "Belum tercapai.",
+    nearTask:
+      "Dengan penggeser di atas, naikkan risiko portofolio hingga di atas 0,01%. Sekarang 0,01%.",
+    tinyChangedTask:
+      "Dengan penggeser di atas, naikkan risiko portofolio hingga di atas 0,01%. Sekarang 0,02%.",
     zeroTask:
-      "Dengan penggeser di atas, buat risiko portofolio lebih besar dari nol. Sekarang 0,00%. Perhatikan bagaimana perubahan bobot memutus keseimbangan antar saham.",
+      "Dengan penggeser di atas, naikkan risiko portofolio hingga di atas 0,01%. Sekarang 0,00%.",
     changedTask:
-      "Dengan penggeser di atas, buat risiko portofolio lebih besar dari nol. Sekarang 7,56%. Perhatikan bagaimana perubahan bobot memutus keseimbangan antar saham.",
+      "Dengan penggeser di atas, naikkan risiko portofolio hingga di atas 0,01%. Sekarang 7,56%.",
     done: "Tercapai. Perhatikan juga apa yang terjadi pada imbal hasil harapan.",
   },
   en: {
+    missingComparison: "current None",
     zero: "Expected return is 25.00%, risk 0.00%, Sharpe None, and Treynor None per month. The sliders start at your current portfolio weights.",
     negative:
       "Expected return is 0.08%, risk 2.38%, Sharpe -0.17, and Treynor None per month. The sliders start at your current portfolio weights.",
     pending: "Not achieved yet.",
+    nearTask:
+      "Use the sliders above to raise portfolio risk above 0.01%. It is now 0.01%.",
+    tinyChangedTask:
+      "Use the sliders above to raise portfolio risk above 0.01%. It is now 0.02%.",
     zeroTask:
-      "Use the sliders above to make portfolio risk greater than zero. It is now 0.00%. Observe how changing a weight breaks the offset between the stocks.",
+      "Use the sliders above to raise portfolio risk above 0.01%. It is now 0.00%.",
     changedTask:
-      "Use the sliders above to make portfolio risk greater than zero. It is now 7.56%. Observe how changing a weight breaks the offset between the stocks.",
+      "Use the sliders above to raise portfolio risk above 0.01%. It is now 7.56%.",
     done: "Achieved. Observe what also happens to expected return.",
   },
 };
+
+function expectRiskTask(
+  portfolio: PortfolioSummary,
+  current: MonthlyReturn,
+  expected: { task: string; status: string },
+): void {
+  const markup = renderMarkupForTest(
+    <LessonRiskPractice portfolio={portfolio} current={current} />,
+  );
+  expect(markup.replaceAll(/<[^>]+>/gu, "")).toContain(
+    markupTextForTest(expected.task),
+  );
+  expect(markup).toContain(markupTextForTest(expected.status));
+}
 
 for (const locale of locales) {
   test(`explains offsetting monthly returns and a negative-beta holding without inventing ratios in ${languageNames[locale]}`, () => {
@@ -67,9 +101,9 @@ for (const locale of locales) {
     ).sessions.find((entry) => entry.session === 10);
     if (lesson === undefined) throw new Error("The course has session 10.");
     // Python Decimal computed the negative-beta portfolio from its fixture's inverse IHSG closes: return 0.0828395%, risk 2.383294%, beta -0.5248837, and Sharpe -0.1662938. Offsetting returns give 25% every month and zero variance by hand.
-    for (const [report, expected] of [
-      [portfolioWithoutVariationForTest(), texts[locale].zero],
-      [portfolioAgainstMarketForTest(), texts[locale].negative],
+    for (const [report, expected, missingCount] of [
+      [portfolioWithoutVariationForTest(), texts[locale].zero, 2],
+      [portfolioAgainstMarketForTest(), texts[locale].negative, 1],
     ] as const) {
       const own = practicePortfolio(report);
       if (own === undefined)
@@ -93,6 +127,15 @@ for (const locale of locales) {
         markupTextForTest(expected),
       );
       expect(own.treynorRatio.ok).toBe(false);
+      const allocation = renderMarkupForTest(
+        <LessonAllocation portfolio={own} own={own} explanation={null}>
+          {null}
+        </LessonAllocation>,
+      ).replaceAll(/<[^>]+>/gu, "");
+      expect(
+        allocation.split(markupTextForTest(texts[locale].missingComparison))
+          .length - 1,
+      ).toBe(missingCount);
       if (own.beta < 0) expect(practice.initialBeta).toBe(-0.5);
     }
     const own = practicePortfolio(lessonPracticeForTest().report);
@@ -127,13 +170,35 @@ for (const locale of locales) {
         texts[locale].done,
       ],
     ] as const) {
-      const markup = renderMarkupForTest(
-        <LessonRiskPractice portfolio={own} current={current} />,
-      );
-      expect(markup.replaceAll(/<[^>]+>/gu, "")).toContain(
-        markupTextForTest(task),
-      );
-      expect(markup).toContain(markupTextForTest(status));
+      expectRiskTask(own, current, { task, status });
+    }
+  });
+
+  test(`gives a visible goal when the proportional target rounds to zero in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    const own = practicePortfolio(
+      lessonPracticeForTest(
+        valuationForTest(["BBCA", "TLKM"], rupiah(1_000_000_000_000)),
+      ).report,
+    );
+    if (own === undefined) throw new Error("The portfolio has measures.");
+    // Python Decimal uses values Rp27,390,000 and Rp16,434,000, cash Rp1,000,000,000,000, and the recorded covariances to give risk 0.0002227101121806723%.
+    expect(own.standardDeviation).toBeCloseTo(0.000002227101121806723, 18);
+    expect(own.holdingRisks.ok).toBe(true);
+    for (const [current, task, status] of [
+      [own.standardDeviation, texts[locale].zeroTask, texts[locale].pending],
+      [
+        monthlyReturn(0.00010001),
+        texts[locale].nearTask,
+        texts[locale].pending,
+      ],
+      [
+        monthlyReturn(0.000151),
+        texts[locale].tinyChangedTask,
+        texts[locale].done,
+      ],
+    ] as const) {
+      expectRiskTask(own, current, { task, status });
     }
   });
 
