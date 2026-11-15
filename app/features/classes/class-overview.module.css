@@ -186,3 +186,11 @@
   align-items: center;
   gap: var(--space-2);
 }
+
+.data {
+  composes: returnTarget from "./classes.module.css";
+}
+
+.administration {
+  composes: returnTarget from "./classes.module.css";
+}

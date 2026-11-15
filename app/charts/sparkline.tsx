@@ -1,3 +1,4 @@
+import { directionOf } from "./direction-of";
 import type { ReactNode } from "react";
 import type { ChangeDirection } from "~/formatting";
 import { plotFraction } from "~/units/plot-fraction";
@@ -54,14 +55,4 @@ export function Sparkline({
       )}
     </svg>
   );
-}
-
-function directionOf(
-  first: SplitAdjustedRupiah,
-  latest: SplitAdjustedRupiah,
-): ChangeDirection {
-  if (latest > first) {
-    return "rise";
-  }
-  return latest < first ? "fall" : "none";
 }

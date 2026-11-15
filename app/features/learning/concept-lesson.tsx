@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { Link, useLocation, useParams, useRouteLoaderData } from "react-router";
 import { formatNumber } from "~/formatting";
@@ -33,7 +34,7 @@ export function ConceptLesson({
   const label = m.learning_concept_lesson_link({
     session: formatNumber(session),
   });
-  if (!classId.ok) return label;
+  if (!classId.ok) return <NumberText>{label}</NumberText>;
   return (
     <Link
       to={lessonPath(
@@ -42,7 +43,7 @@ export function ConceptLesson({
         `${location.pathname}${location.search}${location.hash}`,
       )}
     >
-      {label}
+      <NumberText>{label}</NumberText>
     </Link>
   );
 }

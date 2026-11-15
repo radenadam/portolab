@@ -11,12 +11,14 @@ import { fail, succeed } from "~/result";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
 import {
   databaseWithClosesForTest,
+  ammnValuationForTest,
   valuationForTest,
 } from "./measures-for-test.server";
 import { readStockMeasures } from "./read-measures.server";
 import { readStockCorrelation } from "./read-stock-correlation.server";
 import type { StockCorrelation } from "./read-stock-correlation.server";
 import { StockKeyMeasures } from "./stock-key-measures";
+import { StockStatisticsWindow } from "./stock-statistics-window";
 
 const failures = {
   noHoldings: { kind: "noHoldings" },
@@ -79,15 +81,30 @@ const failures = {
 
 const periods: Record<Locale, readonly string[]> = {
   id: [
-    "Beta terhadap IHSG, Simpangan baku, dan Imbal hasil yang diharapkan memakai 60 imbal hasil bulanan dari Oktober 2021 sampai September 2026.",
-    "60 imbal hasil bulanan · Oktober 2021 sampai September 2026",
+    "β, σ, E(R): 60 imbal hasil bulanan sampai Sep 2026",
+    "Beta",
+    "Volatilitas/bln",
+    "Imbal hasil harapan/bln",
+    "Ukuran di bawah memakai 60 imbal hasil bulanan dari Oktober 2021 sampai September 2026.",
+    "IHSG 4,53%",
+    "IHSG 0,05%",
     "Bobot portofolio memakai harga tertunda. Beranda menunjukkan waktu kutipan setiap harga.",
   ],
   en: [
-    "Beta against the IHSG, Standard deviation, and Expected return use 60 monthly returns from October 2021 to September 2026.",
-    "60 monthly returns · October 2021 to September 2026",
+    "β, σ, E(R): 60 monthly returns through Sep 2026",
+    "Beta",
+    "Volatility/mo",
+    "Expected return/mo",
+    "The measures below use 60 monthly returns from October 2021 to September 2026.",
+    "IHSG 4.53%",
+    "IHSG 0.05%",
     "Portfolio weights use delayed prices. Home shows when each price was quoted.",
   ],
+};
+
+const shorterPeriods: Record<Locale, string> = {
+  id: "Ukuran di bawah memakai 38 imbal hasil bulanan dari Agustus 2023 sampai September 2026.",
+  en: "The measures below use 38 monthly returns from August 2023 to September 2026.",
 };
 
 const failureTexts: Record<Locale, Record<keyof typeof failures, string>> = {
@@ -158,14 +175,17 @@ for (const locale of locales) {
     const measures = readStockMeasures(database, "BBCA");
     function renderCorrelation(correlation: StockCorrelation): string {
       return renderInRouterForTest(
-        <StockKeyMeasures
-          classId={7 as ClassId}
-          code="BBCA"
-          measures={measures}
-          correlation={correlation}
-        >
-          {null}
-        </StockKeyMeasures>,
+        <>
+          {measures.ok && <StockStatisticsWindow measures={measures.value} />}
+          <StockKeyMeasures
+            classId={7 as ClassId}
+            code="BBCA"
+            measures={measures}
+            correlation={correlation}
+          >
+            {null}
+          </StockKeyMeasures>
+        </>,
         conceptLessonDataForTest(),
       );
     }
@@ -193,6 +213,22 @@ for (const locale of locales) {
       const key = state as keyof typeof failures;
       const html = renderCorrelation(fail(failures[key]));
       expect(html).toContain(markupTextForTest(failureTexts[locale][key]));
+    }
+    const shorter = readStockCorrelation(
+      database,
+      "BBCA",
+      ammnValuationForTest(),
+    );
+    if (!shorter.ok || !measures.ok)
+      throw new Error("The recorded histories have measures.");
+    expect(shorter.value.months.count).toBeLessThan(
+      measures.value.returns.length,
+    );
+    const shorterHtml = renderCorrelation(shorter);
+    for (const expected of [periods[locale][0], shorterPeriods[locale]]) {
+      if (expected === undefined)
+        throw new Error("The fixture names both windows.");
+      expect(shorterHtml).toContain(markupTextForTest(expected));
     }
   });
 }

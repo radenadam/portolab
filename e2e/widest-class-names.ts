@@ -8,3 +8,9 @@ export const widestClassNames = {
   lecturerName: wideWord("Dosen", nameMaximumLength),
   studentName: wideWord("Mahasiswa", nameMaximumLength),
 };
+
+export const widestDigitClassNames = {
+  className: "8".repeat(classNameMaximumLength),
+  lecturerName: "8".repeat(nameMaximumLength),
+  studentName: "8".repeat(nameMaximumLength),
+};

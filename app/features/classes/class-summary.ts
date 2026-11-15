@@ -1,8 +1,9 @@
+import { compareRoundedNumbers } from "~/compare-rounded-numbers";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
 import {
   formatBeta,
   formatNumber,
-  formatReturnPoints,
+  formatPercentagePoints,
   formatSignedPercent,
 } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
@@ -61,9 +62,8 @@ export function classSummary(
       above += 1;
   }
   let calmer = 0;
-  const displayedMarketBeta = formatBeta(marketBeta);
   for (const risk of risks) {
-    if (risk < marketBeta && formatBeta(risk) !== displayedMarketBeta)
+    if (compareRoundedNumbers(risk, marketBeta, "ratio") === "fall")
       calmer += 1;
   }
   const headline =
@@ -125,8 +125,8 @@ const onePointDifference = cumulativeReturn(0.01);
 
 function comparisonHeadline(difference: CumulativeReturn): string {
   const rounded = formatSignedPercent(difference);
-  const points = formatReturnPoints(difference);
-  const isOne = points === formatReturnPoints(onePointDifference);
+  const points = formatPercentagePoints(Math.abs(difference));
+  const isOne = points === formatPercentagePoints(onePointDifference);
   switch (rounded.direction) {
     case "rise":
       return isOne

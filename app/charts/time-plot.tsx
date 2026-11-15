@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import { useRef } from "react";
 import type { CSSProperties, PointerEvent, ReactNode } from "react";
 import { formatCalendarDate, formatList } from "~/formatting";
@@ -19,10 +20,19 @@ import { annotationPosition } from "./annotation-position";
 const lineClasses: Record<LineKind, string | undefined> = {
   own: styles["own"],
   reference: styles["reference"],
+  rise: styles["rise"],
+  fall: styles["fall"],
+  none: styles["flat"],
 };
 
 // The line that the chart is about comes last, so the line that it is compared with never hides it.
-const drawOrder: Record<LineKind, number> = { reference: 0, own: 1 };
+const drawOrder: Record<LineKind, number> = {
+  reference: 0,
+  own: 1,
+  rise: 1,
+  fall: 1,
+  none: 1,
+};
 
 // Every length around the plot is a multiple of the size of the text of the chart, so the chart keeps its proportions when a reader enlarges the text.
 const dateBaseline = 1.5;
@@ -137,7 +147,7 @@ export function TimePlot<Point extends { date: string }, Value extends number>({
         />
       )}
       {drawnLines.map(({ kind, positions }) => (
-        <g key={kind} className={lineClasses[kind]}>
+        <g key={kind} className={lineClasses[kind]} data-line={kind}>
           <PlotLine
             positions={positions}
             className={styles["line"]}
@@ -183,14 +193,20 @@ export function TimePlot<Point extends { date: string }, Value extends number>({
             style={tipAcross(acrossOf(active, points.length))}
           >
             <p className={styles["tipDate"]}>
-              {formatCalendarDate(point.date, "medium")}
+              <NumberText>
+                {formatCalendarDate(point.date, "medium")}
+              </NumberText>
             </p>
             {lines.map((line) => (
               <p key={line.name} className={styles["tipLine"]}>
                 <LineKey kind={line.kind} />
-                <span>{line.name}</span>
+                <span>
+                  <NumberText verbatim>{line.name}</NumberText>
+                </span>
                 <span className={styles["tipValue"]}>
-                  {valueNode(line.valueOf(point))}
+                  <NumberText whole>
+                    {valueNode(line.valueOf(point))}
+                  </NumberText>
                 </span>
               </p>
             ))}

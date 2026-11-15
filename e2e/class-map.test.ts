@@ -3,12 +3,14 @@ import { signInAsNewLecturer } from "./accounts.ts";
 import { createTestClass } from "./create-test-class.ts";
 import { languageNames } from "../app/language-names.ts";
 import { expect, test } from "@playwright/test";
+import type { Page, Locator } from "@playwright/test";
+import type { ClassMapSection } from "../app/features/classes/class-path.ts";
 import type { ClassId } from "../app/features/classes/classes.schema.ts";
 import { storeTestJoiningTime } from "./store-test-joining-time.ts";
 import type { Locale } from "../app/paraglide/runtime.js";
 import { locales } from "../app/paraglide/runtime.js";
 import { bbcaHolding } from "./bbca-holding.ts";
-import { openJoinDetails } from "./class-controls.ts";
+import { openClassAdministration, openJoinDetails } from "./class-controls.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 import { layoutProblems } from "./expect-layout.ts";
 import { newDevice } from "./new-device.ts";
@@ -23,6 +25,8 @@ import { fillClassMap } from "./fill-class-map.ts";
 const texts: Record<
   Locale,
   {
+    calendar: string;
+    saveCalendar: string;
     title: string;
     deviation: string;
     axis: string;
@@ -40,6 +44,8 @@ const texts: Record<
   }
 > = {
   id: {
+    calendar: "Atur tanggal sesi 1",
+    saveCalendar: "Simpan tanggal",
     back: `Kembali ke ${widestClassNames.className}`,
     empty:
       "Belum ada mahasiswa yang bergabung. Bagikan kode gabung di bagian atas halaman agar mahasiswa dapat bergabung.",
@@ -57,6 +63,8 @@ const texts: Record<
     viewChip: ["Kode gabung ", ". Lihat kode dan alamat gabung"],
   },
   en: {
+    calendar: "Set the date of session 1",
+    saveCalendar: "Save the date",
     back: `Back to ${widestClassNames.className}`,
     empty:
       "No student has joined yet. Share the join code at the top of the page so that students can join.",
@@ -75,6 +83,8 @@ const texts: Record<
     viewChip: ["Join code ", ". View the code and join addresses"],
   },
 };
+
+const sourceAxis = "deviation";
 
 const classMapJoinedAt = new Date("2026-10-26T03:00:00Z");
 
@@ -123,6 +133,91 @@ for (const locale of locales) {
       await plain.context().close();
     }
   });
+  test(`returns to the source disclosure and student row, with and without JavaScript, in ${languageNames[locale]}`, async ({
+    page,
+    browser,
+  }) => {
+    const { student, classId, classPath } = await studentOfNewClass(
+      page,
+      browser,
+      { locale, ...widestClassNames },
+    );
+    storeClassMapHolding(classId);
+    const plain = await newDevice(browser, locale, {
+      javaScriptEnabled: false,
+      sessionFrom: page,
+    });
+    try {
+      for (const screen of [page, plain]) {
+        await screen.goto(`${classPath}?axis=${sourceAxis}`);
+        await screen.getByText(texts[locale].table, { exact: true }).click();
+        const studentLink = screen.locator("main table").getByRole("link", {
+          name: widestClassNames.studentName,
+          exact: true,
+        });
+        const rowId = await screen
+          .locator("tbody tr")
+          .first()
+          .getAttribute("id");
+        await studentLink.click();
+        await screen
+          .getByRole("link", { name: texts[locale].back, exact: true })
+          .click();
+        await expectClassReturn(screen, studentLink, {
+          section: "data",
+          targetId: rowId,
+        });
+        await screen.goto(`${classPath}?axis=${sourceAxis}`);
+        await openClassAdministration(screen);
+        const administration = screen.locator("[data-class-administration]");
+        const resetLink = administration
+          .locator("li")
+          .first()
+          .getByRole("link");
+        const resetRowId = await administration
+          .locator("li")
+          .first()
+          .getAttribute("id");
+        await resetLink.click();
+        await screen
+          .getByRole("link", { name: texts[locale].back, exact: true })
+          .click();
+        await expectClassReturn(screen, resetLink, {
+          section: "administration",
+          targetId: resetRowId,
+        });
+        const calendarSource = {
+          section: "administration",
+          targetId: await administration.getAttribute("id"),
+        } as const;
+        const calendar = administration.getByRole("link", {
+          name: texts[locale].calendar,
+          exact: true,
+        });
+        await calendar.click();
+        await screen
+          .getByRole("link", { name: texts[locale].back, exact: true })
+          .click();
+        await expectClassReturn(screen, calendar, calendarSource);
+        await calendar.click();
+        await screen
+          .locator('input[name="firstSessionDate"]')
+          .fill("2026-10-26");
+        await screen
+          .getByRole("button", {
+            name: texts[locale].saveCalendar,
+            exact: true,
+          })
+          .click();
+        await expectClassReturn(screen, calendar, calendarSource);
+        expect(await layoutProblems(screen)).toEqual([]);
+      }
+    } finally {
+      await plain.context().close();
+      await student.context().close();
+    }
+  });
+
   test(`keeps a numeric student name inside the map tooltip and data table in ${languageNames[locale]}`, async ({
     page,
     browser,
@@ -406,4 +501,21 @@ function storeClassMapHolding(classId: ClassId): void {
   writeForTestStudent(classId, (database, membershipId) => {
     storeTestJoiningTime(database, membershipId, classMapJoinedAt);
   });
+}
+
+async function expectClassReturn(
+  page: Page,
+  control: Locator,
+  { section, targetId }: { section: ClassMapSection; targetId: string | null },
+): Promise<void> {
+  if (targetId === null)
+    throw new Error("The source control has no return target.");
+  await expect(page).toHaveURL(
+    (url) =>
+      url.searchParams.get("axis") === sourceAxis &&
+      url.searchParams.get("reveal") === section &&
+      url.hash === `#${targetId}`,
+  );
+  await expect(page.locator(`#class-${section}`)).toHaveAttribute("open", "");
+  await expect(control).toBeInViewport();
 }

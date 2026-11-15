@@ -32,6 +32,8 @@ The first map replaces the chart of the security market line on the measures of 
 - The latest order is a student's last activity. An order placed in the current Monday-to-Sunday week in WIB makes the point filled. Other points are hollow. The stat strip counts every student, each student with an order this week, all orders this week, and the median beta of measured portfolios.
 - The highest and lowest returns, the highest Jensen's alpha, and the highest standard deviation choose the names that the class map tries to place. All points retain their full name in the tooltip and the table. Activating a point opens that student's portfolio.
 
+- A return from a table row or administration keeps the risk axis, reopens the disclosure before JavaScript loads, and targets the source student or control. Its target leaves room for the top bar.
+
 ## Alternatives
 
 - **Checking only the estimated phone drawing.** Fixed offsets keep their length while points move with the plot, so a clear phone placement can cross a point on a wider screen before JavaScript runs. The estimate checks that movement too.

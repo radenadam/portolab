@@ -1,4 +1,4 @@
-import { renderToStaticMarkup } from "react-dom/server";
+import { renderTextMarkupForTest } from "~/render-text-markup-for-test";
 import { createRoutesStub } from "react-router";
 import { expect, test } from "vitest";
 import { RouteErrorPage } from "./error-page";
@@ -33,7 +33,7 @@ function renderUnexpectedErrorPage(): string {
       ),
     },
   ]);
-  return renderToStaticMarkup(<Stub />);
+  return renderTextMarkupForTest(<Stub />);
 }
 
 for (const locale of locales) {

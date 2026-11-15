@@ -1,5 +1,7 @@
 import { pathReturningTo } from "~/features/accounts/path-returning-to";
-import { classMapPath } from "./class-path";
+import { classMapTargetId, classMapPath } from "./class-path";
+import type { ClassMapSection } from "./class-path";
+import classStyles from "./classes.module.css";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { ChangeText } from "~/change-text";
@@ -22,12 +24,14 @@ export function ClassOverviewView({
   axis,
   points,
   administration,
+  reveal,
 }: {
   classId: ClassId;
   overview: ClassOverview;
   axis: ClassMapAxis;
   points: readonly MarkedPoint<ClassRisk, CumulativeReturn>[];
   administration: ReactNode;
+  reveal?: ClassMapSection | undefined;
 }): ReactNode {
   return (
     <div className={styles["overview"]}>
@@ -51,7 +55,11 @@ export function ClassOverviewView({
         </p>
       )}
       {overview.students.length > 0 && (
-        <details className={styles["data"]}>
+        <details
+          id={classMapTargetId("data")}
+          open={reveal === "data"}
+          className={styles["data"]}
+        >
           <summary>{m.classes_map_table_label()}</summary>
           <div className={styles["tableFrame"]}>
             <table className={styles["table"]}>
@@ -66,15 +74,22 @@ export function ClassOverviewView({
               </thead>
               <tbody>
                 {overview.students.map((student) => (
-                  <tr key={student.id}>
+                  <tr
+                    key={student.id}
+                    id={classMapTargetId("data", student.id)}
+                    className={classStyles["returnTarget"]}
+                  >
                     <th scope="row">
                       <Link
                         to={pathReturningTo(
                           studentPortfolioPath(classId, student.id),
-                          classMapPath(classId, axis),
+                          classMapPath(classId, axis, {
+                            section: "data",
+                            studentId: student.id,
+                          }),
                         )}
                       >
-                        {student.name}
+                        <NumberText verbatim>{student.name}</NumberText>
                       </Link>
                     </th>
                     <td data-label={m.classes_map_return_label()}>
@@ -91,7 +106,11 @@ export function ClassOverviewView({
                     </td>
                     <td data-label={m.classes_map_risk_label()}>
                       {student.risk === undefined ? (
-                        measureReason(student.reasonParts, student.name)
+                        <NumberText>
+                          {(textValue) =>
+                            student.reasonParts?.join(textValue(student.name))
+                          }
+                        </NumberText>
                       ) : (
                         <>
                           {m.classes_map_beta_label()}{" "}
@@ -119,27 +138,15 @@ export function ClassOverviewView({
           </div>
         </details>
       )}
-      <details className={styles["administration"]} data-class-administration>
+      <details
+        id={classMapTargetId("administration")}
+        open={reveal === "administration"}
+        className={styles["administration"]}
+        data-class-administration
+      >
         <summary>{m.classes_administration_label()}</summary>
         {administration}
       </details>
     </div>
   );
-}
-
-function measureReason(
-  parts: readonly string[] | undefined,
-  name: string,
-): ReactNode {
-  let text: ReactNode;
-  for (const part of parts ?? []) {
-    text = (
-      <>
-        {text}
-        {text !== undefined && name}
-        <NumberText>{part}</NumberText>
-      </>
-    );
-  }
-  return text;
 }

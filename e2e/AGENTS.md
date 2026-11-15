@@ -5,3 +5,5 @@
 - A control that works before JavaScript loads and gains client behavior has a browser test of that transition. The test holds the client scripts, uses the native control, releases the scripts, waits for the client behavior to start, and checks that the reader's state is kept. Tests with JavaScript enabled or disabled alone do not cover this transition.
 - A client navigation can change the address before the persistent frame updates. A test waits until the frame shows the destination class before it reads class data from the frame.
 - Browser tests share the market data of one server, so a test never changes it. A new market fixture goes in `global-setup.ts` with every expectation that it changes, or a test that needs to change market data uses a server of its own.
+
+- A test of a return link leaves from the state that holds the link, then follows the return and checks that the same control is visible and in view. It also covers the flow before JavaScript loads when the flow works there.

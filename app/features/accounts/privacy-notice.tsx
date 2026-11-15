@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { lastClassLifetimeDays } from "~/features/classes/class-rules";
 import { formatNumber } from "~/formatting";
@@ -22,25 +23,33 @@ export function PrivacyNotice(): ReactNode {
         <li>{m.accounts_privacy_classes_body()}</li>
         <li>{m.accounts_privacy_consent_body()}</li>
         <li>
-          {m.accounts_privacy_session_body({
-            days: formatNumber(sessionInactivityDays),
-          })}
+          <NumberText>
+            {m.accounts_privacy_session_body({
+              days: formatNumber(sessionInactivityDays),
+            })}
+          </NumberText>
         </li>
         <li>
-          {m.accounts_privacy_attempts_body({
-            minutes: formatNumber(passwordLimits.byUsername.windowMinutes),
-          })}
+          <NumberText>
+            {m.accounts_privacy_attempts_body({
+              minutes: formatNumber(passwordLimits.byUsername.windowMinutes),
+            })}
+          </NumberText>
         </li>
         <li>
-          {m.accounts_privacy_address_body({
-            minutes: formatNumber(addressWindowMinutes),
-          })}
+          <NumberText>
+            {m.accounts_privacy_address_body({
+              minutes: formatNumber(addressWindowMinutes),
+            })}
+          </NumberText>
         </li>
         <li>{m.accounts_privacy_language_body()}</li>
         <li>
-          {m.accounts_privacy_last_class_body({
-            days: formatNumber(lastClassLifetimeDays),
-          })}
+          <NumberText>
+            {m.accounts_privacy_last_class_body({
+              days: formatNumber(lastClassLifetimeDays),
+            })}
+          </NumberText>
         </li>
       </ul>
       <p>{m.accounts_privacy_not_stored_body()}</p>
@@ -48,7 +57,9 @@ export function PrivacyNotice(): ReactNode {
       <p>{m.accounts_privacy_lecturer_body()}</p>
       <p>{m.accounts_privacy_server_body()}</p>
       <h2>{m.accounts_privacy_rights_title()}</h2>
-      <p>{m.accounts_privacy_rights_body()}</p>
+      <p>
+        <NumberText>{m.accounts_privacy_rights_body()}</NumberText>
+      </p>
     </>
   );
 }

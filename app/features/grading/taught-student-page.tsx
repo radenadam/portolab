@@ -1,4 +1,6 @@
+import { ClassBackLink } from "~/features/classes/class-back-link";
 import { isClassMapPath } from "~/features/classes/class-path";
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import type { UserId } from "~/features/accounts/accounts.schema";
@@ -69,17 +71,27 @@ export function TaughtStudentHeading({
   const other = otherPages[page](student);
   return (
     <>
-      <h1>{titles[page](student)}</h1>
-      <Link to={returnPath} className={styles["link"]}>
-        {isClassMapPath(returnPath, student.classId)
-          ? m.grading_class_map_back_link({ class: student.className })
-          : m.grading_all_portfolios_link({ class: student.className })}
-      </Link>
+      <h1>
+        <NumberText verbatim>{titles[page](student)}</NumberText>
+      </h1>
+      {isClassMapPath(returnPath, student.classId) ? (
+        <ClassBackLink
+          classId={student.classId}
+          className={student.className}
+          to={returnPath}
+        />
+      ) : (
+        <Link to={returnPath} className={styles["link"]}>
+          <NumberText verbatim>
+            {m.grading_all_portfolios_link({ class: student.className })}
+          </NumberText>
+        </Link>
+      )}
       <Link
         to={pathReturningTo(other.path, returnPath)}
         className={styles["link"]}
       >
-        {other.label}
+        <NumberText verbatim>{other.label}</NumberText>
       </Link>
     </>
   );

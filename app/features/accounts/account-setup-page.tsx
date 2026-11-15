@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { data, Form, redirect } from "react-router";
 import { databaseContext } from "~/database/database.server";
@@ -135,9 +136,11 @@ export default function AccountSetupPage({
       }
     >
       <p>
-        {firstSetup
-          ? m.accounts_first_setup_body()
-          : m.accounts_new_password_body()}
+        <NumberText>
+          {firstSetup
+            ? m.accounts_first_setup_body()
+            : m.accounts_new_password_body()}
+        </NumberText>
       </p>
       <Form method="post" className={formStyles["form"]}>
         <input type="hidden" name="returnTo" value={returnTo} />

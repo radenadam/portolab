@@ -1,4 +1,5 @@
 import { isClassMapPath } from "./class-path";
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { Form, Link } from "react-router";
 import { resetForgottenPassword } from "~/features/accounts/reset-forgotten-password.server";
@@ -61,10 +62,12 @@ export default function ResetPasswordPage({
       {actionData === undefined ? (
         <>
           <p>
-            {m.classes_reset_body({
-              name: student.name,
-              username: student.username,
-            })}
+            <NumberText verbatim>
+              {m.classes_reset_body({
+                name: student.name,
+                username: student.username,
+              })}
+            </NumberText>
           </p>
           <Form method="post" className={formStyles["form"]}>
             <SubmitButton label={m.classes_reset_label()} />
@@ -75,11 +78,13 @@ export default function ResetPasswordPage({
           <FormSuccess
             text={m.classes_temporary_password_notice({ name: student.name })}
           />
-          <p className={styles["code"]}>{actionData.temporaryPassword}</p>
+          <p className={styles["code"]}>
+            <NumberText verbatim>{actionData.temporaryPassword}</NumberText>
+          </p>
         </>
       )}
       <Link to={returnPath} className={styles["link"]}>
-        {returnLabel}
+        <NumberText verbatim>{returnLabel}</NumberText>
       </Link>
     </FormPage>
   );

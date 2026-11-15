@@ -1019,7 +1019,7 @@ for (const locale of locales) {
     const thisSaturday = addDays(thisMonday, 5);
     await field.fill(addDays(thisSaturday, -7 * 7));
     await saveButton.click();
-    await expect(page).toHaveURL(classPath);
+    await expect(page).toHaveURL((url) => url.pathname === classPath);
     await openClassAdministration(page);
     await student.reload();
     await expect(page.getByText(text.term)).toBeVisible();
@@ -1042,7 +1042,7 @@ for (const locale of locales) {
       await page.getByRole("link", { name: text.calendarLink }).click();
       await field.fill(firstSessionDate);
       await saveButton.click();
-      await expect(page).toHaveURL(classPath);
+      await expect(page).toHaveURL((url) => url.pathname === classPath);
       await openClassAdministration(page);
       await expect(page.getByText(text.term)).toBeVisible();
       await expect(page.getByText(sentence)).toBeVisible();

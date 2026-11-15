@@ -1,6 +1,6 @@
+import { NumberText } from "~/number-text";
 import { useMemo } from "react";
 import { useNavigate } from "react-router";
-import { NumberText } from "~/number-text";
 import type { CSSProperties, PointerEvent, ReactNode } from "react";
 import { ChangeText } from "~/change-text";
 import { formatList } from "~/formatting";
@@ -252,10 +252,14 @@ function MapTip({
         ...tipDown(drawn.placed.position.y),
       }}
     >
-      <p className={styles["tipName"]}>{drawn.point.name}</p>
+      <p className={styles["tipName"]}>
+        <NumberText verbatim>{drawn.point.name}</NumberText>
+      </p>
       {drawn.point.values.map(({ name, value }) => (
         <p key={name} className={styles["tipValue"]}>
-          <span>{name}</span>
+          <span>
+            <NumberText verbatim>{name}</NumberText>
+          </span>
           <span className={styles["tipNumber"]}>
             <ValueText value={value} colored={coloredValues === true} />
           </span>

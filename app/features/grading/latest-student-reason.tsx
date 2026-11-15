@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { lotCount } from "~/features/trading/count-parts";
 import type { OrderSide } from "~/features/trading/order";
@@ -18,8 +19,12 @@ export function LatestStudentReason({
         <p>{m.grading_no_reason_body()}</p>
       ) : (
         <>
-          <small>{heading(reason)}</small>
-          <p>{reason.reason}</p>
+          <small>
+            <NumberText>{heading(reason)}</NumberText>
+          </small>
+          <p>
+            <NumberText verbatim>{reason.reason}</NumberText>
+          </p>
         </>
       )}
     </section>

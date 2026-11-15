@@ -1,4 +1,14 @@
 import { pathReturningTo } from "~/features/accounts/path-returning-to";
+import { parseChoice, parseRecordId } from "~/value-parsers";
+import {
+  classMapSections,
+  classMapTargetId,
+  calendarPath,
+  classMapPath,
+  resetStudentPasswordPath,
+} from "./class-path";
+import type { ClassMapSection } from "./class-path";
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { data, Link } from "react-router";
 import { databaseContext } from "~/database/database.server";
@@ -6,7 +16,6 @@ import { requireUser } from "~/features/accounts/current-session.server";
 import { formatMarketTime } from "~/formatting";
 import { pageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
-import { parseRecordId } from "~/value-parsers";
 import { classPortfoliosPath } from "~/features/grading/grading-paths";
 import { HomePortfolio } from "~/features/trading/home-portfolio";
 import { readHomePortfolio } from "~/features/trading/read-home-portfolio.server";
@@ -15,11 +24,6 @@ import type { Route } from "./+types/class-page";
 import { findJoinedClass, findTaughtClass } from "./class-store.server";
 import type { ClassStudent } from "./class-store.server";
 import type { ClassId } from "./classes.schema";
-import {
-  calendarPath,
-  classMapPath,
-  resetStudentPasswordPath,
-} from "./class-path";
 import styles from "./classes.module.css";
 import { classCalendarOf } from "./course-calendar";
 import type { ClassCalendar } from "./course-calendar";
@@ -51,6 +55,7 @@ export function loader({ context, params, url, request }: Route.LoaderArgs):
       name: string;
       overview: ClassOverview;
       axis: ClassMapAxis;
+      reveal: ClassMapSection | undefined;
       calendar: ClassCalendar | undefined;
       points: ReturnType<typeof classMapPoints>;
     }
@@ -73,6 +78,12 @@ export function loader({ context, params, url, request }: Route.LoaderArgs):
 
       const axis = parseClassMapAxis(url.searchParams.get("axis"), "axis");
       if (!axis.ok) throw notFound;
+      const revealValue = url.searchParams.get("reveal");
+      const reveal =
+        revealValue === null
+          ? undefined
+          : parseChoice(revealValue, "reveal", classMapSections);
+      if (reveal !== undefined && !reveal.ok) throw notFound;
       const overview = readClassOverview(database, taught, {
         request,
         now,
@@ -84,6 +95,7 @@ export function loader({ context, params, url, request }: Route.LoaderArgs):
         name: taught.name,
         overview,
         axis: axis.value,
+        reveal: reveal?.value,
         points: classMapPoints(overview, {
           axis: axis.value,
           classId: taught.id,
@@ -122,6 +134,7 @@ export default function ClassPage({
           classId={loaderData.id}
           overview={loaderData.overview}
           axis={loaderData.axis}
+          reveal={loaderData.reveal}
           points={loaderData.points}
           administration={
             <>
@@ -130,7 +143,15 @@ export default function ClassPage({
                 calendar={loaderData.calendar}
                 role={loaderData.role}
               />
-              <Link to={calendarPath(loaderData.id)} className={styles["link"]}>
+              <Link
+                to={pathReturningTo(
+                  calendarPath(loaderData.id),
+                  classMapPath(loaderData.id, loaderData.axis, {
+                    section: "administration",
+                  }),
+                )}
+                className={styles["link"]}
+              >
                 {m.classes_calendar_link()}
               </Link>
               <h2>{m.classes_students_title()}</h2>
@@ -171,22 +192,37 @@ function Students({
   return (
     <ul className={styles["list"]}>
       {students.map((student) => (
-        <li key={student.id} className={styles["item"]}>
-          <strong className={styles["name"]}>{student.name}</strong>
+        <li
+          key={student.id}
+          id={classMapTargetId("administration", student.id)}
+          className={styles["item"]}
+        >
+          <strong className={styles["name"]}>
+            <NumberText verbatim>{student.name}</NumberText>
+          </strong>
           <p className={styles["details"]}>
-            {m.classes_student_notice({
-              username: student.username,
-              time: formatMarketTime(student.joinedAt),
-            })}
+            <NumberText>
+              {(textValue) =>
+                m.classes_student_notice({
+                  username: textValue(student.username),
+                  time: formatMarketTime(student.joinedAt),
+                })
+              }
+            </NumberText>
           </p>
           <Link
             to={pathReturningTo(
               resetStudentPasswordPath(classId, student.id),
-              classMapPath(classId, axis),
+              classMapPath(classId, axis, {
+                section: "administration",
+                studentId: student.id,
+              }),
             )}
             className={styles["link"]}
           >
-            {m.classes_reset_password_link({ name: student.name })}
+            <NumberText verbatim>
+              {m.classes_reset_password_link({ name: student.name })}
+            </NumberText>
           </Link>
         </li>
       ))}

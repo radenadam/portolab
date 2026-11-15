@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { NumberText } from "~/number-text";
 import { percentOf } from "~/charts/plot";
 import { formatPercent, formatSignedRupiah } from "~/formatting";
 import { plotFraction } from "~/units/plot-fraction";
@@ -15,7 +16,9 @@ export function WeightMark({
 }): ReactNode {
   return value === undefined ? null : (
     <div className={styles["weight"]}>
-      <span>{formatPercent(value, "two")}</span>
+      <span>
+        <NumberText>{formatPercent(value, "two")}</NumberText>
+      </span>
       <span className={styles["weightTrack"]} aria-hidden="true">
         <span style={{ width: percentOf(plotFraction(value / maximum)) }} />
       </span>
