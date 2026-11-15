@@ -23,6 +23,7 @@ const texts: Record<
     full: string;
     back: string;
     glossary: string;
+    glossaryLink: string;
     search: string;
     reason: string;
   }
@@ -35,6 +36,7 @@ const texts: Record<
     full: "Buka di Belajar",
     back: "Kembali ke halaman sebelumnya",
     glossary: "Kamus",
+    glossaryLink: "Kamus istilah",
     search: "Cari istilah atau artinya",
     reason: "Alasan yang sedang ditulis.",
   },
@@ -46,6 +48,7 @@ const texts: Record<
     full: "Open in Learn",
     back: "Back to the previous page",
     glossary: "Glossary",
+    glossaryLink: "Glossary",
     search: "Search terms or definitions",
     reason: "A reason still being written.",
   },
@@ -116,7 +119,7 @@ for (const locale of locales) {
       await help.click();
       const glossaryLink = page
         .getByRole("dialog")
-        .getByRole("link", { name: text.glossary, exact: true });
+        .getByRole("link", { name: text.glossaryLink, exact: true });
       await glossaryLink.click();
       const glossary = page.getByRole("dialog", {
         name: text.glossary,
@@ -192,6 +195,49 @@ for (const locale of locales) {
     }
   });
 
+  test(`replaces an invalid stored draft and keeps the ticket usable in ${languageNames[locale]}`, async ({
+    page,
+    browser,
+  }) => {
+    const { lecturer } = await openTicket(page, browser, locale);
+    try {
+      await expect(page.locator("[data-ticket-ready=true]")).toBeVisible();
+      const key = await page.evaluate(() =>
+        Object.keys(sessionStorage).find(
+          (name) =>
+            name.startsWith("portolab:ticket:") && name.endsWith(":buy"),
+        ),
+      );
+      if (key === undefined)
+        throw new Error("The ticket did not store its draft.");
+      for (const value of [
+        "{",
+        JSON.stringify({ priceKind: "market", lots: "37", limit: "" }),
+      ]) {
+        await page.evaluate(
+          ({ key, value }) => {
+            sessionStorage.setItem(key, value);
+          },
+          { key, value },
+        );
+        await page.reload();
+        await expect(page.locator("[data-ticket-ready=true]")).toBeVisible();
+        await expect(page.locator("#ticket-lots")).toHaveValue("1");
+        await expect(page.locator("#ticket-reason")).toHaveValue("");
+        expect(
+          await page.evaluate((key) => sessionStorage.getItem(key), key),
+        ).not.toBe(value);
+        await page.locator("#ticket-lots").fill("37");
+        await page.locator("#ticket-reason").fill(text.reason);
+        await page.reload();
+        await expect(page.locator("#ticket-lots")).toHaveValue("37");
+        await expect(page.locator("#ticket-reason")).toHaveValue(text.reason);
+      }
+    } finally {
+      await lecturer.context().close();
+    }
+  });
+
   test(`keeps native fields and an open help card when the sheet enhancement starts in ${languageNames[locale]}`, async ({
     page,
     browser,
@@ -243,7 +289,7 @@ for (const locale of locales) {
           .click();
         await page
           .getByRole("dialog")
-          .getByRole("link", { name: text.glossary, exact: true })
+          .getByRole("link", { name: text.glossaryLink, exact: true })
           .click();
         await expect(page).toHaveURL(/\/glossary\?returnTo=.+#term-lot$/u);
         await expect(page.locator("#term-lot")).toBeInViewport();

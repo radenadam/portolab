@@ -32,15 +32,15 @@ export function TicketDraftMemory({
       get(side) {
         const remembered = drafts.get(side);
         if (remembered !== undefined) return remembered;
-        let stored;
         try {
-          stored = readStoredTicketDraft(sessionStorage, keyOf(side));
+          const stored = readStoredTicketDraft(sessionStorage, keyOf(side));
+          if (stored.ok) return stored.value;
+          // A tab can keep a draft from an earlier build, so discard it when the current parser cannot restore it.
+          sessionStorage.removeItem(keyOf(side));
         } catch {
           // A browser can refuse storage, so a draft must still work in memory.
         }
-        if (stored === undefined) return undefined;
-        if (!stored.ok) throw new Error(stored.failure);
-        return stored.value;
+        return undefined;
       },
       set(side, fields) {
         drafts.set(side, fields);

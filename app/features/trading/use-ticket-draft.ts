@@ -6,7 +6,11 @@ import type { Rupiah } from "~/units/rupiah";
 import { useState, use, useCallback } from "react";
 import type { OrderSide } from "./order";
 import type { OrderFormFields } from "./order-form-fields";
-import { parseLimitPrice, typedOrderForm } from "./order-form-fields";
+import {
+  orderDraftFields,
+  parseLimitPrice,
+  typedOrderForm,
+} from "./order-form-fields";
 import type { readTicket } from "./read-ticket.server";
 import { shares } from "~/units/shares";
 import { ticketAmounts } from "./ticket-amounts";
@@ -38,17 +42,12 @@ export function useTicketDraft({
       if (form === null) return;
       const native = typedOrderForm(new FormData(form));
       const next = { ...fields };
-      for (const [name, failure] of [
-        ["priceKind", "priceKindFailure"],
-        ["lots", "lotsFailure"],
-        ["limit", "limitFailure"],
-        ["reason", "reasonFailure"],
-      ] as const) {
+      for (const [name, failure] of orderDraftFields) {
         next[name] = native[name];
         if (native[name] !== fields[name]) next[failure] = undefined;
       }
-      const edited = (["priceKind", "lots", "limit", "reason"] as const).some(
-        (name) => native[name] !== fields[name],
+      const edited = orderDraftFields.some(
+        ([name]) => native[name] !== fields[name],
       );
       const restored =
         restoreDraft && !edited ? (memory?.get(initialSide) ?? next) : next;
@@ -88,9 +87,7 @@ export function useTicketDraft({
     values,
     unchanged:
       side === initialSide &&
-      (["priceKind", "lots", "limit", "reason"] as const).every(
-        (name) => values[name] === fields[name],
-      ),
+      orderDraftFields.every(([name]) => values[name] === fields[name]),
     formRef,
     side,
     chooseSide(next: OrderSide, form: HTMLFormElement | null) {
@@ -114,7 +111,7 @@ export function useTicketDraft({
     ticket,
     action: `${path}/${side}${search}`,
     change(
-      name: "lots" | "limit" | "priceKind" | "reason",
+      name: (typeof orderDraftFields)[number][0],
       value: string,
       form: HTMLFormElement | null,
     ) {

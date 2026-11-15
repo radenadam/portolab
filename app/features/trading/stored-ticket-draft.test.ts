@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { fieldMaximumLength } from "~/form-size";
-import { blankOrderForm } from "./order-form-fields";
+import { blankOrderForm, orderDraftFields } from "./order-form-fields";
 import {
   readStoredTicketDraft,
   writeStoredTicketDraft,
@@ -54,7 +54,7 @@ test("restores all draft fields without persisting translated validation errors"
 
 test("bounds every persisted field and removes a draft whose fields are too long", () => {
   const storage = storageForTest();
-  for (const field of ["priceKind", "lots", "limit", "reason"] as const) {
+  for (const [field] of orderDraftFields) {
     for (const length of [
       fieldMaximumLength,
       fieldMaximumLength + 1,

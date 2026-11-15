@@ -1,11 +1,9 @@
 import { fieldMaximumLength } from "~/form-size";
-import { blankOrderForm } from "./order-form-fields";
+import { blankOrderForm, orderDraftFields } from "./order-form-fields";
 import type { OrderFormFields } from "./order-form-fields";
 import type { Result } from "~/result";
 import { fail, succeed } from "~/result";
 import { describeValue, isRecord } from "~/value-shapes";
-
-const draftFields = ["priceKind", "lots", "limit", "reason"] as const;
 
 function parseStoredTicketDraft(
   value: unknown,
@@ -17,7 +15,7 @@ function parseStoredTicketDraft(
     );
   const fields = { ...blankOrderForm };
   const failures: string[] = [];
-  for (const name of draftFields) {
+  for (const [name] of orderDraftFields) {
     const field = value[name];
     if (typeof field !== "string")
       failures.push(
@@ -54,12 +52,12 @@ export function writeStoredTicketDraft(
   key: string,
   fields: OrderFormFields,
 ): void {
-  if (!draftFields.every((name) => draftFieldFits(fields[name]))) {
+  if (!orderDraftFields.every(([name]) => draftFieldFits(fields[name]))) {
     storage.removeItem(key);
     return;
   }
   const saved: Record<string, string> = {};
-  for (const name of draftFields) saved[name] = fields[name];
+  for (const [name] of orderDraftFields) saved[name] = fields[name];
   storage.setItem(key, JSON.stringify(saved));
 }
 

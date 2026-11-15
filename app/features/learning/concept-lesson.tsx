@@ -38,7 +38,7 @@ export function ConceptLesson({
       <LearningLink
         to={`${glossaryPath(classId.value, "", `${location.pathname}${location.search}${location.hash}`)}#term-${termId}`}
       >
-        {m.learning_glossary_title()}
+        {m.learning_glossary_link()}
       </LearningLink>
     </span>
   );
