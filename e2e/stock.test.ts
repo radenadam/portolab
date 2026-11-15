@@ -272,6 +272,7 @@ for (const locale of locales) {
       browser,
       locale,
     );
+    await student.goto(`${path}?range=1y`);
     await student.getByText(text.points, { exact: true }).click();
     await expect(
       student.getByRole("columnheader", { name: text.date }),
