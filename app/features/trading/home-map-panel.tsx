@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { RiskMap } from "~/charts/risk-map";
@@ -70,13 +71,17 @@ export function HomeMapPanel({
             />
             {first !== undefined && (
               <p className={styles["note"]}>
-                {m.trading_home_map_basis_notice({
-                  date: formatCalendarDatePart(first.date, "dayAndMonth"),
-                })}
+                <NumberText>
+                  {m.trading_home_map_basis_notice({
+                    date: formatCalendarDatePart(first.date, "dayAndMonth"),
+                  })}
+                </NumberText>
               </p>
             )}
             {map === undefined ? (
-              <p className={styles["empty"]}>{emptyText}</p>
+              <p className={styles["empty"]}>
+                <NumberText>{emptyText}</NumberText>
+              </p>
             ) : (
               <>
                 <div className={styles["largeMap"]}>
@@ -98,10 +103,12 @@ export function HomeMapPanel({
             )}
             {market !== undefined && (
               <p className={styles["note"]}>
-                {m.trading_home_map_prices_notice({
-                  index: marketIndex.code,
-                  time: formatMarketTime(market.quote.quotedAt),
-                })}
+                <NumberText>
+                  {m.trading_home_map_prices_notice({
+                    index: marketIndex.code,
+                    time: formatMarketTime(market.quote.quotedAt),
+                  })}
+                </NumberText>
                 {home.report.quoteAttempt?.failedCodes.includes(
                   marketIndex.code,
                 ) === true && <> {m.trading_home_quote_failed_notice()}</>}
@@ -122,19 +129,25 @@ export function HomeMapPanel({
                 }))}
               />
             ) : (
-              <p className={styles["empty"]}>{emptyText}</p>
+              <p className={styles["empty"]}>
+                <NumberText>{emptyText}</NumberText>
+              </p>
             )}
           </div>
         )}
       </div>
       <div className={styles["insight"]}>
         <span className={styles["sessionBadge"]}>
-          {m.trading_home_insight_session_label({
-            session: formatNumber(insight.session),
-            topic: insight.topic,
-          })}
+          <NumberText>
+            {m.trading_home_insight_session_label({
+              session: formatNumber(insight.session),
+              topic: insight.topic,
+            })}
+          </NumberText>
         </span>
-        <p>{insight.text}</p>
+        <p>
+          <NumberText>{insight.text}</NumberText>
+        </p>
         <HomeInsightLesson session={insight.session} lessons={home.lessons} />
       </div>
     </section>

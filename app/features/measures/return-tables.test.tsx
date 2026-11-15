@@ -1,4 +1,4 @@
-import { renderToStaticMarkup } from "react-dom/server";
+import { renderTextMarkupForTest } from "~/render-text-markup-for-test";
 import { expect, test } from "vitest";
 import { languageNames } from "~/language-names";
 import { locales } from "~/paraglide/runtime.js";
@@ -37,7 +37,7 @@ function render(withGap: boolean): string {
     "BBCA and TLKM share enough monthly returns",
   );
   const bbca = returns.instruments[0]?.returns ?? [];
-  return renderToStaticMarkup(
+  return renderTextMarkupForTest(
     <ReturnTables
       instruments={[
         { code: "IHSG", returns: returns.market },

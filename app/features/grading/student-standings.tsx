@@ -1,3 +1,5 @@
+import { NumberText } from "~/number-text";
+import { StudentMeasureNotice } from "./student-measure-notice";
 import type { ReactNode } from "react";
 import { beta, marketBeta } from "~/units/beta";
 import type { Beta } from "~/units/beta";
@@ -89,7 +91,9 @@ export function StudentStandings({
               }
             >
               <td className={styles["rank"]}>
-                {rank === undefined ? "" : formatNumber(rank)}
+                <NumberText>
+                  {rank === undefined ? "" : formatNumber(rank)}
+                </NumberText>
               </td>
               <td className={styles["who"]}>
                 <StudentLink
@@ -105,8 +109,10 @@ export function StudentStandings({
                     {initialsOf(student.name)}
                   </span>
                   <span className={styles["studentName"]}>
-                    {student.name}
-                    <small>{student.username}</small>
+                    <NumberText verbatim>{student.name}</NumberText>
+                    <small>
+                      <NumberText verbatim>{student.username}</NumberText>
+                    </small>
                   </span>
                 </StudentLink>
               </td>
@@ -137,7 +143,9 @@ export function StudentStandings({
                 <td className={styles["reasonCell"]}>
                   <details>
                     <summary>{m.grading_missing_measure_label()}</summary>
-                    <p>{reason}</p>
+                    <p>
+                      <StudentMeasureNotice student={student} text={reason} />
+                    </p>
                   </details>
                 </td>
               )}
@@ -153,8 +161,10 @@ function ActivityTime({ moment }: { moment: Date }): ReactNode {
   const time = formatMarketTimeParts(moment);
   return (
     <time dateTime={moment.toISOString()}>
-      {time.date}
-      <small>{time.clock}</small>
+      <NumberText>{time.date}</NumberText>
+      <small>
+        <NumberText whole>{time.clock}</NumberText>
+      </small>
     </time>
   );
 }
@@ -242,7 +252,9 @@ function StudentNumbers({
       <td className={styles["betaCell"]}>
         {"measures" in student ? (
           <>
-            <span>{formatBeta(student.measures.beta)}</span>
+            <span>
+              <NumberText>{formatBeta(student.measures.beta)}</NumberText>
+            </span>
             <InlineScale
               range={betas}
               value={student.measures.beta}
@@ -256,23 +268,27 @@ function StudentNumbers({
         )}
       </td>
       <td className={styles["riskCell"]}>
-        {"measures" in student
-          ? formatPercent(student.measures.standardDeviation, "two")
-          : m.grading_unavailable_label()}
+        <NumberText>
+          {"measures" in student
+            ? formatPercent(student.measures.standardDeviation, "two")
+            : m.grading_unavailable_label()}
+        </NumberText>
       </td>
       <td className={styles["measureCell"]}>
-        {"measures" in student ? (
-          options.measure === "alpha" ? (
-            <ChangeText
-              change={formatSignedPercent(student.measures.distance)}
-              colored
-            />
+        <NumberText whole>
+          {"measures" in student ? (
+            options.measure === "alpha" ? (
+              <ChangeText
+                change={formatSignedPercent(student.measures.distance)}
+                colored
+              />
+            ) : (
+              rankingText(student.measures, options.measure)
+            )
           ) : (
-            rankingText(student.measures, options.measure)
-          )
-        ) : (
-          m.grading_unavailable_label()
-        )}
+            m.grading_unavailable_label()
+          )}
+        </NumberText>
         <small>{rankingLabel(options.measure)}</small>
       </td>
     </>

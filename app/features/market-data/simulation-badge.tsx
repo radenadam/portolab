@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import chipStyles from "~/chip.module.css";
 import { ConceptLesson } from "~/features/learning/concept-lesson";
@@ -30,10 +31,14 @@ export function SimulationBadge({
       <PopoverButton popover={cardId} className={chip}>
         <span className={styles["dot"]} />
         <span className={styles["long"]}>
-          {m.market_data_simulation_badge_label({ delay })}
+          <NumberText>
+            {m.market_data_simulation_badge_label({ delay })}
+          </NumberText>
         </span>
         <span className={styles["short"]}>
-          {m.market_data_short_simulation_badge_label({ delay })}
+          <NumberText>
+            {m.market_data_short_simulation_badge_label({ delay })}
+          </NumberText>
         </span>
         <span aria-hidden="true">?</span>
       </PopoverButton>
@@ -45,7 +50,9 @@ export function SimulationBadge({
         <div className={styles["card"]}>
           <p className={styles["title"]}>{m.market_data_simulation_title()}</p>
           {badge.card.map((paragraph) => (
-            <p key={paragraph}>{paragraph}</p>
+            <p key={paragraph}>
+              <NumberText>{paragraph}</NumberText>
+            </p>
           ))}
           <p>
             <ConceptLesson termId="harga-tertunda" />

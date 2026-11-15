@@ -1,3 +1,4 @@
+import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { Icon } from "~/icon";
 import { m } from "~/paraglide/messages.js";
@@ -20,7 +21,9 @@ export function TermList({
           className={styles["term"]}
         >
           <summary>
-            <strong>{term.title}</strong>
+            <strong>
+              <NumberText>{term.title}</NumberText>
+            </strong>
             <Icon name="chevronDown" className={styles["icon"]} />
           </summary>
           <div className={styles["termBody"]}>

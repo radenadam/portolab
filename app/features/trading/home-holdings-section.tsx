@@ -1,17 +1,17 @@
+import { HomeHoldingTableRow } from "./home-holding-table-row";
 import { CashName } from "./cash-name";
-import { HomeHoldingPrice } from "./home-holding-price";
 import { sharedQuoteTime } from "./shared-quote-time";
+import { HomeHoldingPrice } from "./home-holding-price";
+import { NumberText } from "~/number-text";
+import { homeHoldingsSectionId } from "./home-holdings-section-id";
 import { homeSparklineMonths } from "./home-sparkline-months";
 import { portfolioWeight } from "~/units/portfolio-weight";
 import { rupiah } from "~/units/rupiah";
-import type { Rupiah } from "~/units/rupiah";
-import type { PortfolioWeight } from "~/units/portfolio-weight";
 import { lots } from "~/units/lots";
 import { lotCount, shareCount } from "./count-parts";
 import { WeightMark, GainMark } from "./home-holding-marks";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
-import { Sparkline } from "~/charts/sparkline";
 import { ChangeText } from "~/change-text";
 import { countedText } from "~/counted-text";
 import type { ClassId } from "~/features/classes/classes.schema";
@@ -25,7 +25,7 @@ import {
 } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { ConceptHelp } from "~/concept-card";
-import type { homeHoldings, HomeHolding } from "./home-holdings";
+import type { homeHoldings } from "./home-holdings";
 import type { HomePortfolioData } from "./read-home-portfolio.server";
 import styles from "./home-portfolio.module.css";
 
@@ -79,10 +79,10 @@ export function HomeHoldingsSection({
   return (
     <section
       className={styles["holdings"]}
-      aria-labelledby="home-holdings-heading"
+      aria-labelledby={homeHoldingsSectionId}
     >
-      <h2 id="home-holdings-heading" className={styles["holdingsTitle"]}>
-        {title}
+      <h2 id={homeHoldingsSectionId} className={styles["holdingsTitle"]}>
+        <NumberText>{title}</NumberText>
       </h2>
       {values.holdings.length === 0 && (
         <p className={styles["empty"]}>{m.trading_no_holdings_body()}</p>
@@ -113,15 +113,17 @@ export function HomeHoldingsSection({
                 </ConceptHelp>
               </th>
               <th scope="col">
-                {m.trading_home_month_label({
-                  months: formatNumber(homeSparklineMonths),
-                })}
+                <NumberText>
+                  {m.trading_home_month_label({
+                    months: formatNumber(homeSparklineMonths),
+                  })}
+                </NumberText>
               </th>
             </tr>
           </thead>
           <tbody>
             {values.holdings.map((row) => (
-              <HoldingTableRow
+              <HomeHoldingTableRow
                 key={row.holding.code}
                 row={row}
                 home={home}
@@ -141,7 +143,11 @@ export function HomeHoldingsSection({
               <td />
               <td />
               <td />
-              <td>{formatRupiah(home.report.valuation.cash)}</td>
+              <td>
+                <NumberText>
+                  {formatRupiah(home.report.valuation.cash)}
+                </NumberText>
+              </td>
               <td />
               <td />
             </tr>
@@ -161,9 +167,11 @@ export function HomeHoldingsSection({
                 detail={
                   <span className={styles["rowPrice"]}>
                     <span>
-                      {home.lotShares === undefined
-                        ? shareCount(row.holding.shares)
-                        : lotCount(lots(row.holding.shares / home.lotShares))}
+                      <NumberText>
+                        {home.lotShares === undefined
+                          ? shareCount(row.holding.shares)
+                          : lotCount(lots(row.holding.shares / home.lotShares))}
+                      </NumberText>
                     </span>
                     <span aria-hidden>·</span>
                     <HomeHoldingPrice
@@ -182,7 +190,9 @@ export function HomeHoldingsSection({
             <div className={styles["rowValue"]}>
               {row.holding.kind === "priced" && (
                 <>
-                  <strong>{formatRupiah(row.holding.value)}</strong>
+                  <strong>
+                    <NumberText>{formatRupiah(row.holding.value)}</NumberText>
+                  </strong>
                   <ChangeText
                     colored
                     change={formatSignedRupiah(row.holding.gain)}
@@ -209,7 +219,7 @@ export function HomeHoldingsSection({
         <li className={styles["holdingRow"]}>
           <CashName note={cashNote} cash={home.report.valuation.cash} />
           <strong className={styles["rowValue"]}>
-            {formatRupiah(home.report.valuation.cash)}
+            <NumberText>{formatRupiah(home.report.valuation.cash)}</NumberText>
           </strong>
           <div className={styles["rowWeight"]}>
             <WeightMark value={values.cashWeight} maximum={maximumWeight} />
@@ -218,82 +228,14 @@ export function HomeHoldingsSection({
       </ul>
       <div className={styles["tableNote"]}>
         {sharedTime !== undefined && (
-          <p>{m.trading_home_prices_time_notice({ time: sharedTime })}</p>
+          <p>
+            <NumberText>
+              {m.trading_home_prices_time_notice({ time: sharedTime })}
+            </NumberText>
+          </p>
         )}
         <p>{m.trading_home_average_notice()}</p>
       </div>
     </section>
-  );
-}
-
-function HoldingTableRow({
-  row,
-  home,
-  classId,
-  maximumWeight,
-  maximumGain,
-  sharedTime,
-}: {
-  row: HomeHolding;
-  home: HomePortfolioData;
-  classId: ClassId;
-  maximumWeight: PortfolioWeight;
-  maximumGain: Rupiah;
-  sharedTime: string | undefined;
-}): ReactNode {
-  const { holding } = row;
-  const history = home.histories.find(({ code }) => code === holding.code);
-  return (
-    <tr>
-      <th scope="row">
-        <Link
-          className={styles["stockLink"]}
-          to={stockPath(classId, holding.code)}
-        >
-          <StockName code={holding.code} />
-        </Link>
-      </th>
-      <td>
-        <WeightMark value={row.weight} maximum={maximumWeight} />
-      </td>
-      <td>
-        {home.lotShares === undefined
-          ? formatNumber(holding.shares)
-          : formatNumber(holding.shares / home.lotShares)}
-      </td>
-      <td>{formatRupiah(row.averageCost)}</td>
-      <td>
-        <HomeHoldingPrice
-          holding={row.holding}
-          sharedTime={sharedTime}
-          failed={
-            home.report.quoteAttempt?.failedCodes.includes(row.holding.code) ??
-            false
-          }
-        />
-      </td>
-      <td>{holding.kind === "priced" && formatRupiah(holding.value)}</td>
-      <td>
-        {holding.kind === "priced" && (
-          <div className={styles["profit"]}>
-            <GainMark value={holding.gain} maximum={maximumGain} />
-            <span>
-              <ChangeText colored change={formatSignedRupiah(holding.gain)} />
-              <small>
-                <ChangeText
-                  colored
-                  change={formatSignedPercent(holding.gainReturn)}
-                />
-              </small>
-            </span>
-          </div>
-        )}
-      </td>
-      <td>
-        {history !== undefined && (
-          <Sparkline closes={history.closes.map(({ close }) => close)} />
-        )}
-      </td>
-    </tr>
   );
 }

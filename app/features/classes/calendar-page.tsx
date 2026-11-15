@@ -1,7 +1,9 @@
 import type { ReactNode } from "react";
-import { data, Form, Link, redirect } from "react-router";
+import { data, Form, redirect } from "react-router";
 import { databaseContext } from "~/database/database.server";
 import { SubmitButton } from "~/form";
+import { ClassBackLink } from "./class-back-link";
+import { FirstSessionField } from "./first-session-field";
 import formStyles from "~/form.module.css";
 import { typedText } from "~/form-text";
 import { pageTitle } from "~/page-title";
@@ -10,8 +12,6 @@ import type { Route } from "./+types/calendar-page";
 import { setFirstSessionDate } from "./class-store.server";
 import type { ClassId } from "./classes.schema";
 import { classPath } from "./class-path";
-import styles from "./classes.module.css";
-import { FirstSessionField } from "./first-session-field";
 import { parseFirstSessionDate } from "./parse-first-session-date";
 import { requireTaughtClass } from "./taught-class.server";
 
@@ -81,9 +81,7 @@ export default function CalendarPage({
         />
         <SubmitButton label={m.classes_save_calendar_label()} />
       </Form>
-      <Link to={classPath(classId)} className={styles["link"]}>
-        {m.classes_back_link({ class: className })}
-      </Link>
+      <ClassBackLink classId={classId} className={className} />
     </>
   );
 }

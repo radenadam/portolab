@@ -1,3 +1,5 @@
+import { NumberText } from "~/number-text";
+import { QuoteNotice } from "~/features/market-data/quote-notice";
 import type { ReactNode } from "react";
 import { Form } from "react-router";
 import type { ClassId } from "~/features/classes/classes.schema";
@@ -101,7 +103,7 @@ export function ClassPortfoliosView({
                   className={styles["searchFailure"]}
                   role="alert"
                 >
-                  {queryFailure}
+                  <NumberText>{queryFailure}</NumberText>
                 </p>
               )}
             </Form>
@@ -133,12 +135,14 @@ export function ClassPortfoliosView({
                   aria-current={options.filter === filter ? "true" : undefined}
                 >
                   <span>
-                    {studentFilterLabel(filter)} ·{" "}
-                    {formatNumber(
-                      all.filter((student) =>
-                        matchesStudentFilter(student, filter),
-                      ).length,
-                    )}
+                    <NumberText>{studentFilterLabel(filter)}</NumberText> ·{" "}
+                    <NumberText>
+                      {formatNumber(
+                        all.filter((student) =>
+                          matchesStudentFilter(student, filter),
+                        ).length,
+                      )}
+                    </NumberText>
                   </span>
                 </StudentLink>
               ))}
@@ -164,31 +168,37 @@ export function ClassPortfoliosView({
             )}
             <div className={styles["tableNote"]}>
               <p>
-                {countedText(
-                  all.length,
-                  {
-                    one: m.grading_one_student_notice,
-                    several: m.grading_several_students_notice,
-                  },
-                  {
-                    shown: formatNumber(shown.length),
-                    total: formatNumber(all.length),
-                  },
-                )}
+                <NumberText>
+                  {countedText(
+                    all.length,
+                    {
+                      one: m.grading_one_student_notice,
+                      several: m.grading_several_students_notice,
+                    },
+                    {
+                      shown: formatNumber(shown.length),
+                      total: formatNumber(all.length),
+                    },
+                  )}
+                </NumberText>
               </p>
               <p>
-                {m.grading_ranking_notice({
-                  measure: rankingLabel(options.measure),
-                })}
+                <NumberText>
+                  {m.grading_ranking_notice({
+                    measure: rankingLabel(options.measure),
+                  })}
+                </NumberText>
               </p>
               <RankingHelp student={selected} measure={options.measure} />
               <p>
-                {m.grading_price_times_notice({
-                  index: marketIndex.code,
-                  beta: formatBeta(marketBeta),
-                })}
+                <NumberText>
+                  {m.grading_price_times_notice({
+                    index: marketIndex.code,
+                    beta: formatBeta(marketBeta),
+                  })}
+                </NumberText>
               </p>
-              {quoteFailure !== undefined && <p>{quoteFailure}</p>}
+              <QuoteNotice text={quoteFailure} className={undefined} />
             </div>
           </section>
         </div>

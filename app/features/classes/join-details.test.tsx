@@ -1,4 +1,4 @@
-import { renderToStaticMarkup } from "react-dom/server";
+import { renderTextMarkupForTest } from "~/render-text-markup-for-test";
 import { expect, test } from "vitest";
 import { languageNames } from "~/language-names";
 import type { AddressesForOthers } from "~/local-network.server";
@@ -48,7 +48,7 @@ const virtualMachine = {
 
 // The test renders the whole part of the page that the kind of address changes, so a sentence that holds in one kind and not in another, such as the request to share, fails where it does not hold.
 function renderJoinDetails(joinAddresses: AddressesForOthers): string {
-  return renderToStaticMarkup(
+  return renderTextMarkupForTest(
     <JoinDetails
       joinCode="k7qm-4rxt"
       joinAddresses={joinAddresses}
@@ -59,7 +59,7 @@ function renderJoinDetails(joinAddresses: AddressesForOthers): string {
 
 // React writes a quote in text as an entity, so a sentence is compared in the form that React writes it.
 function asHtml(text: string): string {
-  return renderToStaticMarkup(<>{text}</>);
+  return renderTextMarkupForTest(<>{text}</>);
 }
 
 /** Checks that the details show each text that the kind of address calls for, and none of the others. */

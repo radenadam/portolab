@@ -98,6 +98,7 @@
   --width-popover: 16.25rem;
   --width-concept-card: 24rem;
   --size-concept-mark: 0.9375rem;
+  --width-statistic: 8rem;
   /* The largest width of the content of a screen, which decision 0028 sets and e2e/expect-layout.ts checks every part marked as content against. */
   --width-content: 85rem;
   /* The name of a company stands beside its tile while it has room for a word of about ten letters, and under the tile otherwise. */
@@ -145,7 +146,8 @@
 /* A screen too narrow for the desktop references of Tenang takes the sizes of their phone references, which the screens that issue #127 has not rebuilt yet follow. */
 @media (width < 48rem) {
   :root {
-    --text-headline: 2.125rem;
+    /* The widest cash amount must fit with its currency on a phone. */
+    --text-headline: 1.875rem;
     --text-stock-price: 2.125rem;
     --text-measure: 1.1875rem;
     --space-section: 1.875rem;

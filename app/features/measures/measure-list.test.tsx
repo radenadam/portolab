@@ -1,4 +1,4 @@
-import { renderToStaticMarkup } from "react-dom/server";
+import { renderTextMarkupForTest } from "~/render-text-markup-for-test";
 import { expect, test } from "vitest";
 import { languageNames } from "~/language-names";
 import { locales } from "~/paraglide/runtime.js";
@@ -30,7 +30,7 @@ const positions: Record<
 };
 
 function render(distance: number): string {
-  return renderToStaticMarkup(
+  return renderTextMarkupForTest(
     <MarketLinePosition distance={monthlyReturn(distance)} />,
   );
 }
