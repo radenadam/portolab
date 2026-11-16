@@ -54,6 +54,7 @@
     "app/features/accounts/normalize-password.ts",
     "app/features/classes/classes.schema.ts",
     "app/features/learning/glossary-query-maximum-length.ts",
+    "app/features/learning/guide-section-ids.ts",
     "app/features/market-data/build-daily-history.ts",
     "app/features/market-data/fixture-history.ts",
     "app/features/market-data/history-store.server.ts",

@@ -31,6 +31,11 @@ export function ProfileMenu({
       <Link to="/account" className={popoverStyles["item"]}>
         {m.accounts_account_link()}
       </Link>
+      {readerRole === "lecturer" && (
+        <Link to="/guide" className={popoverStyles["item"]}>
+          {m.accounts_guide_link()}
+        </Link>
+      )}
       <div className={styles["language"]}>
         <LanguageSwitch />
       </div>
