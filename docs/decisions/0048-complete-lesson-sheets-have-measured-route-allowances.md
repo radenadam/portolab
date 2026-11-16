@@ -54,4 +54,4 @@ The exercise data and controls increase the lesson ready times. A slider key ste
 
 ## Consequences
 
-`clientSizeChecks` reads the route limits from `clientRouteLimits`. Its tests cover each exception, each asset kind, the lesson's unchanged limits, and a similar route name that gets no allowance. The existing graph tests retain their checks of inherited and deferred assets. A later increase still needs measurements and a decision.
+The current limits live in `scripts/client-route-limits.ts`. `clientSizeChecks` reads them through `clientRouteLimits`. Its tests cover each exception, each asset kind, the lesson's unchanged limits, and a similar route name that gets no allowance. The existing graph tests retain their checks of inherited and deferred assets. A later increase still needs measurements and a decision.

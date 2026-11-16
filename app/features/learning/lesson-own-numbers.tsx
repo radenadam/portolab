@@ -4,6 +4,7 @@ import { Message } from "~/message";
 import { ChangeText } from "~/change-text";
 import type { ClassId } from "~/features/classes/classes.schema";
 import { PortfolioMeasuresNotice } from "~/features/measures/portfolio-measures-notice";
+import { measureFailureText } from "~/features/measures/measure-failure-text";
 
 import {
   formatBeta,
@@ -37,16 +38,28 @@ export function LessonOwnNumbers({
     >
       <strong>{m.learning_your_numbers_label()}</strong>
       {own === undefined ? (
-        <p>
-          {report === undefined ? (
-            m.learning_student_portfolio_notice()
-          ) : (
-            <PortfolioMeasuresNotice
-              report={report}
-              reader={{ kind: "owner", classId }}
-            />
-          )}
-        </p>
+        <>
+          <p>
+            {report === undefined ? (
+              m.learning_student_portfolio_notice()
+            ) : (
+              <PortfolioMeasuresNotice
+                report={report}
+                reader={{ kind: "owner", classId }}
+              />
+            )}
+          </p>
+          {report?.kind !== "measured" &&
+            practice.marketFailure !== undefined && (
+              <p>
+                <NumberText>
+                  {measureFailureText(practice.marketFailure, {
+                    kind: "market",
+                  })}
+                </NumberText>
+              </p>
+            )}
+        </>
       ) : lesson.session === 9 ? (
         <CapmNumbers portfolio={own} />
       ) : (

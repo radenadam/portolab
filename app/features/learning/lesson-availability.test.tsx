@@ -15,6 +15,7 @@ import { languageNames } from "~/language-names";
 import { markupTextForTest } from "~/markup-text-for-test";
 import { locales, type Locale } from "~/paraglide/runtime.js";
 import { renderMarkupForTest } from "~/render-markup-for-test";
+import { textOfMarkupForTest } from "~/render-text-markup-for-test";
 import { successValueForTest } from "~/success-value-for-test";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
 import { portfolioWeight } from "~/units/portfolio-weight";
@@ -92,7 +93,7 @@ function expectRiskTask(
   const markup = renderMarkupForTest(
     <LessonRiskPractice portfolio={portfolio} current={current} />,
   );
-  expect(markup.replaceAll(/<[^>]+>/gu, "")).toContain(
+  expect(textOfMarkupForTest(markup)).toContain(
     markupTextForTest(expected.task),
   );
   expect(markup).toContain(markupTextForTest(expected.status));
@@ -129,15 +130,17 @@ for (const locale of locales) {
           practice={practice}
         />,
       );
-      expect(markup.replaceAll(/<[^>]+>/gu, "")).toContain(
+      expect(textOfMarkupForTest(markup)).toContain(
         markupTextForTest(expected),
       );
       expect(own.treynorRatio.ok).toBe(false);
-      const allocation = renderMarkupForTest(
-        <LessonAllocation portfolio={own} own={own} explanation={null}>
-          {null}
-        </LessonAllocation>,
-      ).replaceAll(/<[^>]+>/gu, "");
+      const allocation = textOfMarkupForTest(
+        renderMarkupForTest(
+          <LessonAllocation portfolio={own} own={own} explanation={null}>
+            {null}
+          </LessonAllocation>,
+        ),
+      );
       expect(
         allocation.split(markupTextForTest(texts[locale].missingComparison))
           .length - 1,
@@ -244,7 +247,7 @@ for (const locale of locales) {
         .find((block) => block.kind === "paragraph");
       if (prose?.kind !== "paragraph") throw new Error("The lesson has prose.");
       expect(markup).toContain(markupTextForTest(prose.text));
-      const text = markup.replaceAll(/<[^>]+>/gu, "");
+      const text = textOfMarkupForTest(markup);
       const taskPage = `/classes/7/learn/${String(lesson.session)}#practice`;
       const sheet = renderMarkupForTest(
         <LessonPractice

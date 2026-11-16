@@ -1,3 +1,4 @@
+import { textOfMarkupForTest } from "~/render-text-markup-for-test";
 import { expect, test } from "vitest";
 import { languageNames } from "~/language-names";
 import { locales } from "~/paraglide/runtime.js";
@@ -95,8 +96,8 @@ const texts: Record<
       "Beli saham pertama Anda, lalu kembali ke pelajaran ini setelah order tereksekusi untuk melihat angkanya.",
       "Belum tercapai.",
       "Tercapai. Perhatikan juga apa yang terjadi pada imbal hasil harapan.",
-      "Praktik ini memakai portofolio mahasiswa. Contoh memakai data pasar yang tersedia.",
-      "Latihan bobot perlu cukup data imbal hasil bulanan dari bulan yang sama. Baca kebutuhan data pada Angka Anda.",
+      "Praktik ini memakai portofolio mahasiswa.",
+      "Latihan ini perlu data imbal hasil bulanan yang bisa dipakai. Buka penjelasan pelajaran untuk membaca kebutuhan datanya.",
     ],
     inputs: "Imbal hasil harapan -0,10%, beta 0,69.",
     result: "= 0,219% per bulan",
@@ -155,8 +156,8 @@ const texts: Record<
       "Buy your first stock, then return to this lesson after the order fills to see your numbers.",
       "Not achieved yet.",
       "Achieved. Observe what also happens to expected return.",
-      "This practice uses a student portfolio. The example uses available market data.",
-      "The weights exercise needs enough common monthly return data. Read the data requirements in Your numbers.",
+      "This practice uses a student portfolio.",
+      "This exercise needs usable monthly return data. Open the lesson explanation for the data requirements.",
     ],
     inputs: "Expected return -0.10%, beta 0.69.",
     result: "= 0.219% per month",
@@ -178,10 +179,6 @@ function practiceMarkup(session: 9 | 10, practice: LessonPracticeData): string {
   );
 }
 
-function textOf(markup: string): string {
-  return markup.replaceAll(/<[^>]+>/gu, "");
-}
-
 for (const locale of locales) {
   const text = texts[locale];
   test(`renders server defaults, the student's numbers, alpha calculations, and risk practice in ${languageNames[locale]}`, () => {
@@ -197,15 +194,16 @@ for (const locale of locales) {
       text.period,
       text.capmInputs,
     ])
-      expect(textOf(capm)).toContain(markupTextForTest(sentence));
+      expect(textOfMarkupForTest(capm)).toContain(markupTextForTest(sentence));
     for (const sentence of [
       text.ownRisk,
       text.target,
       text.inputs,
       ...text.comparisons,
     ])
-      expect(textOf(risk)).toContain(markupTextForTest(sentence));
-    for (const value of text.numeric) expect(textOf(risk)).toContain(value);
+      expect(textOfMarkupForTest(risk)).toContain(markupTextForTest(sentence));
+    for (const value of text.numeric)
+      expect(textOfMarkupForTest(risk)).toContain(value);
     expect(capm).not.toContain('type="range"');
     expect(capm).toContain("<svg");
     expect(capm).toContain(`<strong>${text.taskLabel}</strong>`);
@@ -218,18 +216,22 @@ for (const locale of locales) {
     );
 
     for (const index of [0, 2, 3, 8, 10])
-      expect(textOf(capm)).toContain(
+      expect(textOfMarkupForTest(capm)).toContain(
         markupTextForTest(text.labels[index] ?? ""),
       );
     for (const index of [1, 2, 3, 5, 9, 11])
-      expect(textOf(risk)).toContain(
+      expect(textOfMarkupForTest(risk)).toContain(
         markupTextForTest(text.labels[index] ?? ""),
       );
-    expect(textOf(capm)).toContain(markupTextForTest(text.tasks[0] ?? ""));
-    expect(textOf(risk)).toContain(markupTextForTest(text.tasks[3] ?? ""));
+    expect(textOfMarkupForTest(capm)).toContain(
+      markupTextForTest(text.tasks[0] ?? ""),
+    );
+    expect(textOfMarkupForTest(risk)).toContain(
+      markupTextForTest(text.tasks[3] ?? ""),
+    );
     const own = practicePortfolio(practice.report);
     if (own === undefined) throw new Error("The portfolio has measures.");
-    const done = textOf(
+    const done = textOfMarkupForTest(
       renderMarkupForTest(
         <LessonRiskPractice portfolio={own} current={monthlyReturn(0)} />,
       ),
@@ -250,11 +252,11 @@ for (const locale of locales) {
       const markup = practiceMarkup(9, practice);
       expect(markup).toContain('id="practice"');
       if (practice.report?.kind === "noHoldings") {
-        expect(textOf(markup)).toContain(
+        expect(textOfMarkupForTest(markup)).toContain(
           markupTextForTest(text.tasks[2] ?? ""),
         );
         expect(markup).toContain('href="/classes/7/market?lessonTask=9"');
-        expect(textOf(markup)).toContain(
+        expect(textOfMarkupForTest(markup)).toContain(
           markupTextForTest(text.labels[6] ?? ""),
         );
       }
@@ -262,10 +264,10 @@ for (const locale of locales) {
     const shorter = lessonPracticeForTest(ammnValuationForTest());
     expect(shorter.market?.returns).toHaveLength(38);
     // Python Decimal gives portfolio beta 0.2969887, expected return 0.7546137%, CAPM 0.2770972%, and alpha +0.4775166% from the 38 shared months.
-    expect(textOf(practiceMarkup(9, shorter))).toContain(
+    expect(textOfMarkupForTest(practiceMarkup(9, shorter))).toContain(
       markupTextForTest(text.positiveCapm),
     );
-    expect(textOf(practiceMarkup(9, shorter))).toContain(
+    expect(textOfMarkupForTest(practiceMarkup(9, shorter))).toContain(
       markupTextForTest(text.tasks[1] ?? ""),
     );
     const lecturer = {
@@ -273,17 +275,21 @@ for (const locale of locales) {
       report: undefined,
       holdings: [],
     };
-    expect(textOf(practiceMarkup(9, lecturer))).toContain(
+    expect(textOfMarkupForTest(practiceMarkup(9, lecturer))).toContain(
       markupTextForTest(text.tasks[5] ?? ""),
     );
     expect(
-      textOf(practiceMarkup(10, { ...lecturer, simulation: undefined })),
+      textOfMarkupForTest(
+        practiceMarkup(10, { ...lecturer, simulation: undefined }),
+      ),
     ).toContain(markupTextForTest(text.tasks[6] ?? ""));
     const banner = renderMarkupForTest(
       <LessonTaskBanner classId={7 as ClassId} task={10} />,
     );
-    expect(textOf(banner)).toContain(markupTextForTest(text.labels[7] ?? ""));
+    expect(textOfMarkupForTest(banner)).toContain(
+      markupTextForTest(text.labels[7] ?? ""),
+    );
     expect(banner).toContain('href="/classes/7/learn/10#practice"');
-    expect(textOf(banner)).toContain(text.banner);
+    expect(textOfMarkupForTest(banner)).toContain(text.banner);
   });
 }

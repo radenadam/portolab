@@ -5,9 +5,7 @@ import type { ReactNode } from "react";
 
 import type { ClassId } from "~/features/classes/classes.schema";
 
-import { measureFailureText } from "~/features/measures/measure-failure-text";
 import { formatSignedPercent } from "~/formatting";
-import { NumberText } from "~/number-text";
 import { m } from "~/paraglide/messages.js";
 import type { SessionContent } from "./content";
 import { LessonAllocation } from "./lesson-allocation";
@@ -52,7 +50,9 @@ export function LessonPractice({
       practice={practice}
       idPrefix={idPrefix}
       taskPage={taskPage}
-    />
+    >
+      {ownNumbers}
+    </LessonUnavailablePractice>
   );
   const practiceAlpha = (
     <PracticePanel idPrefix={idPrefix}>
@@ -78,7 +78,7 @@ export function LessonPractice({
       explanation={explanation}
       idPrefix={idPrefix}
     >
-      {ownNumbers}
+      {own !== undefined && ownNumbers}
       {children}
       {own === undefined && unavailable}
     </LessonAllocation>
@@ -90,7 +90,7 @@ export function LessonPractice({
         explanation={explanation}
         idPrefix={idPrefix}
       />
-      {ownNumbers}
+      {own !== undefined && ownNumbers}
       {children}
       {lesson.session === 9 && practice.holdings.length > 0
         ? practiceAlpha
@@ -110,25 +110,7 @@ function UnavailableLessonInteractive({
   explanation: ReactNode;
   idPrefix: string;
 }): ReactNode {
-  return practice.market === undefined ? (
-    <section className={styles["interactive"]}>
-      <h2>
-        {lesson.session === 9
-          ? m.learning_capm_interactive_title()
-          : m.learning_allocation_interactive_title()}
-      </h2>
-      <p>
-        <NumberText>
-          {practice.marketFailure === undefined
-            ? m.learning_student_portfolio_notice()
-            : measureFailureText(practice.marketFailure, {
-                kind: "market",
-              })}
-        </NumberText>
-      </p>
-      {explanation}
-    </section>
-  ) : lesson.session === 9 ? (
+  return lesson.session === 9 && practice.market !== undefined ? (
     <LessonCapm
       practice={practice}
       explanation={explanation}
@@ -136,8 +118,12 @@ function UnavailableLessonInteractive({
     />
   ) : (
     <section className={styles["interactive"]}>
-      <h2>{m.learning_allocation_interactive_title()}</h2>
-      <p>{m.learning_allocation_data_notice()}</p>
+      <h2>
+        {lesson.session === 9
+          ? m.learning_capm_interactive_title()
+          : m.learning_allocation_interactive_title()}
+      </h2>
+      <p>{m.learning_interactive_data_notice()}</p>
       {explanation}
     </section>
   );

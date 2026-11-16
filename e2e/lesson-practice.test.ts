@@ -515,127 +515,157 @@ for (const locale of locales) {
     }
   });
 
-  test.describe(`before JavaScript loads in ${languageNames[locale]}`, () => {
-    test.use({ javaScriptEnabled: false });
-    test("opens the first-stock task and returns to the same practice", async ({
-      page,
-      browser,
-    }, testInfo) => {
-      test.setTimeout(120_000);
-      const { lecturer } = await openAsNewStudent(page, browser, {
-        locale,
-        path: "/learn/9",
-      });
-      const classPath = new URL(page.url()).pathname.replace(
-        /\/learn\/9$/u,
-        "",
-      );
-      const backLink = page.getByRole("link", {
-        name: text.back,
-        exact: true,
-      });
-      const checkTaskBanner = async (): Promise<void> => {
-        await expect(backLink.locator("svg")).toBeVisible();
-      };
-      for (const { session } of practiceSessions) {
-        await page.goto(`${classPath}/learn/${String(session)}`);
-        await page.getByRole("link", { name: text.skip }).click();
-        if (session === 10) {
-          await expect(
-            page.getByText(text.example, { exact: true }),
-          ).toBeVisible();
-          await expect(page.locator("main dl small")).toHaveCount(0);
-        }
-        const taskLink = page.getByRole("link", {
-          name: text.task,
+  for (const javaScriptEnabled of [false, true]) {
+    test.describe(`${javaScriptEnabled ? "with JavaScript" : "before JavaScript loads"} in ${languageNames[locale]}`, () => {
+      test.use({ javaScriptEnabled });
+      test("opens the first-stock task and returns to the same practice", async ({
+        page,
+        browser,
+      }, testInfo) => {
+        test.setTimeout(120_000);
+        const { lecturer } = await openAsNewStudent(page, browser, {
+          locale,
+          path: "/learn/9",
+        });
+        const classPath = new URL(page.url()).pathname.replace(
+          /\/learn\/9$/u,
+          "",
+        );
+        const backLink = page.getByRole("link", {
+          name: text.back,
           exact: true,
         });
-        await captureScreens(page, testInfo, {
-          name: `lesson-empty-${String(session)}-${locale}`,
-          fullPage: true,
-          fromTop: true,
-          check: async () => {
-            await expectLayout(page);
-            await expect(taskLink.locator("svg")).toBeVisible();
-          },
-        });
-        await taskLink.click();
-        await expect(page).toHaveURL(
-          `${classPath}/market?lessonTask=${String(session)}`,
-        );
-        if (session === 9)
-          await captureScreens(page, testInfo, {
-            name: `lesson-task-market-${locale}`,
+        const checkTaskBanner = async (): Promise<void> => {
+          await expect(backLink.locator("svg")).toBeVisible();
+        };
+        const checkTaskAccessibility = async (
+          landmark: Locator,
+        ): Promise<void> => {
+          await expect(landmark).toBeVisible();
+          await checkTaskBanner();
+          if (javaScriptEnabled) await expectAccessibleScreen(page);
+        };
+        const captureTaskScreen = async (
+          screen: Parameters<typeof captureScreens>[2],
+        ): Promise<void> => {
+          if (!javaScriptEnabled) await captureScreens(page, testInfo, screen);
+        };
+        for (const { session } of practiceSessions) {
+          await page.goto(`${classPath}/learn/${String(session)}`);
+          await page.getByRole("link", { name: text.skip }).click();
+          if (session === 10) {
+            await expect(
+              page.getByText(text.example, { exact: true }),
+            ).toBeVisible();
+            await expect(page.locator("main dl small")).toHaveCount(0);
+          }
+          const taskLink = page.getByRole("link", {
+            name: text.task,
+            exact: true,
+          });
+          await captureTaskScreen({
+            name: `lesson-empty-${String(session)}-${locale}`,
             fullPage: true,
             fromTop: true,
-            check: checkTaskBanner,
+            check: async () => {
+              await expectLayout(page);
+              await expect(taskLink.locator("svg")).toBeVisible();
+            },
           });
-        await page.locator("#market-search").fill("no matching company");
-        await page
-          .getByRole("button", { name: text.apply, exact: true })
-          .click();
-        await page.getByRole("link", { name: text.clear, exact: true }).click();
-        await expect(page.locator("#market-search")).toHaveValue("");
-        await page.locator("#market-search").fill("BBCA");
-        await page
-          .getByRole("button", { name: text.apply, exact: true })
-          .click();
-        await page.locator('main a[href*="range=1y"]').click();
-        const filtered = new URL(page.url());
-        expect(filtered.pathname).toBe(`${classPath}/market`);
-        expect(filtered.searchParams.get("q")).toBe("BBCA");
-        expect(filtered.searchParams.get("range")).toBe("1y");
-        expect(filtered.searchParams.get("lessonTask")).toBe(String(session));
-        await page.locator('main a[href*="/stocks/BBCA?"]').click();
-        await checkTaskBanner();
-        if (session === 9)
-          await captureScreens(page, testInfo, {
-            name: `lesson-task-stock-${locale}`,
-            fullPage: true,
-            fromTop: true,
-            check: checkTaskBanner,
-          });
-        await page.getByRole("link", { name: text.buy, exact: true }).click();
-        await expect(page).toHaveURL(
-          new RegExp(`lessonTask=${String(session)}`, "u"),
-        );
-        if (session === 9)
-          await captureScreens(page, testInfo, {
-            name: `lesson-task-ticket-${locale}`,
-            fullPage: testInfo.project.name !== "phone",
-            fromTop: false,
-            check: checkTaskBanner,
-          });
-        if (session === 10) {
-          await page
-            .getByRole("textbox", { name: text.lots, exact: true })
-            .fill("1");
-          await page
-            .getByRole("button", { name: new RegExp(`^${text.buy} `, "u") })
-            .click();
-          await page
-            .getByRole("link", { name: text.activity, exact: true })
-            .click();
-          await expect(page).toHaveURL(`${classPath}/activity?lessonTask=10`);
-          await page.locator('main a[href*="status=waiting"]').click();
+          await taskLink.click();
           await expect(page).toHaveURL(
-            `${classPath}/activity?status=waiting&lessonTask=10`,
+            `${classPath}/market?lessonTask=${String(session)}`,
           );
-          await captureScreens(page, testInfo, {
-            name: `lesson-task-activity-${locale}`,
-            fullPage: true,
-            fromTop: true,
-            check: checkTaskBanner,
-          });
+          if (session === 9) {
+            await checkTaskAccessibility(page.locator("#market-search"));
+            await captureTaskScreen({
+              name: `lesson-task-market-${locale}`,
+              fullPage: true,
+              fromTop: true,
+              check: checkTaskBanner,
+            });
+          }
+          await page.locator("#market-search").fill("no matching company");
+          await page
+            .getByRole("button", { name: text.apply, exact: true })
+            .click();
+          await expect(page).toHaveURL(/q=no\+matching\+company/u);
+          await page
+            .getByRole("link", { name: text.clear, exact: true })
+            .click();
+          await expect(page.locator("#market-search")).toHaveValue("");
+          await page.locator("#market-search").fill("BBCA");
+          await page
+            .getByRole("button", { name: text.apply, exact: true })
+            .click();
+          await expect(page).toHaveURL(/q=BBCA/u);
+          await page.locator('main a[href*="range=1y"]').click();
+          await expect(page).toHaveURL(/range=1y/u);
+          const filtered = new URL(page.url());
+          expect(filtered.pathname).toBe(`${classPath}/market`);
+          expect(filtered.searchParams.get("q")).toBe("BBCA");
+          expect(filtered.searchParams.get("range")).toBe("1y");
+          expect(filtered.searchParams.get("lessonTask")).toBe(String(session));
+          await page.locator('main a[href*="/stocks/BBCA?"]').click();
+          await checkTaskBanner();
+          if (session === 9) {
+            await checkTaskAccessibility(
+              page.locator('[data-stock-trade="buy"]'),
+            );
+            await captureTaskScreen({
+              name: `lesson-task-stock-${locale}`,
+              fullPage: true,
+              fromTop: true,
+              check: checkTaskBanner,
+            });
+          }
+          await page.getByRole("link", { name: text.buy, exact: true }).click();
+          await expect(page).toHaveURL(
+            new RegExp(`lessonTask=${String(session)}`, "u"),
+          );
+          if (session === 9) {
+            await checkTaskAccessibility(page.locator("#ticket-lots"));
+            await captureTaskScreen({
+              name: `lesson-task-ticket-${locale}`,
+              fullPage: testInfo.project.name !== "phone",
+              fromTop: false,
+              check: checkTaskBanner,
+            });
+          }
+          if (session === 10) {
+            await page
+              .getByRole("textbox", { name: text.lots, exact: true })
+              .fill("1");
+            await page
+              .getByRole("button", { name: new RegExp(`^${text.buy} `, "u") })
+              .click();
+            await page
+              .getByRole("link", { name: text.activity, exact: true })
+              .click();
+            await expect(page).toHaveURL(`${classPath}/activity?lessonTask=10`);
+            await page.locator('main a[href*="status=waiting"]').click();
+            await expect(page).toHaveURL(
+              `${classPath}/activity?status=waiting&lessonTask=10`,
+            );
+            await checkTaskAccessibility(
+              page.locator('main [data-view="orders"]'),
+            );
+            await captureTaskScreen({
+              name: `lesson-task-activity-${locale}`,
+              fullPage: true,
+              fromTop: true,
+              check: checkTaskBanner,
+            });
+          }
+          await backLink.click();
+          await expect(page).toHaveURL(
+            `${classPath}/learn/${String(session)}#practice`,
+          );
+          await expect(taskLink).toBeVisible();
+          await expect(taskLink).toBeInViewport();
         }
-        await backLink.click();
-        await expect(page).toHaveURL(
-          `${classPath}/learn/${String(session)}#practice`,
-        );
-        await expect(taskLink).toBeVisible();
-        await expect(taskLink).toBeInViewport();
-      }
-      await lecturer.context().close();
+        await lecturer.context().close();
+      });
     });
-  });
+  }
 }

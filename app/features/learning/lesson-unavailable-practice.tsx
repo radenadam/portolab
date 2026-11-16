@@ -6,8 +6,6 @@ import type { ClassId } from "~/features/classes/classes.schema";
 
 import { marketPath } from "~/features/market-data/market-path";
 
-import { PortfolioMeasuresNotice } from "~/features/measures/portfolio-measures-notice";
-
 import { m } from "~/paraglide/messages.js";
 import type { SessionContent } from "./content";
 
@@ -24,17 +22,20 @@ export function LessonUnavailablePractice({
   practice,
   idPrefix = "",
   taskPage,
+  children,
 }: {
   classId: ClassId;
   lesson: SessionContent;
   practice: LessonPracticeData;
   idPrefix?: string;
   taskPage?: string | undefined;
+  children: ReactNode;
 }): ReactNode {
   const report = practice.report;
   return (
     <PracticePanel idPrefix={idPrefix}>
-      {report?.kind === "noHoldings" ? (
+      {children}
+      {report?.kind === "noHoldings" && (
         <div className={styles["task"]}>
           <p>
             <strong>{m.learning_task_label()}</strong>{" "}
@@ -59,17 +60,6 @@ export function LessonUnavailablePractice({
             <Icon name="arrowRight" className={learningStyles["icon"]} />
           </Link>
         </div>
-      ) : (
-        <p>
-          {report === undefined ? (
-            m.learning_student_portfolio_notice()
-          ) : (
-            <PortfolioMeasuresNotice
-              report={report}
-              reader={{ kind: "owner", classId }}
-            />
-          )}
-        </p>
       )}
     </PracticePanel>
   );
