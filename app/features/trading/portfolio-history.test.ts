@@ -377,6 +377,27 @@ test("withholds a current IHSG return when its stale quote predates the base day
   ).toBeUndefined();
 });
 
+for (const [quotedAt, available] of [
+  ["2026-10-30T09:15:59.999Z", false],
+  ["2026-10-30T09:16:00.000Z", true],
+  ["2026-10-30T09:16:00.001Z", true],
+] as const) {
+  test(`checks the full base-close boundary at ${quotedAt}`, () => {
+    // The recorded IDX hours end their last price minute at 16:15 WIB. By hand, the market-time boundary is 16:16 WIB, and 5,057.05 / 5,057.05 - 1 is zero.
+    const value = marketReturnSinceStart(
+      {
+        startDate,
+        market: recordedIhsgForTest(),
+        now: new Date("2026-11-04T03:00:00Z"),
+        delayMinutes,
+      },
+      indexPoints(5057.05),
+      new Date(quotedAt),
+    );
+    expect(value).toBe(available ? 0 : undefined);
+  });
+}
+
 test("gives the return of the IHSG at a later level since the close from which the returns of the portfolio count", () => {
   expect(
     marketReturnSinceStart(

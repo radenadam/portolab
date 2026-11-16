@@ -83,7 +83,7 @@ export function startServices(settings: ServiceSettings): Services {
   });
 }
 
-/** Separating request services from scheduled jobs lets isolated browser fixtures keep their recorded prices. */
+/** @internal startServices reaches this setup only with jobs on the real clock, so browser tests need access without those schedules. */
 export function createRequestServices(
   database: Database,
   priceSource: PriceSource,

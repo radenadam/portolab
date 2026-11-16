@@ -57,6 +57,8 @@ for (const scenario of [
     leftOut: ["2026-11-03"],
     end: "notFinal",
     now: new Date("2026-11-03T03:02:00Z"),
+    quotedAt: quote.quotedAt,
+    measuredAt: new Date("2026-11-03T03:00:00Z"),
   },
   {
     title:
@@ -64,13 +66,35 @@ for (const scenario of [
     leftOut: [],
     end: "snapshot",
     now: new Date("2026-11-04T03:00:00Z"),
+    quotedAt: quote.quotedAt,
+    measuredAt: new Date("2026-11-03T03:00:00Z"),
+  },
+  {
+    title: "keeps the quote cutoff on an evening with that day's stored close",
+    leftOut: [],
+    end: "snapshot",
+    now: new Date("2026-11-03T10:00:00Z"),
+    quotedAt: new Date("2026-11-03T09:14:00Z"),
+    measuredAt: new Date("2026-11-03T09:14:00Z"),
+  },
+  {
+    title: "keeps the quote cutoff on a weekend after the closing quotes",
+    leftOut: [],
+    end: "snapshot",
+    now: new Date("2026-11-07T03:00:00Z"),
+    quotedAt: new Date("2026-11-03T09:14:00Z"),
+    measuredAt: new Date("2026-11-03T09:14:00Z"),
   },
 ]) {
   test(scenario.title, async () => {
     const { database, owner } = await tradedPortfolioForTest();
     saveDailyHistory(database, recordedIhsgForTest(scenario.leftOut));
     saveDailyHistory(database, recordedBbcaForTest(scenario.leftOut));
-    saveQuotes(database, [quote], new Date("2026-11-03T03:01:00Z"));
+    saveQuotes(
+      database,
+      [{ ...quote, quotedAt: scenario.quotedAt }],
+      scenario.now,
+    );
     const report = reportAt({ database, owner }, scenario.now);
     expect(report.history.ok).toBe(true);
     if (!report.history.ok) throw new Error("The fixture has a calendar.");
@@ -85,7 +109,7 @@ for (const scenario of [
       },
       {
         date: "2026-11-03",
-        measuredAt: new Date("2026-11-03T03:00:00Z"),
+        measuredAt: scenario.measuredAt,
         portfolio: closeToForTest(-0.030704, 15),
         market: closeToForTest(-0.03020733431546059, 15),
       },
@@ -94,8 +118,8 @@ for (const scenario of [
 }
 
 const snapshotTexts: Record<Locale, string> = {
-  id: "Titik penutupan harian berasal dari sebelum titik dengan waktu, selain penutupan awal periode. Harga yang dapat dipakai atau transaksi terisi dengan waktu yang lebih baru memajukan titik itu.",
-  en: "Daily close points come from before the timed point, apart from the starting close. Usable quotes or fills with a newer time advance that point.",
+  id: "Waktu di ujung grafik berasal dari harga atau transaksi terisi terbaru. Pembaruan harga memajukan titik itu jika membawa harga yang dapat dipakai dengan waktu yang lebih baru. Order yang terisi dengan waktu yang lebih baru juga memajukannya.",
+  en: "The time at the end of the chart comes from its latest quote or fill. A price update moves that point when it brings usable quotes with a newer time. An order fill with a newer time also moves it.",
 };
 
 for (const locale of locales) {
@@ -155,6 +179,40 @@ function reportAt(
     { now, delayMinutes: 10 },
   );
 }
+
+test("keeps a cash portfolio at its initial close when a failed quote update left an earlier time on that day", async () => {
+  const { database } = await tradedPortfolioForTest();
+  saveDailyHistory(database, recordedIhsgForTest(["2026-11-02", "2026-11-03"]));
+  saveQuotes(
+    database,
+    [
+      {
+        kind: "index",
+        code: "IHSG",
+        level: indexPoints(5057.05),
+        previousLevel: indexPoints(5098.06),
+        quotedAt: new Date("2026-10-30T04:00:00Z"),
+      },
+    ],
+    new Date("2026-10-30T04:10:00Z"),
+  );
+  const report = readPortfolioReport(
+    database,
+    {
+      portfolio: { cash: rupiah(100_000_000), holdings: [], orders: [] },
+      startingCash: rupiah(100_000_000),
+      joinedAt: new Date("2026-10-30T10:00:00Z"),
+    },
+    { now: new Date("2026-10-30T10:30:00Z"), delayMinutes: 10 },
+  );
+  expect(report.market).toBeUndefined();
+  expect(report.history.ok).toBe(true);
+  if (!report.history.ok) throw new Error("The fixture has a closing day.");
+  // The recorded Friday close is the baseline, and by hand cash / starting cash - 1 is zero.
+  expect(report.history.value.points).toEqual([
+    { date: "2026-10-30", portfolio: 0, market: 0 },
+  ]);
+});
 
 test("keeps calendar recovery ahead of the snapshot cutoff", () => {
   // Invented future levels isolate the end of calendar coverage. By hand, cash has a return of zero and 101 / 100 - 1 is 0.01.

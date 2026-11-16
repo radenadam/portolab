@@ -18,7 +18,7 @@ A diff range, a set of paths, or a plan, with the intent behind it. In an audit,
 - Security: open redirects, cookies and sessions, cross-site request forgery, secrets, permissions in CI workflows, and the sections "Privacy and security" and "Dependencies" of `AGENTS.md`.
 - Gates in CI, against the section "CI" of `AGENTS.md`.
 - Performance: work that blocks the event loop, queries without a suitable index, and requests to the price source that grow with the number of students.
-- Tests, against the section "Tests" of `AGENTS.md`.
+- Tests, against the section "Tests" of `AGENTS.md`. For rules about moments, exercise two times on one date and the boundary cases under [Code](../../AGENTS.md#code) and [Tests](../../AGENTS.md#tests).
 
 ## Findings
 

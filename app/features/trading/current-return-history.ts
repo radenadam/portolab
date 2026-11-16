@@ -4,6 +4,7 @@ import type { CumulativeReturn } from "~/units/cumulative-return";
 import { wibDateOf } from "~/wib";
 import type { Order } from "./order";
 import type { HistoryEnd, PortfolioHistory } from "./portfolio-history";
+import { isAtOrAfterHistoryBase } from "./portfolio-history";
 import type { PortfolioValuation } from "./value-portfolio";
 
 /** A quote snapshot is distinct from a daily close, so a stale quote never rewrites a past day's final value. */
@@ -36,7 +37,7 @@ export function currentReturnHistory(
   const first = history.points[0];
   if (measuredAt === undefined || first === undefined) return history;
   const date = wibDateOf(measuredAt);
-  if (date < first.date) return history;
+  if (!isAtOrAfterHistoryBase(measuredAt, first.date)) return history;
   const earlier = history.points.filter(
     (point) => point === first || point.date < date,
   );

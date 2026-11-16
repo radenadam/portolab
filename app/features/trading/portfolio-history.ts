@@ -147,7 +147,7 @@ export function portfolioHistory(input: HistoryInput): PortfolioHistory {
   }
 }
 
-/** The return of the IHSG since the close from which portfolioHistory counts the returns of a portfolio, at a later level, such as its latest delayed level, so that it covers the same time as the return of the portfolio since its starting cash. It is undefined while portfolioHistory has no such close, because the prices of the start are not final, no close of the IHSG on the start or later is stored, or the quote predates the base day. */
+/** The return of the IHSG since the close from which portfolioHistory counts the returns of a portfolio, at a later level, such as its latest delayed level, so that it covers the same time as the return of the portfolio since its starting cash. It is undefined while portfolioHistory has no such close, because the prices of the start are not final, no close of the IHSG on the start or later is stored, or the quote predates the base close. */
 export function marketReturnSinceStart(
   input: Pick<HistoryInput, "startDate" | "market" | "now" | "delayMinutes">,
   level: IndexPoints,
@@ -157,9 +157,18 @@ export function marketReturnSinceStart(
     return undefined;
   }
   const base = baseClose(closesByDate(input.market.closes), input.startDate);
-  return base === undefined || wibDateOf(quotedAt) < base.date
+  return base === undefined || !isAtOrAfterHistoryBase(quotedAt, base.date)
     ? undefined
     : cumulativeReturn(priceChange(level, base.level));
+}
+
+/** Quote times name market time, so the close boundary excludes the source's delivery delay. */
+export function isAtOrAfterHistoryBase(moment: Date, date: string): boolean {
+  const day = wibDateOf(moment);
+  if (day > date) return true;
+  if (day < date) return false;
+  const final = pricesFinalAt(date, 0);
+  return final.ok && moment >= final.value;
 }
 
 /** The close of the IHSG from which the returns count: its close on the start, or its latest close before the start when the source left out the close of the start, because a later close is stored. The portfolio held only its starting cash at either close. It is undefined while the close of the start is not stored, nor any later one. */

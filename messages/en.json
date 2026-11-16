@@ -350,7 +350,7 @@
   "trading_portfolio_series_label": "Your portfolio",
   "app_trading_day_label": "Trading day",
   "app_returns_table_label": "Returns over time",
-  "trading_history_snapshot_notice": "Daily close points come from before the timed point, apart from the starting close. Usable quotes or fills with a newer time advance that point.",
+  "trading_history_snapshot_notice": "The time at the end of the chart comes from its latest quote or fill. A price update moves that point when it brings usable quotes with a newer time. An order fill with a newer time also moves it.",
   "trading_chart_not_final_notice": "The prices of {date} become final at {time} WIB. Daily close points from that day on need a price history update that stores closes of that day or of a later day.",
   "trading_one_missing_close_notice": "Portolab has not stored the close of {codes} on {date} yet. Daily close points from that day on need a price history update that stores a close of {codes} on that day or on a later day.",
   "trading_several_missing_closes_notice": "Portolab has not stored the closes of {codes} on {date} yet. Daily close points from that day on need a price history update that stores a close of each of them on that day or on a later day.",

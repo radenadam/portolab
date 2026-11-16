@@ -350,7 +350,7 @@
   "trading_portfolio_series_label": "Portofolio Anda",
   "app_trading_day_label": "Hari bursa",
   "app_returns_table_label": "Imbal hasil dari waktu ke waktu",
-  "trading_history_snapshot_notice": "Titik penutupan harian berasal dari sebelum titik dengan waktu, selain penutupan awal periode. Harga yang dapat dipakai atau transaksi terisi dengan waktu yang lebih baru memajukan titik itu.",
+  "trading_history_snapshot_notice": "Waktu di ujung grafik berasal dari harga atau transaksi terisi terbaru. Pembaruan harga memajukan titik itu jika membawa harga yang dapat dipakai dengan waktu yang lebih baru. Order yang terisi dengan waktu yang lebih baru juga memajukannya.",
   "trading_chart_not_final_notice": "Harga tanggal {date} menjadi final pada pukul {time} WIB. Titik penutupan harian mulai hari itu memerlukan pembaruan riwayat harga yang menyimpan penutupan hari itu atau hari sesudahnya.",
   "trading_one_missing_close_notice": "Portolab belum menyimpan harga penutupan {codes} pada {date}. Titik penutupan harian mulai hari itu memerlukan pembaruan riwayat harga yang menyimpan penutupan {codes} pada hari itu atau hari sesudahnya.",
   "trading_several_missing_closes_notice": "Portolab belum menyimpan harga penutupan {codes} pada {date}. Titik penutupan harian mulai hari itu memerlukan pembaruan riwayat harga yang menyimpan penutupan masing-masing pada hari itu atau hari sesudahnya.",
