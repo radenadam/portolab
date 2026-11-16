@@ -23,7 +23,7 @@ const measuredRoutes: ReadonlyMap<string, Partial<ClientRouteLimits>> = new Map(
     [
       "features/trading/ticket-page",
       {
-        javascript: exerciseJavaScriptLimit,
+        javascript: "220.1 kB",
         stylesheets: exerciseStylesheetLimit,
       },
     ],
@@ -53,7 +53,7 @@ const measuredRoutes: ReadonlyMap<string, Partial<ClientRouteLimits>> = new Map(
 export function clientRouteLimits(id: string): ClientRouteLimits {
   const measured = measuredRoutes.get(id);
   return {
-    javascript: id === "root" ? "140.1 kB" : (measured?.javascript ?? "200 kB"),
+    javascript: id === "root" ? "140.2 kB" : (measured?.javascript ?? "200 kB"),
     stylesheets: measured?.stylesheets ?? "20 kB",
   };
 }

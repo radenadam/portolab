@@ -87,33 +87,35 @@ incomplete.
 
 ## The completed rebuild merge
 
-Main at `e366b34` also includes the current return snapshot of decision 0053
-and the shared styles polished against Peta. Its
-[passing fast check](https://github.com/radenadam/portolab/actions/runs/43950127639)
-gives the baseline below. The combined build uses `pnpm build` and `pnpm size`
-after merging that same main into piece 20. Both include the complete dependency
-sets and use the compression method above.
+Main at `ca01451` also includes the current return snapshot of decision 0053,
+the shared styles polished against Peta, and the stable formatting of
+[#286](https://github.com/radenadam/portolab/pull/286). The baseline below
+builds that main in a clean detached checkout. The combined build merges the
+same main into piece 20. Both use `pnpm build` and `pnpm size`, include the
+complete dependency sets, and use the compression method above.
 
 | Dependency set         | Main, JavaScript/CSS kB | Combined, JavaScript/CSS kB |
 | ---------------------- | ----------------------: | --------------------------: |
-| Shared                 |           139.83 / 7.47 |              140.001 / 7.47 |
-| Saham                  |          196.93 / 18.93 |              212.39 / 20.41 |
-| Ticket                 |          208.78 / 21.34 |             219.994 / 22.89 |
-| Demonstration analysis |          200.34 / 18.98 |              201.44 / 19.18 |
-| Student analysis       |          199.47 / 18.40 |              200.57 / 18.61 |
+| Shared                 |         139.968 / 7.471 |             140.130 / 7.471 |
+| Saham                  |        197.056 / 18.927 |            212.457 / 20.405 |
+| Ticket                 |        208.901 / 21.337 |            220.065 / 22.886 |
+| Demonstration analysis |        200.469 / 18.976 |            201.514 / 19.184 |
+| Student analysis       |        199.599 / 18.400 |            200.645 / 18.608 |
 
-Trade impact adds 15.46/1.48 kB to Saham. The ticket's JavaScript increase is
-11.21 kB when rounded to the table's usual precision, and its CSS adds 1.55 kB.
-Both analysis routes share the changed components and add 1.10 kB JavaScript. Their CSS adds 0.20 kB for demonstration analysis and 0.21 kB for student analysis.
-The shared set exceeds its JavaScript ceiling by one byte. Its row keeps three
-decimal places so that this excess is visible. The ticket's row also keeps
-three decimal places to show its six bytes below its existing ceiling. The
+Trade impact adds 15.401/1.478 kB to Saham and 11.164/1.549 kB to the ticket.
+Both analysis routes share the changed components. Demonstration analysis adds
+1,045 bytes of JavaScript, and student analysis adds 1,046. Both add 208 bytes
+of CSS. The shared set exceeds its earlier JavaScript
+ceiling by 130 bytes, and the ticket exceeds its ceiling by 65 bytes. The
+table keeps three decimal places so that these excesses are visible. The
 shared manifest names content-hashed imports, so its compressed size also
-changes with those names. A 100-byte shared allowance leaves 99 bytes.
+changes with those names. A 200-byte shared allowance leaves 70 bytes, and a
+100-byte ticket allowance leaves 35 bytes.
 These final measurements reuse the existing segmented-choice style for the
 impact and ticket. Computed lots use the unit guard, and one request builds the
-stock preview in both cash states. Those fixes keep the ticket within its
-existing allowance, so it needs no further increase.
+stock preview in both cash states. Before merging #286, the same fixes keep
+the ticket at 219,994 bytes, within its earlier ceiling. The shared formatting
+change adds to that combined set, so the final ticket needs the small allowance.
 The stock page still needs its live comparison,
 formulas, map, and complete lesson sheets. The common allocation engine of
 the lesson exercises now computes the portfolio measures too, and all three
@@ -122,13 +124,14 @@ callers share one matrix lookup. Those reductions remain in the combined build.
 ## Decision
 
 - `features/market-data/stock-page` has ceilings of 213 kB gzip JavaScript and
-  21 kB gzip CSS. These leave 0.61/0.59 kB in the final combined stock build.
+  21 kB gzip CSS. These leave 543/595 bytes in the final combined stock build.
 - `features/measures/demonstration-analysis-page` has a JavaScript ceiling of
-  202 kB gzip and keeps its CSS ceiling. This leaves 0.56 kB for JavaScript.
+  202 kB gzip and keeps its CSS ceiling. This leaves 486 bytes for JavaScript.
 - `features/measures/measures-page` has a JavaScript ceiling of 201 kB gzip
-  and keeps its CSS ceiling. This leaves 0.43 kB for JavaScript.
-- Shared JavaScript has a ceiling of 140.1 kB gzip.
-  The ticket keeps its JavaScript and CSS ceilings. Shared CSS and other routes keep main's
+  and keeps its CSS ceiling. This leaves 355 bytes for JavaScript.
+- Shared JavaScript has a ceiling of 140.2 kB gzip, and
+  `features/trading/ticket-page` has a JavaScript ceiling of 220.1 kB gzip.
+  The ticket keeps its CSS ceiling. Shared CSS and other routes keep main's
   existing ceilings, including the
   complete exercise allowances of [decision 0049](0049-complete-lesson-sheets-have-measured-route-allowances.md).
 - The check still includes bootstrap, root, ancestors, static and deferred
@@ -136,8 +139,8 @@ callers share one matrix lookup. Those reductions remain in the combined build.
   named set and retain the default limits for other routes.
 
 The stock JavaScript increase is 6.5%, its CSS increase is 5%, and each
-analysis JavaScript increase is at most 0.5%. The 100-byte allowance adds
-less than 0.1% to its earlier ceiling. The stock page
+analysis JavaScript increase is at most 0.5%. The shared and ticket allowances
+each add less than 0.2% to their earlier ceiling. The stock page
 remains smaller than the complete ticket under its accepted allowance. The ticket renders its comparison,
 map, fields, and submit action on the server, so the native flow remains usable
 before hydration. The phone browser checks cover typed lots, both map axes,
@@ -162,6 +165,6 @@ time promise for a physical phone.
 ## Consequences
 
 The ticket remains the one route that loads the stock and a complete order form
-at once. The stock, both analysis routes, and shared JavaScript have their
-measured allowances. Every other set retains its ceiling. No asset is removed from the
+at once. The stock, both analysis routes, shared JavaScript, and ticket
+JavaScript have their measured allowances. Every other set retains its ceiling. No asset is removed from the
 dependency walk, and the ceiling changes add no runtime code.
