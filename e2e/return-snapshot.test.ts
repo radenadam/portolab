@@ -180,14 +180,21 @@ for (const locale of locales) {
         }),
       ).toBeVisible();
       await expect(lecturer.getByRole("main")).toContainText(text.portfolio);
+      const classMap = lecturer
+        .locator('section[aria-labelledby="class-map-heading"]')
+        .getByRole("slider");
       await expect
-        .poll(() =>
-          lecturer
-            .locator('section[aria-labelledby="class-map-heading"]')
-            .getByRole("slider")
-            .getAttribute("aria-valuetext"),
-        )
+        .poll(() => classMap.getAttribute("aria-valuetext"))
         .toContain(text.market);
+      await classMap.focus();
+      await classMap.press("Home");
+      await expect
+        .poll(() => classMap.getAttribute("aria-valuetext"))
+        .toContain("Mahasiswa");
+      await expect
+        .poll(() => classMap.getAttribute("aria-valuetext"))
+        .toContain(text.portfolio);
+      await classMap.press("Escape");
       await captureScreens(lecturer, testInfo, {
         name: `kelas-${locale}`,
         fullPage: true,

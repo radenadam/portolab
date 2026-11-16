@@ -6,6 +6,7 @@ import type {
   StockQuote,
 } from "~/features/market-data/price-source.server";
 import { buildDailyHistory } from "~/features/market-data/build-daily-history";
+import { fixturePriceSource } from "~/features/market-data/fixture-price-source.server";
 import { indexHistoryForTest } from "~/features/market-data/history-for-test";
 import { closeToForTest } from "~/features/measures/close-to-for-test";
 import { indexPoints } from "~/units/index-points";
@@ -180,39 +181,60 @@ function reportAt(
   );
 }
 
-test("keeps a cash portfolio at its initial close when a failed quote update left an earlier time on that day", async () => {
-  const { database } = await tradedPortfolioForTest();
-  saveDailyHistory(database, recordedIhsgForTest(["2026-11-02", "2026-11-03"]));
-  saveQuotes(
-    database,
-    [
+for (const [now, beforeClose] of [
+  ["2026-10-30T10:30:00Z", true],
+  ["2026-10-30T10:30:00Z", false],
+  ["2026-10-31T03:00:00Z", false],
+  ["2026-11-01T03:00:00Z", false],
+] as const) {
+  test(`checks cash against the base close at ${now} with ${beforeClose ? "an earlier" : "the recorded closing"} quote`, async () => {
+    const { database } = await tradedPortfolioForTest();
+    saveDailyHistory(
+      database,
+      recordedIhsgForTest(["2026-11-02", "2026-11-03"]),
+    );
+    const answer = await fixturePriceSource.fetchQuotes(
+      [{ kind: "index", code: "IHSG" }],
+      new AbortController().signal,
+    );
+    if (!answer.ok) throw new Error(answer.failure);
+    const closing = answer.value.quotes.find((price) => price.kind === "index");
+    if (closing === undefined)
+      throw new Error("The fixture source records the IHSG close.");
+    expect(closing.quotedAt).toEqual(new Date("2026-10-30T09:00:05Z"));
+    // The earlier timestamp isolates a failed update that left an intraday quote of the base day.
+    const quote = beforeClose
+      ? { ...closing, quotedAt: new Date("2026-10-30T04:00:00Z") }
+      : closing;
+    saveQuotes(database, [quote], new Date("2026-10-30T09:10:05Z"));
+    const report = readPortfolioReport(
+      database,
       {
-        kind: "index",
-        code: "IHSG",
-        level: indexPoints(5057.05),
-        previousLevel: indexPoints(5098.06),
-        quotedAt: new Date("2026-10-30T04:00:00Z"),
+        portfolio: { cash: rupiah(100_000_000), holdings: [], orders: [] },
+        startingCash: rupiah(100_000_000),
+        joinedAt: new Date("2026-10-30T10:00:00Z"),
       },
-    ],
-    new Date("2026-10-30T04:10:00Z"),
-  );
-  const report = readPortfolioReport(
-    database,
-    {
-      portfolio: { cash: rupiah(100_000_000), holdings: [], orders: [] },
-      startingCash: rupiah(100_000_000),
-      joinedAt: new Date("2026-10-30T10:00:00Z"),
-    },
-    { now: new Date("2026-10-30T10:30:00Z"), delayMinutes: 10 },
-  );
-  expect(report.market).toBeUndefined();
-  expect(report.history.ok).toBe(true);
-  if (!report.history.ok) throw new Error("The fixture has a closing day.");
-  // The recorded Friday close is the baseline, and by hand cash / starting cash - 1 is zero.
-  expect(report.history.value.points).toEqual([
-    { date: "2026-10-30", portfolio: 0, market: 0 },
-  ]);
-});
+      { now: new Date(now), delayMinutes: fixturePriceSource.delayMinutes },
+    );
+    // By hand, 5,057.05 / 5,057.05 - 1 and cash / starting cash - 1 are both zero.
+    expect(report.market?.return).toBe(beforeClose ? undefined : 0);
+    expect(report.history.ok).toBe(true);
+    if (!report.history.ok) throw new Error("The fixture has a closing day.");
+    expect(report.history.value.points[0]).toEqual({
+      date: "2026-10-30",
+      portfolio: 0,
+      market: 0,
+    });
+    expect(report.history.value.points).toHaveLength(beforeClose ? 1 : 2);
+    if (!beforeClose)
+      expect(report.history.value.points.at(-1)).toEqual({
+        date: "2026-10-30",
+        measuredAt: closing.quotedAt,
+        portfolio: 0,
+        market: 0,
+      });
+  });
+}
 
 test("keeps calendar recovery ahead of the snapshot cutoff", () => {
   // Invented future levels isolate the end of calendar coverage. By hand, cash has a return of zero and 101 / 100 - 1 is 0.01.

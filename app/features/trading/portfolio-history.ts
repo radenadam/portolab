@@ -7,6 +7,7 @@ import {
 } from "./portfolio-close-values";
 import {
   currentOrNextSessionStart,
+  marketCloseAt,
   pricesFinalAt,
   tradingDayAfter,
   tradingDayBefore,
@@ -162,13 +163,13 @@ export function marketReturnSinceStart(
     : cumulativeReturn(priceChange(level, base.level));
 }
 
-/** Quote times name market time, so the close boundary excludes the source's delivery delay. */
+/** The base closes at the auction, while later post-closing trades keep that closing price. */
 export function isAtOrAfterHistoryBase(moment: Date, date: string): boolean {
   const day = wibDateOf(moment);
   if (day > date) return true;
   if (day < date) return false;
-  const final = pricesFinalAt(date, 0);
-  return final.ok && moment >= final.value;
+  const close = marketCloseAt(date);
+  return close.ok && moment >= close.value;
 }
 
 /** The close of the IHSG from which the returns count: its close on the start, or its latest close before the start when the source left out the close of the start, because a later close is stored. The portfolio held only its starting cash at either close. It is undefined while the close of the start is not stored, nor any later one. */
