@@ -13,6 +13,8 @@ export async function captureScreens(
   },
 ): Promise<void> {
   if (screen.fromTop) {
+    // The frame leaves this corner clear of controls, so it clears chart focus even when a page hides its heading.
+    await page.mouse.click(0, 0);
     await page.evaluate(() => {
       const focused = document.activeElement;
       if (focused instanceof HTMLElement) focused.blur();

@@ -1,6 +1,7 @@
 import { decimalPlaceOptions } from "./decimal-place-options.ts";
 import { startOfUtcDate } from "~/calendar-dates";
 import { intlLocale } from "./intl-locale.ts";
+import type { Locale } from "./paraglide/runtime.js";
 import { listOfWords } from "~/sentences";
 import type { Beta } from "~/units/beta";
 import type { Bytes } from "~/units/bytes";
@@ -11,6 +12,8 @@ import type { Rupiah } from "~/units/rupiah";
 import type { SplitAdjustedRupiah } from "~/units/split-adjusted-rupiah";
 import type { SharpeRatio } from "~/units/sharpe-ratio";
 import { wibTimeZone } from "~/wib";
+
+export { digitGrouping } from "./digit-grouping.ts";
 
 const rupiahOptions: Intl.NumberFormatOptions = {
   style: "currency",
@@ -28,10 +31,12 @@ const rupiahFormats: Record<CurrencyNotation, Intl.NumberFormatOptions> = {
 export function formatRupiah(
   amount: Rupiah,
   notation: CurrencyNotation = "standard",
+  locale?: Locale,
 ): string {
-  return new Intl.NumberFormat(intlLocale(), rupiahFormats[notation]).format(
-    amount,
-  );
+  return new Intl.NumberFormat(
+    intlLocale(locale),
+    rupiahFormats[notation],
+  ).format(amount);
 }
 
 /** One format supplies both the currency and digits when a headline sizes them apart. */
@@ -41,29 +46,6 @@ export function formatRupiahParts(amount: Rupiah): Intl.NumberFormatPart[] {
   );
 }
 
-/** How the active language groups the digits of a whole number: the character between groups, such as the dot in 100.000.000, and the number of digits in each group after the first, so that a parser can read a number as a person writes it. */
-export function digitGrouping(): { separator: string; size: number } {
-  const locale = intlLocale();
-  // Some languages group the digits of a number only from five digits, so a million shows the groups in every language that has them.
-  const million = 1_000_000;
-  let separator: string | undefined;
-  let lastGroup = "";
-  for (const part of new Intl.NumberFormat(locale).formatToParts(million)) {
-    if (part.type === "group") {
-      separator = part.value;
-    }
-    if (part.type === "integer") {
-      lastGroup = part.value;
-    }
-  }
-  if (separator === undefined) {
-    throw new Error(
-      `The number format of ${locale} writes a million without a separator of digit groups.`,
-    );
-  }
-  return { separator, size: lastGroup.length };
-}
-
 // A number shows at most three decimals, which is also the default of Intl.
 const mostNumberDecimals = 3;
 const numberOptions = { maximumFractionDigits: mostNumberDecimals };
@@ -71,12 +53,17 @@ const numberOptions = { maximumFractionDigits: mostNumberDecimals };
 /** The smallest step between the marks of an axis whose texts formatNumber writes, so no two marks read the same. */
 export const smallestNumberStep = 10 ** -mostNumberDecimals;
 
-export function formatNumber(value: number, decimals?: number): string {
+export function formatNumber(
+  value: number,
+  decimals?: number,
+  locale?: Locale,
+): string {
   return formatDecimal(
     value,
     decimals === undefined
       ? numberOptions
       : decimalPlaceOptions(decimals, "auto"),
+    locale,
   );
 }
 
@@ -226,8 +213,9 @@ function formatTwoDecimals(value: number): string {
 function formatDecimal(
   value: number,
   options: Intl.NumberFormatOptions,
+  locale?: Locale,
 ): string {
-  return new Intl.NumberFormat(intlLocale(), options).format(value);
+  return new Intl.NumberFormat(intlLocale(locale), options).format(value);
 }
 
 /** How a calendar date reads: in words for a sentence, in words with the day of the week, or with the short month of a table. */
@@ -247,17 +235,19 @@ const calendarDateOptions: Record<
 export function formatCalendarDate(
   date: string,
   style: CalendarDateStyle = "long",
+  locale?: Locale,
 ): string {
-  return formatUtcDay(startOfUtcDate(date), style);
+  return formatUtcDay(startOfUtcDate(date), style, locale);
 }
 
 /** Formats the day of a moment in UTC as formatCalendarDate formats a calendar date, such as the day that a field of a date sent, whose year can have more than four digits, such as 7 September 202666. */
 export function formatUtcDay(
   moment: Date,
   style: CalendarDateStyle = "long",
+  locale?: Locale,
 ): string {
   // A calendar date names a day without a time zone, and the moment is the start of the day in UTC, as startOfUtcDate gives it, so the day is formatted in UTC.
-  return new Intl.DateTimeFormat(intlLocale(), {
+  return new Intl.DateTimeFormat(intlLocale(locale), {
     ...calendarDateOptions[style],
     timeZone: "UTC",
   }).format(moment);

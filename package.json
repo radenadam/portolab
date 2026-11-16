@@ -22,6 +22,7 @@
     "build": "react-router build",
     "start": "node server/main.ts",
     "account": "node server/account.ts",
+    "sample-class": "node server/sample-class.ts",
     "check": "pnpm run check:fast && pnpm run test:e2e",
     "check:fast": "pnpm run format:check && pnpm run conventions && pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run test:dev && pnpm run unused && pnpm run duplicates && pnpm run build && pnpm run size",
     "format": "prettier --write .",

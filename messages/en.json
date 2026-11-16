@@ -1,6 +1,7 @@
 {
   "$schema": "https://inlang.com/schema/inlang-message-format",
   "app_name": "Portolab",
+  "app_sample_class_label": "sample class",
   "language_switch_label": "Language",
   "language_unknown_error": "The form sent \"{value}\" in the field \"{field}\", but Portolab is only available in {languages}. Choose one of them in the language switch.",
   "language_page_title": "Choose a language",

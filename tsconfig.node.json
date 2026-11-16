@@ -3,6 +3,7 @@
   "include": [
     "server/main.ts",
     "server/account.ts",
+    "server/sample-class.ts",
     "server/server-options.ts",
     "server/server-options.test.ts",
     "app/database/database.server.ts",

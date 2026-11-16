@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+import { minuteMilliseconds } from "~/time-units";
 import {
   currentOrNextSessionStart,
   isContinuousTradingTime,
@@ -7,6 +8,7 @@ import {
   latestClosedTradingDay,
   latestQuoteTradingDay,
   marketCloseAt,
+  lastContinuousTradingMoment,
   pricesFinalAt,
   tradingDayAfter,
   tradingDayBefore,
@@ -32,6 +34,30 @@ for (const date of ["2026-10-30", "2026-11-02"]) {
 test("refuses a close moment outside calendar coverage", () => {
   expect(marketCloseAt("2028-01-03").ok).toBe(false);
 });
+for (const date of ["2026-11-02", "2026-11-06"]) {
+  test(`finds the last continuous quote of ${date} from its recorded session`, () => {
+    const moment = lastContinuousTradingMoment(date);
+    expect(moment.ok ? moment.value.toISOString() : moment.failure).toBe(
+      `${date}T08:49:00.000Z`,
+    );
+    if (!moment.ok) throw new Error(moment.failure);
+    expect(isContinuousTradingTime(moment.value)).toEqual({
+      ok: true,
+      value: true,
+    });
+    expect(
+      isContinuousTradingTime(
+        new Date(moment.value.getTime() + minuteMilliseconds),
+      ),
+    ).toEqual({ ok: true, value: false });
+  });
+}
+
+for (const date of ["2026-11-07", "2026-12-25", "2028-01-03"]) {
+  test(`refuses a last continuous quote on ${date} without a recorded trading session`, () => {
+    expect(lastContinuousTradingMoment(date).ok).toBe(false);
+  });
+}
 
 // IDX's recorded regular hours begin continuous trading at 09:00 WIB on both variants. With this source delay, its first quote can arrive at 09:10.
 for (const [date, previous] of [

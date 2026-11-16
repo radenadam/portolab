@@ -47,4 +47,5 @@
 0047-chart-names-use-an-ellipsis-when-they-are-too-wide.md
 0048-lesson-practice-keeps-estimates-fixed-while-weights-change.md
 0049-complete-lesson-sheets-have-measured-route-allowances.md
-0050-current-returns-share-one-snapshot.md
+0050-a-sample-class-lives-in-a-database-of-its-own.md
+0051-current-returns-share-one-snapshot.md

@@ -26,7 +26,10 @@ import {
   trackedInstruments,
   universeOn,
 } from "./tracked-instruments";
-import { readLatestUpdateAttempt } from "./update-attempts.server";
+import {
+  readLatestUpdateAttempt,
+  saveUpdateAttempt,
+} from "./update-attempts.server";
 import type { UpdateAttempt } from "./update-attempts.server";
 
 // The log is replaced, so a test can read the texts that the history update writes.
@@ -119,6 +122,7 @@ async function updateHistory(
     instrumentsToTrack?: readonly Instrument[];
     from?: string;
     requestSignal?: () => AbortSignal;
+    refreshStoredHistory?: boolean;
   },
 ): Promise<{ waits: number }> {
   let waits = 0;
@@ -133,6 +137,7 @@ async function updateHistory(
       priceSource,
       instruments: options.instrumentsToTrack ?? instruments,
       historyStartDate: options.from ?? historyStartDate,
+      refreshStoredHistory: options.refreshStoredHistory ?? false,
     },
     () => moments.shift() ?? lastMoment,
     {
@@ -175,6 +180,46 @@ test("stores the closes of every instrument from the start date, one request aft
     failedCodes: [],
     finalDate: "2026-10-30",
   });
+});
+
+test("refreshes an incomplete stored history on request after a successful update of the same final day", async () => {
+  const database = openDatabaseForTest();
+  const { source, requests } = recordingSource(fixturePriceSource);
+  await updateHistory(database, source, { at: mondayMorning });
+  expect(readLatestUpdateAttempt(database, "history")?.succeeded).toBe(true);
+  requests.length = 0;
+  await updateHistory(database, source, {
+    at: mondayMorning,
+    refreshStoredHistory: true,
+  });
+  expect(requests.map((request) => request.code)).toEqual(
+    instruments.map((instrument) => instrument.code),
+  );
+});
+
+test("keeps failure backoff during a requested history refresh", async () => {
+  const database = openDatabaseForTest();
+  const { source, requests } = recordingSource(fixturePriceSource);
+  saveUpdateAttempt(
+    database,
+    "history",
+    firstFailure(mondayMorning, "2026-10-30"),
+  );
+  expect(
+    readLatestUpdateAttempt(database, "history")?.consecutiveFailures,
+  ).toBe(1);
+  await updateHistory(database, source, {
+    at: mondayMorning,
+    refreshStoredHistory: true,
+  });
+  expect(requests).toEqual([]);
+  await updateHistory(database, source, {
+    at: new Date("2026-11-02T03:01:00Z"),
+    refreshStoredHistory: true,
+  });
+  expect(requests.map((request) => request.code)).toEqual(
+    instruments.map((instrument) => instrument.code),
+  );
 });
 
 test("gets an answer from the fixture source for every tracked instrument", async () => {

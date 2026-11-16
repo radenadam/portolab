@@ -1,9 +1,9 @@
-import { fail, succeed } from "~/result";
-import type { Result } from "~/result";
-import { addDays, dayOfWeek } from "~/calendar-dates";
-import { periodOf } from "~/period-of";
-import type { DatePeriod } from "~/period-of";
-import { wibDateOf, wibMinuteOfDay, wibMoment } from "~/wib";
+import { fail, succeed } from "../../result.ts";
+import type { Result } from "../../result.ts";
+import { addDays, dayOfWeek } from "../../calendar-dates.ts";
+import { periodOf } from "../../period-of.ts";
+import type { DatePeriod } from "../../period-of.ts";
+import { wibDateOf, wibMinuteOfDay, wibMoment } from "../../wib.ts";
 
 /** The trading days and hours of IDX for the dates from `from` to `until`, in WIB. */
 interface TradingCalendar extends DatePeriod {
@@ -212,6 +212,22 @@ export function isTradingDay(date: string): Result<boolean, string> {
     return calendar;
   }
   return succeed(isTradingDayIn(calendar.value, date));
+}
+
+/** The sample replays a final daily close at the last minute in which continuous quotes can fill an order. */
+export function lastContinuousTradingMoment(
+  date: string,
+): Result<Date, string> {
+  const calendar = calendarFor(date);
+  if (!calendar.ok) return calendar;
+  if (!isTradingDayIn(calendar.value, date))
+    return fail(`IDX has no continuous trading session on ${date}.`);
+  const session = continuousSessionsOn(calendar.value, date).at(-1);
+  if (session === undefined)
+    throw new Error(
+      `The IDX calendar has no continuous session on trading day ${date}.`,
+    );
+  return succeed(wibMoment(date, session.endMinute - 1));
 }
 
 function nextTradingDay(date: string, step: 1 | -1): Result<string, string> {
