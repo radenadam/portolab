@@ -116,7 +116,8 @@ const lensApplies: Record<Lens, (file: ChangedFile) => boolean> = {
   product: (file) =>
     !isTest(file.path) &&
     (isMessages(file.path) ||
-      (file.path.startsWith("app/features/learning/content/") &&
+      ((file.path.startsWith("app/features/learning/content/") ||
+        file.path.startsWith("app/features/learning/guide/")) &&
         isMarkdown(file.path)) ||
       file.path.startsWith("server/") ||
       file.path === "app/routes.ts" ||

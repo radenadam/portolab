@@ -100,7 +100,7 @@ export function parseContentBlocks(
     } else if (table !== undefined) {
       blocks.push({ kind: "table", id: table });
     } else {
-      const text = paragraph.replaceAll(/\s+/gu, " ");
+      const text = normalizeContentWhitespace(paragraph);
       if (/[<>{}[\]`*_]|^[#>+|-] |[=²σβρΣ]/u.test(text)) {
         return fail(
           `${source} must have plain paragraphs or known formula and table references, but a paragraph is ${describeValue(paragraph)}.`,
@@ -110,4 +110,9 @@ export function parseContentBlocks(
     }
   }
   return succeed(blocks);
+}
+
+// Inline references split a paragraph, so their neighboring spaces must survive normalization.
+export function normalizeContentWhitespace(text: string): string {
+  return text.replaceAll(/\s+/gu, " ");
 }
