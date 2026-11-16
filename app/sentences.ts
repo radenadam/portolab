@@ -1,10 +1,12 @@
+import { listFormat } from "./intl-formats.ts";
+
 /** Joins words into a list, such as "a, b, and c", or "a, b, or c" for a choice. The list is English unless the caller names another language, because the scripts write English. */
 export function listOfWords(
   words: readonly string[],
   type: "conjunction" | "disjunction" = "conjunction",
   locale = "en",
 ): string {
-  return new Intl.ListFormat(locale, { type }).format(words);
+  return listFormat(locale, type).format(words);
 }
 
 /** Chooses the singular form for a count of one and the plural form for any other count, whether the forms are words or the messages that hold them. */

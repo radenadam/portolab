@@ -11,6 +11,8 @@
     "app/number-pattern.ts",
     "app/routes.ts",
     "app/sentences.ts",
+    "app/intl-formats.ts",
+    "app/write-intl-spaces-for-test.ts",
     "app/success-value-for-test.ts",
     "app/value-parsers.ts",
     "app/character-count.ts",

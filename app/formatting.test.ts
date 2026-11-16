@@ -63,8 +63,8 @@ for (const locale of locales) {
 }
 
 const sizes: Record<Locale, string> = {
-  id: "128.040 byte",
-  en: "128,040 bytes",
+  id: "128.040\u00a0byte",
+  en: "128,040\u00a0bytes",
 };
 
 const splitPrices: Record<Locale, readonly string[]> = {
@@ -114,8 +114,8 @@ for (const locale of locales) {
 }
 
 const minutes: Record<Locale, readonly string[]> = {
-  id: ["10 mnt", "10 menit", "1 menit"],
-  en: ["10 min", "10 minutes", "1 minute"],
+  id: ["10\u00a0mnt", "10\u00a0menit", "1\u00a0menit"],
+  en: ["10\u00a0min", "10\u00a0minutes", "1\u00a0minute"],
 };
 
 const signedAmounts: Record<

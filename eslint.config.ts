@@ -8,44 +8,12 @@ import jsxA11y from "eslint-plugin-jsx-a11y-x";
 import reactHooks from "eslint-plugin-react-hooks";
 import globals from "globals";
 import typescriptEslint from "typescript-eslint";
+import { abbreviations } from "./lint/abbreviations.ts";
 import { browserNavigation } from "./lint/browser-navigation.ts";
 import { fileNamedAfterExport } from "./lint/file-named-after-export.ts";
+import { intlFormatsConfig } from "./lint/intl-formats-config.ts";
 import { testLanguageConfig } from "./lint/test-language-config.ts";
 import { messageFeature } from "./lint/message-feature.ts";
-
-// Abbreviations that read as noise. Names use full words instead.
-const abbreviations = [
-  "acc",
-  "amt",
-  "arr",
-  "btn",
-  "cb",
-  "cfg",
-  "cnt",
-  "conf",
-  "ctx",
-  "curr",
-  "desc",
-  "e",
-  "el",
-  "elem",
-  "err",
-  "evt",
-  "fn",
-  "idx",
-  "msg",
-  "num",
-  "obj",
-  "pct",
-  "prev",
-  "px",
-  "qty",
-  "req",
-  "res",
-  "str",
-  "tmp",
-  "val",
-];
 
 // ESLint has no rule that checks a signature by the name of a function, so these selectors check the parser standard in the section Code of AGENTS.md.
 const parserSignature =
@@ -263,6 +231,7 @@ export default defineConfig(
     },
   },
   browserNavigation,
+  intlFormatsConfig,
   {
     files: ["app/features/**/*.{ts,tsx}"],
     ignores: ["**/*.test.*", "**/*-for-test.*"],

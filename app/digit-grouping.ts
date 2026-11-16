@@ -1,3 +1,4 @@
+import { numberFormat } from "./intl-formats.ts";
 import { intlLocale } from "./intl-locale.ts";
 
 /** How the active language groups the digits of a whole number: the character between groups, such as the dot in 100.000.000, and the number of digits in each group after the first, so that a parser can read a number as a person writes it. */
@@ -7,7 +8,7 @@ export function digitGrouping(): { separator: string; size: number } {
   const million = 1_000_000;
   let separator: string | undefined;
   let lastGroup = "";
-  for (const part of new Intl.NumberFormat(locale).formatToParts(million)) {
+  for (const part of numberFormat(locale, {}).formatToParts(million)) {
     if (part.type === "group") {
       separator = part.value;
     }

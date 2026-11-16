@@ -1,13 +1,17 @@
+import { numberFormat } from "./intl-formats.ts";
+import { intlLocale } from "./intl-locale.ts";
+
 // A nonzero formula input must not look like a zero denominator after rounding.
 export function formatNonzeroNumber(
   value: number,
-  formatter: Intl.NumberFormat,
+  options: Intl.NumberFormatOptions,
 ): string {
-  const text = formatter.format(value);
-  if (value === 0 || formatter.format(Math.abs(value)) !== formatter.format(0))
+  const locale = intlLocale();
+  const format = numberFormat(locale, options);
+  const text = format.format(value);
+  if (value === 0 || format.format(Math.abs(value)) !== format.format(0))
     return text;
-  const options = formatter.resolvedOptions();
-  return new Intl.NumberFormat(options.locale, {
+  return numberFormat(locale, {
     ...options,
     maximumSignificantDigits: 4,
   }).format(value);
