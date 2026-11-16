@@ -21,7 +21,7 @@ import { classes } from "../app/features/classes/classes.schema.ts";
 import { rupiah } from "../app/units/rupiah.ts";
 import { shares } from "../app/units/shares.ts";
 import { writeForTestStudent } from "./write-for-test-student.ts";
-import { layoutProblems } from "./expect-layout.ts";
+import { expectLayout, layoutProblems } from "./expect-layout.ts";
 import { isPhone } from "./frame.ts";
 import { itmgPortfolio } from "./itmg-portfolio.ts";
 import { storeTestPurchases } from "./store-test-purchases.ts";
@@ -885,9 +885,7 @@ async function expectAnalysisStockReturn(
         name: `analysis-stock-return-${locale}`,
         fullPage: true,
         fromTop: true,
-        check: async () => {
-          expect(await layoutProblems(page)).toEqual([]);
-        },
+        check: () => expectLayout(page),
       });
   } finally {
     await lecturer.context().close();

@@ -1,4 +1,5 @@
 import { IndexHelp } from "./index-help";
+import type { LessonTask } from "~/features/learning/lesson-task";
 import { QuoteTime } from "./quote-time";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
@@ -31,6 +32,7 @@ export function IhsgCard({
   filters,
   missed,
   sharedTime,
+  task,
 }: {
   index: IndexCode;
   quote: IndexQuote | undefined;
@@ -38,6 +40,7 @@ export function IhsgCard({
   filters: MarketFilters;
   missed: boolean;
   sharedTime?: string | undefined;
+  task?: LessonTask | undefined;
 }): ReactNode {
   const first = closes[0];
   const last = closes.at(-1);
@@ -63,7 +66,7 @@ export function IhsgCard({
           {marketRangeOptions().map(({ value: range, label }) => (
             <Link
               key={range}
-              to={marketSearch({ ...filters, range })}
+              to={marketSearch({ ...filters, range }, task)}
               aria-current={filters.range === range ? "true" : undefined}
             >
               <NumberText>{label}</NumberText>

@@ -4,8 +4,12 @@ import type { ContentBlock } from "./content";
 
 export function ContentParagraphs({
   blocks,
+  reference,
 }: {
   blocks: readonly ContentBlock[];
+  reference?: (
+    block: Exclude<ContentBlock, { kind: "paragraph" }>,
+  ) => ReactNode;
 }): ReactNode {
   return blocks.map((block) => {
     switch (block.kind) {
@@ -15,10 +19,11 @@ export function ContentParagraphs({
             <NumberText>{block.text}</NumberText>
           </p>
         );
-      // Pieces 23 and 30 supply the data and render the typed references, as docs/learning-content.md assigns them.
       case "formula":
       case "table":
-        return null;
+        return reference === undefined ? null : (
+          <div key={`${block.kind}-${block.id}`}>{reference(block)}</div>
+        );
     }
   });
 }

@@ -307,9 +307,14 @@ for (const locale of locales) {
     await filters
       .getByRole("link", { name: `${text.rejected} · 1`, exact: true })
       .click();
-    await expect(
-      native.getByRole("link", { name: text.open, exact: true }),
-    ).toHaveAttribute("href", `${classPath}/stocks/BBCA`);
+    await native.getByRole("link", { name: text.open, exact: true }).click();
+    await expect(native).toHaveURL(`${classPath}/stocks/BBCA/buy`);
+    await expect(native.getByRole("dialog")).toBeVisible();
+    await expect(native.getByRole("dialog")).toHaveAttribute(
+      "data-side",
+      "buy",
+    );
+    await native.goto(`${classPath}/activity?status=rejected`);
     await filters
       .getByRole("link", { name: `${text.all} · 6`, exact: true })
       .click();

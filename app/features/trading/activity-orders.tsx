@@ -1,3 +1,5 @@
+import { withLessonTask } from "~/features/learning/lesson-task";
+import type { LessonTask } from "~/features/learning/lesson-task";
 import { activityFilters, activityStatusLabel } from "./activity-options";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
@@ -41,6 +43,7 @@ export function ActivityOrders({
   now,
   classId,
   filter,
+  task,
   readOnly = false,
   studentName,
   basePath,
@@ -50,6 +53,7 @@ export function ActivityOrders({
   now: Date;
   classId: ClassId;
   filter: ActivityFilter;
+  task?: LessonTask | undefined;
   readOnly?: boolean;
   studentName?: string | undefined;
   basePath?: string;
@@ -77,7 +81,10 @@ export function ActivityOrders({
         {activityFilters.map((status) => (
           <Link
             key={status}
-            to={`${basePath ?? activityPath(classId)}${basePath?.includes("?") === true ? "&" : "?"}status=${status}`}
+            to={withLessonTask(
+              `${basePath ?? activityPath(classId)}${basePath?.includes("?") === true ? "&" : "?"}status=${status}`,
+              task,
+            )}
             className={chipStyles["filter"]}
             aria-current={filter === status ? "page" : undefined}
           >
@@ -120,6 +127,7 @@ export function ActivityOrders({
                     id={`order-${String(order.id)}`}
                     keepReturn={readOnly}
                     className={styles["stock"]}
+                    task={task}
                   >
                     <StockName
                       code={order.code}
@@ -170,7 +178,10 @@ export function ActivityOrders({
                   {!readOnly && order.state.kind === "rejected" && (
                     <Link
                       className={styles["button"]}
-                      to={stockPath(classId, order.code)}
+                      to={withLessonTask(
+                        `${stockPath(classId, order.code)}/${order.side}`,
+                        task,
+                      )}
                     >
                       {m.trading_activity_ticket_link({ code: order.code })}
                     </Link>

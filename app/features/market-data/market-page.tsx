@@ -1,3 +1,4 @@
+import { readLessonTask } from "~/features/learning/read-lesson-task.server";
 import { marketIndex } from "./tracked-instruments";
 import type { ReactNode } from "react";
 import { data } from "react-router";
@@ -70,6 +71,7 @@ export function loader({ context, params, url }: Route.LoaderArgs) {
   return data(
     {
       classId,
+      task: readLessonTask(url),
       ...readMarket(context, new Date(), filters.range),
       filters,
       values: {

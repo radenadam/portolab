@@ -39,9 +39,10 @@ const holdings = {
 /** A portfolio of BBCA, TLKM, and cash at the quotes of 30 October 2026, valued with the quotes of the codes that a test gives, and the other holdings without a price. The page of the measures never shows the starting cash. */
 export function valuationForTest(
   quotedCodes: readonly ("BBCA" | "TLKM")[],
+  cash = rupiah(10_956_000),
 ): PortfolioValuation {
   return valuePortfolio(
-    { cash: rupiah(10_956_000), holdings: [holdings.BBCA, holdings.TLKM] },
+    { cash, holdings: [holdings.BBCA, holdings.TLKM] },
     rupiah(100_000_000),
     new Map(quotedCodes.map((code) => [code, quotes[code]])),
   );

@@ -131,7 +131,10 @@ function requiredReturnOn(line: MarketLine, beta: Beta): MonthlyReturn {
 /** Measures the return that CAPM requires for a beta, with the risk-free rate and the expected return of the market. */
 export function measureRequiredReturn(
   beta: Beta,
-  market: MarketMeasures,
+  market: {
+    riskFreeRate: { value: MonthlyReturn };
+    expectedReturn: { value: MonthlyReturn };
+  },
 ): RequiredReturnMeasure {
   const line: MarketLine = {
     riskFreeRate: market.riskFreeRate.value,

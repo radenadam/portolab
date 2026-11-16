@@ -38,6 +38,8 @@ Sharpe is undefined when standard deviation is zero. Treynor is undefined when b
 
 Compare measures over the same period and frequency. Historical prices without dividends measure price changes rather than an investor's entire income. Measured results do not guarantee future results.
 
+{{table:estimation-settings}}
+
 ## interactive
 
 ## terms

@@ -1,3 +1,4 @@
+import { readLessonTask } from "~/features/learning/read-lesson-task.server";
 import { data } from "react-router";
 import { activityPath } from "./activity-path";
 import { findTradingPlace } from "./find-trading-place.server";
@@ -31,6 +32,7 @@ export function readActivityPage(
       ...activity,
       classId: place.classId,
       path: activityPath(place.classId, kind),
+      task: kind === "membership" ? readLessonTask(url) : undefined,
       demonstration: kind === "demonstration",
       portfolioKind: kind,
     },
