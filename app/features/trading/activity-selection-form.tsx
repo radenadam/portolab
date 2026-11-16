@@ -15,8 +15,10 @@ export interface ActivitySelectionFields {
 
 export function ActivitySelectionForm({
   fields,
+  returnPath,
 }: {
   fields: ActivitySelectionFields;
+  returnPath?: string | undefined;
 }): ReactNode {
   const statusOptions: FieldOption[] = activityFilterOptions();
   const viewOptions: FieldOption[] = activityViewOptions();
@@ -26,6 +28,9 @@ export function ActivitySelectionForm({
     viewOptions.unshift({ value: fields.view, label: fields.view });
   return (
     <Form method="get" className={styles["selectionForm"]}>
+      {returnPath !== undefined && (
+        <input type="hidden" name="returnTo" value={returnPath} />
+      )}
       <SelectField
         name="status"
         label={m.trading_activity_status_label()}

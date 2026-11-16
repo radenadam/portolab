@@ -26,7 +26,11 @@ export function NumberText(
       </span>
     );
   if (properties.verbatim === true)
-    return <span data-text-value="">{properties.children}</span>;
+    return (
+      <span className={styles["textValue"]} data-text-value="">
+        {properties.children}
+      </span>
+    );
   if (typeof properties.children !== "function")
     return numberTextOf(properties.children, []);
   const textValues: string[] = [];
@@ -52,7 +56,9 @@ function numberTextOf(
     parts.push(
       <Fragment key={match.index}>
         {numberRuns(text.slice(start, match.index))}
-        <span data-text-value="">{textValue}</span>
+        <span className={styles["textValue"]} data-text-value="">
+          {textValue}
+        </span>
       </Fragment>,
     );
     start = match.index + match[0].length;

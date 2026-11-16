@@ -40,7 +40,7 @@ export function StockMeasuresView({
           {measureFailureText(measures.failure, {
             kind: "stock",
             code,
-            portfolioKind,
+            reader: { kind: "owner", portfolioKind },
           })}
         </NumberText>
       </p>

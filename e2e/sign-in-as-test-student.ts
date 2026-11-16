@@ -8,11 +8,12 @@ import { writeTestDatabase } from "./write-test-database.ts";
 export async function signInAsTestStudent(
   page: Page,
   testClass: TestClass,
-  name: string,
+  student: string | { name: string; username: string },
 ): Promise<string> {
+  const details = typeof student === "string" ? { name: student } : student;
   const now = new Date();
   const { username } = await writeTestDatabase((database) =>
-    createClassStudent(database, testClass.id, { name, now }),
+    createClassStudent(database, testClass.id, { ...details, now }),
   );
   await page.goto(testClass.path);
   await signInAndReturn(page, {

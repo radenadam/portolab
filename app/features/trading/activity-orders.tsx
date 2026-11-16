@@ -1,4 +1,3 @@
-import type { PortfolioKind } from "./portfolio-store.server";
 import { activityFilters, activityStatusLabel } from "./activity-options";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
@@ -6,6 +5,7 @@ import chipStyles from "~/chip.module.css";
 import type { ClassId } from "~/features/classes/classes.schema";
 import { StockName } from "~/features/market-data/stock-name";
 import { stockPath } from "~/features/market-data/stock-path";
+import { StockPageLink } from "~/features/market-data/stock-page-link";
 import { formatNumber, formatRupiah } from "~/formatting";
 import { Message } from "~/message";
 import { NumberText } from "~/number-text";
@@ -21,6 +21,7 @@ import type { OrderSide } from "./order";
 import { orderFailureText } from "./order-failure-text";
 import styles from "./activity.module.css";
 import { CancelOrder } from "./cancel-order";
+import type { PortfolioKind } from "./portfolio-store.server";
 
 const statusMarks: Record<ActivityStatus, string> = {
   waiting: "M9 3h6M9 21h6M9 3v4l6 10v4M15 3v4L9 17v4",
@@ -40,15 +41,19 @@ export function ActivityOrders({
   now,
   classId,
   filter,
-  path,
+  readOnly = false,
+  studentName,
+  basePath,
   portfolioKind = "membership",
 }: {
   orders: readonly StoredOrder[];
   now: Date;
   classId: ClassId;
   filter: ActivityFilter;
-  path?: string;
-  portfolioKind?: PortfolioKind;
+  readOnly?: boolean;
+  studentName?: string | undefined;
+  basePath?: string;
+  portfolioKind?: PortfolioKind | undefined;
 }): ReactNode {
   const shown = orders
     .toReversed()
@@ -60,6 +65,11 @@ export function ActivityOrders({
       className={styles["orderSection"]}
       aria-label={m.trading_activity_orders_label()}
     >
+      {readOnly && (
+        <h2 className={styles["journalTitle"]}>
+          {m.trading_activity_orders_label()}
+        </h2>
+      )}
       <nav
         className={styles["filters"]}
         aria-label={m.trading_activity_status_label()}
@@ -67,7 +77,7 @@ export function ActivityOrders({
         {activityFilters.map((status) => (
           <Link
             key={status}
-            to={`${path ?? activityPath(classId)}?status=${status}`}
+            to={`${basePath ?? activityPath(classId)}${basePath?.includes("?") === true ? "&" : "?"}status=${status}`}
             className={chipStyles["filter"]}
             aria-current={filter === status ? "page" : undefined}
           >
@@ -88,9 +98,15 @@ export function ActivityOrders({
       <div className={styles["panel"]}>
         {shown.length === 0 ? (
           <p className={styles["empty"]}>
-            {orders.length === 0
-              ? m.trading_activity_no_orders_body()
-              : m.trading_activity_no_status_body()}
+            <NumberText verbatim>
+              {orders.length === 0
+                ? studentName === undefined
+                  ? m.trading_activity_no_orders_body()
+                  : m.trading_activity_student_no_orders_body({
+                      name: studentName,
+                    })
+                : m.trading_activity_no_status_body()}
+            </NumberText>
           </p>
         ) : (
           <ul className={styles["list"]} data-layout="rows">
@@ -98,9 +114,12 @@ export function ActivityOrders({
               <li key={order.id} className={styles["order"]}>
                 <div className={styles["orderHeader"]}>
                   <SideTag side={order.side} />
-                  <Link
+                  <StockPageLink
+                    classId={classId}
+                    code={order.code}
+                    id={`order-${String(order.id)}`}
+                    keepReturn={readOnly}
                     className={styles["stock"]}
-                    to={stockPath(classId, order.code)}
                   >
                     <StockName
                       code={order.code}
@@ -134,11 +153,11 @@ export function ActivityOrders({
                         </>
                       }
                     />
-                  </Link>
+                  </StockPageLink>
                   <StatusChip status={activityStatus(order, now)} />
                 </div>
                 <div className={styles["orderBody"]}>
-                  <p>{orderDetail(order, now, portfolioKind)}</p>
+                  <p>{orderDetail(order, now, { readOnly, portfolioKind })}</p>
                   {order.reason !== undefined && (
                     <p className={styles["reason"]}>
                       <NumberText verbatim>
@@ -148,7 +167,7 @@ export function ActivityOrders({
                       </NumberText>
                     </p>
                   )}
-                  {order.state.kind === "rejected" && (
+                  {!readOnly && order.state.kind === "rejected" && (
                     <Link
                       className={styles["button"]}
                       to={stockPath(classId, order.code)}
@@ -156,7 +175,7 @@ export function ActivityOrders({
                       {m.trading_activity_ticket_link({ code: order.code })}
                     </Link>
                   )}
-                  {isOpenOrder(order, now) && (
+                  {!readOnly && isOpenOrder(order, now) && (
                     <CancelOrder
                       order={order}
                       side={sideLabels[order.side]()}
@@ -200,7 +219,10 @@ function StatusChip({ status }: { status: ActivityStatus }): ReactNode {
 function orderDetail(
   order: StoredOrder,
   now: Date,
-  portfolioKind: PortfolioKind,
+  {
+    readOnly,
+    portfolioKind,
+  }: { readOnly: boolean; portfolioKind: PortfolioKind },
 ): ReactNode {
   if (activityStatus(order, now) === "expired")
     return (
@@ -240,21 +262,23 @@ function orderDetail(
           values={{ time: <MarketTime moment={order.state.cancelledAt} /> }}
         />
       );
-    case "rejected":
+    case "rejected": {
+      const reason = (
+        <NumberText>
+          {orderFailureText(order.state.failure, portfolioKind)}
+        </NumberText>
+      );
       return (
         <Message
           text={m.trading_activity_rejection_notice}
           values={{
             time: <MarketTime moment={order.state.rejectedAt} />,
             quotedTime: <MarketTime moment={order.state.quotedAt} />,
-            reason: (
-              <NumberText>
-                {orderFailureText(order.state.failure, portfolioKind)}
-              </NumberText>
-            ),
+            reason: readOnly ? <q>{reason}</q> : reason,
           }}
         />
       );
+    }
     case "expired":
       return (
         <Message

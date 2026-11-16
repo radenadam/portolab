@@ -1,4 +1,6 @@
-import type { PortfolioKind } from "~/features/trading/portfolio-store.server";
+import { PortfolioMeasuresNotice } from "./portfolio-measures-notice";
+import { portfolioStudentName } from "~/features/trading/text-for-reader";
+import type { PortfolioReader } from "~/features/trading/text-for-reader";
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
@@ -17,7 +19,11 @@ import { analysisDataId } from "./analysis-calculation";
 import { DiversificationCalculation } from "./diversification-calculation";
 import { AnalysisMapPanel } from "./analysis-map-panel";
 import type { AnalysisAxis } from "./analysis-axes";
-import { AnalysisMeasures, analysisMeasures } from "./analysis-measures";
+import {
+  AnalysisMeasures,
+  analysisMeasures,
+  analysisPortfolioTitle,
+} from "./analysis-measures";
 import { AnalysisPerformance } from "./analysis-performance";
 import { AnalysisPointCalculations } from "./analysis-point-calculations";
 import { explainPortfolioMeasures } from "./explain-portfolio-measures";
@@ -34,13 +40,18 @@ import type {
   StockRow,
   StudentLine,
 } from "./read-measures.server";
-import { StudentMarketLine } from "./market-line-section";
+import { StudentMarketLine } from "./student-market-line";
 import { StockTable } from "./stock-table";
 import styles from "./analysis.module.css";
 import { analysisHoldings } from "./analysis-holdings";
 import { MarketSection } from "./market-section";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
 import { attemptForCodes } from "~/features/market-data/quote-failure-text";
+
+interface SummaryLink {
+  path: string;
+  label: string;
+}
 
 export function AnalysisView({
   classId,
@@ -53,10 +64,10 @@ export function AnalysisView({
   now,
   source,
   firstSessionDate,
-  portfolioHome,
-  portfolioKind,
-  showTitle,
+  reader,
+  summary,
   showData,
+  showTitle,
 }: {
   classId: ClassId;
   report: PortfolioReport;
@@ -68,12 +79,12 @@ export function AnalysisView({
   now: Date;
   source: PriceSourceDescription;
   firstSessionDate: string | null;
-  portfolioHome: { path: string; title: string };
-  portfolioKind: PortfolioKind;
-  showTitle: boolean;
+  reader: PortfolioReader;
+  summary: SummaryLink;
   showData: boolean;
+  showTitle?: boolean;
 }): ReactNode {
-  const reader = { kind: "owner", classId, portfolioKind } as const;
+  const studentName = portfolioStudentName(reader);
   const explained = explainPortfolioMeasures(measures, reader);
   const portfolio = explained.ok ? explained.value : undefined;
   const market = portfolio?.market ?? latestMarket;
@@ -103,8 +114,9 @@ export function AnalysisView({
     <div className={styles["page"]}>
       <AnalysisHeader
         market={market}
-        portfolioHome={portfolioHome}
+        summary={summary}
         showTitle={showTitle}
+        reader={reader}
       />
       <div
         className={styles["top"]}
@@ -112,15 +124,15 @@ export function AnalysisView({
         data-layout-ratio="2.4:1"
       >
         <AnalysisMapPanel
-          portfolioKind={portfolioKind}
           holdings={holdings}
           market={market}
           portfolio={portfolio}
           marketLine={marketLine}
           axis={axis}
+          reader={reader}
         />
         {portfolio !== undefined ? (
-          <AnalysisMeasures measures={rows} />
+          <AnalysisMeasures measures={rows} studentName={studentName} />
         ) : (
           <section
             className={styles["measures"]}
@@ -128,16 +140,18 @@ export function AnalysisView({
             aria-labelledby="analysis-measures-title"
           >
             <h2 id="analysis-measures-title">
-              {m.measures_analysis_measures_title()}
+              <NumberText verbatim>
+                {analysisPortfolioTitle(studentName)}
+              </NumberText>
             </h2>
-            {!explained.ok && (
-              <p>
-                <NumberText>{explained.failure}</NumberText>
-              </p>
+            <p>
+              <PortfolioMeasuresNotice report={measures} reader={reader} />
+            </p>
+            {reader.kind === "owner" && (
+              <Link to={marketPath(classId)} className={styles["link"]}>
+                {m.measures_analysis_market_link()}
+              </Link>
             )}
-            <Link to={marketPath(classId)} className={styles["link"]}>
-              {m.measures_analysis_market_link()}
-            </Link>
             <PopoverButton popover={analysisDataId} className={styles["link"]}>
               {m.measures_analysis_data_label()}
             </PopoverButton>
@@ -151,9 +165,8 @@ export function AnalysisView({
       )}
       <AnalysisPerformance
         history={report.history}
-        classId={classId}
         firstSessionDate={firstSessionDate}
-        portfolioKind={portfolioKind}
+        reader={reader}
       />
       <Popover
         id={analysisDataId}
@@ -170,10 +183,7 @@ export function AnalysisView({
             quoteFailure={quoteFailure}
             source={source}
           />
-          <StudentMarketLine
-            marketLine={marketLine}
-            portfolioKind={portfolioKind}
-          />
+          <StudentMarketLine marketLine={marketLine} reader={reader} />
           <h2>{m.measures_stocks_title()}</h2>
           <StockTable classId={classId} stocks={stocks} />
         </div>
@@ -199,17 +209,21 @@ export function AnalysisView({
 
 function AnalysisHeader({
   market,
-  portfolioHome,
+  summary,
   showTitle,
+  reader,
 }: {
   market: MarketSummary | undefined;
-  portfolioHome: { path: string; title: string };
-  showTitle: boolean;
+  summary: SummaryLink;
+  showTitle: boolean | undefined;
+  reader: PortfolioReader;
 }): ReactNode {
   const riskFreeConcept = measureConcept("riskFree");
   return (
     <header className={styles["header"]}>
-      {showTitle && <h1>{m.measures_analysis_title()}</h1>}
+      {(showTitle ?? reader.kind === "owner") && (
+        <h1>{m.measures_analysis_title()}</h1>
+      )}
       {market !== undefined && (
         <div className={styles["period"]}>
           <NumberText>
@@ -237,8 +251,8 @@ function AnalysisHeader({
             calculation={<RiskFreeFormula rate={market.riskFreeRate} />}
             lesson={<ConceptLesson termId={riskFreeConcept.termId} />}
           />
-          <Link className={styles["pricesLink"]} to={portfolioHome.path}>
-            {m.measures_analysis_prices_link({ page: portfolioHome.title })}
+          <Link className={styles["pricesLink"]} to={summary.path}>
+            {m.measures_analysis_prices_link({ page: summary.label })}
           </Link>
         </div>
       )}

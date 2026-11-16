@@ -51,42 +51,94 @@ const texts: Record<
   },
 };
 
+const studentTexts: Record<
+  Locale,
+  {
+    beta: readonly string[];
+    sharpe: readonly string[];
+    missing: string;
+    negative: string;
+  }
+> = {
+  id: {
+    beta: [
+      "Pasar 1,00. Portofolio Raka lebih tenang dari pasar.",
+      "Pasar 1,00. Portofolio Raka bergerak seperti pasar.",
+      "Pasar 1,00. Portofolio Raka lebih bergejolak dari pasar.",
+    ],
+    sharpe: [
+      "IHSG 0,10. Imbal hasil per unit risiko Raka di bawah pasar.",
+      "IHSG 0,10. Imbal hasil per unit risiko Raka sama dengan pasar.",
+      "IHSG 0,10. Imbal hasil per unit risiko Raka di atas pasar.",
+    ],
+    missing: "IHSG 0,10.",
+    negative:
+      "Pasar 1,00. Portofolio Raka bergerak berlawanan arah dengan pasar.",
+  },
+  en: {
+    beta: [
+      "Market 1.00. The portfolio of Raka moves less with the market.",
+      "Market 1.00. The portfolio of Raka moves like the market.",
+      "Market 1.00. The portfolio of Raka moves more with the market.",
+    ],
+    sharpe: [
+      "IHSG 0.10. The return of Raka per unit of risk is below the market.",
+      "IHSG 0.10. The return of Raka per unit of risk equals the market.",
+      "IHSG 0.10. The return of Raka per unit of risk is above the market.",
+    ],
+    missing: "IHSG 0.10.",
+    negative:
+      "Market 1.00. The portfolio of Raka moves in the opposite direction to the market.",
+  },
+};
+
 for (const locale of locales) {
   test(`compares beta and Sharpe after rounding and keeps the market reference without a portfolio ratio in ${languageNames[locale]}`, () => {
-    switchLocaleForTest(locale);
-    const report = portfolioAgainstMarketForTest();
-    if (report.kind !== "measured")
-      throw new Error("The fixture has measured returns.");
-    const portfolio = successValueForTest(
-      report.measures,
-      "The fixture has measures",
-    );
-    const market = { ...portfolio.market, sharpeRatio: sharpeRatio(0.1) };
-    for (const [index, betaValue, ratio] of [
-      [0, 0.5, -0.2],
-      [0, -0.0001, -0.2],
-      [0, 0, -0.2],
-      [1, 0.9999, 0.09999],
-      [2, 1.5, 0.4],
-    ] as const) {
-      const notes = homeRiskNotes({
-        ...portfolio,
-        beta: beta(betaValue),
-        market,
-        sharpeRatio: succeed(sharpeRatio(ratio)),
-      });
-      expect(notes.beta).toBe(texts[locale].beta[index]);
-      expect(notes.sharpe).toBe(texts[locale].sharpe[index]);
+    for (const studentName of [undefined, "Raka"]) {
+      const expected =
+        studentName === undefined ? texts[locale] : studentTexts[locale];
+      switchLocaleForTest(locale);
+      const report = portfolioAgainstMarketForTest();
+      if (report.kind !== "measured")
+        throw new Error("The fixture has measured returns.");
+      const portfolio = successValueForTest(
+        report.measures,
+        "The fixture has measures",
+      );
+      const market = { ...portfolio.market, sharpeRatio: sharpeRatio(0.1) };
+      for (const [index, betaValue, ratio] of [
+        [0, 0.5, -0.2],
+        [0, -0.0001, -0.2],
+        [0, 0, -0.2],
+        [1, 0.9999, 0.09999],
+        [2, 1.5, 0.4],
+      ] as const) {
+        const notes = homeRiskNotes(
+          {
+            ...portfolio,
+            beta: beta(betaValue),
+            market,
+            sharpeRatio: succeed(sharpeRatio(ratio)),
+          },
+          studentName,
+        );
+        expect(notes.beta).toBe(expected.beta[index]);
+        expect(notes.sharpe).toBe(expected.sharpe[index]);
+      }
+      expect(
+        homeRiskNotes({ ...portfolio, beta: beta(-2), market }, studentName)
+          .beta,
+      ).toBe(expected.negative);
+      expect(
+        homeRiskNotes(
+          {
+            ...portfolio,
+            market,
+            sharpeRatio: fail({ kind: "noPortfolioVariation" }),
+          },
+          studentName,
+        ).sharpe,
+      ).toBe(expected.missing);
     }
-    expect(homeRiskNotes({ ...portfolio, beta: beta(-2), market }).beta).toBe(
-      texts[locale].negative,
-    );
-    expect(
-      homeRiskNotes({
-        ...portfolio,
-        market,
-        sharpeRatio: fail({ kind: "noPortfolioVariation" }),
-      }).sharpe,
-    ).toBe(texts[locale].missing);
   });
 }

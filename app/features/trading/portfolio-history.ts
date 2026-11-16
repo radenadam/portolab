@@ -54,7 +54,7 @@ export interface MissingCalendar {
 
 const missingCalendar: MissingCalendar = { kind: "missingCalendar" };
 
-/** Final daily returns under decision 0018, with a possible current endpoint under decision 0047. */
+/** Final daily returns under decision 0018, with a possible current endpoint under decision 0048. */
 export interface PortfolioHistory {
   /** Points run from the base close in time order. No series can start before a final base close is available. */
   points: ReturnPoint[];

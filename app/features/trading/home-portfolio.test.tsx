@@ -24,6 +24,27 @@ import { rupiah } from "~/units/rupiah";
 import { HomePortfolio } from "./home-portfolio";
 import type { HomePortfolioData } from "./read-home-portfolio.server";
 import { valuePortfolio } from "./value-portfolio";
+const missingTexts: Record<
+  Locale,
+  Record<"shares" | "one" | "several" | "unpriced" | "returnTitle", string>
+> = {
+  id: {
+    shares: "Jumlah saham",
+    one: "Portolab menampilkan nilai total dan imbal hasil setelah pembaruan harga berikutnya membawa harga tertunda TLKM.",
+    several:
+      "Portolab menampilkan nilai total dan imbal hasil setelah pembaruan harga berikutnya membawa harga tertunda BBCA dan TLKM.",
+    unpriced: "Portolab belum memiliki harga tertunda TLKM.",
+    returnTitle: "Imbal hasil Anda dibandingkan IHSG",
+  },
+  en: {
+    shares: "Shares",
+    one: "Portolab shows the total value and the return once the next update of prices brings a delayed price of TLKM.",
+    several:
+      "Portolab shows the total value and the return once the next update of prices brings the delayed prices of BBCA and TLKM.",
+    unpriced: "Portolab has no delayed price of TLKM yet.",
+    returnTitle: "Your return against the IHSG",
+  },
+};
 const classId = 7 as ClassId;
 const texts: Record<
   Locale,
@@ -63,6 +84,7 @@ const texts: Record<
       "Bobot",
       "Lot",
       "Harga rata-rata",
+      "Harga tertunda",
       "Harga rata-rata termasuk biaya broker.",
       "Harga rata-rata membagi biaya saham termasuk biaya broker dengan jumlah saham, lalu membulatkannya ke rupiah utuh.",
       "Laba atau rugi",
@@ -114,6 +136,7 @@ const texts: Record<
       "Weight",
       "Lots",
       "Average price",
+      "Delayed price",
       "Average price includes broker fees.",
       "Average price divides the cost including broker fees by the number of shares, then rounds to whole rupiah.",
       "Profit or loss",
@@ -146,12 +169,34 @@ const texts: Record<
 };
 function render(home: HomePortfolioData): string {
   return renderMarkupForTest(
-    <HomePortfolio home={home} classId={classId} />,
+    <HomePortfolio
+      home={home}
+      classId={classId}
+      reader={{ kind: "owner", classId }}
+    />,
     conceptLessonDataForTest(),
   );
 }
 for (const locale of locales) {
   const text = texts[locale];
+  test(`explains missing prices and shows shares when the lot rule is unavailable in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    for (const quotes of [[], ["BBCA"]] as const) {
+      const home = homePortfolioForTest(valuationForTest(quotes));
+      home.lotShares = undefined;
+      home.report.history = fail({ kind: "missingCalendar" });
+      const html = render(home);
+      for (const sentence of [
+        missingTexts[locale].shares,
+        missingTexts[locale].unpriced,
+        missingTexts[locale].returnTitle,
+        quotes.length === 0
+          ? missingTexts[locale].several
+          : missingTexts[locale].one,
+      ])
+        expect(html).toContain(markupTextForTest(sentence));
+    }
+  });
   test(`shows the summary, risk dots, and holdings at independently computed values in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     // The fixture in measures-for-test.server.ts gives the independently computed 50%, 30%, and 20% weights. By hand, Rp27,431,085 / 5,500 rounds to Rp4,987, and Rp16,458,651 / 8,300 rounds to Rp1,983.
@@ -240,7 +285,11 @@ for (const locale of locales) {
     ]) {
       expect(measures.kind).toBe("measured");
       const html = renderMarkupForTest(
-        <HomeRisk report={measures} classId={classId} />,
+        <HomeRisk
+          report={measures}
+          classId={classId}
+          reader={{ kind: "owner", classId }}
+        />,
         conceptLessonDataForTest(),
       );
       expect(html).not.toContain("NaN");

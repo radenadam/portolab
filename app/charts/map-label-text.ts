@@ -1,4 +1,5 @@
 import type { DrawnPoint } from "./map-drawing";
+import { chartName } from "./chart-name";
 
 /** The drawing and placing must share keys to join each text with its position. */
 export const mapLineLabelKeys = {
@@ -19,11 +20,12 @@ export function mapPointName({
       return "";
     case "own":
     case "held":
+      return chartName(point.name);
     case "average":
       return point.name;
     case "market":
     case "active":
     case "other":
-      return point.label ?? point.name;
+      return chartName(point.label ?? point.name);
   }
 }

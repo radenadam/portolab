@@ -9,6 +9,7 @@ import { locales } from "./paraglide/runtime.js";
 import type { Locale } from "./paraglide/runtime.js";
 import { renderTextMarkupForTest } from "./render-text-markup-for-test";
 import { switchLocaleForTest } from "./switch-locale-for-test";
+import { withoutClassNamesForTest } from "./without-class-names-for-test";
 
 const expected: Record<Locale, { text: string; quantity: string }> = {
   id: {
@@ -43,7 +44,7 @@ for (const locale of locales) {
         expected[locale].text.replace(`"${value}"`, `"${identifier}"`),
       );
       expect(renderTextMarkupForTest(failure)).toContain(sentence);
-      const html = renderToStaticMarkup(failure);
+      const html = withoutClassNamesForTest(renderToStaticMarkup(failure));
       expect(html).toContain(
         `<span data-text-value="">${markupTextForTest(identifier)}</span>`,
       );

@@ -1,4 +1,9 @@
-import type { PortfolioKind } from "./portfolio-store.server";
+import type { PortfolioReader } from "./text-for-reader";
+import {
+  textForReader,
+  portfolioStudentName,
+  readerWithTextName,
+} from "./text-for-reader";
 import { ConceptHelp } from "~/concept-card";
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
@@ -6,7 +11,6 @@ import { PortfolioReturnChart } from "./portfolio-return-chart";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
 import { formatCalendarDate, formatCalendarDatePart } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
-import type { ClassId } from "~/features/classes/classes.schema";
 import type { PortfolioReport } from "./read-portfolio-report.server";
 import { historyEndText, missingCalendarText } from "./return-section";
 import { returnHeadline } from "./return-headline";
@@ -15,14 +19,11 @@ import styles from "./home-portfolio.module.css";
 /** Reading the shared endpoint keeps the headline current with both charts. */
 export function HomeReturn({
   history,
-  classId,
-  portfolioKind,
+  reader,
 }: {
   history: PortfolioReport["history"];
-  classId: ClassId;
-  portfolioKind: PortfolioKind;
+  reader: PortfolioReader;
 }): ReactNode {
-  const reader = { kind: "owner", classId, portfolioKind } as const;
   const points = history.ok ? history.value.points : [];
   const first = points[0];
   const latest = points.at(-1);
@@ -31,21 +32,42 @@ export function HomeReturn({
       <div className={styles["valueLabel"]}>
         <h2 id="home-return-heading" className={styles["cardTitle"]}>
           <NumberText>
-            {first === undefined
-              ? m.trading_return_title({ index: marketIndex.code })
-              : m.trading_home_since_title({
-                  date: formatCalendarDatePart(first.date, "dayAndMonth"),
-                })}
+            {(textValue) =>
+              first === undefined
+                ? textForReader(readerWithTextName(reader, textValue), {
+                    owner: () =>
+                      m.trading_return_title({ index: marketIndex.code }),
+                    lecturer: (name) =>
+                      m.trading_home_student_return_title({
+                        name,
+                        index: marketIndex.code,
+                      }),
+                  })
+                : m.trading_home_since_title({
+                    date: formatCalendarDatePart(first.date, "dayAndMonth"),
+                  })
+            }
           </NumberText>
         </h2>
         {first !== undefined && (
           <ConceptHelp title={m.trading_home_return_method_label()}>
             <p>
               <NumberText>
-                {m.app_returns_chart_notice({
-                  index: marketIndex.code,
-                  date: formatCalendarDate(first.date),
-                })}
+                {(textValue) =>
+                  textForReader(readerWithTextName(reader, textValue), {
+                    owner: () =>
+                      m.app_returns_chart_notice({
+                        index: marketIndex.code,
+                        date: formatCalendarDate(first.date),
+                      }),
+                    lecturer: (name) =>
+                      m.app_lecturer_returns_chart_notice({
+                        name,
+                        index: marketIndex.code,
+                        date: formatCalendarDate(first.date),
+                      }),
+                  })
+                }
               </NumberText>
             </p>
             <p>
@@ -67,6 +89,7 @@ export function HomeReturn({
           </p>
           <PortfolioReturnChart
             points={points}
+            studentName={portfolioStudentName(reader)}
             labelledBy="home-return-heading"
           />
         </>

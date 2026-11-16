@@ -112,7 +112,7 @@ for (const locale of locales) {
     for (const part of [
       `<ul><li><span aria-hidden="true"></span>${text.portfolio} ${text.latestReturns[0]}</li><li><span aria-hidden="true"></span>IHSG ${text.latestReturns[1]}</li></ul>`,
       // The texts of the marks of returns are at most 3 characters long.
-      '<div style="padding-block:0.5em 2em;padding-inline:calc(3ch + 0.75em) 0.4em"><div><svg aria-hidden="true">',
+      '<div style="padding-block:0.5em 2em;padding-inline:calc(3ch + 0.75em) 0.4em" data-time-plot="true"><div><svg aria-hidden="true">',
       '<line x1="0" x2="100%" y1="69.18%" y2="69.18%"></line><text x="0" y="69.18%" dx="-0.75em" dy="0.35em" text-anchor="end">-2%</text>',
       '<line x1="0" x2="100%" y1="24.48%" y2="24.48%"></line><text x="0" y="24.48%" dx="-0.75em" dy="0.35em" text-anchor="end">0%</text>',
       `<text x="0%" y="100%" dy="1.5em" text-anchor="start">${text.dates[0]}</text><text x="50%" y="100%" dy="1.5em" text-anchor="middle">${text.dates[1]}</text><text x="100%" y="100%" dy="1.5em" text-anchor="end">${text.dates[2]}</text>`,
