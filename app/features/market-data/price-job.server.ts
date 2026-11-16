@@ -1,7 +1,5 @@
-import { setTimeout as wait } from "node:timers/promises";
 import { Cron } from "croner";
 import { errorDetail } from "~/error-message";
-import { secondMilliseconds } from "~/time-units";
 import { writeLog } from "~/write-log.server";
 import { dailyWarningLog } from "./daily-warning-log.server";
 import type { PriceJobSettings } from "./price-job-settings";
@@ -13,12 +11,10 @@ import {
   saveUpdateAttempt,
 } from "./update-attempts.server";
 import { isUpdateMinute, nextAttemptTime } from "./update-schedule";
-
-// Shorter than the minute between runs of the schedule, so a stalled request ends as a recorded failure before the next run.
-const requestTimeoutMilliseconds = 20 * secondMilliseconds;
-
-// Decision 0001 asks for a low load on Yahoo, and with a second between requests the closes of the whole universe take about a minute.
-const historyRequestPauseMilliseconds = secondMilliseconds;
+import {
+  priceRequestSignal,
+  waitBetweenPriceRequests,
+} from "./price-request-pacing.server";
 
 /** Fetches quotes and daily closes once at startup, so a fresh server shows the last close, then quotes every minute while prices can change and daily closes after each trading day closes. After each run of the quote update, it hands the moment when the run ended to afterQuoteUpdate, such as the check of open orders. At startup and on the first run of each date in WIB, it logs the warnings about missing data that missingDataWarnings gives for the date, such as a trading day of the coming weeks without the rules of IDX that orders need. Returns a function that stops the job. */
 export function startPriceJob(
@@ -34,19 +30,15 @@ export function startPriceJob(
     missingDataWarnings(date, delayMinutes),
   );
   const updateQuotes = serializeUpdates(async () => {
-    await runQuoteUpdate(
-      settings,
-      new Date(),
-      AbortSignal.timeout(requestTimeoutMilliseconds),
-    );
+    await runQuoteUpdate(settings, new Date(), priceRequestSignal());
     // A request that the server answered during the fetch can have placed an order, so the moment after the update comes after that order.
     afterQuoteUpdate(new Date());
   }, "The quote update failed.");
   const updateHistory = serializeUpdates(
     () =>
       runHistoryUpdate(settings, () => new Date(), {
-        requestSignal: () => AbortSignal.timeout(requestTimeoutMilliseconds),
-        waitBetweenRequests: () => wait(historyRequestPauseMilliseconds),
+        requestSignal: priceRequestSignal,
+        waitBetweenRequests: waitBetweenPriceRequests,
       }),
     "The history update failed.",
   );
@@ -104,7 +96,7 @@ export function serializeUpdates(
 
 /**
  * Fetches and stores quotes unless the job still waits after failures, and records the attempt with its failures in a row and the instruments that it could not update. A request that outlasts the signal counts as a failure. The state lives in the database, as decision 0009 asks, so a restart keeps waiting.
- * @internal Tests call it directly, because startPriceJob reaches it only with the real clock.
+ * The sample command uses the same update after it has stored its portfolios.
  */
 export async function runQuoteUpdate(
   settings: PriceJobSettings,

@@ -48,6 +48,17 @@ pnpm account reset-password <username>
 
 The command works on the database that `DATABASE_PATH` names, so run it with the same environment variables as the server. On a server that follows the deployment guide, it runs in the container of Portolab, as [the guide shows](docs/deploy.md#7-create-the-first-lecturer-account). It can run while the server runs, but it cannot end a block after wrong passwords, which the server keeps until the time that the sign-in page names.
 
+## Sample class
+
+Build the app, then fill a separate database with the sample command:
+
+```sh
+pnpm build
+DATABASE_PATH=data/sample.sqlite pnpm sample-class
+```
+
+The command prints the usernames, the password of each role, and the join code. Start the server with the same `DATABASE_PATH` to explore the class. In a built container, run `node server/sample-class.ts` with that variable instead. [Decision 0050](docs/decisions/0050-a-sample-class-lives-in-a-database-of-its-own.md) describes the isolation, the recipes, and how to start again.
+
 ## Configuration
 
 Portolab reads these environment variables when it starts, and it names every wrong one before it stops:

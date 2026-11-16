@@ -49,6 +49,7 @@ The first release serves the course sessions on CAPM and on portfolio return and
 - Aktivitas at `/classes/:classId/activity` lists orders with their status, their reason, and cancellation while they are open. Its status filter and the phone's Order or Jurnal choice keep their state in the address and work before JavaScript loads. The journal lists filled trades, their reasons, the price change since each trade, and the net realised gain of a sale from the average purchase cost. It names an unavailable comparison when no quote is as recent as the fill, and an unavailable sale gain when deleted purchase records leave its cost unknown.
 - Every screen works on a phone, a tablet, and a computer.
 - Every result is labelled as a simulation, and the price delay is always visible.
+- A sample command creates a synthetic class in a separate database for exploration. Its frame labels the sample on every page, as [decision 0050](decisions/0050-a-sample-class-lives-in-a-database-of-its-own.md) explains.
 
 ### Later releases
 
