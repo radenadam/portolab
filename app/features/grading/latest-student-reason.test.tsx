@@ -11,21 +11,22 @@ import { LatestStudentReason } from "./latest-student-reason";
 
 const headings: Record<Locale, Record<OrderSide, string>> = {
   id: {
-    buy: "Beli 2 lot BBCA · 2 Nov 2026, 10.00 WIB",
-    sell: "Jual 2 lot BBCA · 2 Nov 2026, 10.00 WIB",
+    buy: "beli 2 lot BBCA · 2 Nov 2026, 10.00 WIB",
+    sell: "jual 2 lot BBCA · 2 Nov 2026, 10.00 WIB",
   },
   en: {
-    buy: "Bought 2 lots of BBCA · Nov 2, 2026, 10:00 AM WIB",
-    sell: "Sold 2 lots of BBCA · Nov 2, 2026, 10:00 AM WIB",
+    buy: "bought 2 lots of BBCA · Nov 2, 2026, 10:00 AM WIB",
+    sell: "sold 2 lots of BBCA · Nov 2, 2026, 10:00 AM WIB",
   },
 };
 
 for (const locale of locales) {
-  test(`names the filled order and its fill time with the student's reason in ${languageNames[locale]}`, () => {
+  test(`names the filled order and its fill time and quotes the student's reason in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     for (const side of ["buy", "sell"] as const) {
       const html = renderInRouterForTest(
         <LatestStudentReason
+          name="Sari Wulandari"
           reason={{
             code: "BBCA",
             lots: orderLotsForTest(2),
@@ -36,7 +37,8 @@ for (const locale of locales) {
         />,
       );
       expect(html).toContain(markupTextForTest(headings[locale][side]));
-      expect(html).toContain("Catatan mahasiswa");
+      expect(html).toMatch(/<q[^>]*>.*Catatan mahasiswa.*<\/q>/u);
+      expect(html).toContain(">SW<");
     }
   });
 }

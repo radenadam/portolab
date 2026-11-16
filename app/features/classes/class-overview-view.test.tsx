@@ -56,7 +56,7 @@ const texts: Record<
       "Lihat data mahasiswa dan waktu harga",
       "Kalender dan mahasiswa",
     ],
-    betaAxis: "Beta portofolio terhadap IHSG",
+    betaAxis: "Beta portofolio (1,0 = pasar)",
     deviationAxis: "Simpangan baku per bulan",
     empty:
       "Peta menunggu imbal hasil IHSG dan ukuran risiko portofolio. Buka tabel untuk melihat data yang tersedia.",
@@ -98,7 +98,7 @@ const texts: Record<
       "View student data and price times",
       "Calendar and students",
     ],
-    betaAxis: "Portfolio beta against IHSG",
+    betaAxis: "Portfolio beta (1.0 = market)",
     deviationAxis: "Standard deviation per month",
     empty:
       "The map needs IHSG returns and portfolio risk measures. Open the table to see the available data.",

@@ -20,7 +20,7 @@ import { lotCount } from "./count-parts";
 import { isOpenOrder } from "./open-orders";
 import type { StoredOrder } from "./order-rows";
 import type { OrderSide } from "./order";
-import { orderFailureText } from "./order-failure-text";
+import { OrderRejection } from "./order-rejection";
 import styles from "./activity.module.css";
 import { CancelOrder } from "./cancel-order";
 import type { PortfolioKind } from "./portfolio-store.server";
@@ -165,7 +165,12 @@ export function ActivityOrders({
                   <StatusChip status={activityStatus(order, now)} />
                 </div>
                 <div className={styles["orderBody"]}>
-                  <p>{orderDetail(order, now, { readOnly, portfolioKind })}</p>
+                  <OrderDetail
+                    order={order}
+                    now={now}
+                    readOnly={readOnly}
+                    portfolioKind={portfolioKind}
+                  />
                   {order.reason !== undefined && (
                     <p className={styles["reason"]}>
                       <NumberText verbatim>
@@ -227,14 +232,29 @@ function StatusChip({ status }: { status: ActivityStatus }): ReactNode {
   );
 }
 
-function orderDetail(
-  order: StoredOrder,
-  now: Date,
-  {
-    readOnly,
-    portfolioKind,
-  }: { readOnly: boolean; portfolioKind: PortfolioKind },
-): ReactNode {
+function OrderDetail({
+  order,
+  now,
+  readOnly,
+  portfolioKind,
+}: {
+  order: StoredOrder;
+  now: Date;
+  readOnly: boolean;
+  portfolioKind: PortfolioKind;
+}): ReactNode {
+  if (order.state.kind === "rejected")
+    return (
+      <OrderRejection
+        rejection={order.state}
+        readOnly={readOnly}
+        portfolioKind={portfolioKind}
+      />
+    );
+  return <p>{orderOutcome(order, now)}</p>;
+}
+
+function orderOutcome(order: StoredOrder, now: Date): ReactNode {
   if (activityStatus(order, now) === "expired")
     return (
       <Message
@@ -273,23 +293,6 @@ function orderDetail(
           values={{ time: <MarketTime moment={order.state.cancelledAt} /> }}
         />
       );
-    case "rejected": {
-      const reason = (
-        <NumberText>
-          {orderFailureText(order.state.failure, portfolioKind)}
-        </NumberText>
-      );
-      return (
-        <Message
-          text={m.trading_activity_rejection_notice}
-          values={{
-            time: <MarketTime moment={order.state.rejectedAt} />,
-            quotedTime: <MarketTime moment={order.state.quotedAt} />,
-            reason: readOnly ? <q>{reason}</q> : reason,
-          }}
-        />
-      );
-    }
     case "expired":
       return (
         <Message
@@ -297,5 +300,7 @@ function orderDetail(
           values={{ time: <MarketTime moment={order.expiresAt} /> }}
         />
       );
+    case "rejected":
+      throw new Error("OrderDetail explains a rejection on its own.");
   }
 }

@@ -281,7 +281,7 @@ test("sizes a current order when one recorded lot costs more than a small alloca
   );
 });
 
-test("seeds a separate class with credentials, every terminal order state, current open orders, and measured portfolios", async () => {
+test("seeds a separate class with credentials, every terminal order state, current open orders, measured portfolios, and a reason of its own for each order", async () => {
   const database = databaseForTest();
   saveSampleHistoryForTest(database);
   expect(database.select().from(users).all()).toEqual([]);
@@ -317,6 +317,11 @@ test("seeds a separate class with credentials, every terminal order state, curre
     sampleOrders.filter((order) => order.reason !== null).length /
       sampleOrders.length,
   ).toBeGreaterThan(0.8);
+  const reasons = sampleOrders.flatMap((order) =>
+    order.reason === null ? [] : [order.reason],
+  );
+  expect(new Set(reasons).size).toBe(reasons.length);
+  expect(reasons.some((reason) => reason.includes("\n\n"))).toBe(true);
   for (const order of sampleOrders.filter((order) => order.state === "waiting"))
     expect(wibDateOf(order.placedAt)).toBe(wibDateOf(now));
   const record = findTaughtClass(database, taught.id, lecturer.id);

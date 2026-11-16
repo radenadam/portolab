@@ -153,10 +153,8 @@
   }
 }
 
-.table a {
-  display: inline-flex;
-  align-items: center;
-  min-height: var(--size-touch-target);
+.link {
+  composes: standalone-link from global;
 }
 
 .administration[open] {

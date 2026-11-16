@@ -128,17 +128,11 @@
 }
 
 .link {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  min-height: var(--size-touch-target);
+  composes: standalone-link from global;
   padding: 0;
   border: 0;
   background: none;
-  color: var(--color-link);
   font-size: var(--text-caption);
-  font-weight: 600;
-  text-decoration: none;
   cursor: pointer;
 }
 
@@ -162,7 +156,6 @@
 }
 
 .quote {
-  white-space: pre-line;
   overflow-wrap: anywhere;
 }
 

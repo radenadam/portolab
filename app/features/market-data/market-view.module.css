@@ -250,10 +250,15 @@
   gap: var(--space-3);
   padding: var(--space-4);
 }
-.empty a {
-  display: flex;
-  align-items: center;
-  min-block-size: var(--size-touch-target);
+.emptyLink {
+  composes: standalone-link from global;
+}
+/* A desktop shows every sector as the references draw the chips, and a phone scrolls them in one row. */
+@media (width >= 60rem) {
+  .chipList {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
 }
 @media (width < 74rem) {
   .tableReference {

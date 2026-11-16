@@ -92,6 +92,24 @@ test("places the name of a point at the right edge of the plot to the left of it
   );
 });
 
+test("adds the value of a name that ends before its mark at the start of the label, so the value never covers the mark", () => {
+  const point = mark("BBCA", { x: 0.9, y: 0.5 });
+  const placed = placeMapLabels(
+    {
+      kept: [],
+      lines: [],
+      others: [{ key: "BBCA", text: "BBCA", value: "-3.35%" }],
+    },
+    { size, marks: [point], widthOf },
+  );
+  expect(placed.values).toEqual(new Set(["BBCA"]));
+  expect(placed.points).toEqual(
+    new Map([
+      ["BBCA", { at: point.position, dx: -beside, dy: middle, anchor: "end" }],
+    ]),
+  );
+});
+
 test("places a name where it lies nearer to its own point than to any other point, so it never reads as the name of another point", () => {
   // The points stand 2 apart, so a name to the right of the first would lie nearer to the second.
   const first = mark("BBCA", { x: 0.5, y: 0.5 });
