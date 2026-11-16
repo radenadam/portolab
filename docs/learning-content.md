@@ -67,7 +67,7 @@ The first four tables belong to the trading lesson and price guide in piece 30. 
 
 ## Lecturer guide
 
-[Decision 0051](decisions/0051-the-guide-for-lecturers-lives-in-the-repository-and-in-the-app.md) places the lecturer guide in the same feature as lessons. Each language has `guide/<locale>.md`. `readGuideContent` bundles all of them through raw Vite imports and passes the collection to `parseGuideContent`. It reuses `parseMarkdown` for the title and sections. The guide has a title followed by headings such as `## sample | Mulai dari kelas contoh`. The stable ids and order come from `guideSectionIds` in `guide-section-ids.ts`.
+[Decision 0052](decisions/0052-the-guide-for-lecturers-lives-in-the-repository-and-in-the-app.md) places the lecturer guide in the same feature as lessons. Each language has `guide/<locale>.md`. `readGuideContent` bundles all of them through raw Vite imports and passes the collection to `parseGuideContent`. It reuses `parseMarkdown` for the title and sections. The guide has a title followed by headings such as `## sample | Mulai dari kelas contoh`. The stable ids and order come from `guideSectionIds` in `guide-section-ids.ts`.
 
 Prose paragraphs may contain these inline references. Their identifiers and order agree in both languages, while their surrounding prose may differ.
 

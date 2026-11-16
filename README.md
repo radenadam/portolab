@@ -59,6 +59,8 @@ DATABASE_PATH=data/sample.sqlite pnpm sample-class
 
 The command prints the usernames, the password of each role, and the join code. Start the server with the same `DATABASE_PATH` to explore the class. In a built container, run `node server/sample-class.ts` with that variable instead. [Decision 0050](docs/decisions/0050-a-sample-class-lives-in-a-database-of-its-own.md) describes the isolation, the recipes, and how to start again.
 
+The [optional sample deployment](docs/deploy.md#optional-sample-class) serves it in Docker on WSL over HTTP on the home network, or on the server over HTTPS at a separate subdomain.
+
 ## Configuration
 
 Portolab reads these environment variables when it starts, and it names every wrong one before it stops:
@@ -74,6 +76,8 @@ Portolab reads these environment variables when it starts, and it names every wr
 [`CONTRIBUTING.md`](CONTRIBUTING.md) explains how to propose a change.
 
 The [workflow](AGENTS.md#workflow) sets which checks must pass before a push. `pnpm check` runs every check that CI runs. `pnpm check:fast` runs the same steps except the browser tests, including the dev server check, the production build, and the size check.
+
+CI runs the fast check and the browser shards on separate runners. The required `check` job waits for all of them and names every job that did not succeed. [Decision 0051](docs/decisions/0051-browser-tests-run-in-eight-independent-shards.md) records the measurements and shard count. A failed shard keeps its traces and HTML report in its `test-results-browser-<number>` artifact.
 
 For a later push, run the fast check and choose the browser test files that cover the changed behavior. For example, after changing the stock screen:
 

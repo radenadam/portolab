@@ -50,7 +50,7 @@ The first release serves the course sessions on CAPM and on portfolio return and
 - Every screen works on a phone, a tablet, and a computer.
 - Every result is labelled as a simulation, and the price delay is always visible.
 - A sample command creates a synthetic class in a separate database for exploration. Its frame labels the sample on every page, as [decision 0050](decisions/0050-a-sample-class-lives-in-a-database-of-its-own.md) explains.
-- Lecturers open a guide in Bahasa Indonesia or English from their profile menu. It explains the semester workflow and simulation limits, and ships with the app for reading on a home network, as [decision 0051](decisions/0051-the-guide-for-lecturers-lives-in-the-repository-and-in-the-app.md) explains.
+- Lecturers open a guide in Bahasa Indonesia or English from their profile menu. It explains the semester workflow and simulation limits, and ships with the app for reading on a home network, as [decision 0052](decisions/0052-the-guide-for-lecturers-lives-in-the-repository-and-in-the-app.md) explains.
 
 ### Later releases
 
@@ -68,7 +68,7 @@ Each later release lets students practice the next course topic in the simulatio
 
 - **Platforms**: current browsers on phones, tablets, and computers, from a screen 360 pixels wide.
 - **Client code**: each route and the JavaScript shared by every route have budgets, as [decision 0038](decisions/0038-client-javascript-is-budgeted-by-route.md) explains. Each route's CSS has a budget too, as [decision 0042](decisions/0042-client-css-is-budgeted-by-route.md) explains.
-- **Hosting**: one Linux VPS that the lecturer owns. Its owner deploys and updates Portolab from the public repository by following [the deployment guide](deploy.md), so the guide must work step by step on a fresh server, and also on a server that already runs other work, which the guide leaves as it is. Demonstrations also run on a laptop and serve phones on the same Wi-Fi network. The project uses no paid service.
+- **Hosting**: one Linux VPS that the lecturer owns. Its owner deploys and updates Portolab from the public repository by following [the deployment guide](deploy.md), so the guide must work step by step on a fresh server, and also on a server that already runs other work, which the guide leaves as it is. Demonstrations also run on a laptop and serve phones on the same Wi-Fi network. The isolated sample class also runs in Docker on WSL over HTTP on the home network, and on the VPS over HTTPS at its own subdomain, as [decision 0050](decisions/0050-a-sample-class-lives-in-a-database-of-its-own.md) requires. The project uses no paid service.
 - **Market data**: delayed prices come from Yahoo Finance, which has no license for this use and limits automated requests. The source sits behind one interface, every price is cached, and the app keeps working with the last known prices when the source fails. A licensed source can replace it without changes elsewhere.
 - **Privacy**: Indonesia's personal data protection law applies. Portolab stores only what a class needs, asks for explicit consent, and holds no real financial data.
 - **Regulation**: OJK rules on financial information allow simulations that are labelled as simulations and that make no recommendations.

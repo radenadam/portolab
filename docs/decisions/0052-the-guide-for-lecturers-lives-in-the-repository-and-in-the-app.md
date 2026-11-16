@@ -1,4 +1,4 @@
-# 0051. The guide for lecturers lives in the repository and in the app
+# 0052. The guide for lecturers lives in the repository and in the app
 
 - Status: Accepted
 - Date: 2026-11-16

@@ -44,8 +44,14 @@ const updateSection = "Update Portolab";
 /** The domain of the server in the test, which only the test machine resolves. Caddy serves a name under .internal with a certificate of its own authority, because Let's Encrypt cannot reach it. */
 export const testDomain = "portolab.internal";
 
+/** A separate HTTPS host exercises the sample site without the live site's cookies. */
+export const sampleTestDomain = "sample.portolab.internal";
+
 /** The example domain of the guide, which the test replaces with its own. */
 const exampleDomain = "portolab.example.com";
+
+/** The sample needs a separate example so that its site never uses the main domain. */
+const exampleSampleDomain = "sample.example.com";
 
 /** The repository that the guide clones, which the test replaces with the one that the caller gives, so that it installs the commit under test. */
 const exampleRepository = "https://github.com/radenadam/portolab.git";
@@ -68,6 +74,7 @@ const deploymentPaths = [
   "Caddyfile",
   "Dockerfile",
   "compose.yaml",
+  "sample/Caddyfile",
   guidePath,
   "e2e/deployment/",
   "package.json",
@@ -76,6 +83,7 @@ const deploymentPaths = [
   "scripts/container-volume.ts",
   "scripts/deployment-guide.ts",
   "scripts/plan-deployment-test.ts",
+  "scripts/parse-sample-credentials-for-test.ts",
   "scripts/run-deployment-guide.ts",
   "scripts/user-numbers.ts",
   "server/",
@@ -178,6 +186,7 @@ export function parseServerBlocks(
   }
   const replacements: [string, string][] = [
     [exampleDomain, testDomain],
+    [exampleSampleDomain, sampleTestDomain],
     [exampleRepository, repository],
     [exampleBackupDate, "$(date -I)"],
   ];
@@ -246,6 +255,20 @@ export function checkSystemNamed(
 export interface GuideParts {
   before: ServerBlock[];
   after: ServerBlock[];
+}
+
+/** The sample browser tests run the optional commands themselves so that they can explore the sample before resetting and removing it. */
+export function splitAtSample(
+  blocks: readonly ServerBlock[],
+): Result<GuideParts, string> {
+  const index = blocks.findIndex(
+    ({ section }) => section === "Start the sample",
+  );
+  return index === -1
+    ? fail(
+        `${guidePath} must have commands in "Start the sample", but it has none.`,
+      )
+    : succeed({ before: blocks.slice(0, index), after: blocks.slice(index) });
 }
 
 /** Splits the blocks of the guide at the section that finds an installation from before decision 0027, so that the test can make such an installation between the parts. It fails for a guide without a block in that section, because the test would then never follow the guide on such an installation. */
