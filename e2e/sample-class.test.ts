@@ -19,6 +19,8 @@ import { captureScreens } from "./capture-screens.ts";
 import { startTestServer } from "./start-test-server.ts";
 import { newDevice } from "./new-device.ts";
 import { languageNames } from "../app/language-names.ts";
+import { parseSampleCredentialsForTest } from "../scripts/parse-sample-credentials-for-test.ts";
+import { successValueForTest } from "../app/success-value-for-test.ts";
 
 async function unusedPort(): Promise<number> {
   const reservation = createServer();
@@ -101,11 +103,12 @@ for (const locale of locales) {
     sample,
     browser,
   }, testInfo) => {
-    const credentials = sample.output.split("\n").slice(2, 4);
-    for (const line of credentials) {
-      const [role, username, password] = line.split(" | ");
-      if (username === undefined || password === undefined)
-        throw new Error("The sample command printed no credentials.");
+    const credentials = successValueForTest(
+      parseSampleCredentialsForTest(sample.output, "The sample command output"),
+      "The sample command prints both roles",
+    );
+    for (const role of ["lecturer", "student"] as const) {
+      const { username, password } = credentials[role];
       const reader = await newDevice(browser, locale, { siteUrl: sample.url });
       try {
         await reader.goto(`${sample.url}/sign-in`);
@@ -139,7 +142,7 @@ for (const locale of locales) {
           ).toBeVisible();
         await expectAccessibleScreen(reader);
         await captureScreens(reader, testInfo, {
-          name: `sample-${role ?? "unknown"}-${locale}`,
+          name: `sample-${role}-${locale}`,
           fullPage: true,
           fromTop: true,
         });

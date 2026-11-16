@@ -16,7 +16,7 @@ A diff range, a set of paths, or a plan, with the intent behind it. In an audit,
 - Error paths: what happens when the price source fails, throttles, or returns malformed data, and when the database is busy.
 - Browser records across reloads and code versions, including rejected stored values and refused storage access, against [Code](../../AGENTS.md#code) and [Tests](../../AGENTS.md#tests).
 - Security: open redirects, cookies and sessions, cross-site request forgery, secrets, permissions in CI workflows, and the sections "Privacy and security" and "Dependencies" of `AGENTS.md`.
-- Gates in CI, against the section "CI" of `AGENTS.md`.
+- Gates and parallel checks in CI, against the section "CI" of `AGENTS.md`. For parallel checks, compare each unit's measured duration with its own deadline as well as the whole job, including the variation in completed runs. When the worker pool changes, use measurements or projections for that same pool to size the shards and their limits.
 - Performance: work that blocks the event loop, queries without a suitable index, and requests to the price source that grow with the number of students.
 - Tests, against the section "Tests" of `AGENTS.md`. For rules about moments, exercise two times on one date and the boundary cases under [Code](../../AGENTS.md#code) and [Tests](../../AGENTS.md#tests). Include the source's recorded closing quote as well as exact boundary instants. For a browser deadline failure, trace the cumulative work of its independent journeys before treating the last action as the defect.
 

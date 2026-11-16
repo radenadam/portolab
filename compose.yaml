@@ -1,6 +1,6 @@
 # Decision 0010 runs Portolab in one container that the server builds from the repository, behind Caddy on the host. docs/deploy.md runs this file.
 services:
-  app:
+  app: &app
     build: .
     restart: unless-stopped
     environment:
@@ -25,5 +25,16 @@ services:
     logging:
       driver: local
 
+  sample:
+    <<: *app
+    profiles: [sample]
+    environment:
+      DATABASE_PATH: /app/data/sample.sqlite
+    volumes:
+      - sample-data:/app/data
+    ports:
+      - 127.0.0.1:3001:3000
+
 volumes:
   data:
+  sample-data:

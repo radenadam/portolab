@@ -4,7 +4,7 @@ Portolab is a portfolio management lab for university classes in Indonesia. Stud
 
 ## Workflow
 
-`pnpm check` runs everything that CI's check job runs.
+`pnpm check` runs all validation in CI's Check workflow.
 
 Every change, however small:
 
