@@ -18,6 +18,8 @@ import {
   sampleCloseRecordingsForTest,
 } from "./sample-close-recordings-for-test.ts";
 
+export const sampleMomentForTest = new Date("2026-11-16T03:00:00Z");
+
 function recordedCloses(code: string): [string, number][] | undefined {
   const record = sampleCloseRecordingsForTest[code];
   if (record === undefined) return undefined;

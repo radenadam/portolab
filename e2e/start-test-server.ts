@@ -2,6 +2,7 @@ import { spawn } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { waitForHealth, watchExit } from "../scripts/wait-for-health.ts";
+import { serverStartupFailure } from "./server-startup-failure.ts";
 
 /** Every isolated browser server uses the same health deadline and stops its own child before its database is removed. */
 export async function startTestServer({
@@ -50,13 +51,8 @@ export async function startTestServer({
     requestTimeoutSeconds,
     stopReason: serverExit.reason,
   });
-  if (wait.kind === "answered") return stop;
+  const failure = serverStartupFailure(wait, healthUrl, startupTimeoutSeconds);
+  if (failure === undefined) return stop;
   await stop();
-  const reason =
-    wait.kind === "stopped"
-      ? `stopped with ${wait.reason}`
-      : `did not answer within ${String(startupTimeoutSeconds)} seconds`;
-  throw new Error(
-    `The browser test server ${reason} before it answered on /health.`,
-  );
+  throw new Error(failure);
 }

@@ -56,7 +56,7 @@ const test = base.extend<{ sample: { url: string; output: string } }>({
       }
       const output = execFileSync(
         process.execPath,
-        [join(import.meta.dirname, "..", "server", "sample-class.ts")],
+        [join(import.meta.dirname, "sample-class-command-for-test.ts")],
         {
           cwd: tmpdir(),
           env: {

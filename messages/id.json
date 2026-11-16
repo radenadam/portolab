@@ -1,7 +1,7 @@
 {
-  "app_sample_class_label": "Data contoh",
   "$schema": "https://inlang.com/schema/inlang-message-format",
   "app_name": "Portolab",
+  "app_sample_class_label": "Data contoh",
   "language_switch_label": "Bahasa",
   "language_unknown_error": "Formulir mengirim \"{value}\" di kolom \"{field}\", tetapi Portolab hanya tersedia dalam {languages}. Pilih salah satunya di pengalih bahasa.",
   "language_page_title": "Pilih bahasa",

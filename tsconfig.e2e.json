@@ -2,6 +2,8 @@
   "extends": "./tsconfig.base.json",
   "include": [
     "e2e/**/*",
+    "server/sample-class.ts",
+    "server/server-options.ts",
     "app/language-names.ts",
     "app/local-network.server.ts",
     "app/paraglide/runtime.d.ts",

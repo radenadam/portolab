@@ -184,7 +184,7 @@ function sampleWaitingOrder(
       failure =
         lots.failure.kind === "noAffordableLots"
           ? `The sample portfolio has ${String(account.cash)} rupiah, which pays for no whole lot of ${current.code} at ${String(current.price)} rupiah.`
-          : JSON.stringify(lots.failure);
+          : lots.failure.reason;
       continue;
     }
     const count = Math.min(2, lots.value);
@@ -222,7 +222,7 @@ function sampleSale(
   }: { stock: SampleStock; quote: SampleStock["quotes"][number] },
 ): Result<SampleTrade, string> {
   const day = orderTradingDay(quote.quotedAt, recipe.delayMinutes);
-  if (!day.ok) return fail(JSON.stringify(day.failure));
+  if (!day.ok) return fail(day.failure.reason);
   const held = account.holdings.find((holding) => holding.code === quote.code);
   const count = Math.max(
     1,

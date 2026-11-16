@@ -91,5 +91,5 @@ export function sizeFor(
   );
   return isOrderLots(count)
     ? succeed(count)
-    : fail({ kind: "noAffordableLots" });
+    : fail({ kind: "noAffordableLots" } as const);
 }

@@ -9,6 +9,8 @@ import { rupiah } from "~/units/rupiah";
 import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
 import { minuteMilliseconds } from "~/time-units";
+import { formatRupiah } from "~/formatting";
+import { sampleOrderFailureText } from "./sample-order-failure-text";
 
 export interface SampleTrade {
   accepted: OpenOrder;
@@ -44,10 +46,15 @@ export function buildSampleTrade(
   stock: StockState & { quote: StockQuote },
 ): Result<SampleTrade, string> {
   const accepted = placeOrder(request, account, stock);
-  if (!accepted.ok)
+  if (!accepted.ok) {
+    const price =
+      request.price.kind === "market"
+        ? `market quote ${formatRupiah(stock.quote.price)}`
+        : `limit ${formatRupiah(request.price.limit)}`;
     return fail(
-      `The sample order of ${request.code} at ${request.placedAt.toISOString()} failed the engine check: ${JSON.stringify(accepted.failure)}.`,
+      `The sample ${request.side} order of ${request.code} at ${request.placedAt.toISOString()} with ${price} failed the engine check. ${sampleOrderFailureText(accepted.failure)}`,
     );
+  }
   return succeed({ accepted: accepted.value, state: accepted.value.state });
 }
 

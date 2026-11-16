@@ -30,7 +30,7 @@ export function buildEndedSamples(
   if (stock === undefined || quote === undefined)
     throw new Error("The rejected sample order has no stock.");
   const day = orderTradingDay(quote.quotedAt, recipe.delayMinutes);
-  if (!day.ok) return fail(JSON.stringify(day.failure));
+  if (!day.ok) return fail(day.failure.reason);
   const limit = acceptedPriceRange(quote.previousClose, day.value.rules).lowest;
   if (limit >= quote.price)
     return fail("The stored closes have no unreached sample purchase limit.");

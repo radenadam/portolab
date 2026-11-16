@@ -39,6 +39,7 @@ import { wibDateOf } from "~/wib";
 import {
   samplePriceSourceForTest,
   saveSampleHistoryForTest,
+  sampleMomentForTest,
 } from "./sample-prices-for-test.server";
 import { isSampleClass } from "./is-sample-class.server";
 import { seedSampleClass as seedSampleClassWithClock } from "./seed-sample-class.server";
@@ -60,7 +61,7 @@ import {
 vi.mock("~/features/market-data/price-request-pacing.server", { spy: true });
 vi.mocked(waitBetweenPriceRequests).mockResolvedValue();
 
-const now = new Date("2026-11-16T03:00:00Z");
+const now = sampleMomentForTest;
 
 function seedSampleClass(
   database: Database,
