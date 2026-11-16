@@ -288,6 +288,39 @@ export function RiskMap() {
   2 * minuteMilliseconds,
 );
 
+test(
+  "rejects a format of Intl in every module of the app and the server but app/intl-formats.ts, and accepts it in tests, helpers of tests, browser tests, and scripts",
+  async () => {
+    const code = 'export const text = new Intl.NumberFormat("en").format(1);';
+    const intlRule = "portolab-intl/formats";
+    for (const filePath of [
+      "app/formatting.ts",
+      "app/charts/risk-map.tsx",
+      "app/features/market-data/market-page.tsx",
+      "app/features/accounts/password.server.ts",
+      "server/main.ts",
+    ]) {
+      expect(await rulesReporting(code, filePath), filePath).toContain(
+        intlRule,
+      );
+    }
+    for (const filePath of [
+      "app/intl-formats.ts",
+      "app/intl-formats.test.ts",
+      "app/features/trading/home-portfolio.test.tsx",
+      "app/write-intl-spaces-for-test.ts",
+      "app/features/market-data/save-fixture-history-for-test.server.ts",
+      "e2e/classes.test.ts",
+      "scripts/summarize-review.ts",
+    ]) {
+      expect(await rulesReporting(code, filePath), filePath).not.toContain(
+        intlRule,
+      );
+    }
+  },
+  2 * minuteMilliseconds,
+);
+
 /** Lints code as if it were the file at the path, a file in scripts/ unless the test names another, and returns the rules that report it. The file must exist, because the type information that ESLint uses covers only files of the project. */
 async function rulesReporting(
   code: string,

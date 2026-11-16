@@ -29,6 +29,7 @@
     "app/write-log.server.ts",
     "app/result.ts",
     "app/sentences.ts",
+    "app/intl-formats.ts",
     "app/success-value-for-test.ts",
     "app/value-parsers.ts",
     "app/character-count.ts",

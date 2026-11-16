@@ -41,7 +41,7 @@ const texts: Record<
 > = {
   id: {
     simulation:
-      "Uang di Portolab virtual, jadi setiap hasil adalah simulasi. Setiap harga adalah harga tertunda dari Yahoo Finance, sekitar 10 menit di belakang BEI.",
+      "Uang di Portolab virtual, jadi setiap hasil adalah simulasi. Setiap harga adalah harga tertunda dari Yahoo Finance, sekitar 10\u00a0menit di belakang BEI.",
     latestPrice: "Harga terakhir tercatat pada 2 Nov 2026, 09.59 WIB.",
     firstPrices:
       "Portolab sedang mengambil harga pertamanya. Muat ulang halaman ini sebentar lagi untuk melihatnya.",
@@ -56,7 +56,7 @@ const texts: Record<
   },
   en: {
     simulation:
-      "The money in Portolab is virtual, so every result is a simulation. Every price is a delayed price from Yahoo Finance, about 10 minutes behind IDX.",
+      "The money in Portolab is virtual, so every result is a simulation. Every price is a delayed price from Yahoo Finance, about 10\u00a0minutes behind IDX.",
     latestPrice: "The latest price was quoted at Nov 2, 2026, 9:59 AM WIB.",
     firstPrices:
       "Portolab is fetching its first prices now. Reload this page in a moment to see them.",

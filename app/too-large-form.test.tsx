@@ -21,21 +21,21 @@ const texts: Record<
   id: {
     title: "Formulir terlalu besar",
     stated:
-      "Formulir ini berukuran 128.040 byte, tetapi Portolab menerima formulir paling besar 128.000 byte. Hal ini terjadi jika teks yang sangat panjang ditempel ke sebuah kolom. Buka formulirnya lagi, lalu isi setiap kolom dengan teks yang lebih pendek.",
+      "Formulir ini berukuran 128.040\u00a0byte, tetapi Portolab menerima formulir paling besar 128.000\u00a0byte. Hal ini terjadi jika teks yang sangat panjang ditempel ke sebuah kolom. Buka formulirnya lagi, lalu isi setiap kolom dengan teks yang lebih pendek.",
     widest:
-      "Formulir ini berukuran 999.999.999.999.999 byte, tetapi Portolab menerima formulir paling besar 128.000 byte. Hal ini terjadi jika teks yang sangat panjang ditempel ke sebuah kolom. Buka formulirnya lagi, lalu isi setiap kolom dengan teks yang lebih pendek.",
+      "Formulir ini berukuran 999.999.999.999.999\u00a0byte, tetapi Portolab menerima formulir paling besar 128.000\u00a0byte. Hal ini terjadi jika teks yang sangat panjang ditempel ke sebuah kolom. Buka formulirnya lagi, lalu isi setiap kolom dengan teks yang lebih pendek.",
     unstated:
-      "Formulir ini berukuran lebih dari 128.000 byte, yaitu ukuran terbesar yang Portolab terima untuk sebuah formulir. Hal ini terjadi jika teks yang sangat panjang ditempel ke sebuah kolom. Buka formulirnya lagi, lalu isi setiap kolom dengan teks yang lebih pendek.",
+      "Formulir ini berukuran lebih dari 128.000\u00a0byte, yaitu ukuran terbesar yang Portolab terima untuk sebuah formulir. Hal ini terjadi jika teks yang sangat panjang ditempel ke sebuah kolom. Buka formulirnya lagi, lalu isi setiap kolom dengan teks yang lebih pendek.",
     openFormLink: "Buka formulirnya lagi",
   },
   en: {
     title: "The form is too large",
     stated:
-      "This form has 128,040 bytes, but Portolab accepts a form of at most 128,000 bytes. This happens when a very long text is pasted into a field. Open the form again and fill in each field with a shorter text.",
+      "This form has 128,040\u00a0bytes, but Portolab accepts a form of at most 128,000\u00a0bytes. This happens when a very long text is pasted into a field. Open the form again and fill in each field with a shorter text.",
     widest:
-      "This form has 999,999,999,999,999 bytes, but Portolab accepts a form of at most 128,000 bytes. This happens when a very long text is pasted into a field. Open the form again and fill in each field with a shorter text.",
+      "This form has 999,999,999,999,999\u00a0bytes, but Portolab accepts a form of at most 128,000\u00a0bytes. This happens when a very long text is pasted into a field. Open the form again and fill in each field with a shorter text.",
     unstated:
-      "This form has more than 128,000 bytes, which is the most that Portolab accepts in a form. This happens when a very long text is pasted into a field. Open the form again and fill in each field with a shorter text.",
+      "This form has more than 128,000\u00a0bytes, which is the most that Portolab accepts in a form. This happens when a very long text is pasted into a field. Open the form again and fill in each field with a shorter text.",
     openFormLink: "Open the form again",
   },
 };
