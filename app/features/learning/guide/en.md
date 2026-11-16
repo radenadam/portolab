@@ -6,6 +6,8 @@ Ask the server owner to open the sample class before you invite students. The {{
 
 To see the student side, use a sample student account in a private window or another browser. Keep your lecturer account open in the first window. Sample orders follow the running market clock, so their status can change. Sample class data is separate from teaching class data. Create your teaching class on the main service, rather than on the sample service.
 
+{{link:sample|Sample class instructions for the server owner}}
+
 ## workspace | Find pages and help
 
 The class name at the top opens the class switcher. Each class keeps its own portfolios and students. On a computer, navigation is on the left. On a phone, it is at the bottom.

@@ -6,6 +6,8 @@ Minta pengelola server membuka kelas contoh sebelum Anda mengundang mahasiswa. T
 
 Untuk melihat sisi mahasiswa, gunakan akun mahasiswa contoh di jendela privat atau peramban lain. Akun dosen tetap terbuka di jendela semula. Order contoh mengikuti waktu pasar yang berjalan, sehingga statusnya dapat berubah. Data kelas contoh terpisah dari data kelas perkuliahan. Buat kelas perkuliahan Anda di layanan utama, bukan di layanan contoh.
 
+{{link:sample|Petunjuk kelas contoh untuk pengelola server}}
+
 ## workspace | Menemukan halaman dan bantuan
 
 Nama kelas di bagian atas membuka pilihan kelas. Setiap kelas menyimpan portofolio dan mahasiswanya sendiri. Pada komputer, menu ada di sisi kiri. Pada ponsel, menu ada di bagian bawah.

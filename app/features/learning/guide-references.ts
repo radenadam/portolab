@@ -15,6 +15,8 @@ export const guideLinks = {
   join: "/join",
   account: "/account",
   deployment: "https://github.com/radenadam/portolab/blob/main/docs/deploy.md",
+  sample:
+    "https://github.com/radenadam/portolab/blob/main/docs/deploy.md#optional-sample-class",
   "personal-data":
     "https://github.com/radenadam/portolab/blob/main/docs/deploy.md#personal-data",
   backups:
