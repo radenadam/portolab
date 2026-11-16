@@ -177,6 +177,10 @@ for (const locale of locales) {
         pageForTest("features/grading/student-measures-page", ofStudent),
         label.students,
       ],
+      [
+        pageForTest("features/grading/student-journal-page", ofStudent),
+        label.students,
+      ],
       [pageForTest("features/market-data/market-page", inClass), label.market],
       [pageForTest("features/learning/learn-page", inClass), label.learn],
       [pageForTest("features/learning/lesson-page", inClass), label.learn],

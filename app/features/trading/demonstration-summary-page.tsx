@@ -1,6 +1,4 @@
 import type { ReactNode } from "react";
-import { measuresPath } from "~/features/measures/measures-path";
-import { demonstrationPath } from "./demonstration-path";
 import { HomePortfolio } from "./home-portfolio";
 import { readHomePortfolio } from "./read-home-portfolio.server";
 import { findTradingPlace } from "./find-trading-place.server";
@@ -31,15 +29,16 @@ export function loader({ context, request, params, url }: Route.LoaderArgs) {
 export default function DemonstrationSummaryPage({
   loaderData,
 }: Route.ComponentProps): ReactNode {
-  const path = demonstrationPath(loaderData.classId);
   return (
     <HomePortfolio
       home={loaderData.home}
       classId={loaderData.classId}
-      path={path}
-      analysisPath={measuresPath(loaderData.classId, "demonstration")}
       showTitle={false}
-      portfolioKind="demonstration"
+      reader={{
+        kind: "owner",
+        classId: loaderData.classId,
+        portfolioKind: "demonstration",
+      }}
     />
   );
 }

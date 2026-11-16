@@ -1,4 +1,8 @@
+import type { ClassId } from "~/features/classes/classes.schema";
 import { renderMarkupForTest } from "~/render-markup-for-test";
+import { markupTextForTest } from "~/markup-text-for-test";
+import { renderToStaticMarkup } from "react-dom/server";
+import { MemoryRouter } from "react-router";
 import type { ReactNode } from "react";
 import { expect, test } from "vitest";
 import { languageNames } from "~/language-names";
@@ -6,7 +10,7 @@ import { locales } from "~/paraglide/runtime.js";
 import type { Locale } from "~/paraglide/runtime.js";
 import { fail } from "~/result";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
-import { LecturerMarketLine, StudentMarketLine } from "./market-line-section";
+import { StudentMarketLine } from "./student-market-line";
 import { measureFailureText } from "./measure-failure-text";
 import type { StoredMeasureFailure } from "./measure-stored.server";
 import { measureTableForTest } from "./measure-table-for-test";
@@ -17,11 +21,7 @@ import {
   studentLineForTest,
   valuationForTest,
 } from "./measures-for-test.server";
-import {
-  readPortfolioLine,
-  readPortfolioMeasures,
-  readStockRows,
-} from "./read-measures.server";
+import { readPortfolioMeasures, readStockRows } from "./read-measures.server";
 
 // The portfolio of measures-for-test.server.ts holds BBCA, TLKM, and cash, and read-measures.server.test.ts gives the line of its 60 months and the measures of the portfolio and of its stocks, which the decimal module of Python computed. The portfolio of AMMN has a weight of 3,650,000 / 13,650,000 in AMMN, so Python gives it a beta of 0.296989, an expected return of 0.007546, and a distance of 0.004775 from the line of the 38 months of AMMN, whose IHSG has an expected return of -0.002012.
 
@@ -212,6 +212,10 @@ function namesPoint(html: string, name: string): boolean {
   ).test(html);
 }
 
+const lecturerLatest: Record<Locale, string> = {
+  id: "Portofolio Raka belum memiliki ukuran, sehingga grafik ini menempatkan setiap saham yang ukurannya memakai bulan-bulan lengkap terakhir IHSG terhadap garis pasar sekuritas bulan-bulan tersebut, yang memberikan 60 imbal hasil bulanan dari Oktober 2021 sampai September 2026.",
+  en: "The portfolio of Raka has no measures yet, so the chart places every stock whose measures use the latest complete months of the IHSG against the security market line of those months, which give 60 monthly returns from October 2021 to September 2026.",
+};
 for (const locale of locales) {
   const text = texts[locale];
   const language = languageNames[locale];
@@ -220,6 +224,7 @@ for (const locale of locales) {
     switchLocaleForTest(locale);
     const html = render(
       <StudentMarketLine
+        reader={{ kind: "owner", classId: 7 as ClassId }}
         marketLine={studentLineForTest(
           databaseWithClosesForTest(),
           valuationForTest(["BBCA", "TLKM"]),
@@ -257,6 +262,7 @@ for (const locale of locales) {
     switchLocaleForTest(locale);
     const html = render(
       <StudentMarketLine
+        reader={{ kind: "owner", classId: 7 as ClassId }}
         marketLine={studentLineForTest(
           databaseWithClosesForTest(),
           ammnValuationForTest(),
@@ -314,6 +320,7 @@ for (const locale of locales) {
       withoutChart(
         render(
           <StudentMarketLine
+            reader={{ kind: "owner", classId: 7 as ClassId }}
             marketLine={studentLineForTest(database, cashValuationForTest())}
           />,
         ),
@@ -325,6 +332,7 @@ for (const locale of locales) {
     );
     const held = render(
       <StudentMarketLine
+        reader={{ kind: "owner", classId: 7 as ClassId }}
         marketLine={studentLineForTest(database, valuationForTest(["BBCA"]))}
       />,
     );
@@ -338,6 +346,7 @@ for (const locale of locales) {
       withoutChart(
         render(
           <StudentMarketLine
+            reader={{ kind: "owner", classId: 7 as ClassId }}
             marketLine={studentLineForTest(
               database,
               cashValuationForTest(),
@@ -353,21 +362,16 @@ for (const locale of locales) {
 
   test(`draws the line of the months of the portfolio of a student for the lecturer, with the portfolio and its stocks, in ${language}`, () => {
     switchLocaleForTest(locale);
-    const portfolioLine = readPortfolioLine(
-      readPortfolioMeasures(
-        databaseWithClosesForTest(),
-        valuationForTest(["BBCA", "TLKM"]),
-      ),
+    const marketLine = studentLineForTest(
+      databaseWithClosesForTest(),
+      valuationForTest(["BBCA", "TLKM"]),
     );
-    if (portfolioLine === undefined) {
-      throw new Error("The portfolio of BBCA and TLKM has measures.");
-    }
     expect(
       withoutChart(
         render(
-          <LecturerMarketLine
-            studentName="Siti Rahayu"
-            portfolioLine={portfolioLine}
+          <StudentMarketLine
+            reader={{ kind: "lecturer", studentName: "Siti Rahayu" }}
+            marketLine={marketLine}
           />,
         ),
       ),
@@ -398,10 +402,41 @@ for (const locale of locales) {
     );
   });
 
+  test(`names the selected owner when only the latest market line is available in ${language}`, () => {
+    switchLocaleForTest(locale);
+    const database = databaseWithClosesForTest();
+    for (const valuation of [
+      cashValuationForTest(),
+      valuationForTest(["BBCA"]),
+    ]) {
+      for (const name of ["Raka", "60"]) {
+        const html = renderToStaticMarkup(
+          <MemoryRouter>
+            <StudentMarketLine
+              reader={{ kind: "lecturer", studentName: name }}
+              marketLine={studentLineForTest(database, valuation)}
+            />
+          </MemoryRouter>,
+        );
+        expect(html.replaceAll(/<[^>]*>/g, "")).toContain(
+          markupTextForTest(lecturerLatest[locale].replace("Raka", name)),
+        );
+        expect(html).toContain(`data-text-value="">${name}</span>`);
+        expect(html).toContain('data-number="">60 ');
+      }
+    }
+  });
   test(`says why the stored closes give no line, in ${language}`, () => {
     switchLocaleForTest(locale);
     const failure: StoredMeasureFailure = { kind: "noVariation", code: "IHSG" };
-    expect(render(<StudentMarketLine marketLine={fail(failure)} />)).toBe(
+    expect(
+      render(
+        <StudentMarketLine
+          marketLine={fail(failure)}
+          reader={{ kind: "owner", classId: 7 as ClassId }}
+        />,
+      ),
+    ).toBe(
       `<h2>${text.title}</h2><p>${measureFailureText(failure, { kind: "market" })}</p>`,
     );
   });

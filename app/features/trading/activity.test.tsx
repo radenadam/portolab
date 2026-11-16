@@ -154,6 +154,44 @@ function prices(): PricesOfView {
 }
 
 for (const locale of locales) {
+  test(`keeps every order visible to the lecturer without cancellation or retry controls in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    const owner = renderMarkupForTest(
+      <ActivityOrders
+        orders={orders}
+        now={activityNowForTest}
+        classId={classId}
+        filter="all"
+      />,
+    );
+    const actions = texts[locale].labels.slice(8, 10);
+    expect(actions).toHaveLength(2);
+    for (const action of actions)
+      expect(owner).toContain(markupTextForTest(action));
+    const lecturer = renderMarkupForTest(
+      <ActivityOrders
+        orders={orders}
+        now={activityNowForTest}
+        classId={classId}
+        filter="all"
+        readOnly
+        studentName="Raka"
+        basePath="/classes/7/students/9/journal?returnTo=selected"
+      />,
+    );
+    expect(lecturer).not.toContain('method="post"');
+    expect(lecturer).toContain("<q>");
+    expect(owner).not.toContain("<q>");
+    for (const label of actions)
+      expect(lecturer).not.toContain(markupTextForTest(label));
+    for (const detail of texts[locale].details)
+      expect(lecturer.replace(/<[^>]+>/g, "")).toContain(
+        markupTextForTest(detail),
+      );
+    expect(lecturer).toContain(
+      "/classes/7/students/9/journal?returnTo=selected&amp;status=filled",
+    );
+  });
   test(`names realised losses and keeps the sale's negative amount in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     // Python Decimal gives 500 × 4,800 - 3,600 - 2,400 = 2,394,000 in net proceeds, and 2,394,000 - 2,493,735 = -99,735 against the purchase cost.
@@ -166,6 +204,7 @@ for (const locale of locales) {
     });
     const markup = renderMarkupForTest(
       <JournalList
+        readOnly={false}
         trades={tradeJournal([filledActivityForTest(1), sale], [])}
         prices={prices()}
         classId={classId}
@@ -183,6 +222,7 @@ for (const locale of locales) {
       const quote = stockQuote("BBCA", [price, 4_980], "2026-11-02T03:00:00Z");
       const markup = renderMarkupForTest(
         <JournalList
+          readOnly={false}
           trades={tradeJournal([filledActivityForTest(1)], [quote])}
           prices={prices()}
           classId={classId}
@@ -230,6 +270,7 @@ for (const locale of locales) {
     const markup = [
       renderMarkupForTest(
         <JournalList
+          readOnly={false}
           trades={tradeJournal([purchase, sale], [quote])}
           prices={prices()}
           classId={classId}
@@ -237,6 +278,7 @@ for (const locale of locales) {
       ),
       renderMarkupForTest(
         <JournalList
+          readOnly={false}
           trades={tradeJournal([purchase], [quote])}
           prices={prices()}
           classId={classId}
@@ -249,6 +291,7 @@ for (const locale of locales) {
     for (const order of [purchase, sale]) {
       const missing = renderMarkupForTest(
         <JournalList
+          readOnly={false}
           trades={tradeJournal([order], [])}
           prices={prices()}
           classId={classId}
@@ -276,7 +319,12 @@ for (const locale of locales) {
         />,
       ),
       renderMarkupForTest(
-        <JournalList trades={[]} prices={prices()} classId={classId} />,
+        <JournalList
+          readOnly={false}
+          trades={[]}
+          prices={prices()}
+          classId={classId}
+        />,
       ),
     ].join("");
     for (const text of texts[locale].empty) expect(empty).toContain(text);

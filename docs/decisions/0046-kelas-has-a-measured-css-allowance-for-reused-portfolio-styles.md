@@ -1,6 +1,6 @@
 # 0046. Kelas has a measured CSS allowance for reused portfolio styles
 
-- Status: Accepted. [Decision 0048](0048-complete-lesson-sheets-have-measured-route-allowances.md) replaces its CSS ceiling for the class overview route and the location of the route allowances.
+- Status: Accepted. [Decision 0049](0049-complete-lesson-sheets-have-measured-route-allowances.md) replaces its CSS ceiling for the class overview route and the location of the route allowances.
 - Date: 2026-11-16
 
 ## Context

@@ -6,7 +6,7 @@ interface ClientRouteLimits {
 const exerciseJavaScriptLimit = "220 kB";
 const exerciseStylesheetLimit = "24 kB";
 
-// Decision 0048 measures the complete sheets and exercises on these routes.
+// Decision 0049 measures the complete sheets and exercises on these routes.
 const measuredRoutes: ReadonlyMap<string, Partial<ClientRouteLimits>> = new Map(
   [
     [
@@ -24,10 +24,6 @@ const measuredRoutes: ReadonlyMap<string, Partial<ClientRouteLimits>> = new Map(
       },
     ],
     [
-      "features/measures/measures-page",
-      { javascript: exerciseJavaScriptLimit },
-    ],
-    [
       "features/trading/demonstration-summary-page",
       {
         javascript: exerciseJavaScriptLimit,
@@ -35,19 +31,15 @@ const measuredRoutes: ReadonlyMap<string, Partial<ClientRouteLimits>> = new Map(
       },
     ],
     [
-      "features/measures/demonstration-analysis-page",
+      "features/grading/student-portfolio-page",
       {
         javascript: exerciseJavaScriptLimit,
         stylesheets: exerciseStylesheetLimit,
       },
     ],
     [
-      "features/market-data/market-page",
-      { stylesheets: exerciseStylesheetLimit },
-    ],
-    [
-      "features/grading/student-portfolio-page",
-      { stylesheets: exerciseStylesheetLimit },
+      "features/grading/student-measures-page",
+      { javascript: exerciseJavaScriptLimit },
     ],
   ],
 );
@@ -55,7 +47,7 @@ const measuredRoutes: ReadonlyMap<string, Partial<ClientRouteLimits>> = new Map(
 export function clientRouteLimits(id: string): ClientRouteLimits {
   const measured = measuredRoutes.get(id);
   return {
-    javascript: id === "root" ? "141 kB" : (measured?.javascript ?? "200 kB"),
+    javascript: id === "root" ? "140 kB" : (measured?.javascript ?? "200 kB"),
     stylesheets: measured?.stylesheets ?? "20 kB",
   };
 }

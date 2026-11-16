@@ -5,7 +5,7 @@ import { formatCalendarDate, formatList } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { plotFraction } from "~/units/plot-fraction";
 import { LineKey } from "./line-key";
-import { percentOf, PlotLine } from "./plot";
+import { emOf, percentOf, PlotLine } from "./plot";
 import type { PlotPosition } from "./plot";
 import { ValueMark, valueMarkGap } from "./value-mark";
 import type { ValueAxisSide } from "./value-mark";
@@ -18,6 +18,10 @@ import { useIsInBrowser } from "~/use-is-in-browser";
 import { placeTimeEvents } from "./place-time-events";
 import type { TimeEvent } from "./place-time-events";
 import { timeEndLabels } from "./time-end-labels";
+import { estimatedLabelWidth } from "./estimated-label-width";
+
+const endLabelOffset = 0.75;
+const endLabelOverhang = 0.25;
 
 const lineClasses: Record<LineKind, string | undefined> = {
   own: styles["own"],
@@ -80,7 +84,12 @@ export function TimePlot<Point extends { date: string }, Value extends number>({
   const edgeRoom = `${String(dotRadius)}em`;
   const latest = points.at(-1);
   const endLabels = timeEndLabels(lines, { latest, layout, valueText });
-  const endRoom = `${String(Math.max(0, ...endLabels.map((label) => label.text.length)) * 0.6 + 1)}em`;
+  // End labels use the text font, so their room uses its size instead of the smaller axis font.
+  const endWidth =
+    Math.max(0, ...endLabels.map((label) => estimatedLabelWidth(label.text))) +
+    endLabelOffset +
+    endLabelOverhang;
+  const endRoom = `calc(${String(endWidth)} * var(--text-small))`;
   const rightRoom =
     endLabels.length === 0 ? edgeRoom : "var(--time-chart-end-room)";
   const plotClass = [
@@ -172,9 +181,10 @@ export function TimePlot<Point extends { date: string }, Value extends number>({
           key={label.text}
           x={percentOf(label.position.x)}
           y={percentOf(label.position.y)}
-          dx="0.75em"
+          dx={emOf(endLabelOffset)}
           dy={label.dy}
           className={styles["endLabel"]}
+          data-time-label="end"
         >
           {label.text}
         </text>
@@ -184,7 +194,7 @@ export function TimePlot<Point extends { date: string }, Value extends number>({
   const point = points[marked];
   if (!isInBrowser || point === undefined) {
     return (
-      <div className={plotClass} style={style}>
+      <div className={plotClass} style={style} data-time-plot>
         <div className={styles["area"]}>{drawing}</div>
       </div>
     );
@@ -204,6 +214,7 @@ export function TimePlot<Point extends { date: string }, Value extends number>({
     <div
       className={plotClass}
       style={style}
+      data-time-plot
       {...sliderProps(pointText(point, lines, valueText))}
       onPointerDown={markPointer}
       onPointerMove={markPointer}

@@ -2,7 +2,6 @@ import { NumberText } from "~/number-text";
 import { StudentMeasureNotice } from "./student-measure-notice";
 import { StudentMapNotice } from "./student-map-notice";
 import { resetStudentPasswordPath } from "~/features/classes/class-path";
-import { studentReasonsSectionId } from "~/features/trading/student-reasons-section-id";
 import { useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 import { Link, useNavigate } from "react-router";
@@ -24,7 +23,11 @@ import {
 import { initialsOf } from "~/initials-of";
 import { m } from "~/paraglide/messages.js";
 import { portfolioWeightOf } from "~/features/trading/portfolio-weight-of";
-import { studentMeasuresPath, studentPortfolioPath } from "./grading-paths";
+import {
+  studentMeasuresPath,
+  studentPortfolioPath,
+  studentJournalPath,
+} from "./grading-paths";
 import type { ComparedStudent } from "./student-filters";
 import { studentNote } from "./student-note";
 import {
@@ -271,7 +274,10 @@ export function StudentPanel({
           </Link>
           <Link
             className={styles["button"]}
-            to={`${pathReturningTo(studentPortfolioPath(classId, student.studentId), returnAddress)}#${studentReasonsSectionId}`}
+            to={pathReturningTo(
+              studentJournalPath(classId, student.studentId),
+              returnAddress,
+            )}
           >
             {m.grading_journal_link()}
           </Link>

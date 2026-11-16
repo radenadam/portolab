@@ -1,5 +1,6 @@
-import type { PortfolioKind } from "~/features/trading/portfolio-store.server";
 import { NumberText } from "~/number-text";
+import { portfolioStudentName } from "~/features/trading/text-for-reader";
+import type { PortfolioReader } from "~/features/trading/text-for-reader";
 import { useId } from "react";
 import type { ReactNode } from "react";
 import { countedText } from "~/counted-text";
@@ -24,13 +25,14 @@ import type {
 export function StudentMarketLine({
   marketLine,
   caption,
-  portfolioKind = "membership",
+  reader,
 }: {
   marketLine: Result<StudentLine, StoredMeasureFailure>;
-  portfolioKind?: PortfolioKind;
   /** What the chart shows about the portfolio, which the portfolio gives under the chart, as the references do, and the page of the measures gives above it with the other measures. */
   caption?: ReactNode;
+  reader: PortfolioReader;
 }): ReactNode {
+  const studentName = portfolioStudentName(reader);
   const headingId = useId();
   if (!marketLine.ok) {
     return (
@@ -38,17 +40,21 @@ export function StudentMarketLine({
         <h2>{m.measures_line_title()}</h2>
         <p>
           <NumberText>
-            {measureFailureText(marketLine.failure, {
-              kind: "market",
-              portfolioKind,
-            })}
+            {measureFailureText(marketLine.failure, { kind: "market", reader })}
           </NumberText>
         </p>
       </>
     );
   }
+  if (studentName !== undefined && marketLine.value.kind === "portfolio")
+    return (
+      <LecturerMarketLine
+        studentName={studentName}
+        portfolioLine={marketLine.value.portfolioLine}
+      />
+    );
   const { notice, line, portfolio, holdings, holdingsName, others } =
-    studentPlot(marketLine.value);
+    studentPlot(marketLine.value, studentName);
   return (
     <>
       <h2 id={headingId}>{m.measures_line_title()}</h2>
@@ -73,7 +79,7 @@ export function StudentMarketLine({
 }
 
 /** The section of the chart of the security market line on the page of the measures of a student that the lecturer of the class reads, with the portfolio and its stocks. */
-export function LecturerMarketLine({
+function LecturerMarketLine({
   studentName,
   portfolioLine,
 }: {
@@ -110,8 +116,11 @@ export function LecturerMarketLine({
 }
 
 /** The text that says what the chart of a student places against which line, with the line, the portfolio if it has measures, its stocks on the line with the name that the legend gives them, and the other stocks. The stocks of a portfolio with measures have weights, which size their marks. */
-function studentPlot(plot: StudentLine): {
-  notice: string;
+function studentPlot(
+  plot: StudentLine,
+  studentName: string | undefined,
+): {
+  notice: (textValue: (value: string) => string) => string;
   line: ChartedLine;
   portfolio: LinePoint | undefined;
   holdings: readonly HoldingOnLine[];
@@ -121,9 +130,10 @@ function studentPlot(plot: StudentLine): {
   switch (plot.kind) {
     case "portfolio":
       return {
-        notice: m.measures_portfolio_line_notice(
-          monthSpanInputs(plot.portfolioLine.line.months),
-        ),
+        notice: () =>
+          m.measures_portfolio_line_notice(
+            monthSpanInputs(plot.portfolioLine.line.months),
+          ),
         line: plot.portfolioLine.line,
         portfolio: plot.portfolioLine.portfolio,
         holdings: plot.portfolioLine.holdings,
@@ -132,14 +142,21 @@ function studentPlot(plot: StudentLine): {
       };
     case "latest":
       return {
-        notice: m.measures_latest_line_notice({
-          ...monthSpanInputs(plot.line.months),
-          index: marketIndex.code,
-        }),
+        notice: (textValue) =>
+          (studentName === undefined
+            ? m.measures_latest_line_notice
+            : m.measures_lecturer_latest_line_notice)({
+            name: studentName === undefined ? "" : textValue(studentName),
+            ...monthSpanInputs(plot.line.months),
+            index: marketIndex.code,
+          }),
         line: plot.line,
         portfolio: undefined,
         holdings: plot.holdings,
-        holdingsName: m.measures_line_holdings_label(),
+        holdingsName:
+          studentName === undefined
+            ? m.measures_line_holdings_label()
+            : m.measures_lecturer_line_holdings_label(),
         others: plot.others,
       };
   }

@@ -1,5 +1,5 @@
-import type { PortfolioKind } from "./portfolio-store.server";
-import { classPath } from "~/features/classes/class-path";
+import { textForReader, portfolioStudentName } from "./text-for-reader";
+import type { PortfolioReader } from "./text-for-reader";
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { ChangeText } from "~/change-text";
@@ -32,17 +32,13 @@ import { HomeMapPanel } from "./home-map-panel";
 export function HomePortfolio({
   home,
   classId,
-  path,
-  analysisPath,
-  showTitle = true,
-  portfolioKind = "membership",
+  reader,
+  showTitle = reader.kind === "owner",
 }: {
   home: HomePortfolioData;
   classId: ClassId;
-  path?: string;
-  analysisPath?: string;
+  reader: PortfolioReader;
   showTitle?: boolean;
-  portfolioKind?: PortfolioKind;
 }): ReactNode {
   const { report, now, delayMinutes } = home;
   const values = homeHoldings(report.valuation);
@@ -55,13 +51,13 @@ export function HomePortfolio({
       : m.trading_home_today_label();
   const changeFailure = dayChange.ok
     ? undefined
-    : dayChangeFailureText(dayChange.failure, portfolioKind);
+    : dayChangeFailureText(dayChange.failure, reader);
   const failure = holdingQuoteFailureText([report], {
     now,
     delayMinutes,
   });
   return (
-    <div className={styles["home"]}>
+    <div className={styles["home"]} data-reader={reader.kind}>
       {showTitle && <h1 className={styles["screenTitle"]}>{homeTitle()}</h1>}
       <div className={styles["columns"]} data-layout="columns">
         <div className={styles["leftColumn"]}>
@@ -69,7 +65,13 @@ export function HomePortfolio({
             <section className={styles["hero"]}>
               <div className={styles["valueLabel"]}>
                 <h2 className={styles["valueLabel"]}>
-                  {m.trading_home_value_title()}
+                  <NumberText verbatim>
+                    {textForReader(reader, {
+                      owner: m.trading_home_value_title,
+                      lecturer: (name) =>
+                        m.trading_home_student_value_title({ name }),
+                    })}
+                  </NumberText>
                 </h2>
                 <ConceptHelp title={m.trading_home_value_title()}>
                   <p>{m.trading_home_value_body()}</p>
@@ -157,29 +159,24 @@ export function HomePortfolio({
             </section>
           </div>
           <div className={styles["returnCard"]}>
-            <HomeReturn
-              history={report.history}
-              classId={classId}
-              portfolioKind={portfolioKind}
-            />
+            <HomeReturn history={report.history} reader={reader} />
           </div>
           <div className={styles["riskCard"]}>
             <HomeRisk
               report={home.measures}
-              portfolioKind={portfolioKind}
               classId={classId}
-              path={analysisPath}
+              reader={reader}
             />
           </div>
         </div>
-        <HomeMapPanel
-          portfolioKind={portfolioKind}
-          home={home}
-          classId={classId}
-          path={path ?? classPath(classId)}
-        />
+        <HomeMapPanel home={home} classId={classId} reader={reader} />
       </div>
-      <HomeHoldingsSection home={home} values={values} classId={classId} />
+      <HomeHoldingsSection
+        home={home}
+        values={values}
+        classId={classId}
+        studentName={portfolioStudentName(reader)}
+      />
     </div>
   );
 }

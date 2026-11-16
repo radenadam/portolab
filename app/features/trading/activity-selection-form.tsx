@@ -18,9 +18,11 @@ export interface ActivitySelectionFields {
 export function ActivitySelectionForm({
   fields,
   task,
+  returnPath,
 }: {
   fields: ActivitySelectionFields;
   task?: LessonTask | undefined;
+  returnPath?: string | undefined;
 }): ReactNode {
   const statusOptions: FieldOption[] = activityFilterOptions();
   const viewOptions: FieldOption[] = activityViewOptions();
@@ -32,6 +34,9 @@ export function ActivitySelectionForm({
     <Form method="get" className={styles["selectionForm"]}>
       {task !== undefined && (
         <input type="hidden" name={lessonTaskField} value={String(task)} />
+      )}
+      {returnPath !== undefined && (
+        <input type="hidden" name="returnTo" value={returnPath} />
       )}
       <SelectField
         name="status"

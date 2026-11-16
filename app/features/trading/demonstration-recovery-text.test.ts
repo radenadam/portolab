@@ -42,9 +42,9 @@ for (const locale of locales) {
       portfolioKind: "demonstration",
     } as const;
     expect(missingCalendarText(reader)).toBe(texts[locale].calendar);
-    expect(
-      dayChangeFailureText({ kind: "missingCalendar" }, "demonstration"),
-    ).toBe(texts[locale].daily);
+    expect(dayChangeFailureText({ kind: "missingCalendar" }, reader)).toBe(
+      texts[locale].daily,
+    );
     expect(
       dayChangeFailureText(
         {
@@ -52,13 +52,13 @@ for (const locale of locales) {
           date: "2026-11-02",
           value: rupiah(-3_229_000),
         },
-        "demonstration",
+        reader,
       ),
     ).toBe(texts[locale].reference);
     for (const subject of [
-      { kind: "stock", code: "BBCA", portfolioKind: "demonstration" },
-      { kind: "market", portfolioKind: "demonstration" },
-      { kind: "correlation", portfolioKind: "demonstration" },
+      { kind: "stock", code: "BBCA", reader },
+      { kind: "market", reader },
+      { kind: "correlation", reader },
     ] as const) {
       expect(
         measureFailureText(

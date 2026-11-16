@@ -12,10 +12,17 @@ import { chosenPassword, uniqueUsername } from "./accounts.ts";
 export async function createClassStudent(
   database: Database,
   classId: ClassId,
-  { name, now }: { name: string; now: Date },
+  {
+    name,
+    now,
+    username: chosenUsername,
+  }: { name: string; now: Date; username?: string },
 ): Promise<{ username: Username; studentId: UserId }> {
   const username = successValueForTest(
-    parseUsername(uniqueUsername("mhs"), "The username of the test student"),
+    parseUsername(
+      chosenUsername ?? uniqueUsername("mhs"),
+      "The username of the test student",
+    ),
     "The generated username is valid",
   );
   const studentId = await createStudent(

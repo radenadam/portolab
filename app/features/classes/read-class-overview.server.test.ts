@@ -1,4 +1,5 @@
 import { classMapPath } from "./class-path";
+import { studentJournalPath } from "~/features/grading/grading-paths";
 import {
   purchaseForTest,
   acceptedForTest,
@@ -142,13 +143,12 @@ for (const locale of locales) {
     const firstReason = overview.reasons[0];
     if (firstReason === undefined)
       throw new Error("The overview has a filled reason.");
-    expect(
-      new URL(firstReason.href, "http://localhost").searchParams.get(
-        "returnTo",
-      ),
-    ).toBe(`${sourcePath}#class-reasons`);
-    expect(overview.reasons[0]?.href).toContain(
-      `/students/${String(member.id)}/portfolio?returnTo=`,
+    const reasonAddress = new URL(firstReason.href, "http://localhost");
+    expect(reasonAddress.searchParams.get("returnTo")).toBe(
+      `${sourcePath}#class-reasons`,
+    );
+    expect(reasonAddress.pathname).toBe(
+      studentJournalPath(fixture.taughtClass.id, member.id),
     );
   });
 

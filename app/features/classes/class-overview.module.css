@@ -53,8 +53,7 @@
 }
 
 .choice {
-  composes: choice from "../../segmented-choice.module.css";
-  font-size: var(--text-caption);
+  composes: choice compact from "../../segmented-choice.module.css";
 }
 
 .strip {

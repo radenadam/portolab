@@ -134,12 +134,27 @@ for (const locale of locales) {
         await expect(
           screen.getByRole("button", { name: text.all, exact: true }),
         ).toBeFocused();
-        await screen
+        const reasonLink = screen
           .getByRole("region", { name: text.reasons })
           .getByRole("link")
-          .first()
-          .click();
-        await expect(screen.locator("#student-reasons")).toBeInViewport();
+          .first();
+        const reasonText = await reasonLink.locator("q").innerText();
+        const reasonHref = await reasonLink.getAttribute("href");
+        if (reasonHref === null)
+          throw new Error("A class reason must have a journal address.");
+        const reasonAddress = new URL(reasonHref, screen.url());
+        expect(reasonAddress.pathname).toMatch(/\/students\/\d+\/journal$/);
+        expect(reasonAddress.hash).not.toBe("");
+        await reasonLink.click();
+        await expect(screen).toHaveURL(reasonAddress.href);
+        const journalEntry = screen.locator(reasonAddress.hash);
+        await expect(journalEntry).toBeInViewport();
+        await expect(
+          screen
+            .locator("li")
+            .filter({ has: journalEntry })
+            .locator("blockquote"),
+        ).toHaveText(reasonText);
         await screen
           .locator(`main a[href="${classPath}?axis=deviation#class-reasons"]`)
           .click();

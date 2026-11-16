@@ -1,4 +1,9 @@
-import type { PortfolioKind } from "./portfolio-store.server";
+import { portfolioLabel } from "./portfolio-label";
+import {
+  portfolioKindForReader,
+  portfolioStudentName,
+} from "./text-for-reader";
+import type { PortfolioReader } from "./text-for-reader";
 import type { MarkedPoint, MapPoint } from "~/charts/layout-risk-map";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
 import { formatBeta, formatPercent, formatSignedPercent } from "~/formatting";
@@ -12,7 +17,7 @@ import type { HomePortfolioData } from "./read-home-portfolio.server";
 /** The map compares current delayed values. The small chart keeps final daily closes. */
 export function homeMapPoints(
   home: HomePortfolioData,
-  portfolioKind: PortfolioKind = "membership",
+  reader: PortfolioReader,
 ):
   | {
       market: MapPoint<Beta, CumulativeReturn>;
@@ -29,7 +34,7 @@ export function homeMapPoints(
           name: {
             membership: m.trading_home_classmate_label,
             demonstration: m.trading_demonstration_student_label,
-          }[portfolioKind](),
+          }[portfolioKindForReader(reader)](),
         },
         classmate.beta,
         classmate.return,
@@ -45,7 +50,10 @@ export function homeMapPoints(
   if (measured !== undefined && home.report.valuation.total !== undefined) {
     points.push({
       ...mapPoint(
-        { key: "portfolio", name: m.trading_home_portfolio_label() },
+        {
+          key: "portfolio",
+          name: portfolioLabel(portfolioStudentName(reader)),
+        },
         measured.beta,
         home.report.valuation.total.return,
       ),

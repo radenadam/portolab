@@ -20,6 +20,7 @@ import { widestClassNames } from "./widest-class-names.ts";
 import { writeForTestStudent } from "./write-for-test-student.ts";
 import { holdClientScripts } from "./hold-client-scripts.ts";
 import { expectMapLabelsClear } from "./expect-map-labels-clear.ts";
+import { expectCompactChoice } from "./expect-compact-choice.ts";
 import { fillClassMap } from "./fill-class-map.ts";
 
 const texts: Record<
@@ -41,9 +42,11 @@ const texts: Record<
     startingCash: string;
     empty: string;
     back: string;
+    studentTabs: readonly string[];
   }
 > = {
   id: {
+    studentTabs: ["Analisis", "Jurnal dan order"],
     calendar: "Atur tanggal sesi 1",
     saveCalendar: "Simpan tanggal",
     back: `Kembali ke ${widestClassNames.className}`,
@@ -63,6 +66,7 @@ const texts: Record<
     viewChip: ["Kode gabung ", ". Lihat kode dan alamat gabung"],
   },
   en: {
+    studentTabs: ["Analysis", "Journal and orders"],
     calendar: "Set the date of session 1",
     saveCalendar: "Save the date",
     back: `Back to ${widestClassNames.className}`,
@@ -160,6 +164,9 @@ for (const locale of locales) {
           .first()
           .getAttribute("id");
         await studentLink.click();
+        for (const tab of texts[locale].studentTabs) {
+          await screen.getByRole("link", { name: tab, exact: true }).click();
+        }
         await screen
           .getByRole("link", { name: texts[locale].back, exact: true })
           .click();
@@ -297,6 +304,11 @@ for (const locale of locales) {
               .filter({ hasText: texts[locale].startingCash }),
           ).toBeVisible();
           await expectMapLabelsClear(drawing);
+          await expectCompactChoice(
+            screen
+              .getByRole("link", { name: texts[locale].deviation, exact: true })
+              .locator(".."),
+          );
           expect(await layoutProblems(screen)).toEqual([]);
         }
       }
@@ -390,7 +402,7 @@ for (const locale of locales) {
     await page.keyboard.press("Home");
     const documentsBeforeKey = documentRequests;
     await page.keyboard.press("Enter");
-    await expect(page).toHaveURL(/\/students\/\d+\/portfolio\?returnTo=/);
+    await expect(page).toHaveURL(/\/students\/\d+\?returnTo=/);
     expect(documentRequests).toBe(documentsBeforeKey);
     await page
       .getByRole("link", {
@@ -413,7 +425,7 @@ for (const locale of locales) {
     } else {
       await page.mouse.click(center.x, center.y);
     }
-    await expect(page).toHaveURL(/\/students\/\d+\/portfolio\?returnTo=/);
+    await expect(page).toHaveURL(/\/students\/\d+\?returnTo=/);
     expect(documentRequests).toBe(documentsBeforePointer);
     await page.goto(classPath);
     await page.getByRole("button", { name: text.help, exact: true }).click();
@@ -429,7 +441,7 @@ for (const locale of locales) {
     expect(await layoutProblems(page)).toEqual([]);
     await expectAccessibleScreen(page);
     await studentLink.click();
-    await expect(page).toHaveURL(/\/students\/\d+\/portfolio\?returnTo=/);
+    await expect(page).toHaveURL(/\/students\/\d+\?returnTo=/);
     await page.goto(classPath);
     await page
       .context()

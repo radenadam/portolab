@@ -1,4 +1,4 @@
-# 0047. Lesson practice keeps estimates fixed while weights change
+# 0048. Lesson practice keeps estimates fixed while weights change
 
 - Status: Accepted
 - Date: 2026-11-15
@@ -27,4 +27,4 @@ The prototype changes portfolio weights with the observed covariance matrix. It 
 
 ## Consequences
 
-The lessons keep the existing calculation components and number formats. The content parser still reserves empty interactive and practice sections in Markdown, because components provide their data. The [content guide](../learning-content.md) names the implemented sections and references. [Decision 0048](0048-complete-lesson-sheets-have-measured-route-allowances.md) records the complete route allowances after the exercises join the lesson sheets.
+The lessons keep the existing calculation components and number formats. The content parser still reserves empty interactive and practice sections in Markdown, because components provide their data. The [content guide](../learning-content.md) names the implemented sections and references. [Decision 0049](0049-complete-lesson-sheets-have-measured-route-allowances.md) records the complete route allowances after the exercises join the lesson sheets.
