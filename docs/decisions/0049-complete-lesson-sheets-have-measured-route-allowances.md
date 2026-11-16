@@ -1,6 +1,6 @@
 # 0049. Complete lesson sheets have measured route allowances
 
-- Status: Accepted. [Decision 0052](0052-current-returns-share-one-snapshot.md) replaces its rule that demonstration analysis keeps the default JavaScript ceiling.
+- Status: Accepted. [Decision 0053](0053-current-returns-share-one-snapshot.md) replaces its rule that demonstration analysis keeps the default JavaScript ceiling.
 - Date: 2026-11-16
 
 ## Context

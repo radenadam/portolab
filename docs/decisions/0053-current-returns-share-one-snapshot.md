@@ -1,4 +1,4 @@
-# 0052. Current returns share one snapshot
+# 0053. Current returns share one snapshot
 
 - Status: Accepted
 - Date: 2026-11-16
@@ -39,4 +39,4 @@ All six recorded chart key steps on the changed build finish within 120 ms, incl
 
 ## Consequences
 
-This replaces the latest-return rule of decision 0018, the scope of missing closes, its consequence about the points of a chart, and its rejection of a current quote endpoint. Its rules for final daily points and the return start remain. Both languages explain the endpoint in the existing help. Regression tests compare the screen elements against independent calculations with quotes newer than daily closes. The product lens exercises that state under the one-moment standard in AGENTS.md. The budget test checks the new route allowance and its existing CSS ceiling through `clientSizeChecks`.
+This replaces the latest-return rule of decision 0018, the scope of missing closes, its consequence about the points of a chart, and its rejection of a current quote endpoint. Its rules for final daily points and the return start remain. Both languages explain the endpoint in the existing help and lecturer guide. Regression tests compare the screen elements against independent calculations with quotes newer than daily closes. The product lens exercises that state under the one-moment standard in AGENTS.md. The budget test checks the new route allowance and its existing CSS ceiling through `clientSizeChecks`.

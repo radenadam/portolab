@@ -8,6 +8,7 @@ export default [
   route("account", "features/accounts/account-page.tsx"),
   route("account/setup", "features/accounts/account-setup-page.tsx"),
   route("privacy", "features/accounts/privacy-page.tsx"),
+  route("guide", "features/learning/guide-page.tsx"),
   route("classes", "features/classes/classes-page.tsx"),
   layout("features/learning/learning-overlay.tsx", [
     route("classes/:classId", "features/classes/class-page.tsx"),
