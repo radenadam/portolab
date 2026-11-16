@@ -70,7 +70,7 @@ has the same source tree as main `1a0ccf5`.
 Trade impact adds 23.92/2.74 kB to Saham and 19.83/2.76 kB to the ticket.
 The rounded shared JavaScript increase is 0.16 kB. The combined stock page exceeds its
 JavaScript ceiling by 1.41 kB, and the shared set exceeds its ceiling by
-75 bytes. The ticket remains within the measured allowance above.
+75 bytes. The ticket remains within the allowance in [the decision](#decision).
 
 The shared set includes the route manifest, which lists imports for every
 route. The combined manifest is 4,916 bytes gzip. The text formatter's
