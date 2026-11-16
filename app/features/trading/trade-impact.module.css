@@ -94,28 +94,8 @@
   margin-inline-start: var(--size-mark);
 }
 .segments {
-  composes: control from "../../segment-control.module.css";
-  display: inline-flex;
+  composes: choice compact from "../../segmented-choice.module.css";
   align-self: flex-start;
-  font-size: var(--text-learning-summary);
-}
-.segments a {
-  display: grid;
-  place-items: center;
-  min-height: var(--size-touch-target);
-  padding-inline: var(--space-1);
-  color: var(--color-ink-secondary);
-  text-decoration: none;
-}
-.segments a span {
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-button);
-}
-.segments [aria-current] span {
-  background: var(--color-panel);
-  color: var(--color-ink);
-  box-shadow: var(--shadow-choice);
-  font-weight: 600;
 }
 .map {
   min-width: 0;

@@ -12,10 +12,9 @@ import { m } from "~/paraglide/messages.js";
 import { pathWithQuery } from "~/path-with-query";
 import type { PortfolioWeight } from "~/units/portfolio-weight";
 import type { AnalysisAxis } from "~/features/measures/analysis-axes";
-import { smallestOrderLots } from "~/units/lots";
+import { isOrderLots, smallestOrderLots } from "~/units/lots";
 import { shares } from "~/units/shares";
 import type { readTicket } from "./read-ticket.server";
-import { parseOrderLots } from "./parse-order-lots";
 import { previewTrade } from "./preview-trade";
 import { orderFailureText } from "./order-failure-text";
 import { lotCount } from "./count-parts";
@@ -126,48 +125,34 @@ function StockImpactPreview({
     day: day.value,
     available,
   });
-  const parsed = parseOrderLots(
-    formatNumber(count),
-    m.trading_lots_label(),
-    day.value.rules.maximumLots,
+  const hasOrder = isOrderLots(count);
+  const orderCount = hasOrder ? count : smallestOrderLots;
+  const preview = previewTrade(
+    ticket.impact.value,
+    {
+      code,
+      side: "buy",
+      price: { kind: "market" },
+      lots: orderCount,
+      reason: undefined,
+      placedAt: ticket.now,
+    },
+    { day: day.value, quote },
   );
   const amounts = ticketAmounts("buy", {
     price: quote.price,
-    shares: shares(count * day.value.rules.lotShares),
+    shares: shares(orderCount * day.value.rules.lotShares),
     rates: day.value.rates,
     available,
   });
-  if (!parsed.ok) {
-    const smallest = ticketAmounts("buy", {
-      price: quote.price,
-      shares: shares(smallestOrderLots * day.value.rules.lotShares),
-      rates: day.value.rates,
-      available,
-    });
-    if (available < smallest.total) {
-      const minimum = parseOrderLots(
-        formatNumber(smallestOrderLots),
-        m.trading_lots_label(),
-        day.value.rules.maximumLots,
-      );
-      if (!minimum.ok) throw new Error(minimum.failure);
+  if (!hasOrder) {
+    if (available < amounts.total) {
       return (
         <TradeImpact
           portfolioKind={portfolioKind}
           axis={axis}
           code={code}
-          preview={previewTrade(
-            ticket.impact.value,
-            {
-              code,
-              side: "buy",
-              price: { kind: "market" },
-              lots: minimum.value,
-              reason: undefined,
-              placedAt: ticket.now,
-            },
-            { day: day.value, quote },
-          )}
+          preview={preview}
         />
       );
     }
@@ -178,24 +163,12 @@ function StockImpactPreview({
             share: formatPercent(share, "integer"),
             lots: lotCount(smallestOrderLots),
             code,
-            cost: formatRupiah(smallest.total),
+            cost: formatRupiah(amounts.total),
           })}
         </NumberText>
       </p>
     );
   }
-  const preview = previewTrade(
-    ticket.impact.value,
-    {
-      code,
-      side: "buy",
-      price: { kind: "market" },
-      lots: parsed.value,
-      reason: undefined,
-      placedAt: ticket.now,
-    },
-    { day: day.value, quote },
-  );
   const inputs = {
     lots: lotCount(count),
     code,

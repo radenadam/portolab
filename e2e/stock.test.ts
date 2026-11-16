@@ -294,7 +294,7 @@ for (const locale of locales) {
       );
       await expect(
         student.locator(`dialog a[data-side="${side}"]`),
-      ).toHaveAttribute("data-selected", "true");
+      ).toHaveAttribute("aria-current", "true");
       if (testInfo.project.name === "phone") {
         await student.keyboard.press("Escape");
         await expect(student).toHaveURL(`${path}?range=1y`);
@@ -372,7 +372,7 @@ for (const locale of locales) {
       ).toBeVisible();
       await page.getByRole("link", { name: text.sell, exact: true }).click();
       await expect(page.locator('dialog a[data-side="sell"]')).toHaveAttribute(
-        "data-selected",
+        "aria-current",
         "true",
       );
       await lecturer.context().close();

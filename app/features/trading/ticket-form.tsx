@@ -141,7 +141,7 @@ function TicketFields(
               price: values.limit,
               priceKind: values.priceKind,
             })}
-            data-selected={side === value}
+            aria-current={side === value ? "true" : undefined}
             data-side={value}
             onClick={(event) => {
               event.preventDefault();

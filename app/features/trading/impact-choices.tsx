@@ -29,7 +29,7 @@ export function ImpactChoices<Choice extends string | number>({
           preventScrollReset
           aria-current={selected === choice ? "true" : undefined}
         >
-          <span>{name(choice)}</span>
+          {name(choice)}
         </Link>
       ))}
     </nav>
