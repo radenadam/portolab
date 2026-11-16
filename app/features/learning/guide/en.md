@@ -10,7 +10,9 @@ To see the student side, use a sample student account in a private window or ano
 
 The class name at the top opens the class switcher. Each class keeps its own portfolios and students. On a computer, navigation is on the left. On a phone, it is at the bottom.
 
-Your navigation contains {{label:navigation_class_link}}, {{label:navigation_students_link}}, {{label:navigation_portfolio_link}}, {{label:navigation_market_link}}, and {{label:navigation_learn_link}}. Open your name or avatar for {{label:accounts_account_link}}, the language choice, this guide, and {{label:accounts_sign_out_title}}. The {{link:account|account page}} lets you change your name and password.
+Your navigation contains {{label:navigation_class_link}}, {{label:navigation_students_link}}, {{label:navigation_portfolio_link}}, {{label:navigation_market_link}}, and {{label:navigation_learn_link}}. Open your name or avatar for {{label:accounts_account_link}}, the language choice, this guide, and {{label:accounts_sign_out_title}}. You can change your name and password on the account page.
+
+{{link:account|Account page}}
 
 A question mark opens the meaning of a concept. {{label:app_concept_calculation_label}} opens its formula and inputs. A lesson opened from another screen usually appears over that screen. Closing it returns you to your work. If your browser opens the lesson as a separate page, use its back link. In that case, unsent fields can be lost.
 
@@ -24,7 +26,11 @@ A student without risk measures or a return has no point yet. Open {{label:class
 
 ## create | Set up a class and its calendar
 
-Choose {{label:navigation_create_class_link}} in the class switcher, or open {{link:classes|your class list}}. Fill in {{label:classes_name_label}}, {{label:classes_first_session_label}}, and {{label:classes_starting_cash_label}}, then choose {{label:classes_create_label}}. Starting cash defaults to {{value:starting-cash}}, and you can change it when creating the class. Each student receives the class's virtual starting cash when joining.
+Choose {{label:navigation_create_class_link}} in the class switcher. You can also create a class from your class list.
+
+{{link:classes|Your class list}}
+
+Fill in {{label:classes_name_label}}, {{label:classes_first_session_label}}, and {{label:classes_starting_cash_label}}, then choose {{label:classes_create_label}}. Starting cash defaults to {{value:starting-cash}}, and you can change it when creating the class. Each student receives the class's virtual starting cash when joining.
 
 The calendar places {{value:sessions}} weekly sessions from that starting date and determines the class semester. Check the calendar in {{label:navigation_class_link}} before the first meeting. {{label:classes_calendar_link}} changes the starting date and shifts the later sessions. The calendar helps locate this week's material. It does not restrict trading to class meeting days.
 
@@ -32,7 +38,11 @@ The calendar places {{value:sessions}} weekly sessions from that starting date a
 
 Tap {{label:classes_join_chip_title}} at the top of the class to see the code and its address. Share the displayed code or address with students. On a home network, students need a network that can reach the server computer. Try the address on a phone before class. If it does not open, ask the server owner to check the network and firewall.
 
-Students open that address, or the {{link:join|join page}} and enter the code. New students choose a username, name, and password, then agree to the privacy notice. No email is needed. Students who already have an account sign in with it and then join. Usernames distinguish students with the same name. Check names in {{label:navigation_students_link}} before grading their work.
+Students open the address you share. They can also open the join page and enter the code.
+
+{{link:join|Join page}}
+
+New students choose a username, name, and password, then agree to the privacy notice. No email is needed. Students who already have an account sign in with it and then join. Usernames distinguish students with the same name. Check names in {{label:navigation_students_link}} before grading their work.
 
 ## student | What students see and do
 
@@ -108,7 +118,9 @@ The simulation badge at the top names the price source and delay. Open it for th
 
 When an update fails, Portolab keeps stored prices and marks those it could not update. Portfolio values can use those older prices. A price never stored and a measure that cannot be computed have an explanation. Orders fill only with quotes eligible for their session and trading day, so an old price cannot always fill an order.
 
-Check quote times before discussing changes or grading results. If the badge gives a next attempt time, wait until that time. If the problem continues, ask the server owner to check the {{link:deployment|server operating guide}}. Do not ask students to send repeated orders to trigger a price update.
+Check quote times before discussing changes or grading results. If the badge gives a next attempt time, wait until that time. If the problem continues, ask the server owner to check the operating guide. Do not ask students to send repeated orders to trigger a price update.
+
+{{link:deployment|Server operating guide}}
 
 ## limits | What the simulation leaves out
 
@@ -120,14 +132,26 @@ Other corporate actions, including reference-price adjustments on their action d
 
 For a student, open their panel in {{label:navigation_students_link}}, then choose {{label:grading_reset_link}}. Check their identity and confirm with {{label:classes_reset_label}}. Portolab signs the student out on every device and displays a temporary password. Give it directly to the correct student. They choose a new password at the next sign-in.
 
-If you forget your lecturer password, contact the server owner with your username. The owner runs the account command to reset it, following the {{link:lecturer-account|lecturer account section of the server guide}}. Lecturer accounts are created by the server owner, so the student join form does not replace one.
+If you forget your lecturer password, contact the server owner with your username. The owner runs the account command to reset it. Lecturer accounts are created by the server owner, so the student join form does not replace one.
+
+{{link:lecturer-account|Lecturer account section of the server guide}}
 
 ## privacy | Privacy and deletion
 
-Read the {{link:privacy|privacy notice}} for stored data, who sees it, and student and lecturer rights. Explain that notice before students agree and join. For a data copy or deletion request, contact the server owner. The owner's steps are in the {{link:personal-data|personal data section of the server guide}}.
+Read the privacy notice for stored data, who sees it, and student and lecturer rights. Explain that notice before students agree and join.
+
+{{link:privacy|Privacy notice}}
+
+For a data copy or deletion request, contact the server owner.
+
+{{link:personal-data|Personal data section of the server guide}}
 
 ## server | Server, backups, and semester end
 
-Ask the server owner to follow the {{link:deployment|installation and update guide}} and the {{link:backups|backup and restore steps}}. You do not need to run server commands to teach. Agree on who receives outage reports and data requests.
+Give these instructions to the server owner. You do not need to run server commands to teach. Agree on who receives outage reports and data requests.
+
+{{link:deployment|Installation and update guide}}
+
+{{link:backups|Backup and restore steps}}
 
 At semester end, download the workbook for grading and agree on data retention or deletion with the owner. The calendar's end date does not delete the class or stop trading. Create a new class for the next semester to keep each cohort's cash, portfolios, and work separate. The guide inside the app follows the Portolab version you are using. Server guide links open repository documentation and need internet access.

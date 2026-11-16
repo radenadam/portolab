@@ -209,6 +209,29 @@ test.each([
 
 for (const locale of locales) {
   const path = `./guide/${locale}.md`;
+  test.each([
+    "Before {{link:privacy|Privacy}} after.",
+    "{{link:privacy|Privacy}} {{link:account|Account}}",
+    "{{value:sessions}}{{link:privacy|Privacy}}",
+    "{{label:navigation_class_link}}{{link:privacy|Privacy}}",
+  ])(
+    `rejects a link beside other content in ${languageNames[locale]}: %s`,
+    (paragraph) => {
+      const original = files[path];
+      if (original === undefined)
+        throw new Error("The guide fixture is missing.");
+      const result = parseGuideContent(
+        { ...files, [path]: `${original}\n\n${paragraph}` },
+        "Guides",
+      );
+      expect(result).toMatchObject({ ok: false });
+      if (!result.ok)
+        expect(result.failure).toContain(
+          "must put each link reference in a paragraph of its own",
+        );
+    },
+  );
+
   test(`rejects a missing ${languageNames[locale]} guide`, () => {
     expect(
       parseGuideContent(

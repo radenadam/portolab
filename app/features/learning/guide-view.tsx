@@ -47,7 +47,7 @@ function GuideParagraph({ parts }: { parts: readonly GuidePart[] }): ReactNode {
       );
       text = "";
       children.push(
-        <a key={index} href={part.href}>
+        <a key={index} href={part.href} className={styles["link"]}>
           {part.text}
         </a>,
       );

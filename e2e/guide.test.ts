@@ -32,7 +32,7 @@ const texts: Record<
     title: "Panduan dosen",
     contents: "Isi panduan",
     prices: "Harga tertunda dan kegagalan pembaruan",
-    privacy: "pemberitahuan privasi",
+    privacy: "Pemberitahuan privasi",
     notFound: "Halaman tidak ditemukan",
   },
   en: {
@@ -40,7 +40,7 @@ const texts: Record<
     title: "Lecturer guide",
     contents: "Guide contents",
     prices: "Delayed prices and failed updates",
-    privacy: "privacy notice",
+    privacy: "Privacy notice",
     notFound: "Page not found",
   },
 };
@@ -64,6 +64,14 @@ for (const locale of locales) {
     await expect(page.locator("main section")).toHaveCount(
       guideSectionIds.length,
     );
+    for (const link of await page.locator("main section a").all()) {
+      await expect(link).not.toBeEmpty();
+      const words = await link.evaluate((element) => ({
+        link: element.textContent.trim(),
+        paragraph: element.closest("p")?.textContent.trim(),
+      }));
+      expect(words.paragraph).toBe(words.link);
+    }
     await expectAccessibleScreen(page);
     await captureScreens(page, testInfo, {
       name: `guide-${locale}`,

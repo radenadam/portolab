@@ -30,8 +30,6 @@
   color: var(--color-ink-secondary);
 }
 
-.section a {
-  display: inline-flex;
-  align-items: center;
-  min-height: var(--size-touch-target);
+.link {
+  composes: link from "./learning.module.css";
 }

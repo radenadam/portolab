@@ -69,7 +69,7 @@ The first four tables belong to the trading lesson and price guide in piece 30. 
 
 [Decision 0051](decisions/0051-the-guide-for-lecturers-lives-in-the-repository-and-in-the-app.md) places the lecturer guide in the same feature as lessons. Each language has `guide/<locale>.md`. `readGuideContent` bundles all of them through raw Vite imports and passes the collection to `parseGuideContent`. It reuses `parseMarkdown` for the title and sections. The guide has a title followed by headings such as `## sample | Mulai dari kelas contoh`. The stable ids and order come from `guideSectionIds` in `guide-section-ids.ts`.
 
-Paragraphs may contain these inline references. Their identifiers and order agree in both languages, while their surrounding prose and link text may differ.
+Prose paragraphs may contain these inline references. Their identifiers and order agree in both languages, while their surrounding prose may differ.
 
 | Reference                                              | Source                                                                                        |
 | ------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
@@ -78,7 +78,7 @@ Paragraphs may contain these inline references. Their identifiers and order agre
 | `{{value:sessions}}`                                   | The course session count.                                                                     |
 | `{{value:minimum-returns}}`, `{{value:return-window}}` | The estimation settings for monthly returns.                                                  |
 
-A link such as `{{link:privacy|pemberitahuan privasi}}` takes its address from `guideLinks` and its visible text from the translation.
+A link such as `{{link:privacy|Pemberitahuan privasi}}` occupies a paragraph of its own. It takes its address from `guideLinks` and its visible text from the translation. The parser rejects a link beside text, another link, or another kind of reference, so its touch target never changes the line spacing of prose. The page reuses the lesson link style.
 
 `parseGuideLabels` validates the imported message catalogues before their labels enter the guide. `guideReferences` reads the owning constants and formats quantities with the active language's `Intl` formats. Guide prose rejects raw quantities, quoted labels, addresses, HTML, and other Markdown. An identifier such as LQ45 remains text. The shipped-content tests check every rendered label against its message, every value against its constant, every application link against `app/routes.ts`, and each deployment link against its section. Parser tests cover missing languages, malformed files, unknown references, and translation mismatches.
 

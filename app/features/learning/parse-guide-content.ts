@@ -133,6 +133,17 @@ function parseGuideParagraph(
     if (!plain.ok) return plain;
     parts.push({ kind: "text", text: normalizeContentWhitespace(text) });
   }
+  const link = parts.find((part) => part.kind === "link");
+  if (
+    link !== undefined &&
+    parts.some(
+      (part) =>
+        part !== link && (part.kind !== "text" || part.text.trim() !== ""),
+    )
+  )
+    return fail(
+      `${source} must put each link reference in a paragraph of its own, but it is ${describeValue(value)}.`,
+    );
   return parts.length === 0
     ? fail(`${source} must have a paragraph, but it is empty.`)
     : succeed(parts);

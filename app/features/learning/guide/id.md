@@ -10,7 +10,9 @@ Untuk melihat sisi mahasiswa, gunakan akun mahasiswa contoh di jendela privat at
 
 Nama kelas di bagian atas membuka pilihan kelas. Setiap kelas menyimpan portofolio dan mahasiswanya sendiri. Pada komputer, menu ada di sisi kiri. Pada ponsel, menu ada di bagian bawah.
 
-Menu dosen berisi {{label:navigation_class_link}}, {{label:navigation_students_link}}, {{label:navigation_portfolio_link}}, {{label:navigation_market_link}}, dan {{label:navigation_learn_link}}. Buka nama atau avatar Anda untuk {{label:accounts_account_link}}, pilihan bahasa, panduan ini, dan {{label:accounts_sign_out_title}}. {{link:account|Halaman akun}} memungkinkan Anda mengganti nama dan kata sandi.
+Menu dosen berisi {{label:navigation_class_link}}, {{label:navigation_students_link}}, {{label:navigation_portfolio_link}}, {{label:navigation_market_link}}, dan {{label:navigation_learn_link}}. Buka nama atau avatar Anda untuk {{label:accounts_account_link}}, pilihan bahasa, panduan ini, dan {{label:accounts_sign_out_title}}. Anda dapat mengganti nama dan kata sandi di halaman akun.
+
+{{link:account|Halaman akun}}
 
 Tanda tanya membuka arti konsep. {{label:app_concept_calculation_label}} membuka rumus dan angkanya. Pelajaran yang dibuka dari layar lain biasanya tampil di atas layar itu. Menutupnya mengembalikan Anda ke pekerjaan tadi. Jika peramban membuka pelajaran sebagai halaman tersendiri, gunakan tautan kembali. Dalam keadaan itu, isian yang belum dikirim dapat hilang.
 
@@ -24,7 +26,11 @@ Mahasiswa tanpa ukuran risiko atau imbal hasil belum memiliki titik. Buka {{labe
 
 ## create | Menyiapkan kelas dan kalender
 
-Pilih {{label:navigation_create_class_link}} dari pilihan kelas, atau buka {{link:classes|daftar kelas Anda}}. Isi {{label:classes_name_label}}, {{label:classes_first_session_label}}, dan {{label:classes_starting_cash_label}}, lalu pilih {{label:classes_create_label}}. Nilai awal kas adalah {{value:starting-cash}}, dan Anda dapat menggantinya saat membuat kelas. Setiap mahasiswa menerima kas virtual yang ditetapkan kelas ketika bergabung.
+Pilih {{label:navigation_create_class_link}} dari pilihan kelas. Anda juga dapat membuat kelas dari daftar kelas Anda.
+
+{{link:classes|Daftar kelas Anda}}
+
+Isi {{label:classes_name_label}}, {{label:classes_first_session_label}}, dan {{label:classes_starting_cash_label}}, lalu pilih {{label:classes_create_label}}. Nilai awal kas adalah {{value:starting-cash}}, dan Anda dapat menggantinya saat membuat kelas. Setiap mahasiswa menerima kas virtual yang ditetapkan kelas ketika bergabung.
 
 Kalender menyusun {{value:sessions}} sesi mingguan dari tanggal awal itu dan menentukan semester kelas. Periksa kalender di {{label:navigation_class_link}} sebelum pertemuan pertama. {{label:classes_calendar_link}} mengubah tanggal awal dan menggeser sesi berikutnya. Kalender membantu menemukan materi minggu ini. Kalender tidak membatasi transaksi ke hari pertemuan kuliah.
 
@@ -32,7 +38,11 @@ Kalender menyusun {{value:sessions}} sesi mingguan dari tanggal awal itu dan men
 
 Ketuk {{label:classes_join_chip_title}} di bagian atas kelas untuk melihat kode dan alamatnya. Bagikan kode atau alamat yang ditampilkan kepada mahasiswa. Bila Anda membukanya lewat jaringan rumah, mahasiswa perlu memakai jaringan yang dapat mencapai komputer server. Coba alamat itu dari ponsel sebelum kelas dimulai. Bila tidak terbuka, minta pengelola server memeriksa jaringan dan firewall.
 
-Mahasiswa membuka alamat itu, atau {{link:join|halaman bergabung}} dan memasukkan kode. Mahasiswa baru memilih nama pengguna, nama, dan kata sandi, lalu menyetujui pemberitahuan privasi. Email tidak diperlukan. Mahasiswa yang sudah memiliki akun masuk dengan akun tersebut, lalu bergabung. Nama pengguna membedakan mahasiswa yang namanya sama. Periksa nama pada {{label:navigation_students_link}} sebelum menilai pekerjaan mereka.
+Mahasiswa membuka alamat yang Anda bagikan. Mereka juga dapat membuka halaman bergabung dan memasukkan kode.
+
+{{link:join|Halaman bergabung}}
+
+Mahasiswa baru memilih nama pengguna, nama, dan kata sandi, lalu menyetujui pemberitahuan privasi. Email tidak diperlukan. Mahasiswa yang sudah memiliki akun masuk dengan akun tersebut, lalu bergabung. Nama pengguna membedakan mahasiswa yang namanya sama. Periksa nama pada {{label:navigation_students_link}} sebelum menilai pekerjaan mereka.
 
 ## student | Apa yang mahasiswa lihat dan kerjakan
 
@@ -108,7 +118,9 @@ Lencana simulasi di bagian atas menyebut sumber dan keterlambatan harga. Buka le
 
 Saat pembaruan gagal, Portolab mempertahankan harga tersimpan dan menandai harga yang belum diperbarui. Nilai portofolio dapat memakai harga lama itu. Harga yang belum pernah tersimpan dan ukuran yang tidak dapat dihitung diberi penjelasan. Order hanya tereksekusi dengan kutipan yang memenuhi syarat sesi dan hari bursanya, sehingga harga lama tidak selalu dapat mengeksekusi order.
 
-Periksa waktu harga sebelum membahas perubahan atau menilai hasil. Jika lencana menyebut waktu percobaan berikutnya, tunggu hingga waktu itu. Bila masalah berlanjut, minta pengelola server memeriksa {{link:deployment|panduan pengoperasian server}}. Jangan meminta mahasiswa mengirim order berulang untuk memicu pembaruan harga.
+Periksa waktu harga sebelum membahas perubahan atau menilai hasil. Jika lencana menyebut waktu percobaan berikutnya, tunggu hingga waktu itu. Bila masalah berlanjut, minta pengelola server memeriksa panduan pengoperasian. Jangan meminta mahasiswa mengirim order berulang untuk memicu pembaruan harga.
+
+{{link:deployment|Panduan pengoperasian server}}
 
 ## limits | Apa yang tidak dimodelkan simulasi
 
@@ -120,14 +132,26 @@ Aksi korporasi lain, termasuk penyesuaian harga acuan pada tanggal aksinya, belu
 
 Untuk mahasiswa, buka panelnya di {{label:navigation_students_link}}, lalu pilih {{label:grading_reset_link}}. Periksa identitas mahasiswa dan konfirmasikan dengan {{label:classes_reset_label}}. Portolab mengeluarkan mahasiswa dari semua perangkat dan menampilkan kata sandi sementara. Sampaikan langsung kepada mahasiswa yang benar. Pada saat masuk berikutnya, mahasiswa memilih kata sandi baru.
 
-Jika Anda lupa kata sandi dosen, hubungi pengelola server dengan nama pengguna Anda. Pengelola menjalankan perintah akun untuk mengatur ulang kata sandi, sesuai {{link:lecturer-account|bagian akun dosen dalam panduan server}}. Akun dosen dibuat oleh pengelola server, sehingga formulir bergabung mahasiswa tidak menggantikannya.
+Jika Anda lupa kata sandi dosen, hubungi pengelola server dengan nama pengguna Anda. Pengelola menjalankan perintah akun untuk mengatur ulang kata sandi. Akun dosen dibuat oleh pengelola server, sehingga formulir bergabung mahasiswa tidak menggantikannya.
+
+{{link:lecturer-account|Bagian akun dosen dalam panduan server}}
 
 ## privacy | Privasi dan penghapusan
 
-Baca {{link:privacy|pemberitahuan privasi}} untuk data yang disimpan, siapa yang melihatnya, dan hak mahasiswa maupun dosen. Jelaskan pemberitahuan itu sebelum mahasiswa menyetujui dan bergabung. Untuk permintaan salinan atau penghapusan data, hubungi pengelola server. Langkah pengelola ada di {{link:personal-data|bagian data pribadi dalam panduan server}}.
+Baca pemberitahuan privasi untuk data yang disimpan, siapa yang melihatnya, dan hak mahasiswa maupun dosen. Jelaskan pemberitahuan itu sebelum mahasiswa menyetujui dan bergabung.
+
+{{link:privacy|Pemberitahuan privasi}}
+
+Untuk permintaan salinan atau penghapusan data, hubungi pengelola server.
+
+{{link:personal-data|Bagian data pribadi dalam panduan server}}
 
 ## server | Server, cadangan, dan akhir semester
 
-Minta pengelola server mengikuti {{link:deployment|panduan pemasangan dan pembaruan}} serta {{link:backups|langkah pencadangan dan pemulihan}}. Anda tidak perlu menjalankan perintah server untuk mengajar. Sepakati siapa yang menerima laporan gangguan dan permintaan data.
+Berikan petunjuk berikut kepada pengelola server. Anda tidak perlu menjalankan perintah server untuk mengajar. Sepakati siapa yang menerima laporan gangguan dan permintaan data.
+
+{{link:deployment|Panduan pemasangan dan pembaruan}}
+
+{{link:backups|Langkah pencadangan dan pemulihan}}
 
 Di akhir semester, unduh workbook untuk penilaian dan sepakati penyimpanan atau penghapusan data dengan pengelola. Tanggal akhir kalender tidak menghapus kelas atau menghentikan transaksi. Untuk semester berikutnya, buat kelas baru agar kas, portofolio, dan pekerjaan tiap angkatan terpisah. Panduan di dalam aplikasi mengikuti versi Portolab yang sedang Anda gunakan. Tautan panduan server membuka dokumentasi repositori dan memerlukan internet.
