@@ -66,178 +66,223 @@ const texts: Record<
 };
 
 // Python Decimal gives 250,600 + 20,000 * 4,840 = 97,050,600, a return of -0.029494. IHSG is 4,904.29 / 5,057.05 - 1 = -0.0302073343154605946, so the portfolio leads by 0.07133343154605946 percentage points. The preceding close leaves 99,850,600 after the purchase fee, which differs from this snapshot.
-for (const locale of locales) {
-  test(`keeps every portfolio screen at its newer quote snapshot in ${languageNames[locale]}`, async ({
-    browser,
-  }, testInfo) => {
-    const server = await returnSnapshotServer();
-    const text = texts[locale];
-    expect(server.latestClose).toBe("2026-11-02");
-    expect(server.measuredAt.toISOString()).toBe("2026-11-03T03:00:00.000Z");
-    const devices: Page[] = [];
-    try {
-      const student = await newDevice(browser, locale, { siteUrl: server.url });
-      devices.push(student);
-      const lecturer = await newDevice(browser, locale, {
-        siteUrl: server.url,
-      });
-      devices.push(lecturer);
-      await student.goto(server.classPath);
-      await lecturer.goto(server.classPath);
-      await signInAndReturn(student, {
-        path: server.classPath,
-        username: server.studentUsername,
-        password: chosenPassword,
-      });
-      await signInAndReturn(lecturer, {
-        path: server.classPath,
-        username: server.lecturerUsername,
-        password: chosenPassword,
-      });
+const screens = [
+  { name: "beranda", identity: "owner", view: "summary" },
+  { name: "analysis", identity: "owner", view: "analysis" },
+  { name: "demonstration", identity: "demonstration", view: "summary" },
+  {
+    name: "demonstration-analysis",
+    identity: "demonstration",
+    view: "analysis",
+  },
+  { name: "kelas", identity: "class", view: "class" },
+  { name: "student-view", identity: "student", view: "summary" },
+  { name: "student-view-analysis", identity: "student", view: "analysis" },
+] as const;
+
+type SnapshotIdentity = (typeof screens)[number]["identity"];
+
+for (const screen of screens) {
+  for (const locale of locales) {
+    test(`keeps ${screen.name} at its newer quote snapshot in ${languageNames[locale]}`, async ({
+      browser,
+    }, testInfo) => {
+      const server = await returnSnapshotServer();
+      try {
+        const text = texts[locale];
+        expect(server.latestClose).toBe("2026-11-02");
+        expect(server.measuredAt.toISOString()).toBe(
+          "2026-11-03T03:00:00.000Z",
+        );
+        const usernames: Record<
+          SnapshotIdentity,
+          typeof server.studentUsername
+        > = {
+          owner: server.studentUsername,
+          demonstration: server.lecturerUsername,
+          class: server.lecturerUsername,
+          student: server.lecturerUsername,
+        };
+        const page = await newDevice(browser, locale, { siteUrl: server.url });
+        try {
+          await page.goto(server.classPath);
+          await signInAndReturn(page, {
+            path: server.classPath,
+            username: usernames[screen.identity],
+            password: chosenPassword,
+          });
+          const path = await snapshotPath(page, server, screen.identity);
+          await page.goto(
+            screen.view === "analysis" ? `${path}/analysis` : path,
+          );
+          const portfolioName =
+            screen.identity === "student"
+              ? text.studentPortfolioName(server.studentName)
+              : text.portfolioName;
+          const point =
+            screen.identity === "student"
+              ? text.studentPoint(server.studentName)
+              : text.point;
+          switch (screen.view) {
+            case "class": {
+              await expect(
+                page.getByRole("heading", {
+                  name: text.classHeadline,
+                  exact: true,
+                }),
+              ).toBeVisible();
+              const map = classMap(page);
+              await expect
+                .poll(() => map.getAttribute("aria-valuetext"))
+                .toContain(text.market);
+              await map.focus();
+              await map.press("Home");
+              await expect
+                .poll(() => map.getAttribute("aria-valuetext"))
+                .toContain(server.studentName);
+              await expect
+                .poll(() => map.getAttribute("aria-valuetext"))
+                .toContain(text.portfolio);
+              await map.press("Escape");
+              break;
+            }
+            case "summary":
+              await expectSummarySnapshot(page, {
+                text,
+                portfolioName,
+                point,
+                projectName: testInfo.project.name,
+              });
+              break;
+            case "analysis": {
+              const performance = page.getByRole("region", {
+                name: text.performance,
+              });
+              await expect(performance).toContainText(text.lead);
+              await expectSnapshot(performance.getByRole("slider"), point);
+              break;
+            }
+          }
+          await expectAccessibleScreen(page);
+          await captureScreens(page, testInfo, {
+            name: `${screen.name}-${locale}`,
+            fullPage: true,
+            fromTop: true,
+            check: async () => {
+              expect(await layoutProblems(page)).toEqual([]);
+            },
+          });
+          if (screen.view === "summary") {
+            await page
+              .getByRole("link", { name: text.timeChart, exact: true })
+              .click();
+            await expectSnapshot(
+              page
+                .locator('section[aria-labelledby="home-map-heading"]')
+                .getByRole("slider"),
+              point,
+            );
+          }
+        } finally {
+          await page.context().close();
+        }
+      } finally {
+        await server.stop();
+      }
+    });
+  }
+}
+
+async function expectSummarySnapshot(
+  page: Page,
+  {
+    text,
+    portfolioName,
+    point,
+    projectName,
+  }: {
+    text: (typeof texts)[Locale];
+    portfolioName: string;
+    point: string;
+    projectName: string;
+  },
+): Promise<void> {
+  await expect(page.getByRole("main")).toContainText(text.value);
+  const card = page.locator("section").filter({
+    has: page.getByRole("heading", {
+      name: text.home,
+      exact: true,
+    }),
+  });
+  await expect(card).toContainText(text.lead);
+  await expectSnapshot(card.getByRole("slider"), point);
+  const details = card.locator("details");
+  await details.getByText(text.table, { exact: true }).click();
+  const endpoint = details.locator("tbody tr").last();
+  await expect(endpoint.getByRole("rowheader")).toHaveText(text.pointTime);
+  await expect(endpoint).toContainText(text.portfolio);
+  await expect(endpoint).toContainText(text.market);
+  expect(await layoutProblems(page)).toEqual([]);
+  await details.getByText(text.table, { exact: true }).click();
+  const own = page.locator('[data-map-label="point"]').filter({
+    hasText: portfolioName,
+  });
+  await expect(own).toBeVisible();
+  const map = page
+    .locator('section[aria-labelledby="home-map-heading"]')
+    .getByRole("slider");
+  await map.focus();
+  await map.press("Escape");
+  await expect
+    .poll(() => map.getAttribute("aria-valuetext"))
+    .toContain(portfolioName);
+  await expect
+    .poll(() => map.getAttribute("aria-valuetext"))
+    .toContain(text.portfolio);
+  if (projectName === "desktop") {
+    // The recorded quote of 4,840 is the month's minimum, so its endpoint is at the bottom by hand.
+    const sparkline = page
+      .getByRole("row")
+      .filter({ hasText: "BBCA" })
+      .locator("td")
+      .last();
+    await expect(sparkline.locator("circle")).toHaveAttribute("cx", "100%");
+    await expect(sparkline.locator("circle")).toHaveAttribute("cy", "100%");
+  }
+}
+
+async function snapshotPath(
+  page: Page,
+  server: Awaited<ReturnType<typeof returnSnapshotServer>>,
+  identity: SnapshotIdentity,
+): Promise<string> {
+  switch (identity) {
+    case "owner":
+    case "class":
+      return server.classPath;
+    case "demonstration":
+      return `${server.classPath}/demonstration`;
+    case "student": {
+      const map = classMap(page);
+      await map.focus();
+      await map.press("Home");
+      await map.press("Enter");
       await expect(
-        lecturer.getByRole("heading", {
-          name: text.classHeadline,
-          exact: true,
-        }),
-      ).toBeVisible();
-      const classMap = lecturer
-        .locator('section[aria-labelledby="class-map-heading"]')
-        .getByRole("slider");
-      await expect
-        .poll(() => classMap.getAttribute("aria-valuetext"))
-        .toContain(text.market);
-      await classMap.focus();
-      await classMap.press("Home");
-      await expect
-        .poll(() => classMap.getAttribute("aria-valuetext"))
-        .toContain(server.studentName);
-      await expect
-        .poll(() => classMap.getAttribute("aria-valuetext"))
-        .toContain(text.portfolio);
-      await classMap.press("Escape");
-      await captureScreens(lecturer, testInfo, {
-        name: `kelas-${locale}`,
-        fullPage: true,
-        fromTop: true,
-      });
-      await classMap.focus();
-      await classMap.press("Home");
-      await classMap.press("Enter");
-      await expect(
-        lecturer.getByRole("heading", {
+        page.getByRole("heading", {
           level: 1,
           name: server.studentName,
           exact: true,
         }),
       ).toBeVisible();
-      const studentPath = new URL(lecturer.url()).pathname;
-      for (const [page, path, name, portfolioName, point] of [
-        [student, server.classPath, "beranda", text.portfolioName, text.point],
-        [
-          lecturer,
-          `${server.classPath}/demonstration`,
-          "demonstration",
-          text.portfolioName,
-          text.point,
-        ],
-        [
-          lecturer,
-          studentPath,
-          "student-view",
-          text.studentPortfolioName(server.studentName),
-          text.studentPoint(server.studentName),
-        ],
-      ] as const) {
-        await page.goto(path);
-        await expect(page.getByRole("main")).toContainText(text.value);
-        const card = page.locator("section").filter({
-          has: page.getByRole("heading", { name: text.home, exact: true }),
-        });
-        await expect(card).toContainText(text.lead);
-        const chart = card.getByRole("slider");
-        await expectSnapshot(chart, point);
-        const details = card.locator("details");
-        await details.getByText(text.table, { exact: true }).click();
-        const endpoint = details.locator("tbody tr").last();
-        await expect(endpoint.getByRole("rowheader")).toHaveText(
-          text.pointTime,
-        );
-        await expect(endpoint).toContainText(text.portfolio);
-        await expect(endpoint).toContainText(text.market);
-        expect(await layoutProblems(page)).toEqual([]);
-        await details.getByText(text.table, { exact: true }).click();
-        const own = page.locator('[data-map-label="point"]').filter({
-          hasText: portfolioName,
-        });
-        await expect(own).toBeVisible();
-        const mapSlider = page
-          .locator('section[aria-labelledby="home-map-heading"]')
-          .getByRole("slider");
-        await mapSlider.focus();
-        await mapSlider.press("Escape");
-        await expect
-          .poll(() => mapSlider.getAttribute("aria-valuetext"))
-          .toContain(portfolioName);
-        await expect
-          .poll(() => mapSlider.getAttribute("aria-valuetext"))
-          .toContain(text.portfolio);
-        if (testInfo.project.name === "desktop") {
-          // The recorded quote of 4,840 is the month's minimum, so its endpoint is at the bottom by hand.
-          const sparkline = page
-            .getByRole("row")
-            .filter({ hasText: "BBCA" })
-            .locator("td")
-            .last();
-          await expect(sparkline.locator("circle")).toHaveAttribute(
-            "cx",
-            "100%",
-          );
-          await expect(sparkline.locator("circle")).toHaveAttribute(
-            "cy",
-            "100%",
-          );
-        }
-        await expectAccessibleScreen(page);
-        await captureScreens(page, testInfo, {
-          name: `${name}-${locale}`,
-          fullPage: true,
-          fromTop: true,
-          check: async () => {
-            expect(await layoutProblems(page)).toEqual([]);
-          },
-        });
-        await page
-          .getByRole("link", { name: text.timeChart, exact: true })
-          .click();
-        await expectSnapshot(
-          page
-            .locator('section[aria-labelledby="home-map-heading"]')
-            .getByRole("slider"),
-          point,
-        );
-        await page.goto(`${path}/analysis`);
-        const performance = page.getByRole("region", {
-          name: text.performance,
-        });
-        await expect(performance).toContainText(text.lead);
-        await expectSnapshot(performance.getByRole("slider"), point);
-        await captureScreens(page, testInfo, {
-          name: `${name}-analysis-${locale}`,
-          fullPage: true,
-          fromTop: true,
-          check: async () => {
-            expect(await layoutProblems(page)).toEqual([]);
-          },
-        });
-      }
-    } finally {
-      try {
-        for (const device of devices) await device.context().close();
-      } finally {
-        await server.stop();
-      }
+      return new URL(page.url()).pathname;
     }
-  });
+  }
+}
+
+function classMap(page: Page): Locator {
+  return page
+    .locator('section[aria-labelledby="class-map-heading"]')
+    .getByRole("slider");
 }
 
 async function expectSnapshot(chart: Locator, point: string): Promise<void> {
