@@ -9,7 +9,7 @@ import { rupiah } from "~/units/rupiah";
 import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
 import { minuteMilliseconds } from "~/time-units";
-import { formatRupiah } from "~/formatting";
+import { englishFormatting } from "~/english-formatting";
 import { sampleOrderFailureText } from "./sample-order-failure-text";
 
 export interface SampleTrade {
@@ -49,8 +49,8 @@ export function buildSampleTrade(
   if (!accepted.ok) {
     const price =
       request.price.kind === "market"
-        ? `market quote ${formatRupiah(stock.quote.price)}`
-        : `limit ${formatRupiah(request.price.limit)}`;
+        ? `market quote ${englishFormatting.rupiah(stock.quote.price)}`
+        : `limit ${englishFormatting.rupiah(request.price.limit)}`;
     return fail(
       `The sample ${request.side} order of ${request.code} at ${request.placedAt.toISOString()} with ${price} failed the engine check. ${sampleOrderFailureText(accepted.failure)}`,
     );

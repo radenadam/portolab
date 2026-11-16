@@ -1,3 +1,4 @@
+import { englishFormatting } from "~/english-formatting";
 import {
   buildSampleTrade,
   placeAndCheckSampleTrade,
@@ -168,7 +169,7 @@ function sampleWaitingOrder(
       (stock) => stock.history.code !== preferred.history.code,
     ),
   ];
-  let failure = `The sample portfolio has ${String(account.cash)} rupiah but no affordable current purchase.`;
+  let failure = `The sample portfolio has ${englishFormatting.rupiah(account.cash)} but no affordable current purchase.`;
   for (const stock of candidates) {
     const current = recipe.currentQuotes.get(stock.history.code);
     if (current === undefined)
@@ -183,7 +184,7 @@ function sampleWaitingOrder(
     if (!lots.ok) {
       failure =
         lots.failure.kind === "noAffordableLots"
-          ? `The sample portfolio has ${String(account.cash)} rupiah, which pays for no whole lot of ${current.code} at ${String(current.price)} rupiah.`
+          ? `The sample portfolio has ${englishFormatting.rupiah(account.cash)}, which pays for no whole lot of ${current.code} at ${englishFormatting.rupiah(current.price)}.`
           : lots.failure.reason;
       continue;
     }
