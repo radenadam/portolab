@@ -50,6 +50,9 @@ export const sampleTestDomain = "sample.portolab.internal";
 /** The example domain of the guide, which the test replaces with its own. */
 const exampleDomain = "portolab.example.com";
 
+/** The sample needs a separate example so that its site never uses the main domain. */
+const exampleSampleDomain = "sample.example.com";
+
 /** The repository that the guide clones, which the test replaces with the one that the caller gives, so that it installs the commit under test. */
 const exampleRepository = "https://github.com/radenadam/portolab.git";
 
@@ -183,6 +186,7 @@ export function parseServerBlocks(
   }
   const replacements: [string, string][] = [
     [exampleDomain, testDomain],
+    [exampleSampleDomain, sampleTestDomain],
     [exampleRepository, repository],
     [exampleBackupDate, "$(date -I)"],
   ];
@@ -205,7 +209,6 @@ export function parseServerBlocks(
       for (const [example, replacement] of replacements) {
         replaced = replaced.replaceAll(example, replacement);
       }
-      replaced = replaced.replaceAll("sample.example.com", sampleTestDomain);
       return { section, commands: replaced };
     }),
   );

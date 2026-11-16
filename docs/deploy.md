@@ -326,7 +326,7 @@ Each line of the log is one event. A failure of Yahoo has the level `warning` or
 
 ## Optional sample class
 
-The sample is for exploration with fictional accounts. [Decision 0050](decisions/0050-a-sample-class-lives-in-a-database-of-its-own.md) sets its isolation and deployment requirements. Follow this section on the WSL Ubuntu installation that already runs the rehearsal, or on the VPS after the main guide. Linux commands run as root in `/opt/portolab`. They keep the rehearsal's data and HTTPS site. The backup script in [section 8](#8-back-up-the-database) names only `app`, so it leaves the sample out.
+The sample is for exploration with fictional accounts. [Decision 0050](decisions/0050-a-sample-class-lives-in-a-database-of-its-own.md) sets its isolation and deployment requirements. On Windows, use an Ubuntu WSL installation with Docker and Caddy already configured for the main `app` service of the Compose file. On the VPS, follow the main guide first. Both paths need Caddy 2.9 or later and the repository checkout at `/opt/portolab`. The Linux commands run as root. They keep the main service's data and existing HTTPS sites. The backup script in [section 8](#8-back-up-the-database) names only `app`, so it leaves the sample out.
 
 ### Prepare Windows once
 
@@ -348,7 +348,7 @@ On the home network, use Windows 11 22H2 or later with WSL 2.0.9 or later. These
    networkingMode=mirrored
    ```
 
-   Save work in every WSL distribution, then run this in PowerShell. It stops all of them, including Docker and the rehearsal. [Microsoft's configuration guide](https://learn.microsoft.com/en-us/windows/wsl/wsl-config) requires a restart for the setting to apply:
+   Save work in every WSL distribution, then run this in PowerShell. The first command stops all distributions and their running Docker containers. [Microsoft's configuration guide](https://learn.microsoft.com/en-us/windows/wsl/wsl-config) requires a restart for the setting to apply:
 
    ```text
    wsl --shutdown
@@ -402,7 +402,7 @@ Keep its printed usernames, role passwords, and join code for this exploration. 
 
 ### Serve the sample on the home network
 
-Use this on WSL. Caddy 2.9 or later supports the [import block](https://caddyserver.com/docs/caddyfile/directives/import) that adds the private-range restriction to the sample site. These commands write only the sample's site file and add its import once. They preserve the existing HTTPS site, including `portolab.internal`:
+Use this on WSL. The [import block](https://caddyserver.com/docs/caddyfile/directives/import) adds the private-range restriction to the sample site. These commands write only the sample's site file and add its import once. They preserve the existing HTTPS sites in `/etc/caddy/Caddyfile`:
 
 ```sh
 cd /opt/portolab

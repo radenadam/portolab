@@ -46,6 +46,12 @@ cd /opt/portolab
   EOF
   \`\`\`
 
+## 4. Serve the sample over HTTPS
+
+\`\`\`sh
+echo 'import /opt/portolab/sample/Caddyfile sample.example.com' >> /etc/caddy/Caddyfile
+\`\`\`
+
 ### Restore a backup
 
 \`\`\`sh
@@ -180,10 +186,29 @@ test("reads the blocks for the server in order, with their sections, the command
           "cat > /etc/caddy/Caddyfile <<'EOF'\nimport /opt/portolab/Caddyfile portolab.internal\nEOF",
       },
       {
+        section: "4. Serve the sample over HTTPS",
+        commands:
+          "echo 'import /opt/portolab/sample/Caddyfile sample.portolab.internal' >> /etc/caddy/Caddyfile",
+      },
+      {
         section: "Restore a backup",
         commands: 'sqlite3 ".restore /backups/portolab-$(date -I).sqlite"',
       },
     ],
+  });
+});
+
+test("rejects a guide whose sample example is missing from server blocks", () => {
+  expect(
+    parseServerBlocks(
+      guide.replaceAll("sample.example.com", "renamed.example.com"),
+      guidePath,
+      repository,
+    ),
+  ).toEqual({
+    ok: false,
+    failure:
+      'docs/deploy.md must hold each example that the test replaces in a block marked sh, but no such block holds "sample.example.com".',
   });
 });
 
@@ -356,7 +381,7 @@ test("rejects a guide whose blocks for the server lack an example that the test 
   ).toEqual({
     ok: false,
     failure:
-      'docs/deploy.md must hold each example that the test replaces in a block marked sh, but no such block holds "portolab.example.com" or "2026-11-10".',
+      'docs/deploy.md must hold each example that the test replaces in a block marked sh, but no such block holds "portolab.example.com", "sample.example.com", or "2026-11-10".',
   });
 });
 
