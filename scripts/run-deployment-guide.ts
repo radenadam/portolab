@@ -26,7 +26,9 @@ import {
   parseSystemRelease,
   serverFolder,
   splitAtUpdate,
+  splitAtSample,
   testDomain,
+  sampleTestDomain,
 } from "./deployment-guide.ts";
 import type { GuideParts, ServerBlock } from "./deployment-guide.ts";
 import { parseJsonWith } from "./json.ts";
@@ -62,7 +64,10 @@ const failures = failuresOf([repository, guide, release]);
 let parts: GuideParts = { before: [], after: [] };
 if (guide.ok && repository.ok) {
   const blocks = parseServerBlocks(guide.value, guidePath, repository.value);
-  const splitBlocks = blocks.ok ? splitAtUpdate(blocks.value) : blocks;
+  const mainBlocks = blocks.ok ? splitAtSample(blocks.value) : blocks;
+  const splitBlocks = mainBlocks.ok
+    ? splitAtUpdate(mainBlocks.value.before)
+    : mainBlocks;
   if (splitBlocks.ok) {
     parts = splitBlocks.value;
   } else {
@@ -98,7 +103,10 @@ function followGuide(
   const pricesFile = join(temporaryFolder, "recorded-prices.yaml");
   try {
     // Only the test machine resolves the domain of the test, as DNS resolves the domain of a real server.
-    appendFileSync("/etc/hosts", `127.0.0.1 ${testDomain}\n`);
+    appendFileSync(
+      "/etc/hosts",
+      `127.0.0.1 ${testDomain} ${sampleTestDomain}\n`,
+    );
     writeFileSync(pricesFile, recordedPrices);
   } catch (error) {
     return `The test could not prepare the machine for the guide. Node reported: ${errorMessage(error)}`;

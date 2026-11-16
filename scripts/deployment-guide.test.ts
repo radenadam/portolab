@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+import { parse } from "yaml";
 import { fail, succeed } from "../app/result.ts";
 import { successValueForTest } from "../app/success-value-for-test.ts";
 import {
@@ -10,6 +11,7 @@ import {
   parseSystemRelease,
   parseTestEvent,
   splitAtUpdate,
+  splitAtSample,
 } from "./deployment-guide.ts";
 import { readTextFile } from "./read-text-file.ts";
 import type { ChangedFile } from "./review-lenses.ts";
@@ -60,6 +62,7 @@ test("follows the guide for a pull request that touches a file or a folder of th
     "Dockerfile",
     ".dockerignore",
     "compose.yaml",
+    "sample/Caddyfile",
     "Caddyfile",
     "docs/deploy.md",
     "package.json",
@@ -70,6 +73,7 @@ test("follows the guide for a pull request that touches a file or a folder of th
     "scripts/container-volume.ts",
     "scripts/deployment-guide.ts",
     "scripts/plan-deployment-test.ts",
+    "scripts/parse-sample-credentials-for-test.ts",
     "scripts/run-deployment-guide.ts",
     "scripts/user-numbers.ts",
     "e2e/deployment/join-on-the-server.test.ts",
@@ -198,6 +202,68 @@ test("reads every block of the guide of the repository and finds each example in
   );
   expect(parts.before.length).toBeGreaterThan(0);
   expect(parts.after[0]?.section).toBe("Update Portolab");
+  const sample = successValueForTest(
+    splitAtSample(blocks),
+    "The sample has commands",
+  );
+  expect(sample.after.map(({ section }) => section)).toEqual([
+    "Start the sample",
+    "Fill the sample",
+    "Serve the sample on the home network",
+    "Serve the sample on the VPS",
+    "Reset the sample",
+    "Remove the sample",
+  ]);
+  expect(sample.after[3]?.commands).toContain("sample.portolab.internal");
+});
+
+test("rejects a guide without the optional sample commands", () => {
+  expect(splitAtSample([])).toEqual({
+    ok: false,
+    failure:
+      'docs/deploy.md must have commands in "Start the sample", but it has none.',
+  });
+});
+
+test("keeps the sample service away from the live volume and publishes only its loopback port", () => {
+  const configuration: unknown = parse(
+    successValueForTest(readTextFile("compose.yaml"), "Compose can be read"),
+    { merge: true },
+  );
+  expect(configuration).toMatchObject({
+    services: {
+      app: {
+        environment: { DATABASE_PATH: "/app/data/portolab.sqlite" },
+        volumes: ["data:/app/data"],
+        ports: ["127.0.0.1:3000:3000"],
+      },
+      sample: {
+        profiles: ["sample"],
+        environment: { DATABASE_PATH: "/app/data/sample.sqlite" },
+        volumes: ["sample-data:/app/data"],
+        ports: ["127.0.0.1:3001:3000"],
+        build: ".",
+        restart: "unless-stopped",
+        logging: { driver: "local" },
+      },
+    },
+    volumes: { data: null, "sample-data": null },
+  });
+});
+
+test("points the sample Caddy import only at the sample port", () => {
+  const snippet = successValueForTest(
+    readTextFile("sample/Caddyfile"),
+    "The sample site can be read",
+  );
+  const directives = snippet
+    .split("\n")
+    .filter((line) => !line.trimStart().startsWith("#"))
+    .join("\n")
+    .trim();
+  expect(directives).toMatch(
+    /^\{args\[0\]\} \{\s*\{block\}\s*reverse_proxy 127\.0\.0\.1:3001\s*\}$/,
+  );
 });
 
 test("splits the blocks before the first block of the section that finds an installation from before decision 0027", () => {

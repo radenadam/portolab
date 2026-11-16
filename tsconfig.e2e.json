@@ -17,6 +17,7 @@
     "app/check-field-length.ts",
     "app/value-shapes.ts",
     "scripts/deployment-guide.ts",
+    "scripts/parse-sample-credentials-for-test.ts",
     "scripts/review-lenses.ts",
     "scripts/wait-for-health.ts",
     "scripts/check-settings.ts",

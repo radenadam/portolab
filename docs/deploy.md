@@ -2,7 +2,7 @@
 
 This guide takes an Ubuntu server to Portolab, served over HTTPS at a domain of your own. The server may also run other work, which the guide leaves as it is. Copy each command in the order of the guide. As [decision 0010](decisions/0010-the-server-owner-deploys-from-the-repository.md) explains, Docker Compose runs Portolab in a container that the server builds from this repository, and Caddy serves HTTPS in front of it. A test runs every command of this guide for the server on a fresh Ubuntu server, so the commands stay right.
 
-<!-- The workflow in .github/workflows/deployment.yml runs every block marked sh, in order, as root on a fresh Ubuntu machine, and replaces the examples that it names, such as the domain. Before the section Update Portolab, it gives the files of the database to the user number 1000, as an installation from before decision 0027 has them. A block that runs on the computer of the reader is marked text. -->
+<!-- The deployment test runs the main guide before its browser tests, then exercises the optional sample commands through those tests, including reset and removal. Before Update Portolab, it gives the live database to user number 1000, as an installation from before decision 0027 has it. Windows commands are text blocks because the maintainer runs them. -->
 
 ## What you need
 
@@ -133,7 +133,7 @@ The command prints a temporary password and says what the lecturer does with it.
 
 ## 8. Back up the database
 
-Portolab keeps all its data in one SQLite database, in a volume of Docker. These commands write a script that backs it up into `/var/backups/portolab` and deletes each backup once it is 14 days old. They make systemd run the script every day, and they make the first backup now:
+The live service keeps its data in one SQLite database, in a volume of Docker. These commands write a script that backs it up into `/var/backups/portolab` and deletes each backup once it is 14 days old. They make systemd run the script every day, and they make the first backup now:
 
 ```sh
 install --directory --owner root --group root --mode 700 /var/backups/portolab
@@ -323,3 +323,173 @@ Each line of the log is one event. A failure of Yahoo has the level `warning` or
 - When the detail names a connection that failed or a time limit, the server cannot reach Yahoo. Check the network of the server with the provider.
 - When the detail names too many requests, Yahoo limits the requests from the address of the server. Portolab keeps trying, and the prices return once Yahoo lifts the limit.
 - For any other detail, a newer version of Portolab may fix it, so [update Portolab](#update-portolab). When the newest version fails as well, [open an issue](https://github.com/radenadam/portolab/issues/new) with the lines of the log.
+
+## Optional sample class
+
+The sample is for exploration with fictional accounts. [Decision 0050](decisions/0050-a-sample-class-lives-in-a-database-of-its-own.md) sets its isolation and deployment requirements. Follow this section on the WSL Ubuntu installation that already runs the rehearsal, or on the VPS after the main guide. Linux commands run as root in `/opt/portolab`. They keep the rehearsal's data and HTTPS site. The backup script in [section 8](#8-back-up-the-database) names only `app`, so it leaves the sample out.
+
+### Prepare Windows once
+
+On the home network, use Windows 11 22H2 or later with WSL 2.0.9 or later. These steps follow [Microsoft's WSL networking guide](https://learn.microsoft.com/en-us/windows/wsl/networking) and were checked on 16 November 2026. The maintainer runs them. Do not forward a port on the home router.
+
+1. In PowerShell, check WSL and list the installed distributions:
+
+   ```text
+   wsl --version
+   wsl --list --verbose
+   ```
+
+   Use the distribution that holds Portolab. The examples below call it `Ubuntu`, so replace that name when the list gives another one. [Microsoft documents these WSL commands](https://learn.microsoft.com/en-us/windows/wsl/basic-commands).
+
+2. Edit `%UserProfile%\.wslconfig` with a text editor. Keep its other settings and add `networkingMode=mirrored` to its existing `[wsl2]` section, or create the section when it has none:
+
+   ```text
+   [wsl2]
+   networkingMode=mirrored
+   ```
+
+   Save work in every WSL distribution, then run this in PowerShell. It stops all of them, including Docker and the rehearsal. [Microsoft's configuration guide](https://learn.microsoft.com/en-us/windows/wsl/wsl-config) requires a restart for the setting to apply:
+
+   ```text
+   wsl --shutdown
+   wsl --distribution Ubuntu --user root
+   ```
+
+   In Ubuntu, run this if Docker and Caddy did not start by themselves:
+
+   ```sh
+   systemctl start docker caddy
+   ```
+
+   Then continue the Windows steps in a new PowerShell window.
+
+3. **Administrator PowerShell:** identify the home connection and its IPv4 address with [Get-NetIPConfiguration](https://learn.microsoft.com/en-us/powershell/module/nettcpip/get-netipconfiguration). Use its `InterfaceAlias` in place of `Wi-Fi` below. Set only this trusted home connection to Private with [Set-NetConnectionProfile](https://learn.microsoft.com/en-us/powershell/module/netconnection/set-netconnectionprofile):
+
+   ```text
+   Get-NetIPConfiguration
+   Set-NetConnectionProfile -InterfaceAlias "Wi-Fi" -NetworkCategory Private
+   ```
+
+   Record the connection's `IPv4Address`, such as `192.168.1.20`. This is the Windows LAN address that the lecturer opens. Do not use a VPN address or WSL's internal address.
+
+4. **Administrator PowerShell:** allow TCP port 80 into WSL with the rule from [Microsoft's Hyper-V firewall guide](https://learn.microsoft.com/en-us/windows/security/operating-system-security/network-security/windows-firewall/hyper-v-firewall). Limit the rule to the Private profile:
+
+   ```text
+   New-NetFirewallHyperVRule -Name "PortolabSampleHTTP" -DisplayName "Portolab sample HTTP" -Direction Inbound -VMCreatorId '{40E0AC32-46A5-438A-A0B2-2B479E8F2E90}' -Protocol TCP -LocalPorts 80 -Profiles Private
+   ```
+
+   Run the creation command once. An organization may disallow local firewall rules. In that case, its administrator must allow this port through its policy.
+
+### Start the sample
+
+Run this on either Ubuntu installation. Without the profile, `docker compose up` starts only the live service. Caddy reaches the sample through the loopback port of the host. Never publish the container on `0.0.0.0`, because [decision 0005](decisions/0005-sign-in-is-hand-written-without-email.md) trusts forwarded headers from private addresses.
+
+```sh
+cd /opt/portolab
+docker compose --profile sample up --detach --build --wait sample
+```
+
+### Fill the sample
+
+Run the command of [the sample class](../README.md#sample-class) in that service. It uses the sample database from Compose and refuses one that already holds people or a sample marker:
+
+```sh
+cd /opt/portolab
+docker compose exec --no-TTY sample node server/sample-class.ts
+```
+
+Keep its printed usernames, role passwords, and join code for this exploration. When price preparation fails, its log names the missing data. Retry after that source recovers. Starting the service alone never creates sample accounts.
+
+### Serve the sample on the home network
+
+Use this on WSL. Caddy 2.9 or later supports the [import block](https://caddyserver.com/docs/caddyfile/directives/import) that adds the private-range restriction to the sample site. These commands write only the sample's site file and add its import once. They preserve the existing HTTPS site, including `portolab.internal`:
+
+```sh
+cd /opt/portolab
+cat > /etc/caddy/portolab-sample.caddy <<'EOF'
+import /opt/portolab/sample/Caddyfile http:// {
+    @outside not remote_ip private_ranges
+    abort @outside
+}
+EOF
+grep -qxF 'import /etc/caddy/portolab-sample.caddy' /etc/caddy/Caddyfile || echo 'import /etc/caddy/portolab-sample.caddy' >> /etc/caddy/Caddyfile
+caddy validate --config /etc/caddy/Caddyfile
+systemctl reload caddy
+```
+
+On another device on the same home network, open `http://192.168.1.20`, with the Windows LAN address from step 3. Include `http://`, because this site uses HTTP. The join address then uses that same host. Opening `localhost` inside WSL can instead show an internal WSL address that the other device cannot reach.
+
+When the page opens on Windows but the other device cannot reach it, check that both devices use the same home network and that the router allows devices to reach each other. Microsoft's mirrored networking instructions require the Hyper-V rule above. A separate Windows Defender rule is needed for the Windows listener in the NAT fallback below.
+
+### Fall back to a Windows port proxy
+
+Use this only when mirrored networking is unavailable or does not work. Change `networkingMode` to `nat` in the same `.wslconfig`, save WSL work, and repeat step 2. Keep the HTTP site above.
+
+**Administrator PowerShell:** run the address command from [Microsoft's NAT instructions](https://learn.microsoft.com/en-us/windows/wsl/networking#accessing-a-wsl-2-distribution-from-your-local-area-network-lan). Use the IPv4 address of this distribution as `connectaddress`, with the Windows LAN address as `listenaddress`. The example WSL address is `172.30.98.229`. The capital `I` matters. Forward to Caddy's port 80, never to a container port:
+
+```text
+wsl --distribution Ubuntu hostname -I
+netsh interface portproxy add v4tov4 listenport=80 listenaddress=192.168.1.20 connectport=80 connectaddress=172.30.98.229
+New-NetFirewallRule -Name "PortolabSampleHTTP" -DisplayName "Portolab sample HTTP" -Direction Inbound -Action Allow -Protocol TCP -LocalPort 80 -LocalAddress 192.168.1.20 -RemoteAddress LocalSubnet -Profile Private
+```
+
+The [Windows Defender rule](https://learn.microsoft.com/en-us/powershell/module/netsecurity/new-netfirewallrule) allows only the local subnet on the Private profile. The [port proxy](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/netsh-interface#portproxy) uses the current addresses of Windows and WSL. When either changes, remove the old proxy entry and the Windows Defender rule with the commands under removal. Then run the fallback commands again with both new addresses. The lecturer still opens the Windows address over HTTP.
+
+### Serve the sample on the VPS
+
+Use this instead of the home network site. Point a separate subdomain at the VPS as in [section 1](#1-point-the-domain-at-the-server), then use it in place of `sample.example.com`. These commands replace only the sample site file. They keep the live site:
+
+```sh
+cd /opt/portolab
+echo 'import /opt/portolab/sample/Caddyfile sample.example.com' > /etc/caddy/portolab-sample.caddy
+grep -qxF 'import /etc/caddy/portolab-sample.caddy' /etc/caddy/Caddyfile || echo 'import /etc/caddy/portolab-sample.caddy' >> /etc/caddy/Caddyfile
+caddy validate --config /etc/caddy/Caddyfile
+systemctl reload caddy
+```
+
+Open `https://sample.example.com` with that subdomain. Caddy obtains its HTTPS certificate as it does for the live site.
+
+### Explore both roles
+
+At the sample address, sign in with the lecturer credentials that the fill command printed. Use a separate browser profile or another device for a printed student account, because each profile keeps one sign-in. These accounts already have their names, passwords, and privacy agreement, so they open the class directly. The frame labels every page as sample data in both languages. A new student can join with the printed code or with the address shown by the join chip of the lecturer's class. Keep these credentials separate from real accounts, and enter no real student data in this disposable database.
+
+### Reset the sample
+
+This discards all work in the sample, including accounts that joined it. It stops only that service, deletes its database and SQLite side files, fills a fresh file, and starts it again. Keep the new credentials that the command prints:
+
+```sh
+cd /opt/portolab
+docker compose stop sample
+docker compose run --rm --no-deps sample sh -c 'rm -f "$DATABASE_PATH" "$DATABASE_PATH-wal" "$DATABASE_PATH-shm"'
+docker compose run --rm --no-deps sample node server/sample-class.ts
+docker compose --profile sample up --detach --wait sample
+```
+
+### Remove the sample
+
+On Ubuntu, these commands remove only the sample container, its volume, and its Caddy site. The volume name follows the project folder `/opt/portolab`. Do not use `docker compose down --volumes`, because that would also remove the live data:
+
+```sh
+cd /opt/portolab
+docker compose rm --stop --force sample
+docker volume rm portolab_sample-data
+sed -i '\|^import /etc/caddy/portolab-sample.caddy$|d' /etc/caddy/Caddyfile
+rm /etc/caddy/portolab-sample.caddy
+caddy validate --config /etc/caddy/Caddyfile
+systemctl reload caddy
+```
+
+**Administrator PowerShell:** remove the Hyper-V rule when you created it:
+
+```text
+Remove-NetFirewallHyperVRule -Name "PortolabSampleHTTP"
+```
+
+When you used the NAT fallback, remove its proxy and Windows Defender rule too, with the Windows LAN address that you used when adding the proxy:
+
+```text
+netsh interface portproxy delete v4tov4 listenport=80 listenaddress=192.168.1.20
+Remove-NetFirewallRule -Name "PortolabSampleHTTP"
+```
+
+The Windows network profile and WSL networking mode can stay as they are. Removing the sample changes no other site's network rules.
