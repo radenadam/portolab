@@ -1,5 +1,4 @@
 import { orderStudents } from "./order-students";
-import { studentReasonsSectionId } from "~/features/trading/student-reasons-section-id";
 import { expect, test } from "vitest";
 import { listStudents } from "~/features/classes/class-store.server";
 import { readPortfolio } from "~/features/trading/portfolio-store.server";
@@ -270,7 +269,7 @@ for (const locale of locales) {
     );
     for (const text of texts[locale].panel)
       expect(html).toContain(markupTextForTest(text));
-    expect(html).toContain(`#${studentReasonsSectionId}`);
+    expect(html).toContain("/journal?returnTo=");
     expect(html).toContain("returnTo=");
     // The fixture holds Rp27,390,000 of BBCA, Rp16,434,000 of TLKM, and Rp10,956,000 cash. Python Decimal independently gives 50%, 30%, and 20% of Rp54,780,000.
     expect(studentNote(student, orderStudents(portfolios, "alpha"))).toBe(

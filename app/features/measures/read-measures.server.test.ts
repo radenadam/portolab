@@ -15,7 +15,6 @@ import {
 } from "./measures-for-test.server";
 import { monthEndClosesForTest } from "./month-end-closes-for-test";
 import {
-  readPortfolioLine,
   readPortfolioMeasures,
   readStockMeasures,
   readStockRows,
@@ -238,37 +237,6 @@ test("measures one stock with the inputs that its page shows, over the months th
   });
 });
 
-test("gives the line of the months of a portfolio with measures, with the portfolio and its stocks, and no line for a portfolio without measures", () => {
-  const database = databaseWithClosesForTest();
-  // The distance of the portfolio is that of each stock times its weight, less the weight of the cash times the risk-free rate, as decision 0021 explains: 0.5 × -0.002826010377616112 + 0.3 × -0.006294683772801653 - 0.2 × 0.0575 / 12.
-  expect(
-    readPortfolioLine(
-      readPortfolioMeasures(database, valuationForTest(["BBCA", "TLKM"])),
-    ),
-  ).toEqual({
-    line: { ...fiveYearLine, months: fiveYearMonths },
-    portfolio: {
-      beta: closeToForTest(0.6206929278148288, 14),
-      expectedReturn: closeToForTest(-0.0021586726703076266, 16),
-      distance: closeToForTest(-0.004259743653981885, 16),
-    },
-    // The portfolio holds BBCA and TLKM with weights of 0.5 and 0.3, which size their marks.
-    holdings: stocksOnFiveYearLine.map((stock, index) => ({
-      ...stock,
-      weight: [0.5, 0.3][index],
-    })),
-  });
-  for (const valuation of [
-    valuationForTest(["BBCA"]),
-    aadiValuationForTest(),
-    cashValuationForTest(),
-  ]) {
-    expect(
-      readPortfolioLine(readPortfolioMeasures(database, valuation)),
-    ).toBeUndefined();
-  }
-});
-
 test("draws the line of the months of a portfolio for its student, with each stock that it does not hold on that line, the stocks on other lines, and whether a stock has no measures", () => {
   const database = databaseWithClosesForTest();
   const valuation = valuationForTest(["BBCA", "TLKM"]);
@@ -276,9 +244,20 @@ test("draws the line of the months of a portfolio for its student, with each sto
     ok: true,
     value: {
       kind: "portfolio",
-      portfolioLine: readPortfolioLine(
-        readPortfolioMeasures(database, valuation),
-      ),
+      portfolioLine: {
+        // Python Decimal gives the distance as 0.5 × -0.002826010377616112 + 0.3 × -0.006294683772801653 - 0.2 × 0.0575 / 12.
+        line: { ...fiveYearLine, months: fiveYearMonths },
+        portfolio: {
+          beta: closeToForTest(0.6206929278148288, 14),
+          expectedReturn: closeToForTest(-0.0021586726703076266, 16),
+          distance: closeToForTest(-0.004259743653981885, 16),
+        },
+        // The portfolio holds BBCA and TLKM with weights of 0.5 and 0.3, which size their marks.
+        holdings: stocksOnFiveYearLine.map((stock, index) => ({
+          ...stock,
+          weight: [0.5, 0.3][index],
+        })),
+      },
       others: { onLine: [], otherLineCodes: ["AMMN"], hasUnmeasured: true },
     },
   });

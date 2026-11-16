@@ -1,9 +1,9 @@
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
-import { Link } from "react-router";
+import { useLocation } from "react-router";
 import { ChangeText } from "~/change-text";
 import type { ClassId } from "~/features/classes/classes.schema";
-import { stockPath } from "~/features/market-data/stock-path";
+import { StockPageLink } from "~/features/market-data/stock-page-link";
 import { m } from "~/paraglide/messages.js";
 import type { homeMapPoints } from "./home-map-points";
 import styles from "./home-portfolio.module.css";
@@ -11,12 +11,18 @@ import styles from "./home-portfolio.module.css";
 export function HomeMapTable({
   map,
   classId,
+  keepReturn,
 }: {
   map: NonNullable<ReturnType<typeof homeMapPoints>>;
   classId: ClassId;
+  keepReturn: boolean;
 }): ReactNode {
+  const { hash } = useLocation();
   return (
-    <details className={styles["mapTable"]}>
+    <details
+      className={styles["mapTable"]}
+      open={map.points.some((point) => hash === `#${mapStockId(point.key)}`)}
+    >
       <summary>{m.trading_home_map_table_label()}</summary>
       <table className={styles["table"]}>
         <thead>
@@ -34,9 +40,14 @@ export function HomeMapTable({
             <tr key={point.key}>
               <th scope="row">
                 {point.mark.kind === "held" ? (
-                  <Link to={stockPath(classId, point.key)}>
+                  <StockPageLink
+                    classId={classId}
+                    code={point.key}
+                    id={mapStockId(point.key)}
+                    keepReturn={keepReturn}
+                  >
                     <NumberText verbatim>{point.name}</NumberText>
-                  </Link>
+                  </StockPageLink>
                 ) : (
                   <NumberText verbatim>{point.name}</NumberText>
                 )}
@@ -56,4 +67,8 @@ export function HomeMapTable({
       </table>
     </details>
   );
+}
+
+function mapStockId(code: string): string {
+  return `home-map-${code}`;
 }

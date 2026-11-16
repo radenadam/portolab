@@ -303,18 +303,6 @@
   margin: 0;
 }
 
-@media (width < 48rem) {
-  .onDesktop {
-    display: none;
-  }
-}
-
-@media (width >= 48rem) {
-  .onPhone {
-    display: none;
-  }
-}
-
 .workspaceToolsWide {
   display: none;
 }

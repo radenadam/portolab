@@ -155,17 +155,20 @@ const routePages: Record<string, readonly RoutePage[]> = {
   "features/grading/student-portfolio-page.tsx": [
     {
       reader: "lecturer",
-      path: ({ studentPath }) => `${studentPath}/portfolio`,
-      // The same portfolio as the student's, which piece 32 rebuilds.
-      brokenUntilRebuilt: ["width", "parts"],
+      path: ({ studentPath }) => studentPath,
     },
   ],
   "features/grading/student-measures-page.tsx": [
     {
       reader: "lecturer",
-      path: ({ studentPath }) => `${studentPath}/measures`,
-      // The same tables as the measures of the portfolio, which piece 32 rebuilds.
-      brokenUntilRebuilt: ["tables"],
+      path: ({ studentPath }) => `${studentPath}/analysis`,
+    },
+  ],
+  "features/grading/student-journal-page.tsx": [
+    { reader: "lecturer", path: ({ studentPath }) => `${studentPath}/journal` },
+    {
+      reader: "lecturer",
+      path: ({ studentPath }) => `${studentPath}/journal?view=orders`,
     },
   ],
   "features/classes/reset-password-page.tsx": [

@@ -1,11 +1,10 @@
 import { expect, test } from "vitest";
 import { AppIcon } from "./app-icon";
-import { Frame, PhoneAndDesktop } from "./frame";
+import { Frame } from "./frame";
 import type { FrameProfile } from "./frame";
 import { languageNames } from "./language-names";
 import { locales } from "./paraglide/runtime.js";
 import type { Locale } from "./paraglide/runtime.js";
-import { renderInRouterForTest } from "./render-in-router-for-test";
 import { switchLocaleForTest } from "./switch-locale-for-test";
 import { renderMarkupForTest } from "./render-markup-for-test";
 
@@ -148,12 +147,3 @@ for (const locale of locales) {
     expect(html).toMatch(/<\/main><\/div><\/div>$/);
   });
 }
-
-test("gives a part its form for a phone and its form for a desktop, each for its own screen", () => {
-  const html = renderInRouterForTest(
-    <PhoneAndDesktop phone={<p>rows</p>} desktop={<p>table</p>} />,
-  );
-  expect(html).toMatch(
-    /_onPhone_[^"]*"><p>rows<\/p><\/div><div class="[^"]*_onDesktop_[^"]*"><p>table<\/p>/,
-  );
-});

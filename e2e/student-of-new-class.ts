@@ -17,12 +17,14 @@ export async function studentOfNewClass(
     className,
     lecturerName,
     studentName,
+    studentUsername,
     startingCash,
   }: {
     locale: Locale;
     className: string;
     lecturerName: string;
     studentName: string;
+    studentUsername?: string;
     startingCash?: Rupiah;
   },
 ): Promise<{ student: Page; classId: ClassId; classPath: string }> {
@@ -30,6 +32,12 @@ export async function studentOfNewClass(
   await signInAsNewLecturer(page, lecturerName);
   const testClass = await createTestClass(page, className, startingCash);
   const student = await newDevice(browser, locale);
-  await signInAsTestStudent(student, testClass, studentName);
+  await signInAsTestStudent(
+    student,
+    testClass,
+    studentUsername === undefined
+      ? studentName
+      : { name: studentName, username: studentUsername },
+  );
   return { student, classId: testClass.id, classPath: testClass.path };
 }

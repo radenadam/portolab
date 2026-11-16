@@ -1,6 +1,7 @@
 import { m } from "~/paraglide/messages.js";
 import type { PlotPosition } from "./plot";
 import type { TimeChartLayout, TimeLine } from "./time-chart-layout";
+import { chartName } from "./chart-name";
 
 export function timeEndLabels<Point, Value extends number>(
   lines: readonly TimeLine<Point, Value>[],
@@ -25,7 +26,7 @@ export function timeEndLabels<Point, Value extends number>(
       position,
       dy: "0.35em",
       text: m.app_map_value_part({
-        name: line.endName,
+        name: chartName(line.endName),
         value: valueText(line.valueOf(latest)),
       }),
     });

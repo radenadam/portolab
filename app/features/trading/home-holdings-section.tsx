@@ -12,12 +12,11 @@ import { lots } from "~/units/lots";
 import { lotCount, shareCount } from "./count-parts";
 import { WeightMark, GainMark } from "./home-holding-marks";
 import type { ReactNode } from "react";
-import { Link } from "react-router";
 import { ChangeText } from "~/change-text";
 import { countedText } from "~/counted-text";
 import type { ClassId } from "~/features/classes/classes.schema";
 import { StockName } from "~/features/market-data/stock-name";
-import { stockPath } from "~/features/market-data/stock-path";
+import { StockPageLink } from "~/features/market-data/stock-page-link";
 import {
   formatNumber,
   formatRupiah,
@@ -34,6 +33,7 @@ interface HoldingsProps {
   home: HomePortfolioData;
   values: ReturnType<typeof homeHoldings>;
   classId: ClassId;
+  studentName?: string | undefined;
 }
 
 /** The widest amounts need the width of the whole page, so narrow screens use rows. */
@@ -41,6 +41,7 @@ export function HomeHoldingsSection({
   home,
   values,
   classId,
+  studentName,
 }: HoldingsProps): ReactNode {
   const sharedTime = sharedQuoteTime(
     home.report.valuation.holdings.map((holding) =>
@@ -62,14 +63,21 @@ export function HomeHoldingsSection({
       ),
     ),
   );
-  const title = countedText(
-    values.holdings.length,
-    {
-      one: m.trading_home_one_holding_title,
-      several: m.trading_home_several_holdings_title,
-    },
-    {},
-  );
+  const title = (textValue: (value: string) => string): string =>
+    countedText(
+      values.holdings.length,
+      {
+        one:
+          studentName === undefined
+            ? m.trading_home_one_holding_title
+            : m.trading_home_student_one_holding_title,
+        several:
+          studentName === undefined
+            ? m.trading_home_several_holdings_title
+            : m.trading_home_student_several_holdings_title,
+      },
+      { name: studentName === undefined ? "" : textValue(studentName) },
+    );
   const cashNote =
     home.setAside.orders === 0
       ? m.trading_home_no_order_cash_notice()
@@ -90,7 +98,13 @@ export function HomeHoldingsSection({
         <NumberText>{title}</NumberText>
       </h2>
       {values.holdings.length === 0 && (
-        <p className={styles["empty"]}>{m.trading_no_holdings_body()}</p>
+        <p className={styles["empty"]}>
+          <NumberText verbatim>
+            {studentName === undefined
+              ? m.trading_no_holdings_body()
+              : m.trading_home_student_no_holdings_body({ name: studentName })}
+          </NumberText>
+        </p>
       )}
       <div className={styles["desktopHoldings"]}>
         <table className={styles["table"]}>
@@ -136,6 +150,7 @@ export function HomeHoldingsSection({
                 maximumWeight={maximumWeight}
                 maximumGain={maximumGain}
                 sharedTime={sharedTime}
+                keepReturn={studentName !== undefined}
               />
             ))}
             <tr>
@@ -162,8 +177,11 @@ export function HomeHoldingsSection({
       <ul className={styles["phoneHoldings"]} data-layout="rows">
         {values.holdings.map((row) => (
           <li key={row.holding.code} className={styles["holdingRow"]}>
-            <Link
-              to={stockPath(classId, row.holding.code)}
+            <StockPageLink
+              classId={classId}
+              code={row.holding.code}
+              id={`home-holding-phone-${row.holding.code}`}
+              keepReturn={studentName !== undefined}
               className={styles["stockLink"]}
             >
               <StockName
@@ -191,7 +209,7 @@ export function HomeHoldingsSection({
                   </span>
                 }
               />
-            </Link>
+            </StockPageLink>
             <div className={styles["rowValue"]}>
               {row.holding.kind === "priced" && (
                 <>

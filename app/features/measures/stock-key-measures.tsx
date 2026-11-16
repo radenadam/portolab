@@ -72,7 +72,7 @@ export function StockKeyMeasures({
             {measureFailureText(measures.failure, {
               kind: "stock",
               code,
-              portfolioKind,
+              reader: { kind: "owner", portfolioKind },
             })}
           </NumberText>
         </p>
@@ -215,7 +215,7 @@ function correlationFailure(
     case "unmeasured":
       return measureFailureText(failure.failure, {
         kind: "correlation",
-        portfolioKind,
+        reader: { kind: "owner", portfolioKind },
       });
   }
 }

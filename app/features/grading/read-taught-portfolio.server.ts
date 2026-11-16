@@ -1,12 +1,18 @@
+import { isClassMapPath } from "~/features/classes/class-path";
+import { latestPortfolioActivity } from "~/features/trading/latest-portfolio-activity";
 import type { RouterContextProvider } from "react-router";
 import { databaseContext } from "~/database/database.server";
 import { requireTaughtStudent } from "~/features/classes/taught-class.server";
 import { readPriceSourceDescription } from "~/features/market-data/price-source-context.server";
 import type { PriceSourceDescription } from "~/features/market-data/price-source.server";
-import type { Portfolio } from "~/features/trading/portfolio-store.server";
+import type {
+  Portfolio,
+  PortfolioOwner,
+} from "~/features/trading/portfolio-store.server";
 import { readCurrentPortfolio } from "~/features/trading/read-current-portfolio.server";
 import type { Rupiah } from "~/units/rupiah";
 import { parseStudentReturnPath } from "./parse-student-return-path";
+import { selectedStudentHeadingId } from "./students-address";
 import { classPortfoliosPath } from "./grading-paths";
 import type { TaughtStudent } from "./taught-student-page";
 
@@ -15,8 +21,10 @@ export interface TaughtPortfolio {
   student: TaughtStudent;
   returnPath: string;
   portfolio: Portfolio;
+  owner: PortfolioOwner;
   startingCash: Rupiah;
   joinedAt: Date;
+  firstSessionDate: string | null;
   source: PriceSourceDescription;
 }
 
@@ -41,27 +49,39 @@ export function readTaughtPortfolio(
     "returnTo",
     { origin: url.origin, classId: taughtClass.id },
   );
+  const back = new URL(
+    returnPath.ok ? returnPath.value : classPortfoliosPath(taughtClass.id),
+    url,
+  );
+  if (!isClassMapPath(back.pathname, taughtClass.id)) {
+    back.searchParams.set("student", String(student.id));
+    back.hash = selectedStudentHeadingId;
+  }
+  const owner = {
+    kind: "membership" as const,
+    membershipId: student.membershipId,
+    startingCash: taughtClass.startingCash,
+  };
+  const portfolio = readCurrentPortfolio(context.get(databaseContext), owner, {
+    request,
+    now,
+  });
   return {
-    returnPath: returnPath.ok
-      ? returnPath.value
-      : classPortfoliosPath(taughtClass.id),
+    returnPath: back.pathname + back.search + back.hash,
     student: {
       classId: taughtClass.id,
       className: taughtClass.name,
       studentId: student.id,
       name: student.name,
+      shortName: student.name.split(/\s+/u).slice(0, 1).join(""),
+      username: student.username,
+      latestActivity: latestPortfolioActivity(portfolio),
     },
-    portfolio: readCurrentPortfolio(
-      context.get(databaseContext),
-      {
-        kind: "membership" as const,
-        membershipId: student.membershipId,
-        startingCash: taughtClass.startingCash,
-      },
-      { request, now },
-    ),
+    portfolio,
+    owner,
     startingCash: taughtClass.startingCash,
     joinedAt: student.joinedAt,
+    firstSessionDate: taughtClass.firstSessionDate,
     source: readPriceSourceDescription(context),
   };
 }

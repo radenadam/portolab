@@ -57,7 +57,7 @@ pnpm build
 DATABASE_PATH=data/sample.sqlite pnpm sample-class
 ```
 
-The command prints the usernames, the password of each role, and the join code. Start the server with the same `DATABASE_PATH` to explore the class. In a built container, run `node server/sample-class.ts` with that variable instead. [Decision 0047](docs/decisions/0047-a-sample-class-lives-in-a-database-of-its-own.md) describes the isolation, the recipes, and how to start again.
+The command prints the usernames, the password of each role, and the join code. Start the server with the same `DATABASE_PATH` to explore the class. In a built container, run `node server/sample-class.ts` with that variable instead. [Decision 0048](docs/decisions/0048-a-sample-class-lives-in-a-database-of-its-own.md) describes the isolation, the recipes, and how to start again.
 
 ## Configuration
 
