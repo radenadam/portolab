@@ -14,6 +14,8 @@ export function historyEndText(
   reader: PortfolioReader,
 ): string {
   switch (end.kind) {
+    case "snapshot":
+      return m.trading_history_snapshot_notice();
     case "notFinal":
       return m.trading_chart_not_final_notice({
         date: formatCalendarDate(end.date),

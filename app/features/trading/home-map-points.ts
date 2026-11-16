@@ -14,7 +14,7 @@ import type { CumulativeReturn } from "~/units/cumulative-return";
 import { homeHoldings } from "./home-holdings";
 import type { HomePortfolioData } from "./read-home-portfolio.server";
 
-/** The map compares current delayed values. The small chart keeps final daily closes. */
+/** Sharing the valuation prevents the map from disagreeing with the time charts. */
 export function homeMapPoints(
   home: HomePortfolioData,
   reader: PortfolioReader,

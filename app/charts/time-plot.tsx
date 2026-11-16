@@ -1,7 +1,8 @@
 import { NumberText } from "~/number-text";
 import { useRef } from "react";
 import type { CSSProperties, PointerEvent, ReactNode } from "react";
-import { formatCalendarDate, formatList } from "~/formatting";
+import { formatList } from "~/formatting";
+import { TimePointLabel, timePointLabel } from "./time-point-label";
 import { m } from "~/paraglide/messages.js";
 import { plotFraction } from "~/units/plot-fraction";
 import { LineKey } from "./line-key";
@@ -47,7 +48,10 @@ const dotRadius = 0.4;
 const noEvents: readonly TimeEvent[] = [];
 
 /** The plot with its axes, its lines, and a dot on each line at the marked date, which is the latest date until a reader marks another. In the browser it is a slider that marks a date with a crosshair and shows a tooltip of its values. */
-export function TimePlot<Point extends { date: string }, Value extends number>({
+export function TimePlot<
+  Point extends { date: string; measuredAt?: Date },
+  Value extends number,
+>({
   points,
   lines,
   layout,
@@ -227,9 +231,7 @@ export function TimePlot<Point extends { date: string }, Value extends number>({
             style={tipAcross(acrossOf(active, points.length))}
           >
             <p className={styles["tipDate"]}>
-              <NumberText>
-                {formatCalendarDate(point.date, "medium")}
-              </NumberText>
+              <TimePointLabel point={point} />
             </p>
             {lines.map((line) => (
               <p key={line.name} className={styles["tipLine"]}>
@@ -252,13 +254,16 @@ export function TimePlot<Point extends { date: string }, Value extends number>({
 }
 
 /** The text of a point that a screen reader reads as the value of the slider, such as 3 Nov 2026: Portofolio Anda -3,07% dan IHSG -3,02%. */
-function pointText<Point extends { date: string }, Value extends number>(
+function pointText<
+  Point extends { date: string; measuredAt?: Date },
+  Value extends number,
+>(
   point: Point,
   lines: readonly TimeLine<Point, Value>[],
   valueText: (value: Value) => string,
 ): string {
   return m.app_chart_point_label({
-    date: formatCalendarDate(point.date, "medium"),
+    date: timePointLabel(point),
     values: formatList(
       lines.map((line) =>
         m.app_chart_line_value_part({

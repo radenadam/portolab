@@ -25,12 +25,12 @@ import { TaughtStudentPage, taughtStudentMeta } from "./taught-student-page";
 const helpTexts: Record<Locale, Record<"chart" | "returnTitle", string>> = {
   id: {
     chart:
-      "Grafik dan tabel membandingkan imbal hasil portofolio Raka dengan imbal hasil IHSG sejak penutupan 30 Oktober 2026, sebelum Raka dapat bertransaksi. Setiap imbal hasilnya memakai harga penutupan final pada harinya.",
+      "Grafik dan tabel membandingkan portofolio Raka dengan IHSG sejak penutupan 30 Oktober 2026, sebelum Raka dapat bertransaksi. Hari sebelumnya memakai harga penutupan final. Titik dengan waktu memakai nilai portofolio sekarang dan level tertunda terakhir IHSG.",
     returnTitle: "Imbal hasil Raka dibandingkan IHSG",
   },
   en: {
     chart:
-      "The chart and the table compare the return of the portfolio of Raka with the return of the IHSG since the close of October 30, 2026, before Raka could trade. Each of their returns uses the final closes of its day.",
+      "The chart and the table compare the portfolio of Raka with the IHSG since the close of October 30, 2026, before Raka could trade. Past days use final closes. A timestamped endpoint uses the current portfolio value and the latest delayed level of the IHSG.",
     returnTitle: "Return of Raka against the IHSG",
   },
 };
@@ -90,7 +90,7 @@ const texts: Record<
     one: "Saham Raka · 1",
     several: "Saham Raka · 2",
     mapFailure:
-      "Peta tampil setelah pembaruan harga membawa IHSG dan riwayat harga menyimpan penutupan awal periode Raka.",
+      "Peta tampil setelah pembaruan harga membawa level tertunda IHSG dari periode Raka dan riwayat harga menyimpan penutupan awal periodenya.",
     measures: "Ukuran portofolio Raka",
     analysisStocks: "Saham Raka",
     analysisHoldings: "Saham Raka, ukuran = bobot",
@@ -112,7 +112,7 @@ const texts: Record<
     one: "Holding of Raka · 1",
     several: "Holdings of Raka · 2",
     mapFailure:
-      "The map appears once a price update brings the IHSG and the price history stores the close at the start of the period of Raka.",
+      "The map appears once a price update brings a delayed IHSG level from the period of Raka and the price history stores its starting close.",
     measures: "Portfolio measures of Raka",
     analysisStocks: "Stocks of Raka",
     analysisHoldings: "Stocks of Raka, size = weight",

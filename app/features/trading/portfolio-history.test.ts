@@ -361,6 +361,43 @@ test("ends at a day after which no calendar covers the next trading day", () => 
 // The IHSG closed at 4,904.29 on Tuesday 3 November 2026, which the history takes as a later level of the index.
 const tuesdayIhsgLevel = indexPoints(4_904.29);
 
+test("withholds a current IHSG return when its stale quote predates the base day", () => {
+  // The recorded quote is the close of 29 October, so it cannot measure a period that starts at the close of 30 October.
+  expect(
+    marketReturnSinceStart(
+      {
+        startDate,
+        market: recordedIhsgForTest(),
+        now: new Date("2026-11-04T03:00:00Z"),
+        delayMinutes,
+      },
+      indexPoints(5098.06),
+      new Date("2026-10-29T09:14:00Z"),
+    ),
+  ).toBeUndefined();
+});
+
+for (const [quotedAt, available] of [
+  ["2026-10-30T08:59:59.999Z", false],
+  ["2026-10-30T09:00:00.000Z", true],
+  ["2026-10-30T09:00:00.001Z", true],
+] as const) {
+  test(`checks the full base-close boundary at ${quotedAt}`, () => {
+    // The IDX schedule starts closing matching at 16:00 WIB. By hand, 5,057.05 / 5,057.05 - 1 is zero.
+    const value = marketReturnSinceStart(
+      {
+        startDate,
+        market: recordedIhsgForTest(),
+        now: new Date("2026-11-04T03:00:00Z"),
+        delayMinutes,
+      },
+      indexPoints(5057.05),
+      new Date(quotedAt),
+    );
+    expect(value).toBe(available ? 0 : undefined);
+  });
+}
+
 test("gives the return of the IHSG at a later level since the close from which the returns of the portfolio count", () => {
   expect(
     marketReturnSinceStart(
@@ -371,6 +408,7 @@ test("gives the return of the IHSG at a later level since the close from which t
         delayMinutes,
       },
       tuesdayIhsgLevel,
+      new Date("2026-11-03T09:14:00Z"),
     ),
   ).toEqual(tuesdayPoint.market);
   // Without the close of the start, the return counts from the close before it, as the history does, which the decimal module of Python gives as 4,904.29 / 5,098.06 - 1.
@@ -383,6 +421,7 @@ test("gives the return of the IHSG at a later level since the close from which t
         delayMinutes,
       },
       tuesdayIhsgLevel,
+      new Date("2026-11-03T09:14:00Z"),
     ),
   ).toEqual(closeToForTest(-0.03800857581119092, 15));
 });
@@ -400,7 +439,8 @@ test("gives no return of the IHSG while the prices of the start are not final, o
         now: new Date("2026-10-30T09:10:00Z"),
         delayMinutes,
       },
-      tuesdayIhsgLevel,
+      indexPoints(5057.05),
+      new Date("2026-10-30T09:00:05Z"),
     ),
   ).toBeUndefined();
   expect(
@@ -412,6 +452,7 @@ test("gives no return of the IHSG while the prices of the start are not final, o
         delayMinutes,
       },
       tuesdayIhsgLevel,
+      new Date("2026-11-03T09:14:00Z"),
     ),
   ).toBeUndefined();
 });

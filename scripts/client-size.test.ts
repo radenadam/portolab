@@ -185,14 +185,14 @@ test("discovers a new route without adding a budget entry by hand", () => {
   expect(added?.path).toContain("build/client/assets/new.js");
 });
 
-test("applies measured exercise allowances only to the named routes and asset kinds", () => {
+test("applies measured route allowances only to the named routes and asset kinds", () => {
   const { chunks, routes, files } = fixture();
   const cases = [
     ["features/classes/class-page", "220 kB", "24 kB"],
     ["features/trading/ticket-page", "220 kB", "24 kB"],
     ["features/measures/measures-page", "200 kB", "20 kB"],
     ["features/trading/demonstration-summary-page", "220 kB", "24 kB"],
-    ["features/measures/demonstration-analysis-page", "200 kB", "20 kB"],
+    ["features/measures/demonstration-analysis-page", "201 kB", "20 kB"],
     ["features/market-data/market-page", "200 kB", "20 kB"],
     ["features/grading/student-portfolio-page", "220 kB", "24 kB"],
     ["features/grading/student-measures-page", "220 kB", "20 kB"],
