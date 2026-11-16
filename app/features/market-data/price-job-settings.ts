@@ -8,4 +8,6 @@ export interface PriceJobSettings {
   instruments: readonly Instrument[];
   /** The date in WIB from which the job fetches the daily closes of every instrument, such as 2021-09-01. */
   historyStartDate: string;
+  /** Existing rows do not prove that a partial answer supplied enough usable closes for the sample. */
+  refreshStoredHistory?: boolean;
 }

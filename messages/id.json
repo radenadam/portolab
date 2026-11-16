@@ -1,4 +1,5 @@
 {
+  "app_sample_class_label": "Data contoh",
   "$schema": "https://inlang.com/schema/inlang-message-format",
   "app_name": "Portolab",
   "language_switch_label": "Bahasa",

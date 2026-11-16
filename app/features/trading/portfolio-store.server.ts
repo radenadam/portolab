@@ -26,6 +26,15 @@ export type PortfolioOwner = { startingCash: Rupiah } & (
 
 export type PortfolioKind = PortfolioOwner["kind"];
 
+/** The sample command refuses simulated work even when its owner has been lost. */
+export function hasPortfolioRecords(database: DatabaseWriter): boolean {
+  return (
+    database.select().from(portfolios).get() !== undefined ||
+    database.select().from(holdings).get() !== undefined ||
+    database.select().from(orders).get() !== undefined
+  );
+}
+
 /** Reads the portfolio of an owner, which is the starting cash of the class and nothing else before the first order. */
 export function readPortfolio(
   database: DatabaseWriter,

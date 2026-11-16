@@ -65,7 +65,7 @@ interface CheckedOrder extends SizedOrder {
 /** An account at the moment when the student places an order. */
 type AccountAtMoment = AccountState & { moment: Date };
 
-/** Checks an order against the rules of IDX of its trading day and against the account, by the rules of decisions 0015 and 0016, and accepts it as waiting. Its lots come from parseOrderLots with the largest order of the same trading day, which orderTradingDay gives. The caller then checks it against the latest quote with checkOrder, as after every new quote, so an order placed during a session can fill at once. */
+/** Checks an order against the rules of IDX of its trading day and against the account, by the rules of decisions 0015 and 0016, and accepts it as waiting. The caller bounds whole lots by the largest order that orderTradingDay gives. Form input uses parseOrderLots, and sample recipes bound computed sizes, so the engine trusts both. The caller then checks it against the latest quote with checkOrder, as after every new quote, so an order placed during a session can fill at once. */
 export function placeOrder(
   request: OrderRequest,
   account: AccountState,

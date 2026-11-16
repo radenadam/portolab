@@ -37,12 +37,36 @@ import {
 } from "~/features/measures/estimation-settings";
 import { wibDateOf } from "~/wib";
 import type { ServiceSettings } from "./server-options.ts";
+import { seedSampleClass } from "~/features/sample-class/seed-sample-class.server";
 
 const priceSources: Record<ServiceSettings["priceSource"], () => PriceSource> =
   {
     yahoo: createYahooPriceSource,
     fixture: () => fixturePriceSource,
   };
+
+/** Bundling the command with the server keeps the same engine available in the container without a compiler. */
+export async function runSampleClass(
+  settings: Pick<
+    ServiceSettings,
+    "databasePath" | "priceSource" | "migrationsFolder"
+  >,
+  clock: () => Date,
+) {
+  const database = openDatabase(
+    settings.databasePath,
+    settings.migrationsFolder,
+  );
+  try {
+    return await seedSampleClass(
+      database,
+      priceSources[settings.priceSource](),
+      clock,
+    );
+  } finally {
+    closeDatabase(database);
+  }
+}
 
 export interface Services {
   database: Database;

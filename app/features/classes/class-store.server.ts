@@ -68,6 +68,14 @@ const membershipColumns = {
   joinedAt: memberships.joinedAt,
 };
 
+/** The sample command must also refuse orphaned memberships in a damaged database. */
+export function hasClassRecords(database: Database): boolean {
+  return (
+    database.select().from(classes).get() !== undefined ||
+    database.select().from(memberships).get() !== undefined
+  );
+}
+
 /** Creates a class with a new code and returns its id. */
 export function createClass(
   database: Database,

@@ -36,8 +36,11 @@ import type { FrameReader } from "./features/navigation/frame-reader";
 import { readFrameReader } from "./features/navigation/frame-reader.server";
 import { formSizeLimit } from "./form-size-limit.server";
 import { Frame } from "./frame";
+import { databaseContext } from "./database/database.server";
+import { isSampleClass } from "./features/sample-class/is-sample-class.server";
 import type { FrameProfile } from "./frame";
 import { getLocale } from "./paraglide/runtime.js";
+import { m } from "./paraglide/messages.js";
 import { paraglideMiddleware } from "./paraglide/server.js";
 import "./theme.css";
 import { isTooLargeForm, TooLargeFormPage } from "./too-large-form";
@@ -70,6 +73,7 @@ export async function loader({
 }: Route.LoaderArgs): Promise<
   ConceptLessonData & {
     reader: FrameReader;
+    sampleClassLabel: string | undefined;
     simulation: SimulationBadgeData;
     join: ReturnType<typeof readClassJoinDetails>;
   }
@@ -80,6 +84,9 @@ export async function loader({
   return {
     ...lessons.value,
     reader,
+    sampleClassLabel: isSampleClass(context.get(databaseContext))
+      ? m.app_sample_class_label()
+      : undefined,
     join:
       reader.kind === "user" &&
       reader.role === "lecturer" &&
@@ -106,6 +113,7 @@ export function Layout({ children }: { children: ReactNode }): ReactNode {
       </head>
       <body>
         <Frame
+          sampleClassLabel={rootData?.sampleClassLabel}
           items={frameItems(reader, {
             routeId: page?.id,
             params: page?.params ?? {},
