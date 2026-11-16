@@ -26,6 +26,7 @@ export interface FrameProfile {
 }
 
 interface FrameProps {
+  sampleClassLabel?: string | undefined;
   items: readonly FrameItem[];
   /** The part at the start of the top bar, such as the switcher of the class of the workspace, or undefined outside a workspace, where a phone shows the app icon with the name of Portolab instead. */
   start: ReactNode | undefined;
@@ -45,6 +46,7 @@ const topProfileId = "top-profile";
 
 /** The frame of every page, as decision 0028 sets it: on a desktop, the rail with the app icon, the items, and the profile at its foot, beside the top bar. On a phone, the top bar and the tab bar with the items of the rail. The content stays in the middle of the screen beyond its largest width. */
 export function Frame({
+  sampleClassLabel,
   items,
   start,
   profile,
@@ -141,6 +143,13 @@ export function Frame({
               </div>
             </div>
           </header>
+          <aside
+            className={styles["sampleClass"]}
+            aria-label={sampleClassLabel}
+            hidden={sampleClassLabel === undefined}
+          >
+            {sampleClassLabel}
+          </aside>
           {workspaceTools !== undefined && (
             <div className={styles["workspaceToolsPhone"]}>
               {workspaceTools}
@@ -207,22 +216,6 @@ function ItemList({
         </li>
       ))}
     </ul>
-  );
-}
-
-/** A part that a phone shows in another form than a desktop, such as rows of one kind, which are a list on a phone and a table on a desktop. Each form shows only on its screen, so a screen reader reads one of them. */
-export function PhoneAndDesktop({
-  phone,
-  desktop,
-}: {
-  phone: ReactNode;
-  desktop: ReactNode;
-}): ReactNode {
-  return (
-    <>
-      <div className={styles["onPhone"]}>{phone}</div>
-      <div className={styles["onDesktop"]}>{desktop}</div>
-    </>
   );
 }
 

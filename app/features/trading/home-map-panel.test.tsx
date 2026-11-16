@@ -1,4 +1,3 @@
-import type { PortfolioKind } from "./portfolio-store.server";
 import { expect, test } from "vitest";
 import type { ClassId } from "~/features/classes/classes.schema";
 import { courseSessions } from "~/features/classes/course-calendar";
@@ -15,6 +14,7 @@ import { indexPoints } from "~/units/index-points";
 import { HomeMapPanel } from "./home-map-panel";
 import { homeMapPoints } from "./home-map-points";
 import { homePortfolioForTest } from "./home-portfolio-for-test";
+import type { PortfolioKind } from "./portfolio-store.server";
 
 const texts: Record<
   Locale,
@@ -47,6 +47,8 @@ const texts: Record<
       "S1",
       "Portolab belum menyimpan harga penutupan IHSG pada 30 Oktober 2026. Portolab menampilkan imbal hasil mulai hari itu setelah pembaruan riwayat harga menyimpan harga penutupan IHSG pada hari itu atau hari sesudahnya.",
     ],
+    unknownWeight: "Bobot belum tersedia",
+    weight: "Bobot",
     classmates: {
       membership: {
         legend: "Teman sekelas",
@@ -57,8 +59,6 @@ const texts: Record<
         point: "Mahasiswa kelas tanpa nama",
       },
     },
-    unknownWeight: "Bobot belum tersedia",
-    weight: "Bobot",
   },
   en: {
     common: [
@@ -81,6 +81,8 @@ const texts: Record<
       "S1",
       "Portolab has not stored the close of IHSG on October 30, 2026 yet. It shows the returns from that day on once an update of the price history stores a close of IHSG on that day or on a later day.",
     ],
+    unknownWeight: "Weight unavailable",
+    weight: "Weight",
     classmates: {
       membership: { legend: "Classmates", point: "Unnamed classmate" },
       demonstration: {
@@ -88,8 +90,6 @@ const texts: Record<
         point: "Unnamed class student",
       },
     },
-    unknownWeight: "Weight unavailable",
-    weight: "Weight",
   },
 };
 
@@ -110,31 +110,42 @@ for (const locale of locales) {
       return: cumulativeReturn(-0.01),
     };
     home.sessions = courseSessions("2026-10-30");
+    const ownerReader = (portfolioKind: PortfolioKind = "membership") => ({
+      kind: "owner" as const,
+      classId: 7 as ClassId,
+      portfolioKind,
+    });
     const render = (portfolioKind: PortfolioKind = "membership") =>
       renderMarkupForTest(
         <HomeMapPanel
           home={home}
           classId={7 as ClassId}
-          path="/classes/7"
-          portfolioKind={portfolioKind}
+          reader={ownerReader(portfolioKind)}
         />,
       );
     const html = render();
-    for (const kind of ["membership", "demonstration"] as const) {
-      const text = texts[locale].classmates[kind];
-      expect(render(kind)).toContain(`<li><span></span>${text.legend}</li>`);
-      expect(
-        homeMapPoints(home, kind)?.points.find(
-          ({ mark }) => mark.kind === "classmate",
-        )?.name,
-      ).toBe(text.point);
-    }
     for (const sentence of texts[locale].common.slice(0, -1))
       expect(html).toContain(markupTextForTest(sentence));
     expect(html).not.toContain("stroke-dasharray");
     expect(html).not.toContain(">SML<");
-    expect(html).toContain('href="/classes/7?view=time"');
-    const map = homeMapPoints(home);
+    const paths: Record<PortfolioKind, string> = {
+      membership: "/classes/7",
+      demonstration: "/classes/7/demonstration",
+    };
+    for (const portfolioKind of ["membership", "demonstration"] as const) {
+      const labels = texts[locale].classmates[portfolioKind];
+      const owner = render(portfolioKind);
+      expect(owner).toContain(labels.legend);
+      expect(owner).toContain(`href="${paths[portfolioKind]}"`);
+      expect(owner).toContain(`href="${paths[portfolioKind]}?view=time"`);
+      expect(
+        homeMapPoints(home, ownerReader(portfolioKind))?.points.find(
+          ({ mark }) => mark.kind === "classmate",
+        )?.name,
+      ).toBe(labels.point);
+    }
+    const reader = ownerReader();
+    const map = homeMapPoints(home, reader);
     expect(map?.points.map(({ mark }) => mark.kind)).toEqual([
       "classmate",
       "held",
@@ -167,13 +178,16 @@ for (const locale of locales) {
     home.measures = { kind: "unpriced", codes: ["TLKM"] };
     home.stockBetas = [{ code: "BBCA", beta: beta(0.69) }];
     expect(
-      homeMapPoints(home)?.points.find(({ key }) => key === "BBCA")?.values,
+      homeMapPoints(home, reader)?.points.find(({ key }) => key === "BBCA")
+        ?.values,
     ).toContainEqual({
       name: texts[locale].weight,
       value: texts[locale].unknownWeight,
     });
     expect(
-      homeMapPoints(home)?.points.some(({ mark }) => mark.kind === "own"),
+      homeMapPoints(home, reader)?.points.some(
+        ({ mark }) => mark.kind === "own",
+      ),
     ).toBe(false);
   });
 }

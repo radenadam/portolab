@@ -1,11 +1,10 @@
 import { expect, test } from "vitest";
 import { AppIcon } from "./app-icon";
-import { Frame, PhoneAndDesktop } from "./frame";
+import { Frame } from "./frame";
 import type { FrameProfile } from "./frame";
 import { languageNames } from "./language-names";
 import { locales } from "./paraglide/runtime.js";
 import type { Locale } from "./paraglide/runtime.js";
-import { renderInRouterForTest } from "./render-in-router-for-test";
 import { switchLocaleForTest } from "./switch-locale-for-test";
 import { renderMarkupForTest } from "./render-markup-for-test";
 
@@ -16,6 +15,7 @@ const texts: Record<
     navigation: string;
     profile: string;
     profileTitle: string;
+    sample: string;
   }
 > = {
   id: {
@@ -23,12 +23,14 @@ const texts: Record<
     navigation: "Navigasi utama",
     profile: "Profil Sari Wulandari",
     profileTitle: "Profil",
+    sample: "Data contoh",
   },
   en: {
     skip: "Skip to content",
     navigation: "Main navigation",
     profile: "Profile of Sari Wulandari",
     profileTitle: "Profile",
+    sample: "sample class",
   },
 };
 
@@ -61,14 +63,17 @@ function frameForTest({
   frameItems,
   start,
   frameProfile,
+  sampleClassLabel,
 }: {
   frameItems: readonly (typeof items)[number][];
   start: string | undefined;
   frameProfile: FrameProfile | undefined;
+  sampleClassLabel?: string;
 }): string {
   return withoutIcons(
     renderMarkupForTest(
       <Frame
+        sampleClassLabel={sampleClassLabel}
         items={frameItems}
         start={start === undefined ? undefined : <span>{start}</span>}
         profile={frameProfile}
@@ -87,6 +92,19 @@ const itemList =
 for (const locale of locales) {
   const text = texts[locale];
   const language = languageNames[locale];
+
+  test(`labels every frame of a sample database in ${language}`, () => {
+    switchLocaleForTest(locale);
+    const parts = {
+      frameItems: items,
+      start: "switcher",
+      frameProfile: profile,
+    };
+    expect(frameForTest({ ...parts, sampleClassLabel: text.sample })).toContain(
+      `<aside aria-label="${text.sample}">${text.sample}</aside>`,
+    );
+    expect(frameForTest(parts)).not.toContain(text.sample);
+  });
 
   test(`frames a page with the link that skips to the content, the rail with the app icon, the items, and the avatar of the profile, the top bar with its start, the tools, the name, the badge, and the avatar of a phone, the content in the middle, and the tab bar, in ${language}`, () => {
     switchLocaleForTest(locale);
@@ -108,7 +126,7 @@ for (const locale of locales) {
         `<div><header><div data-layout="content"><span>switcher</span><div><span>tools</span>`,
         `<span>${profileButton("top-profile", "<span>Sari Wulandari</span>")}</span><span>badge</span>`,
         `${profileButton("top-profile", '<span data-initials="SW"></span>')}${profilePopover("top-profile")}</div></div></header>`,
-        `<main id="main" tabindex="-1"><div data-layout="content"><p>page</p></div></main></div>`,
+        `<aside hidden=""></aside><main id="main" tabindex="-1"><div data-layout="content"><p>page</p></div></main></div>`,
         `<nav aria-label="${text.navigation}">${itemList}</nav></div>`,
       ].join(""),
     );
@@ -129,12 +147,3 @@ for (const locale of locales) {
     expect(html).toMatch(/<\/main><\/div><\/div>$/);
   });
 }
-
-test("gives a part its form for a phone and its form for a desktop, each for its own screen", () => {
-  const html = renderInRouterForTest(
-    <PhoneAndDesktop phone={<p>rows</p>} desktop={<p>table</p>} />,
-  );
-  expect(html).toMatch(
-    /_onPhone_[^"]*"><p>rows<\/p><\/div><div class="[^"]*_onDesktop_[^"]*"><p>table<\/p>/,
-  );
-});

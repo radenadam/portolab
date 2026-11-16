@@ -17,6 +17,7 @@ A diff range, a set of paths, or a plan, with the intent behind it. In an audit,
 - Trace each visible or spoken sentence through its placeholders when checking [Interface text](../../AGENTS.md#interface-text). Compare the translations as sentences, including their subjects, instead of only matching their keys and test copies.
 - Trace recorded prices and trading dates to their fixture source when checking [Tests](../../AGENTS.md#tests). Follow each test to the branch it claims to exercise, including after a dependency moves to another layer. When only an invented state distinguishes a branch, check whether a current caller needs it under [Code](../../AGENTS.md#code).
 - The section "Workflow" of `AGENTS.md`, including the pull request title and description.
+- When an added export takes a module out of the file-name lint check, check its name against the section "Structure" of `AGENTS.md`.
 
 ## Findings
 

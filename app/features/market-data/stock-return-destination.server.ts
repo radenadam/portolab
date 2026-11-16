@@ -1,11 +1,13 @@
 import type { PortfolioKind } from "~/features/trading/portfolio-store.server";
 import type { ClassId } from "~/features/classes/classes.schema";
 import { measuresPath } from "~/features/measures/measures-path";
+import { studentPageAt } from "~/features/grading/grading-paths";
+import type { StudentPage } from "~/features/grading/grading-paths";
 import { m } from "~/paraglide/messages.js";
 import { returnDestination } from "~/return-destination.server";
 import { marketPath } from "./market-path";
 
-/** A stock can be opened from either list, but its return must stay inside the reader's class. */
+/** The stock route serves both roles, so a forged return must not select a page of another role. */
 export function stockReturnDestination({
   classId,
   portfolioKind,
@@ -23,15 +25,30 @@ export function stockReturnDestination({
   );
   const analysis =
     destination.pathname === measuresPath(classId, portfolioKind);
+  const studentPage =
+    portfolioKind === "demonstration"
+      ? studentPageAt(classId, destination.pathname)
+      : undefined;
   const returnTo =
-    destination.pathname === marketPath(classId) || analysis
+    destination.pathname === marketPath(classId) ||
+    analysis ||
+    studentPage !== undefined
       ? `${destination.pathname}${destination.search}${destination.hash}`
       : undefined;
   return {
     returnTo,
     returnPath: returnTo ?? marketPath(classId),
-    returnLabel: analysis
-      ? m.market_data_back_to_analysis_link()
-      : m.market_data_back_to_market_link(),
+    returnLabel:
+      studentPage === undefined
+        ? analysis
+          ? m.market_data_back_to_analysis_link()
+          : m.market_data_back_to_market_link()
+        : studentReturnLabels[studentPage](),
   };
 }
+
+const studentReturnLabels: Record<StudentPage, () => string> = {
+  portfolio: m.market_data_back_to_student_summary_link,
+  measures: m.market_data_back_to_student_analysis_link,
+  journal: m.market_data_back_to_student_journal_link,
+};

@@ -41,6 +41,27 @@ const texts: Record<
   },
 };
 
+const studentTexts: Record<Locale, { alpha: readonly string[] }> = {
+  id: {
+    alpha: [
+      "Portofolio Raka di atas garis sejauh 0,03 poin per bulan. Pilih titik untuk melihat perhitungan alphanya.",
+      "Portofolio Raka di bawah garis sejauh 0,03 poin per bulan. Pilih titik untuk melihat perhitungan alphanya.",
+      "Portofolio Raka tepat di garis. Pilih titik untuk melihat perhitungan alphanya.",
+      "Portofolio Raka di atas garis sejauh 1,00 poin per bulan. Pilih titik untuk melihat perhitungan alphanya.",
+      "Portofolio Raka di bawah garis sejauh 1,00 poin per bulan. Pilih titik untuk melihat perhitungan alphanya.",
+    ],
+  },
+  en: {
+    alpha: [
+      "The portfolio of Raka is 0.03 points per month above the line. Select a point to see its alpha calculation.",
+      "The portfolio of Raka is 0.03 points per month below the line. Select a point to see its alpha calculation.",
+      "The portfolio of Raka is on the line. Select a point to see its alpha calculation.",
+      "The portfolio of Raka is 1.00 point per month above the line. Select a point to see its alpha calculation.",
+      "The portfolio of Raka is 1.00 point per month below the line. Select a point to see its alpha calculation.",
+    ],
+  },
+};
+
 for (const locale of locales) {
   test(`describes alpha after rounding, including one point, in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
@@ -53,9 +74,14 @@ for (const locale of locales) {
       [0.0099999, 3],
       [-0.0099999, 4],
     ] as const) {
-      expect(analysisAlphaInsight(monthlyReturn(value)).text).toBe(
-        texts[locale].alpha[index],
-      );
+      for (const studentName of [undefined, "Raka"])
+        expect(
+          analysisAlphaInsight(monthlyReturn(value), studentName).text,
+        ).toBe(
+          (studentName === undefined ? texts : studentTexts)[locale].alpha[
+            index
+          ],
+        );
     }
   });
   test(`describes diversification and equal rounded risk in ${languageNames[locale]}`, () => {

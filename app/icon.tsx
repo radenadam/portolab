@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 
-/** An icon of the frame, by the part that it marks. */
 export type IconName =
   | "map"
   | "trend"
@@ -12,9 +11,14 @@ export type IconName =
   | "signIn"
   | "globe"
   | "chevronDown"
+  | "chevronLeft"
+  | "arrowRight"
   | "check"
   | "book"
   | "search"
+  | "flask"
+  | "eye"
+  | "clock"
   | "briefcase";
 
 // The prototype of decision 0028 draws these lines on a grid of 24 with round ends, so each icon takes the stroke of its text.
@@ -32,8 +36,14 @@ const paths: Record<IconName, string> = {
   globe:
     "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18ZM3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18",
   chevronDown: "M6 9l6 6 6-6",
+  chevronLeft: "M15 6l-6 6 6 6",
+  arrowRight: "M5 12h14M13 6l6 6-6 6",
   check: "M5 12.5l4.5 4.5L19 7.5",
   book: "M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 3H20v19H6.5A2.5 2.5 0 0 1 4 19.5v-14A2.5 2.5 0 0 1 6.5 3Z",
+  flask:
+    "M9 3h6M10 3v7l-5 9a1.5 1.5 0 0 0 1.3 2h11.4a1.5 1.5 0 0 0 1.3-2l-5-9V3M8 15h8",
+  eye: "M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12ZM15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z",
+  clock: "M12 7v5l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0",
   search: "M21 21l-4.35-4.35M19 11a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z",
 };
 

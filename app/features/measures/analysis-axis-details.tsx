@@ -22,7 +22,10 @@ interface AxisDetails {
   sessionLabel: (inputs: { session: string }) => string;
 }
 
-export function analysisAxisDetails(axis: AnalysisAxis): AxisDetails {
+export function analysisAxisDetails(
+  axis: AnalysisAxis,
+  studentName?: string,
+): AxisDetails {
   const details: Record<AnalysisAxis, AxisDetails> = {
     beta: {
       title: m.measures_line_title(),
@@ -30,7 +33,7 @@ export function analysisAxisDetails(axis: AnalysisAxis): AxisDetails {
       termId: "alpha-jensen",
       meaning: measureConcept("alpha").meaning,
       insight: (portfolio) =>
-        analysisAlphaInsight(portfolio.securityMarketLine.value),
+        analysisAlphaInsight(portfolio.securityMarketLine.value, studentName),
       calculation: (market) => (
         <SecurityMarketLineFormula
           line={{

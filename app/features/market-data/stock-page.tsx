@@ -1,4 +1,7 @@
-import { portfolioHome } from "~/features/trading/portfolio-home";
+import { readLessonTask } from "~/features/learning/read-lesson-task.server";
+import { isLq45Stock } from "./is-lq45-stock";
+import { withLessonTask } from "~/features/learning/lesson-task";
+import { LessonTaskBanner } from "~/features/learning/lesson-task-banner";
 import { StockQuoteDetails } from "./stock-quote-details";
 import { QuoteNotice } from "~/features/market-data/quote-notice";
 import { NumberText } from "~/number-text";
@@ -33,7 +36,6 @@ import { rupiah } from "~/units/rupiah";
 import { wibDateOf } from "~/wib";
 import type { Route } from "./+types/stock-page";
 import { listStockHistory } from "./history-store.server";
-import { stockReturnDestination } from "./stock-return-destination.server";
 import { readPrices } from "./read-prices.server";
 import {
   attemptForCodes,
@@ -95,14 +97,8 @@ export function loader({ context, params, request, url }: Route.LoaderArgs) {
   return data(
     {
       classId,
+      task: readLessonTask(url),
       draftKey: `${String(reader.id)}:${stockPath(classId, code)}`,
-      portfolioHome: portfolioHome(classId, portfolio.portfolioKind),
-      ...stockReturnDestination({
-        classId,
-        portfolioKind: portfolio.portfolioKind,
-        url,
-        request,
-      }),
       code,
       quote,
       quoteNotice:
@@ -120,7 +116,7 @@ export function loader({ context, params, request, url }: Route.LoaderArgs) {
       measures: readStockMeasures(database, code),
       ...portfolio,
       selection,
-      isLq45: universe.ok && universe.value.includes(code),
+      isLq45: isLq45Stock(code, universe),
       lotShares: rules.ok ? rules.value.lotShares : undefined,
     },
     { status: selection.fields === undefined ? 200 : 400 },
@@ -148,6 +144,7 @@ function StockPageContent({
   const { classId, code, quote, holding } = stock;
   const ticket = useOutlet();
   const location = useLocation();
+  const visibleTask = ticket === null ? stock.task : undefined;
   return (
     <TicketDraftMemory key={stock.draftKey} storageKey={stock.draftKey}>
       <div
@@ -155,10 +152,11 @@ function StockPageContent({
         data-layout={ticket === null ? "content" : "columns"}
       >
         <div className={styles["page"]}>
+          <LessonTaskBanner classId={classId} task={visibleTask} />
           <header className={styles["header"]}>
             <div className={styles["identity"]}>
               <Link
-                to={stock.returnPath}
+                to={withLessonTask(stock.returnPath, stock.task)}
                 className={styles["back"]}
                 aria-label={stock.returnLabel}
               >

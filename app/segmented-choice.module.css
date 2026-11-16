@@ -1,23 +1,63 @@
-.choice {
-  display: inline-flex;
-  padding: var(--space-1);
-  border-radius: var(--radius-item);
-  background: var(--color-raised);
+:where(.choice) {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  padding-inline: var(--space-1);
 }
 
-.choice > a {
-  display: inline-flex;
+:where(.choice)::before {
+  position: absolute;
+  inset: var(--space-1) 0;
+  z-index: -1;
+  border-radius: var(--radius-item);
+  background: var(--color-raised);
+  content: "";
+}
+
+:where(.choice) a {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  min-block-size: var(--size-touch-target);
   align-items: center;
-  min-height: var(--size-touch-target);
-  padding-inline: var(--space-3);
-  border-radius: var(--radius-button);
+  justify-content: center;
   color: var(--color-ink-secondary);
+  font-size: var(--text-row);
   text-decoration: none;
 }
 
-.choice > [aria-current] {
-  font-weight: 600;
-  background: var(--color-panel);
+:where(.choice) a[aria-current] {
   color: var(--color-ink);
+  font-weight: 600;
+}
+
+:where(.choice) a[aria-current]::before {
+  position: absolute;
+  inset: var(--choice-inset, calc(var(--space-2) - var(--size-line))) 0;
+  z-index: -1;
+  border-radius: var(--radius-button);
+  background: var(--color-panel);
   box-shadow: var(--shadow-choice);
+  content: "";
+}
+
+.intrinsic {
+  display: inline-grid;
+  grid-auto-columns: auto;
+}
+.intrinsic a {
+  border-radius: var(--radius-button);
+  padding-inline: var(--space-3);
+  font-size: inherit;
+}
+.compact {
+  composes: intrinsic;
+  padding: var(--space-1);
+  font-size: var(--text-caption);
+  --choice-inset: 0;
+}
+.compact::before {
+  inset: 0;
 }

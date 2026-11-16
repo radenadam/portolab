@@ -34,6 +34,14 @@
   min-width: 0;
 }
 
+.sampleClass {
+  padding: var(--space-1) var(--space-gutter);
+  background: var(--color-warning-soft);
+  color: var(--color-warning);
+  font-size: var(--text-small);
+  text-align: center;
+}
+
 /* The top bar stays at the top while the page scrolls, and its parts line up with the content under it. */
 .topBar {
   position: sticky;
@@ -293,18 +301,6 @@
 
 .page > section > h2 {
   margin: 0;
-}
-
-@media (width < 48rem) {
-  .onDesktop {
-    display: none;
-  }
-}
-
-@media (width >= 48rem) {
-  .onPhone {
-    display: none;
-  }
 }
 
 .workspaceToolsWide {

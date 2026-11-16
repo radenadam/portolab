@@ -1,16 +1,16 @@
+import type { LessonTask } from "~/features/learning/lesson-task";
 import { MarketTime } from "~/market-time";
 import { NumberText } from "~/number-text";
 import { cumulativeReturn } from "~/units/cumulative-return";
 import type { CumulativeReturn } from "~/units/cumulative-return";
 import type { ReactNode } from "react";
-import { Link } from "react-router";
 import { ChangeText } from "~/change-text";
 import { countedText } from "~/counted-text";
 import { percentOf } from "~/charts/plot";
 import { plotFraction } from "~/units/plot-fraction";
 import type { ClassId } from "~/features/classes/classes.schema";
 import { StockName } from "~/features/market-data/stock-name";
-import { stockPath } from "~/features/market-data/stock-path";
+import { StockPageLink } from "~/features/market-data/stock-page-link";
 import {
   attemptForCodes,
   missingQuoteText,
@@ -25,6 +25,7 @@ import {
 } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { lotCount } from "./count-parts";
+import { journalEntryId } from "./journal-entry-id";
 import type { JournalTrade } from "./trade-journal";
 import type { OrderSide } from "./order";
 import { SideTag } from "./activity-orders";
@@ -41,10 +42,14 @@ export function JournalList({
   trades,
   prices,
   classId,
+  task,
+  readOnly,
 }: {
   trades: readonly JournalTrade[];
   prices: JournalPrices;
   classId: ClassId;
+  task?: LessonTask | undefined;
+  readOnly: boolean;
 }): ReactNode {
   const maximum = cumulativeReturn(
     Math.max(0.01, ...trades.map((trade) => Math.abs(trade.change ?? 0))),
@@ -80,16 +85,20 @@ export function JournalList({
               <li className={styles["journalRow"]} key={trade.order.id}>
                 <div className={styles["journalHeader"]}>
                   <SideTag side={trade.order.side} />
-                  <Link
+                  <StockPageLink
+                    classId={classId}
+                    code={trade.order.code}
+                    id={journalEntryId(trade.order.id)}
+                    keepReturn={readOnly}
                     className={styles["stock"]}
-                    to={stockPath(classId, trade.order.code)}
+                    task={task}
                   >
                     <StockName
                       code={trade.order.code}
                       withCompanyName={false}
                       smallTile
                     />
-                  </Link>
+                  </StockPageLink>
                   <span className={styles["tradePrice"]}>
                     <NumberText>{lotCount(trade.order.lots)}</NumberText> ·{" "}
                     <NumberText>{formatRupiah(trade.fill.price)}</NumberText>

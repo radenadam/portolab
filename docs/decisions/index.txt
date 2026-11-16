@@ -44,4 +44,9 @@
 0044-the-ticket-shows-the-trade-before-confirmation.md
 0045-the-lecturer-trades-in-a-demonstration-portfolio.md
 0046-kelas-has-a-measured-css-allowance-for-reused-portfolio-styles.md
-0047-trade-impact-has-measured-allowances-for-its-combined-screens.md
+0047-chart-names-use-an-ellipsis-when-they-are-too-wide.md
+0048-lesson-practice-keeps-estimates-fixed-while-weights-change.md
+0049-complete-lesson-sheets-have-measured-route-allowances.md
+0050-a-sample-class-lives-in-a-database-of-its-own.md
+0051-browser-tests-run-in-eight-independent-shards.md
+0052-trade-impact-has-measured-allowances-for-its-combined-screens.md

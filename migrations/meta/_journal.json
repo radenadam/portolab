@@ -57,6 +57,13 @@
       "when": 1794727707429,
       "tag": "0007_demonstration_portfolios",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1794788029668,
+      "tag": "0008_sample_class_marker",
+      "breakpoints": true
     }
   ]
 }

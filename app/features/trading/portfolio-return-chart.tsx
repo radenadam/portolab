@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { TimeChart } from "~/charts/time-chart";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
 import { m } from "~/paraglide/messages.js";
+import { portfolioLabel } from "./portfolio-label";
 import type { ReturnPoint } from "./portfolio-history";
 
 /** The small summary and the large view compare the same final closes. */
@@ -9,9 +10,11 @@ export function PortfolioReturnChart({
   points,
   labelledBy,
   annotations,
+  studentName,
 }: {
   points: readonly ReturnPoint[];
   labelledBy: string;
+  studentName?: string | undefined;
   annotations?: readonly { date: string; label: string }[];
 }): ReactNode {
   return (
@@ -20,7 +23,7 @@ export function PortfolioReturnChart({
       points={points}
       lines={[
         {
-          name: m.trading_portfolio_series_label(),
+          name: portfolioLabel(studentName),
           kind: "own",
           valueOf: (point) => point.portfolio,
         },

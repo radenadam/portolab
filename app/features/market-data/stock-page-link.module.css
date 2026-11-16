@@ -1,0 +1,4 @@
+/* The top bar stays visible when the return address scrolls to a row. */
+.target {
+  scroll-margin-block-start: calc(var(--size-top-bar) + var(--space-4));
+}

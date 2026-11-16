@@ -8,6 +8,8 @@ export default defineConfig({
   outputDir: "../../test-results",
   forbidOnly: true,
   retries: 0,
+  // The guide's sample lifecycle shares one service, so device projects must finish its removal before the next starts it.
+  workers: 1,
   reporter: [["github"], ["list"]],
   use: {
     baseURL: `https://${testDomain}`,

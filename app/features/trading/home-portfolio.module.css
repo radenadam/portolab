@@ -459,7 +459,7 @@
   font-size: var(--text-body);
 }
 .viewChoice {
-  composes: choice from "../../segmented-choice.module.css";
+  composes: choice intrinsic from "../../segmented-choice.module.css";
 }
 
 .largeMap {
@@ -551,4 +551,8 @@
 .table [data-change],
 .rowValue [data-change] {
   white-space: nowrap;
+}
+
+.home[data-reader="lecturer"] {
+  padding-block-start: var(--space-1);
 }

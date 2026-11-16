@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { LessonTask } from "~/features/learning/lesson-task";
 import { Link } from "react-router";
 import type { ClassId } from "~/features/classes/classes.schema";
 import { m } from "~/paraglide/messages.js";
@@ -11,9 +12,11 @@ import styles from "./market-view.module.css";
 export function MarketEmpty({
   classId,
   filters,
+  task,
 }: {
   classId: ClassId;
   filters: MarketFilters;
+  task?: LessonTask | undefined;
 }): ReactNode {
   const query = filters.query.trim();
   return (
@@ -28,7 +31,7 @@ export function MarketEmpty({
         </NumberText>
       </p>
       <Link
-        to={`${marketPath(classId)}${marketSearch({ ...filters, query: "", sector: "all" })}`}
+        to={`${marketPath(classId)}${marketSearch({ ...filters, query: "", sector: "all" }, task)}`}
       >
         {m.market_data_clear_link()}
       </Link>

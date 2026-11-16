@@ -407,3 +407,7 @@
 .between > .muted {
   margin-inline-start: auto;
 }
+
+.learning {
+  padding: 0 var(--space-learning-section) var(--space-4);
+}

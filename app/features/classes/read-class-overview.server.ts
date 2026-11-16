@@ -5,9 +5,11 @@ import { classDiscussion } from "./class-discussion";
 import { classCalendarOf } from "./course-calendar";
 import type { TeachingStudent } from "./class-teaching";
 import { lotCount } from "~/features/trading/count-parts";
-import { studentPortfolioPath } from "~/features/grading/grading-paths";
+import { studentJournalPath } from "~/features/grading/grading-paths";
 import { pathReturningTo } from "~/features/accounts/path-returning-to";
-import { studentReasonsSectionId } from "~/features/trading/student-reasons-section-id";
+import { journalEntryId } from "~/features/trading/journal-entry-id";
+import { latestPortfolioActivity } from "~/features/trading/latest-portfolio-activity";
+import type { Portfolio } from "~/features/trading/portfolio-store.server";
 import { studentNameBoundary } from "./student-name-placeholder";
 import type { Database } from "~/database/database.server";
 import { startOfWeek } from "~/calendar-dates";
@@ -236,9 +238,9 @@ function readOverviewStudent(
           time: order.state.fill.filledAt.getTime(),
           href:
             pathReturningTo(
-              studentPortfolioPath(taught.id, student.id),
+              studentJournalPath(taught.id, student.id),
               `${options.sourcePath}#class-reasons`,
-            ) + `#${studentReasonsSectionId}`,
+            ) + `#${journalEntryId(order.id)}`,
         },
       ];
     }),
@@ -259,24 +261,22 @@ function readOverviewStudent(
       reasonParts: measures.ok
         ? undefined
         : measures.failure.split(studentNameBoundary),
-      ...orderActivity(portfolio.orders, options.now),
+      ...orderActivity(portfolio, options.now),
     },
   };
 }
 
 function orderActivity(
-  orders: readonly { placedAt: Date }[],
+  portfolio: Pick<Portfolio, "orders">,
   now: Date,
 ): { ordersThisWeek: number; lastOrder: string } {
   const weekStart = startOfWeek(wibDateOf(now));
   let ordersThisWeek = 0;
-  let lastOrder: Date | undefined;
-  for (const order of orders) {
+  for (const order of portfolio.orders) {
     if (order.placedAt <= now && wibDateOf(order.placedAt) >= weekStart)
       ordersThisWeek += 1;
-    if (lastOrder === undefined || order.placedAt > lastOrder)
-      lastOrder = order.placedAt;
   }
+  const lastOrder = latestPortfolioActivity(portfolio);
   return {
     ordersThisWeek,
     lastOrder:

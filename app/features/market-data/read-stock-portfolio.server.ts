@@ -5,8 +5,10 @@ import { readTradingPortfolio } from "~/features/trading/read-trading-portfolio.
 import { readPortfolioValuation } from "~/features/trading/read-portfolio-report.server";
 import { holdingQuoteFailureText } from "~/features/trading/holding-quote-failure-text";
 import { readTicket } from "~/features/trading/read-ticket.server";
+import { portfolioHome } from "~/features/trading/portfolio-home";
+import { stockReturnDestination } from "./stock-return-destination.server";
 
-/** The stock's position, correlation, and trade preview must share the portfolio of the signed-in reader. */
+/** The stock's position, navigation, correlation, and trade preview must share the portfolio of the signed-in reader. */
 export function readStockPortfolio(
   context: Readonly<RouterContextProvider>,
   options: {
@@ -26,6 +28,13 @@ export function readStockPortfolio(
   });
   return {
     portfolioKind: member.place.owner.kind,
+    portfolioHome: portfolioHome(member.place.classId, member.place.owner.kind),
+    ...stockReturnDestination({
+      classId: member.place.classId,
+      portfolioKind: member.place.owner.kind,
+      url: options.url,
+      request: options.request,
+    }),
     correlation: readStockCorrelation(database, options.code, report.valuation),
     totalValue: report.valuation.total?.value,
     tradePreview: readTicket(database, member.portfolio, options),

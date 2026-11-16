@@ -117,6 +117,7 @@
   --size-icon: 1.25rem;
   --size-tab-icon: 1.375rem;
   --size-avatar: 2rem;
+  --size-student-avatar: 2.5rem;
   /* A chart takes about a third of the screen of a phone held upright, so the text around it stays in view. */
   --size-chart: 16rem;
   /* The distribution bars and corner labels of a class need more height than a line chart. */
@@ -274,6 +275,14 @@ h2 {
 
 p {
   margin: 0;
+}
+
+input[type="range"] {
+  inline-size: 100%;
+  min-block-size: var(--size-touch-target);
+  margin: 0;
+  padding: 0;
+  accent-color: var(--color-data);
 }
 
 /* A name that a person typed can be one long word, which would push the page sideways on a phone, so text breaks inside a word when the word does not fit. */

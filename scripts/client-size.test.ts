@@ -101,7 +101,7 @@ test("budgets every route with its ancestors, split exports, static imports, and
     "plans every budget",
   );
   expect(checks.map((check) => [check.name, check.limit, check.gzip])).toEqual([
-    ["Shared JavaScript", "141 kB", true],
+    ["Shared JavaScript", "140 kB", true],
     ["Shared CSS", "20 kB", true],
     ["Route JavaScript: class", "200 kB", true],
     ["Route CSS: class", "20 kB", true],
@@ -185,41 +185,37 @@ test("discovers a new route without adding a budget entry by hand", () => {
   expect(added?.path).toContain("build/client/assets/new.js");
 });
 
-test("keeps the measured stock and ticket allowances separate from other routes", () => {
+test("applies measured allowances only to the named routes and asset kinds", () => {
   const { chunks, routes, files } = fixture();
-  routes.delete("market");
-  routes.delete("other");
-  routes.set("features/market-data/stock-page", {
-    file: "app/market.tsx",
-    parentId: "class",
-  });
-  routes.set("features/trading/ticket-page", {
-    file: "app/other.tsx",
-    parentId: "features/market-data/stock-page",
-  });
-  const checks = successValueForTest(
-    clientSizeChecks(chunks, routes, files),
-    "budgets the stock and its docked ticket",
-  );
-  const limits = checks.map((check) => [check.name, check.limit]);
-  expect(limits).toContainEqual([
-    "Route JavaScript: features/trading/ticket-page",
-    "210 kB",
-  ]);
-  expect(limits).toContainEqual([
-    "Route CSS: features/trading/ticket-page",
-    "21 kB",
-  ]);
-  expect(limits).toContainEqual([
-    "Route JavaScript: features/market-data/stock-page",
-    "202 kB",
-  ]);
-  expect(limits).toContainEqual([
-    "Route CSS: features/market-data/stock-page",
-    "20 kB",
-  ]);
-  expect(limits).toContainEqual(["Shared JavaScript", "141 kB"]);
-  expect(limits).toContainEqual(["Shared CSS", "20 kB"]);
+  const cases = [
+    ["features/market-data/stock-page", "212 kB", "21 kB"],
+    ["features/market-data/stock-page-detail", "200 kB", "20 kB"],
+    ["features/classes/class-page", "220 kB", "24 kB"],
+    ["features/trading/ticket-page", "220 kB", "24 kB"],
+    ["features/measures/measures-page", "200 kB", "20 kB"],
+    ["features/trading/demonstration-summary-page", "220 kB", "24 kB"],
+    ["features/measures/demonstration-analysis-page", "200 kB", "20 kB"],
+    ["features/market-data/market-page", "200 kB", "20 kB"],
+    ["features/grading/student-portfolio-page", "220 kB", "24 kB"],
+    ["features/grading/student-measures-page", "220 kB", "20 kB"],
+    ["features/grading/student-journal-page", "200 kB", "20 kB"],
+    ["features/grading/student-measures-page-detail", "200 kB", "20 kB"],
+    ["features/learning/lesson-page", "200 kB", "20 kB"],
+    ["features/trading/ticket-page-detail", "200 kB", "20 kB"],
+  ] as const;
+  for (const [id, javascript, stylesheets] of cases) {
+    routes.set(id, { file: "app/other.tsx", parentId: "root" });
+    const checks = successValueForTest(
+      clientSizeChecks(chunks, routes, files),
+      "plans measured route limits",
+    );
+    expect(
+      checks.find((check) => check.name === `Route JavaScript: ${id}`)?.limit,
+    ).toBe(javascript);
+    expect(
+      checks.find((check) => check.name === `Route CSS: ${id}`)?.limit,
+    ).toBe(stylesheets);
+  }
 });
 
 test("keeps the Kelas CSS allowance on its complete route alone", () => {
@@ -248,7 +244,7 @@ test("keeps the Kelas CSS allowance on its complete route alone", () => {
     ["Route CSS: class", "20 kB"],
     ["Route CSS: market", "20 kB"],
     ["Route CSS: other", "20 kB"],
-    ["Route CSS: features/classes/class-page", "21 kB"],
+    ["Route CSS: features/classes/class-page", "24 kB"],
     ["Route CSS: class-child", "20 kB"],
   ]);
   expect(

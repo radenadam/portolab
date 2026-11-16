@@ -8,6 +8,7 @@ import { languageNames } from "../app/language-names.ts";
 import { rupiah } from "../app/units/rupiah.ts";
 import { shares } from "../app/units/shares.ts";
 import { captureScreens } from "./capture-screens.ts";
+import { expectCompactChoice } from "./expect-compact-choice.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 import { expectMissingClassPages } from "./expect-missing-class-pages.ts";
 import { layoutProblems } from "./expect-layout.ts";
@@ -265,6 +266,14 @@ for (const locale of locales) {
         );
         const path = `${classPath}/demonstration`;
         await page.goto(path);
+        const tabs = page.getByRole("navigation", {
+          name: text.title,
+          exact: true,
+        });
+        const check = async (): Promise<void> => {
+          expect(await layoutProblems(page)).toEqual([]);
+          await expectCompactChoice(tabs);
+        };
         await expect(page).toHaveTitle(`${text.title} | Portolab`);
         await expect(page.getByText(text.body, { exact: true })).toBeVisible();
         const summary = page
@@ -292,6 +301,7 @@ for (const locale of locales) {
             .getByRole("link", { name: view.label, exact: true })
             .click();
           await expect(page).toHaveURL(view.address);
+          await expectCompactChoice(tabs);
         }
         const lessonSource = page
           .getByRole("main")
@@ -308,14 +318,8 @@ for (const locale of locales) {
             name: `demonstration-${locale}`,
             fullPage: true,
             fromTop: true,
-            check: async () => {
-              expect(await layoutProblems(page)).toEqual([]);
-            },
+            check,
           });
-        const tabs = page.getByRole("navigation", {
-          name: text.title,
-          exact: true,
-        });
         await tabs
           .getByRole("link", { name: text.analysis, exact: true })
           .click();
@@ -337,6 +341,7 @@ for (const locale of locales) {
             name: `demonstration-analysis-${locale}`,
             fullPage: true,
             fromTop: true,
+            check,
           });
         await page
           .getByRole("link", { name: text.prices, exact: true })

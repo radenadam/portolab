@@ -1,5 +1,15 @@
 # Messages
 
+## Approved names
+
+The approved vocabulary of the rebuild fixes these names and their letter case. They name a mode of Portolab, so the translation stays the same on every page of that mode, including sign-in and account pages. A literal translation does not replace an approved name.
+
+| English      | Bahasa Indonesia | Use                                                                                                                                           |
+| ------------ | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| sample class | Data contoh      | The mode of a marked sample database, as [decision 0050](../docs/decisions/0050-a-sample-class-lives-in-a-database-of-its-own.md) defines it. |
+
+## Error phrases
+
 Each phrase that recurs in errors has one translation in each language, so that every error states its rule in the same way and both languages say the same thing. An error that repeats a phrase of another error takes it from this table, and a change that gives a phrase its second use adds its row.
 
 | English                                                                                   | Bahasa Indonesia                                                                          | Use                                                                         |

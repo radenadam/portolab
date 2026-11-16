@@ -42,7 +42,7 @@ interface HistoryRun {
 }
 
 /**
- * Brings the stored daily closes of the instruments up to date. After a trading day closes, it fetches the whole history of every instrument from the start date, because a source adjusts every earlier close after a split, sometimes days later. Between closes, it fetches again only the instruments that failed and the instruments without any stored close, once the wait after failures has passed. It stops after a few failures in a row, counts the instruments that it skipped as failed, and asks for them first in the next retry. It records the attempt when its last request has ended, with the instruments that it could not update and the latest final day that it asked for, so a later close that became final during a long run is still fetched. The state lives in the database, as decision 0009 asks, so a restart keeps waiting.
+ * Brings the stored daily closes of the instruments up to date. After a trading day closes, it fetches the whole history of every instrument from the start date, because a source adjusts every earlier close after a split, sometimes days later. Between closes, a scheduled run fetches again only the instruments that failed and the instruments without any stored close, once the wait after failures has passed. An explicit refresh can repair an incomplete cache for the same final day, while keeping that failure wait. It stops after a few failures in a row, counts the instruments that it skipped as failed, and asks for them first in the next retry. It records the attempt when its last request has ended, with the instruments that it could not update and the latest final day that it asked for, so a later close that became final during a long run is still fetched. The state lives in the database, as decision 0009 asks, so a restart keeps waiting.
  */
 export async function runHistoryUpdate(
   settings: PriceJobSettings,
@@ -117,6 +117,7 @@ function dueInstruments(
   if (now < nextAttemptTime(latestAttempt)) {
     return [];
   }
+  if (settings.refreshStoredHistory === true) return settings.instruments;
   if (latestAttempt.finalDate !== finalDay.date) {
     return settings.instruments;
   }

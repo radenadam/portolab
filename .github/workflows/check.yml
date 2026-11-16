@@ -13,16 +13,20 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  BROWSER_SHARDS: "8"
+
 jobs:
-  check:
-    name: check
+  fast:
+    name: fast
     runs-on: ubuntu-latest
-    # The steps before the checks take a minute or two, so the job still has a few minutes to upload the traces after the checks reach their own limit.
-    timeout-minutes: 50
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - &checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         timeout-minutes: 5
-      - uses: pnpm/setup@fa36a5ef7dcdefc3a7cb25655c122e00cf6e636e # v3.1.2
+      - &setup
+        uses: pnpm/setup@fa36a5ef7dcdefc3a7cb25655c122e00cf6e636e # v3.1.2
         timeout-minutes: 10
         with:
           cache: true
@@ -40,19 +44,119 @@ jobs:
             subject=$(node scripts/print-dependabot-subject.ts)
           fi
           printf '%s\n' "$subject" | pnpm exec commitlint
+      - name: Run the fast check
+        timeout-minutes: 15
+        run: pnpm check:fast
+
+  browser-1:
+    name: browser-1
+    runs-on: ubuntu-latest
+    timeout-minutes: &browser-job-timeout 35
+    env:
+      SHARD_INDEX: "1"
+    steps: &browser-steps
+      - *checkout
+      - *setup
       - name: Install the browser for end-to-end tests
         uses: ./.github/actions/install-browser
-        # The step ends long before the job does, so a stalled download fails here by name.
         timeout-minutes: 10
-      # The merged Pasar suite was still completing cases when its previous allowance ended. Issue #241 records the measurements for this recalibration.
-      - name: Run every check
-        timeout-minutes: 45
-        run: pnpm check
-      - name: Upload end-to-end test traces
+      - name: Build the app for browser tests
         timeout-minutes: 5
-        if: failure()
+        run: pnpm build
+      # Decision 0051 sizes the shards from complete runs. The step leaves time for reports after a stalled shard.
+      - name: Run the browser shard
+        timeout-minutes: 20
+        env:
+          PLAYWRIGHT_HTML_OPEN: never
+        run: pnpm test:e2e --shard="$SHARD_INDEX/$BROWSER_SHARDS" --reporter=github,list,html
+      - name: Upload the failed shard's traces and report
+        timeout-minutes: 5
+        if: ${{ !cancelled() && failure() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: test-results
-          path: test-results/
+          name: test-results-${{ github.job }}
+          path: |
+            test-results/
+            playwright-report/
           retention-days: 7
+
+  browser-2:
+    name: browser-2
+    runs-on: ubuntu-latest
+    timeout-minutes: *browser-job-timeout
+    env:
+      SHARD_INDEX: "2"
+    steps: *browser-steps
+
+  browser-3:
+    name: browser-3
+    runs-on: ubuntu-latest
+    timeout-minutes: *browser-job-timeout
+    env:
+      SHARD_INDEX: "3"
+    steps: *browser-steps
+
+  browser-4:
+    name: browser-4
+    runs-on: ubuntu-latest
+    timeout-minutes: *browser-job-timeout
+    env:
+      SHARD_INDEX: "4"
+    steps: *browser-steps
+
+  browser-5:
+    name: browser-5
+    runs-on: ubuntu-latest
+    timeout-minutes: *browser-job-timeout
+    env:
+      SHARD_INDEX: "5"
+    steps: *browser-steps
+
+  browser-6:
+    name: browser-6
+    runs-on: ubuntu-latest
+    timeout-minutes: *browser-job-timeout
+    env:
+      SHARD_INDEX: "6"
+    steps: *browser-steps
+
+  browser-7:
+    name: browser-7
+    runs-on: ubuntu-latest
+    timeout-minutes: *browser-job-timeout
+    env:
+      SHARD_INDEX: "7"
+    steps: *browser-steps
+
+  browser-8:
+    name: browser-8
+    runs-on: ubuntu-latest
+    timeout-minutes: *browser-job-timeout
+    env:
+      SHARD_INDEX: "8"
+    steps: *browser-steps
+
+  check:
+    name: check
+    if: ${{ always() }}
+    needs:
+      [
+        fast,
+        browser-1,
+        browser-2,
+        browser-3,
+        browser-4,
+        browser-5,
+        browser-6,
+        browser-7,
+        browser-8,
+      ]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - *checkout
+      - name: Require every check job to succeed
+        timeout-minutes: 2
+        env:
+          CHECK_RESULTS: ${{ toJSON(needs) }}
+        run: node scripts/check-job-results.ts

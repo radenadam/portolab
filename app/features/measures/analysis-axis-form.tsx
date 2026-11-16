@@ -7,20 +7,30 @@ import { RiskAxisField } from "./risk-axis-field";
 import styles from "./analysis.module.css";
 
 export function AnalysisAxisForm({
-  path,
-  showTitle,
+  returnPath,
   value,
   failure,
+  path = ".",
+  showTitle = true,
 }: {
-  path: string;
-  showTitle: boolean;
+  returnPath?: string;
   value: string;
   failure: string;
+  path?: string;
+  showTitle?: boolean;
 }): ReactNode {
   return (
     <div className={styles["page"]}>
-      {showTitle && <h1>{m.measures_analysis_title()}</h1>}
+      {showTitle &&
+        (returnPath === undefined ? (
+          <h1>{m.measures_analysis_title()}</h1>
+        ) : (
+          <h2>{m.measures_analysis_title()}</h2>
+        ))}
       <Form method="get" action={path} className={formStyles["form"]}>
+        {returnPath !== undefined && (
+          <input type="hidden" name="returnTo" value={returnPath} />
+        )}
         <RiskAxisField
           name="axis"
           label={m.measures_analysis_axis_label()}
