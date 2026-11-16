@@ -128,10 +128,16 @@ for (const locale of locales) {
       expect(html).toContain(markupTextForTest(sentence));
     expect(html).not.toContain("stroke-dasharray");
     expect(html).not.toContain(">SML<");
-    expect(html).toContain('href="/classes/7?view=time"');
+    const paths: Record<PortfolioKind, string> = {
+      membership: "/classes/7",
+      demonstration: "/classes/7/demonstration",
+    };
     for (const portfolioKind of ["membership", "demonstration"] as const) {
       const labels = texts[locale].classmates[portfolioKind];
-      expect(render(portfolioKind)).toContain(labels.legend);
+      const owner = render(portfolioKind);
+      expect(owner).toContain(labels.legend);
+      expect(owner).toContain(`href="${paths[portfolioKind]}"`);
+      expect(owner).toContain(`href="${paths[portfolioKind]}?view=time"`);
       expect(
         homeMapPoints(home, ownerReader(portfolioKind))?.points.find(
           ({ mark }) => mark.kind === "classmate",

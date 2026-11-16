@@ -1,7 +1,8 @@
 import { storeActivityOrders } from "./store-activity-orders.ts";
 import { expectEndLabelsInsidePlot } from "./expect-end-labels-inside-plot.ts";
+import { expectCompactChoice } from "./expect-compact-choice.ts";
 import { studentDesignClass } from "./student-design-class.ts";
-import type { Browser, Page } from "@playwright/test";
+import type { Browser, Locator, Page } from "@playwright/test";
 import { expect, test } from "@playwright/test";
 import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
@@ -281,6 +282,12 @@ for (const locale of locales) {
             {
               studentName: name === "journal" ? undefined : variant.studentName,
               endLabels: name === "analysis",
+              compactChoice:
+                name === "summary"
+                  ? page
+                      .getByRole("link", { name: text.time, exact: true })
+                      .locator("..")
+                  : undefined,
             },
           );
         }
@@ -462,6 +469,12 @@ async function checkNativeStudentCharts(
         .getByRole("link", { name: tab, exact: true })
         .click();
       await expectStudentChartName(plain, studentName);
+      if (tab === texts[locale].summary)
+        await expectCompactChoice(
+          plain
+            .getByRole("link", { name: texts[locale].time, exact: true })
+            .locator(".."),
+        );
       expect(await layoutProblems(plain)).toEqual([]);
       await expectEndLabelsInsidePlot(plain, endLabels);
     }
@@ -476,7 +489,12 @@ async function captureStudentScreen(
   {
     studentName,
     endLabels = false,
-  }: { studentName?: string | undefined; endLabels?: boolean } = {},
+    compactChoice,
+  }: {
+    studentName?: string | undefined;
+    endLabels?: boolean;
+    compactChoice?: Locator | undefined;
+  } = {},
 ): Promise<void> {
   await captureScreens(page, test.info(), {
     name,
@@ -485,6 +503,7 @@ async function captureStudentScreen(
     check: async () => {
       if (studentName !== undefined)
         await expectStudentChartName(page, studentName);
+      if (compactChoice !== undefined) await expectCompactChoice(compactChoice);
       expect(await layoutProblems(page)).toEqual([]);
       await expectEndLabelsInsidePlot(page, endLabels);
     },

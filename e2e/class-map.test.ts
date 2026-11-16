@@ -20,6 +20,7 @@ import { widestClassNames } from "./widest-class-names.ts";
 import { writeForTestStudent } from "./write-for-test-student.ts";
 import { holdClientScripts } from "./hold-client-scripts.ts";
 import { expectMapLabelsClear } from "./expect-map-labels-clear.ts";
+import { expectCompactChoice } from "./expect-compact-choice.ts";
 import { fillClassMap } from "./fill-class-map.ts";
 
 const texts: Record<
@@ -303,6 +304,11 @@ for (const locale of locales) {
               .filter({ hasText: texts[locale].startingCash }),
           ).toBeVisible();
           await expectMapLabelsClear(drawing);
+          await expectCompactChoice(
+            screen
+              .getByRole("link", { name: texts[locale].deviation, exact: true })
+              .locator(".."),
+          );
           expect(await layoutProblems(screen)).toEqual([]);
         }
       }

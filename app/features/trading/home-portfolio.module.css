@@ -459,7 +459,7 @@
   font-size: var(--text-body);
 }
 .viewChoice {
-  composes: choice from "../../segmented-choice.module.css";
+  composes: choice intrinsic from "../../segmented-choice.module.css";
 }
 
 .largeMap {

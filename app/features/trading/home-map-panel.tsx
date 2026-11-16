@@ -7,6 +7,7 @@ import {
   portfolioKindForReader,
 } from "./text-for-reader";
 import type { PortfolioReader } from "./text-for-reader";
+import type { HomeMapView } from "./parse-home-map-view";
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { Link, useLocation } from "react-router";
@@ -42,9 +43,11 @@ export function HomeMapPanel({
 }): ReactNode {
   const location = useLocation();
   const portfolioKind = portfolioKindForReader(reader);
-  const path = (view: string): string => {
-    if (reader.kind === "owner")
-      return `${portfolioPath(classId, portfolioKind)}?view=${view}`;
+  const path = (view: HomeMapView): string => {
+    if (reader.kind === "owner") {
+      const base = portfolioPath(classId, portfolioKind);
+      return view === "map" ? base : `${base}?view=${view}`;
+    }
     const search = new URLSearchParams(location.search);
     search.set("view", view);
     return `${location.pathname}?${search.toString()}`;
