@@ -194,7 +194,7 @@ export function TimePlot<Point extends { date: string }, Value extends number>({
   const point = points[marked];
   if (!isInBrowser || point === undefined) {
     return (
-      <div className={plotClass} style={style}>
+      <div className={plotClass} style={style} data-time-plot>
         <div className={styles["area"]}>{drawing}</div>
       </div>
     );
@@ -214,6 +214,7 @@ export function TimePlot<Point extends { date: string }, Value extends number>({
     <div
       className={plotClass}
       style={style}
+      data-time-plot
       {...sliderProps(pointText(point, lines, valueText))}
       onPointerDown={markPointer}
       onPointerMove={markPointer}

@@ -1,4 +1,5 @@
 import { storeActivityOrders } from "./store-activity-orders.ts";
+import { expectEndLabelsInsidePlot } from "./expect-end-labels-inside-plot.ts";
 import { studentDesignClass } from "./student-design-class.ts";
 import type { Browser, Page } from "@playwright/test";
 import { expect, test } from "@playwright/test";
@@ -488,23 +489,4 @@ async function captureStudentScreen(
       await expectEndLabelsInsidePlot(page, endLabels);
     },
   });
-}
-
-async function expectEndLabelsInsidePlot(
-  page: Page,
-  required: boolean,
-): Promise<void> {
-  const labels = page.locator('[data-time-label="end"]');
-  if (required) await expect(labels).toHaveCount(2);
-  for (const label of await labels.all()) {
-    if (!(await label.isVisible())) continue;
-    const ink = await label.boundingBox();
-    const plot = await label
-      .locator("xpath=ancestor::svg[1]/../..")
-      .boundingBox();
-    if (ink === null || plot === null)
-      throw new Error("A visible end label and its plot must have bounds.");
-    expect(ink.x).toBeGreaterThanOrEqual(plot.x);
-    expect(ink.x + ink.width).toBeLessThanOrEqual(plot.x + plot.width);
-  }
 }
