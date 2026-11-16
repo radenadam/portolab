@@ -65,6 +65,23 @@ All components except the two ratio components live in `formulas.tsx`. They keep
 
 The first four tables belong to the trading lesson and price guide in piece 30. Sessions 9 and 10 render the measurement settings and their formula references. They use the exported concepts of the features that own these facts. A statement that computes a student's result remains a Paraglide message beside the prose.
 
+## Lecturer guide
+
+[Decision 0052](decisions/0052-the-guide-for-lecturers-lives-in-the-repository-and-in-the-app.md) places the lecturer guide in the same feature as lessons. Each language has `guide/<locale>.md`. `readGuideContent` bundles all of them through raw Vite imports and passes the collection to `parseGuideContent`. It reuses `parseMarkdown` for the title and sections. The guide has a title followed by headings such as `## sample | Mulai dari kelas contoh`. The stable ids and order come from `guideSectionIds` in `guide-section-ids.ts`.
+
+Prose paragraphs may contain these inline references. Their identifiers and order agree in both languages, while their surrounding prose may differ.
+
+| Reference                                              | Source                                                                                        |
+| ------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
+| `{{label:navigation_class_link}}`                      | A label, link, or title in the language's messages, with no placeholders. The page quotes it. |
+| `{{value:starting-cash}}`                              | The default class cash, formatted as rupiah.                                                  |
+| `{{value:sessions}}`                                   | The course session count.                                                                     |
+| `{{value:minimum-returns}}`, `{{value:return-window}}` | The estimation settings for monthly returns.                                                  |
+
+A link such as `{{link:privacy|Pemberitahuan privasi}}` occupies a paragraph of its own. It takes its address from `guideLinks` and its visible text from the translation. The parser rejects a link beside text, another link, or another kind of reference, so its touch target never changes the line spacing of prose. The page reuses the lesson link style.
+
+`parseGuideLabels` validates the imported message catalogues before their labels enter the guide. `guideReferences` reads the owning constants and formats quantities with the active language's `Intl` formats. Guide prose rejects raw quantities, quoted labels, addresses, HTML, and other Markdown. An identifier such as LQ45 remains text. The shipped-content tests check every rendered label against its message, every value against its constant, every application link against `app/routes.ts`, and each deployment link against its section. Parser tests cover missing languages, malformed files, unknown references, and translation mismatches.
+
 ## Source notes
 
 The wording is original. These primary sources were checked for the financial claims, rather than used as text to copy.

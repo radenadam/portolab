@@ -1,6 +1,6 @@
 # 0049. Complete lesson sheets have measured route allowances
 
-- Status: Accepted. [Decision 0052](0052-trade-impact-has-measured-allowances-for-its-combined-screens.md) replaces its consequence that the stock page keeps the default JavaScript and CSS ceilings.
+- Status: Accepted. [Decision 0053](0053-trade-impact-has-measured-allowances-for-its-combined-screens.md) replaces its consequence that the stock page keeps the default JavaScript and CSS ceilings and demonstration analysis keeps the default JavaScript ceiling.
 - Date: 2026-11-16
 
 ## Context

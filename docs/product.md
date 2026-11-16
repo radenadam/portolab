@@ -51,6 +51,7 @@ The first release serves the course sessions on CAPM and on portfolio return and
 - Every screen works on a phone, a tablet, and a computer.
 - Every result is labelled as a simulation, and the price delay is always visible.
 - A sample command creates a synthetic class in a separate database for exploration. Its frame labels the sample on every page, as [decision 0050](decisions/0050-a-sample-class-lives-in-a-database-of-its-own.md) explains.
+- Lecturers open a guide in Bahasa Indonesia or English from their profile menu. It explains the semester workflow and simulation limits, and ships with the app for reading on a home network, as [decision 0052](decisions/0052-the-guide-for-lecturers-lives-in-the-repository-and-in-the-app.md) explains.
 
 ### Later releases
 

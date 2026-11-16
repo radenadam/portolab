@@ -79,6 +79,9 @@ const routePages: Record<string, readonly RoutePage[]> = {
   "features/accounts/privacy-page.tsx": [
     { reader: "visitor", path: () => "/privacy", reading: true },
   ],
+  "features/learning/guide-page.tsx": [
+    { reader: "lecturer", path: () => "/guide", reading: true },
+  ],
   "features/classes/classes-page.tsx": [
     { reader: "lecturer", path: () => "/classes", reading: true },
     { reader: "student", path: () => "/classes", reading: true },

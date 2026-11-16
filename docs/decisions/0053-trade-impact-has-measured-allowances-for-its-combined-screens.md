@@ -1,4 +1,4 @@
-# 0052. Trade impact has measured allowances for its combined screens
+# 0053. Trade impact has measured allowances for its combined screens
 
 - Status: Accepted
 - Date: 2026-11-17
@@ -87,19 +87,21 @@ incomplete.
 
 ## The completed rebuild merge
 
-Main at `be48aec` includes the complete lesson exercises and the sample class.
-Its [passing fast check](https://github.com/radenadam/portolab/actions/runs/43917954359)
+Main at `32b33b2` includes the complete lesson exercises, sample class, and guide.
+Its [passing fast check](https://github.com/radenadam/portolab/actions/runs/43923277180)
 gives the baseline below. The combined build uses `pnpm build` and `pnpm size`
 after merging that same main into piece 20. Both include the complete dependency
 sets and use the compression method above.
 
-| Dependency set | Main, JavaScript/CSS kB | Combined, JavaScript/CSS kB |
-| -------------- | ----------------------: | --------------------------: |
-| Shared         |           139.71 / 7.51 |               139.87 / 7.51 |
-| Saham          |          196.56 / 19.23 |              211.76 / 20.61 |
-| Ticket         |          208.37 / 21.66 |              219.37 / 23.05 |
+| Dependency set         | Main, JavaScript/CSS kB | Combined, JavaScript/CSS kB |
+| ---------------------- | ----------------------: | --------------------------: |
+| Shared                 |           139.82 / 7.51 |               139.97 / 7.51 |
+| Saham                  |          196.67 / 19.23 |              211.87 / 20.61 |
+| Ticket                 |          208.47 / 21.66 |              219.47 / 23.05 |
+| Demonstration analysis |          199.71 / 19.27 |              200.62 / 19.48 |
 
 Trade impact adds 15.20/1.38 kB to Saham and 11.00/1.39 kB to the ticket.
+Demonstration analysis shares the changed components and adds 0.91/0.21 kB.
 The latest shared set fits its original ceiling. The ticket fits the allowance
 of [decision 0049](0049-complete-lesson-sheets-have-measured-route-allowances.md),
 which now governs that route. The stock page still needs its live comparison,
@@ -110,7 +112,9 @@ callers share one matrix lookup. Those reductions remain in the combined build.
 ## Decision
 
 - `features/market-data/stock-page` has ceilings of 212 kB gzip JavaScript and
-  21 kB gzip CSS. These leave 0.24/0.39 kB in the final combined stock build.
+  21 kB gzip CSS. These leave 0.13/0.39 kB in the final combined stock build.
+- `features/measures/demonstration-analysis-page` has a JavaScript ceiling of
+  201 kB gzip and keeps its CSS ceiling. This leaves 0.38 kB for JavaScript.
 - The ticket and other routes keep main's existing ceilings, including the
   complete exercise allowances of [decision 0049](0049-complete-lesson-sheets-have-measured-route-allowances.md).
   Both shared sets keep their original ceilings of decisions 0038 and 0042.
@@ -118,7 +122,8 @@ callers share one matrix lookup. Those reductions remain in the combined build.
   imports, and unowned assets. Regression tests keep each allowance on its
   named set and retain the default limits for other routes.
 
-The stock JavaScript increase is 6%, and its CSS increase is 5%. The stock page
+The stock JavaScript increase is 6%, its CSS increase is 5%, and the
+demonstration analysis JavaScript increase is 0.5%. The stock page
 remains smaller than the complete ticket under its accepted allowance. The ticket renders its comparison,
 map, fields, and submit action on the server, so the native flow remains usable
 before hydration. The phone browser checks cover typed lots, both map axes,
@@ -143,5 +148,6 @@ time promise for a physical phone.
 ## Consequences
 
 The ticket remains the one route that loads the stock and a complete order form
-at once. The stock has its measured allowance, while the ticket follows decision 0049. Every other set retains its ceiling. No asset is removed from the
+at once. The stock and demonstration analysis have their measured allowances,
+while the ticket follows decision 0049. Every other set retains its ceiling. No asset is removed from the
 dependency walk, and the ceiling changes add no runtime code.
