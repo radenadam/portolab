@@ -1,4 +1,4 @@
-import { textOfMarkupForTest } from "~/render-text-markup-for-test";
+import { textOfMarkupForTest } from "~/text-of-markup-for-test";
 import { expect, test } from "vitest";
 import { languageNames } from "~/language-names";
 import { locales } from "~/paraglide/runtime.js";

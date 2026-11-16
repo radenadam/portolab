@@ -1,4 +1,4 @@
-import { textOfMarkupForTest } from "~/render-text-markup-for-test";
+import { textOfMarkupForTest } from "~/text-of-markup-for-test";
 import { expect, test } from "vitest";
 import { openDatabaseForTest } from "~/database/open-database-for-test.server";
 import type { ClassId } from "~/features/classes/classes.schema";

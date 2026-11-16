@@ -15,6 +15,7 @@ A diff range, a set of paths, or a plan, with the intent behind it. In an audit,
 - Every standard in `AGENTS.md` and in any nested `AGENTS.md` whose directory the change touches, every requirement in `docs/product.md` that the change affects, and every record in `docs/decisions/` whose subject the change touches.
 - Every text in the change that the section "Writing" of `AGENTS.md` covers, including the text that code generates. The sections "Writing" and "Interface text" say which rules a tool enforces, so judge the rules that they leave to a reader.
 - The section "Workflow" of `AGENTS.md`, including the pull request title and description.
+- When an added export takes a module out of the file-name lint check, check its name against the section "Structure" of `AGENTS.md`.
 
 ## Findings
 

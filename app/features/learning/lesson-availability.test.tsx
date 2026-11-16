@@ -15,7 +15,7 @@ import { languageNames } from "~/language-names";
 import { markupTextForTest } from "~/markup-text-for-test";
 import { locales, type Locale } from "~/paraglide/runtime.js";
 import { renderMarkupForTest } from "~/render-markup-for-test";
-import { textOfMarkupForTest } from "~/render-text-markup-for-test";
+import { textOfMarkupForTest } from "~/text-of-markup-for-test";
 import { successValueForTest } from "~/success-value-for-test";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
 import { portfolioWeight } from "~/units/portfolio-weight";
