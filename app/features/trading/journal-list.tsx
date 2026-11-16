@@ -17,7 +17,10 @@ import {
   quoteFailureText,
 } from "~/features/market-data/quote-failure-text";
 import type { PricesOfView } from "~/features/market-data/read-prices.server";
+import { sharedQuoteTime } from "~/features/market-data/shared-quote-time";
+import { SharedQuoteTimeNotice } from "~/features/market-data/shared-quote-time-notice";
 import {
+  formatMarketTime,
   formatNumber,
   formatRupiah,
   formatSignedPercent,
@@ -53,6 +56,12 @@ export function JournalList({
 }): ReactNode {
   const maximum = cumulativeReturn(
     Math.max(0.01, ...trades.map((trade) => Math.abs(trade.change ?? 0))),
+  );
+  // Only a price that an entry compares with its trade shows a time.
+  const sharedTime = sharedQuoteTime(
+    trades.map((trade) =>
+      trade.change === undefined ? undefined : trade.quote,
+    ),
   );
   return (
     <section
@@ -120,10 +129,17 @@ export function JournalList({
                   trade={trade}
                   prices={prices}
                   maximum={maximum}
+                  sharedTime={sharedTime}
                 />
               </li>
             ))}
           </ul>
+        )}
+        {sharedTime !== undefined && (
+          <SharedQuoteTimeNotice
+            time={sharedTime}
+            className={styles["journalNote"]}
+          />
         )}
       </div>
     </section>
@@ -134,10 +150,13 @@ function JournalPerformance({
   trade,
   prices,
   maximum,
+  sharedTime,
 }: {
   trade: JournalTrade;
   prices: JournalPrices;
   maximum: CumulativeReturn;
+  /** The time that the current prices of the journal share, which its note states once, so only a price of another time shows its own. */
+  sharedTime: string | undefined;
 }): ReactNode {
   const attempt = attemptForCodes(prices.latestAttempt, [trade.order.code]);
   const moment = { now: prices.now, delayMinutes: prices.source.delayMinutes };
@@ -204,16 +223,31 @@ function JournalPerformance({
           </div>
         )}
       </div>
-      {comparison !== undefined && (
-        <small>
-          <MarketTime moment={comparison.quote.quotedAt} />
-        </small>
-      )}
+      <OwnQuoteTime comparison={comparison} sharedTime={sharedTime} />
       {notice !== undefined && (
         <small>
           <NumberText>{notice}</NumberText>
         </small>
       )}
     </div>
+  );
+}
+
+function OwnQuoteTime({
+  comparison,
+  sharedTime,
+}: {
+  comparison: { quote: { quotedAt: Date } } | undefined;
+  sharedTime: string | undefined;
+}): ReactNode {
+  if (
+    comparison === undefined ||
+    formatMarketTime(comparison.quote.quotedAt) === sharedTime
+  )
+    return null;
+  return (
+    <small>
+      <MarketTime moment={comparison.quote.quotedAt} />
+    </small>
   );
 }

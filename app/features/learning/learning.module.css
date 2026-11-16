@@ -17,14 +17,10 @@
 }
 
 .link {
-  display: inline-flex;
-  align-items: center;
+  composes: standalone-link from global;
   justify-content: center;
   gap: var(--space-2);
-  min-height: var(--size-touch-target);
   font-size: var(--text-row);
-  font-weight: 600;
-  text-decoration: none;
 }
 
 .button {
@@ -226,24 +222,10 @@
 }
 
 .searchField {
-  display: flex;
-  align-items: center;
-  padding-inline-end: var(--space-3);
-  border: var(--size-line) solid var(--color-line);
-  border-radius: var(--radius-item);
-  background: var(--color-panel);
-  color: var(--color-muted);
+  composes: search-field from global;
 }
 
 .searchField input {
-  width: 100%;
-  min-width: 0;
-  min-height: var(--size-touch-target);
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--color-ink);
-  font: inherit;
   font-size: var(--text-learning-summary);
 }
 

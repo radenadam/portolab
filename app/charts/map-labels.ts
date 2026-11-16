@@ -67,10 +67,11 @@ const nearerCost = 10000;
 const ruleBroken = 100;
 const costPerDistance = 0.01;
 
-const anchorShares: Record<TextAnchor, number> = {
-  start: 0,
-  middle: 0.5,
-  end: 1,
+// The share of the width of a label that lies before its anchor, and the share of the width of a value by which the anchor moves when the value joins its name. A value follows its name away from the mark of its point, so a name that ends before its mark keeps that end and the value cannot cover the mark.
+const anchorShares: Record<TextAnchor, { label: number; value: number }> = {
+  start: { label: 0, value: 0 },
+  middle: { label: 0.5, value: 0.5 },
+  end: { label: 1, value: 0 },
 };
 
 /** Places the labels of a map in a plot of a size in sizes of the text of the labels, as decision 0035 sets. A label of a point sits beside its mark, clear of every other mark, nearer to its own point than to any other point, and with a gap from every other label. A name of the portfolio or a holding keeps the place that breaks the fewest rules when none follows them all, and a name of another point without such a place is left out. Each fixed label takes the first of its places that clears every mark and every label placed before it. The portfolio and every holding come first, then the fixed labels, then the other names. */
@@ -195,7 +196,7 @@ function extendPointValues(
     const fullWidth = widthOf(`${label.text} ${label.value}`);
     const fullPlace = {
       ...place,
-      dx: place.dx + (fullWidth - width) * anchorShares[place.anchor],
+      dx: place.dx + (fullWidth - width) * anchorShares[place.anchor].value,
     };
     const original = boxOf(place, width, size);
     const withoutOwn = placedBoxes.filter(
@@ -268,7 +269,7 @@ function boxOf(
 ): LabelBox {
   const anchor = place.at.x * size.width + place.dx;
   const baseline = place.at.y * size.height + place.dy;
-  const left = anchor - anchorShares[place.anchor] * width;
+  const left = anchor - anchorShares[place.anchor].label * width;
   return {
     at: place.at,
     fixed: false,

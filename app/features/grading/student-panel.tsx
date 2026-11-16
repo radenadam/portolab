@@ -23,11 +23,7 @@ import {
 import { initialsOf } from "~/initials-of";
 import { m } from "~/paraglide/messages.js";
 import { portfolioWeightOf } from "~/features/trading/portfolio-weight-of";
-import {
-  studentMeasuresPath,
-  studentPortfolioPath,
-  studentJournalPath,
-} from "./grading-paths";
+import { studentPortfolioPath, studentJournalPath } from "./grading-paths";
 import type { ComparedStudent } from "./student-filters";
 import { studentNote } from "./student-note";
 import {
@@ -231,7 +227,7 @@ export function StudentPanel({
                 (holding) =>
                   holding.kind === "priced" && (
                     <span key={holding.code}>
-                      {holding.code}{" "}
+                      <span className={styles["code"]}>{holding.code}</span>{" "}
                       <NumberText>
                         {formatPercent(
                           portfolioWeightOf(holding.value, value.value),
@@ -252,7 +248,7 @@ export function StudentPanel({
             </p>
           </div>
         )}
-        <LatestStudentReason reason={panel.reason} />
+        <LatestStudentReason name={student.name} reason={panel.reason} />
         <div className={styles["panelActions"]}>
           <Link
             className={styles["primary"]}
@@ -262,15 +258,6 @@ export function StudentPanel({
             )}
           >
             {m.grading_open_portfolio_link()}
-          </Link>
-          <Link
-            className={styles["button"]}
-            to={pathReturningTo(
-              studentMeasuresPath(classId, student.studentId),
-              returnAddress,
-            )}
-          >
-            {m.grading_open_analysis_link()}
           </Link>
           <Link
             className={styles["button"]}

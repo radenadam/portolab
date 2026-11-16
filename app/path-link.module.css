@@ -1,7 +1,0 @@
-.link {
-  display: inline-flex;
-  align-items: center;
-  min-height: var(--size-touch-target);
-  overflow-wrap: anywhere;
-  text-underline-offset: 0.2em;
-}
