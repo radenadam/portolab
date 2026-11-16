@@ -14,3 +14,12 @@ test("changes a view without losing its other query or fragment", () => {
     }),
   ).toBe("/classes/1/stocks/BBCA/buy?range=1m");
 });
+
+test("keeps a query-only link on the current page", () => {
+  expect(pathWithQuery("?range=1m#chart", { lessonTask: "9" })).toBe(
+    "?range=1m&lessonTask=9#chart",
+  );
+  expect(pathWithQuery("?placed=1#chart", { placed: undefined })).toBe(
+    "?#chart",
+  );
+});

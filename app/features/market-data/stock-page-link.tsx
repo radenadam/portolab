@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import { withLessonTask } from "~/features/learning/lesson-task";
+import type { LessonTask } from "~/features/learning/lesson-task";
 import { Link, useLocation } from "react-router";
 import { pathReturningTo } from "~/features/accounts/path-returning-to";
 import type { ClassId } from "~/features/classes/classes.schema";
@@ -10,6 +12,7 @@ export function StockPageLink({
   code,
   id,
   keepReturn,
+  task,
   returnHint,
   className,
   children,
@@ -18,6 +21,7 @@ export function StockPageLink({
   code: string;
   id: string;
   keepReturn: boolean;
+  task?: LessonTask | undefined;
   returnHint?: { parameter: string; value: string } | undefined;
   className?: string | undefined;
   children: ReactNode;
@@ -34,11 +38,12 @@ export function StockPageLink({
     <Link
       id={id}
       className={[styles["target"], className].filter(Boolean).join(" ")}
-      to={
+      to={withLessonTask(
         keepReturn
           ? pathReturningTo(path, `${pathname}${returnSearch}#${id}`)
-          : path
-      }
+          : path,
+        task,
+      )}
     >
       {children}
     </Link>

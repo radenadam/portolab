@@ -6,7 +6,7 @@ The approved vocabulary of the rebuild fixes these names and their letter case. 
 
 | English      | Bahasa Indonesia | Use                                                                                                                                           |
 | ------------ | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| sample class | Data contoh      | The mode of a marked sample database, as [decision 0048](../docs/decisions/0048-a-sample-class-lives-in-a-database-of-its-own.md) defines it. |
+| sample class | Data contoh      | The mode of a marked sample database, as [decision 0050](../docs/decisions/0050-a-sample-class-lives-in-a-database-of-its-own.md) defines it. |
 
 ## Error phrases
 

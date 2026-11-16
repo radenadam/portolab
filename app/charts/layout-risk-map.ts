@@ -9,8 +9,9 @@ import type { PlotFraction } from "~/units/plot-fraction";
 import type { PortfolioWeight } from "~/units/portfolio-weight";
 import type { LabelPlace } from "./map-labels";
 import type { PlotPosition } from "./plot";
-import { fractionOf, niceTicks, paddedRange } from "./scale";
+import { fractionOf, niceTicks } from "./scale";
 import type { Range } from "./scale";
+import { mapRange } from "./map-range";
 
 /** Different marks distinguish the subjects of the map from their background context, even without color. A holding without a usable weight still needs a visible mark. */
 export type MapMark =
@@ -56,6 +57,11 @@ export type MarkedPoint<Across extends number, Up extends number> = MapPoint<
 export interface MapAxis<Value extends number> {
   style: AxisStyle;
   toValue: (value: number) => Value;
+}
+
+export interface MapAcrossAxis<Value extends number> extends MapAxis<Value> {
+  /** Keeps the full range of an exercise visible while its selected point moves. */
+  include?: readonly Value[];
 }
 
 /** A straight line that runs from a point, such as the risk-free rate at a beta of 0, through the IHSG to the right edge of the plot, such as the security market line. */
@@ -108,8 +114,6 @@ export interface RiskMapLayout<Point> {
 // About ten marks fit across a wide map, as the references of decision 0028 draw them, and a narrow map shows every other one. Four fit up a map at the height of a phone.
 const acrossTickCount = 10;
 const upTickCount = 4;
-// The corner labels need a band above and below the class points, also on a phone.
-const cornerPadding = 0.2;
 
 const smallestSteps: Record<AxisStyle, number> = {
   decimal: smallestNumberStep,
@@ -147,18 +151,19 @@ export function layoutRiskMap<
 >(map: {
   market: MapPoint<Across, Up>;
   points: readonly Point[];
-  across: MapAxis<Across>;
+  across: MapAcrossAxis<Across>;
   up: MapAxis<Up>;
   line?: MapLine<Across, Up> | undefined;
   median?: Up;
   roomForCorners?: boolean;
 }): RiskMapLayout<Point> {
   const { market, points, across, up, line } = map;
-  const acrossRange = rangeOf(
+  const acrossRange = mapRange(
     [market, ...points, ...(line === undefined ? [] : [line.start])].map(
       (point) => point.across,
     ),
     across.toValue,
+    { include: across.include },
   );
   if (market.across === line?.start.across) {
     throw new Error(
@@ -174,7 +179,7 @@ export function layoutRiskMap<
               (market.up - line.start.up)) /
               (market.across - line.start.across),
         );
-  const upRange = rangeOf(
+  const upRange = mapRange(
     [
       ...[market, ...points, ...(line === undefined ? [] : [line.start])].map(
         (point) => point.up,
@@ -187,7 +192,7 @@ export function layoutRiskMap<
       ...(map.median === undefined ? [] : [map.median]),
     ],
     up.toValue,
-    map.roomForCorners === true,
+    { roomForCorners: map.roomForCorners },
   );
   const positionOf = (point: { across: Across; up: Up }): PlotPosition => ({
     x: plotFraction(fractionOf(acrossRange, point.across)),
@@ -273,18 +278,6 @@ function heightOf<Up extends number>(
   value: Up,
 ): PlotFraction {
   return plotFraction(1 - fractionOf(range, value));
-}
-
-function rangeOf<Value extends number>(
-  values: readonly Value[],
-  toValue: (value: number) => Value,
-  roomForCorners = false,
-): Range<Value> {
-  return paddedRange(values, toValue, {
-    paddingShare: roomForCorners ? cornerPadding : undefined,
-    minimum:
-      !roomForCorners && Math.min(...values) >= 0 ? toValue(0) : undefined,
-  });
 }
 
 function ticksOf<Value extends number>(

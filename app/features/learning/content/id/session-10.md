@@ -38,6 +38,8 @@ Sharpe tidak terdefinisi ketika simpangan baku nol. Treynor tidak terdefinisi ke
 
 Bandingkan ukuran pada periode dan frekuensi yang sama. Harga historis tanpa dividen mengukur perubahan harga, bukan seluruh pendapatan investor. Hasil pengukuran tidak menjamin hasil masa depan.
 
+{{table:estimation-settings}}
+
 ## interactive
 
 ## terms

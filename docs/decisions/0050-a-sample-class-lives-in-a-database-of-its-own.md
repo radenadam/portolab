@@ -1,4 +1,4 @@
-# 0048. A sample class lives in a database of its own
+# 0050. A sample class lives in a database of its own
 
 - Status: Accepted
 - Date: 2026-11-16

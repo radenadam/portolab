@@ -51,17 +51,24 @@ export function measureFailureText(
   }
 }
 
-/** Why a portfolio with measures lacks one that divides by its risk: the Sharpe ratio, the share of its variance and the correlation with it of each stock, or the Treynor ratio, with the rule behind it and when Portolab computes it. */
+// Stored measures wait for orders or history, but a hypothetical allocation can change through its sliders.
 export function riskMeasureFailureText(
   failure: NoPortfolioVariation | BetaNotPositive,
+  calculation: "portfolio" | "allocation" = "portfolio",
 ): string {
   switch (failure.kind) {
     case "noPortfolioVariation":
-      return m.measures_no_portfolio_variation_notice();
+      return calculation === "allocation"
+        ? m.measures_no_allocation_variation_notice()
+        : m.measures_no_portfolio_variation_notice();
     case "betaNotPositive":
-      return m.measures_treynor_beta_not_positive_notice({
-        beta: formatBeta(failure.beta),
-      });
+      return calculation === "allocation"
+        ? m.measures_allocation_beta_not_positive_notice({
+            beta: formatBeta(failure.beta),
+          })
+        : m.measures_treynor_beta_not_positive_notice({
+            beta: formatBeta(failure.beta),
+          });
   }
 }
 

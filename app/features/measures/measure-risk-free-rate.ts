@@ -104,7 +104,7 @@ const policyRates: readonly PolicyRate[] = [
 ];
 
 // Decision 0013 explains why the rate of a month is the yearly rate divided by the months of a year.
-const monthsPerYear = 12;
+export const monthsPerYear = 12;
 
 /** The risk-free rate of one month, from the BI-Rate on a date. */
 export type RiskFreeRateMeasure = Measure<

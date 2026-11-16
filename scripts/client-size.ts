@@ -1,4 +1,5 @@
 import type { Check } from "size-limit";
+import { clientRouteLimits } from "./client-route-limits.ts";
 import { fail, succeed } from "../app/result.ts";
 import type { Result } from "../app/result.ts";
 import { describeValue, isRecord, isStringArray } from "../app/value-shapes.ts";
@@ -202,18 +203,19 @@ function routeBudgetChecks(
 ): Result<Check[], string> {
   const checks: Check[] = [];
   for (const { id, files } of routeAssets) {
+    const limits = clientRouteLimits(id);
     const budgets: Record<
       ClientAssetKind,
       { name: string; limit: string; label: string }
     > = {
       javascript: {
         name: id === "root" ? "Shared JavaScript" : `Route JavaScript: ${id}`,
-        limit: id === "root" ? "140 kB" : "200 kB",
+        limit: limits.javascript,
         label: "JavaScript",
       },
       stylesheets: {
         name: id === "root" ? "Shared CSS" : `Route CSS: ${id}`,
-        limit: id === "features/classes/class-page" ? "21 kB" : "20 kB",
+        limit: limits.stylesheets,
         label: "CSS",
       },
     };

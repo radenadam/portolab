@@ -1,3 +1,5 @@
+import type { LessonTask } from "~/features/learning/lesson-task";
+import { lessonTaskField } from "~/features/learning/lesson-task";
 import type { ReactNode } from "react";
 import { Form } from "react-router";
 import type { FieldOption } from "~/form";
@@ -15,9 +17,11 @@ export interface ActivitySelectionFields {
 
 export function ActivitySelectionForm({
   fields,
+  task,
   returnPath,
 }: {
   fields: ActivitySelectionFields;
+  task?: LessonTask | undefined;
   returnPath?: string | undefined;
 }): ReactNode {
   const statusOptions: FieldOption[] = activityFilterOptions();
@@ -28,6 +32,9 @@ export function ActivitySelectionForm({
     viewOptions.unshift({ value: fields.view, label: fields.view });
   return (
     <Form method="get" className={styles["selectionForm"]}>
+      {task !== undefined && (
+        <input type="hidden" name={lessonTaskField} value={String(task)} />
+      )}
       {returnPath !== undefined && (
         <input type="hidden" name="returnTo" value={returnPath} />
       )}

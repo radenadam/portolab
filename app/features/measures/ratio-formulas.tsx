@@ -1,6 +1,9 @@
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
-import { formatBeta, formatPercent } from "~/formatting";
+import {
+  formatFormulaBeta,
+  formatFormulaPercent,
+} from "~/formula-input-formatting";
 import type { MonthlyReturn } from "~/units/monthly-return";
 import { ExpectedReturn, Operand, RiskFree } from "./formulas";
 import type {
@@ -20,8 +23,12 @@ function ExcessReturnNumbers({
 }): ReactNode {
   return (
     <>
-      <NumberText>{formatPercent(expectedReturn, "two")}</NumberText> −{" "}
-      <NumberText>{formatPercent(riskFreeRate, "two")}</NumberText>
+      <NumberText>{formatFormulaPercent(expectedReturn)}</NumberText>{" "}
+      <Operand
+        value={riskFreeRate}
+        text={formatFormulaPercent(riskFreeRate)}
+        operator="−"
+      />
     </>
   );
 }
@@ -30,18 +37,25 @@ function ExcessReturnNumbers({
 export function SharpeRatioFormula({
   inputs,
 }: {
-  inputs: SharpeRatioMeasure["inputs"];
+  inputs: SharpeRatioMeasure["inputs"] | undefined;
 }): ReactNode {
   return (
     <>
-      S<sub>p</sub> = (<ExpectedReturn of="p" /> − <RiskFree />) / σ<sub>p</sub>{" "}
-      = (
-      <ExcessReturnNumbers
-        expectedReturn={inputs.expectedReturn}
-        riskFreeRate={inputs.riskFreeRate}
-      />
-      ) /{" "}
-      <NumberText>{formatPercent(inputs.standardDeviation, "two")}</NumberText>
+      S<sub>p</sub> = (<ExpectedReturn of="p" /> − <RiskFree />) / σ<sub>p</sub>
+      {inputs !== undefined && (
+        <>
+          {" "}
+          = (
+          <ExcessReturnNumbers
+            expectedReturn={inputs.expectedReturn}
+            riskFreeRate={inputs.riskFreeRate}
+          />
+          ) /{" "}
+          <NumberText>
+            {formatFormulaPercent(inputs.standardDeviation)}
+          </NumberText>
+        </>
+      )}
     </>
   );
 }
@@ -50,17 +64,23 @@ export function SharpeRatioFormula({
 export function TreynorRatioFormula({
   inputs,
 }: {
-  inputs: TreynorRatioMeasure["inputs"];
+  inputs: TreynorRatioMeasure["inputs"] | undefined;
 }): ReactNode {
   return (
     <>
-      T<sub>p</sub> = (<ExpectedReturn of="p" /> − <RiskFree />) / β<sub>p</sub>{" "}
-      = (
-      <ExcessReturnNumbers
-        expectedReturn={inputs.expectedReturn}
-        riskFreeRate={inputs.riskFreeRate}
-      />
-      ) / <Operand value={inputs.beta} text={formatBeta(inputs.beta)} />
+      T<sub>p</sub> = (<ExpectedReturn of="p" /> − <RiskFree />) / β<sub>p</sub>
+      {inputs !== undefined && (
+        <>
+          {" "}
+          = (
+          <ExcessReturnNumbers
+            expectedReturn={inputs.expectedReturn}
+            riskFreeRate={inputs.riskFreeRate}
+          />
+          ) /{" "}
+          <Operand value={inputs.beta} text={formatFormulaBeta(inputs.beta)} />
+        </>
+      )}
     </>
   );
 }

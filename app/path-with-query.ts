@@ -8,5 +8,8 @@ export function pathWithQuery(
     if (value === undefined) address.searchParams.delete(name);
     else address.searchParams.set(name, value);
   }
-  return `${address.pathname}${address.search}${address.hash}`;
+  const queryOnly = path.startsWith("?");
+  const pathname = queryOnly ? "" : address.pathname;
+  const search = queryOnly && address.search === "" ? "?" : address.search;
+  return `${pathname}${search}${address.hash}`;
 }

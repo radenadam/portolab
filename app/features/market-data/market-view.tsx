@@ -1,4 +1,9 @@
 import { MarketSectors } from "./market-sectors";
+import { LessonTaskBanner } from "~/features/learning/lesson-task-banner";
+import {
+  lessonTaskField,
+  type LessonTask,
+} from "~/features/learning/lesson-task";
 import { FilterOptions } from "./filter-options";
 import { MarketMeasureHelp } from "./market-measure-help";
 import { MarketReferenceNotice } from "./market-reference-notice";
@@ -44,6 +49,7 @@ const mobileConcepts: Record<MarketSort, "beta" | "risk" | undefined> = {
 type Failures = Record<keyof MarketFilters, string | undefined>;
 type MarketViewProps = ReturnType<typeof readMarket> & {
   classId: ClassId;
+  task?: LessonTask | undefined;
   filters: MarketFilters;
   failures: Failures;
   values: Record<keyof MarketFilters, string>;
@@ -61,6 +67,7 @@ export function MarketView(props: MarketViewProps): ReactNode {
   const failed = new Set(latestAttempt?.failedCodes);
   return (
     <div className={styles["market"]}>
+      <LessonTaskBanner classId={classId} task={props.task} />
       <Form
         ref={formRef}
         key={JSON.stringify(filters)}
@@ -68,6 +75,13 @@ export function MarketView(props: MarketViewProps): ReactNode {
         action={marketPath(classId)}
         className={styles["form"]}
       >
+        {props.task !== undefined && (
+          <input
+            type="hidden"
+            name={lessonTaskField}
+            value={String(props.task)}
+          />
+        )}
         <header className={styles["tools"]}>
           <h1>{m.market_data_page_title()}</h1>
           <div className={styles["search"]}>
@@ -134,6 +148,7 @@ export function MarketView(props: MarketViewProps): ReactNode {
           filters={live}
           missed={failed.has("IHSG")}
           sharedTime={sharedTime}
+          task={props.task}
         />
         <div className={styles["filters"]}>
           <MarketSectors
@@ -250,7 +265,7 @@ export function MarketView(props: MarketViewProps): ReactNode {
             </NumberText>
           </h2>
           {shown.length === 0 ? (
-            <MarketEmpty classId={classId} filters={live} />
+            <MarketEmpty classId={classId} filters={live} task={props.task} />
           ) : (
             <MarketTable
               rows={shown}
@@ -258,10 +273,11 @@ export function MarketView(props: MarketViewProps): ReactNode {
               failed={failed}
               indexQuote={props.indexQuote}
               sort={live.sort}
-              returnPath={`${marketPath(classId)}${marketSearch(live)}`}
+              returnPath={`${marketPath(classId)}${marketSearch(live, props.task)}`}
               reference={props.marketReference}
               index={props.index}
               sharedTime={sharedTime}
+              task={props.task}
             />
           )}
         </section>
