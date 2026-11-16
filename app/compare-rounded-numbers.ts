@@ -1,4 +1,5 @@
 import { numberPrecisionOptions } from "./formatting.ts";
+import { numberFormat } from "./intl-formats.ts";
 import type { ChangeDirection } from "./formatting.ts";
 
 /** Interpretations use the same Intl rounding as the text. The canonical format has no groups, so the program can read it back. */
@@ -7,7 +8,7 @@ export function compareRoundedNumbers<Value extends number>(
   second: NoInfer<Value>,
   precision: keyof typeof numberPrecisionOptions,
 ): ChangeDirection {
-  const format = new Intl.NumberFormat("en-US", {
+  const format = numberFormat("en-US", {
     ...numberPrecisionOptions[precision],
     useGrouping: false,
   });

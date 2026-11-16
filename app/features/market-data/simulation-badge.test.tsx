@@ -18,15 +18,15 @@ const texts: Record<
   }
 > = {
   id: {
-    long: "Simulasi · harga tertunda ±10 mnt",
-    short: "Simulasi · ±10 mnt",
+    long: "Simulasi · harga tertunda ±10\u00a0mnt",
+    short: "Simulasi · ±10\u00a0mnt",
     title: "Simulasi dan harga tertunda",
     fallback: "Simulasi · harga tertunda",
     lesson: "Pelajari lebih lanjut di sesi 6",
   },
   en: {
-    long: "Simulation · prices delayed ±10 min",
-    short: "Simulation · ±10 min",
+    long: "Simulation · prices delayed ±10\u00a0min",
+    short: "Simulation · ±10\u00a0min",
     title: "Simulation and delayed prices",
     fallback: "Simulation · prices delayed",
     lesson: "Learn more in session 6",

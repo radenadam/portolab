@@ -1,5 +1,6 @@
 import { decimalPlaceOptions } from "./decimal-place-options.ts";
 import { startOfUtcDate } from "~/calendar-dates";
+import { dateTimeFormat, numberFormat } from "./intl-formats.ts";
 import { intlLocale } from "./intl-locale.ts";
 import type { Locale } from "./paraglide/runtime.js";
 import { listOfWords } from "~/sentences";
@@ -33,17 +34,14 @@ export function formatRupiah(
   notation: CurrencyNotation = "standard",
   locale?: Locale,
 ): string {
-  return new Intl.NumberFormat(
-    intlLocale(locale),
-    rupiahFormats[notation],
-  ).format(amount);
+  return numberFormat(intlLocale(locale), rupiahFormats[notation]).format(
+    amount,
+  );
 }
 
 /** One format supplies both the currency and digits when a headline sizes them apart. */
 export function formatRupiahParts(amount: Rupiah): Intl.NumberFormatPart[] {
-  return new Intl.NumberFormat(intlLocale(), rupiahOptions).formatToParts(
-    amount,
-  );
+  return numberFormat(intlLocale(), rupiahOptions).formatToParts(amount);
 }
 
 // A number shows at most three decimals, which is also the default of Intl.
@@ -69,7 +67,7 @@ export function formatNumber(
 
 /** A split can divide a historic close into fractional rupiah, so it keeps the precision of other numbers rather than rounding to an amount of cash. */
 export function formatSplitAdjustedRupiah(price: SplitAdjustedRupiah): string {
-  return new Intl.NumberFormat(intlLocale(), {
+  return numberFormat(intlLocale(), {
     ...rupiahOptions,
     minimumFractionDigits: 0,
     ...numberOptions,
@@ -78,7 +76,7 @@ export function formatSplitAdjustedRupiah(price: SplitAdjustedRupiah): string {
 
 /** Formats a size in bytes, such as 128,000 bytes. */
 export function formatBytes(size: Bytes): string {
-  return new Intl.NumberFormat(intlLocale(), {
+  return numberFormat(intlLocale(), {
     style: "unit",
     unit: "byte",
     unitDisplay: "long",
@@ -90,7 +88,7 @@ export function formatMinutes(
   minutes: number,
   length: "short" | "long",
 ): string {
-  return new Intl.NumberFormat(intlLocale(), {
+  return numberFormat(intlLocale(), {
     style: "unit",
     unit: "minute",
     unitDisplay: length,
@@ -102,7 +100,7 @@ export const smallestIndexLevelStep = 10 ** -indexLevelDecimals;
 const indexLevelOptions = decimalPlaceOptions(indexLevelDecimals, "auto");
 
 export function formatIndexLevel(level: IndexPoints): string {
-  return new Intl.NumberFormat(intlLocale(), indexLevelOptions).format(level);
+  return numberFormat(intlLocale(), indexLevelOptions).format(level);
 }
 
 /** Columns use a fixed precision so their values line up, while chart marks can omit trailing zeroes. */
@@ -125,9 +123,7 @@ export function formatPercent(
   fraction: number,
   decimals: PercentDecimals = "upToTwo",
 ): string {
-  return new Intl.NumberFormat(intlLocale(), percentOptions(decimals)).format(
-    fraction,
-  );
+  return numberFormat(intlLocale(), percentOptions(decimals)).format(fraction);
 }
 
 /** How the marks of an axis write their values: as numbers, such as betas, or as percentages of fractions, such as returns. */
@@ -154,7 +150,7 @@ export function axisMarkFormat(
       decimals += 1;
     }
   }
-  const format = new Intl.NumberFormat(intlLocale(), {
+  const format = numberFormat(intlLocale(), {
     style,
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
@@ -175,7 +171,7 @@ function percentOptions(decimals: PercentDecimals): Intl.NumberFormatOptions {
 
 /** Formats a variance or a covariance of monthly returns with four significant digits, such as 0.002732, because it is a square of returns and too small for a percentage. */
 export function formatVariance(variance: MonthlyVariance): string {
-  return new Intl.NumberFormat(intlLocale(), {
+  return numberFormat(intlLocale(), {
     maximumSignificantDigits: 4,
   }).format(variance);
 }
@@ -215,7 +211,7 @@ function formatDecimal(
   options: Intl.NumberFormatOptions,
   locale?: Locale,
 ): string {
-  return new Intl.NumberFormat(intlLocale(locale), options).format(value);
+  return numberFormat(intlLocale(locale), options).format(value);
 }
 
 /** How a calendar date reads: in words for a sentence, in words with the day of the week, or with the short month of a table. */
@@ -247,7 +243,7 @@ export function formatUtcDay(
   locale?: Locale,
 ): string {
   // A calendar date names a day without a time zone, and the moment is the start of the day in UTC, as startOfUtcDate gives it, so the day is formatted in UTC.
-  return new Intl.DateTimeFormat(intlLocale(locale), {
+  return dateTimeFormat(intlLocale(locale), {
     ...calendarDateOptions[style],
     timeZone: "UTC",
   }).format(moment);
@@ -264,7 +260,7 @@ export function formatCalendarDatePart(
     monthAndYear: { month: "short", year: "2-digit" },
   };
   // The part is formatted in UTC for the same reason as a calendar date.
-  return new Intl.DateTimeFormat(intlLocale(), {
+  return dateTimeFormat(intlLocale(), {
     ...options[part],
     timeZone: "UTC",
   }).format(startOfUtcDate(date));
@@ -276,7 +272,7 @@ export function formatMonth(
   month: "long" | "short" = "long",
 ): string {
   // The month is formatted in UTC for the same reason as a calendar date.
-  return new Intl.DateTimeFormat(intlLocale(), {
+  return dateTimeFormat(intlLocale(), {
     month,
     year: "numeric",
     timeZone: "UTC",
@@ -309,7 +305,7 @@ function signedChange(
   options: Intl.NumberFormatOptions,
   value: number,
 ): SignedChange {
-  const parts = new Intl.NumberFormat(intlLocale(), {
+  const parts = numberFormat(intlLocale(), {
     ...options,
     signDisplay: "exceptZero",
   }).formatToParts(value);
@@ -363,8 +359,8 @@ export function formatMarketTimeParts(moment: Date): {
   return { date, clock };
 }
 
-function marketTimeFormat(): Intl.DateTimeFormat {
-  return new Intl.DateTimeFormat(intlLocale(), {
+function marketTimeFormat(): ReturnType<typeof dateTimeFormat> {
+  return dateTimeFormat(intlLocale(), {
     dateStyle: "medium",
     timeStyle: "short",
     timeZone: wibTimeZone,

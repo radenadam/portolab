@@ -170,9 +170,7 @@ for (const locale of locales) {
       >
         <span />
       </TaughtStudentPage>,
-    )
-      .replaceAll(/<\/?time\b[^>]*>/gu, "")
-      .replaceAll("\u202f", " ");
+    ).replaceAll(/<\/?time\b[^>]*>/gu, "");
     expect(activityHeader).toContain(markupTextForTest(text.activity));
     expect(taughtStudentMeta("portfolio")({ loaderData: { student } })).toEqual(
       [{ title: text.pageTitle }],
