@@ -14,7 +14,7 @@ A diff range, a set of paths, or a plan, with the intent behind it. In an audit,
 
 - The rules of the section "Code" of `AGENTS.md` that only a reader can judge: names, explicit code, abstractions, comments, parsing at boundaries, failure texts, and defensive checks.
 - Code that duplicates something already in the repository, in a form that `pnpm check` cannot detect, such as a copy shorter than the `minTokens` of `.jscpd.json` or a copy with renamed variables. Compare each new function and each new test fixture with its neighbors in the same module and with the helpers of its feature.
-- Field lists and option tables, including their copies in tests, against the single source rule in [Writing](../../AGENTS.md#writing).
+- Field lists and option tables, including their copies in tests, against the single source rule in [Writing](../../AGENTS.md#writing). Trace literal names and identifiers in assertions to the fixtures that created them.
 - Exports of production entry modules against [Tests](../../AGENTS.md#tests), because unused-export checks treat those modules as public.
 - Departures from the idioms of the stack: React Router route modules, loaders, actions, and forms, Paraglide message functions, Drizzle queries, and CSS modules.
 - Text assertions against the [Tests](../../AGENTS.md#tests) and [Interface text](../../AGENTS.md#interface-text) standards. Check whether another element or a longer message could satisfy a substring assertion, and whether each language still checks the intended element.

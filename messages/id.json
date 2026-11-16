@@ -662,7 +662,7 @@
   "trading_home_student_insight_risk_body": "{code} berbobot {weight} tetapi menyumbang {share} varians portofolio {name}.",
   "trading_home_student_insight_sector_body": "{weight} portofolio {name} ada di sektor {sector}. Saham satu sektor cenderung bergerak searah.",
   "trading_home_student_insight_beta_body": "Beta portofolio {name} {beta} merangkum kepekaannya terhadap pasar selama periode ukuran, bukan janji imbal hasil.",
-  "trading_home_student_map_unavailable_notice": "Peta tampil setelah pembaruan harga membawa {index} dan riwayat harga menyimpan penutupan awal periode {name}.",
+  "trading_home_student_map_unavailable_notice": "Peta tampil setelah pembaruan harga membawa level tertunda {index} dari periode {name} dan riwayat harga menyimpan penutupan awal periodenya.",
   "trading_home_lecturer_daily_calendar_notice": "Perubahan harian belum tersedia karena kalender perdagangan pembanding belum tercatat. Beri tahu orang yang menjalankan server Portolab ini agar kalender tersebut dapat ditambahkan.",
   "trading_home_lecturer_daily_reference_notice": "Nilai portofolio pada penutupan {date} adalah {value}, sedangkan perubahan persentase memerlukan nilai pembanding di atas nol. Beri tahu orang yang menjalankan server Portolab ini agar catatan portofolio dapat diperiksa.",
   "trading_home_student_no_holdings_body": "{name} tidak memegang saham.",

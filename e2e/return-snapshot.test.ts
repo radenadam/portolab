@@ -18,6 +18,8 @@ const texts: Record<
     lead: string;
     portfolio: string;
     portfolioName: string;
+    studentPortfolioName: (name: string) => string;
+    studentPoint: (name: string) => string;
     table: string;
     pointTime: string;
     market: string;
@@ -33,6 +35,9 @@ const texts: Record<
     lead: "Unggul 0,07 poin dari IHSG",
     portfolio: "-2,95%",
     portfolioName: "Portofolio Anda",
+    studentPortfolioName: (name) => `Portofolio ${name}`,
+    studentPoint: (name) =>
+      `3 Nov 2026, 10.00 WIB: Portofolio ${name} -2,95% dan IHSG -3,02%`,
     table: "Imbal hasil dari waktu ke waktu",
     pointTime: "3 Nov 2026, 10.00 WIB",
     market: "-3,02%",
@@ -47,6 +52,9 @@ const texts: Record<
     lead: "Ahead of the IHSG by 0.07 points",
     portfolio: "-2.95%",
     portfolioName: "Your portfolio",
+    studentPortfolioName: (name) => `Portfolio of ${name}`,
+    studentPoint: (name) =>
+      `Nov 3, 2026, 10:00 AM WIB: Portfolio of ${name} -2.95% and IHSG -3.02%`,
     table: "Returns over time",
     pointTime: "Nov 3, 2026, 10:00 AM WIB",
     market: "-3.02%",
@@ -86,9 +94,59 @@ for (const locale of locales) {
         username: server.lecturerUsername,
         password: chosenPassword,
       });
-      for (const [page, path, name] of [
-        [student, server.classPath, "beranda"],
-        [lecturer, `${server.classPath}/demonstration`, "demonstration"],
+      await expect(
+        lecturer.getByRole("heading", {
+          name: text.classHeadline,
+          exact: true,
+        }),
+      ).toBeVisible();
+      const classMap = lecturer
+        .locator('section[aria-labelledby="class-map-heading"]')
+        .getByRole("slider");
+      await expect
+        .poll(() => classMap.getAttribute("aria-valuetext"))
+        .toContain(text.market);
+      await classMap.focus();
+      await classMap.press("Home");
+      await expect
+        .poll(() => classMap.getAttribute("aria-valuetext"))
+        .toContain(server.studentName);
+      await expect
+        .poll(() => classMap.getAttribute("aria-valuetext"))
+        .toContain(text.portfolio);
+      await classMap.press("Escape");
+      await captureScreens(lecturer, testInfo, {
+        name: `kelas-${locale}`,
+        fullPage: true,
+        fromTop: true,
+      });
+      await classMap.focus();
+      await classMap.press("Home");
+      await classMap.press("Enter");
+      await expect(
+        lecturer.getByRole("heading", {
+          level: 1,
+          name: server.studentName,
+          exact: true,
+        }),
+      ).toBeVisible();
+      const studentPath = new URL(lecturer.url()).pathname;
+      for (const [page, path, name, portfolioName, point] of [
+        [student, server.classPath, "beranda", text.portfolioName, text.point],
+        [
+          lecturer,
+          `${server.classPath}/demonstration`,
+          "demonstration",
+          text.portfolioName,
+          text.point,
+        ],
+        [
+          lecturer,
+          studentPath,
+          "student-view",
+          text.studentPortfolioName(server.studentName),
+          text.studentPoint(server.studentName),
+        ],
       ] as const) {
         await page.goto(path);
         await expect(page.getByRole("main")).toContainText(text.value);
@@ -97,7 +155,7 @@ for (const locale of locales) {
         });
         await expect(card).toContainText(text.lead);
         const chart = card.getByRole("slider");
-        await expectSnapshot(chart, text);
+        await expectSnapshot(chart, point);
         const details = card.locator("details");
         await details.getByText(text.table, { exact: true }).click();
         const endpoint = details.locator("tbody tr").last();
@@ -109,7 +167,7 @@ for (const locale of locales) {
         expect(await layoutProblems(page)).toEqual([]);
         await details.getByText(text.table, { exact: true }).click();
         const own = page.locator('[data-map-label="point"]').filter({
-          hasText: text.portfolioName,
+          hasText: portfolioName,
         });
         await expect(own).toBeVisible();
         const mapSlider = page
@@ -119,7 +177,7 @@ for (const locale of locales) {
         await mapSlider.press("Escape");
         await expect
           .poll(() => mapSlider.getAttribute("aria-valuetext"))
-          .toContain(text.portfolioName);
+          .toContain(portfolioName);
         await expect
           .poll(() => mapSlider.getAttribute("aria-valuetext"))
           .toContain(text.portfolio);
@@ -155,14 +213,14 @@ for (const locale of locales) {
           page
             .locator('section[aria-labelledby="home-map-heading"]')
             .getByRole("slider"),
-          text,
+          point,
         );
         await page.goto(`${path}/analysis`);
         const performance = page.getByRole("region", {
           name: text.performance,
         });
         await expect(performance).toContainText(text.lead);
-        await expectSnapshot(performance.getByRole("slider"), text);
+        await expectSnapshot(performance.getByRole("slider"), point);
         await captureScreens(page, testInfo, {
           name: `${name}-analysis-${locale}`,
           fullPage: true,
@@ -172,34 +230,6 @@ for (const locale of locales) {
           },
         });
       }
-      await lecturer.goto(server.classPath);
-      await expect(
-        lecturer.getByRole("heading", {
-          name: text.classHeadline,
-          exact: true,
-        }),
-      ).toBeVisible();
-      await expect(lecturer.getByRole("main")).toContainText(text.portfolio);
-      const classMap = lecturer
-        .locator('section[aria-labelledby="class-map-heading"]')
-        .getByRole("slider");
-      await expect
-        .poll(() => classMap.getAttribute("aria-valuetext"))
-        .toContain(text.market);
-      await classMap.focus();
-      await classMap.press("Home");
-      await expect
-        .poll(() => classMap.getAttribute("aria-valuetext"))
-        .toContain("Mahasiswa");
-      await expect
-        .poll(() => classMap.getAttribute("aria-valuetext"))
-        .toContain(text.portfolio);
-      await classMap.press("Escape");
-      await captureScreens(lecturer, testInfo, {
-        name: `kelas-${locale}`,
-        fullPage: true,
-        fromTop: true,
-      });
     } finally {
       try {
         for (const device of devices) await device.context().close();
@@ -210,9 +240,6 @@ for (const locale of locales) {
   });
 }
 
-async function expectSnapshot(
-  chart: Locator,
-  text: (typeof texts)[Locale],
-): Promise<void> {
-  await expect(chart).toHaveAttribute("aria-valuetext", text.point);
+async function expectSnapshot(chart: Locator, point: string): Promise<void> {
+  await expect(chart).toHaveAttribute("aria-valuetext", point);
 }

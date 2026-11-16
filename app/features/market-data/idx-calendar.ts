@@ -21,6 +21,7 @@ interface TradingHours {
   sessionStartMinute: number;
   /** The minute of the day when the post-closing session ends. */
   sessionEndMinute: number;
+  /** The minute when closing matching starts, so closing quote times stay distinct from post-closing trading. */
   closingAuctionStartMinute: number;
   /** Session I and session II, in which orders match continuously, on Monday to Thursday and on Friday. */
   mondayToThursday: readonly [MinuteSpan, ...MinuteSpan[]];
@@ -176,7 +177,7 @@ export function pricesFinalAt(
   return succeed(finalAt(calendar.value, date, delayMinutes));
 }
 
-/** Closing quotes carry market timestamps from the closing auction, before post-closing trading ends. */
+/** The start of closing auction matching, because quotes use that market time before post-closing ends. It fails for a date that no calendar covers, because that day's hours are unknown. */
 export function marketCloseAt(date: string): Result<Date, string> {
   const calendar = calendarFor(date);
   if (!calendar.ok) return calendar;

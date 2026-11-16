@@ -662,7 +662,7 @@
   "trading_home_student_insight_risk_body": "{code} has a {weight} weight but contributes {share} of the variance of the portfolio of {name}.",
   "trading_home_student_insight_sector_body": "{weight} of the portfolio of {name} is in the {sector} sector. Stocks in one sector tend to move together.",
   "trading_home_student_insight_beta_body": "Beta {beta} for the portfolio of {name} summarizes its sensitivity to the market over the measurement period, rather than promising a return.",
-  "trading_home_student_map_unavailable_notice": "The map appears once a price update brings the {index} and the price history stores the close at the start of the period of {name}.",
+  "trading_home_student_map_unavailable_notice": "The map appears once a price update brings a delayed {index} level from the period of {name} and the price history stores its starting close.",
   "trading_home_lecturer_daily_calendar_notice": "The daily change is unavailable because the comparison trading calendar is not recorded. Tell the person who runs this Portolab server, so that the calendar can be added.",
   "trading_home_lecturer_daily_reference_notice": "The portfolio value at the close of {date} is {value}, but a percentage change needs a comparison value above zero. Tell the person who runs this Portolab server, so that the portfolio records can be checked.",
   "trading_home_student_no_holdings_body": "{name} holds no shares.",

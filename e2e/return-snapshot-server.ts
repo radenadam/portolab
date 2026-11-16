@@ -84,8 +84,9 @@ export async function returnSnapshotServer() {
       },
       joinedAt,
     );
+    const studentName = "Mahasiswa";
     const student = await createClassStudent(database, classId, {
-      name: "Mahasiswa",
+      name: studentName,
       now: joinedAt,
     });
     const joined = findJoinedClass(database, classId, student.studentId);
@@ -205,6 +206,7 @@ export async function returnSnapshotServer() {
       classPath: `/classes/${String(classId)}`,
       lecturerUsername,
       studentUsername: student.username,
+      studentName,
       latestClose: listStockHistory(database, "BBCA").closes.at(-1)?.date,
       measuredAt,
       stop: async () => {
