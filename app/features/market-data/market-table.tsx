@@ -1,4 +1,8 @@
 import { MarketMeasureHelp } from "./market-measure-help";
+import {
+  withLessonTask,
+  type LessonTask,
+} from "~/features/learning/lesson-task";
 import type { readMarket } from "./read-market.server";
 import { QuoteTime } from "./quote-time";
 import { TableHead } from "~/table-head";
@@ -42,6 +46,7 @@ export function MarketTable({
   reference,
   index,
   sharedTime,
+  task,
 }: {
   rows: readonly MarketRow[];
   classId: ClassId;
@@ -52,6 +57,7 @@ export function MarketTable({
   reference: ReturnType<typeof readMarket>["marketReference"];
   index: string;
   sharedTime: string | undefined;
+  task?: LessonTask | undefined;
 }): ReactNode {
   const marketDeviation = reference.ok
     ? reference.value.standardDeviation
@@ -120,9 +126,12 @@ export function MarketTable({
             <th scope="row">
               <Link
                 className={styles["stockLink"]}
-                to={pathReturningTo(
-                  stockPath(classId, row.code),
-                  `${returnPath}#stock-${row.code}`,
+                to={withLessonTask(
+                  pathReturningTo(
+                    stockPath(classId, row.code),
+                    `${returnPath}#stock-${row.code}`,
+                  ),
+                  task,
                 )}
               >
                 <StockName code={row.code} />

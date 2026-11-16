@@ -1,3 +1,4 @@
+import type { LessonTask } from "~/features/learning/lesson-task";
 import { MarketTime } from "~/market-time";
 import { NumberText } from "~/number-text";
 import { cumulativeReturn } from "~/units/cumulative-return";
@@ -41,11 +42,13 @@ export function JournalList({
   trades,
   prices,
   classId,
+  task,
   readOnly,
 }: {
   trades: readonly JournalTrade[];
   prices: JournalPrices;
   classId: ClassId;
+  task?: LessonTask | undefined;
   readOnly: boolean;
 }): ReactNode {
   const maximum = cumulativeReturn(
@@ -88,6 +91,7 @@ export function JournalList({
                     id={journalEntryId(trade.order.id)}
                     keepReturn={readOnly}
                     className={styles["stock"]}
+                    task={task}
                   >
                     <StockName
                       code={trade.order.code}

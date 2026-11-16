@@ -1,3 +1,5 @@
+import { readLessonTask } from "~/features/learning/read-lesson-task.server";
+import { LessonTaskBanner } from "~/features/learning/lesson-task-banner";
 import { activityPath } from "./activity-path";
 import { smallestOrderLots } from "~/units/lots";
 import { CompanyTile } from "~/features/market-data/stock-name";
@@ -95,6 +97,7 @@ export function loader({ context, request, params, url }: Route.LoaderArgs) {
   return data(
     {
       classId: place.classId,
+      task: readLessonTask(url),
       activity: activityPath(place.classId, place.owner.kind),
       portfolioKind: place.owner.kind,
       code,
@@ -258,6 +261,11 @@ export default function TicketPage({
             ×
           </Link>
         </header>
+        {loaderData.task !== undefined && (
+          <div className={styles["learning"]}>
+            <LessonTaskBanner classId={classId} task={loaderData.task} />
+          </div>
+        )}
         {order === undefined ? (
           <TicketForm
             key={`${side}:${JSON.stringify(actionData?.fields ?? loaderData.fields)}`}
@@ -278,6 +286,7 @@ export default function TicketPage({
             now={now}
             activity={loaderData.activity}
             closePath={closePath}
+            task={loaderData.task}
           />
         )}
       </dialog>

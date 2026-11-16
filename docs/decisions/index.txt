@@ -45,4 +45,6 @@
 0045-the-lecturer-trades-in-a-demonstration-portfolio.md
 0046-kelas-has-a-measured-css-allowance-for-reused-portfolio-styles.md
 0047-chart-names-use-an-ellipsis-when-they-are-too-wide.md
-0048-current-returns-share-one-snapshot.md
+0048-lesson-practice-keeps-estimates-fixed-while-weights-change.md
+0049-complete-lesson-sheets-have-measured-route-allowances.md
+0050-current-returns-share-one-snapshot.md

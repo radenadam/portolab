@@ -185,6 +185,37 @@ test("discovers a new route without adding a budget entry by hand", () => {
   expect(added?.path).toContain("build/client/assets/new.js");
 });
 
+test("applies measured exercise allowances only to the named routes and asset kinds", () => {
+  const { chunks, routes, files } = fixture();
+  const cases = [
+    ["features/classes/class-page", "220 kB", "24 kB"],
+    ["features/trading/ticket-page", "220 kB", "24 kB"],
+    ["features/measures/measures-page", "200 kB", "20 kB"],
+    ["features/trading/demonstration-summary-page", "220 kB", "24 kB"],
+    ["features/measures/demonstration-analysis-page", "200 kB", "20 kB"],
+    ["features/market-data/market-page", "200 kB", "20 kB"],
+    ["features/grading/student-portfolio-page", "220 kB", "24 kB"],
+    ["features/grading/student-measures-page", "220 kB", "20 kB"],
+    ["features/grading/student-journal-page", "200 kB", "20 kB"],
+    ["features/grading/student-measures-page-detail", "200 kB", "20 kB"],
+    ["features/learning/lesson-page", "200 kB", "20 kB"],
+    ["features/trading/ticket-page-detail", "200 kB", "20 kB"],
+  ] as const;
+  for (const [id, javascript, stylesheets] of cases) {
+    routes.set(id, { file: "app/other.tsx", parentId: "root" });
+    const checks = successValueForTest(
+      clientSizeChecks(chunks, routes, files),
+      "plans measured route limits",
+    );
+    expect(
+      checks.find((check) => check.name === `Route JavaScript: ${id}`)?.limit,
+    ).toBe(javascript);
+    expect(
+      checks.find((check) => check.name === `Route CSS: ${id}`)?.limit,
+    ).toBe(stylesheets);
+  }
+});
+
 test("keeps the Kelas CSS allowance on its complete route alone", () => {
   const { chunks, routes, files } = fixture();
   routes.set("features/classes/class-page", {
@@ -211,7 +242,7 @@ test("keeps the Kelas CSS allowance on its complete route alone", () => {
     ["Route CSS: class", "20 kB"],
     ["Route CSS: market", "20 kB"],
     ["Route CSS: other", "20 kB"],
-    ["Route CSS: features/classes/class-page", "21 kB"],
+    ["Route CSS: features/classes/class-page", "24 kB"],
     ["Route CSS: class-child", "20 kB"],
   ]);
   expect(

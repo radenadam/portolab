@@ -1,3 +1,5 @@
+import { withLessonTask } from "~/features/learning/lesson-task";
+import type { LessonTask } from "~/features/learning/lesson-task";
 import { orderSideLabel } from "./order-form-fields";
 import type { ReactNode } from "react";
 import { useEffect, use } from "react";
@@ -17,11 +19,13 @@ export function TicketDone({
   order,
   now,
   closePath,
+  task,
   activity,
 }: {
   order: Order;
   now: Date;
   closePath: string;
+  task?: LessonTask | undefined;
   activity: string;
 }): ReactNode {
   const memory = use(TicketDraftContext);
@@ -76,7 +80,7 @@ export function TicketDone({
           </p>
         )
       )}
-      <Link className={styles["fix"]} to={activity}>
+      <Link className={styles["fix"]} to={withLessonTask(activity, task)}>
         {m.trading_ticket_activity_link()}
       </Link>
       <Link className={styles["fix"]} to={closePath} preventScrollReset>

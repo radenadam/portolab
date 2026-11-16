@@ -1,3 +1,7 @@
+import { readLessonTask } from "~/features/learning/read-lesson-task.server";
+import { isLq45Stock } from "./is-lq45-stock";
+import { withLessonTask } from "~/features/learning/lesson-task";
+import { LessonTaskBanner } from "~/features/learning/lesson-task-banner";
 import { portfolioHome } from "~/features/trading/portfolio-home";
 import { StockQuoteDetails } from "./stock-quote-details";
 import { QuoteNotice } from "~/features/market-data/quote-notice";
@@ -95,6 +99,7 @@ export function loader({ context, params, request, url }: Route.LoaderArgs) {
   });
   return {
     classId,
+    task: readLessonTask(url),
     draftKey: `${String(reader.id)}:${stockPath(classId, code)}`,
     portfolioHome: portfolioHome(classId, member.place.owner.kind),
     portfolioKind: member.place.owner.kind,
@@ -128,19 +133,13 @@ export function loader({ context, params, request, url }: Route.LoaderArgs) {
   };
 }
 
-function isLq45Stock(
-  code: string,
-  universe: ReturnType<typeof universeOn>,
-): boolean {
-  return universe.ok && universe.value.includes(code);
-}
-
 export default function StockPage({
   loaderData: stock,
 }: Route.ComponentProps): ReactNode {
   const { classId, code, quote, holding } = stock;
   const ticket = useOutlet();
   const location = useLocation();
+  const visibleTask = ticket === null ? stock.task : undefined;
   return (
     <TicketDraftMemory key={stock.draftKey} storageKey={stock.draftKey}>
       <div
@@ -148,10 +147,11 @@ export default function StockPage({
         data-layout={ticket === null ? undefined : "columns"}
       >
         <div className={styles["page"]}>
+          <LessonTaskBanner classId={classId} task={visibleTask} />
           <header className={styles["header"]}>
             <div className={styles["identity"]}>
               <Link
-                to={stock.returnPath}
+                to={withLessonTask(stock.returnPath, stock.task)}
                 className={styles["back"]}
                 aria-label={stock.returnLabel}
               >
