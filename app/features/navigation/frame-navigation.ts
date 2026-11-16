@@ -97,6 +97,7 @@ const currentItems: Record<RouteId, NavigationItem | undefined> = {
   "features/accounts/account-page": undefined,
   "features/accounts/account-setup-page": undefined,
   "features/accounts/privacy-page": undefined,
+  "features/learning/guide-page": undefined,
   "features/classes/classes-page": undefined,
   "features/classes/class-page": "class",
   "features/classes/calendar-page": "class",

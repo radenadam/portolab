@@ -14,6 +14,7 @@ const texts: Record<
     account: string;
     language: string;
     signOut: string;
+    guide: string;
   }
 > = {
   id: {
@@ -22,6 +23,7 @@ const texts: Record<
     account: "Akun Anda",
     language: "Bahasa",
     signOut: "Keluar",
+    guide: "Panduan",
   },
   en: {
     lecturer: "Lecturer",
@@ -29,6 +31,7 @@ const texts: Record<
     account: "Your account",
     language: "Language",
     signOut: "Sign out",
+    guide: "Guide",
   },
 };
 
@@ -56,6 +59,9 @@ for (const locale of locales) {
         [
           `<p><span>Sari Wulandari</span><span>${roleName}</span></p><hr/>`,
           `<a href="/account" data-discover="true">${text.account}</a>`,
+          role === "lecturer"
+            ? `<a href="/guide" data-discover="true">${text.guide}</a>`
+            : "",
           `<div><form data-discover="true" action="/language" method="post"><input type="hidden" name="returnTo" value="/"/><span>${text.language}</span>`,
           `<div role="group"><button type="submit" value="id" lang="id" aria-pressed="${String(locale === "id")}" name="locale">Bahasa Indonesia</button>`,
           `<button type="submit" value="en" lang="en" aria-pressed="${String(locale === "en")}" name="locale">English</button></div></form></div><hr/>`,

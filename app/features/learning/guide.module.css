@@ -1,0 +1,35 @@
+.reading {
+  composes: reading from "./learning.module.css";
+}
+
+.contents,
+.section {
+  composes: panel from "../../panel.module.css";
+  gap: var(--space-3);
+}
+
+.contents summary {
+  font-weight: 600;
+}
+
+.contents nav {
+  display: grid;
+}
+
+.contents a {
+  display: flex;
+  align-items: center;
+  min-height: var(--size-touch-target);
+}
+
+.section {
+  scroll-margin-block-start: calc(var(--size-top-bar) + var(--space-4));
+}
+
+.section p {
+  color: var(--color-ink-secondary);
+}
+
+.link {
+  composes: link from "./learning.module.css";
+}
