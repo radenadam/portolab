@@ -17,8 +17,8 @@ export default defineConfig({
   // The tests of the deployment run against a server that the deployment guide installed, which e2e/deployment/playwright.config.ts names.
   testIgnore: "deployment/**",
   fullyParallel: true,
-  // With a worker for half of its CPUs, which is the default of Playwright, the runner of CI left part of them idle while each worker waited on the browser and the server. A worker for each CPU makes each test slower but finishes the browser tests sooner there, as the commit that set it measured. A slot supplies a smaller pool because concurrent checks also compete for CPUs.
-  workers: maximumWorkers ?? (isContinuousIntegration ? "100%" : "50%"),
+  // Case workers share CPU with the server and Chromium. Decision 0051 records why their deadline margins need a smaller pool in CI. A slot supplies a smaller pool because concurrent checks also compete for CPUs.
+  workers: maximumWorkers ?? "50%",
   forbidOnly: isContinuousIntegration,
   retries: 0,
   timeout: testTimeoutSeconds * secondMilliseconds,

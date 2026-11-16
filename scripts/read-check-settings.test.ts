@@ -44,12 +44,12 @@ test(
 );
 
 test(
-  "keeps the default worker pools and shares the slot's worker budget between unit and browser tests",
+  "uses half the CPUs for browser workers and shares the slot budget with unit tests",
   { timeout: 60 * secondMilliseconds },
   () => {
     for (const [slot, continuousIntegration, expected] of [
       [undefined, "false", '{"browser":"50%"}'],
-      ["0", "true", '{"browser":"100%"}'],
+      ["0", "true", '{"browser":"50%"}'],
       ["1", "false", '{"unit":"25%","browser":"25%"}'],
       ["2", "true", '{"unit":"25%","browser":"25%"}'],
     ] as const) {
