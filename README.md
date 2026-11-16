@@ -75,6 +75,8 @@ Portolab reads these environment variables when it starts, and it names every wr
 
 The [workflow](AGENTS.md#workflow) sets which checks must pass before a push. `pnpm check` runs every check that CI runs. `pnpm check:fast` runs the same steps except the browser tests, including the dev server check, the production build, and the size check.
 
+CI runs the fast check and the browser shards on separate runners. The required `check` job waits for all of them and names every job that did not succeed. [Decision 0051](docs/decisions/0051-browser-tests-run-in-six-independent-shards.md) records the measurements and shard count. A failed shard keeps its traces and HTML report in its `test-results-browser-<number>` artifact.
+
 For a later push, run the fast check and choose the browser test files that cover the changed behavior. For example, after changing the stock screen:
 
 ```sh

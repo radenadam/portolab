@@ -6,7 +6,7 @@ export default {
     "server/app.ts!",
     "server/account.ts!",
     "server/sample-class.ts!",
-    "scripts/{check-decision-numbers,check-dev-server,check-messages,check-migrations,check-punctuation,check-workflows,client-size,measure-agent-run,plan-deployment-test,plan-review,post-review,print-dependabot-subject,print-schema,read-agent-tools,run-deployment-guide,save-findings,write-review-files}.ts!",
+    "scripts/{check-decision-numbers,check-dev-server,check-job-results,check-messages,check-migrations,check-punctuation,check-workflows,client-size,measure-agent-run,plan-deployment-test,plan-review,post-review,print-dependabot-subject,print-schema,read-agent-tools,run-deployment-guide,save-findings,write-review-files}.ts!",
     "project.inlang/paraglide.config.ts",
     "e2e/sample-class-command-for-test.ts",
     // The check configurations load this boundary, but production mode omits them.
