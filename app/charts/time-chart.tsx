@@ -5,7 +5,8 @@ import type { CumulativeReturn } from "~/units/cumulative-return";
 import { ChangeText } from "~/change-text";
 import legendStyles from "~/chart-legend.module.css";
 import tableStyles from "~/data-table.module.css";
-import { formatCalendarDate, formatSignedPercent } from "~/formatting";
+import { formatMarketClock, formatSignedPercent } from "~/formatting";
+import { TimePointLabel } from "./time-point-label";
 import { LineKey } from "./line-key";
 import { layoutTimeChart } from "./time-chart-layout";
 import type { TimeChartLayout, TimeLine } from "./time-chart-layout";
@@ -14,8 +15,8 @@ import { TimePlot } from "./time-plot";
 import type { ValueAxisSide } from "./value-mark";
 import type { TimeEvent } from "./place-time-events";
 
-/** A chart of the returns of one or two lines at the close of each trading day, with a legend when it compares lines and a table of every point, as decision 0029 sets. The server draws it in SVG, so it shows before JavaScript loads. Once JavaScript runs, its plot is a slider that a pointer, a finger, or the keys move along the dates, which marks a date with a crosshair and shows the returns of the date in a tooltip. */
-export function TimeChart<Point extends { date: string }>({
+/** Server rendering keeps dated closes and timed current points available before JavaScript loads. The table makes every plotted value readable without exploring the chart. */
+export function TimeChart<Point extends { date: string; measuredAt?: Date }>({
   points,
   lines,
   labelledBy,
@@ -50,6 +51,12 @@ export function TimeChart<Point extends { date: string }>({
       values: points.map(line.valueOf),
     })),
   );
+  const latest = points.at(-1);
+  if (latest?.measuredAt !== undefined) {
+    for (const tick of layout.dateTicks) {
+      if (tick.at === 1) tick.text = formatMarketClock(latest.measuredAt);
+    }
+  }
   return (
     <TimeSeriesChart
       points={points}
@@ -79,7 +86,7 @@ export function TimeChart<Point extends { date: string }>({
 
 /** Prices and returns share their table, legend, and interactive plot while retaining their own units and formats. */
 export function TimeSeriesChart<
-  Point extends { date: string },
+  Point extends { date: string; measuredAt?: Date },
   Value extends number,
 >({
   points,
@@ -159,11 +166,9 @@ export function TimeSeriesChart<
       </thead>
       <tbody>
         {points.map((point) => (
-          <tr key={point.date}>
+          <tr key={point.measuredAt?.toISOString() ?? point.date}>
             <th scope="row">
-              <NumberText>
-                {formatCalendarDate(point.date, "medium")}
-              </NumberText>
+              <TimePointLabel point={point} />
             </th>
             {lines.map((line) => (
               <td key={line.name} className={tableStyles["number"]}>

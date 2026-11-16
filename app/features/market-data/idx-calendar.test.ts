@@ -7,6 +7,7 @@ import {
   isTradingDay,
   latestClosedTradingDay,
   latestQuoteTradingDay,
+  marketCloseAt,
   lastContinuousTradingMoment,
   pricesFinalAt,
   tradingDayAfter,
@@ -16,6 +17,23 @@ import {
 // The answers below were worked out by hand from the calendars in idx-calendar.ts for a source with this delay.
 const delayMinutes = 10;
 
+for (const date of ["2026-10-30", "2026-11-02"]) {
+  test(`separates the closing auction from the last price-update minute on ${date}`, () => {
+    // The IDX schedule starts closing matching at 16:00 WIB. Post-closing ends at 16:15, so by hand prices with no delivery delay become final at 16:16.
+    expect(marketCloseAt(date)).toEqual({
+      ok: true,
+      value: new Date(`${date}T09:00:00Z`),
+    });
+    expect(pricesFinalAt(date, 0)).toEqual({
+      ok: true,
+      value: new Date(`${date}T09:16:00Z`),
+    });
+  });
+}
+
+test("refuses a close moment outside calendar coverage", () => {
+  expect(marketCloseAt("2028-01-03").ok).toBe(false);
+});
 for (const date of ["2026-11-02", "2026-11-06"]) {
   test(`finds the last continuous quote of ${date} from its recorded session`, () => {
     const moment = lastContinuousTradingMoment(date);

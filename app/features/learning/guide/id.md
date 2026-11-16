@@ -78,7 +78,9 @@ Order menggunakan harga tertunda dari sesi perdagangan berkelanjutan BEI. Di lua
 
 Ukuran memakai paling sedikit {{value:minimum-returns}} imbal hasil bulanan dari harga penutupan dalam {{value:return-window}} bulan lengkap terakhir. Portofolio dan sahamnya memakai bulan yang sama-sama tersedia dengan IHSG. Kas ikut dalam bobot portofolio dan tidak mendapat bunga. Tingkat bebas risiko memakai BI-Rate bertanggal yang ditampilkan dalam perhitungan. Ukuran tetap bulanan, sehingga jangan membandingkannya langsung dengan angka tahunan.
 
-Mahasiswa tidak perlu menunggu selama jendela riwayat itu setelah bergabung. Riwayat saham sudah menjadi masukan ukuran. Sebaliknya, grafik hasil portofolio mengikuti kepemilikan dan transaksi mahasiswa sejak dapat bertransaksi. Bila suatu ukuran tidak tersedia, baca sebabnya. Riwayat yang kurang, harga yang belum ada, atau pembagi yang nol dapat membuat hasil tidak terdefinisi. Buka perhitungan dan data bulanan untuk memeriksanya bersama mahasiswa, termasuk varians, matriks kovarians dan korelasi, serta sumbangan risiko setiap saham.
+Mahasiswa tidak perlu menunggu selama jendela riwayat itu setelah bergabung. Riwayat saham sudah menjadi masukan ukuran. Sebaliknya, grafik hasil portofolio mengikuti kepemilikan dan transaksi mahasiswa sejak dapat bertransaksi. Titik harian sebelumnya memakai harga penutupan final. Titik yang menampilkan waktu memakai nilai portofolio sekarang dan level tertunda terakhir IHSG. Waktunya mengikuti kutipan harga terbaru dari saham yang dimiliki atau IHSG, atau waktu order yang terisi sesudahnya.
+
+Bila suatu ukuran tidak tersedia, baca sebabnya. Riwayat yang kurang, harga yang belum ada, atau pembagi yang nol dapat membuat hasil tidak terdefinisi. Buka perhitungan dan data bulanan untuk memeriksanya bersama mahasiswa, termasuk varians, matriks kovarians dan korelasi, serta sumbangan risiko setiap saham.
 
 ## ranking | Membaca peringkat secara adil
 

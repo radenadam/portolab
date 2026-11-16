@@ -6,7 +6,7 @@ interface ClientRouteLimits {
 const exerciseJavaScriptLimit = "220 kB";
 const exerciseStylesheetLimit = "24 kB";
 
-// Decision 0049 measures the complete sheets and exercises on these routes.
+// Decisions 0049 and 0053 measure the complete sheets and current return endpoint behind these allowances.
 const measuredRoutes: ReadonlyMap<string, Partial<ClientRouteLimits>> = new Map(
   [
     [
@@ -41,6 +41,7 @@ const measuredRoutes: ReadonlyMap<string, Partial<ClientRouteLimits>> = new Map(
       "features/grading/student-measures-page",
       { javascript: exerciseJavaScriptLimit },
     ],
+    ["features/measures/demonstration-analysis-page", { javascript: "201 kB" }],
   ],
 );
 

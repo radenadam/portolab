@@ -97,12 +97,16 @@ export function readHomePortfolioData(
     }),
     setAside: cashSetAside(portfolio.orders, input.now),
     lotShares: rules.ok ? rules.value.lotShares : undefined,
-    histories: portfolio.holdings.map(({ code }) => ({
-      code,
-      closes: homeSparklineCloses(listStockHistory(database, code).closes, {
-        now: input.now,
-        delayMinutes: source.delayMinutes,
-      }),
+    histories: report.valuation.holdings.map((holding) => ({
+      code: holding.code,
+      closes: homeSparklineCloses(
+        listStockHistory(database, holding.code).closes,
+        {
+          now: input.now,
+          delayMinutes: source.delayMinutes,
+          quote: holding.kind === "priced" ? holding.quote : undefined,
+        },
+      ),
     })),
     delayMinutes: source.delayMinutes,
     now: input.now,

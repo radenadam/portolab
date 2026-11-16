@@ -12,6 +12,7 @@ import { studentOfNewClass } from "./student-of-new-class.ts";
 import { widestClassNames } from "./widest-class-names.ts";
 import { tokenColor } from "./token-color.ts";
 
+// Python Decimal gives 996,063,812,500 / 1,000,000,000,000 - 1 = -0.0039361875 and 5,057.05 / 5,373.09 - 1 = -0.05881904081264226, so the current lead is 5.488285331264226 percentage points. The recorded closes are in fixture-history.ts.
 const texts: Record<
   Locale,
   {
@@ -37,9 +38,9 @@ const texts: Record<
     title: `Beranda di ${widestClassNames.className}`,
     value: "Rp 996.063.812.500",
     chart: "Sejak 26 Okt",
-    lead: "Unggul 5,88 poin dari IHSG",
+    lead: "Unggul 5,49 poin dari IHSG",
     holdings: "Saham Anda · 1",
-    table: "Imbal hasil pada setiap penutupan",
+    table: "Imbal hasil dari waktu ke waktu",
     analysis: "Analisis",
     cash: "Rp 124.563.812.500",
     noHoldings: "Anda tidak memegang saham.",
@@ -47,16 +48,16 @@ const texts: Record<
     activity: "Aktivitas",
     navigation: "Navigasi utama",
     row: ["Rp 871.500.000.000", "▼ -Rp 3.936.187.500", "▼ -0,45%", "87,49%"],
-    latest: "30 Okt 2026: Portofolio Anda 0,00% dan IHSG -5,88%",
+    latest: "2 Nov 2026, 15.49 WIB: Portofolio Anda -0,39% dan IHSG -5,88%",
   },
   en: {
     heading: "Home",
     title: `Home in ${widestClassNames.className}`,
     value: "IDR 996,063,812,500",
     chart: "Since Oct 26",
-    lead: "Ahead of the IHSG by 5.88 points",
+    lead: "Ahead of the IHSG by 5.49 points",
     holdings: "Your holding · 1",
-    table: "The return at each close",
+    table: "Returns over time",
     analysis: "Analysis",
     cash: "IDR 124,563,812,500",
     noHoldings: "You hold no shares.",
@@ -64,7 +65,7 @@ const texts: Record<
     activity: "Activity",
     navigation: "Main navigation",
     row: ["IDR 871,500,000,000", "▼ -IDR 3,936,187,500", "▼ -0.45%", "87.49%"],
-    latest: "Oct 30, 2026: Your portfolio 0.00% and IHSG -5.88%",
+    latest: "Nov 2, 2026, 3:49 PM WIB: Your portfolio -0.39% and IHSG -5.88%",
   },
 };
 
@@ -152,7 +153,7 @@ for (const locale of locales) {
         .locator("details")
         .filter({ has: student.getByText(text.table, { exact: true }) })
         .locator("tbody tr"),
-    ).toHaveCount(5);
+    ).toHaveCount(6);
     await expectAccessibleScreen(student);
     for (const colorScheme of ["light", "dark"] as const) {
       await student.emulateMedia({ colorScheme });
