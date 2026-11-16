@@ -5,7 +5,7 @@ import { m } from "~/paraglide/messages.js";
 import { portfolioLabel } from "./portfolio-label";
 import type { ReturnPoint } from "./portfolio-history";
 
-/** The small summary and the large view compare the same final closes. */
+/** Sharing every point keeps the small summary and the large view consistent. */
 export function PortfolioReturnChart({
   points,
   labelledBy,

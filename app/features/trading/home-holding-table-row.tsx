@@ -95,11 +95,7 @@ export function HomeHoldingTableRow({
           </div>
         )}
       </td>
-      <td>
-        {history !== undefined && (
-          <Sparkline closes={history.closes.map(({ close }) => close)} />
-        )}
-      </td>
+      <td>{history !== undefined && <Sparkline closes={history.closes} />}</td>
     </tr>
   );
 }

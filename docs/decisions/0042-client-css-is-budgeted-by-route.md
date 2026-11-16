@@ -1,6 +1,6 @@
 # 0042. Client CSS is budgeted by route
 
-- Status: Accepted. [Decision 0046](0046-kelas-has-a-measured-css-allowance-for-reused-portfolio-styles.md) replaces its CSS ceiling for the class overview route. [Decision 0049](0049-complete-lesson-sheets-have-measured-route-allowances.md) replaces its CSS ceiling for class home, ticket, the lecturer's student summary, and demonstration summary. [Decision 0053](0053-trade-impact-has-measured-allowances-for-its-combined-screens.md) replaces its CSS ceiling for the stock page.
+- Status: Accepted. [Decision 0046](0046-kelas-has-a-measured-css-allowance-for-reused-portfolio-styles.md) replaces its CSS ceiling for the class overview route. [Decision 0049](0049-complete-lesson-sheets-have-measured-route-allowances.md) replaces its CSS ceiling for class home, ticket, the lecturer's student summary, and demonstration summary. [Decision 0054](0054-trade-impact-has-measured-allowances-for-its-combined-screens.md) replaces its CSS ceiling for the stock page.
 - Date: 2026-11-15
 
 ## Context

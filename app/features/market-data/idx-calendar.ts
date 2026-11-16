@@ -21,6 +21,8 @@ interface TradingHours {
   sessionStartMinute: number;
   /** The minute of the day when the post-closing session ends. */
   sessionEndMinute: number;
+  /** The minute when closing matching starts, so closing quote times stay distinct from post-closing trading. */
+  closingAuctionStartMinute: number;
   /** Session I and session II, in which orders match continuously, on Monday to Thursday and on Friday. */
   mondayToThursday: readonly [MinuteSpan, ...MinuteSpan[]];
   friday: readonly [MinuteSpan, ...MinuteSpan[]];
@@ -38,6 +40,7 @@ interface MinuteSpan {
 const regularMarketHours: TradingHours = {
   sessionStartMinute: 8 * 60 + 45,
   sessionEndMinute: 16 * 60 + 15,
+  closingAuctionStartMinute: 16 * 60,
   mondayToThursday: [
     { startMinute: 9 * 60, endMinute: 12 * 60 },
     { startMinute: 13 * 60 + 30, endMinute: 15 * 60 + 50 },
@@ -47,7 +50,7 @@ const regularMarketHours: TradingHours = {
     { startMinute: 14 * 60, endMinute: 15 * 60 + 50 },
   ],
   source:
-    "BEI letter S-02349/BEI.POP/03-2023 of 15 March 2023, which restored these hours from 3 April 2023, as Elit Sukses Sekuritas told its clients, CNBC Indonesia and Infobank News reported session I and session II on that day, and Pluang listed the pre-opening and the post-closing session in 2026",
+    "BEI letter S-02349/BEI.POP/03-2023 of 15 March 2023, which restored these hours from 3 April 2023, as Elit Sukses Sekuritas told its clients, CNBC Indonesia and Infobank News reported session I and session II on that day, and Pluang listed the pre-opening and the post-closing session in 2026. IDX lists the closing auction matching start under Regulation II-A Kep-00158/BEI/10-2026 at https://www.idx.id/en/products-services/trading-hours-and-mechanism/",
 };
 
 // IDX rules are data with the dates they apply, as decision 0002 asks.
@@ -172,6 +175,15 @@ export function pricesFinalAt(
     return calendar;
   }
   return succeed(finalAt(calendar.value, date, delayMinutes));
+}
+
+/** The start of closing auction matching, because quotes use that market time before post-closing ends. It fails for a date that no calendar covers, because that day's hours are unknown. */
+export function marketCloseAt(date: string): Result<Date, string> {
+  const calendar = calendarFor(date);
+  if (!calendar.ok) return calendar;
+  return succeed(
+    wibMoment(date, calendar.value.hours.closingAuctionStartMinute),
+  );
 }
 
 // The price hours include their last minute, so the closes are final from the minute after it.

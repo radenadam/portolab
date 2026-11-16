@@ -1,6 +1,6 @@
 # 0018. A portfolio returns at each final daily close since the student could trade
 
-- Status: Accepted
+- Status: Accepted. [Decision 0053](0053-current-returns-share-one-snapshot.md) replaces its latest-return rule, the scope of missing closes, its consequence about the points of a chart, and its rejection of a current quote endpoint.
 - Date: 2026-11-03
 
 ## Context

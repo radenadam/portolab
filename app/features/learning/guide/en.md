@@ -80,7 +80,9 @@ Orders use delayed quotes from IDX continuous trading sessions. Outside a sessio
 
 Measures use closing-price history, with at least {{value:minimum-returns}} monthly returns in the latest {{value:return-window}} complete months. A portfolio and its stocks use the months they share with the IHSG. Cash participates in portfolio weights and earns no interest. The risk-free rate uses the dated BI-Rate shown in the calculation. Measures stay monthly, so do not compare them directly with annual figures.
 
-Students do not need to wait through that history window after joining. Stock history already supplies the measures. The portfolio performance chart instead follows the student's holdings and trades since trading became possible. When a measure is unavailable, read its reason. Missing history, missing quotes, or a zero denominator can make a result undefined. Open the calculation and monthly data to check it with the student, including variance, covariance and correlation matrices, and each stock's risk contribution.
+Students do not need to wait through that history window after joining. Stock history already supplies the measures. The portfolio performance chart instead follows the student's holdings and trades since trading became possible. Past daily points use final closes. An endpoint labelled with its time uses the current portfolio valuation and latest delayed IHSG level. Its time follows the latest quote for a holding or the IHSG, or a later order fill.
+
+When a measure is unavailable, read its reason. Missing history, missing quotes, or a zero denominator can make a result undefined. Open the calculation and monthly data to check it with the student, including variance, covariance and correlation matrices, and each stock's risk contribution.
 
 ## ranking | Read rankings fairly
 
