@@ -51,7 +51,9 @@ export function ClassMap({
     }
   > = {
     beta: {
-      title: m.classes_map_beta_axis_label({ index: marketIndex.code }),
+      title: m.classes_map_beta_axis_label({
+        beta: formatBeta(marketBeta, 1),
+      }),
       style: "decimal",
       toValue: beta,
       risk: marketBeta,

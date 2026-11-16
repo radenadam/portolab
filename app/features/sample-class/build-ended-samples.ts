@@ -16,6 +16,7 @@ import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
 
 import { stockAt, sizeFor, tradeAtClose } from "./sample-trade-context";
+import { sampleEndedReasons } from "./sample-reasons";
 import type { SampleRecipe } from "./sample-trade-context";
 export function buildEndedSamples(
   recipe: SampleRecipe,
@@ -36,17 +37,16 @@ export function buildEndedSamples(
     return fail("The stored closes have no unreached sample purchase limit.");
   const count = 1;
   if (!isOrderLots(count)) throw new Error("One is not an order lot.");
-  const request: Omit<OrderRequest, "code" | "placedAt"> = {
+  const request: Omit<OrderRequest, "code" | "placedAt" | "reason"> = {
     side: "buy",
     lots: count,
     price: { kind: "limit", limit },
-    reason:
-      "Saya memasang batas harga dan mengamati order yang tidak mencapai batas itu.",
   };
   const cancellation = tradeAtClose(recipe, account, {
     stock,
     quote,
     ...request,
+    reason: sampleEndedReasons.cancelled(quote.code),
     minutesBeforeQuote: 3,
   });
   if (!cancellation.ok) return cancellation;
@@ -57,7 +57,12 @@ export function buildEndedSamples(
       cancelledAt: new Date(quote.quotedAt.getTime() - 2 * minuteMilliseconds),
     },
   };
-  const placed = tradeAtClose(recipe, account, { stock, quote, ...request });
+  const placed = tradeAtClose(recipe, account, {
+    stock,
+    quote,
+    ...request,
+    reason: sampleEndedReasons.expired(quote.code),
+  });
   if (!placed.ok) return placed;
   const resting = placed.value;
   if (resting.state.kind !== "resting")
@@ -101,8 +106,7 @@ function rejectedSample(
           side: "buy",
           lots: lots.value,
           price: { kind: "market" },
-          reason:
-            "Saya menggunakan kas yang tersedia dan mengamati risiko kenaikan harga sebelum order terisi.",
+          reason: sampleEndedReasons.rejected(quote.code),
           placedAt,
         },
         account,

@@ -32,10 +32,11 @@ export function ConceptLesson({
   if (!classId.ok) return <NumberText>{label}</NumberText>;
   return (
     <span className={styles["links"]}>
-      <LessonLink session={session}>
+      <LessonLink session={session} className={styles["link"]}>
         <NumberText>{label}</NumberText>
       </LessonLink>
       <LearningLink
+        className={styles["link"]}
         to={`${glossaryPath(classId.value, "", `${location.pathname}${location.search}${location.hash}`)}#term-${termId}`}
       >
         {m.learning_glossary_link()}

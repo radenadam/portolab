@@ -184,9 +184,16 @@
   font-size: var(--text-row);
 }
 
+/* A quoted reason runs as one paragraph between its quote marks, and the journal keeps its paragraphs in a block quote. */
 .reason {
   color: var(--color-muted);
-  white-space: pre-line;
+}
+
+.rejection {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
 }
 
 .button {
@@ -267,6 +274,12 @@
 }
 .currentPrice::after {
   content: ")";
+}
+
+.journalNote {
+  padding-block: var(--space-3);
+  color: var(--color-muted);
+  font-size: var(--text-small);
 }
 
 .journalRow blockquote {

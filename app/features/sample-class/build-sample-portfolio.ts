@@ -24,11 +24,11 @@ import {
   sampleCoreStocks,
   sampleConcentratedSectors,
 } from "./sample-portfolio-recipes";
-const purchaseReasons = [
-  "Saya menguji portofolio yang berfokus pada satu sektor dan membandingkan risikonya dengan IHSG.",
-  "Saya membagi modal ke beberapa sektor untuk mengamati perubahan risiko portofolio.",
-  "Saya menambah posisi secara bertahap dan akan memeriksa beta serta biaya transaksinya.",
-];
+import {
+  samplePurchaseReason,
+  sampleSaleReason,
+  sampleWaitingReason,
+} from "./sample-reasons";
 
 function buyStocks(recipe: SampleRecipe, index: number): SampleStock[] {
   if (index === 0)
@@ -105,7 +105,7 @@ export function buildSamplePortfolio(
       side: "buy",
       lots: sized.value,
       price: { kind: "market" },
-      reason: purchaseReasons[(index + position) % purchaseReasons.length],
+      reason: samplePurchaseReason(quote.code, index, position),
     });
     if (!placed.ok) return placed;
     const trade = placed.value;
@@ -137,7 +137,11 @@ function sampleExtras(
   let account = initial;
   const trades: SampleTrade[] = [];
   if (index % 2 === 0 && index !== 0) {
-    const sale = sampleSale(recipe, account, { stock, quote });
+    const sale = sampleSale(recipe, account, {
+      stock,
+      quote,
+      sale: index / 2,
+    });
     if (!sale.ok) return sale;
     const filled = sale.value;
     trades.push(filled);
@@ -150,7 +154,10 @@ function sampleExtras(
     for (const trade of ended.value) account = applySampleFill(account, trade);
   }
   if (index % 4 === 0) {
-    const placed = sampleWaitingOrder(recipe, account, stock);
+    const placed = sampleWaitingOrder(recipe, account, {
+      preferred: stock,
+      order: index / 4,
+    });
     if (!placed.ok) return placed;
     trades.push(placed.value);
   }
@@ -160,7 +167,7 @@ function sampleExtras(
 function sampleWaitingOrder(
   recipe: SampleRecipe,
   account: AccountState,
-  preferred: SampleStock,
+  { preferred, order }: { preferred: SampleStock; order: number },
 ): Result<SampleTrade, string> {
   // A past holding may have left the LQ45 before today's purchase.
   const candidates = [
@@ -197,8 +204,7 @@ function sampleWaitingOrder(
         side: "buy",
         lots: count,
         price: { kind: "market" },
-        reason:
-          "Saya menambah posisi kecil untuk mengamati pelaksanaan order pada harga tertunda berikutnya.",
+        reason: sampleWaitingReason(current.code, order),
         placedAt: recipe.now,
       },
       account,
@@ -220,7 +226,12 @@ function sampleSale(
   {
     stock,
     quote,
-  }: { stock: SampleStock; quote: SampleStock["quotes"][number] },
+    sale: saleNumber,
+  }: {
+    stock: SampleStock;
+    quote: SampleStock["quotes"][number];
+    sale: number;
+  },
 ): Result<SampleTrade, string> {
   const day = orderTradingDay(quote.quotedAt, recipe.delayMinutes);
   if (!day.ok) return fail(day.failure.reason);
@@ -238,8 +249,7 @@ function sampleSale(
       side: "sell",
       lots: count,
       price: { kind: "market" },
-      reason:
-        "Saya mengurangi bobot posisi ini untuk melihat perubahan risiko dan biaya penjualan.",
+      reason: sampleSaleReason(quote.code, saleNumber),
       placedAt: new Date(quote.quotedAt.getTime() - minuteMilliseconds),
     },
     account,

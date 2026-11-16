@@ -41,15 +41,17 @@ export function ConceptCard({
   );
 }
 
-/** Contextual help and measured concepts share the native question button and its card. */
+/** Contextual help and measured concepts share the native question button and its card. The button asks what the concept of the title is, unless a label names the question that the card answers, such as why an order was rejected. */
 export function ConceptHelp({
   title,
   children,
   id: providedId,
+  label,
 }: {
   title: string;
   children: ReactNode;
   id?: string | undefined;
+  label?: string | undefined;
 }): ReactNode {
   const generatedId = `concept-${useId().replaceAll(/[^a-zA-Z0-9_-]/g, "")}`;
   const id = providedId ?? generatedId;
@@ -57,7 +59,7 @@ export function ConceptHelp({
     <>
       <PopoverButton
         popover={id}
-        label={m.app_concept_help_label({ concept: title })}
+        label={label ?? m.app_concept_help_label({ concept: title })}
         className={styles["question"]}
       >
         <span aria-hidden="true">?</span>

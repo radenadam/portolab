@@ -17,13 +17,14 @@ import { freeLotsOf } from "./lots-step";
 import type { FillFailure, OrderFailure } from "./order";
 import { purchaseCost } from "./trading-costs";
 
-type Failure = OrderFailure | FillFailure;
+type OtherFailure = Exclude<OrderFailure, LimitPriceFailure>;
 
-type OtherFailure = Exclude<Failure, LimitPriceFailure>;
+type Shortfall = Extract<
+  OrderFailure | FillFailure,
+  { kind: "notEnoughCash" | "priceRose" }
+>;
 
-type Shortfall = Extract<Failure, { kind: "notEnoughCash" | "priceRose" }>;
-
-type NotEnoughCash = Extract<Failure, { kind: "notEnoughCash" }>;
+type NotEnoughCash = Extract<OrderFailure, { kind: "notEnoughCash" }>;
 
 type FailureTexts = {
   [Kind in OtherFailure["kind"]]: (
@@ -213,43 +214,9 @@ const failureTexts: FailureTexts = {
     );
     return sentences.join(" ");
   },
-  // A check records these rejections while nobody watches, and the student may read them days later, so their steps hold whenever they are read.
-  priceRose: (failure) =>
-    [
-      m.trading_price_rose_error({
-        ...purchaseAmounts(failure),
-        checkedPrice: formatRupiah(failure.checkedPrice),
-      }),
-      m.trading_new_order_error({ code: failure.code }),
-    ].join(" "),
-  sharesGone: (failure, kind) => {
-    const sentences: string[] = [
-      m.trading_shares_gone_error({
-        lots: lotCount(failure.lots),
-        code: failure.code,
-        held: lotCount(failure.heldLots),
-      }),
-    ];
-    if (failure.setAside.orders > 0) {
-      sentences.push(
-        countedText(
-          failure.setAside.orders,
-          {
-            one: m.trading_one_other_sale_set_aside_error,
-            several: m.trading_several_other_sales_set_aside_error,
-          },
-          { setAside: lotCount(failure.setAside.amount), code: failure.code },
-        ),
-      );
-    }
-    sentences.push(
-      m.trading_check_holdings_error({ page: portfolioTitle(kind) }),
-    );
-    return sentences.join(" ");
-  },
 };
 
-/** The text that tells an owner why Portolab rejected an order, in the active language, with the numbers of the failure, the rule behind it, and a next step. A failure of the price of a limit order takes limitPriceFailureText instead, because it names the field of the price. */
+/** The text that tells an owner why Portolab refused an order, in the active language, with the numbers of the failure, the rule behind it, and a next step. A failure of the price of a limit order takes limitPriceFailureText instead, because it names the field of the price, and a waiting order that did not fill takes fillFailureTexts. */
 export function orderFailureText(
   failure: OtherFailure,
   portfolioKind: PortfolioKind = "membership",
@@ -264,4 +231,59 @@ function textOf<Kind extends OtherFailure["kind"]>(
   portfolioKind: PortfolioKind,
 ): string {
   return failureTexts[kind](failure, portfolioKind);
+}
+
+/**
+ * The text that tells an owner why a waiting order did not fill, in the active language, in two parts. The summary states what happened with the real numbers, so the line of the order shows it, and the details hold the rest of the rule and the next step, which open in place.
+ *
+ * A check records these rejections while nobody watches, and the owner may read them days later, so their steps hold whenever they are read.
+ */
+export function fillFailureTexts(
+  failure: FillFailure,
+  portfolioKind: PortfolioKind,
+): { summary: string; details: string } {
+  switch (failure.kind) {
+    case "priceRose": {
+      const amounts = purchaseAmounts(failure);
+      return {
+        summary: m.trading_price_rose_error({
+          ...amounts,
+          checkedPrice: formatRupiah(failure.checkedPrice),
+        }),
+        details: [
+          m.trading_purchase_cost_parts_error(amounts),
+          m.trading_new_order_error({ code: failure.code }),
+        ].join(" "),
+      };
+    }
+    case "sharesGone": {
+      const details: string[] = [];
+      if (failure.setAside.orders > 0) {
+        details.push(
+          countedText(
+            failure.setAside.orders,
+            {
+              one: m.trading_one_other_sale_set_aside_error,
+              several: m.trading_several_other_sales_set_aside_error,
+            },
+            {
+              setAside: lotCount(failure.setAside.amount),
+              code: failure.code,
+            },
+          ),
+        );
+      }
+      details.push(
+        m.trading_check_holdings_error({ page: portfolioTitle(portfolioKind) }),
+      );
+      return {
+        summary: m.trading_shares_gone_error({
+          lots: lotCount(failure.lots),
+          code: failure.code,
+          held: lotCount(failure.heldLots),
+        }),
+        details: details.join(" "),
+      };
+    }
+  }
 }

@@ -31,7 +31,6 @@ const texts: Record<
     close: string;
     workbook: string;
     portfolio: string;
-    analysis: string;
     journal: string;
     reset: string;
     back: string;
@@ -57,13 +56,12 @@ const texts: Record<
     all: "Semua · 2",
     inactive: "Belum aktif minggu ini · 2",
     beta: "Beta di atas 1,00 · 0",
-    count: "1 dari 2 mahasiswa tampil",
+    count: "1 dari 2 mahasiswa",
     noMatch:
       "Tidak ada mahasiswa yang cocok. Ubah pencarian atau pilih saringan Semua.",
     close: "Tutup panel mahasiswa",
     workbook: "Unduh workbook",
     portfolio: "Buka portofolio",
-    analysis: "Analisis",
     journal: "Jurnal alasan",
     reset: "Atur ulang kata sandi",
     back: "Kembali ke mahasiswa",
@@ -91,12 +89,11 @@ const texts: Record<
     all: "All · 2",
     inactive: "Inactive this week · 2",
     beta: "Beta above 1.00 · 0",
-    count: "1 of 2 students shown",
+    count: "1 of 2 students",
     noMatch: "No students match. Change the search or choose the All filter.",
     close: "Close student panel",
     workbook: "Download workbook",
     portfolio: "Open portfolio",
-    analysis: "Analysis",
     journal: "Reason journal",
     reset: "Reset password",
     back: "Back to students",
@@ -167,9 +164,6 @@ for (const locale of locales) {
     await expect(
       panel.getByRole("link", { name: text.portfolio, exact: true }),
     ).toHaveAttribute("href", /\/students\/\d+\?returnTo=/);
-    await expect(
-      panel.getByRole("link", { name: text.analysis, exact: true }),
-    ).toHaveAttribute("href", /\/analysis(?:\?|$)/);
     await expect(
       panel.getByRole("link", { name: text.journal, exact: true }),
     ).toHaveAttribute("href", /\/journal\?returnTo=/);

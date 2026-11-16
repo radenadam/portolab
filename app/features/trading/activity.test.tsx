@@ -75,7 +75,11 @@ const texts: Record<
       "Terisi di Rp\u00a04.980, 2 Nov 2026, 09.50 WIB.",
       "Dibatalkan 2 Nov 2026, 10.00 WIB.",
       "Kedaluwarsa 2 Nov 2026, 16.26 WIB tanpa tereksekusi.",
-      "Ditolak 2 Nov 2026, 10.01 WIB, pada harga tertunda yang tercatat 2 Nov 2026, 09.51 WIB. ",
+      // Python Decimal gives 5 × 100 × 5,025 = 2,512,500, a fee of 0.15% of it rounded half up to 3,769, and 2,516,269 in all.
+      "Ditolak 2 Nov 2026, 10.01 WIB. Harga naik dari Rp 4.980 ke Rp 5.025, jadi 5 lot BBCA butuh Rp 2.516.269 termasuk biaya, sedangkan kas yang tersedia Rp 2.500.000.",
+      "Mengapa order ini ditolak",
+      "Portolab memeriksa order ini pada harga tertunda yang tercatat 2 Nov 2026, 09.51 WIB.",
+      "Jumlah Rp 2.516.269 itu terdiri dari Rp 2.512.500 untuk saham dan Rp 3.769 untuk biaya broker. Pasang order baru jika Anda masih menginginkan BBCA, dan Portolab memeriksanya pada harga dan kas saat itu.",
       `“${reason}”`,
     ],
     journal: [
@@ -120,7 +124,10 @@ const texts: Record<
       "Filled at IDR\u00a04,980, Nov 2, 2026, 9:50 AM WIB.",
       "Cancelled Nov 2, 2026, 10:00 AM WIB.",
       "Expired Nov 2, 2026, 4:26 PM WIB without filling.",
-      "Rejected Nov 2, 2026, 10:01 AM WIB, at a delayed price quoted Nov 2, 2026, 9:51 AM WIB. ",
+      "Rejected Nov 2, 2026, 10:01 AM WIB. The price rose from IDR 4,980 to IDR 5,025, so 5 lots of BBCA needed IDR 2,516,269 with fees, but the available cash was IDR 2,500,000.",
+      "Why this order was rejected",
+      "Portolab checked this order at a delayed price quoted Nov 2, 2026, 9:51 AM WIB.",
+      "The IDR 2,516,269 is IDR 2,512,500 for the shares and IDR 3,769 for the broker fee. Place a new order if you still want BBCA, and Portolab checks it at the price and with the cash of that moment.",
       `“${reason}”`,
     ],
     journal: [
@@ -328,5 +335,94 @@ for (const locale of locales) {
       ),
     ].join("");
     for (const text of texts[locale].empty) expect(empty).toContain(text);
+  });
+}
+
+const journalTimes: Record<
+  Locale,
+  { shared: string; sameDay: string; otherDay: string; note: string }
+> = {
+  id: {
+    shared: "Harga 2 Nov 2026, 10.00 WIB.",
+    sameDay: "2 Nov 2026, 09.55 WIB",
+    otherDay: "30 Okt 2026, 16.00 WIB",
+    note: "Harga ",
+  },
+  en: {
+    shared: "Prices Nov 2, 2026, 10:00 AM WIB.",
+    sameDay: "Nov 2, 2026, 9:55 AM WIB",
+    otherDay: "Oct 30, 2026, 4:00 PM WIB",
+    note: "Prices ",
+  },
+};
+
+for (const locale of locales) {
+  test(`states the time that the compared prices of the journal share once and keeps every other time beside its price in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    // A failed update can leave the quote of BMRI from an earlier day while the others are current.
+    const trades = [
+      filledActivityForTest(11, { code: "BBCA" }),
+      filledActivityForTest(12, { code: "TLKM" }),
+      filledActivityForTest(13, { code: "ASII" }),
+      filledActivityForTest(14, {
+        code: "BMRI",
+        state: {
+          kind: "filled",
+          fill: {
+            price: rupiah(4_980),
+            value: rupiah(2_490_000),
+            fee: rupiah(3_735),
+            tax: rupiah(0),
+            cashChange: rupiah(-2_493_735),
+            quotedAt: new Date("2026-10-30T02:50:00Z"),
+            filledAt: new Date("2026-10-30T03:00:00Z"),
+          },
+        },
+      }),
+    ];
+    const quotes = [
+      stockQuote("BBCA", [5_000, 4_980], "2026-11-02T03:00:00Z"),
+      stockQuote("TLKM", [5_000, 4_980], "2026-11-02T03:00:00Z"),
+      stockQuote("ASII", [5_000, 4_980], "2026-11-02T02:55:00Z"),
+      stockQuote("BMRI", [5_000, 4_980], "2026-10-30T09:00:00Z"),
+    ];
+    const shared = renderMarkupForTest(
+      <JournalList
+        readOnly={false}
+        trades={tradeJournal(trades, quotes)}
+        prices={prices()}
+        classId={classId}
+      />,
+    ).replace(/<[^>]+>/g, "");
+    const times = journalTimes[locale];
+    expect(
+      shared.split(times.shared.slice(times.note.length, -1)),
+    ).toHaveLength(2);
+    for (const text of [times.shared, times.sameDay, times.otherDay])
+      expect(shared).toContain(markupTextForTest(text));
+    const apart = renderMarkupForTest(
+      <JournalList
+        readOnly={false}
+        trades={tradeJournal(trades.slice(2), quotes.slice(2))}
+        prices={prices()}
+        classId={classId}
+      />,
+    ).replace(/<[^>]+>/g, "");
+    expect(apart).not.toContain(times.note);
+    for (const text of [times.sameDay, times.otherDay])
+      expect(apart).toContain(markupTextForTest(text));
+    // A price quoted before a trade gives that entry no comparison, so it shows no time either.
+    const earlier = renderMarkupForTest(
+      <JournalList
+        readOnly={false}
+        trades={tradeJournal(trades.slice(0, 2), [
+          stockQuote("BBCA", [5_000, 4_980], "2026-11-02T02:40:00Z"),
+          stockQuote("TLKM", [5_000, 4_980], "2026-11-02T02:40:00Z"),
+        ])}
+        prices={prices()}
+        classId={classId}
+      />,
+    ).replace(/<[^>]+>/g, "");
+    expect(earlier).not.toContain(times.note);
   });
 }

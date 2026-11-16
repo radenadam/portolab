@@ -1,6 +1,6 @@
 # 0053. Current returns share one snapshot
 
-- Status: Accepted. [Decision 0054](0054-trade-impact-has-measured-allowances-for-its-combined-screens.md) replaces its JavaScript ceiling for demonstration analysis and its consequence that stock JavaScript and CSS and student analysis JavaScript keep their earlier ceilings.
+- Status: Accepted. [Decision 0054](0054-trade-impact-has-measured-allowances-for-its-combined-screens.md) replaces its JavaScript ceiling for demonstration analysis and its consequence that stock JavaScript and CSS, student analysis JavaScript, shared JavaScript, and ticket JavaScript keep their earlier ceilings.
 - Date: 2026-11-16
 
 ## Context

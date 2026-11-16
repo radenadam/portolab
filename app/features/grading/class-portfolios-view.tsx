@@ -2,11 +2,11 @@ import { NumberText } from "~/number-text";
 import { QuoteNotice } from "~/features/market-data/quote-notice";
 import type { ReactNode } from "react";
 import { Form } from "react-router";
+import { Icon } from "~/icon";
 import type { ClassId } from "~/features/classes/classes.schema";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
 import { countedText } from "~/counted-text";
-import { marketBeta } from "~/units/beta";
-import { formatBeta, formatNumber } from "~/formatting";
+import { formatNumber } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { classPortfoliosPath, portfoliosWorkbookPath } from "./grading-paths";
 import { RankingHelp } from "./ranking-help";
@@ -80,23 +80,29 @@ export function ClassPortfoliosView({
                   value={String(options.studentId)}
                 />
               )}
-              <input
-                aria-invalid={queryFailure !== undefined}
-                aria-describedby={
-                  queryFailure === undefined
-                    ? undefined
-                    : "student-search-failure"
-                }
-                type="search"
-                name="q"
-                defaultValue={options.query}
-                key={options.query}
-                placeholder={m.grading_search_label()}
-                aria-label={m.grading_search_label()}
-              />
-              <button type="submit" className={styles["button"]}>
-                {m.grading_search_button_label()}
-              </button>
+              <div className={styles["searchField"]}>
+                <button
+                  type="submit"
+                  className={styles["searchSubmit"]}
+                  aria-label={m.grading_search_button_label()}
+                >
+                  <Icon name="search" className={styles["searchIcon"]} />
+                </button>
+                <input
+                  aria-invalid={queryFailure !== undefined}
+                  aria-describedby={
+                    queryFailure === undefined
+                      ? undefined
+                      : "student-search-failure"
+                  }
+                  type="search"
+                  name="q"
+                  defaultValue={options.query}
+                  key={options.query}
+                  placeholder={m.grading_search_label()}
+                  aria-label={m.grading_search_label()}
+                />
+              </div>
               {queryFailure !== undefined && (
                 <p
                   id="student-search-failure"
@@ -168,6 +174,12 @@ export function ClassPortfoliosView({
             )}
             <div className={styles["tableNote"]}>
               <p>
+                <i className={styles["tick"]} aria-hidden="true" />
+                <NumberText>
+                  {m.grading_market_tick_notice({ index: marketIndex.code })}
+                </NumberText>
+              </p>
+              <p>
                 <NumberText>
                   {countedText(
                     all.length,
@@ -182,21 +194,18 @@ export function ClassPortfoliosView({
                   )}
                 </NumberText>
               </p>
+              <div className={styles["ranking"]}>
+                <p>
+                  <NumberText>
+                    {m.grading_ranking_notice({
+                      measure: rankingLabel(options.measure),
+                    })}
+                  </NumberText>
+                </p>
+                <RankingHelp student={selected} measure={options.measure} />
+              </div>
               <p>
-                <NumberText>
-                  {m.grading_ranking_notice({
-                    measure: rankingLabel(options.measure),
-                  })}
-                </NumberText>
-              </p>
-              <RankingHelp student={selected} measure={options.measure} />
-              <p>
-                <NumberText>
-                  {m.grading_price_times_notice({
-                    index: marketIndex.code,
-                    beta: formatBeta(marketBeta),
-                  })}
-                </NumberText>
+                <NumberText>{m.grading_price_times_notice()}</NumberText>
               </p>
               <QuoteNotice text={quoteFailure} className={undefined} />
             </div>

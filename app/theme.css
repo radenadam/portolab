@@ -89,7 +89,8 @@
   --width-ranking-beta: 6rem;
   --width-ranking-number: 5.5rem;
   --width-ranking-activity: 6.5rem;
-  --width-ranking-search: 14rem;
+  /* The field for a search of students holds its placeholder beside its icon. */
+  --width-ranking-search: 18rem;
   --color-backdrop: rgba(15, 24, 32, 0.48);
   --width-aside: 21.5rem;
   --width-form: 25rem;
@@ -294,6 +295,40 @@ p {
 
 a {
   color: var(--color-link);
+}
+
+/* A link that stands alone, outside a sentence, such as "Buka materi sesi 10" or the name of a student in a table, is semibold in the color of links without the underline of a link in a sentence, as the references of decision 0028 draw it. Its weight sets it apart from text where its color does not show, and it has the height of a touch target. A CSS module composes it from global, so every such link shares this one style. */
+.standalone-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: var(--size-touch-target);
+  color: var(--color-link);
+  font-weight: 600;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+/* A search field draws its button as a magnifier inside its border, as the references of decision 0028 draw a search, so Enter and the magnifier both send it. A CSS module composes it from global. */
+.search-field {
+  display: flex;
+  align-items: center;
+  padding-inline-end: var(--space-3);
+  border: var(--size-line) solid var(--color-line);
+  border-radius: var(--radius-item);
+  background: var(--color-panel);
+  color: var(--color-muted);
+}
+
+.search-field input {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--size-touch-target);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
 }
 
 /* The label of a part that opens, such as a table of returns, has the color of a link and the height of a touch target, and it keeps the marker that shows whether the part is open. */

@@ -31,6 +31,7 @@ export function MarketEmpty({
         </NumberText>
       </p>
       <Link
+        className={styles["emptyLink"]}
         to={`${marketPath(classId)}${marketSearch({ ...filters, query: "", sector: "all" }, task)}`}
       >
         {m.market_data_clear_link()}

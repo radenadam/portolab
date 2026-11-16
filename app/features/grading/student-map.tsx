@@ -27,6 +27,8 @@ export function StudentMap({
     points.push({
       key: String(item.studentId),
       name: item.name,
+      // The panel names only the selected student, as the references draw it, and the tooltip names every other point.
+      ...(item.studentId === student.studentId ? {} : { label: "" }),
       across: item.measures.beta,
       up: item.total.return,
       mark:

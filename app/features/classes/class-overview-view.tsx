@@ -82,6 +82,7 @@ export function ClassOverviewView({
                   >
                     <th scope="row">
                       <Link
+                        className={styles["link"]}
                         to={pathReturningTo(
                           studentPortfolioPath(classId, student.id),
                           classMapPath(classId, axis, {

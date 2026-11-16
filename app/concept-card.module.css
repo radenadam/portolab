@@ -66,9 +66,3 @@
 .calculation th:first-child {
   white-space: nowrap;
 }
-
-.lesson a {
-  display: inline-flex;
-  align-items: center;
-  min-height: var(--size-touch-target);
-}

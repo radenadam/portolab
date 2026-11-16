@@ -12,12 +12,13 @@ import { fractionOf, paddedRange } from "~/charts/scale";
 import type { Range } from "~/charts/scale";
 import {
   formatBeta,
-  formatMarketTimeParts,
+  formatCalendarDate,
   formatNumber,
   formatPercent,
   formatSignedPercent,
 } from "~/formatting";
 import { initialsOf } from "~/initials-of";
+import { wibDateOf } from "~/wib";
 import { m } from "~/paraglide/messages.js";
 import {
   rankingLabel,
@@ -64,10 +65,10 @@ export function StudentStandings({
               {m.grading_rank_label()}
             </span>
           </th>
-          <th>{m.grading_name_label()}</th>
+          <th>{m.grading_student_label()}</th>
           <th>{m.grading_short_return_label()}</th>
           <th>{m.grading_short_beta_label()}</th>
-          <th>{m.grading_risk_label()}</th>
+          <th>{m.grading_short_risk_label()}</th>
           <th aria-sort="descending">{rankingLabel(options.measure)} ↓</th>
           <th>{m.grading_last_activity_label()}</th>
         </tr>
@@ -157,14 +158,12 @@ export function StudentStandings({
   );
 }
 
+// The column has room for a day, and the portfolio of the student shows the whole time.
 function ActivityTime({ moment }: { moment: Date }): ReactNode {
-  const time = formatMarketTimeParts(moment);
+  const day = wibDateOf(moment);
   return (
-    <time dateTime={moment.toISOString()}>
-      <NumberText>{time.date}</NumberText>
-      <small>
-        <NumberText whole>{time.clock}</NumberText>
-      </small>
+    <time dateTime={day}>
+      <NumberText>{formatCalendarDate(day, "medium")}</NumberText>
     </time>
   );
 }

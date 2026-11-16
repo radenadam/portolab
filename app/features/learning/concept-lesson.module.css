@@ -3,8 +3,6 @@
   flex-wrap: wrap;
   gap: var(--space-3);
 }
-.links > a {
-  display: inline-flex;
-  align-items: center;
-  min-height: var(--size-touch-target);
+.link {
+  composes: standalone-link from global;
 }
