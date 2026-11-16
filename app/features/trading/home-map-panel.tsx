@@ -1,7 +1,16 @@
-import type { PortfolioKind } from "./portfolio-store.server";
+import { portfolioPath } from "./portfolio-path";
+import { portfolioLabel } from "./portfolio-label";
+import {
+  textForReader,
+  portfolioStudentName,
+  readerWithTextName,
+  portfolioKindForReader,
+} from "./text-for-reader";
+import type { PortfolioReader } from "./text-for-reader";
+import type { HomeMapView } from "./parse-home-map-view";
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router";
 import { RiskMap } from "~/charts/risk-map";
 import { RiskMapLegend } from "~/charts/risk-map-legend";
 import { PortfolioReturnChart } from "./portfolio-return-chart";
@@ -26,37 +35,56 @@ import styles from "./home-portfolio.module.css";
 export function HomeMapPanel({
   home,
   classId,
-  portfolioKind,
-  path,
+  reader,
 }: {
   home: HomePortfolioData;
   classId: ClassId;
-  portfolioKind: PortfolioKind;
-  path: string;
+  reader: PortfolioReader;
 }): ReactNode {
-  const map = homeMapPoints(home, portfolioKind);
+  const location = useLocation();
+  const portfolioKind = portfolioKindForReader(reader);
+  const path = (view: HomeMapView): string => {
+    if (reader.kind === "owner") {
+      const base = portfolioPath(classId, portfolioKind);
+      return view === "map" ? base : `${base}?view=${view}`;
+    }
+    const search = new URLSearchParams(location.search);
+    search.set("view", view);
+    return `${location.pathname}?${search.toString()}`;
+  };
+  const map = homeMapPoints(home, reader);
+  const name = portfolioStudentName(reader);
   const history = home.report.history;
   const first = history.ok ? history.value.points[0] : undefined;
-  const insight = homeInsight(homeInsightData(home));
+  const insightData = homeInsightData(home);
+  const insight = homeInsight(insightData, name);
   const market = home.report.market;
-  const emptyText = homeChartFailure(home, classId, portfolioKind);
+  const emptyText = (textValue: (value: string) => string): string =>
+    homeChartFailure(home, readerWithTextName(reader, textValue));
   return (
     <section className={styles["mapPanel"]} aria-labelledby="home-map-heading">
       <div className={styles["mapContent"]}>
         <div className={styles["mapHeading"]}>
-          <h2 id="home-map-heading">{m.trading_home_map_title()}</h2>
+          <h2 id="home-map-heading">
+            <NumberText verbatim>
+              {textForReader(reader, {
+                owner: m.trading_home_map_title,
+                lecturer: (name) => m.trading_home_student_map_title({ name }),
+              })}
+            </NumberText>
+          </h2>
           <nav
             className={styles["viewChoice"]}
             aria-label={m.trading_home_map_view_label()}
           >
             <Link
-              to={path}
+              to={path("map")}
               aria-current={home.view === "map" ? "page" : undefined}
             >
               {m.trading_home_map_label()}
             </Link>
             <Link
-              to={`${path}?view=time`}
+              to={path("time")}
               aria-current={home.view === "time" ? "page" : undefined}
             >
               {m.trading_home_time_label()}
@@ -67,8 +95,18 @@ export function HomeMapPanel({
           <>
             <RiskMapLegend
               items={[
-                { kind: "own", name: m.trading_home_portfolio_label() },
-                { kind: "held", name: m.trading_home_holdings_key_label() },
+                {
+                  kind: "own",
+                  name: portfolioLabel(name),
+                },
+                {
+                  kind: "held",
+                  name: textForReader(reader, {
+                    owner: m.trading_home_holdings_key_label,
+                    lecturer: (name) =>
+                      m.trading_home_student_holdings_label({ name }),
+                  }),
+                },
                 { kind: "market", name: marketIndex.code },
                 {
                   kind: "classmate",
@@ -108,7 +146,11 @@ export function HomeMapPanel({
                     labelledBy="home-map-heading"
                   />
                 </div>
-                <HomeMapTable map={map} classId={classId} />
+                <HomeMapTable
+                  map={map}
+                  classId={classId}
+                  keepReturn={reader.kind === "lecturer"}
+                />
               </>
             )}
             {market !== undefined && (
@@ -130,6 +172,7 @@ export function HomeMapPanel({
             {history.ok && history.value.points.length > 0 ? (
               <PortfolioReturnChart
                 points={history.value.points}
+                studentName={name}
                 labelledBy="home-map-heading"
                 annotations={home.sessions.map(({ session, date }) => ({
                   date,
@@ -156,7 +199,14 @@ export function HomeMapPanel({
           </NumberText>
         </span>
         <p>
-          <NumberText>{insight.text}</NumberText>
+          <NumberText>
+            {(textValue) =>
+              homeInsight(
+                insightData,
+                name === undefined ? undefined : textValue(name),
+              ).text
+            }
+          </NumberText>
         </p>
         <HomeInsightLesson session={insight.session} />
       </div>
@@ -166,14 +216,20 @@ export function HomeMapPanel({
 
 function homeChartFailure(
   home: HomePortfolioData,
-  classId: ClassId,
-  portfolioKind: PortfolioKind,
+  reader: PortfolioReader,
 ): string {
-  const reader = { kind: "owner", classId, portfolioKind } as const;
   if (!home.report.history.ok) return missingCalendarText(reader);
   switch (home.view) {
     case "map":
-      return m.trading_home_map_unavailable_notice({ index: marketIndex.code });
+      return textForReader(reader, {
+        owner: () =>
+          m.trading_home_map_unavailable_notice({ index: marketIndex.code }),
+        lecturer: (name) =>
+          m.trading_home_student_map_unavailable_notice({
+            index: marketIndex.code,
+            name,
+          }),
+      });
     case "time":
       return historyEndText(home.report.history.value.end, reader);
   }

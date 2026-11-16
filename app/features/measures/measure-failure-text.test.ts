@@ -204,6 +204,7 @@ for (const locale of locales) {
       [{ kind: "portfolio", reader: owner }, text.noRiskFreeRate],
       [{ kind: "portfolio", reader: lecturer }, text.noRiskFreeRateForLecturer],
       [{ kind: "market" }, text.noRiskFreeRate],
+      [{ kind: "market", reader: lecturer }, text.noRiskFreeRateForLecturer],
     ] as const) {
       expect(measureFailureText(failures.noVariation, subject)).toBe(
         text.noVariation,

@@ -14,17 +14,26 @@ export interface AnalysisInsight {
 }
 
 /** The displayed precision chooses the words, so a distance rounded to zero lies on the line. */
-export function analysisAlphaInsight(distance: MonthlyReturn): AnalysisInsight {
+export function analysisAlphaInsight(
+  distance: MonthlyReturn,
+  studentName?: string,
+): AnalysisInsight {
   const value = formatPercentagePoints(Math.abs(distance));
-  const inputs = { distance: value };
+  const inputs = { distance: value, name: studentName ?? "" };
   switch (formatSignedPercent(distance).direction) {
     case "rise":
       return {
         text: countedText(
           value === formatPercentagePoints(0.01) ? 1 : 2,
           {
-            one: m.measures_analysis_one_above_point_notice,
-            several: m.measures_analysis_several_above_points_notice,
+            one:
+              studentName === undefined
+                ? m.measures_analysis_one_above_point_notice
+                : m.measures_analysis_student_one_above_point_notice,
+            several:
+              studentName === undefined
+                ? m.measures_analysis_several_above_points_notice
+                : m.measures_analysis_student_several_above_points_notice,
           },
           inputs,
         ),
@@ -35,15 +44,27 @@ export function analysisAlphaInsight(distance: MonthlyReturn): AnalysisInsight {
         text: countedText(
           value === formatPercentagePoints(0.01) ? 1 : 2,
           {
-            one: m.measures_analysis_one_below_point_notice,
-            several: m.measures_analysis_several_below_points_notice,
+            one:
+              studentName === undefined
+                ? m.measures_analysis_one_below_point_notice
+                : m.measures_analysis_student_one_below_point_notice,
+            several:
+              studentName === undefined
+                ? m.measures_analysis_several_below_points_notice
+                : m.measures_analysis_student_several_below_points_notice,
           },
           inputs,
         ),
         numbers: [value],
       };
     case "none":
-      return { text: m.measures_analysis_on_notice(), numbers: [] };
+      return {
+        text:
+          studentName === undefined
+            ? m.measures_analysis_on_notice()
+            : m.measures_analysis_student_on_notice({ name: studentName }),
+        numbers: [],
+      };
   }
 }
 

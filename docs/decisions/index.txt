@@ -44,3 +44,4 @@
 0044-the-ticket-shows-the-trade-before-confirmation.md
 0045-the-lecturer-trades-in-a-demonstration-portfolio.md
 0046-kelas-has-a-measured-css-allowance-for-reused-portfolio-styles.md
+0047-chart-names-use-an-ellipsis-when-they-are-too-wide.md

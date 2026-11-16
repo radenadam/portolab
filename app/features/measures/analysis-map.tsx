@@ -1,3 +1,4 @@
+import { portfolioLabel } from "~/features/trading/portfolio-label";
 import type { ReactNode } from "react";
 import { RiskMap } from "~/charts/risk-map";
 import { RiskMapLegend } from "~/charts/risk-map-legend";
@@ -22,11 +23,13 @@ export function AnalysisMap({
   market,
   holdings,
   axis,
+  studentName,
 }: {
   portfolio: PortfolioSummary | undefined;
   market: MarketSummary;
   holdings: readonly AnalysisHolding[];
   axis: AnalysisAxis;
+  studentName?: string | undefined;
 }): ReactNode {
   const index = marketIndex.code;
   const betaPoints: MarkedPoint<Beta, MonthlyReturn>[] = holdings.map(
@@ -57,7 +60,7 @@ export function AnalysisMap({
   if (portfolio !== undefined)
     betaPoints.push({
       key: "portfolio",
-      name: m.measures_line_portfolio_label(),
+      name: portfolioLabel(studentName),
       across: portfolio.beta,
       up: portfolio.expectedReturn,
       mark: { kind: "own" },
@@ -130,7 +133,12 @@ export function AnalysisMap({
   const ownKeys =
     portfolio === undefined
       ? []
-      : [{ kind: "own" as const, name: m.measures_line_portfolio_label() }];
+      : [
+          {
+            kind: "own" as const,
+            name: portfolioLabel(studentName),
+          },
+        ];
   const graphs: Record<AnalysisAxis, ReactNode> = {
     beta: (
       <RiskMap
@@ -157,7 +165,7 @@ export function AnalysisMap({
       <RiskMap
         fill
         market={marketPoint(market.standardDeviation)}
-        points={deviationPoints(portfolio, holdings)}
+        points={deviationPoints(portfolio, holdings, studentName)}
         across={{
           style: "percent",
           toValue: monthlyReturn,
@@ -182,8 +190,16 @@ export function AnalysisMap({
                     kind: "held" as const,
                     name:
                       portfolio === undefined
-                        ? m.measures_line_holdings_label()
-                        : m.measures_line_weighted_holdings_label(),
+                        ? studentName === undefined
+                          ? m.measures_line_holdings_label()
+                          : m.measures_analysis_student_stocks_label({
+                              name: studentName,
+                            })
+                        : studentName === undefined
+                          ? m.measures_line_weighted_holdings_label()
+                          : m.measures_analysis_student_holdings_label({
+                              name: studentName,
+                            }),
                   },
                 ]),
             ...modeKeys[axis],
@@ -200,6 +216,7 @@ export function AnalysisMap({
 function deviationPoints(
   portfolio: PortfolioSummary | undefined,
   holdings: readonly AnalysisHolding[],
+  studentName?: string,
 ): MarkedPoint<MonthlyReturn, MonthlyReturn>[] {
   const points: MarkedPoint<MonthlyReturn, MonthlyReturn>[] = holdings.map(
     (holding) => ({
@@ -249,7 +266,7 @@ function deviationPoints(
       },
       {
         key: "portfolio",
-        name: m.measures_line_portfolio_label(),
+        name: portfolioLabel(studentName),
         across: portfolio.standardDeviation,
         up: portfolio.expectedReturn,
         mark: { kind: "own" },

@@ -1,8 +1,13 @@
-import type { PortfolioKind } from "~/features/trading/portfolio-store.server";
+import { portfolioLabel } from "~/features/trading/portfolio-label";
+import type { PortfolioReader } from "~/features/trading/text-for-reader";
+import {
+  textForReader,
+  readerWithTextName,
+  portfolioStudentName,
+} from "~/features/trading/text-for-reader";
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { TimeChart } from "~/charts/time-chart";
-import type { ClassId } from "~/features/classes/classes.schema";
 import { courseSessions } from "~/features/classes/course-calendar";
 import { placeTimeEvents } from "~/charts/place-time-events";
 import { PopoverButton } from "~/popover";
@@ -21,16 +26,13 @@ import { courseSessionTitle } from "~/features/classes/course-session-title";
 
 export function AnalysisPerformance({
   history,
-  classId,
   firstSessionDate,
-  portfolioKind = "membership",
+  reader,
 }: {
   history: PortfolioReport["history"];
-  classId: ClassId;
   firstSessionDate: string | null;
-  portfolioKind?: PortfolioKind;
+  reader: PortfolioReader;
 }): ReactNode {
-  const reader = { kind: "owner", classId, portfolioKind } as const;
   const points = history.ok ? history.value.points : [];
   const latest = points.at(-1);
   const start = points[0];
@@ -61,10 +63,21 @@ export function AnalysisPerformance({
             >
               <p>
                 <NumberText>
-                  {m.app_returns_chart_notice({
-                    index: marketIndex.code,
-                    date: formatCalendarDate(start.date),
-                  })}
+                  {(textValue) =>
+                    textForReader(readerWithTextName(reader, textValue), {
+                      owner: () =>
+                        m.app_returns_chart_notice({
+                          index: marketIndex.code,
+                          date: formatCalendarDate(start.date),
+                        }),
+                      lecturer: (name) =>
+                        m.app_lecturer_returns_chart_notice({
+                          name,
+                          index: marketIndex.code,
+                          date: formatCalendarDate(start.date),
+                        }),
+                    })
+                  }
                 </NumberText>
               </p>
               <PopoverButton
@@ -98,8 +111,11 @@ export function AnalysisPerformance({
           points={points}
           lines={[
             {
-              name: m.measures_line_portfolio_label(),
-              endName: m.measures_analysis_you_label(),
+              name: portfolioLabel(portfolioStudentName(reader)),
+              endName:
+                reader.kind === "owner"
+                  ? m.measures_analysis_you_label()
+                  : reader.studentName,
               kind: "own",
               valueOf: (point) => point.portfolio,
             },

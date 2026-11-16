@@ -3,3 +3,8 @@
   overflow-wrap: normal;
   word-break: normal;
 }
+
+.textValue {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}

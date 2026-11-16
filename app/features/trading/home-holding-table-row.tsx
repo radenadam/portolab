@@ -1,11 +1,10 @@
 import type { ReactNode } from "react";
-import { Link } from "react-router";
 import { NumberText } from "~/number-text";
 import { ChangeText } from "~/change-text";
 import { Sparkline } from "~/charts/sparkline";
 import type { ClassId } from "~/features/classes/classes.schema";
 import { StockName } from "~/features/market-data/stock-name";
-import { stockPath } from "~/features/market-data/stock-path";
+import { StockPageLink } from "~/features/market-data/stock-page-link";
 import {
   formatNumber,
   formatRupiah,
@@ -27,6 +26,7 @@ export function HomeHoldingTableRow({
   maximumWeight,
   maximumGain,
   sharedTime,
+  keepReturn,
 }: {
   row: HomeHolding;
   home: HomePortfolioData;
@@ -34,18 +34,22 @@ export function HomeHoldingTableRow({
   maximumWeight: PortfolioWeight;
   maximumGain: Rupiah;
   sharedTime: string | undefined;
+  keepReturn: boolean;
 }): ReactNode {
   const { holding } = row;
   const history = home.histories.find(({ code }) => code === holding.code);
   return (
     <tr>
       <th scope="row">
-        <Link
+        <StockPageLink
+          classId={classId}
+          code={holding.code}
+          id={`home-holding-desktop-${holding.code}`}
+          keepReturn={keepReturn}
           className={styles["stockLink"]}
-          to={stockPath(classId, holding.code)}
         >
           <StockName code={holding.code} />
-        </Link>
+        </StockPageLink>
       </th>
       <td>
         <WeightMark value={row.weight} maximum={maximumWeight} />

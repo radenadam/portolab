@@ -1,91 +1,83 @@
-import type { ReactNode } from "react";
-import { databaseContext } from "~/database/database.server";
-import type { PriceSourceDescription } from "~/features/market-data/price-source.server";
-import { LecturerMarketLine } from "~/features/measures/market-line-section";
-import { MethodNotice } from "~/features/measures/method-notice";
-import { PortfolioMeasuresView } from "~/features/measures/portfolio-measures-view";
-import {
-  readPortfolioLine,
-  readPortfolioMeasures,
-} from "~/features/measures/read-measures.server";
-import type {
-  PortfolioLine,
-  PortfolioMeasuresReport,
-} from "~/features/measures/read-measures.server";
-import { holdingQuoteFailureText } from "~/features/trading/holding-quote-failure-text";
-import { readPortfolioValuation } from "~/features/trading/read-portfolio-report.server";
-import type { ValuationReport } from "~/features/trading/read-portfolio-report.server";
+import { pathReturningTo } from "~/features/accounts/path-returning-to";
 import { m } from "~/paraglide/messages.js";
+import { studentPortfolioPath } from "./grading-paths";
+import type { ReactNode } from "react";
+import { data } from "react-router";
+import { databaseContext } from "~/database/database.server";
+import { AnalysisView } from "~/features/measures/analysis-view";
+import { AnalysisAxisForm } from "~/features/measures/analysis-axis-form";
+import {
+  readAnalysis,
+  readAnalysisAxis,
+  readAnalysisData,
+} from "~/features/measures/read-analysis.server";
+import { readPortfolioReport } from "~/features/trading/read-portfolio-report.server";
 import type { Route } from "./+types/student-measures-page";
 import { readTaughtPortfolio } from "./read-taught-portfolio.server";
-import { TaughtStudentHeading, taughtStudentMeta } from "./taught-student-page";
-import type { TaughtStudent } from "./taught-student-page";
+import { TaughtStudentPage, taughtStudentMeta } from "./taught-student-page";
 
-export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
-  return taughtStudentMeta("measures", loaderData.student);
-}
+export const meta = taughtStudentMeta("measures");
 
-export function loader({ context, request, params, url }: Route.LoaderArgs): {
-  student: TaughtStudent;
-  returnPath: string;
-  valuation: ValuationReport;
-  portfolio: PortfolioMeasuresReport;
-  marketLine: PortfolioLine | undefined;
-  now: Date;
-  source: PriceSourceDescription;
-} {
+export function loader({ context, request, params, url }: Route.LoaderArgs) {
   const now = new Date();
-  const { student, returnPath, portfolio, startingCash, source } =
-    readTaughtPortfolio(context, { request, url, params, now });
+  const taught = readTaughtPortfolio(context, { request, url, params, now });
+  const axisValue = url.searchParams.get("axis");
+  const axis = readAnalysisAxis(url);
+  const common = { student: taught.student, returnPath: taught.returnPath };
+  if (!axis.ok)
+    return data(
+      {
+        ...common,
+        kind: "axisFailure" as const,
+        value: axisValue ?? "",
+        failure: axis.failure,
+      },
+      { status: 400 },
+    );
   const database = context.get(databaseContext);
-  const valuation = readPortfolioValuation(database, {
-    portfolio,
-    startingCash,
-  });
-  const portfolioMeasures = readPortfolioMeasures(
-    database,
-    valuation.valuation,
-  );
-  return {
-    student,
-    returnPath,
-    valuation,
-    portfolio: portfolioMeasures,
-    marketLine: readPortfolioLine(portfolioMeasures),
+  const report = readPortfolioReport(database, taught, {
     now,
-    source,
+    delayMinutes: taught.source.delayMinutes,
+  });
+  return {
+    ...common,
+    kind: "analysis" as const,
+    classId: taught.student.classId,
+    report,
+    ...readAnalysis(database, report),
+    axis: axis.value,
+    now,
+    source: taught.source,
+    firstSessionDate: taught.firstSessionDate,
+    showData: readAnalysisData(url),
   };
 }
 
 export default function StudentMeasuresPage({
   loaderData,
 }: Route.ComponentProps): ReactNode {
-  const { student, source, marketLine } = loaderData;
+  const { student, returnPath } = loaderData;
   return (
-    <>
-      <TaughtStudentHeading
-        page="measures"
-        student={student}
-        returnPath={loaderData.returnPath}
-      />
-      <MethodNotice />
-      <h2>{m.grading_measures_title()}</h2>
-      <PortfolioMeasuresView
-        report={loaderData.portfolio}
-        reader={{ kind: "lecturer", studentName: student.name }}
-        quoteFailure={holdingQuoteFailureText([loaderData.valuation], {
-          now: loaderData.now,
-          delayMinutes: source.delayMinutes,
-        })}
-        source={source}
-      />
-      {/* A portfolio without measures has no line of its months, and the text above says why it has no measures. */}
-      {marketLine !== undefined && (
-        <LecturerMarketLine
-          studentName={student.name}
-          portfolioLine={marketLine}
+    <TaughtStudentPage
+      page="measures"
+      student={student}
+      returnPath={returnPath}
+    >
+      {loaderData.kind === "axisFailure" ? (
+        <AnalysisAxisForm {...loaderData} returnPath={returnPath} />
+      ) : (
+        <AnalysisView
+          {...loaderData}
+          reader={{ kind: "lecturer", studentName: student.shortName }}
+          summary={{
+            path: pathReturningTo(
+              studentPortfolioPath(student.classId, student.studentId),
+              returnPath,
+            ),
+            label: m.grading_summary_label(),
+          }}
         />
       )}
-    </>
+    </TaughtStudentPage>
   );
 }
