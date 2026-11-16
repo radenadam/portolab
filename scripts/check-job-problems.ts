@@ -8,6 +8,8 @@ const checkJobIds = [
   "browser-4",
   "browser-5",
   "browser-6",
+  "browser-7",
+  "browser-8",
 ];
 
 export function checkJobProblems(

@@ -1,4 +1,4 @@
-# 0051. Browser tests run in six independent shards
+# 0051. Browser tests run in eight independent shards
 
 - Status: Accepted
 - Date: 2026-11-16
@@ -9,7 +9,7 @@ The Check workflow ran `pnpm check` in one job. Each piece of the rebuild adds b
 
 ## Measurements
 
-These measurements come from the Check logs and the job and step timestamps returned by `gh run view <id> --json jobs`. Browser durations come from Playwright's summary, so they exclude installation and the fast check.
+These measurements come from the Check logs and the job and step timestamps returned by `gh run view <id> --json jobs`. Browser durations come from Playwright's summary, so they exclude installation and the fast check. Case durations use the rounded values that Playwright reports.
 
 | Run                                                                           | Head      | Cases | Browser phase |       Whole check job |
 | ----------------------------------------------------------------------------- | --------- | ----: | ------------: | --------------------: |
@@ -37,21 +37,40 @@ An [unchanged rerun of the failed jobs](https://github.com/radenadam/portolab/ac
 
 The original choice copied the monolithic worker pool and sized only the total work. It did not leave the long cases enough margin for the variation that issue #269 already measured. Case workers share CPU with the server and Chromium, so the new default uses half the CPUs. The measured runners have four CPUs, which gives two case workers. The reliability lens now checks each unit's deadline as well as the whole job when parallelism changes. This changes the pool in CI and keeps the existing local default and slot settings.
 
+### Measurements with two workers
+
+[Run 43888319757](https://github.com/radenadam/portolab/actions/runs/43888319757) at `aa8f795` completed all 688 cases with two case workers per runner, 675 passes, and 13 skips. Its six browser steps took 461, 491, 760, 296, 436, and 557 seconds. No case reached its deadline. The four JavaScript demonstration cases that had repeatedly reached 60 seconds took 33.2, 35.9, 33.2, and 36.1 seconds. The longest layout walk took 72 seconds against its 180-second limit. The longest lesson-practice case took 50.2 seconds against its 120-second limit.
+
+The longest browser step took 12 minutes 40 seconds, so the shard count must be sized again for this pool. Match all 675 passing case durations from this run to the shard lists and divide each shard's sum by two workers. The skipped cases again contribute no duration. Each candidate list contains every one of the 688 cases once.
+
+| Shards | Projected minutes by shard                                 | Longest projection |
+| -----: | ---------------------------------------------------------- | -----------------: |
+|      5 | 8.22, 14.05, 10.47, 5.32, 11.06                            |              14.05 |
+|      6 | 7.57, 7.99, 12.48, 4.84, 7.07, 9.17                        |              12.48 |
+|      7 | 7.55, 5.17, 11.64, 6.71, 2.85, 7.89, 7.31                  |              11.64 |
+|      8 | 7.54, 3.54, 9.02, 7.86, 4.89, 3.18, 7.13, 5.95             |               9.02 |
+|      9 | 7.53, 1.15, 7.30, 9.21, 5.11, 2.58, 4.40, 6.67, 5.17       |               9.21 |
+|     10 | 7.24, 0.98, 5.14, 8.91, 5.77, 4.70, 0.86, 4.62, 6.56, 4.34 |               8.91 |
+
+Eight is the smallest candidate whose longest projection stays below ten minutes with the chosen two-worker pool. Every shard contains 86 cases. Nine makes the longest projection slower. Ten saves about seven seconds on that projection but repeats installation and a build on two more runners.
+
+Each observed browser step took about 6 to 12 seconds longer than its projection from the case timings with two workers. Using the 1.464 median duration ratio from issue #269 as a scenario gives a longest projection of about 13.2 minutes for eight shards, before this overhead. This leaves more than six minutes below the 20-minute step limit. The longest of the four demonstration journeys becomes about 52.9 seconds at that ratio, below its unchanged 60-second deadline.
+
 ## Decision
 
-Run `pnpm check:fast` in its own job and split the browser suite into six independent jobs with Playwright's `--shard=i/6`. Use half the CPUs for case workers unless a check slot selects a smaller pool. Keep the assertions, case deadlines, and zero retries. The existing `fullyParallel` setting allows [Playwright to shard individual tests](https://playwright.dev/docs/test-sharding#balancing-shards).
+Run `pnpm check:fast` in its own job and split the browser suite into eight independent jobs with Playwright's `--shard=i/8`. Use half the CPUs for case workers unless a check slot selects a smaller pool. Keep the assertions, case deadlines, and zero retries. The existing `fullyParallel` setting allows [Playwright to shard individual tests](https://playwright.dev/docs/test-sharding#balancing-shards).
 
 Each browser job installs through the existing cached `pnpm/setup` action, installs Chromium through the existing browser action, builds once, and runs only its shard. The fast job installs once and runs its existing build and size check without installing Chromium. The gate checks out the code and runs a Node script that needs no package installation or build. Local `pnpm check` still runs the fast check and complete browser suite in sequence.
 
-Use explicit job ids so `needs` gives the gate a separate result for every shard. The browser jobs reuse their steps through [YAML anchors supported by GitHub](https://docs.github.com/en/actions/reference/workflows-and-actions/reusing-workflow-configurations#yaml-anchors-and-aliases). The required job keeps the name `check`, uses `always()`, and waits for the fast job and all six browser jobs. It fails for every result other than `success`, including a missing result, cancellation, or skip. Its tests compare the expected jobs with the workflow and exercise all unsuccessful results and malformed inputs through the gate code.
+Use explicit job ids so `needs` gives the gate a separate result for every shard. The browser jobs reuse their steps through [YAML anchors supported by GitHub](https://docs.github.com/en/actions/reference/workflows-and-actions/reusing-workflow-configurations#yaml-anchors-and-aliases). The required job keeps the name `check`, uses `always()`, and waits for the fast job and all eight browser jobs. It fails for every result other than `success`, including a missing result, cancellation, or skip. Its tests compare the expected jobs with the workflow and exercise all unsuccessful results and malformed inputs through the gate code.
 
-Every job and step keeps a time limit. Browser execution has a 20-minute step limit within a 35-minute job, which leaves room beyond the projected duration and time to upload evidence after a step timeout. Each failed shard uploads `test-results/` and `playwright-report/` under a unique artifact name for seven days. There is no sibling cancellation on a shard failure, so the other shards finish their coverage and retain their own evidence.
+Every job and step keeps a time limit. Browser execution has a 20-minute step limit within a 35-minute job. The two-worker projections and variation scenario above size the step margin. The job leaves time for setup and for uploading evidence after a step timeout. Each failed shard uploads `test-results/` and `playwright-report/` under a unique artifact name for seven days. There is no sibling cancellation on a shard failure, so the other shards finish their coverage and retain their own evidence.
 
 ## Alternatives
 
 - **Keep one browser runner and raise its limit.** The observed complete runs already take tens of minutes, and the growing suite keeps increasing that wait.
-- **Use four or five shards.** The latest measurements project more than the ten-minute target before growth.
-- **Use seven shards.** The case-level projection leaves its longest shard slower than the longest of six, so the extra setup has no measured benefit.
+- **Use fewer than eight shards.** The two-worker measurements project more than the ten-minute target for five, six, or seven shards before growth. Six already took 12 minutes 40 seconds in the complete two-worker run.
+- **Use nine or ten shards.** Nine has a slower longest projection than eight. Ten saves about seven seconds while repeating setup on two more runners.
 - **Keep one case worker per CPU.** The two sharded runs still exhausted individual case deadlines even though the shards finished. A smaller pool leaves CPU for the server and browser processes without enlarging those deadlines.
 - **Use a matrix and judge its aggregate result.** A matrix gives `needs` one result for the matrix job, which cannot name every unsuccessful shard. Collecting per-shard artifacts or querying the jobs API would add another failure path to the gate.
 - **Build in a separate job and transfer the build.** A build is short compared with the browser suite. Transferring its generated server and client files would add an artifact dependency and download on every shard. Each shard instead builds once, without repeating the fast checks.

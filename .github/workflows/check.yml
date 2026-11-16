@@ -14,7 +14,7 @@ permissions:
   contents: read
 
 env:
-  BROWSER_SHARDS: "6"
+  BROWSER_SHARDS: "8"
 
 jobs:
   fast:
@@ -120,11 +120,37 @@ jobs:
       SHARD_INDEX: "6"
     steps: *browser-steps
 
+  browser-7:
+    name: browser-7
+    runs-on: ubuntu-latest
+    timeout-minutes: *browser-job-timeout
+    env:
+      SHARD_INDEX: "7"
+    steps: *browser-steps
+
+  browser-8:
+    name: browser-8
+    runs-on: ubuntu-latest
+    timeout-minutes: *browser-job-timeout
+    env:
+      SHARD_INDEX: "8"
+    steps: *browser-steps
+
   check:
     name: check
     if: ${{ always() }}
     needs:
-      [fast, browser-1, browser-2, browser-3, browser-4, browser-5, browser-6]
+      [
+        fast,
+        browser-1,
+        browser-2,
+        browser-3,
+        browser-4,
+        browser-5,
+        browser-6,
+        browser-7,
+        browser-8,
+      ]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

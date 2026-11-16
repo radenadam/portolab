@@ -57,8 +57,12 @@ test("names every missing or malformed result and every unsuccessful job togethe
     'CHECK_RESULTS: the job browser-2 must succeed, but its result is "skipped".',
     "CHECK_RESULTS must have a string at browser-3.result, but browser-3.result is 0.",
     "CHECK_RESULTS must have a string at browser-4.result, but browser-4.result is missing.",
-    "CHECK_RESULTS must have a string at browser-5.result, but browser-5.result is missing.",
-    "CHECK_RESULTS must have a string at browser-6.result, but browser-6.result is missing.",
+    ...checkJobIds
+      .slice(5)
+      .map(
+        (job) =>
+          `CHECK_RESULTS must have a string at ${job}.result, but ${job}.result is missing.`,
+      ),
   ]);
   expect(checkJobProblems({}, source)).toEqual(
     checkJobIds.map(
