@@ -1,4 +1,6 @@
 import { expect, test } from "vitest";
+import { switchLocaleForTest } from "./switch-locale-for-test";
+import { writeIntlSpacesForTest } from "./write-intl-spaces-for-test";
 import {
   digitGrouping,
   formatList,
@@ -33,7 +35,6 @@ import {
 import { languageNames } from "./language-names";
 import { locales } from "./paraglide/runtime.js";
 import type { Locale } from "./paraglide/runtime.js";
-import { switchLocaleForTest } from "./switch-locale-for-test";
 import { beta } from "./units/beta";
 import { bytes } from "./units/bytes";
 import { correlation } from "./units/correlation";
@@ -43,7 +44,6 @@ import { monthlyVariance } from "./units/monthly-variance";
 import { rupiah } from "./units/rupiah";
 import { sharpeRatio } from "./units/sharpe-ratio";
 import { splitAdjustedRupiah } from "./units/split-adjusted-rupiah";
-import { writeIntlSpacesForTest } from "./write-intl-spaces-for-test";
 
 // 09:13 UTC is 16:13 WIB, whose time of day takes AM or PM in English.
 const quotedAt = new Date("2026-11-17T09:13:00Z");

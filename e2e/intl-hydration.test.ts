@@ -12,7 +12,7 @@ import { studentOfNewClass } from "./student-of-new-class.ts";
 // The browser of a reader can ship other data of Intl than Node, such as the narrow no-break space that CLDR 42 writes before AM or PM in English. This browser writes it wherever its data writes a space, while the server writes the spaces of Node.
 const browserSpace = "\u202f";
 
-// The fixture price source quoted BMRI at 16:14 WIB, and storeActivityOrders fills five orders, of which a sale fills at the price quoted at 10:05 WIB. The delay of the price source is 10 minutes.
+// The times are those of the quote of BMRI in fixture-price-source.server.ts and of the filled sale of storeActivityOrders, and the delay is the one of the fixture price source.
 const texts: Record<
   Locale,
   {

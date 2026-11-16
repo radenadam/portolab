@@ -8,14 +8,14 @@ import type { Rule } from "eslint";
 // A collator and a segmenter write no text of their own, so the modules that sort or split a text keep them.
 const formatsWithoutText = new Set(["Collator", "Segmenter"]);
 
-// These methods format a number, a date, or an array with Intl behind it.
+// Number, Date, and Array format their values with Intl through these methods, so they write the data of the engine too.
 const localeMethods = new Set([
   "toLocaleString",
   "toLocaleDateString",
   "toLocaleTimeString",
 ]);
 
-/** Each engine ships its own data of Intl, so the rule follows every read of Intl, through an alias or the global object as well, rather than one spelling of a format. */
+/** A module can reach a format of Intl through an alias, a destructured name, or the global object, so the rule follows every read of Intl rather than one spelling of a format. */
 export const intlFormats: Rule.RuleModule = {
   meta: {
     type: "problem",
