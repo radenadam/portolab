@@ -1,0 +1,5 @@
+# Decision 0050 needs different access rules for the home network and the VPS.
+{args[0]} {
+	{block}
+	reverse_proxy 127.0.0.1:3001
+}
