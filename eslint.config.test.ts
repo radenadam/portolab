@@ -685,6 +685,8 @@ test(
     for (const [filePath, path] of [
       ["app/root.tsx", "./features/market-data/quote-change"],
       ["app/routes.ts", "~/features/market-data/quote-change"],
+      ["app/entry.client.tsx", "./features/theme/initial-theme"],
+      ["app/entry.server.tsx", "./features/theme/theme-cookie.server"],
       ["server/app.ts", "~/features/market-data/quote-change"],
       ["server/account.ts", "../app/features/market-data/quote-change.ts"],
     ] as const) {
