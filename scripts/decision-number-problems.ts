@@ -43,6 +43,7 @@ export function decisionNumberProblems(folder: string): string[] {
     }
   }
   const indexPath = `${folder}/index.txt`;
+  problems.push(...decisionStatusProblems(folder, filenames));
   const index = readTextFile(indexPath);
   const expected = filenames.length === 0 ? "" : `${filenames.join("\n")}\n`;
   if (!index.ok) {
@@ -50,6 +51,35 @@ export function decisionNumberProblems(folder: string): string[] {
   } else if (index.value.replaceAll("\r\n", "\n") !== expected) {
     problems.push(
       `${indexPath} must be ${describeValue(expected)}, but it is ${describeValue(index.value)}. Update its list of decision filenames with the record in your pull request.`,
+    );
+  }
+  return problems;
+}
+
+function decisionStatusProblems(
+  folder: string,
+  filenames: readonly string[],
+): string[] {
+  const problems: string[] = [];
+  for (const filename of filenames) {
+    const path = `${folder}/${filename}`;
+    const text = readTextFile(path);
+    if (!text.ok) {
+      problems.push(text.failure);
+      continue;
+    }
+    const status = text.value
+      .split(/\r?\n/u)
+      .find((line) => /^-\s+Status:/u.test(line));
+    const continuation = status?.match(/^-\s+Status:\s*Accepted\b(.*)$/u)?.[1];
+    if (
+      continuation === undefined ||
+      continuation.trim() === "" ||
+      continuation.startsWith(".")
+    )
+      continue;
+    problems.push(
+      `${path}: write a period after "Accepted" before the next sentence in its status, but the line is ${describeValue(status)}.`,
     );
   }
   return problems;
