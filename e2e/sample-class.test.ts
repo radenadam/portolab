@@ -123,19 +123,30 @@ const test = base.extend<{ sample: SampleSite }>({
 
 const texts: Record<
   Locale,
-  { sample: string; classTitle: string; studentTitle: string; demo: string }
+  {
+    sample: string;
+    classTitle: string;
+    studentTitle: string;
+    demo: string;
+    mapTitle: string;
+    own: string;
+  }
 > = {
   id: {
     sample: "Data contoh",
     classTitle: "Manajemen Portofolio Contoh",
     studentTitle: "Nilai portofolio",
     demo: "Portofolio demonstrasi",
+    mapTitle: "Peta saham LQ45",
+    own: "Portofolio Anda",
   },
   en: {
     sample: "sample class",
     classTitle: "Manajemen Portofolio Contoh",
     studentTitle: "Portfolio value",
     demo: "Demonstration portfolio",
+    mapTitle: "LQ45 stock map",
+    own: "Your portfolio",
   },
 };
 
@@ -185,6 +196,19 @@ for (const locale of locales) {
           await expectCompanyLogo(image, "square");
         await captureScreens(reader, testInfo, {
           name: `sample-${role}-${locale}`,
+          fullPage: true,
+          fromTop: true,
+        });
+        await reader.goto(`${sample.url}/classes/1/market?view=map`);
+        const marketMap = reader.getByRole("region", {
+          name: texts[locale].mapTitle,
+        });
+        await expect(marketMap.getByRole("slider")).toBeVisible();
+        await expect(
+          marketMap.locator('[data-map-label="point"]'),
+        ).toContainText([texts[locale].own]);
+        await captureScreens(reader, testInfo, {
+          name: `sample-market-map-${role}-${locale}`,
           fullPage: true,
           fromTop: true,
         });

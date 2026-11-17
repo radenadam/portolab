@@ -1,4 +1,4 @@
-# 0056. The owner supplies company logos outside the repository
+# 0057. The owner supplies company logos outside the repository
 
 - Status: Accepted
 - Date: 2026-11-17
@@ -16,7 +16,7 @@ The existing tile variants reused control or default corners instead of all the 
 - The owner crops and centers each mark before export, following [the deployment guide](../deploy.md#optional-company-logos). A wide mark fills the tile's width with the smaller padding of the approved prototype. Each variant has its own size and corner tokens from that prototype, on a white ground in both themes. The letters keep the text baseline beneath the image. A failed browser image request restores the monogram.
 - The optional Compose override mounts the external folder read-only in both the main and sample services. It preserves their separate database volumes. Neither the server nor the sample command downloads or writes logos. The sample's existing holdings and orders already exercise the shared tile.
 - Public source addresses and the parts used by the prototype live in [the source list](../company-logo-sources.md). No real logo enters the repository, its tests, or its screenshots.
-- Saham has a JavaScript ceiling of 213.6 kB gzip, and its ticket has a ceiling of 221.5 kB gzip. Pasar has a CSS ceiling of 20.1 kB gzip. The other ceilings keep their rules. The measurements below follow the complete dependency walk of decisions 0038 and 0042, with kB meaning 1,000 bytes. The build uses the code of main at `21dce2a` before this change.
+- Route ceilings remain governed by [decision 0056](0056-the-market-map-has-measured-route-allowances.md). The initial measurements below follow the complete dependency walk of decisions 0038 and 0042, with kB meaning 1,000 bytes. They use main at `21dce2a` before the market-map merge.
 
 | Dependency set | Main JavaScript kB | With logos JavaScript kB | Main CSS kB | With logos CSS kB |
 | -------------- | -----------------: | -----------------------: | ----------: | ----------------: |
@@ -25,7 +25,16 @@ The existing tile variants reused control or default corners instead of all the 
 | Saham          |             213.36 |                   213.54 |       20.39 |             20.49 |
 | Ticket         |             221.28 |                   221.46 |       23.16 |             23.27 |
 
-The tile reads the existing root loader data, so its catalogue needs no shared client provider. Its image, shared path builder, and request-failure fallback add about 0.18 kB to each route that draws tiles. Prepared tiles need no image library in the browser. Pasar exceeds its earlier CSS ceiling by 28 bytes after the image and variant rules, so its measured allowance keeps those rules together in the shared tile instead of copying them into individual screens.
+The tile reads the existing root loader data, so its catalogue needs no shared client provider. Its image, shared path builder, and request-failure fallback add about 0.18 kB to each route that draws tiles. Prepared tiles need no image library in the browser. After merging the market map at `81ab185`, the combined build fits the ceilings of decision 0056, so this change raises none.
+
+The combined build after that merge measures:
+
+| Dependency set | JavaScript kB | CSS kB |
+| -------------- | ------------: | -----: |
+| Shared         |        140.21 |   7.53 |
+| Pasar          |        198.55 |  20.43 |
+| Saham          |        213.85 |  20.49 |
+| Ticket         |        221.78 |  23.27 |
 
 ## Alternatives
 

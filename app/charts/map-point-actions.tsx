@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode, MouseEventHandler } from "react";
+import { Link } from "react-router";
 import { PopoverButton } from "~/popover";
 import { m } from "~/paraglide/messages.js";
 import { percentOf } from "./plot";
@@ -12,11 +13,11 @@ export function MapPointActions({
 }: {
   drawn: readonly DrawnPoint[];
   style: CSSProperties;
-  onActivate: MouseEventHandler<HTMLButtonElement>;
+  onActivate: MouseEventHandler<HTMLElement>;
 }): ReactNode {
   const actions: ReactNode[] = [];
   for (const { point, placed: mark } of drawn) {
-    if (point.popover === undefined) continue;
+    if (point.popover === undefined && point.href === undefined) continue;
     actions.push(
       <span
         key={point.key}
@@ -26,14 +27,25 @@ export function MapPointActions({
           top: percentOf(mark.position.y),
         }}
       >
-        <PopoverButton
-          popover={point.popover}
-          onClick={onActivate}
-          label={m.app_map_calculation_label({ name: point.name })}
-          className={styles["pointButton"]}
-        >
-          <span className={styles["pointFocus"]} />
-        </PopoverButton>
+        {point.href !== undefined ? (
+          <Link
+            to={point.href}
+            className={styles["pointButton"]}
+            aria-label={point.name}
+            onClick={onActivate}
+          >
+            <span className={styles["pointFocus"]} />
+          </Link>
+        ) : point.popover !== undefined ? (
+          <PopoverButton
+            popover={point.popover}
+            onClick={onActivate}
+            label={m.app_map_calculation_label({ name: point.name })}
+            className={styles["pointButton"]}
+          >
+            <span className={styles["pointFocus"]} />
+          </PopoverButton>
+        ) : null}
       </span>,
     );
   }

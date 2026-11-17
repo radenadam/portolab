@@ -146,7 +146,7 @@ export function createApp(services: Services): RequestHandler {
   const app = Router();
   app.get(companyLogoPath(":code"), (request, response) => {
     const code = parseStockCode(
-      request.params.code,
+      request.params["code"],
       "The company logo code",
       trackedStockCodes,
     );

@@ -112,6 +112,51 @@ test("accepts the index with the line endings of Windows", () => {
   expect(decisionNumberProblems(folder)).toEqual([]);
 });
 
+test.each([
+  "- Status: Accepted",
+  "- Status: Accepted \t",
+  "- Status: Accepted. [Decision 0040](0040-next.md) replaces its rule.",
+  "- Status: Superseded by [decision 0040](0040-next.md)",
+])("accepts a complete status: %s", (status) => {
+  const folder = decisionsFolder(["0039-record.md"]);
+  writeFileSync(
+    join(folder, "0039-record.md"),
+    `# Record\r\n\r\n${status}\r\n`,
+  );
+  expect(decisionNumberProblems(folder)).toEqual([]);
+});
+
+test.each([
+  "- Status: Accepted [Decision 0040](0040-next.md) replaces its rule.",
+  "- Status: Accepted\t[Decision 0040](0040-next.md) replaces its rule.",
+  "- Status: Accepted\u00a0[Decision 0040](0040-next.md) replaces its rule.",
+  "- Status: Accepted[Decision 0040](0040-next.md) replaces its rule.",
+  "- Status:Accepted, [Decision 0040](0040-next.md) replaces its rule.",
+  "-\tStatus:\tAccepted [Decision 0040](0040-next.md) replaces its rule.",
+  "- Status: Accepted . [Decision 0040](0040-next.md) replaces its rule.",
+])("rejects a continuation after bare Accepted: %j", (status) => {
+  const folder = decisionsFolder(["0039-record.md"]);
+  writeFileSync(join(folder, "0039-record.md"), `# Record\n\n${status}\n`);
+  expect(decisionNumberProblems(folder)).toEqual([
+    `${folder}/0039-record.md: write a period after "Accepted" before the next sentence in its status, but the line is ${JSON.stringify(status)}.`,
+  ]);
+});
+
+test("ignores status examples after the metadata and in unnumbered documents", () => {
+  const folder = decisionsFolder(
+    ["0039-record.md", "README.md"],
+    ["0039-record.md"],
+  );
+  const example =
+    "- Status: Accepted [Decision 0040](0040-next.md) replaces its rule.";
+  writeFileSync(
+    join(folder, "0039-record.md"),
+    `# Record\n\n- Status: Accepted\n\n\u0060\u0060\u0060md\n${example}\n\u0060\u0060\u0060\n`,
+  );
+  writeFileSync(join(folder, "README.md"), example);
+  expect(decisionNumberProblems(folder)).toEqual([]);
+});
+
 test("passes on the failure when the index cannot be read", () => {
   const folder = decisionsFolder(["0037-a.md"]);
   const path = join(folder, "index.txt");
