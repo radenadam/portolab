@@ -60,6 +60,7 @@ export default [
   ]),
   route("join", "features/classes/join-page.tsx"),
   route("join/:code", "features/classes/join-class-page.tsx"),
+  route("theme", "features/theme/theme-page.tsx"),
   route("language", "features/language/language-page.tsx"),
   route("health", "features/health/health-route.ts"),
   route("*", "not-found-page.tsx"),

@@ -1,3 +1,4 @@
+import { ThemeSwitch } from "~/features/theme/theme-switch";
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
@@ -36,7 +37,10 @@ export function ProfileMenu({
           {m.accounts_guide_link()}
         </Link>
       )}
-      <div className={styles["language"]}>
+      <div className={styles["preferences"]}>
+        <ThemeSwitch />
+      </div>
+      <div className={styles["preferences"]}>
         <LanguageSwitch />
       </div>
       <hr className={popoverStyles["separator"]} />

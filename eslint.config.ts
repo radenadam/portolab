@@ -163,7 +163,7 @@ function featureContextRules(feature: string): Linter.Config {
 }
 
 const featureImport =
-  "A module outside the features never imports from a feature, as the section Structure of AGENTS.md states. Only app/root.tsx, app/routes.ts, server/app.ts, and server/account.ts compose the app from its features.";
+  "A module outside the features never imports from a feature, as the section Structure of AGENTS.md states. Only app/root.tsx, app/routes.ts, app/entry.client.tsx, app/entry.server.tsx, server/app.ts, and server/account.ts compose the app from its features.";
 
 export default defineConfig(
   globalIgnores([
@@ -257,11 +257,13 @@ export default defineConfig(
   },
   {
     files: ["app/**/*.{ts,tsx}", "server/**/*.ts"],
-    // The root route, the route table, the services of the server, and the account command compose the app from its features, so they are the only modules outside the features that may import them.
+    // The document entries need preferences even when middleware refuses a request before its loaders run.
     ignores: [
       "app/features/**",
       "app/root.tsx",
       "app/routes.ts",
+      "app/entry.client.tsx",
+      "app/entry.server.tsx",
       "server/app.ts",
       "server/account.ts",
     ],

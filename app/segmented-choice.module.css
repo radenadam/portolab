@@ -16,10 +16,15 @@
   content: "";
 }
 
-:where(.choice) a {
+:where(.choice) :is(a, button) {
   position: relative;
   isolation: isolate;
   display: flex;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: var(--choice-weight, inherit);
+  cursor: pointer;
   min-block-size: var(--size-touch-target);
   align-items: center;
   justify-content: center;
@@ -28,16 +33,16 @@
   text-decoration: none;
 }
 
-:where(.choice) a[aria-current] {
+:where(.choice) :is(a[aria-current], button[aria-pressed="true"]) {
   color: var(--color-ink);
   font-weight: 600;
 }
 
-:where(.choice) a[aria-current]::before {
+:where(.choice) :is(a[aria-current], button[aria-pressed="true"])::before {
   position: absolute;
   inset: var(--choice-inset, calc(var(--space-2) - var(--size-line))) 0;
   z-index: -1;
-  border-radius: var(--radius-button);
+  border-radius: var(--choice-radius, var(--radius-button));
   background: var(--color-panel);
   box-shadow: var(--shadow-choice);
   content: "";

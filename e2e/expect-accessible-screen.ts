@@ -7,7 +7,10 @@ import { sidewaysProblems } from "./expect-layout.ts";
 // The section "Interface behavior" of AGENTS.md sets this as the smallest touch target, and axe does not check it.
 const smallestTargetHeight = 44;
 
-const colorSchemes = ["light", "dark"] as const;
+const themeCases = [
+  { theme: "light", colorScheme: "dark" },
+  { theme: "dark", colorScheme: "light" },
+] as const;
 
 /** Axe runs page scripts, so callers keep JavaScript enabled. holdClientScripts can pause the app's scripts while axe checks server HTML. */
 export async function expectAccessibleScreen(page: Page): Promise<void> {
@@ -29,17 +32,26 @@ export async function expectAccessibleScreen(page: Page): Promise<void> {
   const startColorScheme = await page.evaluate(() =>
     matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",
   );
-  // Each theme has its own colors, so axe checks the contrast of each.
-  for (const colorScheme of colorSchemes) {
-    await page.emulateMedia({ colorScheme });
-    const results = await new AxeBuilder({ page }).analyze();
-    expect(
-      results.violations,
-      `Axe found violations in the ${colorScheme} theme.`,
-    ).toEqual([]);
+  const startTheme = await page.locator("html").getAttribute("data-theme");
+  try {
+    for (const { theme, colorScheme } of themeCases) {
+      await page.emulateMedia({ colorScheme });
+      await page.locator("html").evaluate((element, choice) => {
+        element.setAttribute("data-theme", choice);
+      }, theme);
+      const results = await new AxeBuilder({ page }).analyze();
+      expect(
+        results.violations,
+        `Axe found violations with ${theme} chosen on a ${colorScheme} device.`,
+      ).toEqual([]);
+    }
+  } finally {
+    await page.locator("html").evaluate((element, theme) => {
+      if (theme === null) element.removeAttribute("data-theme");
+      else element.setAttribute("data-theme", theme);
+    }, startTheme);
+    await page.emulateMedia({ colorScheme: startColorScheme });
   }
-  // A caller may test more of the page after this check, and it expects the theme that it chose.
-  await page.emulateMedia({ colorScheme: startColorScheme });
   // The styles size targets with the token in app/theme.css, so the token must hold the same height.
   const tokenHeight = await page.evaluate(() => {
     const probe = document.createElement("div");

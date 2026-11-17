@@ -192,6 +192,9 @@ const routePages: Record<string, readonly RoutePage[]> = {
     { reader: "visitor", path: ({ joinPath }) => joinPath, reading: true },
     { reader: "visitor", path: () => "/join/invalid", reading: true },
   ],
+  "features/theme/theme-page.tsx": [
+    { reader: "visitor", path: () => "/theme", reading: true },
+  ],
   "features/language/language-page.tsx": [
     { reader: "visitor", path: () => "/language", reading: true },
   ],
