@@ -46,7 +46,7 @@ const texts: Record<
     bbca: ["Bank Central Asia Tbk", "Keuangan", "4.980", "▲", "+0,81%"],
     ihsg: ["5.057,05", "▼", "-0,80%", "16.00"],
     tlkm: ["1.980", "0,00%"],
-    bmri: ["3.720", "29 Okt 2026", "16.14"],
+    bmri: ["3.720", "29 Okt 2026"],
     goto: ["GoTo Gojek Tokopedia Tbk", "Teknologi", "24", "▲", "+33,33%"],
     itmg: [
       "Indo Tambangraya Megah Tbk",
@@ -77,7 +77,7 @@ const texts: Record<
     bbca: ["Bank Central Asia Tbk", "Financials", "IDR 4,980", "▲", "+0.81%"],
     ihsg: ["5,057.05", "▼", "-0.80%", "4:00 PM"],
     tlkm: ["IDR 1,980", "0.00%"],
-    bmri: ["IDR 3,720", "Oct 29, 2026", "4:14 PM"],
+    bmri: ["IDR 3,720", "Oct 29, 2026"],
     goto: ["GoTo Gojek Tokopedia Tbk", "Technology", "IDR 24", "▲", "+33.33%"],
     itmg: [
       "Indo Tambangraya Megah Tbk",
