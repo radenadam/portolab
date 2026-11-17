@@ -95,7 +95,7 @@ function readPngChunk(bytes: Buffer, offset: number): Result<PngChunk, string> {
   if (
     crc32(bytes.subarray(offset + 4, end - 4)) !== bytes.readUInt32BE(end - 4)
   )
-    return fail(`an invalid checksum in the PNG chunk "${kind}"`);
+    return fail(`an invalid checksum in the PNG chunk ${describeValue(kind)}`);
   return succeed({ kind, data: bytes.subarray(offset + 8, end - 4), end });
 }
 
@@ -119,7 +119,7 @@ function acceptPngChunk(
     return succeed(undefined);
   }
   if (!validAncillaryChunk(chunk.kind))
-    return fail(`an unsupported PNG chunk "${chunk.kind}"`);
+    return fail(`an unsupported PNG chunk ${describeValue(chunk.kind)}`);
   state.endedData = state.compressed.length > 0;
   return succeed(undefined);
 }

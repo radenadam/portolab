@@ -139,3 +139,25 @@ test("rejects other dimensions, pixel depths, color modes, and interlacing even 
     expect(parseCompanyLogo(image, "BBCA.png").ok).toBe(false);
   }
 });
+
+test("describes a rejected chunk name with quotes and control characters in its full failure", () => {
+  for (const [withChecksum, reason] of [
+    [false, "an invalid checksum in the PNG chunk"],
+    [true, "an unsupported PNG chunk"],
+  ] as const) {
+    const image = Buffer.from(companyLogoForTest("square"));
+    const imageHeaderBytes = 33;
+    const kindOffset = imageHeaderBytes + 4;
+    const checksumOffset =
+      kindOffset + 4 + image.readUInt32BE(imageHeaderBytes);
+    const kind = 'I"\nT';
+    image.write(kind, kindOffset, "latin1");
+    const checksum = crc32(image.subarray(kindOffset, checksumOffset));
+    if (withChecksum) image.writeUInt32BE(checksum, checksumOffset);
+    expect(image.readUInt32BE(checksumOffset) === checksum).toBe(withChecksum);
+    expect(parseCompanyLogo(image, "BBCA.png")).toEqual({
+      ok: false,
+      failure: `BBCA.png must be a complete 96 by 96 PNG with 8-bit RGBA pixels, no interlacing, and at most 100000 bytes, but its ${String(image.length)} bytes have ${reason} ${JSON.stringify(kind)}.`,
+    });
+  }
+});
