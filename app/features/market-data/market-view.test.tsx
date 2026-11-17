@@ -141,7 +141,7 @@ for (const locale of locales) {
     switchLocaleForTest(locale);
     const context = await marketContextForTest();
     const props = await marketViewPropsForTest(context);
-    // The live browser run can cross midnight WIB, when the recorded review adds PWON.
+    // Fixed dates keep the sector transition covered after the live membership changes.
     for (const [now, empty] of [
       [new Date("2026-11-17T16:59:59.999Z"), true],
       [new Date("2026-11-17T17:00:00.000Z"), false],
