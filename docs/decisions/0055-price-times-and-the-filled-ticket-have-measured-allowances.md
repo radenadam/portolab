@@ -1,6 +1,6 @@
 # 0055. Price times and the filled ticket have measured allowances
 
-- Status: Accepted
+- Status: Accepted. [Decision 0056](0056-the-market-map-has-measured-route-allowances.md) replaces its JavaScript ceilings for Saham, the ticket, Analisis, and demonstration analysis.
 - Date: 2026-11-17
 
 ## Context

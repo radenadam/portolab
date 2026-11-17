@@ -14,6 +14,10 @@
   gap: var(--space-3);
 }
 .tools h1 {
+  margin: 0;
+}
+.viewChoice {
+  composes: choice intrinsic from "../../segmented-choice.module.css";
   margin-inline-end: auto;
 }
 .search {
@@ -385,14 +389,6 @@
     grid-column: 3;
     grid-row: 2;
     font-size: var(--text-small);
-  }
-  .tools {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: end;
-  }
-  .tools h1 {
-    grid-column: 1 / -1;
   }
 }
 @media (width < 30rem) {

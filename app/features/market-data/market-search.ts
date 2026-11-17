@@ -8,7 +8,7 @@ export function marketSearch(
   task?: LessonTask,
 ): string {
   return withLessonTask(
-    `?${new URLSearchParams({ q: filters.query.trim(), sector: filters.sector, sort: filters.sort, direction: filters.direction, range: filters.range }).toString()}`,
+    `?${new URLSearchParams({ q: filters.query.trim(), sector: filters.sector, sort: filters.sort, direction: filters.direction, range: filters.range, view: filters.view, axis: filters.axis, mapRange: filters.mapRange }).toString()}`,
     task,
   );
 }

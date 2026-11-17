@@ -1,4 +1,5 @@
 import type { ComponentProps } from "react";
+import type { RouterContextProvider } from "react-router";
 import { renderInRouterForTest } from "~/render-in-router-for-test";
 import { conceptLessonDataForTest } from "~/features/learning/concept-lesson-data-for-test";
 import type { ClassId } from "~/features/classes/classes.schema";
@@ -31,10 +32,12 @@ export function renderMarketForTest(
     .replaceAll(/<\/?span\b[^>]*>/g, "");
 }
 
-export async function marketViewPropsForTest(): Promise<Props> {
+export async function marketViewPropsForTest(
+  context?: Readonly<RouterContextProvider>,
+): Promise<Props> {
   return {
     ...readMarket(
-      await marketContextForTest(),
+      context ?? (await marketContextForTest()),
       new Date("2026-11-14T00:00:00.000Z"),
       "3m",
     ),
@@ -47,6 +50,9 @@ export async function marketViewPropsForTest(): Promise<Props> {
       sort: undefined,
       direction: undefined,
       range: undefined,
+      view: undefined,
+      axis: undefined,
+      mapRange: undefined,
     },
   };
 }

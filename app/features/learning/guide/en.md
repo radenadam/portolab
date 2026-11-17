@@ -60,6 +60,8 @@ Students have {{label:navigation_home_link}}, {{label:navigation_market_link}}, 
 
 A purchase requires LQ45 membership on the order's trading day and enough monthly history for portfolio measures. A holding that leaves the LQ45 can still be sold. If buying is unavailable, read the reason and next step shown on the stock or ticket. Creating another account will not resolve missing price history.
 
+Choose {{label:market_data_map_label}} to compare stocks by {{label:market_data_beta_label}} or {{label:market_data_map_deviation_label}} and price change over the selected range. Filled points are stocks you hold, hollow points are other stocks, and the yellow point is your portfolio at current weights. Its map change is not the result of trades over that range. Stocks that cannot be placed are listed below the map. Select a point to open its stock, or {{label:market_data_list_label}} to return to the list.
+
 ## orders | Place an order and read its costs
 
 From a stock, choose {{label:trading_buy_label}} or {{label:trading_sell_label}}. Choose {{label:trading_ticket_market_label}} for a market order or {{label:trading_ticket_limit_label}} for a price limit, then enter lots. The ticket checks lot sizes, tick sizes, price limits, cash, and available shares. Review trade value, broker fees, sales tax, and cash afterwards before confirming. If the total changes, review the new preview and confirm again.
