@@ -28,6 +28,7 @@ import { companyLogoForTest } from "../app/features/market-data/company-logo-for
 import { expectCompanyLogo } from "./expect-company-logo.ts";
 import { holdClientScripts } from "./hold-client-scripts.ts";
 import { trackedStockCodes } from "../app/features/market-data/tracked-instruments.ts";
+import { screenshotWidths } from "./screenshot-widths.ts";
 
 const missingLogo = { code: "BBRI", letters: "BB" };
 
@@ -247,60 +248,80 @@ for (const locale of locales) {
     ["student-journal", "/students/2/journal", "lecturer"],
     ["demonstration-activity", "/demonstration/activity", "lecturer"],
   ] as const) {
-    test(`shows owner-supplied tiles on ${name} in the sample class in ${languageNames[locale]}`, async ({
-      sample,
-      browser,
-    }, testInfo) => {
-      const reader = await newDevice(browser, locale, { siteUrl: sample.url });
-      try {
-        await signInSample(reader, sample, role);
-        const errors: string[] = [];
-        reader.on("pageerror", (error) => {
-          errors.push(error.message);
-        });
-        await reader.goto(`${sample.url}/classes/1${suffix}`);
-        if (name === "ticket-done") {
-          await reader.locator('dialog button[type="submit"]').click();
-          await expect(reader.getByRole("status")).toBeVisible();
-        }
-        const visibleContent =
-          ["stock-ticket", "ticket-done"].includes(name) &&
-          testInfo.project.name === "phone"
-            ? reader.locator("dialog")
-            : reader.locator("main");
-        await expect(
-          visibleContent
-            .locator(
-              name === "demonstration-activity"
-                ? 'img[src^="/company-logos/"]:visible'
-                : 'img[src="/company-logos/BBCA.png"]:visible',
-            )
-            .first(),
-        ).toBeVisible();
-        await captureScreens(reader, testInfo, {
-          name: `logos-${name}-${locale}`,
-          fullPage:
-            !["stock-ticket", "ticket-done"].includes(name) ||
-            testInfo.project.name !== "phone",
-          fromTop: true,
-          check: async () => {
-            for (const [code, shape] of [
-              ["BBCA", "square"],
-              ["TLKM", "wide"],
-            ] as const) {
-              for (const image of await visibleContent
-                .locator(`img[src="/company-logos/${code}.png"]:visible`)
-                .all())
-                await expectCompanyLogo(image, shape);
+    const widths: readonly (number | undefined)[] = [
+      "stock",
+      "stock-ticket",
+      "ticket-done",
+    ].includes(name)
+      ? [...screenshotWidths("phone"), ...screenshotWidths("desktop")]
+      : [undefined];
+    for (const width of widths) {
+      test.describe(`${name} at ${width === undefined ? "shared widths" : String(width)}`, () => {
+        if (width !== undefined)
+          test.skip(
+            ({ isMobile }) =>
+              isMobile !== (width === screenshotWidths("phone")[0]),
+            "This reference width belongs to the other device project.",
+          );
+        test(`shows owner-supplied tiles on ${name} in the sample class in ${languageNames[locale]}`, async ({
+          sample,
+          browser,
+        }, testInfo) => {
+          const reader = await newDevice(browser, locale, {
+            siteUrl: sample.url,
+          });
+          try {
+            await signInSample(reader, sample, role);
+            const errors: string[] = [];
+            reader.on("pageerror", (error) => {
+              errors.push(error.message);
+            });
+            await reader.goto(`${sample.url}/classes/1${suffix}`);
+            if (name === "ticket-done") {
+              await reader.locator('dialog button[type="submit"]').click();
+              await expect(reader.getByRole("status")).toBeVisible();
             }
-          },
+            const visibleContent =
+              ["stock-ticket", "ticket-done"].includes(name) &&
+              testInfo.project.name === "phone"
+                ? reader.locator("dialog")
+                : reader.locator("main");
+            await expect(
+              visibleContent
+                .locator(
+                  name === "demonstration-activity"
+                    ? 'img[src^="/company-logos/"]:visible'
+                    : 'img[src="/company-logos/BBCA.png"]:visible',
+                )
+                .first(),
+            ).toBeVisible();
+            await captureScreens(reader, testInfo, {
+              name: `logos-${name}-${locale}`,
+              width,
+              fullPage:
+                !["stock-ticket", "ticket-done"].includes(name) ||
+                testInfo.project.name !== "phone",
+              fromTop: true,
+              check: async () => {
+                for (const [code, shape] of [
+                  ["BBCA", "square"],
+                  ["TLKM", "wide"],
+                ] as const) {
+                  for (const image of await visibleContent
+                    .locator(`img[src="/company-logos/${code}.png"]:visible`)
+                    .all())
+                    await expectCompanyLogo(image, shape);
+                }
+              },
+            });
+            await expectAccessibleScreen(reader);
+            expect(errors).toEqual([]);
+          } finally {
+            await reader.context().close();
+          }
         });
-        await expectAccessibleScreen(reader);
-        expect(errors).toEqual([]);
-      } finally {
-        await reader.context().close();
-      }
-    });
+      });
+    }
   }
 
   test(`restores the native image fallback and serves only the owner tiles in ${languageNames[locale]}`, async ({
