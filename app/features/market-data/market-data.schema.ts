@@ -16,6 +16,8 @@ export const stockQuotes = sqliteTable("stock_quotes", {
   code: text("code").primaryKey(),
   price: integer("price").$type<Rupiah>().notNull(),
   previousClose: integer("previous_close").$type<Rupiah>().notNull(),
+  dayLow: integer("day_low").$type<Rupiah>(),
+  dayHigh: integer("day_high").$type<Rupiah>(),
   quotedAt: integer("quoted_at", { mode: "timestamp_ms" }).notNull(),
   fetchedAt: integer("fetched_at", { mode: "timestamp_ms" }).notNull(),
 });

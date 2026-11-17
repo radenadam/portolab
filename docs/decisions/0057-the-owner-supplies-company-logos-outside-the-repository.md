@@ -25,16 +25,16 @@ The existing tile variants reused control or default corners instead of all the 
 | Saham          |             213.36 |                   213.54 |       20.39 |             20.49 |
 | Ticket         |             221.28 |                   221.46 |       23.16 |             23.27 |
 
-The tile reads the existing root loader data, so its catalogue needs no shared client provider. Its image, shared path builder, and request-failure fallback add about 0.18 kB to each route that draws tiles. Prepared tiles need no image library in the browser. After merging the market map at `81ab185`, the combined build fits the ceilings of decision 0056, so this change raises none.
+The tile reads the existing root loader data, so its catalogue needs no shared client provider. Its image, shared path builder, and request-failure fallback add about 0.18 kB to each route that draws tiles. Prepared tiles need no image library in the browser. After merging main at `2cabb13`, including the market map and daily range, the combined build fits the ceilings of decision 0056, so this change raises none.
 
 The combined build after that merge measures:
 
 | Dependency set | JavaScript kB | CSS kB |
 | -------------- | ------------: | -----: |
-| Shared         |        140.21 |   7.53 |
-| Pasar          |        198.55 |  20.43 |
-| Saham          |        213.85 |  20.49 |
-| Ticket         |        221.78 |  23.27 |
+| Shared         |        140.20 |   7.53 |
+| Pasar          |        198.53 |  20.43 |
+| Saham          |        213.64 |  20.59 |
+| Ticket         |        221.57 |  23.37 |
 
 ## Alternatives
 
