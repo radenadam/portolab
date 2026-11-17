@@ -16,10 +16,8 @@
   display: grid;
 }
 
-.contents a {
-  display: flex;
-  align-items: center;
-  min-height: var(--size-touch-target);
+.contentsLink {
+  composes: standalone-link from global;
 }
 
 .section {

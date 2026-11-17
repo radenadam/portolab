@@ -64,11 +64,17 @@ function MapSpread({ layout }: { layout: RiskMapLayout<unknown> }): ReactNode {
   );
 }
 
+/** A corner of the class map names its quadrant in full on a wide plot and briefly on a narrow one, as the references of decision 0028 draw it. */
+interface CornerText {
+  text: string;
+  wideText: string;
+}
+
 /** The texts of the class map that label its distribution and corners. */
 interface MapSpreadText {
   zeroLabel: string;
   medianLabel: string;
-  corners: readonly [string, string, string, string];
+  corners: readonly [CornerText, CornerText, CornerText, CornerText];
 }
 
 /** Class-only decorations stay with the route that imports them, so a trade map carries no distribution drawing. */
@@ -117,14 +123,17 @@ function SpreadDrawing({
         place={placed.lines.get(mapLineLabelKeys.median)}
         className={styles["medianLabel"]}
       />
-      {spread.corners.map((text, index) => (
-        <MapLabel
-          key={text}
-          text={text}
-          place={placed.lines.get(mapLineLabelKeys.corners[index] ?? "")}
-          className={styles["corner"]}
-        />
-      ))}
+      {spread.corners.map((corner, index) => {
+        const key = mapLineLabelKeys.corners[index] ?? "";
+        return (
+          <MapLabel
+            key={key}
+            text={placed.wideLines.has(key) ? corner.wideText : corner.text}
+            place={placed.lines.get(key)}
+            className={styles["corner"]}
+          />
+        );
+      })}
     </>
   );
 }
@@ -134,10 +143,11 @@ function spreadLabels(map: {
   spread: MapSpreadText;
 }): MapLabels["lines"] {
   const extraLines: MapLabels["lines"][number][] = [];
-  for (const [index, text] of map.spread.corners.entries()) {
+  for (const [index, corner] of map.spread.corners.entries()) {
     extraLines.push({
       key: mapLineLabelKeys.corners[index] ?? "",
-      text,
+      text: corner.text,
+      wideText: corner.wideText,
       places: [
         {
           at: {

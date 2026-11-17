@@ -1,28 +1,30 @@
 import type { ReactNode } from "react";
-import { formatMarketTime, formatMarketTimeParts } from "~/formatting";
-import { m } from "~/paraglide/messages.js";
+import { formatCalendarDate } from "~/formatting";
 import { NumberText } from "~/number-text";
+import { wibDateOf } from "~/wib";
+import { ownQuoteTime } from "./shared-quote-time";
 
-/** One Intl format keeps the date and clock consistent when the layout wraps them. */
+/** The time beside a price, on one line, as ownQuoteTime chooses it. A column too narrow for a date with its time shows a price of another day with its day alone, and the page of the stock, which the row opens, shows its time. */
 export function QuoteTime({
   quotedAt,
   sharedTime,
+  dayAlone = false,
 }: {
   quotedAt: Date;
-  sharedTime?: string | undefined;
+  sharedTime: Date | undefined;
+  dayAlone?: boolean;
 }): ReactNode {
-  if (formatMarketTime(quotedAt) === sharedTime) return null;
-  const { date, clock } = formatMarketTimeParts(quotedAt);
+  const text = ownQuoteTime(quotedAt, sharedTime);
+  if (text === undefined) return null;
+  const isOtherDay =
+    sharedTime === undefined || wibDateOf(quotedAt) !== wibDateOf(sharedTime);
   return (
     <time dateTime={quotedAt.toISOString()}>
-      <span>
-        <NumberText whole>{date}</NumberText>
-      </span>
-      <span>
-        <NumberText whole>
-          {m.market_data_quote_time_label({ time: clock })}
-        </NumberText>
-      </span>
+      <NumberText whole>
+        {dayAlone && isOtherDay
+          ? formatCalendarDate(wibDateOf(quotedAt), "medium")
+          : text}
+      </NumberText>
     </time>
   );
 }

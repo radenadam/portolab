@@ -136,10 +136,6 @@ for (const locale of locales) {
           source={fixturePriceSource}
           firstSessionDate={null}
           reader={{ kind: "lecturer", studentName: student.shortName }}
-          summary={{
-            path: "/classes/7/students/9",
-            label: texts[locale].summary,
-          }}
         />,
         conceptLessonDataForTest(),
       );

@@ -80,3 +80,14 @@ export function valuePortfolio(
           },
   };
 }
+
+/** The codes and the quote times of the priced holdings, behind every value that a screen computes from the prices of a portfolio. */
+export function holdingQuoteTimes(
+  holdings: readonly ValuedHolding[],
+): { code: string; quotedAt: Date }[] {
+  return holdings.flatMap((holding) =>
+    holding.kind === "priced"
+      ? [{ code: holding.code, quotedAt: holding.quote.quotedAt }]
+      : [],
+  );
+}

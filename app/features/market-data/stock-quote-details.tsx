@@ -1,25 +1,32 @@
 import type { ReactNode } from "react";
-import { Link } from "react-router";
-import { homeHoldingsSectionId } from "~/features/trading/home-holdings-section-id";
 import { formatMarketTime, formatRupiah } from "~/formatting";
 import { NumberText } from "~/number-text";
 import { m } from "~/paraglide/messages.js";
+import { OtherQuoteTimes } from "./other-quote-times";
 import type { StockQuote } from "./price-source.server";
+import { sharedQuoteTime } from "./shared-quote-time";
+import { SharedQuoteTimeNotice } from "./shared-quote-time-notice";
 import styles from "./stock-page.module.css";
 
+/** The time of the price of the stock, which the page states once, and the times of the prices of the holdings that differ from it, because the position, the correlation, and the impact of a trade use them. */
 export function StockQuoteDetails({
   quote,
-  hasPortfolioQuotes,
-  portfolio,
+  portfolioQuotes,
 }: {
   quote: Pick<StockQuote, "quotedAt" | "previousClose"> | undefined;
-  hasPortfolioQuotes: boolean;
-  portfolio: { path: string; title: string };
+  /** The prices of the holdings behind the values of the portfolio that the page shows, or none when it shows no such value. */
+  portfolioQuotes: readonly { code: string; quotedAt: Date }[];
 }): ReactNode {
-  if (quote === undefined && !hasPortfolioQuotes) return null;
+  const sharedTime = quote?.quotedAt ?? sharedQuoteTime(portfolioQuotes);
+  if (sharedTime === undefined) return null;
   return (
     <div className={styles["quoteDetails"]}>
-      {quote !== undefined && (
+      {quote === undefined ? (
+        <SharedQuoteTimeNotice
+          moment={sharedTime}
+          className={styles["muted"]}
+        />
+      ) : (
         <p className={styles["muted"]}>
           <NumberText>
             {m.market_data_stock_quote_notice({
@@ -29,17 +36,11 @@ export function StockQuoteDetails({
           </NumberText>
         </p>
       )}
-      {hasPortfolioQuotes && (
-        <Link
-          to={`${portfolio.path}#${homeHoldingsSectionId}`}
-          className={styles["portfolioQuotes"]}
-          aria-label={m.market_data_portfolio_quotes_link({
-            page: portfolio.title,
-          })}
-        >
-          {portfolio.title}
-        </Link>
-      )}
+      <OtherQuoteTimes
+        quotes={portfolioQuotes}
+        sharedTime={sharedTime}
+        className={styles["otherQuoteTimes"]}
+      />
     </div>
   );
 }

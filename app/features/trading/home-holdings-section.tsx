@@ -123,7 +123,7 @@ export function HomeHoldingsSection({
                   <p>{m.trading_home_average_body()}</p>
                 </ConceptHelp>
               </th>
-              <th scope="col">{m.trading_delayed_price_label()}</th>
+              <th scope="col">{m.trading_home_price_label()}</th>
               <th scope="col">{m.trading_value_label()}</th>
               <th scope="col">
                 {m.trading_home_gain_label()}
@@ -251,7 +251,7 @@ export function HomeHoldingsSection({
       </ul>
       <div className={styles["tableNote"]}>
         {sharedTime !== undefined && (
-          <SharedQuoteTimeNotice time={sharedTime} />
+          <SharedQuoteTimeNotice moment={sharedTime} />
         )}
         <p>{m.trading_home_average_notice()}</p>
       </div>

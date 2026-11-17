@@ -39,7 +39,7 @@ export function IhsgCard({
   closes: readonly DailyClose<IndexPoints>[];
   filters: MarketFilters;
   missed: boolean;
-  sharedTime?: string | undefined;
+  sharedTime?: Date | undefined;
   task?: LessonTask | undefined;
 }): ReactNode {
   const first = closes[0];

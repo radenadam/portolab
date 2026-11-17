@@ -28,6 +28,7 @@ A diff range, a set of paths, or a plan, with the intent behind it. In an audit,
 - The [learning content standards](../../app/features/learning/AGENTS.md) for lesson and glossary prose.
 - Whether a heading names the content that it introduces, under the [writing standard](../../AGENTS.md#writing) that a text holds in every branch that produces it.
 - Defaults, empty states, loading states, and failure states, including the state when the price source is unavailable.
+- Prices whose quote times differ by minutes on one date, as the quotes of Yahoo Finance after the close do, in the sample class of decision 0050 as well as in the fixture: each screen states its shared time once, under the price-time standard in [Interface text](../../AGENTS.md#interface-text), and no date wraps apart from its time.
 
 ## Findings
 

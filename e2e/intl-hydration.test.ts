@@ -12,7 +12,7 @@ import { studentOfNewClass } from "./student-of-new-class.ts";
 // The browser of a reader can ship other data of Intl than Node, such as the narrow no-break space that CLDR 42 writes before AM or PM in English. This browser writes it wherever its data writes a space, while the server writes the spaces of Node.
 const browserSpace = "\u202f";
 
-// The times are those of the quote of BMRI in fixture-price-source.server.ts and of the filled sale of storeActivityOrders, and the delay is the one of the fixture price source.
+// The times are those of the quote of KLBF in fixture-price-source.server.ts, which Pasar shows beside its price because it differs from the shared time, and of the filled sale of storeActivityOrders, and the delay is the one of the fixture price source.
 const texts: Record<
   Locale,
   {
@@ -25,7 +25,7 @@ const texts: Record<
   }
 > = {
   id: {
-    quoteTime: "16.14",
+    quoteTime: "16.13",
     fillTime: "10.05",
     delay: "±10\u00a0mnt",
     filter: "Saring menurut status",
@@ -33,7 +33,7 @@ const texts: Record<
     orders: "Order",
   },
   en: {
-    quoteTime: "4:14 PM",
+    quoteTime: "4:13 PM",
     fillTime: "10:05 AM",
     delay: "±10\u00a0min",
     filter: "Filter by status",

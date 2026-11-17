@@ -33,11 +33,11 @@
 .head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: var(--space-2);
   padding: var(--space-3) var(--space-learning-section);
 }
 .head h2 {
+  flex: 1;
   margin: 0;
   color: var(--color-ink);
   font-size: var(--text-statistic);
@@ -261,6 +261,31 @@
   gap: var(--space-4);
   padding: var(--space-learning-section);
 }
+.doneTitle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.doneTitle h3 {
+  margin: 0;
+  font-size: var(--text-statistic);
+}
+.done .breakdown {
+  align-self: stretch;
+}
+.doneReason {
+  color: var(--color-ink-secondary);
+  font-size: var(--text-small);
+}
+.doneActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.primaryLink {
+  composes: button from "../../form.module.css";
+}
 .successMark {
   display: grid;
   place-items: center;
@@ -298,11 +323,7 @@
   }
 }
 
-.head > span:first-child {
-  display: none;
-}
-.desktopTitle,
-.desktopTime {
+.desktopTitle {
   display: none;
 }
 .sellTitle {
@@ -322,20 +343,14 @@
 .ticket:has(form[data-side="buy"]) .sellTitle {
   display: none;
 }
+/* The docked ticket stands beside the header of the stock, which states the time of its price, so only the sheet states it, in the line of its price. */
 @media (width >= 73.75rem) {
-  .head > span:first-child,
-  .desktopTitle,
-  .desktopTime {
+  .desktopTitle {
     display: inline;
   }
   .ticket .head h2 > .buyTitle,
   .ticket .head h2 > .sellTitle {
     display: none;
-  }
-  .desktopTime {
-    color: var(--color-muted);
-    font-size: var(--text-small);
-    margin-inline-start: auto;
   }
 }
 
@@ -364,6 +379,9 @@
   .head {
     padding: var(--space-1) var(--space-2) var(--space-1)
       var(--space-learning-section);
+  }
+  .head > :first-child {
+    display: none;
   }
   .phoneQuote {
     padding-block-start: var(--space-1);

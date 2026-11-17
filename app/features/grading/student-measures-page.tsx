@@ -1,6 +1,3 @@
-import { pathReturningTo } from "~/features/accounts/path-returning-to";
-import { m } from "~/paraglide/messages.js";
-import { studentPortfolioPath } from "./grading-paths";
 import type { ReactNode } from "react";
 import { data } from "react-router";
 import { databaseContext } from "~/database/database.server";
@@ -69,13 +66,6 @@ export default function StudentMeasuresPage({
         <AnalysisView
           {...loaderData}
           reader={{ kind: "lecturer", studentName: student.shortName }}
-          summary={{
-            path: pathReturningTo(
-              studentPortfolioPath(student.classId, student.studentId),
-              returnPath,
-            ),
-            label: m.grading_summary_label(),
-          }}
         />
       )}
     </TaughtStudentPage>

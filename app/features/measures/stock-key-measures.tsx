@@ -3,7 +3,7 @@ import { NumberText } from "~/number-text";
 import type { ClassId } from "~/features/classes/classes.schema";
 import type { ReactNode } from "react";
 import { ConceptCard } from "~/concept-card";
-import { portfolioTitle } from "~/features/trading/portfolio-home";
+import { portfolioTitle } from "~/features/trading/portfolio-title";
 import type { PortfolioKind } from "~/features/trading/portfolio-store.server";
 import { ConceptLesson } from "~/features/learning/concept-lesson";
 import { formatCorrelation, formatPercent } from "~/formatting";

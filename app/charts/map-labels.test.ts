@@ -77,6 +77,7 @@ test("places the name of a point to the right of its mark, where its letters fac
       ["BBCA", { at: point.position, dx: beside, dy: middle, anchor: "start" }],
     ]),
     lines: new Map(),
+    wideLines: new Set(),
     values: new Set(),
   });
 });
@@ -248,6 +249,65 @@ test("places the label of a line at the first of its places that clears every ma
       { size, marks: [covering], widthOf },
     ).lines,
   ).toEqual(new Map());
+});
+
+test("takes the wide texts of fixed labels together where each fills at most 0.4 of the width of the plot, and a short text where its wide text has no clear place", () => {
+  // The wide text is 20 characters, 12 sizes of text wide, so it fits a plot 30 wide and not a plot 29 wide.
+  const corner = {
+    key: "corner0",
+    text: "Tenang",
+    wideText: "Lebih tenang, untung",
+    places: [
+      {
+        at: { x: plotFraction(1), y: plotFraction(0) },
+        dx: -0.25,
+        dy: 1.25,
+        anchor: "end" as const,
+      },
+    ],
+  };
+  const labels = { kept: [], lines: [corner], others: [] };
+  for (const [width, isWide] of [
+    [30, true],
+    [29, false],
+  ] as const) {
+    const placed = placeMapLabels(labels, {
+      size: { width, height: 10 },
+      marks: [],
+      widthOf,
+    });
+    expect(placed.lines.has("corner0")).toBe(true);
+    expect(placed.wideLines.has("corner0")).toBe(isWide);
+  }
+  // A second corner whose wide text of 24 characters needs a plot 36 wide keeps both corners short in a plot 30 wide.
+  const other = {
+    ...corner,
+    key: "corner2",
+    wideText: "Lebih bergejolak, untung",
+    places: [
+      {
+        at: { x: plotFraction(1), y: plotFraction(1) },
+        dx: -0.25,
+        dy: -0.5,
+        anchor: "end" as const,
+      },
+    ],
+  };
+  const together = placeMapLabels(
+    { kept: [], lines: [corner, other], others: [] },
+    { size: { width: 30, height: 10 }, marks: [], widthOf },
+  );
+  expect(together.lines.size).toBe(2);
+  expect(together.wideLines.size).toBe(0);
+  // A mark 8 sizes of text from the right edge covers the wide text of 12 and leaves room for the short text of 3.6, so the label takes its short text.
+  const blocking = mark("BBCA", { x: (30 - 8) / 30, y: 0.12 });
+  const crowded = placeMapLabels(labels, {
+    size: { width: 30, height: 10 },
+    marks: [blocking],
+    widthOf,
+  });
+  expect(crowded.lines.has("corner0")).toBe(true);
+  expect(crowded.wideLines.has("corner0")).toBe(false);
 });
 
 test("refuses a label of a point that the map has no mark of", () => {

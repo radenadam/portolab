@@ -41,7 +41,7 @@ export function IndexHelp({
                 <NumberText>{formatIndexLevel(quote.level)}</NumberText>
               </strong>
             </p>
-            <QuoteTime quotedAt={quote.quotedAt} />
+            <QuoteTime quotedAt={quote.quotedAt} sharedTime={undefined} />
             {missed && (
               <p className={styles["missed"]}>{m.market_data_missed_label()}</p>
             )}

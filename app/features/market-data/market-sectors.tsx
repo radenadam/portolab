@@ -37,7 +37,11 @@ export function MarketSectors({
     );
   return (
     <fieldset className={styles["sectors"]}>
-      <legend>{m.market_data_sector_label()}</legend>
+      <legend
+        className={failure === undefined ? styles["quietLegend"] : undefined}
+      >
+        {m.market_data_sector_label()}
+      </legend>
       <div className={styles["chipList"]}>
         {failure !== undefined && (
           <label className={chipClassName}>

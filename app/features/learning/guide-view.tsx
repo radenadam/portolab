@@ -12,7 +12,11 @@ export function GuideView({ guide }: { guide: GuideContent }): ReactNode {
         <summary>{m.learning_guide_contents_label()}</summary>
         <nav aria-label={m.learning_guide_contents_label()}>
           {guide.sections.map((section) => (
-            <a key={section.id} href={`#${section.id}`}>
+            <a
+              key={section.id}
+              href={`#${section.id}`}
+              className={styles["contentsLink"]}
+            >
               {section.title}
             </a>
           ))}

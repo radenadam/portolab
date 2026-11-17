@@ -140,10 +140,22 @@ export function ClassMap({
             }),
             zeroLabel: m.classes_map_zero_label(),
             corners: [
-              m.classes_map_calm_gain_label(),
-              m.classes_map_wild_gain_label(),
-              m.classes_map_calm_loss_label(),
-              m.classes_map_wild_loss_label(),
+              {
+                text: m.classes_map_calm_gain_label(),
+                wideText: m.classes_map_calm_gain_wide_label(),
+              },
+              {
+                text: m.classes_map_wild_gain_label(),
+                wideText: m.classes_map_wild_gain_wide_label(),
+              },
+              {
+                text: m.classes_map_calm_loss_label(),
+                wideText: m.classes_map_calm_loss_wide_label(),
+              },
+              {
+                text: m.classes_map_wild_loss_label(),
+                wideText: m.classes_map_wild_loss_wide_label(),
+              },
             ],
           })}
         />

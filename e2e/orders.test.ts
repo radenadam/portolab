@@ -173,9 +173,17 @@ for (const locale of locales) {
     expect(await student.title()).toContain(text.title);
     for (const value of [text.value, text.paid, text.after])
       await expect(ticket.getByText(value, { exact: true })).toBeVisible();
+    // The sheet of a phone states the time of its price, and the docked ticket of a desktop leaves it to the header of the stock beside it.
     await expect(
       ticket.getByText(text.quote, { exact: true }).filter({ visible: true }),
-    ).toBeVisible();
+    ).toHaveCount(testInfo.project.name === "phone" ? 1 : 0);
+    if (testInfo.project.name === "desktop")
+      await expect(
+        student
+          .getByRole("main")
+          .getByText(text.quote, { exact: false })
+          .first(),
+      ).toBeVisible();
     await expect(ticket.getByText(text.hint, { exact: true })).toBeVisible();
     // Python Decimal with ROUND_HALF_UP gives 498000 + 747 = 498747 for one lot at the fixture quote.
     await expect(ticket.locator('input[name="seenTotal"]')).toHaveValue(

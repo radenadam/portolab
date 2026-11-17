@@ -34,14 +34,12 @@ const texts: Record<
     trade: string;
     rangeHelp: string;
     betaHelp: string;
-    portfolioQuotes: string;
   }
 > = {
   id: {
-    portfolioQuotes: "Waktu harga portofolio di Beranda",
     rangeHelp: "Apa itu Rentang 52 minggu?",
     betaHelp: "Apa itu Beta?",
-    quote: "30 Okt 2026, 16.14 · penutupan sebelumnya Rp 4.940",
+    quote: "30 Okt 2026, 16.14 WIB · penutupan sebelumnya Rp 4.940",
     trade: "Order saham",
     title: "Saham BBCA",
     back: "Kembali ke Pasar",
@@ -62,10 +60,9 @@ const texts: Record<
       "Belum ada harga penutupan dalam rentang ini. Periksa kembali setelah pembaruan riwayat harga menyimpan penutupan dalam rentang ini.",
   },
   en: {
-    portfolioQuotes: "Portfolio quote times in Home",
     rangeHelp: "What is 52-week range?",
     betaHelp: "What is Beta?",
-    quote: "Oct 30, 2026, 4:14 PM · previous close IDR 4,940",
+    quote: "Oct 30, 2026, 4:14 PM WIB · previous close IDR 4,940",
     trade: "Stock order",
     title: "BBCA stock",
     back: "Back to Market",
@@ -154,11 +151,7 @@ for (const locale of locales) {
     page,
     browser,
   }) => {
-    const { student, classPath, path } = await openHeldStock(
-      page,
-      browser,
-      locale,
-    );
+    const { student, path } = await openHeldStock(page, browser, locale);
     await expect(student).toHaveTitle(`${text.title} | Portolab`);
     await expect(student.getByText(text.held, { exact: true })).toBeVisible();
     await expect(
@@ -170,18 +163,7 @@ for (const locale of locales) {
     await expect(
       student.getByText(text.statisticsWindow, { exact: true }),
     ).toBeVisible();
-    const quoteTimes = student.getByRole("link", {
-      name: text.portfolioQuotes,
-    });
-    await expect(quoteTimes).toBeVisible();
-    await expect(quoteTimes).toHaveAttribute(
-      "href",
-      `${classPath}#home-holdings-heading`,
-    );
-    await quoteTimes.click();
-    await expect(student.locator("#home-holdings-heading")).toBeInViewport();
-    await student.goBack();
-    await expect(student).toHaveURL(path);
+    await expect(student.getByText(text.quote, { exact: true })).toBeVisible();
     const range = student.getByRole("navigation", { name: text.range });
     await expect(range.getByRole("link")).toHaveText(text.ranges);
     const values = ["1m", "3m", "1y", "5y"];
@@ -352,9 +334,7 @@ for (const locale of locales) {
         locale,
         path: "/stocks/BBCA",
       });
-      await expect(
-        page.getByRole("link", { name: text.portfolioQuotes }),
-      ).toHaveCount(0);
+      await expect(page.getByText(text.quote, { exact: true })).toBeVisible();
       await expect(page.getByRole("slider")).toHaveCount(0);
       await expect(page.locator("main svg path").first()).toBeVisible();
       await page

@@ -13,7 +13,11 @@ import {
   layoutTimeSeries,
 } from "./time-chart-layout";
 import { splitAdjustedRupiah } from "~/units/split-adjusted-rupiah";
-import { formatNumber, smallestNumberStep } from "~/formatting";
+import {
+  formatCalendarDatePart,
+  formatNumber,
+  smallestNumberStep,
+} from "~/formatting";
 import type { TimeChartLayout } from "./time-chart-layout";
 import { returnPointsForTest } from "./return-points-for-test";
 
@@ -114,6 +118,110 @@ test("keeps a date a major mark when a minor mark falls on it too, so a short ch
     { at: 1, anchor: "end", isMinor: false },
   ]);
 });
+
+// Closes that Portolab stored once a month and then on every trading day of a month, as the browser fixtures of BBCA hold them. Of 21 dates, the marks fall on the dates at 0, 5, 10, 15, and 20.
+const monthlyCloses = [
+  "2025-10-31",
+  "2025-11-28",
+  "2025-12-30",
+  "2026-01-30",
+  "2026-02-27",
+];
+const sparseHistories = {
+  // The minor fourth mark and the last mark both fall in October 2026.
+  latestMonth: [
+    ...monthlyCloses,
+    "2026-03-31",
+    "2026-04-30",
+    "2026-05-29",
+    "2026-06-30",
+    "2026-07-31",
+    "2026-08-31",
+    "2026-09-30",
+    ...["01", "02", "05", "06", "07", "08", "09", "12", "13"].map(
+      (day) => `2026-10-${day}`,
+    ),
+  ],
+  // The minor second mark and the major third mark both fall in March 2026.
+  middleMonth: [
+    ...monthlyCloses,
+    ...["02", "03", "04", "05", "06", "09"].map((day) => `2026-03-${day}`),
+    "2026-04-30",
+    "2026-05-29",
+    "2026-06-30",
+    "2026-07-31",
+    "2026-08-31",
+    "2026-09-30",
+    "2026-10-30",
+    "2026-11-30",
+    "2026-12-30",
+    "2027-01-29",
+  ],
+};
+
+const sparseMarks: Record<
+  keyof typeof sparseHistories,
+  {
+    texts: Record<Locale, readonly string[]>;
+    places: ReturnType<typeof tickPlaces>;
+  }
+> = {
+  latestMonth: {
+    texts: {
+      id: ["Okt 25", "Mar 26", "Agu 26", "Okt 26"],
+      en: ["Oct 25", "Mar 26", "Aug 26", "Oct 26"],
+    },
+    places: [
+      { at: 0, anchor: "start", isMinor: false },
+      { at: 0.25, anchor: "middle", isMinor: true },
+      { at: 0.5, anchor: "middle", isMinor: false },
+      { at: 1, anchor: "end", isMinor: false },
+    ],
+  },
+  middleMonth: {
+    texts: {
+      id: ["Okt 25", "Mar 26", "Agu 26", "Jan 27"],
+      en: ["Oct 25", "Mar 26", "Aug 26", "Jan 27"],
+    },
+    places: [
+      { at: 0, anchor: "start", isMinor: false },
+      { at: 0.5, anchor: "middle", isMinor: false },
+      { at: 0.75, anchor: "middle", isMinor: true },
+      { at: 1, anchor: "end", isMinor: false },
+    ],
+  },
+};
+
+for (const locale of locales) {
+  for (const history of ["latestMonth", "middleMonth"] as const) {
+    test(`leaves out a mark whose text repeats the mark before it, such as two closes in one month of a sparse history, and keeps the right edge or the major mark, for the history ${history} in ${languageNames[locale]}`, () => {
+      switchLocaleForTest(locale);
+      const dates = sparseHistories[history];
+      expect(dates).toHaveLength(21);
+      const layout = layoutTimeSeries(
+        dates,
+        [
+          {
+            kind: "rise",
+            values: [...dates.keys()].map((index) =>
+              splitAdjustedRupiah(4000 + index),
+            ),
+          },
+        ],
+        {
+          unit: splitAdjustedRupiah,
+          smallestStep: smallestNumberStep,
+          tickText: formatNumber,
+          dateText: (date) => formatCalendarDatePart(date, "monthAndYear"),
+        },
+      );
+      expect(layout.dateTicks.map((tick) => tick.text)).toEqual(
+        sparseMarks[history].texts[locale],
+      );
+      expect(tickPlaces(layout)).toEqual(sparseMarks[history].places);
+    });
+  }
+}
 
 const barelyMovingTexts: Record<Locale, readonly string[]> = {
   id: ["0%"],

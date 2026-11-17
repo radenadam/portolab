@@ -48,8 +48,12 @@ export function HomeRisk({
           )}
         </div>
         {reader.kind === "owner" && (
-          <Link to={measuresPath(classId, portfolioKindForReader(reader))}>
+          <Link
+            to={measuresPath(classId, portfolioKindForReader(reader))}
+            className={styles["cardLink"]}
+          >
             {m.trading_home_analysis_link()}
+            <span aria-hidden="true">›</span>
           </Link>
         )}
       </div>

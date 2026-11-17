@@ -193,9 +193,10 @@ function StockPageContent({
               </div>
             )}
             <StockQuoteDetails
-              portfolio={stock.portfolioHome}
               quote={quote?.kind === "stock" ? quote : undefined}
-              hasPortfolioQuotes={hasStockPortfolioQuotes(stock)}
+              portfolioQuotes={
+                hasStockPortfolioQuotes(stock) ? stock.portfolioQuotes : []
+              }
             />
             <QuoteNotice text={stock.quoteNotice} className={styles["muted"]} />
           </header>

@@ -22,6 +22,8 @@ const texts: Record<
     heading: string;
     missing: string;
     missingValue: string;
+    olderDay: string;
+    olderTime: string;
   }
 > = {
   id: {
@@ -30,6 +32,8 @@ const texts: Record<
     heading: "Mengapa beta dan volatilitas belum tersedia",
     missing: "Portolab belum memiliki harga WIFI.",
     missingValue: "-",
+    olderDay: "29 Okt 2026",
+    olderTime: "29 Okt 2026, 16.14",
   },
   en: {
     shared: "Prices Oct 30, 2026, 4:14 PM WIB.",
@@ -37,11 +41,13 @@ const texts: Record<
     heading: "Why beta and volatility are unavailable",
     missing: "Portolab has no price for WIFI yet.",
     missingValue: "-",
+    olderDay: "Oct 29, 2026",
+    olderTime: "Oct 29, 2026, 4:14 PM",
   },
 };
 
 for (const locale of locales) {
-  test(`states one shared quote time and keeps exceptions beside their prices in ${languageNames[locale]}`, async () => {
+  test(`states one shared quote time and keeps exceptions beside their prices, even for one stock, in ${languageNames[locale]}`, async () => {
     switchLocaleForTest(locale);
     const props = await marketViewPropsForTest();
     const html = renderMarketForTest(props);
@@ -56,13 +62,19 @@ for (const locale of locales) {
       expect(marketRowForTest(html, code)).toMatch(
         new RegExp(`<time datetime="${date}`, "i"),
       );
+    // The column of prices is too narrow for a date with its time, so a price of another day shows its day alone, and the page of the stock shows its time.
+    expect(marketRowForTest(html, "BMRI")).toContain(texts[locale].olderDay);
+    expect(marketRowForTest(html, "BMRI")).not.toContain(
+      texts[locale].olderTime,
+    );
     expect(marketRowForTest(html, "WIFI")).toContain(texts[locale].missing);
     expect(marketRowForTest(html, "WIFI")).not.toContain("<time");
     const single = renderMarketForTest(props, {
       filters: { ...defaultMarketFilters, query: "BBCA" },
     });
-    expect(single).not.toContain(texts[locale].shared);
-    expect(marketRowForTest(single, "BBCA")).toContain("<time");
+    // The one stock and the IHSG share no minute, so the latest of them is stated once.
+    expect(single.split(texts[locale].shared)).toHaveLength(2);
+    expect(marketRowForTest(single, "BBCA")).not.toContain("<time");
   });
 
   test(`keeps missing measures in value cells and explains each reason once below the table in ${languageNames[locale]}`, async () => {

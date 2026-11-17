@@ -16,7 +16,7 @@ const texts: Record<Locale, readonly string[]> = {
     "Laba/rugi",
     "Harga rata-rata",
     "Harga rata-rata membagi biaya saham yang masih Anda miliki, termasuk biaya broker pembelian, dengan jumlah lembarnya.",
-    "Rp 27.431.085 / 5.500 saham = Rp 4.987 per lembar, dibulatkan ke rupiah terdekat.",
+    "Rp 27.431.085 / 5.500 lembar = Rp 4.987 per lembar, dibulatkan ke rupiah terdekat.",
     "Laba atau rugi belum terealisasi adalah nilai saham pada harga tertunda dikurangi biaya pembeliannya, termasuk biaya broker.",
     "Rp 27.390.000 − Rp 27.431.085 = -Rp 41.085.",
     "27,39% portofolio",

@@ -26,6 +26,7 @@ const texts: Record<
     apply: string;
     sort: string;
     direction: string;
+    ascending: string;
     financials: string;
     all: string;
     clear: string;
@@ -55,6 +56,7 @@ const texts: Record<
     apply: "Terapkan",
     sort: "Urutkan menurut",
     direction: "Urutan",
+    ascending: "Urutkan menaik",
     financials: "Keuangan · 5",
     all: "Semua · 45",
     clear: "Hapus filter",
@@ -84,6 +86,7 @@ const texts: Record<
     apply: "Apply",
     sort: "Sort by",
     direction: "Order",
+    ascending: "Sort ascending",
     financials: "Financials · 5",
     all: "All · 45",
     clear: "Clear filters",
@@ -186,10 +189,13 @@ for (const locale of locales) {
             .getByLabel(text.sort, { exact: true })
             .selectOption("code");
           await student
-            .getByLabel(text.direction, { exact: true })
-            .selectOption("ascending");
-          await student
             .getByRole("button", { name: text.apply, exact: true })
+            .click();
+          await expect(student).toHaveURL(
+            /sector=financials&sort=code&direction=descending/,
+          );
+          await student
+            .getByRole("link", { name: text.ascending, exact: true })
             .click();
           await expect(student).toHaveURL(
             /sector=financials&sort=code&direction=ascending/,
@@ -313,9 +319,6 @@ for (const locale of locales) {
         .check();
       await page.getByLabel(text.sort, { exact: true }).selectOption("code");
       await page
-        .getByLabel(text.direction, { exact: true })
-        .selectOption("ascending");
-      await page
         .getByRole("button", { name: text.indexHelp, exact: true })
         .click();
       const card = page.getByRole("dialog", { name: "IHSG", exact: true });
@@ -338,8 +341,8 @@ for (const locale of locales) {
         "code",
       );
       await expect(
-        page.getByLabel(text.direction, { exact: true }),
-      ).toHaveValue("ascending");
+        page.getByRole("link", { name: text.ascending, exact: true }),
+      ).toBeVisible();
       await expect(
         page.locator("main section[aria-labelledby=stocks-heading] tbody tr"),
       ).toHaveCount(1);
@@ -354,7 +357,7 @@ for (const locale of locales) {
       expect(destination.searchParams.get("q")).toBe("central asia");
       expect(destination.searchParams.get("sector")).toBe("financials");
       expect(destination.searchParams.get("sort")).toBe("code");
-      expect(destination.searchParams.get("direction")).toBe("ascending");
+      expect(destination.searchParams.get("direction")).toBe("descending");
     });
   });
   test(`keeps the market private and the index explorable in ${languageNames[locale]}`, async ({
