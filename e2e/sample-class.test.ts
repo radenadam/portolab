@@ -82,16 +82,24 @@ const test = base.extend<{ sample: { url: string; output: string } }>({
 
 const texts: Record<
   Locale,
-  { sample: string; classTitle: string; studentTitle: string; demo: string }
+  {
+    sample: string;
+    classTitle: string;
+    studentTitle: string;
+    demo: string;
+    dayHelp: string;
+  }
 > = {
   id: {
     sample: "Data contoh",
+    dayHelp: "Apa itu Rentang hari ini?",
     classTitle: "Manajemen Portofolio Contoh",
     studentTitle: "Nilai portofolio",
     demo: "Portofolio demonstrasi",
   },
   en: {
     sample: "sample class",
+    dayHelp: "What is Day range?",
     classTitle: "Manajemen Portofolio Contoh",
     studentTitle: "Portfolio value",
     demo: "Demonstration portfolio",
@@ -146,6 +154,17 @@ for (const locale of locales) {
           fullPage: true,
           fromTop: true,
         });
+        await reader.goto(`${sample.url}/classes/1/stocks/BBCA`);
+        const dayHelp = reader.getByRole("button", {
+          name: texts[locale].dayHelp,
+          exact: true,
+        });
+        await expect(dayHelp.locator("../..").getByRole("img")).toHaveCount(1);
+        await dayHelp.click();
+        await expect(
+          reader.getByRole("dialog").getByText(/BBCA/),
+        ).toBeVisible();
+        await reader.keyboard.press("Escape");
         await reader.goto(`${sample.url}/not-a-page`);
         await expect(
           reader.getByText(texts[locale].sample, { exact: true }),

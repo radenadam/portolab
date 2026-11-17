@@ -12,10 +12,6 @@ import { requireUser } from "~/features/accounts/current-session.server";
 import { databaseContext } from "~/database/database.server";
 import { requireReaderClass } from "~/features/classes/require-reader-class.server";
 import { readStockMeasures } from "~/features/measures/read-measures.server";
-import { StockStatisticsWindow } from "~/features/measures/stock-statistics-window";
-import { StockKeyMeasures } from "~/features/measures/stock-key-measures";
-import { StockMeasuresView } from "~/features/measures/stock-measures-view";
-import { MethodNotice } from "~/features/measures/method-notice";
 import { idxRulesOn } from "~/features/trading/idx-rules-on";
 import { parseStockCode } from "~/features/trading/order-form-fields";
 import { StockPosition } from "~/features/trading/stock-position";
@@ -48,7 +44,9 @@ import { StockName } from "./stock-name";
 import { stockPath } from "./stock-path";
 import styles from "./stock-page.module.css";
 import { StockHistoryChart } from "./stock-history-chart";
-import { StockRange } from "./stock-range";
+import { StockStatistics } from "./stock-statistics";
+import { readStockDayRange } from "./read-stock-day-range.server";
+import { readStockYearRange } from "./read-stock-year-range.server";
 import { stockPriceRange } from "./stock-price-range";
 import { parsePriceChartRange, priceChartStart } from "./price-chart-range";
 import { trackedStockCodes, universeOn } from "./tracked-instruments";
@@ -101,6 +99,10 @@ export function loader({ context, params, request, url }: Route.LoaderArgs) {
       draftKey: `${String(reader.id)}:${stockPath(classId, code)}`,
       code,
       quote,
+      dayRangeText: readStockDayRange(
+        code,
+        quote?.kind === "stock" ? quote : undefined,
+      ),
       quoteNotice:
         quote === undefined
           ? missingQuoteText(code, attempt, moment)
@@ -112,7 +114,7 @@ export function loader({ context, params, request, url }: Route.LoaderArgs) {
         ),
       },
       chartRange,
-      range: stockPriceRange(history, wibDateOf(now)),
+      range: readStockYearRange(stockPriceRange(history, wibDateOf(now))),
       measures: readStockMeasures(database, code),
       ...portfolio,
       selection,
@@ -224,41 +226,7 @@ function StockPageContent({
               />
             </section>
           )}
-          <section
-            className={styles["panel"]}
-            aria-labelledby="statistics-title"
-          >
-            <div className={styles["statisticsHeader"]}>
-              <h2 id="statistics-title">{m.market_data_statistics_title()}</h2>
-              {stock.measures.ok && (
-                <span className={styles["muted"]}>
-                  <StockStatisticsWindow measures={stock.measures.value} />
-                </span>
-              )}
-            </div>
-            <StockKeyMeasures
-              portfolioKind={stock.portfolioKind}
-              classId={classId}
-              code={code}
-              measures={stock.measures}
-              correlation={stock.correlation}
-            >
-              <StockRange range={stock.range} />
-            </StockKeyMeasures>
-            <QuoteNotice
-              text={stock.portfolioNotice}
-              className={styles["muted"]}
-            />
-            <details className={styles["calculations"]}>
-              <summary>{m.market_data_all_calculations_label()}</summary>
-              <MethodNotice />
-              <StockMeasuresView
-                code={code}
-                measures={stock.measures}
-                portfolioKind={stock.portfolioKind}
-              />
-            </details>
-          </section>
+          <StockStatistics stock={stock} />
           <StockImpact
             portfolioKind={stock.portfolioKind}
             code={code}

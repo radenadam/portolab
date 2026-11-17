@@ -33,11 +33,23 @@ const texts: Record<
     quote: string;
     trade: string;
     rangeHelp: string;
+    dayHelp: string;
+    dayRange: string;
+    dayExample: string;
+    dayTime: string;
+    noDayRange: (code: string) => string;
     betaHelp: string;
   }
 > = {
   id: {
     rangeHelp: "Apa itu Rentang 52 minggu?",
+    dayHelp: "Apa itu Rentang hari ini?",
+    dayRange: "4.900 sampai 5.025",
+    dayTime: "30 Okt 2026, 16.14 WIB",
+    dayExample:
+      "Rentang BBCA pada 30 Okt 2026, 16.14 WIB adalah 4.900 sampai 5.025 rupiah per lembar.",
+    noDayRange: (code) =>
+      `Portolab belum memiliki harga terendah dan tertinggi harian ${code}. Periksa kembali setelah pembaruan harga membawa keduanya.`,
     betaHelp: "Apa itu Beta?",
     quote: "30 Okt 2026, 16.14 WIB · penutupan sebelumnya Rp 4.940",
     trade: "Order saham",
@@ -61,6 +73,13 @@ const texts: Record<
   },
   en: {
     rangeHelp: "What is 52-week range?",
+    dayHelp: "What is Day range?",
+    dayRange: "4,900 to 5,025",
+    dayTime: "Oct 30, 2026, 4:14 PM WIB",
+    dayExample:
+      "The range of BBCA at Oct 30, 2026, 4:14 PM WIB is 4,900 to 5,025 rupiah per share.",
+    noDayRange: (code) =>
+      `Portolab has no recorded daily low and high for ${code} yet. Check again when a price update supplies both.`,
     betaHelp: "What is Beta?",
     quote: "Oct 30, 2026, 4:14 PM WIB · previous close IDR 4,940",
     trade: "Stock order",
@@ -145,6 +164,54 @@ async function openHeldStock(
   return { student, classPath, path };
 }
 
+async function rangeLabelGap(page: Page, help: string): Promise<number> {
+  const statistic = page
+    .getByRole("button", { name: help, exact: true })
+    .locator("../..");
+  const track = await statistic.getByRole("img").boundingBox();
+  const labels = await statistic.locator("dd > svg + span").boundingBox();
+  if (track === null || labels === null)
+    throw new Error("The price range needs a visible track and labels.");
+  return labels.y - track.y - track.height;
+}
+
+async function expectWideRangeLabels(
+  page: Page,
+  name: string,
+  { locale, screenshotPath }: { locale: Locale; screenshotPath: string },
+): Promise<void> {
+  const labels = page
+    .getByRole("img", { name, exact: true })
+    .locator("..")
+    .locator("[data-number]");
+  await expect(labels).toHaveCount(2);
+  const previous = await labels.allTextContents();
+  // This probes the parser's widest labels without inventing a price recording for a real stock.
+  const widest = new Intl.NumberFormat(locale).format(Number.MAX_SAFE_INTEGER);
+  try {
+    for (const label of await labels.all()) {
+      await label.evaluate((element, text) => {
+        element.textContent = text;
+      }, widest);
+      expect(
+        await label.evaluate((element) => {
+          const range = document.createRange();
+          range.selectNodeContents(element);
+          return range.getClientRects().length;
+        }),
+      ).toBe(1);
+    }
+    expect(await layoutProblems(page)).toEqual([]);
+    await screenshotFullHeight(page, { path: screenshotPath });
+  } finally {
+    for (const [index, label] of (await labels.all()).entries()) {
+      await label.evaluate((element, text) => {
+        element.textContent = text;
+      }, previous[index] ?? "");
+    }
+  }
+}
+
 for (const locale of locales) {
   const text = texts[locale];
   test(`opens a held stock and explores its closes in ${locale}`, async ({
@@ -164,6 +231,30 @@ for (const locale of locales) {
       student.getByText(text.statisticsWindow, { exact: true }),
     ).toBeVisible();
     await expect(student.getByText(text.quote, { exact: true })).toBeVisible();
+    await expect(
+      student.getByRole("img", { name: text.dayRange, exact: true }),
+    ).toBeVisible();
+    const help = student.getByRole("button", {
+      name: text.dayHelp,
+      exact: true,
+    });
+    await help.click();
+    await expect(
+      student.getByRole("dialog").getByText(text.dayExample, { exact: true }),
+    ).toBeVisible();
+    const quoteTime = student
+      .getByRole("dialog")
+      .getByText(text.dayTime, { exact: true });
+    await expect(quoteTime).toHaveAttribute("data-number", "");
+    expect(
+      await quoteTime.evaluate((element) => {
+        const range = document.createRange();
+        range.selectNodeContents(element);
+        return range.getClientRects().length;
+      }),
+    ).toBe(1);
+    await student.keyboard.press("Escape");
+    await expect(help).toBeFocused();
     const range = student.getByRole("navigation", { name: text.range });
     await expect(range.getByRole("link")).toHaveText(text.ranges);
     const values = ["1m", "3m", "1y", "5y"];
@@ -193,6 +284,8 @@ for (const locale of locales) {
     browser,
   }, testInfo) => {
     const { student } = await openHeldStock(page, browser, locale);
+    const errors: string[] = [];
+    student.on("pageerror", (error) => errors.push(error.message));
     const widths = testInfo.project.name === "phone" ? [360] : [1440, 1920];
     for (const width of widths) {
       await student.setViewportSize({ width, height: 900 });
@@ -200,8 +293,8 @@ for (const locale of locales) {
         await student.emulateMedia({ colorScheme });
         await expectChangeInk(student);
         expect(await layoutProblems(student)).toEqual([]);
-        const [rangeGroup, beta] = await Promise.all(
-          [text.rangeHelp, text.betaHelp].map((label) =>
+        const [rangeGroup, beta, day] = await Promise.all(
+          [text.rangeHelp, text.betaHelp, text.dayHelp].map((label) =>
             student
               .getByRole("region", { name: text.statistics, exact: true })
               .getByRole("button", { name: label, exact: true })
@@ -213,8 +306,27 @@ for (const locale of locales) {
               }),
           ),
         );
-        if (rangeGroup === undefined || beta === undefined)
+        if (rangeGroup === undefined || beta === undefined || day === undefined)
           throw new Error("The stock statistics are visible.");
+        expect(day.top).toBeCloseTo(rangeGroup.top, 0);
+        const tracks = await Promise.all(
+          [text.dayHelp, text.rangeHelp].map((name) =>
+            student
+              .getByRole("button", { name, exact: true })
+              .locator("../..")
+              .getByRole("img")
+              .boundingBox(),
+          ),
+        );
+        const [dayTrack, yearTrack] = tracks;
+        if (
+          dayTrack === null ||
+          dayTrack === undefined ||
+          yearTrack === null ||
+          yearTrack === undefined
+        )
+          throw new Error("The stock statistics need both range tracks.");
+        expect(dayTrack.y).toBeCloseTo(yearTrack.y, 0);
         expect(rangeGroup.width).toBeGreaterThan(beta.width * 1.5);
         if (testInfo.project.name === "phone") {
           expect(beta.top).toBeGreaterThan(rangeGroup.top);
@@ -226,8 +338,15 @@ for (const locale of locales) {
             `stock-${locale}-${String(width)}-${colorScheme}.png`,
           ),
         });
+        await expectWideRangeLabels(student, text.dayRange, {
+          locale,
+          screenshotPath: testInfo.outputPath(
+            `stock-widest-${locale}-${String(width)}-${colorScheme}.png`,
+          ),
+        });
       }
     }
+    expect(errors).toEqual([]);
     await student.context().close();
   });
 
@@ -303,6 +422,8 @@ for (const locale of locales) {
     const { student, classPath } = await studentWithPortfolio(page, browser, {
       locale,
     });
+    await student.goto(`${classPath}/stocks/BBCA`);
+    const availableGap = await rangeLabelGap(student, text.rangeHelp);
     for (const code of ["AMMN", "AADI", "ADMR", "UNVR", "WIFI"]) {
       await student.goto(`${classPath}/stocks/${code}`);
       await expect(
@@ -311,6 +432,17 @@ for (const locale of locales) {
       await expect(
         student.getByRole("heading", { name: text.statistics }),
       ).toBeVisible();
+      await expect(
+        student
+          .getByText(text.noDayRange(code), { exact: true })
+          .filter({ visible: true }),
+      ).toHaveCount(1);
+      if (code === "AMMN") {
+        expect(await rangeLabelGap(student, text.rangeHelp)).toBeCloseTo(
+          availableGap,
+          0,
+        );
+      }
       if (code === "ADMR")
         await expect(
           student.getByText(text.noCloses, { exact: true }).first(),
@@ -343,8 +475,12 @@ for (const locale of locales) {
         .first()
         .click();
       await expect(page).toHaveURL(/range=1m$/);
-      await page.locator("main button[popovertarget]").first().click();
-      await expect(page.getByRole("dialog")).toBeVisible();
+      await page
+        .getByRole("button", { name: text.dayHelp, exact: true })
+        .click();
+      await expect(
+        page.getByRole("dialog").getByText(text.dayExample, { exact: true }),
+      ).toBeVisible();
       await page.keyboard.press("Escape");
       await page.getByText(text.points, { exact: true }).click();
       await expect(

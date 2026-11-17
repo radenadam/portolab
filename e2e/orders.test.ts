@@ -44,6 +44,9 @@ const texts: Record<
     quote: string;
     hint: string;
     help: string;
+    dayHelp: string;
+    dayLesson: string;
+    dayLessonTitle: string;
     noPrice: string;
     lotsFix: string;
     badKind: string;
@@ -82,6 +85,9 @@ const texts: Record<
     quote: "30 Okt 2026, 16.14 WIB",
     hint: "Tersimpan bersama order ini, dan dosen kelas ini dapat membacanya.",
     help: "Apa itu Jumlah lot?",
+    dayHelp: "Apa itu Rentang hari ini?",
+    dayLesson: "Pelajari lebih lanjut di sesi 6",
+    dayLessonTitle: "Mekanisme perdagangan",
     noPrice:
       "Anda dapat memasang order WIFI setelah pembaruan harga berikutnya membawa harga tertunda WIFI.",
     lotsFix: "Ubah ke 5 lot",
@@ -121,6 +127,9 @@ const texts: Record<
     quote: "Oct 30, 2026, 4:14 PM WIB",
     hint: "Saved with this order, and the lecturer of this class can read it.",
     help: "What is Lots?",
+    dayHelp: "What is Day range?",
+    dayLesson: "Learn more in session 6",
+    dayLessonTitle: "The mechanism of trading",
     noPrice:
       "You can place an order of WIFI once the next update of prices brings a delayed price of WIFI.",
     lotsFix: "Change to 5 lots",
@@ -213,17 +222,41 @@ for (const locale of locales) {
       "Kredit tumbuh.\n\nBeta di bawah 1.",
     );
     if (testInfo.project.name === "desktop") {
+      const expectDraft = async () => {
+        await expect(
+          ticket.getByRole("textbox", { name: text.lots, exact: true }),
+        ).toHaveValue("2");
+        await expect(
+          ticket.getByLabel(text.reason, { exact: true }),
+        ).toHaveValue("Kredit tumbuh.\n\nBeta di bawah 1.");
+      };
+      const dayHelp = student.getByRole("button", {
+        name: text.dayHelp,
+        exact: true,
+      });
+      await dayHelp.click();
+      const lessonLink = student.getByRole("link", {
+        name: text.dayLesson,
+        exact: true,
+      });
+      await lessonLink.click();
+      const lesson = student.getByRole("dialog", {
+        name: text.dayLessonTitle,
+        exact: true,
+      });
+      await expect(lesson).toBeVisible();
+      await student.keyboard.press("Escape");
+      await expect(lesson).toHaveCount(0);
+      await expect(lessonLink).toBeFocused();
+      await student.keyboard.press("Escape");
+      await expect(dayHelp).toBeFocused();
+      await expectDraft();
       await student.locator('a[href*="range=1m"]').first().click();
       await expect(student).toHaveURL(`${classPath}/stocks/BBCA/buy?range=1m`);
       await expect(
         student.locator('a[href*="range=1m"]').first(),
       ).toHaveAttribute("aria-current", "true");
-      await expect(
-        ticket.getByRole("textbox", { name: text.lots, exact: true }),
-      ).toHaveValue("2");
-      await expect(ticket.getByLabel(text.reason, { exact: true })).toHaveValue(
-        "Kredit tumbuh.\n\nBeta di bawah 1.",
-      );
+      await expectDraft();
       await student.locator('a[href*="range=1y"]').first().click();
       await expect(
         student.locator('a[href*="range=1y"]').first(),

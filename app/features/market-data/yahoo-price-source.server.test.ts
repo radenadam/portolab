@@ -16,19 +16,19 @@ const ihsgQuotedAt = new Date("2026-10-30T09:00:05.000Z");
 const bbca: Instrument = { kind: "stock", code: "BBCA" };
 const ihsg: Instrument = { kind: "index", code: "IHSG" };
 
+// The low and high are the recorded BBCA bounds of 30 October 2026 in Yahoo's daily chart.
+const recordedBbca = {
+  symbol: "BBCA.JK",
+  currency: "IDR",
+  regularMarketPrice: 4980,
+  regularMarketPreviousClose: 4940,
+  regularMarketDayLow: 4900,
+  regularMarketDayHigh: 5025,
+  regularMarketTime: bbcaQuotedAt,
+};
+
 test("reads a stock quote in whole rupiah", () => {
-  const batch = collectYahooQuotes(
-    [bbca],
-    [
-      {
-        symbol: "BBCA.JK",
-        currency: "IDR",
-        regularMarketPrice: 4980,
-        regularMarketPreviousClose: 4940,
-        regularMarketTime: bbcaQuotedAt,
-      },
-    ],
-  );
+  const batch = collectYahooQuotes([bbca], [recordedBbca]);
   expect(batch).toEqual({
     quotes: [
       {
@@ -36,10 +36,102 @@ test("reads a stock quote in whole rupiah", () => {
         code: "BBCA",
         price: 4980,
         previousClose: 4940,
+        dayRange: { low: 4900, high: 5025 },
         quotedAt: bbcaQuotedAt,
       },
     ],
     problems: [],
+  });
+});
+
+test.each([
+  [undefined, undefined],
+  [null, null],
+  [null, undefined],
+  [undefined, null],
+  [4900, null],
+  [null, 5025],
+  [4900, undefined],
+  [undefined, 5025],
+])(
+  "keeps a usable quote without a complete day range when the bounds are %s and %s",
+  (low, high) => {
+    const batch = collectYahooQuotes(
+      [bbca],
+      [
+        {
+          ...recordedBbca,
+          regularMarketDayLow: low,
+          regularMarketDayHigh: high,
+        },
+      ],
+    );
+    expect(batch.problems).toEqual([]);
+    expect(batch.quotes).toHaveLength(1);
+    expect(batch.quotes[0]).toMatchObject({ price: 4980, dayRange: undefined });
+  },
+);
+
+for (const field of ["regularMarketDayLow", "regularMarketDayHigh"] as const) {
+  test.each([
+    [0, "0"],
+    [-1, "-1"],
+    [4900.5, "4900.5"],
+    [Number.NaN, "NaN"],
+    [Infinity, "Infinity"],
+    [Number.MAX_SAFE_INTEGER + 1, "9007199254740992"],
+    ["4900", '"4900"'],
+    [{}, "{}"],
+  ])(`rejects an invalid ${field} of %s`, (value, description) => {
+    const batch = collectYahooQuotes(
+      [bbca],
+      [{ ...recordedBbca, [field]: value }],
+    );
+    expect(batch.quotes).toEqual([]);
+    expect(batch.problems).toEqual([
+      `The Yahoo Finance quote for BBCA must have positive whole rupiah at ${field} or no value, but it is ${description}.`,
+    ]);
+  });
+}
+
+test.each([
+  [4990, 5025],
+  [4900, 4970],
+  [5025, 4900],
+])(
+  "rejects a day range that excludes its price with bounds %s and %s",
+  (low, high) => {
+    const batch = collectYahooQuotes(
+      [bbca],
+      [
+        {
+          ...recordedBbca,
+          regularMarketDayLow: low,
+          regularMarketDayHigh: high,
+        },
+      ],
+    );
+    expect(batch.quotes).toEqual([]);
+    expect(batch.problems).toEqual([
+      `The Yahoo Finance quote for BBCA must have regularMarketDayLow at or below its price and regularMarketDayHigh at or above it, but its low is ${String(low)}, its price is 4980, and its high is ${String(high)}.`,
+    ]);
+  },
+);
+
+test("reads the first trade after a suspension when both bounds equal its price", () => {
+  const batch = collectYahooQuotes(
+    [bbca],
+    [
+      {
+        ...recordedBbca,
+        regularMarketDayLow: 4980,
+        regularMarketDayHigh: 4980,
+      },
+    ],
+  );
+  expect(batch.problems).toEqual([]);
+  expect(batch.quotes[0]).toMatchObject({
+    dayRange: { low: 4980, high: 4980 },
   });
 });
 
