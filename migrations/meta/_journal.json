@@ -71,6 +71,13 @@
       "when": 1794892674387,
       "tag": "0009_stock-day-range",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1794921025608,
+      "tag": "0010_hot_chat",
+      "breakpoints": true
     }
   ]
 }
