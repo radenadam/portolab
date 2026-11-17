@@ -47,6 +47,9 @@ export async function marketViewPropsForTest(): Promise<Props> {
       sort: undefined,
       direction: undefined,
       range: undefined,
+      view: undefined,
+      axis: undefined,
+      mapRange: undefined,
     },
   };
 }
