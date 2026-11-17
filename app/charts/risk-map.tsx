@@ -40,6 +40,7 @@ export function RiskMap<Across extends number, Up extends number>({
   levelLabel,
   labelledBy,
   spread,
+  annotations,
   coloredValues,
   fill = false,
   compact = false,
@@ -61,6 +62,10 @@ export function RiskMap<Across extends number, Up extends number>({
       placed: PlacedLabels,
     ) => ReactNode;
   };
+  annotations?: {
+    labels: MapLabels["lines"];
+    drawing: (placed: PlacedLabels) => ReactNode;
+  };
   coloredValues?: boolean;
   /** The label of the line at the return of the IHSG, such as IHSG 0.70%. */
   levelLabel?: string;
@@ -79,10 +84,10 @@ export function RiskMap<Across extends number, Up extends number>({
         across,
         up,
         line,
-        roomForCorners: spread !== undefined,
+        roomForCorners: hasCorners(spread, annotations),
         ...(spread?.median === undefined ? {} : { median: spread.median }),
       }),
-    [market, points, across, up, line, spread],
+    [market, points, across, up, line, spread, annotations],
   );
   const drawn = useMemo(() => drawnPoints(market, layout), [market, layout]);
   const labels = useMemo(
@@ -91,9 +96,12 @@ export function RiskMap<Across extends number, Up extends number>({
         line,
         levelLabel,
         layout,
-        extraLines: spread?.labels(layout) ?? [],
+        extraLines: [
+          ...(spread?.labels(layout) ?? []),
+          ...(annotations?.labels ?? []),
+        ],
       }),
-    [drawn, line, levelLabel, layout, spread],
+    [drawn, line, levelLabel, layout, spread, annotations],
   );
   const marks = useMemo(
     () =>
@@ -143,19 +151,30 @@ export function RiskMap<Across extends number, Up extends number>({
       drawn={drawn}
       placed={placed}
       texts={{ title: across.title, level: levelLabel, line: line?.name }}
-      spread={spread?.drawing(layout, placed)}
+      spread={
+        <>
+          {spread?.drawing(layout, placed)}
+          {annotationDrawing(annotations, placed)}
+        </>
+      }
       active={active}
       drawingRef={drawingRef}
       measureRef={measureRef}
     />
   );
   const shown = stops[slider.shown];
-  const activatePoint = (event: MouseEvent<HTMLButtonElement>): void => {
+  const activatePoint = (event: MouseEvent<HTMLElement>): void => {
     if (event.detail === 0) return;
     const area = areaRef.current;
     const size = textSize();
     if (area === null || size === undefined) return;
     const nearest = nearestMapStop(stops, { event, area, textSize: size });
+    const href = nearest === undefined ? undefined : stops[nearest]?.point.href;
+    if (href !== undefined) {
+      event.preventDefault();
+      void navigate(href);
+      return;
+    }
     const popover =
       nearest === undefined ? undefined : stops[nearest]?.point.popover;
     if (popover !== undefined) {
@@ -277,4 +296,15 @@ function spokenPoint(point: MapPoint<number, number>): string {
       "conjunction",
     ),
   });
+}
+
+function hasCorners(spread: unknown, annotations: unknown): boolean {
+  return spread !== undefined || annotations !== undefined;
+}
+
+function annotationDrawing(
+  annotations: { drawing: (placed: PlacedLabels) => ReactNode } | undefined,
+  placed: PlacedLabels,
+): ReactNode {
+  return annotations?.drawing(placed);
 }

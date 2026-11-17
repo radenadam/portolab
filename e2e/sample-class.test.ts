@@ -88,6 +88,8 @@ const texts: Record<
     studentTitle: string;
     demo: string;
     dayHelp: string;
+    mapTitle: string;
+    own: string;
   }
 > = {
   id: {
@@ -96,6 +98,8 @@ const texts: Record<
     classTitle: "Manajemen Portofolio Contoh",
     studentTitle: "Nilai portofolio",
     demo: "Portofolio demonstrasi",
+    mapTitle: "Peta saham LQ45",
+    own: "Portofolio Anda",
   },
   en: {
     sample: "sample class",
@@ -103,6 +107,8 @@ const texts: Record<
     classTitle: "Manajemen Portofolio Contoh",
     studentTitle: "Portfolio value",
     demo: "Demonstration portfolio",
+    mapTitle: "LQ45 stock map",
+    own: "Your portfolio",
   },
 };
 
@@ -165,6 +171,19 @@ for (const locale of locales) {
           reader.getByRole("dialog").getByText(/BBCA/),
         ).toBeVisible();
         await reader.keyboard.press("Escape");
+        await reader.goto(`${sample.url}/classes/1/market?view=map`);
+        const marketMap = reader.getByRole("region", {
+          name: texts[locale].mapTitle,
+        });
+        await expect(marketMap.getByRole("slider")).toBeVisible();
+        await expect(
+          marketMap.locator('[data-map-label="point"]'),
+        ).toContainText([texts[locale].own]);
+        await captureScreens(reader, testInfo, {
+          name: `sample-market-map-${role}-${locale}`,
+          fullPage: true,
+          fromTop: true,
+        });
         await reader.goto(`${sample.url}/not-a-page`);
         await expect(
           reader.getByText(texts[locale].sample, { exact: true }),
