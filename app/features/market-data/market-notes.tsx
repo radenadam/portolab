@@ -15,12 +15,14 @@ export function MarketNotes({
   indexQuote,
   reference,
   index,
+  view = "list",
 }: {
   rows: readonly MarketRow[];
   sharedTime: Date | undefined;
   indexQuote: IndexQuote | undefined;
   reference: ReturnType<typeof readMarket>["marketReference"];
   index: string;
+  view?: "list" | "map";
 }): ReactNode {
   const hasReferenceMarks =
     reference.ok &&
@@ -50,7 +52,7 @@ export function MarketNotes({
           </NumberText>{" "}
         </span>
       )}
-      {hasReferenceMarks && (
+      {hasReferenceMarks && view === "list" && (
         <span className={styles["tableReference"]}>
           {m.market_data_reference_marks_notice({ index })}
         </span>

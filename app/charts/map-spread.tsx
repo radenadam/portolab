@@ -1,3 +1,5 @@
+import { MapCorners, mapCornerLabels } from "./map-corners";
+import type { MapCornersText } from "./map-corners";
 import { plotFraction } from "~/units/plot-fraction";
 import type { MapLabels, PlacedLabels } from "./map-labels";
 import { mapLineLabelKeys } from "./map-label-text";
@@ -64,17 +66,11 @@ function MapSpread({ layout }: { layout: RiskMapLayout<unknown> }): ReactNode {
   );
 }
 
-/** A corner of the class map names its quadrant in full on a wide plot and briefly on a narrow one, as the references of decision 0028 draw it. */
-interface CornerText {
-  text: string;
-  wideText: string;
-}
-
 /** The texts of the class map that label its distribution and corners. */
 interface MapSpreadText {
   zeroLabel: string;
   medianLabel: string;
-  corners: readonly [CornerText, CornerText, CornerText, CornerText];
+  corners: MapCornersText;
 }
 
 /** Class-only decorations stay with the route that imports them, so a trade map carries no distribution drawing. */
@@ -123,17 +119,7 @@ function SpreadDrawing({
         place={placed.lines.get(mapLineLabelKeys.median)}
         className={styles["medianLabel"]}
       />
-      {spread.corners.map((corner, index) => {
-        const key = mapLineLabelKeys.corners[index] ?? "";
-        return (
-          <MapLabel
-            key={key}
-            text={placed.wideLines.has(key) ? corner.wideText : corner.text}
-            place={placed.lines.get(key)}
-            className={styles["corner"]}
-          />
-        );
-      })}
+      <MapCorners corners={spread.corners} placed={placed} />
     </>
   );
 }
@@ -143,24 +129,7 @@ function spreadLabels(map: {
   spread: MapSpreadText;
 }): MapLabels["lines"] {
   const extraLines: MapLabels["lines"][number][] = [];
-  for (const [index, corner] of map.spread.corners.entries()) {
-    extraLines.push({
-      key: mapLineLabelKeys.corners[index] ?? "",
-      text: corner.text,
-      wideText: corner.wideText,
-      places: [
-        {
-          at: {
-            x: plotFraction(index % 2),
-            y: plotFraction(index < 2 ? 0 : 1),
-          },
-          dx: index % 2 === 0 ? 0.25 : -0.25,
-          dy: index < 2 ? 1.25 : -0.5,
-          anchor: index % 2 === 0 ? "start" : "end",
-        },
-      ],
-    });
-  }
+  extraLines.push(...mapCornerLabels(map.spread.corners));
   extraLines.push({
     key: mapLineLabelKeys.zero,
     text: map.spread.zeroLabel,

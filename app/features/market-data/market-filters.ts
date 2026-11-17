@@ -25,6 +25,9 @@ export interface MarketFilters {
   sort: MarketSort;
   direction: "descending" | "ascending";
   range: MarketRange;
+  view: "list" | "map";
+  axis: "beta" | "risk";
+  mapRange: MarketRange;
 }
 export const defaultMarketFilters: MarketFilters = {
   query: "",
@@ -32,7 +35,24 @@ export const defaultMarketFilters: MarketFilters = {
   sort: "change",
   direction: "descending",
   range: "3m",
+  view: "list",
+  axis: "beta",
+  mapRange: "1m",
 };
+
+export function marketViewOptions(): FieldOption<MarketFilters["view"]>[] {
+  return [
+    { value: "list", label: m.market_data_list_label() },
+    { value: "map", label: m.market_data_map_label() },
+  ];
+}
+
+export function marketAxisOptions(): FieldOption<MarketFilters["axis"]>[] {
+  return [
+    { value: "beta", label: m.market_data_beta_label() },
+    { value: "risk", label: m.market_data_map_deviation_label() },
+  ];
+}
 
 /** The size guard must run before search normalization because its work grows with the text. */
 export function parseMarketSearch(
