@@ -4,6 +4,8 @@ import { isbot } from "isbot";
 import { renderToPipeableStream } from "react-dom/server";
 import { isRouteErrorResponse, ServerRouter } from "react-router";
 import type { EntryContext, HandleErrorFunction } from "react-router";
+import { InitialThemeProvider } from "./features/theme/initial-theme";
+import { readTheme } from "./features/theme/theme-cookie.server";
 import { errorDetail } from "./error-message";
 import { secondMilliseconds } from "./time-units";
 import { writeLog } from "./write-log.server";
@@ -11,18 +13,20 @@ import { writeLog } from "./write-log.server";
 export const streamTimeout = 5 * secondMilliseconds;
 
 // eslint-disable-next-line max-params -- React Router calls handleRequest with these four arguments.
-export default function handleRequest(
+export default async function handleRequest(
   request: Request,
   responseStatusCode: number,
   responseHeaders: Headers,
   entry: EntryContext,
-): Promise<Response> | Response {
+): Promise<Response> {
   if (request.method.toUpperCase() === "HEAD") {
     return new Response(null, {
       status: responseStatusCode,
       headers: responseHeaders,
     });
   }
+
+  const initialTheme = await readTheme(request);
 
   // Crawlers receive the whole page at once, while browsers receive the shell first and the rest as it streams.
   const waitsForAllContent = isbot(request.headers.get("user-agent") ?? "");
@@ -52,7 +56,9 @@ export default function handleRequest(
     };
 
     const { pipe, abort } = renderToPipeableStream(
-      <ServerRouter context={entry} url={request.url} />,
+      <InitialThemeProvider theme={initialTheme}>
+        <ServerRouter context={entry} url={request.url} />
+      </InitialThemeProvider>,
       {
         ...(waitsForAllContent
           ? { onAllReady: onReady }

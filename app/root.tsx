@@ -43,6 +43,7 @@ import { getLocale } from "./paraglide/runtime.js";
 import { m } from "./paraglide/messages.js";
 import { paraglideMiddleware } from "./paraglide/server.js";
 import "./theme.css";
+import { useInitialTheme } from "./features/theme/initial-theme";
 import { isTooLargeForm, TooLargeFormPage } from "./too-large-form";
 
 // The language comes first, so that a refused form and every later step speak the language of the reader. A form from another site is refused before its body is read. Paraglide copies the request that it gets but reads only its address and headers, so it gets a request without the body, of which its copy would otherwise keep everything that the server reads.
@@ -103,8 +104,9 @@ export function Layout({ children }: { children: ReactNode }): ReactNode {
   const rootData = useRouteLoaderData<typeof loader>("root");
   const page = useMatches().at(-1);
   const reader = rootData?.reader;
+  const theme = useInitialTheme();
   return (
-    <html lang={getLocale()}>
+    <html lang={getLocale()} data-theme={theme}>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />

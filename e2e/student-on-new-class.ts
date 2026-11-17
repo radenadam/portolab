@@ -16,14 +16,18 @@ export async function studentOnNewClass(
     className,
     lecturerName,
     studentName,
+    lecturerJavaScriptEnabled = true,
   }: {
     locale: Locale;
     className: string;
     lecturerName: string;
     studentName: string;
+    lecturerJavaScriptEnabled?: boolean;
   },
 ): Promise<{ lecturer: Page; testClass: TestClass }> {
-  const lecturer = await newDevice(browser, locale);
+  const lecturer = await newDevice(browser, locale, {
+    javaScriptEnabled: lecturerJavaScriptEnabled,
+  });
   await signInAsNewLecturer(lecturer, lecturerName);
   const testClass = await createTestClass(lecturer, className);
   await chooseLanguage(page, locale);

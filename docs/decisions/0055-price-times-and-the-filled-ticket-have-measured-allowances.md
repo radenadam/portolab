@@ -1,6 +1,6 @@
 # 0055. Price times and the filled ticket have measured allowances
 
-- Status: Accepted
+- Status: Accepted. [Decision 0056](0056-theme-choice-has-measured-shared-and-route-allowances.md) replaces its JavaScript ceilings for Saham, the ticket, Analisis, and demonstration analysis.
 - Date: 2026-11-17
 
 ## Context
@@ -22,10 +22,8 @@ The ticket includes Saham, its parent route, so it carries the 0.90 kB of Saham 
 
 ## Decision
 
-- `features/market-data/stock-page` has a JavaScript ceiling of 213.4 kB gzip.
-- `features/trading/ticket-page` has a JavaScript ceiling of 221.3 kB gzip.
-- `features/measures/measures-page` has a JavaScript ceiling of 201.7 kB gzip.
-- `features/measures/demonstration-analysis-page` has a JavaScript ceiling of 202.6 kB gzip.
+- The JavaScript ceilings for Saham, the ticket, Analisis, and demonstration
+  analysis follow decision 0056.
 - Every other ceiling, the CSS ceilings of these routes, and the dependency walk keep their rules.
 
 ## Alternatives

@@ -1105,5 +1105,16 @@
   "trading_impact_weight_after_label": "Weight after",
   "trading_impact_apply_label": "Show impact",
   "trading_impact_long_share_error": "The field \"{field}\" has {length} characters, but it takes only {choices}. Choose one of them.",
-  "market_data_codes_price_time_notice": "Price time for {codes}: {time}"
+  "market_data_codes_price_time_notice": "Price time for {codes}: {time}",
+  "theme_switch_label": "Theme",
+  "theme_system_label": "System",
+  "theme_light_label": "Light",
+  "theme_dark_label": "Dark",
+  "theme_page_title": "Choose a theme",
+  "theme_rejected_title": "The theme could not be changed",
+  "theme_unknown_error": "The form sent \"{value}\" in the field \"{field}\", but this field only takes {choices}. Choose one of them in the theme choice.",
+  "theme_long_error": "The form sent {length} characters in the field \"{field}\", but this field only takes {choices}. Choose one of them in the theme choice.",
+  "theme_missing_error": "The form sent no theme in the field \"{field}\". Choose {choices} in the theme choice.",
+  "theme_not_text_error": "The form sent a value of type {type} in the field \"{field}\" instead of text. Choose {choices} in the theme choice.",
+  "accounts_privacy_theme_body": "The {cookie} cookie keeps your theme choice in your browser for {days} days."
 }

@@ -1105,5 +1105,16 @@
   "trading_impact_weight_after_label": "Bobot sesudah",
   "trading_impact_apply_label": "Tampilkan dampak",
   "trading_impact_long_share_error": "Kolom \"{field}\" berisi {length} karakter, tetapi hanya menerima {choices}. Pilih salah satunya.",
-  "market_data_codes_price_time_notice": "Waktu harga {codes}: {time}"
+  "market_data_codes_price_time_notice": "Waktu harga {codes}: {time}",
+  "theme_switch_label": "Tema",
+  "theme_system_label": "Sistem",
+  "theme_light_label": "Terang",
+  "theme_dark_label": "Gelap",
+  "theme_page_title": "Pilih tema",
+  "theme_rejected_title": "Tema tidak dapat diganti",
+  "theme_unknown_error": "Formulir mengirim \"{value}\" di kolom \"{field}\", tetapi kolom ini hanya menerima {choices}. Pilih salah satunya di pilihan tema.",
+  "theme_long_error": "Formulir mengirim {length} karakter di kolom \"{field}\", tetapi kolom ini hanya menerima {choices}. Pilih salah satunya di pilihan tema.",
+  "theme_missing_error": "Formulir tidak mengirim tema di kolom \"{field}\". Pilih {choices} di pilihan tema.",
+  "theme_not_text_error": "Formulir mengirim nilai bertipe {type} di kolom \"{field}\", bukan teks. Pilih {choices} di pilihan tema.",
+  "accounts_privacy_theme_body": "Cookie {cookie} menyimpan pilihan tema Anda di peramban selama {days} hari."
 }
