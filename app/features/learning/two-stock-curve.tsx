@@ -31,14 +31,12 @@ export function TwoStockCurve({
   second,
   weight,
   rho,
-  labelledBy,
 }: {
   portfolio: PortfolioSummary;
   first: string;
   second: string;
   weight: PortfolioWeight;
   rho: Correlation;
-  labelledBy: string;
 }): ReactNode {
   const layout = useMemo(
     () => layoutTwoStockCurve(portfolio, { first, second, weight, rho }),
@@ -107,7 +105,6 @@ export function TwoStockCurve({
         className={styles["curve"]}
         data-two-stock-curve
         role="img"
-        aria-labelledby={labelledBy}
         aria-label={m.learning_curve_label({
           first,
           second,

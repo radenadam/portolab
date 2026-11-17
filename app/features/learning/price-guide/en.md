@@ -14,7 +14,7 @@ The last price is the price per share in the latest quote Portolab received. It 
 
 ## change
 
-The change compares the last price with the previous trading day's close. A plus sign and upward arrow show a rise, while a minus sign and downward arrow show a fall.
+The change compares the last price with the close on the trading day before the quoted day. A plus sign and upward arrow show a rise, while a minus sign and downward arrow show a fall.
 
 ## time
 

@@ -103,6 +103,9 @@ for (const locale of locales) {
           .getByRole("slider", { name: text.correlation, exact: true })
           .fill(rho);
         await expect(risk).toHaveText(expected);
+        await expect(
+          page.locator("[data-two-stock-curve]"),
+        ).toHaveAccessibleName(new RegExp(expected.replaceAll(".", "\\.")));
         await expectMapLabelsClear(page.locator("[data-two-stock-curve]"));
         await expect(
           page.getByRole("button", { name: text.restore, exact: true }),

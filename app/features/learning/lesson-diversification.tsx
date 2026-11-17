@@ -188,7 +188,6 @@ export function LessonDiversification({
           second={second}
           weight={weight}
           rho={rho}
-          labelledBy={`${idPrefix}lesson-interactive-title`}
         />
         <dl
           className={styles["statistics"]}

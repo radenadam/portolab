@@ -14,7 +14,7 @@ Harga terakhir adalah harga per lembar dari kutipan terakhir yang diterima Porto
 
 ## change
 
-Perubahan membandingkan harga terakhir dengan penutupan hari bursa sebelumnya. Tanda tambah dan panah naik menunjukkan kenaikan, sedangkan tanda minus dan panah turun menunjukkan penurunan.
+Perubahan membandingkan harga terakhir dengan penutupan pada hari bursa sebelum tanggal kutipan. Tanda tambah dan panah naik menunjukkan kenaikan, sedangkan tanda minus dan panah turun menunjukkan penurunan.
 
 ## time
 

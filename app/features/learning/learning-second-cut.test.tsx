@@ -93,7 +93,7 @@ const texts: Record<Locale, readonly string[]> = {
     "Perubahan",
     "Waktu kutipan",
     "Berapa uang untuk satu lot?",
-    "Temukan saham dengan perubahan hari ini terbesar, lalu baca kode, harga, perubahan, dan waktu harganya.",
+    "Temukan saham dengan perubahan harian terbesar, lalu baca kode, harga, perubahan, dan waktu harganya.",
     "Buka Pasar untuk tugas ini",
     "Cara membaca harga saham",
     "Bobot BBCA",
