@@ -1,6 +1,6 @@
 # 0036. Lessons and the glossary are content in both languages
 
-- Status: Accepted [Decision 0056](0056-learning-practices-have-measured-sheet-allowances.md) extends its Markdown prose rule to the price guide.
+- Status: Accepted. [Decision 0057](0057-learning-practices-have-measured-sheet-allowances.md) extends its Markdown prose rule to the price guide.
 - Date: 2026-11-14
 
 ## Context

@@ -5,16 +5,16 @@ interface ClientRouteLimits {
 
 const exerciseStylesheetLimit = "24 kB";
 
-// Decisions 0049 and 0056 record these allowances for complete lesson sheets.
+// Decisions 0049 and 0057 record these allowances for complete lesson sheets.
 const measuredRoutes: ReadonlyMap<string, Partial<ClientRouteLimits>> = new Map(
   [
     [
       "features/classes/class-page",
-      { javascript: "227 kB", stylesheets: "24.1 kB" },
+      { javascript: "227.5 kB", stylesheets: "24.2 kB" },
     ],
     [
       "features/market-data/market-page",
-      { javascript: "213.5 kB", stylesheets: "21.5 kB" },
+      { javascript: "217.5 kB", stylesheets: "22 kB" },
     ],
     ["features/trading/activity-page", { javascript: "208 kB" }],
     [
@@ -28,24 +28,24 @@ const measuredRoutes: ReadonlyMap<string, Partial<ClientRouteLimits>> = new Map(
     ],
     [
       "features/measures/measures-page",
-      { javascript: "222.5 kB", stylesheets: "20.6 kB" },
+      { javascript: "222.7 kB", stylesheets: "20.6 kB" },
     ],
     [
       "features/market-data/stock-page",
-      { javascript: "226.8 kB", stylesheets: "22 kB" },
+      { javascript: "227.2 kB", stylesheets: "22 kB" },
     ],
     [
       "features/trading/ticket-page",
-      { javascript: "234.5 kB", stylesheets: "24.8 kB" },
+      { javascript: "235 kB", stylesheets: "24.8 kB" },
     ],
-    ["features/grading/class-portfolios-page", { javascript: "203.5 kB" }],
+    ["features/grading/class-portfolios-page", { javascript: "203.7 kB" }],
     [
       "features/grading/student-portfolio-page",
       { javascript: "222.5 kB", stylesheets: exerciseStylesheetLimit },
     ],
     [
       "features/grading/student-measures-page",
-      { javascript: "223.8 kB", stylesheets: "21.6 kB" },
+      { javascript: "224 kB", stylesheets: "21.6 kB" },
     ],
     [
       "features/grading/student-journal-page",

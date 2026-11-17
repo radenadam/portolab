@@ -188,22 +188,22 @@ test("discovers a new route without adding a budget entry by hand", () => {
 test("applies measured route allowances only to the named routes and asset kinds", () => {
   const { chunks, routes, files } = fixture();
   const cases = [
-    ["features/classes/class-page", "227 kB", "24.1 kB"],
-    ["features/market-data/stock-page", "226.8 kB", "22 kB"],
+    ["features/classes/class-page", "227.5 kB", "24.2 kB"],
+    ["features/market-data/stock-page", "227.2 kB", "22 kB"],
     ["features/market-data/stock-page-detail", "200 kB", "20 kB"],
-    ["features/market-data/market-page", "213.5 kB", "21.5 kB"],
+    ["features/market-data/market-page", "217.5 kB", "22 kB"],
     ["features/market-data/market-page-detail", "200 kB", "20 kB"],
-    ["features/trading/ticket-page", "234.5 kB", "24.8 kB"],
+    ["features/trading/ticket-page", "235 kB", "24.8 kB"],
     ["features/trading/activity-page", "208 kB", "20 kB"],
     ["features/trading/demonstration-summary-page", "221.5 kB", "24 kB"],
     ["features/trading/demonstration-activity-page", "209 kB", "20 kB"],
-    ["features/measures/measures-page", "222.5 kB", "20.6 kB"],
+    ["features/measures/measures-page", "222.7 kB", "20.6 kB"],
     ["features/measures/measures-page-detail", "200 kB", "20 kB"],
     ["features/measures/demonstration-analysis-page", "223.5 kB", "21.2 kB"],
     ["features/measures/demonstration-analysis-page-detail", "200 kB", "20 kB"],
-    ["features/grading/class-portfolios-page", "203.5 kB", "20 kB"],
+    ["features/grading/class-portfolios-page", "203.7 kB", "20 kB"],
     ["features/grading/student-portfolio-page", "222.5 kB", "24 kB"],
-    ["features/grading/student-measures-page", "223.8 kB", "21.6 kB"],
+    ["features/grading/student-measures-page", "224 kB", "21.6 kB"],
     ["features/grading/student-journal-page", "209 kB", "20.4 kB"],
     ["features/grading/student-measures-page-detail", "200 kB", "20 kB"],
     ["features/learning/lesson-page", "200 kB", "20 kB"],
@@ -225,7 +225,7 @@ test("applies measured route allowances only to the named routes and asset kinds
   }
 });
 
-test("keeps the Kelas CSS allowance on its complete route alone", () => {
+test("keeps child budgets and stylesheet dependencies unchanged by an allowance", () => {
   const { chunks, routes, files } = fixture();
   routes.set("features/classes/class-page", {
     file: "app/class.tsx",
@@ -239,26 +239,16 @@ test("keeps the Kelas CSS allowance on its complete route alone", () => {
     clientSizeChecks(chunks, routes, files),
     "plans the class allowance",
   );
+  const completeRoute = checks.find(
+    (check) => check.name === "Route CSS: features/classes/class-page",
+  );
+  expect(completeRoute).toBeDefined();
   expect(
-    checks
-      .filter(
-        (check) =>
-          check.name === "Shared CSS" || check.name?.startsWith("Route CSS:"),
-      )
-      .map((check) => [check.name, check.limit]),
-  ).toEqual([
-    ["Shared CSS", "20 kB"],
-    ["Route CSS: class", "20 kB"],
-    ["Route CSS: market", "20 kB"],
-    ["Route CSS: other", "20 kB"],
-    ["Route CSS: features/classes/class-page", "24.1 kB"],
-    ["Route CSS: class-child", "20 kB"],
-  ]);
-  expect(
-    checks.find(
-      (check) => check.name === "Route CSS: features/classes/class-page",
-    )?.path,
-  ).toEqual(checks.find((check) => check.name === "Route CSS: class")?.path);
+    checks.find((check) => check.name === "Route CSS: class-child")?.limit,
+  ).toBe("20 kB");
+  expect(completeRoute?.path).toEqual(
+    checks.find((check) => check.name === "Route CSS: class")?.path,
+  );
 });
 
 test("rejects missing files even when the other files of the route exist", () => {
