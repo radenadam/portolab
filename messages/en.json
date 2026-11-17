@@ -1217,5 +1217,16 @@
   "market_data_one_month_part": "{count} month",
   "market_data_several_months_part": "{count} months",
   "market_data_map_year_part": "{count} year",
-  "market_data_map_change_requirement_notice": "The map needs a delayed price after a close on or before {date}. Check again when price and history updates store both."
+  "market_data_map_change_requirement_notice": "The map needs a delayed price after a close on or before {date}. Check again when price and history updates store both.",
+  "theme_switch_label": "Theme",
+  "theme_system_label": "System",
+  "theme_light_label": "Light",
+  "theme_dark_label": "Dark",
+  "theme_page_title": "Choose a theme",
+  "theme_rejected_title": "The theme could not be changed",
+  "theme_unknown_error": "The form sent \"{value}\" in the field \"{field}\", but this field only takes {choices}. Choose one of them in the theme choice.",
+  "theme_long_error": "The form sent {length} characters in the field \"{field}\", but this field only takes {choices}. Choose one of them in the theme choice.",
+  "theme_missing_error": "The form sent no theme in the field \"{field}\". Choose {choices} in the theme choice.",
+  "theme_not_text_error": "The form sent a value of type {type} in the field \"{field}\" instead of text. Choose {choices} in the theme choice.",
+  "accounts_privacy_theme_body": "The {cookie} cookie keeps your theme choice in your browser for {days} days."
 }

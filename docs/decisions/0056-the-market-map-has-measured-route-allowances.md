@@ -1,6 +1,6 @@
 # 0056. The market map has measured route allowances
 
-- Status: Accepted. [Decision 0057](0057-learning-practices-have-measured-sheet-allowances.md) replaces its shared JavaScript ceiling, its JavaScript ceilings for Market, the stock page, ticket, student analysis, and demonstration analysis, and its CSS ceiling for Market.
+- Status: Accepted. [Decision 0057](0057-theme-choice-has-measured-shared-and-route-allowances.md) replaces its shared JavaScript ceiling, its Pasar JavaScript and CSS ceilings, and its JavaScript ceilings for Saham, the ticket, Analisis, and demonstration analysis.
 - Date: 2026-11-17
 
 ## Context
@@ -22,9 +22,9 @@ These measurements use main at `21dce2a` and the first pushed map build at `82e9
 
 ## Decision
 
-- Pasar has a CSS ceiling of 20.5 kB gzip. Its JavaScript keeps the existing ceiling.
-- Shared JavaScript has a ceiling of 140.3 kB gzip.
-- Saham, the ticket, Analisis, and demonstration analysis have JavaScript ceilings of 214, 222, 202.3, and 203.2 kB gzip respectively.
+- The shared JavaScript ceiling, the Pasar JavaScript and CSS ceilings, and
+  the JavaScript ceilings for Saham, the ticket, Analisis, and demonstration
+  analysis follow decision 0057.
 - Every other ceiling and the dependency walk keep their rules.
 
 The map and its links render on the server. A phone can choose its view, range, and axis and open a stock before it downloads or runs the enhancement. The added stylesheet cost on Pasar is about 0.4 kB gzip. The complete market JavaScript remains below its earlier ceiling. Its browser checks cover touch at 360 pixels, both themes, native stock navigation, and the transition to the enhanced slider. The sample class exercises the same screen with varied holdings for both roles. These checks and byte measurements support the narrow allowances. They do not measure latency on every phone.

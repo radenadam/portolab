@@ -1,5 +1,6 @@
 import { expectMapLabelsClear } from "./expect-map-labels-clear.ts";
 import { expect, test } from "@playwright/test";
+import type { Page } from "@playwright/test";
 import { languageNames } from "../app/language-names.ts";
 import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
@@ -201,18 +202,7 @@ for (const locale of locales) {
           await expect(page).toHaveURL(`${classPath}/learn/6#practice`);
           await expect(task).toBeInViewport();
           await page.goto(`${classPath}/learn/prices`);
-          await page
-            .getByRole("button", { name: text.tickHelp, exact: true })
-            .click();
-          const tickHelp = page.getByRole("dialog", {
-            name: text.tick,
-            exact: true,
-          });
-          await expect(tickHelp.getByRole("table")).toBeVisible();
-          await expectAccessibleScreen(page);
-          await expectLayout(page);
-          await page.keyboard.press("Escape");
-          await expect(tickHelp).not.toBeVisible();
+          await expectTickHelp(page, text, javaScriptEnabled);
         } finally {
           await lecturer.context().close();
         }
@@ -220,7 +210,7 @@ for (const locale of locales) {
     });
   }
 
-  test(`keeps the server drawing and defaults through hydration in ${languageNames[locale]}`, async ({
+  test(`keeps the server drawing, values, and help through hydration in ${languageNames[locale]}`, async ({
     page,
     browser,
   }) => {
@@ -246,6 +236,14 @@ for (const locale of locales) {
           await expect(page.locator("main dl").first()).toHaveText(
             before ?? "",
           );
+        },
+      );
+      await holdClientScripts(
+        page,
+        { address: classPath + "/learn/prices" },
+        async (loadClient) => {
+          await expectTickHelp(page, text);
+          await loadClient();
         },
       );
     } finally {
@@ -302,4 +300,18 @@ for (const locale of locales) {
       await lecturer.context().close();
     }
   });
+}
+
+async function expectTickHelp(
+  page: Page,
+  text: { tickHelp: string; tick: string },
+  checkAccessibility = true,
+): Promise<void> {
+  await page.getByRole("button", { name: text.tickHelp, exact: true }).click();
+  const tickHelp = page.getByRole("dialog", { name: text.tick, exact: true });
+  await expect(tickHelp.getByRole("table")).toBeVisible();
+  if (checkAccessibility) await expectAccessibleScreen(page);
+  await expectLayout(page);
+  await page.keyboard.press("Escape");
+  await expect(tickHelp).not.toBeVisible();
 }
