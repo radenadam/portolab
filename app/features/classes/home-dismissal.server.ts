@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq, isNull, lt, or } from "drizzle-orm";
 import type { Database } from "../../database/database.server.ts";
 import { memberships } from "./classes.schema.ts";
 import type { MembershipId } from "./classes.schema.ts";
@@ -20,11 +20,19 @@ export function readHomeDismissedAt(
 export function dismissHomeSince(
   database: Database,
   membershipId: MembershipId,
-  now: Date,
+  shownAt: Date,
 ): void {
   database
     .update(memberships)
-    .set({ homeDismissedAt: now })
-    .where(eq(memberships.id, membershipId))
+    .set({ homeDismissedAt: shownAt })
+    .where(
+      and(
+        eq(memberships.id, membershipId),
+        or(
+          isNull(memberships.homeDismissedAt),
+          lt(memberships.homeDismissedAt, shownAt),
+        ),
+      ),
+    )
     .run();
 }

@@ -1,9 +1,10 @@
 import { Message } from "~/message";
 import type { ReactNode } from "react";
-import { Form, Link } from "react-router";
+import { Form, Link, useLocation } from "react-router";
 import type { ClassId } from "~/features/classes/classes.schema";
 import { CompanyTile } from "~/features/market-data/stock-name";
-import { stockPath } from "~/features/market-data/stock-path";
+import { stockTicketPath } from "./stock-ticket-path";
+import { homeSummaryTimeField } from "./home-summary-time";
 import { NumberText } from "~/number-text";
 import { m } from "~/paraglide/messages.js";
 import { activityStatus } from "./activity-selection";
@@ -17,21 +18,45 @@ export function HomeSinceCard({
   orders,
   now,
   classId,
+  failure,
 }: {
   orders: readonly StoredOrder[];
   now: Date;
   classId: ClassId;
+  failure?: string | undefined;
 }): ReactNode {
-  if (orders.length === 0) return null;
+  const location = useLocation();
+  if (orders.length === 0 && failure === undefined) return null;
   return (
     <section className={styles["card"]} aria-labelledby="home-since-title">
+      {failure !== undefined && (
+        <div className={styles["failure"]} role="alert">
+          <p>
+            <NumberText>{failure}</NumberText>
+          </p>
+          <Link
+            className={styles["reload"]}
+            reloadDocument
+            to={location.pathname + location.search}
+          >
+            {m.trading_home_since_reload_link()}
+          </Link>
+        </div>
+      )}
       <div className={styles["heading"]}>
         <h2 id="home-since-title">{m.trading_home_since_visit_title()}</h2>
-        <Form method="post">
-          <button className={styles["close"]} type="submit">
-            {m.trading_home_since_close_label()}
-          </button>
-        </Form>
+        {orders.length > 0 && (
+          <Form method="post">
+            <input
+              type="hidden"
+              name={homeSummaryTimeField}
+              value={now.toISOString()}
+            />
+            <button className={styles["close"]} type="submit">
+              {m.trading_home_since_close_label()}
+            </button>
+          </Form>
+        )}
       </div>
       <ul className={styles["list"]}>
         {orders.map((order) => (
@@ -60,7 +85,7 @@ export function HomeSinceCard({
               {order.state.kind === "rejected" && (
                 <Link
                   className={styles["retry"]}
-                  to={`${stockPath(classId, order.code)}/${order.side}`}
+                  to={stockTicketPath(classId, order.code, order.side)}
                 >
                   {m.trading_activity_ticket_link({ code: order.code })}
                 </Link>

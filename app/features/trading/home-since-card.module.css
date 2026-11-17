@@ -63,3 +63,12 @@
   composes: button from "../../button.module.css";
   font-size: var(--text-row);
 }
+.failure {
+  color: var(--color-loss);
+  overflow-wrap: anywhere;
+  margin-block-end: var(--space-4);
+  font-size: var(--text-row);
+}
+.reload {
+  composes: standalone-link from global;
+}

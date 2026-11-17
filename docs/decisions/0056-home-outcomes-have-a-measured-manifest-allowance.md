@@ -7,20 +7,22 @@
 
 Piece 27 of #127 adds the summary of fills, expiries, and rejections above Beranda. It reuses the order outcome, status, and rejection views of Aktivitas. The outcome and status share a module because both callers use them together. Their styles stay separate from the list and journal styles of Aktivitas.
 
-The new imports also change the route manifest, which every page carries under [decision 0038](0038-client-javascript-is-budgeted-by-route.md). The shared set and four routes exceed their existing JavaScript ceilings by 43, 3, 34, 41, and 65 bytes. Beranda itself fits its existing JavaScript and CSS ceilings.
+The new imports also change the route manifest, which every page carries under [decision 0038](0038-client-javascript-is-budgeted-by-route.md). The first measured build exceeded the shared ceiling and four route ceilings by 43, 3, 34, 41, and 65 bytes. Beranda itself fits its existing JavaScript and CSS ceilings.
 
 These production builds use `pnpm build` and `pnpm size`, with the complete dependency walk and gzip method of decision 0038 and [decision 0042](0042-client-css-is-budgeted-by-route.md). The baseline is main at `21dce2a`. Its reported values below are rounded to two decimal places. The changed build keeps exact bytes as kB, where one kB is 1,000 bytes. Both languages count.
 
 | Set                    | Main JavaScript, kB gzip | With home outcomes, kB gzip |
 | ---------------------- | -----------------------: | --------------------------: |
-| Shared                 |                   140.16 |                     140.243 |
-| Beranda                |                   208.97 |                     218.184 |
-| Demonstration analysis |                   202.52 |                     202.603 |
-| Analisis               |                   201.65 |                     201.734 |
-| Saham                  |                   213.36 |                     213.441 |
-| Ticket                 |                   221.28 |                     221.365 |
+| Shared                 |                   140.16 |                     140.239 |
+| Beranda                |                   208.97 |                     218.369 |
+| Demonstration analysis |                   202.52 |                     202.599 |
+| Analisis               |                   201.65 |                     201.730 |
+| Saham                  |                   213.36 |                     213.437 |
+| Ticket                 |                   221.28 |                     221.361 |
 
-Beranda's CSS grows from 22.58 kB to 23.196 kB. The shared route manifest is 5,100 bytes gzip. The outcome and status views add no import to the root route. Their new dependency graph changes the manifest and the chunks that Vite shares with existing callers.
+Beranda's CSS grows from 22.58 kB to 23.217 kB. The shared route manifest is 5,096 bytes gzip. The outcome and status views add no import to the root route. Their new dependency graph changes the manifest and the chunks that Vite shares with existing callers.
+
+The two measured versions differ by four bytes in the shared manifest after its asset hashes change. Demonstration analysis is now one byte below its earlier ceiling, while the earlier build exceeded it by three bytes. Its allowance covers both measured sets.
 
 ## Decision
 

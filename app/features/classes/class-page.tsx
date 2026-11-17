@@ -12,7 +12,7 @@ import type { ClassMapSection } from "./class-path";
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { data, Link, redirect } from "react-router";
-import { dismissHomeSince } from "./home-dismissal.server";
+import { closeHomeSummary } from "~/features/trading/close-home-summary.server";
 import { databaseContext } from "~/database/database.server";
 import { requireUser } from "~/features/accounts/current-session.server";
 import { formatMarketTime } from "~/formatting";
@@ -131,20 +131,32 @@ export function loader({ context, params, url, request }: Route.LoaderArgs):
   }
 }
 
-export function action({ context, params, url }: Route.ActionArgs): never {
+export async function action({
+  context,
+  params,
+  request,
+  url,
+}: Route.ActionArgs) {
   const now = new Date();
   const user = requireUser(context, url);
   const classId = parseRecordId<ClassId>(params.classId, "classId");
   if (!classId.ok || user.role !== "student") throw data(null, { status: 404 });
+  const form = await request.formData();
   const database = context.get(databaseContext);
   const joined = findJoinedClass(database, classId.value, user.id);
   if (joined === undefined) throw data(null, { status: 404 });
-  dismissHomeSince(database, joined.membershipId, now);
+  const closed = closeHomeSummary(database, form, {
+    ...joined,
+    now,
+  });
+  if (!closed.ok)
+    return data({ closeFailure: closed.failure }, { status: 400 });
   throw redirect(`${url.pathname}${url.search}`);
 }
 
 export default function ClassPage({
   loaderData,
+  actionData,
 }: Route.ComponentProps): ReactNode {
   switch (loaderData.role) {
     case "lecturer":
@@ -202,6 +214,7 @@ export default function ClassPage({
               orders={loaderData.home.sinceOrders}
               now={loaderData.home.now}
               classId={loaderData.id}
+              failure={actionData?.closeFailure}
             />
           }
         />

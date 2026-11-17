@@ -1,3 +1,8 @@
+import type { Browser, Page } from "@playwright/test";
+import {
+  homeSummaryTimeField,
+  homeSummaryTimeMaximumLength,
+} from "../app/features/trading/home-summary-time.ts";
 import { expect, test } from "@playwright/test";
 import { languageNames } from "../app/language-names.ts";
 import { locales } from "../app/paraglide/runtime.js";
@@ -26,6 +31,7 @@ const texts: Record<
     expired: string;
     cancelled: string;
     retry: string;
+    reload: string;
   }
 > = {
   id: {
@@ -36,6 +42,7 @@ const texts: Record<
     expired: "Kedaluwarsa",
     cancelled: "Dibatalkan",
     retry: "Buka tiket BBCA",
+    reload: "Muat ulang Beranda",
   },
   en: {
     title: "Since your last visit",
@@ -45,10 +52,62 @@ const texts: Record<
     expired: "Expired",
     cancelled: "Cancelled",
     retry: "Open ticket for BBCA",
+    reload: "Reload Home",
   },
 };
 
 for (const locale of locales) {
+  test(`honors an older summary cutoff and recovers from malformed metadata before JavaScript in ${languageNames[locale]}`, async ({
+    page,
+    browser,
+  }) => {
+    const text = texts[locale];
+    const { student, classPath } = await studentWithSummaryForTest(
+      page,
+      browser,
+      locale,
+    );
+    const native = await newDevice(browser, locale, {
+      javaScriptEnabled: false,
+      storageState: await student.context().storageState(),
+    });
+    await native.goto(`${classPath}?view=time`);
+    const card = native.getByRole("region", { name: text.title, exact: true });
+    const moment = native.locator(`input[name="${homeSummaryTimeField}"]`);
+    // An archived form can arrive after later outcomes or after another device closed a newer summary.
+    for (const [shownAt, rows] of [
+      ["2026-10-29T03:00:00.000Z", 3],
+      ["2026-10-29T04:00:00.000Z", 1],
+      ["2026-10-29T03:00:00.000Z", 1],
+    ] as const) {
+      await moment.evaluate((input: HTMLInputElement, value) => {
+        input.value = value;
+      }, shownAt);
+      await card.getByRole("button", { name: text.close, exact: true }).click();
+      await expect(card.getByRole("listitem")).toHaveCount(rows);
+    }
+    await moment.evaluate((input: HTMLInputElement) => {
+      input.value = "bad";
+    });
+    const answer = native.waitForResponse(
+      (response) =>
+        response.url().includes(classPath) &&
+        response.request().method() === "POST",
+    );
+    await card.getByRole("button", { name: text.close, exact: true }).click();
+    expect((await answer).status()).toBe(400);
+    const alert = card.getByRole("alert");
+    await expect(alert).toContainText('"bad"');
+    await expect(alert).toContainText(text.title);
+    await expect(card.getByRole("listitem")).toHaveCount(1);
+    await alert.getByRole("link", { name: text.reload, exact: true }).click();
+    await expect(native).toHaveURL(`${classPath}?view=time`);
+    await expect(alert).toHaveCount(0);
+    await card.getByRole("button", { name: text.close, exact: true }).click();
+    await expect(card).toHaveCount(0);
+    await native.context().close();
+    await student.context().close();
+  });
   test(`keeps the largest order and starting cash inside home in ${languageNames[locale]}`, async ({
     page,
     browser,
@@ -83,22 +142,12 @@ for (const locale of locales) {
     browser,
   }) => {
     const text = texts[locale];
-    const { student, classId, classPath } = await studentOfNewClass(
+    const { student, classPath } = await studentWithSummaryForTest(
       page,
       browser,
-      {
-        locale,
-        className: "Manajemen Portofolio A",
-        lecturerName: "Dosen",
-        studentName: "Mahasiswa",
-        startingCash: homeDesignStartingCash,
-      },
+      locale,
     );
     const card = student.getByRole("region", { name: text.title, exact: true });
-    await expect(card).toHaveCount(0);
-    storeHomeDesignPortfolio(classId);
-    storeActivityOrders(classId);
-    await student.reload();
     await expect(card.getByRole("listitem")).toHaveCount(4);
     await expect(card.getByText(text.filled, { exact: true })).toHaveCount(2);
     await expect(card.getByText(text.rejected, { exact: true })).toBeVisible();
@@ -119,6 +168,33 @@ for (const locale of locales) {
         expect(await layoutProblems(student)).toEqual([]);
       },
     });
+    for (const [kind, value] of [
+      ["letters", "W".repeat(homeSummaryTimeMaximumLength)],
+      ["digits", "9".repeat(homeSummaryTimeMaximumLength)],
+    ] as const) {
+      await student
+        .locator(`input[name="${homeSummaryTimeField}"]`)
+        .evaluate((input: HTMLInputElement, malformed) => {
+          input.value = malformed;
+        }, value);
+      await card.getByRole("button", { name: text.close, exact: true }).click();
+      const alert = card.getByRole("alert");
+      await expect(alert).toContainText(JSON.stringify(value));
+      await expect(alert).toContainText(text.title);
+      await expectAccessibleScreen(student);
+      expect(await layoutProblems(student)).toEqual([]);
+      if (kind === "letters")
+        await captureScreens(student, test.info(), {
+          name: `home-since-error-${locale}`,
+          fullPage: true,
+          fromTop: true,
+        });
+    }
+    await card
+      .getByRole("alert")
+      .getByRole("link", { name: text.reload, exact: true })
+      .click();
+    await expect(card.getByRole("alert")).toHaveCount(0);
     const storageState = await student.context().storageState();
     await holdClientScripts(
       student,
@@ -146,4 +222,28 @@ for (const locale of locales) {
     await expect(card).toHaveCount(0);
     await student.context().close();
   });
+}
+
+async function studentWithSummaryForTest(
+  page: Page,
+  browser: Browser,
+  locale: Locale,
+) {
+  const prepared = await studentOfNewClass(page, browser, {
+    locale,
+    className: "Manajemen Portofolio A",
+    lecturerName: "Dosen",
+    studentName: "Mahasiswa",
+    startingCash: homeDesignStartingCash,
+  });
+  await expect(
+    prepared.student.getByRole("region", {
+      name: texts[locale].title,
+      exact: true,
+    }),
+  ).toHaveCount(0);
+  storeHomeDesignPortfolio(prepared.classId);
+  storeActivityOrders(prepared.classId);
+  await prepared.student.reload();
+  return prepared;
 }

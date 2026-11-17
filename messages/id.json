@@ -1107,7 +1107,13 @@
   "trading_impact_long_share_error": "Kolom \"{field}\" berisi {length} karakter, tetapi hanya menerima {choices}. Pilih salah satunya.",
   "market_data_codes_price_time_notice": "Waktu harga {codes}: {time}",
   "trading_home_since_close_label": "Tutup",
-  "accounts_privacy_home_dismissal_body": "Waktu terakhir Anda menutup ringkasan Beranda di setiap kelas, agar kejadian yang sudah Anda lihat tidak muncul lagi. Waktu ini disimpan sampai keanggotaan Anda di kelas dihapus.",
+  "accounts_privacy_home_dismissal_body": "Waktu ringkasan Beranda terbaru yang sudah Anda tutup di setiap kelas. Portolab hanya menyembunyikan kejadian yang termasuk dalam ringkasan itu. Waktu ini disimpan sampai keanggotaan Anda di kelas dihapus.",
   "trading_home_since_trade_label": "{side} {lots} {code}",
-  "trading_home_since_visit_title": "Sejak kunjungan terakhir"
+  "trading_home_since_visit_title": "Sejak kunjungan terakhir",
+  "trading_home_since_missing_time_part": "tidak ada",
+  "trading_home_since_time_type_part": "bertipe {type}, bukan teks",
+  "trading_home_since_long_time_part": "berisi {length} karakter, sehingga bukan waktu dari ringkasan",
+  "trading_home_since_invalid_time_part": "berisi {value}, tetapi waktu itu tidak sah untuk keanggotaan Anda",
+  "trading_home_since_time_error": "Waktu untuk \"{source}\" {problem}. Portolab hanya menutup kejadian yang termasuk saat ringkasan dimuat. Muat ulang Beranda, lalu tutup ringkasan terbaru.",
+  "trading_home_since_reload_link": "Muat ulang Beranda"
 }
