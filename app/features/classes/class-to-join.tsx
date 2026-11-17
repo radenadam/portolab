@@ -16,6 +16,8 @@ import { formatRupiah } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import type { ClassForStudents } from "./class-store.server";
 import styles from "./classes.module.css";
+import { NimField } from "./nim-field";
+import type { NimFieldValue } from "./nim-field";
 
 /** A class that a code opens, with the button that joins it for a student who is signed in, or the form that creates the account of a student for a visitor. */
 export function ClassToJoin({
@@ -23,11 +25,13 @@ export function ClassToJoin({
   isSignedIn,
   fields,
   failure,
+  nimField,
 }: {
   classToJoin: ClassForStudents;
   isSignedIn: boolean;
   fields: AccountFormFailures | undefined;
   failure: string | undefined;
+  nimField: NimFieldValue | undefined;
 }): ReactNode {
   return (
     <FormPage
@@ -50,10 +54,11 @@ export function ClassToJoin({
       {isSignedIn ? (
         <Form method="post" className={formStyles["form"]}>
           <input type="hidden" name="signedIn" value="yes" />
+          <NimField field={nimField} />
           <SubmitButton label={m.classes_join_label()} />
         </Form>
       ) : (
-        <NewStudentForm fields={fields} failure={failure} />
+        <NewStudentForm fields={fields} failure={failure} nimField={nimField} />
       )}
     </FormPage>
   );
@@ -62,8 +67,10 @@ export function ClassToJoin({
 function NewStudentForm({
   fields,
   failure,
+  nimField,
 }: {
   fields: AccountFormFailures | undefined;
+  nimField: NimFieldValue | undefined;
   /** Why the form created no account, apart from its fields, such as a limit on attempts. */
   failure: string | undefined;
 }): ReactNode {
@@ -73,6 +80,7 @@ function NewStudentForm({
       <Form method="post" className={formStyles["form"]}>
         {failure !== undefined && <FormFailure text={failure} />}
         <NameField accountRole="student" failures={fields} />
+        <NimField field={nimField} />
         <UsernameField failures={fields} />
         <NewPasswordFields failures={fields} />
         <ConsentField failures={fields} />

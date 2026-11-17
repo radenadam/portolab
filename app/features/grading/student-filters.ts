@@ -61,6 +61,7 @@ export function filterStudents(
     (student) =>
       matchesStudentFilter(student, options.filter) &&
       (student.name.toLocaleLowerCase().includes(query) ||
-        student.username.toLocaleLowerCase().includes(query)),
+        student.username.toLocaleLowerCase().includes(query) ||
+        (student.nim?.toLocaleLowerCase().includes(query) ?? false)),
   );
 }

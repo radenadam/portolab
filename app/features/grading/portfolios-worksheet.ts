@@ -49,6 +49,12 @@ const columns: readonly Column[] = [
     cell: (student) => textCell(student.name),
   },
   {
+    heading: () => m.grading_nim_label(),
+    width: usernameWidth,
+    cell: (student) =>
+      student.nim === null ? undefined : textCell(student.nim),
+  },
+  {
     heading: () => m.grading_username_label(),
     width: usernameWidth,
     cell: (student) => textCell(student.username),

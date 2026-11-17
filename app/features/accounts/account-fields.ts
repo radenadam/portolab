@@ -194,7 +194,7 @@ export function usernameRule(): {
     maximum: formatNumber(usernameLength.maximum),
     characters: formatList(
       describeUsernameCharacters((first, last) =>
-        m.accounts_character_range_part({ first, last }),
+        m.app_character_range_part({ first, last }),
       ),
       "conjunction",
     ),

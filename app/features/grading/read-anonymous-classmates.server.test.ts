@@ -7,6 +7,7 @@ import { fixturePriceSource } from "~/features/market-data/fixture-price-source.
 import { readHomePortfolio } from "~/features/trading/read-home-portfolio.server";
 import { expect, test } from "vitest";
 import { createClassForTest } from "~/features/classes/classes-for-test.server";
+import { setStudentNim } from "~/features/classes/set-student-nim.server";
 import { listStudents } from "~/features/classes/class-store.server";
 import { closeToForTest } from "~/features/measures/close-to-for-test";
 import { classOfStudentsForTest } from "./class-of-students-for-test.server";
@@ -17,6 +18,13 @@ test("returns only anonymous coordinates, excludes the reader and unmeasured cla
   const students = listStudents(database, taughtClass.id);
   const reader = students.find(({ username }) => username === "eko");
   if (reader === undefined) throw new Error("The fixture has no Eko.");
+  for (const student of students) {
+    setStudentNim(database, {
+      classId: taughtClass.id,
+      studentId: student.id,
+      nim: `PRIVATE-${student.username}`,
+    });
+  }
   const input = {
     classId: taughtClass.id,
     membershipId: reader.membershipId,
@@ -49,8 +57,10 @@ test("returns only anonymous coordinates, excludes the reader and unmeasured cla
   expect(home.classmates).toEqual(readAnonymousClassmates(database, input));
   for (const classmate of home.classmates)
     expect(Object.keys(classmate)).toEqual(["beta", "return"]);
-  for (const student of students)
+  for (const student of students) {
     expect(JSON.stringify(home)).not.toContain(student.name);
+    expect(JSON.stringify(home)).not.toContain(`PRIVATE-${student.username}`);
+  }
   const other = createClassForTest(
     database,
     await createReadyTestLecturer(database, "other", "Other"),

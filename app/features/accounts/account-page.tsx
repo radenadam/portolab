@@ -11,13 +11,15 @@ import { failureOf } from "~/result";
 import { m } from "~/paraglide/messages.js";
 import type { Route } from "./+types/account-page";
 import type { User } from "./account";
+import { listReaderClasses } from "~/features/classes/class-store.server";
+import { ClassNimForm } from "~/features/classes/class-nim-form";
+import { changeStudentNim } from "~/features/classes/change-student-nim.server";
+import type { NimAnswer } from "~/features/classes/change-student-nim.server";
 import { AccountDetails } from "./account-details";
 import { parsePersonName, readNewPassword } from "./account-fields";
-import type {
-  AccountFormFailures,
-  NewPasswordFailures,
-} from "./account-fields";
-import { NameField } from "./account-form-fields";
+import type { NewPasswordFailures } from "./account-fields";
+import { AccountNameForm } from "./account-name-form";
+import type { NameAnswer } from "./account-name-form";
 import { NewPasswordFields } from "./new-password-fields";
 import { updateAccount } from "./account-store.server";
 import {
@@ -33,12 +35,6 @@ import type { PasswordFailure } from "./password-attempts.server";
 import { explainPasswordFailure } from "./explain-password-failure.server";
 import { SignOutButton } from "./sign-out-button";
 
-/** The answer to the form of the name: when Portolab saved the name, so that the form starts over, and the field as the form then shows it, which holds the name as the rule of names saved it, or the name as the person typed it with the reason that it does not follow the rule. */
-interface NameAnswer {
-  savedAt: string | undefined;
-  field: Pick<AccountFormFailures, "name" | "nameFailure">;
-}
-
 /** The answer to the form of the password: when Portolab saved the password, so that the form starts over without it, or the reason that each field or the whole form was not accepted. */
 interface PasswordAnswer extends NewPasswordFailures {
   savedAt: string | undefined;
@@ -46,8 +42,9 @@ interface PasswordAnswer extends NewPasswordFailures {
   currentPasswordFailure: string | undefined;
 }
 
-/** The answer to the form that the person sent. The page has a form for the name and a form for the password, and each shows only its own answer. */
+/** The answer to the form that the person sent. Each form shows only its own answer. */
 interface AccountAnswer {
+  nim?: NimAnswer;
   name: NameAnswer | undefined;
   password: PasswordAnswer | undefined;
 }
@@ -63,10 +60,13 @@ export function meta(): Route.MetaDescriptors {
   return [{ title: pageTitle(m.accounts_account_title()) }];
 }
 
-export function loader({ context, url }: Route.LoaderArgs): {
-  user: User;
-} {
-  return { user: requireUser(context, url) };
+export function loader({ context, url }: Route.LoaderArgs) {
+  const user = requireUser(context, url);
+  const readerClasses = listReaderClasses(context.get(databaseContext), user);
+  return {
+    user,
+    joined: readerClasses.role === "student" ? readerClasses.classes : [],
+  };
 }
 
 export async function action({
@@ -77,6 +77,21 @@ export async function action({
   const now = new Date();
   const user = requireUser(context, url);
   const form = await request.formData();
+  if (form.has("nim")) {
+    const result = changeStudentNim(context.get(databaseContext), {
+      user,
+      form,
+      now,
+    });
+    return data<AccountAnswer>(
+      {
+        name: undefined,
+        password: undefined,
+        nim: result.ok ? result.value : result.failure,
+      },
+      { status: result.ok ? 200 : 400 },
+    );
+  }
   // The form of the name sends the name, and the form of the password never sends it.
   return form.has("name")
     ? changeName(context, url, { user, form, now })
@@ -234,41 +249,21 @@ export default function AccountPage({
       </section>
       <section className={formStyles["panel"]}>
         <h2>{m.accounts_change_name_title()}</h2>
-        <NameForm user={user} answer={actionData?.name} />
+        <AccountNameForm user={user} answer={actionData?.name} />
       </section>
+      {loaderData.joined.map((joined) => (
+        <ClassNimForm
+          key={joined.id}
+          joined={joined}
+          answer={actionData?.nim}
+        />
+      ))}
       <section className={formStyles["panel"]}>
         <h2>{m.accounts_change_password_title()}</h2>
         <PasswordForm answer={actionData?.password} />
       </section>
       <SignOutButton />
     </div>
-  );
-}
-
-/** The form that changes the name, which shows the name that Portolab stores until the person types another. */
-function NameForm({
-  user,
-  answer,
-}: {
-  user: User;
-  answer: NameAnswer | undefined;
-}): ReactNode {
-  return (
-    // The form starts over with each save, also when the rule of names saved the stored name again, such as without the spaces around it. React Router gives the page the answer before the loaders read the account again, so the field takes the saved name from the answer.
-    <Form
-      key={answer?.savedAt ?? "unsaved"}
-      method="post"
-      className={formStyles["form"]}
-    >
-      {answer?.savedAt !== undefined && (
-        <FormSuccess text={m.accounts_name_changed_notice()} />
-      )}
-      <NameField
-        accountRole={user.role}
-        failures={answer?.field ?? { name: user.name, nameFailure: undefined }}
-      />
-      <SubmitButton label={m.accounts_change_name_label()} />
-    </Form>
   );
 }
 

@@ -23,6 +23,7 @@ interface StudentValue {
   studentId: UserId;
   name: string;
   username: Username;
+  nim: string | null;
   total: { value: Rupiah; return: CumulativeReturn } | undefined;
   joinOrder: number;
   lastActivity: Date | undefined;
@@ -93,6 +94,7 @@ export function readClassPortfolios(
       studentId: student.id,
       name: student.name,
       username: student.username,
+      nim: student.nim,
       joinOrder,
       marketReturn: valuation.market?.return,
       lastActivity: latestPortfolioActivity(portfolio),

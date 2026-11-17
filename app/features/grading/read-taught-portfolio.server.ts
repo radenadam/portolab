@@ -75,6 +75,7 @@ export function readTaughtPortfolio(
       name: student.name,
       shortName: student.name.split(/\s+/u).slice(0, 1).join(""),
       username: student.username,
+      nim: student.nim,
       latestActivity: latestPortfolioActivity(portfolio),
     },
     portfolio,

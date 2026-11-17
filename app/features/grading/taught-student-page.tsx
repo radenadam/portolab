@@ -23,6 +23,7 @@ export interface TaughtStudent {
   name: string;
   shortName: string;
   username: string;
+  nim: string | null;
   latestActivity: Date | undefined;
 }
 
@@ -80,6 +81,11 @@ export function TaughtStudentPage({
           <h1>
             <NumberText verbatim>{student.name}</NumberText>
           </h1>
+          {student.nim !== null && (
+            <p className={styles["nim"]}>
+              <NumberText verbatim>{student.nim}</NumberText>
+            </p>
+          )}
           <p>
             {student.latestActivity === undefined ? (
               <Message

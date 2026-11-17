@@ -28,7 +28,7 @@ const texts: Record<
     labels: [
       "Mahasiswa",
       "Ukuran peringkat",
-      "Cari nama atau nama pengguna",
+      "Cari nama atau NIM",
       "Cari",
       "Unduh workbook",
       "Saring mahasiswa",
@@ -65,7 +65,7 @@ const texts: Record<
     labels: [
       "Students",
       "Ranking measure",
-      "Search name or username",
+      "Search name or NIM",
       "Search",
       "Download workbook",
       "Filter students",

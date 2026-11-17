@@ -1,6 +1,6 @@
 # 0024. A person changes their own name on the page of the account
 
-- Status: Accepted
+- Status: Accepted. [Decision 0057](0057-a-student-gives-an-optional-nim-for-each-class.md) replaces the restriction on correcting records other than the name.
 - Date: 2026-11-11
 
 ## Context
@@ -27,4 +27,4 @@ The server often belongs to the lecturer, as decision 0010 explains, so a reques
 ## Consequences
 
 - A student can change their name at any time, so a workbook that the lecturer downloaded earlier may hold an older name. The username stays the same and tells the lecturer whose work it is.
-- Portolab offers no correction of any other record, such as the username.
+- The username stays fixed.

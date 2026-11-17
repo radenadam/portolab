@@ -45,6 +45,7 @@ const student = {
   name: "Raka",
   shortName: "Raka",
   username: "raka",
+  nim: null,
   latestActivity: undefined,
 };
 const returnPath =

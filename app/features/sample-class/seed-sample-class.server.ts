@@ -223,7 +223,12 @@ export async function seedSampleClass(
             : new Date(
                 firstOrder.accepted.placedAt.getTime() - minuteMilliseconds,
               );
-        joinClass(database, { classId, studentId: person.id }, joinedAt);
+        // The seed is loaded at startup, so its generated identifiers avoid localized form parsers.
+        joinClass(
+          database,
+          { classId, studentId: person.id, nim: `CONTOH-${String(index)}` },
+          joinedAt,
+        );
         const membership = findClassStudent(database, classId, person.id);
         if (membership === undefined)
           throw new Error("The sample student did not join the class.");

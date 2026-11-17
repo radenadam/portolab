@@ -15,6 +15,7 @@ import type { Locale } from "../app/paraglide/runtime.js";
 import { secondMilliseconds } from "../app/time-units.ts";
 import { submitSignIn } from "./accounts.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
+import { selectFirstStudent } from "./select-first-student.ts";
 import { captureScreens } from "./capture-screens.ts";
 import { startTestServer } from "./start-test-server.ts";
 import { newDevice } from "./new-device.ts";
@@ -126,6 +127,25 @@ for (const locale of locales) {
               .getByRole("banner")
               .locator('button[popovertarget="class-switcher"]'),
           ).toContainText(texts[locale].classTitle);
+          await reader.goto(`${sample.url}/classes/1/students`);
+          const rows = reader.locator("main tbody tr");
+          await expect(rows).toHaveCount(30);
+          await expect(rows).toContainText(
+            Array.from({ length: await rows.count() }, () => /CONTOH-\d+/),
+          );
+          await expectAccessibleScreen(reader);
+          await captureScreens(reader, testInfo, {
+            name: `sample-nim-students-${locale}`,
+            fullPage: true,
+            fromTop: true,
+          });
+          await selectFirstStudent(reader);
+          await expect(reader.getByRole("dialog")).toContainText(/CONTOH-\d+/);
+          await captureScreens(reader, testInfo, {
+            name: `sample-nim-panel-${locale}`,
+            fullPage: false,
+            fromTop: true,
+          });
           await reader.goto(`${sample.url}/classes/1/demonstration`);
           await expect(
             reader.getByRole("heading", {

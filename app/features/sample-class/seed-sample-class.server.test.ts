@@ -10,6 +10,7 @@ import {
   findTaughtClass,
   listStudents,
 } from "~/features/classes/class-store.server";
+import { parseStudentNim } from "~/features/classes/student-nim";
 import { defaultStartingCash } from "~/features/classes/class-rules";
 import { readClassPortfolios } from "~/features/grading/read-class-portfolios.server";
 import {
@@ -357,6 +358,20 @@ test("seeds a separate class with credentials, every terminal order state, curre
   ).toBeGreaterThan(15);
   const students = listStudents(database, taught.id);
   expect(students).toHaveLength(30);
+  expect(new Set(students.map((student) => student.nim))).toEqual(
+    new Set(
+      Array.from(
+        { length: students.length },
+        (_unused, index) => `CONTOH-${String(index + 1)}`,
+      ),
+    ),
+  );
+  for (const student of students) {
+    expect(parseStudentNim(student.nim, "NIM")).toEqual({
+      ok: true,
+      value: student.nim,
+    });
+  }
   const firstStudent = students[0];
   if (firstStudent === undefined) throw new Error("The sample has no student.");
   const firstPortfolio = database

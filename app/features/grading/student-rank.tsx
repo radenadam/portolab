@@ -1,3 +1,4 @@
+import { studentIdentifier } from "~/features/classes/student-identifier";
 import type { ReactNode } from "react";
 import { NumberText } from "~/number-text";
 import { formatNumber } from "~/formatting";
@@ -20,9 +21,11 @@ export function StudentRank({
     <NumberText>
       {(textValue) =>
         rank === undefined
-          ? m.grading_unranked_notice({ username: textValue(student.username) })
+          ? m.grading_unranked_notice({
+              identifier: textValue(studentIdentifier(student)),
+            })
           : m.grading_rank_notice({
-              username: textValue(student.username),
+              identifier: textValue(studentIdentifier(student)),
               rank: formatNumber(rank.rank),
               total: formatNumber(rank.total),
             })

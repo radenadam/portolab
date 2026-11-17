@@ -2,7 +2,9 @@ import type { ReactNode } from "react";
 import { data, redirect } from "react-router";
 import type { RouterContextProvider } from "react-router";
 import { databaseContext } from "~/database/database.server";
+import type { Database } from "~/database/database.server";
 import type { User } from "~/features/accounts/account";
+import type { UserId } from "~/features/accounts/accounts.schema";
 import {
   readNewStudent,
   typedAccountForm,
@@ -16,6 +18,10 @@ import {
 import { isLoadedByAnotherSite } from "~/is-loaded-by-another-site.server";
 import { FormPage } from "~/form-page";
 import { PageTitle } from "~/page-title";
+import { typedText } from "~/form-text";
+import { failureOf } from "~/result";
+import { parseStudentNim } from "./student-nim";
+import type { NimFieldValue } from "./nim-field";
 import { m } from "~/paraglide/messages.js";
 import type { Route } from "./+types/join-class-page";
 import { classPath } from "./class-path";
@@ -36,8 +42,9 @@ type JoinState =
   | { kind: "codeForm"; code: string; failure: CodeFailure | undefined }
   | { kind: "lecturer" };
 
-/** The answer of the action to a form that it did not accept: why each field of a new account was not accepted, why the form was not accepted apart from its fields, and the state of the page when it changed since the page loaded. */
+/** The answer of the action to a form that it did not accept: why each field was not accepted, why the form was not accepted apart from its fields, and the state of the page when it changed since the page loaded. */
 interface JoinAnswer {
+  nimField?: NimFieldValue;
   fields: AccountFormFailures | undefined;
   failure: string | undefined;
   state: JoinState | undefined;
@@ -89,21 +96,26 @@ function findJoinState(
     );
   }
   const { classToJoin } = found.value;
-  if (
-    student !== undefined &&
-    findJoinedClass(
-      context.get(databaseContext),
-      classToJoin.id,
-      student.id,
-    ) !== undefined
-  ) {
-    throw redirect(classPath(classToJoin.id));
+  if (student !== undefined) {
+    redirectJoinedStudent(context.get(databaseContext), {
+      classId: classToJoin.id,
+      studentId: student.id,
+    });
   }
   return data<JoinState>({
     kind: "class",
     classToJoin,
     isSignedIn: student !== undefined,
   });
+}
+
+// Joining may finish in another tab while this form is open.
+function redirectJoinedStudent(
+  database: Database,
+  { classId, studentId }: { classId: ClassId; studentId: UserId },
+): void {
+  if (findJoinedClass(database, classId, studentId) !== undefined)
+    throw redirect(classPath(classId));
 }
 
 export async function action({
@@ -135,12 +147,32 @@ export async function action({
         { fields: undefined, failure: undefined, state: { kind: "lecturer" } },
         { status: 403 },
       );
-    case "student":
+    case "student": {
+      const database = context.get(databaseContext);
+      redirectJoinedStudent(database, {
+        classId: classToJoin.id,
+        studentId: user.id,
+      });
+      const nim = parseStudentNim(form.get("nim"), m.classes_nim_label());
+      if (!nim.ok)
+        return data<JoinAnswer>(
+          {
+            fields: undefined,
+            failure: undefined,
+            state: undefined,
+            nimField: {
+              nim: typedText(form.get("nim")),
+              nimFailure: nim.failure,
+            },
+          },
+          { status: 400 },
+        );
       return joinAndOpenClass(
-        context.get(databaseContext),
-        { classId: classToJoin.id, studentId: user.id },
+        database,
+        { classId: classToJoin.id, studentId: user.id, nim: nim.value },
         now,
       );
+    }
     case undefined:
       // A student who was signed in when the page loaded sends the form with one button, so a session that ended since goes to the sign-in page, which returns here, as on every page that needs a session.
       if (form.has("signedIn")) {
@@ -162,9 +194,19 @@ async function createStudentInClass(
 ) {
   const database = context.get(databaseContext);
   const newStudent = readNewStudent(form);
-  if (!newStudent.ok) {
+  const nim = parseStudentNim(form.get("nim"), m.classes_nim_label());
+  const nimField = {
+    nim: typedText(form.get("nim")),
+    nimFailure: failureOf(nim),
+  };
+  if (!newStudent.ok || !nim.ok) {
     return data<JoinAnswer>(
-      { fields: newStudent.failure, failure: undefined, state: undefined },
+      {
+        fields: failureOf(newStudent) ?? typedAccountForm(form),
+        nimField,
+        failure: undefined,
+        state: undefined,
+      },
       { status: 400 },
     );
   }
@@ -179,6 +221,7 @@ async function createStudentInClass(
       case "blocked":
         return data<JoinAnswer>(
           {
+            nimField,
             fields: typedFields,
             failure: created.failure.text,
             state: undefined,
@@ -188,6 +231,7 @@ async function createStudentInClass(
       case "usernameTaken":
         return data<JoinAnswer>(
           {
+            nimField,
             fields: {
               ...typedFields,
               usernameFailure: m.classes_username_taken_error({
@@ -204,7 +248,7 @@ async function createStudentInClass(
   }
   const response = joinAndOpenClass(
     database,
-    { classId, studentId: created.value },
+    { classId, studentId: created.value, nim: nim.value },
     now,
   );
   response.headers.append(
@@ -245,6 +289,7 @@ export default function JoinClassPage({
           <ClassToJoin
             classToJoin={state.classToJoin}
             isSignedIn={state.isSignedIn}
+            nimField={actionData?.nimField}
             fields={actionData?.fields}
             failure={actionData?.failure}
           />
