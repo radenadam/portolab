@@ -1,1 +1,0 @@
-ALTER TABLE `memberships` ADD `nim` text;
