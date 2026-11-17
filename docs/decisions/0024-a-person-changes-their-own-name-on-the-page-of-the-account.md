@@ -1,6 +1,6 @@
 # 0024. A person changes their own name on the page of the account
 
-- Status: Accepted. [Decision 0057](0057-a-student-gives-an-optional-nim-for-each-class.md) replaces the restriction on correcting records other than the name.
+- Status: Accepted. [Decision 0058](0058-a-student-gives-an-optional-nim-for-each-class.md) replaces the restriction on correcting records other than the name.
 - Date: 2026-11-11
 
 ## Context
