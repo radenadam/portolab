@@ -1,6 +1,6 @@
 # 0054. Trade impact has measured allowances for its combined screens
 
-- Status: Accepted. [Decision 0055](0055-price-times-and-the-filled-ticket-have-measured-allowances.md) replaces its JavaScript ceilings for the stock page, the ticket, Analisis, and demonstration analysis. [Decision 0056](0056-theme-choice-has-measured-shared-and-route-allowances.md) replaces its shared JavaScript ceiling.
+- Status: Accepted. [Decision 0055](0055-price-times-and-the-filled-ticket-have-measured-allowances.md) replaces its JavaScript ceilings for the stock page, the ticket, Analisis, and demonstration analysis. [Decision 0056](0056-the-market-map-has-measured-route-allowances.md) replaces its shared JavaScript ceiling.
 - Date: 2026-11-17
 
 ## Context
@@ -129,7 +129,7 @@ callers share one matrix lookup. Those reductions remain in the combined build.
   202 kB gzip and keeps its CSS ceiling. This leaves 486 bytes for JavaScript.
 - `features/measures/measures-page` has a JavaScript ceiling of 201 kB gzip
   and keeps its CSS ceiling. This leaves 355 bytes for JavaScript.
-- The shared JavaScript ceiling follows decision 0056.
+- Shared JavaScript has a ceiling of 140.2 kB gzip, and
   `features/trading/ticket-page` has a JavaScript ceiling of 220.1 kB gzip.
   The ticket keeps its CSS ceiling. Shared CSS and other routes keep main's
   existing ceilings, including the
