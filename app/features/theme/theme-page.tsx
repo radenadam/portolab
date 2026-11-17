@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { data, redirect } from "react-router";
 import { FormPage } from "~/form-page";
+import { parseOptionalText } from "~/form-text";
 import { PageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
 import { returnDestination } from "~/return-destination.server";
@@ -11,8 +12,19 @@ import { ThemeSwitch } from "./theme-switch";
 
 export async function action({ request }: Route.ActionArgs) {
   const form = await request.formData();
-  const theme = parseThemeField(form.get("theme"), m.theme_switch_label());
-  if (!theme.ok) return data({ failure: theme.failure }, { status: 400 });
+  const value = form.get("theme");
+  const label = m.theme_switch_label();
+  const theme = parseThemeField(value, label);
+  if (!theme.ok) {
+    const quotedValue = parseOptionalText(value, label);
+    return data(
+      {
+        failure: theme.failure,
+        quotedValue: quotedValue.ok ? quotedValue.value : undefined,
+      },
+      { status: 400 },
+    );
+  }
   return redirect(returnDestination(form.get("returnTo"), request), {
     headers: { "Set-Cookie": await themeCookieHeader(theme.value) },
   });
@@ -27,7 +39,10 @@ export default function ThemePage({
     <>
       <PageTitle text={title} />
       <FormPage title={title}>
-        <ThemeSwitch failure={actionData?.failure} />
+        <ThemeSwitch
+          failure={actionData?.failure}
+          quotedValue={actionData?.quotedValue}
+        />
       </FormPage>
     </>
   );

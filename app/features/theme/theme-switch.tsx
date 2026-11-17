@@ -1,7 +1,7 @@
 import { useId } from "react";
 import type { ReactNode } from "react";
 import { Form, useLocation } from "react-router";
-import { NumberText } from "~/number-text";
+import { FieldFailure, failureIdOf } from "~/described-field";
 import { m } from "~/paraglide/messages.js";
 import { themes } from "./theme";
 import { themeName } from "./theme-name";
@@ -10,13 +10,16 @@ import styles from "~/preference-switch.module.css";
 
 export function ThemeSwitch({
   failure,
+  quotedValue,
 }: {
   failure?: string | undefined;
+  quotedValue?: string | undefined;
 }): ReactNode {
   const theme = useInitialTheme();
   const location = useLocation();
   const labelId = useId();
-  const errorId = useId();
+  const id = useId();
+  const failureId = failureIdOf(id);
   return (
     <Form
       method="post"
@@ -32,10 +35,12 @@ export function ThemeSwitch({
       <span id={labelId} className={styles["label"]}>
         {m.theme_switch_label()}
       </span>
+      <FieldFailure id={failureId} text={failure} quotedValue={quotedValue} />
       <div
+        id={id}
         role="group"
         aria-labelledby={labelId}
-        aria-describedby={failure === undefined ? undefined : errorId}
+        aria-describedby={failure === undefined ? undefined : failureId}
         className={styles["options"]}
       >
         {themes.map((choice) => (
@@ -51,11 +56,6 @@ export function ThemeSwitch({
           </button>
         ))}
       </div>
-      {failure !== undefined && (
-        <p id={errorId}>
-          <NumberText>{failure}</NumberText>
-        </p>
-      )}
     </Form>
   );
 }

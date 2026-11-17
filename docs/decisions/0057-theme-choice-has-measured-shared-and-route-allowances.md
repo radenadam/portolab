@@ -21,24 +21,37 @@ the startup bundle. No dependency is added.
 
 The baseline below is the [passing fast check](https://github.com/radenadam/portolab/actions/runs/44073798047/job/134006462622)
 of `d09d27e`. Its source tree is identical to main at `81ab185`, which merged
-the market map. The combined build is measured locally after merging that
+the market map. The initial combined build is measured locally after merging that
 main into the theme choice. Both use the complete dependency walk and gzip
 method of [decision 0038](0038-client-javascript-is-budgeted-by-route.md) and
 [decision 0042](0042-client-css-is-budgeted-by-route.md). kB means 1,000 bytes.
 
-| Dependency set         | Main JavaScript/CSS kB | Combined JavaScript/CSS kB |
-| ---------------------- | ---------------------: | -------------------------: |
-| Shared                 |          140.21 / 7.50 |              141.85 / 7.76 |
-| Pasar                  |         198.37 / 20.32 |             200.03 / 20.63 |
-| Saham                  |         213.67 / 20.39 |             215.35 / 20.71 |
-| Ticket                 |         221.60 / 23.16 |             223.28 / 23.54 |
-| Analisis               |         201.97 / 18.53 |             203.62 / 18.79 |
-| Demonstration analysis |         202.84 / 19.11 |             204.49 / 19.43 |
+| Dependency set         | Main JavaScript/CSS kB | Initial JavaScript/CSS kB |
+| ---------------------- | ---------------------: | ------------------------: |
+| Shared                 |          140.21 / 7.50 |             141.85 / 7.76 |
+| Pasar                  |         198.37 / 20.32 |            200.03 / 20.63 |
+| Saham                  |         213.67 / 20.39 |            215.35 / 20.71 |
+| Ticket                 |         221.60 / 23.16 |            223.28 / 23.54 |
+| Analisis               |         201.97 / 18.53 |            203.62 / 18.79 |
+| Demonstration analysis |         202.84 / 19.11 |            204.49 / 19.43 |
 
-The combined Pasar JavaScript exceeds its earlier ceiling by 31 bytes.
+The initial Pasar JavaScript exceeds its earlier ceiling by 31 bytes.
 Its CSS exceeds the allowance of decision 0056 by 126 bytes. The complete
 route sets count each emitted stylesheet once, so the compression boundaries
 of the combined map and shared controls participate in those totals.
+
+The final build uses the shared field-failure component and includes main at
+`2cabb13`, which adds the quoted trading day's range. Its measurements below
+pass every ceiling chosen in this record.
+
+| Dependency set         | Final JavaScript/CSS kB |
+| ---------------------- | ----------------------: |
+| Shared                 |           141.86 / 7.76 |
+| Pasar                  |          200.04 / 20.63 |
+| Saham                  |          215.17 / 20.81 |
+| Ticket                 |          223.09 / 23.64 |
+| Analisis               |          203.63 / 18.79 |
+| Demonstration analysis |          204.50 / 19.43 |
 
 ## Decision
 

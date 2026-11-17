@@ -13,6 +13,7 @@ import { openProfileMenu } from "./frame.ts";
 import { holdClientScripts } from "./hold-client-scripts.ts";
 import { screenshotFullHeight } from "./screenshot-full-height.ts";
 import { studentOnNewClass } from "./student-on-new-class.ts";
+import { tokenColor } from "./token-color.ts";
 
 type EarlyFailure = "origin" | "body";
 type ExplicitTheme = Exclude<Theme, "system">;
@@ -32,7 +33,7 @@ const texts: Record<
     choices: Record<Theme, string>;
     title: string;
     rejected: string;
-    unknown: string;
+    unknown: readonly [string, string];
     earlyFailures: Record<EarlyFailure, string>;
   }
 > = {
@@ -45,8 +46,10 @@ const texts: Record<
     choices: { system: "Sistem", light: "Terang", dark: "Gelap" },
     title: "Pilih tema",
     rejected: "Tema tidak dapat diganti",
-    unknown:
-      'Formulir mengirim "sepia" di kolom "Tema", tetapi kolom ini hanya menerima Sistem, Terang, atau Gelap. Pilih salah satunya di pilihan tema.',
+    unknown: [
+      'Formulir mengirim "',
+      '" di kolom "Tema", tetapi kolom ini hanya menerima Sistem, Terang, atau Gelap. Pilih salah satunya di pilihan tema.',
+    ],
   },
   en: {
     label: "Theme",
@@ -57,8 +60,10 @@ const texts: Record<
     choices: { system: "System", light: "Light", dark: "Dark" },
     title: "Choose a theme",
     rejected: "The theme could not be changed",
-    unknown:
-      'The form sent "sepia" in the field "Theme", but this field only takes System, Light, or Dark. Choose one of them in the theme choice.',
+    unknown: [
+      'The form sent "',
+      '" in the field "Theme", but this field only takes System, Light, or Dark. Choose one of them in the theme choice.',
+    ],
   },
 };
 
@@ -315,31 +320,63 @@ for (const locale of locales) {
 
   test(`rejects a forged theme at its choice and lets the reader choose again in ${languageNames[locale]}`, async ({
     page,
-  }) => {
+  }, testInfo) => {
     await chooseLanguage(page, locale);
-    await page.goto("/theme");
-    await expect(page).toHaveTitle(`${text.title} | Portolab`);
-    const form = page.getByRole("main");
-    await form
-      .getByRole("button", { name: text.choices.light, exact: true })
-      .evaluate((button) => {
-        button.setAttribute("value", "sepia");
-      });
-    const rejected = page.waitForResponse(
-      (response) =>
-        response.request().method() === "POST" &&
-        new URL(response.url()).pathname === "/theme",
-    );
-    await form
-      .getByRole("button", { name: text.choices.light, exact: true })
-      .click();
-    expect((await rejected).status()).toBe(400);
-    await expect(page).toHaveTitle(`${text.rejected} | Portolab`);
-    await expect(form.getByText(text.unknown, { exact: true })).toBeVisible();
-    await expectAccessibleScreen(page);
-    await form
-      .getByRole("button", { name: text.choices.light, exact: true })
-      .click();
-    await expectServerTheme(page, "light");
+    for (const value of ["sepia", " 123456 "]) {
+      await page.goto("/theme");
+      await expect(page).toHaveTitle(`${text.title} | Portolab`);
+      const form = page.getByRole("main");
+      await form
+        .getByRole("button", { name: text.choices.light, exact: true })
+        .evaluate((button, sent) => {
+          button.setAttribute("value", sent);
+        }, value);
+      const rejected = page.waitForResponse(
+        (response) =>
+          response.request().method() === "POST" &&
+          new URL(response.url()).pathname === "/theme",
+      );
+      await form
+        .getByRole("button", { name: text.choices.light, exact: true })
+        .click();
+      expect((await rejected).status()).toBe(400);
+      await expect(page).toHaveTitle(`${text.rejected} | Portolab`);
+      const failure = form.locator("p[id]");
+      await expect(failure).toHaveText(
+        text.unknown[0] + value.trim() + text.unknown[1],
+      );
+      await expect(failure).toHaveCSS(
+        "color",
+        await tokenColor(page, "--color-loss"),
+      );
+      await expect(failure).toHaveCSS("font-weight", "600");
+      await expect(failure.locator("[data-text-value]")).toHaveText(
+        value.trim(),
+      );
+      await expect(failure.locator("[data-number]")).toHaveCount(0);
+      await expect(
+        form.getByRole("group", { name: text.label }),
+      ).toHaveAttribute(
+        "aria-describedby",
+        await failure.evaluate((element) => element.id),
+      );
+      expect(
+        await failure.evaluate((element) =>
+          element.nextElementSibling?.getAttribute("role"),
+        ),
+      ).toBe("group");
+      await expectAccessibleScreen(page);
+      if (value === "sepia") {
+        await captureScreens(page, testInfo, {
+          name: `theme-rejected-${locale}`,
+          fullPage: true,
+          fromTop: true,
+        });
+      }
+      await form
+        .getByRole("button", { name: text.choices.light, exact: true })
+        .click();
+      await expectServerTheme(page, "light");
+    }
   });
 }
