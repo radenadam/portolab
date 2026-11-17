@@ -268,7 +268,7 @@ export default function TicketPage({
             code={code}
             portfolioKind={loaderData.portfolioKind}
             side={side}
-            path={stockPagePath}
+            classId={classId}
             search={loaderData.search}
             ticket={ticket}
             fields={actionData?.fields ?? loaderData.fields}

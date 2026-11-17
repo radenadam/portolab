@@ -229,6 +229,7 @@ function StockPageContent({
           )}
           <StockStatistics stock={stock} />
           <StockImpact
+            classId={classId}
             portfolioKind={stock.portfolioKind}
             code={code}
             ticket={stock.tradePreview}

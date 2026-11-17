@@ -15,18 +15,22 @@ import type { readTicket } from "./read-ticket.server";
 import { shares } from "~/units/shares";
 import { ticketAmounts } from "./ticket-amounts";
 import { TicketDraftContext } from "./ticket-draft-memory";
+import type { ClassId } from "~/features/classes/classes.schema";
+import { stockPath } from "~/features/market-data/stock-path";
 
 export function useTicketDraft({
   fields,
   side: initialSide,
-  path,
+  classId,
+  code,
   search,
   ticket,
   restoreDraft,
 }: {
   fields: OrderFormFields;
   side: OrderSide;
-  path: string;
+  classId: ClassId;
+  code: string;
   search: string;
   ticket: ReturnType<typeof readTicket> & {
     day: { ok: true };
@@ -109,7 +113,7 @@ export function useTicketDraft({
       });
     },
     ticket,
-    action: `${path}/${side}${search}`,
+    action: `${stockPath(classId, code, side)}${search}`,
     change(
       name: (typeof orderDraftFields)[number][0],
       value: string,

@@ -6,6 +6,9 @@ import { withoutClassNamesForTest } from "./without-class-names-for-test";
 export function renderMarkupForTest(
   part: ReactNode,
   rootData?: unknown,
+  initialPath = "/",
 ): string {
-  return withoutClassNamesForTest(renderInRouterForTest(part, rootData));
+  return withoutClassNamesForTest(
+    renderInRouterForTest(part, rootData, initialPath),
+  );
 }

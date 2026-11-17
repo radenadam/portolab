@@ -27,14 +27,18 @@ import { countedText } from "~/counted-text";
 import { portfolioWeightOf } from "./portfolio-weight-of";
 import { defaultImpactShare, impactShares } from "./impact-shares";
 import { ImpactChoices } from "./impact-choices";
+import type { ClassId } from "~/features/classes/classes.schema";
+import { stockPath } from "~/features/market-data/stock-path";
 
 export function StockImpact({
+  classId,
   code,
   ticket,
   share = defaultImpactShare,
   portfolioKind = "membership",
   axis,
 }: {
+  classId: ClassId;
   code: string;
   ticket: ReturnType<typeof readTicket>;
   share?: PortfolioWeight | undefined;
@@ -90,7 +94,7 @@ export function StockImpact({
           }}
           share={share}
           axis={axis}
-          path={`${location.pathname.replace(/\/(buy|sell)$/, "")}/buy${ticketContextSearch(query)}`}
+          ticketPath={`${stockPath(classId, code, "buy")}${ticketContextSearch(query)}`}
         />
       )}
     </section>
@@ -102,7 +106,7 @@ function StockImpactPreview({
   ticket,
   share,
   portfolioKind,
-  path,
+  ticketPath,
   axis,
 }: {
   code: string;
@@ -113,7 +117,7 @@ function StockImpactPreview({
   };
   share: Parameters<typeof stockImpactLots>[0]["share"];
   portfolioKind: PortfolioKind;
-  path: string;
+  ticketPath: string;
   axis: AnalysisAxis | undefined;
 }): ReactNode {
   const { quote, day, available } = ticket;
@@ -194,7 +198,7 @@ function StockImpactPreview({
         <Link
           className={styles["open"]}
           preventScrollReset
-          to={pathWithQuery(path, { lots: formatNumber(count) })}
+          to={pathWithQuery(ticketPath, { lots: formatNumber(count) })}
         >
           <NumberText>
             {m.trading_impact_open_link({ lots: lotCount(count) })}
