@@ -64,6 +64,13 @@
       "when": 1794788029668,
       "tag": "0008_sample_class_marker",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1794892674387,
+      "tag": "0009_stock-day-range",
+      "breakpoints": true
     }
   ]
 }

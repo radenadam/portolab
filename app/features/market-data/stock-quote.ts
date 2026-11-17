@@ -4,7 +4,11 @@ import type { StockQuote } from "./price-source.server.ts";
 /** A delayed quote of a stock from prices that the program holds, such as an answer of a source that it recorded: the price, the close of the trading day before it, and the moment of the quote. */
 export function stockQuote(
   code: string,
-  [price, previousClose]: readonly [number, number],
+  [price, previousClose, dayRange]: readonly [
+    number,
+    number,
+    (readonly [number, number])?,
+  ],
   quotedAt: string,
 ): StockQuote {
   return {
@@ -12,6 +16,10 @@ export function stockQuote(
     code,
     price: rupiah(price),
     previousClose: rupiah(previousClose),
+    dayRange:
+      dayRange === undefined
+        ? undefined
+        : { low: rupiah(dayRange[0]), high: rupiah(dayRange[1]) },
     quotedAt: new Date(quotedAt),
   };
 }

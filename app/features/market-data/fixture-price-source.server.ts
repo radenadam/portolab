@@ -7,6 +7,7 @@ import { yahooFinance } from "./yahoo-price-source.server";
 
 // The closing quotes of the first recorded period on 30 October 2026, as Yahoo Finance returned them on 31 October and 1 November 2026, with three exceptions. BMRI keeps its quote of 29 October, as Yahoo does for a stock that did not trade, so the tests see a row from an earlier day. GOTO has a previous close of 18 instead of 23, so the tests see a change with two digits before the decimal point. UNVR and WIFI are left out, as Yahoo leaves out a stock now and then, so every update lacks them, and left-out-quotes-for-test.ts keeps their quotes. The browser tests store the quote of UNVR before the server starts, so they see a price that the latest update missed in UNVR and a stock without any price in WIFI.
 // ERAA, GGRM, and PWON joined the fixture after those quotes could be recorded, so they replay the daily closes that fixture-history.ts records, at 16:00 WIB.
+// Only BBCA and ITMG have recorded daily bounds, from Yahoo's chart of the same day. The other quotes exercise an unavailable range.
 const fixtureQuotes: Quote[] = [
   {
     kind: "index",
@@ -23,7 +24,7 @@ const fixtureQuotes: Quote[] = [
   stockQuote("AMRT", [915, 955], "2026-10-30T09:14:50.000Z"),
   stockQuote("ANTM", [2620, 2670], "2026-10-30T09:14:56.000Z"),
   stockQuote("ASII", [4800, 4690], "2026-10-30T09:14:58.000Z"),
-  stockQuote("BBCA", [4980, 4940], "2026-10-30T09:14:55.000Z"),
+  stockQuote("BBCA", [4980, 4940, [4900, 5025]], "2026-10-30T09:14:55.000Z"),
   stockQuote("BBNI", [3320, 3240], "2026-10-30T09:14:14.000Z"),
   stockQuote("BBRI", [2800, 2810], "2026-10-30T09:14:56.000Z"),
   stockQuote("BBTN", [900, 910], "2026-10-30T09:14:57.000Z"),
@@ -46,7 +47,11 @@ const fixtureQuotes: Quote[] = [
   stockQuote("INDY", [1780, 1860], "2026-10-30T09:14:26.000Z"),
   stockQuote("INKP", [6575, 6525], "2026-10-30T09:06:33.000Z"),
   stockQuote("ISAT", [1365, 1465], "2026-10-30T09:14:58.000Z"),
-  stockQuote("ITMG", [24900, 24600], "2026-10-30T09:10:44.000Z"),
+  stockQuote(
+    "ITMG",
+    [24900, 24600, [24325, 24950]],
+    "2026-10-30T09:10:44.000Z",
+  ),
   stockQuote("JPFA", [1740, 1735], "2026-10-30T09:14:41.000Z"),
   stockQuote("KLBF", [730, 715], "2026-10-30T09:13:52.000Z"),
   stockQuote("MAPI", [1235, 1260], "2026-10-30T09:08:59.000Z"),

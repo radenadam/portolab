@@ -22,4 +22,10 @@ test("answers with a quote of every tracked instrument but those that it leaves 
     "The fixture records no quote of UNVR.",
     "The fixture records no quote of WIFI.",
   ]);
+  expect(answer.quotes.find((quote) => quote.code === "BBCA")).toMatchObject({
+    dayRange: { low: 4900, high: 5025 },
+  });
+  expect(answer.quotes.find((quote) => quote.code === "ITMG")).toMatchObject({
+    dayRange: { low: 24325, high: 24950 },
+  });
 });
