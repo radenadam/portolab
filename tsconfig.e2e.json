@@ -59,7 +59,6 @@
     "app/features/learning/glossary-query-maximum-length.ts",
     "app/features/learning/guide-section-ids.ts",
     "app/features/market-data/build-daily-history.ts",
-    "app/features/market-data/company-of.ts",
     "app/features/market-data/fixture-history.ts",
     "app/features/market-data/history-store.server.ts",
     "app/features/market-data/idx-calendar.ts",

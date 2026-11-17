@@ -137,7 +137,7 @@ const states: Record<
 
 type Props = ComponentProps<typeof MarketView>;
 for (const locale of locales) {
-  test(`keeps the empty-sector state with the dated LQ45 list across its review in ${languageNames[locale]}`, async () => {
+  test(`replaces the empty-sector state with PWON when its LQ45 review begins in ${languageNames[locale]}`, async () => {
     switchLocaleForTest(locale);
     const context = await marketContextForTest();
     const props = await marketViewPropsForTest(context);

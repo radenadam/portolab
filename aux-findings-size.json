@@ -1,0 +1,442 @@
+[
+  {
+    "name": "Shared JavaScript",
+    "passed": true,
+    "size": 141864,
+    "sizeLimit": 142100
+  },
+  {
+    "name": "Shared CSS",
+    "passed": true,
+    "size": 7762,
+    "sizeLimit": 20000
+  },
+  {
+    "name": "Route JavaScript: features/home/home-page",
+    "passed": true,
+    "size": 141884,
+    "sizeLimit": 200000
+  },
+  {
+    "name": "Route CSS: features/home/home-page",
+    "passed": true,
+    "size": 7762,
+    "sizeLimit": 20000
+  },
+  {
+    "name": "Route JavaScript: features/accounts/sign-in-page",
+    "passed": true,
+    "size": 142791,
+    "sizeLimit": 200000
+  },
+  {
+    "name": "Route CSS: features/accounts/sign-in-page",
+    "passed": true,
+    "size": 7762,
+    "sizeLimit": 20000
+  },
+  {
+    "name": "Route JavaScript: features/accounts/sign-out-page",
+    "passed": true,
+    "size": 142225,
+    "sizeLimit": 200000
+  },
+  {
+    "name": "Route CSS: features/accounts/sign-out-page",
+    "passed": true,
+    "size": 7762,
+    "sizeLimit": 20000
+  },
+  {
+    "name": "Route JavaScript: features/accounts/account-page",
+    "passed": true,
+    "size": 148258,
+    "sizeLimit": 200000
+  },
+  {
+    "name": "Route CSS: features/accounts/account-page",
+    "passed": true,
+    "size": 8034,
+    "sizeLimit": 20000
+  },
+  {
+    "name": "Route JavaScript: features/accounts/account-setup-page",
+    "passed": true,
+    "size": 147875,
+    "sizeLimit": 200000
+  },
+  {
+    "name": "Route CSS: features/accounts/account-setup-page",
+    "passed": true,
+    "size": 7879,
+    "sizeLimit": 20000
+  },
+  {
+    "name": "Route JavaScript: features/accounts/privacy-page",
+    "passed": true,
+    "size": 145284,
+    "sizeLimit": 200000
+  },
+  {
+    "name": "Route CSS: features/accounts/privacy-page",
+    "passed": true,
+    "size": 7879,
+    "sizeLimit": 20000
+  },
+  {
+    "name": "Route JavaScript: features/learning/guide-page",
+    "passed": true,
+    "size": 142600,
+    "sizeLimit": 200000
+  },
+  {
+    "name": "Route CSS: features/learning/guide-page",
+    "passed": true,
+    "size": 9248,
+    "sizeLimit": 20000
+  },
+  {
+    "name": "Route JavaScript: features/classes/classes-page",
+    "passed": true,
+    "size": 144326,
+    "sizeLimit": 200000
+  },
+  {
+    "name": "Route CSS: features/classes/classes-page",
+    "passed": true,
+    "size": 7762,
+    "sizeLimit": 20000
+  },
+  {
+    "name": "Route JavaScript: features/learning/learning-overlay",
+    "passed": true,
+    "size": 175056,
+    "sizeLimit": 200000
+  },
+  {
+    "name": "Route CSS: features/learning/learning-overlay",
+    "passed": true,
+    "size": 15262,
+    "sizeLimit": 20000
+  },
+  {
+    "name": "Route JavaScript: features/classes/class-page",
+    "passed": true,
+    "size": 211022,
+    "sizeLimit": 220000
+  },
+  {
+    "name": "Route CSS: features/classes/class-page",
+    "passed": true,
+    "size": 22953,
+    "sizeLimit": 24000
+  },
+  {
+    "name": "Route JavaScript: features/classes/calendar-page",
+    "passed": true,
+    "size": 176629,
+    "sizeLimit": 200000
+  },
+  {
+    "name": "Route CSS: features/classes/calendar-page",
+    "passed": true,
+    "size": 15262,
+    "sizeLimit": 20000
+  },
+  {
+    "name": "Route JavaScript: features/learning/learn-page",
+    "passed": true,
+    "size": 176082,
+    "sizeLimit": 200000
+  },
+  {
+    "name": "Route CSS: features/learning/learn-page",
+    "passed": true,
+    "size": 15262,
+    "sizeLimit": 20000
+  },
+  {
+    "name": "Route JavaScript: features/learning/lesson-page",
+    "passed": true,
+    "size": 175274,
+    "sizeLimit": 200000
+  },
+  {
+    "name": "Route CSS: features/learning/lesson-page",
+    "passed": true,
+    "size": 15262,
+    "sizeLimit": 20000
+  },
+  {
+    "name": "Route JavaScript: features/learning/glossary-page",
+    "passed": true,
+    "size": 175288,
+    "sizeLimit": 200000
+  },
+  {
+    "name": "Route CSS: features/learning/glossary-page",
+    "passed": true,
+    "size": 15262,
+    "sizeLimit": 20000
+  },
+  {
+    "name": "Route JavaScript: features/market-data/market-page",
+    "passed": true,
+    "size": 200041,
+    "sizeLimit": 200300
+  },
+  {
+    "name": "Route CSS: features/market-data/market-page",
+    "passed": true,
+    "size": 20626,
+    "sizeLimit": 20800
+  },
+  {
+    "name": "Route JavaScript: features/trading/activity-page",
+    "passed": true,
+    "size": 195437,
+    "sizeLimit": 200000
+  },
+  {
+    "name": "Route CSS: features/trading/activity-page",
+    "passed": true,
+    "size": 18099,
+    "sizeLimit": 20000
+  },
+  {
+    "name": "Route JavaScript: features/trading/demonstration-page",
+    "passed": true,
+    "size": 176077,
+    "sizeLimit": 200000
+  },
+  {
+    "name": "Route CSS: features/trading/demonstration-page",
+    "passed": true,
+    "size": 15900,
+    "sizeLimit": 20000
+  },
+  {
+    "name": "Route JavaScript: features/trading/demonstration-summary-page",
+    "passed": true,
+    "size": 205161,
+    "sizeLimit": 220000
+  },
+  {
+    "name": "Route CSS: features/trading/demonstration-summary-page",
+    "passed": true,
+    "size": 21311,
+    "sizeLimit": 24000
+  },
+  {
+    "name": "Route JavaScript: features/trading/demonstration-activity-page",
+    "passed": true,
+    "size": 196307,
+    "sizeLimit": 200000
+  },
+  {
+    "name": "Route CSS: features/trading/demonstration-activity-page",
+    "passed": true,
+    "size": 18737,
+    "sizeLimit": 20000
+  },
+  {
+    "name": "Route JavaScript: features/measures/demonstration-analysis-page",
+    "passed": true,
+    "size": 204498,
+    "sizeLimit": 204800
+  },
+  {
+    "name": "Route CSS: features/measures/demonstration-analysis-page",
+    "passed": true,
+    "size": 19425,
+    "sizeLimit": 20000
+  },
+  {
+    "name": "Route JavaScript: features/measures/measures-page",
+    "passed": true,
+    "size": 203627,
+    "sizeLimit": 203900
+  },
+  {
+    "name": "Route CSS: features/measures/measures-page",
+    "passed": true,
+    "size": 18787,
+    "sizeLimit": 20000
+  },
+  {
+    "name": "Route JavaScript: features/market-data/stock-page",
+    "passed": true,
+    "size": 215167,
+    "sizeLimit": 215600
+  },
+  {
+    "name": "Route CSS: features/market-data/stock-page",
+    "passed": true,
+    "size": 20814,
+    "sizeLimit": 21000
+  },
+  {
+    "name": "Route JavaScript: features/trading/ticket-page",
+    "passed": true,
+    "size": 223095,
+    "sizeLimit": 223500
+  },
+  {
+    "name": "Route CSS: features/trading/ticket-page",
+    "passed": true,
+    "size": 23639,
+    "sizeLimit": 24000
+  },
+  {
+    "name": "Route JavaScript: features/grading/class-portfolios-page",
+    "passed": true,
+    "size": 184384,
+    "sizeLimit": 200000
+  },
+  {
+    "name": "Route CSS: features/grading/class-portfolios-page",
+    "passed": true,
+    "size": 17892,
+    "sizeLimit": 20000
+  },
+  {
+    "name": "Route JavaScript: features/grading/workbook-route",
+    "passed": true,
+    "size": 175216,
+    "sizeLimit": 200000
+  },
+  {
+    "name": "Route CSS: features/grading/workbook-route",
+    "passed": true,
+    "size": 15262,
+    "sizeLimit": 20000
+  },
+  {
+    "name": "Route JavaScript: features/grading/student-portfolio-page",
+    "passed": true,
+    "size": 205814,
+    "sizeLimit": 220000
+  },
+  {
+    "name": "Route CSS: features/grading/student-portfolio-page",
+    "passed": true,
+    "size": 21699,
+    "sizeLimit": 24000
+  },
+  {
+    "name": "Route JavaScript: features/grading/student-measures-page",
+    "passed": true,
+    "size": 204976,
+    "sizeLimit": 220000
+  },
+  {
+    "name": "Route CSS: features/grading/student-measures-page",
+    "passed": true,
+    "size": 19813,
+    "sizeLimit": 20000
+  },
+  {
+    "name": "Route JavaScript: features/grading/student-journal-page",
+    "passed": true,
+    "size": 196594,
+    "sizeLimit": 200000
+  },
+  {
+    "name": "Route CSS: features/grading/student-journal-page",
+    "passed": true,
+    "size": 19125,
+    "sizeLimit": 20000
+  },
+  {
+    "name": "Route JavaScript: features/classes/reset-password-page",
+    "passed": true,
+    "size": 175873,
+    "sizeLimit": 200000
+  },
+  {
+    "name": "Route CSS: features/classes/reset-password-page",
+    "passed": true,
+    "size": 15262,
+    "sizeLimit": 20000
+  },
+  {
+    "name": "Route JavaScript: features/classes/join-page",
+    "passed": true,
+    "size": 143000,
+    "sizeLimit": 200000
+  },
+  {
+    "name": "Route CSS: features/classes/join-page",
+    "passed": true,
+    "size": 7762,
+    "sizeLimit": 20000
+  },
+  {
+    "name": "Route JavaScript: features/classes/join-class-page",
+    "passed": true,
+    "size": 149138,
+    "sizeLimit": 200000
+  },
+  {
+    "name": "Route CSS: features/classes/join-class-page",
+    "passed": true,
+    "size": 7879,
+    "sizeLimit": 20000
+  },
+  {
+    "name": "Route JavaScript: features/theme/theme-page",
+    "passed": true,
+    "size": 142259,
+    "sizeLimit": 200000
+  },
+  {
+    "name": "Route CSS: features/theme/theme-page",
+    "passed": true,
+    "size": 7762,
+    "sizeLimit": 20000
+  },
+  {
+    "name": "Route JavaScript: features/language/language-page",
+    "passed": true,
+    "size": 142282,
+    "sizeLimit": 200000
+  },
+  {
+    "name": "Route CSS: features/language/language-page",
+    "passed": true,
+    "size": 7762,
+    "sizeLimit": 20000
+  },
+  {
+    "name": "Route JavaScript: features/health/health-route",
+    "passed": true,
+    "size": 141884,
+    "sizeLimit": 200000
+  },
+  {
+    "name": "Route CSS: features/health/health-route",
+    "passed": true,
+    "size": 7762,
+    "sizeLimit": 20000
+  },
+  {
+    "name": "Route JavaScript: not-found-page",
+    "passed": true,
+    "size": 142063,
+    "sizeLimit": 200000
+  },
+  {
+    "name": "Route CSS: not-found-page",
+    "passed": true,
+    "size": 7762,
+    "sizeLimit": 20000
+  },
+  {
+    "name": "All client JavaScript (report only)",
+    "size": 300660
+  },
+  {
+    "name": "All client CSS (report only)",
+    "size": 41326
+  }
+]

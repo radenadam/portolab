@@ -8,13 +8,17 @@ import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
 import { chooseLanguage } from "./choose-language.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
-import { signInAsNewLecturer } from "./accounts.ts";
+import {
+  chosenPassword,
+  signInAndReturn,
+  signInAsNewLecturer,
+} from "./accounts.ts";
 import { createMarketClass } from "./create-market-class.ts";
 import { newDevice } from "./new-device.ts";
 import { signInAsTestStudent } from "./sign-in-as-test-student.ts";
 import { layoutProblems } from "./expect-layout.ts";
 import { expectMarketPriceNotes } from "./expect-market-price-notes.ts";
-import { sectors } from "../app/features/market-data/company-of.ts";
+import { recordedMarketServer } from "./recorded-market-server.ts";
 
 const texts: Record<
   Locale,
@@ -33,6 +37,7 @@ const texts: Record<
     clear: string;
     noResults: string;
     emptySector: string;
+    emptySectorChoice: string;
     referenceMarks: string;
     price: string;
     month: string;
@@ -65,6 +70,7 @@ const texts: Record<
       'Tidak ada saham LQ45 yang cocok dengan "tidakada" dan sektor yang dipilih. Hapus filter untuk melihat semua saham.',
     emptySector:
       "Sektor yang dipilih tidak memiliki saham dalam daftar LQ45 saat ini. Pilih sektor lain atau hapus filter untuk melihat semua saham.",
+    emptySectorChoice: "Properti & Real Estat · 0",
     referenceMarks: "Garis tegak di tabel: IHSG.",
     price: "Harga",
     month: "1B",
@@ -95,6 +101,7 @@ const texts: Record<
       'No LQ45 stocks match "tidakada" and the chosen sector. Clear filters to see all stocks.',
     emptySector:
       "The chosen sector has no stocks in the current LQ45 list. Choose another sector or clear filters to see all stocks.",
+    emptySectorChoice: "Properties & Real Estate · 0",
     referenceMarks: "Vertical ticks in the table mark the IHSG.",
     price: "Price",
     month: "1M",
@@ -119,9 +126,7 @@ for (const locale of locales) {
         { browser, locale, javaScriptEnabled },
         async (student, classPath) => {
           await student.goto(`${classPath}/market`);
-          const rows = student.locator(
-            "main section[aria-labelledby=stocks-heading] tbody tr",
-          );
+          const rows = marketRows(student);
           await expect(rows).toHaveCount(45);
           await expectMarketPriceNotes(student, locale, javaScriptEnabled);
           await student.getByLabel(text.search, { exact: true }).fill("INDY");
@@ -213,25 +218,6 @@ for (const locale of locales) {
           await expect(student.getByText(text.noResults)).toBeVisible();
           await student.getByRole("link", { name: text.clear }).click();
           await expect(rows).toHaveCount(45);
-          // Empty sectors are hidden until selected, and a dated LQ45 list can fill every sector.
-          const populatedSectors = await student
-            .getByRole("group", { name: text.sector, exact: true })
-            .getByRole("radio")
-            .evaluateAll((choices) =>
-              choices.map((choice) => choice.getAttribute("value")),
-            );
-          const emptySector = sectors.find(
-            (sector) => !populatedSectors.includes(sector),
-          );
-          if (emptySector !== undefined) {
-            const emptySectorResponse = await student.goto(
-              `${classPath}/market?${new URLSearchParams({ sector: emptySector }).toString()}`,
-            );
-            expect(emptySectorResponse?.status()).toBe(200);
-            await expect(student.getByText(text.emptySector)).toBeVisible();
-            await student.getByRole("link", { name: text.clear }).click();
-            await expect(rows).toHaveCount(45);
-          }
           for (const character of ["x", "9"]) {
             const widestSearch = character.repeat(fieldMaximumLength);
             await student
@@ -271,6 +257,68 @@ for (const locale of locales) {
         },
       );
     });
+    test(`clears an empty sector from a recorded market in ${languageNames[locale]} with JavaScript ${String(javaScriptEnabled)}`, async ({
+      browser,
+    }, testInfo) => {
+      const server = await recordedMarketServer(
+        new Date("2026-11-17T16:59:59.999Z"),
+      );
+      try {
+        const student = await newDevice(browser, locale, {
+          siteUrl: server.url,
+          javaScriptEnabled,
+        });
+        try {
+          await student.goto(server.classPath);
+          await signInAndReturn(student, {
+            path: server.classPath,
+            username: server.studentUsername,
+            password: chosenPassword,
+          });
+          const address = `${server.url}${server.classPath}/market?sector=propertiesAndRealEstate`;
+          if (javaScriptEnabled) {
+            await holdClientScripts(
+              student,
+              { address },
+              async (loadClient) => {
+                await expectEmptySector(student, text);
+                await loadClient();
+                await expectEmptySector(student, text);
+              },
+            );
+            await expectAccessibleScreen(student);
+            await captureScreens(student, testInfo, {
+              name: `market-empty-${locale}`,
+              fromTop: true,
+              fullPage: true,
+              check: async () => {
+                expect(await layoutProblems(student)).toEqual([]);
+              },
+            });
+          } else {
+            const response = await student.goto(address);
+            expect(response?.status()).toBe(200);
+            await expectEmptySector(student, text);
+            expect(await layoutProblems(student)).toEqual([]);
+          }
+          await student
+            .getByRole("link", { name: text.clear, exact: true })
+            .click();
+          await expect(marketRows(student)).toHaveCount(45);
+          await expect(
+            student.getByRole("radio", { name: text.all, exact: true }),
+          ).toBeChecked();
+          await expect(
+            student.getByText(text.emptySector, { exact: true }),
+          ).toHaveCount(0);
+        } finally {
+          await student.context().close();
+        }
+      } finally {
+        await server.stop();
+      }
+    });
+
     test(`quotes empty market choices as their visible labels in ${languageNames[locale]} with JavaScript ${String(javaScriptEnabled)}`, async ({
       page,
       browser,
@@ -356,9 +404,7 @@ for (const locale of locales) {
       await expect(
         page.getByRole("link", { name: text.ascending, exact: true }),
       ).toBeVisible();
-      await expect(
-        page.locator("main section[aria-labelledby=stocks-heading] tbody tr"),
-      ).toHaveCount(1);
+      await expect(marketRows(page)).toHaveCount(1);
       const stock = page.getByRole("link", { name: /BBCA.*Bank Central Asia/ });
       const address = await stock.getAttribute("href");
       expect(address).not.toBeNull();
@@ -439,6 +485,21 @@ for (const locale of locales) {
     await captureMarketScreens(page, testInfo, { screen: "stock", locale });
     await expectAccessibleScreen(page);
   });
+}
+
+function marketRows(page: Page) {
+  return page.locator("main section[aria-labelledby=stocks-heading] tbody tr");
+}
+
+async function expectEmptySector(
+  page: Page,
+  text: { emptySectorChoice: string; emptySector: string },
+): Promise<void> {
+  await expect(
+    page.getByRole("radio", { name: text.emptySectorChoice, exact: true }),
+  ).toBeChecked();
+  await expect(marketRows(page)).toHaveCount(0);
+  await expect(page.getByText(text.emptySector, { exact: true })).toBeVisible();
 }
 
 async function withMarketStudent(

@@ -9,13 +9,14 @@ import type { Route } from "./+types/market-page";
 import { MarketView } from "./market-view";
 import { readMarket } from "./read-market.server";
 import { readMarketMap } from "./read-market-map.server";
+import { marketMomentContext } from "./market-moment-context.server";
 
 export function meta(): Route.MetaDescriptors {
   return [{ title: pageTitle(m.market_data_page_title()) }];
 }
 
 export function loader({ context, params, url, request }: Route.LoaderArgs) {
-  const now = new Date();
+  const now = context.get(marketMomentContext) ?? new Date();
   const classId = requireReaderClass(context, url, params.classId);
   const { filters, values, failures } = readMarketFilters(url.searchParams);
   return data(
