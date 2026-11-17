@@ -74,6 +74,7 @@
     "app/features/sample-class/sample-prices-for-test.server.ts",
     "app/features/sample-class/sample-close-recordings-for-test.ts",
     "app/features/trading/reason-maximum-length.ts",
+    "app/features/trading/idx-order-size.ts",
     "app/features/trading/trading.schema.ts",
     "app/workbook/read-zip-for-test.server.ts",
     "app/features/trading/impact-selection-text-for-test.ts"

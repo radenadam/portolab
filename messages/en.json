@@ -1105,5 +1105,9 @@
   "trading_impact_weight_after_label": "Weight after",
   "trading_impact_apply_label": "Show impact",
   "trading_impact_long_share_error": "The field \"{field}\" has {length} characters, but it takes only {choices}. Choose one of them.",
-  "market_data_codes_price_time_notice": "Price time for {codes}: {time}"
+  "market_data_codes_price_time_notice": "Price time for {codes}: {time}",
+  "trading_home_since_close_label": "Close",
+  "accounts_privacy_home_dismissal_body": "The last time you closed the Home summary in each class, so events you have seen do not appear again. This time stays until your membership of the class is deleted.",
+  "trading_home_since_trade_label": "{side} {lots} of {code}",
+  "trading_home_since_visit_title": "Since your last visit"
 }

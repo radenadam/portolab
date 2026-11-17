@@ -1,3 +1,4 @@
+import { dismissHomeSince } from "~/features/classes/home-dismissal.server";
 import type { Database } from "~/database/database.server";
 import {
   hasAccountRecords,
@@ -227,6 +228,8 @@ export async function seedSampleClass(
         const membership = findClassStudent(database, classId, person.id);
         if (membership === undefined)
           throw new Error("The sample student did not join the class.");
+        if (firstOrder !== undefined)
+          dismissHomeSince(database, membership.membershipId, joinedAt);
         saveSamplePortfolio(
           database,
           {

@@ -1,5 +1,6 @@
 import type { RouterContextProvider } from "react-router";
 import { courseSessions } from "~/features/classes/course-calendar";
+import { readHomeDismissedAt } from "~/features/classes/home-dismissal.server";
 import { readAnonymousClassmates } from "~/features/grading/read-anonymous-classmates.server";
 import { parseHomeMapView } from "./parse-home-map-view";
 import { databaseContext } from "~/database/database.server";
@@ -14,12 +15,13 @@ import { cashSetAside } from "./open-orders";
 import { idxRulesOn } from "./idx-rules-on";
 import { readOwnedPortfolioReport } from "./read-owned-portfolio-report.server";
 import { readPortfolioDayChange } from "./read-portfolio-day-change.server";
+import { homeSinceOrders } from "./home-since-orders";
 import type { Portfolio, PortfolioOwner } from "./portfolio-store.server";
 import type { PortfolioReport } from "./read-portfolio-report.server";
 import type { PriceSourceDescription } from "~/features/market-data/price-source.server";
 import type { ClassId } from "~/features/classes/classes.schema";
 
-/** Class context is private, so owner authorization must precede both reads. */
+/** Class context is private, so owner authorization must precede its reads. */
 export function readHomePortfolio(
   context: Readonly<RouterContextProvider>,
   input: {
@@ -36,7 +38,7 @@ export function readHomePortfolio(
     input,
     kind,
   );
-  return readHomePortfolioData(context, {
+  const home = readHomePortfolioData(context, {
     ...input,
     classId: place.classId,
     owner: place.owner,
@@ -44,6 +46,20 @@ export function readHomePortfolio(
     source,
     report,
   });
+  return {
+    ...home,
+    sinceOrders:
+      place.owner.kind === "membership"
+        ? homeSinceOrders(
+            portfolio.orders,
+            readHomeDismissedAt(
+              context.get(databaseContext),
+              place.owner.membershipId,
+            ),
+            input.now,
+          )
+        : [],
+  };
 }
 
 /** The caller authorizes the owner before reading the portfolio or its class context. */
@@ -113,4 +129,4 @@ export function readHomePortfolioData(
   };
 }
 
-export type HomePortfolioData = ReturnType<typeof readHomePortfolio>;
+export type HomePortfolioData = ReturnType<typeof readHomePortfolioData>;

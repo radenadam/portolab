@@ -1,6 +1,6 @@
 # 0054. Trade impact has measured allowances for its combined screens
 
-- Status: Accepted. [Decision 0055](0055-price-times-and-the-filled-ticket-have-measured-allowances.md) replaces its JavaScript ceilings for the stock page, the ticket, Analisis, and demonstration analysis.
+- Status: Accepted. [Decision 0055](0055-price-times-and-the-filled-ticket-have-measured-allowances.md) replaces its JavaScript ceilings for the stock page, the ticket, Analisis, and demonstration analysis. [Decision 0056](0056-home-outcomes-have-a-measured-manifest-allowance.md) replaces its shared JavaScript ceiling.
 - Date: 2026-11-17
 
 ## Context

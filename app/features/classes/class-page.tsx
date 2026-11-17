@@ -1,3 +1,4 @@
+import { HomeSinceCard } from "~/features/trading/home-since-card";
 import { pathReturningTo } from "~/features/accounts/path-returning-to";
 import { parseChoice, parseRecordId } from "~/value-parsers";
 import {
@@ -10,7 +11,8 @@ import {
 import type { ClassMapSection } from "./class-path";
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
-import { data, Link } from "react-router";
+import { data, Link, redirect } from "react-router";
+import { dismissHomeSince } from "./home-dismissal.server";
 import { databaseContext } from "~/database/database.server";
 import { requireUser } from "~/features/accounts/current-session.server";
 import { formatMarketTime } from "~/formatting";
@@ -19,7 +21,6 @@ import { m } from "~/paraglide/messages.js";
 import { classPortfoliosPath } from "~/features/grading/grading-paths";
 import { HomePortfolio } from "~/features/trading/home-portfolio";
 import { readHomePortfolio } from "~/features/trading/read-home-portfolio.server";
-import type { HomePortfolioData } from "~/features/trading/read-home-portfolio.server";
 import type { Route } from "./+types/class-page";
 import { findJoinedClass, findTaughtClass } from "./class-store.server";
 import type { ClassStudent } from "./class-store.server";
@@ -59,7 +60,12 @@ export function loader({ context, params, url, request }: Route.LoaderArgs):
       calendar: ClassCalendar | undefined;
       points: ReturnType<typeof classMapPoints>;
     }
-  | { role: "student"; id: ClassId; name: string; home: HomePortfolioData } {
+  | {
+      role: "student";
+      id: ClassId;
+      name: string;
+      home: ReturnType<typeof readHomePortfolio>;
+    } {
   const now = new Date();
   const user = requireUser(context, url);
   const classId = parseRecordId<ClassId>(params.classId, "classId");
@@ -125,6 +131,18 @@ export function loader({ context, params, url, request }: Route.LoaderArgs):
   }
 }
 
+export function action({ context, params, url }: Route.ActionArgs): never {
+  const now = new Date();
+  const user = requireUser(context, url);
+  const classId = parseRecordId<ClassId>(params.classId, "classId");
+  if (!classId.ok || user.role !== "student") throw data(null, { status: 404 });
+  const database = context.get(databaseContext);
+  const joined = findJoinedClass(database, classId.value, user.id);
+  if (joined === undefined) throw data(null, { status: 404 });
+  dismissHomeSince(database, joined.membershipId, now);
+  throw redirect(`${url.pathname}${url.search}`);
+}
+
 export default function ClassPage({
   loaderData,
 }: Route.ComponentProps): ReactNode {
@@ -179,6 +197,13 @@ export default function ClassPage({
           home={loaderData.home}
           classId={loaderData.id}
           reader={{ kind: "owner", classId: loaderData.id }}
+          notice={
+            <HomeSinceCard
+              orders={loaderData.home.sinceOrders}
+              now={loaderData.home.now}
+              classId={loaderData.id}
+            />
+          }
         />
       );
   }

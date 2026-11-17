@@ -1,0 +1,1 @@
+ALTER TABLE `memberships` ADD `home_dismissed_at` integer;

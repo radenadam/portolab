@@ -50,6 +50,8 @@ export const memberships = sqliteTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     joinedAt: integer("joined_at", { mode: "timestamp_ms" }).notNull(),
+    /** Kept until this membership ends, so closing the home summary survives a new device or session. */
+    homeDismissedAt: integer("home_dismissed_at", { mode: "timestamp_ms" }),
   },
   (table) => [
     uniqueIndex("memberships_class_id_student_id_unique").on(

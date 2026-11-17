@@ -101,7 +101,7 @@ test("budgets every route with its ancestors, split exports, static imports, and
     "plans every budget",
   );
   expect(checks.map((check) => [check.name, check.limit, check.gzip])).toEqual([
-    ["Shared JavaScript", "140.2 kB", true],
+    ["Shared JavaScript", "140.3 kB", true],
     ["Shared CSS", "20 kB", true],
     ["Route JavaScript: class", "200 kB", true],
     ["Route CSS: class", "20 kB", true],
@@ -188,14 +188,14 @@ test("discovers a new route without adding a budget entry by hand", () => {
 test("applies measured route allowances only to the named routes and asset kinds", () => {
   const { chunks, routes, files } = fixture();
   const cases = [
-    ["features/market-data/stock-page", "213.4 kB", "21 kB"],
+    ["features/market-data/stock-page", "213.5 kB", "21 kB"],
     ["features/market-data/stock-page-detail", "200 kB", "20 kB"],
     ["features/classes/class-page", "220 kB", "24 kB"],
-    ["features/trading/ticket-page", "221.3 kB", "24 kB"],
-    ["features/measures/measures-page", "201.7 kB", "20 kB"],
+    ["features/trading/ticket-page", "221.4 kB", "24 kB"],
+    ["features/measures/measures-page", "201.8 kB", "20 kB"],
     ["features/measures/measures-page-detail", "200 kB", "20 kB"],
     ["features/trading/demonstration-summary-page", "220 kB", "24 kB"],
-    ["features/measures/demonstration-analysis-page", "202.6 kB", "20 kB"],
+    ["features/measures/demonstration-analysis-page", "202.7 kB", "20 kB"],
     ["features/measures/demonstration-analysis-page-detail", "200 kB", "20 kB"],
     ["features/market-data/market-page", "200 kB", "20 kB"],
     ["features/grading/student-portfolio-page", "220 kB", "24 kB"],

@@ -1,3 +1,5 @@
+import { readHomeDismissedAt } from "~/features/classes/home-dismissal.server";
+import { homeSinceOrders } from "~/features/trading/home-since-orders";
 import type { Database } from "~/database/database.server";
 import type { StoredOrder } from "~/features/trading/order-rows";
 import { expect, test, vi } from "vitest";
@@ -366,6 +368,25 @@ test("seeds a separate class with credentials, every terminal order state, curre
     .get();
   // Python Decimal gives purchase costs of 12,967,422, 12,991,458, 12,759,110, 12,881,794, and 12,969,425 rupiah at the recorded closes of 2 to 6 November. These leave 35,430,791 from the starting 100,000,000.
   expect(firstPortfolio?.cash).toBe(rupiah(35_430_791));
+  expect(readHomeDismissedAt(database, firstStudent.membershipId)).toEqual(
+    firstStudent.joinedAt,
+  );
+  if (firstPortfolio === undefined)
+    throw new Error("The first student has no portfolio.");
+  const stored = readPortfolioById(database, firstPortfolio.id);
+  if (stored === undefined) throw new Error("The first portfolio disappeared.");
+  const since = homeSinceOrders(
+    stored.orders,
+    readHomeDismissedAt(database, firstStudent.membershipId),
+    now,
+  );
+  expect(new Set(since.map((order) => order.state.kind))).toEqual(
+    new Set(["filled", "expired", "rejected"]),
+  );
+  const empty = students.at(-1);
+  if (empty === undefined)
+    throw new Error("The empty sample student is missing.");
+  expect(readHomeDismissedAt(database, empty.membershipId)).toBeUndefined();
   expect(
     database
       .select()

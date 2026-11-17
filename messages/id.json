@@ -1105,5 +1105,9 @@
   "trading_impact_weight_after_label": "Bobot sesudah",
   "trading_impact_apply_label": "Tampilkan dampak",
   "trading_impact_long_share_error": "Kolom \"{field}\" berisi {length} karakter, tetapi hanya menerima {choices}. Pilih salah satunya.",
-  "market_data_codes_price_time_notice": "Waktu harga {codes}: {time}"
+  "market_data_codes_price_time_notice": "Waktu harga {codes}: {time}",
+  "trading_home_since_close_label": "Tutup",
+  "accounts_privacy_home_dismissal_body": "Waktu terakhir Anda menutup ringkasan Beranda di setiap kelas, agar kejadian yang sudah Anda lihat tidak muncul lagi. Waktu ini disimpan sampai keanggotaan Anda di kelas dihapus.",
+  "trading_home_since_trade_label": "{side} {lots} {code}",
+  "trading_home_since_visit_title": "Sejak kunjungan terakhir"
 }
