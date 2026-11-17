@@ -85,7 +85,7 @@ const texts: Record<
     quote: "30 Okt 2026, 16.14 WIB",
     hint: "Tersimpan bersama order ini, dan dosen kelas ini dapat membacanya.",
     help: "Apa itu Jumlah lot?",
-    dayHelp: "Apa itu Rentang hari ini?",
+    dayHelp: "Apa itu Rentang harian?",
     dayLesson: "Pelajari lebih lanjut di sesi 6",
     dayLessonTitle: "Mekanisme perdagangan",
     noPrice:

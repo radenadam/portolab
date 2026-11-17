@@ -58,7 +58,7 @@ Mahasiswa memiliki {{label:navigation_home_link}}, {{label:navigation_market_lin
 
 Pembelian memerlukan keanggotaan LQ45 pada hari bursa order dan riwayat bulanan yang cukup untuk ukuran portofolio. Kepemilikan yang keluar dari LQ45 tetap dapat dijual. Bila pembelian belum tersedia, baca sebab dan langkah yang ditampilkan pada saham atau tiket. Jangan membuat akun baru untuk mengatasi riwayat harga yang belum cukup.
 
-Statistik saham menampilkan harga terendah dan tertinggi harian di samping rentang penutupan tersimpan. Rentang harian mengikuti hari bursa kutipan, yang bisa lebih awal dari hari ini. Buka tanda tanyanya untuk tanggal dan artinya. Kutipan tanpa harga terendah dan tertinggi tersimpan menjelaskan mengapa rentangnya belum tersedia.
+Statistik saham menampilkan harga terendah dan tertinggi harian di samping rentang penutupan tersimpan. Rentang harian mengikuti hari bursa kutipan, yang bisa lebih awal dari hari ini. Label hanya menyebut hari ini bila kutipannya berasal dari hari ini. Buka tanda tanyanya untuk tanggal dan artinya. Kutipan tanpa harga terendah dan tertinggi tersimpan menjelaskan mengapa rentangnya belum tersedia.
 
 ## orders | Mengirim order dan membaca biayanya
 

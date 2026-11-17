@@ -43,7 +43,7 @@ const texts: Record<
 > = {
   id: {
     rangeHelp: "Apa itu Rentang 52 minggu?",
-    dayHelp: "Apa itu Rentang hari ini?",
+    dayHelp: "Apa itu Rentang harian?",
     dayRange: "4.900 sampai 5.025",
     dayTime: "30 Okt 2026, 16.14 WIB",
     dayExample:

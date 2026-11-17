@@ -102,6 +102,7 @@ export function loader({ context, params, request, url }: Route.LoaderArgs) {
       dayRangeText: readStockDayRange(
         code,
         quote?.kind === "stock" ? quote : undefined,
+        now,
       ),
       quoteNotice:
         quote === undefined

@@ -494,6 +494,7 @@
   "market_data_close_date_label": "Close date",
   "market_data_closes_table_label": "View closing prices",
   "market_data_day_range_label": "Day range",
+  "market_data_today_range_label": "Today's range",
   "market_data_day_range_body": "The lowest and highest prices on the quote's trading day up to its latest delayed price, with the mark at that price.",
   "market_data_day_range_notice": "The range of {code} at {time} is {low} to {high} rupiah per share.",
   "market_data_no_day_range_notice": "Portolab has no recorded daily low and high for {code} yet. Check again when a price update supplies both.",

@@ -1,11 +1,19 @@
 import { formatMarketTime, formatNumber } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
+import { wibDateOf } from "~/wib";
 import type { StockQuote } from "./price-source.server";
 
-export function readStockDayRange(code: string, quote: StockQuote | undefined) {
+export function readStockDayRange(
+  code: string,
+  quote: StockQuote | undefined,
+  now: Date,
+) {
   const range = quote?.dayRange;
   const concept = {
-    label: m.market_data_day_range_label(),
+    label:
+      quote !== undefined && wibDateOf(quote.quotedAt) === wibDateOf(now)
+        ? m.market_data_today_range_label()
+        : m.market_data_day_range_label(),
     meaning: m.market_data_day_range_body(),
   };
   if (range === undefined || quote === undefined) {

@@ -92,7 +92,7 @@ const texts: Record<
 > = {
   id: {
     sample: "Data contoh",
-    dayHelp: "Apa itu Rentang hari ini?",
+    dayHelp: "Apa itu Rentang harian?",
     classTitle: "Manajemen Portofolio Contoh",
     studentTitle: "Nilai portofolio",
     demo: "Portofolio demonstrasi",

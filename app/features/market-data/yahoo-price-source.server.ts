@@ -185,19 +185,15 @@ function stockQuoteWithRange(
   source: string,
   quote: StockQuote,
 ): Result<StockQuote, string> {
-  const range = parseYahooDayRange(value, source, quote.price);
+  const range = readYahooDayRange(value, source, quote.price);
   return range.ok ? succeed({ ...quote, dayRange: range.value }) : range;
 }
 
-function parseYahooDayRange(
-  value: unknown,
+function readYahooDayRange(
+  value: Record<string, unknown>,
   source: string,
   price: Rupiah,
 ): Result<StockQuote["dayRange"], string> {
-  if (!isRecord(value))
-    return fail(
-      `${source} must be an object, but it is ${describeValue(value)}.`,
-    );
   const low = parseYahooDayBound(
     value["regularMarketDayLow"],
     source,
