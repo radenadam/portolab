@@ -18,21 +18,21 @@ The second cut of [the rebuild](https://github.com/radenadam/portolab/issues/127
 
 ### Client measurements
 
-These measurements compare main at `21dce2a` with this change, using `pnpm build` and `pnpm size` and the dependency walk and gzip method of [decision 0038](0038-client-javascript-is-budgeted-by-route.md). Both languages count. The new shared NIM field grows the route manifest on every page, even though the field itself loads only with joining and the account page.
+These measurements compare main at `81ab185` with this change at `6900169`, using `pnpm build` and `pnpm size` and the dependency walk and gzip method of [decision 0038](0038-client-javascript-is-budgeted-by-route.md). Both languages count. The new shared NIM field grows the route manifest on every page, even though the field itself loads only with joining and the account page.
 
 | Dependency set   | JavaScript before, kB | JavaScript after, kB | CSS before, kB | CSS after, kB |
 | ---------------- | --------------------: | -------------------: | -------------: | ------------: |
-| Shared           |                140.16 |               140.18 |           7.50 |          7.50 |
-| Account          |                146.45 |               147.46 |           7.78 |          7.78 |
-| Join a class     |                147.33 |               148.15 |           7.62 |          7.62 |
-| Privacy          |                143.50 |               143.64 |           7.62 |          7.62 |
-| Students         |                182.69 |               182.73 |          17.63 |         17.63 |
-| Student summary  |                204.04 |               204.10 |          21.33 |         21.35 |
-| Student analysis |                203.00 |               203.06 |          19.51 |         19.53 |
-| Student journal  |                194.86 |               194.92 |          18.76 |         18.78 |
-| Ticket           |                221.28 |               221.31 |          23.16 |         23.16 |
+| Shared           |                140.21 |               140.24 |           7.50 |          7.50 |
+| Account          |                146.50 |               147.57 |           7.78 |          7.78 |
+| Join a class     |                147.39 |               148.22 |           7.62 |          7.62 |
+| Privacy          |                143.55 |               143.72 |           7.62 |          7.62 |
+| Students         |                182.73 |               182.77 |          17.63 |         17.64 |
+| Student summary  |                204.15 |               204.21 |          21.33 |         21.35 |
+| Student analysis |                203.32 |               203.38 |          19.51 |         19.53 |
+| Student journal  |                194.90 |               194.96 |          18.76 |         18.78 |
+| Ticket           |                221.60 |               221.62 |          23.16 |         23.16 |
 
-The market map's [decision 0056](0056-the-market-map-has-measured-route-allowances.md) now provides the active ceilings for these dependency sets. NIM keeps those ceilings. The combined build is measured against main at `81ab185` before this change is pushed.
+Every measured route fits the existing ceilings, including the [market map allowances](0056-the-market-map-has-measured-route-allowances.md). This change adds no allowance.
 
 ## Alternatives
 
