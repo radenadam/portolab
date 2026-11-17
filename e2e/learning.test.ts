@@ -1,4 +1,8 @@
 import { expectRefusedGlossarySearch } from "./expect-refused-glossary-search.ts";
+import {
+  glossaryCountTextsForTest,
+  glossaryTermCountForTest,
+} from "../app/features/learning/glossary-counts-for-test.ts";
 import { returnFromLesson } from "./return-from-lesson.ts";
 import { languageNames } from "../app/language-names.ts";
 import { expect, test } from "@playwright/test";
@@ -48,8 +52,8 @@ const texts: Record<
     back: "Kembali ke halaman sebelumnya",
     week: "Ringkasan · minggu ini",
     none: 'Tidak ada istilah yang memuat "xyzz". Coba kata yang lebih pendek.',
-    one: "1 istilah",
-    many: "44 istilah",
+    one: glossaryCountTextsForTest.id.one,
+    many: glossaryCountTextsForTest.id.all,
     notFound: "Halaman tidak ditemukan",
   },
   en: {
@@ -65,8 +69,8 @@ const texts: Record<
     back: "Back to the previous page",
     week: "Summary · this week",
     none: 'No terms contain "xyzz". Try a shorter word.',
-    one: "1 term",
-    many: "44 terms",
+    one: glossaryCountTextsForTest.en.one,
+    many: glossaryCountTextsForTest.en.all,
     notFound: "Page not found",
   },
 };
@@ -153,7 +157,9 @@ for (const locale of locales) {
     await page.goto(`${classPath}/glossary`);
     await expect(page).toHaveTitle(`${text.glossary} | Portolab`);
     await expect(page.getByRole("status")).toHaveText(text.many);
-    await expect(page.locator('main section[id^="term-"]')).toHaveCount(44);
+    await expect(page.locator('main section[id^="term-"]')).toHaveCount(
+      glossaryTermCountForTest,
+    );
     await expectAccessibleScreen(page);
     await captureScreens(page, testInfo, {
       name: `glossary-${locale}`,

@@ -3,6 +3,11 @@ import type { StoredOrder } from "~/features/trading/order-rows";
 import { expect, test, vi } from "vitest";
 import { and, eq, gte, lte } from "drizzle-orm";
 import { openDatabaseForTest as databaseForTest } from "~/database/open-database-for-test.server";
+import { companyOf } from "~/features/market-data/company-of";
+import { findStockQuote } from "~/features/market-data/quote-store.server";
+import { readPortfolioMeasures } from "~/features/measures/read-measures.server";
+import { valuePortfolio } from "~/features/trading/value-portfolio";
+import { analysisAllocationRows } from "~/features/measures/analysis-allocation-rows";
 import { users, sessions } from "~/features/accounts/accounts.schema";
 import { verifyPassword } from "~/features/accounts/password.server";
 import { classes, memberships } from "~/features/classes/classes.schema";
@@ -46,7 +51,6 @@ import { seedSampleClass as seedSampleClassWithClock } from "./seed-sample-class
 import { buildSamplePortfolio } from "./build-sample-portfolio";
 import { readSampleMarket } from "./read-sample-market.server";
 import { orderTradingDay } from "~/features/trading/order-trading-day";
-import { findStockQuote } from "~/features/market-data/quote-store.server";
 import { lastContinuousTradingMoment } from "~/features/market-data/idx-calendar";
 import { successValueForTest } from "~/success-value-for-test";
 import {
@@ -371,6 +375,15 @@ test("seeds a separate class with credentials, every terminal order state, curre
     .get();
   // Python Decimal gives purchase costs of 12,967,422, 12,991,458, 12,759,110, 12,881,794, and 12,969,425 rupiah at the recorded closes of 2 to 6 November. These leave 35,430,791 from the starting 100,000,000.
   expect(firstPortfolio?.cash).toBe(rupiah(35_430_791));
+  checkSampleAnalysis(database, firstPortfolio);
+  checkSampleAnalysis(
+    database,
+    database
+      .select()
+      .from(portfolios)
+      .where(eq(portfolios.demonstrationClassId, taught.id))
+      .get(),
+  );
   expect(
     database
       .select()
@@ -582,4 +595,41 @@ async function checkPrintedCredentials(
       checkedHashes.add(person.passwordHash);
     }
   }
+}
+
+function checkSampleAnalysis(
+  database: Database,
+  sample: typeof portfolios.$inferSelect | undefined,
+): void {
+  if (sample === undefined)
+    throw new Error("The sample has no analysis portfolio.");
+  const stored = readPortfolioById(database, sample.id);
+  if (stored === undefined)
+    throw new Error("The analysis portfolio disappeared.");
+  const quotes = new Map<string, StockQuote>();
+  for (const holding of stored.holdings) {
+    const quote = findStockQuote(database, holding.code);
+    if (quote !== undefined) quotes.set(holding.code, quote);
+  }
+  const valuation = valuePortfolio(stored, defaultStartingCash, quotes);
+  const measured = readPortfolioMeasures(database, valuation);
+  if (measured.kind !== "measured" || !measured.measures.ok)
+    throw new Error("The sample analysis needs measures.");
+  const portfolio = measured.measures.value;
+  expect(portfolio.holdings.length).toBeGreaterThan(1);
+  expect(portfolio.cash.weight).toBeGreaterThan(0);
+  expect(
+    new Set(portfolio.holdings.map(({ code }) => companyOf(code).sector)).size,
+  ).toBeGreaterThan(1);
+  expect(portfolio.pairs.some(({ first, second }) => first !== second)).toBe(
+    true,
+  );
+  expect(
+    portfolio.holdingRisks.ok &&
+      portfolio.holdingRisks.value.length === portfolio.holdings.length,
+  ).toBe(true);
+  const allocation = analysisAllocationRows(valuation, "sector");
+  expect(allocation.kind === "valued" && allocation.rows.at(-1)?.key).toBe(
+    "cash",
+  );
 }

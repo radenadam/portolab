@@ -1,3 +1,4 @@
+import { expectAnalysisPanels } from "./expect-analysis-panels.ts";
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, rmSync } from "node:fs";
 import { createServer } from "node:net";
@@ -173,6 +174,22 @@ for (const locale of locales) {
         await expectAccessibleScreen(reader);
         await captureScreens(reader, testInfo, {
           name: `sample-${role}-${locale}`,
+          fullPage: true,
+          fromTop: true,
+        });
+        await reader.goto(
+          `${sample.url}/classes/1/${role === "lecturer" ? "demonstration/" : ""}analysis`,
+        );
+        await expectAnalysisPanels(reader, locale);
+        await expect(
+          reader.locator('button[popovertarget^="analysis-pair-"]').first(),
+        ).toBeVisible();
+        await expect(
+          reader.locator('button[popovertarget^="analysis-risk-"]').first(),
+        ).toBeVisible();
+        await expectAccessibleScreen(reader);
+        await captureScreens(reader, testInfo, {
+          name: `sample-analysis-${role}-${locale}`,
           fullPage: true,
           fromTop: true,
         });

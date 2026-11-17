@@ -51,6 +51,7 @@ import { isSampleClass } from "./is-sample-class.server";
 import {
   sampleCoreStocks,
   sampleConcentratedSectors,
+  sampleDemonstrationRecipeIndex,
 } from "./sample-portfolio-recipes";
 import type { SampleStock } from "./read-sample-market.server";
 
@@ -185,7 +186,10 @@ export async function seedSampleClass(
     const plan =
       index === accounts.length - 1
         ? succeed([])
-        : buildSamplePortfolio(recipe, index === 0 ? 33 : index - 1);
+        : buildSamplePortfolio(
+            recipe,
+            index === 0 ? sampleDemonstrationRecipeIndex : index - 1,
+          );
     if (!plan.ok) return plan;
     plans.push(plan.value);
   }

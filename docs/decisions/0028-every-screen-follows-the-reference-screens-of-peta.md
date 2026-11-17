@@ -1,6 +1,6 @@
 # 0028. Every screen follows the reference screens of Peta
 
-- Status: Accepted. [Decision 0035](0035-the-map-names-its-points-in-words-and-keeps-the-name-of-the-reader.md) changes one of its rules: the font of the names of the points of a map, which is the font of the text, while DM Mono keeps the marks of the axes.
+- Status: Accepted. [Decision 0035](0035-the-map-names-its-points-in-words-and-keeps-the-name-of-the-reader.md) changes one of its rules: the font of the names of the points of a map, which is the font of the text, while DM Mono keeps the marks of the axes. [Decision 0059](0059-correlation-cells-keep-readable-text-across-the-scale.md) replaces the prototype's interpolation and text color for correlation cells.
 - Date: 2026-11-14
 
 ## Context

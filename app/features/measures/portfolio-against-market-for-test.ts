@@ -28,18 +28,32 @@ export function portfolioAgainstMarketForTest(): PortfolioMeasuresReport {
 
 /** These invented stocks have offsetting returns, so the portfolio has no variation even though each stock varies. */
 export function portfolioWithoutVariationForTest(): PortfolioMeasuresReport {
+  return offsettingPortfolioForTest(rupiah(5_000_000));
+}
+
+export function portfolioWithNegativeRiskForTest(): PortfolioMeasuresReport {
+  return offsettingPortfolioForTest(rupiah(8_000_000));
+}
+
+function offsettingPortfolioForTest(
+  firstValue: Rupiah,
+): PortfolioMeasuresReport {
   // By hand, returns of 1 and -0.5 for one stock and -0.5 and 1 for the other give 0.25 every month at equal weights.
   const dates = monthEndClosesForTest("IHSG").closes;
   const holdings = [
-    { code: "OFFSET-A", alternateClose: 2000 },
-    { code: "OFFSET-B", alternateClose: 500 },
-  ].map(({ code, alternateClose }) => ({
+    { code: "OFFSET-A", alternateClose: 2000, value: firstValue },
+    {
+      code: "OFFSET-B",
+      alternateClose: 500,
+      value: rupiah(10_000_000 - firstValue),
+    },
+  ].map(({ code, alternateClose, value }) => ({
     code,
     closes: dates.map(({ date }, index) => ({
       date,
       close: splitAdjustedRupiah(index % 2 === 0 ? 1000 : alternateClose),
     })),
-    value: rupiah(5_000_000),
+    value,
   }));
   return measuredReportForTest(holdings, rupiah(0));
 }

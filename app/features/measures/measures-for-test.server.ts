@@ -90,6 +90,23 @@ export function ammnValuationForTest(): PortfolioValuation {
   return recentListingsValuation(["AMMN"], ["AMMN"]);
 }
 
+/** AMMN listed later than the other holdings, so these measures need a shorter shared window. */
+export function mixedValuationForTest(): PortfolioValuation {
+  const base = valuationForTest(["BBCA", "TLKM"]);
+  return valuePortfolio(
+    {
+      cash: base.cash,
+      holdings: [recentListings.AMMN.holding, holdings.BBCA, holdings.TLKM],
+    },
+    base.startingCash,
+    new Map([
+      ["AMMN", recentListings.AMMN.quote],
+      ["BBCA", quotes.BBCA],
+      ["TLKM", quotes.TLKM],
+    ]),
+  );
+}
+
 /** A portfolio of AMMN, AADI, and cash without a delayed price of either, so it has no measures. AMMN lies against the line of its own months, and AADI has too few monthly returns for measures. */
 export function unpricedListingsValuationForTest(): PortfolioValuation {
   return recentListingsValuation(["AMMN", "AADI"], []);
