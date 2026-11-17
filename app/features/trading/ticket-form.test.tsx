@@ -228,7 +228,7 @@ for (const locale of locales) {
       const waiting = renderMarkupForTest(
         <TicketDone
           closePath="/classes/1/stocks/BBCA"
-          order={{ ...waitingOrder, state: checked }}
+          order={{ ...waitingOrder, state: checked, reason: "Bank terbesar." }}
           activity={activityPath(waitingClassId)}
           now={now}
           available={rupiah(100_000_000)}
@@ -240,6 +240,10 @@ for (const locale of locales) {
             ? (text.filled[0] ?? "missing fill")
             : (text.schedules[index] ?? "missing schedule"),
         ),
+      );
+      // The journal lists only filled trades, so only a filled order says that its reason is kept there.
+      expect(waiting.includes("Bank terbesar.")).toBe(
+        checked.kind === "filled",
       );
       for (const amount of text.buyAmounts) expect(html).toContain(amount);
       expect(html).toContain(text.step);

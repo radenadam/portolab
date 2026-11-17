@@ -8,7 +8,7 @@ import type { IndexQuote } from "./price-source.server";
 import type { readMarket } from "./read-market.server";
 import styles from "./market-view.module.css";
 
-/** The one line below the list, as the references draw it: the time that its prices share, the months of its measures, and what the ticks of the table mark. Every measure of a stock uses months from the window of the measures of the index, so the months of the index bound them all. */
+/** The one line below the list, as the references draw it: the time that its prices share, the months from which its measures come, and what the ticks of the table mark. A stock takes only the months in which the index has a return too, and it can lack some of them, so the line states the months of the index as the most that a measure uses. */
 export function MarketNotes({
   rows,
   sharedTime,

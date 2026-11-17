@@ -543,7 +543,7 @@
   "market_data_unavailable_value_label": "-",
   "market_data_unavailable_measures_label": "Mengapa beta dan volatilitas belum tersedia",
   "market_data_reference_marks_notice": "Garis tegak di tabel: {index}.",
-  "market_data_measure_window_notice": "Beta dan volatilitas dari imbal hasil bulanan {first} sampai {last}.",
+  "market_data_measure_window_notice": "Beta dan volatilitas memakai paling banyak {returns} dari {first} sampai {last}.",
   "market_data_period_notice": "{returns}, dari {first} sampai {last}.",
   "market_data_back_to_analysis_link": "Kembali ke Analisis",
   "measures_analysis_title": "Analisis",

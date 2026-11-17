@@ -105,7 +105,7 @@ const states: Record<
     oldTime: "29 Okt 2026",
     period: "60 imbal hasil bulanan, dari Oktober 2021 sampai September 2026.",
     reference:
-      "Beta dan volatilitas dari imbal hasil bulanan Okt 2021 sampai Sep 2026.",
+      "Beta dan volatilitas memakai paling banyak 60 imbal hasil bulanan dari Okt 2021 sampai Sep 2026.",
     referenceMarks: "Garis tegak di tabel: IHSG.",
     descendingLink: "Urutkan menurun",
     directionField: ["Urutan", "Menurun", "Menaik"],
@@ -127,7 +127,7 @@ const states: Record<
     oldTime: "Oct 29, 2026",
     period: "60 monthly returns, from October 2021 to September 2026.",
     reference:
-      "Beta and volatility use monthly returns from Oct 2021 to Sep 2026.",
+      "Beta and volatility use at most 60 monthly returns from Oct 2021 to Sep 2026.",
     referenceMarks: "Vertical ticks in the table mark the IHSG.",
     descendingLink: "Sort descending",
     directionField: ["Order", "Descending", "Ascending"],

@@ -111,7 +111,7 @@ export function TicketDone({
           <NumberText>{formatRupiah(available)}</NumberText>
         </dd>
       </dl>
-      {order.reason !== undefined && (
+      {order.state.kind === "filled" && order.reason !== undefined && (
         <p className={styles["doneReason"]}>
           <NumberText verbatim>
             {m.trading_ticket_reason_notice({ reason: order.reason })}

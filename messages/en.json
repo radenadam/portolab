@@ -543,7 +543,7 @@
   "market_data_unavailable_value_label": "-",
   "market_data_unavailable_measures_label": "Why beta and volatility are unavailable",
   "market_data_reference_marks_notice": "Vertical ticks in the table mark the {index}.",
-  "market_data_measure_window_notice": "Beta and volatility use monthly returns from {first} to {last}.",
+  "market_data_measure_window_notice": "Beta and volatility use at most {returns} from {first} to {last}.",
   "market_data_period_notice": "{returns}, from {first} to {last}.",
   "market_data_back_to_analysis_link": "Back to Analysis",
   "measures_analysis_title": "Analysis",
