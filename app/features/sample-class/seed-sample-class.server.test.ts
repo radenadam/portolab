@@ -46,6 +46,7 @@ import { seedSampleClass as seedSampleClassWithClock } from "./seed-sample-class
 import { buildSamplePortfolio } from "./build-sample-portfolio";
 import { readSampleMarket } from "./read-sample-market.server";
 import { orderTradingDay } from "~/features/trading/order-trading-day";
+import { findStockQuote } from "~/features/market-data/quote-store.server";
 import { lastContinuousTradingMoment } from "~/features/market-data/idx-calendar";
 import { successValueForTest } from "~/success-value-for-test";
 import {
@@ -289,6 +290,10 @@ test("seeds a separate class with credentials, every terminal order state, curre
   expect(result.ok ? result.value.split("\n").length : result.failure).toBe(33);
   if (!result.ok) throw new Error(result.failure);
   expect(isSampleClass(database)).toBe(true);
+  expect(findStockQuote(database, "BBCA")?.dayRange).toEqual({
+    low: 5425,
+    high: 5650,
+  });
   const people = database.select().from(users).all();
   expect(people).toHaveLength(31);
   const lecturer = people.find((person) => person.role === "lecturer");

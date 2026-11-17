@@ -99,6 +99,11 @@ export const samplePriceSourceForTest: PriceSource = {
             code: instrument.code,
             price: rupiah(last[1]),
             previousClose: rupiah(previous[1]),
+            // Yahoo's daily chart of 13 November 2026 supplies the recorded BBCA bounds.
+            dayRange:
+              instrument.code === "BBCA"
+                ? { low: rupiah(5425), high: rupiah(5650) }
+                : undefined,
             quotedAt,
           });
           break;

@@ -24,6 +24,8 @@ export function saveQuotes(
           code: quote.code,
           price: quote.price,
           previousClose: quote.previousClose,
+          dayLow: quote.dayRange?.low ?? null,
+          dayHigh: quote.dayRange?.high ?? null,
           quotedAt: quote.quotedAt,
           fetchedAt,
         };
@@ -129,6 +131,10 @@ function stockQuoteOf(row: typeof stockQuotes.$inferSelect): StockQuote {
     code: row.code,
     price: row.price,
     previousClose: row.previousClose,
+    dayRange:
+      row.dayLow === null || row.dayHigh === null
+        ? undefined
+        : { low: row.dayLow, high: row.dayHigh },
     quotedAt: row.quotedAt,
   };
 }

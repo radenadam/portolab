@@ -77,6 +77,20 @@ const tlkmClose = stockQuote("TLKM", [1_980, 1_980], "2026-10-30T09:14:51Z");
 // 16:20 WIB on Friday 30 October 2026, and the minutes after it.
 const afterClose = new Date("2026-10-30T09:20:00Z");
 
+test("stores both day bounds and replaces them with the next quote, including one without a range", () => {
+  const database = openDatabaseForTest();
+  const complete = {
+    ...bbcaClose,
+    dayRange: { low: rupiah(4900), high: rupiah(5025) },
+  };
+  saveQuotes(database, [complete], afterClose);
+  expect(findStockQuote(database, "BBCA")).toEqual(complete);
+  expect(listLatestQuotes(database)).toEqual([complete]);
+  saveQuotes(database, [bbcaClose], afterClose);
+  expect(findStockQuote(database, "BBCA")?.dayRange).toBeUndefined();
+  expect(listLatestQuotes(database)).toEqual([bbcaClose]);
+});
+
 test("finds the latest quote of a stock, and none for a stock without a stored quote", () => {
   const database = openDatabaseForTest();
   saveQuotes(database, [bbcaClose], afterClose);
