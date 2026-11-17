@@ -1,9 +1,12 @@
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, rmSync, mkdirSync, writeFileSync } from "node:fs";
 import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { expect, test as base } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import type { Role } from "../app/features/accounts/accounts.schema.ts";
+import { tokenColor } from "./token-color.ts";
 import {
   closeDatabase,
   openDatabase,
@@ -21,6 +24,35 @@ import { newDevice } from "./new-device.ts";
 import { languageNames } from "../app/language-names.ts";
 import { parseSampleCredentialsForTest } from "../scripts/parse-sample-credentials-for-test.ts";
 import { successValueForTest } from "../app/success-value-for-test.ts";
+import { companyLogoForTest } from "../app/features/market-data/company-logo-for-test.ts";
+import { expectCompanyLogo } from "./expect-company-logo.ts";
+import { holdClientScripts } from "./hold-client-scripts.ts";
+import { trackedStockCodes } from "../app/features/market-data/tracked-instruments.ts";
+
+const missingLogo = { code: "BBRI", letters: "BB" };
+
+interface SampleSite {
+  url: string;
+  output: string;
+}
+
+function credentialsForSample(sample: SampleSite) {
+  return successValueForTest(
+    parseSampleCredentialsForTest(sample.output, "The sample command output"),
+    "The sample command prints both roles",
+  );
+}
+
+async function signInSample(
+  reader: Page,
+  sample: SampleSite,
+  role: Role,
+): Promise<void> {
+  const credentials = credentialsForSample(sample)[role];
+  await reader.goto(`${sample.url}/sign-in`);
+  await submitSignIn(reader, credentials.username, credentials.password);
+  await expect(reader).toHaveURL(`${sample.url}/classes/1`);
+}
 
 async function unusedPort(): Promise<number> {
   const reservation = createServer();
@@ -39,7 +71,7 @@ async function unusedPort(): Promise<number> {
   return address.port;
 }
 
-const test = base.extend<{ sample: { url: string; output: string } }>({
+const test = base.extend<{ sample: SampleSite }>({
   sample: async ({ browserName }, use) => {
     const folder = mkdtempSync(
       join(tmpdir(), `portolab-sample-${browserName}-`),
@@ -71,7 +103,16 @@ const test = base.extend<{ sample: { url: string; output: string } }>({
         },
       );
       const port = await unusedPort();
-      stop = await startTestServer({ databasePath, port });
+      const companyLogosPath = join(folder, "generated-tiles");
+      mkdirSync(companyLogosPath);
+      for (const code of trackedStockCodes) {
+        if (code !== missingLogo.code)
+          writeFileSync(
+            join(companyLogosPath, `${code}.png`),
+            companyLogoForTest(code === "TLKM" ? "wide" : "square"),
+          );
+      }
+      stop = await startTestServer({ databasePath, port, companyLogosPath });
       await use({ url: `http://localhost:${String(port)}`, output });
     } finally {
       await stop?.();
@@ -103,10 +144,7 @@ for (const locale of locales) {
     sample,
     browser,
   }, testInfo) => {
-    const credentials = successValueForTest(
-      parseSampleCredentialsForTest(sample.output, "The sample command output"),
-      "The sample command prints both roles",
-    );
+    const credentials = credentialsForSample(sample);
     for (const role of ["lecturer", "student"] as const) {
       const { username, password } = credentials[role];
       const reader = await newDevice(browser, locale, { siteUrl: sample.url });
@@ -141,6 +179,10 @@ for (const locale of locales) {
             }),
           ).toBeVisible();
         await expectAccessibleScreen(reader);
+        for (const image of await reader
+          .locator('img[src="/company-logos/BBCA.png"]:visible')
+          .all())
+          await expectCompanyLogo(image, "square");
         await captureScreens(reader, testInfo, {
           name: `sample-${role}-${locale}`,
           fullPage: true,
@@ -153,6 +195,180 @@ for (const locale of locales) {
       } finally {
         await reader.context().close();
       }
+    }
+  });
+
+  for (const [name, suffix, role] of [
+    ["home", "", "student"],
+    ["market", "/market", "student"],
+    ["stock", "/stocks/BBCA", "student"],
+    ["stock-ticket", "/stocks/BBCA/buy", "student"],
+    ["ticket-done", "/stocks/BBCA/buy", "student"],
+    ["activity", "/activity", "student"],
+    ["student", "/students/2", "lecturer"],
+    ["student-journal", "/students/2/journal", "lecturer"],
+    ["demonstration-activity", "/demonstration/activity", "lecturer"],
+  ] as const) {
+    test(`shows owner-supplied tiles on ${name} in the sample class in ${languageNames[locale]}`, async ({
+      sample,
+      browser,
+    }, testInfo) => {
+      const reader = await newDevice(browser, locale, { siteUrl: sample.url });
+      try {
+        await signInSample(reader, sample, role);
+        const errors: string[] = [];
+        reader.on("pageerror", (error) => {
+          errors.push(error.message);
+        });
+        await reader.goto(`${sample.url}/classes/1${suffix}`);
+        if (name === "ticket-done") {
+          await reader.locator('dialog button[type="submit"]').click();
+          await expect(reader.getByRole("status")).toBeVisible();
+        }
+        const visibleContent =
+          ["stock-ticket", "ticket-done"].includes(name) &&
+          testInfo.project.name === "phone"
+            ? reader.locator("dialog")
+            : reader.locator("main");
+        await expect(
+          visibleContent
+            .locator(
+              name === "demonstration-activity"
+                ? 'img[src^="/company-logos/"]:visible'
+                : 'img[src="/company-logos/BBCA.png"]:visible',
+            )
+            .first(),
+        ).toBeVisible();
+        await captureScreens(reader, testInfo, {
+          name: `logos-${name}-${locale}`,
+          fullPage:
+            !["stock-ticket", "ticket-done"].includes(name) ||
+            testInfo.project.name !== "phone",
+          fromTop: true,
+          check: async () => {
+            for (const [code, shape] of [
+              ["BBCA", "square"],
+              ["TLKM", "wide"],
+            ] as const) {
+              for (const image of await visibleContent
+                .locator(`img[src="/company-logos/${code}.png"]:visible`)
+                .all())
+                await expectCompanyLogo(image, shape);
+            }
+          },
+        });
+        await expectAccessibleScreen(reader);
+        expect(errors).toEqual([]);
+      } finally {
+        await reader.context().close();
+      }
+    });
+  }
+
+  test(`restores the native image fallback and serves only the owner tiles in ${languageNames[locale]}`, async ({
+    sample,
+    browser,
+  }) => {
+    const reader = await newDevice(browser, locale, { siteUrl: sample.url });
+    try {
+      await signInSample(reader, sample, "student");
+      await reader.route("**/company-logos/BBCA.png", async (route) => {
+        await route.fulfill({ status: 404 });
+      });
+      await holdClientScripts(
+        reader,
+        { address: `${sample.url}/classes/1/stocks/BBCA` },
+        async (loadClient) => {
+          await expect
+            .poll(() =>
+              reader
+                .locator('img[src="/company-logos/BBCA.png"]')
+                .first()
+                .evaluate(
+                  (image) =>
+                    image instanceof HTMLImageElement &&
+                    image.complete &&
+                    image.naturalWidth === 0,
+                ),
+            )
+            .toBe(true);
+          await loadClient();
+          await expect(
+            reader
+              .locator("main header [aria-hidden=true]")
+              .filter({ hasText: "BB" })
+              .first(),
+          ).toBeVisible();
+          await expect(
+            reader.locator('img[src="/company-logos/BBCA.png"]'),
+          ).toHaveCount(0);
+          await expect(
+            reader
+              .locator("main header [aria-hidden=true]")
+              .filter({ hasText: "BB" })
+              .first(),
+          ).toHaveCSS(
+            "background-color",
+            await tokenColor(reader, "--color-raised"),
+          );
+        },
+      );
+      const image = await reader.request.get(
+        `${sample.url}/company-logos/BBCA.png`,
+      );
+      expect(image.status()).toBe(200);
+      expect(image.headers()["content-type"]).toContain("image/png");
+      expect(image.headers()["x-content-type-options"]).toBe("nosniff");
+      expect(image.headers()["cache-control"]).toBe("no-cache");
+      expect(await image.body()).toEqual(companyLogoForTest("square"));
+      for (const path of [
+        `${missingLogo.code}.png`,
+        "unknown.png",
+        "BBCA.svg",
+        "",
+        "%2e%2e%2fpackage.json",
+      ]) {
+        expect(
+          (
+            await reader.request.get(`${sample.url}/company-logos/${path}`)
+          ).status(),
+        ).toBe(404);
+      }
+    } finally {
+      await reader.context().close();
+    }
+  });
+  test(`shows supplied tiles and missing-file monograms before JavaScript loads in ${languageNames[locale]}`, async ({
+    sample,
+    browser,
+  }) => {
+    const reader = await newDevice(browser, locale, {
+      siteUrl: sample.url,
+      javaScriptEnabled: false,
+    });
+    try {
+      await signInSample(reader, sample, "student");
+      await reader.goto(`${sample.url}/classes/1/market`);
+      await expectCompanyLogo(
+        reader.locator('img[src="/company-logos/BBCA.png"]').first(),
+        "square",
+      );
+      await expectCompanyLogo(
+        reader.locator('img[src="/company-logos/TLKM.png"]').first(),
+        "wide",
+      );
+      const missingRows = await reader
+        .getByRole("row", { name: new RegExp(missingLogo.code) })
+        .all();
+      expect(missingRows.length).toBeGreaterThan(0);
+      for (const missing of missingRows) {
+        await expect(
+          missing.getByText(missingLogo.letters, { exact: true }),
+        ).toHaveAttribute("aria-hidden", "true");
+        await expect(missing.locator("img")).toHaveCount(0);
+      }
+    } finally {
+      await reader.context().close();
     }
   });
 }

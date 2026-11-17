@@ -1,5 +1,6 @@
 import { createRequestHandler } from "@react-router/express";
 import type { Request, RequestHandler } from "express";
+import { Router } from "express";
 import { RouterContextProvider } from "react-router";
 import type { ServerBuild } from "react-router";
 import {
@@ -27,7 +28,10 @@ import { fixturePriceSource } from "~/features/market-data/fixture-price-source.
 import { startPriceJob } from "~/features/market-data/price-job.server";
 import { priceSourceContext } from "~/features/market-data/price-source-context.server";
 import type { PriceSource } from "~/features/market-data/price-source.server";
-import { trackedInstruments } from "~/features/market-data/tracked-instruments";
+import {
+  trackedInstruments,
+  trackedStockCodes,
+} from "~/features/market-data/tracked-instruments";
 import { createYahooPriceSource } from "~/features/market-data/yahoo-price-source.server";
 import { checkAllOpenOrders } from "~/features/trading/check-open-orders.server";
 import { missingOrderDataWarnings } from "~/features/trading/missing-order-data-warnings";
@@ -38,6 +42,16 @@ import {
 import { wibDateOf } from "~/wib";
 import type { ServiceSettings } from "./server-options.ts";
 import { seedSampleClass } from "~/features/sample-class/seed-sample-class.server";
+import {
+  companyLogoFilesContext,
+  readCompanyLogoFiles,
+} from "~/features/market-data/company-logo-files.server";
+import type { CompanyLogoFiles } from "~/features/market-data/company-logo-files.server";
+import { parseStockCode } from "~/features/trading/order-form-fields";
+import {
+  companyLogoPath,
+  companyLogosPrefix,
+} from "~/features/market-data/company-logo-paths";
 
 const priceSources: Record<ServiceSettings["priceSource"], () => PriceSource> =
   {
@@ -69,6 +83,7 @@ export async function runSampleClass(
 }
 
 export interface Services {
+  companyLogos: CompanyLogoFiles;
   database: Database;
   priceSource: PriceSource;
   passwordLimiters: PasswordLimiters;
@@ -100,11 +115,14 @@ export function startServices(settings: ServiceSettings): Services {
     missingOrderDataWarnings,
   );
   const stopSessionSweep = startSessionSweep(database);
-  return createRequestServices(database, priceSource, () => {
-    stopPriceJob();
-    stopSessionSweep();
-    closeDatabase(database);
-  });
+  return {
+    ...createRequestServices(database, priceSource, () => {
+      stopPriceJob();
+      stopSessionSweep();
+      closeDatabase(database);
+    }),
+    companyLogos: readCompanyLogoFiles(settings.companyLogosPath),
+  };
 }
 
 /** @internal startServices reaches this setup only with jobs on the real clock, so browser tests need access without those schedules. */
@@ -114,6 +132,7 @@ export function createRequestServices(
   stop: () => void,
 ): Services {
   return {
+    companyLogos: new Map(),
     database,
     priceSource,
     passwordLimiters: createPasswordLimiters(),
@@ -124,20 +143,40 @@ export function createRequestServices(
 
 /** Handles requests, and gives every loader and action the services and the address that the request came from. */
 export function createApp(services: Services): RequestHandler {
-  return createRequestHandler({
-    // The virtual module types `basename` as `string | undefined`, which exactOptionalPropertyTypes rejects for ServerBuild.
-    build: () =>
-      import("virtual:react-router/server-build") as Promise<ServerBuild>,
-    getLoadContext(request) {
-      const context = new RouterContextProvider();
-      context.set(databaseContext, services.database);
-      context.set(priceSourceContext, services.priceSource);
-      context.set(passwordLimitersContext, services.passwordLimiters);
-      context.set(joinLimitersContext, services.joinLimiters);
-      context.set(clientAddressContext, clientAddress(request));
-      return context;
-    },
+  const app = Router();
+  app.get(companyLogoPath(":code"), (request, response) => {
+    const code = parseStockCode(
+      request.params.code,
+      "The company logo code",
+      trackedStockCodes,
+    );
+    const image = code.ok ? services.companyLogos.get(code.value) : undefined;
+    response.set("Cache-Control", "no-cache");
+    response.set("X-Content-Type-Options", "nosniff");
+    if (image === undefined) response.sendStatus(404);
+    else response.type("png").send(image);
   });
+  app.use(companyLogosPrefix, (_request, response) => {
+    response.sendStatus(404);
+  });
+  app.use(
+    createRequestHandler({
+      // The virtual module types `basename` as `string | undefined`, which exactOptionalPropertyTypes rejects for ServerBuild.
+      build: () =>
+        import("virtual:react-router/server-build") as Promise<ServerBuild>,
+      getLoadContext(request) {
+        const context = new RouterContextProvider();
+        context.set(companyLogoFilesContext, services.companyLogos);
+        context.set(databaseContext, services.database);
+        context.set(priceSourceContext, services.priceSource);
+        context.set(passwordLimitersContext, services.passwordLimiters);
+        context.set(joinLimitersContext, services.joinLimiters);
+        context.set(clientAddressContext, clientAddress(request));
+        return context;
+      },
+    }),
+  );
+  return app;
 }
 
 // A proxy that forges its header gives the network of its own connection instead, which is a real address. Express knows no address only when the connection already closed, and such a request shares the limits of every other one like it.

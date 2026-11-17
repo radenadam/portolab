@@ -1,0 +1,14 @@
+# The owner enables this override explicitly, as docs/deploy.md describes.
+services:
+  app: &logos
+    environment:
+      COMPANY_LOGOS_PATH: /app/company-logos
+    volumes:
+      - type: bind
+        source: ${COMPANY_LOGOS_PATH:?Set COMPANY_LOGOS_PATH to the folder outside the checkout}
+        target: /app/company-logos
+        read_only: true
+        bind:
+          create_host_path: false
+  sample:
+    <<: *logos

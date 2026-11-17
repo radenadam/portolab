@@ -1,6 +1,6 @@
 # 0034. A stock carries the name and the sector that IDX publishes
 
-- Status: Accepted. [Decision 0044](0044-the-ticket-shows-the-trade-before-confirmation.md) supersedes where the order ticket shows the company name and sector.
+- Status: Accepted. [Decision 0044](0044-the-ticket-shows-the-trade-before-confirmation.md) supersedes where the order ticket shows the company name and sector. [Decision 0056](0056-the-owner-supplies-company-logos-outside-the-repository.md) supersedes when the company tile shows a monogram and how the owner supplies logos.
 - Date: 2026-11-14
 
 ## Context
@@ -15,7 +15,7 @@ Two classifications of sectors are common. IDX introduced IDX-IC on 25 January 2
 - The name is the one that IDX publishes, such as "Bank Central Asia Tbk", without the period after "Tbk" that IDX writes for some companies and not for others, so all names read alike.
 - The sector takes the names that IDX gives it in Bahasa Indonesia and in English, such as "Barang Konsumen Primer" and "Consumer Non-Cyclicals". The type of the sectors holds only the sectors of the stocks of the universe, so a period that brings a stock of another sector adds that sector with its names.
 - The person who adds a period reads the profile of each new company on the website of IDX and records it as the source. The website refused automated reads when the first period was recorded, so the companies of that period use copies of what IDX publishes. Their names come from the list of stocks of IDX that the project NeaByteLab/IDX-API saved on GitHub on 20 February 2026, which cuts a name at 30 characters, so a cut name was completed from lembarsaham.com. The names of lembarsaham.com on 14 November 2026 match them, apart from "(Persero)" in the names of ANTM and PTBA, which the list of IDX leaves out, so no company changed its name in between. Their sectors come from the profiles on lembarsaham.com on 14 November 2026, and they agree with the copy of the profiles of IDX in the list of listed companies of the Indonesian Wikipedia for each of the 38 stocks that its page showed.
-- The repository carries no logos of other companies. So the tile of a company shows the first two letters of the code of its stock, and a later change lets the person who runs the server add logos in a folder outside the repository, as issue #127 tracks. `StockName` in [`app/features/market-data/stock-name.tsx`](../../app/features/market-data/stock-name.tsx) draws the tile, the code, the name, and the sector when a screen shows it, so every screen shows a stock alike, and a logo needs a change in that one place.
+- `StockName` in [`app/features/market-data/stock-name.tsx`](../../app/features/market-data/stock-name.tsx) draws the tile, the code, the name, and the sector when a screen shows it, so every screen shows a stock alike.
 - Running text and maps name a stock by its code alone, as decision 0028 says.
 
 ## Alternatives

@@ -54,7 +54,7 @@ Students have {{label:navigation_home_link}}, {{label:navigation_market_link}}, 
 
 ## market | Choose and read stocks
 
-{{label:navigation_market_link}} shows LQ45 stocks, the IHSG chart, search by code or company name, sector filters, and list sorting. Open a stock for its price, quote time, closing-price chart, risk and return measures, and any position already held. Letter tiles identify companies. Portolab does not recommend stocks to buy.
+{{label:navigation_market_link}} shows LQ45 stocks, the IHSG chart, search by code or company name, sector filters, and list sorting. Open a stock for its price, quote time, closing-price chart, risk and return measures, and any position already held. Tiles show a logo supplied by the server owner or letters from the stock code. Portolab does not recommend stocks to buy.
 
 A purchase requires LQ45 membership on the order's trading day and enough monthly history for portfolio measures. A holding that leaves the LQ45 can still be sold. If buying is unavailable, read the reason and next step shown on the stock or ticket. Creating another account will not resolve missing price history.
 

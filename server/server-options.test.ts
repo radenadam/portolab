@@ -6,6 +6,7 @@ import {
   parseDatabasePath,
   parsePort,
   parsePriceSource,
+  parseCompanyLogosPath,
 } from "./server-options.ts";
 
 test("reads the mode from the command line and uses production without it", () => {
@@ -130,11 +131,15 @@ test("lists in README.md each environment variable with the default that its par
     ["PORT", parsePort(undefined, "PORT")],
     ["DATABASE_PATH", parseDatabasePath(undefined, "DATABASE_PATH")],
     ["PRICE_SOURCE", parsePriceSource(undefined, "PRICE_SOURCE")],
+    [
+      "COMPANY_LOGOS_PATH",
+      parseCompanyLogosPath(undefined, "COMPANY_LOGOS_PATH"),
+    ],
   ] as const) {
     parsedDefaults.set(
       name,
       String(
-        successValueForTest<number | string, string>(
+        successValueForTest<number | string | undefined, string>(
           parsed,
           `The default of ${name} is valid`,
         ),
@@ -142,4 +147,22 @@ test("lists in README.md each environment variable with the default that its par
     );
   }
   expect(readmeDefaults()).toEqual(parsedDefaults);
+});
+
+test("keeps company logos optional and rejects an empty or invalid folder path", () => {
+  expect(parseCompanyLogosPath(undefined, "COMPANY_LOGOS_PATH")).toEqual({
+    ok: true,
+    value: undefined,
+  });
+  expect(
+    parseCompanyLogosPath("/srv/company-logos", "COMPANY_LOGOS_PATH"),
+  ).toEqual({ ok: true, value: "/srv/company-logos" });
+  expect(parseCompanyLogosPath("", "COMPANY_LOGOS_PATH")).toEqual({
+    ok: false,
+    failure:
+      "COMPANY_LOGOS_PATH must be the path of a folder, but it is empty.",
+  });
+  expect(parseCompanyLogosPath("bad\0path", "COMPANY_LOGOS_PATH").ok).toBe(
+    false,
+  );
 });

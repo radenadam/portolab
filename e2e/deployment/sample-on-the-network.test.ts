@@ -1,5 +1,11 @@
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  chmodSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { isIP } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -25,6 +31,7 @@ import { openJoinDetails } from "../class-controls.ts";
 import { newDevice } from "../new-device.ts";
 import { languageNames } from "../../app/language-names.ts";
 import { expectAccessibleScreen } from "../expect-accessible-screen.ts";
+import { companyLogoForTest } from "../../app/features/market-data/company-logo-for-test.ts";
 
 // The optional guide shares one service and site file, so each device finishes its whole lifecycle before another starts.
 test.describe.configure({ mode: "serial" });
@@ -33,6 +40,8 @@ let folder: string;
 let composeFile: string;
 let output: string;
 let liveBefore: string;
+let companyLogosPath: string;
+let preparedTile: string;
 
 const sampleBlocks = successValueForTest(
   splitAtSample(
@@ -60,14 +69,16 @@ function runSection(section: string): string {
     [
       "env",
       `COMPOSE_FILE=${composeFile}`,
+      `COMPANY_LOGOS_PATH=${companyLogosPath}`,
       "bash",
       "-euo",
       "pipefail",
       "-c",
-      block.commands.replaceAll(
-        "node server/sample-class.ts",
-        seedWithRecordings,
-      ),
+      block.commands
+        .replaceAll("node server/sample-class.ts", seedWithRecordings)
+        .replaceAll("/root/logo-input/BBCA.png", preparedTile)
+        .replaceAll("/var/lib/portolab/company-logos", companyLogosPath)
+        .replaceAll("compose.yaml:compose.logos.yaml", composeFile),
     ],
     {
       encoding: "utf8",
@@ -77,10 +88,14 @@ function runSection(section: string): string {
 }
 
 function docker(...arguments_: string[]): string {
-  return execFileSync("sudo", ["docker", ...arguments_], {
-    encoding: "utf8",
-    timeout: minuteMilliseconds,
-  }).trim();
+  return execFileSync(
+    "sudo",
+    ["env", `COMPANY_LOGOS_PATH=${companyLogosPath}`, "docker", ...arguments_],
+    {
+      encoding: "utf8",
+      timeout: minuteMilliseconds,
+    },
+  ).trim();
 }
 
 function liveRecords(): string {
@@ -100,13 +115,20 @@ function liveRecords(): string {
 test.beforeAll(() => {
   folder = mkdtempSync(join(tmpdir(), "portolab-sample-deployment-"));
   const prices = join(folder, "prices.yaml");
+  // Public generated tiles must be reachable by the container's separate user.
+  chmodSync(folder, 0o755);
+  companyLogosPath = join(folder, "generated-tiles");
+  preparedTile = join(folder, "prepared.png");
+  writeFileSync(preparedTile, companyLogoForTest("square"), { mode: 0o644 });
   writeFileSync(
     prices,
-    "services:\n  sample:\n    environment:\n      PRICE_SOURCE: fixture\n",
+    "services:\n  app: &prices\n    environment:\n      PRICE_SOURCE: fixture\n  sample:\n    <<: *prices\n",
   );
-  composeFile = `${serverFolder}/compose.yaml:${prices}`;
+  composeFile = `${serverFolder}/compose.yaml:${serverFolder}/compose.logos.yaml:${prices}`;
   liveBefore = liveRecords();
+  runSection("Prepare company logo files");
   runSection("Start the sample");
+  runSection("Start with company logos");
   output = runSection("Fill the sample");
 });
 
@@ -213,6 +235,11 @@ for (const locale of locales) {
       },
     ]) {
       runSection(site.section);
+      const tile = await page.request.get(
+        `${site.address}/company-logos/BBCA.png`,
+      );
+      expect(tile.status()).toBe(200);
+      expect(await tile.body()).toEqual(companyLogoForTest("square"));
       for (const role of ["lecturer", "student"] as const) {
         await exploreSampleAs(browser, locale, {
           site,
@@ -223,6 +250,11 @@ for (const locale of locales) {
       // The deployment workflow installs its local certificate authority in Chromium's trust store.
       const liveHealth = await page.goto(`https://${testDomain}/health`);
       expect(liveHealth?.ok()).toBe(true);
+      const liveTile = await page.request.get(
+        `https://${testDomain}/company-logos/BBCA.png`,
+      );
+      expect(liveTile.status()).toBe(200);
+      expect(await liveTile.body()).toEqual(companyLogoForTest("square"));
     }
   });
 }
