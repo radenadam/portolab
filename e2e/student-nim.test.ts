@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import type { Page } from "@playwright/test";
 import { nimMaximumLength } from "../app/features/classes/nim-maximum-length.ts";
 import { languageNames } from "../app/language-names.ts";
 import { locales } from "../app/paraglide/runtime.js";
@@ -71,6 +72,21 @@ const texts: Record<
   },
 };
 
+async function searchStudentNim(
+  page: Page,
+  text: { search: string; searchButton: string },
+  nim: string,
+): Promise<void> {
+  await page
+    .getByRole("searchbox", { name: text.search })
+    .fill(nim.toLowerCase());
+  await page
+    .getByRole("button", { name: text.searchButton, exact: true })
+    .click();
+  await expect(page.locator("main tbody tr")).toHaveCount(1);
+  await expect(page.locator("main tbody tr")).toContainText(nim);
+}
+
 for (const locale of locales) {
   const text = texts[locale];
   test(`corrects a NIM per class and shows it to the lecturer in ${languageNames[locale]}`, async ({
@@ -116,13 +132,7 @@ for (const locale of locales) {
         fromTop: true,
       });
       await page.goto(`${classPath}/students`);
-      const search = page.getByRole("searchbox", { name: text.search });
-      await search.fill(nim.toLowerCase());
-      await page
-        .getByRole("button", { name: text.searchButton, exact: true })
-        .click();
-      await expect(page.locator("main tbody tr")).toHaveCount(1);
-      await expect(page.locator("main tbody tr")).toContainText(nim);
+      await searchStudentNim(page, text, nim);
       const identifier = page.locator("main tbody tr small").first();
       expect(
         await identifier.evaluate((element) => {
@@ -268,12 +278,7 @@ for (const locale of locales) {
       await expect(visitor).toHaveURL(other.path);
       await page.goto(`${other.path}/students`);
       await expect(page.locator("main tbody tr")).toContainText(nim);
-      await page.getByRole("searchbox", { name: text.search }).fill(nim);
-      await page
-        .getByRole("button", { name: text.searchButton, exact: true })
-        .click();
-      await expect(page.locator("main tbody tr")).toHaveCount(1);
-      await expect(page.locator("main tbody tr")).toContainText(nim);
+      await searchStudentNim(page, text, nim);
       await expectAccessibleScreen(page);
       await captureScreens(page, testInfo, {
         name: "nim-digits-students",
