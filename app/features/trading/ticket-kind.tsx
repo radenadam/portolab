@@ -30,14 +30,14 @@ export function TicketKind({ draft }: { draft: TicketDraft }): ReactNode {
         aria-label={m.trading_price_kind_label()}
       >
         {options.map(({ value, label }) => (
-          <span key={value} data-selected={values.priceKind === value}>
-            <TicketDraftLink
-              draft={draft}
-              name="priceKind"
-              value={value}
-              label={label}
-            />
-          </span>
+          <TicketDraftLink
+            key={value}
+            draft={draft}
+            name="priceKind"
+            value={value}
+            label={label}
+            selected={values.priceKind === value}
+          />
         ))}
       </nav>
       {hasChoice ? (

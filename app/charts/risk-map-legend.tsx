@@ -9,6 +9,7 @@ type MapKeyKind = MarkKind | "line" | "gain" | "loss";
 
 const keyClasses: Record<MapKeyKind, string | undefined> = {
   own: styles["ownKey"],
+  before: styles["beforeKey"],
   held: styles["heldKey"],
   active: styles["heldKey"],
   other: styles["otherKey"],

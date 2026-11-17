@@ -1,6 +1,7 @@
 import type { FieldOption } from "~/form";
 import { checkMaximumLength, parseOptionalText, typedText } from "~/form-text";
-import { formatList } from "~/formatting";
+import { formatList, formatNumber } from "~/formatting";
+import { characterCount } from "~/character-count";
 import { m } from "~/paraglide/messages.js";
 import { failureOf, fail, succeed } from "~/result";
 import type { Result } from "~/result";
@@ -182,10 +183,18 @@ export function parseOrderChoice<Value extends string>(
       value: string;
       choices: string;
     }) => string;
+    longChoice?: (inputs: {
+      field: string;
+      length: string;
+      choices: string;
+    }) => string;
   },
 ): Result<Value, string> {
-  const { options, unknownChoice = m.trading_unknown_choice_error } =
-    configuration;
+  const {
+    options,
+    unknownChoice = m.trading_unknown_choice_error,
+    longChoice,
+  } = configuration;
   const chosen = parseOptionalOrderText(value, source);
   if (!chosen.ok) {
     return chosen;
@@ -198,6 +207,15 @@ export function parseOrderChoice<Value extends string>(
     return fail(m.trading_no_choice_error({ field: source, choices }));
   }
   const option = options.find((candidate) => candidate.value === chosen.value);
+  const length = characterCount(chosen.value.trim());
+  const maximum = Math.max(
+    ...options.map((candidate) => characterCount(candidate.value)),
+  );
+  if (option === undefined && longChoice !== undefined && length > maximum) {
+    return fail(
+      longChoice({ field: source, length: formatNumber(length), choices }),
+    );
+  }
   return option === undefined
     ? fail(
         unknownChoice({

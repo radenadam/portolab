@@ -84,6 +84,14 @@ function windowEndDates(
   return monthEndDates(marketCloses).slice(-(settings.returnCount + 1));
 }
 
+/** Browser previews need only the month ends that the measures use, so they share the calculation's window. */
+export function measureCloseDates(
+  market: InstrumentCloses,
+  settings: EstimationSettings,
+): ReadonlySet<string> {
+  return new Set(windowEndDates(market.closes, settings));
+}
+
 /** How many monthly returns instruments share for the measures, against how many they need. */
 export interface ReturnCount {
   /** The months in the window of the settings in which the market and every instrument have a return. The market has a return in every month of the window, so for one instrument these are its returns in the window. */

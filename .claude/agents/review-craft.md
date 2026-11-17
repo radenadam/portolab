@@ -13,7 +13,9 @@ A diff range, a set of paths, or a plan, with the intent behind it. In an audit,
 ## Look for
 
 - The rules of the section "Code" of `AGENTS.md` that only a reader can judge: names, explicit code, abstractions, comments, parsing at boundaries, failure texts, and defensive checks.
-- Code that duplicates something already in the repository, in a form that `pnpm check` cannot detect, such as a copy shorter than the `minTokens` of `.jscpd.json` or a copy with renamed variables. Compare each new function and each new test fixture with its neighbors in the same module and with the helpers of its feature.
+- Trace values passed to parsers back to their source. Compare a computed quantity that is formatted and parsed again with the existing unit guards and constructors, under [Code](../../AGENTS.md#code).
+- After an extraction or merge, check that each comment still belongs to the declaration below it, under the [Code](../../AGENTS.md#code) rules.
+- Code that duplicates something already in the repository, in a form that `pnpm check` cannot detect, such as a copy shorter than the `minTokens` of `.jscpd.json` or a copy with renamed variables. Compare each new function, request construction, test fixture, and browser locator chain with its neighbors in the same module and with the helpers of its feature. Check sibling branches and variants that read the same part through another scope or position.
 - Field lists and option tables, including their copies in tests, against the single source rule in [Writing](../../AGENTS.md#writing). Trace literal names and identifiers in assertions to the fixtures that created them.
 - Exports of production entry modules against [Tests](../../AGENTS.md#tests), because unused-export checks treat those modules as public.
 - Departures from the idioms of the stack: React Router route modules, loaders, actions, and forms, Paraglide message functions, Drizzle queries, and CSS modules.

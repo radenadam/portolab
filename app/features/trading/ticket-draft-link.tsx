@@ -10,6 +10,7 @@ export function TicketDraftLink({
   label,
   symbol,
   className,
+  selected,
 }: {
   draft: TicketDraft;
   name: "lots" | "limit" | "priceKind";
@@ -17,6 +18,7 @@ export function TicketDraftLink({
   label: string;
   symbol?: string;
   className?: string | undefined;
+  selected?: boolean;
 }): ReactNode {
   const { values, action } = draft;
   const query = {
@@ -30,6 +32,7 @@ export function TicketDraftLink({
       href={pathWithQuery(action, query)}
       aria-label={symbol === undefined ? undefined : label}
       className={className}
+      aria-current={selected ? "true" : undefined}
       onClick={(event) => {
         event.preventDefault();
         draft.change(name, value, event.currentTarget.closest("form"));

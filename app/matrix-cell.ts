@@ -1,4 +1,4 @@
-// Every matrix here has a row and a column for each holding, so a missing cell is a defect.
+/** Callers build a complete matrix, so a missing cell is a defect. */
 export function matrixCell<Cell>(
   matrix: readonly (readonly Cell[])[],
   rowIndex: number,

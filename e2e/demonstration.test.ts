@@ -1,3 +1,4 @@
+import { impactAfterValue } from "./trade-impact-rows.ts";
 import { expect, test } from "@playwright/test";
 import type { Locator } from "@playwright/test";
 import type { ClassId } from "../app/features/classes/classes.schema.ts";
@@ -27,6 +28,7 @@ const texts: Record<
     valueTitle: string;
     value: string;
     emptyValue: string;
+    impactWeight: string;
     lots: string;
     lotsHelp: string;
     prices: string;
@@ -63,6 +65,7 @@ const texts: Record<
     valueTitle: "Nilai portofolio",
     value: "Rp 999.253.000.000",
     emptyValue: "Rp 1.000.000.000.000",
+    impactWeight: "49,8%",
     lots: "Jumlah lot",
     lotsHelp: "Apa itu Jumlah lot?",
     prices: "Waktu harga: Portofolio demonstrasi",
@@ -99,6 +102,7 @@ const texts: Record<
     valueTitle: "Portfolio value",
     value: "IDR 999,253,000,000",
     emptyValue: "IDR 1,000,000,000,000",
+    impactWeight: "49.8%",
     lots: "Lots",
     lotsHelp: "What is Lots?",
     prices: "Price times: Demonstration portfolio",
@@ -405,6 +409,8 @@ for (const locale of locales) {
         });
         await page.goto(`${classPath}/stocks/BBCA/buy`);
         const ticket = page.locator("dialog[open]");
+        // Python Decimal rounds the weight after one lot to 49.8% from the demonstration cash and BBCA holding in storeComparedPortfolios.
+        await expect(impactAfterValue(ticket, 3)).toHaveText(text.impactWeight);
         await ticket
           .getByLabel(text.reason, { exact: true })
           .fill("Demonstration only.");

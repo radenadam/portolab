@@ -9,11 +9,18 @@ function isLots(value: number): value is Lots {
 }
 
 /** The smallest order, which is the smallest number of lots that IDX trades. */
-export const smallestOrderLots = lots(1);
+export const smallestOrderLots = orderLots(1);
 
 /** Whether a number from outside the program can be the size of an order, which is a whole number of at least the smallest order. */
 export function isOrderLots(value: number): value is OrderLots {
-  return isLots(value) && value >= smallestOrderLots;
+  return isLots(value) && value > 0;
+}
+
+function orderLots(count: number): OrderLots {
+  if (!isOrderLots(count)) {
+    throw new Error(`${String(count)} is not a positive whole number of lots.`);
+  }
+  return count;
 }
 
 /** Makes a number of lots that the program computed or holds, such as a constant, into lots. A number of lots comes from whole numbers, so a value that is negative or not whole is a defect. */

@@ -23,6 +23,20 @@
   stroke: var(--color-muted);
   stroke-width: var(--size-mark);
 }
+.before {
+  fill: var(--color-panel);
+  stroke: var(--color-own);
+  stroke-width: var(--size-line);
+}
+.beforeKey {
+  inline-size: 0.8em;
+  block-size: 0.8em;
+  border: var(--size-line) solid var(--color-own);
+  border-radius: 50%;
+}
+.compact .plot {
+  block-size: var(--size-chart);
+}
 .arrow {
   fill: none;
   stroke: var(--color-ink-secondary);

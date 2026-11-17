@@ -1,4 +1,4 @@
-import { matrixCell } from "./matrix-cell";
+import { matrixCell } from "~/matrix-cell";
 import { measureAllocation } from "./measure-allocation";
 import { succeed } from "~/result";
 import type { Result } from "~/result";

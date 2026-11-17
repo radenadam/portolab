@@ -19,6 +19,7 @@ export function mapPointName({
     case "classmate":
       return "";
     case "own":
+    case "before":
     case "held":
       return chartName(point.name);
     case "average":

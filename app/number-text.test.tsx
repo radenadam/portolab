@@ -166,6 +166,25 @@ test("requires an explicit whole group for an element", () => {
   ).toContain('data-number=""><em>128.000 byte</em></span>');
 });
 
+const wholeTimes: Record<Locale, string> = {
+  id: "30 Okt 2026, 16.14 WIB",
+  en: "Oct 30, 2026, 4:14 PM WIB",
+};
+
+for (const locale of locales)
+  test(`keeps an explicitly marked date and time together inside a complete message in ${languageNames[locale]}`, () => {
+    const time = wholeTimes[locale];
+    const html = renderToStaticMarkup(
+      <NumberText>
+        {(textValue) =>
+          `${textValue("2026")}: ${textValue(<NumberText whole>{time}</NumberText>)}.`
+        }
+      </NumberText>,
+    );
+    expect(html).toContain('data-text-value="">2026</span>');
+    expect(html).toContain(`data-number="">${time}</span>.`);
+  });
+
 function matchedNumbers(text: string): string[] {
   return Array.from(text.matchAll(numberPattern), (match) => match[0]);
 }

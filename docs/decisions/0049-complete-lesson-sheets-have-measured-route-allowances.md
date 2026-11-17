@@ -1,6 +1,6 @@
 # 0049. Complete lesson sheets have measured route allowances
 
-- Status: Accepted. [Decision 0053](0053-current-returns-share-one-snapshot.md) replaces its rule that demonstration analysis keeps the default JavaScript ceiling.
+- Status: Accepted. [Decision 0053](0053-current-returns-share-one-snapshot.md) replaces its rule that demonstration analysis keeps the default JavaScript ceiling. [Decision 0054](0054-trade-impact-has-measured-allowances-for-its-combined-screens.md) replaces its JavaScript ceiling for the ticket. It also replaces its consequences that shared JavaScript keeps its earlier ceiling, the stock page keeps the default JavaScript and CSS ceilings, and student analysis keeps the default JavaScript ceiling.
 - Date: 2026-11-16
 
 ## Context

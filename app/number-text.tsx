@@ -1,14 +1,15 @@
 import { Fragment } from "react";
-import type { ReactNode } from "react";
+import type { ReactElement, ReactNode } from "react";
 import { numberPattern } from "./number-pattern";
 import styles from "./number-text.module.css";
 
 type NumberTextValue =
   string | number | null | undefined | readonly NumberTextValue[];
-type TextValue = (value: string) => string;
+type MarkedValue = string | ReactElement;
+type TextValue = (value: MarkedValue) => string;
 const textValuePattern = /\uE000(\d+)\uE001/gu;
 
-/** Text-only children prevent silently skipping an element tree. A whole group may include an arrow. Names and identifiers remain text, and a callback marks them before a message joins them with quantities, so identical text cannot disguise a quantity. SVG text already stays on one line. */
+/** Text-only children prevent silently skipping an element tree. A whole group may include an arrow. Names and identifiers remain text, and a callback marks them or an explicit whole group before a message joins them with quantities, so identical text cannot disguise a quantity. SVG text already stays on one line. */
 export function NumberText(
   properties:
     | {
@@ -33,7 +34,7 @@ export function NumberText(
     );
   if (typeof properties.children !== "function")
     return numberTextOf(properties.children, []);
-  const textValues: string[] = [];
+  const textValues: MarkedValue[] = [];
   const value = properties.children((text) => {
     const index = textValues.push(text) - 1;
     return `\uE000${String(index)}\uE001`;
@@ -43,7 +44,7 @@ export function NumberText(
 
 function numberTextOf(
   value: NumberTextValue,
-  textValues: readonly string[],
+  textValues: readonly MarkedValue[],
 ): ReactNode {
   const text = messageText(value);
   if (textValues.length === 0) return numberRuns(text);
@@ -56,9 +57,13 @@ function numberTextOf(
     parts.push(
       <Fragment key={match.index}>
         {numberRuns(text.slice(start, match.index))}
-        <span className={styles["textValue"]} data-text-value="">
-          {textValue}
-        </span>
+        {typeof textValue === "string" ? (
+          <span className={styles["textValue"]} data-text-value="">
+            {textValue}
+          </span>
+        ) : (
+          textValue
+        )}
       </Fragment>,
     );
     start = match.index + match[0].length;

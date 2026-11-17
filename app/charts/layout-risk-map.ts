@@ -16,6 +16,7 @@ import { mapRange } from "./map-range";
 /** Different marks distinguish the subjects of the map from their background context, even without color. A holding without a usable weight still needs a visible mark. */
 export type MapMark =
   | { kind: "own" }
+  | { kind: "before" }
   | { kind: "held"; weight: PortfolioWeight | undefined }
   | { kind: "active" }
   | { kind: "average" }
@@ -320,6 +321,8 @@ function markSizeOf(mark: MapMark): { radius: number; outerRadius: number } {
   switch (mark.kind) {
     case "own":
       return { radius: ownRadius, outerRadius: ownRingRadius };
+    case "before":
+      return { radius: ownRadius, outerRadius: ownRadius };
     case "held": {
       const radius =
         mark.weight === undefined

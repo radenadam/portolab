@@ -1,3 +1,4 @@
+import { impactRows } from "./trade-impact-rows.ts";
 import { languageNames } from "../app/language-names.ts";
 import { rupiah } from "../app/units/rupiah.ts";
 import { shares } from "../app/units/shares.ts";
@@ -483,6 +484,7 @@ for (const locale of locales) {
         await expect(
           page.getByRole("textbox", { name: text.price, exact: true }),
         ).toHaveCount(0);
+        await expect(impactRows(page.locator("dialog"))).toHaveCount(5);
         await page.locator("dialog a").filter({ hasText: "50%" }).click();
         await expect(page.locator('dialog input[name="lots"]')).toHaveValue(
           text.maxLotsValue,

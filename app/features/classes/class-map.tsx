@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { NumberText } from "~/number-text";
 import { RiskMap } from "~/charts/risk-map";
+import { mapSpread } from "~/charts/map-spread";
 import { RiskMapLegend } from "~/charts/risk-map-legend";
 import type { MapValue, MarkedPoint } from "~/charts/layout-risk-map";
 import {
@@ -131,7 +132,7 @@ export function ClassMap({
             name: marketIndex.code,
             value: formatSignedPercent(marketReturn).text,
           })}
-          spread={{
+          spread={mapSpread({
             median: overview.summary.medianReturn,
             medianLabel: m.classes_map_median_label({
               value: formatSignedPercent(overview.summary.medianReturn ?? 0)
@@ -144,7 +145,7 @@ export function ClassMap({
               m.classes_map_calm_loss_label(),
               m.classes_map_wild_loss_label(),
             ],
-          }}
+          })}
         />
       )}
       <div className={styles["strip"]}>

@@ -4,7 +4,7 @@ import { formatList, formatNumber } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
-import { analysisAxes } from "./analysis-axes";
+import { analysisAxes, defaultAnalysisAxis } from "./analysis-axes";
 import type { AnalysisAxis } from "./analysis-axes";
 
 const maximumAxisLength = Math.max(...analysisAxes.map(characterCount));
@@ -13,7 +13,7 @@ export function parseAnalysisAxis(
   value: unknown,
   source: string,
 ): Result<AnalysisAxis, string> {
-  if (value === null) return succeed("beta");
+  if (value === null) return succeed(defaultAnalysisAxis);
   const text = parseFilledText(value, source);
   if (!text.ok) return text;
   const entered = text.value.trim();

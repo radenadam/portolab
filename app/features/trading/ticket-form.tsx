@@ -6,6 +6,7 @@ import { quoteChange } from "~/features/market-data/quote-change";
 import { TicketPrice } from "./ticket-price";
 import { TicketLots } from "./ticket-lots";
 import { TicketBreakdown } from "./ticket-breakdown";
+import { TicketImpact } from "./ticket-impact";
 import { useTicketDraft } from "./use-ticket-draft";
 import type { TicketDraft } from "./use-ticket-draft";
 import type { ReactNode } from "react";
@@ -29,6 +30,7 @@ import { orderFailureText } from "./order-failure-text";
 import type { readTicket } from "./read-ticket.server";
 import styles from "./ticket.module.css";
 import type { Rupiah } from "~/units/rupiah";
+import type { AnalysisAxis } from "~/features/measures/analysis-axes";
 
 export function TicketForm({
   code,
@@ -40,6 +42,7 @@ export function TicketForm({
   rejection,
   limitSteps,
   restoreDraft,
+  impactAxis,
   portfolioKind = "membership",
 }: {
   code: string;
@@ -51,6 +54,7 @@ export function TicketForm({
   rejection: OrderRejection | undefined;
   limitSteps: readonly Rupiah[] | undefined;
   restoreDraft: boolean;
+  impactAxis?: AnalysisAxis | undefined;
   portfolioKind?: PortfolioKind;
 }): ReactNode {
   const { day, quote } = ticket;
@@ -74,6 +78,7 @@ export function TicketForm({
       rejection={rejection}
       limitSteps={limitSteps}
       restoreDraft={restoreDraft}
+      impactAxis={impactAxis}
     />
   );
 }
@@ -84,6 +89,7 @@ function TicketFields(
     portfolioKind: PortfolioKind;
     rejection: OrderRejection | undefined;
     limitSteps: readonly Rupiah[] | undefined;
+    impactAxis: AnalysisAxis | undefined;
   },
 ): ReactNode {
   const isInBrowser = useIsInBrowser();
@@ -135,7 +141,7 @@ function TicketFields(
               price: values.limit,
               priceKind: values.priceKind,
             })}
-            data-selected={side === value}
+            aria-current={side === value ? "true" : undefined}
             data-side={value}
             onClick={(event) => {
               event.preventDefault();
@@ -156,6 +162,12 @@ function TicketFields(
       />
       <TicketLots draft={draft} rejection={failure.lots} />
       <TicketBreakdown draft={draft} />
+      <TicketImpact
+        draft={draft}
+        code={props.code}
+        axis={props.impactAxis}
+        portfolioKind={props.portfolioKind}
+      />
       <section className={styles["section"]}>
         <label className={styles["label"]} htmlFor="ticket-reason">
           {m.trading_reason_label()}

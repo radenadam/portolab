@@ -1,4 +1,4 @@
-import { matrixCell } from "./matrix-cell";
+import { matrixCell } from "~/matrix-cell";
 import { weightedCovariance } from "./weighted-covariance";
 import { fail, succeed } from "~/result";
 

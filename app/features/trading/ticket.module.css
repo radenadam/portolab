@@ -90,64 +90,21 @@
   gap: var(--space-2);
 }
 .segments {
-  position: relative;
-  isolation: isolate;
-  display: flex;
-  padding: 0;
-  font-size: var(--text-learning-summary);
-  border-radius: var(--radius-item);
-  background: none;
+  composes: choice from "../../segmented-choice.module.css";
 }
-.segments > * {
-  position: relative;
-  isolation: isolate;
-  flex: 1;
-  min-width: 0;
-}
-.segments a {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: var(--size-touch-target);
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-button);
-  text-decoration: none;
-  color: var(--color-ink-secondary);
-}
-.segments [data-selected="true"] {
-  background: none;
-  font-weight: 600;
-}
-.segments::before {
-  content: "";
-  position: absolute;
-  inset: var(--space-1) 0;
-  z-index: -1;
-  border-radius: var(--radius-item);
-  background: var(--color-raised);
-}
-.segments [data-selected="true"]::before {
-  content: "";
-  position: absolute;
-  inset: calc(var(--space-2) - var(--size-line)) var(--size-mark);
-  z-index: -1;
-  border-radius: var(--radius-button);
-  background: var(--color-panel);
-  box-shadow: var(--shadow-choice);
-}
-.segments [data-selected="true"][data-side="buy"] {
+.segments [aria-current][data-side="buy"] {
   color: var(--color-on-buy);
 }
-.segments [data-selected="true"][data-side="buy"]::before,
+.segments [aria-current][data-side="buy"]::before,
 [data-side="buy"] .submit,
 [data-side="buy"] .successMark {
   background: var(--color-buy);
   color: var(--color-on-buy);
 }
-.segments [data-selected="true"][data-side="sell"] {
+.segments [aria-current][data-side="sell"] {
   color: var(--color-on-sell);
 }
-.segments [data-selected="true"][data-side="sell"]::before,
+.segments [aria-current][data-side="sell"]::before,
 [data-side="sell"] .submit,
 [data-side="sell"] .successMark {
   background: var(--color-sell);

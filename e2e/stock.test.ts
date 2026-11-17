@@ -221,6 +221,7 @@ for (const locale of locales) {
         const [rangeGroup, beta] = await Promise.all(
           [text.rangeHelp, text.betaHelp].map((label) =>
             student
+              .getByRole("region", { name: text.statistics, exact: true })
               .getByRole("button", { name: label, exact: true })
               .evaluate((element) => {
                 const box = element.closest("dl")?.getBoundingClientRect();
@@ -293,7 +294,7 @@ for (const locale of locales) {
       );
       await expect(
         student.locator(`dialog a[data-side="${side}"]`),
-      ).toHaveAttribute("data-selected", "true");
+      ).toHaveAttribute("aria-current", "true");
       if (testInfo.project.name === "phone") {
         await student.keyboard.press("Escape");
         await expect(student).toHaveURL(`${path}?range=1y`);
@@ -371,7 +372,7 @@ for (const locale of locales) {
       ).toBeVisible();
       await page.getByRole("link", { name: text.sell, exact: true }).click();
       await expect(page.locator('dialog a[data-side="sell"]')).toHaveAttribute(
-        "data-selected",
+        "aria-current",
         "true",
       );
       await lecturer.context().close();

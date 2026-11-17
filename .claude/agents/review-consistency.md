@@ -21,7 +21,7 @@ Identify every family that the change touches, then compare the change against i
 - Assembled labels and each use of a message part, against [Interface text](../../AGENTS.md#interface-text).
 - Branded unit types and typed results: how they are defined, created, and handled.
 - Data fields and exported functions: compare their documentation with nearby siblings, including the meaning of units and the states of a failed result, under [Code](../../AGENTS.md#code).
-- CSS modules: spacing, layout at narrow widths, and how they use the design tokens.
+- CSS modules: spacing, layout at narrow widths, and how they use the design tokens. Before accepting a new shared control style, compare it with existing shared modules and their composed variants, including the element that owns the selected state, under [Interface behavior](../../AGENTS.md#interface-behavior) and [Code](../../AGENTS.md#code).
 - Unit tests and browser tests: names, structure, and how each follows the section "Tests" of `AGENTS.md`.
 - Scripts in `scripts/` and their tested modules, the agent definitions in `.claude/agents/`, the jobs in `.github/workflows/`, records in `docs/decisions/`, and docs pages of one kind.
 

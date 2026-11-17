@@ -62,6 +62,8 @@ A purchase requires LQ45 membership on the order's trading day and enough monthl
 
 From a stock, choose {{label:trading_buy_label}} or {{label:trading_sell_label}}. Choose {{label:trading_ticket_market_label}} for a market order or {{label:trading_ticket_limit_label}} for a price limit, then enter lots. The ticket checks lot sizes, tick sizes, price limits, cash, and available shares. Review trade value, broker fees, sales tax, and cash afterwards before confirming. If the total changes, review the new preview and confirm again.
 
+In {{label:trading_impact_title}}, compare the portfolio before and after a hypothetical order when its measures are available. On a stock page, choose a portfolio share for a purchase from available cash. When that purchase can be previewed, open its ticket to carry the displayed lots into the order. The ticket follows the lots and price you enter for a purchase or sale. The comparison includes stock and sector weights and a map. Read notices about changed shared months or unavailable measures before interpreting it.
+
 {{label:trading_reason_label}} keeps the reason for a decision, which you can read. Ask students to explain how a trade relates to their goals, weights, or portfolio risk. A reason does not change order checks or the fill price.
 
 Orders use delayed quotes from IDX continuous trading sessions. Outside a session, an order waits for the next session. A market order uses the first eligible quote. A limit order that immediately meets its limit uses that quote. A resting limit order uses its limit price when the quote reaches the limit. An order lasts for its assigned trading day and expires once that day's delayed prices are final. Some quotes from the last session arrive after the exchange closes.

@@ -2,29 +2,29 @@ import { readLessonTask } from "~/features/learning/read-lesson-task.server";
 import { isLq45Stock } from "./is-lq45-stock";
 import { withLessonTask } from "~/features/learning/lesson-task";
 import { LessonTaskBanner } from "~/features/learning/lesson-task-banner";
-import { portfolioHome } from "~/features/trading/portfolio-home";
 import { StockQuoteDetails } from "./stock-quote-details";
 import { QuoteNotice } from "~/features/market-data/quote-notice";
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { data, Link, useOutlet, useLocation } from "react-router";
 import { ChangeText } from "~/change-text";
-import { databaseContext } from "~/database/database.server";
 import { requireUser } from "~/features/accounts/current-session.server";
+import { databaseContext } from "~/database/database.server";
 import { requireReaderClass } from "~/features/classes/require-reader-class.server";
 import { readStockMeasures } from "~/features/measures/read-measures.server";
-import { readStockCorrelation } from "~/features/measures/read-stock-correlation.server";
 import { StockStatisticsWindow } from "~/features/measures/stock-statistics-window";
 import { StockKeyMeasures } from "~/features/measures/stock-key-measures";
 import { StockMeasuresView } from "~/features/measures/stock-measures-view";
 import { MethodNotice } from "~/features/measures/method-notice";
-import { readTradingPortfolio } from "~/features/trading/read-trading-portfolio.server";
-import { readPortfolioValuation } from "~/features/trading/read-portfolio-report.server";
-import { holdingQuoteFailureText } from "~/features/trading/holding-quote-failure-text";
 import { idxRulesOn } from "~/features/trading/idx-rules-on";
 import { parseStockCode } from "~/features/trading/order-form-fields";
 import { StockPosition } from "~/features/trading/stock-position";
 import { TicketDraftMemory } from "~/features/trading/ticket-draft-memory";
+import { hasStockPortfolioQuotes } from "./has-stock-portfolio-quotes";
+import { readStockPortfolio } from "./read-stock-portfolio.server";
+import { StockImpact } from "~/features/trading/stock-impact";
+import { readImpactSelection } from "~/features/trading/read-impact-selection.server";
+import { TradeImpactSelectionForm } from "~/features/trading/trade-impact-selection-form";
 import {
   formatRupiah,
   formatSignedPercent,
@@ -36,7 +36,6 @@ import { rupiah } from "~/units/rupiah";
 import { wibDateOf } from "~/wib";
 import type { Route } from "./+types/stock-page";
 import { listStockHistory } from "./history-store.server";
-import { stockReturnDestination } from "./stock-return-destination.server";
 import { readPrices } from "./read-prices.server";
 import {
   attemptForCodes,
@@ -66,12 +65,12 @@ export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
 
 export function loader({ context, params, request, url }: Route.LoaderArgs) {
   const classId = requireReaderClass(context, url, params.classId);
+  const reader = requireUser(context, url);
   const parsed = parseStockCode(params.code, "code", trackedStockCodes);
   if (!parsed.ok) throw data(null, { status: 404 });
   const code = parsed.value;
   const now = new Date();
   const database = context.get(databaseContext);
-  const reader = requireUser(context, url);
   const prices = readPrices(context, now);
   const moment = { now, delayMinutes: prices.source.delayMinutes };
   const quote = prices.quotes.find(
@@ -87,55 +86,61 @@ export function loader({ context, params, request, url }: Route.LoaderArgs) {
   const chartStart = priceChartStart(wibDateOf(now), chartRange);
   const rules = idxRulesOn(wibDateOf(now));
   const universe = universeOn(wibDateOf(now));
-  const member = readTradingPortfolio(context, {
+  const portfolio = readStockPortfolio(context, {
     request,
     url,
     classId: params.classId,
-    now,
-  });
-  const report = readPortfolioValuation(database, {
-    portfolio: member.portfolio,
-    startingCash: member.place.owner.startingCash,
-  });
-  return {
-    classId,
-    task: readLessonTask(url),
-    draftKey: `${String(reader.id)}:${stockPath(classId, code)}`,
-    portfolioHome: portfolioHome(classId, member.place.owner.kind),
-    portfolioKind: member.place.owner.kind,
-    ...stockReturnDestination({
-      classId,
-      portfolioKind: member.place.owner.kind,
-      url,
-      request,
-    }),
     code,
-    quote,
-    quoteNotice:
-      quote === undefined
-        ? missingQuoteText(code, attempt, moment)
-        : quoteFailureText(attempt, [quote], moment),
-    history: {
-      ...history,
-      closes: history.closes.filter(
-        (point) => point.date >= chartStart && point.date <= wibDateOf(now),
-      ),
+    ...moment,
+  });
+  const selection = readImpactSelection(url);
+  return data(
+    {
+      classId,
+      task: readLessonTask(url),
+      draftKey: `${String(reader.id)}:${stockPath(classId, code)}`,
+      code,
+      quote,
+      quoteNotice:
+        quote === undefined
+          ? missingQuoteText(code, attempt, moment)
+          : quoteFailureText(attempt, [quote], moment),
+      history: {
+        ...history,
+        closes: history.closes.filter(
+          (point) => point.date >= chartStart && point.date <= wibDateOf(now),
+        ),
+      },
+      chartRange,
+      range: stockPriceRange(history, wibDateOf(now)),
+      measures: readStockMeasures(database, code),
+      ...portfolio,
+      selection,
+      isLq45: isLq45Stock(code, universe),
+      lotShares: rules.ok ? rules.value.lotShares : undefined,
     },
-    chartRange,
-    range: stockPriceRange(history, wibDateOf(now)),
-    measures: readStockMeasures(database, code),
-    correlation: readStockCorrelation(database, code, report.valuation),
-    totalValue: report.valuation.total?.value,
-    isLq45: isLq45Stock(code, universe),
-    holding: report.valuation.holdings.find((holding) => holding.code === code),
-    portfolioNotice: holdingQuoteFailureText([report], moment),
-    lotShares: rules.ok ? rules.value.lotShares : undefined,
-  };
+    { status: selection.fields === undefined ? 200 : 400 },
+  );
 }
 
 export default function StockPage({
   loaderData: stock,
 }: Route.ComponentProps): ReactNode {
+  if (stock.selection.fields !== undefined) {
+    return (
+      <div className={styles["page"]}>
+        <TradeImpactSelectionForm fields={stock.selection.fields} />
+      </div>
+    );
+  }
+  return <StockPageContent stock={stock} />;
+}
+
+function StockPageContent({
+  stock,
+}: {
+  stock: Route.ComponentProps["loaderData"];
+}): ReactNode {
   const { classId, code, quote, holding } = stock;
   const ticket = useOutlet();
   const location = useLocation();
@@ -143,8 +148,8 @@ export default function StockPage({
   return (
     <TicketDraftMemory key={stock.draftKey} storageKey={stock.draftKey}>
       <div
-        className={ticket === null ? undefined : styles["withTicket"]}
-        data-layout={ticket === null ? undefined : "columns"}
+        className={ticket === null ? styles["page"] : styles["withTicket"]}
+        data-layout={ticket === null ? "content" : "columns"}
       >
         <div className={styles["page"]}>
           <LessonTaskBanner classId={classId} task={visibleTask} />
@@ -253,6 +258,12 @@ export default function StockPage({
               />
             </details>
           </section>
+          <StockImpact
+            portfolioKind={stock.portfolioKind}
+            code={code}
+            ticket={stock.tradePreview}
+            {...stock.selection}
+          />
           <nav
             className={styles["actions"]}
             hidden={ticket !== null}
@@ -285,12 +296,5 @@ export default function StockPage({
         {ticket}
       </div>
     </TicketDraftMemory>
-  );
-}
-
-function hasStockPortfolioQuotes(stock: ReturnType<typeof loader>): boolean {
-  return (
-    (stock.holding?.kind === "priced" && stock.totalValue !== undefined) ||
-    stock.correlation.ok
   );
 }

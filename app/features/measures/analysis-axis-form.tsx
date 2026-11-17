@@ -1,10 +1,9 @@
 import type { ReactNode } from "react";
 import { Form } from "react-router";
-import { SubmitButton, TextField } from "~/form";
+import { SubmitButton } from "~/form";
 import formStyles from "~/form.module.css";
 import { m } from "~/paraglide/messages.js";
-import { analysisAxes } from "./analysis-axes";
-import { analysisAxisDetails } from "./analysis-axis-details";
+import { RiskAxisField } from "./risk-axis-field";
 import styles from "./analysis.module.css";
 
 export function AnalysisAxisForm({
@@ -32,26 +31,14 @@ export function AnalysisAxisForm({
         {returnPath !== undefined && (
           <input type="hidden" name="returnTo" value={returnPath} />
         )}
-        <TextField
+        <RiskAxisField
           name="axis"
           label={m.measures_analysis_axis_label()}
-          type="text"
-          autoComplete="off"
-          defaultValue={value}
+          value={value}
           failure={failure}
         />
         <SubmitButton label={m.measures_analysis_apply_label()} />
       </Form>
-      <ul>
-        {analysisAxes.map((axis) => (
-          <li key={axis}>
-            {m.measures_analysis_axis_hint({
-              axis: analysisAxisDetails(axis).label,
-              value: axis,
-            })}
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }

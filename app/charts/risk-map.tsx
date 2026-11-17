@@ -19,7 +19,7 @@ import type {
 import { MapDrawing, markReach } from "./map-drawing";
 import type { DrawnPoint } from "./map-drawing";
 import { riskMapLabels } from "./risk-map-labels";
-import type { MapSpreadText } from "./risk-map-labels";
+import type { MapLabels, PlacedLabels } from "./map-labels";
 import { keptNameRoom } from "./map-labels";
 import { valueMarkGap } from "./value-mark";
 import styles from "./risk-map.module.css";
@@ -42,6 +42,7 @@ export function RiskMap<Across extends number, Up extends number>({
   spread,
   coloredValues,
   fill = false,
+  compact = false,
 }: {
   /** The IHSG. */
   market: MapPoint<Across, Up>;
@@ -52,13 +53,21 @@ export function RiskMap<Across extends number, Up extends number>({
   };
   up: MapAxis<Up>;
   line?: MapLine<Across, Up>;
-  spread?: MapSpreadText & { median: Up | undefined };
+  spread?: {
+    median: Up | undefined;
+    labels: (layout: RiskMapLayout<unknown>) => MapLabels["lines"];
+    drawing: (
+      layout: RiskMapLayout<unknown>,
+      placed: PlacedLabels,
+    ) => ReactNode;
+  };
   coloredValues?: boolean;
   /** The label of the line at the return of the IHSG, such as IHSG 0.70%. */
   levelLabel?: string;
   /** The id of the heading that names the map, which also names its slider. */
   labelledBy: string;
   fill?: boolean;
+  compact?: boolean;
 }): ReactNode {
   const navigate = useNavigate();
   const isInBrowser = useIsInBrowser();
@@ -77,7 +86,13 @@ export function RiskMap<Across extends number, Up extends number>({
   );
   const drawn = useMemo(() => drawnPoints(market, layout), [market, layout]);
   const labels = useMemo(
-    () => riskMapLabels(drawn, { line, levelLabel, layout, spread }),
+    () =>
+      riskMapLabels(drawn, {
+        line,
+        levelLabel,
+        layout,
+        extraLines: spread?.labels(layout) ?? [],
+      }),
     [drawn, line, levelLabel, layout, spread],
   );
   const marks = useMemo(
@@ -116,7 +131,7 @@ export function RiskMap<Across extends number, Up extends number>({
   const outsideRoom = spread === undefined ? sideRoom : spreadRoom;
   const plotClass =
     spread === undefined ? styles["plot"] : styles["spreadPlot"];
-  const mapClass = [styles["riskMap"], fill ? styles["fill"] : ""].join(" ");
+  const mapClass = riskMapClass(fill, compact);
   const style: CSSProperties = {
     paddingBlock: `${String(outsideRoom)}em ${String(bottomRoom)}em`,
     paddingInline: `calc(${String(layout.upTextLength)}ch + ${String(valueMarkGap)}em + ${String(keptNameRoom)} * var(--text-small)) ${String(outsideRoom)}em`,
@@ -128,7 +143,7 @@ export function RiskMap<Across extends number, Up extends number>({
       drawn={drawn}
       placed={placed}
       texts={{ title: across.title, level: levelLabel, line: line?.name }}
-      spread={spread}
+      spread={spread?.drawing(layout, placed)}
       active={active}
       drawingRef={drawingRef}
       measureRef={measureRef}
@@ -226,7 +241,14 @@ export function RiskMap<Across extends number, Up extends number>({
   );
 }
 
-/** The IHSG and every other point with the kind of its mark, in the order of the points after the IHSG. */
+function riskMapClass(fill: boolean, compact: boolean): string {
+  return [
+    styles["riskMap"],
+    fill ? styles["fill"] : "",
+    compact ? styles["compact"] : "",
+  ].join(" ");
+}
+
 function drawnPoints<Across extends number, Up extends number>(
   market: MapPoint<Across, Up>,
   layout: RiskMapLayout<MarkedPoint<Across, Up>>,
