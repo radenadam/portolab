@@ -32,9 +32,9 @@ export function storeWideHomeOrder(classId: ClassId): void {
         side: "buy",
         lots: count,
         shares: shares(count * idxOrderSize.lotShares),
-        checkedPrice: rupiah(4_980),
-        // Python Decimal gives 50,000 × 100 × 4,980 × 1.0015 = 24,937,350,000, which the largest starting cash pays for.
-        setAsideCash: rupiah(24_937_350_000),
+        checkedPrice: rupiah(4_940),
+        // System.Decimal gives 50,000 × 100 × 4,940 × 1.0015 = 24,737,050,000 at the recorded close of 29 October, which the largest starting cash pays for.
+        setAsideCash: rupiah(24_737_050_000),
         placedAt: new Date("2026-10-29T02:30:00Z"),
         tradingDay: "2026-10-29",
         tradesFrom: new Date("2026-10-29T02:00:00Z"),
