@@ -14,6 +14,7 @@ import { newDevice } from "./new-device.ts";
 import { signInAsTestStudent } from "./sign-in-as-test-student.ts";
 import { layoutProblems } from "./expect-layout.ts";
 import { expectMarketPriceNotes } from "./expect-market-price-notes.ts";
+import { sectors } from "../app/features/market-data/company-of.ts";
 
 const texts: Record<
   Locale,
@@ -212,13 +213,25 @@ for (const locale of locales) {
           await expect(student.getByText(text.noResults)).toBeVisible();
           await student.getByRole("link", { name: text.clear }).click();
           await expect(rows).toHaveCount(45);
-          const emptySectorResponse = await student.goto(
-            `${classPath}/market?sector=propertiesAndRealEstate`,
+          // Empty sectors are hidden until selected, and a dated LQ45 list can fill every sector.
+          const populatedSectors = await student
+            .getByRole("group", { name: text.sector, exact: true })
+            .getByRole("radio")
+            .evaluateAll((choices) =>
+              choices.map((choice) => choice.getAttribute("value")),
+            );
+          const emptySector = sectors.find(
+            (sector) => !populatedSectors.includes(sector),
           );
-          expect(emptySectorResponse?.status()).toBe(200);
-          await expect(student.getByText(text.emptySector)).toBeVisible();
-          await student.getByRole("link", { name: text.clear }).click();
-          await expect(rows).toHaveCount(45);
+          if (emptySector !== undefined) {
+            const emptySectorResponse = await student.goto(
+              `${classPath}/market?${new URLSearchParams({ sector: emptySector }).toString()}`,
+            );
+            expect(emptySectorResponse?.status()).toBe(200);
+            await expect(student.getByText(text.emptySector)).toBeVisible();
+            await student.getByRole("link", { name: text.clear }).click();
+            await expect(rows).toHaveCount(45);
+          }
           for (const character of ["x", "9"]) {
             const widestSearch = character.repeat(fieldMaximumLength);
             await student
