@@ -6,6 +6,7 @@ import type { Locale } from "~/paraglide/runtime.js";
 import { renderInRouterForTest } from "~/render-in-router-for-test";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
 import { splitAdjustedRupiah } from "~/units/split-adjusted-rupiah";
+import { readStockYearRange } from "./read-stock-year-range.server";
 import { StockRange } from "./stock-range";
 import type { stockPriceRange } from "./stock-price-range";
 
@@ -33,7 +34,7 @@ const noCloses: Record<Locale, string> = {
 function renderRange(range: ReturnType<typeof stockPriceRange>): string {
   return renderInRouterForTest(
     <dl>
-      <StockRange range={range} />
+      <StockRange text={readStockYearRange(range)} />
     </dl>,
     conceptLessonDataForTest(),
   );

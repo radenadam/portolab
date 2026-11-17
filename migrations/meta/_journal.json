@@ -68,8 +68,15 @@
     {
       "idx": 9,
       "version": "6",
-      "when": 1794892778262,
-      "tag": "0009_home_dismissal",
+      "when": 1794892674387,
+      "tag": "0009_stock-day-range",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1794920845142,
+      "tag": "0010_home_dismissal",
       "breakpoints": true
     }
   ]

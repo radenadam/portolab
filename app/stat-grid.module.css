@@ -11,11 +11,28 @@
   overflow-wrap: anywhere;
 }
 
-/* The range needs room for its price labels and dates. */
+/* The range pair needs room for its labels without moving beta out of its desktop column. */
 .ranges {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--space-4);
+  row-gap: 0;
   grid-column: 1 / -1;
   min-width: 0;
   margin: 0;
+}
+
+.ranges > .stat {
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: span 2;
+}
+
+/* A full inline touch box would wrap the phone's range labels. */
+.ranges dt > button {
+  margin-inline: calc(
+    (var(--size-concept-mark) - var(--size-touch-target)) / 2 + var(--space-1)
+  );
 }
 
 .stat dt,

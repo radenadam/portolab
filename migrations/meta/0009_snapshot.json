@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "81bb64ab-bcb6-4446-9d2f-db99bf7410f4",
+  "id": "95ea57a6-b856-4ef6-b876-babed8766fec",
   "prevId": "1a66b5c6-06b6-4c3e-85a3-cd0c07e4d2a4",
   "tables": {
     "sessions": {
@@ -238,13 +238,6 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
-        },
-        "home_dismissed_at": {
-          "name": "home_dismissed_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
         }
       },
       "indexes": {
@@ -474,6 +467,20 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false
+        },
+        "day_low": {
+          "name": "day_low",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "day_high": {
+          "name": "day_high",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
           "autoincrement": false
         },
         "quoted_at": {

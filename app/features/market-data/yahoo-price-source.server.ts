@@ -4,6 +4,7 @@ import { describeValue, isRecord, isValidDate } from "~/value-shapes";
 import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
 import { isIndexPoints } from "~/units/index-points";
+import type { Rupiah } from "~/units/rupiah";
 import { isRupiah } from "~/units/rupiah";
 import { wibMoment } from "~/wib";
 import { parseYahooChart } from "./parse-yahoo-chart.server";
@@ -14,6 +15,7 @@ import type {
   PriceSourceDescription,
   Quote,
   QuoteBatch,
+  StockQuote,
 } from "./price-source.server";
 
 /** Yahoo Finance as a source of prices. Decision 0001 records its delay. */
@@ -40,6 +42,8 @@ export function createYahooPriceSource(): PriceSource {
               "currency",
               "regularMarketPrice",
               "regularMarketPreviousClose",
+              "regularMarketDayLow",
+              "regularMarketDayHigh",
               "regularMarketTime",
             ],
             return: "array",
@@ -156,7 +160,7 @@ function parseYahooQuote(
         previousLevel: regularMarketPreviousClose,
         quotedAt,
       });
-    case "stock":
+    case "stock": {
       if (
         !isRupiah(regularMarketPrice) ||
         !isRupiah(regularMarketPreviousClose)
@@ -165,14 +169,68 @@ function parseYahooQuote(
           `${source} must have whole rupiah, but its price is ${describeValue(regularMarketPrice)} and its previous close is ${describeValue(regularMarketPreviousClose)}.`,
         );
       }
-      return succeed({
+      return stockQuoteWithRange(value, source, {
         kind: "stock",
         code: instrument.code,
         price: regularMarketPrice,
         previousClose: regularMarketPreviousClose,
         quotedAt,
       });
+    }
   }
+}
+
+function stockQuoteWithRange(
+  value: Record<string, unknown>,
+  source: string,
+  quote: StockQuote,
+): Result<StockQuote, string> {
+  const range = readYahooDayRange(value, source, quote.price);
+  return range.ok ? succeed({ ...quote, dayRange: range.value }) : range;
+}
+
+function readYahooDayRange(
+  value: Record<string, unknown>,
+  source: string,
+  price: Rupiah,
+): Result<StockQuote["dayRange"], string> {
+  const low = parseYahooDayBound(
+    value["regularMarketDayLow"],
+    source,
+    "regularMarketDayLow",
+  );
+  const high = parseYahooDayBound(
+    value["regularMarketDayHigh"],
+    source,
+    "regularMarketDayHigh",
+  );
+  if (!low.ok) return low;
+  if (!high.ok) return high;
+  if (
+    (low.value !== undefined && low.value > price) ||
+    (high.value !== undefined && high.value < price)
+  ) {
+    return fail(
+      `${source} must have regularMarketDayLow at or below its price and regularMarketDayHigh at or above it, but its low is ${describeValue(value["regularMarketDayLow"])}, its price is ${describeValue(price)}, and its high is ${describeValue(value["regularMarketDayHigh"])}.`,
+    );
+  }
+  if (low.value === undefined || high.value === undefined)
+    return succeed(undefined);
+  return succeed({ low: low.value, high: high.value });
+}
+
+function parseYahooDayBound(
+  value: unknown,
+  source: string,
+  field: string,
+): Result<Rupiah | undefined, string> {
+  if (value === undefined || value === null) return succeed(undefined);
+  if (!isPositiveNumber(value) || !isRupiah(value)) {
+    return fail(
+      `${source} must have positive whole rupiah at ${field} or no value, but it is ${describeValue(value)}.`,
+    );
+  }
+  return succeed(value);
 }
 
 function isPositiveNumber(value: unknown): value is number {
