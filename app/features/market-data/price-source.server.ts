@@ -24,6 +24,8 @@ export interface StockQuote {
   code: string;
   price: Rupiah;
   previousClose: Rupiah;
+  /** The extremes of the quote's trading day, absent when the source or an older stored quote has no complete range. */
+  dayRange?: { low: Rupiah; high: Rupiah } | undefined;
   quotedAt: Date;
 }
 

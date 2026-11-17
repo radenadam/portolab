@@ -62,6 +62,8 @@ Pembelian memerlukan keanggotaan LQ45 pada hari bursa order dan riwayat bulanan 
 
 Pilih {{label:market_data_map_label}} untuk membandingkan saham menurut {{label:market_data_beta_label}} atau {{label:market_data_map_deviation_label}} dan perubahan harga pada rentang yang dipilih. Titik penuh adalah saham yang Anda miliki, titik kosong adalah saham lain, dan titik kuning adalah portofolio dengan bobot sekarang. Perubahan portofolio pada peta ini bukan hasil transaksi selama rentang tersebut. Saham yang belum dapat ditempatkan tercantum di bawah peta. Pilih titik untuk membuka saham, atau {{label:market_data_list_label}} untuk kembali ke daftar.
 
+Statistik saham menampilkan harga terendah dan tertinggi harian di samping rentang penutupan tersimpan. Rentang harian mengikuti hari bursa kutipan, yang bisa lebih awal dari hari ini. Label hanya menyebut hari ini bila kutipannya berasal dari hari ini. Buka tanda tanyanya untuk tanggal dan artinya. Kutipan tanpa harga terendah dan tertinggi tersimpan menjelaskan mengapa rentangnya belum tersedia.
+
 ## orders | Mengirim order dan membaca biayanya
 
 Dari saham, pilih {{label:trading_buy_label}} atau {{label:trading_sell_label}}. Pilih {{label:trading_ticket_market_label}} untuk harga pasar atau {{label:trading_ticket_limit_label}} untuk batas harga, lalu isi jumlah lot. Tiket memeriksa kelipatan lot, fraksi harga, batas harga, kas, dan saham yang tersedia. Periksa nilai transaksi, biaya broker, pajak penjualan, dan kas setelahnya sebelum mengonfirmasi. Jika total berubah, periksa pratinjau baru dan konfirmasikan lagi.

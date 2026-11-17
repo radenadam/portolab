@@ -62,6 +62,8 @@ A purchase requires LQ45 membership on the order's trading day and enough monthl
 
 Choose {{label:market_data_map_label}} to compare stocks by {{label:market_data_beta_label}} or {{label:market_data_map_deviation_label}} and price change over the selected range. Filled points are stocks you hold, hollow points are other stocks, and the yellow point is your portfolio at current weights. Its map change is not the result of trades over that range. Stocks that cannot be placed are listed below the map. Select a point to open its stock, or {{label:market_data_list_label}} to return to the list.
 
+The stock statistics show the day's low and high beside the range of stored closes. The day range belongs to the quote's trading day, which can be earlier than today. The label names today only when the quote belongs to today. Open its question mark for the date and meaning. A quote without a recorded low and high shows why the range is unavailable.
+
 ## orders | Place an order and read its costs
 
 From a stock, choose {{label:trading_buy_label}} or {{label:trading_sell_label}}. Choose {{label:trading_ticket_market_label}} for a market order or {{label:trading_ticket_limit_label}} for a price limit, then enter lots. The ticket checks lot sizes, tick sizes, price limits, cash, and available shares. Review trade value, broker fees, sales tax, and cash afterwards before confirming. If the total changes, review the new preview and confirm again.
