@@ -11,6 +11,8 @@ import { TermList } from "./term-list";
 import styles from "./learning.module.css";
 import { LessonPractice } from "./lesson-practice";
 import type { LessonPracticeData } from "./lesson-practice-data";
+import type { TradingLessonData } from "./trading-lesson-data";
+import { LessonTrading } from "./lesson-trading";
 
 export function LessonView({
   classId,
@@ -20,6 +22,7 @@ export function LessonView({
   next,
   returnTo,
   practice,
+  trading,
   inSheet = false,
   idPrefix = "",
 }: {
@@ -30,57 +33,22 @@ export function LessonView({
   next: SessionContent | undefined;
   returnTo: string | undefined;
   practice?: LessonPracticeData | undefined;
+  trading?: TradingLessonData | undefined;
   inSheet?: boolean;
   idPrefix?: string;
 }): ReactNode {
+  const hasInteractive = practice !== undefined || trading !== undefined;
   return (
     <article className={styles["reading"]} data-layout="reading">
-      <header className={styles["hero"]}>
-        {!inSheet && (
-          <Link className={styles["link"]} to={returnTo ?? learnPath(classId)}>
-            <span aria-hidden="true">‹</span>
-            {returnTo === undefined
-              ? m.learning_back_link()
-              : m.learning_return_link()}
-          </Link>
-        )}
-        <div className={styles[inSheet ? "sheetTools" : "heroRow"]}>
-          <span className={styles["badge"]}>
-            <NumberText whole>{sessionLabel(lesson)}</NumberText>
-          </span>
-          {practice !== undefined && (
-            <a
-              className={styles["link"]}
-              href={`#${idPrefix}practice`}
-              onClick={
-                inSheet
-                  ? (event) => {
-                      event.preventDefault();
-                      document
-                        .getElementById(`${idPrefix}practice`)
-                        ?.scrollIntoView();
-                    }
-                  : undefined
-              }
-            >
-              {m.learning_skip_practice_link()} <span aria-hidden>⌄</span>
-            </a>
-          )}
-          {inSheet && (
-            <Link
-              className={styles["link"]}
-              to={lessonPath(classId, lesson.session, returnTo)}
-            >
-              {m.learning_open_lesson_link()} <span aria-hidden="true">→</span>
-            </Link>
-          )}
-        </div>
-        {!inSheet && (
-          <h1>
-            <NumberText>{lesson.title}</NumberText>
-          </h1>
-        )}
-      </header>
+      <LessonHeader
+        classId={classId}
+        lesson={lesson}
+        returnTo={returnTo}
+        inSheet={inSheet}
+        idPrefix={idPrefix}
+        hasInteractive={hasInteractive}
+      />
+
       {lesson.sections.map((section) => {
         switch (section.id) {
           case "summary":
@@ -92,7 +60,7 @@ export function LessonView({
               </div>
             );
           case "body":
-            if (practice !== undefined) return null;
+            if (hasInteractive) return null;
             return (
               <div key={section.id} className={styles["body"]}>
                 <ContentParagraphs blocks={section.blocks} />
@@ -105,26 +73,27 @@ export function LessonView({
               </div>
             );
           case "terms":
-            if (practice !== undefined) return null;
+            if (hasInteractive) return null;
             return (
               <TermList key={section.id} terms={terms} idPrefix={idPrefix} />
             );
           case "interactive":
-            return practice === undefined ? null : (
-              <LessonPractice
+            return (
+              <LessonActivities
                 key={lesson.session}
                 classId={classId}
                 lesson={lesson}
+                terms={terms}
                 practice={practice}
+                trading={trading}
                 idPrefix={idPrefix}
                 taskPage={
                   inSheet
-                    ? `${lessonPath(classId, lesson.session, returnTo)}#practice`
+                    ? lessonPath(classId, lesson.session, returnTo) +
+                      "#practice"
                     : undefined
                 }
-              >
-                <TermList terms={terms} idPrefix={idPrefix} />
-              </LessonPractice>
+              />
             );
           case "practice":
             return null;
@@ -177,5 +146,113 @@ function LessonNavigation({
         </Link>
       )}
     </nav>
+  );
+}
+
+function LessonHeader({
+  classId,
+  lesson,
+  returnTo,
+  inSheet,
+  idPrefix,
+  hasInteractive,
+}: {
+  classId: ClassId;
+  lesson: SessionContent;
+  returnTo: string | undefined;
+  inSheet: boolean;
+  idPrefix: string;
+  hasInteractive: boolean;
+}): ReactNode {
+  return (
+    <header className={styles["hero"]}>
+      {!inSheet && (
+        <Link className={styles["link"]} to={returnTo ?? learnPath(classId)}>
+          <span aria-hidden="true">‹</span>
+          {returnTo === undefined
+            ? m.learning_back_link()
+            : m.learning_return_link()}
+        </Link>
+      )}
+      <div className={styles[inSheet ? "sheetTools" : "heroRow"]}>
+        <span className={styles["badge"]}>
+          <NumberText whole>{sessionLabel(lesson)}</NumberText>
+        </span>
+        {hasInteractive && (
+          <a
+            className={styles["link"]}
+            href={`#${idPrefix}practice`}
+            onClick={
+              inSheet
+                ? (event) => {
+                    event.preventDefault();
+                    document
+                      .getElementById(`${idPrefix}practice`)
+                      ?.scrollIntoView();
+                  }
+                : undefined
+            }
+          >
+            {m.learning_skip_practice_link()} <span aria-hidden>⌄</span>
+          </a>
+        )}
+        {inSheet && (
+          <Link
+            className={styles["link"]}
+            to={lessonPath(classId, lesson.session, returnTo)}
+          >
+            {m.learning_open_lesson_link()} <span aria-hidden="true">→</span>
+          </Link>
+        )}
+      </div>
+      {!inSheet && (
+        <h1>
+          <NumberText>{lesson.title}</NumberText>
+        </h1>
+      )}
+    </header>
+  );
+}
+function LessonActivities({
+  classId,
+  lesson,
+  terms,
+  practice,
+  trading,
+  idPrefix,
+  taskPage,
+}: {
+  classId: ClassId;
+  lesson: SessionContent;
+  terms: readonly GlossaryTerm[];
+  practice: LessonPracticeData | undefined;
+  trading: TradingLessonData | undefined;
+  idPrefix: string;
+  taskPage: string | undefined;
+}): ReactNode {
+  const termList = <TermList terms={terms} idPrefix={idPrefix} />;
+  if (trading !== undefined)
+    return (
+      <LessonTrading
+        classId={classId}
+        lesson={lesson}
+        trading={trading}
+        idPrefix={idPrefix}
+        taskPage={taskPage}
+      >
+        {termList}
+      </LessonTrading>
+    );
+  if (practice === undefined) return null;
+  return (
+    <LessonPractice
+      classId={classId}
+      lesson={lesson}
+      practice={practice}
+      idPrefix={idPrefix}
+      taskPage={taskPage}
+    >
+      {termList}
+    </LessonPractice>
   );
 }

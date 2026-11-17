@@ -1,5 +1,6 @@
 import { lessonPracticeForTest } from "./lesson-practice-for-test";
 import { hasLessonPractice } from "./lesson-practice-sessions";
+import { tradingLessonForTest } from "./trading-lesson-for-test";
 import { languageNames } from "~/language-names";
 import { expect, test } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -207,14 +208,18 @@ for (const locale of locales) {
     );
     for (const [index, lesson] of lessons.entries()) {
       const terms = lessonTerms(lesson, content.terms);
-      const practice = hasLessonPractice(lesson.session)
-        ? lessonPracticeForTest()
-        : undefined;
+      const practice =
+        hasLessonPractice(lesson.session) && lesson.session !== 6
+          ? lessonPracticeForTest()
+          : undefined;
+      const trading = lesson.session === 6 ? tradingLessonForTest() : undefined;
+      const interactive = practice !== undefined || trading !== undefined;
       const props = {
         classId,
         lesson,
         terms,
         practice,
+        trading,
         previous: lessons[index - 1],
         next: lessons[index + 1],
         returnTo: "/classes/7/stocks/BBCA?range=3m",
@@ -228,7 +233,7 @@ for (const locale of locales) {
       expect(sheet).not.toContain(`aria-label="${text.lessons}"`);
       expect(sheet).toContain('id="sheet-key-terms"');
       expect(sheet).toContain(`/learn/${String(lesson.session)}?returnTo=`);
-      if (practice !== undefined) {
+      if (interactive) {
         expect(sheet).toContain('href="#sheet-practice"');
         expect(sheet).toContain('id="sheet-practice"');
         expect(sheet).not.toContain('id="practice"');
@@ -243,8 +248,7 @@ for (const locale of locales) {
       }
       expect(markup).toContain(text.return);
       expect(markup).toContain(text.terms);
-      if (practice === undefined)
-        expect(markup.match(/<h2[ >]/gu)).toHaveLength(1);
+      if (!interactive) expect(markup.match(/<h2[ >]/gu)).toHaveLength(1);
       expect(markup).toContain(`aria-label="${text.lessons}"`);
       const blocks = lesson.sections.flatMap((section) =>
         "blocks" in section && section.id !== "summary" ? section.blocks : [],
@@ -255,7 +259,7 @@ for (const locale of locales) {
           ...terms.flatMap((term) => term.blocks),
         ]);
       expect(markup).not.toContain("{{");
-      expect(markup.includes('id="practice"')).toBe(practice !== undefined);
+      expect(markup.includes('id="practice"')).toBe(interactive);
       expect(markup).not.toContain("<input");
       expect(markup.match(/<details[^>]*id="term-/gu)).toHaveLength(
         terms.length,

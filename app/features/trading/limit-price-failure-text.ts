@@ -15,7 +15,7 @@ export interface PriceField {
   written: string;
 }
 
-function formatLimit(limit: PriceLimit): string {
+export function formatLimit(limit: PriceLimit): string {
   switch (limit.kind) {
     case "rate":
       return formatPercent(limit.rate / basisPointsPerWhole);

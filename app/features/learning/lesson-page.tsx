@@ -9,6 +9,7 @@ import { LessonView } from "./lesson-view";
 import { readLearningPage } from "./read-learning-page.server";
 import { readLessonPractice } from "./read-lesson-practice.server";
 import { hasLessonPractice } from "./lesson-practice-sessions";
+import { readLearningTrade } from "~/features/trading/read-learning-trade.server";
 
 export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
   return [{ title: pageTitle(loaderData.lesson.title) }];
@@ -22,20 +23,25 @@ export function loader({ context, params, url, request }: Route.LoaderArgs) {
   const index = lessons.findIndex((entry) => entry.session === session.value);
   const lesson = lessons[index];
   if (lesson === undefined) throw data(null, { status: 404 });
+  const input = {
+    request,
+    url,
+    classId: params.classId,
+    now: new Date(),
+    session: lesson.session,
+  };
   return {
     classId,
     lesson,
     terms: lessonTerms(lesson, content.terms),
     previous: lessons[index - 1],
     next: lessons[index + 1],
-    practice: hasLessonPractice(lesson.session)
-      ? readLessonPractice(context, {
-          request,
-          url,
-          classId: params.classId,
-          now: new Date(),
-        })
-      : undefined,
+    practice:
+      hasLessonPractice(lesson.session) && lesson.session !== 6
+        ? readLessonPractice(context, input)
+        : undefined,
+    trading:
+      lesson.session === 6 ? readLearningTrade(context, input) : undefined,
     returnTo: readLearningReturnPath(url.searchParams.get("returnTo"), url),
   };
 }

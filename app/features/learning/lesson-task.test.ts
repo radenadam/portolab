@@ -8,7 +8,7 @@ import {
 
 test("parses only implemented tasks and returns to the practice anchor", () => {
   const classId = 7 as ClassId;
-  for (const task of [9, 10] as const) {
+  for (const task of [2, 6, 9, 10, "prices"] as const) {
     expect(parseLessonTask(String(task), "lessonTask")).toEqual({
       ok: true,
       value: task,
@@ -27,16 +27,16 @@ test("parses only implemented tasks and returns to the practice anchor", () => {
   expect(withLessonTask("/classes/7/market", undefined)).toBe(
     "/classes/7/market",
   );
-  for (const value of ["2", "09", 9, undefined, ""])
+  for (const value of ["1", "09", 9, undefined, ""])
     expect(parseLessonTask(value, "lessonTask").ok).toBe(false);
   expect(parseLessonTask("11", "lessonTask")).toEqual({
     ok: false,
     failure:
-      'lessonTask must name the practice of session 9 or 10, but it is "11".',
+      'lessonTask must name a learning task from 2 or 6 or 9 or 10 or prices, but it is "11".',
   });
-  for (const length of [3, 100_000])
+  for (const length of [7, 100_000])
     expect(parseLessonTask("9".repeat(length), "lessonTask")).toEqual({
       ok: false,
-      failure: `lessonTask must name the practice of session 9 or 10, but it has ${String(length)} characters.`,
+      failure: `lessonTask must name a learning task from 2 or 6 or 9 or 10 or prices, but it has ${String(length)} characters.`,
     });
 });

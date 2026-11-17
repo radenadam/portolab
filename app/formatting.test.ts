@@ -1,6 +1,8 @@
 import { expect, test } from "vitest";
 import {
   axisMarkFormat,
+  formatPercentagePoints,
+  isOnePercentagePoint,
   formatBeta,
   formatNumber,
   formatBytes,
@@ -387,5 +389,19 @@ for (const locale of locales) {
     switchLocaleForTest(locale);
     expect(formatNumber(1, 1)).toBe(fixedDecimals[locale][0]);
     expect(formatNumber(4 / 3, 1)).toBe(fixedDecimals[locale][1]);
+  });
+}
+
+for (const locale of locales) {
+  test(`chooses point grammar from the displayed precision in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    for (const [fraction, one] of [
+      [0.01, true],
+      [0.01004, true],
+      [0.01006, false],
+      [0, false],
+      [0.02, false],
+    ] as const)
+      expect(isOnePercentagePoint(formatPercentagePoints(fraction))).toBe(one);
   });
 }

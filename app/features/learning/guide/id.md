@@ -110,6 +110,8 @@ Gunakan portofolio itu untuk menunjukkan biaya order, perubahan bobot, dan pemba
 
 {{label:classes_capm_session_title}} dan {{label:classes_portfolio_risk_session_title}} memiliki praktik dengan data portofolio. Pada praktik bobot, menggeser bobot hanya mengubah perhitungan latihan. Tindakan itu tidak mengirim order. Materi instrumen lain, seperti futures, reksa dana, opsi, dan obligasi, menjelaskan konsepnya tetapi belum dapat diperdagangkan dalam simulasi.
 
+{{label:classes_portfolio_theory_session_title}} membandingkan dua saham dengan bobot dan korelasi yang dapat Anda ubah. Pasangan saham portofolio mahasiswa dapat dipakai di grafik. {{label:classes_trading_mechanism_session_title}} menampilkan jadwal, fraksi, batas harga, dan biaya dari aturan yang berlaku. Tugasnya membuka tiket Limit dan kembali ke pelajaran tanpa mengirim order. {{label:learning_price_guide_badge_label}} menjelaskan kode, harga per lembar, perubahan harian, waktu kutipan, dan biaya satu lot.
+
 {{label:classes_discussion_title}} pada {{label:navigation_class_link}} memakai data kelas dan sesi minggu ini untuk mengajukan pertanyaan. Gunakan pertanyaan itu sebagai pembuka, lalu minta mahasiswa membaca perhitungan dan alasan keputusan. Ketersediaan data menentukan angka yang dapat dibahas. Periksa tanggal kalender bila materi minggu ini tidak sesuai rencana mengajar.
 
 ## attention | Menindaklanjuti mahasiswa

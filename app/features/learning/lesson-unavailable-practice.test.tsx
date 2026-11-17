@@ -56,7 +56,9 @@ function practiceLessonsForTest() {
   return successValueForTest(
     localizedLearningContent(),
     "Read lessons",
-  ).sessions.filter((lesson) => hasLessonPractice(lesson.session));
+  ).sessions.filter(
+    (lesson) => hasLessonPractice(lesson.session) && lesson.session !== 6,
+  );
 }
 
 for (const locale of locales) {
@@ -138,10 +140,10 @@ for (const locale of locales) {
         expectOnce(markup, settings);
         if (
           practice.market === undefined ||
-          (lesson.session === 10 && practice.simulation === undefined)
+          (lesson.session !== 9 && practice.simulation === undefined)
         )
           expectOnce(markup, markupTextForTest(texts[locale].unavailable));
-        if (lesson.session === 10 && practice.simulation !== undefined)
+        if (lesson.session !== 9 && practice.simulation !== undefined)
           expectOnce(markup, markupTextForTest(texts[locale].example));
         else
           expect(textOfMarkupForTest(markup)).not.toContain(

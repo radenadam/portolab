@@ -207,7 +207,14 @@ for (const locale of locales) {
       locale,
       notFoundTitle: text.notFound,
       addresses: ({ classPath, otherClassPath }) =>
-        ["/learn", "/learn/9", "/glossary"].flatMap((path) => [
+        [
+          "/learn",
+          "/learn/2",
+          "/learn/6",
+          "/learn/9",
+          "/learn/prices",
+          "/glossary",
+        ].flatMap((path) => [
           { reader: "student" as const, path: `${otherClassPath}${path}` },
           { reader: "otherLecturer" as const, path: `${classPath}${path}` },
         ]),

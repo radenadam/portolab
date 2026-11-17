@@ -1,7 +1,7 @@
 import type { SessionNumber } from "../classes/course-calendar.ts";
 
 export const lessonPracticeSessions = [
-  9, 10,
+  2, 6, 9, 10,
 ] as const satisfies readonly SessionNumber[];
 export type LessonPracticeSession = (typeof lessonPracticeSessions)[number];
 

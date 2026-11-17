@@ -47,6 +47,20 @@ export function LessonExplanation({
   const body = lesson.sections.flatMap((section) =>
     section.id === "body" ? section.blocks : [],
   );
+  const estimation = (
+    <>
+      <MethodNotice />
+      {market !== undefined && (
+        <p>
+          <NumberText>
+            {m.learning_analysis_period_notice(
+              monthSpanInputs(monthSpanOf(market.returns)),
+            )}
+          </NumberText>
+        </p>
+      )}
+    </>
+  );
   const reference = (
     block: Exclude<ContentBlock, { kind: "paragraph" }>,
   ): ReactNode => {
@@ -54,16 +68,9 @@ export function LessonExplanation({
       if (block.id !== "estimation-settings") return null;
       return (
         <>
-          <MethodNotice />
+          {estimation}
           {market !== undefined && (
             <>
-              <p>
-                <NumberText>
-                  {m.learning_analysis_period_notice(
-                    monthSpanInputs(monthSpanOf(market.returns)),
-                  )}
-                </NumberText>
-              </p>
               <p>
                 <RiskFreeFormula rate={market.riskFreeRate} />
               </p>
@@ -82,6 +89,7 @@ export function LessonExplanation({
   };
   return (
     <ConceptHelp title={lesson.title}>
+      {lesson.session === 2 && estimation}
       <ContentParagraphs blocks={body} reference={reference} />
       {portfolio !== undefined && (
         <dl>
@@ -90,10 +98,7 @@ export function LessonExplanation({
               <dt className={styles["code"]}>{holding.code}</dt>
               <dd>
                 <NumberText>
-                  {m.learning_holding_inputs_notice({
-                    expected: formatPercent(holding.expectedReturn, "two"),
-                    beta: formatBeta(holding.beta),
-                  })}
+                  {lessonHoldingInputs(holding, lesson.session)}
                 </NumberText>
               </dd>
             </div>
@@ -102,6 +107,22 @@ export function LessonExplanation({
       )}
     </ConceptHelp>
   );
+}
+
+function lessonHoldingInputs(
+  holding: PortfolioSummary["holdings"][number],
+  session: SessionContent["session"],
+): string {
+  const expected = formatPercent(holding.expectedReturn, "two");
+  return session === 2
+    ? m.learning_pair_holding_inputs_notice({
+        expected,
+        risk: formatPercent(holding.standardDeviation, "two"),
+      })
+    : m.learning_holding_inputs_notice({
+        expected,
+        beta: formatBeta(holding.beta),
+      });
 }
 
 function lessonFormulas(

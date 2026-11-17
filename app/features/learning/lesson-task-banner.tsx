@@ -22,10 +22,20 @@ export function LessonTaskBanner({
     <aside className={styles["banner"]} role="note">
       <span className={styles["badge"]}>
         <NumberText>
-          {m.learning_task_session_label({ session: formatNumber(task) })}
+          {task === "prices"
+            ? m.learning_price_guide_badge_label()
+            : m.learning_task_session_label({ session: formatNumber(task) })}
         </NumberText>
       </span>
-      <p>{m.learning_first_stock_task_notice()}</p>
+      <p>
+        {task === "prices"
+          ? m.learning_price_guide_task_notice()
+          : task === 6
+            ? m.learning_limit_task_banner_notice()
+            : task === 2
+              ? m.learning_pair_task_banner_notice()
+              : m.learning_first_stock_task_notice()}
+      </p>
       <Link className={styles["link"]} to={lessonTaskReturnPath(classId, task)}>
         <Icon name="chevronLeft" className={learningStyles["icon"]} />
         {m.learning_task_return_link()}

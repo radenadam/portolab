@@ -15,6 +15,10 @@ export default [
     route("classes/:classId/calendar", "features/classes/calendar-page.tsx"),
     route("classes/:classId/learn", "features/learning/learn-page.tsx"),
     route(
+      "classes/:classId/learn/prices",
+      "features/learning/price-guide-page.tsx",
+    ),
+    route(
       "classes/:classId/learn/:session",
       "features/learning/lesson-page.tsx",
     ),

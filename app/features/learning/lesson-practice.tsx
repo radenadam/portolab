@@ -15,8 +15,56 @@ import { LessonExplanation } from "./lesson-explanation";
 import type { LessonPracticeData } from "./lesson-practice-data";
 import { PracticePanel } from "./practice-panel";
 import styles from "./lesson-practice.module.css";
+import { LessonDiversification } from "./lesson-diversification";
 
-export function LessonPractice({
+export function LessonPractice(
+  props: Parameters<typeof AdvancedLessonPractice>[0],
+): ReactNode {
+  const {
+    lesson,
+    practice,
+    classId,
+    idPrefix = "",
+    taskPage,
+    children,
+  } = props;
+  const own = practicePortfolio(practice.report);
+  const explanation = (
+    <LessonExplanation
+      lesson={lesson}
+      practice={practice}
+      portfolio={practice.simulation}
+    />
+  );
+  if (
+    lesson.session === 2 &&
+    practice.simulation !== undefined &&
+    practice.simulation.holdings.length >= 2
+  )
+    return (
+      <LessonDiversification
+        classId={classId}
+        portfolio={practice.simulation}
+        own={own}
+        explanation={explanation}
+        missingNumbers={
+          <LessonOwnNumbers
+            classId={classId}
+            lesson={lesson}
+            practice={practice}
+          />
+        }
+        idPrefix={idPrefix}
+        taskPage={taskPage}
+      >
+        {children}
+      </LessonDiversification>
+    );
+
+  return <AdvancedLessonPractice {...props} />;
+}
+
+function AdvancedLessonPractice({
   classId,
   lesson,
   practice,
@@ -119,9 +167,11 @@ function UnavailableLessonInteractive({
   ) : (
     <section className={styles["interactive"]}>
       <h2>
-        {lesson.session === 9
-          ? m.learning_capm_interactive_title()
-          : m.learning_allocation_interactive_title()}
+        {lesson.session === 2
+          ? m.learning_two_stocks_title()
+          : lesson.session === 9
+            ? m.learning_capm_interactive_title()
+            : m.learning_allocation_interactive_title()}
       </h2>
       <p>{m.learning_interactive_data_notice()}</p>
       {explanation}

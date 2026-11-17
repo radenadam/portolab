@@ -90,6 +90,7 @@ const currentItems: Record<RouteId, NavigationItem | undefined> = {
   "features/learning/learning-overlay": undefined,
   "features/learning/learn-page": "learn",
   "features/learning/lesson-page": "learn",
+  "features/learning/price-guide-page": "learn",
   "features/learning/glossary-page": "learn",
   "features/market-data/market-page": "market",
   "features/accounts/sign-in-page": "signIn",

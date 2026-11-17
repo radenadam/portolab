@@ -4,6 +4,9 @@ import { practicePortfolio } from "./practice-portfolio";
 import { defaultLessonBeta } from "./lesson-beta-range";
 import type { LessonPracticeData } from "./lesson-practice-data";
 import type { RouterContextProvider } from "react-router";
+import type { Database } from "~/database/database.server";
+import type { PortfolioSummary } from "~/features/measures/measure-summaries";
+import type { SessionNumber } from "~/features/classes/course-calendar";
 import { databaseContext } from "~/database/database.server";
 import { requireUser } from "~/features/accounts/current-session.server";
 import { measureStoredMarket } from "~/features/measures/measure-stored.server";
@@ -16,7 +19,13 @@ import type { PortfolioMeasuresReport } from "~/features/measures/read-measures.
 
 export function readLessonPractice(
   context: Readonly<RouterContextProvider>,
-  input: { request: Request; url: URL; classId: string; now: Date },
+  input: {
+    request: Request;
+    url: URL;
+    classId: string;
+    now: Date;
+    session: SessionNumber;
+  },
 ): LessonPracticeData {
   const reader = requireUser(context, input.url);
   const database = context.get(databaseContext);
@@ -43,6 +52,16 @@ export function readLessonPractice(
       portfolio?.market ??
       (market.ok ? summarizeMarket(market.value) : undefined),
     marketFailure: market.ok ? undefined : market.failure,
-    simulation: portfolio ?? readLessonExample(database),
+    simulation: lessonSimulation(database, portfolio, input.session),
   };
+}
+
+function lessonSimulation(
+  database: Database,
+  portfolio: PortfolioSummary | undefined,
+  session: SessionNumber,
+) {
+  if (session === 2 && (portfolio?.holdings.length ?? 0) < 2)
+    return readLessonExample(database);
+  return portfolio ?? readLessonExample(database);
 }
