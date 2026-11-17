@@ -9,7 +9,7 @@ Piece 25 of #127 adds the approved map of Pasar. It reuses the risk map, its lab
 
 The native point controls now follow stock links before JavaScript loads. Once scripts load, a tap chooses the nearest point, as the existing map slider does. The corner placement and point controls are shared by the other maps, so their routes carry a small JavaScript increase too. The shared set includes the generated browser route manifest, which changes when the build splits these modules.
 
-These measurements use main at `21dce2a` and the completed map build, with the same dependencies, `pnpm build`, and `pnpm size`. The complete dependency walk and gzip method follow decisions [0038](0038-client-javascript-is-budgeted-by-route.md) and [0042](0042-client-css-is-budgeted-by-route.md). kB means 1,000 bytes.
+These measurements use main at `21dce2a` and the first pushed map build at `82e97a6`, with the same dependencies, `pnpm build`, and `pnpm size`. The complete dependency walk and gzip method follow decisions [0038](0038-client-javascript-is-budgeted-by-route.md) and [0042](0042-client-css-is-budgeted-by-route.md). kB means 1,000 bytes.
 
 | Dependency set         | Main JavaScript kB | Map JavaScript kB | Main CSS kB | Map CSS kB |
 | ---------------------- | -----------------: | ----------------: | ----------: | ---------: |

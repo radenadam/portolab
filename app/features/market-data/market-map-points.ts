@@ -1,11 +1,6 @@
 import { marketIndex } from "./tracked-instruments";
 import type { MapPoint, MarkedPoint } from "~/charts/layout-risk-map";
-import {
-  formatBeta,
-  formatPercent,
-  formatSignedPercent,
-  formatCalendarDate,
-} from "~/formatting";
+import { formatBeta, formatPercent, formatSignedPercent } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { beta, marketBeta } from "~/units/beta";
 import type { Beta } from "~/units/beta";
@@ -23,6 +18,7 @@ import type { MarketFilters } from "./market-filters";
 import { marketSearch } from "./market-search";
 import { marketPath } from "./market-path";
 import { stockPath } from "./stock-path";
+import { marketChangeRequirement } from "./market-change-requirement";
 type Risk = Beta | MonthlyReturn;
 type MapData = ReturnType<typeof readMarketMap>;
 
@@ -126,11 +122,6 @@ function omittedReason(
 ): string | undefined {
   return (
     row.measureFailure ??
-    (change === undefined
-      ? m.market_data_map_no_change_notice({
-          code: row.code,
-          date: formatCalendarDate(from),
-        })
-      : undefined)
+    (change === undefined ? marketChangeRequirement(from) : undefined)
   );
 }

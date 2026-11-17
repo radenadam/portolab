@@ -43,6 +43,7 @@ export function MarketMapFields({
       <div key={name} className={styles["select"]}>
         <label htmlFor={`market-${name}`}>{label}</label>
         <select
+          className={styles["control"]}
           id={`market-${name}`}
           name={name}
           defaultValue={values[name]}

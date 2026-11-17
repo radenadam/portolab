@@ -9,11 +9,8 @@ import { RiskMapLegend } from "~/charts/risk-map-legend";
 import { MapCorners, mapCornerLabels } from "~/charts/map-corners";
 import { NumberText } from "~/number-text";
 import { ChangeText } from "~/change-text";
-import {
-  formatSignedPercent,
-  formatCalendarDate,
-  formatList,
-} from "~/formatting";
+import { formatSignedPercent, formatList } from "~/formatting";
+import { marketChangeRequirement } from "./market-change-requirement";
 import { m } from "~/paraglide/messages.js";
 import { cumulativeReturn } from "~/units/cumulative-return";
 import type { ClassId } from "~/features/classes/classes.schema";
@@ -122,7 +119,7 @@ export function MarketMap({
             {reference.ok
               ? m.market_data_map_no_change_notice({
                   code: marketIndex.code,
-                  date: formatCalendarDate(map.from),
+                  requirement: marketChangeRequirement(map.from),
                 })
               : reference.failure}
           </NumberText>

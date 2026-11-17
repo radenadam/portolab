@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import type { Locator } from "@playwright/test";
 import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
 import { languageNames } from "../app/language-names.ts";
@@ -11,6 +12,8 @@ import { holdClientScripts } from "./hold-client-scripts.ts";
 import { expectMapLabelsClear } from "./expect-map-labels-clear.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 import { captureScreens } from "./capture-screens.ts";
+import { chooseLanguage } from "./choose-language.ts";
+import { createMarketClass } from "./create-market-class.ts";
 
 const texts: Record<
   Locale,
@@ -140,3 +143,41 @@ for (const locale of locales)
       await student.context().close();
     }
   });
+
+for (const locale of locales)
+  test(`keeps refused map choices styled like the existing range field in ${languageNames[locale]}`, async ({
+    page,
+  }, testInfo) => {
+    await chooseLanguage(page, locale);
+    const marketClass = await createMarketClass(page);
+    const response = await page.goto(
+      `${marketClass.path}/market?view=invalid&axis=invalid&mapRange=invalid&range=invalid`,
+    );
+    expect(response?.status()).toBe(400);
+    const reference = await controlStyle(page.locator('select[name="range"]'));
+    for (const name of ["view", "axis", "mapRange"]) {
+      expect(
+        await controlStyle(page.locator(`select[name="${name}"]`)),
+      ).toEqual(reference);
+    }
+    await expectAccessibleScreen(page);
+    await captureScreens(page, testInfo, {
+      name: `market-refused-fields-${locale}`,
+      fullPage: true,
+      fromTop: true,
+    });
+  });
+
+async function controlStyle(control: Locator) {
+  return control.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return {
+      height: style.minHeight,
+      padding: style.padding,
+      border: style.border,
+      background: style.backgroundColor,
+      color: style.color,
+      radius: style.borderRadius,
+    };
+  });
+}

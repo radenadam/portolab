@@ -1131,9 +1131,10 @@
   "market_data_map_points_label": "See the points on the map",
   "market_data_map_weights_notice": "The portfolio change uses stock price changes at current weights. Cash does not change. This is not the result of your trades over that range.",
   "market_data_map_omitted_title": "Not on the map yet",
-  "market_data_map_no_change_notice": "The price change of {code} is unavailable. The map needs a delayed price after a close on or before {date}. Check again when price and history updates store both.",
+  "market_data_map_no_change_notice": "The price change of {code} is unavailable. {requirement}",
   "market_data_map_omissions_label": "Why stocks are not on the map yet",
   "market_data_one_month_part": "{count} month",
   "market_data_several_months_part": "{count} months",
-  "market_data_map_year_part": "{count} year"
+  "market_data_map_year_part": "{count} year",
+  "market_data_map_change_requirement_notice": "The map needs a delayed price after a close on or before {date}. Check again when price and history updates store both."
 }
