@@ -13,16 +13,16 @@ These production builds use `pnpm build` and `pnpm size`, with the complete depe
 
 | Set                    | Main JavaScript, kB gzip | With home outcomes, kB gzip |
 | ---------------------- | -----------------------: | --------------------------: |
-| Shared                 |                   140.16 |                     140.239 |
-| Beranda                |                   208.97 |                     218.369 |
-| Demonstration analysis |                   202.52 |                     202.599 |
-| Analisis               |                   201.65 |                     201.730 |
-| Saham                  |                   213.36 |                     213.437 |
-| Ticket                 |                   221.28 |                     221.361 |
+| Shared                 |                   140.16 |                     140.241 |
+| Beranda                |                   208.97 |                     218.362 |
+| Demonstration analysis |                   202.52 |                     202.621 |
+| Analisis               |                   201.65 |                     201.752 |
+| Saham                  |                   213.36 |                     213.451 |
+| Ticket                 |                   221.28 |                     221.372 |
 
-Beranda's CSS grows from 22.58 kB to 23.217 kB. The shared route manifest is 5,096 bytes gzip. The outcome and status views add no import to the root route. Their new dependency graph changes the manifest and the chunks that Vite shares with existing callers.
+Beranda's CSS grows from 22.58 kB to 23.217 kB. The shared route manifest is 5,098 bytes gzip. The outcome and status views add no import to the root route. Their new dependency graph changes the manifest and the chunks that Vite shares with existing callers.
 
-The two measured versions differ by four bytes in the shared manifest after its asset hashes change. Demonstration analysis is now one byte below its earlier ceiling, while the earlier build exceeded it by three bytes. Its allowance covers both measured sets.
+The final build also moves every stock ticket address to the existing stock path function. This changes the chunks that its callers share. Across the measured builds, the shared manifest varies by four bytes after its asset hashes change. The allowances cover these measured sets.
 
 ## Decision
 

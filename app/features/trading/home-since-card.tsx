@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { Form, Link, useLocation } from "react-router";
 import type { ClassId } from "~/features/classes/classes.schema";
 import { CompanyTile } from "~/features/market-data/stock-name";
-import { stockTicketPath } from "./stock-ticket-path";
+import { stockPath } from "~/features/market-data/stock-path";
 import { homeSummaryTimeField } from "./home-summary-time";
 import { NumberText } from "~/number-text";
 import { m } from "~/paraglide/messages.js";
@@ -85,7 +85,7 @@ export function HomeSinceCard({
               {order.state.kind === "rejected" && (
                 <Link
                   className={styles["retry"]}
-                  to={stockTicketPath(classId, order.code, order.side)}
+                  to={stockPath(classId, order.code, order.side)}
                 >
                   {m.trading_activity_ticket_link({ code: order.code })}
                 </Link>

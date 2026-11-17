@@ -158,7 +158,7 @@ export async function action({
     now,
     code,
     side,
-    ticketPath: `${stockPath(place.classId, code)}/${side}${ticketContextSearch(url.searchParams)}`,
+    ticketPath: `${stockPath(place.classId, code, side)}${ticketContextSearch(url.searchParams)}`,
   });
 }
 

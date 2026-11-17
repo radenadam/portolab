@@ -8,7 +8,7 @@ import { Link } from "react-router";
 import chipStyles from "~/chip.module.css";
 import type { ClassId } from "~/features/classes/classes.schema";
 import { StockName } from "~/features/market-data/stock-name";
-import { stockTicketPath } from "./stock-ticket-path";
+import { stockPath } from "~/features/market-data/stock-path";
 import { StockPageLink } from "~/features/market-data/stock-page-link";
 import { formatNumber, formatRupiah } from "~/formatting";
 import { Message } from "~/message";
@@ -172,7 +172,7 @@ export function ActivityOrders({
                     <Link
                       className={styles["button"]}
                       to={withLessonTask(
-                        stockTicketPath(classId, order.code, order.side),
+                        stockPath(classId, order.code, order.side),
                         task,
                       )}
                     >
