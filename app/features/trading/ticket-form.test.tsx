@@ -69,7 +69,7 @@ const texts: Record<
       "kas tersedia Rp\u00a0100.000.000",
       "Order harga pasar memakai harga tertunda pertama dari sesi order. Order limit menunggu harga yang mencapai limit Anda.",
       "Biaya broker dan pajak dihitung dari nilai saham, lalu masing-masing dibulatkan ke rupiah terdekat. Penjualan membayar pajak final.",
-      "Satu lot berisi 100 saham. Satu order berisi 1 lot sampai 50.000 lot, yaitu order terbesar yang diterima BEI.",
+      "Satu lot berisi 100 lembar. Satu order berisi 1 lot sampai 50.000 lot, yaitu order terbesar yang diterima BEI.",
     ],
     limit: [
       "Turunkan harga satu fraksi",
@@ -91,6 +91,14 @@ const texts: Record<
       "Order terisi",
       "Beli 5 lot BBCA.",
       "Terisi pada harga Rp\u00a04.980, 2 Nov 2026, 09.50 WIB.",
+      "Beli",
+      "Total dibayar",
+      "Rp\u00a02.493.735",
+      "Kas tersedia",
+      "Rp\u00a097.506.265",
+      "Alasan Anda tersimpan di jurnal: “Bank terbesar, lalu tunggu laporan kuartal.”",
+      "Lihat di Aktivitas",
+      "Selesai",
     ],
     ended: "Order berakhir",
     step: "Ubah ke 4 lot",
@@ -143,6 +151,14 @@ const texts: Record<
       "Order filled",
       "Buy 5 lots of BBCA.",
       "Filled at IDR\u00a04,980, Nov 2, 2026, 9:50 AM WIB.",
+      "Buy",
+      "Total paid",
+      "IDR\u00a02,493,735",
+      "Available cash",
+      "IDR\u00a097,506,265",
+      "Your reason is kept in the journal: “Bank terbesar, lalu tunggu laporan kuartal.”",
+      "View in Activity",
+      "Done",
     ],
     ended: "Order ended",
     step: "Change to 4 lots",
@@ -215,6 +231,7 @@ for (const locale of locales) {
           order={{ ...waitingOrder, state: checked }}
           activity={activityPath(waitingClassId)}
           now={now}
+          available={rupiah(100_000_000)}
         />,
       );
       expect(waiting).toContain(
@@ -284,9 +301,14 @@ for (const locale of locales) {
     const done = renderMarkupForTest(
       <TicketDone
         closePath="/classes/1/stocks/BBCA"
-        order={{ ...order, state }}
+        order={{
+          ...order,
+          state,
+          reason: "Bank terbesar, lalu tunggu laporan kuartal.",
+        }}
         activity={activityPath(classId)}
         now={duringSessionForTest}
+        available={rupiah(97_506_265)}
       />,
     );
     for (const value of text.filled)
@@ -297,6 +319,7 @@ for (const locale of locales) {
         order={order}
         activity={activityPath(classId)}
         now={order.expiresAt}
+        available={rupiah(100_000_000)}
       />,
     );
     expect(ended).toContain(text.ended);

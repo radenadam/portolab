@@ -1,4 +1,4 @@
-import { boxesOverlap, distanceToBox } from "./label-box";
+import { boxesOverlap, contains, distanceToBox, hitsLabel } from "./label-box";
 import type { LabelBox } from "./label-box";
 import { labelAscent, labelDescent, placesAroundMark } from "./label-places";
 import type { PlotPosition } from "./plot";
@@ -34,10 +34,11 @@ interface PointLabel {
 export interface MapLabels {
   /** The names of the portfolio and every holding, which keep a place where no place follows every rule, as decision 0035 sets. */
   kept: readonly PointLabel[];
-  /** The fixed labels of the map, each with its places in order of preference. A label takes the first place that follows every rule, or it is left out. */
+  /** The fixed labels of the map, each with its places in order of preference. A label takes the first place that follows every rule, or it is left out. A label with a wide text, such as a corner that the references of decision 0028 name in full on a desktop, takes it in a plot wide enough for it. */
   lines: readonly {
     key: string;
     text: string;
+    wideText?: string | undefined;
     places: readonly LabelPlace[];
   }[];
   /** The names of the other points, which take their best place that follows every rule, or are left out. */
@@ -48,16 +49,19 @@ export interface MapLabels {
 export interface PlacedLabels {
   points: Map<string, LabelPlace>;
   lines: Map<string, LabelPlace>;
+  /** The keys of the fixed labels that took their wide text. */
+  wideLines: Set<string>;
   values: Set<string>;
 }
 
 // The outline and the small overhang beyond SVG text advances need room at every edge.
 const labelOutlineRoom = 0.25;
-// Two labels keep this gap, so that they never read as one, and a label keeps a little room from a mark that is not its own.
-const labelGap = { across: 0.67, down: 0.25 };
+// A label keeps a little room from a mark that is not its own.
 const markRoom = 0.08;
 // A label may reach a little below the plot, over the room above the texts of the marks of the axis.
 const bottomOverhang = 0.33;
+// Every wide text fills at most this share of the width of the plot, so the two corners of one row keep room between them, as the prototype of decision 0028 names its corners in full from a plot about 520 pixels wide.
+const wideTextShare = 0.4;
 // The gutter of the return marks can hold a kept name that has no place within the plot.
 export const keptNameRoom = 1.5;
 // Names keep their gap first and their link to their own point next, before they keep clear of other marks. A cost from ruleBroken on means a broken rule.
@@ -89,6 +93,7 @@ export function placeMapLabels(
   const placedBoxes: LabelBox[] = [];
   const points = new Map<string, LabelPlace>();
   const lines = new Map<string, LabelPlace>();
+  const wideLines = new Set<string>();
   const markOf = new Map(marks.map((mark) => [mark.key, mark]));
   const placePoint = (label: PointLabel, isKept: boolean): void => {
     const mark = markOf.get(label.key);
@@ -135,8 +140,11 @@ export function placeMapLabels(
   for (const label of labels.kept) {
     placePoint(label, true);
   }
-  for (const label of labels.lines) {
-    const width = widthOf(label.text);
+  const placeLine = (
+    label: MapLabels["lines"][number],
+    text: string,
+  ): boolean => {
+    const width = widthOf(text);
     for (const place of label.places) {
       const box = { ...boxOf(place, width, size), fixed: true };
       if (
@@ -152,8 +160,26 @@ export function placeMapLabels(
       ) {
         placedBoxes.push(box);
         lines.set(label.key, place);
-        break;
+        return true;
       }
+    }
+    return false;
+  };
+  // The labels take their wide texts together, so a map never mixes a full corner with a short one for want of width, and a wide text that has no clear place gives way to the short text.
+  const isWide = labels.lines.every(
+    (label) =>
+      label.wideText === undefined ||
+      widthOf(label.wideText) <= size.width * wideTextShare,
+  );
+  for (const label of labels.lines) {
+    if (
+      isWide &&
+      label.wideText !== undefined &&
+      placeLine(label, label.wideText)
+    ) {
+      wideLines.add(label.key);
+    } else {
+      placeLine(label, label.text);
     }
   }
   for (const label of labels.others) {
@@ -162,6 +188,7 @@ export function placeMapLabels(
   return {
     points,
     lines,
+    wideLines,
     values: extendPointValues(
       labels,
       { size, marks, widthOf, canGrow },
@@ -302,32 +329,4 @@ function boxAround(
     top: center.y - radius,
     bottom: center.y + radius,
   };
-}
-
-function contains(
-  size: { width: number; height: number },
-  box: LabelBox,
-  room: { bottom: number; left: number },
-): boolean {
-  return (
-    box.left >= -room.left &&
-    box.right <= size.width &&
-    box.top >= 0 &&
-    box.bottom <= size.height + room.bottom
-  );
-}
-
-function hitsLabel(
-  box: LabelBox,
-  placedBoxes: readonly LabelBox[],
-  canGrow: boolean,
-): boolean {
-  const spaced = {
-    ...box,
-    left: box.left - labelGap.across,
-    right: box.right + labelGap.across,
-    top: box.top - labelGap.down,
-    bottom: box.bottom + labelGap.down,
-  };
-  return placedBoxes.some((other) => boxesOverlap(spaced, other, canGrow));
 }

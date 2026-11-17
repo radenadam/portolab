@@ -6,7 +6,7 @@ import type { TicketDraft } from "./use-ticket-draft";
 import type { AnalysisAxis } from "~/features/measures/analysis-axes";
 import { previewTrade } from "./preview-trade";
 import { ImpactHeading, TradeImpact } from "./trade-impact";
-import { ImpactQuoteTimes } from "./impact-quote-times";
+import { OtherQuoteTimes } from "~/features/market-data/other-quote-times";
 import { unpricedImpactText } from "./stock-impact";
 import styles from "./trade-impact.module.css";
 
@@ -56,9 +56,12 @@ export function TicketImpact({
         months={ticket.impact.ok ? ticket.impact.value.months : undefined}
       />
       {ticket.impact.ok && (
-        <ImpactQuoteTimes
-          stocks={ticket.impact.value.stocks}
-          quotedAt={ticket.quote.quotedAt}
+        <OtherQuoteTimes
+          quotes={ticket.impact.value.stocks.filter(
+            (stock) => stock.shares > 0,
+          )}
+          sharedTime={ticket.quote.quotedAt}
+          className={styles["quoteTimes"]}
         />
       )}
       {preview === undefined ? (

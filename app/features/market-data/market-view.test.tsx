@@ -27,9 +27,7 @@ const texts: Record<Locale, readonly string[]> = {
     "Terapkan",
     "Sektor",
     "Urutkan menurut",
-    "Urutan",
-    "Menurun",
-    "Menaik",
+    "Urutkan menaik",
     "Semua",
     "Beta",
     "Volatilitas/bln",
@@ -52,9 +50,7 @@ const texts: Record<Locale, readonly string[]> = {
     "Apply",
     "Sector",
     "Sort by",
-    "Order",
-    "Descending",
-    "Ascending",
+    "Sort ascending",
     "All",
     "Beta",
     "Volatility/month",
@@ -87,6 +83,8 @@ const states: Record<
     oldTime: string;
     reference: string;
     referenceMarks: string;
+    descendingLink: string;
+    directionField: readonly string[];
     period: string;
   }
 > = {
@@ -107,8 +105,10 @@ const states: Record<
     oldTime: "29 Okt 2026, 16.14 WIB",
     period: "60 imbal hasil bulanan, dari Oktober 2021 sampai September 2026.",
     reference:
-      "Volatilitas IHSG memakai 60 imbal hasil bulanan dari Oktober 2021 sampai September 2026. Buka halaman saham untuk melihat periode ukurannya atau alasan ukurannya belum tersedia.",
+      "Beta dan volatilitas dari imbal hasil bulanan Okt 2021 sampai Sep 2026.",
     referenceMarks: "Garis tegak di tabel: IHSG.",
+    descendingLink: "Urutkan menurun",
+    directionField: ["Urutan", "Menurun", "Menaik"],
   },
   en: {
     one: "LQ45 stock · 1",
@@ -127,8 +127,10 @@ const states: Record<
     oldTime: "Oct 29, 2026, 4:14 PM WIB",
     period: "60 monthly returns, from October 2021 to September 2026.",
     reference:
-      "IHSG volatility uses 60 monthly returns from October 2021 to September 2026. Open a stock page for its measurement period or the reason its measures are unavailable.",
+      "Beta and volatility use monthly returns from Oct 2021 to Sep 2026.",
     referenceMarks: "Vertical ticks in the table mark the IHSG.",
+    descendingLink: "Sort descending",
+    directionField: ["Order", "Descending", "Ascending"],
   },
 };
 
@@ -239,6 +241,18 @@ for (const locale of locales) {
       filters: { ...defaultMarketFilters, query: "BBCA" },
     });
     expect(one).toContain(states[locale].one);
+    const ascending = renderMarketForTest(props, {
+      filters: { ...defaultMarketFilters, direction: "ascending" },
+    });
+    expect(ascending).toContain(states[locale].descendingLink);
+    expect(ascending).toContain("direction=descending");
+    // A direction that the address refused takes its field back, with its label and both choices, so its error names a field that the reader sees.
+    const refused = renderMarketForTest(props, {
+      values: { ...defaultMarketFilters, direction: "salah" },
+      failures: { ...props.failures, direction: "refused" },
+    });
+    for (const text of states[locale].directionField)
+      expect(refused).toContain(`>${text}<`);
     const withoutIndexHistory = await marketContextForTest();
     withoutIndexHistory.get(databaseContext).delete(indexDailyCloses).run();
     const empty = renderMarketForTest(props, {

@@ -58,3 +58,36 @@ export function distanceToBox(
     Math.max(box.top - point.y, 0, point.y - box.bottom),
   );
 }
+
+/** Whether a box lies inside a plot of a size, with room to reach beyond its bottom and its left edge. */
+export function contains(
+  size: { width: number; height: number },
+  box: LabelBox,
+  room: { bottom: number; left: number },
+): boolean {
+  return (
+    box.left >= -room.left &&
+    box.right <= size.width &&
+    box.top >= 0 &&
+    box.bottom <= size.height + room.bottom
+  );
+}
+
+// Two labels keep this gap, so that they never read as one.
+const labelGap = { across: 0.67, down: 0.25 };
+
+/** Whether a box comes nearer than the gap between labels to a label placed before it. */
+export function hitsLabel(
+  box: LabelBox,
+  placedBoxes: readonly LabelBox[],
+  canGrow: boolean,
+): boolean {
+  const spaced = {
+    ...box,
+    left: box.left - labelGap.across,
+    right: box.right + labelGap.across,
+    top: box.top - labelGap.down,
+    bottom: box.bottom + labelGap.down,
+  };
+  return placedBoxes.some((other) => boxesOverlap(spaced, other, canGrow));
+}

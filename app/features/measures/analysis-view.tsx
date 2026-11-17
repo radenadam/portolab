@@ -47,11 +47,9 @@ import { analysisHoldings } from "./analysis-holdings";
 import { MarketSection } from "./market-section";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
 import { attemptForCodes } from "~/features/market-data/quote-failure-text";
-
-interface SummaryLink {
-  path: string;
-  label: string;
-}
+import { OtherQuoteTimes } from "~/features/market-data/other-quote-times";
+import { sharedQuoteTime } from "~/features/market-data/shared-quote-time";
+import { SharedQuoteTimeNotice } from "~/features/market-data/shared-quote-time-notice";
 
 export function AnalysisView({
   classId,
@@ -65,7 +63,6 @@ export function AnalysisView({
   source,
   firstSessionDate,
   reader,
-  summary,
   showData,
   showTitle,
 }: {
@@ -80,7 +77,6 @@ export function AnalysisView({
   source: PriceSourceDescription;
   firstSessionDate: string | null;
   reader: PortfolioReader;
-  summary: SummaryLink;
   showData: boolean;
   showTitle?: boolean;
 }): ReactNode {
@@ -114,7 +110,11 @@ export function AnalysisView({
     <div className={styles["page"]}>
       <AnalysisHeader
         market={market}
-        summary={summary}
+        quotes={report.valuation.holdings.flatMap((holding) =>
+          holding.kind === "priced"
+            ? [{ code: holding.code, quotedAt: holding.quote.quotedAt }]
+            : [],
+        )}
         showTitle={showTitle}
         reader={reader}
       />
@@ -209,16 +209,17 @@ export function AnalysisView({
 
 function AnalysisHeader({
   market,
-  summary,
+  quotes,
   showTitle,
   reader,
 }: {
   market: MarketSummary | undefined;
-  summary: SummaryLink;
+  quotes: readonly { code: string; quotedAt: Date }[];
   showTitle: boolean | undefined;
   reader: PortfolioReader;
 }): ReactNode {
   const riskFreeConcept = measureConcept("riskFree");
+  const sharedTime = sharedQuoteTime(quotes);
   return (
     <header className={styles["header"]}>
       {(showTitle ?? reader.kind === "owner") && (
@@ -251,9 +252,16 @@ function AnalysisHeader({
             calculation={<RiskFreeFormula rate={market.riskFreeRate} />}
             lesson={<ConceptLesson termId={riskFreeConcept.termId} />}
           />
-          <Link className={styles["pricesLink"]} to={summary.path}>
-            {m.measures_analysis_prices_link({ page: summary.label })}
-          </Link>
+        </div>
+      )}
+      {sharedTime !== undefined && (
+        <div className={styles["prices"]}>
+          <SharedQuoteTimeNotice moment={sharedTime} />
+          <OtherQuoteTimes
+            quotes={quotes}
+            sharedTime={sharedTime}
+            className={styles["otherPrices"]}
+          />
         </div>
       )}
     </header>

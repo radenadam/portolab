@@ -19,9 +19,10 @@ import type { ActivityFilter, ActivityStatus } from "./activity-selection";
 import { lotCount } from "./count-parts";
 import { isOpenOrder } from "./open-orders";
 import type { StoredOrder } from "./order-rows";
-import type { OrderSide } from "./order";
 import { OrderRejection } from "./order-rejection";
 import styles from "./activity.module.css";
+import { SideTag } from "./side-tag";
+import { orderSideLabel } from "./order-form-fields";
 import { CancelOrder } from "./cancel-order";
 import type { PortfolioKind } from "./portfolio-store.server";
 
@@ -31,11 +32,6 @@ const statusMarks: Record<ActivityStatus, string> = {
   rejected: "M6 6l12 12M18 6 6 18",
   expired: "M12 7v5l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0",
   cancelled: "M6 6l12 12M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0",
-};
-
-const sideLabels: Record<OrderSide, () => string> = {
-  buy: m.trading_buy_label,
-  sell: m.trading_sell_label,
 };
 
 export function ActivityOrders({
@@ -194,7 +190,7 @@ export function ActivityOrders({
                   {!readOnly && isOpenOrder(order, now) && (
                     <CancelOrder
                       order={order}
-                      side={sideLabels[order.side]()}
+                      side={orderSideLabel(order.side)}
                     />
                   )}
                 </div>
@@ -204,14 +200,6 @@ export function ActivityOrders({
         )}
       </div>
     </section>
-  );
-}
-
-export function SideTag({ side }: { side: StoredOrder["side"] }): ReactNode {
-  return (
-    <span className={styles["side"]} data-side={side}>
-      {sideLabels[side]()}
-    </span>
   );
 }
 

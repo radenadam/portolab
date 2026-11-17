@@ -2,11 +2,8 @@ import styles from "./home-portfolio.module.css";
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { priceChange } from "~/features/market-data/price-change";
-import {
-  formatMarketTime,
-  formatNumber,
-  formatSignedPercent,
-} from "~/formatting";
+import { ownQuoteTime } from "~/features/market-data/shared-quote-time";
+import { formatNumber, formatSignedPercent } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { ChangeText } from "~/change-text";
 import type { ValuedHolding } from "./value-portfolio";
@@ -18,8 +15,12 @@ export function HomeHoldingPrice({
 }: {
   holding: ValuedHolding;
   failed: boolean;
-  sharedTime?: string | undefined;
+  sharedTime: Date | undefined;
 }): ReactNode {
+  const time =
+    holding.kind === "priced"
+      ? ownQuoteTime(holding.quote.quotedAt, sharedTime)
+      : undefined;
   return (
     <>
       {holding.kind === "priced" ? (
@@ -35,13 +36,9 @@ export function HomeHoldingPrice({
               )}
             />
           </small>
-          {formatMarketTime(holding.quote.quotedAt) !== sharedTime && (
+          {time !== undefined && (
             <small className={styles["quoteTime"]}>
-              <NumberText>
-                {m.trading_home_price_time_notice({
-                  time: formatMarketTime(holding.quote.quotedAt),
-                })}
-              </NumberText>
+              <NumberText whole>{time}</NumberText>
             </small>
           )}
           {failed && <small>{m.trading_home_quote_failed_notice()}</small>}

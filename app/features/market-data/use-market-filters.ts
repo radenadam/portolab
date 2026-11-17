@@ -18,8 +18,8 @@ export function useMarketFilters(filters: MarketFilters) {
       'input[name="sector"]:checked',
     );
     const sort = form.querySelector<HTMLSelectElement>('select[name="sort"]');
-    const direction = form.querySelector<HTMLSelectElement>(
-      'select[name="direction"]',
+    const direction = form.querySelector<HTMLInputElement | HTMLSelectElement>(
+      '[name="direction"]',
     );
     setLive({
       ...filters,

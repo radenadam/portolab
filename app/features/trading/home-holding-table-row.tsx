@@ -33,7 +33,7 @@ export function HomeHoldingTableRow({
   classId: ClassId;
   maximumWeight: PortfolioWeight;
   maximumGain: Rupiah;
-  sharedTime: string | undefined;
+  sharedTime: Date | undefined;
   keepReturn: boolean;
 }): ReactNode {
   const { holding } = row;
@@ -62,7 +62,7 @@ export function HomeHoldingTableRow({
         </NumberText>
       </td>
       <td>
-        <NumberText>{formatRupiah(row.averageCost)}</NumberText>
+        <NumberText>{formatNumber(row.averageCost)}</NumberText>
       </td>
       <td>
         <HomeHoldingPrice

@@ -136,21 +136,23 @@ function dateTicksOf(
     const isMinor = mark % 2 === 1;
     isMinorOf.set(index, (isMinorOf.get(index) ?? true) && isMinor);
   }
-  return dates.flatMap((date, index) => {
+  const ticks: DateTick[] = [];
+  for (const [index, date] of dates.entries()) {
     const isMinor = isMinorOf.get(index);
     if (isMinor === undefined) {
-      return [];
+      continue;
     }
     const at = acrossOf(index, dates.length);
-    return [
-      {
-        at,
-        text: dateText(date),
-        anchor: anchorAt(at),
-        isMinor,
-      },
-    ];
-  });
+    const tick = { at, text: dateText(date), anchor: anchorAt(at), isMinor };
+    const previous = ticks.at(-1);
+    // Two dates of a sparse history can share the text of a coarse format, such as two closes in one month, and two marks that read the same tell no date apart. Of such marks, the edge of the latest date and a major mark win, so a narrow chart that hides minor marks keeps the text, but the first date keeps the left edge.
+    if (previous?.text !== tick.text) {
+      ticks.push(tick);
+    } else if (previous.at !== 0 && (at === 1 || previous.isMinor)) {
+      ticks[ticks.length - 1] = tick;
+    }
+  }
+  return ticks;
 }
 
 // A text at an edge of the plot runs inward, so it never sticks out of the chart.

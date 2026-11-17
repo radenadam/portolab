@@ -340,24 +340,32 @@ for (const locale of locales) {
 
 const journalTimes: Record<
   Locale,
-  { shared: string; sameDay: string; otherDay: string; note: string }
+  {
+    shared: string;
+    sameDay: string;
+    otherDay: string;
+    note: string;
+    apart: string;
+  }
 > = {
   id: {
     shared: "Harga 2 Nov 2026, 10.00 WIB.",
-    sameDay: "2 Nov 2026, 09.55 WIB",
+    sameDay: "09.55 WIB",
     otherDay: "30 Okt 2026, 16.00 WIB",
     note: "Harga ",
+    apart: "Harga 2 Nov 2026, 09.55 WIB.",
   },
   en: {
     shared: "Prices Nov 2, 2026, 10:00 AM WIB.",
-    sameDay: "Nov 2, 2026, 9:55 AM WIB",
+    sameDay: "9:55 AM WIB",
     otherDay: "Oct 30, 2026, 4:00 PM WIB",
     note: "Prices ",
+    apart: "Prices Nov 2, 2026, 9:55 AM WIB.",
   },
 };
 
 for (const locale of locales) {
-  test(`states the time that the compared prices of the journal share once and keeps every other time beside its price in ${languageNames[locale]}`, () => {
+  test(`states the time that the compared prices of the journal share once and keeps every other time beside its price, with the date only for another day, in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     // A failed update can leave the quote of BMRI from an earlier day while the others are current.
     const trades = [
@@ -408,8 +416,9 @@ for (const locale of locales) {
         classId={classId}
       />,
     ).replace(/<[^>]+>/g, "");
-    expect(apart).not.toContain(times.note);
-    for (const text of [times.sameDay, times.otherDay])
+    // Two prices of different times share no minute, so the latest of them is stated once and the other keeps its own time.
+    expect(apart.split(times.note)).toHaveLength(2);
+    for (const text of [times.apart, times.otherDay])
       expect(apart).toContain(markupTextForTest(text));
     // A price quoted before a trade gives that entry no comparison, so it shows no time either.
     const earlier = renderMarkupForTest(

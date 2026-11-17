@@ -63,7 +63,7 @@ const texts: Record<
     map: "Peta",
     mapTitle: `Posisi ${widestClassNames.studentName} di peta`,
     risk: "Simpangan baku",
-    prices: "Waktu harga: Ringkasan",
+    prices: "Harga 30 Okt 2026, 16.14 WIB.",
     orders: "Order",
     cancel: "Batalkan order",
     panelJournal: "Jurnal alasan",
@@ -88,7 +88,7 @@ const texts: Record<
     map: "Map",
     mapTitle: `Position of ${widestClassNames.studentName} on the map`,
     risk: "Standard deviation",
-    prices: "Price times: Summary",
+    prices: "Prices Oct 30, 2026, 4:14 PM WIB.",
     orders: "Orders",
     cancel: "Cancel order",
     panelJournal: "Reason journal",
@@ -168,10 +168,10 @@ for (const locale of locales) {
           await page.getByRole("link", { name: text.map, exact: true }).click();
         }
         if (suffix === "/analysis") {
-          await page
-            .getByRole("link", { name: text.prices, exact: true })
-            .click();
-          await expect(page).toHaveURL(summary);
+          await expect(
+            page.getByRole("main").locator("header").last(),
+          ).toContainText(text.prices);
+          await page.goto(summary);
           await page
             .getByRole("navigation", { name: text.sections })
             .getByRole("link", { name: text.analysis, exact: true })

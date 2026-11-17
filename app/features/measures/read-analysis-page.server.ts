@@ -1,5 +1,4 @@
 import type { PortfolioKind } from "~/features/trading/portfolio-store.server";
-import { portfolioHome } from "~/features/trading/portfolio-home";
 import type { PortfolioPageRequest } from "~/features/trading/find-trading-place.server";
 import { data } from "react-router";
 import { databaseContext } from "~/database/database.server";
@@ -26,7 +25,6 @@ export function readAnalysisPage(
     },
     kind,
   );
-  const home = portfolioHome(place.classId, kind);
   const axis = readAnalysisAxis(url);
   if (!axis.ok) {
     return data(
@@ -49,7 +47,6 @@ export function readAnalysisPage(
     now,
     source,
     firstSessionDate: place.firstSessionDate,
-    summary: { path: home.path, label: home.title },
     reader: {
       kind: "owner" as const,
       classId: place.classId,

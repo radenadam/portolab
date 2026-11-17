@@ -40,6 +40,8 @@ const texts: Record<
     chip: readonly [string, string];
     viewChip: readonly [string, string];
     startingCash: string;
+    corners: readonly string[];
+    wideCorners: readonly string[];
     empty: string;
     back: string;
     studentTabs: readonly string[];
@@ -53,6 +55,18 @@ const texts: Record<
     empty:
       "Belum ada mahasiswa yang bergabung. Bagikan kode gabung di bagian atas halaman agar mahasiswa dapat bergabung.",
     startingCash: "Modal awal",
+    corners: [
+      "Tenang, untung",
+      "Bergejolak, untung",
+      "Tenang, rugi",
+      "Bergejolak, rugi",
+    ],
+    wideCorners: [
+      "Lebih tenang dari pasar, untung",
+      "Lebih bergejolak, untung",
+      "Lebih tenang, rugi",
+      "Lebih bergejolak, rugi",
+    ],
     title: "Peta risiko dan imbal hasil",
     deviation: "Simpangan baku",
     axis: "Simpangan baku per bulan",
@@ -73,6 +87,13 @@ const texts: Record<
     empty:
       "No student has joined yet. Share the join code at the top of the page so that students can join.",
     startingCash: "Starting cash",
+    corners: ["Calm, gain", "Volatile, gain", "Calm, loss", "Volatile, loss"],
+    wideCorners: [
+      "Calmer than the market, gain",
+      "More volatile, gain",
+      "Calmer, loss",
+      "More volatile, loss",
+    ],
     title: "Risk and return map",
     deviation: "Standard deviation",
     axis: "Standard deviation per month",
@@ -304,6 +325,21 @@ for (const locale of locales) {
               .filter({ hasText: texts[locale].startingCash }),
           ).toBeVisible();
           await expectMapLabelsClear(drawing);
+          // A corner names its quadrant in full where the browser measured a wide plot, as the desktop references draw it, and briefly on a phone and before JavaScript loads.
+          const fixedTexts = await drawing
+            .locator('[data-map-label="fixed"]')
+            .allTextContents();
+          const isWide = screen === page && width >= 1440;
+          expect({
+            wide: fixedTexts.some((text) =>
+              texts[locale].wideCorners.includes(text),
+            ),
+            short: fixedTexts.some((text) =>
+              texts[locale].corners.includes(text),
+            ),
+          }).toMatchObject(
+            isWide ? { wide: true } : { wide: false, short: true },
+          );
           await expectCompactChoice(
             screen
               .getByRole("link", { name: texts[locale].deviation, exact: true })

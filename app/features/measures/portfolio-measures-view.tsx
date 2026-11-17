@@ -4,7 +4,7 @@ import { marketIndex } from "~/features/market-data/tracked-instruments";
 import type { ReactNode } from "react";
 import type { PriceSourceDescription } from "~/features/market-data/price-source.server";
 import { textForReader } from "~/features/trading/text-for-reader";
-import { portfolioTitle } from "~/features/trading/portfolio-home";
+import { portfolioTitle } from "~/features/trading/portfolio-title";
 import type { PortfolioReader } from "~/features/trading/text-for-reader";
 import { formatNumber } from "~/formatting";
 import { m } from "~/paraglide/messages.js";

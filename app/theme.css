@@ -309,6 +309,16 @@ a {
   overflow-wrap: anywhere;
 }
 
+/* A link that stands alone can open a card in place, which takes a button, so such a button drops the look of a button. */
+button.standalone-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+}
+
 /* A search field draws its button as a magnifier inside its border, as the references of decision 0028 draw a search, so Enter and the magnifier both send it. A CSS module composes it from global. */
 .search-field {
   display: flex;
@@ -331,11 +341,11 @@ a {
   font: inherit;
 }
 
-/* The label of a part that opens, such as a table of returns, has the color of a link and the height of a touch target, and it keeps the marker that shows whether the part is open. */
+/* The label of a part that opens, such as a table of returns, has the color of a link and the height of a touch target, and it keeps the marker that shows whether the part is open. Padding reaches that height, because a line as high as the target would set the lines of a label that wraps a whole target apart. */
 summary {
   min-height: var(--size-touch-target);
+  padding-block: calc((var(--size-touch-target) - 1lh) / 2);
   color: var(--color-link);
-  line-height: var(--size-touch-target);
   cursor: pointer;
 }
 

@@ -89,7 +89,7 @@ const analysisText: Record<
     mapLesson: "Teori portofolio",
     meaning:
       "Diversifikasi menggabungkan saham yang imbal hasilnya tidak bergerak persis bersama, sehingga risiko portofolio dapat lebih kecil daripada rata-rata tertimbang risiko saham.",
-    prices: "Waktu harga: Beranda",
+    prices: "Harga 30 Okt 2026, 16.14 WIB.",
     period:
       "60 imbal hasil bulanan, Oktober 2021 sampai September 2026. Semua ukuran per bulan. Rf 0,479% per bulan dari BI-Rate 5,75%.",
     measures: "Ukuran portofolio Anda",
@@ -159,7 +159,7 @@ const analysisText: Record<
     mapLesson: "Portfolio theory",
     meaning:
       "Diversification combines stocks whose returns do not move exactly together, so portfolio risk can be lower than the weighted average stock risk.",
-    prices: "Price times: Home",
+    prices: "Prices Oct 30, 2026, 4:14 PM WIB.",
     period:
       "60 monthly returns, October 2021 to September 2026. All measures are monthly. Rf 0.479% per month from BI-Rate 5.75%.",
     measures: "Your portfolio measures",
@@ -362,9 +362,7 @@ for (const locale of locales) {
     await expect(student).toHaveTitle(`${text.title} | Portolab`);
     const main = student.getByRole("main");
     await expect(main.locator("header")).toContainText(text.period);
-    await expect(
-      main.getByRole("link", { name: text.prices, exact: true }),
-    ).toHaveAttribute("href", classPath);
+    await expect(main.locator("header")).toContainText(text.prices);
     const measures = main.getByRole("region", {
       name: text.measures,
       exact: true,

@@ -68,7 +68,7 @@ const texts: Record<
     impactWeight: "49,8%",
     lots: "Jumlah lot",
     lotsHelp: "Apa itu Jumlah lot?",
-    prices: "Waktu harga: Portofolio demonstrasi",
+    prices: "Harga 30 Okt 2026, 16.14 WIB.",
     changed:
       "Total order berubah dari pratinjau yang Anda lihat. Periksa rincian biaya, lalu konfirmasi lagi.",
     sell: "Jual",
@@ -105,7 +105,7 @@ const texts: Record<
     impactWeight: "49.8%",
     lots: "Lots",
     lotsHelp: "What is Lots?",
-    prices: "Price times: Demonstration portfolio",
+    prices: "Prices Oct 30, 2026, 4:14 PM WIB.",
     changed:
       "The order total changed from the preview you saw. Check the cost breakdown, then confirm again.",
     sell: "Sell",
@@ -343,10 +343,10 @@ for (const locale of locales) {
             fromTop: true,
             check,
           });
-        await page
-          .getByRole("link", { name: text.prices, exact: true })
-          .click();
-        await expect(page).toHaveURL(path);
+        await expect(page.getByRole("main").locator("header")).toContainText(
+          text.prices,
+        );
+        await page.goto(path);
         await tabs
           .getByRole("link", { name: text.analysis, exact: true })
           .click();

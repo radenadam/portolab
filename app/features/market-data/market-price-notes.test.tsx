@@ -41,7 +41,7 @@ const texts: Record<
 };
 
 for (const locale of locales) {
-  test(`states one shared quote time and keeps exceptions beside their prices in ${languageNames[locale]}`, async () => {
+  test(`states one shared quote time and keeps exceptions beside their prices, even for one stock, in ${languageNames[locale]}`, async () => {
     switchLocaleForTest(locale);
     const props = await marketViewPropsForTest();
     const html = renderMarketForTest(props);
@@ -61,8 +61,9 @@ for (const locale of locales) {
     const single = renderMarketForTest(props, {
       filters: { ...defaultMarketFilters, query: "BBCA" },
     });
-    expect(single).not.toContain(texts[locale].shared);
-    expect(marketRowForTest(single, "BBCA")).toContain("<time");
+    // The one stock and the IHSG share no minute, so the latest of them is stated once.
+    expect(single.split(texts[locale].shared)).toHaveLength(2);
+    expect(marketRowForTest(single, "BBCA")).not.toContain("<time");
   });
 
   test(`keeps missing measures in value cells and explains each reason once below the table in ${languageNames[locale]}`, async () => {

@@ -31,15 +31,20 @@ for (const javaScriptEnabled of [true, false]) {
         });
         await student.goto(`${classPath}/stocks/BBCA/buy?lots=10`);
         await expect(
-          student
-            .locator("dialog")
-            .getByText(texts[locale].body, { exact: true }),
+          student.getByText(texts[locale].body, { exact: true }),
         ).toHaveCount(0);
         await student.goto(`${classPath}/stocks/BMRI/buy?lots=10`);
-        const notice = student
+        // The header of the stock states the times beside the docked ticket of a desktop, and the sheet of a phone states them itself.
+        const inTicket = student
           .locator("dialog")
           .getByText(texts[locale].body, { exact: true });
+        const notice =
+          test.info().project.name === "desktop"
+            ? student.getByText(texts[locale].body, { exact: true }).first()
+            : inTicket;
         await expect(notice).toBeVisible();
+        if (test.info().project.name === "desktop")
+          await expect(inTicket).toBeHidden();
         await expect(notice.locator("[data-number]")).toHaveText(
           texts[locale].time,
         );

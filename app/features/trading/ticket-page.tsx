@@ -3,14 +3,13 @@ import { LessonTaskBanner } from "~/features/learning/lesson-task-banner";
 import { activityPath } from "./activity-path";
 import { smallestOrderLots } from "~/units/lots";
 import { CompanyTile } from "~/features/market-data/stock-name";
-import { NumberText } from "~/number-text";
 import { useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 import { data, Link, useNavigate } from "react-router";
 import { databaseContext } from "~/database/database.server";
 import { stockPath } from "~/features/market-data/stock-path";
 import { trackedStockCodes } from "~/features/market-data/tracked-instruments";
-import { formatMarketTime, formatNumber } from "~/formatting";
+import { formatNumber } from "~/formatting";
 import { pageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
 import { parseRecordId } from "~/value-parsers";
@@ -249,15 +248,6 @@ export default function TicketPage({
               })}
             </span>
           </h2>
-          {ticket.quote !== undefined && (
-            <span className={styles["desktopTime"]}>
-              <NumberText whole>
-                {m.trading_ticket_quote_notice({
-                  time: formatMarketTime(ticket.quote.quotedAt),
-                })}
-              </NumberText>
-            </span>
-          )}
           <Link
             to={closePath}
             preventScrollReset
@@ -294,6 +284,7 @@ export default function TicketPage({
             activity={loaderData.activity}
             closePath={closePath}
             task={loaderData.task}
+            available={ticket.available}
           />
         )}
       </dialog>

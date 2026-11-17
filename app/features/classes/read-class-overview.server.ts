@@ -18,8 +18,10 @@ import { readCurrentPortfolio } from "~/features/trading/read-current-portfolio.
 import { readPortfolioReport } from "~/features/trading/read-portfolio-report.server";
 import { readPortfolioMeasures } from "~/features/measures/read-measures.server";
 import { explainPortfolioMeasures } from "~/features/measures/explain-portfolio-measures";
-import { sharedQuoteTime } from "~/features/market-data/shared-quote-time";
-import { latestQuoteTime } from "~/features/market-data/latest-quote-time";
+import {
+  ownQuoteTime,
+  sharedQuoteTime,
+} from "~/features/market-data/shared-quote-time";
 import type { Quote } from "~/features/market-data/price-source.server";
 import { measureStoredMarket } from "~/features/measures/measure-stored.server";
 import { formatMarketTime, formatList } from "~/formatting";
@@ -113,10 +115,7 @@ export function readClassOverview(
     rows.map((row) => row.overview),
   );
   const quotes = rows.flatMap((row) => row.quotes);
-  const latest = latestQuoteTime(quotes);
-  const pricesAt =
-    sharedQuoteTime(quotes) ??
-    (latest === undefined ? undefined : formatMarketTime(latest));
+  const pricesAt = sharedQuoteTime(quotes);
   const market = measureStoredMarket(database);
   const summary = classSummary(compared, risks);
   const lessonSessions = readLessonSessions();
@@ -163,7 +162,7 @@ export function readClassOverview(
     pricesAt:
       pricesAt === undefined
         ? undefined
-        : m.classes_prices_time_label({ time: pricesAt }),
+        : m.classes_prices_time_label({ time: formatMarketTime(pricesAt) }),
   };
 }
 
@@ -288,7 +287,7 @@ function orderActivity(
 
 function portfolioPriceTimes(
   { report, quotes }: ReturnType<typeof readOverviewStudent>,
-  sharedTime: string | undefined,
+  sharedTime: Date | undefined,
 ): string {
   if (quotes.length === 0)
     return report.valuation.holdings.length === 0
@@ -296,8 +295,8 @@ function portfolioPriceTimes(
       : m.classes_measure_pending_label();
   return formatList(
     quotes.map((quote) => {
-      const time = formatMarketTime(quote.quotedAt);
-      return time === sharedTime
+      const time = ownQuoteTime(quote.quotedAt, sharedTime);
+      return time === undefined
         ? quote.code
         : m.app_map_value_part({ name: quote.code, value: time });
     }),

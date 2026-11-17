@@ -1,5 +1,5 @@
 import type { LimitPriceFailure } from "./limit-price-failure-text";
-import { portfolioTitle } from "./portfolio-home";
+import { portfolioTitle } from "./portfolio-title";
 import type { PortfolioKind } from "./portfolio-store.server";
 import { countedText } from "~/counted-text";
 import { monthlyReturnCount } from "~/features/measures/monthly-return-count";

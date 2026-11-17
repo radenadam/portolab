@@ -48,7 +48,7 @@ const texts: Record<
     latest: "2 Nov 2026, 10.00",
     price: "BBCA",
     pricesSame: "BBCA dan TLKM",
-    pricesMixed: "BBCA dan TLKM 30 Okt 2026, 16.15",
+    pricesMixed: "BBCA dan TLKM 16.15 WIB",
     pricesAt: "30 Okt 2026, 16.14 WIB",
   },
   en: {
@@ -56,7 +56,7 @@ const texts: Record<
     latest: "Nov 2, 2026, 10:00 AM",
     price: "BBCA",
     pricesSame: "BBCA and TLKM",
-    pricesMixed: "BBCA and TLKM Oct 30, 2026, 4:15 PM",
+    pricesMixed: "BBCA and TLKM 4:15 PM WIB",
     pricesAt: "Oct 30, 2026, 4:14 PM WIB",
   },
 };

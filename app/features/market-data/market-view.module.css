@@ -25,14 +25,71 @@
   font-size: var(--text-small);
   color: var(--color-muted);
 }
+.searchField {
+  composes: search-field from global;
+}
+@media (width < 60rem) {
+  .search {
+    flex-basis: 100%;
+  }
+}
+.searchSubmit {
+  composes: button from "../../icon-button.module.css";
+  border-radius: var(--radius-item);
+  color: var(--color-muted);
+}
+.searchIcon,
+.sortIcon {
+  flex: none;
+  width: var(--size-icon);
+  height: var(--size-icon);
+}
+/* The order of the list sits at the end of the row of sectors, as the references draw it: the measure behind sliders and a toggle of the direction. */
+.order {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-1);
+  margin-inline-start: auto;
+}
+.sortControl {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.sortControl .sortIcon {
+  position: absolute;
+  inset-inline-start: var(--space-3);
+  color: var(--color-ink-secondary);
+  pointer-events: none;
+}
+.sortControl select {
+  appearance: none;
+  min-block-size: var(--size-touch-target);
+  max-inline-size: 100%;
+  padding-inline: calc(var(--space-3) + var(--size-icon) + var(--space-2))
+    var(--space-3);
+  border: var(--size-line) solid var(--color-line-strong);
+  border-radius: var(--radius-item);
+  background: var(--color-panel);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--text-small);
+  font-weight: 600;
+  cursor: pointer;
+}
+.direction {
+  composes: button from "../../icon-button.module.css";
+  border-radius: var(--radius-item);
+  color: var(--color-ink-secondary);
+}
+.direction[data-direction="ascending"] svg {
+  transform: scaleY(-1);
+}
 .control {
   composes: control from "../../form.module.css";
   min-inline-size: 0;
   padding-inline: var(--space-3);
   color: var(--color-ink);
-}
-.apply {
-  composes: stepButton from "../../form.module.css";
 }
 .listPanel {
   composes: surface from "../../panel.module.css";
@@ -115,6 +172,15 @@
 .sectors legend {
   font-size: var(--text-small);
   color: var(--color-muted);
+}
+/* The references draw the sectors without a legend, and the legend shows when it names the field of an error. */
+.quietLegend {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 .chip {
   flex: none;
@@ -225,9 +291,6 @@
   font-size: var(--text-small);
   color: var(--color-muted);
 }
-.priceCell time > span {
-  display: block;
-}
 .changeCell,
 .measureCell {
   text-align: end;
@@ -266,6 +329,9 @@
   }
   .sectors {
     flex-basis: 100%;
+  }
+  .order {
+    margin-inline-start: 0;
   }
   .table colgroup {
     display: none;

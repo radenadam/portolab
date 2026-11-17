@@ -1,4 +1,6 @@
 import { MarketSectors } from "./market-sectors";
+import { MarketOrder } from "./market-order";
+import { Icon } from "~/icon";
 import { LessonTaskBanner } from "~/features/learning/lesson-task-banner";
 import {
   lessonTaskField,
@@ -6,10 +8,9 @@ import {
 } from "~/features/learning/lesson-task";
 import { FilterOptions } from "./filter-options";
 import { MarketMeasureHelp } from "./market-measure-help";
-import { MarketReferenceNotice } from "./market-reference-notice";
+import { MarketNotes } from "./market-notes";
 import { MarketMeasureNotes } from "./market-measure-notes";
 import { sharedQuoteTime } from "./shared-quote-time";
-import { SharedQuoteTimeNotice } from "./shared-quote-time-notice";
 import { MarketEmpty } from "./market-empty";
 import { useMarketFilters } from "./use-market-filters";
 import type { ReactNode } from "react";
@@ -23,13 +24,7 @@ import { NumberText } from "~/number-text";
 import { FieldFailure } from "~/described-field";
 import { MarketTable } from "./market-table";
 import { IhsgCard } from "./ihsg-card";
-import {
-  marketChoiceLabel,
-  marketSorts,
-  marketSortOptions,
-  marketDirectionOptions,
-  marketRangeOptions,
-} from "./market-filters";
+import { marketChoiceLabel, marketRangeOptions } from "./market-filters";
 import type { MarketFilters, MarketSort } from "./market-filters";
 import { filterMarketRows } from "./filter-market-rows";
 import { marketSearch } from "./market-search";
@@ -85,33 +80,41 @@ export function MarketView(props: MarketViewProps): ReactNode {
         <header className={styles["tools"]}>
           <h1>{m.market_data_page_title()}</h1>
           <div className={styles["search"]}>
-            <label htmlFor="market-search">
-              {m.market_data_search_label()}
-            </label>
-            <input
-              className={styles["control"]}
-              id="market-search"
-              name="q"
-              type="search"
-              defaultValue={values.query}
-              onChange={(event) => {
-                setLive({ ...live, query: event.currentTarget.value });
-              }}
-              placeholder={m.market_data_search_hint()}
-              aria-invalid={failures.query !== undefined}
-              aria-describedby={
-                failures.query === undefined ? undefined : "search-failure"
-              }
-            />
+            {failures.query !== undefined && (
+              <label htmlFor="market-search">
+                {m.market_data_search_label()}
+              </label>
+            )}
+            <div className={styles["searchField"]}>
+              <button
+                type="submit"
+                className={styles["searchSubmit"]}
+                aria-label={m.market_data_apply_label()}
+              >
+                <Icon name="search" className={styles["searchIcon"]} />
+              </button>
+              <input
+                id="market-search"
+                name="q"
+                type="search"
+                defaultValue={values.query}
+                onChange={(event) => {
+                  setLive({ ...live, query: event.currentTarget.value });
+                }}
+                placeholder={m.market_data_search_hint()}
+                aria-label={m.market_data_search_label()}
+                aria-invalid={failures.query !== undefined}
+                aria-describedby={
+                  failures.query === undefined ? undefined : "search-failure"
+                }
+              />
+            </div>
             <FieldFailure
               id="search-failure"
               text={failures.query}
               quotedValue={values.query}
             />
           </div>
-          <button type="submit" className={styles["apply"]}>
-            {m.market_data_apply_label()}
-          </button>
         </header>
         {failures.range === undefined ? (
           <input type="hidden" name="range" value={filters.range} />
@@ -159,73 +162,14 @@ export function MarketView(props: MarketViewProps): ReactNode {
               setLive({ ...live, sector });
             }}
           />
-          <div className={styles["select"]}>
-            <label htmlFor="market-sort">{m.market_data_sort_label()}</label>
-            <select
-              className={styles["control"]}
-              id="market-sort"
-              name="sort"
-              aria-label={m.market_data_sort_label()}
-              aria-invalid={failures.sort !== undefined}
-              aria-describedby={
-                failures.sort === undefined ? undefined : "sort-failure"
-              }
-              defaultValue={values.sort}
-              onChange={(event) => {
-                const sort = marketSorts.find(
-                  (value) => value === event.currentTarget.value,
-                );
-                if (sort !== undefined) setLive({ ...live, sort });
-              }}
-            >
-              <FilterOptions
-                options={marketSortOptions()}
-                value={values.sort}
-              />
-            </select>
-            <FieldFailure
-              id="sort-failure"
-              text={failures.sort}
-              quotedValue={marketChoiceLabel(values.sort)}
-            />
-          </div>
-          <div className={styles["select"]}>
-            <label htmlFor="market-direction">
-              {m.market_data_direction_label()}
-            </label>
-            <select
-              className={styles["control"]}
-              id="market-direction"
-              name="direction"
-              aria-label={m.market_data_direction_label()}
-              aria-invalid={failures.direction !== undefined}
-              aria-describedby={
-                failures.direction === undefined
-                  ? undefined
-                  : "direction-failure"
-              }
-              defaultValue={values.direction}
-              onChange={(event) => {
-                setLive({
-                  ...live,
-                  direction:
-                    event.currentTarget.value === "ascending"
-                      ? "ascending"
-                      : "descending",
-                });
-              }}
-            >
-              <FilterOptions
-                options={marketDirectionOptions()}
-                value={values.direction}
-              />
-            </select>
-            <FieldFailure
-              id="direction-failure"
-              text={failures.direction}
-              quotedValue={marketChoiceLabel(values.direction)}
-            />
-          </div>
+          <MarketOrder
+            classId={classId}
+            live={live}
+            values={values}
+            failures={failures}
+            task={props.task}
+            setLive={setLive}
+          />
           {mobileConcept !== undefined && (
             <div className={styles["mobileHelp"]}>
               <MarketMeasureHelp
@@ -282,16 +226,14 @@ export function MarketView(props: MarketViewProps): ReactNode {
           )}
         </section>
       )}
-      {sharedTime !== undefined && (
-        <SharedQuoteTimeNotice time={sharedTime} className={styles["status"]} />
-      )}
-      <MarketMeasureNotes rows={shown} />
-      <MarketReferenceNotice
+      <MarketNotes
         rows={shown}
+        sharedTime={sharedTime}
         indexQuote={props.indexQuote}
         reference={props.marketReference}
         index={props.index}
       />
+      <MarketMeasureNotes rows={shown} />
       <PriceStatus
         quotes={props.quotes}
         latestAttempt={latestAttempt}

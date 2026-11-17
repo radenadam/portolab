@@ -56,7 +56,7 @@ export function MarketTable({
   returnPath: string;
   reference: ReturnType<typeof readMarket>["marketReference"];
   index: string;
-  sharedTime: string | undefined;
+  sharedTime: Date | undefined;
   task?: LessonTask | undefined;
 }): ReactNode {
   const marketDeviation = reference.ok
