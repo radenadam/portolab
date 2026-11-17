@@ -14,9 +14,14 @@ async function openPopover(page: Page, id: string): Promise<Locator> {
   return popover;
 }
 
-/** Opens the menu of the profile from the button that the screen shows in the top bar, which is the name on a desktop and the avatar on a phone, and returns the menu. */
-export function openProfileMenu(page: Page): Promise<Locator> {
-  return openPopover(page, "top-profile");
+// When the join code occupies the desktop top bar, the lecturer opens the profile from the rail.
+export async function openProfileMenu(page: Page): Promise<Locator> {
+  const button = page
+    .locator('button[popovertarget$="-profile"]:visible')
+    .last();
+  const id = await button.getAttribute("popovertarget");
+  if (id === null) throw new Error("The profile button names no popover.");
+  return openPopover(page, id);
 }
 
 /** Opens the switch of the language that the top bar offers a person without the menu of a profile, such as a visitor, and returns it. */

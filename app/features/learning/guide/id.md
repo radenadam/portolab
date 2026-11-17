@@ -12,7 +12,7 @@ Untuk melihat sisi mahasiswa, gunakan akun mahasiswa contoh di jendela privat at
 
 Nama kelas di bagian atas membuka pilihan kelas. Setiap kelas menyimpan portofolio dan mahasiswanya sendiri. Pada komputer, menu ada di sisi kiri. Pada ponsel, menu ada di bagian bawah.
 
-Menu dosen berisi {{label:navigation_class_link}}, {{label:navigation_students_link}}, {{label:navigation_portfolio_link}}, {{label:navigation_market_link}}, dan {{label:navigation_learn_link}}. Buka nama atau avatar Anda untuk {{label:accounts_account_link}}, pilihan bahasa, panduan ini, dan {{label:accounts_sign_out_title}}. Anda dapat mengganti nama dan kata sandi di halaman akun.
+Menu dosen berisi {{label:navigation_class_link}}, {{label:navigation_students_link}}, {{label:navigation_portfolio_link}}, {{label:navigation_market_link}}, dan {{label:navigation_learn_link}}. Buka nama atau avatar Anda untuk {{label:accounts_account_link}}, pilihan tema dan bahasa, panduan ini, dan {{label:accounts_sign_out_title}}. Anda dapat mengganti nama dan kata sandi di halaman akun.
 
 {{link:account|Halaman akun}}
 

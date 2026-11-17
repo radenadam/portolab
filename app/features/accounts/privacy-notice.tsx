@@ -1,3 +1,4 @@
+import { themeCookieName, themeLifetimeDays } from "~/features/theme/theme";
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { lastClassLifetimeDays } from "~/features/classes/class-rules";
@@ -44,6 +45,14 @@ export function PrivacyNotice(): ReactNode {
           </NumberText>
         </li>
         <li>{m.accounts_privacy_language_body()}</li>
+        <li>
+          <NumberText>
+            {m.accounts_privacy_theme_body({
+              cookie: themeCookieName,
+              days: formatNumber(themeLifetimeDays),
+            })}
+          </NumberText>
+        </li>
         <li>{m.accounts_privacy_ticket_draft_body()}</li>
         <li>
           <NumberText>

@@ -1,6 +1,6 @@
 # 0034. A stock carries the name and the sector that IDX publishes
 
-- Status: Accepted. [Decision 0044](0044-the-ticket-shows-the-trade-before-confirmation.md) supersedes where the order ticket shows the company name and sector. [Decision 0057](0057-the-owner-supplies-company-logos-outside-the-repository.md) supersedes when the company tile shows a monogram and how the owner supplies logos.
+- Status: Accepted. [Decision 0044](0044-the-ticket-shows-the-trade-before-confirmation.md) supersedes where the order ticket shows the company name and sector. [Decision 0058](0058-the-owner-supplies-company-logos-outside-the-repository.md) supersedes when the company tile shows a monogram and how the owner supplies logos.
 - Date: 2026-11-14
 
 ## Context

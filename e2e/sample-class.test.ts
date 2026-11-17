@@ -18,6 +18,7 @@ import type { Locale } from "../app/paraglide/runtime.js";
 import { secondMilliseconds } from "../app/time-units.ts";
 import { submitSignIn } from "./accounts.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
+import { openProfileMenu } from "./frame.ts";
 import { captureScreens } from "./capture-screens.ts";
 import { startTestServer } from "./start-test-server.ts";
 import { newDevice } from "./new-device.ts";
@@ -193,6 +194,21 @@ for (const locale of locales) {
               exact: true,
             }),
           ).toBeVisible();
+        for (const theme of ["dark", "system"] as const) {
+          const profile = await openProfileMenu(reader);
+          await profile
+            .locator(`form[action="/theme"] button[value="${theme}"]`)
+            .click();
+          await expect(reader.locator("html")).toHaveAttribute(
+            "data-theme",
+            theme,
+          );
+          await reader.reload();
+          await expect(reader.locator("html")).toHaveAttribute(
+            "data-theme",
+            theme,
+          );
+        }
         await expectAccessibleScreen(reader);
         for (const image of await reader
           .locator('img[src="/company-logos/BBCA.png"]:visible')

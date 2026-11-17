@@ -1,3 +1,4 @@
+import { routeFormFromAnotherSite } from "./route-form-from-another-site.ts";
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import { nameMaximumLength } from "../app/features/accounts/account-limits.ts";
@@ -248,13 +249,7 @@ async function expectRefusedSignOutFromAnotherSite(
 ): Promise<void> {
   const text = texts[locale];
   await page.goto("/account");
-  // A browser names the origin of the page that holds a form, and no page can change that header. So the test sends the request itself with the origin of another site, and gives its answer to the page.
-  await page.route("**/sign-out*", async (route) => {
-    const response = await route.fetch({
-      headers: { ...route.request().headers(), origin: "https://example.com" },
-    });
-    await route.fulfill({ response });
-  });
+  await routeFormFromAnotherSite(page, "**/sign-out*");
   await page
     .getByRole("main")
     .getByRole("button", { name: text.signOutButton })
