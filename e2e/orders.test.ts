@@ -179,7 +179,10 @@ for (const locale of locales) {
     ).toHaveCount(testInfo.project.name === "phone" ? 1 : 0);
     if (testInfo.project.name === "desktop")
       await expect(
-        student.getByRole("main").getByText(text.quote, { exact: false }),
+        student
+          .getByRole("main")
+          .getByText(text.quote, { exact: false })
+          .first(),
       ).toBeVisible();
     await expect(ticket.getByText(text.hint, { exact: true })).toBeVisible();
     // Python Decimal with ROUND_HALF_UP gives 498000 + 747 = 498747 for one lot at the fixture quote.

@@ -343,9 +343,9 @@ for (const locale of locales) {
             fromTop: true,
             check,
           });
-        await expect(page.getByRole("main").locator("header")).toContainText(
-          text.prices,
-        );
+        await expect(
+          page.getByRole("main").getByText(text.prices, { exact: true }),
+        ).toBeVisible();
         await page.goto(path);
         await tabs
           .getByRole("link", { name: text.analysis, exact: true })

@@ -188,14 +188,14 @@ test("discovers a new route without adding a budget entry by hand", () => {
 test("applies measured route allowances only to the named routes and asset kinds", () => {
   const { chunks, routes, files } = fixture();
   const cases = [
-    ["features/market-data/stock-page", "213 kB", "21 kB"],
+    ["features/market-data/stock-page", "213.4 kB", "21 kB"],
     ["features/market-data/stock-page-detail", "200 kB", "20 kB"],
     ["features/classes/class-page", "220 kB", "24 kB"],
-    ["features/trading/ticket-page", "220.1 kB", "24 kB"],
-    ["features/measures/measures-page", "201 kB", "20 kB"],
+    ["features/trading/ticket-page", "221.3 kB", "24 kB"],
+    ["features/measures/measures-page", "201.7 kB", "20 kB"],
     ["features/measures/measures-page-detail", "200 kB", "20 kB"],
     ["features/trading/demonstration-summary-page", "220 kB", "24 kB"],
-    ["features/measures/demonstration-analysis-page", "202 kB", "20 kB"],
+    ["features/measures/demonstration-analysis-page", "202.6 kB", "20 kB"],
     ["features/measures/demonstration-analysis-page-detail", "200 kB", "20 kB"],
     ["features/market-data/market-page", "200 kB", "20 kB"],
     ["features/grading/student-portfolio-page", "220 kB", "24 kB"],

@@ -102,7 +102,7 @@ const states: Record<
     missed: "Pembaruan terakhir gagal",
     noPrice: "Portolab belum memiliki harga WIFI.",
     time: "30 Okt 2026, 16.14 WIB",
-    oldTime: "29 Okt 2026, 16.14 WIB",
+    oldTime: "29 Okt 2026",
     period: "60 imbal hasil bulanan, dari Oktober 2021 sampai September 2026.",
     reference:
       "Beta dan volatilitas dari imbal hasil bulanan Okt 2021 sampai Sep 2026.",
@@ -124,7 +124,7 @@ const states: Record<
     missed: "Last update failed",
     noPrice: "Portolab has no price for WIFI yet.",
     time: "Oct 30, 2026, 4:14 PM WIB",
-    oldTime: "Oct 29, 2026, 4:14 PM WIB",
+    oldTime: "Oct 29, 2026",
     period: "60 monthly returns, from October 2021 to September 2026.",
     reference:
       "Beta and volatility use monthly returns from Oct 2021 to Sep 2026.",

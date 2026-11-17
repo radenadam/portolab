@@ -48,6 +48,7 @@ import { MarketSection } from "./market-section";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
 import { attemptForCodes } from "~/features/market-data/quote-failure-text";
 import { OtherQuoteTimes } from "~/features/market-data/other-quote-times";
+import { holdingQuoteTimes } from "~/features/trading/value-portfolio";
 import { sharedQuoteTime } from "~/features/market-data/shared-quote-time";
 import { SharedQuoteTimeNotice } from "~/features/market-data/shared-quote-time-notice";
 
@@ -110,11 +111,7 @@ export function AnalysisView({
     <div className={styles["page"]}>
       <AnalysisHeader
         market={market}
-        quotes={report.valuation.holdings.flatMap((holding) =>
-          holding.kind === "priced"
-            ? [{ code: holding.code, quotedAt: holding.quote.quotedAt }]
-            : [],
-        )}
+        quotes={holdingQuoteTimes(report.valuation.holdings)}
         showTitle={showTitle}
         reader={reader}
       />

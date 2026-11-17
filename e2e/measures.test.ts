@@ -362,7 +362,7 @@ for (const locale of locales) {
     await expect(student).toHaveTitle(`${text.title} | Portolab`);
     const main = student.getByRole("main");
     await expect(main.locator("header")).toContainText(text.period);
-    await expect(main.locator("header")).toContainText(text.prices);
+    await expect(main.getByText(text.prices, { exact: true })).toBeVisible();
     const measures = main.getByRole("region", {
       name: text.measures,
       exact: true,

@@ -162,6 +162,7 @@ export function MarketTable({
                   <QuoteTime
                     quotedAt={row.quote.quotedAt}
                     sharedTime={sharedTime}
+                    dayAlone
                   />
                 </>
               )}

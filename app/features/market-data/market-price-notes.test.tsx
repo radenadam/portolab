@@ -22,6 +22,8 @@ const texts: Record<
     heading: string;
     missing: string;
     missingValue: string;
+    olderDay: string;
+    olderTime: string;
   }
 > = {
   id: {
@@ -30,6 +32,8 @@ const texts: Record<
     heading: "Mengapa beta dan volatilitas belum tersedia",
     missing: "Portolab belum memiliki harga WIFI.",
     missingValue: "-",
+    olderDay: "29 Okt 2026",
+    olderTime: "29 Okt 2026, 16.14",
   },
   en: {
     shared: "Prices Oct 30, 2026, 4:14 PM WIB.",
@@ -37,6 +41,8 @@ const texts: Record<
     heading: "Why beta and volatility are unavailable",
     missing: "Portolab has no price for WIFI yet.",
     missingValue: "-",
+    olderDay: "Oct 29, 2026",
+    olderTime: "Oct 29, 2026, 4:14 PM",
   },
 };
 
@@ -56,6 +62,11 @@ for (const locale of locales) {
       expect(marketRowForTest(html, code)).toMatch(
         new RegExp(`<time datetime="${date}`, "i"),
       );
+    // The column of prices is too narrow for a date with its time, so a price of another day shows its day alone, and the page of the stock shows its time.
+    expect(marketRowForTest(html, "BMRI")).toContain(texts[locale].olderDay);
+    expect(marketRowForTest(html, "BMRI")).not.toContain(
+      texts[locale].olderTime,
+    );
     expect(marketRowForTest(html, "WIFI")).toContain(texts[locale].missing);
     expect(marketRowForTest(html, "WIFI")).not.toContain("<time");
     const single = renderMarketForTest(props, {
