@@ -73,6 +73,7 @@
     "app/features/measures/month-end-closes-for-test.ts",
     "app/features/sample-class/sample-prices-for-test.server.ts",
     "app/features/sample-class/sample-close-recordings-for-test.ts",
+    "app/features/theme/theme.ts",
     "app/features/trading/reason-maximum-length.ts",
     "app/features/trading/idx-order-size.ts",
     "app/features/trading/trading.schema.ts",

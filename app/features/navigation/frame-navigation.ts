@@ -118,6 +118,7 @@ const currentItems: Record<RouteId, NavigationItem | undefined> = {
   "features/classes/reset-password-page": "students",
   "features/classes/join-page": "join",
   "features/classes/join-class-page": "join",
+  "features/theme/theme-page": undefined,
   "features/language/language-page": undefined,
   "features/health/health-route": undefined,
   "not-found-page": undefined,

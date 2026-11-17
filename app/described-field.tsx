@@ -68,7 +68,7 @@ export function FieldFailure({
 }: {
   id: string;
   text: string | undefined;
-  quotedValue?: string;
+  quotedValue?: string | undefined;
 }): ReactNode {
   // The server sends a finished message, so only the quoted input is text. An unquoted quantity can have the same digits.
   const value = quotedValue?.trim();

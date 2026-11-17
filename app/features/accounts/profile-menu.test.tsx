@@ -1,4 +1,6 @@
 import { expect, test } from "vitest";
+import { themes } from "~/features/theme/theme";
+import type { Theme } from "~/features/theme/theme";
 import { languageNames } from "~/language-names";
 import { locales } from "~/paraglide/runtime.js";
 import type { Locale } from "~/paraglide/runtime.js";
@@ -15,6 +17,8 @@ const texts: Record<
     language: string;
     signOut: string;
     guide: string;
+    theme: string;
+    choices: Record<Theme, string>;
   }
 > = {
   id: {
@@ -24,6 +28,8 @@ const texts: Record<
     language: "Bahasa",
     signOut: "Keluar",
     guide: "Panduan",
+    theme: "Tema",
+    choices: { system: "Sistem", light: "Terang", dark: "Gelap" },
   },
   en: {
     lecturer: "Lecturer",
@@ -32,6 +38,8 @@ const texts: Record<
     language: "Language",
     signOut: "Sign out",
     guide: "Guide",
+    theme: "Theme",
+    choices: { system: "System", light: "Light", dark: "Dark" },
   },
 };
 
@@ -62,6 +70,12 @@ for (const locale of locales) {
           role === "lecturer"
             ? `<a href="/guide" data-discover="true">${text.guide}</a>`
             : "",
+          `<div><form data-discover="true" action="/theme" method="post"><input type="hidden" name="returnTo" value="/"/><span>${text.theme}</span><div role="group">`,
+          ...themes.map(
+            (theme) =>
+              `<button type="submit" value="${theme}" aria-pressed="${String(theme === "system")}" name="theme">${text.choices[theme]}</button>`,
+          ),
+          `</div></form></div>`,
           `<div><form data-discover="true" action="/language" method="post"><input type="hidden" name="returnTo" value="/"/><span>${text.language}</span>`,
           `<div role="group"><button type="submit" value="id" lang="id" aria-pressed="${String(locale === "id")}" name="locale">Bahasa Indonesia</button>`,
           `<button type="submit" value="en" lang="en" aria-pressed="${String(locale === "en")}" name="locale">English</button></div></form></div><hr/>`,

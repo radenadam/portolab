@@ -12,7 +12,7 @@ To see the student side, use a sample student account in a private window or ano
 
 The class name at the top opens the class switcher. Each class keeps its own portfolios and students. On a computer, navigation is on the left. On a phone, it is at the bottom.
 
-Your navigation contains {{label:navigation_class_link}}, {{label:navigation_students_link}}, {{label:navigation_portfolio_link}}, {{label:navigation_market_link}}, and {{label:navigation_learn_link}}. Open your name or avatar for {{label:accounts_account_link}}, the language choice, this guide, and {{label:accounts_sign_out_title}}. You can change your name and password on the account page.
+Your navigation contains {{label:navigation_class_link}}, {{label:navigation_students_link}}, {{label:navigation_portfolio_link}}, {{label:navigation_market_link}}, and {{label:navigation_learn_link}}. Open your name or avatar for {{label:accounts_account_link}}, the theme and language choices, this guide, and {{label:accounts_sign_out_title}}. You can change your name and password on the account page.
 
 {{link:account|Account page}}
 

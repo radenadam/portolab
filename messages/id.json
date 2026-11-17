@@ -1151,5 +1151,16 @@
   "trading_home_since_long_time_part": "berisi {length} karakter, sehingga bukan waktu dari ringkasan",
   "trading_home_since_invalid_time_part": "berisi {value}, tetapi waktu itu tidak sah untuk keanggotaan Anda",
   "trading_home_since_time_error": "Waktu untuk \"{source}\" {problem}. Portolab hanya menutup kejadian yang termasuk saat ringkasan dimuat. Muat ulang Beranda, lalu tutup ringkasan terbaru.",
-  "trading_home_since_reload_link": "Muat ulang Beranda"
+  "trading_home_since_reload_link": "Muat ulang Beranda",
+  "theme_switch_label": "Tema",
+  "theme_system_label": "Sistem",
+  "theme_light_label": "Terang",
+  "theme_dark_label": "Gelap",
+  "theme_page_title": "Pilih tema",
+  "theme_rejected_title": "Tema tidak dapat diganti",
+  "theme_unknown_error": "Formulir mengirim \"{value}\" di kolom \"{field}\", tetapi kolom ini hanya menerima {choices}. Pilih salah satunya di pilihan tema.",
+  "theme_long_error": "Formulir mengirim {length} karakter di kolom \"{field}\", tetapi kolom ini hanya menerima {choices}. Pilih salah satunya di pilihan tema.",
+  "theme_missing_error": "Formulir tidak mengirim tema di kolom \"{field}\". Pilih {choices} di pilihan tema.",
+  "theme_not_text_error": "Formulir mengirim nilai bertipe {type} di kolom \"{field}\", bukan teks. Pilih {choices} di pilihan tema.",
+  "accounts_privacy_theme_body": "Cookie {cookie} menyimpan pilihan tema Anda di peramban selama {days} hari."
 }
