@@ -26,6 +26,10 @@ import { languageNames } from "../app/language-names.ts";
 import { parseSampleCredentialsForTest } from "../scripts/parse-sample-credentials-for-test.ts";
 import { successValueForTest } from "../app/success-value-for-test.ts";
 import { companyLogoForTest } from "../app/features/market-data/company-logo-for-test.ts";
+import {
+  companyLogoFileName,
+  companyLogoPath,
+} from "../app/features/market-data/company-logo-paths.ts";
 import { expectCompanyLogo } from "./expect-company-logo.ts";
 import { holdClientScripts } from "./hold-client-scripts.ts";
 import { trackedStockCodes } from "../app/features/market-data/tracked-instruments.ts";
@@ -110,7 +114,7 @@ const test = base.extend<{ sample: SampleSite }>({
       for (const code of trackedStockCodes) {
         if (code !== missingLogo.code)
           writeFileSync(
-            join(companyLogosPath, `${code}.png`),
+            join(companyLogosPath, companyLogoFileName(code)),
             companyLogoForTest(code === "TLKM" ? "wide" : "square"),
           );
       }
@@ -324,7 +328,7 @@ for (const locale of locales) {
                   ["TLKM", "wide"],
                 ] as const) {
                   for (const image of await visibleContent
-                    .locator(`img[src="/company-logos/${code}.png"]:visible`)
+                    .locator(`img[src="${companyLogoPath(code)}"]:visible`)
                     .all())
                     await expectCompanyLogo(image, shape);
                 }
