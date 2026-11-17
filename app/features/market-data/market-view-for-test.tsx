@@ -10,8 +10,12 @@ import { readMarket } from "./read-market.server";
 
 type Props = ComponentProps<typeof MarketView>;
 
-export function marketRowForTest(html: string, code: string): string {
-  const row = new RegExp(`<tr[^>]*id="stock-${code}"[^>]*>(.*?)</tr>`).exec(
+export function marketRowForTest(
+  html: string,
+  code: string,
+  prefix: "stock" | "watched-stock" = "stock",
+): string {
+  const row = new RegExp(`<tr[^>]*id="${prefix}-${code}"[^>]*>(.*?)</tr>`).exec(
     html,
   )?.[1];
   if (row === undefined)
@@ -42,6 +46,7 @@ export async function marketViewPropsForTest(
       "3m",
     ),
     classId: 1 as ClassId,
+    watchedCodes: [],
     filters: defaultMarketFilters,
     values: defaultMarketFilters,
     failures: {

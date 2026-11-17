@@ -147,16 +147,26 @@ export function SelectField({
 export function SubmitButton({
   label,
   className = styles["button"],
+  children,
+  pressed,
 }: {
   label: string;
   /** The look of the button where a form stands in another part than a page, such as an item of a menu. */
   className?: string | undefined;
+  children?: ReactNode;
+  pressed?: boolean;
 }): ReactNode {
   // After the answer, the next page still loads, and a tap then would send the form again too.
   const isWaiting = useNavigation().state !== "idle";
   return (
-    <button type="submit" disabled={isWaiting} className={className}>
-      <NumberText>{label}</NumberText>
+    <button
+      type="submit"
+      disabled={isWaiting}
+      className={className}
+      aria-label={children === undefined ? undefined : label}
+      aria-pressed={pressed}
+    >
+      {children ?? <NumberText>{label}</NumberText>}
     </button>
   );
 }

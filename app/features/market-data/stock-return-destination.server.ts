@@ -13,11 +13,15 @@ export function stockReturnDestination({
   portfolioKind,
   url,
   request,
+  code,
+  watched,
 }: {
   classId: ClassId;
   portfolioKind: PortfolioKind;
   url: URL;
   request: Request;
+  code: string;
+  watched: boolean;
 }) {
   const destination = new URL(
     returnDestination(url.searchParams.get("returnTo"), request),
@@ -25,6 +29,13 @@ export function stockReturnDestination({
   );
   const analysis =
     destination.pathname === measuresPath(classId, portfolioKind);
+  // Removing a star removes its watched row, so the full list becomes the remaining source row.
+  if (
+    destination.pathname === marketPath(classId) &&
+    !watched &&
+    destination.hash === `#watched-stock-${code}`
+  )
+    destination.hash = `#stock-${code}`;
   const studentPage =
     portfolioKind === "demonstration"
       ? studentPageAt(classId, destination.pathname)

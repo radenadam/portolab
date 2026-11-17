@@ -211,7 +211,7 @@
   "accounts_privacy_lecturer_body": "The lecturer of a class sees the name, the username, and the work of each student in it, and can download them in a spreadsheet for grading. The lecturer also reads the reason that a student writes for an order. Students see classmates' portfolios only as unnamed points on the map.",
   "accounts_privacy_server_body": "The person who runs this Portolab server can read everything that it stores, because they keep its database.",
   "accounts_privacy_rights_title": "Your rights",
-  "accounts_privacy_rights_body": "Indonesia's Law Number 27 of 2022 on Personal Data Protection gives you the right to see, correct, and delete your data, and to withdraw your agreement. You can change your name on the page of your account. Portolab keeps your data until the person who runs this server deletes it, so ask them for a copy of all your data or for its deletion. To withdraw your agreement, ask them to delete your data, because Portolab stores your data only with your agreement.",
+  "accounts_privacy_rights_body": "Indonesia's Law Number 27 of 2022 on Personal Data Protection gives you the right to see, correct, and delete your data, and to withdraw your agreement. You can change your name on the page of your account. Portolab keeps your account and class work until the person who runs this server deletes it, so ask them for a copy of all your data or for its deletion. To withdraw your agreement, ask them to delete your data, because Portolab stores your data only with your agreement.",
   "accounts_sign_out_title": "Sign out",
   "accounts_sign_out_body": "Sign out of Portolab on this device.",
   "accounts_username_hint": "You sign in with it. It has {minimum} to {maximum} characters from {characters}.",
@@ -1152,5 +1152,10 @@
   "theme_long_error": "The form sent {length} characters in the field \"{field}\", but this field only takes {choices}. Choose one of them in the theme choice.",
   "theme_missing_error": "The form sent no theme in the field \"{field}\". Choose {choices} in the theme choice.",
   "theme_not_text_error": "The form sent a value of type {type} in the field \"{field}\" instead of text. Choose {choices} in the theme choice.",
-  "accounts_privacy_theme_body": "The {cookie} cookie keeps your theme choice in your browser for {days} days."
+  "accounts_privacy_theme_body": "The {cookie} cookie keeps your theme choice in your browser for {days} days.",
+  "watchlist_add_label": "Add {code} to your watchlist",
+  "watchlist_remove_label": "Remove {code} from your watchlist",
+  "market_data_watch_label": "Watch",
+  "market_data_watchlist_title": "Your watchlist",
+  "accounts_privacy_watchlist_body": "The codes of stocks you watch and the time you added them. This watchlist belongs to your account across classes. The app shows it only to you and removes an entry when you remove its star or your account is deleted."
 }

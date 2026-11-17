@@ -21,7 +21,7 @@ const changes: Record<Locale, { zero: string; BBCA: string; AMMN: string }> = {
 
 for (const locale of locales) {
   for (const tick of [-25, 25]) {
-    test(`omits a rounded-zero bar and centers the rounded-zero IHSG tick after a reverse split with a price tick of ${String(tick)} in ${languageNames[locale]}`, async () => {
+    test(`aligns a rounded-zero bar and IHSG tick in both lists after a reverse split with a price tick of ${String(tick)} in ${languageNames[locale]}`, async () => {
       switchLocaleForTest(locale);
       const props = await marketViewPropsForTest();
       const row = props.rows.find((candidate) => candidate.code === "BBCA");
@@ -43,6 +43,7 @@ for (const locale of locales) {
       expect(quoteChange(quote)).not.toBe(0);
       expect(quoteChange(indexQuote)).not.toBe(0);
       const html = renderMarketForTest(props, {
+        watchedCodes: ["BBCA"],
         filters: { ...props.filters, query: "BBCA" },
         values: { ...props.values, query: "BBCA" },
         rows: props.rows.map((current) =>
@@ -61,11 +62,19 @@ for (const locale of locales) {
       expect(rendered).toContain(changes[locale].zero);
       expect(rendered).not.toContain("▲");
       expect(rendered).not.toContain("▼");
+      const origin = new RegExp(
+        `class="${String(styles["flatBar"])}" style="left:([^;]+);width:0%"`,
+      ).exec(rendered)?.[1];
+      expect(origin).toBeDefined();
       expect(rendered).toContain(
-        `class="${String(styles["flatBar"])}" style="left:50%;width:0%"`,
+        `class="${String(styles["referenceTick"])}" style="left:${String(origin)}"`,
       );
-      expect(rendered).toContain(
-        `class="${String(styles["referenceTick"])}" style="left:50%"`,
+      const watched = marketRowForTest(html, "BBCA", "watched-stock");
+      expect(watched).toContain(
+        `class="${String(styles["flatBar"])}" style="left:${String(origin)};width:0%"`,
+      );
+      expect(watched).toContain(
+        `class="${String(styles["referenceTick"])}" style="left:${String(origin)}"`,
       );
     });
   }

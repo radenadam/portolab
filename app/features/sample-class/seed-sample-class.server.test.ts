@@ -42,6 +42,7 @@ import {
   sampleMomentForTest,
 } from "./sample-prices-for-test.server";
 import { isSampleClass } from "./is-sample-class.server";
+import { watchedCodes } from "~/features/watchlist/watchlist-store.server";
 import { seedSampleClass as seedSampleClassWithClock } from "./seed-sample-class.server";
 import { buildSamplePortfolio } from "./build-sample-portfolio";
 import { readSampleMarket } from "./read-sample-market.server";
@@ -296,6 +297,11 @@ test("seeds a separate class with credentials, every terminal order state, curre
   });
   const people = database.select().from(users).all();
   expect(people).toHaveLength(31);
+  for (const person of people) {
+    expect(watchedCodes(database, person.id)).toEqual(
+      person.username === "contoh-30" ? [] : ["BBCA", "TLKM"],
+    );
+  }
   const lecturer = people.find((person) => person.role === "lecturer");
   const taught = database.select().from(classes).get();
   if (lecturer === undefined || taught === undefined)
@@ -441,6 +447,7 @@ test.each([
       .run();
     database.$client.pragma("foreign_keys = OFF");
     for (const name of [
+      "watchlist",
       "sessions",
       "holdings",
       "orders",

@@ -7,7 +7,10 @@ import { openDatabaseForTest } from "~/database/open-database-for-test.server";
 import { users } from "./accounts.schema";
 import type { UserId } from "./accounts.schema";
 import { updateAccount } from "./account-store.server";
-import { createTestStudent } from "./accounts-for-test.server";
+import {
+  createTestStudent,
+  readerContextForTest,
+} from "./accounts-for-test.server";
 import {
   currentSessionContext,
   reloadSessionAccount,
@@ -65,4 +68,41 @@ test("gives the role of the person who is signed in, also before the account is 
   expect(signedInRole(context)).toBe("student");
   context.set(currentSessionContext, undefined);
   expect(signedInRole(context)).toBeUndefined();
+});
+
+test("preserves the query and row fragment while sign-in or account setup interrupts an action", async () => {
+  const database = openDatabaseForTest();
+  const { context, id } = await contextOfStudent(database);
+  database
+    .update(users)
+    .set({ mustChangePassword: true })
+    .where(eq(users.id, id))
+    .run();
+  reloadSessionAccount(context, url);
+  expect(context.get(currentSessionContext)?.account.mustChangePassword).toBe(
+    true,
+  );
+  const visitor = readerContextForTest(database, undefined);
+  expect(visitor.get(currentSessionContext)).toBeUndefined();
+  const destination = new URL("/classes/7/market?q=BBCA#stock-BBCA", url);
+  for (const [reader, next] of [
+    [context, "/account/setup"],
+    [visitor, "/sign-in"],
+  ] as const) {
+    let refusal: unknown;
+    try {
+      requireUser(reader, destination);
+    } catch (caught) {
+      refusal = caught;
+    }
+    if (!(refusal instanceof Response))
+      throw new Error(
+        "The session guard did not redirect to the required account step.",
+        { cause: refusal },
+      );
+    expect(refusal.status).toBe(302);
+    expect(refusal.headers.get("Location")).toBe(
+      `${next}?returnTo=%2Fclasses%2F7%2Fmarket%3Fq%3DBBCA%23stock-BBCA`,
+    );
+  }
 });

@@ -9,6 +9,9 @@ import type { Route } from "./+types/market-page";
 import { MarketView } from "./market-view";
 import { readMarket } from "./read-market.server";
 import { readMarketMap } from "./read-market-map.server";
+import { requireUser } from "~/features/accounts/current-session.server";
+import { databaseContext } from "~/database/database.server";
+import { watchedCodes } from "~/features/watchlist/watchlist-store.server";
 
 export function meta(): Route.MetaDescriptors {
   return [{ title: pageTitle(m.market_data_page_title()) }];
@@ -17,10 +20,12 @@ export function meta(): Route.MetaDescriptors {
 export function loader({ context, params, url, request }: Route.LoaderArgs) {
   const now = new Date();
   const classId = requireReaderClass(context, url, params.classId);
+  const reader = requireUser(context, url);
   const { filters, values, failures } = readMarketFilters(url.searchParams);
   return data(
     {
       classId,
+      watchedCodes: watchedCodes(context.get(databaseContext), reader.id),
       task: readLessonTask(url),
       ...readMarket(context, now, filters.range),
       map:

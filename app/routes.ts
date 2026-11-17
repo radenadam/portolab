@@ -20,6 +20,10 @@ export default [
     ),
     route("classes/:classId/glossary", "features/learning/glossary-page.tsx"),
     route("classes/:classId/market", "features/market-data/market-page.tsx"),
+    route(
+      "classes/:classId/watchlist/:code/:operation",
+      "features/watchlist/watchlist-page.tsx",
+    ),
     route("classes/:classId/activity", "features/trading/activity-page.tsx"),
     route(
       "classes/:classId/demonstration",
