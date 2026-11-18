@@ -1,3 +1,4 @@
+import { stockPath } from "~/features/market-data/stock-path";
 import { expect, test } from "vitest";
 import { RouterContextProvider } from "react-router";
 import { databaseContext } from "~/database/database.server";
@@ -81,7 +82,7 @@ for (const locale of locales) {
             place: { classId, owner },
             code: "BBCA",
             side,
-            ticketPath: `/classes/1/stocks/BBCA/${side}`,
+            ticketPath: stockPath(classId, "BBCA", side),
             now,
           });
         expect(submit("5", "0")).toMatchObject({

@@ -173,6 +173,10 @@ for (const locale of locales) {
       [bbcaForTest.quote],
       duringSessionForTest,
     );
+    const classId = successValueForTest(
+      parseRecordId<ClassId>("1", "classId"),
+      "The class id is valid",
+    );
     const moments = [
       duringSessionForTest,
       new Date("2026-11-02T05:00:00Z"),
@@ -189,8 +193,8 @@ for (const locale of locales) {
         <TicketForm
           code="BBCA"
           side="buy"
-          path="/classes/1/stocks/BBCA"
-          search=""
+          classId={classId}
+          search="?range=3m&lessonTask=9"
           ticket={ticket}
           fields={{ ...blankOrderForm, lots: "5" }}
           rejection={{ text: "Cash", lotsStep: lots(4), field: "lots" }}
@@ -198,6 +202,9 @@ for (const locale of locales) {
           restoreDraft={false}
         />,
         conceptLessonDataForTest(),
+      );
+      expect(html).toContain(
+        'action="/classes/1/stocks/BBCA/buy?range=3m&amp;lessonTask=9"',
       );
       expect(html).toContain(
         markupTextForTest(
@@ -210,10 +217,6 @@ for (const locale of locales) {
         purchaseForTest({ placedAt: now }),
         { cash: rupiah(100_000_000), holdings: [], orders: [] },
         bbcaForTest,
-      );
-      const waitingClassId = successValueForTest(
-        parseRecordId<ClassId>("1", "classId"),
-        "The class id is valid",
       );
       const checked = checkOrder({
         order: waitingOrder,
@@ -229,7 +232,7 @@ for (const locale of locales) {
         <TicketDone
           closePath="/classes/1/stocks/BBCA"
           order={{ ...waitingOrder, state: checked, reason: "Bank terbesar." }}
-          activity={activityPath(waitingClassId)}
+          activity={activityPath(classId)}
           now={now}
           available={rupiah(100_000_000)}
         />,
@@ -263,8 +266,8 @@ for (const locale of locales) {
       <TicketForm
         code="BBCA"
         side="sell"
-        path="/classes/1/stocks/BBCA"
-        search=""
+        classId={classId}
+        search="?range=3m&lessonTask=9"
         ticket={ticket}
         fields={{
           ...blankOrderForm,
@@ -277,6 +280,9 @@ for (const locale of locales) {
         restoreDraft={false}
       />,
       conceptLessonDataForTest(),
+    );
+    expect(limit).toContain(
+      'action="/classes/1/stocks/BBCA/sell?range=3m&amp;lessonTask=9"',
     );
     for (const amount of text.sellAmounts) expect(limit).toContain(amount);
     expect(limit).toContain(`placeholder="${text.sellReason}"`);
@@ -298,10 +304,6 @@ for (const locale of locales) {
       },
     });
     expect(state.kind).toBe("filled");
-    const classId = successValueForTest(
-      parseRecordId<ClassId>("1", "classId"),
-      "The class id is valid",
-    );
     const done = renderMarkupForTest(
       <TicketDone
         closePath="/classes/1/stocks/BBCA"

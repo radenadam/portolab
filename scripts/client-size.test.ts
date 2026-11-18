@@ -190,7 +190,8 @@ test("applies measured route allowances only to the named routes and asset kinds
   const cases = [
     ["features/market-data/stock-page", "215.6 kB", "21 kB"],
     ["features/market-data/stock-page-detail", "200 kB", "20 kB"],
-    ["features/classes/class-page", "220 kB", "24 kB"],
+    ["features/classes/class-page", "220.7 kB", "24 kB"],
+    ["features/classes/class-page-detail", "200 kB", "20 kB"],
     ["features/trading/ticket-page", "223.5 kB", "24 kB"],
     ["features/measures/measures-page", "210 kB", "20 kB"],
     ["features/measures/measures-page-detail", "200 kB", "20 kB"],

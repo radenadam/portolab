@@ -1,3 +1,4 @@
+import { stockPath } from "~/features/market-data/stock-path";
 import { RouterContextProvider } from "react-router";
 import { expect, test } from "vitest";
 import { databaseContext } from "~/database/database.server";
@@ -110,7 +111,7 @@ async function studentRequestForTest(): Promise<{
         now,
         code: "BBCA",
         side,
-        ticketPath: `/classes/1/stocks/BBCA/${side}`,
+        ticketPath: stockPath(classId, "BBCA", side),
       };
     },
   };

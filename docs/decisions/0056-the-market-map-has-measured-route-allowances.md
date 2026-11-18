@@ -1,6 +1,6 @@
 # 0056. The market map has measured route allowances
 
-- Status: Accepted. [Decision 0057](0057-theme-choice-has-measured-shared-and-route-allowances.md) replaces its shared JavaScript ceiling, its Pasar JavaScript and CSS ceilings, and its JavaScript ceilings for Saham, the ticket, Analisis, and demonstration analysis. [Decision 0058](0058-analysis-panels-have-measured-route-allowances.md) replaces its rule that the lecturer's student analysis and demonstration analysis keep their earlier CSS ceilings.
+- Status: Accepted. [Decision 0057](0057-theme-choice-has-measured-shared-and-route-allowances.md) replaces its shared JavaScript ceiling, its Pasar JavaScript and CSS ceilings, and its JavaScript ceilings for Saham, the ticket, Analisis, and demonstration analysis. [Decision 0059](0059-analysis-panels-have-measured-route-allowances.md) replaces its rule that the lecturer's student analysis and demonstration analysis keep their earlier CSS ceilings.
 - Date: 2026-11-17
 
 ## Context
