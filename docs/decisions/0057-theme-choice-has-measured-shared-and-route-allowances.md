@@ -1,6 +1,6 @@
 # 0057. Theme choice has measured shared and route allowances
 
-- Status: Accepted. [Decision 0058](0058-learning-practices-have-measured-sheet-allowances.md) replaces its shared JavaScript ceiling, its JavaScript ceilings for Market, the stock page, ticket, student analysis, and demonstration analysis, and its CSS ceiling for Market.
+- Status: Accepted. [Decision 0059](0059-learning-practices-have-measured-sheet-allowances.md) replaces its shared JavaScript ceiling, its JavaScript ceilings for Market, the stock page, ticket, student analysis, and demonstration analysis, and its CSS ceiling for Market.
 - Date: 2026-11-17
 
 ## Context

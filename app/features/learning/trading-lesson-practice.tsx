@@ -120,7 +120,7 @@ export function TradingLessonPractice({
         {trading.code !== undefined && (
           <LessonTaskLink
             to={withLessonTask(
-              pathWithQuery(`${stockPath(classId, trading.code)}/buy`, {
+              pathWithQuery(stockPath(classId, trading.code, "buy"), {
                 priceKind: "limit",
               }),
               6,

@@ -31,11 +31,13 @@ import type { readTicket } from "./read-ticket.server";
 import styles from "./ticket.module.css";
 import type { Rupiah } from "~/units/rupiah";
 import type { AnalysisAxis } from "~/features/measures/analysis-axes";
+import type { ClassId } from "~/features/classes/classes.schema";
+import { stockPath } from "~/features/market-data/stock-path";
 
 export function TicketForm({
   code,
   side: initialSide,
-  path,
+  classId,
   search,
   ticket,
   fields,
@@ -47,7 +49,7 @@ export function TicketForm({
 }: {
   code: string;
   side: OrderSide;
-  path: string;
+  classId: ClassId;
   search: string;
   ticket: ReturnType<typeof readTicket>;
   fields: OrderFormFields;
@@ -71,7 +73,7 @@ export function TicketForm({
       code={code}
       portfolioKind={portfolioKind}
       side={initialSide}
-      path={path}
+      classId={classId}
       search={search}
       ticket={{ ...ticket, day, quote }}
       fields={fields}
@@ -85,7 +87,6 @@ export function TicketForm({
 
 function TicketFields(
   props: Parameters<typeof useTicketDraft>[0] & {
-    code: string;
     portfolioKind: PortfolioKind;
     rejection: OrderRejection | undefined;
     limitSteps: readonly Rupiah[] | undefined;
@@ -133,27 +134,30 @@ function TicketFields(
         </p>
       )}
       <nav className={styles["segments"]} aria-label={m.trading_side_label()}>
-        {sideOptions().map(({ value, label }) => (
-          <a
-            key={value}
-            href={pathWithQuery(`${props.path}/${value}${props.search}`, {
-              lots: values.lots,
-              price: values.limit,
-              priceKind: values.priceKind,
-            })}
-            aria-current={side === value ? "true" : undefined}
-            data-side={value}
-            onClick={(event) => {
-              event.preventDefault();
-              draft.chooseSide(value, event.currentTarget.closest("form"));
-              void navigate(`${props.path}/${value}${props.search}`, {
-                preventScrollReset: true,
-              });
-            }}
-          >
-            {label}
-          </a>
-        ))}
+        {sideOptions().map(({ value, label }) => {
+          const destination = `${stockPath(props.classId, props.code, value)}${props.search}`;
+          return (
+            <a
+              key={value}
+              href={pathWithQuery(destination, {
+                lots: values.lots,
+                price: values.limit,
+                priceKind: values.priceKind,
+              })}
+              aria-current={side === value ? "true" : undefined}
+              data-side={value}
+              onClick={(event) => {
+                event.preventDefault();
+                draft.chooseSide(value, event.currentTarget.closest("form"));
+                void navigate(destination, {
+                  preventScrollReset: true,
+                });
+              }}
+            >
+              {label}
+            </a>
+          );
+        })}
       </nav>
       <TicketKind draft={draft} />
       <TicketPrice

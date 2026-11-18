@@ -5,7 +5,7 @@ interface ClientRouteLimits {
 
 const exerciseStylesheetLimit = "24 kB";
 
-// Decisions 0049 and 0058 record these allowances for complete lesson sheets.
+// Decisions 0049 and 0059 record these allowances for complete lesson sheets.
 const measuredRoutes: ReadonlyMap<string, Partial<ClientRouteLimits>> = new Map(
   [
     [
