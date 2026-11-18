@@ -1,4 +1,4 @@
-# 0061. A student gives an optional NIM for each class
+# 0063. A student gives an optional NIM for each class
 
 - Status: Accepted
 - Date: 2026-11-17

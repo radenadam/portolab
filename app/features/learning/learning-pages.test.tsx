@@ -1,4 +1,5 @@
 import { lessonPracticeForTest } from "./lesson-practice-for-test";
+import { glossaryCountTextsForTest } from "./glossary-counts-for-test.ts";
 import { lessonActivityOf } from "./lesson-practice-sessions";
 import { tradingLessonForTest } from "./trading-lesson-for-test";
 import { languageNames } from "~/language-names";
@@ -69,7 +70,11 @@ const texts: Record<
     return: "Kembali ke halaman sebelumnya",
     search: "Cari di Kamus",
     placeholder: "Cari istilah atau artinya",
-    counts: ["0 istilah", "1 istilah", "44 istilah"],
+    counts: [
+      glossaryCountTextsForTest.id.none,
+      glossaryCountTextsForTest.id.one,
+      glossaryCountTextsForTest.id.all,
+    ],
     empty: 'Tidak ada istilah yang memuat "xyz". Coba kata yang lebih pendek.',
   },
   en: {
@@ -96,7 +101,11 @@ const texts: Record<
     return: "Back to the previous page",
     search: "Search Glossary",
     placeholder: "Search terms or definitions",
-    counts: ["0 terms", "1 term", "44 terms"],
+    counts: [
+      glossaryCountTextsForTest.en.none,
+      glossaryCountTextsForTest.en.one,
+      glossaryCountTextsForTest.en.all,
+    ],
     empty: 'No terms contain "xyz". Try a shorter word.',
   },
 };

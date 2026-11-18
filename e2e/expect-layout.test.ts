@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
+import { setTimeout } from "node:timers/promises";
 import { contentWidthToken, layoutProblems } from "./expect-layout.ts";
 
 // Each page sets its own width of content, narrower than the phone of the tests, so a rule is broken only where a page breaks it on purpose.
@@ -31,6 +32,56 @@ function twoTables(style: string, codes: readonly string[]): string {
 
 // The tables of a test take the width of their columns from their own cells unless a style fixes it, so a code wider than the other moves the next column.
 const codesOfDifferentWidths = ["BBCA", "BBCAWWWW"];
+
+for (const javaScriptEnabled of [false, true]) {
+  test.describe(`with JavaScript ${String(javaScriptEnabled)}`, () => {
+    test.use({ javaScriptEnabled });
+    test("waits for pending styles before inspecting row columns", async ({
+      page,
+    }) => {
+      const stylesheet = "https://layout-check.test/rows.css";
+      const { promise: stylesReleased, resolve: releaseStyles } =
+        Promise.withResolvers<undefined>();
+      await page.route(stylesheet, async (route) => {
+        await stylesReleased;
+        await route.fulfill({
+          contentType: "text/css",
+          body: ".row { display: grid; grid-template-columns: 120px 40px; }",
+        });
+      });
+      try {
+        await showPage(
+          page,
+          `<div data-layout="rows">${codesOfDifferentWidths.map((code) => `<div class="row"><span>${code}</span><span>1</span></div>`).join("")}</div>`,
+        );
+        await page.evaluate(async (address) => {
+          await document.fonts.ready;
+          const link = document.createElement("link");
+          link.rel = "stylesheet";
+          link.href = address;
+          document.head.append(link);
+        }, stylesheet);
+        expect(
+          await page
+            .locator("link[rel=stylesheet]")
+            .evaluate(
+              (link) => link instanceof HTMLLinkElement && link.sheet === null,
+            ),
+        ).toBe(true);
+        const [problems] = await Promise.all([
+          layoutProblems(page),
+          setTimeout(250).then(() => {
+            releaseStyles(undefined);
+          }),
+        ]);
+        expect(problems).toEqual([]);
+      } finally {
+        releaseStyles(undefined);
+        await page.unrouteAll({ behavior: "wait" });
+      }
+    });
+  });
+}
 
 /** Returns how far one edge or the width of the elements that a selector finds differs among them, so a test can check the state that its page sets up. */
 async function spreadOf(

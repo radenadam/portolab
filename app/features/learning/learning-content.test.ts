@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { glossaryTermCountForTest } from "./glossary-counts-for-test.ts";
 import { locales } from "../../paraglide/runtime.js";
 import type { Locale } from "../../paraglide/runtime.js";
 import type { Result } from "../../result.ts";
@@ -52,7 +53,7 @@ describe("shipped learning content", () => {
     for (const translation of content) {
       const expected = translations[translation.locale];
       expect(translation.sessions).toHaveLength(sessionCount);
-      expect(translation.terms).toHaveLength(44);
+      expect(translation.terms).toHaveLength(glossaryTermCountForTest);
       expect(
         translation.sessions.find((session) => session.session === 2)?.title,
       ).toBe(expected.title);

@@ -285,7 +285,7 @@ rm ~/portolab-mahasiswa1.txt
 
 ### Correct the data of a person
 
-A person changes their name and their NIM for each class on the page of their account, at `https://portolab.example.com/account` with your domain, by the same rule as when they gave it. A person who cannot sign in first gets a temporary password, which a student gets from the lecturer of the class, and a lecturer from you with the action `reset-password` of [section 7](#7-create-the-first-lecturer-account). [Decision 0061](decisions/0061-a-student-gives-an-optional-nim-for-each-class.md) defines NIM correction. [Decision 0024](decisions/0024-a-person-changes-their-own-name-on-the-page-of-the-account.md) defines name correction.
+A person changes their name and their NIM for each class on the page of their account, at `https://portolab.example.com/account` with your domain, by the same rule as when they gave it. A person who cannot sign in first gets a temporary password, which a student gets from the lecturer of the class, and a lecturer from you with the action `reset-password` of [section 7](#7-create-the-first-lecturer-account). [Decision 0063](decisions/0063-a-student-gives-an-optional-nim-for-each-class.md) defines NIM correction. [Decision 0024](decisions/0024-a-person-changes-their-own-name-on-the-page-of-the-account.md) defines name correction.
 
 ### Delete the data of a person
 
