@@ -32,6 +32,7 @@ const texts: Record<
     analysis: string;
     journal: string;
     sections: string;
+    lecturer: string;
   }
 > = {
   id: {
@@ -40,7 +41,7 @@ const texts: Record<
     saved: "Portolab menyimpan NIM Anda untuk kelas ini.",
     cleared: "Portolab mengosongkan NIM Anda untuk kelas ini.",
     title: `NIM di ${widestClassNames.className}`,
-    search: "Cari nama atau NIM",
+    search: "Cari nama, NIM, atau nama pengguna",
     searchButton: "Cari",
     open: "Buka portofolio",
     join: "Gabung ke kelas",
@@ -51,6 +52,8 @@ const texts: Record<
     analysis: "Analisis",
     journal: "Jurnal dan order",
     sections: "Bagian portofolio mahasiswa",
+    lecturer:
+      "Hanya mahasiswa yang memberikan NIM, untuk setiap kelas yang diikutinya, dan Anda masuk sebagai dosen. Masuklah dengan akun mahasiswa itu untuk mengubah NIM-nya.",
   },
   en: {
     hint: 'Optional for this class. Your lecturer sees this NIM. Use at most 32 characters from A to Z, a to z, 0 to 9, ".", "/", or "-". Leave it empty if you have none.',
@@ -58,7 +61,7 @@ const texts: Record<
     saved: "Portolab saved your NIM for this class.",
     cleared: "Portolab cleared your NIM for this class.",
     title: `NIM in ${widestClassNames.className}`,
-    search: "Search name or NIM",
+    search: "Search name, NIM, or username",
     searchButton: "Search",
     open: "Open portfolio",
     join: "Join the class",
@@ -69,6 +72,8 @@ const texts: Record<
     analysis: "Analysis",
     journal: "Journal and orders",
     sections: "Student portfolio sections",
+    lecturer:
+      "Only a student gives a NIM, for each class that the student joined, and you are signed in as a lecturer. Sign in with the account of the student to change its NIM.",
   },
 };
 
@@ -204,6 +209,13 @@ for (const locale of locales) {
         fromTop: true,
       });
       const other = await createTestClass(page, "Other NIM class");
+      const notJoined = await student.request.post("/account", {
+        headers: { origin: new URL(student.url()).origin },
+        form: { classId: String(other.id), nim: "forged" },
+        maxRedirects: 0,
+      });
+      expect(notJoined.status()).toBe(302);
+      expect(notJoined.headers()["location"]).toMatch(/\/account$/);
       await student.goto(other.joinPath);
       await expect(field).toHaveValue("");
       await field.fill("0001/A-2.3");
@@ -251,7 +263,8 @@ for (const locale of locales) {
         headers: { origin: new URL(page.url()).origin },
         form: { classId: String(other.id), nim: "forged" },
       });
-      expect(refused.status()).toBe(404);
+      expect(refused.status()).toBe(403);
+      expect(await refused.text()).toContain(text.lecturer);
     } finally {
       await student.context().close();
     }

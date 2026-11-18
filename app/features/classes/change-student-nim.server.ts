@@ -1,10 +1,7 @@
-import { data } from "react-router";
 import type { Database } from "~/database/database.server";
-import type { User } from "~/features/accounts/account";
+import type { UserId } from "~/features/accounts/accounts.schema";
 import { typedText } from "~/form-text";
 import { m } from "~/paraglide/messages.js";
-import { fail, succeed } from "~/result";
-import type { Result } from "~/result";
 import { parseRecordId } from "~/value-parsers";
 import { findJoinedClass } from "./class-store.server";
 import type { ClassId } from "./classes.schema";
@@ -17,39 +14,50 @@ export interface NimAnswer extends NimFieldValue {
   savedAt: string | undefined;
 }
 
-/** The account page authenticates the reader before calling this action. */
+/** What the form of the NIM of a class did: it saved the NIM, it refused the field, or it named a class that the student is not in. */
+export type NimChange =
+  | { kind: "saved"; answer: NimAnswer }
+  | { kind: "refused"; answer: NimAnswer }
+  | { kind: "notJoined" };
+
+/** The account page finds the signed-in student before it calls this. */
 export function changeStudentNim(
   database: Database,
-  { user, form, now }: { user: User; form: FormData; now: Date },
-): Result<NimAnswer, NimAnswer> {
+  { studentId, form, now }: { studentId: UserId; form: FormData; now: Date },
+): NimChange {
   const classId = parseRecordId<ClassId>(form.get("classId"), "classId");
   if (
     !classId.ok ||
-    user.role !== "student" ||
-    findJoinedClass(database, classId.value, user.id) === undefined
+    findJoinedClass(database, classId.value, studentId) === undefined
   )
-    throw data(null, { status: 404 });
+    return { kind: "notJoined" };
   const nim = parseStudentNim(form.get("nim"), m.classes_nim_label());
   if (!nim.ok)
-    return fail({
-      classId: classId.value,
-      nim: typedText(form.get("nim")),
-      nimFailure: nim.failure,
-      savedAt: undefined,
-    });
+    return {
+      kind: "refused",
+      answer: {
+        classId: classId.value,
+        nim: typedText(form.get("nim")),
+        nimFailure: nim.failure,
+        savedAt: undefined,
+      },
+    };
   // The operator can delete the membership between the lookup and this write.
   if (
     !setStudentNim(database, {
       classId: classId.value,
-      studentId: user.id,
+      studentId,
       nim: nim.value,
     })
   )
-    throw data(null, { status: 404 });
-  return succeed({
-    classId: classId.value,
-    nim: nim.value ?? "",
-    nimFailure: undefined,
-    savedAt: now.toISOString(),
-  });
+    return { kind: "notJoined" };
+  return {
+    kind: "saved",
+    answer: {
+      classId: classId.value,
+      nim: nim.value ?? "",
+      nimFailure: undefined,
+      savedAt: now.toISOString(),
+    },
+  };
 }

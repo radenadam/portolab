@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
-import { data, Form, Link } from "react-router";
+import { data, Link, redirect } from "react-router";
 import type { RouterContextProvider } from "react-router";
 import { clientAddressContext } from "~/client-address.server";
 import { databaseContext } from "~/database/database.server";
-import { FormFailure, FormSuccess, SubmitButton, TextField } from "~/form";
+import { FormFailure } from "~/form";
 import formStyles from "~/form.module.css";
 import { parseFilledText, typedText } from "~/form-text";
 import { pageTitle } from "~/page-title";
@@ -17,10 +17,10 @@ import { changeStudentNim } from "~/features/classes/change-student-nim.server";
 import type { NimAnswer } from "~/features/classes/change-student-nim.server";
 import { AccountDetails } from "./account-details";
 import { parsePersonName, readNewPassword } from "./account-fields";
-import type { NewPasswordFailures } from "./account-fields";
 import { AccountNameForm } from "./account-name-form";
 import type { NameAnswer } from "./account-name-form";
-import { NewPasswordFields } from "./new-password-fields";
+import { AccountPasswordForm } from "./account-password-form";
+import type { PasswordAnswer } from "./account-password-form";
 import { updateAccount } from "./account-store.server";
 import {
   reloadSessionAccount,
@@ -35,18 +35,12 @@ import type { PasswordFailure } from "./password-attempts.server";
 import { explainPasswordFailure } from "./explain-password-failure.server";
 import { SignOutButton } from "./sign-out-button";
 
-/** The answer to the form of the password: when Portolab saved the password, so that the form starts over without it, or the reason that each field or the whole form was not accepted. */
-interface PasswordAnswer extends NewPasswordFailures {
-  savedAt: string | undefined;
-  failure: string | undefined;
-  currentPasswordFailure: string | undefined;
-}
-
-/** The answer to the form that the person sent. Each form shows only its own answer. */
+/** The answer to the form that the person sent. Each form shows only its own answer, and the page shows why it refused a form that the reader may not send. */
 interface AccountAnswer {
   nim: NimAnswer | undefined;
   name: NameAnswer | undefined;
   password: PasswordAnswer | undefined;
+  failure: string | undefined;
 }
 
 /** A form that the person who is signed in sent from the page of the account at a moment. */
@@ -77,25 +71,53 @@ export async function action({
   const now = new Date();
   const user = requireUser(context, url);
   const form = await request.formData();
-  if (form.has("nim")) {
-    const result = changeStudentNim(context.get(databaseContext), {
-      user,
-      form,
-      now,
-    });
-    return data<AccountAnswer>(
-      {
-        name: undefined,
-        password: undefined,
-        nim: result.ok ? result.value : result.failure,
-      },
-      { status: result.ok ? 200 : 400 },
-    );
-  }
+  if (form.has("nim")) return changeNim(context, url, { user, form, now });
   // The form of the name sends the name, and the form of the password never sends it.
   return form.has("name")
     ? changeName(context, url, { user, form, now })
     : changePassword(context, request, { user, form, now });
+}
+
+/** Saves the NIM that a student gave for a class, when it follows the rule of a NIM. */
+function changeNim(
+  context: Readonly<RouterContextProvider>,
+  url: URL,
+  { user, form, now }: AccountForm,
+): ReturnType<typeof data<AccountAnswer>> {
+  const answerWith = (nim: NimAnswer, status: number) =>
+    data<AccountAnswer>(
+      { name: undefined, password: undefined, nim, failure: undefined },
+      { status },
+    );
+  switch (user.role) {
+    case "lecturer":
+      // The page of a lecturer has no form of a NIM, so a form comes here only from a page that loaded before a lecturer signed in, or from a forged one, and the page says why it refused.
+      return data<AccountAnswer>(
+        {
+          name: undefined,
+          password: undefined,
+          nim: undefined,
+          failure: m.accounts_nim_lecturer_error(),
+        },
+        { status: 403 },
+      );
+    case "student": {
+      const change = changeStudentNim(context.get(databaseContext), {
+        studentId: user.id,
+        form,
+        now,
+      });
+      switch (change.kind) {
+        case "saved":
+          return answerWith(change.answer, 200);
+        case "refused":
+          return answerWith(change.answer, 400);
+        case "notJoined":
+          // The class or the place of the student in it went away since the page loaded, or a forged form named another class, so the page loads again with the classes that the student is in.
+          throw redirect(url.pathname);
+      }
+    }
+  }
 }
 
 /** Saves the name that the person gave, when it follows the rule of every name. It asks for no password, as decision 0024 explains. */
@@ -117,6 +139,7 @@ async function changeName(
         },
         password: undefined,
         nim: undefined,
+        failure: undefined,
       },
       { status: 400 },
     );
@@ -132,6 +155,7 @@ async function changeName(
     },
     password: undefined,
     nim: undefined,
+    failure: undefined,
   });
 }
 
@@ -151,6 +175,7 @@ async function changePassword(
       {
         name: undefined,
         nim: undefined,
+        failure: undefined,
         password: {
           savedAt: undefined,
           failure: undefined,
@@ -189,6 +214,7 @@ async function changePassword(
       {
         name: undefined,
         nim: undefined,
+        failure: undefined,
         password: {
           savedAt: undefined,
           ...placePasswordFailure(checked.failure, text),
@@ -205,6 +231,7 @@ async function changePassword(
     {
       name: undefined,
       nim: undefined,
+      failure: undefined,
       password: {
         savedAt: now.toISOString(),
         failure: undefined,
@@ -246,6 +273,9 @@ export default function AccountPage({
   return (
     <div className={formStyles["formColumn"]} data-layout="reading">
       <h1>{m.accounts_account_title()}</h1>
+      {actionData?.failure !== undefined && (
+        <FormFailure text={actionData.failure} />
+      )}
       <section className={formStyles["panel"]}>
         <AccountDetails user={user} />
         <Link to="/privacy" className={formStyles["link"]}>
@@ -265,38 +295,9 @@ export default function AccountPage({
       ))}
       <section className={formStyles["panel"]}>
         <h2>{m.accounts_change_password_title()}</h2>
-        <PasswordForm answer={actionData?.password} />
+        <AccountPasswordForm answer={actionData?.password} />
       </section>
       <SignOutButton />
     </div>
-  );
-}
-
-/** The form that changes the password, which asks for the current one first. */
-function PasswordForm({
-  answer,
-}: {
-  answer: PasswordAnswer | undefined;
-}): ReactNode {
-  return (
-    <Form
-      key={answer?.savedAt ?? "unsaved"}
-      method="post"
-      className={formStyles["form"]}
-    >
-      {answer?.savedAt !== undefined && (
-        <FormSuccess text={m.accounts_password_changed_notice()} />
-      )}
-      {answer?.failure !== undefined && <FormFailure text={answer.failure} />}
-      <TextField
-        name="currentPassword"
-        label={m.accounts_current_password_label()}
-        type="password"
-        autoComplete="current-password"
-        failure={answer?.currentPasswordFailure}
-      />
-      <NewPasswordFields failures={answer} />
-      <SubmitButton label={m.accounts_change_password_label()} />
-    </Form>
   );
 }
