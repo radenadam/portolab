@@ -41,8 +41,8 @@ import { rupiah } from "../app/units/rupiah.ts";
 import { chosenPassword } from "./accounts.ts";
 import { createClassStudent } from "./create-class-student.ts";
 
-/** An isolated server keeps the shared browser fixture unchanged while exercising quotes newer than its closes. */
-export async function returnSnapshotServer() {
+/** The shared server's market must stay unchanged while a test replays recorded quotes or a past market date. */
+export async function recordedMarketServer(marketNow?: Date) {
   const root = join(import.meta.dirname, "..");
   const database = openDatabase(":memory:", join(root, migrationsFolderName));
   try {
@@ -163,7 +163,7 @@ export async function returnSnapshotServer() {
     const build = (await import(
       pathToFileURL(join(root, "build/server/index.js")).href
     )) as {
-      createApp: (services: unknown) => RequestHandler;
+      createApp: (services: unknown, marketNow?: Date) => RequestHandler;
       createRequestServices: (
         database: Database,
         priceSource: PriceSource,
@@ -191,6 +191,7 @@ export async function returnSnapshotServer() {
           },
           () => undefined,
         ),
+        marketNow,
       ),
     );
     const listener = app.listen(0, "127.0.0.1");
