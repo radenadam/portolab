@@ -8,12 +8,12 @@
   white-space: nowrap;
 }
 
-.chip[data-change="rise"] {
+.chip:has([data-change="rise"]) {
   background: var(--color-gain-soft);
 }
 
 /* The loss ink of the prototype is darker on its tint, so small text keeps its contrast. */
-.chip[data-change="fall"] {
+.chip:has([data-change="fall"]) {
   background: var(--color-loss-soft);
   --color-loss: var(--color-loss-on-soft);
 }
