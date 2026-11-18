@@ -8,9 +8,11 @@ import { serverStartupFailure } from "./server-startup-failure.ts";
 export async function startTestServer({
   databasePath,
   port,
+  companyLogosPath,
 }: {
   databasePath: string;
   port: number;
+  companyLogosPath?: string;
 }): Promise<() => Promise<void>> {
   const healthUrl = `http://localhost:${String(port)}/health`;
   const requestTimeoutSeconds = 5;
@@ -35,6 +37,7 @@ export async function startTestServer({
         PORT: String(port),
         DATABASE_PATH: databasePath,
         PRICE_SOURCE: "fixture",
+        COMPANY_LOGOS_PATH: companyLogosPath,
       },
       stdio: ["ignore", "ignore", "inherit"],
     },

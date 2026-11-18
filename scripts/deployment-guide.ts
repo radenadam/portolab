@@ -74,6 +74,7 @@ const deploymentPaths = [
   "Caddyfile",
   "Dockerfile",
   "compose.yaml",
+  "compose.logos.yaml",
   "sample/Caddyfile",
   guidePath,
   "e2e/deployment/",

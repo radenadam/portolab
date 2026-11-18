@@ -23,6 +23,8 @@ const defaultDatabasePath = "data/portolab.sqlite";
 
 /** The settings of the services that the server starts. README.md lists each variable and its default. */
 export interface ServiceSettings {
+  /** The folder of company logos that the owner supplies, or undefined for monograms only. */
+  companyLogosPath: string | undefined;
   databasePath: string;
   /** The migrations that ship with the server, which it finds from the location of its code instead of from a variable. */
   migrationsFolder: string;
@@ -96,4 +98,14 @@ export function parseDatabasePath(
   source: string,
 ): Result<string, string> {
   return parseFilePath(value ?? defaultDatabasePath, source);
+}
+
+/** An unset folder keeps the monograms that ship with Portolab. */
+export function parseCompanyLogosPath(
+  value: unknown,
+  source: string,
+): Result<string | undefined, string> {
+  return value === undefined
+    ? succeed(undefined)
+    : parseFilePath(value, source, "folder");
 }

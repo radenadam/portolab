@@ -8,6 +8,7 @@
 
 /* The tile keeps its size beside a long name, so the codes of a list stay in one column. */
 .tile {
+  position: relative;
   display: grid;
   flex: none;
   place-items: center;
@@ -21,6 +22,20 @@
   font-size: var(--text-tile);
   font-weight: 500;
   line-height: 1;
+  overflow: hidden;
+}
+
+/* The letters keep the tile's text baseline, so loading an image cannot move the company name or its row. */
+.tile:has(img) {
+  background: var(--color-logo-ground);
+  color: transparent;
+}
+
+.tile img {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
 }
 
 .names {
@@ -33,7 +48,7 @@
 .smallTile {
   inline-size: var(--size-tile-small);
   block-size: var(--size-tile-small);
-  border-radius: var(--radius-button);
+  border-radius: var(--radius-tile-small);
 }
 
 .codeLine {
@@ -73,8 +88,9 @@
 }
 
 .headline .tile {
-  inline-size: var(--size-touch-target);
-  block-size: var(--size-touch-target);
+  inline-size: var(--size-tile-large);
+  block-size: var(--size-tile-large);
+  border-radius: var(--radius-tile-large);
 }
 
 .headline .code {

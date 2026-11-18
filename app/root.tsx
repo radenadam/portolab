@@ -26,6 +26,8 @@ import { LanguageMenu } from "./features/language/language-menu";
 import type { ConceptLessonData } from "./features/learning/concept-lesson";
 import { readConceptLessons } from "./features/learning/read-concept-lessons.server";
 import { SimulationBadge } from "./features/market-data/simulation-badge";
+import { companyLogoFilesContext } from "./features/market-data/company-logo-files.server";
+import type { CompanyLogoData } from "./features/market-data/stock-name";
 import { readSimulationBadge } from "./features/market-data/read-simulation-badge.server";
 import type { SimulationBadgeData } from "./features/market-data/read-simulation-badge.server";
 import { JoinChip } from "./features/classes/join-chip";
@@ -72,18 +74,20 @@ export async function loader({
   params,
   url,
 }: Route.LoaderArgs): Promise<
-  ConceptLessonData & {
-    reader: FrameReader;
-    sampleClassLabel: string | undefined;
-    simulation: SimulationBadgeData;
-    join: ReturnType<typeof readClassJoinDetails>;
-  }
+  ConceptLessonData &
+    CompanyLogoData & {
+      reader: FrameReader;
+      sampleClassLabel: string | undefined;
+      simulation: SimulationBadgeData;
+      join: ReturnType<typeof readClassJoinDetails>;
+    }
 > {
   const lessons = readConceptLessons();
   if (!lessons.ok) throw new Error(lessons.failure);
   const reader = await readFrameReader(context, request, params);
   return {
     ...lessons.value,
+    companyLogos: [...context.get(companyLogoFilesContext).keys()],
     reader,
     sampleClassLabel: isSampleClass(context.get(databaseContext))
       ? m.app_sample_class_label()

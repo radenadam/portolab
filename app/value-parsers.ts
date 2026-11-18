@@ -25,16 +25,17 @@ export function describeChoices(choices: readonly string[]): string {
   return listOfWords(quotedChoices, "disjunction");
 }
 
-/** Reads the path of a file, such as a command-line argument or the place of the database. */
+/** Reads the path of a file or a folder, such as a command-line argument, the place of the database, or the folder of company logos. */
 export function parseFilePath(
   value: unknown,
   source: string,
+  kind: "file" | "folder" = "file",
 ): Result<string, string> {
   if (typeof value === "string" && value !== "") {
     return succeed(value);
   }
   return fail(
-    `${source} must be the path of a file, but it is ${describeValue(value)}.`,
+    `${source} must be the path of a ${kind}, but it is ${describeValue(value)}.`,
   );
 }
 
