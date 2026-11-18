@@ -3,6 +3,7 @@ import type { Page } from "@playwright/test";
 import { languageNames } from "../app/language-names.ts";
 import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
+import { homeWelcomeTextsForTest } from "../app/features/trading/home-welcome-texts-for-test.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 import { isPhone } from "./frame.ts";
 import { itmgPortfolio } from "./itmg-portfolio.ts";
@@ -25,7 +26,7 @@ const texts: Record<
     table: string;
     analysis: string;
     cash: string;
-    noHoldings: string;
+    startingCash: string;
     home: string;
     activity: string;
     navigation: string;
@@ -43,7 +44,7 @@ const texts: Record<
     table: "Imbal hasil dari waktu ke waktu",
     analysis: "Analisis",
     cash: "Rp 124.563.812.500",
-    noHoldings: "Anda tidak memegang saham.",
+    startingCash: "Rp 1.000.000.000.000",
     home: "Beranda",
     activity: "Aktivitas",
     navigation: "Navigasi utama",
@@ -60,7 +61,7 @@ const texts: Record<
     table: "Returns over time",
     analysis: "Analysis",
     cash: "IDR 124,563,812,500",
-    noHoldings: "You hold no shares.",
+    startingCash: "IDR 1,000,000,000,000",
     home: "Home",
     activity: "Activity",
     navigation: "Main navigation",
@@ -96,7 +97,13 @@ for (const locale of locales) {
         exact: true,
       }),
     ).toBeAttached();
-    await expect(student.getByRole("main")).toContainText(text.noHoldings);
+    await expect(
+      student.getByRole("heading", {
+        name: homeWelcomeTextsForTest[locale].capital,
+        exact: true,
+      }),
+    ).toBeVisible();
+    await expect(student.getByRole("main")).toContainText(text.startingCash);
     await expectAccessibleScreen(student);
     const navigation = student.getByRole("navigation", {
       name: text.navigation,

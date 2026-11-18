@@ -1,4 +1,6 @@
-import { HomeSinceCard } from "~/features/trading/home-since-card";
+import { StudentHome } from "~/features/trading/student-home";
+import { firstNameOf } from "~/features/accounts/first-name-of";
+import { onboardingTitle } from "~/features/trading/onboarding-title";
 import { pathReturningTo } from "~/features/accounts/path-returning-to";
 import { parseChoice, parseRecordId } from "~/value-parsers";
 import {
@@ -19,7 +21,6 @@ import { formatMarketTime } from "~/formatting";
 import { pageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
 import { classPortfoliosPath } from "~/features/grading/grading-paths";
-import { HomePortfolio } from "~/features/trading/home-portfolio";
 import { readHomePortfolio } from "~/features/trading/read-home-portfolio.server";
 import type { Route } from "./+types/class-page";
 import { findJoinedClass, findTaughtClass } from "./class-store.server";
@@ -38,15 +39,19 @@ import type { ClassMapAxis } from "./class-map";
 import { readPriceSourceDescription } from "~/features/market-data/price-source-context.server";
 
 export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
-  return [
-    {
-      title: pageTitle(
-        loaderData.role === "student"
-          ? m.classes_home_page_title({ class: loaderData.name })
-          : loaderData.name,
-      ),
-    },
-  ];
+  let title = loaderData.name;
+  if (loaderData.role === "student") {
+    title = m.classes_home_page_title({ class: loaderData.name });
+    if (
+      loaderData.home.onboarding !== undefined &&
+      loaderData.home.welcome !== undefined
+    )
+      title = onboardingTitle(
+        loaderData.home.onboarding,
+        loaderData.home.welcome.startingCash,
+      );
+  }
+  return [{ title: pageTitle(title) }];
 }
 
 export function loader({ context, params, url, request }: Route.LoaderArgs):
@@ -65,6 +70,7 @@ export function loader({ context, params, url, request }: Route.LoaderArgs):
       id: ClassId;
       name: string;
       home: ReturnType<typeof readHomePortfolio>;
+      firstName: string;
     } {
   const now = new Date();
   const user = requireUser(context, url);
@@ -115,17 +121,19 @@ export function loader({ context, params, url, request }: Route.LoaderArgs):
       if (joined === undefined) {
         throw notFound;
       }
+      const home = readHomePortfolio(context, {
+        request,
+        url,
+        classId: params.classId,
+        now,
+        firstSessionDate: joined.firstSessionDate,
+      });
       return {
         role: user.role,
         id: joined.id,
         name: joined.name,
-        home: readHomePortfolio(context, {
-          request,
-          url,
-          classId: params.classId,
-          now,
-          firstSessionDate: joined.firstSessionDate,
-        }),
+        home,
+        firstName: firstNameOf(user.name),
       };
     }
   }
@@ -205,18 +213,12 @@ export default function ClassPage({
       );
     case "student":
       return (
-        <HomePortfolio
+        <StudentHome
           home={loaderData.home}
           classId={loaderData.id}
-          reader={{ kind: "owner", classId: loaderData.id }}
-          notice={
-            <HomeSinceCard
-              orders={loaderData.home.sinceOrders}
-              now={loaderData.home.now}
-              classId={loaderData.id}
-              failure={actionData?.closeFailure}
-            />
-          }
+          firstName={loaderData.firstName}
+          onboarding={loaderData.home.onboarding}
+          failure={actionData?.closeFailure}
         />
       );
   }

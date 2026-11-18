@@ -1,6 +1,6 @@
 # 0063. A personal watchlist has measured route allowances
 
-- Status: Accepted
+- Status: Accepted. [Decision 0065](0065-the-welcome-has-measured-shared-and-route-allowances.md) replaces its shared JavaScript ceiling, its JavaScript and CSS ceilings for Pasar, Saham, and the ticket, and its JavaScript ceilings for Aktivitas, demonstration summary, demonstration Activity, class ranking, and the lecturer's student summary and journal.
 - Date: 2026-11-18
 
 ## Context

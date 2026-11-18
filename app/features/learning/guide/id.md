@@ -50,7 +50,7 @@ Mahasiswa baru memilih nama pengguna, nama, dan kata sandi, lalu menyetujui pemb
 
 Mahasiswa memiliki {{label:navigation_home_link}}, {{label:navigation_market_link}}, {{label:navigation_activity_link}}, {{label:navigation_analysis_link}}, dan {{label:navigation_learn_link}}. Mereka memilih saham, mengirim order dengan kas virtual, meninjau hasilnya, dan mempelajari konsep dari portofolio sendiri. Mahasiswa tidak dapat membuka rincian pekerjaan teman. Peta mereka hanya menampilkan teman sebagai titik tanpa nama.
 
-{{label:navigation_home_link}} menunjukkan nilai portofolio, perubahan harian, imbal hasil terhadap IHSG, risiko, dan kepemilikan. Pilihan peta dan grafik waktu membantu membahas posisi serta perjalanan portofolio. Baris kas membedakan kas yang ada dari kas yang disisihkan order terbuka. Arahkan mahasiswa baru ke {{label:navigation_market_link}} untuk memilih pembelian pertama.
+{{label:navigation_home_link}} menunjukkan nilai portofolio, perubahan harian, imbal hasil terhadap IHSG, risiko, dan kepemilikan. Pilihan peta dan grafik waktu membantu membahas posisi serta perjalanan portofolio. Baris kas membedakan kas yang ada dari kas yang disisihkan order terbuka. Mahasiswa yang tidak memiliki saham, tidak memiliki order, dan masih memegang modal awal kelas melihat kartu sambutan dengan modal itu sebagai gantinya. Kartu itu membuka pengenalan Portolab, pencarian saham pertama, dan panduan harga saham.
 
 ## market | Memilih dan membaca saham
 

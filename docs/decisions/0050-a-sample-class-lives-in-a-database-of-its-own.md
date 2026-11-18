@@ -1,6 +1,6 @@
 # 0050. A sample class lives in a database of its own
 
-- Status: Accepted
+- Status: Accepted. [Decision 0064](0064-the-empty-sample-joins-when-the-class-starts.md) replaces when the empty sample student joins.
 - Date: 2026-11-16
 
 ## Context
@@ -16,7 +16,7 @@ The maintainer needs to test the rebuilt screens with a class that has varied po
 - The command uses the history update of the price job when stored closes cannot support enough varied, measured portfolios or a complete order sequence. It can refresh an incomplete cache even after a successful update of the same final day, and it keeps the job's failure backoff. Historical quotes take the stored close of each day, and replay only trading days for which Portolab has recorded the universe and the rules. Split-adjusted fractional or off-tick closes are excluded from trading recipes. Placement, fill checks, costs, holdings, and persistence use the trading engine.
 - The maximum purchase is rejected before the limit orders use its cash. The cancellation ends before the expiring order starts, so their reservations never overlap.
 - Waiting sample purchases use current stored quotes and the rules of their trading day. The recipe tries another stock when the engine refuses its preferred purchase, such as a past holding that left the LQ45.
-- The calendar begins about ten weeks before the command runs. Each student joins just before their first trade, so their IHSG comparison covers their own trading period. The empty student joins today. The recipes vary sectors, cash weights, purchase dates, and sales. They include an empty portfolio, students without an order this week, every terminal order state, current waiting orders, and a demonstration portfolio. Reasons describe fictional students' experiments rather than recommendations.
+- The calendar begins about ten weeks before the command runs. Students with trades join just before their first trade, so their IHSG comparison covers their own trading period. The recipes vary sectors, cash weights, purchase dates, and sales. They include an empty portfolio, students without an order this week, every terminal order state, current waiting orders, and a demonstration portfolio. Reasons describe fictional students' experiments rather than recommendations.
 - The command prints every username and the join code. Each role gets a newly generated password, and the synthetic students share their role's password so the lecturer can explore their views. These credentials belong only to this sample database.
 - Every page of a marked database carries the [approved sample mode name](../../messages/AGENTS.md#approved-names) below the top bar, including sign-in and account pages. The English name refers to the class that the command creates. This is an additional frame label beside the simulation badge of decision 0028. The label remains when another person joins the sample class.
 - The sample runs in real time. Separate browser profiles sign in as each role, new students join through the printed code, and the normal price job settles open orders. Starting again means stopping that instance, deleting its database, and running the command on a fresh file.

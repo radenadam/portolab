@@ -124,9 +124,13 @@ export function messageKeyProblems(
   return problems;
 }
 
-/** Whether a file is a test that can show the text of the interface, which means a browser test or a test of the app. */
-export function isInterfaceTest(path: string): boolean {
-  return /^e2e\/.+\.test\.ts$/.test(path) || /^app\/.+\.test\.tsx?$/.test(path);
+/** Expected interface text can live in a named fixture shared by unit and browser tests. */
+export function isInterfaceTestSource(path: string): boolean {
+  return (
+    /^e2e\/.+\.test\.ts$/.test(path) ||
+    /^app\/.+\.test\.tsx?$/.test(path) ||
+    /^(?:app|e2e)\/.+-for-test\.tsx?$/.test(path)
+  );
 }
 
 /** Checks that messages are complete texts instead of leading fragments, and that tests show every text in full. A message without placeholders must appear as a whole string, because a short label also appears inside longer texts. Each part between placeholders must appear in a test. */
