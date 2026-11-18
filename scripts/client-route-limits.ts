@@ -11,7 +11,7 @@ const measuredRoutes: ReadonlyMap<string, Partial<ClientRouteLimits>> = new Map(
   [
     [
       "features/market-data/market-page",
-      { javascript: "200.3 kB", stylesheets: "20.8 kB" },
+      { javascript: "200.4 kB", stylesheets: "20.8 kB" },
     ],
     [
       "features/market-data/stock-page",

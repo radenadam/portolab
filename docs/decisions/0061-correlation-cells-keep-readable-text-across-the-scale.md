@@ -1,4 +1,4 @@
-# 0060. Correlation cells keep readable text across the scale
+# 0061. Correlation cells keep readable text across the scale
 
 - Status: Accepted
 - Date: 2026-11-17

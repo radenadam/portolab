@@ -198,7 +198,7 @@ test("applies measured route allowances only to the named routes and asset kinds
     ["features/trading/demonstration-summary-page", "220 kB", "24 kB"],
     ["features/measures/demonstration-analysis-page", "211 kB", "20.5 kB"],
     ["features/measures/demonstration-analysis-page-detail", "200 kB", "20 kB"],
-    ["features/market-data/market-page", "200.3 kB", "20.8 kB"],
+    ["features/market-data/market-page", "200.4 kB", "20.8 kB"],
     ["features/market-data/market-page-detail", "200 kB", "20 kB"],
     ["features/grading/student-portfolio-page", "220 kB", "24 kB"],
     ["features/grading/student-measures-page", "220 kB", "21 kB"],

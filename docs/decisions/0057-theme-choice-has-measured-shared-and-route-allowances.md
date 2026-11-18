@@ -1,6 +1,6 @@
 # 0057. Theme choice has measured shared and route allowances
 
-- Status: Accepted. [Decision 0059](0059-analysis-panels-have-measured-route-allowances.md) replaces its JavaScript ceilings for student analysis and demonstration analysis. It also replaces its rule that the lecturer's student analysis and demonstration analysis keep their earlier CSS ceilings.
+- Status: Accepted. [Decision 0059](0059-the-owner-supplies-company-logos-outside-the-repository.md) replaces its Pasar JavaScript ceiling. [Decision 0060](0060-analysis-panels-have-measured-route-allowances.md) replaces its JavaScript ceilings for student analysis and demonstration analysis. It also replaces its rule that the lecturer's student analysis and demonstration analysis keep their earlier CSS ceilings.
 - Date: 2026-11-17
 
 ## Context
