@@ -45,6 +45,7 @@ const student = {
   name: "Raka",
   shortName: "Raka",
   username: "raka",
+  nim: null,
   latestActivity: undefined,
 };
 const returnPath =
@@ -59,6 +60,8 @@ const texts: Record<
     | "sections"
     | "username"
     | "activity"
+    | "nim"
+    | "nimActivity"
     | "back"
     | "value"
     | "map"
@@ -82,6 +85,8 @@ const texts: Record<
     sections: "Bagian portofolio mahasiswa",
     username: "Nama pengguna raka · Belum pernah memasang order",
     activity: "Nama pengguna raka · Order terakhir 29 Okt 2026, 10.10 WIB",
+    nim: "NIM 1202220108 · Belum pernah memasang order",
+    nimActivity: "NIM 1202220108 · Order terakhir 29 Okt 2026, 10.10 WIB",
     back: "Kembali ke mahasiswa",
     value: "Nilai portofolio Raka",
     map: "Posisi Raka di peta",
@@ -104,6 +109,8 @@ const texts: Record<
     sections: "Student portfolio sections",
     username: "Username raka · No orders yet",
     activity: "Username raka · Latest order Oct 29, 2026, 10:10 AM WIB",
+    nim: "NIM 1202220108 · No orders yet",
+    nimActivity: "NIM 1202220108 · Latest order Oct 29, 2026, 10:10 AM WIB",
     back: "Back to students",
     value: "Portfolio value of Raka",
     map: "Position of Raka on the map",
@@ -155,19 +162,25 @@ for (const locale of locales) {
   test(`keeps the named student, read-only notice, and all tabs on the selected panel in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     const text = texts[locale];
-    const activityHeader = renderMarkupForTest(
-      <TaughtStudentPage
-        page="portfolio"
-        student={{
-          ...student,
-          latestActivity: new Date("2026-10-29T03:10:00Z"),
-        }}
-        returnPath={returnPath}
-      >
-        <span />
-      </TaughtStudentPage>,
-    ).replaceAll(/<\/?time\b[^>]*>/gu, "");
-    expect(activityHeader).toContain(markupTextForTest(text.activity));
+    const latestOrder = new Date("2026-10-29T03:10:00Z");
+    for (const [nim, latestActivity, expected, hidden] of [
+      [null, undefined, text.username, text.nim],
+      [null, latestOrder, text.activity, text.nimActivity],
+      ["1202220108", undefined, text.nim, text.username],
+      ["1202220108", latestOrder, text.nimActivity, text.activity],
+    ] as const) {
+      const header = renderMarkupForTest(
+        <TaughtStudentPage
+          page="portfolio"
+          student={{ ...student, nim, latestActivity }}
+          returnPath={returnPath}
+        >
+          <span />
+        </TaughtStudentPage>,
+      ).replaceAll(/<\/?time\b[^>]*>/gu, "");
+      expect(header).toContain(markupTextForTest(expected));
+      expect(header).not.toContain(markupTextForTest(hidden));
+    }
     expect(taughtStudentMeta("portfolio")({ loaderData: { student } })).toEqual(
       [{ title: text.pageTitle }],
     );

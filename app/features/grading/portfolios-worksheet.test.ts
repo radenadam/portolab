@@ -71,6 +71,7 @@ const texts: Record<
       "Simulasi dengan uang virtual, diunduh pada 30 Okt 2026, 16.20 WIB. Portolab menilai setiap saham yang dipegang pada harga tertunda terakhir dari Yahoo Finance, sekitar 10 menit di belakang BEI. Setiap ukuran berlaku per bulan, dan portofolio yang memiliki ukuran muncul lebih dulu, menurut Alpha Jensen dari yang tertinggi sampai yang terendah.",
     headings: [
       "Nama",
+      "NIM",
       "Nama pengguna",
       "Alpha Jensen",
       "Sharpe",
@@ -96,6 +97,7 @@ const texts: Record<
       "A simulation with virtual cash, downloaded on Oct 30, 2026, 4:20 PM WIB. Portolab valued each holding at the latest delayed price from Yahoo Finance, about 10 minutes behind IDX. Every measure is per month, and the portfolios with measures come first, by Jensen's alpha from highest to lowest.",
     headings: [
       "Name",
+      "NIM",
       "Username",
       "Jensen's alpha",
       "Sharpe",
@@ -127,6 +129,9 @@ for (const locale of locales) {
       now,
       delayMinutes: 10,
     });
+    const eko = portfolios.ranked.find((student) => student.username === "eko");
+    if (eko === undefined) throw new Error("The fixture has no Eko.");
+    eko.nim = "00123";
     const sheet = portfoliosWorksheet({
       className: taughtClass.name,
       portfolios,
@@ -139,7 +144,9 @@ for (const locale of locales) {
     expect(rina?.reason).toContain(expected.rina);
     expect(sheet).toEqual({
       name: expected.sheetName,
-      columnWidths: [30, 24, 16, 16, 16, 16, 16, 16, 16, 16, 16, 80, 80, 80],
+      columnWidths: [
+        30, 24, 24, 16, 16, 16, 16, 16, 16, 16, 16, 16, 80, 80, 80,
+      ],
       rows: [
         [headingCell(expected.title)],
         [textCell(expected.notice)],
@@ -147,6 +154,7 @@ for (const locale of locales) {
         expected.headings.map(headingCell),
         [
           textCell("Eko Prasetyo"),
+          textCell("00123"),
           textCell("eko"),
           ...bbcaMeasures,
           undefined,
@@ -155,6 +163,7 @@ for (const locale of locales) {
         ],
         [
           textCell("Fajar Nugroho"),
+          undefined,
           textCell("fajar"),
           ...bbcaMeasures,
           undefined,
@@ -163,6 +172,7 @@ for (const locale of locales) {
         ],
         [
           textCell("Sari Wulandari"),
+          undefined,
           textCell("sari"),
           percent(-0.004259743653981885),
           beta(-0.17094998531995),
@@ -179,6 +189,7 @@ for (const locale of locales) {
         ],
         [
           textCell("Dewi Lestari"),
+          undefined,
           textCell("dewi"),
           ...empty,
           rupiahCell(21_475_000),
@@ -189,6 +200,7 @@ for (const locale of locales) {
         ],
         [
           textCell("Budi Hartono"),
+          undefined,
           textCell("budi"),
           ...empty,
           rupiahCell(100_000_000),
@@ -199,6 +211,7 @@ for (const locale of locales) {
         ],
         [
           textCell("Rina Kusuma"),
+          undefined,
           textCell("rina"),
           ...empty,
           undefined,

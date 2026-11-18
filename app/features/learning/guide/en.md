@@ -44,7 +44,9 @@ Students open the address you share. They can also open the join page and enter 
 
 {{link:join|Join page}}
 
-New students choose a username, name, and password, then agree to the privacy notice. No email is needed. Students who already have an account sign in with it and then join. Usernames distinguish students with the same name. Check names in {{label:navigation_students_link}} before grading their work.
+New students choose a username, name, and password, then agree to the privacy notice. No email is needed. Students who already have an account sign in with it and then join. Check names in {{label:navigation_students_link}} before grading their work.
+
+Students may give a NIM for each class when joining and correct or clear it on their account page. {{label:navigation_students_link}}, its panel, and the student details show the NIM below the name, or the username when a student gave no NIM. Two students can share a name and a NIM, but never a username, so the workbook lists both the NIM and the username of each student.
 
 ## student | What students see and do
 
@@ -96,7 +98,7 @@ When a measure is unavailable, read its reason. Missing history, missing quotes,
 
 In {{label:navigation_students_link}}, choose {{label:grading_market_line_label}}, {{label:grading_sharpe_label}}, or {{label:grading_treynor_label}}. Jensen's alpha compares expected return with CAPM. Sharpe compares excess return with standard deviation. Treynor compares it with beta. Ranking uses the selected measure from highest to lowest, and ties follow joining order.
 
-Search names or usernames and use filters to follow up a group. A rank is available only when the selected measure can be computed. It is not a final course grade. Review the period, risk, and trade reasons alongside results, because the largest profit alone does not explain decision quality.
+Search names, NIMs, or usernames and use filters to follow up a group. A rank is available only when the selected measure can be computed. It is not a final course grade. Review the period, risk, and trade reasons alongside results, because the largest profit alone does not explain decision quality.
 
 Select a student for the summary panel, then {{label:grading_open_portfolio_link}} or {{label:grading_journal_link}}. Student pages have {{label:grading_summary_label}}, {{label:grading_analysis_label}}, and {{label:grading_journal_label}}. You read them without being able to trade as that student. The back link keeps your selected student and filters.
 

@@ -34,7 +34,7 @@ Portolab is not for investors outside a class, for traders who want a trading pl
 
 The first release serves the course sessions on CAPM and on portfolio return and risk, and it teaches every other topic of the course in a lesson.
 
-- A lecturer creates a class, and students join it with a code. Accounts need no email.
+- A lecturer creates a class, and students join it with a code. Accounts need no email. Students may give an optional NIM for each class and correct it on their account page. Its display, search, and export follow [decision 0066](decisions/0066-a-student-gives-an-optional-nim-for-each-class.md).
 - A class meets weekly for the 16 sessions of the course, from the date of its first session, which its lecturer gives, as [decision 0032](decisions/0032-a-class-meets-weekly-from-the-date-of-its-first-session.md) explains. The lecturer's Kelas page shows the semester and the session of each week. [Decision 0040](decisions/0040-beranda-keeps-the-class-calendar-in-kelas.md) places the class calendar outside Beranda.
 - Each student starts with virtual cash, Rp100 million unless the lecturer sets another amount.
 - The order ticket opens beside its stock on a desktop and over it on a phone. It shows the costs before confirmation, and a changed total requires another confirmation, including before JavaScript loads, as [decision 0044](decisions/0044-the-ticket-shows-the-trade-before-confirmation.md) explains.

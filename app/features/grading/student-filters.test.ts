@@ -53,3 +53,16 @@ test("compares returns over the student's own market period and beta against one
     }),
   ).toEqual([]);
 });
+
+test("searches a NIM without changing its letter case or leading zeroes", async () => {
+  const { portfolios } = await classRankingForTest();
+  const students = portfolios.ranked.map((student) => ({
+    ...student,
+    nim: student.username === "eko" ? "00Ab/12" : null,
+  }));
+  expect(
+    filterStudents(students, { query: "  00aB/12  ", filter: "all" }).map(
+      (student) => student.username,
+    ),
+  ).toEqual(["eko"]);
+});

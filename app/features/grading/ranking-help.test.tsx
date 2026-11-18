@@ -102,9 +102,9 @@ for (const locale of locales) {
       });
       const row = sheet.rows[6];
       expect(row?.[0]).toEqual(textCell("Eko Prasetyo"));
-      const cell = row?.[ranking === "treynor" ? 4 : 3];
+      const cell = row?.[ranking === "treynor" ? 5 : 4];
       expect(cell).toBeUndefined();
-      const reason = row?.[ranking === "treynor" ? 12 : 11];
+      const reason = row?.[ranking === "treynor" ? 13 : 12];
       expect(reason?.kind).toBe("text");
       if (ranking === "treynor")
         expect(reason).toEqual(textCell(negativeTreynorTextForTest[locale]));

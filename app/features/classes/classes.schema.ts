@@ -36,7 +36,7 @@ export const classes = sqliteTable(
   (table) => [index("classes_lecturer_id_index").on(table.lecturerId)],
 );
 
-/** Each student in each class that the student joined. A membership lives as long as its class and its student, as the privacy notice states. */
+/** Each student in each class that the student joined, with the optional NIM that the student gives for that class. A membership lives as long as its class and its student, as the privacy notice states. */
 export const memberships = sqliteTable(
   "memberships",
   {
@@ -49,6 +49,7 @@ export const memberships = sqliteTable(
       .$type<UserId>()
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    nim: text("nim"),
     joinedAt: integer("joined_at", { mode: "timestamp_ms" }).notNull(),
     /** The newest dismissed snapshot stays closed across devices, so its cutoff lives until this membership ends. */
     homeDismissedAt: integer("home_dismissed_at", { mode: "timestamp_ms" }),

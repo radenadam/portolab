@@ -85,6 +85,13 @@
       "when": 1794985846537,
       "tag": "0011_watchlist",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1795002164495,
+      "tag": "0012_student-nim",
+      "breakpoints": true
     }
   ]
 }

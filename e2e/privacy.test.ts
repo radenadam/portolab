@@ -1,3 +1,4 @@
+import { captureScreens } from "./capture-screens.ts";
 import { expect, test } from "@playwright/test";
 import { languageNames } from "../app/language-names.ts";
 import { locales } from "../app/paraglide/runtime.js";
@@ -22,6 +23,7 @@ const texts: Record<
       "Nama Anda, agar dosen sebuah kelas tahu milik siapa pekerjaan yang dilihatnya, dan agar mahasiswa tahu siapa yang mengajar kelasnya.",
       "Kata sandi Anda, hanya sebagai hash yang tidak dapat diubah kembali menjadi kata sandi.",
       "Kelas yang Anda ajar atau ikuti, dan pekerjaan simulasi Anda di setiap kelas itu: kas Anda, saham yang Anda pegang, dan order Anda, beserta alasan yang Anda tulis untuk sebuah order.",
+      "NIM Anda di setiap kelas, bila Anda memberikannya, agar dosen kelas itu tahu milik siapa pekerjaan yang dilihatnya. NIM disimpan sampai Anda mengosongkannya atau keanggotaan Anda di kelas dihapus.",
       "Waktu ringkasan Beranda terbaru yang sudah Anda tutup di setiap kelas. Portolab hanya menyembunyikan kejadian yang termasuk dalam ringkasan itu. Waktu ini disimpan sampai keanggotaan Anda di kelas dihapus.",
       "Kode saham yang Anda pantau dan waktu Anda menambahkannya. Pantauan ini milik akun Anda di semua kelas. Portolab menampilkannya hanya kepada Anda dan menghapus entri saat Anda menghapus bintangnya atau akun Anda dihapus.",
       "Waktu ketika Anda menyetujui pemberitahuan ini.",
@@ -33,9 +35,9 @@ const texts: Record<
       "Peramban menyimpan draf order Anda di tab ini agar tetap ada setelah Anda membuka pelajaran. Draf untuk sisi beli atau jual dihapus setelah Anda mengonfirmasi order di sisi itu atau menutup tab.",
       "Sebuah cookie berisi kelas yang terakhir Anda buka, yang tersimpan di peramban Anda selama 180 hari, agar Portolab membuka kelas itu saat Anda kembali.",
       "Portolab tidak menyimpan alamat email, nomor telepon, atau apa pun tentang keuangan Anda yang sebenarnya. Portolab tidak memakai pelacakan maupun iklan, dan tidak memberikan data Anda kepada siapa pun.",
-      "Dosen sebuah kelas melihat nama, nama pengguna, dan pekerjaan setiap mahasiswa di kelas itu, dan dapat mengunduhnya dalam spreadsheet untuk penilaian. Dosen juga membaca alasan yang ditulis mahasiswa untuk sebuah order. Mahasiswa melihat portofolio teman sekelas hanya sebagai titik tanpa nama di peta.",
+      "Dosen sebuah kelas melihat nama, nama pengguna, NIM bila diberikan, dan pekerjaan setiap mahasiswa di kelas itu, dan dapat mengunduhnya dalam spreadsheet untuk penilaian. Dosen juga membaca alasan yang ditulis mahasiswa untuk sebuah order. Mahasiswa melihat portofolio teman sekelas hanya sebagai titik tanpa nama di peta.",
       "Orang yang menjalankan server Portolab ini dapat membaca semua yang disimpannya, karena mereka menyimpan basis datanya.",
-      "Undang-Undang Nomor 27 Tahun 2022 tentang Pelindungan Data Pribadi memberi Anda hak untuk melihat, memperbaiki, dan menghapus data Anda, serta menarik persetujuan Anda. Anda dapat mengubah nama Anda di halaman akun Anda, dan menghapus saham dari pantauan Anda dengan bintangnya. Portolab menyimpan data Anda yang lain sampai orang yang menjalankan server ini menghapusnya, jadi mintalah salinan semua data Anda atau penghapusannya kepada mereka. Untuk menarik persetujuan Anda, mintalah mereka menghapus data Anda, karena Portolab hanya menyimpan data Anda dengan persetujuan Anda.",
+      "Undang-Undang Nomor 27 Tahun 2022 tentang Pelindungan Data Pribadi memberi Anda hak untuk melihat, memperbaiki, dan menghapus data Anda, serta menarik persetujuan Anda. Anda dapat mengubah nama dan NIM Anda untuk setiap kelas di halaman akun Anda, dan menghapus saham dari pantauan Anda dengan bintangnya. Portolab menyimpan data Anda yang lain sampai orang yang menjalankan server ini menghapusnya, jadi mintalah salinan semua data Anda atau penghapusannya kepada mereka. Untuk menarik persetujuan Anda, mintalah mereka menghapus data Anda, karena Portolab hanya menyimpan data Anda dengan persetujuan Anda.",
     ],
   },
   en: {
@@ -47,6 +49,7 @@ const texts: Record<
       "Your name, so that the lecturer of a class knows whose work it sees, and so that students know who teaches their class.",
       "Your password, only as a hash that cannot be turned back into the password.",
       "The classes that you teach or joined, and your simulated work in each: your cash, your holdings, and your orders, with the reason that you write for an order.",
+      "Your NIM in each class, if you give one, so that the lecturer of the class knows whose work it sees. It stays until you clear it or until your class membership is deleted.",
       "The time of the newest Home summary that you have closed in each class. Portolab hides only outcomes included in that summary. This time stays until your class membership is deleted.",
       "The codes of stocks you watch and the time you added them. This watchlist belongs to your account across classes. Portolab shows it only to you and removes an entry when you remove its star or your account is deleted.",
       "The time when you agreed to this notice.",
@@ -58,9 +61,9 @@ const texts: Record<
       "The browser keeps your order draft in this tab so it survives a lesson visit. The draft for the buy or sell side is removed when you confirm an order on that side or close the tab.",
       "A cookie with the class that you opened last, which your browser keeps for 180 days, so that Portolab opens that class when you come back.",
       "Portolab stores no email address, no phone number, and nothing about your real finances. It uses no tracking and no advertising, and it gives your data to no one.",
-      "The lecturer of a class sees the name, the username, and the work of each student in it, and can download them in a spreadsheet for grading. The lecturer also reads the reason that a student writes for an order. Students see classmates' portfolios only as unnamed points on the map.",
+      "The lecturer of a class sees the name, the username, the NIM if given, and the work of each student in it, and can download them in a spreadsheet for grading. The lecturer also reads the reason that a student writes for an order. Students see classmates' portfolios only as unnamed points on the map.",
       "The person who runs this Portolab server can read everything that it stores, because they keep its database.",
-      "Indonesia's Law Number 27 of 2022 on Personal Data Protection gives you the right to see, correct, and delete your data, and to withdraw your agreement. You can change your name on the page of your account, and remove a stock from your watchlist with its star. Portolab keeps the rest of your data until the person who runs this server deletes it, so ask them for a copy of all your data or for its deletion. To withdraw your agreement, ask them to delete your data, because Portolab stores your data only with your agreement.",
+      "Indonesia's Law Number 27 of 2022 on Personal Data Protection gives you the right to see, correct, and delete your data, and to withdraw your agreement. You can change your name and your NIM for each class on the page of your account, and remove a stock from your watchlist with its star. Portolab keeps the rest of your data until the person who runs this server deletes it, so ask them for a copy of all your data or for its deletion. To withdraw your agreement, ask them to delete your data, because Portolab stores your data only with your agreement.",
     ],
   },
 };
@@ -70,7 +73,7 @@ for (const locale of locales) {
 
   test(`shows what Portolab stores, who sees it, and the rights of the reader in ${languageNames[locale]}`, async ({
     page,
-  }) => {
+  }, testInfo) => {
     await chooseLanguage(page, locale);
     await page.goto("/privacy");
     await expect(page).toHaveTitle(`${text.title} | Portolab`);
@@ -86,5 +89,10 @@ for (const locale of locales) {
       await expect(page.getByText(paragraph, { exact: true })).toBeVisible();
     }
     await expectAccessibleScreen(page);
+    await captureScreens(page, testInfo, {
+      name: "nim-privacy",
+      fullPage: true,
+      fromTop: true,
+    });
   });
 }

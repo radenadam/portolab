@@ -204,6 +204,7 @@
   font-weight: 400;
 }
 .studentName small {
+  white-space: normal;
   font-family: var(--font-code);
 }
 .measureCell {
@@ -361,7 +362,7 @@
   font-size: var(--text-small);
   overflow-wrap: anywhere;
 }
-/* The username is an identifier, which DM Mono sets, while the rank around it is text. */
+/* The NIM or username is an identifier, which DM Mono sets, while the rank around it is text. */
 .panelHeader small [data-text-value] {
   font-family: var(--font-code);
 }

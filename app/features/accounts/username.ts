@@ -1,3 +1,4 @@
+import { describeCharacters, includesCharacter } from "../../character-set.ts";
 import { fail, succeed } from "../../result.ts";
 import type { Result } from "../../result.ts";
 import { listOfWords } from "../../sentences.ts";
@@ -31,7 +32,7 @@ export function isUsername(text: string): text is Username {
     return false;
   }
   for (const character of text) {
-    if (!isUsernameCharacter(character)) {
+    if (!includesCharacter(usernameCharacters, character)) {
       return false;
     }
   }
@@ -61,17 +62,5 @@ export function parseUsername(
 export function describeUsernameCharacters(
   range: (first: string, last: string) => string,
 ): string[] {
-  return [
-    ...usernameCharacters.ranges.map(([first, last]) => range(first, last)),
-    ...usernameCharacters.symbols.map((symbol) => `"${symbol}"`),
-  ];
-}
-
-function isUsernameCharacter(character: string): boolean {
-  for (const [first, last] of usernameCharacters.ranges) {
-    if (character >= first && character <= last) {
-      return true;
-    }
-  }
-  return usernameCharacters.symbols.some((symbol) => symbol === character);
+  return describeCharacters(usernameCharacters, range);
 }
