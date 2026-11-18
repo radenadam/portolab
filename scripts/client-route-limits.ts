@@ -5,7 +5,7 @@ interface ClientRouteLimits {
 
 const exerciseStylesheetLimit = "24 kB";
 
-// Decisions 0049, 0060, and 0061 record these allowances for complete lesson sheets and the analysis panels.
+// Decisions 0049, 0060, 0061, and 0063 record these allowances for complete lesson sheets, the analysis panels, and the NIM.
 const measuredRoutes: ReadonlyMap<string, Partial<ClientRouteLimits>> = new Map(
   [
     [
@@ -26,7 +26,7 @@ const measuredRoutes: ReadonlyMap<string, Partial<ClientRouteLimits>> = new Map(
     ],
     [
       "features/trading/demonstration-activity-page",
-      { javascript: "211.9 kB", stylesheets: "21.1 kB" },
+      { javascript: "212.1 kB", stylesheets: "21.1 kB" },
     ],
     [
       "features/measures/demonstration-analysis-page",
@@ -46,11 +46,11 @@ const measuredRoutes: ReadonlyMap<string, Partial<ClientRouteLimits>> = new Map(
     ],
     [
       "features/grading/class-portfolios-page",
-      { javascript: "206.3 kB", stylesheets: "20.5 kB" },
+      { javascript: "206.5 kB", stylesheets: "20.5 kB" },
     ],
     [
       "features/grading/student-portfolio-page",
-      { javascript: "225 kB", stylesheets: exerciseStylesheetLimit },
+      { javascript: "225.3 kB", stylesheets: exerciseStylesheetLimit },
     ],
     [
       "features/grading/student-measures-page",
@@ -58,7 +58,7 @@ const measuredRoutes: ReadonlyMap<string, Partial<ClientRouteLimits>> = new Map(
     ],
     [
       "features/grading/student-journal-page",
-      { javascript: "212.2 kB", stylesheets: "21.4 kB" },
+      { javascript: "212.5 kB", stylesheets: "21.4 kB" },
     ],
   ],
 );

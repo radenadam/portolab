@@ -15,25 +15,33 @@ The second cut of [the rebuild](https://github.com/radenadam/portolab/issues/127
 - A student corrects or removes each class's NIM on the account page, through the same field and parser. Only the signed-in student changes it, without a password or a new session, as with the name under [decision 0024](0024-a-person-changes-their-own-name-on-the-page-of-the-account.md). Lecturers cannot change it.
 - The NIM is removed when the student clears it or the membership is deleted. The student, the class's lecturer, and the server owner can see it. Classmates never receive it. Personal-data exports include it and deletion removes it with the membership.
 - The sample command gives every synthetic student a NIM prefixed with `CONTOH-`, so its identifiers are visibly fictional.
+- The JavaScript ceilings in the table below replace those of [decision 0060](0060-learning-practices-have-measured-sheet-allowances.md) for the named dependency sets. They leave a margin of about 0.2 kB, as decisions 0060 and 0061 do. Every other ceiling and the complete dependency walk keep their rules.
+
+| Dependency set             | JavaScript ceiling, kB gzip |
+| -------------------------- | --------------------------: |
+| Demonstration Activity     |                       212.1 |
+| Class ranking              |                       206.5 |
+| Lecturer's student summary |                       225.3 |
+| Lecturer's student journal |                       212.5 |
 
 ### Client measurements
 
-These measurements compare main at `5a209f4` with this change, using `pnpm build` and `pnpm size` and the dependency walk and gzip method of [decision 0038](0038-client-javascript-is-budgeted-by-route.md). Both languages count. The new NIM field grows the route manifest on every page, even though the field itself loads only with joining and the account page.
+These measurements compare main at `d8bc523` with this change merged with that main, on the same machine, using `pnpm build` and `pnpm size` and the complete dependency walk and gzip method of decisions [0038](0038-client-javascript-is-budgeted-by-route.md) and [0042](0042-client-css-is-budgeted-by-route.md). kB means 1,000 bytes. Both languages count.
 
-| Dependency set   | JavaScript before, kB | JavaScript after, kB | CSS before, kB | CSS after, kB |
-| ---------------- | --------------------: | -------------------: | -------------: | ------------: |
-| Shared           |                141.94 |               141.97 |           7.79 |          7.79 |
-| Account          |                148.50 |               149.54 |           8.06 |          8.06 |
-| Account setup    |                148.11 |               148.28 |           7.91 |          7.91 |
-| Join a class     |                149.38 |               150.20 |           7.91 |          7.91 |
-| Privacy          |                145.52 |               145.67 |           7.91 |          7.91 |
-| Students         |                184.46 |               184.50 |          17.92 |         17.92 |
-| Student summary  |                206.09 |               206.21 |          21.80 |         21.82 |
-| Student analysis |                205.07 |               205.19 |          19.84 |         19.87 |
-| Student journal  |                197.38 |               197.50 |          19.42 |         19.45 |
-| Ticket           |                223.38 |               223.41 |          23.74 |         23.74 |
+| Dependency set              | Main, JavaScript/CSS kB | This change, JavaScript/CSS kB |
+| --------------------------- | ----------------------: | -----------------------------: |
+| Shared code                 |           142.65 / 7.90 |                  142.68 / 7.90 |
+| Account                     |           149.20 / 8.17 |                  150.25 / 8.17 |
+| Account setup               |           148.82 / 8.02 |                  148.99 / 8.02 |
+| Join a class                |           150.08 / 8.02 |                  150.91 / 8.02 |
+| Privacy                     |           146.23 / 8.02 |                  146.39 / 8.02 |
+| Demonstration Activity      |          211.90 / 20.82 |                 211.93 / 20.82 |
+| Class ranking               |          206.26 / 20.26 |                 206.31 / 20.26 |
+| Lecturer's student summary  |          224.94 / 23.59 |                 225.06 / 23.62 |
+| Lecturer's student analysis |          230.58 / 22.99 |                 230.71 / 23.02 |
+| Lecturer's student journal  |          212.19 / 21.21 |                 212.31 / 21.24 |
 
-Every other route grows by at most 0.03 kB of JavaScript. Every measured route fits the existing ceilings, including the [market map allowances](0056-the-market-map-has-measured-route-allowances.md), the [theme allowances](0057-theme-choice-has-measured-shared-and-route-allowances.md), the [allowance of Beranda](0058-home-outcomes-have-a-measured-route-allowance.md), and the [ceiling of Pasar](0059-the-owner-supplies-company-logos-outside-the-repository.md). This change adds no allowance.
+The field of the NIM loads only with joining and the account page. But the route manifest that every route shares names the new modules, so every other route grows by at most 0.03 kB of JavaScript. The line of the NIM on the pages of a student adds about 0.1 kB to each of them. Demonstration Activity, the class ranking, the lecturer's student summary, and the lecturer's student journal sat within 0.06 kB of their ceilings, so this change puts them over. Every other route stays within its ceiling.
 
 ## Alternatives
 
@@ -41,7 +49,8 @@ Every other route grows by at most 0.03 kB of JavaScript. Every measured route f
 - A required NIM would block a student whose class does not use one.
 - Digits alone would reject institutional identifiers that include letters or separators. Unrestricted prose would accept text that cannot serve as a student identifier.
 - A lecturer correction would make a student wait for someone else to correct their own data.
+- Keeping the ceilings of decision 0060 would leave four routes without room for the shared manifest, which grows with every new module of any route.
 
 ## Consequences
 
-The migration leaves existing memberships without a NIM. Students can add one on the account page. Earlier workbooks can hold an older NIM, so the fixed username still identifies the account. No sign-in credential or session rule changes.
+The migration leaves existing memberships without a NIM. Students can add one on the account page. Earlier workbooks can hold an older NIM, so the fixed username still identifies the account. No sign-in credential or session rule changes. `scripts/client-route-limits.ts` holds the four ceilings, and `scripts/client-size.test.ts` checks them on their routes.

@@ -1,6 +1,6 @@
 # 0060. Learning practices have measured sheet allowances
 
-- Status: Accepted. [Decision 0061](0061-analysis-panels-have-measured-route-allowances.md) replaces its shared JavaScript ceiling, its JavaScript ceilings for class home, the stock page, and the ticket, and its JavaScript and CSS ceilings for student analysis, demonstration analysis, and the lecturer's student analysis.
+- Status: Accepted. [Decision 0061](0061-analysis-panels-have-measured-route-allowances.md) replaces its shared JavaScript ceiling, its JavaScript ceilings for class home, the stock page, and the ticket, and its JavaScript and CSS ceilings for student analysis, demonstration analysis, and the lecturer's student analysis. [Decision 0063](0063-a-student-gives-an-optional-nim-for-each-class.md) replaces its JavaScript ceilings for Demonstration Activity, the class ranking, the lecturer's student summary, and the lecturer's student journal.
 - Date: 2026-11-17
 
 ## Context
