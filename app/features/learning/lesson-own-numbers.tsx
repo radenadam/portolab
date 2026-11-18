@@ -13,8 +13,11 @@ import {
   formatSharpeRatio,
 } from "~/formatting";
 import { NumberText } from "~/number-text";
+import { weightedHoldingRisk } from "~/features/measures/weighted-holding-risk";
 import { m } from "~/paraglide/messages.js";
-import type { SessionContent } from "./content";
+import { DiversificationNumbers } from "./diversification-numbers";
+import { emphasizedNumber } from "./emphasized-number";
+import type { MeasuredLessonActivity } from "./lesson-practice-sessions";
 
 import type { LessonPracticeData } from "./lesson-practice-data";
 
@@ -22,11 +25,11 @@ import styles from "./lesson-practice.module.css";
 
 export function LessonOwnNumbers({
   classId,
-  lesson,
+  activity,
   practice,
 }: {
   classId: ClassId;
-  lesson: SessionContent;
+  activity: MeasuredLessonActivity;
   practice: LessonPracticeData;
 }): ReactNode {
   const report = practice.report;
@@ -60,31 +63,9 @@ export function LessonOwnNumbers({
               </p>
             )}
         </>
-      ) : lesson.session === 9 ? (
-        <CapmNumbers portfolio={own} />
       ) : (
         <p>
-          <Message
-            text={m.learning_allocation_numbers_notice}
-            values={{
-              expected: emphasizedNumber(
-                formatPercent(own.expectedReturn, "two"),
-              ),
-              risk: emphasizedNumber(
-                formatPercent(own.standardDeviation, "two"),
-              ),
-              sharpe: emphasizedNumber(
-                own.sharpeRatio.ok
-                  ? formatSharpeRatio(own.sharpeRatio.value)
-                  : m.learning_no_value_label(),
-              ),
-              treynor: emphasizedNumber(
-                own.treynorRatio.ok
-                  ? formatPercent(own.treynorRatio.value, "two")
-                  : m.learning_no_value_label(),
-              ),
-            }}
-          />
+          <MeasuredNumbers activity={activity} portfolio={own} />
         </p>
       )}
       {own !== undefined && (
@@ -95,6 +76,58 @@ export function LessonOwnNumbers({
     </section>
   );
 }
+function MeasuredNumbers({
+  activity,
+  portfolio,
+}: {
+  activity: MeasuredLessonActivity;
+  portfolio: NonNullable<LessonPracticeData["simulation"]>;
+}): ReactNode {
+  switch (activity) {
+    case "diversification":
+      return (
+        <DiversificationNumbers
+          average={weightedHoldingRisk(portfolio)}
+          risk={portfolio.standardDeviation}
+        />
+      );
+    case "capm":
+      return <CapmNumbers portfolio={portfolio} />;
+    case "allocation":
+      return <AllocationNumbers portfolio={portfolio} />;
+  }
+}
+
+function AllocationNumbers({
+  portfolio,
+}: {
+  portfolio: NonNullable<LessonPracticeData["simulation"]>;
+}): ReactNode {
+  return (
+    <Message
+      text={m.learning_allocation_numbers_notice}
+      values={{
+        expected: emphasizedNumber(
+          formatPercent(portfolio.expectedReturn, "two"),
+        ),
+        risk: emphasizedNumber(
+          formatPercent(portfolio.standardDeviation, "two"),
+        ),
+        sharpe: emphasizedNumber(
+          portfolio.sharpeRatio.ok
+            ? formatSharpeRatio(portfolio.sharpeRatio.value)
+            : m.learning_no_value_label(),
+        ),
+        treynor: emphasizedNumber(
+          portfolio.treynorRatio.ok
+            ? formatPercent(portfolio.treynorRatio.value, "two")
+            : m.learning_no_value_label(),
+        ),
+      }}
+    />
+  );
+}
+
 function CapmNumbers({
   portfolio,
 }: {
@@ -102,28 +135,18 @@ function CapmNumbers({
 }): ReactNode {
   const change = formatSignedPercent(portfolio.securityMarketLine.value);
   return (
-    <p>
-      <Message
-        text={m.learning_capm_numbers_notice}
-        values={{
-          beta: emphasizedNumber(formatBeta(portfolio.beta)),
-          required: emphasizedNumber(
-            formatPercent(portfolio.requiredReturn.value, "two"),
-          ),
-          expected: emphasizedNumber(
-            formatPercent(portfolio.expectedReturn, "two"),
-          ),
-          alpha: <ChangeText colored change={change} />,
-        }}
-      />
-    </p>
-  );
-}
-
-export function emphasizedNumber(value: string): ReactNode {
-  return (
-    <strong>
-      <NumberText whole>{value}</NumberText>
-    </strong>
+    <Message
+      text={m.learning_capm_numbers_notice}
+      values={{
+        beta: emphasizedNumber(formatBeta(portfolio.beta)),
+        required: emphasizedNumber(
+          formatPercent(portfolio.requiredReturn.value, "two"),
+        ),
+        expected: emphasizedNumber(
+          formatPercent(portfolio.expectedReturn, "two"),
+        ),
+        alpha: <ChangeText colored change={change} />,
+      }}
+    />
   );
 }

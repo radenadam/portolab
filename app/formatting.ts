@@ -202,6 +202,11 @@ export function formatPercentagePoints(fraction: number): string {
   return formatTwoDecimals(fraction * 100);
 }
 
+// Rounding can make a non-integer quantity read as one.
+export function isOnePercentagePoint(formattedPoints: string): boolean {
+  return formattedPoints === formatPercentagePoints(0.01);
+}
+
 function formatTwoDecimals(value: number): string {
   return formatDecimal(value, numberPrecisionOptions.ratio);
 }

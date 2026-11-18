@@ -137,7 +137,8 @@ function measurePortfolioVariance(
   }
   return {
     formula: "portfolioVariance",
-    value: monthlyVariance(variance),
+    // Perfectly opposed holdings can cancel apart from a negative floating-point residue.
+    value: monthlyVariance(Math.max(0, variance)),
     inputs: {
       weights,
       covariances: covarianceMatrix.map((row) => row.map((cell) => cell.value)),

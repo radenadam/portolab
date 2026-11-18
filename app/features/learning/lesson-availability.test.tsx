@@ -102,11 +102,6 @@ function expectRiskTask(
 for (const locale of locales) {
   test(`explains offsetting monthly returns and a negative-beta holding without inventing ratios in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
-    const lesson = successValueForTest(
-      localizedLearningContent(),
-      "Read content",
-    ).sessions.find((entry) => entry.session === 10);
-    if (lesson === undefined) throw new Error("The course has session 10.");
     // Python Decimal computed the negative-beta portfolio from its fixture's inverse IHSG closes: return 0.0828395%, risk 2.383294%, beta -0.5248837, and Sharpe -0.1662938. Offsetting returns give 25% every month and zero variance by hand.
     for (const [report, expected, missingCount] of [
       [portfolioWithoutVariationForTest(), texts[locale].zero, 2],
@@ -126,7 +121,7 @@ for (const locale of locales) {
       const markup = renderMarkupForTest(
         <LessonOwnNumbers
           classId={7 as ClassId}
-          lesson={lesson}
+          activity="allocation"
           practice={practice}
         />,
       );

@@ -25,6 +25,8 @@ import {
   readPortfolioById,
   readStoredPortfolio,
 } from "~/features/trading/portfolio-store.server";
+import { readPortfolioValuation } from "~/features/trading/read-portfolio-report.server";
+import { readPortfolioMeasures } from "~/features/measures/read-measures.server";
 import { placeOrder } from "~/features/trading/place-order";
 import {
   applySampleFill,
@@ -392,6 +394,7 @@ test("seeds a separate class with credentials, every terminal order state, curre
     .get();
   // Python Decimal gives purchase costs of 12,967,422, 12,991,458, 12,759,110, 12,881,794, and 12,969,425 rupiah at the recorded closes of 2 to 6 November. These leave 35,430,791 from the starting 100,000,000.
   expect(firstPortfolio?.cash).toBe(rupiah(35_430_791));
+  expectSampleLessons(database, firstPortfolio);
   expectSampleHomeSummary(database, firstStudent, now);
   const empty = students.at(-1);
   if (empty === undefined)
@@ -628,4 +631,33 @@ async function checkPrintedCredentials(
       checkedHashes.add(person.passwordHash);
     }
   }
+}
+
+function expectSampleLessons(
+  database: Database,
+  firstPortfolio: typeof portfolios.$inferSelect | undefined,
+): void {
+  if (firstPortfolio === undefined)
+    throw new Error("The sample has no first portfolio.");
+  const storedPortfolio = readPortfolioById(database, firstPortfolio.id);
+  if (storedPortfolio === undefined)
+    throw new Error("The sample portfolio disappeared.");
+  const { valuation } = readPortfolioValuation(database, {
+    portfolio: storedPortfolio,
+    startingCash: defaultStartingCash,
+  });
+  const lessonReport = readPortfolioMeasures(database, valuation);
+  expect(lessonReport.kind).toBe("measured");
+  if (lessonReport.kind !== "measured" || !lessonReport.measures.ok)
+    throw new Error("The sample needs measured pairs for lesson 2.");
+  const lessonPairs = lessonReport.measures.value.pairs.filter(
+    (pair) => pair.first !== pair.second,
+  );
+  expect(lessonPairs.length).toBeGreaterThan(1);
+  expect(
+    new Set(lessonPairs.map((pair) => pair.correlation)).size,
+  ).toBeGreaterThan(1);
+  expect(
+    storedPortfolio.orders.some((order) => order.state.kind === "filled"),
+  ).toBe(true);
 }
