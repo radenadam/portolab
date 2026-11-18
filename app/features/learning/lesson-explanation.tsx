@@ -32,14 +32,17 @@ import type { ContentBlock, SessionContent } from "./content";
 import { ContentParagraphs } from "./content-paragraphs";
 import type { PortfolioSummary } from "~/features/measures/measure-summaries";
 import type { LessonPracticeData } from "./lesson-practice-data";
+import type { MeasuredLessonActivity } from "./lesson-practice-sessions";
 import styles from "./lesson-practice.module.css";
 
 export function LessonExplanation({
   lesson,
+  activity,
   practice,
   portfolio,
 }: {
   lesson: SessionContent;
+  activity: MeasuredLessonActivity;
   practice: LessonPracticeData;
   portfolio: PortfolioSummary | undefined;
 }): ReactNode {
@@ -89,7 +92,7 @@ export function LessonExplanation({
   };
   return (
     <ConceptHelp title={lesson.title}>
-      {lesson.session === 2 && estimation}
+      {activity === "diversification" && estimation}
       <ContentParagraphs blocks={body} reference={reference} />
       {portfolio !== undefined && (
         <dl>
@@ -98,7 +101,7 @@ export function LessonExplanation({
               <dt className={styles["code"]}>{holding.code}</dt>
               <dd>
                 <NumberText>
-                  {lessonHoldingInputs(holding, lesson.session)}
+                  {lessonHoldingInputs(holding, activity)}
                 </NumberText>
               </dd>
             </div>
@@ -111,18 +114,22 @@ export function LessonExplanation({
 
 function lessonHoldingInputs(
   holding: PortfolioSummary["holdings"][number],
-  session: SessionContent["session"],
+  activity: MeasuredLessonActivity,
 ): string {
   const expected = formatPercent(holding.expectedReturn, "two");
-  return session === 2
-    ? m.learning_pair_holding_inputs_notice({
+  switch (activity) {
+    case "diversification":
+      return m.learning_pair_holding_inputs_notice({
         expected,
         risk: formatPercent(holding.standardDeviation, "two"),
-      })
-    : m.learning_holding_inputs_notice({
+      });
+    case "capm":
+    case "allocation":
+      return m.learning_holding_inputs_notice({
         expected,
         beta: formatBeta(holding.beta),
       });
+  }
 }
 
 function lessonFormulas(

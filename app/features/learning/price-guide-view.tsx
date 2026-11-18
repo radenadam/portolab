@@ -5,14 +5,15 @@ import {
   PriceGuideCost,
 } from "./price-guide-example";
 import type { ReactNode } from "react";
-import { Link } from "react-router";
+import { LessonTaskLink } from "./lesson-task-link";
 import type { ClassId } from "~/features/classes/classes.schema";
 import { marketPath } from "~/features/market-data/market-path";
 import { NumberText } from "~/number-text";
 import { m } from "~/paraglide/messages.js";
 import type { PriceGuideContent } from "./parse-price-guide";
 import type { TradingLessonData } from "./trading-lesson-data";
-import { learnPath, priceGuidePath } from "./learning-paths";
+import { priceGuidePath } from "./learning-paths";
+import { LessonHeader } from "./lesson-header";
 import { PracticePanel } from "./practice-panel";
 import { withLessonTask } from "./lesson-task";
 import styles from "./learning.module.css";
@@ -36,30 +37,16 @@ export function PriceGuideView({
 }): ReactNode {
   return (
     <article className={styles["reading"]} data-layout="reading">
-      <header className={styles["hero"]}>
-        {!inSheet && (
-          <Link className={styles["link"]} to={returnTo ?? learnPath(classId)}>
-            <span aria-hidden="true">‹</span>
-            {returnTo === undefined
-              ? m.learning_back_link()
-              : m.learning_return_link()}
-          </Link>
-        )}
-        <div className={styles["sheetTools"]}>
-          <span className={styles["badge"]}>
-            {m.learning_price_guide_badge_label()}
-          </span>
-          {inSheet && (
-            <Link
-              className={styles["link"]}
-              to={priceGuidePath(classId, returnTo)}
-            >
-              {m.learning_open_lesson_link()}
-            </Link>
-          )}
-        </div>
-        {!inSheet && <h1>{priceGuide.title}</h1>}
-      </header>
+      <LessonHeader
+        classId={classId}
+        badge={m.learning_price_guide_badge_label()}
+        title={priceGuide.title}
+        page={priceGuidePath(classId, returnTo)}
+        returnTo={returnTo}
+        inSheet={inSheet}
+        idPrefix={idPrefix}
+        hasPractice={false}
+      />
       <p className={styles["keyIdea"]}>{priceGuide.sections["key-idea"]}</p>
       <section
         className={practiceStyles["interactive"]}
@@ -69,40 +56,56 @@ export function PriceGuideView({
         <ol className={localStyles["marks"]}>
           {(
             [
-              [m.learning_code_label(), priceGuide.sections.code],
-              [m.learning_last_price_label(), priceGuide.sections.price],
-              [m.learning_change_label(), priceGuide.sections.change],
-              [m.learning_quote_time_label(), priceGuide.sections.time],
+              [m.learning_code_label(), priceGuide.sections.code, null],
+              [
+                m.learning_last_price_label(),
+                priceGuide.sections.price,
+                <NumberText key="source">
+                  {learningPriceSourceText(trading.source)}
+                </NumberText>,
+              ],
+              [m.learning_change_label(), priceGuide.sections.change, null],
+              [m.learning_quote_time_label(), priceGuide.sections.time, null],
             ] as const
-          ).map(([label, paragraph], index) => (
+          ).map(([label, paragraph, source], index) => (
             <li key={label}>
               <PriceGuideMark number={index + 1} />
               <div>
                 <strong>{label}</strong>
-                <p>{paragraph}</p>
+                <p>
+                  {source === null ? (
+                    paragraph
+                  ) : (
+                    <>
+                      {paragraph} {source}
+                    </>
+                  )}
+                </p>
               </div>
             </li>
           ))}
         </ol>
-        <p className={practiceStyles["muted"]}>
-          <NumberText>{learningPriceSourceText(trading.source)}</NumberText>
-        </p>
       </section>
       <PriceGuideCost trading={trading} />
-      <PracticePanel idPrefix={idPrefix}>
-        <p>{m.learning_price_guide_task_notice()}</p>
-        <Link
-          className={practiceStyles["button"]}
-          to={
-            inSheet
-              ? `${priceGuidePath(classId, returnTo)}#practice`
-              : withLessonTask(marketPath(classId), "prices")
-          }
-        >
-          {inSheet
-            ? m.learning_open_practice_link()
-            : m.learning_read_stock_link()}
-        </Link>
+      <PracticePanel
+        idPrefix={idPrefix}
+        title={m.learning_guide_practice_title()}
+      >
+        <div className={practiceStyles["task"]}>
+          <p>
+            <strong>{m.learning_task_label()}</strong>{" "}
+            {m.learning_price_guide_task_notice()}
+          </p>
+          <LessonTaskLink
+            to={withLessonTask(marketPath(classId), "prices")}
+            label={m.learning_read_stock_link()}
+            taskPage={
+              inSheet
+                ? `${priceGuidePath(classId, returnTo)}#practice`
+                : undefined
+            }
+          />
+        </div>
       </PracticePanel>
     </article>
   );

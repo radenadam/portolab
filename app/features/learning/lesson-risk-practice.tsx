@@ -9,7 +9,7 @@ import { monthlyReturn } from "~/units/monthly-return";
 import { NumberText } from "~/number-text";
 import { Message } from "~/message";
 import { m } from "~/paraglide/messages.js";
-import { emphasizedNumber } from "./lesson-own-numbers";
+import { emphasizedNumber } from "./emphasized-number";
 import { PracticePanel } from "./practice-panel";
 import { riskMeasureFailureText } from "~/features/measures/measure-failure-text";
 import { practiceRiskTarget } from "./practice-risk-target";

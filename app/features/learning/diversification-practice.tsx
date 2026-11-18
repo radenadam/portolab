@@ -1,8 +1,5 @@
-import { weightedHoldingRisk } from "~/features/measures/weighted-holding-risk";
-import { diversificationNumbers } from "./diversification-numbers";
 import { monthlyReturnCount } from "~/features/measures/monthly-return-count";
 import type { ReactNode } from "react";
-import { Link } from "react-router";
 import type { ClassId } from "~/features/classes/classes.schema";
 import type { PortfolioSummary } from "~/features/measures/measure-summaries";
 import { marketPath } from "~/features/market-data/market-path";
@@ -12,32 +9,39 @@ import { m } from "~/paraglide/messages.js";
 import { useIsInBrowser } from "~/use-is-in-browser";
 import { PracticePanel } from "./practice-panel";
 import { withLessonTask } from "./lesson-task";
+import { LessonTaskLink } from "./lesson-task-link";
 import { defaultPairWeight } from "./two-stock-allocation";
 import styles from "./lesson-practice.module.css";
 import localStyles from "./trading-lesson.module.css";
+
+const listedPairs = 5;
+
 export function DiversificationPractice({
   classId,
   own,
-  first,
-  second,
-  selectPair,
+  chart,
+  ownNumbers,
   idPrefix,
   taskPage,
-  missingNumbers,
 }: {
   classId: ClassId;
   own: PortfolioSummary | undefined;
-  first: string;
-  second: string;
-  selectPair: (first: string, second: string) => void;
+  /** The pair that the chart above draws, and the step that draws another, when the lesson has a pair to draw. */
+  chart:
+    | {
+        first: string;
+        second: string;
+        selectPair: (first: string, second: string) => void;
+      }
+    | undefined;
+  ownNumbers: ReactNode;
   idPrefix: string;
   taskPage: string | undefined;
-  missingNumbers: ReactNode;
 }): ReactNode {
   const interactive = useIsInBrowser();
   return (
     <PracticePanel idPrefix={idPrefix}>
-      {own !== undefined && own.holdings.length >= 2 ? (
+      {own !== undefined && own.holdings.length >= 2 && chart !== undefined ? (
         <>
           <p className={styles["muted"]}>
             <NumberText>
@@ -52,7 +56,7 @@ export function DiversificationPractice({
               (firstPair, secondPair) =>
                 firstPair.correlation - secondPair.correlation,
             )
-            .slice(0, 5)
+            .slice(0, listedPairs)
             .map((entry) => (
               <div key={`${entry.first}-${entry.second}`}>
                 {interactive ? (
@@ -61,10 +65,11 @@ export function DiversificationPractice({
                     data-learning-pair
                     className={localStyles["pair"]}
                     aria-pressed={
-                      first === entry.first && second === entry.second
+                      chart.first === entry.first &&
+                      chart.second === entry.second
                     }
                     onClick={() => {
-                      selectPair(entry.first, entry.second);
+                      chart.selectPair(entry.first, entry.second);
                       document
                         .getElementById(`${idPrefix}lesson-interactive-title`)
                         ?.scrollIntoView({ block: "start" });
@@ -101,45 +106,21 @@ export function DiversificationPractice({
         </>
       ) : (
         <>
-          {own === undefined && missingNumbers}
-          <p>{m.learning_pair_missing_notice()}</p>
-          <Link
-            className={styles["button"]}
-            to={taskPage ?? withLessonTask(marketPath(classId), 2)}
-          >
-            {taskPage === undefined
-              ? m.learning_find_pair_link()
-              : m.learning_open_practice_link()}
-          </Link>
+          {own === undefined && ownNumbers}
+          <p className={styles["muted"]}>{m.learning_pair_missing_notice()}</p>
+          <div className={styles["task"]}>
+            <p>
+              <strong>{m.learning_task_label()}</strong>{" "}
+              {m.learning_pair_task_banner_notice()}
+            </p>
+            <LessonTaskLink
+              to={withLessonTask(marketPath(classId), 2)}
+              label={m.learning_find_pair_link()}
+              taskPage={taskPage}
+            />
+          </div>
         </>
       )}
     </PracticePanel>
-  );
-}
-export function DiversificationOwnNumbers({
-  own,
-}: {
-  own: PortfolioSummary | undefined;
-}): ReactNode {
-  return (
-    <>
-      {" "}
-      {own !== undefined && (
-        <section className={styles["yours"]}>
-          <strong>{m.learning_your_numbers_label()}</strong>
-          <p>
-            <NumberText>
-              {diversificationNumbers({
-                average: weightedHoldingRisk(own),
-                risk: own.standardDeviation,
-              })}
-            </NumberText>
-          </p>
-          <p className={styles["provenance"]}>
-            {m.learning_price_times_notice()}
-          </p>
-        </section>
-      )}
-    </>
   );
 }

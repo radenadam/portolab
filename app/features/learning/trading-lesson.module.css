@@ -35,17 +35,15 @@
 }
 
 .choice {
-  composes: chip from "../../chip.module.css";
-}
-
-.choice[aria-pressed="true"] {
-  color: var(--color-link);
-  font-weight: 600;
-}
-
-.choice[aria-pressed="true"]::before {
-  border-color: var(--color-data);
-  background: var(--color-data-soft);
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--size-touch-target);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-ink-secondary);
+  font: inherit;
+  cursor: pointer;
 }
 
 .pair {
@@ -80,7 +78,7 @@
   position: relative;
   block-size: var(--space-6);
   border-radius: var(--radius-item);
-  background: transparent;
+  background: var(--color-raised);
 }
 
 .track > div {

@@ -20,7 +20,7 @@ import type { LessonPracticeData } from "./lesson-practice-data";
 import { lessonPracticeForTest } from "./lesson-practice-for-test";
 import { LessonPractice } from "./lesson-practice";
 import { localizedLearningContent } from "./localized-learning-content.server";
-import { hasLessonPractice } from "./lesson-practice-sessions";
+import { lessonActivityOf } from "./lesson-practice-sessions";
 
 const texts: Record<
   Locale,
@@ -56,9 +56,10 @@ function practiceLessonsForTest() {
   return successValueForTest(
     localizedLearningContent(),
     "Read lessons",
-  ).sessions.filter(
-    (lesson) => hasLessonPractice(lesson.session) && lesson.session !== 6,
-  );
+  ).sessions.filter((lesson) => {
+    const activity = lessonActivityOf(lesson.session);
+    return activity !== undefined && activity !== "trading";
+  });
 }
 
 for (const locale of locales) {
@@ -140,10 +141,14 @@ for (const locale of locales) {
         expectOnce(markup, settings);
         if (
           practice.market === undefined ||
-          (lesson.session !== 9 && practice.simulation === undefined)
+          (lessonActivityOf(lesson.session) !== "capm" &&
+            practice.simulation === undefined)
         )
           expectOnce(markup, markupTextForTest(texts[locale].unavailable));
-        if (lesson.session !== 9 && practice.simulation !== undefined)
+        if (
+          lessonActivityOf(lesson.session) !== "capm" &&
+          practice.simulation !== undefined
+        )
           expectOnce(markup, markupTextForTest(texts[locale].example));
         else
           expect(textOfMarkupForTest(markup)).not.toContain(

@@ -9,10 +9,10 @@ test("isolates weights and correlation against independent Python Decimal calcul
   if (portfolio === undefined)
     throw new Error("The fixture has shared-month measures.");
   // Python Decimal at 50 digits used the recorded BBCA and TLKM estimates in measure-portfolio.test.ts, at equal weights and the slider's correlation endpoints and midpoint.
-  for (const [rho, variance, risk] of [
-    [-1, 0.00006868131745578162, 0.008287419227708],
-    [0, 0.0018680703074598136, 0.043221178922605],
-    [1, 0.003667459297464, 0.060559551661681],
+  for (const [rho, risk] of [
+    [-1, 0.008287419227708],
+    [0, 0.043221178922605],
+    [1, 0.060559551661681],
   ] as const) {
     const measured = twoStockAllocation(portfolio, {
       first: "BBCA",
@@ -20,7 +20,8 @@ test("isolates weights and correlation against independent Python Decimal calcul
       weight: portfolioWeight(0.5),
       correlation: correlation(rho),
     });
-    expect(measured.variance.value).toBeCloseTo(variance, 15);
+    expect(measured.risks.first).toBeCloseTo(0.052272132433973, 15);
+    expect(measured.risks.second).toBeCloseTo(0.068846970889389, 15);
     expect(measured.standardDeviation.value).toBeCloseTo(risk, 14);
     expect(measured.averageRisk).toBeCloseTo(0.060559551661681, 14);
     expect(measured.expectedReturn.value).toBeCloseTo(-0.003256904922446, 15);

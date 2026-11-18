@@ -1,8 +1,5 @@
 import { monthlyReturnCount } from "~/features/measures/monthly-return-count";
-import {
-  DiversificationPractice,
-  DiversificationOwnNumbers,
-} from "./diversification-practice";
+import { DiversificationPractice } from "./diversification-practice";
 import { useState } from "react";
 import type { ReactNode } from "react";
 import type { ClassId } from "~/features/classes/classes.schema";
@@ -15,48 +12,117 @@ import { correlation } from "~/units/correlation";
 import type { Correlation } from "~/units/correlation";
 import { portfolioWeight } from "~/units/portfolio-weight";
 import { useIsInBrowser } from "~/use-is-in-browser";
+import { LessonExplanation } from "./lesson-explanation";
+import { LessonOwnNumbers } from "./lesson-own-numbers";
+import type { LessonPracticeProps } from "./lesson-practice-data";
 import { LessonSlider } from "./lesson-slider";
+import { PairChoices } from "./pair-choices";
+import { practicePortfolio } from "./practice-portfolio";
 import { TwoStockCurve } from "./two-stock-curve";
 import { defaultPairWeight, twoStockAllocation } from "./two-stock-allocation";
 import styles from "./lesson-practice.module.css";
-import localStyles from "./trading-lesson.module.css";
+
+type StockPair = PortfolioSummary["pairs"][number];
 
 export function LessonDiversification({
   classId,
-  portfolio,
-  own,
-  explanation,
-  missingNumbers,
+  lesson,
+  practice,
   children,
   idPrefix = "",
+  taskPage,
+}: LessonPracticeProps): ReactNode {
+  const own = practicePortfolio(practice.report);
+  const simulation = practice.simulation;
+  const explanation = (
+    <LessonExplanation
+      lesson={lesson}
+      activity="diversification"
+      practice={practice}
+      portfolio={simulation}
+    />
+  );
+  const ownNumbers = (
+    <LessonOwnNumbers
+      classId={classId}
+      activity="diversification"
+      practice={practice}
+    />
+  );
+  const initial = simulation === undefined ? undefined : pairsOf(simulation)[0];
+  if (simulation === undefined || initial === undefined)
+    return (
+      <>
+        <section className={styles["interactive"]}>
+          <h2>{m.learning_two_stocks_title()}</h2>
+          <p>{m.learning_interactive_data_notice()}</p>
+          {explanation}
+        </section>
+        {own !== undefined && ownNumbers}
+        {children}
+        <DiversificationPractice
+          classId={classId}
+          own={own}
+          chart={undefined}
+          ownNumbers={ownNumbers}
+          idPrefix={idPrefix}
+          taskPage={taskPage}
+        />
+      </>
+    );
+  return (
+    <TwoStockLesson
+      classId={classId}
+      portfolio={simulation}
+      initial={initial}
+      own={own}
+      explanation={explanation}
+      ownNumbers={ownNumbers}
+      idPrefix={idPrefix}
+      taskPage={taskPage}
+    >
+      {children}
+    </TwoStockLesson>
+  );
+}
+
+function TwoStockLesson({
+  classId,
+  portfolio,
+  initial,
+  own,
+  explanation,
+  ownNumbers,
+  children,
+  idPrefix,
   taskPage,
 }: {
   classId: ClassId;
   portfolio: PortfolioSummary;
+  initial: StockPair;
   own: PortfolioSummary | undefined;
   explanation: ReactNode;
-  missingNumbers: ReactNode;
+  ownNumbers: ReactNode;
   children: ReactNode;
-  idPrefix?: string;
-  taskPage?: string | undefined;
+  idPrefix: string;
+  taskPage: string | undefined;
 }): ReactNode {
-  const available = portfolio.holdings;
-  const initial = initialPair(portfolio);
-  const [first, setFirst] = useState(initial.first);
-  const [second, setSecond] = useState(initial.second);
+  const [chosen, setChosen] = useState({
+    first: initial.first,
+    second: initial.second,
+  });
   const [weight, setWeight] = useState(defaultPairWeight);
   const [override, setOverride] = useState<Correlation>();
   const interactive = useIsInBrowser();
-  const pair = selectedPair(portfolio, first, second);
-  // A portfolio refresh can remove a selected stock while its explanation is open.
-  if (pair === undefined) {
-    setFirst(initial.first);
-    setSecond(initial.second);
-    setOverride(undefined);
-    setWeight(defaultPairWeight);
-    return null;
-  }
-  const rho = override ?? pair.correlation;
+  // A refresh of the portfolio can remove a chosen stock while the lesson is open, and the lesson then starts again from its first pair.
+  const chosenPair = pairsOf(portfolio).find(
+    (entry) =>
+      (entry.first === chosen.first && entry.second === chosen.second) ||
+      (entry.first === chosen.second && entry.second === chosen.first),
+  );
+  const { first, second } = chosenPair === undefined ? initial : chosen;
+  const observed = (chosenPair ?? initial).correlation;
+  const rho = (chosenPair === undefined ? undefined : override) ?? observed;
   const measured = twoStockAllocation(portfolio, {
     first,
     second,
@@ -64,8 +130,7 @@ export function LessonDiversification({
     correlation: rho,
   });
   const selectPair = (firstCode: string, secondCode: string): void => {
-    setFirst(firstCode);
-    setSecond(secondCode);
+    setChosen({ first: firstCode, second: secondCode });
     setOverride(undefined);
     setWeight(defaultPairWeight);
   };
@@ -81,57 +146,31 @@ export function LessonDiversification({
         {(own?.holdings.length ?? 0) < 2 && (
           <p className={styles["muted"]}>{m.learning_example_notice()}</p>
         )}
-        {interactive && available.length > 2 && (
+        {interactive && portfolio.holdings.length > 2 && (
           <>
-            <div
-              className={localStyles["choices"]}
-              role="group"
-              aria-label={m.learning_stock_a_label()}
-            >
-              <span>{m.learning_stock_a_label()}</span>
-              {available
-                .filter((holding) => holding.code !== second)
-                .map((holding) => (
-                  <button
-                    key={holding.code}
-                    type="button"
-                    className={localStyles["choice"]}
-                    aria-pressed={first === holding.code}
-                    onClick={() => {
-                      selectPair(holding.code, second);
-                    }}
-                  >
-                    {holding.code}
-                  </button>
-                ))}
-            </div>
-            <div
-              className={localStyles["choices"]}
-              role="group"
-              aria-label={m.learning_stock_b_label()}
-            >
-              <span>{m.learning_stock_b_label()}</span>
-              {available
-                .filter((holding) => holding.code !== first)
-                .map((holding) => (
-                  <button
-                    key={holding.code}
-                    type="button"
-                    className={localStyles["choice"]}
-                    aria-pressed={second === holding.code}
-                    onClick={() => {
-                      selectPair(first, holding.code);
-                    }}
-                  >
-                    {holding.code}
-                  </button>
-                ))}
-            </div>
+            <PairChoices
+              label={m.learning_stock_a_label()}
+              holdings={portfolio.holdings}
+              chosen={first}
+              other={second}
+              select={(code) => {
+                selectPair(code, second);
+              }}
+            />
+            <PairChoices
+              label={m.learning_stock_b_label()}
+              holdings={portfolio.holdings}
+              chosen={second}
+              other={first}
+              select={(code) => {
+                selectPair(first, code);
+              }}
+            />
           </>
         )}
         <LessonSlider
           id={`${idPrefix}two-stock-weight`}
-          kind="weight"
+          kind="pairWeight"
           label={m.learning_stock_weight_label({ code: first })}
           text={m.learning_pair_weights_label({
             first,
@@ -159,7 +198,7 @@ export function LessonDiversification({
             setOverride(correlation(value));
           }}
         />
-        {override === undefined ? (
+        {rho === observed ? (
           <p className={styles["muted"]}>
             <NumberText>
               {m.learning_observed_correlation_notice({
@@ -178,7 +217,7 @@ export function LessonDiversification({
             {m.learning_restore_correlation_label({
               first,
               second,
-              value: formatCorrelation(pair.correlation),
+              value: formatCorrelation(observed),
             })}
           </button>
         )}
@@ -220,43 +259,30 @@ export function LessonDiversification({
           </div>
         </dl>
         <div className={styles["formula"]}>
-          <TwoStockFormula measured={measured} />
+          <TwoStockFormula
+            weight={weight}
+            risks={measured.risks}
+            correlation={rho}
+            result={measured.standardDeviation.value}
+          />
           {explanation}
         </div>
       </section>
-      <DiversificationOwnNumbers own={own} />
+      {own !== undefined && ownNumbers}
       {children}
       <DiversificationPractice
         classId={classId}
         own={own}
-        first={first}
-        second={second}
-        selectPair={selectPair}
+        chart={{ first, second, selectPair }}
+        ownNumbers={ownNumbers}
         idPrefix={idPrefix}
         taskPage={taskPage}
-        missingNumbers={missingNumbers}
       />
     </>
   );
 }
 
-function selectedPair(
-  portfolio: PortfolioSummary,
-  first: string,
-  second: string,
-) {
-  const pairs = portfolio.pairs.filter((pair) => pair.first !== pair.second);
-  const pair = pairs.find(
-    (entry) =>
-      (entry.first === first && entry.second === second) ||
-      (entry.second === first && entry.first === second),
-  );
-  return pair;
-}
-
-function initialPair(portfolio: PortfolioSummary) {
-  const pair = portfolio.pairs.find((entry) => entry.first !== entry.second);
-  if (pair === undefined)
-    throw new Error("The diversification exercise needs two measured stocks.");
-  return pair;
+/** The pairs of two different stocks, because the pairs of a portfolio also hold each stock with itself. */
+function pairsOf(portfolio: PortfolioSummary): StockPair[] {
+  return portfolio.pairs.filter((pair) => pair.first !== pair.second);
 }

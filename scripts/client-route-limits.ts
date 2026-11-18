@@ -10,49 +10,49 @@ const measuredRoutes: ReadonlyMap<string, Partial<ClientRouteLimits>> = new Map(
   [
     [
       "features/classes/class-page",
-      { javascript: "229.2 kB", stylesheets: "24.6 kB" },
+      { javascript: "229.8 kB", stylesheets: "24.6 kB" },
     ],
     [
       "features/market-data/market-page",
-      { javascript: "219 kB", stylesheets: "22.3 kB" },
+      { javascript: "219.5 kB", stylesheets: "22.3 kB" },
     ],
-    ["features/trading/activity-page", { javascript: "209.6 kB" }],
+    ["features/trading/activity-page", { javascript: "210.2 kB" }],
     [
       "features/trading/demonstration-summary-page",
-      { javascript: "223.1 kB", stylesheets: exerciseStylesheetLimit },
+      { javascript: "223.8 kB", stylesheets: exerciseStylesheetLimit },
     ],
     [
       "features/trading/demonstration-activity-page",
-      { javascript: "210.4 kB", stylesheets: "20.4 kB" },
+      { javascript: "211 kB", stylesheets: "20.4 kB" },
     ],
     [
       "features/measures/demonstration-analysis-page",
-      { javascript: "225.2 kB", stylesheets: "21.6 kB" },
+      { javascript: "225.8 kB", stylesheets: "21.6 kB" },
     ],
     [
       "features/measures/measures-page",
-      { javascript: "224.3 kB", stylesheets: "20.9 kB" },
+      { javascript: "224.9 kB", stylesheets: "20.9 kB" },
     ],
     [
       "features/market-data/stock-page",
-      { javascript: "228.6 kB", stylesheets: "22.5 kB" },
+      { javascript: "229.2 kB", stylesheets: "22.5 kB" },
     ],
     [
       "features/trading/ticket-page",
-      { javascript: "236.3 kB", stylesheets: "25.3 kB" },
+      { javascript: "236.9 kB", stylesheets: "25.3 kB" },
     ],
-    ["features/grading/class-portfolios-page", { javascript: "205.3 kB" }],
+    ["features/grading/class-portfolios-page", { javascript: "205.9 kB" }],
     [
       "features/grading/student-portfolio-page",
-      { javascript: "223.9 kB", stylesheets: exerciseStylesheetLimit },
+      { javascript: "224.6 kB", stylesheets: exerciseStylesheetLimit },
     ],
     [
       "features/grading/student-measures-page",
-      { javascript: "225.7 kB", stylesheets: "21.9 kB" },
+      { javascript: "226.3 kB", stylesheets: "21.9 kB" },
     ],
     [
       "features/grading/student-journal-page",
-      { javascript: "210.7 kB", stylesheets: "20.8 kB" },
+      { javascript: "211.3 kB", stylesheets: "20.8 kB" },
     ],
   ],
 );

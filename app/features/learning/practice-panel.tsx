@@ -6,9 +6,11 @@ import styles from "./lesson-practice.module.css";
 export function PracticePanel({
   children,
   idPrefix = "",
+  title,
 }: {
   children: ReactNode;
   idPrefix?: string;
+  title?: string;
 }): ReactNode {
   return (
     <section
@@ -18,7 +20,7 @@ export function PracticePanel({
     >
       <h2 id={`${idPrefix}lesson-practice-title`}>
         <Icon name="flask" className={undefined} />
-        {m.learning_practice_title()}
+        {title ?? m.learning_practice_title()}
       </h2>
       {children}
     </section>

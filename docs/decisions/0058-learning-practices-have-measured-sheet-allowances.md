@@ -12,8 +12,8 @@ The production rules differ from the prototype's mock bands. A portfolio can als
 ## Decision
 
 - The price guide joins the Markdown prose exception of decision 0036. It has prose in each language, and its parser checks every translation and the common section structure. Values computed from quotes, rules, costs, and source descriptions remain Paraglide messages.
-- The diversification exercise starts with equal weights and the observed correlation of a pair from the portfolio's shared months. When the portfolio cannot supply a pair, it uses eligible stored estimates as a labelled example. Changing correlation is a hypothesis, so it changes the covariance while retaining the stock estimates and months. Its range accepts the exact observed value before a reader changes it. The chart reuses the map's label placement, and its default drawing precedes JavaScript. Its variance calculation uses the existing double sum notation and four covariance terms, which keep the displayed inputs tied to the shared allocation calculation.
-- The trading lesson and guide reuse the ticket's rules, reference price, and costs. The timeline reads the exchange calendar. It formats session numbers with Intl, which keeps them consistent with other numbered labels. The price exercise covers the recorded minimum price, including the small-price bands absent from the mock. The latest trade uses its stored fill costs and quote time.
+- The diversification exercise starts with equal weights and the observed correlation of a pair from the portfolio's shared months. When the portfolio cannot supply a pair, it uses eligible stored estimates as a labelled example. Changing correlation is a hypothesis, so it changes the covariance while retaining the stock estimates and months. Its range accepts the exact observed value before a reader changes it. The chart reuses the map's label placement, and its default drawing precedes JavaScript. Its formula writes the risk of two stocks with their correlation, as the prototype does, with the subscripts of [decision 0020](0020-a-formula-shows-the-notation-of-the-textbooks.md), so the reader sees where the correlation of the slider enters.
+- The trading lesson and guide reuse the ticket's rules, reference price, and costs. The timeline reads the exchange calendar. It formats session numbers with Intl, which keeps them consistent with other numbered labels. It names the times of each session under the day of that session instead of the prototype's single axis, because that axis gives only the times of Monday to Thursday, and the English times of an axis, such as 12:00 PM and 1:30 PM, collide at 360 pixels. The price exercise covers the recorded minimum price, including the small-price bands absent from the mock. The latest trade uses its stored fill costs and quote time.
 - The Limit task asks the reader to cross ARA, read the price boundaries, and return without placing an order. It keeps the form's server validation policy. When the reference band is unavailable, it asks the reader to inspect the ticket's missing data instead. Missing rules retain the written lesson. The guide's task opens Market and returns to its practice section. A task opened in a sheet first opens the full lesson, as decision 0048 does.
 - The guide omits the prototype's fixed reading duration because the app does not estimate how long its reader needs. It describes the stored quote after trading ends, because a quote is not a stored final daily close. Changes refer to the quoted day, including a quote from an earlier day. The quote example reuses `StockName` and can wrap its price column below the identity so its complete timestamp and amounts stay together on narrow screens. The pair list describes correlation rather than a frequency of matching directions. The two-stock card names its stocks through its controls and chart, without a second caption naming them.
 - Complete sheets remain on their class routes. The following ceilings replace the earlier ceilings only for these dependency sets. Every other ceiling and the dependency walk stay the same. The named limits leave a small margin because the shared manifest and stylesheet splits also change compressed totals.
@@ -21,42 +21,42 @@ The production rules differ from the prototype's mock bands. A portfolio can als
 | Dependency set              | JavaScript ceiling, kB gzip | CSS ceiling, kB gzip |
 | --------------------------- | --------------------------: | -------------------: |
 | Shared code                 |                       142.6 |                   20 |
-| Class home                  |                       229.2 |                 24.6 |
-| Market                      |                         219 |                 22.3 |
-| Activity                    |                       209.6 |                   20 |
-| Demonstration summary       |                       223.1 |                   24 |
-| Demonstration Activity      |                       210.4 |                 20.4 |
-| Demonstration analysis      |                       225.2 |                 21.6 |
-| Student analysis            |                       224.3 |                 20.9 |
-| Stock                       |                       228.6 |                 22.5 |
-| Ticket                      |                       236.3 |                 25.3 |
-| Class ranking               |                       205.3 |                   20 |
-| Lecturer's student summary  |                       223.9 |                   24 |
-| Lecturer's student analysis |                       225.7 |                 21.9 |
-| Lecturer's student journal  |                       210.7 |                 20.8 |
+| Class home                  |                       229.8 |                 24.6 |
+| Market                      |                       219.5 |                 22.3 |
+| Activity                    |                       210.2 |                   20 |
+| Demonstration summary       |                       223.8 |                   24 |
+| Demonstration Activity      |                         211 |                 20.4 |
+| Demonstration analysis      |                       225.8 |                 21.6 |
+| Student analysis            |                       224.9 |                 20.9 |
+| Stock                       |                       229.2 |                 22.5 |
+| Ticket                      |                       236.9 |                 25.3 |
+| Class ranking               |                       205.9 |                   20 |
+| Lecturer's student summary  |                       224.6 |                   24 |
+| Lecturer's student analysis |                       226.3 |                 21.9 |
+| Lecturer's student journal  |                       211.3 |                 20.8 |
 
 ## Measurements
 
-The asset comparison builds main at `a63a054` from a clean archive and this change on the same machine, using `pnpm build` and `pnpm size`. Both use the compression and complete dependency walk of decisions 0038 and 0042. kB means 1,000 bytes. Both languages participate.
+The asset comparison builds main at `a63a054` from a clean archive and this change, merged with main at `1d4600b`, on the same machine, using `pnpm build` and `pnpm size`. Both use the compression and complete dependency walk of decisions 0038 and 0042. kB means 1,000 bytes. Both languages participate.
 
 | Dependency set              | Main JavaScript | This change JavaScript | Main CSS | This change CSS |
 | --------------------------- | --------------: | ---------------------: | -------: | --------------: |
-| Shared code                 |          141.86 |                 142.39 |     7.76 |            7.76 |
-| Lesson                      |          175.27 |                 196.15 |    15.26 |           17.25 |
-| Price guide                 |                 |                 196.16 |          |           17.25 |
-| Class home                  |          211.02 |                 228.91 |    22.95 |           24.47 |
-| Market                      |          200.04 |                 218.64 |    20.63 |           22.13 |
-| Activity                    |          195.44 |                 209.33 |    18.10 |           19.61 |
-| Demonstration summary       |          205.16 |                 222.88 |    21.31 |           22.82 |
-| Demonstration Activity      |          196.31 |                 210.20 |    18.74 |           20.24 |
-| Demonstration analysis      |          204.50 |                 224.93 |    19.43 |           21.41 |
-| Student analysis            |          203.63 |                 224.06 |    18.79 |           20.77 |
-| Stock                       |          215.17 |                 228.32 |    20.81 |           22.32 |
-| Ticket                      |          223.09 |                 236.08 |    23.64 |           25.15 |
-| Class ranking               |          184.38 |                 205.04 |    17.89 |           19.88 |
-| Lecturer's student summary  |          205.81 |                 223.68 |    21.70 |           23.21 |
-| Lecturer's student analysis |          204.98 |                 225.41 |    19.81 |           21.80 |
-| Lecturer's student journal  |          196.59 |                 210.49 |    19.13 |           20.63 |
+| Shared code                 |          141.86 |                 142.39 |     7.76 |            7.80 |
+| Lesson                      |          175.27 |                 196.71 |    15.26 |           17.06 |
+| Price guide                 |                 |                 196.71 |          |           17.06 |
+| Class home                  |          211.02 |                 229.48 |    22.95 |           24.28 |
+| Market                      |          200.04 |                 219.16 |    20.63 |           21.95 |
+| Activity                    |          195.44 |                 209.84 |    18.10 |           19.42 |
+| Demonstration summary       |          205.16 |                 223.44 |    21.31 |           22.63 |
+| Demonstration Activity      |          196.31 |                 210.71 |    18.74 |           20.06 |
+| Demonstration analysis      |          204.50 |                 225.49 |    19.43 |           21.23 |
+| Student analysis            |          203.63 |                 224.62 |    18.79 |           20.59 |
+| Stock                       |          215.17 |                 228.85 |    20.81 |           22.14 |
+| Ticket                      |          223.09 |                 236.60 |    23.64 |           24.96 |
+| Class ranking               |          184.38 |                 205.60 |    17.89 |           19.69 |
+| Lecturer's student summary  |          205.81 |                 224.25 |    21.70 |           23.02 |
+| Lecturer's student analysis |          204.98 |                 225.98 |    19.81 |           21.61 |
+| Lecturer's student journal  |          196.59 |                 211.01 |    19.13 |           20.45 |
 
 The sheet reuses the allocation engine, rule calculations, and label placement. A direct import of the existing label styles replaces CSS composition that loaded their stylesheet twice. The final table includes the resulting stylesheet graph.
 
@@ -71,7 +71,7 @@ The phone probe uses Chromium at 360 by 740 pixels with touch, fourfold CPU slow
 | Ticket           |                       3.456 |                           3.736 |     14.015 |         14.506 |
 | Class home       |                       2.788 |                           3.072 |      3.089 |          3.214 |
 
-The new lessons render their explanation, drawing, values, and tables before the sliders appear. These local samples do not establish a speedup or physical phone performance. Other workers used this machine during the probe, which limits a comparison of elapsed times. [Issue #257](https://github.com/radenadam/portolab/issues/257) tracks the broader controlled phone comparison.
+The new lessons render their explanation, drawing, values, and tables before the sliders appear. The probe ran before the last revision of the exercises, which adds 0.56 kB of JavaScript to each class route and removes 0.18 kB of CSS. These local samples do not establish a speedup or physical phone performance. Other workers used this machine during the probe, which limits a comparison of elapsed times. [Issue #257](https://github.com/radenadam/portolab/issues/257) tracks the broader controlled phone comparison.
 
 ## Alternatives
 

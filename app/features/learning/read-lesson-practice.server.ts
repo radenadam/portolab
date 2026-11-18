@@ -6,7 +6,7 @@ import type { LessonPracticeData } from "./lesson-practice-data";
 import type { RouterContextProvider } from "react-router";
 import type { Database } from "~/database/database.server";
 import type { PortfolioSummary } from "~/features/measures/measure-summaries";
-import type { SessionNumber } from "~/features/classes/course-calendar";
+import type { MeasuredLessonActivity } from "./lesson-practice-sessions";
 import { databaseContext } from "~/database/database.server";
 import { requireUser } from "~/features/accounts/current-session.server";
 import { measureStoredMarket } from "~/features/measures/measure-stored.server";
@@ -24,7 +24,7 @@ export function readLessonPractice(
     url: URL;
     classId: string;
     now: Date;
-    session: SessionNumber;
+    activity: MeasuredLessonActivity;
   },
 ): LessonPracticeData {
   const reader = requireUser(context, input.url);
@@ -52,16 +52,23 @@ export function readLessonPractice(
       portfolio?.market ??
       (market.ok ? summarizeMarket(market.value) : undefined),
     marketFailure: market.ok ? undefined : market.failure,
-    simulation: lessonSimulation(database, portfolio, input.session),
+    simulation: lessonSimulation(database, portfolio, input.activity),
   };
 }
 
+// A pair needs two holdings, so the comparison of two stocks takes the example until the portfolio has them.
 function lessonSimulation(
   database: Database,
   portfolio: PortfolioSummary | undefined,
-  session: SessionNumber,
-) {
-  if (session === 2 && (portfolio?.holdings.length ?? 0) < 2)
-    return readLessonExample(database);
-  return portfolio ?? readLessonExample(database);
+  activity: MeasuredLessonActivity,
+): PortfolioSummary | undefined {
+  switch (activity) {
+    case "diversification":
+      return portfolio !== undefined && portfolio.holdings.length >= 2
+        ? portfolio
+        : readLessonExample(database);
+    case "capm":
+    case "allocation":
+      return portfolio ?? readLessonExample(database);
+  }
 }

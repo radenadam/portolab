@@ -31,6 +31,9 @@ export function twoStockAllocation(
       weight: index === 0 ? weight : portfolioWeight(1 - weight),
     };
   });
+  const [firstHolding, secondHolding] = holdings;
+  if (firstHolding === undefined || secondHolding === undefined)
+    throw new Error("The lesson compares exactly two stocks.");
   const covarianceMatrix = holdings.map((row, rowIndex) =>
     holdings.map((column, columnIndex) => ({
       value:
@@ -57,8 +60,11 @@ export function twoStockAllocation(
   );
   return {
     expectedReturn: measured.expectedReturn,
-    variance: measured.variance,
     standardDeviation: measured.standardDeviation,
     averageRisk: weightedHoldingRisk({ holdings }),
+    risks: {
+      first: firstHolding.standardDeviation,
+      second: secondHolding.standardDeviation,
+    },
   };
 }

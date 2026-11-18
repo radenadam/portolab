@@ -1,5 +1,5 @@
 import { lessonPracticeForTest } from "./lesson-practice-for-test";
-import { hasLessonPractice } from "./lesson-practice-sessions";
+import { lessonActivityOf } from "./lesson-practice-sessions";
 import { tradingLessonForTest } from "./trading-lesson-for-test";
 import { languageNames } from "~/language-names";
 import { expect, test } from "vitest";
@@ -208,11 +208,13 @@ for (const locale of locales) {
     );
     for (const [index, lesson] of lessons.entries()) {
       const terms = lessonTerms(lesson, content.terms);
+      const activity = lessonActivityOf(lesson.session);
       const practice =
-        hasLessonPractice(lesson.session) && lesson.session !== 6
-          ? lessonPracticeForTest()
-          : undefined;
-      const trading = lesson.session === 6 ? tradingLessonForTest() : undefined;
+        activity === undefined || activity === "trading"
+          ? undefined
+          : lessonPracticeForTest();
+      const trading =
+        activity === "trading" ? tradingLessonForTest() : undefined;
       const interactive = practice !== undefined || trading !== undefined;
       const props = {
         classId,

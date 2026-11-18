@@ -2,9 +2,11 @@ import { expect, test } from "vitest";
 import { languageNames } from "~/language-names";
 import { locales } from "~/paraglide/runtime.js";
 import type { Locale } from "~/paraglide/runtime.js";
+import { renderMarkupForTest } from "~/render-markup-for-test";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
+import { textOfMarkupForTest } from "~/text-of-markup-for-test";
 import { monthlyReturn } from "~/units/monthly-return";
-import { diversificationNumbers } from "./diversification-numbers";
+import { DiversificationNumbers } from "./diversification-numbers";
 
 const texts: Record<Locale, readonly string[]> = {
   id: [
@@ -18,19 +20,22 @@ const texts: Record<Locale, readonly string[]> = {
 };
 
 for (const locale of locales) {
-  test(`uses the displayed point count and removes a negative rounding residue in ${languageNames[locale]}`, () => {
+  test(`uses the displayed point count, emphasizes each number, and removes a negative rounding residue in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     // By hand, 3% minus 2% is one percentage point. The adjacent inputs round to the same figures, and an equal-risk sum can leave a negative floating-point residue.
     for (const [risk, expected] of [
       [0.02, 0],
       [0.0199999, 0],
       [0.03000000000000001, 1],
-    ] as const)
-      expect(
-        diversificationNumbers({
-          average: monthlyReturn(0.03),
-          risk: monthlyReturn(risk),
-        }),
-      ).toBe(texts[locale][expected]);
+    ] as const) {
+      const markup = renderMarkupForTest(
+        <DiversificationNumbers
+          average={monthlyReturn(0.03)}
+          risk={monthlyReturn(risk)}
+        />,
+      );
+      expect(textOfMarkupForTest(markup)).toBe(texts[locale][expected]);
+      expect(markup.match(/<strong>/gu)).toHaveLength(3);
+    }
   });
 }

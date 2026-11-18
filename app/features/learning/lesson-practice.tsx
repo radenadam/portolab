@@ -3,93 +3,62 @@ import { LessonOwnNumbers } from "./lesson-own-numbers";
 import { LessonUnavailablePractice } from "./lesson-unavailable-practice";
 import type { ReactNode } from "react";
 
-import type { ClassId } from "~/features/classes/classes.schema";
-
 import { formatSignedPercent } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
-import type { SessionContent } from "./content";
 import { LessonAllocation } from "./lesson-allocation";
 import { LessonAlpha } from "./lesson-alpha";
 import { LessonCapm } from "./lesson-capm";
 import { LessonExplanation } from "./lesson-explanation";
-import type { LessonPracticeData } from "./lesson-practice-data";
+import type {
+  LessonPracticeData,
+  LessonPracticeProps,
+} from "./lesson-practice-data";
+import { lessonActivityOf } from "./lesson-practice-sessions";
 import { PracticePanel } from "./practice-panel";
 import styles from "./lesson-practice.module.css";
 import { LessonDiversification } from "./lesson-diversification";
 
-export function LessonPractice(
-  props: Parameters<typeof AdvancedLessonPractice>[0],
-): ReactNode {
-  const {
-    lesson,
-    practice,
-    classId,
-    idPrefix = "",
-    taskPage,
-    children,
-  } = props;
-  const own = practicePortfolio(practice.report);
-  const explanation = (
-    <LessonExplanation
-      lesson={lesson}
-      practice={practice}
-      portfolio={practice.simulation}
-    />
-  );
-  if (
-    lesson.session === 2 &&
-    practice.simulation !== undefined &&
-    practice.simulation.holdings.length >= 2
-  )
-    return (
-      <LessonDiversification
-        classId={classId}
-        portfolio={practice.simulation}
-        own={own}
-        explanation={explanation}
-        missingNumbers={
-          <LessonOwnNumbers
-            classId={classId}
-            lesson={lesson}
-            practice={practice}
-          />
-        }
-        idPrefix={idPrefix}
-        taskPage={taskPage}
-      >
-        {children}
-      </LessonDiversification>
-    );
-
-  return <AdvancedLessonPractice {...props} />;
+export function LessonPractice(props: LessonPracticeProps): ReactNode {
+  const activity = lessonActivityOf(props.lesson.session);
+  switch (activity) {
+    case "diversification":
+      return <LessonDiversification {...props} />;
+    case "capm":
+    case "allocation":
+      return <AdvancedLessonPractice {...props} activity={activity} />;
+    case "trading":
+    case undefined:
+      throw new Error(
+        `Session ${String(props.lesson.session)} has no practice with measures.`,
+      );
+  }
 }
 
 function AdvancedLessonPractice({
   classId,
   lesson,
+  activity,
   practice,
   children,
   idPrefix = "",
   taskPage,
-}: {
-  classId: ClassId;
-  lesson: SessionContent;
-  practice: LessonPracticeData;
-  children: ReactNode;
-  idPrefix?: string;
-  taskPage?: string | undefined;
-}): ReactNode {
+}: LessonPracticeProps & { activity: "capm" | "allocation" }): ReactNode {
   const report = practice.report;
   const own = practicePortfolio(report);
   const explanation = (
     <LessonExplanation
       lesson={lesson}
+      activity={activity}
       practice={practice}
-      portfolio={lesson.session === 10 ? practice.simulation : own}
+      portfolio={activity === "allocation" ? practice.simulation : own}
     />
   );
   const ownNumbers = (
-    <LessonOwnNumbers classId={classId} lesson={lesson} practice={practice} />
+    <LessonOwnNumbers
+      classId={classId}
+      activity={activity}
+      practice={practice}
+    />
   );
   const unavailable = (
     <LessonUnavailablePractice
@@ -119,7 +88,7 @@ function AdvancedLessonPractice({
       </div>
     </PracticePanel>
   );
-  return lesson.session === 10 && practice.simulation !== undefined ? (
+  return activity === "allocation" && practice.simulation !== undefined ? (
     <LessonAllocation
       portfolio={practice.simulation}
       own={own}
@@ -133,32 +102,37 @@ function AdvancedLessonPractice({
   ) : (
     <>
       <UnavailableLessonInteractive
-        lesson={lesson}
+        activity={activity}
         practice={practice}
         explanation={explanation}
         idPrefix={idPrefix}
       />
       {own !== undefined && ownNumbers}
       {children}
-      {lesson.session === 9 && practice.holdings.length > 0
+      {activity === "capm" && practice.holdings.length > 0
         ? practiceAlpha
         : unavailable}
     </>
   );
 }
 
+const unavailableTitles: Record<"capm" | "allocation", () => string> = {
+  capm: m.learning_capm_interactive_title,
+  allocation: m.learning_allocation_interactive_title,
+};
+
 function UnavailableLessonInteractive({
-  lesson,
+  activity,
   practice,
   explanation,
   idPrefix,
 }: {
-  lesson: SessionContent;
+  activity: "capm" | "allocation";
   practice: LessonPracticeData;
   explanation: ReactNode;
   idPrefix: string;
 }): ReactNode {
-  return lesson.session === 9 && practice.market !== undefined ? (
+  return activity === "capm" && practice.market !== undefined ? (
     <LessonCapm
       practice={practice}
       explanation={explanation}
@@ -166,13 +140,7 @@ function UnavailableLessonInteractive({
     />
   ) : (
     <section className={styles["interactive"]}>
-      <h2>
-        {lesson.session === 2
-          ? m.learning_two_stocks_title()
-          : lesson.session === 9
-            ? m.learning_capm_interactive_title()
-            : m.learning_allocation_interactive_title()}
-      </h2>
+      <h2>{unavailableTitles[activity]()}</h2>
       <p>{m.learning_interactive_data_notice()}</p>
       {explanation}
     </section>

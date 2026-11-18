@@ -38,7 +38,6 @@ export function PriceGuideExample({
   const quote = trading.quote;
   return (
     <>
-      {" "}
       {quote === undefined ? (
         <p>{m.learning_trading_data_notice()}</p>
       ) : (

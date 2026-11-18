@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { Link } from "react-router";
 import type { ClassId } from "~/features/classes/classes.schema";
 import { stockPath } from "~/features/market-data/stock-path";
 import { orderFailureText } from "~/features/trading/order-failure-text";
@@ -14,6 +13,8 @@ import { m } from "~/paraglide/messages.js";
 import { rupiah } from "~/units/rupiah";
 import { pathWithQuery } from "~/path-with-query";
 import { PracticePanel } from "./practice-panel";
+import { withLessonTask } from "./lesson-task";
+import { LessonTaskLink } from "./lesson-task-link";
 import type { TradingLessonData } from "./trading-lesson-data";
 import styles from "./lesson-practice.module.css";
 export function TradingOwnNumbers({
@@ -21,22 +22,37 @@ export function TradingOwnNumbers({
 }: {
   trading: Pick<TradingLessonData, "last">;
 }): ReactNode {
+  const last = trading.last;
   return (
     <section
       className={styles["yours"]}
-      data-learning-last-trade={trading.last === undefined ? undefined : ""}
+      aria-label={m.learning_your_numbers_label()}
+      data-learning-last-trade={last === undefined ? undefined : ""}
     >
       <strong>{m.learning_your_numbers_label()}</strong>
-      {trading.last === undefined ? (
+      {last === undefined ? (
         <p>{m.learning_no_filled_order_notice()}</p>
       ) : (
         <>
           <p>
-            <NumberText>{filledTradeText(trading.last)}</NumberText>
+            <NumberText>
+              {(textValue) =>
+                filledTradeText(
+                  last,
+                  textValue(
+                    <strong>
+                      <NumberText whole>
+                        {formatRupiah(rupiah(Math.abs(last.fill.cashChange)))}
+                      </NumberText>
+                    </strong>,
+                  ),
+                )
+              }
+            </NumberText>
           </p>
           <p className={styles["provenance"]}>
             <NumberText whole>
-              {formatMarketTime(trading.last.fill.quotedAt)}
+              {formatMarketTime(last.fill.quotedAt)}
             </NumberText>
           </p>
         </>
@@ -102,27 +118,26 @@ export function TradingLessonPractice({
             : m.learning_limit_data_task_notice()}
         </p>
         {trading.code !== undefined && (
-          <Link
-            className={styles["button"]}
-            to={
-              taskPage ??
+          <LessonTaskLink
+            to={withLessonTask(
               pathWithQuery(`${stockPath(classId, trading.code)}/buy`, {
                 priceKind: "limit",
-                lessonTask: "6",
-              })
-            }
-          >
-            {taskPage === undefined
-              ? m.learning_open_limit_link({ code: trading.code })
-              : m.learning_open_practice_link()}
-          </Link>
+              }),
+              6,
+            )}
+            label={m.learning_open_limit_link({ code: trading.code })}
+            taskPage={taskPage}
+          />
         )}
       </div>
     </PracticePanel>
   );
 }
 
-function filledTradeText(last: NonNullable<TradingLessonData["last"]>): string {
+function filledTradeText(
+  last: NonNullable<TradingLessonData["last"]>,
+  total: string,
+): string {
   const values = {
     lots: lotCount(last.lots),
     code: last.code,
@@ -130,7 +145,7 @@ function filledTradeText(last: NonNullable<TradingLessonData["last"]>): string {
     value: formatRupiah(last.fill.value),
     fee: formatRupiah(last.fill.fee),
     tax: formatRupiah(last.fill.tax),
-    total: formatRupiah(rupiah(Math.abs(last.fill.cashChange))),
+    total,
   };
   switch (last.side) {
     case "buy":

@@ -16,7 +16,7 @@ export function LessonSlider({
   onChange,
 }: {
   id: string;
-  kind: "beta" | "weight" | "correlation" | "price";
+  kind: "beta" | "weight" | "pairWeight" | "correlation" | "price";
   label: string;
   text: string;
   value: number;
