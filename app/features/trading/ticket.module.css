@@ -74,6 +74,7 @@
 .label {
   display: flex;
   align-items: center;
+  gap: var(--space-1);
   color: var(--color-ink-secondary);
   font-weight: 600;
   font-size: var(--text-learning-summary);

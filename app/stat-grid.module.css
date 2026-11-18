@@ -28,13 +28,6 @@
   grid-row: span 2;
 }
 
-/* A full inline touch box would wrap the phone's range labels. */
-.ranges dt > button {
-  margin-inline: calc(
-    (var(--size-concept-mark) - var(--size-touch-target)) / 2 + var(--space-1)
-  );
-}
-
 .stat dt,
 .note {
   color: var(--color-muted);

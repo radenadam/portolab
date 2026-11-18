@@ -7,7 +7,7 @@ import { QuoteNotice } from "~/features/market-data/quote-notice";
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { data, Link, useOutlet, useLocation } from "react-router";
-import { ChangeText } from "~/change-text";
+import { ChangeChip } from "~/change-chip";
 import { requireUser } from "~/features/accounts/current-session.server";
 import { databaseContext } from "~/database/database.server";
 import { requireReaderClass } from "~/features/classes/require-reader-class.server";
@@ -179,20 +179,12 @@ function StockPageContent({
                 <strong className={styles["price"]}>
                   <NumberText>{formatRupiah(quote.price)}</NumberText>
                 </strong>
-                <span className={styles["change"]}>
-                  <ChangeText
-                    colored
-                    change={formatSignedRupiah(
-                      rupiah(quote.price - quote.previousClose),
-                    )}
-                  />
-                </span>
-                <span className={styles["change"]}>
-                  <ChangeText
-                    colored
-                    change={formatSignedPercent(quoteChange(quote))}
-                  />
-                </span>
+                <ChangeChip
+                  change={formatSignedRupiah(
+                    rupiah(quote.price - quote.previousClose),
+                  )}
+                />
+                <ChangeChip change={formatSignedPercent(quoteChange(quote))} />
               </div>
             )}
             <StockQuoteDetails

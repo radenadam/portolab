@@ -64,23 +64,6 @@
   overflow-wrap: anywhere;
 }
 
-.change {
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-button);
-  background: var(--color-raised);
-  font-size: var(--text-caption);
-  font-weight: 600;
-}
-
-.change:has([data-change="rise"]) {
-  background: var(--color-gain-soft);
-}
-
-.change:has([data-change="fall"]) {
-  background: var(--color-loss-soft);
-  --color-loss: var(--color-loss-on-soft);
-}
-
 .muted {
   color: var(--color-muted);
   font-size: var(--text-small);

@@ -112,13 +112,15 @@ export interface RiskMapLayout<Point> {
   linePlaces: { level: LabelPlace[]; line: LabelPlace[] };
 }
 
-// About ten marks fit across a wide map, as the references of decision 0028 draw them, and a narrow map shows every other one. Four fit up a map at the height of a phone.
+// About ten marks fit across a wide map, as the references of decision 0028 draw them, and a narrow map shows every other one. About six fit up a map, as the references draw them on Beranda and Kelas, also on a phone. A compact map, such as the map of the ticket or of a selected student, has room for about four, and its references draw three.
 const acrossTickCount = 10;
-const upTickCount = 4;
+const upTickCount = 6;
+const compactUpTickCount = 4;
 
 const smallestSteps: Record<AxisStyle, number> = {
   decimal: smallestNumberStep,
   percent: smallestPercentStep,
+  change: smallestPercentStep,
 };
 
 // The sizes of the marks of the prototype of decision 0028, at 12 pixels to the size of the text of the labels. A dot of a stock that the portfolio holds grows in area with its weight, from the size of a weight of about 7% down.
@@ -157,6 +159,7 @@ export function layoutRiskMap<
   line?: MapLine<Across, Up> | undefined;
   median?: Up;
   roomForCorners?: boolean;
+  compact?: boolean;
 }): RiskMapLayout<Point> {
   const { market, points, across, up, line } = map;
   const acrossRange = mapRange(
@@ -199,7 +202,7 @@ export function layoutRiskMap<
     x: plotFraction(fractionOf(acrossRange, point.across)),
     y: heightOf(upRange, point.up),
   });
-  const upValues = ticksOf(upRange, upTickCount, up);
+  const upValues = ticksOf(upRange, upTickCountOf(map.compact), up);
   const upFormat = axisMarkFormat(upValues, up.style);
   const upTicks = upValues.map((value) => ({
     at: heightOf(upRange, value),
@@ -272,6 +275,10 @@ function levelPlaces(height: PlotFraction): LabelPlace[] {
     }
   }
   return places;
+}
+
+function upTickCountOf(compact: boolean | undefined): number {
+  return compact === true ? compactUpTickCount : upTickCount;
 }
 
 function heightOf<Up extends number>(

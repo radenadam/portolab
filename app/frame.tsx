@@ -2,11 +2,11 @@ import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { AppIcon } from "./app-icon";
+import { Avatar } from "./avatar";
 import chipStyles from "./chip.module.css";
 import styles from "./frame.module.css";
 import { Icon } from "./icon";
 import type { IconName } from "./icon";
-import { initialsOf } from "./initials-of";
 import { m } from "./paraglide/messages.js";
 import { Popover, PopoverButton } from "./popover";
 
@@ -57,7 +57,6 @@ export function Frame({
 }: FrameProps): ReactNode {
   const profileLabel =
     profile === undefined ? "" : m.app_profile_label({ name: profile.name });
-  const initials = profile === undefined ? "" : initialsOf(profile.name);
   return (
     <>
       <a href="#main" className={styles["skip"]}>
@@ -76,7 +75,7 @@ export function Frame({
                 label={profileLabel}
                 className={styles["avatarButton"]}
               >
-                <Avatar initials={initials} />
+                <Avatar name={profile.name} look="plain" />
               </PopoverButton>
               <Popover
                 id={railProfileId}
@@ -129,7 +128,7 @@ export function Frame({
                       label={profileLabel}
                       className={styles["topAvatarButton"]}
                     >
-                      <Avatar initials={initials} />
+                      <Avatar name={profile.name} look="plain" />
                     </PopoverButton>
                     <Popover
                       id={topProfileId}
@@ -179,11 +178,6 @@ export function Frame({
       </div>
     </>
   );
-}
-
-/** The picture of the person who is signed in, a circle with the initials of the name. The name of its button says whose profile it opens, so the picture is drawn by its style and stays out of that name, as an image would. */
-function Avatar({ initials }: { initials: string }): ReactNode {
-  return <span className={styles["avatar"]} data-initials={initials} />;
 }
 
 /** The items of the navigation, which the rail of a desktop and the tab bar of a phone each show with the icon above the label. */

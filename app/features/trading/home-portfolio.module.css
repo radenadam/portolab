@@ -8,11 +8,7 @@
 }
 
 .screenTitle {
-  position: absolute;
-  inline-size: var(--size-line);
-  block-size: var(--size-line);
-  overflow: hidden;
-  clip-path: inset(50%);
+  composes: visually-hidden from global;
 }
 
 .summary {
@@ -35,12 +31,19 @@
 }
 
 .cardTitle,
+/* The label of the value stands as far from its "?" as the references draw it, and the title of a card stands farther. */
 .valueLabel {
   display: flex;
   align-items: center;
+  gap: 0.375rem;
   margin: 0;
   color: var(--color-muted);
   font-size: var(--text-caption);
+}
+
+.cardLabel {
+  composes: valueLabel;
+  gap: var(--space-2);
 }
 
 .valueLabel {
@@ -75,22 +78,9 @@
 .changeExplanation {
   display: inline-flex;
   align-items: center;
+  gap: var(--space-2);
 }
 
-.pill {
-  white-space: nowrap;
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-button);
-  background: var(--color-raised);
-  font-weight: 600;
-}
-.pill:has([data-change="rise"]) {
-  background: var(--color-gain-soft);
-}
-.pill:has([data-change="fall"]) {
-  background: var(--color-loss-soft);
-  --color-loss: var(--color-loss-on-soft);
-}
 .lead {
   margin-block: var(--space-3);
   font-size: var(--text-measure);
@@ -132,6 +122,7 @@
   color: var(--color-muted);
   display: flex;
   align-items: center;
+  gap: var(--space-1);
   font-size: var(--text-caption);
 }
 .risk dd {

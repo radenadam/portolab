@@ -105,7 +105,7 @@ export function StudentPanel({
     >
       <div className={styles["panelContents"]}>
         <div className={styles["panelHeader"]}>
-          <span className={styles["avatar"]} aria-hidden="true">
+          <span className={styles["panelAvatar"]} aria-hidden="true">
             {initialsOf(student.name)}
           </span>
           <div>

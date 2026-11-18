@@ -72,6 +72,7 @@ export function RiskMap<Across extends number, Up extends number>({
   /** The id of the heading that names the map, which also names its slider. */
   labelledBy: string;
   fill?: boolean;
+  /** A map at the height of a compact chart, such as the map of the ticket or of a selected student, which marks fewer returns. */
   compact?: boolean;
 }): ReactNode {
   const navigate = useNavigate();
@@ -85,9 +86,10 @@ export function RiskMap<Across extends number, Up extends number>({
         up,
         line,
         roomForCorners: hasCorners(spread, annotations),
+        compact,
         ...(spread?.median === undefined ? {} : { median: spread.median }),
       }),
-    [market, points, across, up, line, spread, annotations],
+    [market, points, across, up, line, spread, annotations, compact],
   );
   const drawn = useMemo(() => drawnPoints(market, layout), [market, layout]);
   const labels = useMemo(

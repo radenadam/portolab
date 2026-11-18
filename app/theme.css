@@ -340,6 +340,33 @@ button.standalone-link {
   font: inherit;
 }
 
+/* The primary button of a screen, such as the button that sends a form or "Buka portofolio" in the panel of a student, takes the ink of buttons, as the references of decision 0028 draw it. A CSS module composes it from global, so every primary button shares this one style. */
+.primary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--size-touch-target);
+  padding-inline: var(--space-4);
+  border: 0;
+  border-radius: var(--radius-item);
+  background: var(--color-button);
+  color: var(--color-on-button);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* A text that only a screen reader reads, such as the heading of a screen whose references draw none, keeps its place in the document without a box that the eye sees. A CSS module composes it from global. */
+.visually-hidden {
+  position: absolute;
+  inline-size: var(--size-line);
+  block-size: var(--size-line);
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 /* The label of a part that opens, such as a table of returns, has the color of a link and the height of a touch target, and it keeps the marker that shows whether the part is open. Padding reaches that height, because a line as high as the target would set the lines of a label that wraps a whole target apart. */
 summary {
   min-height: var(--size-touch-target);

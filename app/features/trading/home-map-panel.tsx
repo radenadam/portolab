@@ -142,7 +142,7 @@ export function HomeMapPanel({
                         beta: formatNumber(1),
                       }),
                     }}
-                    up={{ style: "percent", toValue: cumulativeReturn }}
+                    up={{ style: "change", toValue: cumulativeReturn }}
                     labelledBy="home-map-heading"
                   />
                 </div>

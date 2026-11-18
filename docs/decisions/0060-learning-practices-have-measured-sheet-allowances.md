@@ -1,6 +1,6 @@
 # 0060. Learning practices have measured sheet allowances
 
-- Status: Accepted
+- Status: Accepted. [Decision 0061](0061-shared-parts-have-measured-allowances.md) replaces its JavaScript ceilings for shared code, class home, Market, demonstration summary, the stock page, the ticket, and the lecturer's student summary.
 - Date: 2026-11-17
 
 ## Context

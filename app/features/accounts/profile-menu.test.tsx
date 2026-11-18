@@ -6,6 +6,8 @@ import { locales } from "~/paraglide/runtime.js";
 import type { Locale } from "~/paraglide/runtime.js";
 import { renderMarkupForTest } from "~/render-markup-for-test";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
+import avatarStyles from "~/avatar.module.css";
+import { renderInRouterForTest } from "~/render-in-router-for-test";
 import { ProfileMenu } from "./profile-menu";
 
 const texts: Record<
@@ -52,7 +54,7 @@ for (const locale of locales) {
   const text = texts[locale];
   const language = languageNames[locale];
 
-  test(`names the person and the role, and offers the account, the language, and signing out, in ${language}`, () => {
+  test(`shows the avatar beside the name and the role, and offers the account, the theme, the language, and signing out, in ${language}`, () => {
     switchLocaleForTest(locale);
     for (const [role, roleName] of [
       ["lecturer", text.lecturer],
@@ -65,7 +67,7 @@ for (const locale of locales) {
       );
       expect(html).toBe(
         [
-          `<p><span>Sari Wulandari</span><span>${roleName}</span></p><hr/>`,
+          `<p><span data-initials="SW" aria-hidden="true"></span><span><span>Sari Wulandari</span><span>${roleName}</span></span></p><hr/>`,
           `<a href="/account" data-discover="true">${text.account}</a>`,
           role === "lecturer"
             ? `<a href="/guide" data-discover="true">${text.guide}</a>`
@@ -85,3 +87,19 @@ for (const locale of locales) {
     }
   });
 }
+
+test("draws the avatar of a student in the tint of the reader's own point and the avatar of a lecturer in the raised color", () => {
+  expect(avatarStyles["own"]).not.toBe(avatarStyles["avatar"]);
+  for (const [role, look] of [
+    ["student", avatarStyles["own"]],
+    ["lecturer", avatarStyles["avatar"]],
+  ] as const) {
+    expect(
+      renderInRouterForTest(
+        <ProfileMenu name="Sari Wulandari" readerRole={role} />,
+      ),
+    ).toContain(
+      `<span class="${String(look)}" data-initials="SW" aria-hidden="true"></span>`,
+    );
+  }
+});

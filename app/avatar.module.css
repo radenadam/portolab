@@ -1,5 +1,6 @@
 .avatar {
   display: grid;
+  flex: none;
   place-items: center;
   width: var(--size-avatar);
   height: var(--size-avatar);
@@ -12,4 +13,11 @@
 
 .avatar::before {
   content: attr(data-initials);
+}
+
+/* The avatar of the reader, or of the student whom the lecturer selected, takes the tint of the reader's own point, as the prototype of decision 0028 draws it. */
+.own {
+  composes: avatar;
+  background: var(--color-own-soft);
+  color: var(--color-ink);
 }

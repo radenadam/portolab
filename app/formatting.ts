@@ -126,21 +126,29 @@ export function formatPercent(
   return numberFormat(intlLocale(), percentOptions(decimals)).format(fraction);
 }
 
-/** How the marks of an axis write their values: as numbers, such as betas, or as percentages of fractions, such as returns. */
-export type AxisStyle = "decimal" | "percent";
+/** How the marks of an axis write their values: as numbers, such as betas, as percentages of fractions, such as expected monthly returns, or as changes with a sign, such as returns since a date, which a screen writes as gains and losses, such as +6% and -3%. */
+export type AxisStyle = "decimal" | "percent" | "change";
 
-const axisScales: Record<AxisStyle, { factor: number; mostDecimals: number }> =
-  {
-    decimal: { factor: 1, mostDecimals: mostNumberDecimals },
-    percent: { factor: 100, mostDecimals: mostPercentDecimals },
-  };
+const percentAxis = { factor: 100, mostDecimals: mostPercentDecimals };
+
+const axisScales: Record<
+  AxisStyle,
+  { factor: number; mostDecimals: number; options: Intl.NumberFormatOptions }
+> = {
+  decimal: { factor: 1, mostDecimals: mostNumberDecimals, options: {} },
+  percent: { ...percentAxis, options: { style: "percent" } },
+  change: {
+    ...percentAxis,
+    options: { style: "percent", signDisplay: "exceptZero" },
+  },
+};
 
 /** The format of the marks of an axis, which writes each of their values with the same decimals, the fewest that write every one of them exactly, such as 0.0, 0.5, and 1.0, or 0.5% and 1.0%, so the marks line up and none reads rounder than the others. niceTicks never steps finer than smallestNumberStep or smallestPercentStep, so the marks never need more decimals than formatNumber and formatPercent write. */
 export function axisMarkFormat(
   values: readonly number[],
   style: AxisStyle,
 ): (value: number) => string {
-  const { factor, mostDecimals } = axisScales[style];
+  const { factor, mostDecimals, options } = axisScales[style];
   let decimals = 0;
   for (const value of values) {
     while (
@@ -151,7 +159,7 @@ export function axisMarkFormat(
     }
   }
   const format = numberFormat(intlLocale(), {
-    style,
+    ...options,
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   });

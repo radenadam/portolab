@@ -122,10 +122,10 @@ for (const locale of locales) {
       [
         `<a href="#main">${text.skip}</a><div>`,
         `<nav aria-label="${text.navigation}"><a aria-label="Portolab" href="/" data-discover="true">${icon}</a>${itemList}`,
-        `<div>${profileButton("rail-profile", '<span data-initials="SW"></span>')}${profilePopover("rail-profile")}</div></nav>`,
+        `<div>${profileButton("rail-profile", '<span data-initials="SW" aria-hidden="true"></span>')}${profilePopover("rail-profile")}</div></nav>`,
         `<div><header><div data-layout="content"><span>switcher</span><div><span>tools</span>`,
         `<span>${profileButton("top-profile", "<span>Sari Wulandari</span>")}</span><span>badge</span>`,
-        `${profileButton("top-profile", '<span data-initials="SW"></span>')}${profilePopover("top-profile")}</div></div></header>`,
+        `${profileButton("top-profile", '<span data-initials="SW" aria-hidden="true"></span>')}${profilePopover("top-profile")}</div></div></header>`,
         `<aside hidden=""></aside><main id="main" tabindex="-1"><div data-layout="content"><p>page</p></div></main></div>`,
         `<nav aria-label="${text.navigation}">${itemList}</nav></div>`,
       ].join(""),

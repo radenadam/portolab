@@ -1,9 +1,13 @@
+/* The box of a "?" is a whole touch target, which decision 0028 keeps, and the mark inside it stands as close to its label as the references draw it, so the box reaches over the space around the mark. */
 .question {
   display: inline-grid;
   place-items: center;
   width: var(--size-touch-target);
   height: var(--size-touch-target);
   margin-block: calc((var(--size-concept-mark) - var(--size-touch-target)) / 2);
+  margin-inline: calc(
+    (var(--size-concept-mark) - var(--size-touch-target)) / 2 + var(--space-1)
+  );
   padding: 0;
   border: 0;
   background: none;
@@ -11,6 +15,15 @@
   font: inherit;
   vertical-align: middle;
   cursor: pointer;
+}
+
+/* The references set the "?" of the head of a column farther from its label than a "?" in a line of text, and they line it up with the values of the column. So its mark stands at the end of its box, which reaches over the label instead of past the cell. */
+th > .question {
+  justify-items: end;
+  margin-inline: calc(
+      var(--space-2) + var(--size-concept-mark) - var(--size-touch-target)
+    )
+    0;
 }
 
 .question > span {

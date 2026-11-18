@@ -2,19 +2,11 @@
 
 /* The link that skips the navigation waits above the screen until a keyboard reaches it. */
 .skip {
+  composes: primary-button from global;
   position: fixed;
   z-index: 3;
   inset-block-start: var(--space-3);
   inset-inline-start: var(--space-3);
-  display: inline-flex;
-  align-items: center;
-  min-height: var(--size-touch-target);
-  padding-inline: var(--space-4);
-  border-radius: var(--radius-item);
-  background: var(--color-button);
-  color: var(--color-on-button);
-  font-weight: 600;
-  text-decoration: none;
   transform: translateY(-200%);
 }
 
@@ -106,10 +98,6 @@
 
 .topAvatarButton {
   composes: avatarButton;
-}
-
-.avatar {
-  composes: avatar from "./avatar.module.css";
 }
 
 .main {

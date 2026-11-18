@@ -6,7 +6,7 @@ import { Link } from "react-router";
 import { TimeSeriesChart } from "~/charts/time-chart";
 import { layoutTimeSeries } from "~/charts/time-chart-layout";
 import type { LineKind } from "~/charts/time-chart-layout";
-import { ChangeText } from "~/change-text";
+import { ChangeChip } from "~/change-chip";
 import { compareRoundedNumbers } from "~/compare-rounded-numbers";
 import { NumberText } from "~/number-text";
 import {
@@ -81,10 +81,7 @@ export function IhsgCard({
           <strong>
             <NumberText>{formatIndexLevel(quote.level)}</NumberText>
           </strong>
-          <ChangeText
-            colored
-            change={formatSignedPercent(quoteChange(quote))}
-          />
+          <ChangeChip change={formatSignedPercent(quoteChange(quote))} />
           <QuoteTime quotedAt={quote.quotedAt} sharedTime={sharedTime} />
           {missed && (
             <span className={styles["missed"]}>

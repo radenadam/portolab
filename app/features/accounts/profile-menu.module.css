@@ -1,8 +1,16 @@
+/* The avatar stands beside the name and the role, as the prototype of decision 0028 draws the head of the menu. */
 .person {
   display: flex;
-  flex-direction: column;
-  padding: 0.625rem 0.625rem var(--space-2);
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.625rem 0.625rem var(--space-3);
   line-height: 1.3;
+}
+
+.identity {
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
 }
 
 .name {

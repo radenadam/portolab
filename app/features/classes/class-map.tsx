@@ -127,7 +127,7 @@ export function ClassMap({
           }}
           points={points}
           across={chosen}
-          up={{ style: "percent", toValue: cumulativeReturn }}
+          up={{ style: "change", toValue: cumulativeReturn }}
           levelLabel={m.app_map_value_part({
             name: marketIndex.code,
             value: formatSignedPercent(marketReturn).text,
