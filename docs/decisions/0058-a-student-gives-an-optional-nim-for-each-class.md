@@ -18,21 +18,21 @@ The second cut of [the rebuild](https://github.com/radenadam/portolab/issues/127
 
 ### Client measurements
 
-These measurements compare main at `81ab185` with this change at `6900169`, using `pnpm build` and `pnpm size` and the dependency walk and gzip method of [decision 0038](0038-client-javascript-is-budgeted-by-route.md). Both languages count. The new shared NIM field grows the route manifest on every page, even though the field itself loads only with joining and the account page.
+These measurements compare main at `a63a054` with this change at `875bd85`, using `pnpm build` and `pnpm size` and the dependency walk and gzip method of [decision 0038](0038-client-javascript-is-budgeted-by-route.md). Both languages count. The new shared NIM field grows the route manifest on every page, even though the field itself loads only with joining and the account page.
 
 | Dependency set   | JavaScript before, kB | JavaScript after, kB | CSS before, kB | CSS after, kB |
 | ---------------- | --------------------: | -------------------: | -------------: | ------------: |
-| Shared           |                140.21 |               140.24 |           7.50 |          7.50 |
-| Account          |                146.50 |               147.57 |           7.78 |          7.78 |
-| Join a class     |                147.39 |               148.22 |           7.62 |          7.62 |
-| Privacy          |                143.55 |               143.72 |           7.62 |          7.62 |
-| Students         |                182.73 |               182.77 |          17.63 |         17.64 |
-| Student summary  |                204.15 |               204.21 |          21.33 |         21.35 |
-| Student analysis |                203.32 |               203.38 |          19.51 |         19.53 |
-| Student journal  |                194.90 |               194.96 |          18.76 |         18.78 |
-| Ticket           |                221.60 |               221.62 |          23.16 |         23.16 |
+| Shared           |                141.86 |               141.89 |           7.76 |          7.76 |
+| Account          |                148.26 |               149.32 |           8.03 |          8.03 |
+| Join a class     |                149.14 |               149.98 |           7.88 |          7.88 |
+| Privacy          |                145.28 |               145.46 |           7.88 |          7.88 |
+| Students         |                184.38 |               184.42 |          17.89 |         17.89 |
+| Student summary  |                205.81 |               205.88 |          21.70 |         21.72 |
+| Student analysis |                204.98 |               205.04 |          19.81 |         19.83 |
+| Student journal  |                196.59 |               196.66 |          19.13 |         19.14 |
+| Ticket           |                223.09 |               223.12 |          23.64 |         23.64 |
 
-Every measured route fits the existing ceilings, including the [market map allowances](0056-the-market-map-has-measured-route-allowances.md). This change adds no allowance.
+Every measured route fits the existing ceilings, including the [market map allowances](0056-the-market-map-has-measured-route-allowances.md) and [theme allowances](0057-theme-choice-has-measured-shared-and-route-allowances.md). This change adds no allowance.
 
 ## Alternatives
 
