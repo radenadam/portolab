@@ -7,7 +7,7 @@ import { m } from "~/paraglide/messages.js";
 import { fillFailureTexts } from "./order-failure-text";
 import type { StoredOrder } from "./order-rows";
 import type { PortfolioKind } from "./portfolio-store.server";
-import styles from "./activity.module.css";
+import styles from "./order-rejection.module.css";
 
 /** The line of a rejected order in a list of orders, whose explanation opens in place, as the standard of AGENTS.md about errors sets for a list of outcomes. */
 export function OrderRejection({

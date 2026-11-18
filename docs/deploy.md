@@ -243,7 +243,7 @@ Each warning names its day and what it lacks. From the end of session II of the 
 
 ## Personal data
 
-The privacy notice at `https://portolab.example.com/privacy` tells each person what Portolab stores about them, how long it keeps each record, and that you keep the database. Portolab deletes each record by itself when the notice gives the record a time. It keeps every other record, which means the accounts, the classes, and the work of students and lecturers, until you delete it. The daily backups keep a copy of each record until each backup is 14 days old.
+The privacy notice at `https://portolab.example.com/privacy` tells each person what Portolab stores about them, how long it keeps each record, and that you keep the database. Portolab deletes each record by itself when the notice gives the record a time. It keeps every other record, which means the accounts, the classes, and the work of students and lecturers, until you delete it. The membership record also keeps `home_dismissed_at`, which is the cutoff of the newest Home summary that the student closed in that class. It is deleted with the membership. The daily backups keep a copy of each record until each backup is 14 days old.
 
 The law on personal data protection of Indonesia gives each person the right to see, correct, and delete their data, and to withdraw their agreement to the privacy notice. A person changes their own name and their NIM for each class in Portolab, and the notice sends every other request to you, so the next sections show how to answer each one.
 
@@ -285,7 +285,7 @@ rm ~/portolab-mahasiswa1.txt
 
 ### Correct the data of a person
 
-A person changes their name and their NIM for each class on the page of their account, at `https://portolab.example.com/account` with your domain, by the same rule as when they gave it. A person who cannot sign in first gets a temporary password, which a student gets from the lecturer of the class, and a lecturer from you with the action `reset-password` of [section 7](#7-create-the-first-lecturer-account). [Decision 0058](decisions/0058-a-student-gives-an-optional-nim-for-each-class.md) defines NIM correction. [Decision 0024](decisions/0024-a-person-changes-their-own-name-on-the-page-of-the-account.md) defines name correction.
+A person changes their name and their NIM for each class on the page of their account, at `https://portolab.example.com/account` with your domain, by the same rule as when they gave it. A person who cannot sign in first gets a temporary password, which a student gets from the lecturer of the class, and a lecturer from you with the action `reset-password` of [section 7](#7-create-the-first-lecturer-account). [Decision 0059](decisions/0059-a-student-gives-an-optional-nim-for-each-class.md) defines NIM correction. [Decision 0024](decisions/0024-a-person-changes-their-own-name-on-the-page-of-the-account.md) defines name correction.
 
 ### Delete the data of a person
 

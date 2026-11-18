@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "27fd07fc-c167-4aa6-b026-b54468b41e03",
+  "id": "5a083be2-ac8d-44fd-990e-fbc23f698ab4",
   "prevId": "95ea57a6-b856-4ef6-b876-babed8766fec",
   "tables": {
     "sessions": {
@@ -232,18 +232,18 @@
           "notNull": true,
           "autoincrement": false
         },
-        "nim": {
-          "name": "nim",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
         "joined_at": {
           "name": "joined_at",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false
+        },
+        "home_dismissed_at": {
+          "name": "home_dismissed_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
           "autoincrement": false
         }
       },

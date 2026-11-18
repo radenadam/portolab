@@ -51,6 +51,8 @@ export const memberships = sqliteTable(
       .references(() => users.id, { onDelete: "cascade" }),
     nim: text("nim"),
     joinedAt: integer("joined_at", { mode: "timestamp_ms" }).notNull(),
+    /** The newest dismissed snapshot stays closed across devices, so its cutoff lives until this membership ends. */
+    homeDismissedAt: integer("home_dismissed_at", { mode: "timestamp_ms" }),
   },
   (table) => [
     uniqueIndex("memberships_class_id_student_id_unique").on(
