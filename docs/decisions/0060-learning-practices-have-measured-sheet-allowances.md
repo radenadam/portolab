@@ -21,42 +21,42 @@ The production rules differ from the prototype's mock bands. A portfolio can als
 | Dependency set              | JavaScript ceiling, kB gzip | CSS ceiling, kB gzip |
 | --------------------------- | --------------------------: | -------------------: |
 | Shared code                 |                       142.6 |                   20 |
-| Class home                  |                       234.9 |                 25.2 |
-| Market                      |                       219.5 |                 22.3 |
-| Activity                    |                       210.8 |                   20 |
-| Demonstration summary       |                       223.8 |                   24 |
-| Demonstration Activity      |                       211.6 |                 20.4 |
-| Demonstration analysis      |                       225.8 |                 21.6 |
-| Student analysis            |                       224.9 |                 20.9 |
-| Stock                       |                       229.2 |                 22.5 |
-| Ticket                      |                       236.9 |                 25.3 |
-| Class ranking               |                       205.9 |                   20 |
-| Lecturer's student summary  |                       224.6 |                   24 |
-| Lecturer's student analysis |                       226.3 |                 21.9 |
-| Lecturer's student journal  |                       211.9 |                 20.8 |
+| Class home                  |                       235.2 |                 25.7 |
+| Market                      |                       219.9 |                 22.7 |
+| Activity                    |                       211.1 |                 20.4 |
+| Demonstration summary       |                       224.2 |                   24 |
+| Demonstration Activity      |                       211.9 |                 21.1 |
+| Demonstration analysis      |                       226.2 |                   22 |
+| Student analysis            |                       225.3 |                 21.4 |
+| Stock                       |                       229.5 |                 22.9 |
+| Ticket                      |                       237.3 |                 25.8 |
+| Class ranking               |                       206.3 |                 20.5 |
+| Lecturer's student summary  |                         225 |                   24 |
+| Lecturer's student analysis |                       226.7 |                 22.4 |
+| Lecturer's student journal  |                       212.2 |                 21.4 |
 
 ## Measurements
 
-The asset comparison builds main at `a51f11c` from a clean archive and this change, merged with that main, on the same machine, using `pnpm build` and `pnpm size`. Both use the compression and complete dependency walk of decisions 0038 and 0042. kB means 1,000 bytes. Both languages participate.
+The asset comparison builds main at `5a209f4` from a clean archive and this change, merged with that main, on the same machine, using `pnpm build` and `pnpm size`. Both use the compression and complete dependency walk of decisions 0038 and 0042. kB means 1,000 bytes. Both languages participate.
 
 | Dependency set              | Main JavaScript | This change JavaScript | Main CSS | This change CSS |
 | --------------------------- | --------------: | ---------------------: | -------: | --------------: |
-| Shared code                 |          141.94 |                 142.47 |     7.76 |            7.80 |
-| Lesson                      |          175.35 |                 196.81 |    15.26 |           17.06 |
-| Price guide                 |                 |                 196.82 |          |           17.06 |
-| Class home                  |          220.44 |                 234.64 |    23.58 |           24.91 |
-| Market                      |          200.13 |                 219.27 |    20.63 |           21.95 |
-| Activity                    |          196.05 |                 210.48 |    18.29 |           19.62 |
-| Demonstration summary       |          205.26 |                 223.56 |    21.31 |           22.63 |
-| Demonstration Activity      |          196.92 |                 211.35 |    18.93 |           20.25 |
-| Demonstration analysis      |          204.59 |                 225.59 |    19.43 |           21.23 |
-| Student analysis            |          203.72 |                 224.72 |    18.79 |           20.59 |
-| Stock                       |          215.27 |                 228.95 |    20.81 |           22.14 |
-| Ticket                      |          223.20 |                 236.73 |    23.64 |           24.96 |
-| Class ranking               |          184.46 |                 205.71 |    17.89 |           19.69 |
-| Lecturer's student summary  |          205.91 |                 224.36 |    21.70 |           23.02 |
-| Lecturer's student analysis |          205.07 |                 226.08 |    19.81 |           21.61 |
-| Lecturer's student journal  |          197.21 |                 211.64 |    19.32 |           20.64 |
+| Shared code                 |          141.94 |                 142.50 |     7.79 |            7.83 |
+| Lesson                      |          175.35 |                 197.11 |    15.29 |           17.56 |
+| Price guide                 |                 |                 197.12 |          |           17.56 |
+| Class home                  |          220.62 |                 234.94 |    23.68 |           25.41 |
+| Market                      |          200.31 |                 219.56 |    20.73 |           22.45 |
+| Activity                    |          196.23 |                 210.77 |    18.39 |           20.11 |
+| Demonstration summary       |          205.44 |                 223.85 |    21.41 |           23.13 |
+| Demonstration Activity      |          197.10 |                 211.64 |    19.03 |           20.75 |
+| Demonstration analysis      |          204.60 |                 225.89 |    19.45 |           21.72 |
+| Student analysis            |          203.72 |                 225.02 |    18.82 |           21.09 |
+| Stock                       |          215.45 |                 229.25 |    20.91 |           22.63 |
+| Ticket                      |          223.38 |                 237.02 |    23.74 |           25.46 |
+| Class ranking               |          184.46 |                 206.00 |    17.92 |           20.19 |
+| Lecturer's student summary  |          206.09 |                 224.65 |    21.80 |           23.52 |
+| Lecturer's student analysis |          205.07 |                 226.37 |    19.84 |           22.11 |
+| Lecturer's student journal  |          197.38 |                 211.93 |    19.42 |           21.14 |
 
 The sheet reuses the allocation engine, rule calculations, and label placement. A direct import of the existing label styles replaces CSS composition that loaded their stylesheet twice. The final table includes the resulting stylesheet graph.
 
@@ -71,7 +71,7 @@ The phone probe compares main at `a63a054` with an earlier build of this change.
 | Ticket           |                       3.456 |                           3.736 |     14.015 |         14.506 |
 | Class home       |                       2.788 |                           3.072 |      3.089 |          3.214 |
 
-The new lessons render their explanation, drawing, values, and tables before the sliders appear. The last revision of the exercises after the probe added 0.56 kB of JavaScript to each class route and removed 0.18 kB of CSS. These local samples do not establish a speedup or physical phone performance. Other workers used this machine during the probe, which limits a comparison of elapsed times. [Issue #257](https://github.com/radenadam/portolab/issues/257) tracks the broader controlled phone comparison.
+The new lessons render their explanation, drawing, values, and tables before the sliders appear. The revisions of the exercises after the probe added 0.88 kB of JavaScript and 0.28 kB of CSS to the lesson route, mostly because each new component now has its own stylesheet. These local samples do not establish a speedup or physical phone performance. Other workers used this machine during the probe, which limits a comparison of elapsed times. [Issue #257](https://github.com/radenadam/portolab/issues/257) tracks the broader controlled phone comparison.
 
 ## Alternatives
 
