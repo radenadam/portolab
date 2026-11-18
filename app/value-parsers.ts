@@ -4,19 +4,27 @@ import type { Result } from "./result.ts";
 import { listOfWords } from "./sentences.ts";
 import { describeValue } from "./value-shapes.ts";
 
-/** Reads one of a fixed set of names, such as the mode of the server or the source of prices. */
+/** Reads one of a fixed set of names, such as the mode of the server, the source of prices, or a part of an address. */
 export function parseChoice<Choice extends string>(
   value: unknown,
   source: string,
   choices: readonly Choice[],
 ): Result<Choice, string> {
+  const expectation = `${source} must be ${describeChoices(choices)}`;
+  if (typeof value === "string") {
+    const checked = checkFieldLength(value);
+    // An address or a form can send text of any length, and the failure quotes it.
+    if (!checked.ok) {
+      return fail(
+        `${expectation}, but it has ${String(checked.failure)} characters, more than this input takes.`,
+      );
+    }
+  }
   const choice = choices.find((candidate) => candidate === value);
   if (choice !== undefined) {
     return succeed(choice);
   }
-  return fail(
-    `${source} must be ${describeChoices(choices)}, but it is ${describeValue(value)}.`,
-  );
+  return fail(`${expectation}, but it is ${describeValue(value)}.`);
 }
 
 /** Names a fixed set of names as a choice in a failure text, such as "yahoo" or "fixture". */

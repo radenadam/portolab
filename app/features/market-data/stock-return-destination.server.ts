@@ -6,6 +6,7 @@ import type { StudentPage } from "~/features/grading/grading-paths";
 import { m } from "~/paraglide/messages.js";
 import { returnDestination } from "~/return-destination.server";
 import { marketPath } from "./market-path";
+import { marketRowId } from "./market-row-id";
 
 /** The stock route serves both roles, so a forged return must not select a page of another role. */
 export function stockReturnDestination({
@@ -33,9 +34,9 @@ export function stockReturnDestination({
   if (
     destination.pathname === marketPath(classId) &&
     !watched &&
-    destination.hash === `#watched-stock-${code}`
+    destination.hash === `#${marketRowId("watched-stock", code)}`
   )
-    destination.hash = `#stock-${code}`;
+    destination.hash = `#${marketRowId("stock", code)}`;
   const studentPage =
     portfolioKind === "demonstration"
       ? studentPageAt(classId, destination.pathname)

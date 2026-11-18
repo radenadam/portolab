@@ -23,7 +23,7 @@ export function StarButton({
   return (
     <Form
       method="post"
-      action={watchlistPath(classId, code, !watched)}
+      action={watchlistPath(classId, code, watched ? "remove" : "add")}
       preventScrollReset
       className={styles["form"]}
     >

@@ -33,6 +33,8 @@ import { sectorName } from "./sector-name";
 import { StockName } from "./stock-name";
 import { MarketScale } from "./market-scale";
 import { marketMeasureNotesId } from "./market-measure-notes";
+import { marketRowId } from "./market-row-id";
+import type { MarketRowPrefix } from "./market-row-id";
 import styles from "./market-view.module.css";
 import { StarButton } from "~/features/watchlist/star-button";
 
@@ -64,7 +66,7 @@ export function MarketTable({
   task?: LessonTask | undefined;
   scaleRows: readonly MarketRow[];
   watchedCodes: ReadonlySet<string>;
-  rowPrefix: "stock" | "watched-stock";
+  rowPrefix: MarketRowPrefix;
 }): ReactNode {
   const marketDeviation = reference.ok
     ? reference.value.standardDeviation
@@ -132,13 +134,13 @@ export function MarketTable({
       />
       <tbody>
         {rows.map((row) => (
-          <tr key={row.code} id={`${rowPrefix}-${row.code}`}>
+          <tr key={row.code} id={marketRowId(rowPrefix, row.code)}>
             <td className={styles["watchCell"]}>
               <StarButton
                 classId={classId}
                 code={row.code}
                 watched={watchedCodes.has(row.code)}
-                returnTo={`${returnPath}#stock-${row.code}`}
+                returnTo={`${returnPath}#${marketRowId("stock", row.code)}`}
               />
             </td>
             <th scope="row">
@@ -147,7 +149,7 @@ export function MarketTable({
                 to={withLessonTask(
                   pathReturningTo(
                     stockPath(classId, row.code),
-                    `${returnPath}#${rowPrefix}-${row.code}`,
+                    `${returnPath}#${marketRowId(rowPrefix, row.code)}`,
                   ),
                   task,
                 )}

@@ -7,17 +7,19 @@ import { defaultMarketFilters } from "./market-filters";
 import { marketContextForTest } from "./market-context-for-test.server";
 import { MarketView } from "./market-view";
 import { readMarket } from "./read-market.server";
+import { marketRowId } from "./market-row-id";
+import type { MarketRowPrefix } from "./market-row-id";
 
 type Props = ComponentProps<typeof MarketView>;
 
 export function marketRowForTest(
   html: string,
   code: string,
-  prefix: "stock" | "watched-stock" = "stock",
+  prefix: MarketRowPrefix = "stock",
 ): string {
-  const row = new RegExp(`<tr[^>]*id="${prefix}-${code}"[^>]*>(.*?)</tr>`).exec(
-    html,
-  )?.[1];
+  const row = new RegExp(
+    `<tr[^>]*id="${marketRowId(prefix, code)}"[^>]*>(.*?)</tr>`,
+  ).exec(html)?.[1];
   if (row === undefined)
     throw new Error(`The market row of ${code} is missing.`);
   return row;

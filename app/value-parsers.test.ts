@@ -20,6 +20,22 @@ test("accepts one of the choices and names them all when the value is another", 
   });
 });
 
+test("quotes a value up to the maximum of any field and rejects a longer one, just or far, by its length", () => {
+  const longest = "a".repeat(fieldMaximumLength);
+  expect(parseChoice(longest, "operation", ["add", "remove"])).toEqual({
+    ok: false,
+    failure: `operation must be "add" or "remove", but it is "${longest}".`,
+  });
+  for (const length of [fieldMaximumLength + 1, 1_000_000]) {
+    expect(
+      parseChoice("a".repeat(length), "operation", ["add", "remove"]),
+    ).toEqual({
+      ok: false,
+      failure: `operation must be "add" or "remove", but it has ${String(length)} characters, more than this input takes.`,
+    });
+  }
+});
+
 test("accepts a path and rejects a missing or empty one", () => {
   expect(parseFilePath("data/portolab.sqlite", "DATABASE_PATH")).toEqual({
     ok: true,

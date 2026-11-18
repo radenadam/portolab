@@ -207,6 +207,7 @@ export async function seedSampleClass(
       createdAt,
     );
     for (const [index, person] of people.entries()) {
+      // The empty student shows a new student, who has starred no stock yet.
       if (index < people.length - 1) {
         for (const code of sampleCoreStocks.slice(0, 2))
           setWatched(database, { userId: person.id, code, watched: true }, now);

@@ -239,6 +239,7 @@
 .watchColumn {
   inline-size: var(--size-touch-target);
 }
+/* The link of a stock covers its whole row, so the star stays above it. */
 .table .watchCell {
   padding: 0;
   position: relative;

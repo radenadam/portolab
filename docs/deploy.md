@@ -243,9 +243,9 @@ Each warning names its day and what it lacks. From the end of session II of the 
 
 ## Personal data
 
-The privacy notice at `https://portolab.example.com/privacy` tells each person what Portolab stores about them, how long it keeps each record, and that you keep the database. A person adds or removes watchlist entries with the stars on Market or a stock page. These preferences belong to the person across classes. Portolab deletes expiring records when the notice says it will. It keeps accounts, classes, and the work of students and lecturers until you delete them. The daily backups keep a copy of each record until each backup is 14 days old.
+The privacy notice at `https://portolab.example.com/privacy` tells each person what Portolab stores about them, how long it keeps each record, and that you keep the database. Portolab deletes each record by itself when the notice gives the record a time. It keeps every other record, which means the accounts, the classes, the watchlists, and the work of students and lecturers, until you delete it. A person also removes an entry of their own watchlist with its star. The daily backups keep a copy of each record until each backup is 14 days old.
 
-The law on personal data protection of Indonesia gives each person the right to see, correct, and delete their data, and to withdraw their agreement to the privacy notice. A person changes their own name and manages their watchlist in Portolab. The notice sends requests for a copy of all data or account deletion to you, so the next sections show how to answer them.
+The law on personal data protection of Indonesia gives each person the right to see, correct, and delete their data, and to withdraw their agreement to the privacy notice. A person changes their own name and their watchlist in Portolab, and the notice sends every other request to you, such as a copy of all their data or the deletion of their account, so the next sections show how to answer each one.
 
 ### See the data of a person
 
