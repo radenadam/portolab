@@ -87,7 +87,9 @@ for (const locale of locales) {
     await expect(page.locator('main [aria-current="step"]')).toContainText(
       text.week,
     );
-    await expect(page.locator('main a[href*="/learn/"]')).toHaveCount(12);
+    await expect(
+      page.locator('main [data-layout="columns"] a[href*="/learn/"]'),
+    ).toHaveCount(12);
     await expect(page.locator("main article")).toHaveCount(4);
     await expect(page.locator('nav a[aria-current="page"]').last()).toHaveText(
       text.learn,
