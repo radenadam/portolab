@@ -5,6 +5,8 @@ import type { StoredOrder } from "~/features/trading/order-rows";
 import { expect, test, vi } from "vitest";
 import { and, eq, gte, lte } from "drizzle-orm";
 import { openDatabaseForTest as databaseForTest } from "~/database/open-database-for-test.server";
+import { companyOf } from "~/features/market-data/company-of";
+import { analysisAllocationRows } from "~/features/measures/analysis-allocation-rows";
 import { users, sessions } from "~/features/accounts/accounts.schema";
 import { verifyPassword } from "~/features/accounts/password.server";
 import { classes, memberships } from "~/features/classes/classes.schema";
@@ -379,6 +381,15 @@ test("seeds a separate class with credentials, every terminal order state, curre
     .get();
   // Python Decimal gives purchase costs of 12,967,422, 12,991,458, 12,759,110, 12,881,794, and 12,969,425 rupiah at the recorded closes of 2 to 6 November. These leave 35,430,791 from the starting 100,000,000.
   expect(firstPortfolio?.cash).toBe(rupiah(35_430_791));
+  checkSampleAnalysis(database, firstPortfolio);
+  checkSampleAnalysis(
+    database,
+    database
+      .select()
+      .from(portfolios)
+      .where(eq(portfolios.demonstrationClassId, taught.id))
+      .get(),
+  );
   expectSampleLessons(database, firstPortfolio);
   expectSampleHomeSummary(database, firstStudent, now);
   const empty = students.at(-1);
@@ -618,31 +629,61 @@ async function checkPrintedCredentials(
   }
 }
 
+function readSampleMeasures(
+  database: Database,
+  sample: typeof portfolios.$inferSelect | undefined,
+) {
+  if (sample === undefined)
+    throw new Error("The sample has no such portfolio.");
+  const stored = readPortfolioById(database, sample.id);
+  if (stored === undefined)
+    throw new Error("The sample portfolio disappeared.");
+  const { valuation } = readPortfolioValuation(database, {
+    portfolio: stored,
+    startingCash: defaultStartingCash,
+  });
+  const report = readPortfolioMeasures(database, valuation);
+  if (report.kind !== "measured" || !report.measures.ok)
+    throw new Error("The sample portfolio needs measures.");
+  return { stored, valuation, portfolio: report.measures.value };
+}
+
+function checkSampleAnalysis(
+  database: Database,
+  sample: typeof portfolios.$inferSelect | undefined,
+): void {
+  const { valuation, portfolio } = readSampleMeasures(database, sample);
+  expect(portfolio.holdings.length).toBeGreaterThan(1);
+  expect(portfolio.cash.weight).toBeGreaterThan(0);
+  expect(
+    new Set(portfolio.holdings.map(({ code }) => companyOf(code).sector)).size,
+  ).toBeGreaterThan(1);
+  expect(portfolio.pairs.some(({ first, second }) => first !== second)).toBe(
+    true,
+  );
+  expect(
+    portfolio.holdingRisks.ok &&
+      portfolio.holdingRisks.value.length === portfolio.holdings.length,
+  ).toBe(true);
+  const allocation = analysisAllocationRows(valuation, "sector");
+  expect(allocation.kind === "valued" && allocation.rows.at(-1)?.key).toBe(
+    "cash",
+  );
+}
+
 function expectSampleLessons(
   database: Database,
   firstPortfolio: typeof portfolios.$inferSelect | undefined,
 ): void {
-  if (firstPortfolio === undefined)
-    throw new Error("The sample has no first portfolio.");
-  const storedPortfolio = readPortfolioById(database, firstPortfolio.id);
-  if (storedPortfolio === undefined)
-    throw new Error("The sample portfolio disappeared.");
-  const { valuation } = readPortfolioValuation(database, {
-    portfolio: storedPortfolio,
-    startingCash: defaultStartingCash,
-  });
-  const lessonReport = readPortfolioMeasures(database, valuation);
-  expect(lessonReport.kind).toBe("measured");
-  if (lessonReport.kind !== "measured" || !lessonReport.measures.ok)
-    throw new Error("The sample needs measured pairs for lesson 2.");
-  const lessonPairs = lessonReport.measures.value.pairs.filter(
+  const { stored, portfolio } = readSampleMeasures(database, firstPortfolio);
+  const lessonPairs = portfolio.pairs.filter(
     (pair) => pair.first !== pair.second,
   );
   expect(lessonPairs.length).toBeGreaterThan(1);
   expect(
     new Set(lessonPairs.map((pair) => pair.correlation)).size,
   ).toBeGreaterThan(1);
-  expect(
-    storedPortfolio.orders.some((order) => order.state.kind === "filled"),
-  ).toBe(true);
+  expect(stored.orders.some((order) => order.state.kind === "filled")).toBe(
+    true,
+  );
 }

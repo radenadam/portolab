@@ -1,4 +1,8 @@
 import { PortfolioMeasuresNotice } from "./portfolio-measures-notice";
+import { AnalysisAllocation } from "./analysis-allocation";
+import { AnalysisCorrelations } from "./analysis-correlations";
+import { AnalysisRiskSources } from "./analysis-risk-sources";
+import extrasStyles from "./analysis-extras.module.css";
 import { portfolioStudentName } from "~/features/trading/text-for-reader";
 import type { PortfolioReader } from "~/features/trading/text-for-reader";
 import { NumberText } from "~/number-text";
@@ -160,6 +164,18 @@ export function AnalysisView({
           <NumberText>{quoteFailure}</NumberText>
         </p>
       )}
+      <div
+        className={extrasStyles["panels"]}
+        data-layout="columns"
+        data-layout-ratio="1:1:1"
+      >
+        <AnalysisAllocation valuation={report.valuation} reader={reader} />
+        <AnalysisCorrelations portfolio={portfolio} />
+        <AnalysisRiskSources
+          portfolio={portfolio}
+          holdingCount={report.valuation.holdings.length}
+        />
+      </div>
       <AnalysisPerformance
         history={report.history}
         firstSessionDate={firstSessionDate}

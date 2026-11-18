@@ -1,5 +1,6 @@
 import { expect, type Page } from "@playwright/test";
 import { numberPattern } from "../app/number-pattern.ts";
+import { waitForPageStyles } from "./wait-for-page-styles.ts";
 
 /** The token in app/theme.css that holds the largest width of the content of a screen, which decision 0028 sets. */
 export const contentWidthToken = "--width-content";
@@ -39,7 +40,7 @@ export async function sidewaysProblems(page: Page): Promise<LayoutProblem[]> {
 }
 
 /**
- * Returns each rule of the layout of decision 0028 that the screen of a page breaks, after its fonts load. The rules other than `width` and `numbers` skip each element that is itself hidden, or placed outside the flow with `position: absolute` or `fixed`. A part inside an element outside the flow that a rule finds by itself, such as a table or an element marked with `data-layout`, is still measured.
+ * Returns each rule of the layout of decision 0028 that the screen of a page breaks, after its styles and fonts load. The rules other than `width` and `numbers` skip each element that is itself hidden, or placed outside the flow with `position: absolute` or `fixed`. A part inside an element outside the flow that a rule finds by itself, such as a table or an element marked with `data-layout`, is still measured.
  * - `width`: the page never scrolls sideways.
  * - `content`: an element marked `data-layout="content"` is never wider than the token of the width of content, and it stands in the middle of the content box of its parent.
  * - `reading`: an element marked `data-layout="reading"` stands in the middle of the content box of its parent.
@@ -51,10 +52,7 @@ export async function sidewaysProblems(page: Page): Promise<LayoutProblem[]> {
  * - `numbers`: a number keeps its digits, unit, sign, and arrow on one line, including text split between inline elements.
  */
 export async function layoutProblems(page: Page): Promise<LayoutProblem[]> {
-  // Until the fonts load, the browser draws text in a fallback font, whose widths differ.
-  await page.evaluate(async () => {
-    await document.fonts.ready;
-  });
+  await waitForPageStyles(page);
   return [
     ...(await sidewaysProblems(page)),
     ...(await page.evaluate(inspectLayout, {

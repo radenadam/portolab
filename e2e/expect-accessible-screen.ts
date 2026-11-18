@@ -3,6 +3,7 @@ import { expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import { expectDefinitionTerms } from "./expect-definition-terms.ts";
 import { sidewaysProblems } from "./expect-layout.ts";
+import { waitForPageStyles } from "./wait-for-page-styles.ts";
 
 // The section "Interface behavior" of AGENTS.md sets this as the smallest touch target, and axe does not check it.
 const smallestTargetHeight = 44;
@@ -14,21 +15,8 @@ const themeCases = [
 
 /** Axe runs page scripts, so callers keep JavaScript enabled. holdClientScripts can pause the app's scripts while axe checks server HTML. */
 export async function expectAccessibleScreen(page: Page): Promise<void> {
-  // A caller can hold app scripts while styles load, which exposes both responsive navigation layouts to axe.
-  await page.waitForFunction(() => {
-    if (document.readyState === "loading") return false;
-    for (const link of document.querySelectorAll<HTMLLinkElement>(
-      'link[rel~="stylesheet"]',
-    )) {
-      if (link.sheet === null) return false;
-    }
-    return true;
-  });
+  await waitForPageStyles(page);
   await expectDefinitionTerms(page);
-  // Until the fonts load, the browser draws text in a fallback font, whose widths differ.
-  await page.evaluate(async () => {
-    await document.fonts.ready;
-  });
   const startColorScheme = await page.evaluate(() =>
     matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",
   );

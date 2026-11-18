@@ -40,6 +40,10 @@ Biaya jasa transaksi melalui perusahaan efek. Tarif dan cara menghitung biaya me
 
 Bagian nilai satu aset dari nilai seluruh portofolio. Kas juga termasuk dalam total, sehingga bobot saham saja belum tentu mencakup seluruh portofolio.
 
+## bobot-sektor | Bobot sektor | 2
+
+Jumlah bobot semua saham dalam satu sektor IDX-IC.
+
 ## capm | CAPM | 9
 
 Model yang menghubungkan imbal hasil yang disyaratkan dengan beta dan premi risiko pasar. Hasilnya bergantung pada asumsi model dan perkiraan masukan.

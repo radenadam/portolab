@@ -11,6 +11,7 @@
   --color-ink-secondary: light-dark(#374552, #b9c4ce);
   --color-muted: light-dark(#5d6b78, #8695a3);
   --color-data: light-dark(#1f6fd6, #3987e5);
+  --color-correlation-negative: light-dark(#8a63d2, #a68ae6);
   --color-own: light-dark(#c97800, #c98500);
   --color-gain: light-dark(#0b7a53, #3dcb8c);
   --color-loss: light-dark(#c73a28, #ff7f6e);
@@ -109,6 +110,10 @@
   --width-concept-card: 24rem;
   --width-analysis-scale: 4.5rem;
   --width-analysis-data: 46rem;
+  --width-allocation-bar: min(32%, 7.5rem);
+  --width-analysis-risk-code: 3rem;
+  --size-allocation-row: 2.25rem;
+  --size-analysis-list: 20rem;
   --size-concept-mark: 0.9375rem;
   --width-statistic: 8rem;
   /* The largest width of the content of a screen, which decision 0028 sets and e2e/expect-layout.ts checks every part marked as content against. */

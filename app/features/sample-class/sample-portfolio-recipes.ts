@@ -1,5 +1,7 @@
 import type { Sector } from "~/features/market-data/company-of";
 
+export const sampleDemonstrationRecipeIndex = 33;
+
 export const sampleCoreStocks = [
   "BBCA",
   "TLKM",
