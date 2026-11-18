@@ -3,12 +3,13 @@ import type { ClassId } from "../classes/classes.schema.ts";
 import { fail, succeed } from "../../result.ts";
 import type { Result } from "../../result.ts";
 import { describeValue } from "../../value-shapes.ts";
-import { lessonPath } from "./learning-paths.ts";
+import { lessonPath, priceGuidePath } from "./learning-paths.ts";
 import { lessonPracticeSessions } from "./lesson-practice-sessions.ts";
 import type { LessonPracticeSession } from "./lesson-practice-sessions.ts";
 
-export type LessonTask = LessonPracticeSession;
+export type LessonTask = LessonPracticeSession | "prices";
 export const lessonTaskField = "lessonTask";
+const lessonTasks = [...lessonPracticeSessions, "prices"] as const;
 
 export function parseLessonTask(
   value: unknown,
@@ -16,17 +17,17 @@ export function parseLessonTask(
 ): Result<LessonTask | undefined, string> {
   if (value === null) return succeed(undefined);
   const maximumLength = Math.max(
-    ...lessonPracticeSessions.map((session) => String(session).length),
+    ...lessonTasks.map((session) => String(session).length),
   );
-  const names = lessonPracticeSessions.join(" or ");
+  const names = lessonTasks.join(" or ");
   if (typeof value === "string" && value.length > maximumLength)
     return fail(
-      `${source} must name the practice of session ${names}, but it has ${String(value.length)} characters.`,
+      `${source} must name a learning task from ${names}, but it has ${String(value.length)} characters.`,
     );
-  for (const session of lessonPracticeSessions)
+  for (const session of lessonTasks)
     if (value === String(session)) return succeed(session);
   return fail(
-    `${source} must name the practice of session ${names}, but it is ${describeValue(value)}.`,
+    `${source} must name a learning task from ${names}, but it is ${describeValue(value)}.`,
   );
 }
 
@@ -34,7 +35,7 @@ export function lessonTaskReturnPath(
   classId: ClassId,
   task: LessonTask,
 ): string {
-  return `${lessonPath(classId, task)}#practice`;
+  return `${task === "prices" ? priceGuidePath(classId) : lessonPath(classId, task)}#practice`;
 }
 
 export function withLessonTask(

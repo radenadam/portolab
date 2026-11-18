@@ -170,6 +170,7 @@ for (const locale of locales) {
     sample,
     browser,
   }, testInfo) => {
+    test.setTimeout(120_000);
     const credentials = credentialsForSample(sample);
     for (const role of ["lecturer", "student"] as const) {
       const { username, password } = credentials[role];
@@ -229,6 +230,23 @@ for (const locale of locales) {
           fullPage: true,
           fromTop: true,
         });
+        await reader.goto(`${sample.url}/classes/1/learn/2`);
+        await expect(reader.locator('input[type="range"]')).toHaveCount(2);
+        if (role === "student")
+          await expect(
+            reader.locator("button[data-learning-pair]").first(),
+          ).toBeVisible();
+        await reader.goto(`${sample.url}/classes/1/learn/6`);
+        await expect(
+          reader.locator('a[href*="priceKind=limit"][href*="lessonTask=6"]'),
+        ).toBeVisible();
+        await expect(
+          reader.locator("[data-learning-last-trade]"),
+        ).toBeVisible();
+        await reader.goto(`${sample.url}/classes/1/learn/prices`);
+        await expect(
+          reader.locator('a[href*="lessonTask=prices"]'),
+        ).toBeVisible();
         await reader.goto(`${sample.url}/classes/1/stocks/BBCA`);
         const dayHelp = reader.getByRole("button", {
           name: texts[locale].dayHelp,

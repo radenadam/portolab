@@ -1,6 +1,6 @@
 # 0059. The owner supplies company logos outside the repository
 
-- Status: Accepted. [Decision 0060](0060-a-personal-watchlist-has-measured-route-allowances.md) replaces its Pasar JavaScript ceiling.
+- Status: Accepted. [Decision 0060](0060-learning-practices-have-measured-sheet-allowances.md) replaces its Pasar JavaScript ceiling.
 - Date: 2026-11-17
 
 ## Context

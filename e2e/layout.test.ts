@@ -53,6 +53,13 @@ const routePages: Record<string, readonly RoutePage[]> = {
   "features/learning/learn-page.tsx": [
     { reader: "student", path: ({ classPath }) => `${classPath}/learn` },
   ],
+  "features/learning/price-guide-page.tsx": [
+    {
+      reader: "student",
+      path: ({ classPath }) => `${classPath}/learn/prices`,
+      reading: true,
+    },
+  ],
   "features/learning/lesson-page.tsx": lessonSessionsForTest.map(
     (session): RoutePage => ({
       reader: "student",

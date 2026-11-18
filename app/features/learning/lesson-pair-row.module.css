@@ -1,0 +1,13 @@
+.row {
+  align-items: center;
+  inline-size: 100%;
+  min-block-size: var(--size-touch-target);
+  padding: var(--space-3) var(--space-2);
+  border: 0;
+  border-block-end: var(--size-line) solid var(--color-line);
+  color: var(--color-ink);
+  background: transparent;
+  text-align: start;
+  font: inherit;
+  font-size: var(--text-row);
+}

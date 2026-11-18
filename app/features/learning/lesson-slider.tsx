@@ -16,7 +16,7 @@ export function LessonSlider({
   onChange,
 }: {
   id: string;
-  kind: "beta" | "weight";
+  kind: "beta" | "weight" | "pairWeight" | "correlation" | "price";
   label: string;
   text: string;
   value: number;
@@ -40,6 +40,7 @@ export function LessonSlider({
           max={maximum}
           step={step}
           value={value}
+          aria-valuetext={text}
           onChange={(event) => {
             onChange(event.currentTarget.valueAsNumber);
           }}

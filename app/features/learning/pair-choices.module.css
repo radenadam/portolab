@@ -1,0 +1,24 @@
+.choices {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-row);
+}
+
+.choices > span {
+  inline-size: 100%;
+  color: var(--color-muted);
+}
+
+.choice {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--size-touch-target);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-ink-secondary);
+  font: inherit;
+  cursor: pointer;
+}

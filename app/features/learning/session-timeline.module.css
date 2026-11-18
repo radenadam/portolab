@@ -1,0 +1,39 @@
+.timeline,
+.timeline > div {
+  display: grid;
+  gap: var(--space-2);
+  font-size: var(--text-small);
+  color: var(--color-muted);
+}
+
+.timeline {
+  gap: var(--space-4);
+}
+
+.track {
+  position: relative;
+  block-size: var(--space-6);
+  border-radius: var(--radius-item);
+  background: var(--color-raised);
+}
+
+.track > div {
+  position: absolute;
+  block-size: 100%;
+  display: grid;
+  place-items: center;
+  border-radius: var(--space-1);
+  background: var(--color-data);
+  color: var(--color-panel);
+}
+
+.sessionTimes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.track > .auction {
+  background: var(--color-data-soft);
+}

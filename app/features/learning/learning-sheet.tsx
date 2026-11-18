@@ -10,6 +10,8 @@ import type {
 } from "./glossary-page";
 import { LessonView } from "./lesson-view";
 import { GlossaryView } from "./glossary-view";
+import type { loader as priceGuideLoader } from "./price-guide-page";
+import { PriceGuideView } from "./price-guide-view";
 import styles from "./learning-sheet.module.css";
 
 export function LearningSheet({
@@ -20,7 +22,10 @@ export function LearningSheet({
   onClose: () => void;
 }): ReactNode {
   const fetcher = useFetcher<
-    typeof lessonLoader | typeof glossaryLoader | typeof glossaryAction
+    | typeof lessonLoader
+    | typeof glossaryLoader
+    | typeof glossaryAction
+    | typeof priceGuideLoader
   >();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleId = useId();
@@ -46,7 +51,9 @@ export function LearningSheet({
   const title =
     content !== undefined && "lesson" in content
       ? content.lesson.title
-      : m.learning_glossary_title();
+      : content !== undefined && "priceGuide" in content
+        ? content.priceGuide.title
+        : m.learning_glossary_title();
   useEffect(() => {
     if (content === undefined) return;
     const fragment = parsePath(address).hash?.slice(1) ?? "";
@@ -60,7 +67,10 @@ export function LearningSheet({
       ref={dialogRef}
       className={
         styles[
-          content !== undefined && "lesson" in content ? "lesson" : "glossary"
+          content !== undefined &&
+          ("lesson" in content || "priceGuide" in content)
+            ? "lesson"
+            : "glossary"
         ]
       }
       aria-labelledby={titleId}
@@ -92,6 +102,8 @@ export function LearningSheet({
         {content !== undefined &&
           ("lesson" in content ? (
             <LessonView {...content} inSheet idPrefix={titleId} />
+          ) : "priceGuide" in content ? (
+            <PriceGuideView {...content} inSheet idPrefix={titleId} />
           ) : (
             <GlossaryView
               {...content}

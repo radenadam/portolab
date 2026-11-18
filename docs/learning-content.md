@@ -12,7 +12,7 @@ Concept cards name a glossary term id. The root loader reads the glossary throug
 
 Glossary search validates a POST before redirecting to its search address, so oversized text is refused before it becomes part of an address. The action and loader both use `parseGlossaryQuery`, whose limit comes from [`glossaryQueryMaximumLength`](../app/features/learning/glossary-query-maximum-length.ts).
 
-Sessions 9 and 10 fill their interactive and practice sections with server data. Their prose and formula references open in the lesson's question card. [Decision 0048](decisions/0048-lesson-practice-keeps-estimates-fixed-while-weights-change.md) sets the defaults, shared estimates, responsive covariance calculation, missing-data states, and task flow. The first-stock task uses `lessonTask` in its address and returns to `#practice` in the same session. The market, stock, ticket, and activity keep that task while the student follows the purchase flow.
+Sessions 2, 6, 9, and 10 fill their interactive and practice sections with server data. Their prose and formula references open in the lesson's question card. [Decision 0048](decisions/0048-lesson-practice-keeps-estimates-fixed-while-weights-change.md) sets the defaults, shared estimates, responsive covariance calculation, missing-data states, and task flow of sessions 9 and 10. Session 2 uses the same allocation engine with a hypothetical correlation between two stocks. Its practice lists the student's observed pairs. Session 6 uses the ticket's dated rules, costs, reference price, and schedule. Its task opens a Limit ticket. Tasks use `lessonTask` in their address and return to `#practice` in the same lesson. The market, stock, ticket, and activity keep that task while the reader follows the flow.
 
 ## File format
 
@@ -28,7 +28,7 @@ Section headings in session files are stable ids. A visible section label on a p
 
 The [`sessionKinds` table](../app/features/learning/content.ts) lists the format of each session, and `cannotPractiseSession` in that file selects the sessions that require `unavailable` before `terms`. [Decision 0036](decisions/0036-lessons-and-the-glossary-are-content-in-both-languages.md) records the source of the short and full lesson formats. [Decision 0032](decisions/0032-a-class-meets-weekly-from-the-date-of-its-first-session.md) supplies the topics and the roles of research reviews and exams.
 
-Each summary, key idea, and unavailable notice is one plain paragraph. A body can mix paragraphs and references. `terms` contains at least two unique glossary ids, each on its own `- ` bullet line. A line without that bullet fails parsing. `interactive` and `practice` stay empty in Markdown, because components provide their data. Sessions 9 and 10 implement them. The sections of sessions 2 and 6 remain reserved.
+Each summary, key idea, and unavailable notice is one plain paragraph. A body can mix paragraphs and references. `terms` contains at least two unique glossary ids, each on its own `- ` bullet line. A line without that bullet fails parsing. `interactive` and `practice` stay empty in Markdown, because components provide their data. Every full lesson implements them.
 
 A glossary entry uses a heading such as `## beta | Beta | 9`, followed by paragraphs and optional references. Its three fields are the stable term id, its title in the file's language, and the short or full lesson to open for more detail. The parser rejects a link to a research review or exam, because those sessions have cards without lesson pages. The glossary title itself is source metadata. The page's heading remains an interface message.
 
@@ -36,7 +36,7 @@ Every configured language must have the same sessions, sections, term ids, lesso
 
 ## References
 
-A reference occupies one paragraph, such as `{{formula:beta}}` or `{{table:trading-rules}}`. Unknown names and inline references fail parsing. These are typed requests for the lesson renderer, so they carry no duplicated formula or number. The pages render paragraphs and key terms. Sessions 9 and 10 render their formula references and the estimation settings in the question card. Other sessions keep their references reserved until piece 30 supplies their data and components. Content supplies no numerical fallback values.
+A reference occupies one paragraph, such as `{{formula:beta}}` or `{{table:trading-rules}}`. Unknown names and inline references fail parsing. These are typed requests for the lesson renderer, so they carry no duplicated formula or number. The pages render paragraphs and key terms. Full lessons render their formula and table references in the question card. The trading schedule remains visible above the price exercise. Content supplies no numerical fallback values.
 
 | Formula id           | Existing component in the measures feature                                   |
 | -------------------- | ---------------------------------------------------------------------------- |
@@ -63,7 +63,11 @@ All components except the two ratio components live in `formulas.tsx`. They keep
 | `price-source`        | The price source description and quote status                                    |
 | `estimation-settings` | The measurement settings, shared months, and dated risk-free rate                |
 
-The first four tables belong to the trading lesson and price guide in piece 30. Sessions 9 and 10 render the measurement settings and their formula references. They use the exported concepts of the features that own these facts. A statement that computes a student's result remains a Paraglide message beside the prose.
+The trading lesson renders the first four tables. Sessions 9 and 10 render the measurement settings and their formula references. They use the exported concepts of the features that own these facts. A statement that computes a student's result remains a Paraglide message beside the prose.
+
+## Price guide
+
+The price guide opens at the address in decision 0030 and uses the same sheet as a lesson. Belajar links it beside the glossary. Each language has `price-guide/<locale>.md` with a title and one plain paragraph in each section of `parse-price-guide.ts`. The parser requires both languages and the same sections. The example quote, source delay, lot cost, and tick size come from trading data and Paraglide messages. Its task opens Pasar and returns through `lessonTask=prices` to the guide's practice section.
 
 ## Lecturer guide
 

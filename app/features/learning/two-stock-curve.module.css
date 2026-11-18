@@ -1,0 +1,74 @@
+.curve {
+  block-size: calc(var(--size-chart) + var(--space-1));
+  padding: var(--space-6) var(--space-3) var(--space-8) 7ch;
+  font-size: var(--text-small);
+  font-family: var(--font-code);
+}
+
+.curve svg {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  overflow: visible;
+  font-family: var(--font-code);
+  font-size: inherit;
+  fill: var(--color-muted);
+}
+
+.grid {
+  stroke: var(--color-line);
+  stroke-width: var(--size-line);
+}
+
+.baseline,
+.combined {
+  stroke: var(--color-line-strong);
+  stroke-width: var(--size-mark);
+}
+
+.combined {
+  stroke: var(--color-own);
+}
+
+.stockPoint {
+  fill: var(--color-data);
+}
+
+.ownPoint {
+  fill: var(--color-own);
+}
+
+.averagePoint {
+  fill: var(--color-panel);
+  stroke: var(--color-own);
+  stroke-width: var(--size-line);
+}
+
+.legend {
+  composes: row from "../../caption-row.module.css";
+  gap: var(--space-4);
+}
+
+.legendItem {
+  composes: row from "../../caption-row.module.css";
+}
+
+.legend i {
+  inline-size: var(--space-4);
+  border-block-start: var(--size-mark) solid var(--color-line-strong);
+}
+
+.legend .combined {
+  border-color: var(--color-own);
+}
+
+.portfolioLabel {
+  fill: var(--color-ink);
+  font-family: var(--font-text);
+  font-weight: 600;
+}
+
+.curveArea {
+  inline-size: 100%;
+  block-size: 100%;
+}

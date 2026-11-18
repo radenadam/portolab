@@ -9,7 +9,7 @@ import type { SessionContent } from "./content";
 import { cannotPractiseSession, isLessonKind } from "./content";
 import { ContentParagraphs } from "./content-paragraphs";
 import { LearningLink } from "./learning-link";
-import { glossaryPath, lessonPath } from "./learning-paths";
+import { glossaryPath, lessonPath, priceGuidePath } from "./learning-paths";
 import { sessionKindLabel, sessionLabel } from "./session-text";
 import styles from "./learning.module.css";
 import { hasLessonPractice } from "./lesson-practice-sessions";
@@ -27,10 +27,19 @@ export function LearningIndex({
     <div className={styles["index"]}>
       <header className={styles["tools"]}>
         <h1>{m.learning_title()}</h1>
-        <LearningLink to={glossaryPath(classId)} className={styles["button"]}>
-          <Icon name="book" className={styles["icon"]} />
-          {m.learning_glossary_link()}
-        </LearningLink>
+        <div className={styles["toolLinks"]}>
+          <LearningLink
+            to={priceGuidePath(classId)}
+            className={styles["button"]}
+          >
+            <Icon name="trend" className={styles["icon"]} />
+            {m.learning_price_guide_link()}
+          </LearningLink>
+          <LearningLink to={glossaryPath(classId)} className={styles["button"]}>
+            <Icon name="book" className={styles["icon"]} />
+            {m.learning_glossary_link()}
+          </LearningLink>
+        </div>
       </header>
       <div className={styles["grid"]} data-layout="columns">
         {sessions.map((lesson) => {

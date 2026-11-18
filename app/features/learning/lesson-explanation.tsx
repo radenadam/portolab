@@ -32,20 +32,37 @@ import type { ContentBlock, SessionContent } from "./content";
 import { ContentParagraphs } from "./content-paragraphs";
 import type { PortfolioSummary } from "~/features/measures/measure-summaries";
 import type { LessonPracticeData } from "./lesson-practice-data";
+import type { MeasuredLessonActivity } from "./lesson-practice-sessions";
 import styles from "./lesson-practice.module.css";
 
 export function LessonExplanation({
   lesson,
+  activity,
   practice,
   portfolio,
 }: {
   lesson: SessionContent;
+  activity: MeasuredLessonActivity;
   practice: LessonPracticeData;
   portfolio: PortfolioSummary | undefined;
 }): ReactNode {
   const market = portfolio?.market ?? practice.market;
   const body = lesson.sections.flatMap((section) =>
     section.id === "body" ? section.blocks : [],
+  );
+  const estimation = (
+    <>
+      <MethodNotice />
+      {market !== undefined && (
+        <p>
+          <NumberText>
+            {m.learning_analysis_period_notice(
+              monthSpanInputs(monthSpanOf(market.returns)),
+            )}
+          </NumberText>
+        </p>
+      )}
+    </>
   );
   const reference = (
     block: Exclude<ContentBlock, { kind: "paragraph" }>,
@@ -54,16 +71,9 @@ export function LessonExplanation({
       if (block.id !== "estimation-settings") return null;
       return (
         <>
-          <MethodNotice />
+          {estimation}
           {market !== undefined && (
             <>
-              <p>
-                <NumberText>
-                  {m.learning_analysis_period_notice(
-                    monthSpanInputs(monthSpanOf(market.returns)),
-                  )}
-                </NumberText>
-              </p>
               <p>
                 <RiskFreeFormula rate={market.riskFreeRate} />
               </p>
@@ -82,6 +92,7 @@ export function LessonExplanation({
   };
   return (
     <ConceptHelp title={lesson.title}>
+      {activity === "diversification" && estimation}
       <ContentParagraphs blocks={body} reference={reference} />
       {portfolio !== undefined && (
         <dl>
@@ -90,10 +101,7 @@ export function LessonExplanation({
               <dt className={styles["code"]}>{holding.code}</dt>
               <dd>
                 <NumberText>
-                  {m.learning_holding_inputs_notice({
-                    expected: formatPercent(holding.expectedReturn, "two"),
-                    beta: formatBeta(holding.beta),
-                  })}
+                  {lessonHoldingInputs(holding, activity)}
                 </NumberText>
               </dd>
             </div>
@@ -102,6 +110,26 @@ export function LessonExplanation({
       )}
     </ConceptHelp>
   );
+}
+
+function lessonHoldingInputs(
+  holding: PortfolioSummary["holdings"][number],
+  activity: MeasuredLessonActivity,
+): string {
+  const expected = formatPercent(holding.expectedReturn, "two");
+  switch (activity) {
+    case "diversification":
+      return m.learning_pair_holding_inputs_notice({
+        expected,
+        risk: formatPercent(holding.standardDeviation, "two"),
+      });
+    case "capm":
+    case "allocation":
+      return m.learning_holding_inputs_notice({
+        expected,
+        beta: formatBeta(holding.beta),
+      });
+  }
 }
 
 function lessonFormulas(
