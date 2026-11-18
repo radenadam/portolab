@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import chipStyles from "~/chip.module.css";
 import type { PortfolioSummary } from "~/features/measures/measure-summaries";
-import localStyles from "./trading-lesson.module.css";
+import localStyles from "./pair-choices.module.css";
 
 export function PairChoices({
   label,

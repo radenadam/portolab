@@ -23,7 +23,7 @@ import {
   smallestPercentStep,
 } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
-import styles from "./trading-lesson.module.css";
+import styles from "./two-stock-curve.module.css";
 
 export function TwoStockCurve({
   portfolio,

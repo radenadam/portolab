@@ -67,7 +67,7 @@ The trading lesson renders the first four tables. Sessions 9 and 10 render the m
 
 ## Price guide
 
-The price guide opens at the address in decision 0030 and uses the same sheet as a lesson. Each language has `price-guide/<locale>.md` with a title and one plain paragraph in each section of `parse-price-guide.ts`. The parser requires both languages and the same sections. The example quote, source delay, lot cost, and tick size come from trading data and Paraglide messages. Its task opens Pasar and returns through `lessonTask=prices` to the guide's practice section.
+The price guide opens at the address in decision 0030 and uses the same sheet as a lesson. Belajar links it beside the glossary. Each language has `price-guide/<locale>.md` with a title and one plain paragraph in each section of `parse-price-guide.ts`. The parser requires both languages and the same sections. The example quote, source delay, lot cost, and tick size come from trading data and Paraglide messages. Its task opens Pasar and returns through `lessonTask=prices` to the guide's practice section.
 
 ## Lecturer guide
 

@@ -130,12 +130,16 @@ export function LessonTrading({
               }),
             ],
             [
-              m.learning_ara_limit_label({ limit: formatLimit(band.upper) }),
+              m.learning_ara_limit_label({
+                limit: formatLimit(band.upper, "upper"),
+              }),
               formatRupiah(band.highest),
               m.learning_upper_limit_label(),
             ],
             [
-              m.learning_arb_limit_label({ limit: formatLimit(band.lower) }),
+              m.learning_arb_limit_label({
+                limit: formatLimit(band.lower, "lower"),
+              }),
               formatRupiah(band.lowest),
               m.learning_lower_limit_label(),
             ],

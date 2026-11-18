@@ -21,6 +21,7 @@ const texts: Record<
     limit: string;
     back: string;
     guide: string;
+    guideLink: string;
     stock: string;
     full: string;
     close: string;
@@ -42,6 +43,7 @@ const texts: Record<
     limit: "Buka tiket BBCA dengan Limit",
     back: "Kembali ke pelajaran",
     guide: "Cara membaca harga saham",
+    guideLink: "Panduan harga",
     stock: "Buka Pasar untuk tugas ini",
     full: "Buka di Belajar",
     close: "Tutup",
@@ -62,6 +64,7 @@ const texts: Record<
     limit: "Open the BBCA ticket with Limit",
     back: "Back to the lesson",
     guide: "How to read a stock price",
+    guideLink: "Price guide",
     stock: "Open Market for this task",
     full: "Open in Learn",
     close: "Close",
@@ -146,7 +149,23 @@ for (const locale of locales) {
         fromTop: true,
         check: () => expectLayout(page),
       });
-      await page.goto(`${classPath}/learn/prices`);
+      await page.goto(`${classPath}/learn`);
+      await page
+        .getByRole("main")
+        .getByRole("link", { name: text.guideLink, exact: true })
+        .click();
+      const guideSheet = page.getByRole("dialog", {
+        name: text.guide,
+        exact: true,
+      });
+      const guidePage = guideSheet.getByRole("link", {
+        name: text.full,
+        exact: true,
+      });
+      await expect(guidePage).toBeVisible();
+      await expectAccessibleScreen(page);
+      await guidePage.click();
+      await expect(page).toHaveURL(`${classPath}/learn/prices`);
       await expect(page.getByRole("heading", { level: 1 })).toHaveText(
         text.guide,
       );
@@ -201,7 +220,15 @@ for (const locale of locales) {
             .click();
           await expect(page).toHaveURL(`${classPath}/learn/6#practice`);
           await expect(task).toBeInViewport();
-          await page.goto(`${classPath}/learn/prices`);
+          if (javaScriptEnabled) await page.goto(`${classPath}/learn/prices`);
+          else {
+            await page.goto(`${classPath}/learn`);
+            await page
+              .getByRole("main")
+              .getByRole("link", { name: text.guideLink, exact: true })
+              .click();
+            await expect(page).toHaveURL(`${classPath}/learn/prices`);
+          }
           await expectTickHelp(page, text, javaScriptEnabled);
         } finally {
           await lecturer.context().close();

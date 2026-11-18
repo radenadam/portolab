@@ -6,7 +6,7 @@ import { NumberText } from "~/number-text";
 import { m } from "~/paraglide/messages.js";
 import { rupiah } from "~/units/rupiah";
 import type { Rupiah } from "~/units/rupiah";
-import styles from "./trading-lesson.module.css";
+import styles from "./trading-rule-tables.module.css";
 
 export function TickTable({
   rules,
@@ -85,10 +85,14 @@ export function BandTable({ rules }: { rules: IdxRules }): ReactNode {
                 </NumberText>
               </td>
               <td>
-                <NumberText whole>+{formatLimit(band.upper)}</NumberText>
+                <NumberText whole>
+                  {formatLimit(band.upper, "upper")}
+                </NumberText>
               </td>
               <td>
-                <NumberText whole>−{formatLimit(band.lower)}</NumberText>
+                <NumberText whole>
+                  {formatLimit(band.lower, "lower")}
+                </NumberText>
               </td>
             </tr>
           );

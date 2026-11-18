@@ -20,7 +20,7 @@ import { basisPointsPerWhole } from "~/units/basis-points";
 import { TickTable } from "./trading-rule-tables";
 import type { TradingLessonData } from "./trading-lesson-data";
 import practiceStyles from "./lesson-practice.module.css";
-import localStyles from "./trading-lesson.module.css";
+import localStyles from "./price-guide.module.css";
 
 export function PriceGuideMark({ number }: { number: number }): ReactNode {
   return (
@@ -108,14 +108,16 @@ export function PriceGuideCost({
             </NumberText>
           </p>
           <div>
-            <NumberText>
-              {m.learning_guide_tick_notice({
-                code: quote.code,
-                tick: formatRupiah(
-                  tickOfPrice(quote.price, day.value.rules.tickBands),
-                ),
-              })}
-            </NumberText>
+            <span>
+              <NumberText>
+                {m.learning_guide_tick_notice({
+                  code: quote.code,
+                  tick: formatRupiah(
+                    tickOfPrice(quote.price, day.value.rules.tickBands),
+                  ),
+                })}
+              </NumberText>
+            </span>
             <ConceptHelp title={m.learning_tick_label()}>
               <TickTable rules={day.value.rules} highlight={quote.price} />
             </ConceptHelp>

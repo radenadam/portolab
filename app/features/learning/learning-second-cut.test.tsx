@@ -9,6 +9,7 @@ import { locales } from "~/paraglide/runtime.js";
 import { languageNames } from "~/language-names";
 import { renderMarkupForTest } from "~/render-markup-for-test";
 import { textOfMarkupForTest } from "~/text-of-markup-for-test";
+import { elementTextsForTest } from "~/element-texts-for-test";
 import { markupTextForTest } from "~/markup-text-for-test";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
 import { successValueForTest } from "~/success-value-for-test";
@@ -52,14 +53,17 @@ const delayTexts: Record<Locale, string> = {
 const texts: Record<Locale, readonly string[]> = {
   id: [
     "Imbal hasil harapan -0,10%, risiko 5,23% per bulan.",
-    "Buka tiket Limit, baca data yang masih diperlukan, lalu kembali ke pelajaran tanpa mengirim order.",
+    [
+      "Tugas.",
+      "Buka tiket Limit, baca data yang masih diperlukan, lalu kembali ke pelajaran tanpa mengirim order.",
+    ].join(" "),
     "Tinjau harga pada tiket Limit, lalu kembali ke pelajaran tanpa mengirim order.",
     "Tambahkan saham agar Anda dapat membandingkan pasangan di pelajaran ini.",
     "BBCA: 5,23% · -0,10%",
     "Imbal hasil/bln",
     "Portofolio",
     "ARA +25%",
-    "ARB −7%",
+    "ARB -7%",
     "Dua saham, satu portofolio",
     "Saham A",
     "Saham B",
@@ -84,7 +88,10 @@ const texts: Record<Locale, readonly string[]> = {
     "Batas atas harga order",
     "Batas bawah harga order",
     "Belum ada order Anda yang terisi. Setelah sebuah order terisi, rincian biayanya tampil di sini.",
-    "Tiket ini memakai order Limit. Naikkan harganya dengan tombol + sampai melewati ARA, baca batas harganya, lalu tutup tiket tanpa mengirim order.",
+    [
+      "Tugas.",
+      "Tiket ini memakai order Limit. Naikkan harganya dengan tombol + sampai melewati ARA, baca batas harganya, lalu tutup tiket tanpa mengirim order.",
+    ].join(" "),
     "Buka tiket BBCA dengan Limit",
     "Panduan harga",
     "Contoh baris harga",
@@ -101,12 +108,16 @@ const texts: Record<Locale, readonly string[]> = {
     "Korelasi asli dari 60 imbal hasil bulanan. Geser untuk membandingkan gerak yang lebih searah atau berlawanan.",
     "Rata-rata tertimbang risiko aset Anda 4,68% per bulan, sedangkan risiko portofolionya 4,07%. Selisihnya 0,61 poin persentase.",
     "Korelasi setiap pasangan saham Anda dari 60 imbal hasil bulanan, dari yang terendah.",
-    "Pakai pasangan dengan korelasi terendah di grafik, lalu catat berapa poin risiko portofolio lebih kecil daripada rata-rata risikonya pada bobot 50%.",
+    [
+      "Tugas.",
+      "Pakai pasangan dengan korelasi terendah di grafik, lalu catat berapa poin risiko portofolio lebih kecil daripada rata-rata risikonya pada bobot 50%.",
+    ].join(" "),
     "Kurva BBCA dan TLKM dengan korelasi 0,50. Risiko portofolio 5,27%, imbal hasil -0,33% per bulan.",
     "Semua bobot dengan ρ 0,50",
-    "σp = √(w²iσ²i + w²jσ²j + 2wiwjρijσiσj)= √(0,50² × 5,23%² + 0,50² × 6,88%² + 2 × 0,50 × 0,50 × 0,50 × 5,23% × 6,88%)= 5,266% per bulan",
+    "σp = √(w²iσ²i + w²jσ²j + 2wiwjρijσiσj)= √(0,50² × 5,23%² + 0,50² × 6,88%² + 2 × 0,50 × 0,50 × 0,50 × 5,23% × 6,88%)",
+    "= 5,266% per bulan",
     "Praktik",
-    "PraktikTugas. Temukan saham dengan perubahan harian terbesar",
+    "Tugas. Temukan saham dengan perubahan harian terbesar, lalu baca kode, harga, perubahan, dan waktu harganya.",
     "Rp 1 sampai di bawah Rp 200",
     "Rp 5.000 ke atas",
     "Rp 15 sampai Rp 200",
@@ -133,14 +144,17 @@ const texts: Record<Locale, readonly string[]> = {
   ],
   en: [
     "Expected return -0.10%, risk 5.23% per month.",
-    "Open the Limit ticket, read which data is still needed, then return to the lesson without placing an order.",
+    [
+      "Task.",
+      "Open the Limit ticket, read which data is still needed, then return to the lesson without placing an order.",
+    ].join(" "),
     "Review the price in the Limit ticket, then return to the lesson without placing an order.",
     "Add holdings so you can compare stock pairs in this lesson.",
     "BBCA: 5.23% · -0.10%",
     "Return/month",
     "Portfolio",
     "ARA +25%",
-    "ARB −7%",
+    "ARB -7%",
     "Two stocks, one portfolio",
     "Stock A",
     "Stock B",
@@ -165,7 +179,10 @@ const texts: Record<Locale, readonly string[]> = {
     "Upper order price limit",
     "Lower order price limit",
     "None of your orders has filled yet. Once an order fills, its cost breakdown appears here.",
-    "This ticket uses a Limit order. Raise its price with the + button until it exceeds ARA, read its price boundaries, then close the ticket without placing the order.",
+    [
+      "Task.",
+      "This ticket uses a Limit order. Raise its price with the + button until it exceeds ARA, read its price boundaries, then close the ticket without placing the order.",
+    ].join(" "),
     "Open the BBCA ticket with Limit",
     "Price guide",
     "Example price row",
@@ -182,12 +199,16 @@ const texts: Record<Locale, readonly string[]> = {
     "Observed correlation from 60 monthly returns. Move the slider to compare more similar or opposite movements.",
     "Your weighted average asset risk is 4.68% per month, while portfolio risk is 4.07%. The difference is 0.61 percentage points.",
     "Correlation for each stock pair over 60 monthly returns, lowest first.",
-    "Use the pair with the lowest correlation in the chart, then record how many percentage points portfolio risk is below average risk at a weight of 50%.",
+    [
+      "Task.",
+      "Use the pair with the lowest correlation in the chart, then record how many percentage points portfolio risk is below average risk at a weight of 50%.",
+    ].join(" "),
     "Curve for BBCA and TLKM at correlation 0.50. Portfolio risk 5.27%, return -0.33% per month.",
     "All weights at ρ 0.50",
-    "σp = √(w²iσ²i + w²jσ²j + 2wiwjρijσiσj)= √(0.50² × 5.23%² + 0.50² × 6.88%² + 2 × 0.50 × 0.50 × 0.50 × 5.23% × 6.88%)= 5.266% per month",
+    "σp = √(w²iσ²i + w²jσ²j + 2wiwjρijσiσj)= √(0.50² × 5.23%² + 0.50² × 6.88%² + 2 × 0.50 × 0.50 × 0.50 × 5.23% × 6.88%)",
+    "= 5.266% per month",
     "Practice",
-    "PracticeTask. Find the stock with the largest daily change",
+    "Task. Find the stock with the largest daily change, then read its code, price, change, and quote time.",
     "IDR 1 to below IDR 200",
     "IDR 5,000 and above",
     "IDR 15 to IDR 200",
@@ -405,9 +426,12 @@ for (const locale of locales) {
       ),
     );
     expect(guideWithoutQuote.split(tradingDataTexts[locale])).toHaveLength(2);
-    const text = textOfMarkupForTest(pages.join(" ")) + pages.join(" ");
-
-    for (const expected of texts[locale]) expect(text).toContain(expected);
+    const elementTexts = elementTextsForTest(pages.join(""));
+    expect(
+      texts[locale].filter(
+        (expected) => !elementTexts.includes(markupTextForTest(expected)),
+      ),
+    ).toEqual([]);
     expect(
       learningPriceSourceText({ name: "Recorded source", delayMinutes: 1 }),
     ).toBe(delayTexts[locale]);

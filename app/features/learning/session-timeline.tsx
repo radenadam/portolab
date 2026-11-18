@@ -4,7 +4,7 @@ import { formatMarketClock, formatNumber } from "~/formatting";
 import { NumberText } from "~/number-text";
 import { m } from "~/paraglide/messages.js";
 import { wibMoment } from "~/wib";
-import styles from "./trading-lesson.module.css";
+import styles from "./session-timeline.module.css";
 
 export function SessionTimeline({
   hours,

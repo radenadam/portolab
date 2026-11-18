@@ -12,7 +12,7 @@ import { withLessonTask } from "./lesson-task";
 import { LessonTaskLink } from "./lesson-task-link";
 import { defaultPairWeight } from "./two-stock-allocation";
 import styles from "./lesson-practice.module.css";
-import localStyles from "./trading-lesson.module.css";
+import localStyles from "./diversification-practice.module.css";
 
 const listedPairs = 5;
 

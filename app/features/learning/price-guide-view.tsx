@@ -18,7 +18,7 @@ import { PracticePanel } from "./practice-panel";
 import { withLessonTask } from "./lesson-task";
 import styles from "./learning.module.css";
 import practiceStyles from "./lesson-practice.module.css";
-import localStyles from "./trading-lesson.module.css";
+import localStyles from "./price-guide.module.css";
 
 export function PriceGuideView({
   classId,
