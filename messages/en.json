@@ -1275,7 +1275,7 @@
   "classes_nim_changed_notice": "Portolab saved your NIM for this class.",
   "grading_nim_label": "NIM",
   "classes_nim_cleared_notice": "Portolab cleared your NIM for this class.",
-  "accounts_nim_lecturer_error": "Only a student gives a NIM, for each class that the student joined, and you are signed in as a lecturer. Sign in with the account of the student to change its NIM.",
+  "accounts_nim_lecturer_error": "Only students give a NIM for a class, and you are signed in as a lecturer. To change a NIM as a student, sign out first.",
   "watchlist_add_label": "Add {code} to your watchlist",
   "watchlist_remove_label": "Remove {code} from your watchlist",
   "market_data_watch_label": "Watch",

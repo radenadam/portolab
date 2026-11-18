@@ -53,7 +53,7 @@ const texts: Record<
     journal: "Jurnal dan order",
     sections: "Bagian portofolio mahasiswa",
     lecturer:
-      "Hanya mahasiswa yang memberikan NIM, untuk setiap kelas yang diikutinya, dan Anda masuk sebagai dosen. Masuklah dengan akun mahasiswa itu untuk mengubah NIM-nya.",
+      "Hanya mahasiswa yang memberikan NIM untuk kelas, dan Anda masuk sebagai dosen. Untuk mengubah NIM sebagai mahasiswa, keluar terlebih dahulu.",
   },
   en: {
     hint: 'Optional for this class. Your lecturer sees this NIM. Use at most 32 characters from A to Z, a to z, 0 to 9, ".", "/", or "-". Leave it empty if you have none.',
@@ -73,7 +73,7 @@ const texts: Record<
     journal: "Journal and orders",
     sections: "Student portfolio sections",
     lecturer:
-      "Only a student gives a NIM, for each class that the student joined, and you are signed in as a lecturer. Sign in with the account of the student to change its NIM.",
+      "Only students give a NIM for a class, and you are signed in as a lecturer. To change a NIM as a student, sign out first.",
   },
 };
 

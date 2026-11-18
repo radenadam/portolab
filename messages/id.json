@@ -1275,7 +1275,7 @@
   "classes_nim_changed_notice": "Portolab menyimpan NIM Anda untuk kelas ini.",
   "grading_nim_label": "NIM",
   "classes_nim_cleared_notice": "Portolab mengosongkan NIM Anda untuk kelas ini.",
-  "accounts_nim_lecturer_error": "Hanya mahasiswa yang memberikan NIM, untuk setiap kelas yang diikutinya, dan Anda masuk sebagai dosen. Masuklah dengan akun mahasiswa itu untuk mengubah NIM-nya.",
+  "accounts_nim_lecturer_error": "Hanya mahasiswa yang memberikan NIM untuk kelas, dan Anda masuk sebagai dosen. Untuk mengubah NIM sebagai mahasiswa, keluar terlebih dahulu.",
   "watchlist_add_label": "Tambah {code} ke pantauan",
   "watchlist_remove_label": "Hapus {code} dari pantauan",
   "market_data_watch_label": "Pantau",
