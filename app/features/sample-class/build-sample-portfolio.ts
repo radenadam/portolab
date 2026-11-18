@@ -23,6 +23,7 @@ import { buildEndedSamples } from "./build-ended-samples";
 import {
   sampleCoreStocks,
   sampleConcentratedSectors,
+  sampleDemonstrationRecipeIndex,
 } from "./sample-portfolio-recipes";
 import {
   samplePurchaseReason,
@@ -31,7 +32,7 @@ import {
 } from "./sample-reasons";
 
 function buyStocks(recipe: SampleRecipe, index: number): SampleStock[] {
-  if (index === 0)
+  if (index === 0 || index === sampleDemonstrationRecipeIndex)
     return sampleCoreStocks.flatMap((code) => {
       const stock = recipe.stocks.find(
         (candidate) => candidate.history.code === code,

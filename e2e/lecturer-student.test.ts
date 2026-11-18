@@ -1,3 +1,4 @@
+import { expectAnalysisPanels } from "./expect-analysis-panels.ts";
 import { storeActivityOrders } from "./store-activity-orders.ts";
 import { expectEndLabelsInsidePlot } from "./expect-end-labels-inside-plot.ts";
 import { expectCompactChoice } from "./expect-compact-choice.ts";
@@ -168,6 +169,7 @@ for (const locale of locales) {
           await page.getByRole("link", { name: text.map, exact: true }).click();
         }
         if (suffix === "/analysis") {
+          await expectAnalysisPanels(page, locale);
           await expect(
             page.getByRole("main").getByText(text.prices, { exact: true }),
           ).toBeVisible();

@@ -1,3 +1,4 @@
+import { expectAnalysisPanels } from "./expect-analysis-panels.ts";
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, rmSync, mkdirSync, writeFileSync } from "node:fs";
 import { createServer } from "node:net";
@@ -291,6 +292,36 @@ for (const locale of locales) {
         await expect(
           reader.getByText(texts[locale].sample, { exact: true }),
         ).toBeVisible();
+      } finally {
+        await reader.context().close();
+      }
+    }
+  });
+
+  test(`shows every analysis panel of the sample class to both roles in ${languageNames[locale]}`, async ({
+    sample,
+    browser,
+  }, testInfo) => {
+    for (const role of ["lecturer", "student"] as const) {
+      const reader = await newDevice(browser, locale, { siteUrl: sample.url });
+      try {
+        await signInSample(reader, sample, role);
+        await reader.goto(
+          `${sample.url}/classes/1/${role === "lecturer" ? "demonstration/" : ""}analysis`,
+        );
+        await expectAnalysisPanels(reader, locale);
+        await expect(
+          reader.locator('button[popovertarget^="analysis-pair-"]').first(),
+        ).toBeVisible();
+        await expect(
+          reader.locator('button[popovertarget^="analysis-risk-"]').first(),
+        ).toBeVisible();
+        await expectAccessibleScreen(reader);
+        await captureScreens(reader, testInfo, {
+          name: `sample-analysis-${role}-${locale}`,
+          fullPage: true,
+          fromTop: true,
+        });
       } finally {
         await reader.context().close();
       }

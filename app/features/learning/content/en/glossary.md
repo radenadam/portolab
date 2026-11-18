@@ -40,6 +40,10 @@ The charge for trading through a securities firm. The rate and calculation affec
 
 One asset's share of the entire portfolio's value. Cash is part of the total, so stock weights alone need not cover the whole portfolio.
 
+## bobot-sektor | Sector weight | 2
+
+The sum of the weights of all stocks in one IDX-IC sector.
+
 ## capm | CAPM | 9
 
 A model connecting required return to beta and the market risk premium. Its result depends on the model's assumptions and estimated inputs.
