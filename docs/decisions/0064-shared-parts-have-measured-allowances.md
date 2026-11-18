@@ -11,7 +11,7 @@ The chip, the avatar, and the format of signed marks are new code on every route
 
 ## Decision
 
-The following ceilings replace the ceilings of decisions [0060](0060-learning-practices-have-measured-sheet-allowances.md), [0061](0061-analysis-panels-have-measured-route-allowances.md), and [0063](0063-a-personal-watchlist-has-measured-route-allowances.md) only for these dependency sets. An empty cell keeps the earlier CSS ceiling. Every other ceiling and the complete dependency walk of decisions [0038](0038-client-javascript-is-budgeted-by-route.md) and [0042](0042-client-css-is-budgeted-by-route.md) keep their rules. A set that passes its earlier ceiling by less than 0.05 kB gets the same margin as a set that exceeds it, because the hashes of another build change compressed totals by tens of bytes.
+The following ceilings replace the ceilings of decisions [0061](0061-analysis-panels-have-measured-route-allowances.md) and [0063](0063-a-personal-watchlist-has-measured-route-allowances.md) only for these dependency sets. An empty cell keeps the earlier CSS ceiling. Every other ceiling and the complete dependency walk of decisions [0038](0038-client-javascript-is-budgeted-by-route.md) and [0042](0042-client-css-is-budgeted-by-route.md) keep their rules. A set that passes its earlier ceiling by less than 0.05 kB gets the same margin as a set that exceeds it, because the hashes of another build change compressed totals by tens of bytes.
 
 | Dependency set              | JavaScript ceiling, kB gzip | CSS ceiling, kB gzip |
 | --------------------------- | --------------------------: | -------------------: |
