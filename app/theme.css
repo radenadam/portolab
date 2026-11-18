@@ -154,6 +154,16 @@
   --size-sparkline: 1.375rem;
   --size-home-chart: 10.5rem;
   --size-home-map: 28rem;
+  --size-home-welcome-map: 18.75rem;
+  --width-onboarding: 27.5rem;
+  --height-onboarding-visual: 14.75rem;
+  --size-onboarding-icon: 2.75rem;
+  --size-onboarding-dot: 0.5rem;
+  --width-onboarding-current-dot: 1.375rem;
+  --width-onboarding-spark: 18.75rem;
+  --size-onboarding-spark: 3.75rem;
+  --text-onboarding-amount: 2.625rem;
+  --text-welcome-amount: 2.125rem;
   --size-chart-phone-map: 20rem;
   --width-home-bar: 6rem;
   --width-activity-status: 6.5rem;

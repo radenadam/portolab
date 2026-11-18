@@ -7,23 +7,29 @@ interface Credentials {
   password: string;
 }
 
-/** Reads one printed account of each role so that browser tests use the command's generated credentials. */
+type StudentSelection = "first" | "last";
+
+/** Printed credentials keep browser tests independent of the sample's account count. */
 export function parseSampleCredentialsForTest(
   value: unknown,
   source: string,
+  { student = "first" }: { student?: StudentSelection } = {},
 ): Result<{ lecturer: Credentials; student: Credentials }, string> {
   if (typeof value === "string") {
     const lecturer = /^lecturer \| (\S+) \| (\S+)$/m.exec(value);
-    const student = /^student \| (\S+) \| (\S+)$/m.exec(value);
+    const positions: Record<StudentSelection, number> = { first: 0, last: -1 };
+    const selectedStudent = [
+      ...value.matchAll(/^student \| (\S+) \| (\S+)$/gm),
+    ].at(positions[student]);
     if (
       lecturer?.[1] !== undefined &&
       lecturer[2] !== undefined &&
-      student?.[1] !== undefined &&
-      student[2] !== undefined
+      selectedStudent?.[1] !== undefined &&
+      selectedStudent[2] !== undefined
     ) {
       return succeed({
         lecturer: { username: lecturer[1], password: lecturer[2] },
-        student: { username: student[1], password: student[2] },
+        student: { username: selectedStudent[1], password: selectedStudent[2] },
       });
     }
   }

@@ -230,7 +230,7 @@ export async function seedSampleClass(
         const firstOrder = plan[0];
         const joinedAt =
           firstOrder === undefined
-            ? now
+            ? createdAt
             : new Date(
                 firstOrder.accepted.placedAt.getTime() - minuteMilliseconds,
               );

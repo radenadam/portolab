@@ -61,4 +61,6 @@
 0061-analysis-panels-have-measured-route-allowances.md
 0062-correlation-cells-keep-readable-text-across-the-scale.md
 0063-a-personal-watchlist-has-measured-route-allowances.md
-0064-shared-parts-have-measured-allowances.md
+0064-the-empty-sample-joins-when-the-class-starts.md
+0065-the-welcome-has-measured-shared-and-route-allowances.md
+0066-shared-parts-have-measured-allowances.md

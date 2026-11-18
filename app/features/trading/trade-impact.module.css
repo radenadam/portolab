@@ -66,36 +66,6 @@
 .ticketGrid > * {
   min-width: 0;
 }
-.row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) max-content var(--space-6) max-content;
-  align-items: center;
-  gap: var(--space-1);
-  padding-block: var(--space-2);
-  border-bottom: var(--size-line) solid var(--color-line);
-  font-size: var(--text-learning-summary);
-}
-.row:last-child {
-  border: 0;
-}
-.rowLabel {
-  color: var(--color-ink-secondary);
-}
-.row > strong {
-  text-align: right;
-}
-.from,
-.arrow,
-.direction {
-  color: var(--color-muted);
-}
-.arrow {
-  text-align: center;
-}
-.direction {
-  font-weight: 400;
-  margin-inline-start: var(--size-mark);
-}
 .segments {
   composes: choice compact from "../../segmented-choice.module.css";
   align-self: flex-start;

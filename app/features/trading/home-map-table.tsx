@@ -27,7 +27,7 @@ export function HomeMapTable({
       <table className={styles["table"]}>
         <thead>
           <tr>
-            <th scope="col">{m.trading_stock_label()}</th>
+            <th scope="col">{m.trading_impact_point_label()}</th>
             <th scope="col">{m.trading_home_beta_label()}</th>
             <th scope="col">{m.trading_home_map_return_label()}</th>
           </tr>

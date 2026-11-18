@@ -71,6 +71,7 @@ export function StudentMap({
         up={{ style: "change", toValue: cumulativeReturn }}
         levelLabel=""
         compact
+        short
         labelledBy={selectedStudentHeadingId}
       />
     </div>

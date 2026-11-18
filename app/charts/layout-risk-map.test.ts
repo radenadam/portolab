@@ -146,20 +146,20 @@ const tickTexts: Record<
     across: readonly string[];
     up: readonly string[];
     changes: readonly string[];
-    compact: readonly string[];
+    short: readonly string[];
   }
 > = {
   id: {
     across: ["0,0", "0,5", "1,0", "1,5", "2,0"],
     up: ["-1%", "0%", "1%", "2%", "3%"],
     changes: ["-1%", "0%", "+1%", "+2%", "+3%"],
-    compact: ["0%", "2%"],
+    short: ["0%", "2%"],
   },
   en: {
     across: ["0.0", "0.5", "1.0", "1.5", "2.0"],
     up: ["-1%", "0%", "1%", "2%", "3%"],
     changes: ["-1%", "0%", "+1%", "+2%", "+3%"],
-    compact: ["0%", "2%"],
+    short: ["0%", "2%"],
   },
 };
 
@@ -211,12 +211,12 @@ for (const locale of locales) {
     expect(map.upTextLength).toBe(3);
   });
 
-  test(`marks fewer returns up a compact map, in ${languageNames[locale]}`, () => {
+  test(`marks fewer returns up a short map, in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     // About four steps over 4.64% need at least 1.16%, so the step of returns is 2%.
-    const map = layoutRiskMap({ market, points, ...axes, line, compact: true });
+    const map = layoutRiskMap({ market, points, ...axes, line, short: true });
     expect(map.upTicks.map((tick) => tick.text)).toEqual(
-      tickTexts[locale].compact,
+      tickTexts[locale].short,
     );
     for (const [index, value] of [0, 0.02].entries()) {
       expect(map.upTicks[index]?.at).toBeCloseTo(down(value), 12);
