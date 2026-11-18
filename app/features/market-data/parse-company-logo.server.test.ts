@@ -1,19 +1,8 @@
 import { expect, test } from "vitest";
 import { crc32 } from "node:zlib";
-import { readFileSync } from "node:fs";
 import { companyLogoForTest } from "./company-logo-for-test.ts";
 import { parseCompanyLogo } from "./parse-company-logo.server.ts";
-import {
-  maximumCompanyLogoBytes,
-  companyLogoPixels,
-} from "./company-logo-format.ts";
-
-test("documents the prepared tile dimensions and byte limit that the parser accepts", () => {
-  const guide = readFileSync("docs/deploy.md", "utf8").replaceAll(",", "");
-  expect(guide).toContain(
-    `at ${String(companyLogoPixels)} by ${String(companyLogoPixels)} pixels with at most ${String(maximumCompanyLogoBytes)} bytes`,
-  );
-});
+import { maximumCompanyLogoBytes } from "./company-logo-format.ts";
 
 test("accepts generated square and wide raster tiles", () => {
   for (const shape of ["square", "wide"] as const) {

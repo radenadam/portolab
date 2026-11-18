@@ -1,6 +1,9 @@
 import { expect } from "@playwright/test";
 import type { Locator } from "@playwright/test";
 import { tokenColor } from "./token-color.ts";
+import { companyLogoPixels } from "../app/features/market-data/company-logo-format.ts";
+import { companyLogoPaddingPixels } from "../app/features/market-data/company-logo-for-test.ts";
+import type { CompanyLogoShape } from "../app/features/market-data/company-logo-for-test.ts";
 
 // Peta gives the small, default, and large tiles their own corners.
 const tileRadii = new Map([
@@ -12,7 +15,7 @@ const tileRadii = new Map([
 /** Measuring the rendered ink catches an image that exists but shrinks inside its tile. */
 export async function expectCompanyLogo(
   image: Locator,
-  shape: "square" | "wide",
+  shape: CompanyLogoShape,
 ): Promise<void> {
   await expect
     .poll(() =>
@@ -150,7 +153,7 @@ export async function expectCompanyLogo(
       radius: box.radius,
     },
   );
-  const padding = shape === "wide" ? 3 / 96 : 8 / 96;
+  const padding = companyLogoPaddingPixels[shape] / companyLogoPixels;
   const reach = shape === "wide" ? ink.width : Math.max(ink.width, ink.height);
   expect(reach).toBeGreaterThanOrEqual(
     (box.width - box.border * 2) * (1 - 2 * padding) - 1,

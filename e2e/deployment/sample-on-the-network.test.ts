@@ -26,6 +26,7 @@ import { newDevice } from "../new-device.ts";
 import { languageNames } from "../../app/language-names.ts";
 import { expectAccessibleScreen } from "../expect-accessible-screen.ts";
 import { companyLogoForTest } from "../../app/features/market-data/company-logo-for-test.ts";
+import { companyLogoPath } from "../../app/features/market-data/company-logo-paths.ts";
 
 // The optional guide shares one service and site file, so each device finishes its whole lifecycle before another starts.
 test.describe.configure({ mode: "serial" });
@@ -246,11 +247,7 @@ for (const locale of locales) {
       },
     ]) {
       runSection(site.section);
-      const tile = await page.request.get(
-        `${site.address}/company-logos/BBCA.png`,
-      );
-      expect(tile.status()).toBe(200);
-      expect(await tile.body()).toEqual(companyLogoForTest("square"));
+      await expectPreparedTile(page, site.address);
       for (const role of ["lecturer", "student"] as const) {
         await exploreSampleAs(browser, locale, {
           site,
@@ -261,13 +258,16 @@ for (const locale of locales) {
       // The deployment workflow installs its local certificate authority in Chromium's trust store.
       const liveHealth = await page.goto(`https://${testDomain}/health`);
       expect(liveHealth?.ok()).toBe(true);
-      const liveTile = await page.request.get(
-        `https://${testDomain}/company-logos/BBCA.png`,
-      );
-      expect(liveTile.status()).toBe(200);
-      expect(await liveTile.body()).toEqual(companyLogoForTest("square"));
+      await expectPreparedTile(page, `https://${testDomain}`);
     }
   });
+}
+
+// The request context of Playwright runs in Node, which does not trust the local certificate authority of Caddy, so the browser opens the tile.
+async function expectPreparedTile(page: Page, origin: string): Promise<void> {
+  const tile = await page.goto(`${origin}${companyLogoPath("BBCA")}`);
+  expect(tile?.status()).toBe(200);
+  expect(await tile?.body()).toEqual(companyLogoForTest("square"));
 }
 
 async function exploreSampleAs(

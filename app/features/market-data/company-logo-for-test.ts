@@ -1,8 +1,17 @@
 import { crc32, deflateSync } from "node:zlib";
 import { companyLogoPixels } from "./company-logo-format.ts";
 
+/** A wide mark, such as a wordmark, and a square mark fill a tile in different ways, as the deployment guide explains. */
+export type CompanyLogoShape = "square" | "wide";
+
+/** The pixels of a prepared tile that the prototype leaves on each side of a mark, which the deployment guide asks of the owner and the browser tests check. A wide mark fills the width of the tile, so a wordmark reads at a small size, and a square mark keeps clear of the rounded corners. The server never measures a mark, so only tests use this. */
+export const companyLogoPaddingPixels: Readonly<
+  Record<CompanyLogoShape, number>
+> = { square: 8, wide: 3 };
+
 type ImageDataMode = "single" | "split" | "interrupted";
-type LogoShapeForTest = "square" | "wide";
+// A wordmark is far wider than the least ratio of a wide mark, so the generated wide mark is too.
+const wideMarkRows = 26;
 interface LogoEncodingForTest {
   palettesBefore?: readonly Buffer[];
   palettesAfter?: readonly Buffer[];
@@ -13,7 +22,7 @@ const privateChunkType = "loGo";
 
 /** Generated geometric ink exercises square symbols and wide marks without carrying a company's trademark. */
 export function companyLogoForTest(
-  shape: LogoShapeForTest,
+  shape: CompanyLogoShape,
   extraBytes = 0,
   encoding: LogoEncodingForTest = {},
 ): Buffer {
@@ -39,14 +48,18 @@ export function companyLogoForTest(
   ]);
 }
 
-function geometricPixels(shape: LogoShapeForTest, rowFilter: number): Buffer {
+function geometricPixels(shape: CompanyLogoShape, rowFilter: number): Buffer {
   const size = companyLogoPixels;
+  const inset = companyLogoPaddingPixels[shape];
+  const verticalInsets: Record<CompanyLogoShape, number> = {
+    square: inset,
+    wide: (size - wideMarkRows) / 2,
+  };
+  const verticalInset = verticalInsets[shape];
   const pixels = Buffer.alloc(size * (size * 4 + 1));
   for (let row = 0; row < size; row++) {
     pixels[row * (size * 4 + 1)] = rowFilter;
     for (let column = 0; column < size; column++) {
-      const inset = shape === "wide" ? 3 : 8;
-      const verticalInset = shape === "wide" ? 35 : inset;
       const ink =
         column >= inset &&
         column < size - inset &&
