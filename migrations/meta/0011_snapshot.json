@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "93d45358-e1a9-4787-9efb-15bd6d050800",
+  "id": "7e734aed-f147-4de9-82ab-bfc729920ebf",
   "prevId": "5a083be2-ac8d-44fd-990e-fbc23f698ab4",
   "tables": {
     "sessions": {
@@ -230,13 +230,6 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false
-        },
-        "nim": {
-          "name": "nim",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
           "autoincrement": false
         },
         "joined_at": {
@@ -873,6 +866,52 @@
           "value": "(\"portfolios\".\"membership_id\" IS NOT NULL) != (\"portfolios\".\"demonstration_class_id\" IS NOT NULL)"
         }
       }
+    },
+    "watchlist": {
+      "name": "watchlist",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "code": {
+          "name": "code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "added_at": {
+          "name": "added_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "watchlist_user_id_users_id_fk": {
+          "name": "watchlist_user_id_users_id_fk",
+          "tableFrom": "watchlist",
+          "tableTo": "users",
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "watchlist_user_id_code_pk": {
+          "columns": ["user_id", "code"],
+          "name": "watchlist_user_id_code_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {}
     }
   },
   "views": {},

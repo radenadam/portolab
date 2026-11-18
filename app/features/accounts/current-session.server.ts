@@ -63,7 +63,7 @@ export async function startSession(
   return sessionCookieHeader(request, createSession(database, userId, now));
 }
 
-/** The person who is signed in and finished setting up the account. A visitor who is not signed in goes to the sign-in page, and a person who still has to finish the account goes to that step, and each returns to this page afterwards. The url is the one that React Router gives a loader or an action, because the url of the request ends in .data when the browser runs the app. */
+/** The person who is signed in and finished setting up the account. A visitor who is not signed in goes to the sign-in page, and a person who still has to finish the account goes to that step, and each returns to this page afterwards. Use the page URL or a parsed return destination, because the request URL can end in `.data`. */
 export function requireUser(
   context: Readonly<RouterContextProvider>,
   url: URL,
@@ -148,5 +148,5 @@ export function signedInRole(
 }
 
 function currentPath(url: URL): string {
-  return `${url.pathname}${url.search}`;
+  return `${url.pathname}${url.search}${url.hash}`;
 }

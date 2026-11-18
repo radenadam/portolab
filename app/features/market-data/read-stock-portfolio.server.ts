@@ -16,6 +16,7 @@ export function readStockPortfolio(
     url: URL;
     classId: string;
     code: string;
+    watched: boolean;
     now: Date;
     delayMinutes: number;
   },
@@ -33,6 +34,8 @@ export function readStockPortfolio(
       portfolioKind: member.place.owner.kind,
       url: options.url,
       request: options.request,
+      code: options.code,
+      watched: options.watched,
     }),
     correlation: readStockCorrelation(database, options.code, report.valuation),
     totalValue: report.valuation.total?.value,

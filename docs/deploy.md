@@ -243,9 +243,9 @@ Each warning names its day and what it lacks. From the end of session II of the 
 
 ## Personal data
 
-The privacy notice at `https://portolab.example.com/privacy` tells each person what Portolab stores about them, how long it keeps each record, and that you keep the database. Portolab deletes each record by itself when the notice gives the record a time. It keeps every other record, which means the accounts, the classes, and the work of students and lecturers, until you delete it. The membership record also keeps `home_dismissed_at`, which is the cutoff of the newest Home summary that the student closed in that class. It is deleted with the membership. The daily backups keep a copy of each record until each backup is 14 days old.
+The privacy notice at `https://portolab.example.com/privacy` tells each person what Portolab stores about them, how long it keeps each record, and that you keep the database. Portolab deletes each record by itself when the notice gives the record a time. It keeps every other record, which means the accounts, the classes, the watchlists, and the work of students and lecturers, until you delete it. The membership record also keeps `home_dismissed_at`, which is the cutoff of the newest Home summary that the student closed in that class. It is deleted with the membership. A person can remove an entry of their own watchlist with its star. The daily backups keep a copy of each record until each backup is 14 days old.
 
-The law on personal data protection of Indonesia gives each person the right to see, correct, and delete their data, and to withdraw their agreement to the privacy notice. A person changes their own name and their NIM for each class in Portolab, and the notice sends every other request to you, so the next sections show how to answer each one.
+The law on personal data protection of Indonesia gives each person the right to see, correct, and delete their data, and to withdraw their agreement to the privacy notice. A person changes their own name, their NIM for each class, and their watchlist in Portolab, and the notice sends every other request to you, such as a copy of all their data or the deletion of their account, so the next sections show how to answer each one.
 
 ### See the data of a person
 
@@ -260,6 +260,7 @@ docker compose exec --no-TTY app sqlite3 "file:/app/data/portolab.sqlite?mode=rw
   "CREATE TEMP TABLE places AS SELECT id FROM memberships WHERE student_id IN person" \
   ".print users" "SELECT id, username, name, role, must_change_password, consented_at FROM users WHERE id IN person" \
   ".print sessions" "SELECT id, user_id, last_used_at FROM sessions WHERE user_id IN person" \
+  ".print watchlist" "SELECT * FROM watchlist WHERE user_id IN person" \
   ".print classes" "SELECT * FROM classes WHERE lecturer_id IN person OR id IN (SELECT class_id FROM memberships WHERE id IN places)" \
   ".print memberships" "SELECT * FROM memberships WHERE id IN places" \
   "CREATE TEMP TABLE owned_portfolios AS SELECT id FROM portfolios WHERE membership_id IN places OR demonstration_class_id IN (SELECT id FROM classes WHERE lecturer_id IN person)" \
@@ -285,11 +286,11 @@ rm ~/portolab-mahasiswa1.txt
 
 ### Correct the data of a person
 
-A person changes their name and their NIM for each class on the page of their account, at `https://portolab.example.com/account` with your domain, by the same rule as when they gave it. A person who cannot sign in first gets a temporary password, which a student gets from the lecturer of the class, and a lecturer from you with the action `reset-password` of [section 7](#7-create-the-first-lecturer-account). [Decision 0063](decisions/0063-a-student-gives-an-optional-nim-for-each-class.md) defines NIM correction. [Decision 0024](decisions/0024-a-person-changes-their-own-name-on-the-page-of-the-account.md) defines name correction.
+A person changes their name, and their NIM for each class, on the page of their account, at `https://portolab.example.com/account` with your domain, by the same rule as when they gave it, as decisions [0024](decisions/0024-a-person-changes-their-own-name-on-the-page-of-the-account.md) and [0064](decisions/0064-a-student-gives-an-optional-nim-for-each-class.md) explain. A person who cannot sign in first gets a temporary password, which a student gets from the lecturer of the class, and a lecturer from you with the action `reset-password` of [section 7](#7-create-the-first-lecturer-account).
 
 ### Delete the data of a person
 
-When a person asks for the deletion of their data, or withdraws their agreement, run these commands with their username in place of `mahasiswa1`. The deletion of a lecturer also deletes their classes and all simulated work in them, because a class cannot exist without its lecturer.
+When a person asks for the deletion of their data, or withdraws their agreement, run these commands with their username in place of `mahasiswa1`. Deleting an account also deletes its watchlist. The deletion of a lecturer also deletes their classes and all simulated work in them, because a class cannot exist without its lecturer.
 
 ```sh
 cd /opt/portolab

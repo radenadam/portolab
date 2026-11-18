@@ -136,7 +136,22 @@ const states: Record<
 };
 
 type Props = ComponentProps<typeof MarketView>;
+const watchTexts: Record<Locale, { header: string; title: string }> = {
+  id: { header: "Pantau", title: "Pantauan Anda" },
+  en: { header: "Watch", title: "Your watchlist" },
+};
 for (const locale of locales) {
+  test(`keeps actual header text in both market tables for assistive technology in ${languageNames[locale]}`, async () => {
+    switchLocaleForTest(locale);
+    const props = await marketViewPropsForTest();
+    const html = renderMarketForTest(props, { watchedCodes: ["BBCA"] });
+    expect(html).toContain(
+      `id="watchlist-heading">${watchTexts[locale].title}</h2>`,
+    );
+    expect(
+      html.split(`<th scope="col">${watchTexts[locale].header}</th>`),
+    ).toHaveLength(3);
+  });
   test(`replaces the empty-sector state with PWON when its LQ45 review begins in ${languageNames[locale]}`, async () => {
     switchLocaleForTest(locale);
     const context = await marketContextForTest();
