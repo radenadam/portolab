@@ -34,11 +34,13 @@ export function HomePortfolio({
   classId,
   reader,
   showTitle = reader.kind === "owner",
+  notice,
 }: {
   home: HomePortfolioData;
   classId: ClassId;
   reader: PortfolioReader;
   showTitle?: boolean;
+  notice?: ReactNode;
 }): ReactNode {
   const { report, now, delayMinutes } = home;
   const values = homeHoldings(report.valuation);
@@ -59,6 +61,7 @@ export function HomePortfolio({
   return (
     <div className={styles["home"]} data-reader={reader.kind}>
       {showTitle && <h1 className={styles["screenTitle"]}>{homeTitle()}</h1>}
+      {notice}
       <div className={styles["columns"]} data-layout="columns">
         <div className={styles["leftColumn"]}>
           <div className={styles["summary"]}>
