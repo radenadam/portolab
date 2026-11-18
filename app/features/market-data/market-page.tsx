@@ -12,13 +12,14 @@ import { readMarketMap } from "./read-market-map.server";
 import { requireUser } from "~/features/accounts/current-session.server";
 import { databaseContext } from "~/database/database.server";
 import { watchedCodes } from "~/features/watchlist/watchlist-store.server";
+import { marketMomentContext } from "./market-moment-context.server";
 
 export function meta(): Route.MetaDescriptors {
   return [{ title: pageTitle(m.market_data_page_title()) }];
 }
 
 export function loader({ context, params, url, request }: Route.LoaderArgs) {
-  const now = new Date();
+  const now = context.get(marketMomentContext) ?? new Date();
   const classId = requireReaderClass(context, url, params.classId);
   const reader = requireUser(context, url);
   const { filters, values, failures } = readMarketFilters(url.searchParams);
