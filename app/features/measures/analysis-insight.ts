@@ -3,6 +3,7 @@ import {
   formatPercent,
   formatSignedPercent,
   formatPercentagePoints,
+  isOnePercentagePoint,
 } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import type { MonthlyReturn } from "~/units/monthly-return";
@@ -24,7 +25,7 @@ export function analysisAlphaInsight(
     case "rise":
       return {
         text: countedText(
-          value === formatPercentagePoints(0.01) ? 1 : 2,
+          isOnePercentagePoint(value) ? 1 : 2,
           {
             one:
               studentName === undefined
@@ -42,7 +43,7 @@ export function analysisAlphaInsight(
     case "fall":
       return {
         text: countedText(
-          value === formatPercentagePoints(0.01) ? 1 : 2,
+          isOnePercentagePoint(value) ? 1 : 2,
           {
             one:
               studentName === undefined

@@ -114,6 +114,8 @@ Use it to show order costs, changing weights, and reading risk in class. Student
 
 {{label:classes_capm_session_title}} and {{label:classes_portfolio_risk_session_title}} have practice with portfolio data. In the weight practice, moving weights changes only the exercise calculation. It does not place an order. Lessons on other instruments, such as futures, mutual funds, options, and bonds, explain their concepts, but those instruments cannot yet be traded in the simulation.
 
+{{label:classes_portfolio_theory_session_title}} compares two stocks with weights and correlation you can change. Students can use pairs of their holdings in the chart. {{label:classes_trading_mechanism_session_title}} shows the schedule, ticks, price bands, and costs from the applicable rules. Its task opens a Limit ticket and returns to the lesson without placing an order. {{label:learning_price_guide_link}} in {{label:navigation_learn_link}} explains the code, price per share, daily change, quote time, and cost of one lot.
+
 {{label:classes_discussion_title}} in {{label:navigation_class_link}} uses class data and this week's session to pose questions. Start with those questions, then ask students to read calculations and decision reasons. Available data determines the figures you can discuss. Check the calendar date if this week's material differs from your teaching plan.
 
 ## attention | Follow up with students

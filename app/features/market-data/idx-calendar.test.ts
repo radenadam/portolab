@@ -12,10 +12,42 @@ import {
   pricesFinalAt,
   tradingDayAfter,
   tradingDayBefore,
+  tradingHoursOn,
 } from "./idx-calendar";
+import { successValueForTest } from "~/success-value-for-test";
+import { wibMoment } from "~/wib";
 
 // The answers below were worked out by hand from the calendars in idx-calendar.ts for a source with this delay.
 const delayMinutes = 10;
+
+test("supplies the lesson timeline from the same hours that fill orders", () => {
+  for (const date of ["2026-11-02", "2026-11-06"]) {
+    const hours = successValueForTest(
+      tradingHoursOn(date),
+      "Timeline calendar",
+    );
+    const sessions =
+      date === "2026-11-06" ? hours.friday : hours.mondayToThursday;
+    for (
+      let minute = hours.sessionStartMinute;
+      minute <= hours.sessionEndMinute;
+      minute++
+    ) {
+      expect(
+        successValueForTest(
+          isContinuousTradingTime(wibMoment(date, minute)),
+          "Continuous trading",
+        ),
+      ).toBe(
+        sessions.some(
+          (session) =>
+            minute >= session.startMinute && minute < session.endMinute,
+        ),
+      );
+    }
+  }
+  expect(tradingHoursOn("2028-01-03").ok).toBe(false);
+});
 
 for (const date of ["2026-10-30", "2026-11-02"]) {
   test(`separates the closing auction from the last price-update minute on ${date}`, () => {

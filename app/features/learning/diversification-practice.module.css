@@ -1,0 +1,15 @@
+.pair {
+  composes: row from "./lesson-pair-row.module.css";
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.pair[aria-pressed="true"] {
+  background: var(--color-data-soft);
+}
+
+.pair > :last-child {
+  color: var(--color-link);
+}

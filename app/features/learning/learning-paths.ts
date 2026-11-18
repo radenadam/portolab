@@ -7,6 +7,11 @@ export function learnPath(classId: ClassId): string {
   return `${classPath(classId)}/learn`;
 }
 
+export function priceGuidePath(classId: ClassId, returnTo?: string): string {
+  const path = `${learnPath(classId)}/prices`;
+  return returnTo === undefined ? path : pathWithQuery(path, { returnTo });
+}
+
 export function lessonPath(
   classId: ClassId,
   session: SessionNumber,

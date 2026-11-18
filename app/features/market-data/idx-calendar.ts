@@ -16,7 +16,7 @@ interface TradingCalendar extends DatePeriod {
 }
 
 /** The hours of the regular market of IDX on a trading day. */
-interface TradingHours {
+export interface TradingHours {
   /** The minute of the day when the pre-opening session starts. */
   sessionStartMinute: number;
   /** The minute of the day when the post-closing session ends. */
@@ -335,4 +335,10 @@ function calendarFor(date: string): Result<TradingCalendar, string> {
     );
   }
   return calendar;
+}
+
+/** The dated hours behind the learning timeline, including the weekday variants and auction boundaries. Holidays remain in isTradingDay. */
+export function tradingHoursOn(date: string): Result<TradingHours, string> {
+  const calendar = calendarFor(date);
+  return calendar.ok ? succeed(calendar.value.hours) : calendar;
 }

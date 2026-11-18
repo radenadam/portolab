@@ -1,6 +1,6 @@
 # 0058. Home outcomes have a measured route allowance
 
-- Status: Accepted
+- Status: Accepted. [Decision 0060](0060-learning-practices-have-measured-sheet-allowances.md) replaces its JavaScript ceiling for class home.
 - Date: 2026-11-17
 
 ## Context
