@@ -1,6 +1,6 @@
 # 0057. Theme choice has measured shared and route allowances
 
-- Status: Accepted
+- Status: Accepted. [Decision 0059](0059-the-owner-supplies-company-logos-outside-the-repository.md) replaces its Pasar JavaScript ceiling.
 - Date: 2026-11-17
 
 ## Context

@@ -56,7 +56,7 @@ Mahasiswa memiliki {{label:navigation_home_link}}, {{label:navigation_market_lin
 
 ## market | Memilih dan membaca saham
 
-{{label:navigation_market_link}} menampilkan saham LQ45, grafik IHSG, pencarian kode atau nama perusahaan, penyaring sektor, dan urutan daftar. Buka saham untuk melihat harga, waktu harganya, grafik penutupan, ukuran risiko dan imbal hasil, serta posisi yang sudah dimiliki. Ubin huruf menandai perusahaan. Portolab tidak menyarankan saham untuk dibeli.
+{{label:navigation_market_link}} menampilkan saham LQ45, grafik IHSG, pencarian kode atau nama perusahaan, penyaring sektor, dan urutan daftar. Buka saham untuk melihat harga, waktu harganya, grafik penutupan, ukuran risiko dan imbal hasil, serta posisi yang sudah dimiliki. Ubin menampilkan logo yang disediakan pengelola server atau huruf kode saham. Portolab tidak menyarankan saham untuk dibeli.
 
 Pembelian memerlukan keanggotaan LQ45 pada hari bursa order dan riwayat bulanan yang cukup untuk ukuran portofolio. Kepemilikan yang keluar dari LQ45 tetap dapat dijual. Bila pembelian belum tersedia, baca sebab dan langkah yang ditampilkan pada saham atau tiket. Jangan membuat akun baru untuk mengatasi riwayat harga yang belum cukup.
 

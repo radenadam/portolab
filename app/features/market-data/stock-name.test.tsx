@@ -6,6 +6,7 @@ import type { Locale } from "~/paraglide/runtime.js";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
 import type { Sector } from "./company-of";
 import { StockName } from "./stock-name";
+import { createMemoryRouter, RouterProvider } from "react-router";
 
 /** A stock of the universe, with the tile and the name of its company, and the name that IDX gives the sector of the company in each language. */
 interface StockOfSector {
@@ -86,23 +87,47 @@ const stocksOfSectors: Record<Sector, StockOfSector> = {
 function renderStock(
   code: string,
   withSector: boolean,
-  withCompanyName = true,
+  {
+    withCompanyName = true,
+    logos = [],
+  }: { withCompanyName?: boolean; logos?: readonly string[] } = {},
 ): string {
-  return renderToStaticMarkup(
-    <StockName
-      code={code}
-      withSector={withSector}
-      withCompanyName={withCompanyName}
-    />,
-  )
+  const router = createMemoryRouter(
+    [
+      {
+        id: "root",
+        path: "/",
+        element: (
+          <StockName
+            code={code}
+            withSector={withSector}
+            withCompanyName={withCompanyName}
+          />
+        ),
+      },
+    ],
+    { hydrationData: { loaderData: { root: { companyLogos: logos } } } },
+  );
+  return renderToStaticMarkup(<RouterProvider router={router} />)
     .replaceAll("&amp;", "&")
     .replaceAll(/ class="[^"]*"/g, "");
 }
 
 for (const locale of locales) {
+  test(`uses the supplied logo beside the same company name and code in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    const stock = renderStock("BBCA", false, { logos: ["BBCA"] });
+    expect(stock).toContain('<img src="/company-logos/BBCA.png" alt=""/>');
+    expect(stock).toContain(
+      "<span>BBCA</span><span>Bank Central Asia Tbk</span>",
+    );
+    expect(renderStock("BBRI", false, { logos: ["BBCA"] })).not.toContain(
+      "<img",
+    );
+  });
   test(`keeps the tile and code when a compact holding row omits the company name in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
-    expect(renderStock("BBCA", false, false)).toBe(
+    expect(renderStock("BBCA", false, { withCompanyName: false })).toBe(
       '<div><span aria-hidden="true">BB</span><div><span>BBCA</span></div></div>',
     );
   });
