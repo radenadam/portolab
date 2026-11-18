@@ -1,3 +1,4 @@
+import { isUnmodifiedClick } from "~/is-unmodified-click";
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { Outlet, useLocation } from "react-router";
@@ -27,15 +28,7 @@ export default function LearningOverlay(): ReactNode {
   }, [hasSheets]);
   useEffect(() => {
     function open(event: MouseEvent) {
-      if (
-        event.defaultPrevented ||
-        event.button !== 0 ||
-        event.metaKey ||
-        event.ctrlKey ||
-        event.shiftKey ||
-        event.altKey ||
-        !(event.target instanceof Element)
-      )
+      if (!isUnmodifiedClick(event) || !(event.target instanceof Element))
         return;
       const opener = event.target.closest<HTMLAnchorElement>(
         "a[data-learning-sheet]",

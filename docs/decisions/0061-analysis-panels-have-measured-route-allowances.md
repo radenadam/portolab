@@ -1,6 +1,6 @@
 # 0061. Analysis panels have measured route allowances
 
-- Status: Accepted. [Decision 0063](0063-a-personal-watchlist-has-measured-route-allowances.md) replaces its shared JavaScript ceiling and its JavaScript and CSS ceilings for Stock and Ticket.
+- Status: Accepted. [Decision 0063](0063-a-personal-watchlist-has-measured-route-allowances.md) replaces its shared JavaScript ceiling and its JavaScript and CSS ceilings for Stock and Ticket. [Decision 0065](0065-the-welcome-has-measured-shared-and-route-allowances.md) replaces its JavaScript ceiling for class home and its JavaScript and CSS ceilings for student analysis, demonstration analysis, and the lecturer's student analysis.
 - Date: 2026-11-18
 
 ## Context

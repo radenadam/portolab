@@ -4,7 +4,7 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
-  isInterfaceTest,
+  isInterfaceTestSource,
   literalIndexProblems,
   messageKeyProblems,
   messageKeys,
@@ -159,21 +159,27 @@ test("reads the locales from the inlang settings and rejects settings without th
   });
 });
 
-test("chooses the browser tests and the tests of the app, and no other file", () => {
+test("chooses the browser tests, the tests of the app, and the fixtures that they share, and no other file", () => {
   for (const path of [
     "e2e/market.test.ts",
     "app/features/market-data/market-view.test.tsx",
     "app/formatting.test.ts",
+    "app/features/trading/home-welcome-texts-for-test.ts",
+    "e2e/expected-text-for-test.ts",
+    "app/widget-for-test.tsx",
   ]) {
-    expect(isInterfaceTest(path), path).toBe(true);
+    expect(isInterfaceTestSource(path), path).toBe(true);
   }
   for (const path of [
     "e2e/languages.ts",
+    "app/features/trading/home-welcome-texts.ts",
+    "server/messages-for-test.ts",
+    "scripts/messages-for-test.ts",
     "app/features/market-data/market-view.tsx",
     "scripts/messages.test.ts",
     ".github/review/market.test.ts",
   ]) {
-    expect(isInterfaceTest(path), path).toBe(false);
+    expect(isInterfaceTestSource(path), path).toBe(false);
   }
 });
 

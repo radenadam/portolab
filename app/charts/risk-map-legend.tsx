@@ -7,6 +7,11 @@ import styles from "./risk-map.module.css";
 /** What a key of the legend of a map shows: a mark, or a piece of the line. */
 type MapKeyKind = MarkKind | "line" | "gain" | "loss";
 
+export interface RiskMapLegendItem {
+  kind: MapKeyKind;
+  name: ReactNode;
+}
+
 const keyClasses: Record<MapKeyKind, string | undefined> = {
   own: styles["ownKey"],
   before: styles["beforeKey"],
@@ -25,7 +30,7 @@ const keyClasses: Record<MapKeyKind, string | undefined> = {
 export function RiskMapLegend({
   items,
 }: {
-  items: readonly { kind: MapKeyKind; name: ReactNode }[];
+  items: readonly RiskMapLegendItem[];
 }): ReactNode {
   return (
     <ul className={legendStyles["legend"]} aria-hidden>

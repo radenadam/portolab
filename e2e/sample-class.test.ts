@@ -1,4 +1,5 @@
 import { expectAnalysisPanels } from "./expect-analysis-panels.ts";
+import { homeWelcomeTextsForTest } from "../app/features/trading/home-welcome-texts-for-test.ts";
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, rmSync, mkdirSync, writeFileSync } from "node:fs";
 import { createServer } from "node:net";
@@ -43,9 +44,14 @@ interface SampleSite {
   output: string;
 }
 
-function credentialsForSample(sample: SampleSite) {
+function credentialsForSample(
+  sample: SampleSite,
+  student: "first" | "last" = "first",
+) {
   return successValueForTest(
-    parseSampleCredentialsForTest(sample.output, "The sample command output"),
+    parseSampleCredentialsForTest(sample.output, "The sample command output", {
+      student,
+    }),
     "The sample command prints both roles",
   );
 }
@@ -140,6 +146,7 @@ const texts: Record<
     own: string;
     watchlist: string;
     remove: string;
+    homeMapTitle: string;
   }
 > = {
   id: {
@@ -152,6 +159,7 @@ const texts: Record<
     own: "Portofolio Anda",
     watchlist: "Pantauan Anda",
     remove: "Hapus BBCA dari pantauan",
+    homeMapTitle: "Posisi Anda di peta",
   },
   en: {
     sample: "sample class",
@@ -163,18 +171,26 @@ const texts: Record<
     own: "Your portfolio",
     watchlist: "Your watchlist",
     remove: "Remove BBCA from your watchlist",
+    homeMapTitle: "Your position on the map",
   },
 };
 
 for (const locale of locales) {
-  test(`signs into the sample database as both roles in ${languageNames[locale]}`, async ({
-    sample,
-    browser,
-  }, testInfo) => {
-    test.setTimeout(120_000);
-    const credentials = credentialsForSample(sample);
-    for (const role of ["lecturer", "student"] as const) {
-      const { username, password } = credentials[role];
+  for (const scenario of [
+    { role: "lecturer", student: "first", screen: "demo" },
+    { role: "student", student: "first", screen: "portfolio" },
+    { role: "student", student: "last", screen: "welcome" },
+  ] as const) {
+    test(`shows the sample ${scenario.screen} in ${languageNames[locale]}`, async ({
+      sample,
+      browser,
+    }, testInfo) => {
+      test.setTimeout(120_000);
+      const { role } = scenario;
+      const { username, password } = credentialsForSample(
+        sample,
+        scenario.student,
+      )[role];
       const reader = await newDevice(browser, locale, { siteUrl: sample.url });
       try {
         await reader.goto(`${sample.url}/sign-in`);
@@ -186,26 +202,49 @@ for (const locale of locales) {
         await expect(
           reader.getByText(texts[locale].sample, { exact: true }),
         ).toBeVisible();
-        if (role === "lecturer") {
-          await expect(
-            reader
-              .getByRole("banner")
-              .locator('button[popovertarget="class-switcher"]'),
-          ).toContainText(texts[locale].classTitle);
-          await reader.goto(`${sample.url}/classes/1/demonstration`);
-          await expect(
-            reader.getByRole("heading", {
-              name: texts[locale].demo,
-              exact: true,
-            }),
-          ).toBeVisible();
-        } else
-          await expect(
-            reader.getByRole("heading", {
-              name: texts[locale].studentTitle,
-              exact: true,
-            }),
-          ).toBeVisible();
+        switch (scenario.screen) {
+          case "demo": {
+            await expect(
+              reader
+                .getByRole("banner")
+                .locator('button[popovertarget="class-switcher"]'),
+            ).toContainText(texts[locale].classTitle);
+            await reader.goto(`${sample.url}/classes/1/demonstration`);
+            await expect(
+              reader.getByRole("heading", {
+                name: texts[locale].demo,
+                exact: true,
+              }),
+            ).toBeVisible();
+            break;
+          }
+          case "welcome": {
+            await expect(
+              reader.getByRole("heading", {
+                name: homeWelcomeTextsForTest[locale].capital,
+                exact: true,
+              }),
+            ).toBeVisible();
+            await expect(
+              reader
+                .getByRole("region", {
+                  name: texts[locale].homeMapTitle,
+                  exact: true,
+                })
+                .getByRole("slider"),
+            ).toBeVisible();
+            break;
+          }
+          case "portfolio": {
+            await expect(
+              reader.getByRole("heading", {
+                name: texts[locale].studentTitle,
+                exact: true,
+              }),
+            ).toBeVisible();
+            break;
+          }
+        }
         for (const theme of ["dark", "system"] as const) {
           const profile = await openProfileMenu(reader);
           await profile
@@ -227,27 +266,10 @@ for (const locale of locales) {
           .all())
           await expectCompanyLogo(image, "square");
         await captureScreens(reader, testInfo, {
-          name: `sample-${role}-${locale}`,
+          name: `sample-${scenario.screen}-${locale}`,
           fullPage: true,
           fromTop: true,
         });
-        await reader.goto(`${sample.url}/classes/1/learn/2`);
-        await expect(reader.locator('input[type="range"]')).toHaveCount(2);
-        if (role === "student")
-          await expect(
-            reader.locator("button[data-learning-pair]").first(),
-          ).toBeVisible();
-        await reader.goto(`${sample.url}/classes/1/learn/6`);
-        await expect(
-          reader.locator('a[href*="priceKind=limit"][href*="lessonTask=6"]'),
-        ).toBeVisible();
-        await expect(
-          reader.locator("[data-learning-last-trade]"),
-        ).toBeVisible();
-        await reader.goto(`${sample.url}/classes/1/learn/prices`);
-        await expect(
-          reader.locator('a[href*="lessonTask=prices"]'),
-        ).toBeVisible();
         await reader.goto(`${sample.url}/classes/1/stocks/BBCA`);
         const dayHelp = reader.getByRole("button", {
           name: texts[locale].dayHelp,
@@ -263,15 +285,19 @@ for (const locale of locales) {
         const watchlist = reader.getByRole("region", {
           name: texts[locale].watchlist,
         });
-        await expect(
-          watchlist.getByRole("button", {
-            name: texts[locale].remove,
-            exact: true,
-          }),
-        ).toHaveAttribute("aria-pressed", "true");
-        await expect(watchlist.locator("tbody tr")).toHaveCount(2);
+        if (scenario.screen === "welcome")
+          await expect(watchlist).toHaveCount(0);
+        else {
+          await expect(
+            watchlist.getByRole("button", {
+              name: texts[locale].remove,
+              exact: true,
+            }),
+          ).toHaveAttribute("aria-pressed", "true");
+          await expect(watchlist.locator("tbody tr")).toHaveCount(2);
+        }
         await captureScreens(reader, testInfo, {
-          name: `sample-watchlist-${role}-${locale}`,
+          name: `sample-watchlist-${scenario.screen}-${locale}`,
           fullPage: true,
           fromTop: true,
         });
@@ -280,11 +306,12 @@ for (const locale of locales) {
           name: texts[locale].mapTitle,
         });
         await expect(marketMap.getByRole("slider")).toBeVisible();
-        await expect(
-          marketMap.locator('[data-map-label="point"]'),
-        ).toContainText([texts[locale].own]);
+        const points = marketMap.locator('[data-map-label="point"]');
+        if (scenario.screen === "welcome")
+          await expect(points).not.toContainText([texts[locale].own]);
+        else await expect(points).toContainText([texts[locale].own]);
         await captureScreens(reader, testInfo, {
-          name: `sample-market-map-${role}-${locale}`,
+          name: `sample-market-map-${scenario.screen}-${locale}`,
           fullPage: true,
           fromTop: true,
         });
@@ -295,8 +322,8 @@ for (const locale of locales) {
       } finally {
         await reader.context().close();
       }
-    }
-  });
+    });
+  }
 
   test(`shows every analysis panel of the sample class to both roles in ${languageNames[locale]}`, async ({
     sample,

@@ -37,4 +37,6 @@ test("keeps the student's home dismissal state out of the lecturer's portfolio r
   if (response.kind !== "portfolio")
     throw new Error("The holding fixture has no portfolio view.");
   expect(response.home).not.toHaveProperty("sinceOrders");
+  expect(response.home).not.toHaveProperty("welcome");
+  expect(response.home).not.toHaveProperty("onboarding");
 });

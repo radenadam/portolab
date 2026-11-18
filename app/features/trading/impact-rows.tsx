@@ -1,3 +1,4 @@
+import { ImpactRow } from "./impact-row";
 import { beta } from "~/units/beta";
 import { matrixCell } from "~/matrix-cell";
 import { portfolioWeight } from "~/units/portfolio-weight";
@@ -130,53 +131,6 @@ function stockWeight(
   return (
     portfolio.holdings.find((holding) => holding.code === code)?.weight ??
     portfolioWeight(0)
-  );
-}
-
-function ImpactRow({
-  name,
-  label,
-  before,
-  after,
-  format,
-}: {
-  name: string;
-  label?: ReactNode;
-  before: number;
-  after: number;
-  format: (value: number) => string;
-}): ReactNode {
-  const first = format(before);
-  const second = format(after);
-  return (
-    <div className={styles["row"]}>
-      <span className={styles["rowLabel"]}>
-        {label ?? <span aria-hidden>{name}</span>}
-      </span>
-      <span className={styles["from"]} aria-hidden>
-        <NumberText whole>{first}</NumberText>
-      </span>
-      <span className={styles["arrow"]} aria-hidden>
-        →
-      </span>
-      <strong aria-hidden>
-        <NumberText whole>
-          {second}
-          {first !== second && (
-            <span className={styles["direction"]} aria-hidden>
-              {after > before ? "▲" : "▼"}
-            </span>
-          )}
-        </NumberText>
-      </strong>
-      <span className={styles["srOnly"]}>
-        {m.trading_impact_change_notice({
-          label: name,
-          before: first,
-          after: second,
-        })}
-      </span>
-    </div>
   );
 }
 

@@ -50,7 +50,7 @@ New students choose a username, name, and password, then agree to the privacy no
 
 Students have {{label:navigation_home_link}}, {{label:navigation_market_link}}, {{label:navigation_activity_link}}, {{label:navigation_analysis_link}}, and {{label:navigation_learn_link}}. They choose stocks, place orders with virtual cash, review results, and learn concepts from their own portfolios. Students cannot open classmates' detailed work. Their map shows classmates only as unnamed points.
 
-{{label:navigation_home_link}} shows portfolio value, daily change, return against the IHSG, risk, and holdings. Its map and time chart help discuss the portfolio's position and progress. The cash row distinguishes cash held from cash set aside for open orders. Direct new students to {{label:navigation_market_link}} to choose their first purchase.
+For a student with holdings or orders, {{label:navigation_home_link}} shows portfolio value, daily change, return against the IHSG, risk, and holdings. Its map and time chart help discuss the portfolio's position and progress. The cash row distinguishes cash held from cash set aside for open orders. Students with no holdings and no orders see a welcome card with the class's starting cash. It opens the Portolab introduction, the first stock search, and the price guide.
 
 ## market | Choose and read stocks
 

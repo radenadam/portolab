@@ -1,0 +1,35 @@
+.card {
+  composes: panel from "../../panel.module.css";
+  min-inline-size: 0;
+  gap: var(--space-2);
+  padding: var(--space-panel);
+  color: var(--color-ink);
+  text-decoration: none;
+  font-size: var(--text-learning-summary);
+}
+.card h2 {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--text-mark);
+}
+.card p {
+  color: var(--color-ink-secondary);
+}
+.badge {
+  align-self: start;
+  font-size: var(--text-small);
+  border-radius: var(--radius-item);
+  background: var(--color-data-soft);
+  color: var(--color-ink);
+  padding: calc(var(--space-1) / 2) var(--space-2);
+  font-weight: 600;
+}
+.foot {
+  margin-block-start: auto;
+  padding-block-start: var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-link);
+  font-weight: 600;
+}
