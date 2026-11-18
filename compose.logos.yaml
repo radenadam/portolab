@@ -1,4 +1,4 @@
-# The owner enables this override explicitly, as docs/deploy.md describes.
+# Logos are optional, so compose.yaml leaves them out and docs/deploy.md enables this file through .env.
 services:
   app: &logos
     environment:
@@ -8,7 +8,8 @@ services:
         source: ${COMPANY_LOGOS_PATH:?Set COMPANY_LOGOS_PATH to the folder outside the checkout}
         target: /app/company-logos
         read_only: true
+        # Through .env the backup includes this file too, so a missing folder must leave monograms instead of stopping the backup.
         bind:
-          create_host_path: false
+          create_host_path: true
   sample:
     <<: *logos

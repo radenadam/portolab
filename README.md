@@ -70,7 +70,7 @@ Portolab reads these environment variables when it starts, and it names every wr
 | `PORT`               | `3000`                 | The port the server listens on.                                                                                                                                                                                                                                |
 | `DATABASE_PATH`      | `data/portolab.sqlite` | The SQLite database file. Portolab creates it, and its folder, when they do not exist. `:memory:` keeps the database in memory until the server stops, which the check of the dev server uses. An empty value stops the server, because it would keep no data. |
 | `PRICE_SOURCE`       | `yahoo`                | Where prices come from. `yahoo` fetches delayed prices from Yahoo Finance. `fixture` returns recorded quotes and daily closes for tests, which `app/features/market-data/fixture-price-source.server.ts` describes.                                            |
-| `COMPANY_LOGOS_PATH` | `undefined`            | Optional folder of company tiles outside the repository. When unset, Portolab shows monograms. See [company logos](docs/deploy.md#optional-company-logos) for file preparation and container setup.                                                            |
+| `COMPANY_LOGOS_PATH` | none                   | Optional folder of company tiles outside the repository. When unset, Portolab shows monograms. See [company logos](docs/deploy.md#optional-company-logos) for file preparation and container setup.                                                            |
 
 ## Contributing
 

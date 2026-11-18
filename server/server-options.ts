@@ -104,10 +104,7 @@ export function parseCompanyLogosPath(
   value: unknown,
   source: string,
 ): Result<string | undefined, string> {
-  if (value === undefined) return succeed(undefined);
-  if (typeof value === "string" && value !== "" && !value.includes("\0"))
-    return succeed(value);
-  return fail(
-    `${source} must be the path of a folder, but it is ${describeValue(value)}.`,
-  );
+  return value === undefined
+    ? succeed(undefined)
+    : parseFilePath(value, source, "folder");
 }

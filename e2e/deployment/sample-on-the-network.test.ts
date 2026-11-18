@@ -1,11 +1,5 @@
 import { execFileSync } from "node:child_process";
-import {
-  chmodSync,
-  mkdtempSync,
-  readFileSync,
-  rmSync,
-  writeFileSync,
-} from "node:fs";
+import { chmodSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { isIP } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -37,7 +31,7 @@ import { companyLogoForTest } from "../../app/features/market-data/company-logo-
 test.describe.configure({ mode: "serial" });
 
 let folder: string;
-let composeFile: string;
+let composeFiles: { withLogos: string; withoutLogos: string };
 let output: string;
 let liveBefore: string;
 let companyLogosPath: string;
@@ -60,7 +54,10 @@ const sampleBlocks = successValueForTest(
 // Stored recordings and a fixed clock let the production seeder run after the fixture's semester, with the same fixture source as the live deployment test.
 const seedWithRecordings = `node --input-type=module --eval 'import { openDatabase, closeDatabase } from "./app/database/database.server.ts"; import { saveSampleHistoryForTest, sampleMomentForTest } from "./app/features/sample-class/sample-prices-for-test.server.ts"; import { parseDatabasePath } from "./server/server-options.ts"; import { sampleClass } from "./server/sample-class.ts"; const path = parseDatabasePath(process.env.DATABASE_PATH, "DATABASE_PATH"); if (!path.ok) throw new Error(path.failure); const database = openDatabase(path.value, "./migrations"); try { saveSampleHistoryForTest(database); } finally { closeDatabase(database); } await sampleClass(process.env, () => sampleMomentForTest);'`;
 
-function runSection(section: string): string {
+function runSection(
+  section: string,
+  composeFile = composeFiles.withLogos,
+): string {
   const block = sampleBlocks.find((candidate) => candidate.section === section);
   if (block === undefined)
     throw new Error(`The guide has no commands in "${section}".`);
@@ -88,14 +85,10 @@ function runSection(section: string): string {
 }
 
 function docker(...arguments_: string[]): string {
-  return execFileSync(
-    "sudo",
-    ["env", `COMPANY_LOGOS_PATH=${companyLogosPath}`, "docker", ...arguments_],
-    {
-      encoding: "utf8",
-      timeout: minuteMilliseconds,
-    },
-  ).trim();
+  return execFileSync("sudo", ["docker", ...arguments_], {
+    encoding: "utf8",
+    timeout: minuteMilliseconds,
+  }).trim();
 }
 
 function liveRecords(): string {
@@ -124,11 +117,22 @@ test.beforeAll(() => {
     prices,
     "services:\n  app: &prices\n    environment:\n      PRICE_SOURCE: fixture\n  sample:\n    <<: *prices\n",
   );
-  composeFile = `${serverFolder}/compose.yaml:${serverFolder}/compose.logos.yaml:${prices}`;
+  composeFiles = {
+    withLogos: `${serverFolder}/compose.yaml:${serverFolder}/compose.logos.yaml:${prices}`,
+    withoutLogos: `${serverFolder}/compose.yaml:${prices}`,
+  };
   liveBefore = liveRecords();
   runSection("Prepare company logo files");
   runSection("Start the sample");
   runSection("Start with company logos");
+  // A later command of the guide, such as an update in a new shell, sets neither variable, so Compose must read the override and the folder from .env.
+  expect(
+    execFileSync("sudo", ["docker", "compose", "config", "app"], {
+      cwd: serverFolder,
+      encoding: "utf8",
+      timeout: minuteMilliseconds,
+    }),
+  ).toContain(`source: ${companyLogosPath}`);
   output = runSection("Fill the sample");
 });
 
@@ -159,31 +163,38 @@ test.afterAll(() => {
     ).toBe("31\n1");
   } finally {
     try {
-      runSection("Remove the sample");
-      expect(
-        docker(
-          "volume",
-          "ls",
-          "--quiet",
-          "--filter",
-          "name=portolab_sample-data",
-        ),
-      ).toBe("");
-      expect(liveRecords()).toBe(liveBefore);
-      expect(
-        docker(
-          "compose",
-          "--project-directory",
-          serverFolder,
-          "ps",
-          "--status",
-          "running",
-          "--quiet",
-          "app",
-        ),
-      ).not.toBe("");
+      runSection("Stop company logos", composeFiles.withoutLogos);
     } finally {
-      rmSync(folder, { recursive: true, force: true });
+      try {
+        runSection("Remove the sample", composeFiles.withoutLogos);
+        expect(
+          docker(
+            "volume",
+            "ls",
+            "--quiet",
+            "--filter",
+            "name=portolab_sample-data",
+          ),
+        ).toBe("");
+        expect(liveRecords()).toBe(liveBefore);
+        expect(
+          docker(
+            "compose",
+            "--project-directory",
+            serverFolder,
+            "ps",
+            "--status",
+            "running",
+            "--quiet",
+            "app",
+          ),
+        ).not.toBe("");
+      } finally {
+        // The guide copies the tiles as root, so only root can remove them.
+        execFileSync("sudo", ["rm", "--recursive", "--", folder], {
+          timeout: minuteMilliseconds,
+        });
+      }
     }
   }
 });

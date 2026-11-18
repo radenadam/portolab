@@ -74,6 +74,11 @@ function CodeName({
   );
 }
 
+/** The codes of the logos that the server serves, which the root loader reads once for every tile of a page. */
+export interface CompanyLogoData {
+  companyLogos: readonly string[];
+}
+
 // The code stands beside the tile, so a screen reader skips this decorative image and its fallback.
 export function CompanyTile({
   code,
@@ -82,7 +87,7 @@ export function CompanyTile({
   code: string;
   small: boolean;
 }): ReactNode {
-  const data = useRouteLoaderData<{ companyLogos: readonly string[] }>("root");
+  const data = useRouteLoaderData<CompanyLogoData>("root");
   const [failedCode, setFailedCode] = useState<string>();
   const withLogo =
     data?.companyLogos.includes(code) === true && failedCode !== code;

@@ -502,6 +502,8 @@ Prepare one file per stock code, with an uppercase name such as `BBCA.png`. Expo
 
 Keep that folder outside `/opt/portolab`, for example at `/var/lib/portolab/company-logos`. The container user needs permission to traverse its parent folders and read the PNG files. These files are public images, so do not put private files in that folder. Portolab accepts regular files only, ignores other stock codes and formats, and logs a rejected or unreadable file while keeping its monogram. It reads the folder at startup, so restart each service after adding, replacing, or removing a tile.
 
+For a laptop started without Docker, set `COMPANY_LOGOS_PATH` to your external folder before `pnpm start` or `pnpm dev`. Relative paths resolve from the directory where you start the server. When the variable is unset, all tiles keep their monograms. A missing image uses its monogram before JavaScript loads, and a failed image request returns to it after hydration.
+
 ### Prepare company logo files
 
 As root, create the public folder and copy each prepared file into it. Replace `/root/logo-input/BBCA.png` with the path of your inspected tile, and keep its stock code as the destination name:
@@ -513,16 +515,24 @@ install --mode=644 /root/logo-input/BBCA.png /var/lib/portolab/company-logos/BBC
 
 ### Start with company logos
 
-The optional [Compose override](../compose.logos.yaml) mounts the folder read-only in the live and sample services. Set the host path in your shell, then include the override whenever you create or update those services. The folder must already exist. These optional commands are separate from the main deployment:
+The optional [Compose override](../compose.logos.yaml) mounts the folder read-only in the live and sample services. These commands write `.env` in `/opt/portolab`, which names the override and the folder, and then start both services with the logos. Compose reads `.env` for every command in `/opt/portolab`, so an update, a backup, a restore, and a reset of the sample keep the logos. Git ignores `.env`, so `git pull` keeps it:
 
 ```sh
 cd /opt/portolab
-export COMPANY_LOGOS_PATH=/var/lib/portolab/company-logos
-export COMPOSE_FILE=compose.yaml:compose.logos.yaml
+printf '%s\n' COMPOSE_FILE=compose.yaml:compose.logos.yaml COMPANY_LOGOS_PATH=/var/lib/portolab/company-logos > .env
 docker compose up --detach --build --wait app
 docker compose --profile sample up --detach --build --wait sample
 ```
 
-Run the second service command only when you use the sample service. Both services read the same public tiles and keep their own database volumes. To reload tiles without rebuilding, use `docker compose restart app` and, when running, `docker compose restart sample`. Reload open pages so they receive the new list of tiles. To stop supplying logos, recreate the services with the main Compose file alone.
+Run the last command only when you use the sample service. Both services read the same public tiles and keep their own database volumes. When the folder is missing, Docker creates it empty, so every tile keeps its monogram and no backup or update stops. To reload tiles without rebuilding, run `docker compose restart app` and, when the sample runs, `docker compose restart sample`. Then reload open pages so they receive the new list of tiles.
 
-For a laptop started without Docker, set `COMPANY_LOGOS_PATH` to your external folder before `pnpm start` or `pnpm dev`. Relative paths resolve from the directory where you start the server. When the variable is unset, all tiles keep their monograms. A missing image uses its monogram before JavaScript loads, and a failed image request returns to it after hydration.
+### Stop company logos
+
+These commands delete the `.env` that the commands of the previous section wrote, and then start both services again without the override, so every tile shows its monogram. Run the last command only when you use the sample service:
+
+```sh
+cd /opt/portolab
+rm .env
+docker compose up --detach --wait app
+docker compose --profile sample up --detach --wait sample
+```

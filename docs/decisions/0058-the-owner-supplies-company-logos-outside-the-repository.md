@@ -14,7 +14,7 @@ The existing tile variants reused control or default corners instead of all the 
 - The optional `COMPANY_LOGOS_PATH` names an external folder. Each tracked stock has at most one file, named with its uppercase code and `.png`. An unset folder leaves all monograms. The server loads a bounded snapshot at startup and logs rejected files. Only accepted codes enter the root loader's catalogue, so missing files need no image request and keep their monograms before JavaScript loads.
 - Tiles are prepared static PNGs with RGBA pixels. `app/features/market-data/company-logo-format.ts` owns their dimensions and byte limit. The parser validates chunks, checksums, and decompressed scanlines before serving bytes from memory. Other formats, symbolic links, untracked codes, and directory listings are not served. The app's own image endpoint uses revalidation and `nosniff`.
 - The owner crops and centers each mark before export, following [the deployment guide](../deploy.md#optional-company-logos). A wide mark fills the tile's width with the smaller padding of the approved prototype. Each variant has its own size and corner tokens from that prototype, on a white ground in both themes. The letters keep the text baseline beneath the image. A failed browser image request restores the monogram.
-- The optional Compose override mounts the external folder read-only in both the main and sample services. It preserves their separate database volumes. Neither the server nor the sample command downloads or writes logos. The sample's existing holdings and orders already exercise the shared tile.
+- The optional Compose override mounts the external folder read-only in both the main and sample services. It preserves their separate database volumes. The deployment guide names the override and the folder in `.env`, which Compose reads for every later command in the checkout, so an update, a backup, a restore, and a reset of the sample keep the logos. Docker creates a missing folder empty, so a missing folder leaves monograms instead of stopping a backup. Neither the server nor the sample command downloads or writes logos. The sample's existing holdings and orders already exercise the shared tile.
 - Public source addresses and the parts used by the prototype live in [the source list](../company-logo-sources.md). No real logo enters the repository, its tests, or its screenshots.
 - Route ceilings remain governed by [decision 0057](0057-theme-choice-has-measured-shared-and-route-allowances.md). The initial measurements below follow the complete dependency walk of decisions 0038 and 0042, with kB meaning 1,000 bytes. They use main at `21dce2a` before the market-map merge.
 
@@ -41,6 +41,7 @@ The combined build after that merge measures:
 - Accepting arbitrary image sizes would require code to resize them. The owner would still need to choose the part of each mark that reads at a small size.
 - Serving the owner's whole folder as static content would expose unrelated files and accept active formats such as SVG.
 - Reading each file on every image request would let visitors repeat disk work. A startup snapshot bounds that work and keeps the catalogue consistent with the served images.
+- Setting the variables in the shell that starts the services would drop the logos at the next update, which runs in a new shell.
 
 ## Consequences
 

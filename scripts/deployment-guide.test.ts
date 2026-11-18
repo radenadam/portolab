@@ -241,6 +241,7 @@ test("reads every block of the guide of the repository and finds each example in
     "Remove the sample",
     "Prepare company logo files",
     "Start with company logos",
+    "Stop company logos",
   ]);
   expect(sample.after[3]?.commands).toContain("sample.portolab.internal");
 });

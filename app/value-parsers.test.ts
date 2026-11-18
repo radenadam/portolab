@@ -20,7 +20,7 @@ test("accepts one of the choices and names them all when the value is another", 
   });
 });
 
-test("accepts a path and rejects a missing or empty one", () => {
+test("accepts a path and rejects a missing or empty one as the path of a file or a folder", () => {
   expect(parseFilePath("data/portolab.sqlite", "DATABASE_PATH")).toEqual({
     ok: true,
     value: "data/portolab.sqlite",
@@ -33,6 +33,10 @@ test("accepts a path and rejects a missing or empty one", () => {
   expect(parseFilePath("", "DATABASE_PATH")).toEqual({
     ok: false,
     failure: "DATABASE_PATH must be the path of a file, but it is empty.",
+  });
+  expect(parseFilePath(42, "COMPANY_LOGOS_PATH", "folder")).toEqual({
+    ok: false,
+    failure: "COMPANY_LOGOS_PATH must be the path of a folder, but it is 42.",
   });
 });
 
