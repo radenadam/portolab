@@ -6,6 +6,7 @@ import {
   parseDatabasePath,
   parsePort,
   parsePriceSource,
+  parseCompanyLogosPath,
 } from "./server-options.ts";
 
 test("reads the mode from the command line and uses production without it", () => {
@@ -112,13 +113,16 @@ test("uses the default database file without a path, and rejects an empty one", 
   });
 });
 
-/** Reads the table of environment variables in README.md, whose rows name a variable and its default, each in a code span. */
+/** Reads the table of environment variables in README.md, whose rows name a variable in a code span and its default in a code span, or "none" for a variable without a default. */
 function readmeDefaults(): Map<string, string> {
   const defaults = new Map<string, string>();
   for (const line of readFileSync("README.md", "utf8").split("\n")) {
     const [, name, defaultValue] = line.split("|").map((cell) => cell.trim());
-    if (name?.startsWith("`") && defaultValue?.startsWith("`")) {
-      defaults.set(name.slice(1, -1), defaultValue.slice(1, -1));
+    if (name?.startsWith("`") && defaultValue !== undefined) {
+      defaults.set(
+        name.slice(1, -1),
+        defaultValue.startsWith("`") ? defaultValue.slice(1, -1) : defaultValue,
+      );
     }
   }
   return defaults;
@@ -130,16 +134,31 @@ test("lists in README.md each environment variable with the default that its par
     ["PORT", parsePort(undefined, "PORT")],
     ["DATABASE_PATH", parseDatabasePath(undefined, "DATABASE_PATH")],
     ["PRICE_SOURCE", parsePriceSource(undefined, "PRICE_SOURCE")],
+    [
+      "COMPANY_LOGOS_PATH",
+      parseCompanyLogosPath(undefined, "COMPANY_LOGOS_PATH"),
+    ],
   ] as const) {
-    parsedDefaults.set(
-      name,
-      String(
-        successValueForTest<number | string, string>(
-          parsed,
-          `The default of ${name} is valid`,
-        ),
-      ),
+    const value = successValueForTest<number | string | undefined, string>(
+      parsed,
+      `The default of ${name} is valid`,
     );
+    parsedDefaults.set(name, value === undefined ? "none" : String(value));
   }
   expect(readmeDefaults()).toEqual(parsedDefaults);
+});
+
+test("keeps company logos optional and rejects an empty folder path", () => {
+  expect(parseCompanyLogosPath(undefined, "COMPANY_LOGOS_PATH")).toEqual({
+    ok: true,
+    value: undefined,
+  });
+  expect(
+    parseCompanyLogosPath("/srv/company-logos", "COMPANY_LOGOS_PATH"),
+  ).toEqual({ ok: true, value: "/srv/company-logos" });
+  expect(parseCompanyLogosPath("", "COMPANY_LOGOS_PATH")).toEqual({
+    ok: false,
+    failure:
+      "COMPANY_LOGOS_PATH must be the path of a folder, but it is empty.",
+  });
 });

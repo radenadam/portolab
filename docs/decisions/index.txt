@@ -56,3 +56,4 @@
 0056-the-market-map-has-measured-route-allowances.md
 0057-theme-choice-has-measured-shared-and-route-allowances.md
 0058-home-outcomes-have-a-measured-route-allowance.md
+0059-the-owner-supplies-company-logos-outside-the-repository.md

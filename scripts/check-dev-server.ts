@@ -61,6 +61,7 @@ const server = spawn(process.execPath, serverArguments, {
     ...process.env,
     PORT: String(ports.value.development),
     PRICE_SOURCE: "fixture",
+    COMPANY_LOGOS_PATH: undefined,
     // A database in memory starts empty and leaves no file behind.
     DATABASE_PATH: ":memory:",
   },
