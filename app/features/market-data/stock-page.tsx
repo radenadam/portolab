@@ -1,13 +1,10 @@
+import styles from "./stock-page.module.css";
+import { StockHeader } from "./stock-header";
 import { readLessonTask } from "~/features/learning/read-lesson-task.server";
 import { isLq45Stock } from "./is-lq45-stock";
-import { withLessonTask } from "~/features/learning/lesson-task";
 import { LessonTaskBanner } from "~/features/learning/lesson-task-banner";
-import { StockQuoteDetails } from "./stock-quote-details";
-import { QuoteNotice } from "~/features/market-data/quote-notice";
-import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { data, Link, useOutlet, useLocation } from "react-router";
-import { ChangeText } from "~/change-text";
 import { requireUser } from "~/features/accounts/current-session.server";
 import { databaseContext } from "~/database/database.server";
 import { requireReaderClass } from "~/features/classes/require-reader-class.server";
@@ -16,19 +13,12 @@ import { idxRulesOn } from "~/features/trading/idx-rules-on";
 import { parseStockCode } from "~/features/trading/order-form-fields";
 import { StockPosition } from "~/features/trading/stock-position";
 import { TicketDraftMemory } from "~/features/trading/ticket-draft-memory";
-import { hasStockPortfolioQuotes } from "./has-stock-portfolio-quotes";
 import { readStockPortfolio } from "./read-stock-portfolio.server";
 import { StockImpact } from "~/features/trading/stock-impact";
 import { readImpactSelection } from "~/features/trading/read-impact-selection.server";
 import { TradeImpactSelectionForm } from "~/features/trading/trade-impact-selection-form";
-import {
-  formatRupiah,
-  formatSignedPercent,
-  formatSignedRupiah,
-} from "~/formatting";
 import { pageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
-import { rupiah } from "~/units/rupiah";
 import { wibDateOf } from "~/wib";
 import type { Route } from "./+types/stock-page";
 import { listStockHistory } from "./history-store.server";
@@ -38,11 +28,7 @@ import {
   missingQuoteText,
   quoteFailureText,
 } from "./quote-failure-text";
-import { quoteChange } from "./quote-change";
-import { StockMetadata } from "./stock-metadata";
-import { StockName } from "./stock-name";
 import { stockPath } from "./stock-path";
-import styles from "./stock-page.module.css";
 import { StockHistoryChart } from "./stock-history-chart";
 import { StockStatistics } from "./stock-statistics";
 import { readStockDayRange } from "./read-stock-day-range.server";
@@ -50,6 +36,7 @@ import { readStockYearRange } from "./read-stock-year-range.server";
 import { stockPriceRange } from "./stock-price-range";
 import { parsePriceChartRange, priceChartStart } from "./price-chart-range";
 import { trackedStockCodes, universeOn } from "./tracked-instruments";
+import { watchedCodes } from "~/features/watchlist/watchlist-store.server";
 
 export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
   return [
@@ -84,11 +71,13 @@ export function loader({ context, params, request, url }: Route.LoaderArgs) {
   const chartStart = priceChartStart(wibDateOf(now), chartRange);
   const rules = idxRulesOn(wibDateOf(now));
   const universe = universeOn(wibDateOf(now));
+  const watched = watchedCodes(database, reader.id).includes(code);
   const portfolio = readStockPortfolio(context, {
     request,
     url,
     classId: params.classId,
     code,
+    watched,
     ...moment,
   });
   const selection = readImpactSelection(url);
@@ -98,6 +87,7 @@ export function loader({ context, params, request, url }: Route.LoaderArgs) {
       task: readLessonTask(url),
       draftKey: `${String(reader.id)}:${stockPath(classId, code)}`,
       code,
+      watched,
       quote,
       dayRangeText: readStockDayRange(
         code,
@@ -144,7 +134,7 @@ function StockPageContent({
 }: {
   stock: Route.ComponentProps["loaderData"];
 }): ReactNode {
-  const { classId, code, quote, holding } = stock;
+  const { classId, code, holding } = stock;
   const ticket = useOutlet();
   const location = useLocation();
   const visibleTask = ticket === null ? stock.task : undefined;
@@ -156,53 +146,10 @@ function StockPageContent({
       >
         <div className={styles["page"]}>
           <LessonTaskBanner classId={classId} task={visibleTask} />
-          <header className={styles["header"]}>
-            <div className={styles["identity"]}>
-              <Link
-                to={withLessonTask(stock.returnPath, stock.task)}
-                className={styles["back"]}
-                aria-label={stock.returnLabel}
-              >
-                ‹
-              </Link>
-              <StockName code={code} heading />
-            </div>
-            <p className={styles["muted"]}>
-              <StockMetadata
-                code={code}
-                held={holding !== undefined}
-                isLq45={stock.isLq45}
-              />
-            </p>
-            {quote?.kind === "stock" && (
-              <div className={styles["quote"]}>
-                <strong className={styles["price"]}>
-                  <NumberText>{formatRupiah(quote.price)}</NumberText>
-                </strong>
-                <span className={styles["change"]}>
-                  <ChangeText
-                    colored
-                    change={formatSignedRupiah(
-                      rupiah(quote.price - quote.previousClose),
-                    )}
-                  />
-                </span>
-                <span className={styles["change"]}>
-                  <ChangeText
-                    colored
-                    change={formatSignedPercent(quoteChange(quote))}
-                  />
-                </span>
-              </div>
-            )}
-            <StockQuoteDetails
-              quote={quote?.kind === "stock" ? quote : undefined}
-              portfolioQuotes={
-                hasStockPortfolioQuotes(stock) ? stock.portfolioQuotes : []
-              }
-            />
-            <QuoteNotice text={stock.quoteNotice} className={styles["muted"]} />
-          </header>
+          <StockHeader
+            stock={stock}
+            returnTo={`${location.pathname}${location.search}${location.hash}`}
+          />
           <section
             className={styles["panel"]}
             aria-label={m.market_data_price_chart_title({ code })}

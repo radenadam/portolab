@@ -93,6 +93,7 @@ const currentItems: Record<RouteId, NavigationItem | undefined> = {
   "features/learning/price-guide-page": "learn",
   "features/learning/glossary-page": "learn",
   "features/market-data/market-page": "market",
+  "features/watchlist/watchlist-page": undefined,
   "features/accounts/sign-in-page": "signIn",
   "features/accounts/sign-out-page": undefined,
   "features/accounts/account-page": undefined,

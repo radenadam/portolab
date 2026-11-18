@@ -138,6 +138,8 @@ const texts: Record<
     dayHelp: string;
     mapTitle: string;
     own: string;
+    watchlist: string;
+    remove: string;
   }
 > = {
   id: {
@@ -148,6 +150,8 @@ const texts: Record<
     demo: "Portofolio demonstrasi",
     mapTitle: "Peta saham LQ45",
     own: "Portofolio Anda",
+    watchlist: "Pantauan Anda",
+    remove: "Hapus BBCA dari pantauan",
   },
   en: {
     sample: "sample class",
@@ -157,6 +161,8 @@ const texts: Record<
     demo: "Demonstration portfolio",
     mapTitle: "LQ45 stock map",
     own: "Your portfolio",
+    watchlist: "Your watchlist",
+    remove: "Remove BBCA from your watchlist",
   },
 };
 
@@ -253,6 +259,22 @@ for (const locale of locales) {
           reader.getByRole("dialog").getByText(/BBCA/),
         ).toBeVisible();
         await reader.keyboard.press("Escape");
+        await reader.goto(`${sample.url}/classes/1/market`);
+        const watchlist = reader.getByRole("region", {
+          name: texts[locale].watchlist,
+        });
+        await expect(
+          watchlist.getByRole("button", {
+            name: texts[locale].remove,
+            exact: true,
+          }),
+        ).toHaveAttribute("aria-pressed", "true");
+        await expect(watchlist.locator("tbody tr")).toHaveCount(2);
+        await captureScreens(reader, testInfo, {
+          name: `sample-watchlist-${role}-${locale}`,
+          fullPage: true,
+          fromTop: true,
+        });
         await reader.goto(`${sample.url}/classes/1/market?view=map`);
         const marketMap = reader.getByRole("region", {
           name: texts[locale].mapTitle,

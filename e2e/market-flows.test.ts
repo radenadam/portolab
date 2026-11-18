@@ -39,6 +39,9 @@ const texts: Record<
     emptySector: string;
     emptySectorChoice: string;
     referenceMarks: string;
+    change: string;
+    beta: string;
+    volatility: string;
     price: string;
     month: string;
     range: string;
@@ -72,6 +75,9 @@ const texts: Record<
       "Sektor yang dipilih tidak memiliki saham dalam daftar LQ45 saat ini. Pilih sektor lain atau hapus filter untuk melihat semua saham.",
     emptySectorChoice: "Properti & Real Estat · 0",
     referenceMarks: "Garis tegak di tabel: IHSG.",
+    change: "Perubahan",
+    beta: "Beta",
+    volatility: "Volatilitas/bln",
     price: "Harga",
     month: "1B",
     range: "Rentang grafik IHSG",
@@ -103,6 +109,9 @@ const texts: Record<
       "The chosen sector has no stocks in the current LQ45 list. Choose another sector or clear filters to see all stocks.",
     emptySectorChoice: "Properties & Real Estate · 0",
     referenceMarks: "Vertical ticks in the table mark the IHSG.",
+    change: "Change",
+    beta: "Beta",
+    volatility: "Volatility/month",
     price: "Price",
     month: "1M",
     range: "IHSG chart range",
@@ -544,7 +553,7 @@ async function captureMarketScreens(
       expect(await layoutProblems(page)).toEqual([]);
       const market = screen === "market" || screen === "market-notes";
       if (market && testInfo.project.name === "desktop") {
-        await expectMarketScales(page);
+        await expectMarketScales(page, locale);
       }
       if (market) {
         await expectMarketHeaders(
@@ -566,18 +575,30 @@ async function expectMarketHeaders(
   await expect(
     table.getByRole("columnheader", { name: texts[locale].price, exact: true }),
   ).toHaveCount(1);
-  await expect(table.getByRole("columnheader")).toHaveCount(isPhone ? 4 : 7);
+  await expect(table.getByRole("columnheader")).toHaveCount(isPhone ? 5 : 8);
   await expect(
     page.getByText(texts[locale].referenceMarks, { exact: true }),
   ).toBeVisible({ visible: !isPhone });
 }
 
-async function expectMarketScales(page: Page): Promise<void> {
-  for (const column of [5, 6, 7]) {
-    const marks = await page
-      .locator(
-        `main section[aria-labelledby="stocks-heading"] tbody > tr > td:nth-child(${String(column)}) [data-market-reference]`,
-      )
+async function expectMarketScales(page: Page, locale: Locale): Promise<void> {
+  const table = page.locator('section[aria-labelledby="stocks-heading"]');
+  for (const [label, measure] of [
+    [texts[locale].change, false],
+    [texts[locale].beta, true],
+    [texts[locale].volatility, true],
+  ] as const) {
+    const column = await table
+      .getByRole("columnheader")
+      .filter({ hasText: label })
+      .evaluate((cell) => {
+        if (!(cell instanceof HTMLTableCellElement))
+          throw new Error("The market column has no table header cell.");
+        return cell.cellIndex + 1;
+      });
+    const cells = table.locator(`tbody > tr > td:nth-child(${String(column)})`);
+    const marks = await cells
+      .locator("[data-market-reference]")
       .evaluateAll((ticks) =>
         ticks.map((tick) => ({
           left: tick.getBoundingClientRect().left,
@@ -587,7 +608,7 @@ async function expectMarketScales(page: Page): Promise<void> {
     const first = marks[0];
     if (marks.length < 2 || first?.width === undefined) {
       throw new Error(
-        `Market column ${String(column)} needs two reference ticks to compare their scales.`,
+        `Market column "${label}" needs two reference ticks to compare its scales.`,
       );
     }
     expect(first.width).toBeGreaterThan(0);
@@ -595,11 +616,9 @@ async function expectMarketScales(page: Page): Promise<void> {
       expect(mark.left).toBeCloseTo(first.left, 3);
       expect(mark.width).toBeCloseTo(first.width, 3);
     }
-    if (column !== 5) {
-      const edges = await page
-        .locator(
-          `main section[aria-labelledby="stocks-heading"] tbody > tr > td:nth-child(${String(column)}) [data-market-value]`,
-        )
+    if (measure) {
+      const edges = await cells
+        .locator("[data-market-value]")
         .evaluateAll((values) =>
           values.map((value) => value.getBoundingClientRect().right),
         );

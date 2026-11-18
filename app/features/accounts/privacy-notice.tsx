@@ -23,6 +23,7 @@ export function PrivacyNotice(): ReactNode {
         <li>{m.accounts_privacy_password_body()}</li>
         <li>{m.accounts_privacy_classes_body()}</li>
         <li>{m.accounts_privacy_home_dismissal_body()}</li>
+        <li>{m.accounts_privacy_watchlist_body()}</li>
         <li>{m.accounts_privacy_consent_body()}</li>
         <li>
           <NumberText>

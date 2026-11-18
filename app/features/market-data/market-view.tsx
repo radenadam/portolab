@@ -1,9 +1,9 @@
+import { MarketLists } from "./market-lists";
 import { LessonTaskBanner } from "~/features/learning/lesson-task-banner";
 import { type LessonTask } from "~/features/learning/lesson-task";
 import { MarketNotes } from "./market-notes";
 import { MarketMeasureNotes } from "./market-measure-notes";
 import { sharedQuoteTime } from "./shared-quote-time";
-import { MarketEmpty } from "./market-empty";
 import { useMarketFilters } from "./use-market-filters";
 import type { ReactNode } from "react";
 import { MarketForm } from "./market-form";
@@ -11,16 +11,12 @@ import { OtherQuoteTimes } from "./other-quote-times";
 import { MarketMap } from "./market-map";
 import type { readMarketMap } from "./read-market-map.server";
 import type { ClassId } from "~/features/classes/classes.schema";
-import { countedText } from "~/counted-text";
-import { formatCalendarDate, formatNumber } from "~/formatting";
+import { formatCalendarDate } from "~/formatting";
 import { wibDateOf } from "~/wib";
 import { m } from "~/paraglide/messages.js";
 import { NumberText } from "~/number-text";
-import { MarketTable } from "./market-table";
 import type { MarketFilters } from "./market-filters";
 import { filterMarketRows } from "./filter-market-rows";
-import { marketSearch } from "./market-search";
-import { marketPath } from "./market-path";
 import { PriceStatus } from "./price-status";
 import type { readMarket } from "./read-market.server";
 import styles from "./market-view.module.css";
@@ -28,6 +24,7 @@ import styles from "./market-view.module.css";
 type Failures = Record<keyof MarketFilters, string | undefined>;
 type MarketViewProps = ReturnType<typeof readMarket> & {
   classId: ClassId;
+  watchedCodes: readonly string[];
   task?: LessonTask | undefined;
   filters: MarketFilters;
   failures: Failures;
@@ -80,40 +77,13 @@ export function MarketView(props: MarketViewProps): ReactNode {
         )}
       {props.universeAvailable &&
         (filters.view === "list" || shown.length === 0) && (
-          <section
-            className={styles["listPanel"]}
-            aria-labelledby="stocks-heading"
-            data-layout="panel"
-          >
-            <h2 id="stocks-heading">
-              <NumberText>
-                {countedText(
-                  shown.length,
-                  {
-                    one: m.market_data_one_stock_title,
-                    several: m.market_data_several_stocks_title,
-                  },
-                  { count: formatNumber(shown.length) },
-                )}
-              </NumberText>
-            </h2>
-            {shown.length === 0 ? (
-              <MarketEmpty classId={classId} filters={live} task={props.task} />
-            ) : (
-              <MarketTable
-                rows={shown}
-                classId={classId}
-                failed={failed}
-                indexQuote={props.indexQuote}
-                sort={live.sort}
-                returnPath={`${marketPath(classId)}${marketSearch(live, props.task)}`}
-                reference={props.marketReference}
-                index={props.index}
-                sharedTime={sharedTime}
-                task={props.task}
-              />
-            )}
-          </section>
+          <MarketLists
+            props={props}
+            rows={shown}
+            filters={live}
+            failed={failed}
+            sharedTime={sharedTime}
+          />
         )}
       {filters.view === "map" && (
         <OtherQuoteTimes

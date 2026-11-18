@@ -55,6 +55,7 @@ import {
   sampleDemonstrationRecipeIndex,
 } from "./sample-portfolio-recipes";
 import type { SampleStock } from "./read-sample-market.server";
+import { setWatched } from "~/features/watchlist/watchlist-store.server";
 
 function occupied(database: Database): boolean {
   return (
@@ -211,6 +212,11 @@ export async function seedSampleClass(
       createdAt,
     );
     for (const [index, person] of people.entries()) {
+      // The empty student shows a new student, who has starred no stock yet.
+      if (index < people.length - 1) {
+        for (const code of sampleCoreStocks.slice(0, 2))
+          setWatched(database, { userId: person.id, code, watched: true }, now);
+      }
       const plan = plans[index];
       if (plan === undefined)
         throw new Error("A sample person has no portfolio recipe.");

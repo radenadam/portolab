@@ -1,6 +1,6 @@
 # 0061. Analysis panels have measured route allowances
 
-- Status: Accepted
+- Status: Accepted. [Decision 0063](0063-a-personal-watchlist-has-measured-route-allowances.md) replaces its shared JavaScript ceiling and its JavaScript and CSS ceilings for Stock and Ticket.
 - Date: 2026-11-18
 
 ## Context
