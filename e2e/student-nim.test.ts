@@ -87,9 +87,20 @@ async function searchStudentNim(
   await expect(page.locator("main tbody tr")).toContainText(nim);
 }
 
+/** Saves a NIM on the page of the account of a student who joined one class, which has the only field of a NIM. */
+async function saveNim(
+  student: Page,
+  text: { save: string; saved: string },
+  nim: string,
+): Promise<void> {
+  await student.getByRole("textbox", { name: "NIM", exact: true }).fill(nim);
+  await student.getByRole("button", { name: text.save, exact: true }).click();
+  await expect(student.getByText(text.saved, { exact: true })).toBeVisible();
+}
+
 for (const locale of locales) {
   const text = texts[locale];
-  test(`corrects a NIM per class and shows it to the lecturer in ${languageNames[locale]}`, async ({
+  test(`shows the NIM to the lecturer in Mahasiswa, its panel, and the pages of the student in ${languageNames[locale]}`, async ({
     page,
     browser,
   }, testInfo) => {
@@ -97,6 +108,73 @@ for (const locale of locales) {
       locale,
       givePortfolio: storeGradingPortfolio,
     });
+    const nim = "W".repeat(nimMaximumLength);
+    try {
+      await student.goto("/account");
+      await saveNim(student, text, nim);
+    } finally {
+      await student.context().close();
+    }
+    await page.goto(`${classPath}/students`);
+    await searchStudentNim(page, text, nim);
+    const identifier = page.locator("main tbody tr small").first();
+    expect(
+      await identifier.evaluate((element) => {
+        const range = document.createRange();
+        range.selectNodeContents(element);
+        return (
+          range.getBoundingClientRect().width <=
+          element.getBoundingClientRect().width + 1
+        );
+      }),
+    ).toBe(true);
+    await expectAccessibleScreen(page);
+    await captureScreens(page, testInfo, {
+      name: "nim-students",
+      fullPage: true,
+      fromTop: true,
+    });
+    await selectFirstStudent(page);
+    await expect(page.getByRole("dialog")).toContainText(nim);
+    await expectAccessibleScreen(page);
+    await captureScreens(page, testInfo, {
+      name: "nim-panel",
+      fullPage: false,
+      fromTop: true,
+    });
+    await page
+      .getByRole("dialog")
+      .getByRole("link", { name: text.open, exact: true })
+      .click();
+    await expect(page.locator("main header").first()).toContainText(nim);
+    await captureScreens(page, testInfo, {
+      name: "nim-student-summary",
+      fullPage: true,
+      fromTop: true,
+    });
+    const tabs = page.getByRole("navigation", { name: text.sections });
+    for (const [label, name] of [
+      [text.analysis, "analysis"],
+      [text.journal, "journal"],
+    ] as const) {
+      const tab = tabs.getByRole("link", { name: label, exact: true });
+      await tab.click();
+      await expect(tab).toHaveAttribute("aria-current", "page");
+      await expect(page.locator("main header").first()).toContainText(nim);
+      await expectAccessibleScreen(page);
+      await captureScreens(page, testInfo, {
+        name: `nim-student-${name}`,
+        fullPage: true,
+        fromTop: true,
+      });
+    }
+  });
+
+  test(`corrects a NIM per class on the page of the account in ${languageNames[locale]}`, async ({
+    page,
+    browser,
+  }, testInfo) => {
+    const { student } = await studentWithPortfolio(page, browser, { locale });
     try {
       await student.goto("/account");
       await expect(
@@ -116,13 +194,7 @@ for (const locale of locales) {
         .click();
       await expect(student.getByText(text.far, { exact: true })).toBeVisible();
       const nim = "W".repeat(nimMaximumLength);
-      await field.fill(nim);
-      await student
-        .getByRole("button", { name: text.save, exact: true })
-        .click();
-      await expect(
-        student.getByText(text.saved, { exact: true }),
-      ).toBeVisible();
+      await saveNim(student, text, nim);
       await student.reload();
       await expect(field).toHaveValue(nim);
       await expectAccessibleScreen(student);
@@ -131,59 +203,6 @@ for (const locale of locales) {
         fullPage: true,
         fromTop: true,
       });
-      await page.goto(`${classPath}/students`);
-      await searchStudentNim(page, text, nim);
-      const identifier = page.locator("main tbody tr small").first();
-      expect(
-        await identifier.evaluate((element) => {
-          const range = document.createRange();
-          range.selectNodeContents(element);
-          return (
-            range.getBoundingClientRect().width <=
-            element.getBoundingClientRect().width + 1
-          );
-        }),
-      ).toBe(true);
-      await expectAccessibleScreen(page);
-      await captureScreens(page, testInfo, {
-        name: "nim-students",
-        fullPage: true,
-        fromTop: true,
-      });
-      await selectFirstStudent(page);
-      await expect(page.getByRole("dialog")).toContainText(nim);
-      await expectAccessibleScreen(page);
-      await captureScreens(page, testInfo, {
-        name: "nim-panel",
-        fullPage: false,
-        fromTop: true,
-      });
-      await page
-        .getByRole("dialog")
-        .getByRole("link", { name: text.open, exact: true })
-        .click();
-      await expect(page.locator("main header").first()).toContainText(nim);
-      await captureScreens(page, testInfo, {
-        name: "nim-student-summary",
-        fullPage: true,
-        fromTop: true,
-      });
-      const tabs = page.getByRole("navigation", { name: text.sections });
-      for (const [label, name] of [
-        [text.analysis, "analysis"],
-        [text.journal, "journal"],
-      ] as const) {
-        const tab = tabs.getByRole("link", { name: label, exact: true });
-        await tab.click();
-        await expect(tab).toHaveAttribute("aria-current", "page");
-        await expect(page.locator("main header").first()).toContainText(nim);
-        await expectAccessibleScreen(page);
-        await captureScreens(page, testInfo, {
-          name: `nim-student-${name}`,
-          fullPage: true,
-          fromTop: true,
-        });
-      }
       const other = await createTestClass(page, "Other NIM class");
       await student.goto(other.joinPath);
       await expect(field).toHaveValue("");
@@ -237,7 +256,6 @@ for (const locale of locales) {
       await student.context().close();
     }
   });
-
   test(`keeps a NIM from signup through correction before JavaScript in ${languageNames[locale]}`, async ({
     page,
     browser,
@@ -288,13 +306,7 @@ for (const locale of locales) {
       await visitor.goto("/account");
       const field = visitor.getByRole("textbox", { name: "NIM", exact: true });
       await expect(field).toHaveValue(nim);
-      await field.fill("00002-a");
-      await visitor
-        .getByRole("button", { name: text.save, exact: true })
-        .click();
-      await expect(
-        visitor.getByText(text.saved, { exact: true }),
-      ).toBeVisible();
+      await saveNim(visitor, text, "00002-a");
       await visitor.reload();
       await expect(field).toHaveValue("00002-a");
       await student.goto(other.joinPath);
