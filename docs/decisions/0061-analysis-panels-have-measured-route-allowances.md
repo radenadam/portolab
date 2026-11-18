@@ -1,6 +1,6 @@
 # 0061. Analysis panels have measured route allowances
 
-- Status: Accepted. [Decision 0063](0063-shared-parts-have-measured-allowances.md) replaces its shared JavaScript ceiling and its JavaScript ceilings for class home, the stock page, the ticket, student analysis, demonstration analysis, and the lecturer's student analysis.
+- Status: Accepted. [Decision 0063](0063-a-personal-watchlist-has-measured-route-allowances.md) replaces its shared JavaScript ceiling and its JavaScript and CSS ceilings for Stock and Ticket. [Decision 0064](0064-shared-parts-have-measured-allowances.md) replaces its JavaScript ceilings for class home, student analysis, demonstration analysis, and the lecturer's student analysis.
 - Date: 2026-11-18
 
 ## Context

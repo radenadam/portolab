@@ -33,7 +33,10 @@ import { sectorName } from "./sector-name";
 import { StockName } from "./stock-name";
 import { MarketScale } from "./market-scale";
 import { marketMeasureNotesId } from "./market-measure-notes";
+import { marketRowId } from "./market-row-id";
+import type { MarketRowPrefix } from "./market-row-id";
 import styles from "./market-view.module.css";
+import { StarButton } from "~/features/watchlist/star-button";
 
 /** The market rows share scales, so a change or a risk compares at a glance. */
 export function MarketTable({
@@ -47,6 +50,9 @@ export function MarketTable({
   index,
   sharedTime,
   task,
+  scaleRows,
+  watchedCodes,
+  rowPrefix,
 }: {
   rows: readonly MarketRow[];
   classId: ClassId;
@@ -58,6 +64,9 @@ export function MarketTable({
   index: string;
   sharedTime: Date | undefined;
   task?: LessonTask | undefined;
+  scaleRows: readonly MarketRow[];
+  watchedCodes: ReadonlySet<string>;
+  rowPrefix: MarketRowPrefix;
 }): ReactNode {
   const marketDeviation = reference.ok
     ? reference.value.standardDeviation
@@ -65,13 +74,13 @@ export function MarketTable({
   const marketBeta = reference.ok ? reference.value.beta.value : undefined;
   const indexChange =
     indexQuote === undefined ? undefined : displayedChange(indexQuote);
-  const changes = rows.flatMap((row) =>
+  const changes = scaleRows.flatMap((row) =>
     row.quote === undefined ? [] : [displayedChange(row.quote)],
   );
-  const betas = rows.flatMap((row) =>
+  const betas = scaleRows.flatMap((row) =>
     row.measures === undefined ? [] : [row.measures.beta],
   );
-  const deviations = rows.flatMap((row) =>
+  const deviations = scaleRows.flatMap((row) =>
     row.measures === undefined ? [] : [row.measures.standardDeviation],
   );
   const changeRange = paddedRange([0, indexChange ?? 0, ...changes], Number);
@@ -83,6 +92,7 @@ export function MarketTable({
   return (
     <table className={styles["table"]} data-layout="table">
       <colgroup>
+        <col className={styles["watchColumn"]} />
         <col className={styles["nameColumn"]} />
         <col className={styles["sectorColumn"]} />
         <col className={styles["sparkColumn"]} />
@@ -93,6 +103,7 @@ export function MarketTable({
       </colgroup>
       <TableHead
         className={styles["head"]}
+        hiddenLabels={[m.market_data_watch_label()]}
         help={{
           [m.market_data_beta_label()]: (
             <MarketMeasureHelp
@@ -110,6 +121,7 @@ export function MarketTable({
           ),
         }}
         labels={[
+          m.market_data_watch_label(),
           m.market_data_stock_label(),
           m.market_data_sector_label(),
           m.market_data_sparkline_label({
@@ -123,14 +135,22 @@ export function MarketTable({
       />
       <tbody>
         {rows.map((row) => (
-          <tr key={row.code} id={`stock-${row.code}`}>
+          <tr key={row.code} id={marketRowId(rowPrefix, row.code)}>
+            <td className={styles["watchCell"]}>
+              <StarButton
+                classId={classId}
+                code={row.code}
+                watched={watchedCodes.has(row.code)}
+                returnTo={`${returnPath}#${marketRowId("stock", row.code)}`}
+              />
+            </td>
             <th scope="row">
               <Link
                 className={styles["stockLink"]}
                 to={withLessonTask(
                   pathReturningTo(
                     stockPath(classId, row.code),
-                    `${returnPath}#stock-${row.code}`,
+                    `${returnPath}#${marketRowId(rowPrefix, row.code)}`,
                   ),
                   task,
                 )}

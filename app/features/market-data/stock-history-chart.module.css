@@ -4,5 +4,5 @@
 }
 
 .title {
-  composes: visually-hidden from global;
+  composes: text from "../../visually-hidden.module.css";
 }

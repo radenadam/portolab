@@ -52,6 +52,7 @@ import {
   sampleMomentForTest,
 } from "./sample-prices-for-test.server";
 import { isSampleClass } from "./is-sample-class.server";
+import { watchedCodes } from "~/features/watchlist/watchlist-store.server";
 import { seedSampleClass as seedSampleClassWithClock } from "./seed-sample-class.server";
 import { buildSamplePortfolio } from "./build-sample-portfolio";
 import { readSampleMarket } from "./read-sample-market.server";
@@ -292,6 +293,20 @@ test("sizes a current order when one recorded lot costs more than a small alloca
   );
 });
 
+test("stars two stocks for every sample person but the empty student", async () => {
+  const database = databaseForTest();
+  saveSampleHistoryForTest(database);
+  const result = await seedSampleClass(database, samplePriceSourceForTest, now);
+  if (!result.ok) throw new Error(result.failure);
+  const people = database.select().from(users).all();
+  expect(people).toHaveLength(31);
+  for (const person of people) {
+    expect(watchedCodes(database, person.id)).toEqual(
+      person.username === "contoh-30" ? [] : ["BBCA", "TLKM"],
+    );
+  }
+});
+
 test("seeds a separate class with credentials, every terminal order state, current open orders, measured portfolios, and a reason of its own for each order", async () => {
   const database = databaseForTest();
   saveSampleHistoryForTest(database);
@@ -486,6 +501,7 @@ test.each([
       .run();
     database.$client.pragma("foreign_keys = OFF");
     for (const name of [
+      "watchlist",
       "sessions",
       "holdings",
       "orders",

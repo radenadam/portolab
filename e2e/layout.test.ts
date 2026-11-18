@@ -46,6 +46,8 @@ interface RoutePage {
 
 // Each route of app/routes.ts, by its module, with the pages that the walk opens. The data of the walk has the widest content, so each page shows it at its widest.
 const routePages: Record<string, readonly RoutePage[]> = {
+  // Stars submit here, and GET shows the shared not-found page.
+  "features/watchlist/watchlist-page.tsx": [],
   // The layout has no address of its own, and every class page below renders it.
   "features/learning/learning-overlay.tsx": [],
   "features/learning/learn-page.tsx": [
@@ -264,6 +266,13 @@ async function walkedReaders(
     { ...bbcaHolding, cash: walkedCash },
     widestNameHoldings,
   );
+  await student.goto(`${classPath}/market`);
+  await student
+    .getByRole("button", { name: "Tambah BBCA ke pantauan", exact: true })
+    .click();
+  await expect(
+    student.getByRole("region", { name: "Pantauan Anda" }),
+  ).toBeVisible();
   await page.goto(classPath);
   const { joinPath } = await readTestClass(page);
   const resetAddress = await page

@@ -10,6 +10,7 @@ import { stockReturnDestination } from "./stock-return-destination.server";
 function readDestination(
   returnTo: string | undefined,
   portfolioKind: PortfolioKind,
+  watched = true,
 ) {
   const url = new URL("https://portolab.example/classes/7/stocks/BBCA");
   if (returnTo !== undefined) url.searchParams.set("returnTo", returnTo);
@@ -18,6 +19,8 @@ function readDestination(
     portfolioKind,
     url,
     request: new Request(url),
+    code: "BBCA",
+    watched,
   });
 }
 
@@ -33,6 +36,14 @@ const labels: Record<Locale, readonly string[]> = {
     "Back to student Journal and orders",
   ],
 };
+
+test("returns to the watched row while it exists and the full-list row after removal", () => {
+  const source = "/classes/7/market?q=BBCA#watched-stock-BBCA";
+  expect(readDestination(source, "membership").returnPath).toBe(source);
+  expect(readDestination(source, "membership", false).returnPath).toBe(
+    "/classes/7/market?q=BBCA#stock-BBCA",
+  );
+});
 
 for (const locale of locales) {
   test(`keeps each taught-student tab, query, and row for lecturers in ${languageNames[locale]}`, () => {

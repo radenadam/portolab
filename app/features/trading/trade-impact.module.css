@@ -2,7 +2,7 @@
   composes: panel from "../../panel.module.css";
 }
 .srOnly {
-  composes: visually-hidden from global;
+  composes: text from "../../visually-hidden.module.css";
 }
 .panel,
 .ticket {

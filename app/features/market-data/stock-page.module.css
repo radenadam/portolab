@@ -39,6 +39,9 @@
 .identity h1 {
   font-size: var(--text-stock);
 }
+.star {
+  margin-inline-start: auto;
+}
 
 .back {
   display: inline-flex;

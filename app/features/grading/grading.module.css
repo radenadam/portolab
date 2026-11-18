@@ -161,7 +161,7 @@
   text-align: right;
 }
 .rankHeading {
-  composes: visually-hidden from global;
+  composes: text from "../../visually-hidden.module.css";
 }
 .who {
   grid-column: 2;
