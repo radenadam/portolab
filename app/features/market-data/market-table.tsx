@@ -92,6 +92,7 @@ export function MarketTable({
         <col className={styles["measureColumn"]} />
       </colgroup>
       <TableHead
+        className={styles["head"]}
         help={{
           [m.market_data_beta_label()]: (
             <MarketMeasureHelp

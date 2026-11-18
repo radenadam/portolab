@@ -153,7 +153,7 @@ export function MarketMap({
           </p>
         )}
         <table className={styles["table"]}>
-          <thead>
+          <thead className={styles["head"]}>
             <tr>
               <th scope="col">{m.market_data_stock_label()}</th>
               <th scope="col">{riskLabel}</th>
