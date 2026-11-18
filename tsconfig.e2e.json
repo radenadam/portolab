@@ -86,7 +86,9 @@
     "app/features/trading/trading.schema.ts",
     "app/workbook/read-zip-for-test.server.ts",
     "app/features/trading/impact-selection-text-for-test.ts",
-    "app/features/trading/home-summary-time.ts"
+    "app/features/trading/home-summary-time.ts",
+    "app/features/trading/home-welcome-texts-for-test.ts",
+    "app/features/trading/onboarding.ts"
   ],
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.cache/tsconfig.e2e.tsbuildinfo",

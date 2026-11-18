@@ -1,4 +1,6 @@
+import { parseOnboardingStep } from "./parse-onboarding-step";
 import type { RouterContextProvider } from "react-router";
+import { readHomeWelcome } from "./read-home-welcome.server";
 import { courseSessions } from "~/features/classes/course-calendar";
 import { readHomeDismissedAt } from "~/features/classes/home-dismissal.server";
 import { readAnonymousClassmates } from "~/features/grading/read-anonymous-classmates.server";
@@ -46,8 +48,22 @@ export function readHomePortfolio(
     source,
     report,
   });
+  const welcome =
+    place.owner.kind === "membership"
+      ? readHomeWelcome(context.get(databaseContext), {
+          portfolio,
+          startingCash: place.owner.startingCash,
+          now: input.now,
+        })
+      : undefined;
+  const onboarding = parseOnboardingStep(
+    welcome === undefined ? null : input.url.searchParams.get("welcome"),
+    "welcome",
+  );
   return {
     ...home,
+    welcome,
+    onboarding: onboarding.ok ? onboarding.value : undefined,
     sinceOrders:
       place.owner.kind === "membership"
         ? homeSinceOrders(

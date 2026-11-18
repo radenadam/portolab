@@ -1,3 +1,4 @@
+import { firstNameOf } from "~/features/accounts/first-name-of";
 import { isClassMapPath } from "~/features/classes/class-path";
 import { latestPortfolioActivity } from "~/features/trading/latest-portfolio-activity";
 import type { RouterContextProvider } from "react-router";
@@ -73,7 +74,7 @@ export function readTaughtPortfolio(
       className: taughtClass.name,
       studentId: student.id,
       name: student.name,
-      shortName: student.name.split(/\s+/u).slice(0, 1).join(""),
+      shortName: firstNameOf(student.name),
       username: student.username,
       nim: student.nim,
       latestActivity: latestPortfolioActivity(portfolio),

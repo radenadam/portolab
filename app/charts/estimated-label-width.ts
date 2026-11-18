@@ -53,6 +53,7 @@ const measuredCharacterWidths = new Map<string, number>([
   ["y", 0.54],
   ["z", 0.52],
   [" ", 0.2],
+  ["\u00a0", 0.2],
   ["+", 0.55],
   ["-", 0.51],
   [".", 0.28],

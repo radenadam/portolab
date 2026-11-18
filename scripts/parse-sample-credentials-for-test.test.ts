@@ -33,3 +33,19 @@ test("rejects output without credentials for both roles", () => {
     });
   }
 });
+
+test("selects the last printed student for the empty welcome without assuming the account count", () => {
+  expect(
+    parseSampleCredentialsForTest(
+      "lecturer | example-lecturer | generated-one\nstudent | example-1 | generated-two\nstudent | example-2 | generated-two\n",
+      "The sample output",
+      { student: "last" },
+    ),
+  ).toEqual({
+    ok: true,
+    value: {
+      lecturer: { username: "example-lecturer", password: "generated-one" },
+      student: { username: "example-2", password: "generated-two" },
+    },
+  });
+});

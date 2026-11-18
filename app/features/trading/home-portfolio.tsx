@@ -3,14 +3,12 @@ import type { PortfolioReader } from "./text-for-reader";
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import { ChangeText } from "~/change-text";
-import { estimatedLabelWidth } from "~/charts/estimated-label-width";
+import { HomeAmount } from "./home-amount";
 import { homeTitle } from "./home-title";
 import type { ClassId } from "~/features/classes/classes.schema";
 import {
   formatList,
-  formatRupiah,
   formatCalendarDate,
-  formatRupiahParts,
   formatSignedPercent,
   formatSignedRupiah,
 } from "~/formatting";
@@ -99,23 +97,10 @@ export function HomePortfolio({
                   </NumberText>
                 </p>
               ) : (
-                <p
-                  className={styles["value"]}
-                  style={{
-                    fontSize: `min(var(--text-headline), calc(100cqi / ${String(estimatedLabelWidth(formatRupiah(report.valuation.total.value)))}))`,
-                  }}
-                >
-                  <NumberText whole>
-                    {formatRupiahParts(report.valuation.total.value).map(
-                      (part) =>
-                        part.type === "currency" ? (
-                          <small key={part.type}>{part.value}</small>
-                        ) : (
-                          part.value
-                        ),
-                    )}
-                  </NumberText>
-                </p>
+                <HomeAmount
+                  amount={report.valuation.total.value}
+                  smallCurrency
+                />
               )}
               {dayChange.ok && (
                 <div className={styles["today"]}>

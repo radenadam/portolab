@@ -1,4 +1,4 @@
-# 0064. A student gives an optional NIM for each class
+# 0066. A student gives an optional NIM for each class
 
 - Status: Accepted
 - Date: 2026-11-17
@@ -18,21 +18,21 @@ The second cut of [the rebuild](https://github.com/radenadam/portolab/issues/127
 
 ### Client measurements
 
-These measurements compare main at `7859fec` with this change merged with that main, on the same machine, using `pnpm build` and `pnpm size` and the complete dependency walk and gzip method of decisions [0038](0038-client-javascript-is-budgeted-by-route.md) and [0042](0042-client-css-is-budgeted-by-route.md). kB means 1,000 bytes. Both languages count.
+These measurements compare main at `1c57baa` with this change merged with that main, on the same machine, using `pnpm build` and `pnpm size` and the complete dependency walk and gzip method of decisions [0038](0038-client-javascript-is-budgeted-by-route.md) and [0042](0042-client-css-is-budgeted-by-route.md). kB means 1,000 bytes. Both languages count.
 
 | Dependency set              | Main, JavaScript/CSS kB | This change, JavaScript/CSS kB |
 | --------------------------- | ----------------------: | -----------------------------: |
-| Shared code                 |           142.78 / 7.90 |                  142.81 / 7.90 |
-| Account                     |           149.55 / 8.17 |                  150.59 / 8.17 |
-| Account setup               |           149.17 / 8.02 |                  149.33 / 8.02 |
-| Join a class                |           150.43 / 8.02 |                  151.25 / 8.02 |
-| Privacy                     |           146.58 / 8.02 |                  146.73 / 8.02 |
-| Class ranking               |          206.40 / 20.26 |                 206.44 / 20.26 |
-| Lecturer's student summary  |          225.13 / 23.65 |                 225.25 / 23.68 |
-| Lecturer's student analysis |          230.78 / 23.05 |                 230.89 / 23.08 |
-| Lecturer's student journal  |          212.33 / 21.21 |                 212.44 / 21.24 |
+| Shared code                 |           143.11 / 8.16 |                  143.13 / 8.16 |
+| Account                     |           149.87 / 8.43 |                  150.92 / 8.43 |
+| Account setup               |           149.49 / 8.27 |                  149.65 / 8.27 |
+| Join a class                |           150.75 / 8.27 |                  151.57 / 8.27 |
+| Privacy                     |           146.90 / 8.27 |                  147.05 / 8.27 |
+| Class ranking               |          206.84 / 20.52 |                 206.89 / 20.52 |
+| Lecturer's student summary  |          226.26 / 23.96 |                 226.37 / 23.99 |
+| Lecturer's student analysis |          231.20 / 23.31 |                 231.31 / 23.34 |
+| Lecturer's student journal  |          212.77 / 21.47 |                 212.88 / 21.50 |
 
-The field of the NIM loads only with joining and the account page. But the route manifest that every route shares names the new modules, so every other route grows by at most 0.03 kB of JavaScript. The line of the NIM on the pages of a student adds about 0.1 kB to each of them. Every route fits its ceiling, so this change adds no allowance. The lecturer's student analysis keeps 0.01 kB below its ceiling of [decision 0061](0061-analysis-panels-have-measured-route-allowances.md).
+The field of the NIM loads only with joining and the account page. But the route manifest that every route shares names the new modules, so every other route grows by at most 0.03 kB of JavaScript. The line of the NIM on the pages of a student adds about 0.1 kB of JavaScript and 0.03 kB of CSS to each of them. Every route fits its ceiling, so this change adds no allowance. The CSS of the lecturer's student summary keeps 0.01 kB below its ceiling of [decision 0065](0065-the-welcome-has-measured-shared-and-route-allowances.md).
 
 ## Alternatives
 

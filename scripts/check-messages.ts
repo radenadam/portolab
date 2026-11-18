@@ -4,7 +4,7 @@ import { exitWithFailure } from "../app/exit-with-failure.server.ts";
 import { readJsonFile } from "./json.ts";
 import { readFilesIn } from "./read-files-in.ts";
 import {
-  isInterfaceTest,
+  isInterfaceTestSource,
   literalIndexProblems,
   messageKeyProblems,
   messageKeys,
@@ -23,10 +23,10 @@ const featureFolders = readdirSync("app/features", { withFileTypes: true })
   .filter((entry) => entry.isDirectory())
   .map((entry) => entry.name);
 
-// Every text of the interface must appear in a test in each language, so the check reads the source of every test that can show one.
+// Shared fixtures keep assertions from repeating the same text, so their literals count alongside the interface tests.
 const testSources: string[] = [];
 for (const folder of ["app", "e2e"]) {
-  for (const test of readFilesIn(folder, isInterfaceTest)) {
+  for (const test of readFilesIn(folder, isInterfaceTestSource)) {
     testSources.push(test.text);
   }
 }

@@ -18,7 +18,7 @@ export function ConceptCard({
   meaning: string;
   example: ReactNode;
   calculation?: ReactNode;
-  lesson: ReactNode;
+  lesson?: ReactNode;
   id?: string;
 }): ReactNode {
   return (
@@ -36,7 +36,7 @@ export function ConceptCard({
           <div className={styles["calculation"]}>{calculation}</div>
         </details>
       )}
-      <p className={styles["lesson"]}>{lesson}</p>
+      {lesson !== undefined && <p className={styles["lesson"]}>{lesson}</p>}
     </ConceptHelp>
   );
 }

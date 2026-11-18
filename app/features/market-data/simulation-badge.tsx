@@ -2,7 +2,7 @@ import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import chipStyles from "~/chip.module.css";
 import { ConceptLesson } from "~/features/learning/concept-lesson";
-import { formatMinutes } from "~/formatting";
+import { SimulationLabel } from "./simulation-label";
 import { m } from "~/paraglide/messages.js";
 import { Popover, PopoverButton } from "~/popover";
 import type { SimulationBadgeData } from "./read-simulation-badge.server";
@@ -25,21 +25,10 @@ export function SimulationBadge({
       </span>
     );
   }
-  const delay = formatMinutes(badge.delayMinutes, "short");
   return (
     <>
       <PopoverButton popover={cardId} className={chip}>
-        <span className={styles["dot"]} />
-        <span className={styles["long"]}>
-          <NumberText>
-            {m.market_data_simulation_badge_label({ delay })}
-          </NumberText>
-        </span>
-        <span className={styles["short"]}>
-          <NumberText>
-            {m.market_data_short_simulation_badge_label({ delay })}
-          </NumberText>
-        </span>
+        <SimulationLabel delayMinutes={badge.delayMinutes} />
         <span aria-hidden="true">?</span>
       </PopoverButton>
       <Popover

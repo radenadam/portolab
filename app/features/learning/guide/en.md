@@ -52,7 +52,7 @@ Students may give a NIM for each class when joining and correct or clear it on t
 
 Students have {{label:navigation_home_link}}, {{label:navigation_market_link}}, {{label:navigation_activity_link}}, {{label:navigation_analysis_link}}, and {{label:navigation_learn_link}}. They choose stocks, place orders with virtual cash, review results, and learn concepts from their own portfolios. Students cannot open classmates' detailed work. Their map shows classmates only as unnamed points.
 
-{{label:navigation_home_link}} shows portfolio value, daily change, return against the IHSG, risk, and holdings. Its map and time chart help discuss the portfolio's position and progress. The cash row distinguishes cash held from cash set aside for open orders. Direct new students to {{label:navigation_market_link}} to choose their first purchase.
+{{label:navigation_home_link}} shows portfolio value, daily change, return against the IHSG, risk, and holdings. Its map and time chart help discuss the portfolio's position and progress. The cash row distinguishes cash held from cash set aside for open orders. A student who has no holdings, has no orders, and still has the class's starting cash sees a welcome card with that cash instead. It opens the Portolab introduction, the first stock search, and the price guide.
 
 ## market | Choose and read stocks
 

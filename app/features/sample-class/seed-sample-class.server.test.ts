@@ -1,3 +1,6 @@
+import { readHomeWelcome } from "~/features/trading/read-home-welcome.server";
+import type { ClassStudent } from "~/features/classes/class-store.server";
+import type { Rupiah } from "~/units/rupiah";
 import { readHomeDismissedAt } from "~/features/classes/home-dismissal.server";
 import { homeSinceOrders } from "~/features/trading/home-since-orders";
 import type { Database } from "~/database/database.server";
@@ -14,7 +17,6 @@ import {
   findTaughtClass,
   listStudents,
 } from "~/features/classes/class-store.server";
-import type { ClassStudent } from "~/features/classes/class-store.server";
 import { parseStudentNim } from "~/features/classes/student-nim";
 import { defaultStartingCash } from "~/features/classes/class-rules";
 import { readClassPortfolios } from "~/features/grading/read-class-portfolios.server";
@@ -26,8 +28,12 @@ import {
 import {
   readPortfolioById,
   readStoredPortfolio,
+  readPortfolio,
 } from "~/features/trading/portfolio-store.server";
-import { readPortfolioValuation } from "~/features/trading/read-portfolio-report.server";
+import {
+  readPortfolioReport,
+  readPortfolioValuation,
+} from "~/features/trading/read-portfolio-report.server";
 import { readPortfolioMeasures } from "~/features/measures/read-measures.server";
 import { placeOrder } from "~/features/trading/place-order";
 import {
@@ -386,7 +392,9 @@ test("seeds a separate class with credentials, every terminal order state, curre
   expect(
     new Set(ranked.ranked.map((student) => student.measures.beta)).size,
   ).toBeGreaterThan(15);
-  const students = listStudents(database, taught.id);
+  const students = listStudents(database, taught.id).toSorted(
+    (first, second) => first.id - second.id,
+  );
   expect(students).toHaveLength(30);
   expect(new Set(students.map((student) => student.nim))).toEqual(
     new Set(
@@ -426,6 +434,11 @@ test("seeds a separate class with credentials, every terminal order state, curre
   if (empty === undefined)
     throw new Error("The empty sample student is missing.");
   expect(readHomeDismissedAt(database, empty.membershipId)).toBeUndefined();
+  expectSampleWelcome(database, empty, {
+    createdAt: taught.createdAt,
+    startingCash: taught.startingCash,
+    now,
+  });
   expect(
     database
       .select()
@@ -456,6 +469,43 @@ function expectSampleHomeSummary(
   expect(new Set(since.map((order) => order.state.kind))).toEqual(
     new Set(["filled", "expired", "rejected"]),
   );
+}
+
+function expectSampleWelcome(
+  database: Database,
+  student: Pick<ClassStudent, "membershipId" | "joinedAt">,
+  {
+    createdAt,
+    startingCash,
+    now,
+  }: { createdAt: Date; startingCash: Rupiah; now: Date },
+): void {
+  expect(student.joinedAt).toEqual(createdAt);
+  const portfolio = readPortfolio(database, {
+    kind: "membership",
+    membershipId: student.membershipId,
+    startingCash: startingCash,
+  });
+  expect(portfolio.cash).toBe(startingCash);
+  expect(portfolio.holdings).toEqual([]);
+  expect(portfolio.orders).toEqual([]);
+  expect(
+    readHomeWelcome(database, {
+      portfolio,
+      startingCash: startingCash,
+      now,
+    }),
+  ).toBeDefined();
+  const report = readPortfolioReport(
+    database,
+    {
+      portfolio,
+      startingCash: startingCash,
+      joinedAt: student.joinedAt,
+    },
+    { now, delayMinutes: samplePriceSourceForTest.delayMinutes },
+  );
+  expect(report.market).toBeDefined();
 }
 
 test("replays each stored order through placement and fill checks at its stored daily close", async () => {
