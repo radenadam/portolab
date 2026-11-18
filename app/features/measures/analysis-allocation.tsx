@@ -25,7 +25,7 @@ export function AnalysisAllocation({
   const location = useLocation();
   const search = new URLSearchParams(location.search);
   const title = m.measures_analysis_allocation_title();
-  // Grouping is a presentation hint, so an old link must still open the analysis.
+  // The grouping only changes how the same weights read, so a link with an unknown value must not block the analysis.
   const selection = parseChoice(
     search.get("allocation") ?? defaultAllocationGroup,
     title,

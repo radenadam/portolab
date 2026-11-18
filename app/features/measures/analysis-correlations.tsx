@@ -17,6 +17,7 @@ import { AnalysisCalculation, analysisDataId } from "./analysis-calculation";
 import { CorrelationFormula, CovarianceFormula } from "./formulas";
 import type { PortfolioSummary } from "./measure-summaries";
 import { PairTable } from "./portfolio-tables";
+import { UnavailableMeasures } from "./unavailable-measures";
 import styles from "./analysis-extras.module.css";
 
 function correlationFill(value: Correlation): string {
@@ -47,11 +48,15 @@ export function AnalysisCorrelations({
   portfolio: PortfolioSummary | undefined;
 }): ReactNode {
   const title = m.measures_analysis_correlations_title();
-  const example =
-    portfolio?.pairs.find(({ first, second }) => first !== second) ??
-    portfolio?.pairs[0];
+  const example = portfolio?.pairs.find(
+    ({ first, second }) => first !== second,
+  );
   const onlyHolding =
     portfolio?.holdings.length === 1 ? portfolio.holdings[0] : undefined;
+  const oneHoldingNotice =
+    onlyHolding === undefined
+      ? undefined
+      : m.measures_one_analysis_holding_notice({ code: onlyHolding.code });
   const legendColors: CSSProperties & {
     "--correlation-negative": string;
     "--correlation-positive": string;
@@ -76,7 +81,11 @@ export function AnalysisCorrelations({
             })}
             example={
               example === undefined ? (
-                <UnavailableMeasures />
+                oneHoldingNotice === undefined ? (
+                  <UnavailableMeasures />
+                ) : (
+                  <p>{oneHoldingNotice}</p>
+                )
               ) : (
                 <>
                   <p>
@@ -117,12 +126,8 @@ export function AnalysisCorrelations({
       </div>
       {portfolio === undefined ? (
         <UnavailableMeasures />
-      ) : onlyHolding !== undefined ? (
-        <p className={styles["notice"]}>
-          {m.measures_one_analysis_holding_notice({
-            code: onlyHolding.code,
-          })}
-        </p>
+      ) : oneHoldingNotice !== undefined ? (
+        <p className={styles["notice"]}>{oneHoldingNotice}</p>
       ) : (
         <>
           <div className={styles["matrixViewport"]}>
@@ -257,13 +262,5 @@ export function AnalysisCorrelations({
         </>
       )}
     </section>
-  );
-}
-
-export function UnavailableMeasures(): ReactNode {
-  return (
-    <a className={styles["unavailable"]} href="#analysis-measures-title">
-      {m.measures_analysis_unavailable_link()}
-    </a>
   );
 }

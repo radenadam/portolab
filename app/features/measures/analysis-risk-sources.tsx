@@ -9,7 +9,7 @@ import { m } from "~/paraglide/messages.js";
 import { PopoverButton } from "~/popover";
 import { plotFraction } from "~/units/plot-fraction";
 import { AnalysisCalculation } from "./analysis-calculation";
-import { UnavailableMeasures } from "./analysis-correlations";
+import { UnavailableMeasures } from "./unavailable-measures";
 import {
   CovarianceWithPortfolioFormula,
   VarianceShareFormula,

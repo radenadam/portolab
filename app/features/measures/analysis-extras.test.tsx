@@ -5,6 +5,7 @@ import { languageNames } from "~/language-names";
 import { markupTextForTest } from "~/markup-text-for-test";
 import { locales } from "~/paraglide/runtime.js";
 import type { Locale } from "~/paraglide/runtime.js";
+import { renderInRouterForTest } from "~/render-in-router-for-test";
 import { renderMarkupForTest } from "~/render-markup-for-test";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
 import { stockQuote } from "~/features/market-data/stock-quote";
@@ -37,6 +38,7 @@ interface ExtrasText {
   allocationConcept: string;
   sector: string;
   stock: string;
+  financials: string;
   group: string;
   allocationMeaning: string;
   unpriced: string;
@@ -47,6 +49,7 @@ interface ExtrasText {
   pair: string;
   cell: string;
   one: string;
+  selfPair: string;
   unavailable: string;
   sources: string;
   oneSource: string;
@@ -84,6 +87,7 @@ const texts: Record<Locale, ExtrasText> = {
     overWholeRisk: "133,3%",
     sector: "Sektor",
     stock: "Saham",
+    financials: "Keuangan",
     group: "Kelompokkan alokasi",
     allocationMeaning:
       "Bobot membagi nilai aset atau sektor dengan nilai seluruh portofolio, termasuk kas.",
@@ -95,6 +99,7 @@ const texts: Record<Locale, ExtrasText> = {
     pair: "Korelasi BBCA dan TLKM",
     cell: "BBCA dan TLKM: korelasi 0,50. Lihat perhitungan.",
     one: "Portofolio ini hanya memegang AMMN. Korelasi antarsaham memerlukan saham kedua.",
+    selfPair: "Korelasi AMMN dan AMMN",
     unavailable: "Mengapa ukuran belum tersedia?",
     sources: "Sumber risiko portofolio",
     oneSource: "Sumber risiko portofolio",
@@ -139,6 +144,7 @@ const texts: Record<Locale, ExtrasText> = {
     overWholeRisk: "133.3%",
     sector: "Sector",
     stock: "Stock",
+    financials: "Financials",
     group: "Group allocation",
     allocationMeaning:
       "Weight divides an asset or sector value by the whole portfolio value, including cash.",
@@ -150,6 +156,7 @@ const texts: Record<Locale, ExtrasText> = {
     pair: "Correlation of BBCA and TLKM",
     cell: "BBCA and TLKM: correlation 0.50. View calculation.",
     one: "This portfolio holds only AMMN. Correlations between stocks need a second stock.",
+    selfPair: "Correlation of AMMN and AMMN",
     unavailable: "Why are measures unavailable?",
     sources: "Sources of portfolio risk",
     oneSource: "Source of portfolio risk",
@@ -339,16 +346,21 @@ for (const locale of locales) {
         conceptLessonDataForTest(),
       ),
     ).toContain(text.oneSource);
+    const oneMarkup = renderMarkupForTest(
+      <AnalysisCorrelations portfolio={one} />,
+      conceptLessonDataForTest(),
+    );
+    expect(oneMarkup.split(markupTextForTest(text.one))).toHaveLength(3);
+    expect(oneMarkup).not.toContain(text.selfPair);
     const html = renderMarkupForTest(
       <>
-        <AnalysisCorrelations portfolio={one} />
         <AnalysisCorrelations portfolio={undefined} />
         <AnalysisRiskSources portfolio={undefined} holdingCount={1} />
         <AnalysisAllocation valuation={valuationForTest([])} />
       </>,
       conceptLessonDataForTest(),
     );
-    for (const expected of [text.one, text.unavailable, text.unpriced])
+    for (const expected of [text.unavailable, text.unpriced])
       expect(html).toContain(markupTextForTest(expected));
     const valuation = aadiValuationForTest();
     const report = readPortfolioMeasures(
@@ -365,6 +377,26 @@ for (const locale of locales) {
     );
     expect(cashMarkup).toContain(text.wholeCash);
     expect(cashMarkup).toContain(markupTextForTest(text.allocationMeaning));
+  });
+  test(`groups by sector when the address holds an unknown grouping in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    const valuation = valuationForTest(["BBCA", "TLKM"]);
+    const markupAt = (path: string) =>
+      renderInRouterForTest(
+        <AnalysisAllocation valuation={valuation} />,
+        conceptLessonDataForTest(),
+        path,
+      );
+    const current = (label: string) =>
+      new RegExp(`aria-current="true"[^>]*><span>${label}</span>`);
+    const stocks = markupAt("/analysis?allocation=stock");
+    expect(stocks).toMatch(current(text.stock));
+    expect(stocks).not.toContain(`<span>${text.financials}</span>`);
+    for (const path of ["/analysis?allocation=sectors", "/analysis"]) {
+      const sectors = markupAt(path);
+      expect(sectors).toMatch(current(text.sector));
+      expect(sectors).toContain(`<span>${text.financials}</span>`);
+    }
   });
   test(`explains undefined weights after fully invested holdings are deleted in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
