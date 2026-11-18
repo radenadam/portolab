@@ -17,7 +17,7 @@ import {
   formatPercent,
   formatSignedPercent,
 } from "~/formatting";
-import { initialsOf } from "~/initials-of";
+import { Avatar } from "~/avatar";
 import { wibDateOf } from "~/wib";
 import { m } from "~/paraglide/messages.js";
 import {
@@ -106,9 +106,11 @@ export function StudentStandings({
                     options.studentId === student.studentId ? "true" : undefined
                   }
                 >
-                  <span className={styles["avatar"]} aria-hidden="true">
-                    {initialsOf(student.name)}
-                  </span>
+                  <Avatar
+                    name={student.name}
+                    look="plain"
+                    className={styles["avatar"]}
+                  />
                   <span className={styles["studentName"]}>
                     <NumberText verbatim>{student.name}</NumberText>
                     <small>

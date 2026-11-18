@@ -176,12 +176,9 @@
   font-weight: 600;
   text-decoration: none;
 }
+/* An avatar shows beside the latest reason and in the rows of a ranking on a wide screen, where the references draw it. */
 .avatar {
-  composes: avatar from "../../avatar.module.css";
   display: none;
-  flex: none;
-  align-items: center;
-  justify-content: center;
 }
 .studentName {
   display: block;
@@ -383,10 +380,6 @@
     grid-row: 1;
   }
 }
-.panelAvatar {
-  composes: own from "../../avatar.module.css";
-  flex: none;
-}
 .close {
   display: inline-flex;
   align-items: center;
@@ -450,7 +443,7 @@
   gap: var(--space-3);
 }
 .latestReason .avatar {
-  display: flex;
+  display: grid;
 }
 .latestReason h2 {
   margin: 0;
@@ -501,7 +494,7 @@
     grid-row: auto;
   }
   .table .avatar {
-    display: flex;
+    display: grid;
   }
   .table .riskCell {
     display: block;

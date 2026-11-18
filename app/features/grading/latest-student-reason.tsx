@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { lotCount } from "~/features/trading/count-parts";
 import type { OrderSide } from "~/features/trading/order";
 import { formatMarketTime } from "~/formatting";
-import { initialsOf } from "~/initials-of";
+import { Avatar } from "~/avatar";
 import { m } from "~/paraglide/messages.js";
 import type { StudentPanelData } from "./student-panel-data.server";
 import styles from "./grading.module.css";
@@ -17,9 +17,7 @@ export function LatestStudentReason({
 }): ReactNode {
   return (
     <section className={styles["latestReason"]}>
-      <span className={styles["avatar"]} aria-hidden="true">
-        {initialsOf(name)}
-      </span>
+      <Avatar name={name} look="plain" className={styles["avatar"]} />
       <div>
         <h2>
           {m.grading_latest_reason_title()}

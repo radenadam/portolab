@@ -20,7 +20,7 @@ import {
   formatRupiah,
   formatSignedPercent,
 } from "~/formatting";
-import { initialsOf } from "~/initials-of";
+import { Avatar } from "~/avatar";
 import { m } from "~/paraglide/messages.js";
 import { portfolioWeightOf } from "~/features/trading/portfolio-weight-of";
 import { studentPortfolioPath, studentJournalPath } from "./grading-paths";
@@ -105,9 +105,11 @@ export function StudentPanel({
     >
       <div className={styles["panelContents"]}>
         <div className={styles["panelHeader"]}>
-          <span className={styles["panelAvatar"]} aria-hidden="true">
-            {initialsOf(student.name)}
-          </span>
+          <Avatar
+            name={student.name}
+            look="own"
+            className={styles["panelAvatar"]}
+          />
           <div>
             <h2 id={selectedStudentHeadingId}>
               <NumberText verbatim>{student.name}</NumberText>

@@ -38,7 +38,7 @@ for (const locale of locales) {
       );
       expect(html).toContain(markupTextForTest(headings[locale][side]));
       expect(html).toMatch(/<q[^>]*>.*Catatan mahasiswa.*<\/q>/u);
-      expect(html).toContain(">SW<");
+      expect(html).toContain(`data-initials="SW" aria-hidden="true"`);
     }
   });
 }
