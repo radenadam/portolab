@@ -21,11 +21,11 @@ The production rules differ from the prototype's mock bands. A portfolio can als
 | Dependency set              | JavaScript ceiling, kB gzip | CSS ceiling, kB gzip |
 | --------------------------- | --------------------------: | -------------------: |
 | Shared code                 |                       142.6 |                   20 |
-| Class home                  |                       229.8 |                 24.6 |
+| Class home                  |                       234.9 |                 25.2 |
 | Market                      |                       219.5 |                 22.3 |
-| Activity                    |                       210.2 |                   20 |
+| Activity                    |                       210.8 |                   20 |
 | Demonstration summary       |                       223.8 |                   24 |
-| Demonstration Activity      |                         211 |                 20.4 |
+| Demonstration Activity      |                       211.6 |                 20.4 |
 | Demonstration analysis      |                       225.8 |                 21.6 |
 | Student analysis            |                       224.9 |                 20.9 |
 | Stock                       |                       229.2 |                 22.5 |
@@ -33,34 +33,34 @@ The production rules differ from the prototype's mock bands. A portfolio can als
 | Class ranking               |                       205.9 |                   20 |
 | Lecturer's student summary  |                       224.6 |                   24 |
 | Lecturer's student analysis |                       226.3 |                 21.9 |
-| Lecturer's student journal  |                       211.3 |                 20.8 |
+| Lecturer's student journal  |                       211.9 |                 20.8 |
 
 ## Measurements
 
-The asset comparison builds main at `a63a054` from a clean archive and this change, merged with main at `1d4600b`, on the same machine, using `pnpm build` and `pnpm size`. Both use the compression and complete dependency walk of decisions 0038 and 0042. kB means 1,000 bytes. Both languages participate.
+The asset comparison builds main at `a51f11c` from a clean archive and this change, merged with that main, on the same machine, using `pnpm build` and `pnpm size`. Both use the compression and complete dependency walk of decisions 0038 and 0042. kB means 1,000 bytes. Both languages participate.
 
 | Dependency set              | Main JavaScript | This change JavaScript | Main CSS | This change CSS |
 | --------------------------- | --------------: | ---------------------: | -------: | --------------: |
-| Shared code                 |          141.86 |                 142.39 |     7.76 |            7.80 |
-| Lesson                      |          175.27 |                 196.71 |    15.26 |           17.06 |
-| Price guide                 |                 |                 196.71 |          |           17.06 |
-| Class home                  |          211.02 |                 229.48 |    22.95 |           24.28 |
-| Market                      |          200.04 |                 219.16 |    20.63 |           21.95 |
-| Activity                    |          195.44 |                 209.84 |    18.10 |           19.42 |
-| Demonstration summary       |          205.16 |                 223.44 |    21.31 |           22.63 |
-| Demonstration Activity      |          196.31 |                 210.71 |    18.74 |           20.06 |
-| Demonstration analysis      |          204.50 |                 225.49 |    19.43 |           21.23 |
-| Student analysis            |          203.63 |                 224.62 |    18.79 |           20.59 |
-| Stock                       |          215.17 |                 228.85 |    20.81 |           22.14 |
-| Ticket                      |          223.09 |                 236.60 |    23.64 |           24.96 |
-| Class ranking               |          184.38 |                 205.60 |    17.89 |           19.69 |
-| Lecturer's student summary  |          205.81 |                 224.25 |    21.70 |           23.02 |
-| Lecturer's student analysis |          204.98 |                 225.98 |    19.81 |           21.61 |
-| Lecturer's student journal  |          196.59 |                 211.01 |    19.13 |           20.45 |
+| Shared code                 |          141.94 |                 142.47 |     7.76 |            7.80 |
+| Lesson                      |          175.35 |                 196.81 |    15.26 |           17.06 |
+| Price guide                 |                 |                 196.82 |          |           17.06 |
+| Class home                  |          220.44 |                 234.64 |    23.58 |           24.91 |
+| Market                      |          200.13 |                 219.27 |    20.63 |           21.95 |
+| Activity                    |          196.05 |                 210.48 |    18.29 |           19.62 |
+| Demonstration summary       |          205.26 |                 223.56 |    21.31 |           22.63 |
+| Demonstration Activity      |          196.92 |                 211.35 |    18.93 |           20.25 |
+| Demonstration analysis      |          204.59 |                 225.59 |    19.43 |           21.23 |
+| Student analysis            |          203.72 |                 224.72 |    18.79 |           20.59 |
+| Stock                       |          215.27 |                 228.95 |    20.81 |           22.14 |
+| Ticket                      |          223.20 |                 236.73 |    23.64 |           24.96 |
+| Class ranking               |          184.46 |                 205.71 |    17.89 |           19.69 |
+| Lecturer's student summary  |          205.91 |                 224.36 |    21.70 |           23.02 |
+| Lecturer's student analysis |          205.07 |                 226.08 |    19.81 |           21.61 |
+| Lecturer's student journal  |          197.21 |                 211.64 |    19.32 |           20.64 |
 
 The sheet reuses the allocation engine, rule calculations, and label placement. A direct import of the existing label styles replaces CSS composition that loaded their stylesheet twice. The final table includes the resulting stylesheet graph.
 
-The phone probe uses Chromium at 360 by 740 pixels with touch, fourfold CPU slowdown, a disabled cache, 150 ms latency, 200,000 bytes per second downstream, and 93,750 upstream. It takes three cold visits per route on each build, with copies of one sample database and the same synthetic student. The following values are medians in seconds. Lesson readiness waits for the heading on main and a slider in the new exercises. Ticket readiness waits for its hydrated form. Other routes wait for their heading.
+The phone probe compares main at `a63a054` with an earlier build of this change. It uses Chromium at 360 by 740 pixels with touch, fourfold CPU slowdown, a disabled cache, 150 ms latency, 200,000 bytes per second downstream, and 93,750 upstream. It takes three cold visits per route on each build, with copies of one sample database and the same synthetic student. The following values are medians in seconds. Lesson readiness waits for the heading on main and a slider in the new exercises. Ticket readiness waits for its hydrated form. Other routes wait for their heading.
 
 | Route            | Main first contentful paint | Exercise first contentful paint | Main ready | Exercise ready |
 | ---------------- | --------------------------: | ------------------------------: | ---------: | -------------: |
@@ -71,7 +71,7 @@ The phone probe uses Chromium at 360 by 740 pixels with touch, fourfold CPU slow
 | Ticket           |                       3.456 |                           3.736 |     14.015 |         14.506 |
 | Class home       |                       2.788 |                           3.072 |      3.089 |          3.214 |
 
-The new lessons render their explanation, drawing, values, and tables before the sliders appear. The probe ran before the last revision of the exercises, which adds 0.56 kB of JavaScript to each class route and removes 0.18 kB of CSS. These local samples do not establish a speedup or physical phone performance. Other workers used this machine during the probe, which limits a comparison of elapsed times. [Issue #257](https://github.com/radenadam/portolab/issues/257) tracks the broader controlled phone comparison.
+The new lessons render their explanation, drawing, values, and tables before the sliders appear. The last revision of the exercises after the probe added 0.56 kB of JavaScript to each class route and removed 0.18 kB of CSS. These local samples do not establish a speedup or physical phone performance. Other workers used this machine during the probe, which limits a comparison of elapsed times. [Issue #257](https://github.com/radenadam/portolab/issues/257) tracks the broader controlled phone comparison.
 
 ## Alternatives
 

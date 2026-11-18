@@ -10,20 +10,20 @@ const measuredRoutes: ReadonlyMap<string, Partial<ClientRouteLimits>> = new Map(
   [
     [
       "features/classes/class-page",
-      { javascript: "229.8 kB", stylesheets: "24.6 kB" },
+      { javascript: "234.9 kB", stylesheets: "25.2 kB" },
     ],
     [
       "features/market-data/market-page",
       { javascript: "219.5 kB", stylesheets: "22.3 kB" },
     ],
-    ["features/trading/activity-page", { javascript: "210.2 kB" }],
+    ["features/trading/activity-page", { javascript: "210.8 kB" }],
     [
       "features/trading/demonstration-summary-page",
       { javascript: "223.8 kB", stylesheets: exerciseStylesheetLimit },
     ],
     [
       "features/trading/demonstration-activity-page",
-      { javascript: "211 kB", stylesheets: "20.4 kB" },
+      { javascript: "211.6 kB", stylesheets: "20.4 kB" },
     ],
     [
       "features/measures/demonstration-analysis-page",
@@ -52,7 +52,7 @@ const measuredRoutes: ReadonlyMap<string, Partial<ClientRouteLimits>> = new Map(
     ],
     [
       "features/grading/student-journal-page",
-      { javascript: "211.3 kB", stylesheets: "20.8 kB" },
+      { javascript: "211.9 kB", stylesheets: "20.8 kB" },
     ],
   ],
 );
