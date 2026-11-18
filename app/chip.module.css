@@ -36,6 +36,14 @@ button.chip {
   background: var(--color-panel);
 }
 
+/* The references fill a chosen filter with the color of a button. */
+.filter[aria-pressed="true"] > span {
+  border-color: var(--color-button);
+  background: var(--color-button);
+  color: var(--color-on-button);
+  font-weight: 600;
+}
+
 /* A text that can be longer than the chip, such as a name, ends in an ellipsis. */
 .text {
   max-width: 15rem;

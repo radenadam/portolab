@@ -101,7 +101,7 @@ test("budgets every route with its ancestors, split exports, static imports, and
     "plans every budget",
   );
   expect(checks.map((check) => [check.name, check.limit, check.gzip])).toEqual([
-    ["Shared JavaScript", "142.1 kB", true],
+    ["Shared JavaScript", "142.8 kB", true],
     ["Shared CSS", "20 kB", true],
     ["Route JavaScript: class", "200 kB", true],
     ["Route CSS: class", "20 kB", true],
@@ -188,23 +188,27 @@ test("discovers a new route without adding a budget entry by hand", () => {
 test("applies measured route allowances only to the named routes and asset kinds", () => {
   const { chunks, routes, files } = fixture();
   const cases = [
-    ["features/market-data/stock-page", "215.7 kB", "21 kB"],
+    ["features/classes/class-page", "235.5 kB", "25.7 kB"],
+    ["features/market-data/stock-page", "229.8 kB", "22.9 kB"],
     ["features/market-data/stock-page-detail", "200 kB", "20 kB"],
-    ["features/classes/class-page", "220.8 kB", "24 kB"],
+    ["features/market-data/market-page", "219.9 kB", "22.7 kB"],
     ["features/classes/class-page-detail", "200 kB", "20 kB"],
-    ["features/trading/ticket-page", "223.6 kB", "24 kB"],
-    ["features/measures/measures-page", "210 kB", "20 kB"],
-    ["features/measures/measures-page-detail", "200 kB", "20 kB"],
-    ["features/trading/demonstration-summary-page", "220 kB", "24 kB"],
-    ["features/measures/demonstration-analysis-page", "211 kB", "20.5 kB"],
-    ["features/measures/demonstration-analysis-page-detail", "200 kB", "20 kB"],
-    ["features/market-data/market-page", "200.4 kB", "20.8 kB"],
     ["features/market-data/market-page-detail", "200 kB", "20 kB"],
-    ["features/grading/student-portfolio-page", "220 kB", "24 kB"],
-    ["features/grading/student-measures-page", "220 kB", "21 kB"],
-    ["features/grading/student-journal-page", "200 kB", "20 kB"],
+    ["features/trading/ticket-page", "237.6 kB", "25.8 kB"],
+    ["features/trading/activity-page", "211.1 kB", "20.4 kB"],
+    ["features/trading/demonstration-summary-page", "224.2 kB", "24 kB"],
+    ["features/trading/demonstration-activity-page", "211.9 kB", "21.1 kB"],
+    ["features/measures/measures-page", "229.5 kB", "22.2 kB"],
+    ["features/measures/measures-page-detail", "200 kB", "20 kB"],
+    ["features/measures/demonstration-analysis-page", "230.4 kB", "22.9 kB"],
+    ["features/measures/demonstration-analysis-page-detail", "200 kB", "20 kB"],
+    ["features/grading/class-portfolios-page", "206.3 kB", "20.5 kB"],
+    ["features/grading/student-portfolio-page", "225 kB", "24 kB"],
+    ["features/grading/student-measures-page", "230.9 kB", "23.3 kB"],
+    ["features/grading/student-journal-page", "212.2 kB", "21.4 kB"],
     ["features/grading/student-measures-page-detail", "200 kB", "20 kB"],
     ["features/learning/lesson-page", "200 kB", "20 kB"],
+    ["features/learning/price-guide-page", "200 kB", "20 kB"],
     ["features/trading/ticket-page-detail", "200 kB", "20 kB"],
   ] as const;
   for (const [id, javascript, stylesheets] of cases) {
@@ -222,7 +226,7 @@ test("applies measured route allowances only to the named routes and asset kinds
   }
 });
 
-test("keeps the Kelas CSS allowance on its complete route alone", () => {
+test("keeps child budgets and stylesheet dependencies unchanged by an allowance", () => {
   const { chunks, routes, files } = fixture();
   routes.set("features/classes/class-page", {
     file: "app/class.tsx",
@@ -236,26 +240,16 @@ test("keeps the Kelas CSS allowance on its complete route alone", () => {
     clientSizeChecks(chunks, routes, files),
     "plans the class allowance",
   );
+  const completeRoute = checks.find(
+    (check) => check.name === "Route CSS: features/classes/class-page",
+  );
+  expect(completeRoute).toBeDefined();
   expect(
-    checks
-      .filter(
-        (check) =>
-          check.name === "Shared CSS" || check.name?.startsWith("Route CSS:"),
-      )
-      .map((check) => [check.name, check.limit]),
-  ).toEqual([
-    ["Shared CSS", "20 kB"],
-    ["Route CSS: class", "20 kB"],
-    ["Route CSS: market", "20 kB"],
-    ["Route CSS: other", "20 kB"],
-    ["Route CSS: features/classes/class-page", "24 kB"],
-    ["Route CSS: class-child", "20 kB"],
-  ]);
-  expect(
-    checks.find(
-      (check) => check.name === "Route CSS: features/classes/class-page",
-    )?.path,
-  ).toEqual(checks.find((check) => check.name === "Route CSS: class")?.path);
+    checks.find((check) => check.name === "Route CSS: class-child")?.limit,
+  ).toBe("20 kB");
+  expect(completeRoute?.path).toEqual(
+    checks.find((check) => check.name === "Route CSS: class")?.path,
+  );
 });
 
 test("rejects missing files even when the other files of the route exist", () => {

@@ -6,9 +6,6 @@ import { expect, test, vi } from "vitest";
 import { and, eq, gte, lte } from "drizzle-orm";
 import { openDatabaseForTest as databaseForTest } from "~/database/open-database-for-test.server";
 import { companyOf } from "~/features/market-data/company-of";
-import { findStockQuote } from "~/features/market-data/quote-store.server";
-import { readPortfolioMeasures } from "~/features/measures/read-measures.server";
-import { valuePortfolio } from "~/features/trading/value-portfolio";
 import { analysisAllocationRows } from "~/features/measures/analysis-allocation-rows";
 import { users, sessions } from "~/features/accounts/accounts.schema";
 import { verifyPassword } from "~/features/accounts/password.server";
@@ -29,6 +26,8 @@ import {
   readPortfolioById,
   readStoredPortfolio,
 } from "~/features/trading/portfolio-store.server";
+import { readPortfolioValuation } from "~/features/trading/read-portfolio-report.server";
+import { readPortfolioMeasures } from "~/features/measures/read-measures.server";
 import { placeOrder } from "~/features/trading/place-order";
 import {
   applySampleFill,
@@ -57,6 +56,7 @@ import { seedSampleClass as seedSampleClassWithClock } from "./seed-sample-class
 import { buildSamplePortfolio } from "./build-sample-portfolio";
 import { readSampleMarket } from "./read-sample-market.server";
 import { orderTradingDay } from "~/features/trading/order-trading-day";
+import { findStockQuote } from "~/features/market-data/quote-store.server";
 import { lastContinuousTradingMoment } from "~/features/market-data/idx-calendar";
 import { successValueForTest } from "~/success-value-for-test";
 import {
@@ -390,6 +390,7 @@ test("seeds a separate class with credentials, every terminal order state, curre
       .where(eq(portfolios.demonstrationClassId, taught.id))
       .get(),
   );
+  expectSampleLessons(database, firstPortfolio);
   expectSampleHomeSummary(database, firstStudent, now);
   const empty = students.at(-1);
   if (empty === undefined)
@@ -628,25 +629,30 @@ async function checkPrintedCredentials(
   }
 }
 
+function readSampleMeasures(
+  database: Database,
+  sample: typeof portfolios.$inferSelect | undefined,
+) {
+  if (sample === undefined)
+    throw new Error("The sample has no such portfolio.");
+  const stored = readPortfolioById(database, sample.id);
+  if (stored === undefined)
+    throw new Error("The sample portfolio disappeared.");
+  const { valuation } = readPortfolioValuation(database, {
+    portfolio: stored,
+    startingCash: defaultStartingCash,
+  });
+  const report = readPortfolioMeasures(database, valuation);
+  if (report.kind !== "measured" || !report.measures.ok)
+    throw new Error("The sample portfolio needs measures.");
+  return { stored, valuation, portfolio: report.measures.value };
+}
+
 function checkSampleAnalysis(
   database: Database,
   sample: typeof portfolios.$inferSelect | undefined,
 ): void {
-  if (sample === undefined)
-    throw new Error("The sample has no analysis portfolio.");
-  const stored = readPortfolioById(database, sample.id);
-  if (stored === undefined)
-    throw new Error("The analysis portfolio disappeared.");
-  const quotes = new Map<string, StockQuote>();
-  for (const holding of stored.holdings) {
-    const quote = findStockQuote(database, holding.code);
-    if (quote !== undefined) quotes.set(holding.code, quote);
-  }
-  const valuation = valuePortfolio(stored, defaultStartingCash, quotes);
-  const measured = readPortfolioMeasures(database, valuation);
-  if (measured.kind !== "measured" || !measured.measures.ok)
-    throw new Error("The sample analysis needs measures.");
-  const portfolio = measured.measures.value;
+  const { valuation, portfolio } = readSampleMeasures(database, sample);
   expect(portfolio.holdings.length).toBeGreaterThan(1);
   expect(portfolio.cash.weight).toBeGreaterThan(0);
   expect(
@@ -662,5 +668,22 @@ function checkSampleAnalysis(
   const allocation = analysisAllocationRows(valuation, "sector");
   expect(allocation.kind === "valued" && allocation.rows.at(-1)?.key).toBe(
     "cash",
+  );
+}
+
+function expectSampleLessons(
+  database: Database,
+  firstPortfolio: typeof portfolios.$inferSelect | undefined,
+): void {
+  const { stored, portfolio } = readSampleMeasures(database, firstPortfolio);
+  const lessonPairs = portfolio.pairs.filter(
+    (pair) => pair.first !== pair.second,
+  );
+  expect(lessonPairs.length).toBeGreaterThan(1);
+  expect(
+    new Set(lessonPairs.map((pair) => pair.correlation)).size,
+  ).toBeGreaterThan(1);
+  expect(stored.orders.some((order) => order.state.kind === "filled")).toBe(
+    true,
   );
 }

@@ -1,4 +1,11 @@
-import { formatCalendarDate, formatPercent, formatRupiah } from "~/formatting";
+import {
+  formatCalendarDate,
+  formatPercent,
+  formatRupiah,
+  formatSignedPercent,
+  formatSignedRupiah,
+} from "~/formatting";
+import { rupiah } from "~/units/rupiah";
 import { m } from "~/paraglide/messages.js";
 import { basisPointsPerWhole } from "~/units/basis-points";
 import type { PriceLimit } from "./price-limits";
@@ -15,12 +22,25 @@ export interface PriceField {
   written: string;
 }
 
-function formatLimit(limit: PriceLimit): string {
+/** The side of the reference price that a limit bounds. */
+type PriceLimitSide = "upper" | "lower";
+
+const sideSigns: Record<PriceLimitSide, 1 | -1> = { upper: 1, lower: -1 };
+
+/** A limit as its rate or amount, and with the sign of its side when it names that side, such as +25% above the reference price. */
+export function formatLimit(limit: PriceLimit, side?: PriceLimitSide): string {
+  const sign = side === undefined ? undefined : sideSigns[side];
   switch (limit.kind) {
-    case "rate":
-      return formatPercent(limit.rate / basisPointsPerWhole);
+    case "rate": {
+      const rate = limit.rate / basisPointsPerWhole;
+      return sign === undefined
+        ? formatPercent(rate)
+        : formatSignedPercent(sign * rate, "upToTwo").text;
+    }
     case "amount":
-      return formatRupiah(limit.amount);
+      return sign === undefined
+        ? formatRupiah(limit.amount)
+        : formatSignedRupiah(rupiah(sign * limit.amount)).text;
   }
 }
 

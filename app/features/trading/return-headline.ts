@@ -1,4 +1,8 @@
-import { formatPercentagePoints, formatSignedPercent } from "~/formatting";
+import {
+  formatPercentagePoints,
+  formatSignedPercent,
+  isOnePercentagePoint,
+} from "~/formatting";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
 import { m } from "~/paraglide/messages.js";
 import type { CumulativeReturn } from "~/units/cumulative-return";
@@ -12,7 +16,7 @@ export function returnHeadline(
   const direction = formatSignedPercent(difference).direction;
   const points = formatPercentagePoints(Math.abs(difference));
   const inputs = { points, index: marketIndex.code };
-  const isOnePoint = points === formatPercentagePoints(0.01);
+  const isOnePoint = isOnePercentagePoint(points);
   switch (direction) {
     case "rise":
       return isOnePoint

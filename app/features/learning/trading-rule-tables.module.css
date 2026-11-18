@@ -1,0 +1,23 @@
+.table {
+  composes: table from "../../compact-table.module.css";
+}
+
+.table th,
+.table td {
+  text-align: end;
+}
+
+.table th:first-child,
+.table td:first-child {
+  inline-size: 55%;
+  text-align: start;
+}
+
+.table th {
+  font-weight: 500;
+  color: var(--color-muted);
+}
+
+.table tr[data-selected="true"] {
+  background: var(--color-data-soft);
+}

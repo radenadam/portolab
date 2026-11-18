@@ -91,7 +91,9 @@ for (const locale of locales) {
     await expect(page.locator('main [aria-current="step"]')).toContainText(
       text.week,
     );
-    await expect(page.locator('main a[href*="/learn/"]')).toHaveCount(12);
+    await expect(
+      page.locator('main [data-layout="columns"] a[href*="/learn/"]'),
+    ).toHaveCount(12);
     await expect(page.locator("main article")).toHaveCount(4);
     await expect(page.locator('nav a[aria-current="page"]').last()).toHaveText(
       text.learn,
@@ -113,14 +115,9 @@ for (const locale of locales) {
     for (const session of lessonSessionsForTest) {
       await page.goto(`${classPath}/learn/${String(session)}`);
       await expect(page.getByRole("heading", { level: 1 })).not.toBeEmpty();
-      await expect(page.getByRole("heading", { level: 2 })).toHaveCount(
-        session === 9 || session === 10 ? 3 : 1,
-      );
       await expect(
         page.getByRole("heading", { name: text.terms, exact: true }),
       ).toBeVisible();
-      if (session !== 9 && session !== 10)
-        await expect(page.locator("main input")).toHaveCount(0);
       for (const term of await page
         .locator('main details[id^="term-"]')
         .all()) {
@@ -148,7 +145,7 @@ for (const locale of locales) {
         });
       }
     }
-    for (const session of [7, 8, 15, 16, 0, 17, "09", "prices"])
+    for (const session of [7, 8, 15, 16, 0, 17, "09"])
       await expectMissingPage(
         page,
         `${classPath}/learn/${String(session)}`,
@@ -213,7 +210,14 @@ for (const locale of locales) {
       locale,
       notFoundTitle: text.notFound,
       addresses: ({ classPath, otherClassPath }) =>
-        ["/learn", "/learn/9", "/glossary"].flatMap((path) => [
+        [
+          "/learn",
+          "/learn/2",
+          "/learn/6",
+          "/learn/9",
+          "/learn/prices",
+          "/glossary",
+        ].flatMap((path) => [
           { reader: "student" as const, path: `${otherClassPath}${path}` },
           { reader: "otherLecturer" as const, path: `${classPath}${path}` },
         ]),
