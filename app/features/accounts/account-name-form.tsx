@@ -7,6 +7,7 @@ import type { User } from "./account";
 import type { AccountFormFailures } from "./account-fields";
 import { NameField } from "./account-form-fields";
 
+/** The answer to the form of the name: when Portolab saved the name, so that the form starts over, and the field as the form then shows it, which holds the name as the rule of names saved it, or the name as the person typed it with the reason that it does not follow the rule. */
 export interface NameAnswer {
   savedAt: string | undefined;
   field: Pick<AccountFormFailures, "name" | "nameFailure">;

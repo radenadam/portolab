@@ -261,7 +261,7 @@ docker compose exec --no-TTY app sqlite3 "file:/app/data/portolab.sqlite?mode=rw
   ".print users" "SELECT id, username, name, role, must_change_password, consented_at FROM users WHERE id IN person" \
   ".print sessions" "SELECT id, user_id, last_used_at FROM sessions WHERE user_id IN person" \
   ".print classes" "SELECT * FROM classes WHERE lecturer_id IN person OR id IN (SELECT class_id FROM memberships WHERE id IN places)" \
-  ".print memberships" "SELECT id, class_id, student_id, nim, joined_at FROM memberships WHERE id IN places" \
+  ".print memberships" "SELECT * FROM memberships WHERE id IN places" \
   "CREATE TEMP TABLE owned_portfolios AS SELECT id FROM portfolios WHERE membership_id IN places OR demonstration_class_id IN (SELECT id FROM classes WHERE lecturer_id IN person)" \
   ".print portfolios" "SELECT * FROM portfolios WHERE id IN owned_portfolios" \
   ".print holdings" "SELECT * FROM holdings WHERE portfolio_id IN owned_portfolios" \
