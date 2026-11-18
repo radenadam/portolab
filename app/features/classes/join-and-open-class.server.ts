@@ -8,7 +8,7 @@ import type { ClassId } from "./classes.schema";
 /** Adds a student to a class, which does nothing when the student is in it already, and answers with the page of the class. */
 export function joinAndOpenClass(
   database: Database,
-  membership: { classId: ClassId; studentId: UserId },
+  membership: { classId: ClassId; studentId: UserId; nim?: string | null },
   now: Date,
 ): Response {
   joinClass(database, membership, now);

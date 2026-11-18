@@ -1,6 +1,7 @@
 {
   "extends": "./tsconfig.base.json",
   "include": [
+    "app/character-set.ts",
     "server/main.ts",
     "server/account.ts",
     "server/sample-class.ts",

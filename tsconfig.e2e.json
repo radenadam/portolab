@@ -1,6 +1,8 @@
 {
   "extends": "./tsconfig.base.json",
   "include": [
+    "app/character-set.ts",
+    "app/features/classes/nim-maximum-length.ts",
     "e2e/**/*",
     "server/sample-class.ts",
     "server/server-options.ts",

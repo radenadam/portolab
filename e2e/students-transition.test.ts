@@ -8,10 +8,10 @@ import { studentWithPortfolio } from "./student-with-portfolio.ts";
 
 const texts: Record<Locale, { search: string; close: string }> = {
   id: {
-    search: "Cari nama atau nama pengguna",
+    search: "Cari nama, NIM, atau nama pengguna",
     close: "Tutup panel mahasiswa",
   },
-  en: { search: "Search name or username", close: "Close student panel" },
+  en: { search: "Search name, NIM, or username", close: "Close student panel" },
 };
 
 for (const locale of locales) {

@@ -189,7 +189,7 @@ test("applies measured route allowances only to the named routes and asset kinds
   const { chunks, routes, files } = fixture();
   const cases = [
     ["features/classes/class-page", "241.7 kB", "27.9 kB"],
-    ["features/market-data/stock-page", "232 kB", "23.8 kB"],
+    ["features/market-data/stock-page", "232.1 kB", "23.9 kB"],
     ["features/market-data/stock-page-detail", "200 kB", "20 kB"],
     ["features/market-data/market-page", "222.1 kB", "23.6 kB"],
     ["features/classes/class-page-detail", "200 kB", "20 kB"],
@@ -202,10 +202,10 @@ test("applies measured route allowances only to the named routes and asset kinds
     ["features/measures/measures-page-detail", "200 kB", "20 kB"],
     ["features/measures/demonstration-analysis-page", "231.4 kB", "23.2 kB"],
     ["features/measures/demonstration-analysis-page-detail", "200 kB", "20 kB"],
-    ["features/grading/class-portfolios-page", "207.5 kB", "20.8 kB"],
-    ["features/grading/student-portfolio-page", "227.1 kB", "24.3 kB"],
-    ["features/grading/student-measures-page", "231.9 kB", "23.6 kB"],
-    ["features/grading/student-journal-page", "213.4 kB", "21.7 kB"],
+    ["features/grading/class-portfolios-page", "207.6 kB", "20.8 kB"],
+    ["features/grading/student-portfolio-page", "227.2 kB", "24.3 kB"],
+    ["features/grading/student-measures-page", "232 kB", "23.6 kB"],
+    ["features/grading/student-journal-page", "213.6 kB", "21.7 kB"],
     ["features/grading/student-measures-page-detail", "200 kB", "20 kB"],
     ["features/learning/lesson-page", "200 kB", "20 kB"],
     ["features/learning/price-guide-page", "200 kB", "20 kB"],

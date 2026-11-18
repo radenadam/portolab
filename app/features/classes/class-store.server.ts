@@ -35,6 +35,7 @@ export interface ClassForStudents {
 
 /** A class that a student joined, with the place of the student in it, to which the portfolio of the student in the class belongs, the time when the student joined it, and the calendar date when its first session meets, which a class that Portolab created before it stored that date lacks until its lecturer sets it. */
 export interface JoinedClass extends ClassForStudents {
+  nim: string | null;
   membershipId: MembershipId;
   joinedAt: Date;
   firstSessionDate: string | null;
@@ -42,6 +43,7 @@ export interface JoinedClass extends ClassForStudents {
 
 /** A student in a class, as the lecturer of the class sees them, with the place of the student in the class, to which the portfolio of the student in the class belongs. */
 export interface ClassStudent extends Person {
+  nim: string | null;
   membershipId: MembershipId;
   joinedAt: Date;
 }
@@ -66,6 +68,7 @@ const membershipColumns = {
   membershipId: memberships.id,
   studentId: memberships.studentId,
   joinedAt: memberships.joinedAt,
+  nim: memberships.nim,
 };
 
 /** The sample command must also refuse orphaned memberships in a damaged database. */
@@ -247,12 +250,16 @@ export function findClassByJoinCode(
 /** Adds a student to a class, and does nothing when the student is in it already. */
 export function joinClass(
   database: Database,
-  { classId, studentId }: { classId: ClassId; studentId: UserId },
+  {
+    classId,
+    studentId,
+    nim = null,
+  }: { classId: ClassId; studentId: UserId; nim?: string | null },
   now: Date,
 ): void {
   database
     .insert(memberships)
-    .values({ classId, studentId, joinedAt: now })
+    .values({ classId, studentId, nim, joinedAt: now })
     .onConflictDoNothing({
       target: [memberships.classId, memberships.studentId],
     })
@@ -284,6 +291,7 @@ function selectJoinedClasses(database: Database) {
       ...classForStudentsColumns,
       membershipId: memberships.id,
       joinedAt: memberships.joinedAt,
+      nim: memberships.nim,
       firstSessionDate: classes.firstSessionDate,
     })
     .from(memberships)
@@ -310,6 +318,7 @@ function withLecturerNames<Row extends { lecturerId: UserId }>(
 function withStudents(
   database: Database,
   rows: readonly {
+    nim: string | null;
     membershipId: MembershipId;
     studentId: UserId;
     joinedAt: Date;
@@ -322,6 +331,7 @@ function withStudents(
   return rows.map((row) => ({
     ...personWithId(students, row.studentId),
     membershipId: row.membershipId,
+    nim: row.nim,
     joinedAt: row.joinedAt,
   }));
 }

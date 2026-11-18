@@ -1,3 +1,4 @@
+import { studentIdentifier } from "~/features/classes/student-identifier";
 import { NumberText } from "~/number-text";
 import { StudentMeasureNotice } from "./student-measure-notice";
 import type { ReactNode } from "react";
@@ -114,7 +115,9 @@ export function StudentStandings({
                   <span className={styles["studentName"]}>
                     <NumberText verbatim>{student.name}</NumberText>
                     <small>
-                      <NumberText verbatim>{student.username}</NumberText>
+                      <NumberText verbatim>
+                        {studentIdentifier(student)}
+                      </NumberText>
                     </small>
                   </span>
                 </StudentLink>

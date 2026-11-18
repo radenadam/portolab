@@ -234,7 +234,12 @@ export async function seedSampleClass(
             : new Date(
                 firstOrder.accepted.placedAt.getTime() - minuteMilliseconds,
               );
-        joinClass(database, { classId, studentId: person.id }, joinedAt);
+        // The prefix marks each NIM as made up, so that no NIM of the sample belongs to a real student.
+        joinClass(
+          database,
+          { classId, studentId: person.id, nim: `CONTOH-${String(index)}` },
+          joinedAt,
+        );
         const membership = findClassStudent(database, classId, person.id);
         if (membership === undefined)
           throw new Error("The sample student did not join the class.");

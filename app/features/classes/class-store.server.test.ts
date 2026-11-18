@@ -15,6 +15,7 @@ import {
   listStudents,
   setFirstSessionDate,
 } from "./class-store.server";
+import { setStudentNim } from "./set-student-nim.server";
 import {
   createClassForTest,
   createLecturerWithClassForTest,
@@ -70,6 +71,7 @@ test("shows a class only to the lecturer who teaches it and to its students", as
     id: studentId,
     name: "Sari Wulandari",
     username: "sari",
+    nim: null,
     membershipId: joined?.membershipId,
     joinedAt: later,
   });
@@ -87,6 +89,7 @@ test("adds a student to a class once, however often the student joins", async ()
       id: studentId,
       name: "Sari Wulandari",
       username: "sari",
+      nim: null,
       membershipId: findJoinedClass(database, classId, studentId)?.membershipId,
       joinedAt: now,
     },
@@ -207,4 +210,41 @@ test("keeps the date of session 1 that a class was created with, and changes it 
   expect(findTaughtClass(database, other, lecturerId)?.firstSessionDate).toBe(
     "2026-09-07",
   );
+});
+
+test("keeps and corrects a NIM only in its student's class membership", async () => {
+  const database = openDatabaseForTest();
+  const { lecturerId, classId } =
+    await createLecturerWithClassForTest(database);
+  const otherClass = createClassForTest(
+    database,
+    lecturerId,
+    "Other class",
+  ).classId;
+  const studentId = await createTestStudent(database, "nim-student", "Student");
+  const otherStudent = await createTestStudent(
+    database,
+    "other-student",
+    "Other student",
+  );
+  joinClass(database, { classId, studentId, nim: "001-A" }, now);
+  joinClass(database, { classId: otherClass, studentId, nim: "Other/01" }, now);
+  joinClass(database, { classId, studentId, nim: "overwrite" }, later);
+  expect(findClassStudent(database, classId, studentId)?.nim).toBe("001-A");
+  expect(
+    setStudentNim(database, {
+      classId,
+      studentId: otherStudent,
+      nim: "forged",
+    }),
+  ).toBe(false);
+  expect(setStudentNim(database, { classId, studentId, nim: "002-A" })).toBe(
+    true,
+  );
+  expect(findJoinedClass(database, classId, studentId)?.nim).toBe("002-A");
+  expect(findJoinedClass(database, otherClass, studentId)?.nim).toBe(
+    "Other/01",
+  );
+  expect(setStudentNim(database, { classId, studentId, nim: null })).toBe(true);
+  expect(findClassStudent(database, classId, studentId)?.nim).toBeNull();
 });

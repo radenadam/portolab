@@ -8,16 +8,26 @@ import { classRankingForTest } from "./class-ranking-for-test.server";
 import { orderStudents } from "./order-students";
 import { StudentRank } from "./student-rank";
 
-const texts: Record<Locale, { ranked: string; unranked: string }> = {
+const texts: Record<
+  Locale,
+  { ranked: string; unranked: string; nimRanked: string; nimUnranked: string }
+> = {
   id: {
+    nimRanked: "001-A · peringkat 1 dari 3",
+    nimUnranked: "001-A · belum ada peringkat",
     ranked: "eko · peringkat 1 dari 3",
     unranked: "rina · belum ada peringkat",
   },
-  en: { ranked: "eko · rank 1 of 3", unranked: "rina · unranked" },
+  en: {
+    ranked: "eko · rank 1 of 3",
+    unranked: "rina · unranked",
+    nimRanked: "001-A · rank 1 of 3",
+    nimUnranked: "001-A · unranked",
+  },
 };
 
 for (const locale of locales) {
-  test(`keeps the username and rank in one complete message in ${languageNames[locale]}`, async () => {
+  test(`keeps the NIM or fallback username and rank in one complete message in ${languageNames[locale]}`, async () => {
     switchLocaleForTest(locale);
     const { portfolios } = await classRankingForTest();
     const all = orderStudents(portfolios, "alpha");
@@ -35,5 +45,19 @@ for (const locale of locales) {
         <StudentRank student={unranked} all={all} measure="alpha" />,
       ),
     ).toBe(texts[locale].unranked);
+    for (const [student, expected] of [
+      [ranked, texts[locale].nimRanked],
+      [unranked, texts[locale].nimUnranked],
+    ] as const) {
+      expect(
+        renderTextMarkupForTest(
+          <StudentRank
+            student={{ ...student, nim: "001-A" }}
+            all={all}
+            measure="alpha"
+          />,
+        ),
+      ).toBe(expected);
+    }
   });
 }

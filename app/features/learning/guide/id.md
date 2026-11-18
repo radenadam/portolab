@@ -44,7 +44,9 @@ Mahasiswa membuka alamat yang Anda bagikan. Mereka juga dapat membuka halaman be
 
 {{link:join|Halaman bergabung}}
 
-Mahasiswa baru memilih nama pengguna, nama, dan kata sandi, lalu menyetujui pemberitahuan privasi. Email tidak diperlukan. Mahasiswa yang sudah memiliki akun masuk dengan akun tersebut, lalu bergabung. Nama pengguna membedakan mahasiswa yang namanya sama. Periksa nama pada {{label:navigation_students_link}} sebelum menilai pekerjaan mereka.
+Mahasiswa baru memilih nama pengguna, nama, dan kata sandi, lalu menyetujui pemberitahuan privasi. Email tidak diperlukan. Mahasiswa yang sudah memiliki akun masuk dengan akun tersebut, lalu bergabung. Periksa nama pada {{label:navigation_students_link}} sebelum menilai pekerjaan mereka.
+
+Mahasiswa dapat memberi NIM untuk setiap kelas saat bergabung dan memperbaiki atau mengosongkannya di halaman akun. {{label:navigation_students_link}}, panelnya, dan rincian mahasiswa menampilkan NIM di bawah nama, atau nama pengguna bila mahasiswa tidak memberi NIM. Dua mahasiswa dapat memiliki nama dan NIM yang sama, tetapi tidak pernah nama pengguna yang sama, jadi workbook mencantumkan NIM dan nama pengguna setiap mahasiswa.
 
 ## student | Apa yang mahasiswa lihat dan kerjakan
 
@@ -96,7 +98,7 @@ Bila suatu ukuran tidak tersedia, baca sebabnya. Riwayat yang kurang, harga yang
 
 Di {{label:navigation_students_link}}, pilih {{label:grading_market_line_label}}, {{label:grading_sharpe_label}}, atau {{label:grading_treynor_label}}. Alpha Jensen membandingkan imbal hasil harapan dengan CAPM. Sharpe membandingkan kelebihan imbal hasil dengan simpangan baku. Treynor membandingkannya dengan beta. Peringkat memakai ukuran terpilih dari yang terbesar, dan nilai sama mengikuti urutan bergabung.
 
-Cari nama atau nama pengguna dan gunakan penyaring untuk menindaklanjuti kelompok tertentu. Peringkat hanya tersedia bila ukuran terpilih dapat dihitung. Ini bukan nilai akhir mata kuliah. Tinjau periode, risiko, dan alasan transaksi bersama hasilnya, karena keuntungan terbesar saja belum menjelaskan kualitas keputusan.
+Cari nama, NIM, atau nama pengguna dan gunakan penyaring untuk menindaklanjuti kelompok tertentu. Peringkat hanya tersedia bila ukuran terpilih dapat dihitung. Ini bukan nilai akhir mata kuliah. Tinjau periode, risiko, dan alasan transaksi bersama hasilnya, karena keuntungan terbesar saja belum menjelaskan kualitas keputusan.
 
 Pilih mahasiswa untuk panel ringkas, lalu {{label:grading_open_portfolio_link}} atau {{label:grading_journal_link}}. Halaman mahasiswa mempunyai {{label:grading_summary_label}}, {{label:grading_analysis_label}}, dan {{label:grading_journal_label}}. Anda membacanya tanpa dapat bertransaksi sebagai mahasiswa itu. Tautan kembali menjaga pilihan mahasiswa dan penyaring Anda.
 

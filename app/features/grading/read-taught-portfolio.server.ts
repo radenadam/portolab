@@ -76,6 +76,7 @@ export function readTaughtPortfolio(
       name: student.name,
       shortName: firstNameOf(student.name),
       username: student.username,
+      nim: student.nim,
       latestActivity: latestPortfolioActivity(portfolio),
     },
     portfolio,

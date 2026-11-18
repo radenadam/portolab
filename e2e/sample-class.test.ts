@@ -20,6 +20,7 @@ import type { Locale } from "../app/paraglide/runtime.js";
 import { secondMilliseconds } from "../app/time-units.ts";
 import { submitSignIn } from "./accounts.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
+import { selectFirstStudent } from "./select-first-student.ts";
 import { openProfileMenu } from "./frame.ts";
 import { captureScreens } from "./capture-screens.ts";
 import { startTestServer } from "./start-test-server.ts";
@@ -342,6 +343,37 @@ for (const locale of locales) {
       }
     });
   }
+
+  test(`shows the made-up NIM of every sample student to the lecturer in ${languageNames[locale]}`, async ({
+    sample,
+    browser,
+  }, testInfo) => {
+    const reader = await newDevice(browser, locale, { siteUrl: sample.url });
+    try {
+      await signInSample(reader, sample, "lecturer");
+      await reader.goto(`${sample.url}/classes/1/students`);
+      const rows = reader.locator("main tbody tr");
+      await expect(rows).toHaveCount(30);
+      await expect(rows).toContainText(
+        Array.from({ length: await rows.count() }, () => /CONTOH-\d+/),
+      );
+      await expectAccessibleScreen(reader);
+      await captureScreens(reader, testInfo, {
+        name: `sample-nim-students-${locale}`,
+        fullPage: true,
+        fromTop: true,
+      });
+      await selectFirstStudent(reader);
+      await expect(reader.getByRole("dialog")).toContainText(/CONTOH-\d+/);
+      await captureScreens(reader, testInfo, {
+        name: `sample-nim-panel-${locale}`,
+        fullPage: false,
+        fromTop: true,
+      });
+    } finally {
+      await reader.context().close();
+    }
+  });
 
   test(`shows every analysis panel of the sample class to both roles in ${languageNames[locale]}`, async ({
     sample,

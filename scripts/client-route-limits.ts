@@ -5,7 +5,7 @@ interface ClientRouteLimits {
 
 const exerciseStylesheetLimit = "24 kB";
 
-// Decisions 0049, 0060, 0061, 0063, 0065, and 0066 record these allowances for complete lesson sheets, the analysis panels, the stars of the watchlist, the welcome on Beranda, and the parts that every screen shares.
+// Decisions 0049, 0060, 0061, 0063, 0065, and 0067 record these allowances for complete lesson sheets, the analysis panels, the stars of the watchlist, the welcome on Beranda, and the parts that every screen shares.
 const measuredRoutes: ReadonlyMap<string, Partial<ClientRouteLimits>> = new Map(
   [
     [
@@ -38,7 +38,7 @@ const measuredRoutes: ReadonlyMap<string, Partial<ClientRouteLimits>> = new Map(
     ],
     [
       "features/market-data/stock-page",
-      { javascript: "232 kB", stylesheets: "23.8 kB" },
+      { javascript: "232.1 kB", stylesheets: "23.9 kB" },
     ],
     [
       "features/trading/ticket-page",
@@ -46,19 +46,19 @@ const measuredRoutes: ReadonlyMap<string, Partial<ClientRouteLimits>> = new Map(
     ],
     [
       "features/grading/class-portfolios-page",
-      { javascript: "207.5 kB", stylesheets: "20.8 kB" },
+      { javascript: "207.6 kB", stylesheets: "20.8 kB" },
     ],
     [
       "features/grading/student-portfolio-page",
-      { javascript: "227.1 kB", stylesheets: "24.3 kB" },
+      { javascript: "227.2 kB", stylesheets: "24.3 kB" },
     ],
     [
       "features/grading/student-measures-page",
-      { javascript: "231.9 kB", stylesheets: "23.6 kB" },
+      { javascript: "232 kB", stylesheets: "23.6 kB" },
     ],
     [
       "features/grading/student-journal-page",
-      { javascript: "213.4 kB", stylesheets: "21.7 kB" },
+      { javascript: "213.6 kB", stylesheets: "21.7 kB" },
     ],
   ],
 );
