@@ -1,3 +1,4 @@
+import { stockPath } from "~/features/market-data/stock-path";
 import { expect, test } from "vitest";
 import { RouterContextProvider } from "react-router";
 import { databaseContext } from "~/database/database.server";
@@ -91,7 +92,7 @@ for (const locale of locales) {
             code: "BBCA",
             side,
             place: { classId, owner },
-            ticketPath: `/classes/1/stocks/BBCA/${side}`,
+            ticketPath: stockPath(classId, "BBCA", side),
             now,
           });
         const cases = [

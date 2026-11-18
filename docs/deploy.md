@@ -243,7 +243,7 @@ Each warning names its day and what it lacks. From the end of session II of the 
 
 ## Personal data
 
-The privacy notice at `https://portolab.example.com/privacy` tells each person what Portolab stores about them, how long it keeps each record, and that you keep the database. Portolab deletes each record by itself when the notice gives the record a time. It keeps every other record, which means the accounts, the classes, and the work of students and lecturers, until you delete it. The daily backups keep a copy of each record until each backup is 14 days old.
+The privacy notice at `https://portolab.example.com/privacy` tells each person what Portolab stores about them, how long it keeps each record, and that you keep the database. Portolab deletes each record by itself when the notice gives the record a time. It keeps every other record, which means the accounts, the classes, and the work of students and lecturers, until you delete it. The membership record also keeps `home_dismissed_at`, which is the cutoff of the newest Home summary that the student closed in that class. It is deleted with the membership. The daily backups keep a copy of each record until each backup is 14 days old.
 
 The law on personal data protection of Indonesia gives each person the right to see, correct, and delete their data, and to withdraw their agreement to the privacy notice. A person changes their own name in Portolab, and the notice sends every other request to you, so the next sections show how to answer each one.
 
@@ -496,7 +496,7 @@ The Windows network profile and WSL networking mode can stay as they are. Removi
 
 ## Optional company logos
 
-Portolab ships monogram tiles. The owner may supply company logos from a folder outside the checkout, as [decision 0058](decisions/0058-the-owner-supplies-company-logos-outside-the-repository.md) explains. The app serves accepted files itself, so readers never contact the source websites. [The prototype's source list](company-logo-sources.md) records its public addresses and which part of each mark it used. Download and inspect files yourself. The repository includes no trademarks or downloader that runs during startup, a build, or sample creation.
+Portolab ships monogram tiles. The owner may supply company logos from a folder outside the checkout, as [decision 0059](decisions/0059-the-owner-supplies-company-logos-outside-the-repository.md) explains. The app serves accepted files itself, so readers never contact the source websites. [The prototype's source list](company-logo-sources.md) records its public addresses and which part of each mark it used. Download and inspect files yourself. The repository includes no trademarks or downloader that runs during startup, a build, or sample creation.
 
 Prepare one file per stock code, with an uppercase name such as `BBCA.png`. Export a static, non-interlaced PNG with 8-bit RGBA pixels at 96 by 96 pixels, with at most 100,000 bytes. In an image editor, crop to the mark that reads at a small size and center it on a white square. For a mark at least 1.6 times wider than tall, leave 3 pixels on each horizontal edge. For a square mark, leave 8 pixels around its longest dimension. Keep the aspect ratio. The app uses the whole prepared tile at each display size and keeps its white ground in both themes.
 

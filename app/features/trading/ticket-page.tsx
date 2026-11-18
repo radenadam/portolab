@@ -158,7 +158,7 @@ export async function action({
     now,
     code,
     side,
-    ticketPath: `${stockPath(place.classId, code)}/${side}${ticketContextSearch(url.searchParams)}`,
+    ticketPath: `${stockPath(place.classId, code, side)}${ticketContextSearch(url.searchParams)}`,
   });
 }
 
@@ -268,7 +268,7 @@ export default function TicketPage({
             code={code}
             portfolioKind={loaderData.portfolioKind}
             side={side}
-            path={stockPagePath}
+            classId={classId}
             search={loaderData.search}
             ticket={ticket}
             fields={actionData?.fields ?? loaderData.fields}

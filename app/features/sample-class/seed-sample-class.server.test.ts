@@ -1,3 +1,5 @@
+import { readHomeDismissedAt } from "~/features/classes/home-dismissal.server";
+import { homeSinceOrders } from "~/features/trading/home-since-orders";
 import type { Database } from "~/database/database.server";
 import type { StoredOrder } from "~/features/trading/order-rows";
 import { expect, test, vi } from "vitest";
@@ -10,6 +12,7 @@ import {
   findTaughtClass,
   listStudents,
 } from "~/features/classes/class-store.server";
+import type { ClassStudent } from "~/features/classes/class-store.server";
 import { defaultStartingCash } from "~/features/classes/class-rules";
 import { readClassPortfolios } from "~/features/grading/read-class-portfolios.server";
 import {
@@ -17,7 +20,10 @@ import {
   orders,
   portfolios,
 } from "~/features/trading/trading.schema";
-import { readPortfolioById } from "~/features/trading/portfolio-store.server";
+import {
+  readPortfolioById,
+  readStoredPortfolio,
+} from "~/features/trading/portfolio-store.server";
 import { placeOrder } from "~/features/trading/place-order";
 import {
   applySampleFill,
@@ -371,6 +377,11 @@ test("seeds a separate class with credentials, every terminal order state, curre
     .get();
   // Python Decimal gives purchase costs of 12,967,422, 12,991,458, 12,759,110, 12,881,794, and 12,969,425 rupiah at the recorded closes of 2 to 6 November. These leave 35,430,791 from the starting 100,000,000.
   expect(firstPortfolio?.cash).toBe(rupiah(35_430_791));
+  expectSampleHomeSummary(database, firstStudent, now);
+  const empty = students.at(-1);
+  if (empty === undefined)
+    throw new Error("The empty sample student is missing.");
+  expect(readHomeDismissedAt(database, empty.membershipId)).toBeUndefined();
   expect(
     database
       .select()
@@ -382,6 +393,26 @@ test("seeds a separate class with credentials, every terminal order state, curre
     (await seedSampleClass(database, samplePriceSourceForTest, now)).ok,
   ).toBe(false);
 });
+
+function expectSampleHomeSummary(
+  database: Database,
+  student: Pick<ClassStudent, "membershipId" | "joinedAt">,
+  now: Date,
+): void {
+  const dismissedAt = readHomeDismissedAt(database, student.membershipId);
+  expect(dismissedAt).toEqual(student.joinedAt);
+  const stored = readStoredPortfolio(database, {
+    kind: "membership",
+    membershipId: student.membershipId,
+    startingCash: defaultStartingCash,
+  });
+  if (stored === undefined)
+    throw new Error("The first sample student has no portfolio.");
+  const since = homeSinceOrders(stored.orders, dismissedAt, now);
+  expect(new Set(since.map((order) => order.state.kind))).toEqual(
+    new Set(["filled", "expired", "rejected"]),
+  );
+}
 
 test("replays each stored order through placement and fill checks at its stored daily close", async () => {
   const database = databaseForTest();

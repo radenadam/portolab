@@ -6,12 +6,12 @@ interface ClientRouteLimits {
 const exerciseJavaScriptLimit = "220 kB";
 const exerciseStylesheetLimit = "24 kB";
 
-// Decisions 0049, 0053, 0054, 0055, 0056, and 0057 keep these allowances on their measured routes.
+// Decisions 0049, 0053, 0054, 0055, 0056, 0057, 0058, and 0059 keep these allowances on their measured routes.
 const measuredRoutes: ReadonlyMap<string, Partial<ClientRouteLimits>> = new Map(
   [
     [
       "features/market-data/market-page",
-      { javascript: "200.3 kB", stylesheets: "20.8 kB" },
+      { javascript: "200.4 kB", stylesheets: "20.8 kB" },
     ],
     [
       "features/market-data/stock-page",
@@ -20,7 +20,7 @@ const measuredRoutes: ReadonlyMap<string, Partial<ClientRouteLimits>> = new Map(
     [
       "features/classes/class-page",
       {
-        javascript: exerciseJavaScriptLimit,
+        javascript: "220.7 kB",
         stylesheets: exerciseStylesheetLimit,
       },
     ],
