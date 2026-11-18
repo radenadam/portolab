@@ -136,7 +136,7 @@ function stockName(code: string, reader: PortfolioReader): ReactNode {
 export function PairTable({
   portfolio,
 }: {
-  portfolio: PortfolioSummary;
+  portfolio: Pick<PortfolioSummary, "pairs">;
 }): ReactNode {
   return (
     <MeasureTable

@@ -17,6 +17,9 @@ export const conceptTermIds = [
   "biaya-broker",
   "ara",
   "diversifikasi",
+  "bobot-sektor",
+  "bobot",
+  "kontribusi-risiko",
 ] as const;
 
 export type ConceptTermId = (typeof conceptTermIds)[number];

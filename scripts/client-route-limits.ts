@@ -5,12 +5,12 @@ interface ClientRouteLimits {
 
 const exerciseStylesheetLimit = "24 kB";
 
-// Decisions 0049 and 0060 record these allowances for complete lesson sheets.
+// Decisions 0049, 0060, and 0061 record these allowances for complete lesson sheets and the analysis panels.
 const measuredRoutes: ReadonlyMap<string, Partial<ClientRouteLimits>> = new Map(
   [
     [
       "features/classes/class-page",
-      { javascript: "235.2 kB", stylesheets: "25.7 kB" },
+      { javascript: "235.5 kB", stylesheets: "25.7 kB" },
     ],
     [
       "features/market-data/market-page",
@@ -30,19 +30,19 @@ const measuredRoutes: ReadonlyMap<string, Partial<ClientRouteLimits>> = new Map(
     ],
     [
       "features/measures/demonstration-analysis-page",
-      { javascript: "226.2 kB", stylesheets: "22 kB" },
+      { javascript: "230.4 kB", stylesheets: "22.9 kB" },
     ],
     [
       "features/measures/measures-page",
-      { javascript: "225.3 kB", stylesheets: "21.4 kB" },
+      { javascript: "229.5 kB", stylesheets: "22.2 kB" },
     ],
     [
       "features/market-data/stock-page",
-      { javascript: "229.5 kB", stylesheets: "22.9 kB" },
+      { javascript: "229.8 kB", stylesheets: "22.9 kB" },
     ],
     [
       "features/trading/ticket-page",
-      { javascript: "237.3 kB", stylesheets: "25.8 kB" },
+      { javascript: "237.6 kB", stylesheets: "25.8 kB" },
     ],
     [
       "features/grading/class-portfolios-page",
@@ -54,7 +54,7 @@ const measuredRoutes: ReadonlyMap<string, Partial<ClientRouteLimits>> = new Map(
     ],
     [
       "features/grading/student-measures-page",
-      { javascript: "226.7 kB", stylesheets: "22.4 kB" },
+      { javascript: "230.9 kB", stylesheets: "23.3 kB" },
     ],
     [
       "features/grading/student-journal-page",
@@ -66,7 +66,7 @@ const measuredRoutes: ReadonlyMap<string, Partial<ClientRouteLimits>> = new Map(
 export function clientRouteLimits(id: string): ClientRouteLimits {
   const measured = measuredRoutes.get(id);
   return {
-    javascript: id === "root" ? "142.6 kB" : (measured?.javascript ?? "200 kB"),
+    javascript: id === "root" ? "142.8 kB" : (measured?.javascript ?? "200 kB"),
     stylesheets: measured?.stylesheets ?? "20 kB",
   };
 }
