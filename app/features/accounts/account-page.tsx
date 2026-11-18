@@ -44,7 +44,7 @@ interface PasswordAnswer extends NewPasswordFailures {
 
 /** The answer to the form that the person sent. Each form shows only its own answer. */
 interface AccountAnswer {
-  nim?: NimAnswer;
+  nim: NimAnswer | undefined;
   name: NameAnswer | undefined;
   password: PasswordAnswer | undefined;
 }
@@ -116,6 +116,7 @@ async function changeName(
           },
         },
         password: undefined,
+        nim: undefined,
       },
       { status: 400 },
     );
@@ -130,6 +131,7 @@ async function changeName(
       field: { name: name.value, nameFailure: undefined },
     },
     password: undefined,
+    nim: undefined,
   });
 }
 
@@ -148,6 +150,7 @@ async function changePassword(
     return data(
       {
         name: undefined,
+        nim: undefined,
         password: {
           savedAt: undefined,
           failure: undefined,
@@ -185,6 +188,7 @@ async function changePassword(
     return data(
       {
         name: undefined,
+        nim: undefined,
         password: {
           savedAt: undefined,
           ...placePasswordFailure(checked.failure, text),
@@ -200,6 +204,7 @@ async function changePassword(
   return data(
     {
       name: undefined,
+      nim: undefined,
       password: {
         savedAt: now.toISOString(),
         failure: undefined,

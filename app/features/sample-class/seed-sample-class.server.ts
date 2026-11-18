@@ -223,7 +223,7 @@ export async function seedSampleClass(
             : new Date(
                 firstOrder.accepted.placedAt.getTime() - minuteMilliseconds,
               );
-        // The seed is loaded at startup, so its generated identifiers avoid localized form parsers.
+        // The prefix marks each NIM as made up, so that no NIM of the sample belongs to a real student.
         joinClass(
           database,
           { classId, studentId: person.id, nim: `CONTOH-${String(index)}` },

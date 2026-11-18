@@ -55,9 +55,10 @@ for (const locale of locales) {
       ok: false,
       failure: texts[locale].far,
     });
-    expect(parseStudentNim(" ".repeat(nimMaximumLength) + "1", "NIM").ok).toBe(
-      false,
-    );
+    const longest = "W".repeat(nimMaximumLength);
+    expect(
+      parseStudentNim(` ${" ".repeat(nimMaximumLength)}${longest} `, "NIM"),
+    ).toEqual({ ok: true, value: longest });
     expect(parseStudentNim(new File(["123"], "nim.txt"), "NIM").ok).toBe(false);
   });
 }

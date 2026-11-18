@@ -4,7 +4,6 @@ import { formatList, formatNumber } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { fail, succeed } from "~/result";
 import type { Result } from "~/result";
-
 import { nimMaximumLength } from "./nim-maximum-length";
 
 const nimCharacters = {
@@ -34,10 +33,10 @@ export function parseStudentNim(
 ): Result<string | null, string> {
   const text = parseOptionalText(value, source);
   if (!text.ok) return text;
-  const bounded = checkMaximumLength(text.value, source, nimMaximumLength);
-  if (!bounded.ok) return bounded;
-  const nim = bounded.value.trim();
+  const nim = text.value.trim();
   if (nim === "") return succeed(null);
+  const bounded = checkMaximumLength(nim, source, nimMaximumLength);
+  if (!bounded.ok) return bounded;
   for (const character of nim) {
     if (!includesCharacter(nimCharacters, character))
       return fail(

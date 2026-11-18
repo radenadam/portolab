@@ -10,15 +10,15 @@ The second cut of [the rebuild](https://github.com/radenadam/portolab/issues/127
 ## Decision
 
 - A NIM is optional and belongs to a membership. Both a visitor creating an account and a signed-in student can give it when joining a class. Joining again never overwrites it.
-- `parseStudentNim` in `app/features/classes/student-nim.ts` owns its length and form. It accepts ASCII letters, digits, dots, slashes, and hyphens. It trims surrounding whitespace and preserves leading zeroes and letter case. The length bound applies to the whole field as sent before trimming. An empty or omitted field stores null. NIMs need not be unique because Portolab does not verify an institution's numbering.
-- Mahasiswa and its panel show the NIM under the name, in DM Mono, with the username as the fallback. Search accepts name, NIM, or username. The lecturer's student pages show the NIM under the name and keep the username in the activity line. The workbook adds a text column for NIM, which stays empty when none was given, and keeps the username column.
+- `parseStudentNim` in `app/features/classes/student-nim.ts` owns its length and form. It accepts ASCII letters, digits, dots, slashes, and hyphens. It trims the spaces around the NIM before it counts the length, as the rules of names and usernames do, so its error counts the characters that the reader sees. It preserves leading zeroes and letter case. An empty or omitted field stores null. NIMs need not be unique because Portolab does not verify an institution's numbering.
+- Mahasiswa and its panel show the NIM under the name, in DM Mono, with the username as the fallback. Search accepts name, NIM, or username. The lecturer's student pages show the NIM in the line under the name, before the latest order, as the reference does, with the username as the fallback. The workbook adds a text column for NIM, which stays empty when none was given, and keeps the username column.
 - A student corrects or removes each class's NIM on the account page, through the same field and parser. Only the signed-in student changes it, without a password or a new session, as with the name under [decision 0024](0024-a-person-changes-their-own-name-on-the-page-of-the-account.md). Lecturers cannot change it.
 - The NIM is removed when the student clears it or the membership is deleted. The student, the class's lecturer, and the server owner can see it. Classmates never receive it. Personal-data exports include it and deletion removes it with the membership.
 - The sample command gives every synthetic student a NIM prefixed with `CONTOH-`, so its identifiers are visibly fictional.
 
 ### Client measurements
 
-These measurements compare main at `a63a054` with this change at `875bd85`, using `pnpm build` and `pnpm size` and the dependency walk and gzip method of [decision 0038](0038-client-javascript-is-budgeted-by-route.md). Both languages count. The new shared NIM field grows the route manifest on every page, even though the field itself loads only with joining and the account page.
+These measurements compare main at `a63a054` with this change, using `pnpm build` and `pnpm size` and the dependency walk and gzip method of [decision 0038](0038-client-javascript-is-budgeted-by-route.md). Both languages count. The new shared NIM field grows the route manifest on every page, even though the field itself loads only with joining and the account page.
 
 | Dependency set   | JavaScript before, kB | JavaScript after, kB | CSS before, kB | CSS after, kB |
 | ---------------- | --------------------: | -------------------: | -------------: | ------------: |
@@ -27,9 +27,9 @@ These measurements compare main at `a63a054` with this change at `875bd85`, usin
 | Join a class     |                149.14 |               149.98 |           7.88 |          7.88 |
 | Privacy          |                145.28 |               145.46 |           7.88 |          7.88 |
 | Students         |                184.38 |               184.42 |          17.89 |         17.89 |
-| Student summary  |                205.81 |               205.88 |          21.70 |         21.72 |
-| Student analysis |                204.98 |               205.04 |          19.81 |         19.83 |
-| Student journal  |                196.59 |               196.66 |          19.13 |         19.14 |
+| Student summary  |                205.81 |               205.93 |          21.70 |         21.73 |
+| Student analysis |                204.98 |               205.10 |          19.81 |         19.84 |
+| Student journal  |                196.59 |               196.72 |          19.13 |         19.15 |
 | Ticket           |                223.09 |               223.12 |          23.64 |         23.64 |
 
 Every measured route fits the existing ceilings, including the [market map allowances](0056-the-market-map-has-measured-route-allowances.md) and [theme allowances](0057-theme-choice-has-measured-shared-and-route-allowances.md). This change adds no allowance.

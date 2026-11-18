@@ -242,7 +242,7 @@ for (const locale of locales) {
     page,
     browser,
   }, testInfo) => {
-    const { student, classPath } = await studentWithPortfolio(page, browser, {
+    const { student } = await studentWithPortfolio(page, browser, {
       locale,
     });
     const other = await createTestClass(page, "NIM signup");
@@ -298,14 +298,26 @@ for (const locale of locales) {
       await visitor.reload();
       await expect(field).toHaveValue("00002-a");
       await student.goto(other.joinPath);
-      await student
-        .getByRole("button", { name: text.join, exact: true })
-        .click();
+      const joinField = student.getByRole("textbox", {
+        name: "NIM",
+        exact: true,
+      });
+      await joinField.fill("bad nim");
+      const join = student.getByRole("button", {
+        name: text.join,
+        exact: true,
+      });
+      await join.click();
+      await expect(
+        student.getByText(text.format, { exact: true }),
+      ).toBeVisible();
+      await expect(joinField).toHaveValue("bad nim");
+      await joinField.fill("");
+      await join.click();
       await expect(student).toHaveURL(other.path);
       await student.goto("/account");
       await expect(student.locator('input[name="nim"]').nth(0)).toHaveValue("");
       await expect(student.locator('input[name="nim"]').nth(1)).toHaveValue("");
-      await page.goto(`${classPath}/students`);
     } finally {
       await visitor.context().close();
       await student.context().close();

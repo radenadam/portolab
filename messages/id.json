@@ -741,6 +741,8 @@
   "grading_student_page_title": "{section} {name} di {class}",
   "grading_student_activity_notice": "Nama pengguna {username} · Order terakhir {time}",
   "grading_student_no_activity_notice": "Nama pengguna {username} · Belum pernah memasang order",
+  "grading_student_nim_activity_notice": "NIM {nim} · Order terakhir {time}",
+  "grading_student_nim_no_activity_notice": "NIM {nim} · Belum pernah memasang order",
   "market_data_back_to_student_summary_link": "Kembali ke Ringkasan mahasiswa",
   "market_data_back_to_student_analysis_link": "Kembali ke Analisis mahasiswa",
   "market_data_back_to_student_journal_link": "Kembali ke Jurnal dan order mahasiswa",

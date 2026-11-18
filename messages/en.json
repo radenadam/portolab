@@ -741,6 +741,8 @@
   "grading_student_page_title": "{section} of {name} in {class}",
   "grading_student_activity_notice": "Username {username} · Latest order {time}",
   "grading_student_no_activity_notice": "Username {username} · No orders yet",
+  "grading_student_nim_activity_notice": "NIM {nim} · Latest order {time}",
+  "grading_student_nim_no_activity_notice": "NIM {nim} · No orders yet",
   "market_data_back_to_student_summary_link": "Back to student Summary",
   "market_data_back_to_student_analysis_link": "Back to student Analysis",
   "market_data_back_to_student_journal_link": "Back to student Journal and orders",

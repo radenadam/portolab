@@ -44,7 +44,7 @@ type JoinState =
 
 /** The answer of the action to a form that it did not accept: why each field was not accepted, why the form was not accepted apart from its fields, and the state of the page when it changed since the page loaded. */
 interface JoinAnswer {
-  nimField?: NimFieldValue;
+  nimField: NimFieldValue | undefined;
   fields: AccountFormFailures | undefined;
   failure: string | undefined;
   state: JoinState | undefined;
@@ -133,6 +133,7 @@ export async function action({
     return data<JoinAnswer>(
       {
         fields: undefined,
+        nimField: undefined,
         failure: undefined,
         state: { kind: "codeForm", code: params.code, failure: found.failure },
       },
@@ -144,7 +145,12 @@ export async function action({
     case "lecturer":
       // The page of a lecturer has no form for joining, so a form comes here only from a page that loaded before a lecturer signed in, or from a forged one, and the answer explains why a lecturer cannot join.
       return data<JoinAnswer>(
-        { fields: undefined, failure: undefined, state: { kind: "lecturer" } },
+        {
+          fields: undefined,
+          nimField: undefined,
+          failure: undefined,
+          state: { kind: "lecturer" },
+        },
         { status: 403 },
       );
     case "student": {

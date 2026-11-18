@@ -81,32 +81,8 @@ export function TaughtStudentPage({
           <h1>
             <NumberText verbatim>{student.name}</NumberText>
           </h1>
-          {student.nim !== null && (
-            <p className={styles["nim"]}>
-              <NumberText verbatim>{student.nim}</NumberText>
-            </p>
-          )}
           <p>
-            {student.latestActivity === undefined ? (
-              <Message
-                text={m.grading_student_no_activity_notice}
-                values={{
-                  username: (
-                    <NumberText verbatim>{student.username}</NumberText>
-                  ),
-                }}
-              />
-            ) : (
-              <Message
-                text={m.grading_student_activity_notice}
-                values={{
-                  username: (
-                    <NumberText verbatim>{student.username}</NumberText>
-                  ),
-                  time: <MarketTime moment={student.latestActivity} />,
-                }}
-              />
-            )}
+            <IdentityLine student={student} />
           </p>
         </div>
       </header>
@@ -133,5 +109,39 @@ export function TaughtStudentPage({
       </nav>
       {children}
     </div>
+  );
+}
+
+/** The lecturer knows a student by the NIM that the student gave for the class, as in Mahasiswa, and by the username without one. */
+function IdentityLine({ student }: { student: TaughtStudent }): ReactNode {
+  const { nim, username, latestActivity } = student;
+  if (nim === null) {
+    const usernameText = <NumberText verbatim>{username}</NumberText>;
+    return latestActivity === undefined ? (
+      <Message
+        text={m.grading_student_no_activity_notice}
+        values={{ username: usernameText }}
+      />
+    ) : (
+      <Message
+        text={m.grading_student_activity_notice}
+        values={{
+          username: usernameText,
+          time: <MarketTime moment={latestActivity} />,
+        }}
+      />
+    );
+  }
+  const nimText = <NumberText verbatim>{nim}</NumberText>;
+  return latestActivity === undefined ? (
+    <Message
+      text={m.grading_student_nim_no_activity_notice}
+      values={{ nim: nimText }}
+    />
+  ) : (
+    <Message
+      text={m.grading_student_nim_activity_notice}
+      values={{ nim: nimText, time: <MarketTime moment={latestActivity} /> }}
+    />
   );
 }
