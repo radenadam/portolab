@@ -1,6 +1,6 @@
 # 0054. Trade impact has measured allowances for its combined screens
 
-- Status: Accepted. [Decision 0055](0055-price-times-and-the-filled-ticket-have-measured-allowances.md) replaces its JavaScript ceilings for the stock page, the ticket, Analisis, and demonstration analysis. [Decision 0056](0056-the-market-map-has-measured-route-allowances.md) replaces its shared JavaScript ceiling. [Decision 0058](0058-a-personal-watchlist-has-measured-route-allowances.md) replaces its stock page CSS ceiling.
+- Status: Accepted. [Decision 0055](0055-price-times-and-the-filled-ticket-have-measured-allowances.md) replaces its JavaScript ceilings for the stock page, the ticket, Analisis, and demonstration analysis. [Decision 0056](0056-the-market-map-has-measured-route-allowances.md) replaces its shared JavaScript ceiling. [Decision 0060](0060-a-personal-watchlist-has-measured-route-allowances.md) replaces its stock page CSS ceiling.
 - Date: 2026-11-17
 
 ## Context

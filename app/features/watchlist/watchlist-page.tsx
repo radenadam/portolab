@@ -1,5 +1,4 @@
 import { data, redirect } from "react-router";
-import type { ReactNode } from "react";
 import { databaseContext } from "~/database/database.server";
 import { requireUser } from "~/features/accounts/current-session.server";
 import { requireReaderClass } from "~/features/classes/require-reader-class.server";
@@ -11,14 +10,8 @@ import { setWatched } from "./watchlist-store.server";
 import { watchedAfter, watchlistOperations } from "./watchlist-path";
 import type { Route } from "./+types/watchlist-page";
 
-export function loader() {
-  throw data(null, { status: 404 });
-}
-
-/** Its GET refusal needs the app's HTML error boundary, so this remains a page route. */
-export default function WatchlistPage(): ReactNode {
-  return null;
-}
+// A star only sends its form to this address, so a reader who opens it gets the page of an address that does not exist, in the reader's language.
+export { loader, meta, default } from "~/not-found-page";
 
 export async function action({
   context,

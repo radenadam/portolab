@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "bcbe092e-cab5-42bf-95ca-41c72ec71b9e",
+  "id": "5a083be2-ac8d-44fd-990e-fbc23f698ab4",
   "prevId": "95ea57a6-b856-4ef6-b876-babed8766fec",
   "tables": {
     "sessions": {
@@ -237,6 +237,13 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false
+        },
+        "home_dismissed_at": {
+          "name": "home_dismissed_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
           "autoincrement": false
         }
       },
@@ -859,52 +866,6 @@
           "value": "(\"portfolios\".\"membership_id\" IS NOT NULL) != (\"portfolios\".\"demonstration_class_id\" IS NOT NULL)"
         }
       }
-    },
-    "watchlist": {
-      "name": "watchlist",
-      "columns": {
-        "user_id": {
-          "name": "user_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "code": {
-          "name": "code",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "added_at": {
-          "name": "added_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "watchlist_user_id_users_id_fk": {
-          "name": "watchlist_user_id_users_id_fk",
-          "tableFrom": "watchlist",
-          "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {
-        "watchlist_user_id_code_pk": {
-          "columns": ["user_id", "code"],
-          "name": "watchlist_user_id_code_pk"
-        }
-      },
-      "uniqueConstraints": {},
-      "checkConstraints": {}
     }
   },
   "views": {},

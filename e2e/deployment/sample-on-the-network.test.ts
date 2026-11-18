@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { isIP } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -25,14 +25,18 @@ import { openJoinDetails } from "../class-controls.ts";
 import { newDevice } from "../new-device.ts";
 import { languageNames } from "../../app/language-names.ts";
 import { expectAccessibleScreen } from "../expect-accessible-screen.ts";
+import { companyLogoForTest } from "../../app/features/market-data/company-logo-for-test.ts";
+import { companyLogoPath } from "../../app/features/market-data/company-logo-paths.ts";
 
 // The optional guide shares one service and site file, so each device finishes its whole lifecycle before another starts.
 test.describe.configure({ mode: "serial" });
 
 let folder: string;
-let composeFile: string;
+let composeFiles: { withLogos: string; withoutLogos: string };
 let output: string;
 let liveBefore: string;
+let companyLogosPath: string;
+let preparedTile: string;
 
 const sampleBlocks = successValueForTest(
   splitAtSample(
@@ -51,7 +55,10 @@ const sampleBlocks = successValueForTest(
 // Stored recordings and a fixed clock let the production seeder run after the fixture's semester, with the same fixture source as the live deployment test.
 const seedWithRecordings = `node --input-type=module --eval 'import { openDatabase, closeDatabase } from "./app/database/database.server.ts"; import { saveSampleHistoryForTest, sampleMomentForTest } from "./app/features/sample-class/sample-prices-for-test.server.ts"; import { parseDatabasePath } from "./server/server-options.ts"; import { sampleClass } from "./server/sample-class.ts"; const path = parseDatabasePath(process.env.DATABASE_PATH, "DATABASE_PATH"); if (!path.ok) throw new Error(path.failure); const database = openDatabase(path.value, "./migrations"); try { saveSampleHistoryForTest(database); } finally { closeDatabase(database); } await sampleClass(process.env, () => sampleMomentForTest);'`;
 
-function runSection(section: string): string {
+function runSection(
+  section: string,
+  composeFile = composeFiles.withLogos,
+): string {
   const block = sampleBlocks.find((candidate) => candidate.section === section);
   if (block === undefined)
     throw new Error(`The guide has no commands in "${section}".`);
@@ -60,14 +67,16 @@ function runSection(section: string): string {
     [
       "env",
       `COMPOSE_FILE=${composeFile}`,
+      `COMPANY_LOGOS_PATH=${companyLogosPath}`,
       "bash",
       "-euo",
       "pipefail",
       "-c",
-      block.commands.replaceAll(
-        "node server/sample-class.ts",
-        seedWithRecordings,
-      ),
+      block.commands
+        .replaceAll("node server/sample-class.ts", seedWithRecordings)
+        .replaceAll("/root/logo-input/BBCA.png", preparedTile)
+        .replaceAll("/var/lib/portolab/company-logos", companyLogosPath)
+        .replaceAll("compose.yaml:compose.logos.yaml", composeFile),
     ],
     {
       encoding: "utf8",
@@ -100,13 +109,31 @@ function liveRecords(): string {
 test.beforeAll(() => {
   folder = mkdtempSync(join(tmpdir(), "portolab-sample-deployment-"));
   const prices = join(folder, "prices.yaml");
+  // Public generated tiles must be reachable by the container's separate user.
+  chmodSync(folder, 0o755);
+  companyLogosPath = join(folder, "generated-tiles");
+  preparedTile = join(folder, "prepared.png");
+  writeFileSync(preparedTile, companyLogoForTest("square"), { mode: 0o644 });
   writeFileSync(
     prices,
-    "services:\n  sample:\n    environment:\n      PRICE_SOURCE: fixture\n",
+    "services:\n  app: &prices\n    environment:\n      PRICE_SOURCE: fixture\n  sample:\n    <<: *prices\n",
   );
-  composeFile = `${serverFolder}/compose.yaml:${prices}`;
+  composeFiles = {
+    withLogos: `${serverFolder}/compose.yaml:${serverFolder}/compose.logos.yaml:${prices}`,
+    withoutLogos: `${serverFolder}/compose.yaml:${prices}`,
+  };
   liveBefore = liveRecords();
+  runSection("Prepare company logo files");
   runSection("Start the sample");
+  runSection("Start with company logos");
+  // A later command of the guide, such as an update in a new shell, sets neither variable, so Compose must read the override and the folder from .env.
+  expect(
+    execFileSync("sudo", ["docker", "compose", "config", "app"], {
+      cwd: serverFolder,
+      encoding: "utf8",
+      timeout: minuteMilliseconds,
+    }),
+  ).toContain(`source: ${companyLogosPath}`);
   output = runSection("Fill the sample");
 });
 
@@ -137,31 +164,38 @@ test.afterAll(() => {
     ).toBe("31\n1");
   } finally {
     try {
-      runSection("Remove the sample");
-      expect(
-        docker(
-          "volume",
-          "ls",
-          "--quiet",
-          "--filter",
-          "name=portolab_sample-data",
-        ),
-      ).toBe("");
-      expect(liveRecords()).toBe(liveBefore);
-      expect(
-        docker(
-          "compose",
-          "--project-directory",
-          serverFolder,
-          "ps",
-          "--status",
-          "running",
-          "--quiet",
-          "app",
-        ),
-      ).not.toBe("");
+      runSection("Stop company logos", composeFiles.withoutLogos);
     } finally {
-      rmSync(folder, { recursive: true, force: true });
+      try {
+        runSection("Remove the sample", composeFiles.withoutLogos);
+        expect(
+          docker(
+            "volume",
+            "ls",
+            "--quiet",
+            "--filter",
+            "name=portolab_sample-data",
+          ),
+        ).toBe("");
+        expect(liveRecords()).toBe(liveBefore);
+        expect(
+          docker(
+            "compose",
+            "--project-directory",
+            serverFolder,
+            "ps",
+            "--status",
+            "running",
+            "--quiet",
+            "app",
+          ),
+        ).not.toBe("");
+      } finally {
+        // The guide copies the tiles as root, so only root can remove them.
+        execFileSync("sudo", ["rm", "--recursive", "--", folder], {
+          timeout: minuteMilliseconds,
+        });
+      }
     }
   }
 });
@@ -213,6 +247,7 @@ for (const locale of locales) {
       },
     ]) {
       runSection(site.section);
+      await expectPreparedTile(page, site.address);
       for (const role of ["lecturer", "student"] as const) {
         await exploreSampleAs(browser, locale, {
           site,
@@ -223,8 +258,16 @@ for (const locale of locales) {
       // The deployment workflow installs its local certificate authority in Chromium's trust store.
       const liveHealth = await page.goto(`https://${testDomain}/health`);
       expect(liveHealth?.ok()).toBe(true);
+      await expectPreparedTile(page, `https://${testDomain}`);
     }
   });
+}
+
+// The request context of Playwright runs in Node, which does not trust the local certificate authority of Caddy, so the browser opens the tile.
+async function expectPreparedTile(page: Page, origin: string): Promise<void> {
+  const tile = await page.goto(`${origin}${companyLogoPath("BBCA")}`);
+  expect(tile?.status()).toBe(200);
+  expect(await tile?.body()).toEqual(companyLogoForTest("square"));
 }
 
 async function exploreSampleAs(

@@ -13,6 +13,7 @@ import {
   parseDatabasePath,
   parsePort,
   parsePriceSource,
+  parseCompanyLogosPath,
 } from "./server-options.ts";
 import type { Mode, ServiceSettings } from "./server-options.ts";
 
@@ -43,14 +44,31 @@ const databasePath = parseDatabasePath(
   process.env["DATABASE_PATH"],
   "DATABASE_PATH",
 );
-if (!commandLine.ok || !port.ok || !priceSource.ok || !databasePath.ok) {
+const companyLogosPath = parseCompanyLogosPath(
+  process.env["COMPANY_LOGOS_PATH"],
+  "COMPANY_LOGOS_PATH",
+);
+if (
+  !commandLine.ok ||
+  !port.ok ||
+  !priceSource.ok ||
+  !databasePath.ok ||
+  !companyLogosPath.ok
+) {
   exitWithFailure(
-    failuresOf([commandLine, port, priceSource, databasePath]),
+    failuresOf([
+      commandLine,
+      port,
+      priceSource,
+      databasePath,
+      companyLogosPath,
+    ]),
     writeError,
   );
 }
 const { mode, hotReloadPort } = commandLine.value;
 const settings: ServiceSettings = {
+  companyLogosPath: companyLogosPath.value,
   priceSource: priceSource.value,
   databasePath: databasePath.value,
   migrationsFolder: join(import.meta.dirname, "..", migrationsFolderName),

@@ -55,4 +55,6 @@
 0055-price-times-and-the-filled-ticket-have-measured-allowances.md
 0056-the-market-map-has-measured-route-allowances.md
 0057-theme-choice-has-measured-shared-and-route-allowances.md
-0058-a-personal-watchlist-has-measured-route-allowances.md
+0058-home-outcomes-have-a-measured-route-allowance.md
+0059-the-owner-supplies-company-logos-outside-the-repository.md
+0060-a-personal-watchlist-has-measured-route-allowances.md

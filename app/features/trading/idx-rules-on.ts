@@ -1,13 +1,12 @@
+import { idxOrderSize } from "./idx-order-size";
 import { periodOf } from "~/period-of";
 import type { DatePeriod } from "~/period-of";
 import { fail, failuresOf, succeed } from "~/result";
 import type { Result } from "~/result";
 import { listOfWords } from "~/sentences";
-import { lots } from "~/units/lots";
 import type { Lots } from "~/units/lots";
 import { rupiah } from "~/units/rupiah";
 import type { Rupiah } from "~/units/rupiah";
-import { shares } from "~/units/shares";
 import type { Shares } from "~/units/shares";
 import { oneRupiahLimit, rateLimit } from "./price-limits";
 import type { PriceLimit } from "./price-limits";
@@ -62,15 +61,7 @@ export interface IdxRules {
 }
 
 // The rule limits an order to 5% of the listed shares of the stock as well, but every stock of the LQ45 has more than 100 million listed shares, so 50,000 lots of 100 shares is always the smaller limit.
-const orderSizeRules: readonly OrderSizeRule[] = [
-  {
-    from: "2014-01-06",
-    lotShares: shares(100),
-    maximumLots: lots(50_000),
-    source:
-      "Kep-00071/BEI/11-2013 of 8 November 2013, as detikFinance and Okezone reported it",
-  },
-];
+const orderSizeRules: readonly OrderSizeRule[] = [idxOrderSize];
 
 // The tick table of IDX also lists a largest price step for each band, which no report explains, so Portolab leaves it out until issue #32 settles what it limits.
 const tickRules: readonly TickRule[] = [

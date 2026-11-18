@@ -176,6 +176,7 @@ function StockPageContent({
           )}
           <StockStatistics stock={stock} />
           <StockImpact
+            classId={classId}
             portfolioKind={stock.portfolioKind}
             code={code}
             ticket={stock.tradePreview}
@@ -190,7 +191,7 @@ function StockPageContent({
               data-stock-trade="buy"
               className={styles["buy"]}
               to={{
-                pathname: `${stockPath(classId, code)}/buy`,
+                pathname: stockPath(classId, code, "buy"),
                 search: location.search,
               }}
               preventScrollReset
@@ -201,7 +202,7 @@ function StockPageContent({
               data-stock-trade="sell"
               className={styles["sell"]}
               to={{
-                pathname: `${stockPath(classId, code)}/sell`,
+                pathname: stockPath(classId, code, "sell"),
                 search: location.search,
               }}
               preventScrollReset

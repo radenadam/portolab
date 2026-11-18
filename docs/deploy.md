@@ -243,7 +243,7 @@ Each warning names its day and what it lacks. From the end of session II of the 
 
 ## Personal data
 
-The privacy notice at `https://portolab.example.com/privacy` tells each person what Portolab stores about them, how long it keeps each record, and that you keep the database. Portolab deletes each record by itself when the notice gives the record a time. It keeps every other record, which means the accounts, the classes, the watchlists, and the work of students and lecturers, until you delete it. A person also removes an entry of their own watchlist with its star. The daily backups keep a copy of each record until each backup is 14 days old.
+The privacy notice at `https://portolab.example.com/privacy` tells each person what Portolab stores about them, how long it keeps each record, and that you keep the database. Portolab deletes each record by itself when the notice gives the record a time. It keeps every other record, which means the accounts, the classes, the watchlists, and the work of students and lecturers, until you delete it. The membership record also keeps `home_dismissed_at`, which is the cutoff of the newest Home summary that the student closed in that class. It is deleted with the membership. A person can remove an entry of their own watchlist with its star. The daily backups keep a copy of each record until each backup is 14 days old.
 
 The law on personal data protection of Indonesia gives each person the right to see, correct, and delete their data, and to withdraw their agreement to the privacy notice. A person changes their own name and their watchlist in Portolab, and the notice sends every other request to you, such as a copy of all their data or the deletion of their account, so the next sections show how to answer each one.
 
@@ -494,3 +494,46 @@ Remove-NetFirewallRule -Name "PortolabSampleHTTP"
 ```
 
 The Windows network profile and WSL networking mode can stay as they are. Removing the sample changes no other site's network rules.
+
+## Optional company logos
+
+Portolab ships monogram tiles. The owner may supply company logos from a folder outside the checkout, as [decision 0059](decisions/0059-the-owner-supplies-company-logos-outside-the-repository.md) explains. The app serves accepted files itself, so readers never contact the source websites. [The prototype's source list](company-logo-sources.md) records its public addresses and which part of each mark it used. Download and inspect files yourself. The repository includes no trademarks or downloader that runs during startup, a build, or sample creation.
+
+Prepare one file per stock code, with an uppercase name such as `BBCA.png`. Export a static, non-interlaced PNG with 8-bit RGBA pixels at 96 by 96 pixels, with at most 100,000 bytes. In an image editor, crop to the mark that reads at a small size and center it on a white square. For a mark at least 1.6 times wider than tall, leave 3 pixels on each horizontal edge. For a square mark, leave 8 pixels around its longest dimension. Keep the aspect ratio. The app uses the whole prepared tile at each display size and keeps its white ground in both themes.
+
+Keep that folder outside `/opt/portolab`, for example at `/var/lib/portolab/company-logos`. The container user needs permission to traverse its parent folders and read the PNG files. These files are public images, so do not put private files in that folder. Portolab accepts regular files only, ignores other stock codes and formats, and logs a rejected or unreadable file while keeping its monogram. It reads the folder at startup, so restart each service after adding, replacing, or removing a tile.
+
+For a laptop started without Docker, set `COMPANY_LOGOS_PATH` to your external folder before `pnpm start` or `pnpm dev`. Relative paths resolve from the directory where you start the server. When the variable is unset, all tiles keep their monograms. A missing image uses its monogram before JavaScript loads, and a failed image request returns to it after hydration.
+
+### Prepare company logo files
+
+As root, create the public folder and copy each prepared file into it. Replace `/root/logo-input/BBCA.png` with the path of your inspected tile, and keep its stock code as the destination name:
+
+```sh
+install --directory --mode=755 /var/lib/portolab/company-logos
+install --mode=644 /root/logo-input/BBCA.png /var/lib/portolab/company-logos/BBCA.png
+```
+
+### Start with company logos
+
+The optional [Compose override](../compose.logos.yaml) mounts the folder read-only in the live and sample services. These commands write `.env` in `/opt/portolab`, which names the override and the folder, and then start both services with the logos. Compose reads `.env` for every command in `/opt/portolab`, so an update, a backup, a restore, and a reset of the sample keep the logos. Git ignores `.env`, so `git pull` keeps it:
+
+```sh
+cd /opt/portolab
+printf '%s\n' COMPOSE_FILE=compose.yaml:compose.logos.yaml COMPANY_LOGOS_PATH=/var/lib/portolab/company-logos > .env
+docker compose up --detach --build --wait app
+docker compose --profile sample up --detach --build --wait sample
+```
+
+Run the last command only when you use the sample service. Both services read the same public tiles and keep their own database volumes. When the folder is missing, Docker creates it empty, so every tile keeps its monogram and no backup or update stops. To reload tiles without rebuilding, run `docker compose restart app` and, when the sample runs, `docker compose restart sample`. Then reload open pages so they receive the new list of tiles.
+
+### Stop company logos
+
+These commands delete the `.env` that the commands of the previous section wrote, and then start both services again without the override, so every tile shows its monogram. Run the last command only when you use the sample service:
+
+```sh
+cd /opt/portolab
+rm .env
+docker compose up --detach --wait app
+docker compose --profile sample up --detach --wait sample
+```

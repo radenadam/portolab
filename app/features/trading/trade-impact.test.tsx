@@ -23,6 +23,9 @@ import {
   bbcaForTest,
 } from "./orders-for-test";
 import { readTicket } from "./read-ticket.server";
+import type { ClassId } from "~/features/classes/classes.schema";
+
+const classId = 7 as ClassId;
 
 // Python Decimal of preview-trade.test.ts also gives the trade cost as 9.1% of the portfolio when rounded to one decimal.
 const texts: Record<
@@ -147,11 +150,29 @@ const texts: Record<
 
 for (const locale of locales) {
   const text = texts[locale];
+  test(`keeps the buy ticket and learning context from the stock and both ticket sides in ${languageNames[locale]}`, async () => {
+    switchLocaleForTest(locale);
+    const { ticket } = await tradePortfolioForTest();
+    for (const path of [
+      "/classes/7/stocks/BBCA",
+      "/classes/7/stocks/BBCA/buy",
+      "/classes/7/stocks/BBCA/sell",
+    ]) {
+      const html = renderMarkupForTest(
+        <StockImpact classId={classId} ticket={ticket} code="BBCA" />,
+        conceptLessonDataForTest(),
+        `${path}?range=3m&lessonTask=9&lots=3&placed=77`,
+      );
+      expect(html).toContain(
+        'href="/classes/7/stocks/BBCA/buy?range=3m&amp;lessonTask=9&amp;lots=10"',
+      );
+    }
+  });
   test(`shows the preview, its calculations, and each cash state in ${languageNames[locale]}`, async () => {
     switchLocaleForTest(locale);
     const { ticket, database, portfolio } = await tradePortfolioForTest();
     const html = renderMarkupForTest(
-      <StockImpact ticket={ticket} code="BBCA" />,
+      <StockImpact classId={classId} ticket={ticket} code="BBCA" />,
       conceptLessonDataForTest(),
     );
     for (const label of [
@@ -181,7 +202,7 @@ for (const locale of locales) {
       expect(ticket.available).toBe(cash);
       expect(
         renderMarkupForTest(
-          <StockImpact ticket={ticket} code="BBCA" />,
+          <StockImpact classId={classId} ticket={ticket} code="BBCA" />,
           conceptLessonDataForTest(),
         ),
       ).toContain(markupTextForTest(expected));
@@ -194,6 +215,7 @@ for (const locale of locales) {
       expect(
         renderMarkupForTest(
           <StockImpact
+            classId={classId}
             ticket={{ ...ticket, impact: fail([...codes]) }}
             code="BBCA"
           />,
@@ -215,6 +237,7 @@ for (const locale of locales) {
       expect(
         renderMarkupForTest(
           <StockImpact
+            classId={classId}
             code="BBCA"
             ticket={{ ...ticket, day: fail(records) }}
             portfolioKind={portfolioKind}

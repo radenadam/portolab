@@ -9,6 +9,7 @@ export async function captureScreens(
     name: string;
     fullPage: boolean;
     fromTop: boolean;
+    width?: number | undefined;
     check?: () => Promise<void>;
   },
 ): Promise<void> {
@@ -22,7 +23,11 @@ export async function captureScreens(
     });
   }
   await page.mouse.move(0, 0);
-  for (const width of screenshotWidths(testInfo)) {
+  const widths =
+    screen.width === undefined
+      ? screenshotWidths(testInfo.project.name)
+      : [screen.width];
+  for (const width of widths) {
     await page.setViewportSize({ width, height: 900 });
     for (const colorScheme of ["light", "dark"] as const) {
       await page.emulateMedia({ colorScheme });

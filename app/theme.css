@@ -20,6 +20,8 @@
   --color-warning: light-dark(#8a5a00, #e9b44c);
   --color-on-button: light-dark(#ffffff, #0f1317);
   --color-link: light-dark(#1a5fba, #7db3f5);
+  /* A company draws its logo for a white ground, so the tile of a logo stays white in both themes, as in the prototype. */
+  --color-logo-ground: #ffffff;
   --color-data-soft: light-dark(
     rgba(31, 111, 214, 0.1),
     rgba(57, 135, 229, 0.18)
@@ -166,9 +168,12 @@
   --size-side-tag: 2.5rem;
   --size-tile: 2rem;
   --size-tile-small: 1.625rem;
+  --size-tile-large: 2.75rem;
   --radius-button: 0.375rem;
   --radius-choice: 0.4375rem;
   --radius-tile: 0.5625rem;
+  --radius-tile-small: 0.4375rem;
+  --radius-tile-large: 0.75rem;
   --radius-item: 0.625rem;
   --radius-panel: 0.875rem;
   --height-learning-sheet: 53.75rem;

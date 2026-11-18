@@ -59,6 +59,9 @@
     "app/features/learning/glossary-query-maximum-length.ts",
     "app/features/learning/guide-section-ids.ts",
     "app/features/market-data/build-daily-history.ts",
+    "app/features/market-data/company-logo-for-test.ts",
+    "app/features/market-data/company-logo-format.ts",
+    "app/features/market-data/company-logo-paths.ts",
     "app/features/market-data/fixture-history.ts",
     "app/features/market-data/history-store.server.ts",
     "app/features/market-data/idx-calendar.ts",
@@ -75,9 +78,11 @@
     "app/features/sample-class/sample-close-recordings-for-test.ts",
     "app/features/theme/theme.ts",
     "app/features/trading/reason-maximum-length.ts",
+    "app/features/trading/idx-order-size.ts",
     "app/features/trading/trading.schema.ts",
     "app/workbook/read-zip-for-test.server.ts",
-    "app/features/trading/impact-selection-text-for-test.ts"
+    "app/features/trading/impact-selection-text-for-test.ts",
+    "app/features/trading/home-summary-time.ts"
   ],
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.cache/tsconfig.e2e.tsbuildinfo",

@@ -1,6 +1,6 @@
 # 0057. Theme choice has measured shared and route allowances
 
-- Status: Accepted. [Decision 0058](0058-a-personal-watchlist-has-measured-route-allowances.md) replaces its shared, Pasar, Saham, ticket, Analisis, and demonstration analysis JavaScript ceilings and its Pasar CSS ceiling.
+- Status: Accepted. [Decision 0059](0059-the-owner-supplies-company-logos-outside-the-repository.md) replaces its Pasar JavaScript ceiling. [Decision 0060](0060-a-personal-watchlist-has-measured-route-allowances.md) replaces its Pasar CSS ceiling and its JavaScript ceilings for Saham, the ticket, Analisis, and demonstration analysis.
 - Date: 2026-11-17
 
 ## Context
