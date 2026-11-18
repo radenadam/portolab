@@ -1,6 +1,6 @@
 # 0059. The owner supplies company logos outside the repository
 
-- Status: Accepted
+- Status: Accepted. [Decision 0060](0060-analysis-panels-have-measured-route-allowances.md) replaces its rule that Beranda, the stock page, and the ticket keep the ceilings of decisions 0057 and 0058.
 - Date: 2026-11-17
 
 ## Context
