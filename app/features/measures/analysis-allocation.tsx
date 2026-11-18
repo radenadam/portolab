@@ -3,6 +3,8 @@ import { Link, useLocation } from "react-router";
 import { ConceptCard } from "~/concept-card";
 import { ConceptLesson } from "~/features/learning/concept-lesson";
 import type { ConceptTermId } from "~/features/learning/concept-term-ids";
+import { recordsStepForReader } from "~/features/trading/text-for-reader";
+import type { PortfolioReader } from "~/features/trading/text-for-reader";
 import type { PortfolioValuation } from "~/features/trading/value-portfolio";
 import { formatPercent, formatRupiah, formatList } from "~/formatting";
 import { NumberText } from "~/number-text";
@@ -19,8 +21,10 @@ import analysisStyles from "./analysis.module.css";
 
 export function AnalysisAllocation({
   valuation,
+  reader,
 }: {
   valuation: PortfolioValuation;
+  reader: PortfolioReader;
 }): ReactNode {
   const location = useLocation();
   const search = new URLSearchParams(location.search);
@@ -34,7 +38,7 @@ export function AnalysisAllocation({
   const group = selection.ok ? selection.value : defaultAllocationGroup;
   const allocation = analysisAllocationRows(valuation, group);
   const rows = allocation.kind === "valued" ? allocation.rows : [];
-  const notice = allocationNotice(allocation);
+  const notice = allocationNotice(allocation, reader);
   const maximum = Math.max(...rows.map((row) => row.weight));
   const details: Record<
     AllocationGroup,
@@ -200,6 +204,7 @@ export function AnalysisAllocation({
 
 function allocationNotice(
   allocation: ReturnType<typeof analysisAllocationRows>,
+  reader: PortfolioReader,
 ): string | undefined {
   switch (allocation.kind) {
     case "unpriced":
@@ -211,7 +216,10 @@ function allocationNotice(
             codes: formatList(allocation.codes, "conjunction"),
           });
     case "zeroValue":
-      return m.measures_analysis_allocation_zero_notice();
+      return recordsStepForReader(reader, {
+        student: m.measures_analysis_allocation_zero_notice,
+        lecturer: m.measures_analysis_lecturer_allocation_zero_notice,
+      });
     case "valued":
       return undefined;
   }

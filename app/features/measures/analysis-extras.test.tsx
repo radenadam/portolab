@@ -32,6 +32,8 @@ import {
 } from "./measures-for-test.server";
 import { readPortfolioMeasures } from "./read-measures.server";
 import type { PortfolioSummary } from "./measure-summaries";
+import type { ClassId } from "~/features/classes/classes.schema";
+import type { PortfolioReader } from "~/features/trading/text-for-reader";
 
 interface ExtrasText {
   allocation: string;
@@ -43,7 +45,8 @@ interface ExtrasText {
   allocationMeaning: string;
   unpriced: string;
   oneUnpriced: string;
-  zero: string;
+  zeroStudent: string;
+  zeroLecturer: string;
   correlations: string;
   correlationsMeaning: string;
   pair: string;
@@ -81,7 +84,10 @@ const texts: Record<Locale, ExtrasText> = {
     allocationConcept: "Bobot sektor",
     oneUnpriced:
       "Alokasi belum tersedia karena TLKM belum memiliki harga tertunda. Bobot dihitung setelah pembaruan harga membawa harga saham tersebut.",
-    zero: "Nilai portofolio nol, sehingga bobot tidak terdefinisi. Minta pengelola server memeriksa data portofolio.",
+    zeroStudent:
+      "Nilai portofolio nol, sehingga bobot tidak terdefinisi. Beri tahu dosen Anda agar catatan portofolio dapat diperiksa.",
+    zeroLecturer:
+      "Nilai portofolio nol, sehingga bobot tidak terdefinisi. Beri tahu orang yang menjalankan server Portolab ini agar catatan portofolio dapat diperiksa.",
     wholeCash: "100,0%",
     negativeRisk: "-33,3%",
     overWholeRisk: "133,3%",
@@ -138,7 +144,10 @@ const texts: Record<Locale, ExtrasText> = {
     allocationConcept: "Sector weight",
     oneUnpriced:
       "Allocation is unavailable because TLKM has no delayed price. Weights are computed once a price update brings that price.",
-    zero: "Portfolio value is zero, so weights are undefined. Ask the server owner to check the portfolio data.",
+    zeroStudent:
+      "The portfolio value is zero, so the weights are undefined. Tell your lecturer, so that the portfolio records can be checked.",
+    zeroLecturer:
+      "The portfolio value is zero, so the weights are undefined. Tell the person who runs this Portolab server, so that the portfolio records can be checked.",
     wholeCash: "100.0%",
     negativeRisk: "-33.3%",
     overWholeRisk: "133.3%",
@@ -181,6 +190,26 @@ const texts: Record<Locale, ExtrasText> = {
     ],
   },
 };
+
+const student: PortfolioReader = { kind: "owner", classId: 7 as ClassId };
+const readers: readonly {
+  reader: PortfolioReader;
+  zero: "zeroStudent" | "zeroLecturer";
+}[] = [
+  { reader: student, zero: "zeroStudent" },
+  {
+    reader: {
+      kind: "owner",
+      classId: 7 as ClassId,
+      portfolioKind: "demonstration",
+    },
+    zero: "zeroLecturer",
+  },
+  {
+    reader: { kind: "lecturer", studentName: "Siti Rahayu" },
+    zero: "zeroLecturer",
+  },
+];
 
 function allocationRowsForTest(
   valuation: Parameters<typeof analysisAllocationRows>[0],
@@ -296,7 +325,10 @@ for (const locale of locales) {
     const portfolio = measured();
     const html = renderMarkupForTest(
       <>
-        <AnalysisAllocation valuation={valuationForTest(["BBCA", "TLKM"])} />
+        <AnalysisAllocation
+          valuation={valuationForTest(["BBCA", "TLKM"])}
+          reader={student}
+        />
         <AnalysisCorrelations portfolio={portfolio} />
         <AnalysisRiskSources
           portfolio={portfolio}
@@ -334,7 +366,10 @@ for (const locale of locales) {
     switchLocaleForTest(locale);
     expect(
       renderMarkupForTest(
-        <AnalysisAllocation valuation={valuationForTest(["BBCA"])} />,
+        <AnalysisAllocation
+          valuation={valuationForTest(["BBCA"])}
+          reader={student}
+        />,
         conceptLessonDataForTest(),
       ),
     ).toContain(text.oneUnpriced);
@@ -356,7 +391,7 @@ for (const locale of locales) {
       <>
         <AnalysisCorrelations portfolio={undefined} />
         <AnalysisRiskSources portfolio={undefined} holdingCount={1} />
-        <AnalysisAllocation valuation={valuationForTest([])} />
+        <AnalysisAllocation valuation={valuationForTest([])} reader={student} />
       </>,
       conceptLessonDataForTest(),
     );
@@ -372,7 +407,10 @@ for (const locale of locales) {
       allocationRowsForTest(valuation, "stock").map(({ key }) => key),
     ).toEqual(["AADI", "cash"]);
     const cashMarkup = renderMarkupForTest(
-      <AnalysisAllocation valuation={cashValuationForTest()} />,
+      <AnalysisAllocation
+        valuation={cashValuationForTest()}
+        reader={student}
+      />,
       conceptLessonDataForTest(),
     );
     expect(cashMarkup).toContain(text.wholeCash);
@@ -383,7 +421,7 @@ for (const locale of locales) {
     const valuation = valuationForTest(["BBCA", "TLKM"]);
     const markupAt = (path: string) =>
       renderInRouterForTest(
-        <AnalysisAllocation valuation={valuation} />,
+        <AnalysisAllocation valuation={valuation} reader={student} />,
         conceptLessonDataForTest(),
         path,
       );
@@ -409,12 +447,13 @@ for (const locale of locales) {
     expect(analysisAllocationRows(zero, "stock")).toEqual({
       kind: "zeroValue",
     });
-    expect(
-      renderMarkupForTest(
-        <AnalysisAllocation valuation={zero} />,
-        conceptLessonDataForTest(),
-      ),
-    ).toContain(text.zero);
+    for (const { reader, zero: expected } of readers)
+      expect(
+        renderMarkupForTest(
+          <AnalysisAllocation valuation={zero} reader={reader} />,
+          conceptLessonDataForTest(),
+        ),
+      ).toContain(text[expected]);
   });
   test(`explains zero portfolio variance instead of drawing risk shares in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);

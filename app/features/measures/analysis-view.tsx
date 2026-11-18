@@ -169,7 +169,7 @@ export function AnalysisView({
         data-layout="columns"
         data-layout-ratio="1:1:1"
       >
-        <AnalysisAllocation valuation={report.valuation} />
+        <AnalysisAllocation valuation={report.valuation} reader={reader} />
         <AnalysisCorrelations portfolio={portfolio} />
         <AnalysisRiskSources
           portfolio={portfolio}
