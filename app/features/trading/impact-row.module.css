@@ -29,10 +29,5 @@
   margin-inline-start: var(--size-mark);
 }
 .srOnly {
-  position: absolute;
-  width: var(--size-line);
-  height: var(--size-line);
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
+  composes: text from "../../visually-hidden.module.css";
 }

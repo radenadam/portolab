@@ -270,6 +270,24 @@ for (const locale of locales) {
           fullPage: true,
           fromTop: true,
         });
+        await reader.goto(`${sample.url}/classes/1/learn/2`);
+        await expect(reader.locator('input[type="range"]')).toHaveCount(2);
+        // Pairs need two holdings of the reader, which the sample checks for its first student, and the last trade needs a fill, which the student of the welcome lacks.
+        if (scenario.screen === "portfolio")
+          await expect(
+            reader.locator("button[data-learning-pair]").first(),
+          ).toBeVisible();
+        await reader.goto(`${sample.url}/classes/1/learn/6`);
+        await expect(
+          reader.locator('a[href*="priceKind=limit"][href*="lessonTask=6"]'),
+        ).toBeVisible();
+        await expect(reader.locator("[data-learning-last-trade]")).toHaveCount(
+          scenario.screen === "welcome" ? 0 : 1,
+        );
+        await reader.goto(`${sample.url}/classes/1/learn/prices`);
+        await expect(
+          reader.locator('a[href*="lessonTask=prices"]'),
+        ).toBeVisible();
         await reader.goto(`${sample.url}/classes/1/stocks/BBCA`);
         const dayHelp = reader.getByRole("button", {
           name: texts[locale].dayHelp,

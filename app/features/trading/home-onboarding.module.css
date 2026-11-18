@@ -115,9 +115,5 @@
   --button-ink: var(--color-on-button);
 }
 .srOnly {
-  position: absolute;
-  inline-size: var(--size-line);
-  block-size: var(--size-line);
-  overflow: hidden;
-  clip-path: inset(50%);
+  composes: text from "../../visually-hidden.module.css";
 }

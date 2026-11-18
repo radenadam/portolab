@@ -89,10 +89,11 @@ export const homeWelcomeTextsForTest: Record<
     ownNumber: "Angka Anda",
     beta: "Beta portofolio Anda belum tersedia karena Anda belum memiliki saham.",
     riskFree: "0,48% per bulan dari BI-Rate 5,75%",
+    // Python Decimal: spending 0.1 of a portfolio of 1 on a bank stock with the buy fee of 0.15% gives (0.409 + 0.1 / 1.0015) / (0.9 + 0.1 / 1.0015) = 0.50893 in Financials, which shows as 50.9%.
     impactRows: [
       "Beta 0,65 menjadi 0,68.",
       "Risiko/bln 3,67% menjadi 3,72%.",
-      "Bobot Keuangan 40,9% menjadi 50,2%.",
+      "Bobot Keuangan 40,9% menjadi 50,9%.",
     ],
   },
   en: {
@@ -144,7 +145,7 @@ export const homeWelcomeTextsForTest: Record<
     impactRows: [
       "Beta 0.65 becomes 0.68.",
       "Risk/mo 3.67% becomes 3.72%.",
-      "Financials weight 40.9% becomes 50.2%.",
+      "Financials weight 40.9% becomes 50.9%.",
     ],
   },
 };
