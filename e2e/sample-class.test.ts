@@ -185,25 +185,6 @@ for (const locale of locales) {
               .getByRole("banner")
               .locator('button[popovertarget="class-switcher"]'),
           ).toContainText(texts[locale].classTitle);
-          await reader.goto(`${sample.url}/classes/1/students`);
-          const rows = reader.locator("main tbody tr");
-          await expect(rows).toHaveCount(30);
-          await expect(rows).toContainText(
-            Array.from({ length: await rows.count() }, () => /CONTOH-\d+/),
-          );
-          await expectAccessibleScreen(reader);
-          await captureScreens(reader, testInfo, {
-            name: `sample-nim-students-${locale}`,
-            fullPage: true,
-            fromTop: true,
-          });
-          await selectFirstStudent(reader);
-          await expect(reader.getByRole("dialog")).toContainText(/CONTOH-\d+/);
-          await captureScreens(reader, testInfo, {
-            name: `sample-nim-panel-${locale}`,
-            fullPage: false,
-            fromTop: true,
-          });
           await reader.goto(`${sample.url}/classes/1/demonstration`);
           await expect(
             reader.getByRole("heading", {
@@ -274,6 +255,37 @@ for (const locale of locales) {
       } finally {
         await reader.context().close();
       }
+    }
+  });
+
+  test(`shows the made-up NIM of every sample student to the lecturer in ${languageNames[locale]}`, async ({
+    sample,
+    browser,
+  }, testInfo) => {
+    const reader = await newDevice(browser, locale, { siteUrl: sample.url });
+    try {
+      await signInSample(reader, sample, "lecturer");
+      await reader.goto(`${sample.url}/classes/1/students`);
+      const rows = reader.locator("main tbody tr");
+      await expect(rows).toHaveCount(30);
+      await expect(rows).toContainText(
+        Array.from({ length: await rows.count() }, () => /CONTOH-\d+/),
+      );
+      await expectAccessibleScreen(reader);
+      await captureScreens(reader, testInfo, {
+        name: `sample-nim-students-${locale}`,
+        fullPage: true,
+        fromTop: true,
+      });
+      await selectFirstStudent(reader);
+      await expect(reader.getByRole("dialog")).toContainText(/CONTOH-\d+/);
+      await captureScreens(reader, testInfo, {
+        name: `sample-nim-panel-${locale}`,
+        fullPage: false,
+        fromTop: true,
+      });
+    } finally {
+      await reader.context().close();
     }
   });
 
