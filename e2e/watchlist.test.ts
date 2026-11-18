@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import type { Page, APIResponse, Locator } from "@playwright/test";
+import type { Browser, Page, APIResponse, Locator } from "@playwright/test";
 import { locales, type Locale } from "../app/paraglide/runtime.js";
 import { languageNames } from "../app/language-names.ts";
 import { studentOfNewClass } from "./student-of-new-class.ts";
@@ -64,6 +64,24 @@ async function addStar(within: Locator, locale: Locale): Promise<void> {
   ).toBeEnabled();
 }
 
+/** A student of a new class who holds BBCA and starred it on Pasar, which the page then shows. */
+async function studentWithStar(
+  page: Page,
+  browser: Browser,
+  locale: Locale,
+): Promise<{ student: Page; market: string }> {
+  const { student, classId, classPath } = await studentOfNewClass(
+    page,
+    browser,
+    { locale, ...widestClassNames },
+  );
+  storeTestHolding(classId, bbcaHolding);
+  const market = `${classPath}/market`;
+  await student.goto(market);
+  await addMarketStar(student, locale);
+  return { student, market };
+}
+
 function postWatchlist(
   page: Page,
   path: string,
@@ -81,16 +99,11 @@ for (const locale of locales) {
   test(`keeps personal stars through native forms and hydration in ${languageNames[locale]}`, async ({
     page,
     browser,
-  }, testInfo) => {
-    const { student, classId, classPath } = await studentOfNewClass(
-      page,
-      browser,
-      {
-        locale,
-        ...widestClassNames,
-      },
-    );
-    storeTestHolding(classId, bbcaHolding);
+  }) => {
+    const { student, classPath } = await studentOfNewClass(page, browser, {
+      locale,
+      ...widestClassNames,
+    });
     const native = await newDevice(browser, locale, {
       sessionFrom: student,
       javaScriptEnabled: false,
@@ -147,7 +160,18 @@ for (const locale of locales) {
           ).toHaveCount(0);
         },
       );
-      await addMarketStar(student, locale);
+    } finally {
+      await native.context().close();
+      await student.context().close();
+    }
+  });
+
+  test(`shows the watched block on Pasar with the columns of the list in ${languageNames[locale]}`, async ({
+    page,
+    browser,
+  }, testInfo) => {
+    const { student, market } = await studentWithStar(page, browser, locale);
+    try {
       await captureScreens(student, testInfo, {
         name: `watchlist-market-${locale}`,
         fullPage: true,
@@ -157,6 +181,30 @@ for (const locale of locales) {
         },
       });
       await expectAccessibleScreen(student);
+      await expect(
+        student
+          .getByRole("columnheader", { name: text.watch, exact: true })
+          .first(),
+      ).toBeAttached();
+      await student.goto(`${market}?q=TLKM`);
+      await expect(
+        student.getByRole("region", { name: text.title }),
+      ).toHaveCount(0);
+      await student.goto(market);
+      await expect(
+        student.getByRole("region", { name: text.title }),
+      ).toBeVisible();
+    } finally {
+      await student.context().close();
+    }
+  });
+
+  test(`keeps the ticket draft and the way back to the watched row when the star changes on Saham in ${languageNames[locale]}`, async ({
+    page,
+    browser,
+  }, testInfo) => {
+    const { student } = await studentWithStar(page, browser, locale);
+    try {
       await student
         .locator("#watched-stock-BBCA")
         .getByRole("link", { name: /BBCA/ })
@@ -231,21 +279,7 @@ for (const locale of locales) {
           .locator("#watched-stock-BBCA")
           .getByRole("button", { name: text.remove, exact: true }),
       ).toBeInViewport();
-      await expect(
-        student
-          .getByRole("columnheader", { name: text.watch, exact: true })
-          .first(),
-      ).toBeAttached();
-      await student.goto(`${market}?q=TLKM`);
-      await expect(
-        student.getByRole("region", { name: text.title }),
-      ).toHaveCount(0);
-      await student.goto(market);
-      await expect(
-        student.getByRole("region", { name: text.title }),
-      ).toBeVisible();
     } finally {
-      await native.context().close();
       await student.context().close();
     }
   });
