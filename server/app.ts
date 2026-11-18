@@ -27,6 +27,7 @@ import type { JoinLimiters } from "~/features/classes/join-limiters.server";
 import { fixturePriceSource } from "~/features/market-data/fixture-price-source.server";
 import { startPriceJob } from "~/features/market-data/price-job.server";
 import { priceSourceContext } from "~/features/market-data/price-source-context.server";
+import { marketMomentContext } from "~/features/market-data/market-moment-context.server";
 import type { PriceSource } from "~/features/market-data/price-source.server";
 import {
   trackedInstruments,
@@ -141,8 +142,11 @@ export function createRequestServices(
   };
 }
 
-/** Handles requests, and gives every loader and action the services and the address that the request came from. */
-export function createApp(services: Services): RequestHandler {
+/** A recorded market moment lets browser fixtures replay dated lists without replacing other request clocks. */
+export function createApp(
+  services: Services,
+  marketNow?: Date,
+): RequestHandler {
   const app = Router();
   app.get(companyLogoPath(":code"), (request, response) => {
     const code = parseStockCode(
@@ -169,6 +173,7 @@ export function createApp(services: Services): RequestHandler {
         context.set(companyLogoFilesContext, services.companyLogos);
         context.set(databaseContext, services.database);
         context.set(priceSourceContext, services.priceSource);
+        context.set(marketMomentContext, marketNow ?? null);
         context.set(passwordLimitersContext, services.passwordLimiters);
         context.set(joinLimitersContext, services.joinLimiters);
         context.set(clientAddressContext, clientAddress(request));

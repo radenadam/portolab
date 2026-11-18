@@ -8,7 +8,7 @@ import { captureScreens } from "./capture-screens.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 import { layoutProblems } from "./expect-layout.ts";
 import { newDevice } from "./new-device.ts";
-import { returnSnapshotServer } from "./return-snapshot-server.ts";
+import { recordedMarketServer } from "./recorded-market-server.ts";
 
 const texts: Record<
   Locale,
@@ -87,7 +87,7 @@ for (const screen of screens) {
     test(`keeps ${screen.name} at its newer quote snapshot in ${languageNames[locale]}`, async ({
       browser,
     }, testInfo) => {
-      const server = await returnSnapshotServer();
+      const server = await recordedMarketServer();
       try {
         const text = texts[locale];
         expect(server.latestClose).toBe("2026-11-02");
@@ -253,7 +253,7 @@ async function expectSummarySnapshot(
 
 async function snapshotPath(
   page: Page,
-  server: Awaited<ReturnType<typeof returnSnapshotServer>>,
+  server: Awaited<ReturnType<typeof recordedMarketServer>>,
   identity: SnapshotIdentity,
 ): Promise<string> {
   switch (identity) {

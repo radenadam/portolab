@@ -8,6 +8,7 @@ import { conceptLessonDataForTest } from "~/features/learning/concept-lesson-dat
 import { expect, test } from "vitest";
 import {
   renderMarketForTest,
+  marketRowForTest,
   marketViewPropsForTest,
 } from "./market-view-for-test";
 import { languageNames } from "~/language-names";
@@ -136,6 +137,26 @@ const states: Record<
 
 type Props = ComponentProps<typeof MarketView>;
 for (const locale of locales) {
+  test(`replaces the empty-sector state with PWON when its LQ45 review begins in ${languageNames[locale]}`, async () => {
+    switchLocaleForTest(locale);
+    const context = await marketContextForTest();
+    const props = await marketViewPropsForTest(context);
+    // Fixed dates keep the sector transition covered after the live membership changes.
+    for (const [now, empty] of [
+      [new Date("2026-11-17T16:59:59.999Z"), true],
+      [new Date("2026-11-17T17:00:00.000Z"), false],
+    ] as const) {
+      const html = renderMarketForTest(props, {
+        ...readMarket(context, now, "3m"),
+        filters: {
+          ...defaultMarketFilters,
+          sector: "propertiesAndRealEstate",
+        },
+      });
+      expect(html.includes(states[locale].emptySector)).toBe(empty);
+      if (!empty) expect(marketRowForTest(html, "PWON")).toContain("PWON");
+    }
+  });
   test(`explains empty sectors and only describes reference marks when the table has them in ${languageNames[locale]}`, async () => {
     switchLocaleForTest(locale);
     const props = await marketViewPropsForTest();
