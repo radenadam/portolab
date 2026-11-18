@@ -1,6 +1,6 @@
 # 0065. The welcome has measured shared and route allowances
 
-- Status: Accepted
+- Status: Accepted. [Decision 0067](0067-shared-parts-have-measured-allowances.md) replaces its JavaScript ceilings for every set that it names, and its CSS ceilings for class home, Market, the stock page, and the lecturer's student summary.
 - Date: 2026-11-18
 
 ## Context

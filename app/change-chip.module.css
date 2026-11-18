@@ -1,0 +1,19 @@
+/* A change that rounds to zero has no direction, so its chip keeps the raised ground. */
+.chip {
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-button);
+  background: var(--color-raised);
+  font-size: var(--text-caption);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.chip:has([data-change="rise"]) {
+  background: var(--color-gain-soft);
+}
+
+/* The loss ink of the prototype is darker on its tint, so small text keeps its contrast. */
+.chip:has([data-change="fall"]) {
+  background: var(--color-loss-soft);
+  --color-loss: var(--color-loss-on-soft);
+}

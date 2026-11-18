@@ -142,16 +142,31 @@ test("sizes the dot of a stock that the portfolio holds by the root of its weigh
 
 const tickTexts: Record<
   Locale,
-  { across: readonly string[]; up: readonly string[] }
+  {
+    across: readonly string[];
+    up: readonly string[];
+    changes: readonly string[];
+    short: readonly string[];
+  }
 > = {
-  id: { across: ["0,0", "0,5", "1,0", "1,5", "2,0"], up: ["0%", "2%"] },
-  en: { across: ["0.0", "0.5", "1.0", "1.5", "2.0"], up: ["0%", "2%"] },
+  id: {
+    across: ["0,0", "0,5", "1,0", "1,5", "2,0"],
+    up: ["-1%", "0%", "1%", "2%", "3%"],
+    changes: ["-1%", "0%", "+1%", "+2%", "+3%"],
+    short: ["0%", "2%"],
+  },
+  en: {
+    across: ["0.0", "0.5", "1.0", "1.5", "2.0"],
+    up: ["-1%", "0%", "1%", "2%", "3%"],
+    changes: ["-1%", "0%", "+1%", "+2%", "+3%"],
+    short: ["0%", "2%"],
+  },
 };
 
 for (const locale of locales) {
   test(`marks the axes at round values with the decimals that they need, the risk of the IHSG strongly, every other mark of risk from it as minor, and zero on the axis of returns, in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
-    // About ten steps over 2.16 need a step of at least 0.216, so the step of risk is 0.5. About four steps over 4.64% need at least 1.16%, so the step of returns is 2%.
+    // About ten steps over 2.16 need a step of at least 0.216, so the step of risk is 0.5. About six steps over 4.64% need at least 0.77%, so the step of returns is 1%, from -1% to 3% in the range from -1.32% to 3.32%.
     const map = layout(points);
     expect(
       map.acrossTicks.map(({ text, isMarket, isMinor }) => ({
@@ -169,14 +184,43 @@ for (const locale of locales) {
     for (const [index, value] of [0, 0.5, 1, 1.5, 2].entries()) {
       expect(map.acrossTicks[index]?.at).toBeCloseTo(across(value), 12);
     }
-    expect(map.upTicks.map(({ text, isZero }) => ({ text, isZero }))).toEqual([
-      { text: tickTexts[locale].up[0], isZero: true },
-      { text: tickTexts[locale].up[1], isZero: false },
-    ]);
+    expect(map.upTicks.map(({ text, isZero }) => ({ text, isZero }))).toEqual(
+      [-0.01, 0, 0.01, 0.02, 0.03].map((value, index) => ({
+        text: tickTexts[locale].up[index],
+        isZero: value === 0,
+      })),
+    );
+    for (const [index, value] of [-0.01, 0, 0.01, 0.02, 0.03].entries()) {
+      expect(map.upTicks[index]?.at).toBeCloseTo(down(value), 12);
+    }
+    expect(map.upTextLength).toBe(3);
+  });
+
+  test(`writes the marks of returns that are gains and losses with their signs, as the screen writes the returns, in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    const map = layoutRiskMap({
+      market,
+      points,
+      across: axes.across,
+      up: { ...axes.up, style: "change" },
+      line,
+    });
+    expect(map.upTicks.map((tick) => tick.text)).toEqual(
+      tickTexts[locale].changes,
+    );
+    expect(map.upTextLength).toBe(3);
+  });
+
+  test(`marks fewer returns up a short map, in ${languageNames[locale]}`, () => {
+    switchLocaleForTest(locale);
+    // About four steps over 4.64% need at least 1.16%, so the step of returns is 2%.
+    const map = layoutRiskMap({ market, points, ...axes, line, short: true });
+    expect(map.upTicks.map((tick) => tick.text)).toEqual(
+      tickTexts[locale].short,
+    );
     for (const [index, value] of [0, 0.02].entries()) {
       expect(map.upTicks[index]?.at).toBeCloseTo(down(value), 12);
     }
-    expect(map.upTextLength).toBe(2);
   });
 }
 

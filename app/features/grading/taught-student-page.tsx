@@ -8,7 +8,7 @@ import type { ClassId } from "~/features/classes/classes.schema";
 import { pathReturningTo } from "~/features/accounts/path-returning-to";
 import { MarketTime } from "~/market-time";
 import { Message } from "~/message";
-import { initialsOf } from "~/initials-of";
+import { Avatar } from "~/avatar";
 import { NumberText } from "~/number-text";
 import { pageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
@@ -74,9 +74,7 @@ export function TaughtStudentPage({
         >
           <Icon name="chevronDown" className={undefined} />
         </Link>
-        <span className={styles["avatar"]} aria-hidden>
-          {initialsOf(student.name)}
-        </span>
+        <Avatar name={student.name} look="own" className={styles["avatar"]} />
         <div className={styles["identity"]}>
           <h1>
             <NumberText verbatim>{student.name}</NumberText>

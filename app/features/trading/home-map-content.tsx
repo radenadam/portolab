@@ -121,7 +121,7 @@ function HomeMapDrawing({
                 toValue: beta,
                 title: m.trading_home_map_axis_label({ beta: formatNumber(1) }),
               }}
-              up={{ style: "percent", toValue: cumulativeReturn }}
+              up={{ style: "change", toValue: cumulativeReturn }}
               labelledBy="home-map-heading"
             />
           </div>

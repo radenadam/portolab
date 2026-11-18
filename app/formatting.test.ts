@@ -309,6 +309,8 @@ const axisMarkTexts: Record<
     halfPercents: readonly string[];
     wholePercents: readonly string[];
     finestPercents: readonly string[];
+    changes: readonly string[];
+    finestChanges: readonly string[];
   }
 > = {
   id: {
@@ -318,6 +320,8 @@ const axisMarkTexts: Record<
     halfPercents: ["-0,5%", "0,0%", "1,5%"],
     wholePercents: ["-2%", "0%", "2%"],
     finestPercents: ["0,00%", "0,01%"],
+    changes: ["-3%", "0%", "+3%", "+6%"],
+    finestChanges: ["-0,01%", "0,00%", "+0,01%"],
   },
   en: {
     tenths: ["0.0", "0.2", "1.0", "1.6"],
@@ -326,6 +330,8 @@ const axisMarkTexts: Record<
     halfPercents: ["-0.5%", "0.0%", "1.5%"],
     wholePercents: ["-2%", "0%", "2%"],
     finestPercents: ["0.00%", "0.01%"],
+    changes: ["-3%", "0%", "+3%", "+6%"],
+    finestChanges: ["-0.01%", "0.00%", "+0.01%"],
   },
 };
 
@@ -334,7 +340,7 @@ function axisMarks(values: readonly number[], style: AxisStyle): string[] {
 }
 
 for (const locale of locales) {
-  test(`formats the marks of an axis with the same decimals each, the fewest that write every mark exactly, as numbers or as percentages, in ${languageNames[locale]}`, () => {
+  test(`formats the marks of an axis with the same decimals each, the fewest that write every mark exactly, as numbers, as percentages, or as changes with a sign, in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     const text = axisMarkTexts[locale];
     // 0.2 + 1.4 is 1.5999999999999999 in binary, which still takes one decimal.
@@ -347,6 +353,10 @@ for (const locale of locales) {
     expect(axisMarks([0, smallestPercentStep], "percent")).toEqual(
       text.finestPercents,
     );
+    expect(axisMarks([-0.03, 0, 0.03, 0.06], "change")).toEqual(text.changes);
+    expect(
+      axisMarks([-smallestPercentStep, 0, smallestPercentStep], "change"),
+    ).toEqual(text.finestChanges);
   });
 }
 

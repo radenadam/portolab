@@ -2,7 +2,7 @@ import { textForReader, portfolioStudentName } from "./text-for-reader";
 import type { PortfolioReader } from "./text-for-reader";
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
-import { ChangeText } from "~/change-text";
+import { ChangeChip } from "~/change-chip";
 import { HomeAmount } from "./home-amount";
 import { homeTitle } from "./home-title";
 import type { ClassId } from "~/features/classes/classes.schema";
@@ -104,18 +104,12 @@ export function HomePortfolio({
               )}
               {dayChange.ok && (
                 <div className={styles["today"]}>
-                  <span className={styles["pill"]}>
-                    <ChangeText
-                      colored
-                      change={formatSignedRupiah(dayChange.value.amount)}
-                    />
-                  </span>
-                  <span className={styles["pill"]}>
-                    <ChangeText
-                      colored
-                      change={formatSignedPercent(dayChange.value.return)}
-                    />
-                  </span>
+                  <ChangeChip
+                    change={formatSignedRupiah(dayChange.value.amount)}
+                  />
+                  <ChangeChip
+                    change={formatSignedPercent(dayChange.value.return)}
+                  />
                   <span className={styles["changeExplanation"]}>
                     <span>
                       <NumberText>{changeLabel}</NumberText>

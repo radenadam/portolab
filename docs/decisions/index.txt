@@ -64,3 +64,4 @@
 0064-the-empty-sample-joins-when-the-class-starts.md
 0065-the-welcome-has-measured-shared-and-route-allowances.md
 0066-a-student-gives-an-optional-nim-for-each-class.md
+0067-shared-parts-have-measured-allowances.md

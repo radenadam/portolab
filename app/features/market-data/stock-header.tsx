@@ -3,7 +3,7 @@ import { Link } from "react-router";
 import { withLessonTask } from "~/features/learning/lesson-task";
 import { StarButton } from "~/features/watchlist/star-button";
 import { NumberText } from "~/number-text";
-import { ChangeText } from "~/change-text";
+import { ChangeChip } from "~/change-chip";
 import {
   formatRupiah,
   formatSignedPercent,
@@ -59,20 +59,12 @@ export function StockHeader({
           <strong className={styles["price"]}>
             <NumberText>{formatRupiah(quote.price)}</NumberText>
           </strong>
-          <span className={styles["change"]}>
-            <ChangeText
-              colored
-              change={formatSignedRupiah(
-                rupiah(quote.price - quote.previousClose),
-              )}
-            />
-          </span>
-          <span className={styles["change"]}>
-            <ChangeText
-              colored
-              change={formatSignedPercent(quoteChange(quote))}
-            />
-          </span>
+          <ChangeChip
+            change={formatSignedRupiah(
+              rupiah(quote.price - quote.previousClose),
+            )}
+          />
+          <ChangeChip change={formatSignedPercent(quoteChange(quote))} />
         </div>
       )}
       <StockQuoteDetails

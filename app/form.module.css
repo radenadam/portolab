@@ -74,25 +74,13 @@
   accent-color: var(--color-data);
 }
 
-.button,
 .stepButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: var(--size-touch-target);
-  padding-inline: var(--space-4);
-  border: 0;
-  border-radius: var(--radius-item);
-  background: var(--color-button);
-  color: var(--color-on-button);
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-  text-decoration: none;
+  composes: primary-button from global;
 }
 
 /* The button that sends a form spans its width. */
 .button {
+  composes: primary-button from global;
   align-self: stretch;
 }
 

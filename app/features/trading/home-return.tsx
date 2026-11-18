@@ -29,7 +29,7 @@ export function HomeReturn({
   const latest = points.at(-1);
   return (
     <section className={styles["card"]}>
-      <div className={styles["valueLabel"]}>
+      <div className={styles["cardLabel"]}>
         <h2 id="home-return-heading" className={styles["cardTitle"]}>
           <NumberText>
             {(textValue) =>

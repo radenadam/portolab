@@ -6,13 +6,15 @@ export function TableHead({
   labels,
   help,
   hiddenLabels,
+  className,
 }: {
   labels: readonly string[];
   help?: Readonly<Record<string, ReactNode>>;
   hiddenLabels?: readonly string[];
+  className?: string | undefined;
 }): ReactNode {
   return (
-    <thead>
+    <thead className={className}>
       <tr>
         {labels.map((label) => {
           const hidden = hiddenLabels?.includes(label) ?? false;

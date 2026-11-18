@@ -68,8 +68,10 @@ export function StudentMap({
           toValue: beta,
           title: m.grading_short_beta_label(),
         }}
-        up={{ style: "percent", toValue: cumulativeReturn }}
+        up={{ style: "change", toValue: cumulativeReturn }}
         levelLabel=""
+        compact
+        short
         labelledBy={selectedStudentHeadingId}
       />
     </div>

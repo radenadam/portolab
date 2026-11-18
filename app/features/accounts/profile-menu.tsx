@@ -1,3 +1,5 @@
+import { Avatar } from "~/avatar";
+import type { AvatarLook } from "~/avatar";
 import { ThemeSwitch } from "~/features/theme/theme-switch";
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
@@ -10,7 +12,13 @@ import styles from "./profile-menu.module.css";
 import { roleName } from "./role-name";
 import { SignOutButton } from "./sign-out-button";
 
-/** The menu of the profile of the person who is signed in, which the frame opens from the name and from the avatar: who the person is, the link to the account, the language, and the button that signs out. */
+// The prototype of decision 0028 draws the avatar of a student in the tint of the reader's own point, which marks the portfolio of the student on every map.
+const avatarLooks: Record<Role, AvatarLook> = {
+  student: "own",
+  lecturer: "plain",
+};
+
+/** The menu of the profile of the person who is signed in, which the frame opens from the name and from the avatar: who the person is, with the avatar beside the name and the role, the link to the account, the theme, the language, and the button that signs out. */
 export function ProfileMenu({
   name,
   readerRole,
@@ -21,11 +29,14 @@ export function ProfileMenu({
   return (
     <>
       <p className={styles["person"]}>
-        <span className={styles["name"]}>
-          <NumberText verbatim>{name}</NumberText>
-        </span>
-        <span className={styles["role"]}>
-          <NumberText>{roleName(readerRole)}</NumberText>
+        <Avatar name={name} look={avatarLooks[readerRole]} />
+        <span className={styles["identity"]}>
+          <span className={styles["name"]}>
+            <NumberText verbatim>{name}</NumberText>
+          </span>
+          <span className={styles["role"]}>
+            <NumberText>{roleName(readerRole)}</NumberText>
+          </span>
         </span>
       </p>
       <hr className={popoverStyles["separator"]} />

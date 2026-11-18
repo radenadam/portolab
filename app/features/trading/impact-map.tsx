@@ -82,6 +82,7 @@ export function ImpactMap({
     return (
       <RiskMap
         compact
+        short
         points={points}
         market={point(values.market)}
         across={across}

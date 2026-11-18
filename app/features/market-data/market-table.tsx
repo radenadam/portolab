@@ -102,6 +102,7 @@ export function MarketTable({
         <col className={styles["measureColumn"]} />
       </colgroup>
       <TableHead
+        className={styles["head"]}
         hiddenLabels={[m.market_data_watch_label()]}
         help={{
           [m.market_data_beta_label()]: (

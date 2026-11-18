@@ -26,11 +26,7 @@
   flex-shrink: 0;
 }
 .avatar {
-  composes: avatar from "../../avatar.module.css";
   --size-avatar: var(--size-student-avatar);
-  flex-shrink: 0;
-  background: var(--color-own-soft);
-  color: var(--color-ink);
   font-size: var(--text-caption);
 }
 .identity {

@@ -44,6 +44,7 @@ export function RiskMap<Across extends number, Up extends number>({
   coloredValues,
   fill = false,
   compact = false,
+  short,
 }: {
   /** The IHSG. */
   market: MapPoint<Across, Up>;
@@ -73,6 +74,8 @@ export function RiskMap<Across extends number, Up extends number>({
   labelledBy: string;
   fill?: boolean;
   compact?: boolean;
+  /** A map lower than about 17.5 rem, such as the map of the ticket or of a selected student, which marks fewer returns. */
+  short?: boolean;
 }): ReactNode {
   const navigate = useNavigate();
   const isInBrowser = useIsInBrowser();
@@ -85,9 +88,10 @@ export function RiskMap<Across extends number, Up extends number>({
         up,
         line,
         roomForCorners: hasCorners(spread, annotations),
+        short,
         ...(spread?.median === undefined ? {} : { median: spread.median }),
       }),
-    [market, points, across, up, line, spread, annotations],
+    [market, points, across, up, line, spread, annotations, short],
   );
   const drawn = useMemo(() => drawnPoints(market, layout), [market, layout]);
   const labels = useMemo(

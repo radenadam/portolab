@@ -172,10 +172,20 @@ for (const locale of locales) {
     switchLocaleForTest(locale);
     const html = render();
     for (const part of [
-      // The texts of the marks of returns, 0% and 2%, are at most 2 characters long.
-      '<div style="padding-block:0.5em 3.5em;padding-inline:calc(2ch + 0.75em + 1.5 * var(--text-small)) 0.5em"><div><svg aria-hidden="true">',
-      '<line x1="0" x2="100%" y1="71.55%" y2="71.55%"></line><text x="0" y="71.55%" dx="-0.75em" dy="0.35em" text-anchor="end" style="translate:calc(-1.5 * var(--text-small))">0%</text>',
-      '<line x1="0" x2="100%" y1="28.45%" y2="28.45%"></line><text x="0" y="28.45%" dx="-0.75em" dy="0.35em" text-anchor="end" style="translate:calc(-1.5 * var(--text-small))">2%</text>',
+      // The texts of the marks of returns, from -1% to 3%, are at most 3 characters long.
+      '<div style="padding-block:0.5em 3.5em;padding-inline:calc(3ch + 0.75em + 1.5 * var(--text-small)) 0.5em"><div><svg aria-hidden="true">',
+      ...(
+        [
+          ["93.1%", "-1%"],
+          ["71.55%", "0%"],
+          ["50%", "1%"],
+          ["28.45%", "2%"],
+          ["6.9%", "3%"],
+        ] as const
+      ).map(
+        ([at, text]) =>
+          `<line x1="0" x2="100%" y1="${at}" y2="${at}"></line><text x="0" y="${at}" dx="-0.75em" dy="0.35em" text-anchor="end" style="translate:calc(-1.5 * var(--text-small))">${text}</text>`,
+      ),
       ...tickTexts[locale].across.map(
         (text, index) =>
           `<text x="${["0%", "23.15%", "46.3%", "69.44%", "92.59%"][index] ?? ""}" y="100%" dy="1.5em" text-anchor="middle">${text}</text>`,

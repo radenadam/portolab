@@ -39,7 +39,7 @@ export function HomeRisk({
   return (
     <section className={styles["card"]}>
       <div className={styles["cardHeading"]}>
-        <div className={styles["valueLabel"]}>
+        <div className={styles["cardLabel"]}>
           <h2 className={styles["cardTitle"]}>{m.trading_home_risk_title()}</h2>
           {result.ok && (
             <ConceptHelp title={m.trading_home_measure_period_label()}>
