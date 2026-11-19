@@ -20,7 +20,7 @@ import type { Locale } from "../app/paraglide/runtime.js";
 import { secondMilliseconds } from "../app/time-units.ts";
 import { submitSignIn } from "./accounts.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
-import { selectFirstStudent } from "./select-first-student.ts";
+import { openFirstStudent } from "./open-first-student.ts";
 import { openProfileMenu } from "./frame.ts";
 import { captureScreens } from "./capture-screens.ts";
 import { startTestServer } from "./start-test-server.ts";
@@ -363,10 +363,12 @@ for (const locale of locales) {
         fullPage: true,
         fromTop: true,
       });
-      await selectFirstStudent(reader);
-      await expect(reader.getByRole("dialog")).toContainText(/CONTOH-\d+/);
+      await openFirstStudent(reader);
+      await expect(reader.locator("main header").first()).toContainText(
+        /CONTOH-\d+/,
+      );
       await captureScreens(reader, testInfo, {
-        name: `sample-nim-panel-${locale}`,
+        name: `sample-nim-student-${locale}`,
         fullPage: false,
         fromTop: true,
       });

@@ -1,9 +1,8 @@
 import { StudentHome } from "~/features/trading/student-home";
 import { firstNameOf } from "~/features/accounts/first-name-of";
 import { onboardingTitle } from "~/features/trading/onboarding-title";
-import { parseChoice, parseRecordId } from "~/value-parsers";
-import { classMapSections, classMapPath } from "./class-path";
-import type { ClassMapSection } from "./class-path";
+import { parseRecordId } from "~/value-parsers";
+import { classMapPath } from "./class-path";
 import type { ReactNode } from "react";
 import { data, redirect } from "react-router";
 import { closeHomeSummary } from "~/features/trading/close-home-summary.server";
@@ -15,8 +14,6 @@ import { readHomePortfolio } from "~/features/trading/read-home-portfolio.server
 import type { Route } from "./+types/class-page";
 import { findJoinedClass, findTaughtClass } from "./class-store.server";
 import type { ClassId } from "./classes.schema";
-import { classCalendarOf } from "./course-calendar";
-import type { ClassCalendar } from "./course-calendar";
 import { parseClassMapAxis } from "./parse-class-map-axis";
 import { classMapPoints } from "./class-map-points.server";
 import { ClassOverviewView } from "./class-overview-view";
@@ -48,8 +45,6 @@ export function loader({ context, params, url, request }: Route.LoaderArgs):
       name: string;
       overview: ClassOverview;
       axis: ClassMapAxis;
-      reveal: ClassMapSection | undefined;
-      calendar: ClassCalendar | undefined;
       points: ReturnType<typeof classMapPoints>;
     }
   | {
@@ -77,12 +72,6 @@ export function loader({ context, params, url, request }: Route.LoaderArgs):
 
       const axis = parseClassMapAxis(url.searchParams.get("axis"), "axis");
       if (!axis.ok) throw notFound;
-      const revealValue = url.searchParams.get("reveal");
-      const reveal =
-        revealValue === null
-          ? undefined
-          : parseChoice(revealValue, "reveal", classMapSections);
-      if (reveal !== undefined && !reveal.ok) throw notFound;
       const overview = readClassOverview(database, taught, {
         request,
         now,
@@ -95,12 +84,10 @@ export function loader({ context, params, url, request }: Route.LoaderArgs):
         name: taught.name,
         overview,
         axis: axis.value,
-        reveal: reveal?.value,
         points: classMapPoints(overview, {
           axis: axis.value,
           classId: taught.id,
         }),
-        calendar: classCalendarOf(taught.firstSessionDate, now),
       };
     }
     case "student": {

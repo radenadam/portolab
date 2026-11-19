@@ -10,6 +10,7 @@ import { layoutProblems } from "./expect-layout.ts";
 import { storeTestHolding } from "./store-test-holding.ts";
 import { studentWithPortfolio } from "./student-with-portfolio.ts";
 import { openAsNewStudent } from "./open-as-new-student.ts";
+import { isPhone } from "./frame.ts";
 
 const texts: Record<
   Locale,
@@ -32,6 +33,7 @@ const texts: Record<
     noCloses: string;
     quote: string;
     trade: string;
+    navigation: string;
     rangeHelp: string;
     dayHelp: string;
     dayRange: string;
@@ -53,6 +55,7 @@ const texts: Record<
     betaHelp: "Apa itu Beta?",
     quote: "30 Okt 2026, 16.14 WIB · penutupan sebelumnya Rp 4.940",
     trade: "Order saham",
+    navigation: "Navigasi utama",
     title: "Saham BBCA",
     back: "Kembali ke Pasar",
     held: "Keuangan · LQ45 · ada di portofolio Anda",
@@ -62,8 +65,8 @@ const texts: Record<
     chart: "Harga penutupan BBCA",
     chartLast: "30 Okt 2026: BBCA Rp\u00a04.980",
     range: "Rentang grafik harga",
-    ranges: ["1B", "3B", "1T", "5T"],
-    points: "Lihat harga penutupan",
+    ranges: ["1 bln", "3 bln", "1 thn", "5 thn"],
+    points: "Tabel harga penutupan",
     date: "Tanggal penutupan",
     calculations: "Semua perhitungan dan imbal hasil bulanan",
     buy: "Beli",
@@ -83,6 +86,7 @@ const texts: Record<
     betaHelp: "What is Beta?",
     quote: "Oct 30, 2026, 4:14 PM WIB · previous close IDR 4,940",
     trade: "Stock order",
+    navigation: "Main navigation",
     title: "BBCA stock",
     back: "Back to Market",
     held: "Financials · LQ45 · held in your portfolio",
@@ -92,8 +96,8 @@ const texts: Record<
     chart: "BBCA closing prices",
     chartLast: "Oct 30, 2026: BBCA IDR\u00a04,980",
     range: "Price chart range",
-    ranges: ["1M", "3M", "1Y", "5Y"],
-    points: "View closing prices",
+    ranges: ["1 mo", "3 mo", "1 yr", "5 yr"],
+    points: "Table of closing prices",
     date: "Close date",
     calculations: "All calculations and monthly returns",
     buy: "Buy",
@@ -145,6 +149,31 @@ async function expectChangeInk(page: Page): Promise<void> {
         );
       }
     }
+  }
+}
+
+/** Beli and Jual stand at the end of the row of the name of the stock on a wide screen. On a phone they are a bar fixed right above the tab bar, where a thumb reaches them while the page scrolls. */
+async function expectTradeActions(
+  page: Page,
+  { trade, navigation }: { trade: string; navigation: string },
+): Promise<void> {
+  const actions = page.getByRole("navigation", { name: trade, exact: true });
+  const actionsBox = await actions.boundingBox();
+  const nameBox = await page.getByRole("heading", { level: 1 }).boundingBox();
+  if (actionsBox === null || nameBox === null)
+    throw new Error("The stock shows its name and its trade actions.");
+  if (isPhone()) {
+    await expect(actions).toHaveCSS("position", "fixed");
+    const tabBar = await page
+      .getByRole("navigation", { name: navigation, exact: true })
+      .filter({ visible: true })
+      .boundingBox();
+    if (tabBar === null) throw new Error("A phone shows the tab bar.");
+    expect(actionsBox.y + actionsBox.height).toBeCloseTo(tabBar.y, 0);
+  } else {
+    expect(actionsBox.x).toBeGreaterThan(nameBox.x + nameBox.width);
+    expect(actionsBox.y).toBeLessThan(nameBox.y + nameBox.height);
+    expect(actionsBox.y + actionsBox.height).toBeGreaterThan(nameBox.y);
   }
 }
 
@@ -293,6 +322,7 @@ for (const locale of locales) {
         await student.emulateMedia({ colorScheme });
         await expectChangeInk(student);
         expect(await layoutProblems(student)).toEqual([]);
+        await expectTradeActions(student, text);
         const [rangeGroup, beta, day] = await Promise.all(
           [text.rangeHelp, text.betaHelp, text.dayHelp].map((label) =>
             student

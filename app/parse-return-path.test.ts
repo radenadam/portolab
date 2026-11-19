@@ -75,7 +75,7 @@ test("rejects every value that a browser would resolve to another site", () => {
 
 test("restricts a return to named pages while preserving its query and row fragment", () => {
   const allowed = ["/classes/7", "/classes/7/students"];
-  const path = "/classes/7?axis=deviation&reveal=data#class-data-student-11";
+  const path = "/classes/7/students?measure=treynor&student=11#student-11";
   expect(
     parseReturnPath(path, "returnTo", {
       origin: siteOrigin,

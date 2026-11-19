@@ -10,15 +10,9 @@
   container-type: inline-size;
   scroll-margin-block-start: calc(var(--size-top-bar) + var(--space-4));
 }
-.header,
 .heading {
   display: flex;
   align-items: center;
-}
-.header {
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--space-2);
 }
 /* The heading stands as far from its "?" as the references draw it: as a label of the ticket, and farther as the title of a panel. */
 .heading {

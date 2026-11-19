@@ -68,7 +68,10 @@ const texts: Record<
     title: "Imbal hasil bulanan",
     notice:
       "Setiap tabel memuat harga penutupan pada hari bursa terakhir bulan-bulan tersebut dan imbal hasil setiap bulan yang dipakai ukuran, sehingga Anda dapat menghitung ulang setiap ukuran di spreadsheet dengan fungsi yang disebut rumus-rumusnya. Harga penutupan tanpa imbal hasil adalah awal imbal hasil pada baris di bawahnya.",
-    summaries: ["Imbal hasil bulanan IHSG", "Imbal hasil bulanan BBCA"],
+    summaries: [
+      "Tabel imbal hasil bulanan IHSG",
+      "Tabel imbal hasil bulanan BBCA",
+    ],
     header: ["Akhir bulan", "Penutupan", "Imbal hasil"],
     ihsgRows: [
       ["30 Sep 2021", "6.286,94", ""],
@@ -89,7 +92,10 @@ const texts: Record<
     title: "Monthly returns",
     notice:
       "Each table lists the closes on the last trading day of the months and the return of each month that the measures use, so you can reproduce every measure in a spreadsheet with the functions that the formulas name. A close without a return is the start of the return in the row below it.",
-    summaries: ["Monthly returns of the IHSG", "Monthly returns of BBCA"],
+    summaries: [
+      "Table of monthly returns of the IHSG",
+      "Table of monthly returns of BBCA",
+    ],
     header: ["Month end", "Close", "Return"],
     ihsgRows: [
       ["Sep 30, 2021", "6,286.94", ""],

@@ -209,9 +209,9 @@ const texts: Record<
       "<p>σ<sub>ip</sub> = Σ<sub>j</sub> w<sub>j</sub> σ<sub>ij</sub> (SUMPRODUCT)</p><p>c<sub>i</sub> = w<sub>i</sub> σ<sub>ip</sub> / σ²<sub>p</sub></p><p>ρ<sub>ip</sub> = σ<sub>ip</sub> / (σ<sub>i</sub> σ<sub>p</sub>) (CORREL)</p>",
     summaries: [
       "<h2>IHSG dan suku bunga bebas risiko</h2>",
-      "<summary>Imbal hasil bulanan IHSG</summary>",
-      "<summary>Imbal hasil bulanan BBCA</summary>",
-      "<summary>Imbal hasil bulanan TLKM</summary>",
+      "<summary>Tabel imbal hasil bulanan IHSG</summary>",
+      "<summary>Tabel imbal hasil bulanan BBCA</summary>",
+      "<summary>Tabel imbal hasil bulanan TLKM</summary>",
     ],
   },
   en: {
@@ -313,9 +313,9 @@ const texts: Record<
       "<p>σ<sub>ip</sub> = Σ<sub>j</sub> w<sub>j</sub> σ<sub>ij</sub> (SUMPRODUCT)</p><p>c<sub>i</sub> = w<sub>i</sub> σ<sub>ip</sub> / σ²<sub>p</sub></p><p>ρ<sub>ip</sub> = σ<sub>ip</sub> / (σ<sub>i</sub> σ<sub>p</sub>) (CORREL)</p>",
     summaries: [
       "<h2>The IHSG and the risk-free rate</h2>",
-      "<summary>Monthly returns of the IHSG</summary>",
-      "<summary>Monthly returns of BBCA</summary>",
-      "<summary>Monthly returns of TLKM</summary>",
+      "<summary>Table of monthly returns of the IHSG</summary>",
+      "<summary>Table of monthly returns of BBCA</summary>",
+      "<summary>Table of monthly returns of TLKM</summary>",
     ],
   },
 };

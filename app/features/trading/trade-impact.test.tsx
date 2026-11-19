@@ -32,6 +32,8 @@ const texts: Record<
   Locale,
   {
     labels: readonly string[];
+    share: string;
+    open: string;
     purchase: string;
     limited: string;
     small: string;
@@ -62,13 +64,13 @@ const texts: Record<
       "Peta sebelum dan sesudah order",
       "Sumbu risiko dampak order",
       "SML",
-      "Bagian portofolio",
-      "Buka tiket dengan 10 lot",
-      "Nilai pada peta dan SML",
+      "Tabel nilai pada peta dan SML",
       "Titik",
       "Bobot sekarang",
       "Bobot sesudah",
     ],
+    share: "Bagian portofolio",
+    open: "Buka tiket dengan 10 lot",
     purchase:
       "Jika Anda membeli 10 lot BBCA dari kas, senilai Rp\u00a04.987.470 atau sekitar 9,1% portofolio:",
     limited:
@@ -114,13 +116,13 @@ const texts: Record<
       "Map before and after the order",
       "Trade impact risk axis",
       "SML",
-      "Share of portfolio",
-      "Open ticket with 10 lots",
-      "Map values and SML",
+      "Table of map values and SML",
       "Point",
       "Weight now",
       "Weight after",
     ],
+    share: "Share of portfolio",
+    open: "Open ticket with 10 lots",
     purchase:
       "If you buy 10 lots of BBCA from cash, costing IDR\u00a04,987,470 or about 9.1% of the portfolio:",
     limited:
@@ -182,6 +184,13 @@ for (const locale of locales) {
       ...text.values,
     ])
       expect(html).toContain(markupTextForTest(label));
+    // The size of the example purchase sits under the title with its visible label, and the button that opens the ticket ends the sentence that the size changes.
+    expect(html).toContain(
+      `</h2><div><span>${text.share}</span><nav aria-label="${text.share}">`,
+    );
+    expect(html).toContain(
+      `<div><p>${markupTextForTest(text.purchase)}</p><a href="/classes/7/stocks/BBCA/buy?lots=10" data-discover="true">${text.open}</a></div>`,
+    );
     for (const [cash, expected] of [
       [1_000_000, text.limited],
       [2_500_000, text.small],

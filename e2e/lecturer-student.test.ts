@@ -14,7 +14,7 @@ import { isPhone } from "./frame.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 import { layoutProblems } from "./expect-layout.ts";
 import { newDevice } from "./new-device.ts";
-import { selectFirstStudent } from "./select-first-student.ts";
+import { openFirstStudent } from "./open-first-student.ts";
 import { studentWithPortfolio } from "./student-with-portfolio.ts";
 import {
   widestClassNames,
@@ -27,7 +27,6 @@ import { wideWord } from "./wide-word.ts";
 const texts: Record<
   Locale,
   {
-    open: string;
     summary: string;
     analysis: string;
     journal: string;
@@ -39,12 +38,9 @@ const texts: Record<
     mapTitle: string;
     risk: string;
     prices: string;
-    orders: string;
     cancel: string;
-    panelJournal: string;
     rejected: string;
     status: string;
-    view: string;
     apply: string;
     axis: string;
     applyAxis: string;
@@ -53,11 +49,10 @@ const texts: Record<
   }
 > = {
   id: {
-    open: "Buka portofolio",
     summary: "Ringkasan",
     analysis: "Analisis",
     journal: "Jurnal dan order",
-    back: "Kembali ke mahasiswa",
+    back: "‹ Kembali ke mahasiswa",
     notice: "Tampilan dosen. Hanya baca.",
     sections: "Bagian portofolio mahasiswa",
     time: "Grafik waktu",
@@ -65,12 +60,9 @@ const texts: Record<
     mapTitle: `Posisi ${widestClassNames.studentName} di peta`,
     risk: "Simpangan baku",
     prices: "Harga 30 Okt 2026, 16.10 WIB.",
-    orders: "Order",
     cancel: "Batalkan order",
-    panelJournal: "Jurnal alasan",
     rejected: "Ditolak",
     status: "Saring menurut status",
-    view: "Tampilan aktivitas",
     apply: "Tampilkan aktivitas",
     axis: "Sumbu risiko",
     applyAxis: "Tampilkan analisis",
@@ -78,11 +70,10 @@ const texts: Record<
     emptySummary: `Tidak ada order ${widestClassNames.studentName}. Portofolionya berisi Rp\u00a01.000.000.000.000 kas.`,
   },
   en: {
-    open: "Open portfolio",
     summary: "Summary",
     analysis: "Analysis",
     journal: "Journal and orders",
-    back: "Back to students",
+    back: "‹ Back to students",
     notice: "Lecturer view. Read only.",
     sections: "Student portfolio sections",
     time: "Time chart",
@@ -90,12 +81,9 @@ const texts: Record<
     mapTitle: `Position of ${widestClassNames.studentName} on the map`,
     risk: "Standard deviation",
     prices: "Prices Oct 30, 2026, 4:10 PM WIB.",
-    orders: "Orders",
     cancel: "Cancel order",
-    panelJournal: "Reason journal",
     rejected: "Rejected",
     status: "Filter by status",
-    view: "Activity view",
     apply: "Show activity",
     axis: "Risk axis",
     applyAxis: "Show analysis",
@@ -105,7 +93,7 @@ const texts: Record<
 };
 for (const locale of locales) {
   const text = texts[locale];
-  test(`opens every read-only student tab and returns to the same selection in ${languageNames[locale]}`, async ({
+  test(`opens every read-only student tab and returns to the row of the student with the same ranking and search in ${languageNames[locale]}`, async ({
     page,
     browser,
   }) => {
@@ -126,14 +114,10 @@ for (const locale of locales) {
       await page.goto(
         `${classPath}/students?measure=treynor&q=${encodeURIComponent(widestClassNames.studentName)}`,
       );
-      await selectFirstStudent(page);
-      const selectedAddress = new URL(page.url());
-      selectedAddress.hash = "selected-student";
-      const selected = selectedAddress.href;
-      await page
-        .getByRole("dialog")
-        .getByRole("link", { name: text.open, exact: true })
-        .click();
+      await openFirstStudent(page);
+      const selected = new RegExp(
+        `/students\\?measure=treynor&q=[^&#]+&student=(\\d+)#student-\\1$`,
+      );
       await expect(page.getByRole("heading", { level: 1 })).toHaveText(
         widestClassNames.studentName,
       );
@@ -185,7 +169,9 @@ for (const locale of locales) {
           await expectAccessibleScreen(page);
         }
         if (suffix === "/journal") {
-          await expect(page.locator("blockquote").first()).toHaveText(reason);
+          await expect(
+            page.getByText(`“${reason}”`, { exact: true }).first(),
+          ).toBeVisible();
           await expect(
             page.getByRole("button", { name: text.cancel }),
           ).toHaveCount(0);
@@ -197,10 +183,10 @@ for (const locale of locales) {
           );
         await page.getByRole("link", { name: text.back, exact: true }).click();
         await expect(page).toHaveURL(selected);
-        await page
-          .getByRole("dialog")
-          .getByRole("link", { name: text.open, exact: true })
-          .click();
+        await expect(
+          page.locator("main tbody tr").first().getByRole("link"),
+        ).toHaveAttribute("aria-current", "true");
+        await openFirstStudent(page);
       }
       await correctStudentQueries(page, { summary, selected }, text);
       const plain = await newDevice(browser, locale, {
@@ -254,11 +240,7 @@ for (const locale of locales) {
       });
       try {
         await page.goto(`${classPath}/students`);
-        await selectFirstStudent(page);
-        await page
-          .getByRole("dialog")
-          .getByRole("link", { name: text.open, exact: true })
-          .click();
+        await openFirstStudent(page);
         if (variant.studentName !== undefined)
           await checkNativeStudentCharts(page, browser, {
             locale,
@@ -307,15 +289,11 @@ for (const locale of locales) {
     });
     try {
       await page.goto(`${classPath}/students`);
-      await selectFirstStudent(page);
+      await openFirstStudent(page);
       await page
-        .getByRole("dialog")
-        .getByRole("link", { name: text.panelJournal, exact: true })
+        .getByRole("navigation", { name: text.sections })
+        .getByRole("link", { name: text.journal, exact: true })
         .click();
-      if (isPhone())
-        await page
-          .getByRole("link", { name: text.orders, exact: true })
-          .click();
       await expect(page.getByRole("button", { name: text.cancel })).toHaveCount(
         0,
       );
@@ -329,7 +307,7 @@ for (const locale of locales) {
         .getByRole("navigation", { name: text.status, exact: true })
         .getByRole("link", { name: new RegExp(`^${text.rejected} · `) })
         .click();
-      await expect(page).toHaveURL(/view=orders&status=rejected/);
+      await expect(page).toHaveURL(/journal\?returnTo=[^&]+&status=rejected$/);
       await expect(
         page.getByText(text.rejected, { exact: true }),
       ).toBeVisible();
@@ -337,7 +315,7 @@ for (const locale of locales) {
       await student.context().close();
     }
   });
-  test(`keeps a direct student address selected and shows an empty journal in ${languageNames[locale]}`, async ({
+  test(`returns from a direct student address to the row of the student and shows an empty journal in ${languageNames[locale]}`, async ({
     page,
     browser,
   }) => {
@@ -346,36 +324,26 @@ for (const locale of locales) {
     });
     try {
       await page.goto(`${classPath}/students`);
-      await selectFirstStudent(page);
       const address = await page
-        .getByRole("dialog")
-        .getByRole("link", { name: text.open, exact: true })
+        .locator("main tbody tr")
+        .first()
+        .getByRole("link")
         .getAttribute("href");
       if (address === null)
         throw new Error("The student has a summary address.");
       const direct = new URL(address, page.url()).pathname;
       await page.goto(direct + "/journal");
-      if (isPhone())
-        await page
-          .getByRole("link", { name: text.orders, exact: true })
-          .click();
       await expect(
         page.getByText(widestClassNames.studentName + text.empty, {
           exact: true,
         }),
       ).toBeVisible();
       await page.getByRole("link", { name: text.back, exact: true }).click();
-      await expect(page).toHaveURL(/student=\d+#selected-student$/);
+      await expect(page).toHaveURL(/student=(\d+)#student-\1$/);
       await expect(
-        page.getByRole("dialog").getByRole("heading", {
-          name: widestClassNames.studentName,
-          exact: true,
-        }),
-      ).toBeVisible();
-      await page
-        .getByRole("dialog")
-        .getByRole("link", { name: text.open, exact: true })
-        .click();
+        page.locator("main tbody tr").first().getByRole("link"),
+      ).toHaveAttribute("aria-current", "true");
+      await openFirstStudent(page);
       await expect(
         page.getByText(text.emptySummary, { exact: true }),
       ).toBeVisible();
@@ -404,7 +372,7 @@ async function expectSquareMapKeys(page: Page, title: string): Promise<void> {
 
 async function correctStudentQueries(
   page: Page,
-  { summary, selected }: { summary: string; selected: string },
+  { summary, selected }: { summary: string; selected: RegExp },
   text: (typeof texts)[Locale],
 ): Promise<void> {
   const analysis = new URL(summary);
@@ -422,16 +390,12 @@ async function correctStudentQueries(
   const journal = new URL(summary);
   journal.pathname += "/journal";
   journal.searchParams.set("status", "wrong");
-  journal.searchParams.set("view", "wrong");
   expect((await page.goto(journal.href))?.status()).toBe(400);
   await page
     .getByRole("combobox", { name: text.status, exact: true })
     .selectOption("all");
-  await page
-    .getByRole("combobox", { name: text.view, exact: true })
-    .selectOption("journal");
   await page.getByRole("button", { name: text.apply, exact: true }).click();
-  await expect(page).toHaveURL(/view=journal/);
+  await expect(page).toHaveURL(/status=all$/);
   await page.getByRole("link", { name: text.back, exact: true }).click();
   await expect(page).toHaveURL(selected);
 }

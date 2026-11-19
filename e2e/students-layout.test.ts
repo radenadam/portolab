@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
-import { selectFirstStudent } from "./select-first-student.ts";
+import { openFirstStudent } from "./open-first-student.ts";
 import { locales } from "../app/paraglide/runtime.js";
+import type { Locale } from "../app/paraglide/runtime.js";
 import { languageNames } from "../app/language-names.ts";
 import { layoutProblems } from "./expect-layout.ts";
 import { storeGradingPortfolio } from "./store-grading-portfolio.ts";
@@ -8,9 +9,13 @@ import { studentOfNewClass } from "./student-of-new-class.ts";
 
 const screenshotWidths = [360, 1440, 1920];
 const widths = [360, 1280, 1319, 1320, 1440, 1920];
+const backLinks: Record<Locale, string> = {
+  id: "‹ Kembali ke mahasiswa",
+  en: "‹ Back to students",
+};
 
 for (const locale of locales) {
-  test(`keeps the student panel in a sheet below its docking width and captures the Peta comparison in ${languageNames[locale]}`, async ({
+  test(`opens a student from anywhere on the row, marks only the row that the lecturer came back from, and captures the Peta comparison at every width in ${languageNames[locale]}`, async ({
     page,
     browser,
   }, testInfo) => {
@@ -29,45 +34,48 @@ for (const locale of locales) {
       },
     );
     storeGradingPortfolio(classId);
+    const firstRow = page.locator("main tbody tr").first();
+    const capture = async (name: string, width: number): Promise<void> => {
+      if (screenshotWidths.includes(width))
+        await page.screenshot({
+          path: testInfo.outputPath(`${locale}-${name}-${String(width)}.png`),
+          fullPage: true,
+          scale: "css",
+        });
+    };
     for (const colorScheme of ["light", "dark"] as const) {
       await page.emulateMedia({ colorScheme });
       for (const width of widths) {
         await page.setViewportSize({ width, height: 900 });
         await page.goto(`${classPath}/students`);
+        await expect(
+          page.locator('main tbody [aria-current="true"]'),
+        ).toHaveCount(0);
         expect(await layoutProblems(page)).toEqual([]);
-        if (screenshotWidths.includes(width))
-          await page.screenshot({
-            path: testInfo.outputPath(
-              `${locale}-${colorScheme}-${String(width)}-list.png`,
-            ),
-            fullPage: true,
-            scale: "css",
-          });
-        await selectFirstStudent(page);
-        const panel = page.getByRole("dialog");
-        await expect(panel).toBeVisible();
-        await expect
-          .poll(() => panel.evaluate((element) => element.matches(":modal")))
-          .toBe(width < 1320);
+        await capture(`${colorScheme}-list`, width);
+        // The link of the name covers its whole row, so a tap at the far end of the row, away from the name, opens the student too.
+        const row = await firstRow.boundingBox();
+        if (row === null)
+          throw new Error("Mahasiswa shows the row of a student.");
+        await page.mouse.click(row.x + row.width - 4, row.y + row.height / 2);
+        await expect(page).toHaveURL(/\/students\/\d+\?returnTo=/);
+        await page.goBack();
+        await openFirstStudent(page);
         expect(await layoutProblems(page)).toEqual([]);
-        if (width >= 1320)
-          expect(await page.evaluate(() => window.scrollY)).toBe(0);
-        if (screenshotWidths.includes(width))
-          await page.screenshot({
-            path: testInfo.outputPath(
-              `${locale}-${colorScheme}-${String(width)}-panel.png`,
-            ),
-            fullPage: true,
-            scale: "css",
-          });
-        if (width < 1320) {
-          await page.keyboard.press("Escape");
-          await expect(page).not.toHaveURL(/student=/);
-          await expect(panel).not.toBeVisible();
-          await expect(
-            page.locator("main tbody tr").first().getByRole("link"),
-          ).toBeFocused();
-        }
+        await capture(`${colorScheme}-student`, width);
+        await page
+          .getByRole("link", { name: backLinks[locale], exact: true })
+          .click();
+        await expect(page).toHaveURL(/student=(\d+)#student-\1$/);
+        await expect(firstRow.getByRole("link")).toHaveAttribute(
+          "aria-current",
+          "true",
+        );
+        await expect(
+          page.locator('main tbody [aria-current="true"]'),
+        ).toHaveCount(1);
+        expect(await layoutProblems(page)).toEqual([]);
+        await capture(`${colorScheme}-marked`, width);
       }
     }
     await student.context().close();

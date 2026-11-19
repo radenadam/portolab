@@ -98,66 +98,6 @@
   padding: var(--space-4);
 }
 
-.tableFrame {
-  container-type: inline-size;
-  max-width: 100%;
-  overflow-x: auto;
-}
-
-.table {
-  composes: table from "../../compact-table.module.css";
-}
-
-.table th:nth-child(2) {
-  width: 10ch;
-}
-.table th:nth-child(3) {
-  width: 32ch;
-}
-.table th:nth-child(4) {
-  width: 18ch;
-}
-.table th:nth-child(5) {
-  width: 32ch;
-}
-
-@container (width < 60rem) {
-  .table,
-  .table tbody {
-    display: block;
-  }
-  .table thead {
-    display: none;
-  }
-  .table tr {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .table th {
-    grid-column: 1 / -1;
-  }
-  .table th:nth-child(n) {
-    width: auto;
-  }
-  .table td:last-child {
-    grid-column: 1 / -1;
-  }
-  .table td::before {
-    display: block;
-    color: var(--color-muted);
-    content: attr(data-label);
-  }
-}
-
-.link {
-  composes: standalone-link from global;
-}
-
-.administration[open] {
-  display: grid;
-  gap: var(--space-3);
-}
-
 @media (width >= 60rem) {
   .strip {
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -176,14 +116,6 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-}
-
-.data {
-  composes: returnTarget from "./classes.module.css";
-}
-
-.administration {
-  composes: returnTarget from "./classes.module.css";
 }
 
 .columns,

@@ -1,6 +1,6 @@
 # 0030. Each class is one workspace with its own addresses
 
-- Status: Accepted
+- Status: Accepted. [Decision 0068](0068-the-review-of-19-november-2026-changes-parts-of-the-screens.md) replaces its rules about the student whom Mahasiswa shows in its panel as a view in the address, the panel of a selected student among what opens in place, the end of the menu of the class switcher of a lecturer, and Back that returns to an earlier view of the same screen.
 - Date: 2026-11-14
 
 ## Context

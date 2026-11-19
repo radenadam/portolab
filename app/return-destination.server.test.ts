@@ -31,7 +31,7 @@ test("keeps the selected student and full encoded search through sign-in", () =>
       measure: "sharpe",
       student: "11",
     });
-    const path = `/classes/7/students?${query.toString()}#selected-student`;
+    const path = `/classes/7/students?${query.toString()}#student-11`;
     expect(returnDestination(path, request)).toBe(path);
   }
 });

@@ -1,6 +1,6 @@
 # 0041. The lecturer chooses the measure that ranks the class
 
-- Status: Accepted
+- Status: Accepted. [Decision 0068](0068-the-review-of-19-november-2026-changes-parts-of-the-screens.md) replaces its rules about the selected student in the address of Mahasiswa, the panel that selecting a student opens with what it shows and links, and a link from Kelas that selects a student outside the visible rows.
 - Date: 2026-11-14
 
 ## Context

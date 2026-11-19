@@ -101,8 +101,11 @@ for (const locale of locales) {
         ).toBeVisible();
         await screen.goto(classPath);
         await flags.getByRole("link").first().click();
-        await expect(screen).toHaveURL(/\/students\?student=\d+/);
-        await expect(screen.getByRole("dialog")).toBeVisible();
+        // A flag of one student lands on the row of that student, which Mahasiswa marks.
+        await expect(screen).toHaveURL(/\/students\?student=(\d+)#student-\1$/);
+        const marked = screen.locator('main tbody [aria-current="true"]');
+        await expect(marked).toHaveCount(1);
+        await expect(marked).toBeInViewport();
         await screen.goto(`${classPath}?axis=deviation`);
         const lesson = screen.getByRole("link", {
           name: text.lesson,
@@ -141,20 +144,19 @@ for (const locale of locales) {
         const reasonText = await reasonLink.locator("q").innerText();
         const reasonHref = await reasonLink.getAttribute("href");
         if (reasonHref === null)
-          throw new Error("A class reason must have a journal address.");
+          throw new Error("A class reason must have an address of its order.");
         const reasonAddress = new URL(reasonHref, screen.url());
         expect(reasonAddress.pathname).toMatch(/\/students\/\d+\/journal$/);
         expect(reasonAddress.hash).not.toBe("");
         await reasonLink.click();
         await expect(screen).toHaveURL(reasonAddress.href);
-        const journalEntry = screen.locator(reasonAddress.hash);
-        await expect(journalEntry).toBeInViewport();
+        // The reason lands on the row of its order in the list of orders of the student.
+        expect(reasonAddress.hash).toMatch(/^#order-\d+$/);
+        const orderEntry = screen.locator(reasonAddress.hash);
+        await expect(orderEntry).toBeInViewport();
         await expect(
-          screen
-            .locator("li")
-            .filter({ has: journalEntry })
-            .locator("blockquote"),
-        ).toHaveText(reasonText);
+          screen.locator("li").filter({ has: orderEntry }),
+        ).toContainText(`“${reasonText}”`);
         await screen
           .locator(`main a[href="${classPath}?axis=deviation#class-reasons"]`)
           .click();

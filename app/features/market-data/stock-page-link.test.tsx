@@ -6,7 +6,7 @@ import { renderInRouterForTest } from "~/render-in-router-for-test";
 import { StockPageLink } from "./stock-page-link";
 
 const returnQuery =
-  "returnTo=%2Fclasses%2F7%2Fstudents%2F11%2Fjournal%3Fview%3Djournal%23order-42";
+  "returnTo=%2Fclasses%2F7%2Fstudents%2F11%2Fjournal%3Fstatus%3Dfilled%23order-42";
 const cases: {
   task: LessonTask | undefined;
   keepReturn: boolean;
@@ -33,7 +33,7 @@ for (const { task, keepReturn, query } of cases) {
         {"BBCA"}
       </StockPageLink>,
       undefined,
-      "/classes/7/students/11/journal?view=journal",
+      "/classes/7/students/11/journal?status=filled",
     );
     expect(markup).toContain(
       `href="${markupTextForTest(`/classes/7/stocks/BBCA${query}`)}"`,

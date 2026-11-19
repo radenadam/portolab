@@ -22,15 +22,20 @@ import { markupTextForTest } from "~/markup-text-for-test";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
 import { TaughtStudentPage, taughtStudentMeta } from "./taught-student-page";
 
-const helpTexts: Record<Locale, Record<"chart" | "returnTitle", string>> = {
+const helpTexts: Record<
+  Locale,
+  Record<"chart" | "table" | "returnTitle", string>
+> = {
   id: {
     chart:
       "Grafik dan tabel membandingkan portofolio Raka dengan IHSG sejak penutupan 30 Oktober 2026, sebelum Raka dapat bertransaksi. Hari sebelumnya memakai harga penutupan final. Titik dengan waktu memakai nilai portofolio sekarang dan level tertunda terakhir IHSG.",
+    table: "Tabel imbal hasil dari waktu ke waktu",
     returnTitle: "Imbal hasil Raka dibandingkan IHSG",
   },
   en: {
     chart:
       "The chart and the table compare the portfolio of Raka with the IHSG since the close of October 30, 2026, before Raka could trade. Past days use final closes. A timestamped endpoint uses the current portfolio value and the latest delayed level of the IHSG.",
+    table: "Table of returns over time",
     returnTitle: "Return of Raka against the IHSG",
   },
 };
@@ -48,8 +53,7 @@ const student = {
   nim: null,
   latestActivity: undefined,
 };
-const returnPath =
-  "/classes/7/students?measure=sharpe&student=9#selected-student";
+const returnPath = "/classes/7/students?measure=sharpe&student=9#student-9";
 const texts: Record<
   Locale,
   Record<
@@ -63,6 +67,7 @@ const texts: Record<
     | "nim"
     | "nimActivity"
     | "back"
+    | "reset"
     | "value"
     | "map"
     | "portfolio"
@@ -88,6 +93,7 @@ const texts: Record<
     nim: "NIM 1202220108 · Belum pernah memasang order",
     nimActivity: "NIM 1202220108 · Order terakhir 29 Okt 2026, 10.10 WIB",
     back: "Kembali ke mahasiswa",
+    reset: "Atur ulang kata sandi",
     value: "Nilai portofolio Raka",
     map: "Posisi Raka di peta",
     portfolio: "Portofolio Raka",
@@ -112,6 +118,7 @@ const texts: Record<
     nim: "NIM 1202220108 · No orders yet",
     nimActivity: "NIM 1202220108 · Latest order Oct 29, 2026, 10:10 AM WIB",
     back: "Back to students",
+    reset: "Reset password",
     value: "Portfolio value of Raka",
     map: "Position of Raka on the map",
     portfolio: "Portfolio of Raka",
@@ -126,6 +133,31 @@ const texts: Record<
     pageTitle: "Summary of Raka in Kelas A | Portolab",
   },
 };
+/** Checks the way back above the header, the reset of the password at the end of the header, which returns to the page from which it opened with that page's own way back, and the tabs beside the read-only notice. */
+function expectStudentPageFrame(
+  html: string,
+  text: (typeof texts)[Locale],
+): void {
+  const back = `<div><a href="${markupTextForTest(returnPath)}" data-discover="true">‹ ${text.back}</a><header>`;
+  expect(html.slice(0, back.length)).toBe(back);
+  expect(html).toMatch(
+    new RegExp(`</nav><p><svg[^]*?</svg>${text.notice}</p>`, "u"),
+  );
+  const current = /<a aria-current="page" href="([^"]+)"/u.exec(html)?.[1];
+  const reset = new RegExp(
+    `<a href="([^"]+)" data-discover="true">${text.reset}</a></header>`,
+    "u",
+  ).exec(html)?.[1];
+  const resetAddress = new URL(
+    (reset ?? "").replaceAll("&amp;", "&"),
+    "http://localhost",
+  );
+  expect(resetAddress.pathname).toBe("/classes/7/students/9/password");
+  expect(resetAddress.searchParams.get("returnTo")).toBe(
+    current?.replaceAll("&amp;", "&"),
+  );
+}
+
 for (const locale of locales) {
   test(`names the student's analysis points and holdings with and without portfolio weights in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
@@ -159,7 +191,7 @@ for (const locale of locales) {
       expect(html).not.toContain(`<h2>${texts[locale].analysis}</h2>`);
     }
   });
-  test(`keeps the named student, read-only notice, and all tabs on the selected panel in ${languageNames[locale]}`, () => {
+  test(`keeps the way back above the named student, the reset of the password in the header, and all tabs beside the read-only notice on each page of the student in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     const text = texts[locale];
     const latestOrder = new Date("2026-10-29T03:10:00Z");
@@ -208,6 +240,7 @@ for (const locale of locales) {
       expect(html).toContain("/classes/7/students/9/analysis?returnTo=");
       expect(html).toContain("/classes/7/students/9/journal?returnTo=");
       expect(html.match(/aria-current="page"/g)).toHaveLength(1);
+      expectStudentPageFrame(html, texts[locale]);
     }
     expect(analysisPortfolioTitle(student.name)).toBe(text.measures);
     for (const codes of [[], ["BBCA"], ["BBCA", "TLKM"]]) {
@@ -251,6 +284,7 @@ for (const locale of locales) {
         expect(html).toContain(markupTextForTest(text[key]));
       expect(html).not.toContain('href="/classes/7/analysis"');
       expect(html).toContain(markupTextForTest(helpTexts[locale].chart));
+      expect(html).toContain(`<summary>${helpTexts[locale].table}</summary>`);
       expect(html).not.toContain("<h1");
       home.report.history = fail({ kind: "missingCalendar" });
       expect(

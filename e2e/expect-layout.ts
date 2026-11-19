@@ -199,9 +199,19 @@ function inspectLayout({
       style.borderBottomStyle !== "none";
     return !isClear || hasLineUnder;
   }
+  // A panel that stays in view while the page scrolls, such as the docked order ticket, moves along its whole column, so the column ends where its track ends and not where the panel ends.
+  function holdsStickyPart(children: readonly Element[]): boolean {
+    return children.some(
+      (child) => getComputedStyle(child).position === "sticky",
+    );
+  }
   function footOf(element: Element): number {
     const children = shownChildren(element);
-    if (hasGround(element) || children.length === 0) {
+    if (
+      hasGround(element) ||
+      children.length === 0 ||
+      holdsStickyPart(children)
+    ) {
       return element.getBoundingClientRect().bottom;
     }
     return Math.max(...children.map(footOf));

@@ -18,8 +18,8 @@ import {
   uniqueUsername,
 } from "./accounts.ts";
 import { chooseLanguage } from "./choose-language.ts";
-import { openClassAdministration } from "./class-controls.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
+import { expectCheckboxBox } from "./expect-checkbox-box.ts";
 import { expectPageHeadings } from "./expect-page-headings.ts";
 import { openProfileMenu } from "./frame.ts";
 import { newDevice } from "./new-device.ts";
@@ -308,6 +308,7 @@ for (const locale of locales) {
       page.getByRole("heading", { level: 2, name: text.privacyStoredTitle }),
     ).toBeVisible();
     await expectAccessibleScreen(page);
+    await expectCheckboxBox(page.getByLabel(text.consentLabel));
 
     await page.getByLabel(text.nameLabel).fill(longName);
     await fillNewPassword(page, "short");
@@ -492,12 +493,9 @@ for (const locale of locales) {
     await expect(nameField).toHaveValue(correctedName);
     await expect(student.getByRole("status")).toHaveText(text.nameChanged);
 
-    await page.goto(classPath);
-    await openClassAdministration(page);
+    await page.goto(`${classPath}/students`);
     await expect(
-      page
-        .locator("[data-class-administration]")
-        .getByText(correctedName, { exact: true }),
+      page.locator("main tbody").getByRole("link", { name: correctedName }),
     ).toBeVisible();
     await student.context().close();
   });

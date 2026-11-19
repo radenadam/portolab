@@ -131,7 +131,7 @@
   --width-company-name: 5rem;
   /* The tooltip of a chart holds a date and a name with a return on each line. */
   --width-chart-tip: 12rem;
-  /* The app icon takes the size that the rail of the references draws it at. */
+  /* The app icon is smaller than the rail of the references draws it, as decision 0068 records from the review of the maintainer. */
   --size-app-icon: 1.75rem;
   --size-checkbox: 1.125rem;
   --radius-checkbox: 0.25rem;
@@ -143,7 +143,7 @@
   --size-student-avatar: 2.5rem;
   /* A chart takes about a third of the screen of a phone held upright, so the text around it stays in view. */
   --size-chart: 16rem;
-  /* The distribution bars and corner labels of a class need more height than a line chart. */
+  /* The points and the corner labels of a class need more height than a line chart. */
   --size-class-map: 21.25rem;
   --size-market-chart: 8.75rem;
   --width-market-scale: 3.75rem;
@@ -178,8 +178,6 @@
   --size-chart-phone-map: 20rem;
   --width-home-bar: 6rem;
   --width-activity-status: 6.5rem;
-  --width-journal-change: 4.375rem;
-  --width-journal-price: 5.25rem;
   --width-journal-bar: 7.5rem;
   --size-journal-mark: 0.875rem;
   --size-home-bar: 0.5rem;

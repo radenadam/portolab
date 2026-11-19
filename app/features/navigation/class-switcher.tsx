@@ -45,7 +45,7 @@ export function ClassSwitcher({
           </span>
           {current.term !== undefined && (
             <span className={styles["term"]}>
-              <NumberText>{termText(current.term, "alone")}</NumberText>
+              <NumberText>{termText(current.term)}</NumberText>
             </span>
           )}
         </span>
@@ -124,7 +124,7 @@ function classDetailsText(
     ? people
     : m.navigation_class_details_notice({
         people,
-        term: termText(workspaceClass.term, "alone"),
+        term: termText(workspaceClass.term),
       });
 }
 

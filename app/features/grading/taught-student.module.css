@@ -1,13 +1,8 @@
 .page {
-  display: grid;
-  gap: var(--space-4);
-  inline-size: 100%;
-  min-inline-size: 0;
+  composes: page from "../../tabbed-page.module.css";
 }
 .header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+  composes: header from "../../tabbed-page.module.css";
   gap: var(--space-3);
   min-inline-size: 0;
 }

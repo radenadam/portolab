@@ -3,7 +3,7 @@ import { PortfolioMeasuresNotice } from "~/features/measures/portfolio-measures-
 import { NumberText } from "~/number-text";
 import type { ComparedStudent } from "./student-filters";
 
-/** The table and selected panel must keep the same distinction between names and quantities. */
+/** Why the ranking has no measure for a student. A portfolio without measures explains itself with the notice of the measures, which keeps the name of the student apart from its quantities, and a missing ratio gives its own reason. */
 export function StudentMeasureNotice({
   student,
   text,

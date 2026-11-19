@@ -117,7 +117,7 @@ for (const locale of locales) {
     const profileButton = (popover: string, content: string): string =>
       `<button type="button" popoverTarget="${popover}" aria-label="${text.profile}" style="anchor-name:--${popover}">${content}</button>`;
     const profilePopover = (popover: string): string =>
-      `<div id="${popover}" popover="auto" role="dialog" aria-label="${text.profileTitle}" style="position-anchor:--${popover}"><span>menu</span></div>`;
+      `<div id="${popover}" popover="auto" role="dialog" aria-label="${text.profileTitle}" tabindex="0" style="position-anchor:--${popover}"><span>menu</span></div>`;
     expect(html).toBe(
       [
         `<a href="#main">${text.skip}</a><div>`,

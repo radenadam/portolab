@@ -49,6 +49,8 @@ export function Popover({
       popover="auto"
       role="dialog"
       aria-label={label}
+      // eslint-disable-next-line jsx-a11y-x/no-noninteractive-tabindex -- A popover taller than the room beside its button scrolls inside it, and a keyboard reaches a region that scrolls only through a stop of the Tab key.
+      tabIndex={0}
       className={[styles["popover"], styles[placement], className]
         .filter(Boolean)
         .join(" ")}

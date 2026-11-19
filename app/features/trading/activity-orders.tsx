@@ -24,6 +24,7 @@ import styles from "./activity.module.css";
 import { SideTag } from "./side-tag";
 import { orderSideLabel } from "./order-form-fields";
 import { CancelOrder } from "./cancel-order";
+import { orderEntryId } from "./order-entry-id";
 import type { PortfolioKind } from "./portfolio-store.server";
 import type { JournalTrade } from "./trade-journal";
 import { TradePerformance, tradePerformanceScale } from "./trade-performance";
@@ -56,12 +57,15 @@ export function ActivityOrders({
   portfolioKind?: PortfolioKind | undefined;
 }): ReactNode {
   const tradeOf = new Map(trades.map((trade) => [trade.order.id, trade]));
-  const scale = tradePerformanceScale(trades);
   const shown = orders
     .toReversed()
     .filter(
       (order) => filter === "all" || activityStatus(order, now) === filter,
     );
+  // The note of the shared time and the scale of the bars serve only the trades that the list shows, so a filter that hides every fill hides the note too.
+  const scale = tradePerformanceScale(
+    shown.flatMap((order) => tradeOf.get(order.id) ?? []),
+  );
   return (
     <section
       className={styles["orderSection"]}
@@ -124,7 +128,7 @@ export function ActivityOrders({
                     <StockPageLink
                       classId={classId}
                       code={order.code}
-                      id={`order-${String(order.id)}`}
+                      id={orderEntryId(order.id)}
                       keepReturn={readOnly}
                       className={styles["stock"]}
                       task={task}

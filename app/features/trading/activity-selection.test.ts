@@ -5,14 +5,10 @@ import type { Locale } from "~/paraglide/runtime.js";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
 import { expect, test } from "vitest";
 import { fieldMaximumLength } from "~/form-size";
-import {
-  activityStatus,
-  parseActivityFilter,
-  parseActivityView,
-} from "./activity-selection";
+import { activityStatus, parseActivityFilter } from "./activity-selection";
 import { activityNowForTest, activityOrderForTest } from "./activity-for-test";
 
-test("parses each status and phone view, defaults missing choices, and rejects other input", () => {
+test("parses each status, defaults a missing status to all, and rejects other input", () => {
   for (const filter of activityFilters)
     expect(parseActivityFilter(filter, "status")).toEqual({
       ok: true,
@@ -22,15 +18,8 @@ test("parses each status and phone view, defaults missing choices, and rejects o
     ok: true,
     value: "all",
   });
-  expect(parseActivityView(null, "view")).toEqual({
-    ok: true,
-    value: "orders",
-  });
-  for (const view of ["orders", "journal"])
-    expect(parseActivityView(view, "view")).toEqual({ ok: true, value: view });
   for (const value of ["unknown", "x".repeat(100_000), 1, {}, undefined]) {
     expect(parseActivityFilter(value, "status").ok).toBe(false);
-    expect(parseActivityView(value, "view").ok).toBe(false);
   }
 });
 
@@ -47,20 +36,21 @@ const longText: Record<Locale, readonly [string, string]> = {
 for (const locale of locales) {
   test(`bounds query choices before describing input beyond the field limit in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
-    for (const parse of [parseActivityFilter, parseActivityView]) {
-      const atLimit = parse("x".repeat(fieldMaximumLength), "choice");
-      expect(atLimit.ok).toBe(false);
-      if (!atLimit.ok)
-        expect(atLimit.failure).toContain("x".repeat(fieldMaximumLength));
-      for (const index of [0, 1] as const) {
-        const length = (
-          [fieldMaximumLength + 1, fieldMaximumLength * 100] as const
-        )[index];
-        expect(parse("x".repeat(length), "choice")).toEqual({
-          ok: false,
-          failure: longText[locale][index],
-        });
-      }
+    const atLimit = parseActivityFilter(
+      "x".repeat(fieldMaximumLength),
+      "choice",
+    );
+    expect(atLimit.ok).toBe(false);
+    if (!atLimit.ok)
+      expect(atLimit.failure).toContain("x".repeat(fieldMaximumLength));
+    for (const index of [0, 1] as const) {
+      const length = (
+        [fieldMaximumLength + 1, fieldMaximumLength * 100] as const
+      )[index];
+      expect(parseActivityFilter("x".repeat(length), "choice")).toEqual({
+        ok: false,
+        failure: longText[locale][index],
+      });
     }
   });
 }

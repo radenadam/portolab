@@ -10,15 +10,26 @@ import {
   submitSignIn,
 } from "./accounts.ts";
 import { chooseLanguage } from "./choose-language.ts";
-import { openClassAdministration } from "./class-controls.ts";
+import { openFirstStudent } from "./open-first-student.ts";
 import { createTestClass } from "./create-test-class.ts";
 import { isPhone } from "./frame.ts";
 import { newDevice } from "./new-device.ts";
 import { widestClassNames } from "./widest-class-names.ts";
 
-const texts: Record<Locale, { create: string; reset: string }> = {
-  id: { create: "Buat kelas", reset: "Atur ulang kata sandi" },
-  en: { create: "Create the class", reset: "Reset the password" },
+const texts: Record<
+  Locale,
+  { create: string; resetLink: string; reset: string }
+> = {
+  id: {
+    create: "Buat kelas",
+    resetLink: "Atur ulang kata sandi",
+    reset: "Atur ulang kata sandi",
+  },
+  en: {
+    create: "Create the class",
+    resetLink: "Reset password",
+    reset: "Reset the password",
+  },
 };
 
 test.use({ javaScriptEnabled: false });
@@ -74,11 +85,11 @@ for (const locale of locales) {
       testClass.joinPath,
       widestClassNames.studentName,
     );
-    await page.goto(testClass.path);
-    await openClassAdministration(page);
+    await page.goto(`${testClass.path}/students`);
+    await openFirstStudent(page);
     await page
-      .locator("[data-class-administration]")
-      .getByRole("link", { name: texts[locale].reset })
+      .getByRole("main")
+      .getByRole("link", { name: texts[locale].resetLink, exact: true })
       .click();
     await page
       .getByRole("main")

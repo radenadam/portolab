@@ -70,9 +70,6 @@ export function StudentStandings({
           const rank = studentRank(student, all, options.measure)?.rank;
           return (
             <tr
-              data-auto-selected={
-                options.studentId === undefined ? "true" : undefined
-              }
               key={student.studentId}
               id={studentRowId(student.studentId)}
               className={

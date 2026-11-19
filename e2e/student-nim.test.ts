@@ -9,7 +9,7 @@ import { captureScreens } from "./capture-screens.ts";
 import { createTestClass } from "./create-test-class.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 import { newDevice } from "./new-device.ts";
-import { selectFirstStudent } from "./select-first-student.ts";
+import { openFirstStudent } from "./open-first-student.ts";
 import { storeGradingPortfolio } from "./store-grading-portfolio.ts";
 import { studentWithPortfolio } from "./student-with-portfolio.ts";
 import { widestClassNames } from "./widest-class-names.ts";
@@ -24,7 +24,6 @@ const texts: Record<
     title: string;
     search: string;
     searchButton: string;
-    open: string;
     join: string;
     long: string;
     far: string;
@@ -43,7 +42,6 @@ const texts: Record<
     title: `NIM di ${widestClassNames.className}`,
     search: "Cari nama, NIM, atau nama pengguna",
     searchButton: "Cari",
-    open: "Buka portofolio",
     join: "Gabung ke kelas",
     long: 'Kolom "NIM" memuat paling banyak 32 karakter, tetapi isinya 33 karakter. Persingkat isinya.',
     far: 'Kolom "NIM" berisi 32.768 karakter, lebih banyak daripada yang diterima kolom ini. Isi kolom itu dengan teks yang dimintanya.',
@@ -63,7 +61,6 @@ const texts: Record<
     title: `NIM in ${widestClassNames.className}`,
     search: "Search name, NIM, or username",
     searchButton: "Search",
-    open: "Open portfolio",
     join: "Join the class",
     long: 'The field "NIM" holds at most 32 characters, but it has 33. Shorten it.',
     far: 'The field "NIM" has 32,768 characters, more than this field takes. Fill it in with the text that it asks for.',
@@ -139,18 +136,7 @@ for (const locale of locales) {
       fullPage: true,
       fromTop: true,
     });
-    await selectFirstStudent(page);
-    await expect(page.getByRole("dialog")).toContainText(nim);
-    await expectAccessibleScreen(page);
-    await captureScreens(page, testInfo, {
-      name: "nim-panel",
-      fullPage: false,
-      fromTop: true,
-    });
-    await page
-      .getByRole("dialog")
-      .getByRole("link", { name: text.open, exact: true })
-      .click();
+    await openFirstStudent(page);
     await expect(page.locator("main header").first()).toContainText(nim);
     await captureScreens(page, testInfo, {
       name: "nim-student-summary",

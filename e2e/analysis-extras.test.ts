@@ -11,6 +11,7 @@ import { captureScreens } from "./capture-screens.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 import { expectLayout } from "./expect-layout.ts";
 import { holdClientScripts } from "./hold-client-scripts.ts";
+import { newDevice } from "./new-device.ts";
 import { openAsNewStudent } from "./open-as-new-student.ts";
 import { storeTestHolding } from "./store-test-holding.ts";
 
@@ -151,9 +152,7 @@ for (const locale of locales) {
       await allocation
         .getByRole("link", { name: text.stock, exact: true })
         .click();
-      await expect(page).toHaveURL(
-        `${classPath}/analysis?allocation=stock#analysis-allocation`,
-      );
+      await expect(page).toHaveURL(`${classPath}/analysis?allocation=stock`);
       await expect(
         allocation.locator('[data-layout="rows"] > div > span'),
       ).toHaveText(["BBCA", "TLKM", text.cashLabel]);
@@ -227,6 +226,60 @@ for (const locale of locales) {
         check: () => expectLayout(page),
       });
     } finally {
+      await lecturer.context().close();
+    }
+  });
+
+  test(`changes the allocation in place once JavaScript runs, and returns to it through the fragment before, in ${languageNames[locale]}`, async ({
+    page,
+    browser,
+  }) => {
+    const { lecturer, classPath } = await openAsNewStudent(page, browser, {
+      locale,
+      path: "/analysis",
+      givePortfolio,
+    });
+    const plain = await newDevice(browser, locale, {
+      javaScriptEnabled: false,
+      sessionFrom: page,
+    });
+    try {
+      await page.waitForFunction(() => "__reactRouterDataRouter" in window);
+      const allocation = page.getByRole("region", {
+        name: text.allocation,
+        exact: true,
+      });
+      const choice = allocation.getByRole("link", {
+        name: text.stock,
+        exact: true,
+      });
+      await choice.scrollIntoViewIfNeeded();
+      const before = await page.evaluate(() => ({
+        scroll: window.scrollY,
+        entries: history.length,
+      }));
+      await choice.click();
+      // A choice of a view changes the part in place: the address loses the fragment, the scroll stays, and the history keeps one entry for the screen.
+      await expect(page).toHaveURL(`${classPath}/analysis?allocation=stock`);
+      await expect(choice).toHaveAttribute("aria-current", "true");
+      await expect
+        .poll(() => page.evaluate(() => window.scrollY))
+        .toBeCloseTo(before.scroll, 0);
+      expect(await page.evaluate(() => history.length)).toBe(before.entries);
+
+      await plain.goto(`${classPath}/analysis`);
+      await plain
+        .getByRole("region", { name: text.allocation, exact: true })
+        .getByRole("link", { name: text.stock, exact: true })
+        .click();
+      await expect(plain).toHaveURL(
+        `${classPath}/analysis?allocation=stock#analysis-allocation`,
+      );
+      await expect(
+        plain.getByRole("region", { name: text.allocation, exact: true }),
+      ).toBeInViewport();
+    } finally {
+      await plain.context().close();
       await lecturer.context().close();
     }
   });

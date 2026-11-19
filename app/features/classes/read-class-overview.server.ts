@@ -7,10 +7,9 @@ import type { TeachingStudent } from "./class-teaching";
 import { lotCount } from "~/features/trading/count-parts";
 import { studentJournalPath } from "~/features/grading/grading-paths";
 import { pathReturningTo } from "~/features/accounts/path-returning-to";
-import { journalEntryId } from "~/features/trading/journal-entry-id";
+import { orderEntryId } from "~/features/trading/order-entry-id";
 import { latestPortfolioActivity } from "~/features/trading/latest-portfolio-activity";
 import type { Portfolio } from "~/features/trading/portfolio-store.server";
-import { studentNameBoundary } from "./student-name-placeholder";
 import type { Database } from "~/database/database.server";
 import { startOfWeek } from "~/calendar-dates";
 import { holdingQuoteFailureText } from "~/features/trading/holding-quote-failure-text";
@@ -18,13 +17,10 @@ import { readCurrentPortfolio } from "~/features/trading/read-current-portfolio.
 import { readPortfolioReport } from "~/features/trading/read-portfolio-report.server";
 import { readPortfolioMeasures } from "~/features/measures/read-measures.server";
 import { explainPortfolioMeasures } from "~/features/measures/explain-portfolio-measures";
-import {
-  ownQuoteTime,
-  sharedQuoteTime,
-} from "~/features/market-data/shared-quote-time";
+import { sharedQuoteTime } from "~/features/market-data/shared-quote-time";
 import type { Quote } from "~/features/market-data/price-source.server";
 import { measureStoredMarket } from "~/features/measures/measure-stored.server";
-import { formatMarketTime, formatList } from "~/formatting";
+import { formatMarketTime } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import type { Beta } from "~/units/beta";
 import type { MonthlyReturn } from "~/units/monthly-return";
@@ -46,19 +42,14 @@ type OverviewClass = Pick<
   "id" | "startingCash" | "firstSessionDate"
 >;
 
-interface OverviewStudent extends Pick<
-  ClassStudent,
-  "id" | "name" | "username" | "joinedAt"
-> {
+interface OverviewStudent extends Pick<ClassStudent, "id" | "name"> {
   return: CumulativeReturn | undefined;
   marketReturn: CumulativeReturn | undefined;
   risk:
     | { beta: Beta; standardDeviation: MonthlyReturn; alpha: MonthlyReturn }
     | undefined;
-  reasonParts: string[] | undefined;
   ordersThisWeek: number;
   lastOrder: string;
-  priceTimes: string;
 }
 
 /** The portfolios of a class, with only the values and texts that its overview draws. */
@@ -145,10 +136,7 @@ export function readClassOverview(
       reason,
       href,
     })),
-    students: rows.map((row) => ({
-      ...row.overview,
-      priceTimes: portfolioPriceTimes(row, pricesAt),
-    })),
+    students: rows.map((row) => row.overview),
     summary,
     marketDeviation: market.ok
       ? market.value.standardDeviation.value
@@ -191,7 +179,7 @@ function readOverviewStudent(
   );
   const measures = explainPortfolioMeasures(
     readPortfolioMeasures(database, report.valuation),
-    { kind: "lecturer", studentName: studentNameBoundary },
+    { kind: "lecturer", studentName: student.name },
   );
   const quotes: Pick<Quote, "code" | "quotedAt">[] =
     report.market === undefined ? [] : [report.market.quote];
@@ -239,15 +227,13 @@ function readOverviewStudent(
             pathReturningTo(
               studentJournalPath(taught.id, student.id),
               `${options.sourcePath}#class-reasons`,
-            ) + `#${journalEntryId(order.id)}`,
+            ) + `#${orderEntryId(order.id)}`,
         },
       ];
     }),
     overview: {
       id: student.id,
       name: student.name,
-      username: student.username,
-      joinedAt: student.joinedAt,
       return: report.valuation.total?.return,
       marketReturn: report.market?.return,
       risk: measures.ok
@@ -257,9 +243,6 @@ function readOverviewStudent(
             alpha: measures.value.securityMarketLine.value,
           }
         : undefined,
-      reasonParts: measures.ok
-        ? undefined
-        : measures.failure.split(studentNameBoundary),
       ...orderActivity(portfolio, options.now),
     },
   };
@@ -283,23 +266,4 @@ function orderActivity(
         ? m.classes_map_no_order_label()
         : formatMarketTime(lastOrder),
   };
-}
-
-function portfolioPriceTimes(
-  { report, quotes }: ReturnType<typeof readOverviewStudent>,
-  sharedTime: Date | undefined,
-): string {
-  if (quotes.length === 0)
-    return report.valuation.holdings.length === 0
-      ? m.classes_map_cash_label()
-      : m.classes_measure_pending_label();
-  return formatList(
-    quotes.map((quote) => {
-      const time = ownQuoteTime(quote.quotedAt, sharedTime);
-      return time === undefined
-        ? quote.code
-        : m.app_map_value_part({ name: quote.code, value: time });
-    }),
-    "conjunction",
-  );
 }

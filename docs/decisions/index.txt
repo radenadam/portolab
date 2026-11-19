@@ -65,3 +65,4 @@
 0065-the-welcome-has-measured-shared-and-route-allowances.md
 0066-a-student-gives-an-optional-nim-for-each-class.md
 0067-shared-parts-have-measured-allowances.md
+0068-the-review-of-19-november-2026-changes-parts-of-the-screens.md

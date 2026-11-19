@@ -101,7 +101,6 @@
   font-size: var(--text-row);
 }
 
-/* A quoted reason runs as one paragraph between its quote marks, and the journal keeps its paragraphs in a block quote. */
 .reason {
   color: var(--color-muted);
 }
@@ -155,24 +154,6 @@
   color: var(--color-muted);
   font-size: var(--text-small);
   font-weight: 400;
-}
-
-.journalHeader {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.journalHeader small {
-  margin-inline-start: auto;
-  color: var(--color-muted);
-  font-size: var(--text-small);
-}
-
-.tradePrice {
-  color: var(--color-ink-secondary);
-  font-size: var(--text-row);
 }
 
 .currentPrice::before {

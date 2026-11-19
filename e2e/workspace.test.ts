@@ -47,6 +47,7 @@ const texts: Record<
     taughtClasses: string;
     join: string;
     createClass: string;
+    calendar: string;
     oneStudent: string;
     signOut: string;
     marketTitle: string;
@@ -76,6 +77,7 @@ const texts: Record<
     taughtClasses: "Kelas yang Anda ajar",
     join: "Gabung ke kelas",
     createClass: "Buat kelas",
+    calendar: "Jadwal kuliah",
     oneStudent: "1 mahasiswa",
     signOut: "Keluar",
     marketTitle: "Pasar",
@@ -109,6 +111,7 @@ const texts: Record<
     taughtClasses: "Classes you teach",
     join: "Join a class",
     createClass: "Create a class",
+    calendar: "Course calendar",
     oneStudent: "1 student",
     signOut: "Sign out",
     marketTitle: "Market",
@@ -249,6 +252,7 @@ for (const locale of locales) {
     await expect(
       switcher.getByRole("link", { name: text.join, exact: true }),
     ).toHaveAttribute("href", "/join");
+    await expect(switcher.locator('a[href$="/calendar"]')).toHaveCount(0);
     await expectAccessibleScreen(student);
     await classLinks.nth(0).click();
     await expect(student).toHaveURL(first.path);
@@ -306,6 +310,10 @@ for (const locale of locales) {
     await expect(
       switcher.getByRole("link", { name: text.createClass, exact: true }),
     ).toHaveAttribute("href", createClassPath);
+    // Only the lecturer of a class sets its calendar, so only the switcher of a lecturer offers it.
+    await expect(
+      switcher.getByRole("link", { name: text.calendar, exact: true }),
+    ).toHaveAttribute("href", `${testClass.path}/calendar`);
     await page.keyboard.press("Escape");
     await expect(switcher).toBeHidden();
 

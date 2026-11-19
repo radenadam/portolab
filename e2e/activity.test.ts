@@ -24,8 +24,6 @@ const texts: Record<
   Locale,
   {
     title: string;
-    view: string;
-    journal: string;
     orders: string;
     filter: string;
     all: string;
@@ -39,17 +37,13 @@ const texts: Record<
     keep: string;
     cancelQuestion: string;
     noOrders: string;
-    noTrades: string;
     open: string;
     ticketWaiting: string;
     activityLink: string;
-    twoTrades: string;
     notFoundTitle: string;
     chooseStatus: string;
-    chooseView: string;
     apply: string;
     badStatus: string;
-    badView: string;
     tooLong: string;
     buyChange: string;
     saleChange: string;
@@ -59,18 +53,12 @@ const texts: Record<
     buyChange: "▲ +0,81%",
     saleChange: "▼ -2,35%",
     chooseStatus: "Pilih status",
-    chooseView: "Pilih tampilan",
     apply: "Tampilkan aktivitas",
     badStatus:
       'Kolom "Saring menurut status" berisi "wrong", tetapi kolom itu hanya menerima "Semua", "Menunggu", "Terisi", "Ditolak", "Kedaluwarsa", atau "Dibatalkan". Pilih salah satunya.',
-    badView:
-      'Kolom "Tampilan aktivitas" berisi "wrong", tetapi kolom itu hanya menerima "Order" atau "Jurnal". Pilih salah satunya.',
     tooLong:
       'Kolom "Saring menurut status" berisi 8.001 karakter, lebih banyak daripada yang diterima kolom ini. Isi kolom itu dengan teks yang dimintanya.',
-    twoTrades: "Jurnal transaksi 2 transaksi",
     title: "Aktivitas",
-    view: "Tampilan aktivitas",
-    journal: "Jurnal",
     orders: "Order",
     notFoundTitle: "Halaman tidak ditemukan",
     filter: "Saring menurut status",
@@ -86,7 +74,6 @@ const texts: Record<
     cancelQuestion: 'Batalkan order "Beli" atas 5 lot BBCA?',
     noOrders:
       "Belum ada order. Order pertama muncul di sini setelah Anda memasang order saham.",
-    noTrades: "Transaksi yang terisi muncul di sini bersama alasannya.",
     open: "Buka tiket BBCA",
     ticketWaiting: "Order menunggu",
     activityLink: "Lihat di Aktivitas",
@@ -95,18 +82,12 @@ const texts: Record<
     buyChange: "▲ +0.81%",
     saleChange: "▼ -2.35%",
     chooseStatus: "Choose a status",
-    chooseView: "Choose a view",
     apply: "Show activity",
     badStatus:
       'The field "Filter by status" holds "wrong", but the field takes only "All", "Waiting", "Filled", "Rejected", "Expired", or "Cancelled". Choose one of them.',
-    badView:
-      'The field "Activity view" holds "wrong", but the field takes only "Orders" or "Journal". Choose one of them.',
     tooLong:
       'The field "Filter by status" has 8,001 characters, more than this field takes. Fill it in with the text that it asks for.',
-    twoTrades: "Trade journal 2 trades",
     title: "Activity",
-    view: "Activity view",
-    journal: "Journal",
     orders: "Orders",
     notFoundTitle: "Page not found",
     filter: "Filter by status",
@@ -122,7 +103,6 @@ const texts: Record<
     cancelQuestion: 'Cancel the "Buy" order for 5 lots of BBCA?',
     noOrders:
       "No orders yet. Your first stock order appears here once you place it.",
-    noTrades: "Filled trades appear here with their reasons.",
     open: "Open ticket for BBCA",
     ticketWaiting: "Order waiting",
     activityLink: "View in Activity",
@@ -202,7 +182,7 @@ for (const locale of locales) {
     );
   });
 
-  test(`filters orders, cancels a waiting order, and switches the journal before JavaScript loads in ${languageNames[locale]}`, async ({
+  test(`filters orders, cancels a waiting order, and shows how each fill has done since its trade in one list before JavaScript loads in ${languageNames[locale]}`, async ({
     page,
     browser,
   }) => {
@@ -218,15 +198,6 @@ for (const locale of locales) {
     ).toBeVisible();
     await expect(
       student.getByText(text.noOrders, { exact: true }),
-    ).toBeVisible();
-    if (isPhone()) {
-      await student
-        .getByRole("navigation", { name: text.view })
-        .getByRole("link", { name: text.journal, exact: true })
-        .click();
-    }
-    await expect(
-      student.getByText(text.noTrades, { exact: true }),
     ).toBeVisible();
     await expectAccessibleScreen(student);
     await placeWaitingOrder(student, classPath, locale);
@@ -247,9 +218,7 @@ for (const locale of locales) {
     ).toHaveCount(1);
     const stale = await native.context().newPage();
     await stale.setViewportSize({ width: 1440, height: 900 });
-    const staleAddress = new URL(native.url());
-    staleAddress.searchParams.set("view", "journal");
-    await stale.goto(staleAddress.href);
+    await stale.goto(native.url());
     await native
       .getByRole("button", { name: text.cancel, exact: true })
       .click();
@@ -281,11 +250,6 @@ for (const locale of locales) {
     await expect(
       staleOrders.locator('ul[data-layout="rows"] > li'),
     ).toHaveCount(6);
-    await expect(
-      stale
-        .getByRole("navigation", { name: text.view })
-        .getByRole("link", { name: text.orders, exact: true }),
-    ).toHaveAttribute("aria-current", "page");
     expect(await layoutProblems(stale)).toEqual([]);
     for (const [status, count] of [
       [text.filled, 2],
@@ -318,23 +282,16 @@ for (const locale of locales) {
     await filters
       .getByRole("link", { name: `${text.all} · 6`, exact: true })
       .click();
-    if (isPhone()) {
-      await native
-        .getByRole("navigation", { name: text.view })
-        .getByRole("link", { name: text.journal, exact: true })
-        .click();
-      await expect(native).toHaveURL(/view=journal/);
-    }
+    // The list of orders shows how each filled order has done since its trade, so no other view or column holds it.
+    const orders = native.getByRole("region", {
+      name: text.orders,
+      exact: true,
+    });
     await expect(
-      native.getByRole("heading", {
-        name: text.twoTrades,
-      }),
+      orders.getByText(text.buyChange, { exact: true }),
     ).toBeVisible();
     await expect(
-      native.getByText(text.buyChange, { exact: true }),
-    ).toBeVisible();
-    await expect(
-      native.getByText(text.saleChange, { exact: true }),
+      orders.getByText(text.saleChange, { exact: true }),
     ).toBeVisible();
     await native.context().close();
     await placeWaitingOrder(student, classPath, locale);
@@ -345,17 +302,15 @@ for (const locale of locales) {
       ["digits", "9".repeat(reasonMaximumLength)],
     ] as const) {
       widenActivityReasons(classId, reason);
-      for (const view of ["orders", "journal"]) {
-        await student.goto(`${classPath}/activity?view=${view}`);
-        expect(await layoutProblems(student)).toEqual([]);
-        await expectAccessibleScreen(student);
-        if (isPhone())
-          await captureScreens(student, test.info(), {
-            name: `activity-${locale}-${kind}-${view}`,
-            fullPage: true,
-            fromTop: true,
-          });
-      }
+      await student.goto(`${classPath}/activity`);
+      expect(await layoutProblems(student)).toEqual([]);
+      await expectAccessibleScreen(student);
+      if (isPhone())
+        await captureScreens(student, test.info(), {
+          name: `activity-${locale}-${kind}`,
+          fullPage: true,
+          fromTop: true,
+        });
     }
     await student.context().close();
   });
@@ -367,26 +322,17 @@ async function correctActivityQuery(
   locale: Locale,
 ): Promise<void> {
   const text = texts[locale];
-  const response = await page.goto(
-    `${classPath}/activity?status=wrong&view=wrong`,
-  );
+  const response = await page.goto(`${classPath}/activity?status=wrong`);
   expect(response?.status()).toBe(400);
   await expect(page.getByText(text.badStatus, { exact: true })).toBeVisible();
-  await expect(page.getByText(text.badView, { exact: true })).toBeVisible();
   const status = page.getByRole("combobox", { name: text.filter, exact: true });
-  const view = page.getByRole("combobox", { name: text.view, exact: true });
   await expect(status).toHaveValue("wrong");
-  await expect(view).toHaveValue("wrong");
   await expect(
     status.getByRole("option", { name: text.chooseStatus, exact: true }),
   ).toHaveCount(1);
-  await expect(
-    view.getByRole("option", { name: text.chooseView, exact: true }),
-  ).toHaveCount(1);
   await status.selectOption("all");
-  await view.selectOption("orders");
   await page.getByRole("button", { name: text.apply, exact: true }).click();
-  await expect(page).toHaveURL(/status=all&view=orders$/);
+  await expect(page).toHaveURL(/status=all$/);
   const oversized = await page.goto(
     `${classPath}/activity?status=${"x".repeat(fieldMaximumLength + 1)}`,
   );
@@ -419,23 +365,20 @@ async function captureActivity(
   classPath: string,
   locale: Locale,
 ): Promise<void> {
-  const views = isPhone() ? ["orders", "journal"] : ["orders"];
-  for (const view of views) {
-    await student.goto(`${classPath}/activity?view=${view}`);
-    await captureScreens(student, test.info(), {
-      name: `activity-${locale}-${view}`,
-      fullPage: true,
-      fromTop: true,
-      check: async () => {
-        expect(await layoutProblems(student)).toEqual([]);
-        const clockLines = await student
-          .locator("time > [data-number]:visible")
-          .evaluateAll((clocks) =>
-            clocks.map((clock) => clock.getClientRects().length),
-          );
-        expect(clockLines.length).toBeGreaterThan(0);
-        expect(clockLines.every((lines) => lines === 1)).toBe(true);
-      },
-    });
-  }
+  await student.goto(`${classPath}/activity`);
+  await captureScreens(student, test.info(), {
+    name: `activity-${locale}`,
+    fullPage: true,
+    fromTop: true,
+    check: async () => {
+      expect(await layoutProblems(student)).toEqual([]);
+      const clockLines = await student
+        .locator("time > [data-number]:visible")
+        .evaluateAll((clocks) =>
+          clocks.map((clock) => clock.getClientRects().length),
+        );
+      expect(clockLines.length).toBeGreaterThan(0);
+      expect(clockLines.every((lines) => lines === 1)).toBe(true);
+    },
+  });
 }

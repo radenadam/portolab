@@ -6,16 +6,13 @@ import { holdClientScripts } from "./hold-client-scripts.ts";
 import { storeGradingPortfolio } from "./store-grading-portfolio.ts";
 import { studentWithPortfolio } from "./student-with-portfolio.ts";
 
-const texts: Record<Locale, { search: string; close: string }> = {
-  id: {
-    search: "Cari nama, NIM, atau nama pengguna",
-    close: "Tutup panel mahasiswa",
-  },
-  en: { search: "Search name, NIM, or username", close: "Close student panel" },
+const texts: Record<Locale, { search: string }> = {
+  id: { search: "Cari nama, NIM, atau nama pengguna" },
+  en: { search: "Search name, NIM, or username" },
 };
 
 for (const locale of locales) {
-  test(`keeps native student selection and a search draft when JavaScript enhances the panel in ${languageNames[locale]}`, async ({
+  test(`keeps a search draft when JavaScript loads, and then opens a student from the row with the client in ${languageNames[locale]}`, async ({
     page,
     browser,
   }) => {
@@ -27,37 +24,21 @@ for (const locale of locales) {
       page,
       { otherDevice: student.context(), address: `${classPath}/students` },
       async (loadClient) => {
-        await Promise.all([
-          page.waitForURL(/student=\d+/, { waitUntil: "commit" }),
-          page
-            .locator("main tbody tr")
-            .first()
-            .getByRole("link")
-            .click({ noWaitAfter: true }),
-        ]);
-        const panel = page.getByRole("dialog");
-        await expect(panel).toBeVisible();
-        expect(
-          await panel.evaluate((element) => element.matches(":modal")),
-        ).toBe(false);
         const search = page.getByRole("searchbox", {
           name: texts[locale].search,
         });
         await search.fill("Unsent search");
         const address = page.url();
         await loadClient();
-        await expect(page.getByRole("slider").first()).toBeVisible();
-        await expect
-          .poll(() => panel.evaluate((element) => element.matches(":modal")))
-          .toBe((page.viewportSize()?.width ?? 0) < 1320);
+        await page.waitForFunction(() => "__reactRouterDataRouter" in window);
         await expect(search).toHaveValue("Unsent search");
         await expect(page).toHaveURL(address);
-        await panel.getByRole("link", { name: texts[locale].close }).click();
-        await expect(page).not.toHaveURL(/student=/);
-        await expect(search).toHaveValue("Unsent search");
-        await expect(
-          page.locator("main tbody tr").first().getByRole("link"),
-        ).toBeFocused();
+        const clientNavigation = page.waitForRequest((request) =>
+          new URL(request.url()).pathname.endsWith(".data"),
+        );
+        await page.locator("main tbody tr").first().getByRole("link").click();
+        await clientNavigation;
+        await expect(page).toHaveURL(/\/students\/\d+\?returnTo=/);
       },
     );
   });

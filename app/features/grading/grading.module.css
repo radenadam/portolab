@@ -1,10 +1,3 @@
-.link {
-  composes: standalone-link from global;
-}
-.details {
-  color: var(--color-muted);
-  font-size: var(--text-small);
-}
 .students {
   align-self: stretch;
   display: grid;
@@ -86,9 +79,6 @@
 }
 .button {
   composes: button from "../../button.module.css";
-}
-.primary {
-  composes: primary-button from global;
 }
 .export {
   gap: var(--space-2);
@@ -176,7 +166,7 @@
   font-weight: 600;
   text-decoration: none;
 }
-/* An avatar shows beside the latest reason and in the rows of a ranking on a wide screen, where the references draw it. */
+/* An avatar shows in the rows of a ranking on a wide screen, where the references draw it. */
 .avatar {
   display: none;
 }
@@ -298,9 +288,6 @@
   align-items: center;
   gap: var(--space-1);
 }
-.code {
-  font-family: var(--font-code);
-}
 .empty {
   padding: var(--space-6);
 }
@@ -309,162 +296,6 @@
   --color-loss: var(--color-loss-selected);
   --color-muted: var(--color-ink-secondary);
   background: var(--color-own-soft);
-}
-.studentPanel {
-  composes: panel from "../../panel.module.css";
-  width: 100%;
-  max-width: var(--width-aside);
-  margin: var(--space-4) auto;
-  color: var(--color-ink);
-}
-.studentPanel::backdrop {
-  background: var(--color-backdrop);
-}
-.studentPanel:modal {
-  position: fixed;
-  inset: auto 0 0;
-  max-width: 100%;
-  max-height: calc(100dvh - var(--space-8));
-  margin: 0;
-  overflow-y: auto;
-  border-end-start-radius: 0;
-  border-end-end-radius: 0;
-}
-.automaticPanel {
-  display: none;
-}
-.panelHeader {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  min-width: 0;
-}
-.panelHeader > div {
-  min-width: 0;
-}
-.panelHeader h2 {
-  margin: 0;
-  color: var(--color-ink);
-  font-size: var(--text-heading);
-}
-.panelHeader small {
-  color: var(--color-muted);
-  font-size: var(--text-small);
-  overflow-wrap: anywhere;
-}
-/* The NIM or username is an identifier, which DM Mono sets, while the rank around it is text. */
-.panelHeader small [data-text-value] {
-  font-family: var(--font-code);
-}
-@media (width < 60rem) {
-  .panelHeader {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-  }
-  .panelHeader > div {
-    display: contents;
-  }
-  .panelHeader h2 {
-    grid-column: 1 / 3;
-    grid-row: 1;
-  }
-  .panelAvatar {
-    grid-column: 1;
-    grid-row: 2;
-  }
-  .panelHeader small {
-    grid-column: 2 / -1;
-    grid-row: 2;
-  }
-  .panelHeader .close {
-    grid-column: 3;
-    grid-row: 1;
-  }
-}
-.close {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: none;
-  min-width: var(--size-touch-target);
-  min-height: var(--size-touch-target);
-  margin-inline-start: auto;
-  color: var(--color-ink);
-  font-size: var(--text-heading);
-  text-decoration: none;
-}
-.keyValues {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--space-4) var(--space-2);
-  margin: 0;
-}
-.keyValues > div {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-.keyValues dt {
-  color: var(--color-muted);
-  font-size: var(--text-small);
-}
-.keyValues dd {
-  order: -1;
-  margin: 0;
-  font-size: var(--text-body);
-  font-weight: 600;
-  overflow-wrap: anywhere;
-}
-.note {
-  padding: var(--space-3);
-  border-radius: var(--radius-item);
-  background: var(--color-raised);
-}
-.allocation {
-  font-size: var(--text-small);
-  color: var(--color-ink-secondary);
-}
-.allocationBar {
-  display: flex;
-  gap: var(--size-mark);
-  height: var(--space-2);
-  margin-block-end: var(--space-2);
-}
-.allocationBar i {
-  min-width: 0;
-  border-radius: var(--radius-button);
-  background: var(--color-data);
-}
-.allocationBar .cash {
-  background: var(--color-line-strong);
-}
-.latestReason {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-3);
-}
-.latestReason .avatar {
-  display: grid;
-}
-.latestReason h2 {
-  margin: 0;
-  color: var(--color-ink);
-  font-size: var(--text-body);
-}
-.latestReason small {
-  color: var(--color-muted);
-  font-size: var(--text-small);
-  font-weight: 400;
-}
-.quote {
-  display: block;
-  color: var(--color-ink-secondary);
-  overflow-wrap: anywhere;
-}
-.panelActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
 }
 @media (width >= 60rem) {
   .export span {
@@ -515,37 +346,12 @@
   .table .reasonCell {
     grid-column: 2 / -1;
   }
-  .studentPanel:modal {
-    inset: 0 0 0 auto;
-    width: var(--width-aside);
-    max-height: 100dvh;
-  }
 }
 @media (width >= 82.5rem) {
-  .students:has(.studentPanel) {
-    grid-template-columns: minmax(0, 2.7fr) minmax(0, 1fr);
-    align-items: stretch;
-  }
-  .studentPanel {
-    position: static;
-    display: flex;
-    width: 100%;
-    max-width: none;
-    height: 100%;
-    max-height: none;
-    margin: 0;
-  }
-  .automaticPanel .close {
-    display: none;
-  }
   .tools .search {
     margin-inline-start: auto;
     max-width: var(--width-ranking-search);
   }
-}
-
-.miniMap {
-  --size-chart: var(--size-chart-compact);
 }
 
 .content {
@@ -559,34 +365,9 @@
   grid-template-columns: var(--size-touch-target) minmax(0, 1fr);
 }
 
-@media (width < 82.5rem) {
-  .selected[data-auto-selected] {
-    background: transparent;
-  }
-}
-
-.panelContents {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  min-width: 0;
-}
-.panelHeader h2,
 .table tr {
   scroll-margin-block-start: calc(var(--size-top-bar) + var(--space-4));
 }
-@media (width >= 82.5rem) {
-  .studentPanel {
-    overflow: visible;
-  }
-  .panelContents {
-    position: sticky;
-    top: calc(var(--size-top-bar) + var(--space-4));
-    max-height: calc(100dvh - var(--size-top-bar) - 2 * var(--space-4));
-    overflow-y: auto;
-  }
-}
-
 .searchFailure {
   flex-basis: 100%;
   color: var(--color-loss);

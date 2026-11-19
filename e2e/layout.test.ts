@@ -39,7 +39,6 @@ interface RoutePage {
   path: (walked: WalkedClass) => string;
   /** A form or a page of prose must mark its centered reading column, so omitting the mark cannot skip that rule. */
   reading?: boolean;
-  tableOpen?: boolean;
   /** The rules of the layout that a page of Tenang breaks until the piece of issue #127 that rebuilds it removes them here. The comment of the entry names that piece. */
   brokenUntilRebuilt?: readonly LayoutRule[];
 }
@@ -100,11 +99,7 @@ const routePages: Record<string, readonly RoutePage[]> = {
     { reader: "student", path: () => "/classes", reading: true },
   ],
   "features/classes/class-page.tsx": [
-    {
-      reader: "lecturer",
-      path: ({ classPath }) => `${classPath}?reveal=data`,
-      tableOpen: true,
-    },
+    { reader: "lecturer", path: ({ classPath }) => classPath },
     { reader: "student", path: ({ classPath }) => classPath },
   ],
   "features/classes/calendar-page.tsx": [
@@ -128,11 +123,6 @@ const routePages: Record<string, readonly RoutePage[]> = {
       reader: "lecturer",
       path: ({ classPath }) => `${classPath}/demonstration/activity`,
     },
-    {
-      reader: "lecturer",
-      path: ({ classPath }) =>
-        `${classPath}/demonstration/activity?view=journal`,
-    },
   ],
   "features/measures/demonstration-analysis-page.tsx": [
     {
@@ -142,10 +132,6 @@ const routePages: Record<string, readonly RoutePage[]> = {
   ],
   "features/trading/activity-page.tsx": [
     { reader: "student", path: ({ classPath }) => `${classPath}/activity` },
-    {
-      reader: "student",
-      path: ({ classPath }) => `${classPath}/activity?view=journal`,
-    },
   ],
   "features/measures/measures-page.tsx": [
     {
@@ -182,10 +168,6 @@ const routePages: Record<string, readonly RoutePage[]> = {
   ],
   "features/grading/student-journal-page.tsx": [
     { reader: "lecturer", path: ({ studentPath }) => `${studentPath}/journal` },
-    {
-      reader: "lecturer",
-      path: ({ studentPath }) => `${studentPath}/journal?view=orders`,
-    },
   ],
   "features/classes/reset-password-page.tsx": [
     {
@@ -365,7 +347,7 @@ for (const [project, widths] of Object.entries(widthsOfProject)) {
           }
           for (const [
             screen,
-            { reader, path, reading, tableOpen, brokenUntilRebuilt = [] },
+            { reader, path, reading, brokenUntilRebuilt = [] },
           ] of Object.values(routePages).flat().entries()) {
             const address = path(walked);
             await readers[reader].goto(address);
@@ -374,12 +356,6 @@ for (const [project, widths] of Object.entries(widthsOfProject)) {
                 readers[reader].locator('main [data-layout="reading"]'),
                 address,
               ).toHaveCount(1);
-            }
-            if (tableOpen === true) {
-              await expect(
-                readers[reader].locator("main details:has(table)").first(),
-                address,
-              ).toHaveAttribute("open", "");
             }
             problems.push(
               ...(await inspectScreen(

@@ -45,67 +45,66 @@ export function StockHistoryChart({
     first === undefined || latest === undefined
       ? "none"
       : directionOf(first.close, latest.close);
+  // A range without closes keeps the choice of the other ranges, which can hold older closes.
   return (
     <>
+      <div className={styles["head"]}>
+        <h2 id="price-chart-title" className={styles["title"]}>
+          {m.market_data_price_chart_title({ code: history.code })}
+        </h2>
+        <nav
+          className={styles["ranges"]}
+          aria-label={m.market_data_chart_range_label()}
+        >
+          {priceChartRangeOptions().map(({ value: choice, label }) => (
+            <Link
+              key={choice}
+              to={pathWithQuery(path, { range: choice, returnTo })}
+              preventScrollReset
+              aria-current={choice === range ? "true" : undefined}
+            >
+              {label}
+            </Link>
+          ))}
+        </nav>
+      </div>
       {first === undefined || latest === undefined ? (
         <p>{m.market_data_no_closes_notice()}</p>
       ) : (
-        <>
-          <div className={styles["head"]}>
-            <h2 id="price-chart-title" className={styles["title"]}>
-              {m.market_data_price_chart_title({ code: history.code })}
-            </h2>
-            <nav
-              className={styles["ranges"]}
-              aria-label={m.market_data_chart_range_label()}
-            >
-              {priceChartRangeOptions().map(({ value: choice, label }) => (
-                <Link
-                  key={choice}
-                  to={pathWithQuery(path, { range: choice, returnTo })}
-                  preventScrollReset
-                  aria-current={choice === range ? "true" : undefined}
-                >
-                  {label}
-                </Link>
-              ))}
-            </nav>
-          </div>
-          <TimeSeriesChart
-            points={history.closes}
-            lines={[
+        <TimeSeriesChart
+          points={history.closes}
+          lines={[
+            {
+              name: history.code,
+              kind,
+              valueOf: (point) => point.close,
+            },
+          ]}
+          layout={layoutTimeSeries(
+            history.closes.map((point) => point.date),
+            [
               {
-                name: history.code,
                 kind,
-                valueOf: (point) => point.close,
+                values: history.closes.map((point) => point.close),
               },
-            ]}
-            layout={layoutTimeSeries(
-              history.closes.map((point) => point.date),
-              [
-                {
-                  kind,
-                  values: history.closes.map((point) => point.close),
-                },
-              ],
-              {
-                unit: splitAdjustedRupiah,
-                minimum: splitAdjustedRupiah(Number.MIN_VALUE),
-                smallestStep: smallestNumberStep,
-                tickText: formatNumber,
-                dateText: (date) =>
-                  formatCalendarDatePart(date, dateParts[range]),
-              },
-            )}
-            labelledBy="price-chart-title"
-            dateLabel={m.market_data_close_date_label()}
-            tableLabel={m.market_data_closes_table_label()}
-            valueText={formatSplitAdjustedRupiah}
-            valueNode={formatSplitAdjustedRupiah}
-            area
-            axisSide="right"
-          />
-        </>
+            ],
+            {
+              unit: splitAdjustedRupiah,
+              minimum: splitAdjustedRupiah(Number.MIN_VALUE),
+              smallestStep: smallestNumberStep,
+              tickText: formatNumber,
+              dateText: (date) =>
+                formatCalendarDatePart(date, dateParts[range]),
+            },
+          )}
+          labelledBy="price-chart-title"
+          dateLabel={m.market_data_close_date_label()}
+          tableLabel={m.market_data_closes_table_label()}
+          valueText={formatSplitAdjustedRupiah}
+          valueNode={formatSplitAdjustedRupiah}
+          area
+          axisSide="right"
+        />
       )}
     </>
   );

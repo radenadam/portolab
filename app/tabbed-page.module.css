@@ -1,0 +1,13 @@
+/* A page of a portfolio whose header names its owner and whose tabs choose its part, such as the demonstration portfolio of a lecturer and the portfolio of a student that the lecturer reads, so both stand in the column of the content the same way. */
+.page {
+  display: grid;
+  gap: var(--space-4);
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}

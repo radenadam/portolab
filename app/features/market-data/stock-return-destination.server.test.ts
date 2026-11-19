@@ -49,7 +49,7 @@ for (const locale of locales) {
   test(`keeps each taught-student tab, query, and row for lecturers in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     for (const [index, suffix] of ["", "/analysis", "/journal"].entries()) {
-      const returnTo = `/classes/7/students/9${suffix}?axis=risk&view=orders&status=rejected&returnTo=%2Fclasses%2F7%2Fstudents%3Fstudent%3D9%26measure%3Dtreynor#stock-BBCA`;
+      const returnTo = `/classes/7/students/9${suffix}?axis=risk&status=rejected&returnTo=%2Fclasses%2F7%2Fstudents%3Fstudent%3D9%26measure%3Dtreynor#stock-BBCA`;
       expect(readDestination(returnTo, "demonstration")).toEqual({
         returnTo,
         returnPath: returnTo,

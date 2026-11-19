@@ -1,7 +1,3 @@
-.returnTarget {
-  scroll-margin-block-start: calc(var(--size-top-bar) + var(--space-4));
-}
-
 .list {
   display: flex;
   flex-direction: column;
@@ -11,16 +7,10 @@
   list-style: none;
 }
 
-.item,
 .classItem {
   display: flex;
   flex-direction: column;
   border-block-end: var(--size-line) solid var(--color-line);
-}
-
-.item {
-  composes: returnTarget;
-  padding-block: var(--space-3);
 }
 
 .classItem:last-child {
@@ -79,8 +69,4 @@
   display: block;
   color: var(--color-muted);
   font-size: var(--text-small);
-}
-
-.name {
-  overflow-wrap: anywhere;
 }

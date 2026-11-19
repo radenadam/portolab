@@ -43,7 +43,6 @@ const texts: Record<
     activityLink: string;
     cancel: string;
     confirm: string;
-    journal: string;
     notFound: string;
     axis: string;
     apply: string;
@@ -73,7 +72,7 @@ const texts: Record<
       "Total order berubah dari pratinjau yang Anda lihat. Periksa rincian biaya, lalu konfirmasi lagi.",
     sell: "Jual",
     data: "Data dan metode",
-    backToAnalysis: "Kembali ke Analisis",
+    backToAnalysis: "‹ Kembali ke Analisis",
     measures: "Ukuran portofolio Anda",
     calculate: "Lihat perhitungan",
     reason: "Alasan (opsional)",
@@ -81,7 +80,6 @@ const texts: Record<
     activityLink: "Lihat di Aktivitas",
     cancel: "Batalkan order",
     confirm: "Ya, batalkan",
-    journal: "Jurnal",
     notFound: "Halaman tidak ditemukan",
     axis: "Sumbu risiko",
     apply: "Tampilkan analisis",
@@ -110,7 +108,7 @@ const texts: Record<
       "The order total changed from the preview you saw. Check the cost breakdown, then confirm again.",
     sell: "Sell",
     data: "Data and method",
-    backToAnalysis: "Back to Analysis",
+    backToAnalysis: "‹ Back to Analysis",
     measures: "Your portfolio measures",
     calculate: "View calculation",
     reason: "Reason (optional)",
@@ -118,7 +116,6 @@ const texts: Record<
     activityLink: "View in Activity",
     cancel: "Cancel order",
     confirm: "Yes, cancel",
-    journal: "Journal",
     notFound: "Page not found",
     axis: "Risk axis",
     apply: "Show analysis",
@@ -361,7 +358,7 @@ for (const locale of locales) {
         await expect(page).toHaveURL(`${path}/analysis?axis=beta`);
         await page
           .getByRole("region", { name: text.measures, exact: true })
-          .getByRole("button", { name: text.calculate, exact: true })
+          .getByRole("button", { name: text.calculate })
           .first()
           .click();
         await expect(page.locator("#analysis-expectedReturn")).toBeVisible();
@@ -476,14 +473,6 @@ for (const locale of locales) {
         await tabs
           .getByRole("link", { name: text.activity, exact: true })
           .click();
-        if (testInfo.project.name === "phone") {
-          await page
-            .getByRole("link", { name: text.journal, exact: true })
-            .click();
-          await expect(page).toHaveURL(
-            `${path}/activity?view=journal&status=all`,
-          );
-        }
         await expect(
           page
             .getByText("Demonstration thesis.", { exact: false })

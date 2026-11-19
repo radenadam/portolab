@@ -13,7 +13,7 @@ import type {
 import { readCurrentPortfolio } from "~/features/trading/read-current-portfolio.server";
 import type { Rupiah } from "~/units/rupiah";
 import { parseStudentReturnPath } from "./parse-student-return-path";
-import { selectedStudentHeadingId } from "./students-address";
+import { studentRowId } from "./students-address";
 import { classPortfoliosPath } from "./grading-paths";
 import type { TaughtStudent } from "./taught-student-page";
 
@@ -56,7 +56,7 @@ export function readTaughtPortfolio(
   );
   if (!isClassMapPath(back.pathname, taughtClass.id)) {
     back.searchParams.set("student", String(student.id));
-    back.hash = selectedStudentHeadingId;
+    back.hash = studentRowId(student.id);
   }
   const owner = {
     kind: "membership" as const,

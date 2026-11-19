@@ -139,13 +139,12 @@ export function RiskMap<Across extends number, Up extends number>({
         : ownStop,
     labelledBy,
   });
-  const outsideRoom = sideRoom;
   const plotClass =
     spread === undefined ? styles["plot"] : styles["spreadPlot"];
   const mapClass = riskMapClass(fill, compact);
   const style: CSSProperties = {
-    paddingBlock: `${String(outsideRoom)}em ${String(bottomRoom)}em`,
-    paddingInline: `calc(${String(layout.upTextLength)}ch + ${String(valueMarkGap)}em + ${String(keptNameRoom)} * var(--text-small)) ${String(outsideRoom)}em`,
+    paddingBlock: `${String(sideRoom)}em ${String(bottomRoom)}em`,
+    paddingInline: `calc(${String(layout.upTextLength)}ch + ${String(valueMarkGap)}em + ${String(keptNameRoom)} * var(--text-small)) ${String(sideRoom)}em`,
   };
   const active = slider.marked === undefined ? undefined : stops[slider.marked];
   const drawing = (

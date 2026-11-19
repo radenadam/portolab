@@ -20,11 +20,11 @@ A question mark opens the meaning of a concept. {{label:app_concept_calculation_
 
 ## overview | Read the class overview
 
-In {{label:navigation_class_link}}, the map compares student portfolios. The horizontal axis shows risk, and the vertical axis shows return since starting cash. Choose {{label:classes_map_beta_label}} for risk against the IHSG or {{label:classes_map_deviation_label}} for variation in monthly returns. Select a point to open that student. When data is available, bars at the map edges show the class spread and a median line summarises its returns.
+In {{label:navigation_class_link}}, the map compares student portfolios. The horizontal axis shows risk, and the vertical axis shows return since starting cash. Choose {{label:classes_map_beta_label}} for risk against the IHSG or {{label:classes_map_deviation_label}} for variation in monthly returns. Select a point to open that student. When data is available, a dotted line marks the median return of the class.
 
 Portolab pairs each available student return with the IHSG return for the same period. The headline takes the median of those differences. Students can join on different dates, so their comparison periods can differ too.
 
-A student without risk measures or a return has no point yet. Open {{label:classes_map_table_label}} for their data and the reason for an unavailable measure. The figures below the map help check student count, order activity, and class risk before opening someone's work.
+A student without risk measures or a return has no point yet. {{label:navigation_students_link}} lists every student with their numbers and the reason for an unavailable measure. Each student's portfolio gives the times of its prices. The figures below the map help check student count, order activity, and class risk before opening someone's work.
 
 ## create | Set up a class and its calendar
 
@@ -34,7 +34,7 @@ Choose {{label:navigation_create_class_link}} in the class switcher. You can als
 
 Fill in {{label:classes_name_label}}, {{label:classes_first_session_label}}, and {{label:classes_starting_cash_label}}, then choose {{label:classes_create_label}}. Starting cash defaults to {{value:starting-cash}}, and you can change it when creating the class. Each student receives the class's virtual starting cash when joining.
 
-The calendar places {{value:sessions}} weekly sessions from that starting date and determines the class semester. Check the calendar in {{label:navigation_class_link}} before the first meeting. {{label:classes_calendar_link}} changes the starting date and shifts the later sessions. The calendar helps locate this week's material. It does not restrict trading to class meeting days.
+The calendar places {{value:sessions}} weekly sessions from that starting date and determines the class semester, which the class switcher shows. Before the first meeting, choose {{label:navigation_calendar_link}} in the class switcher to check the date of the first session. Changing that date shifts the later sessions. The calendar marks this week's session in {{label:navigation_learn_link}} and sets the questions of {{label:classes_discussion_title}}. It does not restrict trading to class meeting days.
 
 ## join | Invite students
 
@@ -46,7 +46,7 @@ Students open the address you share. They can also open the join page and enter 
 
 New students choose a username, name, and password, then agree to the privacy notice. No email is needed. Students who already have an account sign in with it and then join. Check names in {{label:navigation_students_link}} before grading their work.
 
-Students may give a NIM for each class when joining and correct or clear it on their account page. {{label:navigation_students_link}}, its panel, and the student details show the NIM below the name, or the username when a student gave no NIM. Two students can share a name and a NIM, but never a username, so the workbook lists both the NIM and the username of each student.
+Students may give a NIM for each class when joining and correct or clear it on their account page. {{label:navigation_students_link}} and the student's pages show the NIM below the name, or the username when a student gave no NIM. Two students can share a name and a NIM, but never a username, so the workbook lists both the NIM and the username of each student.
 
 ## student | What students see and do
 
@@ -76,15 +76,17 @@ In {{label:trading_impact_title}}, compare the portfolio before and after a hypo
 
 Orders use delayed quotes from IDX continuous trading sessions. Outside a session, an order waits for the next session. A market order uses the first eligible quote. A limit order that immediately meets its limit uses that quote. A resting limit order uses its limit price when the quote reaches the limit. An order lasts for its assigned trading day and expires once that day's delayed prices are final. Some quotes from the last session arrive after the exchange closes.
 
-## activity | Follow orders and the journal
+## activity | Follow orders and their results
 
-{{label:navigation_activity_link}} separates orders from the journal of filled trades. Use the status filter to find waiting, open, filled, expired, cancelled, or rejected orders. An open order sets aside cash or shares, so other orders cannot use them. They become free when the order is cancelled or ends without filling.
+{{label:navigation_activity_link}} keeps every order in one list. Use the status filter to find waiting, open, filled, expired, cancelled, or rejected orders. An open order sets aside cash or shares, so other orders cannot use them. They become free when the order is cancelled or ends without filling.
 
-{{label:trading_activity_cancel_label}} cancels an open order after confirmation. A filled order cannot be cancelled. The journal keeps reasons, price changes since a trade, and realised gains or losses from sales. Unavailable comparisons have an explanation, so they are not read as zero.
+{{label:trading_activity_cancel_label}} cancels an open order after confirmation. A filled order cannot be cancelled. Each order shows its reason. A filled order also shows the price change since the trade, and a sale shows its realised gain or loss from the average purchase cost. Unavailable comparisons have an explanation, so they are not read as zero.
 
 ## analysis | Discuss measures with students
 
 {{label:navigation_analysis_link}} shows the risk and return map, stock and sector weights, diversification, and performance measures. Expected return is a past average, rather than a promise of profit. Beta measures the relationship with the IHSG. Standard deviation measures variation in returns. CAPM gives the return required for that beta. The distance from its line is Jensen's alpha.
+
+Each measure shows its value with the IHSG value under it. Select the value to open its calculation.
 
 In {{label:measures_analysis_allocation_title}}, switch between {{label:measures_analysis_sector_label}} and {{label:measures_analysis_stock_label}} to compare weights with cash included. Select a cell in {{label:measures_analysis_correlations_title}} for the pair calculation. For portfolio risk, compare each contribution bar with its weight tick, then select the row for its inputs. Cash contributes no risk. The same panels appear in a student analysis and your demonstration analysis.
 
@@ -100,7 +102,7 @@ In {{label:navigation_students_link}}, choose {{label:grading_market_line_label}
 
 Search names, NIMs, or usernames and use filters to follow up a group. A rank is available only when the selected measure can be computed. It is not a final course grade. Review the period, risk, and trade reasons alongside results, because the largest profit alone does not explain decision quality.
 
-Select a student for the summary panel, then {{label:grading_open_portfolio_link}} or {{label:grading_journal_link}}. Student pages have {{label:grading_summary_label}}, {{label:grading_analysis_label}}, and {{label:grading_journal_label}}. You read them without being able to trade as that student. The back link keeps your selected student and filters.
+Select a student's row to open their pages, which have {{label:grading_summary_label}}, {{label:grading_analysis_label}}, and {{label:grading_journal_label}}. You read them without being able to trade as that student. The back link returns to the list with your measure, search, and filters, and it marks the row of that student.
 
 ## workbook | Prepare grading
 
@@ -126,7 +128,7 @@ Use it to show order costs, changing weights, and reading risk in class. Student
 
 ## attention | Follow up with students
 
-{{label:classes_flags_title}} marks the largest loss, the most volatile portfolio, students without stocks, and students without an order this week. Open a flag for the student or group. A flag is a reason to ask, rather than a diagnosis or grade. Students without stocks may never have traded, may be waiting for an order, or may have sold all their holdings.
+{{label:classes_flags_title}} marks the largest loss, the most volatile portfolio, students without stocks, and students without an order this week. A flag opens {{label:navigation_students_link}} at the row of its student, or filtered to its group. A flag is a reason to ask, rather than a diagnosis or grade. Students without stocks may never have traded, may be waiting for an order, or may have sold all their holdings.
 
 Active means placing an order, rather than just signing in. Hollow map points mark students without an order this week. {{label:classes_reasons_title}} shows reasons from filled orders. Compare the reason with risk and results, then ask what has changed since the decision.
 
@@ -148,7 +150,7 @@ Other corporate actions, including reference-price adjustments on their action d
 
 ## passwords | Help with forgotten passwords
 
-For a student, open their panel in {{label:navigation_students_link}}, then choose {{label:grading_reset_link}}. Check their identity and confirm with {{label:classes_reset_label}}. Portolab signs the student out on every device and displays a temporary password. Give it directly to the correct student. They choose a new password at the next sign-in.
+For a student, open their row in {{label:navigation_students_link}}, then choose {{label:grading_reset_link}} at the top of their page. Check their identity and confirm with {{label:classes_reset_label}}. Portolab signs the student out on every device and displays a temporary password. Give it directly to the correct student. They choose a new password at the next sign-in.
 
 If you forget your lecturer password, contact the server owner with your username. The owner runs the account command to reset it. Lecturer accounts are created by the server owner, so the student join form does not replace one.
 

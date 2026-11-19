@@ -141,7 +141,7 @@ test("keeps the activity view and status filter after cancelling its order", asy
   placeFromForm(context, request(purchase, duringSessionForTest));
   const order = readPortfolio(database, owner).orders[0];
   expect(order?.state.kind).toBe("waiting");
-  const path = "/classes/1/activity?view=orders&status=waiting";
+  const path = "/classes/1/activity?status=waiting";
   const answer = cancelFromForm(
     context,
     request({ cancel: String(order?.id) }, duringSessionForTest),

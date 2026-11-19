@@ -67,7 +67,7 @@ const expected: Record<Locale, Record<string, unknown>> = {
         key: "loss",
         name: "Student 1",
         text: "-2,00%. Kerugian terbesar dan portofolio paling bergejolak di kelas, σ 3% per bulan.",
-        href: "/classes/1/students?student=1#selected-student",
+        href: "/classes/1/students?student=1#student-1",
       },
     ],
     "flag-separate": [
@@ -75,13 +75,13 @@ const expected: Record<Locale, Record<string, unknown>> = {
         key: "loss",
         name: "Student 1",
         text: "-2,00%. Kerugian terbesar di kelas, dengan beta 0,80.",
-        href: "/classes/1/students?student=1#selected-student",
+        href: "/classes/1/students?student=1#student-1",
       },
       {
         key: "volatile",
         name: "Student 2",
         text: "+2,00%. Portofolio paling bergejolak di kelas, σ 5% per bulan.",
-        href: "/classes/1/students?student=2#selected-student",
+        href: "/classes/1/students?student=2#student-2",
       },
     ],
     "flag-lossWithoutMeasures": [
@@ -89,7 +89,7 @@ const expected: Record<Locale, Record<string, unknown>> = {
         key: "loss",
         name: "Student 1",
         text: "-2,00%. Kerugian terbesar di kelas.",
-        href: "/classes/1/students?student=1#selected-student",
+        href: "/classes/1/students?student=1#student-1",
       },
     ],
     "flag-roundedLoss": [
@@ -97,7 +97,7 @@ const expected: Record<Locale, Record<string, unknown>> = {
         key: "volatile",
         name: "Student 1",
         text: "0,00%. Portofolio paling bergejolak di kelas, σ 3% per bulan.",
-        href: "/classes/1/students?student=1#selected-student",
+        href: "/classes/1/students?student=1#student-1",
       },
     ],
     "flag-inactiveLoss": [
@@ -105,13 +105,13 @@ const expected: Record<Locale, Record<string, unknown>> = {
         key: "loss",
         name: "Student 1",
         text: "-2,00%. Kerugian terbesar dan portofolio paling bergejolak di kelas, σ 3% per bulan. Tidak aktif sejak 26 Okt 2026, 10.00.",
-        href: "/classes/1/students?student=1#selected-student",
+        href: "/classes/1/students?student=1#student-1",
       },
       {
         key: "inactive",
         name: "Student 1",
         text: "Belum bertransaksi minggu ini. Titik kosong di peta.",
-        href: "/classes/1/students?student=1#selected-student",
+        href: "/classes/1/students?student=1#student-1",
       },
     ],
     "flag-deletedOrdersLoss": [
@@ -119,13 +119,13 @@ const expected: Record<Locale, Record<string, unknown>> = {
         key: "loss",
         name: "Student 1",
         text: "-2,00%. Kerugian terbesar dan portofolio paling bergejolak di kelas, σ 3% per bulan. Belum pernah memasang order.",
-        href: "/classes/1/students?student=1#selected-student",
+        href: "/classes/1/students?student=1#student-1",
       },
       {
         key: "inactive",
         name: "Student 1",
         text: "Belum bertransaksi minggu ini. Titik kosong di peta.",
-        href: "/classes/1/students?student=1#selected-student",
+        href: "/classes/1/students?student=1#student-1",
       },
     ],
     "flag-noStocks": [
@@ -133,13 +133,13 @@ const expected: Record<Locale, Record<string, unknown>> = {
         key: "no-stocks",
         name: "Student 3",
         text: "Belum punya saham sejak bergabung, jadi tidak tampil di peta.",
-        href: "/classes/1/students?student=3#selected-student",
+        href: "/classes/1/students?student=3#student-3",
       },
       {
         key: "inactive",
         name: "Student 3",
         text: "Belum bertransaksi minggu ini.",
-        href: "/classes/1/students?student=3#selected-student",
+        href: "/classes/1/students?student=3#student-3",
       },
     ],
     "flag-unfilled": [
@@ -147,13 +147,13 @@ const expected: Record<Locale, Record<string, unknown>> = {
         key: "no-stocks",
         name: "Student 3",
         text: "Belum punya saham karena belum ada order yang terisi, jadi tidak tampil di peta.",
-        href: "/classes/1/students?student=3#selected-student",
+        href: "/classes/1/students?student=3#student-3",
       },
       {
         key: "inactive",
         name: "Student 3",
         text: "Belum bertransaksi minggu ini.",
-        href: "/classes/1/students?student=3#selected-student",
+        href: "/classes/1/students?student=3#student-3",
       },
     ],
     "flag-sold": [
@@ -161,13 +161,13 @@ const expected: Record<Locale, Record<string, unknown>> = {
         key: "no-stocks",
         name: "Student 3",
         text: "Tidak memegang saham sekarang, jadi tidak tampil di peta.",
-        href: "/classes/1/students?student=3#selected-student",
+        href: "/classes/1/students?student=3#student-3",
       },
       {
         key: "inactive",
         name: "Student 3",
         text: "Belum bertransaksi minggu ini.",
-        href: "/classes/1/students?student=3#selected-student",
+        href: "/classes/1/students?student=3#student-3",
       },
     ],
     "flag-severalEmpty": [
@@ -189,7 +189,7 @@ const expected: Record<Locale, Record<string, unknown>> = {
         key: "volatile",
         name: "Student 2",
         text: "+2,00%. Portofolio paling bergejolak di kelas, σ 5% per bulan. Tidak aktif sejak 26 Okt 2026, 10.00.",
-        href: "/classes/1/students?student=2#selected-student",
+        href: "/classes/1/students?student=2#student-2",
       },
       {
         key: "inactive",
@@ -203,13 +203,13 @@ const expected: Record<Locale, Record<string, unknown>> = {
         key: "volatile",
         name: "Student 1",
         text: "+2,00%. Portofolio paling bergejolak di kelas, σ 3% per bulan. Tidak aktif sejak 26 Okt 2026, 10.00.",
-        href: "/classes/1/students?student=1#selected-student",
+        href: "/classes/1/students?student=1#student-1",
       },
       {
         key: "inactive",
         name: "Student 1",
         text: "Belum bertransaksi minggu ini. Titik kosong di peta.",
-        href: "/classes/1/students?student=1#selected-student",
+        href: "/classes/1/students?student=1#student-1",
       },
     ],
     "flag-partialOneHollow": [
@@ -217,13 +217,13 @@ const expected: Record<Locale, Record<string, unknown>> = {
         key: "volatile",
         name: "Student 1",
         text: "+2,00%. Portofolio paling bergejolak di kelas, σ 3% per bulan. Tidak aktif sejak 26 Okt 2026, 10.00.",
-        href: "/classes/1/students?student=1#selected-student",
+        href: "/classes/1/students?student=1#student-1",
       },
       {
         key: "no-stocks",
         name: "Student 3",
         text: "Belum punya saham sejak bergabung, jadi tidak tampil di peta.",
-        href: "/classes/1/students?student=3#selected-student",
+        href: "/classes/1/students?student=3#student-3",
       },
       {
         key: "inactive",
@@ -237,13 +237,13 @@ const expected: Record<Locale, Record<string, unknown>> = {
         key: "volatile",
         name: "Student 2",
         text: "+2,00%. Portofolio paling bergejolak di kelas, σ 5% per bulan. Tidak aktif sejak 26 Okt 2026, 10.00.",
-        href: "/classes/1/students?student=2#selected-student",
+        href: "/classes/1/students?student=2#student-2",
       },
       {
         key: "no-stocks",
         name: "Student 3",
         text: "Belum punya saham sejak bergabung, jadi tidak tampil di peta.",
-        href: "/classes/1/students?student=3#selected-student",
+        href: "/classes/1/students?student=3#student-3",
       },
       {
         key: "inactive",
@@ -493,7 +493,7 @@ const expected: Record<Locale, Record<string, unknown>> = {
     "calendar-missing": {
       questions: [],
       notice:
-        "Atur tanggal sesi 1 di kalender kelas untuk melihat bahan diskusi minggu ini.",
+        "Atur tanggal sesi 1 di Jadwal kuliah untuk melihat bahan diskusi minggu ini.",
     },
     "calendar-ahead": {
       questions: [],
@@ -515,7 +515,7 @@ const expected: Record<Locale, Record<string, unknown>> = {
         key: "loss",
         name: "Student 1",
         text: "-2.00%. The largest loss and the most volatile portfolio in the class, σ 3% per month.",
-        href: "/classes/1/students?student=1#selected-student",
+        href: "/classes/1/students?student=1#student-1",
       },
     ],
     "flag-separate": [
@@ -523,13 +523,13 @@ const expected: Record<Locale, Record<string, unknown>> = {
         key: "loss",
         name: "Student 1",
         text: "-2.00%. The largest loss in the class, with beta 0.80.",
-        href: "/classes/1/students?student=1#selected-student",
+        href: "/classes/1/students?student=1#student-1",
       },
       {
         key: "volatile",
         name: "Student 2",
         text: "+2.00%. The most volatile portfolio in the class, σ 5% per month.",
-        href: "/classes/1/students?student=2#selected-student",
+        href: "/classes/1/students?student=2#student-2",
       },
     ],
     "flag-lossWithoutMeasures": [
@@ -537,7 +537,7 @@ const expected: Record<Locale, Record<string, unknown>> = {
         key: "loss",
         name: "Student 1",
         text: "-2.00%. The largest loss in the class.",
-        href: "/classes/1/students?student=1#selected-student",
+        href: "/classes/1/students?student=1#student-1",
       },
     ],
     "flag-roundedLoss": [
@@ -545,7 +545,7 @@ const expected: Record<Locale, Record<string, unknown>> = {
         key: "volatile",
         name: "Student 1",
         text: "0.00%. The most volatile portfolio in the class, σ 3% per month.",
-        href: "/classes/1/students?student=1#selected-student",
+        href: "/classes/1/students?student=1#student-1",
       },
     ],
     "flag-inactiveLoss": [
@@ -553,13 +553,13 @@ const expected: Record<Locale, Record<string, unknown>> = {
         key: "loss",
         name: "Student 1",
         text: "-2.00%. The largest loss and the most volatile portfolio in the class, σ 3% per month. Inactive since Oct 26, 2026, 10:00 AM.",
-        href: "/classes/1/students?student=1#selected-student",
+        href: "/classes/1/students?student=1#student-1",
       },
       {
         key: "inactive",
         name: "Student 1",
         text: "No order placed this week. A hollow point on the map.",
-        href: "/classes/1/students?student=1#selected-student",
+        href: "/classes/1/students?student=1#student-1",
       },
     ],
     "flag-deletedOrdersLoss": [
@@ -567,13 +567,13 @@ const expected: Record<Locale, Record<string, unknown>> = {
         key: "loss",
         name: "Student 1",
         text: "-2.00%. The largest loss and the most volatile portfolio in the class, σ 3% per month. No order placed yet.",
-        href: "/classes/1/students?student=1#selected-student",
+        href: "/classes/1/students?student=1#student-1",
       },
       {
         key: "inactive",
         name: "Student 1",
         text: "No order placed this week. A hollow point on the map.",
-        href: "/classes/1/students?student=1#selected-student",
+        href: "/classes/1/students?student=1#student-1",
       },
     ],
     "flag-noStocks": [
@@ -581,13 +581,13 @@ const expected: Record<Locale, Record<string, unknown>> = {
         key: "no-stocks",
         name: "Student 3",
         text: "No stocks since joining, so this student does not appear on the map.",
-        href: "/classes/1/students?student=3#selected-student",
+        href: "/classes/1/students?student=3#student-3",
       },
       {
         key: "inactive",
         name: "Student 3",
         text: "No order placed this week.",
-        href: "/classes/1/students?student=3#selected-student",
+        href: "/classes/1/students?student=3#student-3",
       },
     ],
     "flag-unfilled": [
@@ -595,13 +595,13 @@ const expected: Record<Locale, Record<string, unknown>> = {
         key: "no-stocks",
         name: "Student 3",
         text: "No stocks because no order has filled yet, so this student does not appear on the map.",
-        href: "/classes/1/students?student=3#selected-student",
+        href: "/classes/1/students?student=3#student-3",
       },
       {
         key: "inactive",
         name: "Student 3",
         text: "No order placed this week.",
-        href: "/classes/1/students?student=3#selected-student",
+        href: "/classes/1/students?student=3#student-3",
       },
     ],
     "flag-sold": [
@@ -609,13 +609,13 @@ const expected: Record<Locale, Record<string, unknown>> = {
         key: "no-stocks",
         name: "Student 3",
         text: "No stocks held now, so this student does not appear on the map.",
-        href: "/classes/1/students?student=3#selected-student",
+        href: "/classes/1/students?student=3#student-3",
       },
       {
         key: "inactive",
         name: "Student 3",
         text: "No order placed this week.",
-        href: "/classes/1/students?student=3#selected-student",
+        href: "/classes/1/students?student=3#student-3",
       },
     ],
     "flag-severalEmpty": [
@@ -637,7 +637,7 @@ const expected: Record<Locale, Record<string, unknown>> = {
         key: "volatile",
         name: "Student 2",
         text: "+2.00%. The most volatile portfolio in the class, σ 5% per month. Inactive since Oct 26, 2026, 10:00 AM.",
-        href: "/classes/1/students?student=2#selected-student",
+        href: "/classes/1/students?student=2#student-2",
       },
       {
         key: "inactive",
@@ -651,13 +651,13 @@ const expected: Record<Locale, Record<string, unknown>> = {
         key: "volatile",
         name: "Student 1",
         text: "+2.00%. The most volatile portfolio in the class, σ 3% per month. Inactive since Oct 26, 2026, 10:00 AM.",
-        href: "/classes/1/students?student=1#selected-student",
+        href: "/classes/1/students?student=1#student-1",
       },
       {
         key: "inactive",
         name: "Student 1",
         text: "No order placed this week. A hollow point on the map.",
-        href: "/classes/1/students?student=1#selected-student",
+        href: "/classes/1/students?student=1#student-1",
       },
     ],
     "flag-partialOneHollow": [
@@ -665,13 +665,13 @@ const expected: Record<Locale, Record<string, unknown>> = {
         key: "volatile",
         name: "Student 1",
         text: "+2.00%. The most volatile portfolio in the class, σ 3% per month. Inactive since Oct 26, 2026, 10:00 AM.",
-        href: "/classes/1/students?student=1#selected-student",
+        href: "/classes/1/students?student=1#student-1",
       },
       {
         key: "no-stocks",
         name: "Student 3",
         text: "No stocks since joining, so this student does not appear on the map.",
-        href: "/classes/1/students?student=3#selected-student",
+        href: "/classes/1/students?student=3#student-3",
       },
       {
         key: "inactive",
@@ -685,13 +685,13 @@ const expected: Record<Locale, Record<string, unknown>> = {
         key: "volatile",
         name: "Student 2",
         text: "+2.00%. The most volatile portfolio in the class, σ 5% per month. Inactive since Oct 26, 2026, 10:00 AM.",
-        href: "/classes/1/students?student=2#selected-student",
+        href: "/classes/1/students?student=2#student-2",
       },
       {
         key: "no-stocks",
         name: "Student 3",
         text: "No stocks since joining, so this student does not appear on the map.",
-        href: "/classes/1/students?student=3#selected-student",
+        href: "/classes/1/students?student=3#student-3",
       },
       {
         key: "inactive",
@@ -941,7 +941,7 @@ const expected: Record<Locale, Record<string, unknown>> = {
     "calendar-missing": {
       questions: [],
       notice:
-        "Set the date of session 1 in the class calendar to see this week’s discussion questions.",
+        "Set the date of session 1 in the Course calendar to see this week’s discussion questions.",
     },
     "calendar-ahead": {
       questions: [],

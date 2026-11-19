@@ -39,7 +39,7 @@ test("reads every ranking and filter, keeps the search and student in the addres
     "http://localhost",
   );
   expect(url.pathname).toBe("/classes/1/students");
-  expect(url.hash).toBe("#selected-student");
+  expect(url.hash).toBe("#student-7");
   expect(parseStudentOptions(url.searchParams, "students")).toEqual({
     ok: true,
     value: options,

@@ -9,7 +9,6 @@ export const activityFilters = [
   "cancelled",
 ] as const;
 export type ActivityFilter = (typeof activityFilters)[number];
-export type ActivityView = "orders" | "journal";
 
 const labels: Record<ActivityFilter, () => string> = {
   all: m.trading_activity_all_label,
@@ -29,11 +28,4 @@ export function activityFilterOptions(): FieldOption<ActivityFilter>[] {
     value,
     label: activityStatusLabel(value),
   }));
-}
-
-export function activityViewOptions(): FieldOption<ActivityView>[] {
-  return [
-    { value: "orders", label: m.trading_activity_orders_label() },
-    { value: "journal", label: m.trading_activity_journal_label() },
-  ];
 }

@@ -47,19 +47,12 @@ const texts: Record<
       "Beta",
       "Simpangan baku",
       "Apa itu Peta risiko dan imbal hasil?",
-      "Tegak: imbal hasil sejak mahasiswa dapat bertransaksi. IHSG di peta adalah median imbal hasil IHSG pada periode yang sama. Batang di tepi menunjukkan sebaran titik. Garis pendek menandai median imbal hasil kelas. Portofolio tanpa ukuran risiko tidak tampil di peta. Tabel di bawah memuat setiap mahasiswa dan waktu harga sahamnya. Perbandingan memakai mahasiswa dengan imbal hasil portofolio dan IHSG. Hitungan risiko memakai portofolio terukur.",
-      "Imbal hasil",
-      "Risiko",
-      "Waktu harga",
-      "Order terakhir",
-      "Belum pernah memasang order",
-      "Lihat data mahasiswa dan waktu harga",
-      "Kalender dan mahasiswa",
+      "Tegak: imbal hasil sejak mahasiswa dapat bertransaksi. IHSG di peta adalah median imbal hasil IHSG pada periode yang sama. Garis titik-titik menandai median imbal hasil kelas. Portofolio tanpa ukuran risiko tidak tampil di peta. Mahasiswa memuat setiap mahasiswa dengan angkanya, dan portofolio setiap mahasiswa memuat waktu harga sahamnya. Perbandingan memakai mahasiswa dengan imbal hasil portofolio dan IHSG. Hitungan risiko memakai portofolio terukur.",
     ],
     betaAxis: "Beta portofolio (1,0 = pasar)",
     deviationAxis: "Simpangan baku per bulan",
     empty:
-      "Peta menunggu imbal hasil IHSG dan ukuran risiko portofolio. Buka tabel untuk melihat data yang tersedia.",
+      "Peta menunggu imbal hasil IHSG dan ukuran risiko portofolio. Buka Mahasiswa untuk melihat data yang tersedia.",
     active: ["Aktif minggu ini · 1", "Aktif minggu ini · 2"],
     inactive: [
       "Belum bertransaksi minggu ini · 1",
@@ -71,7 +64,6 @@ const texts: Record<
       "order minggu ini",
       "median beta kelas",
       "belum ada",
-      "Tanpa saham",
     ],
   },
   en: {
@@ -89,19 +81,12 @@ const texts: Record<
       "Beta",
       "Standard deviation",
       "What is Risk and return map?",
-      "Up: return since each student could trade. IHSG on the map is the median IHSG return over those periods. Edge bars show the distribution of points. The short line marks the median class return. Portfolios without risk measures do not appear on the map. The table below includes every student and the times of their stock prices. Comparison counts require portfolio and IHSG returns. Risk counts include measured portfolios.",
-      "Return",
-      "Risk",
-      "Price times",
-      "Latest order",
-      "No order placed yet",
-      "View student data and price times",
-      "Calendar and students",
+      "Up: return since each student could trade. IHSG on the map is the median IHSG return over those periods. The dotted line marks the median class return. Portfolios without risk measures do not appear on the map. Students lists every student with their numbers, and the portfolio of each student gives the times of its stock prices. Comparison counts require portfolio and IHSG returns. Risk counts include measured portfolios.",
     ],
     betaAxis: "Portfolio beta (1.0 = market)",
     deviationAxis: "Standard deviation per month",
     empty:
-      "The map needs IHSG returns and portfolio risk measures. Open the table to see the available data.",
+      "The map needs IHSG returns and portfolio risk measures. Open Students to see the available data.",
     active: ["Active this week · 1", "Active this week · 2"],
     inactive: ["No order this week · 1", "No orders this week · 2"],
     stats: [
@@ -112,7 +97,6 @@ const texts: Record<
       "orders this week",
       "median class beta",
       "pending",
-      "No stocks",
     ],
   },
 };
@@ -140,7 +124,6 @@ for (const locale of locales) {
             overview={overview}
             axis={axis}
             points={[]}
-            administration={null}
           />
         </MemoryRouter>,
       );
@@ -163,7 +146,6 @@ for (const locale of locales) {
             overview={shown}
             axis={axis}
             points={classMapPoints(shown, { axis, classId: taughtClass.id })}
-            administration={null}
           />
         </MemoryRouter>,
       );
@@ -246,10 +228,17 @@ for (const locale of locales) {
     ]) {
       expect(html).toContain(renderTextMarkupForTest(<>{expected}</>));
     }
-    expect(html).toContain("<rect");
+    // The median of the class runs across the whole plot, and the map draws no bars of the spread at its edges.
+    expect(html).toMatch(/<line x1="0%" x2="100%"[^>]*class="_medianLine_/u);
+    expect(html).not.toContain("<rect");
     expect(html).not.toContain('role="slider"');
     expect(html).toContain('href="/?axis=deviation"');
-    for (const student of overview.students) {
+    // Each point of the map opens its student, and Mahasiswa lists the students that the map cannot place.
+    const measured = overview.students.filter(
+      (student) => student.risk !== undefined,
+    );
+    expect(measured.length).toBeGreaterThan(0);
+    for (const student of measured) {
       expect(html).toContain(studentPortfolioPath(taughtClass.id, student.id));
     }
   });

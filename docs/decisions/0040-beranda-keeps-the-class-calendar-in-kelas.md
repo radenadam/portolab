@@ -1,6 +1,6 @@
 # 0040. Beranda keeps the class calendar in Kelas
 
-- Status: Accepted
+- Status: Accepted. [Decision 0068](0068-the-review-of-19-november-2026-changes-parts-of-the-screens.md) replaces its rule about the semester, the current session, and the notice about a missing date of session 1 on Kelas.
 - Date: 2026-11-14
 
 ## Context

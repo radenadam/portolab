@@ -302,7 +302,7 @@ for (const locale of locales) {
       if (heading === null || topBar === null)
         throw new Error("The impact heading and top bar have visible boxes.");
       expect(heading.y).toBeGreaterThanOrEqual(topBar.y + topBar.height);
-      await impact.locator("a").last().click();
+      await impact.getByRole("link", { name: text.cap }).click();
       await expect(page.locator('dialog input[name="lots"]')).toHaveValue(
         text.cap,
       );

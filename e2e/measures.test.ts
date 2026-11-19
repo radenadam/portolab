@@ -81,7 +81,7 @@ const analysisText: Record<
   id: {
     stocksTitle: "Ukuran setiap saham",
     stockRange: "Rentang grafik harga",
-    month: "1B",
+    month: "1 bln",
     backToAnalysis: "Kembali ke Analisis",
     title: "Analisis",
     endValue: "Anda +0,11%",
@@ -110,12 +110,12 @@ const analysisText: Record<
       "Saham Anda dan IHSG baru sama-sama memiliki 0 imbal hasil bulanan dalam 60 bulan lengkap terakhir, dan ITMG memiliki imbal hasil paling sedikit, sedangkan Portolab menghitung ukuran portofolio hanya dari paling sedikit 24 imbal hasil bulanan. Jika IHSG dan setiap saham Anda tetap memiliki harga penutupan di akhir setiap bulan, Portolab menghitung ukuran portofolio Anda setelah pembaruan riwayat harga yang menyimpan harga penutupan hari bursa pertama November 2028.",
     marketLink: "Buka Pasar",
     rows: [
-      ["Imbal hasil harapan", "-0,05%", "IHSG 0,05%."],
-      ["Simpangan baku", "2,59%", "IHSG 4,53%."],
-      ["Beta", "0,34", "IHSG 1,00."],
-      ["Rasio Sharpe", "-0,20", "IHSG -0,10."],
-      ["Rasio Treynor", "-1,55%", "IHSG -0,43%."],
-      ["Alpha Jensen", "▼ -0,38%", "IHSG 0,00% menurut definisi."],
+      ["Imbal hasil harapan", "-0,05%", "IHSG 0,05%"],
+      ["Simpangan baku", "2,59%", "IHSG 4,53%"],
+      ["Beta", "0,34", "IHSG 1,00"],
+      ["Rasio Sharpe", "-0,20", "IHSG -0,10"],
+      ["Rasio Treynor", "-1,55%", "IHSG -0,43%"],
+      ["Alpha Jensen", "▼ -0,38%", "IHSG 0,00%"],
     ],
     legends: [
       "Portofolio Anda",
@@ -136,11 +136,11 @@ const analysisText: Record<
     performance: "Kinerja vs IHSG",
     noHoldings:
       "Anda tidak memegang saham, sehingga portofolio Anda hanya berisi kas, yang tidak menghasilkan imbal hasil di Portolab. Portolab menghitung ukuran portofolio Anda setelah order beli Anda tereksekusi.",
-    returns: "Imbal hasil bulanan IHSG",
+    returns: "Tabel imbal hasil bulanan IHSG",
     performanceHelp: "Apa itu Kinerja vs IHSG?",
     performanceMeaning:
       "Grafik dan tabel membandingkan portofolio Anda dengan IHSG sejak penutupan 26 Oktober 2026, sebelum Anda dapat bertransaksi. Hari sebelumnya memakai harga penutupan final. Titik dengan waktu memakai nilai portofolio sekarang dan level tertunda terakhir IHSG.",
-    performanceData: "Imbal hasil dari waktu ke waktu",
+    performanceData: "Tabel imbal hasil dari waktu ke waktu",
     axisFailure:
       'Kolom "Sumbu risiko" menerima "beta" atau "risk", tetapi isinya "BETA". Pilih salah satu sumbu risiko yang tercantum.',
     longAxisFailure:
@@ -151,7 +151,7 @@ const analysisText: Record<
   en: {
     stocksTitle: "Measures of each stock",
     stockRange: "Price chart range",
-    month: "1M",
+    month: "1 mo",
     backToAnalysis: "Back to Analysis",
     title: "Analysis",
     endValue: "You +0.11%",
@@ -180,12 +180,12 @@ const analysisText: Record<
       "Your stocks and the IHSG share 0 monthly returns in the latest 60 complete months, and ITMG has the fewest returns, but Portolab computes the measures of a portfolio only from at least 24 monthly returns. If the IHSG and each of your stocks keep a close at the end of every month, Portolab computes the measures of your portfolio after the update of the price history that stores the close of the first trading day of November 2028.",
     marketLink: "Open Market",
     rows: [
-      ["Expected return", "-0.05%", "IHSG 0.05%."],
-      ["Standard deviation", "2.59%", "IHSG 4.53%."],
-      ["Beta", "0.34", "IHSG 1.00."],
-      ["Sharpe ratio", "-0.20", "IHSG -0.10."],
-      ["Treynor ratio", "-1.55%", "IHSG -0.43%."],
-      ["Jensen's alpha", "▼ -0.38%", "IHSG 0.00% by definition."],
+      ["Expected return", "-0.05%", "IHSG 0.05%"],
+      ["Standard deviation", "2.59%", "IHSG 4.53%"],
+      ["Beta", "0.34", "IHSG 1.00"],
+      ["Sharpe ratio", "-0.20", "IHSG -0.10"],
+      ["Treynor ratio", "-1.55%", "IHSG -0.43%"],
+      ["Jensen's alpha", "▼ -0.38%", "IHSG 0.00%"],
     ],
     legends: [
       "Your portfolio",
@@ -206,11 +206,11 @@ const analysisText: Record<
     performance: "Performance vs IHSG",
     noHoldings:
       "You hold no shares, so your portfolio is cash alone, which earns no return in Portolab. Portolab computes the measures of your portfolio once a purchase of yours fills.",
-    returns: "Monthly returns of the IHSG",
+    returns: "Table of monthly returns of the IHSG",
     performanceHelp: "What is Performance vs IHSG?",
     performanceMeaning:
       "The chart and the table compare your portfolio with the IHSG since the close of October 26, 2026, before you could trade. Past days use final closes. A timestamped endpoint uses the current portfolio value and the latest delayed level of the IHSG.",
-    performanceData: "Returns over time",
+    performanceData: "Table of returns over time",
     axisFailure:
       'The field "Risk axis" takes "beta" or "risk", but it holds "BETA". Choose a listed risk axis.',
     longAxisFailure:
@@ -372,11 +372,11 @@ for (const locale of locales) {
     for (const [index, [label, value, reference]] of text.rows.entries()) {
       const row = rows.nth(index);
       await expect(row.locator("dt")).toContainText(label);
-      await expect(row.locator(":scope > dd").first()).toHaveText(value);
-      await expect(row.locator(":scope > dd").last()).toContainText(reference);
-      await row
-        .getByRole("button", { name: text.calculate, exact: true })
-        .click();
+      // One button holds the value with the IHSG under it and opens the calculation of the measure.
+      const measure = row.getByRole("button", { name: text.calculate });
+      await expect(measure).toContainText(value);
+      await expect(measure).toContainText(reference);
+      await measure.click();
       const calculation = student.getByRole("dialog", {
         name: label,
         exact: true,
@@ -531,7 +531,7 @@ for (const locale of locales) {
     await student.goto(`${classPath}/analysis`);
     await student
       .getByRole("region", { name: text.measures, exact: true })
-      .getByRole("button", { name: text.calculate, exact: true })
+      .getByRole("button", { name: text.calculate })
       .first()
       .click();
     await student
@@ -860,7 +860,7 @@ async function expectAnalysisStockReturn(
     }
     await page
       .getByRole("region", { name: text.measures, exact: true })
-      .getByRole("button", { name: text.calculate, exact: true })
+      .getByRole("button", { name: text.calculate })
       .first()
       .click();
     await page

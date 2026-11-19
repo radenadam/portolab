@@ -26,7 +26,7 @@ import type { JournalTrade } from "./trade-journal";
 import type { OrderSide } from "./order";
 import styles from "./activity.module.css";
 
-type JournalPrices = Pick<PricesOfView, "now" | "source" | "latestAttempt">;
+type TradePrices = Pick<PricesOfView, "now" | "source" | "latestAttempt">;
 
 const sinceLabels: Record<OrderSide, () => string> = {
   buy: m.trading_activity_since_buy_label,
@@ -58,9 +58,9 @@ export function TradePerformance({
   sharedTime,
 }: {
   trade: JournalTrade;
-  prices: JournalPrices;
+  prices: TradePrices;
   maximum: CumulativeReturn;
-  /** The time that the current prices of the journal share, which its note states once, so only a price of another time shows its own. */
+  /** The time that the current prices of the list share, which its note states once, so only a price of another time shows its own. */
   sharedTime: Date | undefined;
 }): ReactNode {
   const attempt = attemptForCodes(prices.latestAttempt, [trade.order.code]);

@@ -31,32 +31,25 @@ import type { Locale } from "~/paraglide/runtime.js";
 import { locales } from "~/paraglide/runtime.js";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
 import { readClassOverview } from "./read-class-overview.server";
+import { orderEntryId } from "~/features/trading/order-entry-id";
+import type { OrderId } from "~/features/trading/trading.schema";
 
 const texts: Record<
   Locale,
   {
     none: string;
     latest: string;
-    price: string;
     pricesAt: string;
-    pricesSame: string;
-    pricesMixed: string;
   }
 > = {
   id: {
     none: "Belum pernah memasang order",
     latest: "2 Nov 2026, 10.00",
-    price: "BBCA",
-    pricesSame: "BBCA dan TLKM",
-    pricesMixed: "BBCA dan TLKM 16.15 WIB",
     pricesAt: "30 Okt 2026, 16.14 WIB",
   },
   en: {
     none: "No order placed yet",
     latest: "Nov 2, 2026, 10:00 AM",
-    price: "BBCA",
-    pricesSame: "BBCA and TLKM",
-    pricesMixed: "BBCA and TLKM 4:15 PM WIB",
     pricesAt: "Oct 30, 2026, 4:14 PM WIB",
   },
 };
@@ -107,9 +100,11 @@ for (const locale of locales) {
       },
       { request: purchaseForTest(), fill: new Date("2026-11-02T04:01:00Z") },
     ];
+    const orderIds: OrderId[] = [];
     for (const { request, fill } of requests) {
       const order = acceptedForTest(request, account, bbcaForTest);
       const { orderId: id } = savePlacedOrder(fixture.database, owner, order);
+      orderIds.push(id);
       if (fill === undefined) continue;
       const state = checkOrder({
         order,
@@ -141,7 +136,8 @@ for (const locale of locales) {
       overview.reasons.every((reason) => reason.name === member.name),
     ).toBe(true);
     const firstReason = overview.reasons[0];
-    if (firstReason === undefined)
+    const firstOrderId = orderIds[0];
+    if (firstReason === undefined || firstOrderId === undefined)
       throw new Error("The overview has a filled reason.");
     const reasonAddress = new URL(firstReason.href, "http://localhost");
     expect(reasonAddress.searchParams.get("returnTo")).toBe(
@@ -150,6 +146,8 @@ for (const locale of locales) {
     expect(reasonAddress.pathname).toBe(
       studentJournalPath(fixture.taughtClass.id, member.id),
     );
+    // The link lands on the row of the order in the list of the student, which carries the same id.
+    expect(reasonAddress.hash).toBe(`#${orderEntryId(firstOrderId)}`);
   });
 
   test(`counts orders in the WIB week and uses the latest order as activity, while keeping every unmeasured student in ${languageNames[locale]}`, async () => {
@@ -177,7 +175,6 @@ for (const locale of locales) {
     expect(overview.ordersThisWeek).toBe(1);
     expect(overview.students[1]?.lastOrder).toBe(texts[locale].latest);
     expect(overview.students[0]?.lastOrder).toBe(texts[locale].none);
-    expect(overview.students[1]?.priceTimes).toBe(texts[locale].price);
     expect(
       overview.students.filter(({ risk }) => risk !== undefined),
     ).toHaveLength(3);
@@ -191,15 +188,14 @@ for (const locale of locales) {
     expect(nextWeek.students[1]?.lastOrder).toBe(texts[locale].latest);
   });
 
-  test(`keeps only an exceptional quote time beside its code after a partial update in ${languageNames[locale]}`, async () => {
+  test(`keeps the time that most prices share after a partial update leaves one quote at another minute in ${languageNames[locale]}`, async () => {
     switchLocaleForTest(locale);
     const fixture = await classOfStudentsForTest();
     const now = new Date("2026-11-02T03:01:00Z");
     const before = overviewAt(fixture, now);
     expect(before.pricesAt).toBe(texts[locale].pricesAt);
     expect(before.students[0]?.name).toBe("Sari Wulandari");
-    expect(before.students[0]?.priceTimes).toBe(texts[locale].pricesSame);
-    // A different displayed minute makes this quote an exception to the shared note.
+    // A different displayed minute makes this quote an exception, so the shared note keeps the time of the others.
     await updateQuotesForTest(
       fixture.database,
       sourceAnsweringForTest([
@@ -209,7 +205,6 @@ for (const locale of locales) {
     );
     const after = overviewAt(fixture, now);
     expect(after.pricesAt).toBe(texts[locale].pricesAt);
-    expect(after.students[0]?.priceTimes).toBe(texts[locale].pricesMixed);
   });
 
   test(`keeps the latest time when deleted enrollments leave one quote and no time when none remain in ${languageNames[locale]}`, async () => {
@@ -228,7 +223,6 @@ for (const locale of locales) {
     const remaining = overviewAt(fixture, now);
     expect(remaining.students).toHaveLength(1);
     expect(remaining.pricesAt).toBe(texts[locale].pricesAt);
-    expect(remaining.students[0]?.priceTimes).toBe(texts[locale].price);
     fixture.database.delete(memberships).run();
     const empty = overviewAt(fixture, now);
     expect(empty.students).toEqual([]);

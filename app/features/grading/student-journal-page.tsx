@@ -18,12 +18,7 @@ export function loader({ context, request, params, url }: Route.LoaderArgs) {
     params,
     now,
   });
-  const activity = readActivity(context, {
-    url,
-    portfolio,
-    now,
-    initialView: "journal",
-  });
+  const activity = readActivity(context, { url, portfolio, now });
   return data(
     { student, returnPath, ...activity },
     { status: activity.status },

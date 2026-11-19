@@ -21,12 +21,7 @@ export function readActivityPage(
     },
     kind,
   );
-  const activity = readActivity(context, {
-    url,
-    portfolio,
-    now,
-    initialView: "orders",
-  });
+  const activity = readActivity(context, { url, portfolio, now });
   return data(
     {
       ...activity,

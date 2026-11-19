@@ -4,16 +4,6 @@ import type { ClassId } from "./classes.schema.ts";
 
 export const classMapAxes = ["beta", "deviation"] as const;
 export type ClassMapAxis = (typeof classMapAxes)[number];
-export const classMapSections = ["data", "administration"] as const;
-export type ClassMapSection = (typeof classMapSections)[number];
-
-function classMapTargetId(
-  section: ClassMapSection,
-  studentId?: UserId,
-): string {
-  return `class-${section}${studentId === undefined ? "" : `-student-${String(studentId)}`}`;
-}
-
 /** The address of the page of a class. */
 export function classPath(classId: ClassId): string {
   return `/classes/${String(classId)}`;
@@ -23,15 +13,8 @@ export function isClassMapPath(path: string, classId: ClassId): boolean {
   return path.split(/[?#]/)[0] === classPath(classId);
 }
 
-export function classMapPath(
-  classId: ClassId,
-  axis: ClassMapAxis,
-  source?: { section: ClassMapSection; studentId?: UserId },
-): string {
-  const path = `${classPath(classId)}?axis=${axis}`;
-  return source === undefined
-    ? path
-    : `${path}&reveal=${source.section}#${classMapTargetId(source.section, source.studentId)}`;
+export function classMapPath(classId: ClassId, axis: ClassMapAxis): string {
+  return `${classPath(classId)}?axis=${axis}`;
 }
 
 /** The address of the page on which the lecturer of a class sets the date of its first session. */

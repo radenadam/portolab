@@ -27,7 +27,7 @@ export async function expectStockRangeReturn(
       url.searchParams.get("range") === "1m" &&
       url.searchParams.get("returnTo") === returnTo,
   );
-  await page.getByRole("link", { name: back, exact: true }).click();
+  await page.getByRole("link", { name: `‹ ${back}`, exact: true }).click();
   await expect(page).toHaveURL(returnTo);
   const anchor = new URL(returnTo, page.url()).hash.slice(1);
   const target = page.locator(`#${anchor}`);

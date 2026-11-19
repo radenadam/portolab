@@ -85,7 +85,10 @@ export function TaughtStudentPage({
           className={styles["reset"]}
           to={pathReturningTo(
             resetStudentPasswordPath(student.classId, student.studentId),
-            studentPagePaths[page](student.classId, student.studentId),
+            pathReturningTo(
+              studentPagePaths[page](student.classId, student.studentId),
+              returnPath,
+            ),
           )}
         >
           {m.grading_reset_link()}

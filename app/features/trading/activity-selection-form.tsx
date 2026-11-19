@@ -5,14 +5,12 @@ import { Form } from "react-router";
 import type { FieldOption } from "~/form";
 import { SelectField } from "~/form";
 import { m } from "~/paraglide/messages.js";
-import { activityFilterOptions, activityViewOptions } from "./activity-options";
+import { activityFilterOptions } from "./activity-options";
 import styles from "./activity.module.css";
 
 export interface ActivitySelectionFields {
   status: string;
-  view: string;
-  statusFailure: string | undefined;
-  viewFailure: string | undefined;
+  statusFailure: string;
 }
 
 export function ActivitySelectionForm({
@@ -24,12 +22,10 @@ export function ActivitySelectionForm({
   task?: LessonTask | undefined;
   returnPath?: string | undefined;
 }): ReactNode {
-  const statusOptions: FieldOption[] = activityFilterOptions();
-  const viewOptions: FieldOption[] = activityViewOptions();
-  if (fields.statusFailure !== undefined)
-    statusOptions.unshift({ value: fields.status, label: fields.status });
-  if (fields.viewFailure !== undefined)
-    viewOptions.unshift({ value: fields.view, label: fields.view });
+  const statusOptions: FieldOption[] = [
+    { value: fields.status, label: fields.status },
+    ...activityFilterOptions(),
+  ];
   return (
     <Form method="get" className={styles["selectionForm"]}>
       {task !== undefined && (
@@ -45,14 +41,6 @@ export function ActivitySelectionForm({
         options={statusOptions}
         defaultValue={fields.status}
         failure={fields.statusFailure}
-      />
-      <SelectField
-        name="view"
-        label={m.trading_activity_view_label()}
-        placeholder={m.trading_activity_choose_view_label()}
-        options={viewOptions}
-        defaultValue={fields.view}
-        failure={fields.viewFailure}
       />
       <button className={styles["button"]} type="submit">
         {m.trading_activity_apply_label()}

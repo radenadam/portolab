@@ -50,7 +50,6 @@ const texts: Record<
   Locale,
   {
     cash: string;
-    currency: string;
     noHoldings: string;
     oneHolding: string;
     today: string;
@@ -64,7 +63,6 @@ const texts: Record<
 > = {
   id: {
     cash: "Kas",
-    currency: "Rp",
     noHoldings: "Anda tidak memegang saham.",
     oneHolding: "Saham Anda · 1",
     today: "hari ini",
@@ -116,7 +114,6 @@ const texts: Record<
   },
   en: {
     cash: "Cash",
-    currency: "IDR",
     noHoldings: "You hold no shares.",
     oneHolding: "Your holding · 1",
     today: "today",
@@ -207,7 +204,15 @@ for (const locale of locales) {
       expect(html.replaceAll(/<[^>]*>/g, "")).toContain(
         markupTextForTest(sentence),
       );
-    expect(html).toContain(`aria-hidden="true">${text.currency}</span>`);
+    // Cash has no logo, so its row keeps the room of a tile empty.
+    expect(html).toContain(
+      `<span aria-hidden="true"></span><span>${text.cash}<small>`,
+    );
+    // Each weight fills its share of a whole track, the 50% of BBCA, the 30% of TLKM, and the 20% of cash, in the table and in the list of a phone.
+    for (const width of ["50%", "30%", "20%"])
+      expect(
+        html.match(new RegExp(`style="width:${width}"`, "gu")),
+      ).toHaveLength(2);
     expect(html).toContain('href="/classes/7/stocks/BBCA"');
     expect(html).toContain('href="/classes/7/analysis"');
     expect(html.match(/<circle/g)).toHaveLength(5);

@@ -3,14 +3,12 @@ import { signInAsNewLecturer } from "./accounts.ts";
 import { createTestClass } from "./create-test-class.ts";
 import { languageNames } from "../app/language-names.ts";
 import { expect, test } from "@playwright/test";
-import type { Page, Locator } from "@playwright/test";
-import type { ClassMapSection } from "../app/features/classes/class-path.ts";
 import type { ClassId } from "../app/features/classes/classes.schema.ts";
 import { storeTestJoiningTime } from "./store-test-joining-time.ts";
 import type { Locale } from "../app/paraglide/runtime.js";
 import { locales } from "../app/paraglide/runtime.js";
 import { bbcaHolding } from "./bbca-holding.ts";
-import { openClassAdministration, openJoinDetails } from "./class-controls.ts";
+import { openJoinDetails } from "./class-controls.ts";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 import { layoutProblems } from "./expect-layout.ts";
 import { newDevice } from "./new-device.ts";
@@ -26,12 +24,9 @@ import { fillClassMap } from "./fill-class-map.ts";
 const texts: Record<
   Locale,
   {
-    calendar: string;
-    saveCalendar: string;
     title: string;
     deviation: string;
     axis: string;
-    table: string;
     help: string;
     join: string;
     copied: readonly [string, string];
@@ -49,9 +44,7 @@ const texts: Record<
 > = {
   id: {
     studentTabs: ["Analisis", "Jurnal dan order"],
-    calendar: "Atur tanggal sesi 1",
-    saveCalendar: "Simpan tanggal",
-    back: `Kembali ke ${widestClassNames.className}`,
+    back: `‹ Kembali ke ${widestClassNames.className}`,
     empty:
       "Belum ada mahasiswa yang bergabung. Bagikan kode gabung di bagian atas halaman agar mahasiswa dapat bergabung.",
     startingCash: "Modal awal",
@@ -70,7 +63,6 @@ const texts: Record<
     title: "Peta risiko dan imbal hasil",
     deviation: "Simpangan baku",
     axis: "Simpangan baku per bulan",
-    table: "Lihat data mahasiswa dan waktu harga",
     help: "Apa itu Peta risiko dan imbal hasil?",
     join: "Kode gabung",
     copied: ["Kode ", " tersalin."],
@@ -81,9 +73,7 @@ const texts: Record<
   },
   en: {
     studentTabs: ["Analysis", "Journal and orders"],
-    calendar: "Set the date of session 1",
-    saveCalendar: "Save the date",
-    back: `Back to ${widestClassNames.className}`,
+    back: `‹ Back to ${widestClassNames.className}`,
     empty:
       "No student has joined yet. Share the join code at the top of the page so that students can join.",
     startingCash: "Starting cash",
@@ -97,7 +87,6 @@ const texts: Record<
     title: "Risk and return map",
     deviation: "Standard deviation",
     axis: "Standard deviation per month",
-    table: "View student data and price times",
     help: "What is Risk and return map?",
     join: "Join code",
     copied: ["Code ", " copied."],
@@ -158,7 +147,7 @@ for (const locale of locales) {
       await plain.context().close();
     }
   });
-  test(`returns to the source disclosure and student row, with and without JavaScript, in ${languageNames[locale]}`, async ({
+  test(`returns from every tab of a student that the class map opened to the same axis of the map, with and without JavaScript, in ${languageNames[locale]}`, async ({
     page,
     browser,
   }) => {
@@ -175,69 +164,20 @@ for (const locale of locales) {
     try {
       for (const screen of [page, plain]) {
         await screen.goto(`${classPath}?axis=${sourceAxis}`);
-        await screen.getByText(texts[locale].table, { exact: true }).click();
-        const studentLink = screen.locator("main table").getByRole("link", {
-          name: widestClassNames.studentName,
-          exact: true,
-        });
-        const rowId = await screen
-          .locator("tbody tr")
-          .first()
-          .getAttribute("id");
-        await studentLink.click();
+        await screen
+          .getByRole("link", {
+            name: widestClassNames.studentName,
+            exact: true,
+          })
+          .click();
+        await expect(screen).toHaveURL(/\/students\/\d+\?returnTo=/);
         for (const tab of texts[locale].studentTabs) {
           await screen.getByRole("link", { name: tab, exact: true }).click();
         }
         await screen
           .getByRole("link", { name: texts[locale].back, exact: true })
           .click();
-        await expectClassReturn(screen, studentLink, {
-          section: "data",
-          targetId: rowId,
-        });
-        await screen.goto(`${classPath}?axis=${sourceAxis}`);
-        await openClassAdministration(screen);
-        const administration = screen.locator("[data-class-administration]");
-        const resetLink = administration
-          .locator("li")
-          .first()
-          .getByRole("link");
-        const resetRowId = await administration
-          .locator("li")
-          .first()
-          .getAttribute("id");
-        await resetLink.click();
-        await screen
-          .getByRole("link", { name: texts[locale].back, exact: true })
-          .click();
-        await expectClassReturn(screen, resetLink, {
-          section: "administration",
-          targetId: resetRowId,
-        });
-        const calendarSource = {
-          section: "administration",
-          targetId: await administration.getAttribute("id"),
-        } as const;
-        const calendar = administration.getByRole("link", {
-          name: texts[locale].calendar,
-          exact: true,
-        });
-        await calendar.click();
-        await screen
-          .getByRole("link", { name: texts[locale].back, exact: true })
-          .click();
-        await expectClassReturn(screen, calendar, calendarSource);
-        await calendar.click();
-        await screen
-          .locator('input[name="firstSessionDate"]')
-          .fill("2026-10-26");
-        await screen
-          .getByRole("button", {
-            name: texts[locale].saveCalendar,
-            exact: true,
-          })
-          .click();
-        await expectClassReturn(screen, calendar, calendarSource);
+        await expect(screen).toHaveURL(`${classPath}?axis=${sourceAxis}`);
         expect(await layoutProblems(screen)).toEqual([]);
       }
     } finally {
@@ -246,7 +186,7 @@ for (const locale of locales) {
     }
   });
 
-  test(`keeps a numeric student name inside the map tooltip and data table in ${languageNames[locale]}`, async ({
+  test(`keeps a numeric student name inside the map tooltip and the rows of Mahasiswa in ${languageNames[locale]}`, async ({
     page,
     browser,
   }) => {
@@ -261,11 +201,6 @@ for (const locale of locales) {
       sessionFrom: page,
     });
     try {
-      for (const screen of [page, plain]) {
-        await screen.goto(classPath);
-        await screen.getByText(texts[locale].table, { exact: true }).click();
-        expect(await layoutProblems(screen)).toEqual([]);
-      }
       storeClassMapHolding(classId);
       for (const screen of [page, plain]) {
         await screen.goto(classPath);
@@ -281,11 +216,11 @@ for (const locale of locales) {
           expect(await layoutProblems(screen)).toEqual([]);
           await screen.keyboard.press("Escape");
         }
-        await screen.getByText(texts[locale].table, { exact: true }).click();
+        await screen.goto(`${classPath}/students`);
         await expect(
           screen
             .locator("main table")
-            .getByRole("link", { name: studentName, exact: true }),
+            .getByRole("link", { name: new RegExp(`^${studentName}`) }),
         ).toBeVisible();
         expect(await layoutProblems(screen)).toEqual([]);
       }
@@ -469,16 +404,8 @@ for (const locale of locales) {
     await expect(help).toBeVisible();
     await expect(help.getByText(text.title, { exact: true })).toBeVisible();
     await page.keyboard.press("Escape");
-    await page.getByText(text.table, { exact: true }).click();
-    const studentLink = page
-      .locator("main table")
-      .getByRole("link", { name: widestClassNames.studentName });
-    await expect(studentLink).toBeVisible();
     expect(await layoutProblems(page)).toEqual([]);
     await expectAccessibleScreen(page);
-    await studentLink.click();
-    await expect(page).toHaveURL(/\/students\/\d+\?returnTo=/);
-    await page.goto(classPath);
     await page
       .context()
       .grantPermissions(["clipboard-read", "clipboard-write"]);
@@ -524,11 +451,7 @@ for (const locale of locales) {
     await expect(
       plain.locator("[data-join-code]:visible"),
     ).toHaveAccessibleName(`${text.viewChip[0]}${code}${text.viewChip[1]}`);
-    await expect(
-      plain
-        .locator('main svg rect:not([height="0em"]):not([width="0em"])')
-        .first(),
-    ).toBeVisible();
+    await expect(plain.locator("main svg circle").first()).toBeVisible();
     await expect(plain.getByRole("slider")).toHaveCount(0);
     await plain
       .getByRole("link", { name: text.deviation, exact: true })
@@ -549,21 +472,4 @@ function storeClassMapHolding(classId: ClassId): void {
   writeForTestStudent(classId, (database, membershipId) => {
     storeTestJoiningTime(database, membershipId, classMapJoinedAt);
   });
-}
-
-async function expectClassReturn(
-  page: Page,
-  control: Locator,
-  { section, targetId }: { section: ClassMapSection; targetId: string | null },
-): Promise<void> {
-  if (targetId === null)
-    throw new Error("The source control has no return target.");
-  await expect(page).toHaveURL(
-    (url) =>
-      url.searchParams.get("axis") === sourceAxis &&
-      url.searchParams.get("reveal") === section &&
-      url.hash === `#${targetId}`,
-  );
-  await expect(page.locator(`#class-${section}`)).toHaveAttribute("open", "");
-  await expect(control).toBeInViewport();
 }

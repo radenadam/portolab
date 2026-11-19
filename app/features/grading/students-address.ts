@@ -4,8 +4,6 @@ import { classPortfoliosPath } from "./grading-paths";
 import type { RankingMeasure } from "./ranking-measure";
 import type { StudentFilter } from "./student-filters";
 
-export const selectedStudentHeadingId = "selected-student";
-
 export function studentRowId(studentId: UserId): string {
   return `student-${String(studentId)}`;
 }
@@ -31,6 +29,8 @@ export function studentsAddress(
   return (
     classPortfoliosPath(classId) +
     (query === "" ? "" : `?${query}`) +
-    (options.studentId === undefined ? "" : `#${selectedStudentHeadingId}`)
+    (options.studentId === undefined
+      ? ""
+      : `#${studentRowId(options.studentId)}`)
   );
 }

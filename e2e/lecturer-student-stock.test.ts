@@ -3,17 +3,16 @@ import type { Locator } from "@playwright/test";
 import { languageNames } from "../app/language-names.ts";
 import { locales } from "../app/paraglide/runtime.js";
 import type { Locale } from "../app/paraglide/runtime.js";
-import { selectFirstStudent } from "./select-first-student.ts";
+import { openFirstStudent } from "./open-first-student.ts";
 import { studentDesignClass } from "./student-design-class.ts";
 import { expectStockRangeReturn } from "./expect-stock-range-return.ts";
 import { isPhone } from "./frame.ts";
 
-const sources = ["holdings", "map", "analysis", "journal", "orders"] as const;
+const sources = ["holdings", "map", "analysis", "orders"] as const;
 type StockSource = (typeof sources)[number];
 const texts: Record<
   Locale,
   {
-    open: string;
     back: string;
     mapTable: string;
     measures: string;
@@ -25,36 +24,32 @@ const texts: Record<
   }
 > = {
   id: {
-    open: "Buka portofolio",
-    back: "Kembali ke mahasiswa",
+    back: "‹ Kembali ke mahasiswa",
     mapTable: "Tabel titik pada peta",
     measures: "Ukuran portofolio Raka",
     calculation: "Lihat perhitungan",
     data: "Data dan metode",
     range: "Rentang grafik harga",
-    month: "1B",
+    month: "1 bln",
     returns: {
       holdings: "Kembali ke Ringkasan mahasiswa",
       map: "Kembali ke Ringkasan mahasiswa",
       analysis: "Kembali ke Analisis mahasiswa",
-      journal: "Kembali ke Jurnal dan order mahasiswa",
       orders: "Kembali ke Jurnal dan order mahasiswa",
     },
   },
   en: {
-    open: "Open portfolio",
-    back: "Back to students",
+    back: "‹ Back to students",
     mapTable: "Table of map points",
     measures: "Portfolio measures of Raka",
     calculation: "View calculation",
     data: "Data and method",
     range: "Price chart range",
-    month: "1M",
+    month: "1 mo",
     returns: {
       holdings: "Back to student Summary",
       map: "Back to student Summary",
       analysis: "Back to student Analysis",
-      journal: "Back to student Journal and orders",
       orders: "Back to student Journal and orders",
     },
   },
@@ -65,7 +60,7 @@ for (const locale of locales) {
     test.describe(`student stock returns with JavaScript ${String(javaScriptEnabled)} in ${languageNames[locale]}`, () => {
       test.use({ javaScriptEnabled });
       for (const source of sources) {
-        test(`returns from a stock to the selected student and ${source} row`, async ({
+        test(`returns from a stock to the student and ${source} row, and then to the row of the student in Mahasiswa`, async ({
           page,
           browser,
         }) => {
@@ -77,18 +72,8 @@ for (const locale of locales) {
           );
           try {
             await page.goto(`${classPath}/students?measure=treynor&q=Raka`);
-            await selectFirstStudent(page);
-            const selected = new URL(page.url());
-            selected.hash = "selected-student";
-            const portfolioLink = page
-              .getByRole("dialog")
-              .getByRole("link", { name: text.open, exact: true });
-            const portfolioAddress = await portfolioLink.getAttribute("href");
-            if (portfolioAddress === null)
-              throw new Error("The selected student has no portfolio address.");
-            const address = new URL(portfolioAddress, page.url());
-            await portfolioLink.click();
-            await expect(page).toHaveURL(address.href);
+            await openFirstStudent(page);
+            const address = new URL(page.url());
             let link: Locator;
             switch (source) {
               case "holdings":
@@ -106,7 +91,7 @@ for (const locale of locales) {
                 await page.goto(address.href);
                 await page
                   .getByRole("region", { name: text.measures, exact: true })
-                  .getByRole("button", { name: text.calculation, exact: true })
+                  .getByRole("button", { name: text.calculation })
                   .first()
                   .click();
                 await page
@@ -116,22 +101,11 @@ for (const locale of locales) {
                 address.searchParams.set("data", "stocks");
                 link = page.locator("#stock-BBCA");
                 break;
-              case "journal":
               case "orders":
                 address.pathname += "/journal";
-                address.searchParams.set("view", source);
-                address.searchParams.set(
-                  "status",
-                  source === "orders" ? "rejected" : "all",
-                );
+                address.searchParams.set("status", "rejected");
                 await page.goto(address.href);
-                link = page
-                  .locator(
-                    source === "orders"
-                      ? 'a[id^="order-"]'
-                      : 'a[id^="journal-"]',
-                  )
-                  .first();
+                link = page.locator('a[id^="order-"]').first();
                 break;
             }
             const anchor = await link.getAttribute("id");
@@ -154,7 +128,9 @@ for (const locale of locales) {
             await page
               .getByRole("link", { name: text.back, exact: true })
               .click();
-            await expect(page).toHaveURL(selected.href);
+            await expect(page).toHaveURL(
+              /\/students\?measure=treynor&q=Raka&student=(\d+)#student-\1$/,
+            );
           } finally {
             await student.context().close();
           }

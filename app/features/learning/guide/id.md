@@ -20,11 +20,11 @@ Tanda tanya membuka arti konsep. {{label:app_concept_calculation_label}} membuka
 
 ## overview | Membaca keadaan kelas
 
-Pada {{label:navigation_class_link}}, peta membandingkan portofolio mahasiswa. Sumbu mendatar menunjukkan risiko, dan sumbu tegak menunjukkan imbal hasil sejak modal awal. Pilih {{label:classes_map_beta_label}} untuk risiko terhadap IHSG atau {{label:classes_map_deviation_label}} untuk variasi imbal hasil per bulan. Pilih titik untuk membuka mahasiswa tersebut. Saat data tersedia, batang di tepi peta menunjukkan sebaran kelas dan garis median merangkum imbal hasilnya.
+Pada {{label:navigation_class_link}}, peta membandingkan portofolio mahasiswa. Sumbu mendatar menunjukkan risiko, dan sumbu tegak menunjukkan imbal hasil sejak modal awal. Pilih {{label:classes_map_beta_label}} untuk risiko terhadap IHSG atau {{label:classes_map_deviation_label}} untuk variasi imbal hasil per bulan. Pilih titik untuk membuka mahasiswa tersebut. Saat data tersedia, garis titik-titik menandai median imbal hasil kelas.
 
 Portolab memasangkan imbal hasil setiap mahasiswa yang datanya tersedia dengan imbal hasil IHSG pada periode yang sama. Judul memakai median selisih pasangan itu. Mahasiswa dapat bergabung pada tanggal berbeda, sehingga periode pembandingnya dapat berbeda pula.
 
-Mahasiswa tanpa ukuran risiko atau imbal hasil belum memiliki titik. Buka {{label:classes_map_table_label}} untuk melihat datanya dan sebab ukuran yang belum tersedia. Angka ringkas di bawah peta membantu memeriksa jumlah mahasiswa, aktivitas order, dan risiko kelas sebelum Anda membuka pekerjaan seseorang.
+Mahasiswa tanpa ukuran risiko atau imbal hasil belum memiliki titik. {{label:navigation_students_link}} memuat setiap mahasiswa dengan angkanya dan sebab ukuran yang belum tersedia. Portofolio setiap mahasiswa memuat waktu harganya. Angka ringkas di bawah peta membantu memeriksa jumlah mahasiswa, aktivitas order, dan risiko kelas sebelum Anda membuka pekerjaan seseorang.
 
 ## create | Menyiapkan kelas dan kalender
 
@@ -34,7 +34,7 @@ Pilih {{label:navigation_create_class_link}} dari pilihan kelas. Anda juga dapat
 
 Isi {{label:classes_name_label}}, {{label:classes_first_session_label}}, dan {{label:classes_starting_cash_label}}, lalu pilih {{label:classes_create_label}}. Nilai awal kas adalah {{value:starting-cash}}, dan Anda dapat menggantinya saat membuat kelas. Setiap mahasiswa menerima kas virtual yang ditetapkan kelas ketika bergabung.
 
-Kalender menyusun {{value:sessions}} sesi mingguan dari tanggal awal itu dan menentukan semester kelas. Periksa kalender di {{label:navigation_class_link}} sebelum pertemuan pertama. {{label:classes_calendar_link}} mengubah tanggal awal dan menggeser sesi berikutnya. Kalender membantu menemukan materi minggu ini. Kalender tidak membatasi transaksi ke hari pertemuan kuliah.
+Kalender menyusun {{value:sessions}} sesi mingguan dari tanggal awal itu dan menentukan semester kelas, yang ditampilkan pilihan kelas. Sebelum pertemuan pertama, pilih {{label:navigation_calendar_link}} dari pilihan kelas untuk memeriksa tanggal sesi pertama. Mengubah tanggal itu menggeser sesi berikutnya. Kalender menandai sesi minggu ini di {{label:navigation_learn_link}} dan menentukan pertanyaan {{label:classes_discussion_title}}. Kalender tidak membatasi transaksi ke hari pertemuan kuliah.
 
 ## join | Mengajak mahasiswa bergabung
 
@@ -46,7 +46,7 @@ Mahasiswa membuka alamat yang Anda bagikan. Mereka juga dapat membuka halaman be
 
 Mahasiswa baru memilih nama pengguna, nama, dan kata sandi, lalu menyetujui pemberitahuan privasi. Email tidak diperlukan. Mahasiswa yang sudah memiliki akun masuk dengan akun tersebut, lalu bergabung. Periksa nama pada {{label:navigation_students_link}} sebelum menilai pekerjaan mereka.
 
-Mahasiswa dapat memberi NIM untuk setiap kelas saat bergabung dan memperbaiki atau mengosongkannya di halaman akun. {{label:navigation_students_link}}, panelnya, dan rincian mahasiswa menampilkan NIM di bawah nama, atau nama pengguna bila mahasiswa tidak memberi NIM. Dua mahasiswa dapat memiliki nama dan NIM yang sama, tetapi tidak pernah nama pengguna yang sama, jadi workbook mencantumkan NIM dan nama pengguna setiap mahasiswa.
+Mahasiswa dapat memberi NIM untuk setiap kelas saat bergabung dan memperbaiki atau mengosongkannya di halaman akun. {{label:navigation_students_link}} dan halaman mahasiswa menampilkan NIM di bawah nama, atau nama pengguna bila mahasiswa tidak memberi NIM. Dua mahasiswa dapat memiliki nama dan NIM yang sama, tetapi tidak pernah nama pengguna yang sama, jadi workbook mencantumkan NIM dan nama pengguna setiap mahasiswa.
 
 ## student | Apa yang mahasiswa lihat dan kerjakan
 
@@ -76,15 +76,17 @@ Pada {{label:trading_impact_title}}, bandingkan portofolio sebelum dan sesudah o
 
 Order menggunakan harga tertunda dari sesi perdagangan berkelanjutan BEI. Di luar sesi, order menunggu sesi berikutnya. Order pasar memakai harga pertama yang memenuhi syarat. Order limit yang langsung memenuhi batas memakai harga itu. Order limit yang sudah menunggu memakai harga limit saat harga mencapai batasnya. Order berlaku pada hari bursa yang ditetapkan baginya dan kedaluwarsa setelah harga tertunda hari itu final. Sebagian harga sesi terakhir baru tiba setelah bursa tutup.
 
-## activity | Mengikuti order dan jurnal
+## activity | Mengikuti order dan hasilnya
 
-{{label:navigation_activity_link}} memisahkan order dari jurnal transaksi yang sudah tereksekusi. Gunakan penyaring status untuk mencari order yang menunggu, terbuka, tereksekusi, kedaluwarsa, dibatalkan, atau ditolak. Order terbuka menyisihkan kas atau saham, sehingga tidak dapat dipakai oleh order lain. Kas atau saham itu bebas ketika order dibatalkan atau berakhir tanpa tereksekusi.
+{{label:navigation_activity_link}} memuat setiap order dalam satu daftar. Gunakan penyaring status untuk mencari order yang menunggu, terbuka, tereksekusi, kedaluwarsa, dibatalkan, atau ditolak. Order terbuka menyisihkan kas atau saham, sehingga tidak dapat dipakai oleh order lain. Kas atau saham itu bebas ketika order dibatalkan atau berakhir tanpa tereksekusi.
 
-{{label:trading_activity_cancel_label}} membatalkan order yang masih terbuka setelah konfirmasi. Order yang sudah tereksekusi tidak dapat dibatalkan. Jurnal menyimpan alasan, perubahan harga sejak transaksi, dan laba atau rugi terealisasi dari penjualan. Perbandingan yang datanya belum tersedia diberi penjelasan, sehingga tidak dibaca sebagai nol.
+{{label:trading_activity_cancel_label}} membatalkan order yang masih terbuka setelah konfirmasi. Order yang sudah tereksekusi tidak dapat dibatalkan. Setiap order menampilkan alasannya. Order yang tereksekusi juga menampilkan perubahan harga sejak transaksi, dan penjualan menampilkan laba atau rugi terealisasi dari biaya pembelian rata-rata. Perbandingan yang datanya belum tersedia diberi penjelasan, sehingga tidak dibaca sebagai nol.
 
 ## analysis | Membahas ukuran dengan mahasiswa
 
 {{label:navigation_analysis_link}} memperlihatkan peta risiko dan imbal hasil, bobot saham serta sektor, manfaat diversifikasi, dan ukuran kinerja. Imbal hasil harapan adalah rata-rata masa lalu, bukan janji keuntungan. Beta mengukur hubungan dengan IHSG. Simpangan baku mengukur variasi imbal hasil. CAPM memberi imbal hasil yang disyaratkan untuk beta tersebut. Selisih dari garisnya adalah alpha Jensen.
+
+Setiap ukuran menampilkan nilainya dengan nilai IHSG di bawahnya. Pilih nilai itu untuk membuka perhitungannya.
 
 Pada {{label:measures_analysis_allocation_title}}, pilih {{label:measures_analysis_sector_label}} atau {{label:measures_analysis_stock_label}} untuk membandingkan bobot dengan kas tetap dihitung. Pilih sel pada {{label:measures_analysis_correlations_title}} untuk perhitungan pasangan itu. Untuk risiko portofolio, bandingkan batang kontribusi dengan garis bobotnya, lalu pilih baris untuk masukannya. Kas tidak menyumbang risiko. Panel yang sama tersedia pada analisis mahasiswa dan analisis demonstrasi Anda.
 
@@ -100,7 +102,7 @@ Di {{label:navigation_students_link}}, pilih {{label:grading_market_line_label}}
 
 Cari nama, NIM, atau nama pengguna dan gunakan penyaring untuk menindaklanjuti kelompok tertentu. Peringkat hanya tersedia bila ukuran terpilih dapat dihitung. Ini bukan nilai akhir mata kuliah. Tinjau periode, risiko, dan alasan transaksi bersama hasilnya, karena keuntungan terbesar saja belum menjelaskan kualitas keputusan.
 
-Pilih mahasiswa untuk panel ringkas, lalu {{label:grading_open_portfolio_link}} atau {{label:grading_journal_link}}. Halaman mahasiswa mempunyai {{label:grading_summary_label}}, {{label:grading_analysis_label}}, dan {{label:grading_journal_label}}. Anda membacanya tanpa dapat bertransaksi sebagai mahasiswa itu. Tautan kembali menjaga pilihan mahasiswa dan penyaring Anda.
+Pilih baris mahasiswa untuk membuka halamannya, yang mempunyai {{label:grading_summary_label}}, {{label:grading_analysis_label}}, dan {{label:grading_journal_label}}. Anda membacanya tanpa dapat bertransaksi sebagai mahasiswa itu. Tautan kembali membawa Anda ke daftar dengan ukuran, pencarian, dan penyaring Anda, dan menandai baris mahasiswa itu.
 
 ## workbook | Menyiapkan penilaian
 
@@ -126,7 +128,7 @@ Gunakan portofolio itu untuk menunjukkan biaya order, perubahan bobot, dan pemba
 
 ## attention | Menindaklanjuti mahasiswa
 
-{{label:classes_flags_title}} menandai kerugian terbesar, portofolio paling bergejolak, mahasiswa tanpa saham, dan mahasiswa tanpa order minggu ini. Buka penanda untuk melihat mahasiswa atau kelompoknya. Penanda adalah alasan untuk bertanya, bukan diagnosis atau nilai. Mahasiswa tanpa saham mungkin belum bertransaksi, masih menunggu order, atau sudah menjual seluruh sahamnya.
+{{label:classes_flags_title}} menandai kerugian terbesar, portofolio paling bergejolak, mahasiswa tanpa saham, dan mahasiswa tanpa order minggu ini. Penanda membuka {{label:navigation_students_link}} pada baris mahasiswanya, atau dengan penyaring kelompoknya. Penanda adalah alasan untuk bertanya, bukan diagnosis atau nilai. Mahasiswa tanpa saham mungkin belum bertransaksi, masih menunggu order, atau sudah menjual seluruh sahamnya.
 
 Aktif berarti mengirim order, bukan sekadar masuk ke aplikasi. Titik kosong pada peta menandai mahasiswa tanpa order minggu ini. {{label:classes_reasons_title}} menampilkan alasan dari order yang sudah tereksekusi. Bandingkan alasan dengan risiko dan hasil, lalu tanyakan apa yang berubah sejak keputusan dibuat.
 
@@ -148,7 +150,7 @@ Aksi korporasi lain, termasuk penyesuaian harga acuan pada tanggal aksinya, belu
 
 ## passwords | Membantu saat kata sandi terlupa
 
-Untuk mahasiswa, buka panelnya di {{label:navigation_students_link}}, lalu pilih {{label:grading_reset_link}}. Periksa identitas mahasiswa dan konfirmasikan dengan {{label:classes_reset_label}}. Portolab mengeluarkan mahasiswa dari semua perangkat dan menampilkan kata sandi sementara. Sampaikan langsung kepada mahasiswa yang benar. Pada saat masuk berikutnya, mahasiswa memilih kata sandi baru.
+Untuk mahasiswa, buka barisnya di {{label:navigation_students_link}}, lalu pilih {{label:grading_reset_link}} di bagian atas halamannya. Periksa identitas mahasiswa dan konfirmasikan dengan {{label:classes_reset_label}}. Portolab mengeluarkan mahasiswa dari semua perangkat dan menampilkan kata sandi sementara. Sampaikan langsung kepada mahasiswa yang benar. Pada saat masuk berikutnya, mahasiswa memilih kata sandi baru.
 
 Jika Anda lupa kata sandi dosen, hubungi pengelola server dengan nama pengguna Anda. Pengelola menjalankan perintah akun untuk mengatur ulang kata sandi. Akun dosen dibuat oleh pengelola server, sehingga formulir bergabung mahasiswa tidak menggantikannya.
 

@@ -17,6 +17,7 @@ const texts: Record<
     taughtClasses: string;
     join: string;
     createClass: string;
+    calendar: string;
     oneStudent: string;
     severalStudents: string;
   }
@@ -29,6 +30,7 @@ const texts: Record<
     taughtClasses: "Kelas yang Anda ajar",
     join: "Gabung ke kelas",
     createClass: "Buat kelas",
+    calendar: "Jadwal kuliah",
     oneStudent: "1 mahasiswa",
     severalStudents: "32 mahasiswa",
   },
@@ -40,6 +42,7 @@ const texts: Record<
     taughtClasses: "Classes you teach",
     join: "Join a class",
     createClass: "Create a class",
+    calendar: "Course calendar",
     oneStudent: "1 student",
     severalStudents: "32 students",
   },
@@ -103,7 +106,7 @@ for (const locale of locales) {
     ).toBe(
       [
         `<button type="button" popoverTarget="class-switcher" style="anchor-name:--class-switcher"><span><span>Manajemen Portofolio A</span><span>${text.oddTerm}</span></span><svg/></button>`,
-        `<div id="class-switcher" popover="auto" role="dialog" aria-label="${text.switcher}" style="position-anchor:--class-switcher"><p>${text.joinedClasses}</p><ul>`,
+        `<div id="class-switcher" popover="auto" role="dialog" aria-label="${text.switcher}" tabindex="0" style="position-anchor:--class-switcher"><p>${text.joinedClasses}</p><ul>`,
         classLink({
           path: "/classes/3",
           name: "Manajemen Portofolio A",
@@ -121,7 +124,7 @@ for (const locale of locales) {
     );
   });
 
-  test(`names the class of a lecturer without a term until its lecturer sets the date of its first session, and opens every class of the lecturer with the number of its students, and then creating a class, in ${language}`, () => {
+  test(`names the class of a lecturer without a term until its lecturer sets the date of its first session, and opens every class of the lecturer with the number of its students, then the calendar of the current class, and then creating a class, in ${language}`, () => {
     switchLocaleForTest(locale);
     const first: WorkspaceClass = {
       id: 3 as WorkspaceClass["id"],
@@ -161,7 +164,8 @@ for (const locale of locales) {
           details: `${text.severalStudents} · ${text.oddTerm}`,
           isCurrent: false,
         }),
-        `</ul><hr/><a href="/classes#create-class" data-discover="true">${text.createClass}</a>`,
+        `</ul><hr/><a href="/classes/3/calendar" data-discover="true">${text.calendar}</a>`,
+        `<a href="/classes#create-class" data-discover="true">${text.createClass}</a>`,
       ].join(""),
     );
   });

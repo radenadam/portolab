@@ -38,7 +38,7 @@ const texts: Record<
     studentPortfolioName: (name) => `Portofolio ${name}`,
     studentPoint: (name) =>
       `3 Nov 2026, 10.00 WIB: Portofolio ${name} -2,95% dan IHSG -3,02%`,
-    table: "Imbal hasil dari waktu ke waktu",
+    table: "Tabel imbal hasil dari waktu ke waktu",
     pointTime: "3 Nov 2026, 10.00 WIB",
     market: "-3,02%",
     point: "3 Nov 2026, 10.00 WIB: Portofolio Anda -2,95% dan IHSG -3,02%",
@@ -55,7 +55,7 @@ const texts: Record<
     studentPortfolioName: (name) => `Portfolio of ${name}`,
     studentPoint: (name) =>
       `Nov 3, 2026, 10:00 AM WIB: Portfolio of ${name} -2.95% and IHSG -3.02%`,
-    table: "Returns over time",
+    table: "Table of returns over time",
     pointTime: "Nov 3, 2026, 10:00 AM WIB",
     market: "-3.02%",
     point: "Nov 3, 2026, 10:00 AM WIB: Your portfolio -2.95% and IHSG -3.02%",

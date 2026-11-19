@@ -249,6 +249,30 @@ test("rejects a column that stretches while its cards end early", async ({
   ]);
 });
 
+test("accepts a column whose shorter panel stays in view while the page scrolls, and rejects the same panel when it does not stick", async ({
+  page,
+}) => {
+  for (const position of ["sticky", "static"]) {
+    await showPage(
+      page,
+      `<div data-layout="columns" style="display: grid; grid-template-columns: 1fr 1fr; align-items: stretch">
+        <section class="card" style="height: 100px">A</section>
+        <div style="display: flex"><section class="card" style="height: 60px; align-self: flex-start; position: ${position}; top: 0">B</section></div>
+      </div>`,
+    );
+    expect(await layoutProblems(page), position).toEqual(
+      position === "sticky"
+        ? []
+        : [
+            {
+              rule: "columns",
+              text: `The columns <section> "A" and <div> "B" of <div> "A B" end 40 pixels apart.`,
+            },
+          ],
+    );
+  }
+});
+
 test("accepts columns that stand one above the other", async ({ page }) => {
   await showPage(
     page,

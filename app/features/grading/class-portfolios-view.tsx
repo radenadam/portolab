@@ -198,7 +198,10 @@ export function ClassPortfoliosView({
                     })}
                   </NumberText>
                 </p>
-                <RankingHelp student={selected} measure={options.measure} />
+                <RankingHelp
+                  student={selected ?? shown[0]}
+                  measure={options.measure}
+                />
               </div>
               <p>
                 <NumberText>{m.grading_price_times_notice()}</NumberText>

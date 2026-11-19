@@ -648,7 +648,7 @@ for (const locale of locales) {
               `${classPath}/activity?status=waiting&lessonTask=10`,
             );
             await checkTaskAccessibility(
-              page.locator('main [data-view="orders"]'),
+              page.locator('main ul[data-layout="rows"]'),
             );
             await captureTaskScreen({
               name: `lesson-task-activity-${locale}`,

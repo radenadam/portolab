@@ -49,7 +49,7 @@ for (const locale of locales) {
     ).toBe(
       [
         `<button type="button" popoverTarget="simulation-card" style="anchor-name:--simulation-card"><span></span><span>${text.long}</span><span>${text.short}</span><span aria-hidden="true">?</span></button>`,
-        `<div id="simulation-card" popover="auto" role="dialog" aria-label="${text.title}" style="position-anchor:--simulation-card"><div><p>${text.title}</p><p>The first.</p><p>The second.</p><p>${text.lesson}</p></div></div>`,
+        `<div id="simulation-card" popover="auto" role="dialog" aria-label="${text.title}" tabindex="0" style="position-anchor:--simulation-card"><div><p>${text.title}</p><p>The first.</p><p>The second.</p><p>${text.lesson}</p></div></div>`,
       ].join(""),
     );
   });

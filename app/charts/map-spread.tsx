@@ -9,14 +9,14 @@ import type { RiskMapLayout } from "./layout-risk-map";
 import { percentOf } from "./plot";
 import styles from "./risk-map.module.css";
 
-/** The texts of the class map that label its distribution and corners. */
+/** The texts of the class map that label its line of zero, its median, and its corners. */
 interface MapSpreadText {
   zeroLabel: string;
   medianLabel: string;
   corners: MapCornersText;
 }
 
-/** Class-only decorations stay with the route that imports them, so a trade map carries no distribution drawing. */
+/** Class-only decorations stay with the route that imports them, so a trade map carries no drawing of the median of a class. */
 export function mapSpread<Up extends number>({
   median,
   ...spread

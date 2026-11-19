@@ -1,6 +1,6 @@
 # 0032. A class meets weekly from the date of its first session
 
-- Status: Accepted. [Decision 0040](0040-beranda-keeps-the-class-calendar-in-kelas.md) changes the placement of the student calendar notice and the notice for a class without a first session date.
+- Status: Accepted. [Decision 0040](0040-beranda-keeps-the-class-calendar-in-kelas.md) changes the placement of the student calendar notice and the notice for a class without a first session date. [Decision 0068](0068-the-review-of-19-november-2026-changes-parts-of-the-screens.md) replaces its rule about what the page of the class names about the week of the course.
 - Date: 2026-11-14
 
 ## Context

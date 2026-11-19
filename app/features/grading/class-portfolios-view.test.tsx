@@ -3,6 +3,7 @@ import { languageNames } from "~/language-names";
 import { locales } from "~/paraglide/runtime.js";
 import type { Locale } from "~/paraglide/runtime.js";
 import { renderInRouterForTest } from "~/render-in-router-for-test";
+import { conceptLessonDataForTest } from "~/features/learning/concept-lesson-data-for-test";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
 import { markupTextForTest } from "~/markup-text-for-test";
 import { classRankingForTest } from "./class-ranking-for-test.server";
@@ -20,6 +21,7 @@ const texts: Record<
     one: string;
     empty: string;
     none: string;
+    help: string;
     notices: readonly string[];
   }
 > = {
@@ -54,6 +56,7 @@ const texts: Record<
     empty:
       "Belum ada mahasiswa yang bergabung di kelas ini, sehingga belum ada portofolio untuk ditampilkan.",
     none: "Tidak ada mahasiswa yang cocok. Ubah pencarian atau pilih saringan Semua.",
+    help: "Apa itu Alpha Jensen?",
     notices: [
       "Peringkat menurut Alpha Jensen per bulan",
       "Garis tegak: IHSG",
@@ -92,6 +95,7 @@ const texts: Record<
     empty:
       "No student has joined this class yet, so there is no portfolio to show.",
     none: "No students match. Change the search or choose the All filter.",
+    help: "What is Jensen's alpha?",
     notices: [
       "Ranked by monthly Jensen's alpha",
       "Vertical ticks: IHSG",
@@ -113,7 +117,6 @@ for (const locale of locales) {
           quoteFailure={portfolios.quoteFailure}
           shown={shown}
           selected={undefined}
-          panel={undefined}
           options={{
             measure: "alpha",
             filter: "all",
@@ -121,6 +124,7 @@ for (const locale of locales) {
             studentId: undefined,
           }}
         />,
+        conceptLessonDataForTest(),
       );
     const html = render();
     for (const label of [
@@ -130,6 +134,9 @@ for (const locale of locales) {
     ])
       expect(html).toContain(markupTextForTest(label));
     for (const student of all) expect(html).toContain(student.name);
+    // No row is marked until the lecturer comes back from a student, and the help of the ranking still explains the measure with the first student of the list.
+    expect(html).not.toContain("_selected_");
+    expect(html).toContain(markupTextForTest(texts[locale].help));
     expect(html).toContain("/workbook?measure=alpha");
     expect(html).toContain("filter=inactive");
     expect(html).toContain('name="q"');
@@ -141,7 +148,6 @@ for (const locale of locales) {
         quoteFailure={undefined}
         shown={[]}
         selected={undefined}
-        panel={undefined}
         options={{
           measure: "alpha",
           filter: "all",
@@ -149,6 +155,7 @@ for (const locale of locales) {
           studentId: undefined,
         }}
       />,
+      conceptLessonDataForTest(),
     );
     expect(empty).toContain(texts[locale].empty);
     const noStocks = renderInRouterForTest(
@@ -158,7 +165,6 @@ for (const locale of locales) {
         quoteFailure={portfolios.quoteFailure}
         shown={all.filter((student) => !student.hasHoldings)}
         selected={undefined}
-        panel={undefined}
         options={{
           measure: "alpha",
           filter: "no-stocks",
@@ -166,6 +172,7 @@ for (const locale of locales) {
           studentId: undefined,
         }}
       />,
+      conceptLessonDataForTest(),
     );
     expect(noStocks).toContain(texts[locale].noStocks);
     const first = portfolios.ranked[0];
@@ -178,7 +185,6 @@ for (const locale of locales) {
         quoteFailure={undefined}
         shown={[first]}
         selected={undefined}
-        panel={undefined}
         options={{
           measure: "alpha",
           filter: "all",
@@ -186,6 +192,7 @@ for (const locale of locales) {
           studentId: undefined,
         }}
       />,
+      conceptLessonDataForTest(),
     );
     expect(one).toContain(texts[locale].one);
     for (const measure of rankingMeasures) {

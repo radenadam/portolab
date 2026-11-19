@@ -31,10 +31,8 @@ export function ActivityView({
   returnPath?: string | undefined;
   showTitle?: boolean;
 }): ReactNode {
-  const separator = base.includes("?") ? "&" : "?";
-
   return (
-    <div className={styles["activity"]} data-read-only={readOnly || undefined}>
+    <div className={styles["activity"]}>
       <LessonTaskBanner classId={classId} task={task} />
       {showTitle && <h1>{m.trading_activity_title()}</h1>}
       {fields !== undefined && (
@@ -57,7 +55,7 @@ export function ActivityView({
           readOnly={readOnly}
           studentName={studentName}
           portfolioKind={portfolioKind}
-          basePath={readOnly ? `${base}${separator}view=orders` : base}
+          basePath={base}
         />
       </div>
     </div>
