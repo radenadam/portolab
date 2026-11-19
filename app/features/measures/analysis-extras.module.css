@@ -1,250 +1,252 @@
-.panels {
-  display: grid;
-  gap: var(--space-4);
-  min-inline-size: 0;
-}
-.card {
-  composes: surface from "../../panel.module.css";
-  padding: var(--space-panel);
-  min-inline-size: 0;
-}
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  margin-block-end: var(--space-2);
-}
-/* The title of a panel stands as far from its "?" as the references draw it. */
-.header > h2 {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-}
-.segments {
-  display: block;
-  block-size: var(--size-home-bar);
-  margin-block: var(--space-2);
-  fill: var(--color-data);
-}
-.segments rect {
-  stroke: var(--color-panel);
-  stroke-width: var(--size-mark);
-}
-.cash {
-  fill: var(--color-line-strong);
-}
-/* Many holdings scroll inside their card. The rows stand inside a box that scrolls, so the box can reach past the rows for the gap of its scroll bar while the rows keep the edges of the card. */
-.allocationViewport {
-  composes: scroll-box from global;
-  max-block-size: var(--size-analysis-list);
-}
-.riskViewport {
-  composes: scroll-box from global;
-  max-block-size: var(--size-analysis-list);
-}
-.allocationRows {
-  display: grid;
-  grid-template-columns:
-    minmax(0, 1fr) minmax(0, var(--width-allocation-bar))
-    auto;
-  column-gap: var(--space-3);
-}
-.allocationRow {
-  display: grid;
-  grid-column: 1 / -1;
-  grid-template-columns: subgrid;
-  align-items: center;
-  gap: var(--space-3);
-  min-block-size: var(--size-allocation-row);
-  border-block-end: var(--size-line) solid var(--color-line);
-  font-size: var(--text-row);
-}
-.allocationRow:last-child {
-  border: 0;
-}
-.allocationRow > span {
-  overflow-wrap: anywhere;
-}
-.stockName {
-  font-family: var(--font-code);
-}
-.allocationRow strong {
-  min-inline-size: var(--width-market-scale);
-  text-align: end;
-}
-.bar {
-  block-size: var(--size-home-bar);
-  fill: var(--color-data);
-}
-.track {
-  fill: var(--color-raised);
-}
-/* A list of many holdings scrolls inside its card. */
-.matrixViewport {
-  composes: scroll-box from global;
-  max-block-size: var(--size-analysis-list);
-  isolation: isolate;
-}
-.matrix {
-  border-spacing: var(--size-mark);
-  inline-size: 100%;
-  table-layout: auto;
-  font-family: var(--font-code);
-  font-size: var(--text-chart);
-}
-.matrix th {
-  font-weight: 400;
-  color: var(--color-muted);
-  text-align: start;
-  background: var(--color-panel);
-}
-.matrix thead th {
-  position: sticky;
-  inset-block-start: 0;
-  z-index: 1;
-  text-align: center;
-  padding-block: var(--space-1);
-}
-.matrix tbody th {
-  position: sticky;
-  inset-inline-start: 0;
-  z-index: 1;
-}
-.matrix thead td {
-  position: sticky;
-  inset-block-start: 0;
-  inset-inline-start: 0;
-  z-index: 2;
-  background: var(--color-panel);
-}
-.matrix td {
-  padding: 0;
-}
-.cell {
-  display: flex;
-  position: relative;
-  justify-content: center;
-  align-items: center;
-  min-block-size: var(--size-touch-target);
-  min-inline-size: var(--size-touch-target);
-  inline-size: 100%;
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-button);
-  background: none;
-  color: var(--color-ink);
-  font: 500 var(--text-small) var(--font-code);
-}
-.cell svg {
-  position: absolute;
-  inset: 0;
-}
-.cell > span {
-  position: relative;
-}
-.gradient {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  margin-block-start: var(--space-2);
-  color: var(--color-muted);
-  font-size: var(--text-chart);
-}
-.gradient i {
-  flex: 1;
-  block-size: var(--size-home-bar);
-  border-radius: var(--radius-button);
-  background: linear-gradient(
-    90deg in srgb,
-    var(--correlation-negative),
-    var(--color-raised),
-    var(--correlation-positive)
-  );
-}
-.legend {
-  display: flex;
-  gap: var(--space-3);
-  font-size: var(--text-caption);
-  color: var(--color-muted);
-  margin-block-end: var(--space-2);
-}
-.legend span {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-}
-.legend i {
-  inline-size: var(--space-2);
-  block-size: var(--space-2);
-  background: var(--color-data);
-  border-radius: var(--size-mark);
-}
-.legend .weightKey {
-  inline-size: var(--size-mark);
-  block-size: var(--space-3);
-  background: var(--color-ink-secondary);
-}
-.riskRow {
-  composes: row-link from global;
-  display: grid;
-  grid-column: 1 / -1;
-  grid-template-columns: subgrid;
-  align-items: center;
-  gap: var(--space-3);
-  /* The ground of the row reaches a little past its text on each side, as the rows of Kelas do. */
-  inline-size: calc(100% + 2 * var(--space-2));
-  margin-inline: calc(-1 * var(--space-2));
-  min-block-size: var(--size-touch-target);
-  border: 0;
-  border-block-end: var(--size-line) solid var(--color-line);
-  padding: var(--space-1) var(--space-2);
-  background: none;
-  color: var(--color-ink-secondary);
-  text-align: start;
-  font-size: var(--text-caption);
-}
-.riskRow b {
-  font-family: var(--font-code);
-  font-size: var(--text-small);
-}
-.riskBar {
-  block-size: var(--space-4);
-  fill: var(--color-data);
-  overflow: visible;
-}
-.riskBar line {
-  stroke: var(--color-ink-secondary);
-  stroke-width: var(--size-mark);
-}
-.muted,
-.notice {
-  color: var(--color-muted);
-}
-.notice {
-  font-size: var(--text-caption);
-  margin-block-start: var(--space-3);
-}
-.unavailable {
-  composes: standalone-link from global;
-  font-size: var(--text-caption);
-}
-@media (width >= 73.75rem) {
+@layer features {
   .panels {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    align-items: stretch;
+    display: grid;
+    gap: var(--space-4);
+    min-inline-size: 0;
   }
-}
+  .card {
+    composes: surface from "../../panel.module.css";
+    padding: var(--space-panel);
+    min-inline-size: 0;
+  }
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-block-end: var(--space-2);
+  }
+  /* The title of a panel stands as far from its "?" as the references draw it. */
+  .header > h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+  }
+  .segments {
+    display: block;
+    block-size: var(--size-home-bar);
+    margin-block: var(--space-2);
+    fill: var(--color-data);
+  }
+  .segments rect {
+    stroke: var(--color-panel);
+    stroke-width: var(--size-mark);
+  }
+  .cash {
+    fill: var(--color-line-strong);
+  }
+  /* Many holdings scroll inside their card. The rows stand inside a box that scrolls, so the box can reach past the rows for the gap of its scroll bar while the rows keep the edges of the card. */
+  .allocationViewport {
+    composes: scroll-box from global;
+    max-block-size: var(--size-analysis-list);
+  }
+  .riskViewport {
+    composes: scroll-box from global;
+    max-block-size: var(--size-analysis-list);
+  }
+  .allocationRows {
+    display: grid;
+    grid-template-columns:
+      minmax(0, 1fr) minmax(0, var(--width-allocation-bar))
+      auto;
+    column-gap: var(--space-3);
+  }
+  .allocationRow {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    align-items: center;
+    gap: var(--space-3);
+    min-block-size: var(--size-allocation-row);
+    border-block-end: var(--size-line) solid var(--color-line);
+    font-size: var(--text-row);
+  }
+  .allocationRow:last-child {
+    border: 0;
+  }
+  .allocationRow > span {
+    overflow-wrap: anywhere;
+  }
+  .stockName {
+    font-family: var(--font-code);
+  }
+  .allocationRow strong {
+    min-inline-size: var(--width-market-scale);
+    text-align: end;
+  }
+  .bar {
+    block-size: var(--size-home-bar);
+    fill: var(--color-data);
+  }
+  .track {
+    fill: var(--color-raised);
+  }
+  /* A list of many holdings scrolls inside its card. */
+  .matrixViewport {
+    composes: scroll-box from global;
+    max-block-size: var(--size-analysis-list);
+    isolation: isolate;
+  }
+  .matrix {
+    border-spacing: var(--size-mark);
+    inline-size: 100%;
+    table-layout: auto;
+    font-family: var(--font-code);
+    font-size: var(--text-chart);
+  }
+  .matrix th {
+    font-weight: 400;
+    color: var(--color-muted);
+    text-align: start;
+    background: var(--color-panel);
+  }
+  .matrix thead th {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 1;
+    text-align: center;
+    padding-block: var(--space-1);
+  }
+  .matrix tbody th {
+    position: sticky;
+    inset-inline-start: 0;
+    z-index: 1;
+  }
+  .matrix thead td {
+    position: sticky;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    z-index: 2;
+    background: var(--color-panel);
+  }
+  .matrix td {
+    padding: 0;
+  }
+  .cell {
+    display: flex;
+    position: relative;
+    justify-content: center;
+    align-items: center;
+    min-block-size: var(--size-touch-target);
+    min-inline-size: var(--size-touch-target);
+    inline-size: 100%;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-button);
+    background: none;
+    color: var(--color-ink);
+    font: 500 var(--text-small) var(--font-code);
+  }
+  .cell svg {
+    position: absolute;
+    inset: 0;
+  }
+  .cell > span {
+    position: relative;
+  }
+  .gradient {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-block-start: var(--space-2);
+    color: var(--color-muted);
+    font-size: var(--text-chart);
+  }
+  .gradient i {
+    flex: 1;
+    block-size: var(--size-home-bar);
+    border-radius: var(--radius-button);
+    background: linear-gradient(
+      90deg in srgb,
+      var(--correlation-negative),
+      var(--color-raised),
+      var(--correlation-positive)
+    );
+  }
+  .legend {
+    display: flex;
+    gap: var(--space-3);
+    font-size: var(--text-caption);
+    color: var(--color-muted);
+    margin-block-end: var(--space-2);
+  }
+  .legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+  }
+  .legend i {
+    inline-size: var(--space-2);
+    block-size: var(--space-2);
+    background: var(--color-data);
+    border-radius: var(--size-mark);
+  }
+  .legend .weightKey {
+    inline-size: var(--size-mark);
+    block-size: var(--space-3);
+    background: var(--color-ink-secondary);
+  }
+  .riskRow {
+    composes: row-link from global;
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    align-items: center;
+    gap: var(--space-3);
+    /* The ground of the row reaches a little past its text on each side, as the rows of Kelas do. */
+    inline-size: calc(100% + 2 * var(--space-2));
+    margin-inline: calc(-1 * var(--space-2));
+    min-block-size: var(--size-touch-target);
+    border: 0;
+    border-block-end: var(--size-line) solid var(--color-line);
+    padding: var(--space-1) var(--space-2);
+    background: none;
+    color: var(--color-ink-secondary);
+    text-align: start;
+    font-size: var(--text-caption);
+  }
+  .riskRow b {
+    font-family: var(--font-code);
+    font-size: var(--text-small);
+  }
+  .riskBar {
+    block-size: var(--space-4);
+    fill: var(--color-data);
+    overflow: visible;
+  }
+  .riskBar line {
+    stroke: var(--color-ink-secondary);
+    stroke-width: var(--size-mark);
+  }
+  .muted,
+  .notice {
+    color: var(--color-muted);
+  }
+  .notice {
+    font-size: var(--text-caption);
+    margin-block-start: var(--space-3);
+  }
+  .unavailable {
+    composes: standalone-link from global;
+    font-size: var(--text-caption);
+  }
+  @media (width >= 73.75rem) {
+    .panels {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      align-items: stretch;
+    }
+  }
 
-.riskRows {
-  display: grid;
-  grid-template-columns: var(--width-analysis-risk-code) minmax(0, 1fr) auto;
-  column-gap: var(--space-3);
-}
+  .riskRows {
+    display: grid;
+    grid-template-columns: var(--width-analysis-risk-code) minmax(0, 1fr) auto;
+    column-gap: var(--space-3);
+  }
 
-/* A cell of the correlations opens the calculation of its pair, so it draws a ring of ink under the pointer, in the shape of the cell. */
-.cell:hover rect {
-  stroke: var(--color-ink-secondary);
-  stroke-width: var(--size-mark);
+  /* A cell of the correlations opens the calculation of its pair, so it draws a ring of ink under the pointer, in the shape of the cell. */
+  .cell:hover rect {
+    stroke: var(--color-ink-secondary);
+    stroke-width: var(--size-mark);
+  }
 }

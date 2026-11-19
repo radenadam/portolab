@@ -1,3 +1,5 @@
-.source {
-  scroll-margin-block-start: calc(var(--size-top-bar) + var(--space-4));
+@layer features {
+  .source {
+    scroll-margin-block-start: calc(var(--size-top-bar) + var(--space-4));
+  }
 }

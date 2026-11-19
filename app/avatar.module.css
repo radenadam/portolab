@@ -1,25 +1,27 @@
-/* A caller changes the size of an avatar through --avatar-size and the size of its initials through --avatar-text, never through the same properties as this module, because a build can load the styles of a caller before this module, and the later rule would then win. */
-.avatar {
-  display: grid;
-  flex: none;
-  place-items: center;
-  width: var(--avatar-size, var(--size-avatar));
-  height: var(--avatar-size, var(--size-avatar));
-  border-radius: 50%;
-  /* A caller whose ground is the raised color sets a ground that stands out from it for the plain look. */
-  background: var(--avatar-ground, var(--color-raised));
-  color: var(--color-ink-secondary);
-  font-size: var(--avatar-text, var(--text-small));
-  font-weight: 600;
-}
+@layer parts {
+  /* A caller changes the size of an avatar through --avatar-size and the size of its initials through --avatar-text, never through the same properties as this module, because a build can load the styles of a caller before this module, and the later rule would then win. */
+  .avatar {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: var(--avatar-size, var(--size-avatar));
+    height: var(--avatar-size, var(--size-avatar));
+    border-radius: 50%;
+    /* A caller whose ground is the raised color sets a ground that stands out from it for the plain look. */
+    background: var(--avatar-ground, var(--color-raised));
+    color: var(--color-ink-secondary);
+    font-size: var(--avatar-text, var(--text-small));
+    font-weight: 600;
+  }
 
-.avatar::before {
-  content: attr(data-initials);
-}
+  .avatar::before {
+    content: attr(data-initials);
+  }
 
-/* The avatar of the reader, or of the student whom the lecturer selected, takes the tint of the reader's own point, as the prototype of decision 0028 draws it. */
-.own {
-  composes: avatar;
-  background: var(--color-own-soft);
-  color: var(--color-ink);
+  /* The avatar of the reader, or of the student whom the lecturer selected, takes the tint of the reader's own point, as the prototype of decision 0028 draws it. */
+  .own {
+    composes: avatar;
+    background: var(--color-own-soft);
+    color: var(--color-ink);
+  }
 }

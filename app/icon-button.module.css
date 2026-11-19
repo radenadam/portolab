@@ -1,23 +1,25 @@
-:where(.button) {
-  display: grid;
-  flex: none;
-  place-items: center;
-  width: var(--size-touch-target);
-  height: var(--size-touch-target);
-  padding: 0;
-  border: 0;
-  background: none;
-  color: inherit;
-  font: inherit;
-}
+@layer parts {
+  :where(.button) {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: var(--size-touch-target);
+    height: var(--size-touch-target);
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+  }
 
-/* An icon button, such as a star or a close mark, turns its icon to ink under the pointer instead of drawing a box around it. */
-.button:hover {
-  color: var(--color-ink);
-}
+  /* An icon button, such as a star or a close mark, turns its icon to ink under the pointer instead of drawing a box around it. */
+  .button:hover {
+    color: var(--color-ink);
+  }
 
-/* An icon button that waits for the answer to its form never shows a box, unlike a button with a label. Its icon turns muted, and the pointer shows the wait. */
-.button:disabled {
-  background: none;
-  color: var(--color-muted);
+  /* An icon button that waits for the answer to its form never shows a box, unlike a button with a label. Its icon turns muted, and the pointer shows the wait. */
+  .button:disabled {
+    background: none;
+    color: var(--color-muted);
+  }
 }

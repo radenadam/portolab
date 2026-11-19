@@ -1,8 +1,10 @@
-.links {
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-}
-.link {
-  composes: standalone-link from global;
+@layer features {
+  .links {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+  .link {
+    composes: standalone-link from global;
+  }
 }

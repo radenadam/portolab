@@ -1,99 +1,106 @@
-/* The box of a "?" is a whole touch target, which decision 0028 keeps, and the mark inside it stands as close to its label as the references draw it, so the box reaches over the space around the mark. In a row of flex items it keeps its width, because a box that shrank to its mark would push the mark past the end of the row. */
-.question {
-  display: inline-grid;
-  flex: none;
-  place-items: center;
-  width: var(--size-touch-target);
-  height: var(--size-touch-target);
-  margin-block: calc((var(--size-concept-mark) - var(--size-touch-target)) / 2);
-  margin-inline: calc(
-    (var(--size-concept-mark) - var(--size-touch-target)) / 2 + var(--space-1)
-  );
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--color-muted);
-  font: inherit;
-  vertical-align: middle;
-}
+@layer parts {
+  /* The box of a "?" is a whole touch target, which decision 0028 keeps, and the mark inside it stands as close to its label as the references draw it, so the box reaches over the space around the mark. In a row of flex items it keeps its width, because a box that shrank to its mark would push the mark past the end of the row. */
+  .question {
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    width: var(--size-touch-target);
+    height: var(--size-touch-target);
+    margin-block: calc(
+      (var(--size-concept-mark) - var(--size-touch-target)) / 2
+    );
+    margin-inline: calc(
+      (var(--size-concept-mark) - var(--size-touch-target)) / 2 + var(--space-1)
+    );
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--color-muted);
+    font: inherit;
+    vertical-align: middle;
+  }
 
-/* The references set the "?" of the head of a column farther from its label than a "?" in a line of text, and they line it up with the values of the column. So its mark stands at the end of its box, which reaches over the label instead of past the cell. */
-th > .question {
-  justify-items: end;
-  margin-inline: calc(
-      var(--space-2) + var(--size-concept-mark) - var(--size-touch-target)
-    )
-    0;
-}
+  /* The references set the "?" of the head of a column farther from its label than a "?" in a line of text, and they line it up with the values of the column. So its mark stands at the end of its box, which reaches over the label instead of past the cell. */
+  th > .question {
+    justify-items: end;
+    margin-inline: calc(
+        var(--space-2) + var(--size-concept-mark) - var(--size-touch-target)
+      )
+      0;
+  }
 
-.question > span {
-  display: grid;
-  place-items: center;
-  width: var(--size-concept-mark);
-  height: var(--size-concept-mark);
-  border: var(--size-line) solid currentColor;
-  border-radius: 50%;
-  font-size: var(--text-navigation);
-  font-weight: 600;
-  line-height: 1;
-}
+  .question > span {
+    display: grid;
+    place-items: center;
+    width: var(--size-concept-mark);
+    height: var(--size-concept-mark);
+    border: var(--size-line) solid currentColor;
+    border-radius: 50%;
+    font-size: var(--text-navigation);
+    font-weight: 600;
+    line-height: 1;
+  }
 
-.card {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  width: min(var(--width-concept-card), calc(100vw - 4 * var(--space-3)));
-  padding: var(--space-3);
-  color: var(--color-ink);
-  font-size: var(--text-mark);
-  font-weight: 400;
-  line-height: 1.5;
-  text-align: start;
-}
+  .card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    width: min(var(--width-concept-card), calc(100vw - 4 * var(--space-3)));
+    padding: var(--space-3);
+    color: var(--color-ink);
+    font-size: var(--text-mark);
+    font-weight: 400;
+    line-height: 1.5;
+    text-align: start;
+  }
 
-.title,
-.label {
-  font-weight: 600;
-}
+  .title,
+  .label {
+    font-weight: 600;
+  }
 
-.example {
-  padding: var(--space-3);
-  border-radius: var(--radius-item);
-  background: var(--color-data-soft);
-}
+  .example {
+    padding: var(--space-3);
+    border-radius: var(--radius-item);
+    background: var(--color-data-soft);
+  }
 
-.label,
-.lesson {
-  color: var(--color-ink-secondary);
-  font-size: var(--text-small);
-}
+  .label,
+  .lesson {
+    color: var(--color-ink-secondary);
+    font-size: var(--text-small);
+  }
 
-/* A calculation is a block, so a formula written as loose text and subscripts flows as one line of text. A flex column would put each symbol and each subscript on its own line. */
-.calculation {
-  display: block;
-  overflow-wrap: anywhere;
-  font-size: var(--text-row);
-}
+  /* A calculation is a block, so a formula written as loose text and subscripts flows as one line of text. A flex column would put each symbol and each subscript on its own line. */
+  .calculation {
+    display: block;
+    overflow-wrap: anywhere;
+    font-size: var(--text-row);
+  }
 
-.calculation > * + * {
-  margin-block-start: var(--space-2);
-}
+  .calculation > * + * {
+    margin-block-start: var(--space-2);
+  }
 
-/* A code or a heading of a column is one word, which must not break between its letters. */
-:is(.calculation, .example) :is(th, td) {
-  overflow-wrap: normal;
-}
+  /* A code or a heading of a column is one word, which must not break between its letters. */
+  :is(.calculation, .example) :is(th, td) {
+    overflow-wrap: normal;
+  }
 
-/* A card that holds a table of the numbers on the page takes more width, so its columns keep their words on one line where they can. */
-.card:has(table) {
-  width: min(var(--width-concept-card-table), calc(100vw - 4 * var(--space-3)));
-}
+  /* A card that holds a table of the numbers on the page takes more width, so its columns keep their words on one line where they can. */
+  .card:has(table) {
+    width: min(
+      var(--width-concept-card-table),
+      calc(100vw - 4 * var(--space-3))
+    );
+  }
 
-.calculation th:first-child {
-  white-space: nowrap;
-}
+  .calculation th:first-child {
+    white-space: nowrap;
+  }
 
-/* A "?" turns its mark to ink under the pointer and draws nothing around its touch box. */
-.question:hover {
-  color: var(--color-ink);
+  /* A "?" turns its mark to ink under the pointer and draws nothing around its touch box. */
+  .question:hover {
+    color: var(--color-ink);
+  }
 }

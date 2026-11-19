@@ -1,50 +1,52 @@
-/* A formula takes the math font of the device from the styles that browsers give MathML, as decision 0070 sets, at one size on every screen. Its box never makes a page wider than the screen. When the formula is wider than its column, its spreadsheet function moves to a line of its own, the notation shrinks to its smallest scale, and only then does the box scroll sideways. It never scrolls up and down, so the padding above and below holds the ink of a sum or a fraction that the boxes of MathML leave outside. */
-.formula {
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0 var(--space-2);
-  max-inline-size: 100%;
-  padding-block: 0.25em;
-  overflow-x: auto;
-  overflow-y: hidden;
-  font-size: calc(var(--text-formula) * var(--formula-scale, 1));
-  line-height: normal;
-  vertical-align: middle;
-}
+@layer parts {
+  /* A formula takes the math font of the device from the styles that browsers give MathML, as decision 0070 sets, at one size on every screen. Its box never makes a page wider than the screen. When the formula is wider than its column, its spreadsheet function moves to a line of its own, the notation shrinks to its smallest scale, and only then does the box scroll sideways. It never scrolls up and down, so the padding above and below holds the ink of a sum or a fraction that the boxes of MathML leave outside. */
+  .formula {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0 var(--space-2);
+    max-inline-size: 100%;
+    padding-block: 0.25em;
+    overflow-x: auto;
+    overflow-y: hidden;
+    font-size: calc(var(--text-formula) * var(--formula-scale, 1));
+    line-height: normal;
+    vertical-align: middle;
+  }
 
-.formula mtd {
-  padding-block: 0.25ex;
-  padding-inline: 0;
-}
+  .formula mtd {
+    padding-block: 0.25ex;
+    padding-inline: 0;
+  }
 
-/* An operator alone in a cell gets none of the space that MathML puts around an operator between two terms, so its cell gives it the thick space of a relation, 5/18 of an em. */
-.formula mtd:nth-child(2) {
-  padding-inline: 0.2778em;
-}
+  /* An operator alone in a cell gets none of the space that MathML puts around an operator between two terms, so its cell gives it the thick space of a relation, 5/18 of an em. */
+  .formula mtd:nth-child(2) {
+    padding-inline: 0.2778em;
+  }
 
-/* The left side of a formula ends at the operator of its line, and every expression starts after it, as the aligned environment of LaTeX sets them. Chromium aligns the content of a cell of MathML only through the values of text-align that align blocks, which start with -webkit-. */
-.formula mtd:first-child {
-  text-align: -webkit-right;
-}
+  /* The left side of a formula ends at the operator of its line, and every expression starts after it, as the aligned environment of LaTeX sets them. Chromium aligns the content of a cell of MathML only through the values of text-align that align blocks, which start with -webkit-. */
+  .formula mtd:first-child {
+    text-align: -webkit-right;
+  }
 
-.formula mtd:last-child {
-  text-align: left;
-}
+  .formula mtd:last-child {
+    text-align: left;
+  }
 
-.function {
-  color: var(--color-muted);
-  font-family: var(--font-text);
-  font-size: var(--text-small);
-}
+  .function {
+    color: var(--color-muted);
+    font-family: var(--font-text);
+    font-size: var(--text-small);
+  }
 
-/* A formula that stands on its own follows the sentence that says what it computes, close to it, so the two read as one part. */
-.explained {
-  display: grid;
-  gap: var(--space-1);
-}
+  /* A formula that stands on its own follows the sentence that says what it computes, close to it, so the two read as one part. */
+  .explained {
+    display: grid;
+    gap: var(--space-1);
+  }
 
-.explained > p:first-child {
-  color: var(--color-ink-secondary);
-  font-size: var(--text-row);
+  .explained > p:first-child {
+    color: var(--color-ink-secondary);
+    font-size: var(--text-row);
+  }
 }

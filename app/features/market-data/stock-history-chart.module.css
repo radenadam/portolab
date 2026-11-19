@@ -1,19 +1,21 @@
-.ranges {
-  composes: ranges from "../../charts/range-links.module.css";
-  justify-content: flex-end;
-}
+@layer features {
+  .ranges {
+    composes: ranges from "../../charts/range-links.module.css";
+    justify-content: flex-end;
+  }
 
-/* The title of the chart and the choice of its range share the first row of the panel, so the choice sits next to what it changes. */
-.head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-2);
-}
+  /* The title of the chart and the choice of its range share the first row of the panel, so the choice sits next to what it changes. */
+  .head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+  }
 
-.title {
-  margin: 0;
-  color: var(--color-ink);
-  font-size: var(--text-body);
+  .title {
+    margin: 0;
+    color: var(--color-ink);
+    font-size: var(--text-body);
+  }
 }

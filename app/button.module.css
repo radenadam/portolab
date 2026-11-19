@@ -1,34 +1,36 @@
-:where(.button) {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: var(--size-touch-target);
-  padding: var(--space-2) var(--space-3);
-  border: var(--size-line) solid var(--color-line-strong);
-  border-radius: var(--radius-item);
-  background: transparent;
-  font: inherit;
-  font-weight: 600;
-  text-decoration: none;
-}
+@layer parts {
+  :where(.button) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--size-touch-target);
+    padding: var(--space-2) var(--space-3);
+    border: var(--size-line) solid var(--color-line-strong);
+    border-radius: var(--radius-item);
+    background: transparent;
+    font: inherit;
+    font-weight: 600;
+    text-decoration: none;
+  }
 
-/* A button link must override the color of an ordinary link. */
-.button {
-  color: var(--button-ink, var(--color-ink));
-}
+  /* A button link must override the color of an ordinary link. */
+  .button {
+    color: var(--button-ink, var(--color-ink));
+  }
 
-/* An outlined button fills its own shape inside its strong edge with the fill of a control on hover. A filled button takes the deeper color of its own that it names, edge and fill alike. */
-.button:hover {
-  border-color: var(--button-hover, var(--color-line-strong));
-  background: var(--button-hover, var(--color-control-hover));
-}
+  /* An outlined button fills its own shape inside its strong edge with the fill of a control on hover. A filled button takes the deeper color of its own that it names, edge and fill alike. */
+  .button:hover {
+    border-color: var(--button-hover, var(--color-line-strong));
+    background: var(--button-hover, var(--color-control-hover));
+  }
 
-/* A button filled with the color of buttons, such as the first step of a welcome. */
-.filled {
-  composes: button;
-  --button-fill: var(--color-button);
-  --button-hover: var(--color-button-hover);
-  --button-ink: var(--color-on-button);
-  border-color: var(--color-button);
-  background: var(--button-fill);
+  /* A button filled with the color of buttons, such as the first step of a welcome. */
+  .filled {
+    composes: button;
+    --button-fill: var(--color-button);
+    --button-hover: var(--color-button-hover);
+    --button-ink: var(--color-on-button);
+    border-color: var(--color-button);
+    background: var(--button-fill);
+  }
 }

@@ -68,3 +68,4 @@
 0068-the-review-of-19-november-2026-changes-parts-of-the-screens.md
 0069-the-review-of-19-november-2026-has-measured-allowances.md
 0070-a-formula-is-mathml-that-the-browser-typesets.md
+0071-styles-take-their-order-from-cascade-layers.md

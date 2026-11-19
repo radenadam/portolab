@@ -1,204 +1,209 @@
-/* A chart takes the width of its section. Its width decides how many dates its axis shows, so it is a container of its own. */
-.timeChart {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  align-self: stretch;
-  container-type: inline-size;
-}
+@layer parts {
+  /* A chart takes the width of its section. Its width decides how many dates its axis shows, so it is a container of its own. */
+  .timeChart {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    align-self: stretch;
+    container-type: inline-size;
+  }
 
-.legendItem {
-  color: var(--color-ink-secondary);
-}
-.legendHeader {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--space-2);
-}
-.legendHeader p {
-  color: var(--color-muted);
-  font-size: var(--text-small);
-}
-.tableCard {
-  inline-size: min(var(--width-concept-card), calc(100vw - 4 * var(--space-3)));
-  padding: var(--space-3);
-}
-.tableCard p {
-  margin-block-end: var(--space-3);
-  color: var(--color-muted);
-  font-size: var(--text-small);
-}
+  .legendItem {
+    color: var(--color-ink-secondary);
+  }
+  .legendHeader {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .legendHeader p {
+    color: var(--color-muted);
+    font-size: var(--text-small);
+  }
+  .tableCard {
+    inline-size: min(
+      var(--width-concept-card),
+      calc(100vw - 4 * var(--space-3))
+    );
+    padding: var(--space-3);
+  }
+  .tableCard p {
+    margin-block-end: var(--space-3);
+    color: var(--color-muted);
+    font-size: var(--text-small);
+  }
 
-.own {
-  --line-color: var(--color-own);
-  --line-width: var(--size-mark);
-}
+  .own {
+    --line-color: var(--color-own);
+    --line-width: var(--size-mark);
+  }
 
-/* A line of comparison is thinner as well as muted, so it differs from the line that the chart is about in more than its color. */
-.reference {
-  --line-color: var(--color-muted);
-  --line-width: calc(var(--size-mark) * 0.75);
-}
+  /* A line of comparison is thinner as well as muted, so it differs from the line that the chart is about in more than its color. */
+  .reference {
+    --line-color: var(--color-muted);
+    --line-width: calc(var(--size-mark) * 0.75);
+  }
 
-/* A key is a short piece of its line, so it takes the color and the width of its kind of line. */
-.ownKey {
-  composes: own;
-}
+  /* A key is a short piece of its line, so it takes the color and the width of its kind of line. */
+  .ownKey {
+    composes: own;
+  }
 
-.referenceKey {
-  composes: reference;
-}
+  .referenceKey {
+    composes: reference;
+  }
 
-.ownKey,
-.referenceKey,
-.riseKey,
-.fallKey,
-.flatKey {
-  display: inline-block;
-  inline-size: var(--space-4);
-  block-size: var(--line-width);
-  margin-inline-end: var(--space-2);
-  background: var(--line-color);
-  vertical-align: middle;
-}
+  .ownKey,
+  .referenceKey,
+  .riseKey,
+  .fallKey,
+  .flatKey {
+    display: inline-block;
+    inline-size: var(--space-4);
+    block-size: var(--line-width);
+    margin-inline-end: var(--space-2);
+    background: var(--line-color);
+    vertical-align: middle;
+  }
 
-.plot {
-  composes: plot from "./plot.module.css";
-  block-size: var(--size-chart);
-}
+  .plot {
+    composes: plot from "./plot.module.css";
+    block-size: var(--size-chart);
+  }
 
-.endLabelPlot {
-  --time-chart-end-room: var(--time-chart-end-width);
-}
-.endLabel {
-  fill: var(--color-ink-secondary);
-  font-family: var(--font-text);
-  font-size: var(--text-small);
-}
-@container (width < 26.25rem) {
   .endLabelPlot {
-    --time-chart-end-room: 0.4em;
+    --time-chart-end-room: var(--time-chart-end-width);
   }
   .endLabel {
-    display: none;
+    fill: var(--color-ink-secondary);
+    font-family: var(--font-text);
+    font-size: var(--text-small);
   }
-}
+  @container (width < 26.25rem) {
+    .endLabelPlot {
+      --time-chart-end-room: 0.4em;
+    }
+    .endLabel {
+      display: none;
+    }
+  }
 
-.area {
-  composes: area from "./plot.module.css";
-}
+  .area {
+    composes: area from "./plot.module.css";
+  }
 
-.drawing {
-  composes: drawing from "./plot.module.css";
-}
+  .drawing {
+    composes: drawing from "./plot.module.css";
+  }
 
-.tick,
-.minorTick,
-.event,
-.minorEvent {
-  fill: var(--color-muted);
-}
-
-/* Five dates overlap below this width, so a narrow chart shows the first, the middle, and the last. */
-@container (width < 26.25rem) {
+  .tick,
   .minorTick,
+  .event,
   .minorEvent {
-    display: none;
+    fill: var(--color-muted);
   }
-}
 
-.gridLine,
-.zeroLine,
-.crosshair {
-  stroke-width: var(--size-line);
-}
+  /* Five dates overlap below this width, so a narrow chart shows the first, the middle, and the last. */
+  @container (width < 26.25rem) {
+    .minorTick,
+    .minorEvent {
+      display: none;
+    }
+  }
 
-.gridLine {
-  stroke: var(--color-line);
-}
+  .gridLine,
+  .zeroLine,
+  .crosshair {
+    stroke-width: var(--size-line);
+  }
 
-.zeroLine,
-.crosshair {
-  stroke: var(--color-line-strong);
-}
+  .gridLine {
+    stroke: var(--color-line);
+  }
 
-.line {
-  fill: none;
-  stroke: var(--line-color);
-  stroke-width: var(--line-width);
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
+  .zeroLine,
+  .crosshair {
+    stroke: var(--color-line-strong);
+  }
 
-/* A dot stands out from the lines under it by a ring of the ground of the panel. */
-.dot {
-  fill: var(--line-color);
-  stroke: var(--color-panel);
-  stroke-width: var(--size-mark);
-}
+  .line {
+    fill: none;
+    stroke: var(--line-color);
+    stroke-width: var(--line-width);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
 
-/* The tooltip of a chart over time stands at the top of the plot, beside the crosshair. */
-.tip {
-  composes: tip from "./plot.module.css";
-  inset-block-start: 0;
-}
+  /* A dot stands out from the lines under it by a ring of the ground of the panel. */
+  .dot {
+    fill: var(--line-color);
+    stroke: var(--color-panel);
+    stroke-width: var(--size-mark);
+  }
 
-.tipDate {
-  font-weight: 600;
-}
+  /* The tooltip of a chart over time stands at the top of the plot, beside the crosshair. */
+  .tip {
+    composes: tip from "./plot.module.css";
+    inset-block-start: 0;
+  }
 
-.tipLine {
-  display: flex;
-  align-items: center;
-}
+  .tipDate {
+    font-weight: 600;
+  }
 
-.tipValue {
-  margin-inline-start: auto;
-  padding-inline-start: var(--space-3);
-  font-variant-numeric: tabular-nums;
-  font-weight: 600;
-  white-space: nowrap;
-}
+  .tipLine {
+    display: flex;
+    align-items: center;
+  }
 
-.points {
-  align-self: stretch;
-}
+  .tipValue {
+    margin-inline-start: auto;
+    padding-inline-start: var(--space-3);
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    white-space: nowrap;
+  }
 
-.rise {
-  --line-color: var(--color-gain);
-  --line-width: var(--size-mark);
-}
+  .points {
+    align-self: stretch;
+  }
 
-.fall {
-  --line-color: var(--color-loss);
-  --line-width: var(--size-mark);
-}
+  .rise {
+    --line-color: var(--color-gain);
+    --line-width: var(--size-mark);
+  }
 
-.flat {
-  --line-color: var(--color-muted);
-  --line-width: var(--size-mark);
-}
+  .fall {
+    --line-color: var(--color-loss);
+    --line-width: var(--size-mark);
+  }
 
-.riseKey {
-  composes: rise;
-}
+  .flat {
+    --line-color: var(--color-muted);
+    --line-width: var(--size-mark);
+  }
 
-.fallKey {
-  composes: fall;
-}
+  .riseKey {
+    composes: rise;
+  }
 
-.flatKey {
-  composes: flat;
-}
+  .fallKey {
+    composes: fall;
+  }
 
-.sessionLine {
-  stroke: var(--color-line-strong);
-  stroke-width: var(--size-line);
-  stroke-dasharray: 0.25em 0.25em;
-}
+  .flatKey {
+    composes: flat;
+  }
 
-.fixedTable {
-  table-layout: fixed;
+  .sessionLine {
+    stroke: var(--color-line-strong);
+    stroke-width: var(--size-line);
+    stroke-dasharray: 0.25em 0.25em;
+  }
+
+  .fixedTable {
+    table-layout: fixed;
+  }
 }

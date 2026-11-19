@@ -1,9 +1,11 @@
-/* A text that only a screen reader reads, such as the heading of a screen whose references draw none, keeps its place in the document without a box that the eye sees. Every such text composes this one look. */
-.text {
-  position: absolute;
-  inline-size: var(--size-line);
-  block-size: var(--size-line);
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
+@layer parts {
+  /* A text that only a screen reader reads, such as the heading of a screen whose references draw none, keeps its place in the document without a box that the eye sees. Every such text composes this one look. */
+  .text {
+    position: absolute;
+    inline-size: var(--size-line);
+    block-size: var(--size-line);
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
 }

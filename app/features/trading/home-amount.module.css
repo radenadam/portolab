@@ -1,14 +1,16 @@
-.amount {
-  white-space: nowrap;
-  font-weight: 600;
-  line-height: 1.15;
-  overflow-wrap: anywhere;
-}
-.amount small {
-  font: inherit;
-}
-.amount[data-small-currency] small {
-  font-size: var(--text-price);
-  color: var(--color-muted);
-  font-weight: 500;
+@layer features {
+  .amount {
+    white-space: nowrap;
+    font-weight: 600;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+  }
+  .amount small {
+    font: inherit;
+  }
+  .amount[data-small-currency] small {
+    font-size: var(--text-price);
+    color: var(--color-muted);
+    font-weight: 500;
+  }
 }

@@ -1,350 +1,353 @@
-/* Decision 0028 sets the frame, and the reference screens in docs/design/peta/ draw it. A screen narrower than the rail and the content need takes the top bar and the tab bar of a phone. app/theme.css takes the sizes of a desktop at the same width. */
+@layer parts {
+  /* Decision 0028 sets the frame, and the reference screens in docs/design/peta/ draw it. A screen narrower than the rail and the content need takes the top bar and the tab bar of a phone. app/theme.css takes the sizes of a desktop at the same width. */
 
-/* The link that skips the navigation waits above the screen until a keyboard reaches it. */
-.skip {
-  composes: primary-button from global;
-  position: fixed;
-  z-index: 3;
-  inset-block-start: var(--space-3);
-  inset-inline-start: var(--space-3);
-  transform: translateY(-200%);
-}
-
-.skip:focus {
-  transform: none;
-}
-
-.shell {
-  min-height: 100dvh;
-}
-
-.rail {
-  display: none;
-}
-
-.body {
-  min-width: 0;
-}
-
-/* The note of a sample class has a fixed height, so a panel that stays in view, such as the docked order ticket, knows how far down the page starts while the note shows. */
-.sampleClass {
-  padding-inline: var(--space-gutter);
-  line-height: var(--size-sample-note);
-  background: var(--color-warning-soft);
-  color: var(--color-warning);
-  font-size: var(--text-small);
-  text-align: center;
-}
-
-.body {
-  --size-above-page: var(--size-top-bar);
-}
-
-.body:has(> .sampleClass:not([hidden])) {
-  --size-above-page: calc(var(--size-top-bar) + var(--size-sample-note));
-}
-
-/* The top bar stays at the top while the page scrolls, and its parts line up with the content under it. */
-.topBar {
-  position: sticky;
-  z-index: 2;
-  inset-block-start: 0;
-  height: var(--size-top-bar);
-  padding-inline: var(--space-2);
-  border-block-end: var(--size-line) solid var(--color-line);
-  background: var(--color-background);
-}
-
-.topBarContent {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  max-width: var(--width-content);
-  height: 100%;
-  min-width: 0;
-  margin-inline: auto;
-}
-
-.topBarEnd {
-  display: flex;
-  flex: none;
-  align-items: center;
-  gap: 0.375rem;
-  margin-inline-start: auto;
-}
-
-/* Outside a workspace, the icon leaves room for the language and the simulation badge on the narrowest phone. */
-.mark {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  min-width: 0;
-  min-height: var(--size-touch-target);
-  color: var(--color-ink);
-  font-size: var(--text-mark);
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.markName {
-  display: none;
-}
-
-@media (width >= 30rem) {
-  .markName {
-    display: inline;
+  /* The link that skips the navigation waits above the screen until a keyboard reaches it. */
+  .skip {
+    composes: primary-button from global;
+    position: fixed;
+    z-index: 3;
+    inset-block-start: var(--space-3);
+    inset-inline-start: var(--space-3);
+    transform: translateY(-200%);
   }
-}
 
-/* A phone opens the menu of the profile from the avatar in the top bar, and a desktop from the pill of the name, which holds the avatar, as decision 0068 sets. */
-.nameChip {
-  display: none;
-}
+  .skip:focus {
+    transform: none;
+  }
 
-/* The avatar stands in the round end of the pill, as far from its edge on every side. */
-.nameChip > button {
-  padding-inline-start: var(--space-1);
-}
-
-/* The ground of a plain avatar is the raised color, which the page and the filled pill nearly match, so a plain avatar in the pill takes the color of a panel. */
-.chipAvatar {
-  --avatar-ground: var(--color-panel);
-  --avatar-size: var(--size-chip-avatar);
-  --avatar-text: var(--text-tile);
-}
-
-.avatarButton {
-  composes: button from "./icon-button.module.css";
-  border-radius: 50%;
-}
-
-.main {
-  padding: var(--space-page-top) var(--space-gutter) var(--space-page-bottom);
-}
-
-/* The main landmark takes the focus of the link that skips the navigation, which moves the reader there without drawing a control. */
-.main:focus {
-  outline: none;
-}
-
-/* The content of every page stays in the middle beyond its largest width. A page without columns renders its blocks straight into it, so the frame sets the space between them. */
-.page {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-4);
-  max-width: var(--width-content);
-  min-width: 0;
-  margin-inline: auto;
-}
-
-/* The tab bar stays at the bottom of the screen, under the thumb, and holds the items in equal parts. */
-.tabBar {
-  position: fixed;
-  z-index: 2;
-  inset-inline: 0;
-  inset-block-end: 0;
-  padding: 0 var(--space-1) env(safe-area-inset-bottom);
-  border-block-start: var(--size-line) solid var(--color-line);
-  background: var(--color-panel);
-}
-
-.railItems,
-.tabItems {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.tabItems {
-  display: grid;
-  grid-auto-columns: minmax(0, 1fr);
-  grid-auto-flow: column;
-  gap: 0.125rem;
-}
-
-.railItem,
-.tabItem {
-  position: relative;
-  isolation: isolate;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-1);
-  color: var(--color-muted);
-  font-size: var(--text-navigation);
-  font-weight: 500;
-  line-height: 1.3;
-  text-align: center;
-  text-decoration: none;
-}
-
-.tabItem {
-  justify-content: center;
-  height: var(--size-tab-bar);
-}
-
-/* The current tab stands on the tint of data, which a shape inside the tab draws, so the tabs keep their equal parts. */
-.tabItem::before {
-  position: absolute;
-  z-index: -1;
-  inset: 0.375rem 0.125rem;
-  border-radius: var(--radius-item);
-  content: "";
-}
-
-.tabItem[aria-current="page"]::before,
-.railItem[aria-current="page"] {
-  background: var(--color-data-soft);
-}
-
-/* An item of the navigation that is not the current one shows a light ground under the pointer, where the current one shows its tint. The app icon leads home from the rail, so it reacts as an item does. */
-.railIcon:hover,
-.railItem:not([aria-current="page"]):hover,
-.tabItem:not([aria-current="page"]):hover::before {
-  background: var(--color-raised);
-}
-
-.railItem:hover,
-.tabItem:hover {
-  color: var(--color-ink);
-}
-
-.railItem[aria-current="page"],
-.tabItem[aria-current="page"] {
-  color: var(--color-ink);
-  font-weight: 600;
-}
-
-.itemIcon {
-  flex: none;
-  width: var(--size-tab-icon);
-  height: var(--size-tab-icon);
-}
-
-[aria-current="page"] > .itemIcon {
-  color: var(--color-data);
-}
-
-/* The tab bar covers the end of the page, so the page ends above it. */
-.mainAboveTabBar {
-  padding-block-end: calc(
-    var(--size-tab-bar) + var(--space-6) + env(safe-area-inset-bottom)
-  );
-}
-
-@media (width >= 60rem) {
   .shell {
-    display: grid;
-    grid-template-columns: var(--width-rail) minmax(0, 1fr);
-  }
-
-  .tabBar,
-  .mark,
-  .avatarButton {
-    display: none;
+    min-height: 100dvh;
   }
 
   .rail {
+    display: none;
+  }
+
+  .body {
+    min-width: 0;
+  }
+
+  /* The note of a sample class has a fixed height, so a panel that stays in view, such as the docked order ticket, knows how far down the page starts while the note shows. */
+  .sampleClass {
+    padding-inline: var(--space-gutter);
+    line-height: var(--size-sample-note);
+    background: var(--color-warning-soft);
+    color: var(--color-warning);
+    font-size: var(--text-small);
+    text-align: center;
+  }
+
+  .body {
+    --size-above-page: var(--size-top-bar);
+  }
+
+  .body:has(> .sampleClass:not([hidden])) {
+    --size-above-page: calc(var(--size-top-bar) + var(--size-sample-note));
+  }
+
+  /* The top bar stays at the top while the page scrolls, and its parts line up with the content under it. */
+  .topBar {
     position: sticky;
+    z-index: 2;
     inset-block-start: 0;
+    height: var(--size-top-bar);
+    padding-inline: var(--space-2);
+    border-block-end: var(--size-line) solid var(--color-line);
+    background: var(--color-background);
+  }
+
+  .topBarContent {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    max-width: var(--width-content);
+    height: 100%;
+    min-width: 0;
+    margin-inline: auto;
+  }
+
+  .topBarEnd {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 0.375rem;
+    margin-inline-start: auto;
+  }
+
+  /* Outside a workspace, the icon leaves room for the language and the simulation badge on the narrowest phone. */
+  .mark {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 0;
+    min-height: var(--size-touch-target);
+    color: var(--color-ink);
+    font-size: var(--text-mark);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .markName {
+    display: none;
+  }
+
+  @media (width >= 30rem) {
+    .markName {
+      display: inline;
+    }
+  }
+
+  /* A phone opens the menu of the profile from the avatar in the top bar, and a desktop from the pill of the name, which holds the avatar, as decision 0068 sets. */
+  .nameChip {
+    display: none;
+  }
+
+  /* The avatar stands in the round end of the pill, as far from its edge on every side. */
+  .nameChip > button {
+    padding-inline-start: var(--space-1);
+  }
+
+  /* The ground of a plain avatar is the raised color, which the page and the filled pill nearly match, so a plain avatar in the pill takes the color of a panel. */
+  .chipAvatar {
+    --avatar-ground: var(--color-panel);
+    --avatar-size: var(--size-chip-avatar);
+    --avatar-text: var(--text-tile);
+  }
+
+  .avatarButton {
+    composes: button from "./icon-button.module.css";
+    border-radius: 50%;
+  }
+
+  .main {
+    padding: var(--space-page-top) var(--space-gutter) var(--space-page-bottom);
+  }
+
+  /* The main landmark takes the focus of the link that skips the navigation, which moves the reader there without drawing a control. */
+  .main:focus {
+    outline: none;
+  }
+
+  /* The content of every page stays in the middle beyond its largest width. A page without columns renders its blocks straight into it, so the frame sets the space between them. */
+  .page {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-4);
+    max-width: var(--width-content);
+    min-width: 0;
+    margin-inline: auto;
+  }
+
+  /* The tab bar stays at the bottom of the screen, under the thumb, and holds the items in equal parts. */
+  .tabBar {
+    position: fixed;
+    z-index: 2;
+    inset-inline: 0;
+    inset-block-end: 0;
+    padding: 0 var(--space-1) env(safe-area-inset-bottom);
+    border-block-start: var(--size-line) solid var(--color-line);
+    background: var(--color-panel);
+  }
+
+  .railItems,
+  .tabItems {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .tabItems {
+    display: grid;
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
+    gap: 0.125rem;
+  }
+
+  .railItem,
+  .tabItem {
+    position: relative;
+    isolation: isolate;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: var(--space-1);
-    height: 100dvh;
-    overflow-y: auto;
-    padding-block: var(--space-4);
-    border-inline-end: var(--size-line) solid var(--color-line);
-    background: var(--color-panel);
+    color: var(--color-muted);
+    font-size: var(--text-navigation);
+    font-weight: 500;
+    line-height: 1.3;
+    text-align: center;
+    text-decoration: none;
   }
 
-  .railIcon {
-    display: grid;
+  .tabItem {
+    justify-content: center;
+    height: var(--size-tab-bar);
+  }
+
+  /* The current tab stands on the tint of data, which a shape inside the tab draws, so the tabs keep their equal parts. */
+  .tabItem::before {
+    position: absolute;
+    z-index: -1;
+    inset: 0.375rem 0.125rem;
+    border-radius: var(--radius-item);
+    content: "";
+  }
+
+  .tabItem[aria-current="page"]::before,
+  .railItem[aria-current="page"] {
+    background: var(--color-data-soft);
+  }
+
+  /* An item of the navigation that is not the current one shows a light ground under the pointer, where the current one shows its tint. The app icon leads home from the rail, so it reacts as an item does. */
+  .railIcon:hover,
+  .railItem:not([aria-current="page"]):hover,
+  .tabItem:not([aria-current="page"]):hover::before {
+    background: var(--color-raised);
+  }
+
+  .railItem:hover,
+  .tabItem:hover {
+    color: var(--color-ink);
+  }
+
+  .railItem[aria-current="page"],
+  .tabItem[aria-current="page"] {
+    color: var(--color-ink);
+    font-weight: 600;
+  }
+
+  .itemIcon {
     flex: none;
-    place-items: center;
-    width: var(--size-touch-target);
-    height: var(--size-touch-target);
-    margin-block-end: var(--space-3);
-    border-radius: var(--radius-item);
+    width: var(--size-tab-icon);
+    height: var(--size-tab-icon);
   }
 
-  .railItems {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
+  [aria-current="page"] > .itemIcon {
+    color: var(--color-data);
   }
 
-  .railItem {
-    width: var(--width-rail-item);
-    padding-block: 0.5625rem 0.4375rem;
-    border-radius: var(--radius-item);
+  /* The tab bar covers the end of the page, so the page ends above it. */
+  .mainAboveTabBar {
+    padding-block-end: calc(
+      var(--size-tab-bar) + var(--space-6) + env(safe-area-inset-bottom)
+    );
   }
 
-  .railItem > .itemIcon {
-    width: var(--size-icon);
-    height: var(--size-icon);
-  }
+  @media (width >= 60rem) {
+    .shell {
+      display: grid;
+      grid-template-columns: var(--width-rail) minmax(0, 1fr);
+    }
 
-  .topBar {
-    padding-inline: var(--space-gutter);
-  }
-
-  .topBarContent,
-  .topBarEnd {
-    gap: 0.625rem;
-  }
-
-  .nameChip {
-    display: contents;
-  }
-
-  /* The top bar of a lecturer holds the code for joining too, so a desktop narrower than this shows the avatar alone in the pill, and the name of the class keeps its room. */
-  @media (width < 75rem) {
-    .topBarEnd:has(> .workspaceToolsWide) .nameText {
+    .tabBar,
+    .mark,
+    .avatarButton {
       display: none;
     }
 
-    .topBarEnd:has(> .workspaceToolsWide) .nameChip > button {
-      padding-inline-end: var(--space-1);
+    .rail {
+      position: sticky;
+      inset-block-start: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-1);
+      height: 100dvh;
+      overflow-y: auto;
+      padding-block: var(--space-4);
+      border-inline-end: var(--size-line) solid var(--color-line);
+      background: var(--color-panel);
+    }
+
+    .railIcon {
+      display: grid;
+      flex: none;
+      place-items: center;
+      width: var(--size-touch-target);
+      height: var(--size-touch-target);
+      margin-block-end: var(--space-3);
+      border-radius: var(--radius-item);
+    }
+
+    .railItems {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+    }
+
+    .railItem {
+      width: var(--width-rail-item);
+      padding-block: 0.5625rem 0.4375rem;
+      border-radius: var(--radius-item);
+    }
+
+    .railItem > .itemIcon {
+      width: var(--size-icon);
+      height: var(--size-icon);
+    }
+
+    .topBar {
+      padding-inline: var(--space-gutter);
+    }
+
+    .topBarContent,
+    .topBarEnd {
+      gap: 0.625rem;
+    }
+
+    .nameChip {
+      display: contents;
+    }
+
+    /* The top bar of a lecturer holds the code for joining too, so a desktop narrower than this shows the avatar alone in the pill, and the name of the class keeps its room. */
+    @media (width < 75rem) {
+      .topBarEnd:has(> .workspaceToolsWide) .nameText {
+        display: none;
+      }
+
+      .topBarEnd:has(> .workspaceToolsWide) .nameChip > button {
+        padding-inline-end: var(--space-1);
+      }
+    }
+
+    .main,
+    .mainAboveTabBar {
+      padding: var(--space-page-top) var(--space-gutter)
+        var(--space-page-bottom);
     }
   }
 
-  .main,
-  .mainAboveTabBar {
-    padding: var(--space-page-top) var(--space-gutter) var(--space-page-bottom);
+  /* Legacy pages keep each section's heading close to its content. */
+  .page > section {
+    display: flex;
+    flex-direction: column;
+    align-self: stretch;
+    align-items: flex-start;
+    gap: var(--space-2);
   }
-}
 
-/* Legacy pages keep each section's heading close to its content. */
-.page > section {
-  display: flex;
-  flex-direction: column;
-  align-self: stretch;
-  align-items: flex-start;
-  gap: var(--space-2);
-}
+  .page > section > h2 {
+    margin: 0;
+  }
 
-.page > section > h2 {
-  margin: 0;
-}
-
-.workspaceToolsWide {
-  display: none;
-}
-.workspaceToolsPhone {
-  padding: var(--space-3) var(--space-gutter) 0;
-}
-@media (width >= 60rem) {
   .workspaceToolsWide {
-    display: contents;
-  }
-  .workspaceToolsPhone {
     display: none;
   }
-}
+  .workspaceToolsPhone {
+    padding: var(--space-3) var(--space-gutter) 0;
+  }
+  @media (width >= 60rem) {
+    .workspaceToolsWide {
+      display: contents;
+    }
+    .workspaceToolsPhone {
+      display: none;
+    }
+  }
 
-/* An avatar that opens the menu of the profile deepens its circle under the pointer. */
-.avatarButton:hover > * {
-  background: var(--color-line);
+  /* An avatar that opens the menu of the profile deepens its circle under the pointer. */
+  .avatarButton:hover > * {
+    background: var(--color-line);
+  }
 }

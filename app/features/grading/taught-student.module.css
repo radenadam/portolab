@@ -1,80 +1,82 @@
-.page {
-  composes: page from "../../tabbed-page.module.css";
-}
-.header {
-  composes: header from "../../tabbed-page.module.css";
-  gap: var(--space-3);
-  min-inline-size: 0;
-}
-/* The way back is a small link above the name, as on the page of a stock. */
-.back {
-  composes: standalone-link from global;
-  justify-self: start;
-  color: var(--color-ink-secondary);
-  font-size: var(--text-caption);
-  font-weight: 500;
-}
-/* Resetting a password is an action on this student, so it sits at the end of the header as a quiet button. */
-.reset {
-  composes: button from "../../button.module.css";
-  margin-inline-start: auto;
-}
-.notice svg {
-  inline-size: var(--size-icon);
-  block-size: var(--size-icon);
-  flex-shrink: 0;
-}
-.avatar {
-  --avatar-size: var(--size-student-avatar);
-  --avatar-text: var(--text-caption);
-}
-.identity {
-  min-inline-size: 0;
-  margin-inline-start: var(--space-1);
-  overflow-wrap: anywhere;
-}
-.identity h1 {
-  margin: 0;
-  font-size: var(--text-price);
-}
-.identity p {
-  color: var(--color-muted);
-  font-size: var(--text-small);
-}
-/* The NIM or username is an identifier, which DM Mono sets, as in the panel of Mahasiswa, while the latest order beside it is text. */
-.identity p [data-text-value] {
-  font-family: var(--font-code);
-}
-/* The tabs of the student and the note that the view only reads share one row, so the note no longer takes a band of its own. */
-.bar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-2) var(--space-4);
-}
-.notice {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  color: var(--color-muted);
-  font-size: var(--text-caption);
-}
-.tabs {
-  composes: choice intrinsic from "../../segmented-choice.module.css";
-}
-.tabs a {
-  font-size: var(--text-caption);
-}
+@layer features {
+  .page {
+    composes: page from "../../tabbed-page.module.css";
+  }
+  .header {
+    composes: header from "../../tabbed-page.module.css";
+    gap: var(--space-3);
+    min-inline-size: 0;
+  }
+  /* The way back is a small link above the name, as on the page of a stock. */
+  .back {
+    composes: standalone-link from global;
+    justify-self: start;
+    color: var(--color-ink-secondary);
+    font-size: var(--text-caption);
+    font-weight: 500;
+  }
+  /* Resetting a password is an action on this student, so it sits at the end of the header as a quiet button. */
+  .reset {
+    composes: button from "../../button.module.css";
+    margin-inline-start: auto;
+  }
+  .notice svg {
+    inline-size: var(--size-icon);
+    block-size: var(--size-icon);
+    flex-shrink: 0;
+  }
+  .avatar {
+    --avatar-size: var(--size-student-avatar);
+    --avatar-text: var(--text-caption);
+  }
+  .identity {
+    min-inline-size: 0;
+    margin-inline-start: var(--space-1);
+    overflow-wrap: anywhere;
+  }
+  .identity h1 {
+    margin: 0;
+    font-size: var(--text-price);
+  }
+  .identity p {
+    color: var(--color-muted);
+    font-size: var(--text-small);
+  }
+  /* The NIM or username is an identifier, which DM Mono sets, as in the panel of Mahasiswa, while the latest order beside it is text. */
+  .identity p [data-text-value] {
+    font-family: var(--font-code);
+  }
+  /* The tabs of the student and the note that the view only reads share one row, so the note no longer takes a band of its own. */
+  .bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-4);
+  }
+  .notice {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--color-muted);
+    font-size: var(--text-caption);
+  }
+  .tabs {
+    composes: choice intrinsic from "../../segmented-choice.module.css";
+  }
+  .tabs a {
+    font-size: var(--text-caption);
+  }
 
-.empty {
-  composes: panel from "../../panel.module.css";
-  align-items: center;
-  padding-block: var(--space-6);
-  color: var(--color-muted);
-  text-align: center;
-}
-.empty svg {
-  inline-size: var(--size-app-icon);
-  block-size: var(--size-app-icon);
+  .empty {
+    composes: panel from "../../panel.module.css";
+    align-items: center;
+    padding-block: var(--space-6);
+    color: var(--color-muted);
+    text-align: center;
+  }
+  .empty svg {
+    inline-size: var(--size-app-icon);
+    block-size: var(--size-app-icon);
+  }
 }

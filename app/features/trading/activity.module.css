@@ -1,261 +1,263 @@
-.activity h1 {
-  font-size: var(--text-screen-title);
-}
+@layer features {
+  .activity h1 {
+    font-size: var(--text-screen-title);
+  }
 
-.activity {
-  display: grid;
-  gap: var(--space-4);
-  inline-size: 100%;
-}
-
-.selectionForm {
-  composes: panel from "../../panel.module.css";
-  display: grid;
-  min-inline-size: 0;
-  gap: var(--space-3);
-  justify-items: stretch;
-  inline-size: 100%;
-}
-
-.selectionForm > * {
-  min-inline-size: 0;
-}
-
-.confirmation {
-  display: flex;
-  flex-wrap: wrap;
-  max-inline-size: var(--width-concept-card);
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2);
-}
-
-.confirmation > p {
-  flex-basis: 100%;
-}
-
-.columns {
-  display: grid;
-  gap: var(--space-4);
-}
-
-.orderSection {
-  display: flex;
-  min-inline-size: 0;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.panel {
-  composes: panel from "../../panel.module.css";
-  flex: 1;
-  min-inline-size: 0;
-  padding-block: 0;
-  overflow-wrap: anywhere;
-}
-
-.list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.order {
-  display: grid;
-  gap: var(--space-2);
-  padding-block: var(--space-4);
-  border-block-end: var(--size-line) solid var(--color-line);
-}
-
-.order:last-child {
-  border-block-end: 0;
-}
-
-.orderHeader {
-  display: grid;
-  grid-template-columns: var(--size-side-tag) minmax(0, 1fr) var(
-      --width-activity-status
-    );
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.stock {
-  display: flex;
-  min-inline-size: 0;
-  min-block-size: var(--size-touch-target);
-  align-items: center;
-  color: inherit;
-  text-decoration: none;
-}
-
-.stock > div {
-  min-inline-size: 0;
-}
-
-/* The link of the stock covers its order, so the whole order opens the stock and shows the light ground of a row under the pointer, as a holding of Beranda does. A control of the order that does something of its own, such as cancelling it, stays above that link. The ground reaches a little past the text on each side, as the rows of Kelas do. */
-.order {
-  position: relative;
-  margin-inline: calc(-1 * var(--space-2));
-  padding-inline: var(--space-2);
-}
-
-.stock::after {
-  position: absolute;
-  inset: 0;
-  content: "";
-}
-
-.order:has(.stock:hover) {
-  background: var(--color-hover);
-}
-
-.order :is(a, button, summary):not(.stock) {
-  position: relative;
-  z-index: 1;
-}
-
-.orderBody {
-  display: grid;
-  justify-items: start;
-  gap: var(--space-2);
-  color: var(--color-ink-secondary);
-  font-size: var(--text-row);
-}
-
-.reason {
-  color: var(--color-muted);
-}
-
-.button {
-  composes: button from "../../button.module.css";
-  background: var(--color-panel);
-  font-size: var(--text-row);
-}
-
-.filters {
-  display: flex;
-  overflow-x: auto;
-  scrollbar-width: none;
-  gap: var(--space-1) var(--space-2);
-}
-
-.filters a {
-  display: inline-flex;
-  flex: none;
-  min-block-size: var(--size-touch-target);
-  align-items: center;
-  color: var(--color-ink-secondary);
-  font-size: var(--text-row);
-  text-decoration: none;
-}
-
-.filters a > span {
-  white-space: nowrap;
-}
-
-.journalTitle {
-  display: flex;
-  min-block-size: var(--size-touch-target);
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  margin: 0;
-  color: var(--color-ink);
-  font-size: var(--text-mark);
-}
-
-.journalTitle span {
-  color: var(--color-muted);
-  font-size: var(--text-small);
-  font-weight: 400;
-}
-
-.currentPrice::before {
-  content: "(";
-}
-.currentPrice::after {
-  content: ")";
-}
-
-.journalNote {
-  padding-block: var(--space-3);
-  color: var(--color-muted);
-  font-size: var(--text-small);
-}
-
-.performance {
-  color: var(--color-ink-secondary);
-  font-size: var(--text-row);
-}
-
-.performance small {
-  display: block;
-  color: var(--color-muted);
-  font-size: var(--text-small);
-}
-
-/* How a filled order has done since it filled reads as one line under its fill: the label, the change, the current price, and a bar on the shared scale of the list. */
-.comparison,
-.since {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-1) var(--space-2);
-  align-items: center;
-}
-
-.comparison[data-side="sell"] {
-  gap: var(--space-2) var(--space-4);
-}
-
-.bar {
-  position: relative;
-  display: block;
-  inline-size: var(--width-journal-bar);
-  block-size: var(--size-journal-mark);
-  margin-inline: calc(var(--space-1) + var(--size-line));
-}
-
-.bar::before {
-  position: absolute;
-  inset-block: 0;
-  inset-inline-start: 50%;
-  border-inline-start: var(--size-line) dotted var(--color-line-strong);
-  content: "";
-}
-
-.bar::after {
-  position: absolute;
-  inset-block-start: 50%;
-  inset-inline: 0;
-  border-block-start: var(--size-line) solid var(--color-line);
-  content: "";
-}
-
-.bar > span {
-  position: absolute;
-  z-index: 1;
-  inset-block-start: calc(
-    (var(--size-journal-mark) - var(--size-home-bar)) / 2
-  );
-  block-size: var(--size-home-bar);
-  border-radius: var(--size-mark);
-}
-
-.bar > span[data-change="rise"] {
-  background: var(--color-gain);
-}
-.bar > span[data-change="fall"] {
-  background: var(--color-loss);
-}
-
-.empty {
-  padding-block: var(--space-6);
-  color: var(--color-muted);
-}
-
-@media (width >= 60rem) {
   .activity {
-    gap: var(--space-6);
+    display: grid;
+    gap: var(--space-4);
+    inline-size: 100%;
+  }
+
+  .selectionForm {
+    composes: panel from "../../panel.module.css";
+    display: grid;
+    min-inline-size: 0;
+    gap: var(--space-3);
+    justify-items: stretch;
+    inline-size: 100%;
+  }
+
+  .selectionForm > * {
+    min-inline-size: 0;
+  }
+
+  .confirmation {
+    display: flex;
+    flex-wrap: wrap;
+    max-inline-size: var(--width-concept-card);
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2);
+  }
+
+  .confirmation > p {
+    flex-basis: 100%;
+  }
+
+  .columns {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .orderSection {
+    display: flex;
+    min-inline-size: 0;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .panel {
+    composes: panel from "../../panel.module.css";
+    flex: 1;
+    min-inline-size: 0;
+    padding-block: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .order {
+    display: grid;
+    gap: var(--space-2);
+    padding-block: var(--space-4);
+    border-block-end: var(--size-line) solid var(--color-line);
+  }
+
+  .order:last-child {
+    border-block-end: 0;
+  }
+
+  .orderHeader {
+    display: grid;
+    grid-template-columns: var(--size-side-tag) minmax(0, 1fr) var(
+        --width-activity-status
+      );
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .stock {
+    display: flex;
+    min-inline-size: 0;
+    min-block-size: var(--size-touch-target);
+    align-items: center;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .stock > div {
+    min-inline-size: 0;
+  }
+
+  /* The link of the stock covers its order, so the whole order opens the stock and shows the light ground of a row under the pointer, as a holding of Beranda does. A control of the order that does something of its own, such as cancelling it, stays above that link. The ground reaches a little past the text on each side, as the rows of Kelas do. */
+  .order {
+    position: relative;
+    margin-inline: calc(-1 * var(--space-2));
+    padding-inline: var(--space-2);
+  }
+
+  .stock::after {
+    position: absolute;
+    inset: 0;
+    content: "";
+  }
+
+  .order:has(.stock:hover) {
+    background: var(--color-hover);
+  }
+
+  .order :is(a, button, summary):not(.stock) {
+    position: relative;
+    z-index: 1;
+  }
+
+  .orderBody {
+    display: grid;
+    justify-items: start;
+    gap: var(--space-2);
+    color: var(--color-ink-secondary);
+    font-size: var(--text-row);
+  }
+
+  .reason {
+    color: var(--color-muted);
+  }
+
+  .button {
+    composes: button from "../../button.module.css";
+    background: var(--color-panel);
+    font-size: var(--text-row);
+  }
+
+  .filters {
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+    gap: var(--space-1) var(--space-2);
+  }
+
+  .filters a {
+    display: inline-flex;
+    flex: none;
+    min-block-size: var(--size-touch-target);
+    align-items: center;
+    color: var(--color-ink-secondary);
+    font-size: var(--text-row);
+    text-decoration: none;
+  }
+
+  .filters a > span {
+    white-space: nowrap;
+  }
+
+  .journalTitle {
+    display: flex;
+    min-block-size: var(--size-touch-target);
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0;
+    color: var(--color-ink);
+    font-size: var(--text-mark);
+  }
+
+  .journalTitle span {
+    color: var(--color-muted);
+    font-size: var(--text-small);
+    font-weight: 400;
+  }
+
+  .currentPrice::before {
+    content: "(";
+  }
+  .currentPrice::after {
+    content: ")";
+  }
+
+  .journalNote {
+    padding-block: var(--space-3);
+    color: var(--color-muted);
+    font-size: var(--text-small);
+  }
+
+  .performance {
+    color: var(--color-ink-secondary);
+    font-size: var(--text-row);
+  }
+
+  .performance small {
+    display: block;
+    color: var(--color-muted);
+    font-size: var(--text-small);
+  }
+
+  /* How a filled order has done since it filled reads as one line under its fill: the label, the change, the current price, and a bar on the shared scale of the list. */
+  .comparison,
+  .since {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-2);
+    align-items: center;
+  }
+
+  .comparison[data-side="sell"] {
+    gap: var(--space-2) var(--space-4);
+  }
+
+  .bar {
+    position: relative;
+    display: block;
+    inline-size: var(--width-journal-bar);
+    block-size: var(--size-journal-mark);
+    margin-inline: calc(var(--space-1) + var(--size-line));
+  }
+
+  .bar::before {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 50%;
+    border-inline-start: var(--size-line) dotted var(--color-line-strong);
+    content: "";
+  }
+
+  .bar::after {
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline: 0;
+    border-block-start: var(--size-line) solid var(--color-line);
+    content: "";
+  }
+
+  .bar > span {
+    position: absolute;
+    z-index: 1;
+    inset-block-start: calc(
+      (var(--size-journal-mark) - var(--size-home-bar)) / 2
+    );
+    block-size: var(--size-home-bar);
+    border-radius: var(--size-mark);
+  }
+
+  .bar > span[data-change="rise"] {
+    background: var(--color-gain);
+  }
+  .bar > span[data-change="fall"] {
+    background: var(--color-loss);
+  }
+
+  .empty {
+    padding-block: var(--space-6);
+    color: var(--color-muted);
+  }
+
+  @media (width >= 60rem) {
+    .activity {
+      gap: var(--space-6);
+    }
   }
 }

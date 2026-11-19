@@ -1,6 +1,10 @@
 import { expect, test } from "@playwright/test";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
 
+// The styles of the app lie in cascade layers, which expectAccessibleScreen checks, so the styles of a page of a test do too.
+const layeredStart = "@layer theme, parts, features; @layer theme {";
+const layeredEnd = "}";
+
 for (const short of [false, true]) {
   test(
     short
@@ -8,14 +12,14 @@ for (const short of [false, true]) {
       : "accepts full touch targets and ignores controls hidden in native details and popovers",
     async ({ page }) => {
       await page.setContent(`<!doctype html>
-      <html lang="en"><head><title>Touch targets</title><style>
+      <html lang="en"><head><title>Touch targets</title><style>${layeredStart}
         :root { --size-touch-target: 44px; }
         body { background: white; color: black; }
         button { box-sizing: border-box; min-height: 44px; cursor: pointer; }
         details { margin-top: 40px; }
         summary { min-height: 44px; cursor: pointer; }
         .short { min-height: 0; height: 20px; }
-      </style></head><body><main><h1>Touch targets</h1>
+      ${layeredEnd}</style></head><body><main><h1>Touch targets</h1>
         <button type="button" class="${short ? "short" : "full"}">Visible target</button>
         <button type="button" class="short" hidden>Hidden target</button>
         <details><summary>More targets</summary><button type="button" class="short">Closed detail target</button></details>
@@ -56,7 +60,7 @@ const cursorCases = [
 for (const { name, extra, failure } of cursorCases) {
   test(name, async ({ page }) => {
     await page.setContent(`<!doctype html>
-      <html lang="en"><head><title>Cursors</title><style>
+      <html lang="en"><head><title>Cursors</title><style>${layeredStart}
         :root { --size-touch-target: 44px; }
         body { background: white; color: black; }
         a, button, summary, label, select, input, [role="button"] { display: block; min-height: 44px; }
@@ -64,7 +68,7 @@ for (const { name, extra, failure } of cursorCases) {
         :is(button, summary, select, [role="button"], label:has(> input), input:is([type="checkbox"], [type="radio"], [type="range"])):not(:disabled) { cursor: pointer; }
         button:disabled { cursor: progress; }
         .arrow { cursor: default; }
-      </style></head><body><main><h1>Cursors</h1>
+      ${layeredEnd}</style></head><body><main><h1>Cursors</h1>
         <a href="#here">Link</a>
         <button type="button"><span>Part of a button</span></button>
         <button type="button" disabled>Waiting</button>
@@ -89,13 +93,13 @@ for (const [theme, colorScheme] of [
     page,
   }) => {
     await page.emulateMedia({ colorScheme: "dark" });
-    await page.setContent(`<!doctype html><html lang="en" data-theme="light"><head><title>Contrast</title><style>
+    await page.setContent(`<!doctype html><html lang="en" data-theme="light"><head><title>Contrast</title><style>${layeredStart}
       :root { --size-touch-target: 44px; }
       body { color: black; background: white; }
       @media (prefers-color-scheme: ${colorScheme}) {
         html[data-theme="${theme}"] p { color: #eeeeee; }
       }
-      </style></head><body><main><h1>Contrast</h1><p>A theme-specific contrast defect.</p></main></body></html>`);
+      ${layeredEnd}</style></head><body><main><h1>Contrast</h1><p>A theme-specific contrast defect.</p></main></body></html>`);
     await page.emulateMedia({ colorScheme });
     await page.locator("html").evaluate((element, choice) => {
       element.setAttribute("data-theme", choice);
@@ -141,18 +145,67 @@ const scrollCases = [
 for (const { name, extra, failure } of scrollCases) {
   test(name, async ({ page }) => {
     await page.setContent(`<!doctype html>
-      <html lang="en"><head><title>Scroll boxes</title><style>
+      <html lang="en"><head><title>Scroll boxes</title><style>${layeredStart}
         :root { --size-touch-target: 44px; }
         body { background: white; color: black; }
         .scroll-box { overflow: auto; padding-inline: 8px; height: 40px; width: 120px; }
         .filters { display: flex; gap: 8px; overflow-x: auto; width: 100px; }
         .filters span { flex: none; }
         .formula { display: inline-flex; overflow-x: auto; overflow-y: hidden; max-inline-size: 60px; }
-      </style></head><body><main><h1>Scroll boxes</h1>
+      ${layeredEnd}</style></head><body><main><h1>Scroll boxes</h1>
         <div class="scroll-box" tabindex="0"><p style="margin: 0; text-align: right">One</p><p style="margin: 0; text-align: right">Two</p><p style="margin: 0; text-align: right">Three</p></div>
         <div class="filters" tabindex="0" data-scrolls-sideways><span>All · 9</span><span>Waiting · 0</span><span>Filled · 6</span></div>
         <span class="formula" tabindex="0"><math><mi>x</mi><mo>=</mo><mn>1234567890123</mn></math></span>
         ${extra}
+      </main></body></html>`);
+    if (failure === undefined) await expectAccessibleScreen(page);
+    else await expect(expectAccessibleScreen(page)).rejects.toThrow(failure);
+  });
+}
+
+const styleOrderCases = [
+  {
+    name: "accepts a feature that changes a property of a shared part in a later layer, and two modules of one layer at different weights",
+    styles:
+      "@layer theme, parts, features; @layer theme { :root { --size-touch-target: 44px; } body { background: white; color: black; } } @layer parts { ._text_aaaaa_2 { position: absolute; clip-path: inset(50%); } :where(._button_ccccc_4) { padding: 4px; } } @layer features { ._head_bbbbb_9 { position: static; clip-path: none; } } @layer parts { ._wide_ddddd_3 { padding: 8px; } }",
+    failure: undefined,
+  },
+  {
+    name: "rejects two modules of one layer that give one property two values at the same weight",
+    styles:
+      "@layer theme, parts, features; @layer theme { :root { --size-touch-target: 44px; } body { background: white; color: black; } } @layer parts { ._text_aaaaa_2 { position: absolute; clip-path: inset(50%); } } @layer parts { ._head_bbbbb_9 { position: static; clip-path: none; } }",
+    failure:
+      'takes position from "._text_aaaaa_2" and from "._head_bbbbb_9", two modules of the layer "parts" with the same weight, so the module that loads later wins.',
+  },
+  {
+    name: "rejects a shorthand of one module and a longhand of another module of one layer at the same weight",
+    styles:
+      "@layer theme, parts, features; @layer theme { :root { --size-touch-target: 44px; } body { background: white; color: black; } } @layer parts { :where(._button_ccccc_4) { padding: 4px; } } @layer parts { ._wide_ddddd_3 { padding: 8px; } } @layer features { ._head_bbbbb_9 { padding-top: 6px; } ._text_aaaaa_2 { padding: 2px; } }",
+    failure:
+      'takes padding-top from "._head_bbbbb_9" and from "._text_aaaaa_2", two modules of the layer "features" with the same weight, so the module that loads later wins.',
+  },
+  {
+    name: "rejects a rule outside every layer, also inside a media query",
+    styles:
+      "@layer theme, parts, features; @layer theme { :root { --size-touch-target: 44px; } } @media (width > 0) { body { background: white; color: black; } }",
+    failure:
+      'The rule "body" of a style element lies outside every cascade layer, so it beats every layer.',
+  },
+  {
+    name: "rejects layers that take their order from another rule than one statement that names them all",
+    styles:
+      "@layer features { ._head_bbbbb_9 { position: static; } } @layer theme, parts, features; @layer theme { :root { --size-touch-target: 44px; } body { background: white; color: black; } }",
+    failure:
+      'The cascade layers of the page take the order features, theme, parts from the rules that first name them, which the block "@layer features" starts, so the order of loading sets it. A statement that names every layer must come before any other rule that names one.',
+  },
+] as const;
+
+for (const { name, styles, failure } of styleOrderCases) {
+  test(name, async ({ page }) => {
+    await page.setContent(`<!doctype html>
+      <html lang="en"><head><title>Style order</title><style>${styles}</style></head><body><main><h1>Style order</h1>
+        <table><thead class="_head_bbbbb_9 _text_aaaaa_2"><tr><th>Code</th></tr></thead><tbody><tr><td>BBCA</td></tr></tbody></table>
+        <p class="_button_ccccc_4 _wide_ddddd_3">Wide</p>
       </main></body></html>`);
     if (failure === undefined) await expectAccessibleScreen(page);
     else await expect(expectAccessibleScreen(page)).rejects.toThrow(failure);

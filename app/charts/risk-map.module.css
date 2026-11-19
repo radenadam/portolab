@@ -1,345 +1,351 @@
-/* A map takes the width of its section, and its height grows with its width, so it is a container of its own. */
-.riskMap {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-self: stretch;
-  container-type: inline-size;
-}
-
-.gainStem,
-.lossStem {
-  stroke-width: var(--size-mark);
-}
-
-.gainStem {
-  stroke: var(--color-gain);
-}
-.lossStem {
-  stroke: var(--color-loss);
-}
-.average {
-  fill: var(--color-panel);
-  stroke: var(--color-muted);
-  stroke-width: var(--size-mark);
-}
-.before {
-  fill: var(--color-panel);
-  stroke: var(--color-own);
-  stroke-width: var(--size-line);
-}
-.beforeKey {
-  inline-size: 0.8em;
-  block-size: 0.8em;
-  border: var(--size-line) solid var(--color-own);
-  border-radius: 50%;
-}
-.compact .plot {
-  block-size: var(--size-chart);
-}
-.arrow {
-  fill: none;
-  stroke: var(--color-ink-secondary);
-  stroke-width: var(--size-line);
-}
-.averageKey {
-  inline-size: 0.8em;
-  block-size: 0.8em;
-  border: var(--size-line) solid var(--color-muted);
-  border-radius: 50%;
-}
-.gainKey,
-.lossKey {
-  inline-size: var(--size-mark);
-  block-size: 1em;
-}
-.gainKey {
-  background: var(--color-gain);
-}
-.lossKey {
-  background: var(--color-loss);
-}
-
-/* Native buttons remain separate from the enhanced slider's accessibility tree. */
-.actionLayer {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  font: var(--text-chart) var(--font-code);
-}
-.actionArea {
-  position: relative;
-  block-size: 100%;
-}
-.pointAction {
-  position: absolute;
-  transform: translate(-50%, -50%);
-}
-.pointButton {
-  display: grid;
-  place-items: center;
-  inline-size: var(--size-touch-target);
-  block-size: var(--size-touch-target);
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: none;
-  pointer-events: auto;
-}
-.pointFocus {
-  inline-size: var(--space-6);
-  block-size: var(--space-6);
-  border-radius: 50%;
-}
-
-/* The map is as high as a chart on a phone, and higher on a wider screen, as the references of decision 0028 draw it. */
-.plot {
-  composes: plot from "./plot.module.css";
-  block-size: clamp(var(--size-chart), 60cqi, 2 * var(--size-chart));
-}
-
-.fill {
-  flex: 1;
-  min-block-size: var(--size-chart);
-}
-.fill .plot {
-  flex: 1;
-  block-size: 100%;
-  min-block-size: var(--size-chart);
-}
-
-.area {
-  composes: area from "./plot.module.css";
-}
-
-/* The drawing sets the font of the names, the font of the text, as decision 0035 sets, and every length of a mark or a name counts in sizes of that text. */
-.drawing {
-  composes: drawing from "./plot.module.css";
-  font-family: var(--font-text);
-  font-size: var(--text-small);
-}
-
-.tick,
-.minorTick,
-.marketTick {
-  font-family: var(--font-code);
-  font-size: var(--text-chart);
-  fill: var(--color-muted);
-}
-
-/* The mark of the risk of the IHSG reads as the reference of its axis, as the strong line above it does. */
-.marketTick {
-  fill: var(--color-ink);
-  font-weight: 600;
-}
-
-/* About ten marks overlap below this width, so a narrow map shows every other one. */
-@container (width < 30rem) {
-  .minorTick {
-    display: none;
+@layer parts {
+  /* A map takes the width of its section, and its height grows with its width, so it is a container of its own. */
+  .riskMap {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-self: stretch;
+    container-type: inline-size;
   }
-}
 
-.axisTitle {
-  font-size: var(--text-chart);
-  fill: var(--color-muted);
-}
+  .gainStem,
+  .lossStem {
+    stroke-width: var(--size-mark);
+  }
 
-.gridLine,
-.strongLine {
-  stroke-width: var(--size-line);
-}
+  .gainStem {
+    stroke: var(--color-gain);
+  }
+  .lossStem {
+    stroke: var(--color-loss);
+  }
+  .average {
+    fill: var(--color-panel);
+    stroke: var(--color-muted);
+    stroke-width: var(--size-mark);
+  }
+  .before {
+    fill: var(--color-panel);
+    stroke: var(--color-own);
+    stroke-width: var(--size-line);
+  }
+  .beforeKey {
+    inline-size: 0.8em;
+    block-size: 0.8em;
+    border: var(--size-line) solid var(--color-own);
+    border-radius: 50%;
+  }
+  .compact .plot {
+    block-size: var(--size-chart);
+  }
+  .arrow {
+    fill: none;
+    stroke: var(--color-ink-secondary);
+    stroke-width: var(--size-line);
+  }
+  .averageKey {
+    inline-size: 0.8em;
+    block-size: 0.8em;
+    border: var(--size-line) solid var(--color-muted);
+    border-radius: 50%;
+  }
+  .gainKey,
+  .lossKey {
+    inline-size: var(--size-mark);
+    block-size: 1em;
+  }
+  .gainKey {
+    background: var(--color-gain);
+  }
+  .lossKey {
+    background: var(--color-loss);
+  }
 
-.gridLine {
-  stroke: var(--color-line);
-}
+  /* Native buttons remain separate from the enhanced slider's accessibility tree. */
+  .actionLayer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    font: var(--text-chart) var(--font-code);
+  }
+  .actionArea {
+    position: relative;
+    block-size: 100%;
+  }
+  .pointAction {
+    position: absolute;
+    transform: translate(-50%, -50%);
+  }
+  .pointButton {
+    display: grid;
+    place-items: center;
+    inline-size: var(--size-touch-target);
+    block-size: var(--size-touch-target);
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    pointer-events: auto;
+  }
+  .pointFocus {
+    inline-size: var(--space-6);
+    block-size: var(--space-6);
+    border-radius: 50%;
+  }
 
-.strongLine {
-  stroke: var(--color-line-strong);
-}
+  /* The map is as high as a chart on a phone, and higher on a wider screen, as the references of decision 0028 draw it. */
+  .plot {
+    composes: plot from "./plot.module.css";
+    block-size: clamp(var(--size-chart), 60cqi, 2 * var(--size-chart));
+  }
 
-/* The line at the return of the IHSG is dashed, so it reads apart from the lines of the grid and from the line through the IHSG. */
-.level {
-  stroke: var(--color-ink-secondary);
-  stroke-width: var(--size-line);
-  stroke-dasharray: 0.42em 0.33em;
-}
+  .fill {
+    flex: 1;
+    min-block-size: var(--size-chart);
+  }
+  .fill .plot {
+    flex: 1;
+    block-size: 100%;
+    min-block-size: var(--size-chart);
+  }
 
-.line {
-  stroke: var(--color-ink-secondary);
-  stroke-width: calc(var(--size-mark) * 0.75);
-}
+  .area {
+    composes: area from "./plot.module.css";
+  }
 
-/* A mark stands out from the lines and the marks under it by a ring of the ground of the panel, and the marks differ by their shape and their fill as well as by their color. */
-.own,
-.held,
-.market {
-  stroke: var(--color-panel);
-  stroke-width: var(--size-mark);
-}
+  /* The drawing sets the font of the names, the font of the text, as decision 0035 sets, and every length of a mark or a name counts in sizes of that text. */
+  .drawing {
+    composes: drawing from "./plot.module.css";
+    font-family: var(--font-text);
+    font-size: var(--text-small);
+  }
 
-.own {
-  fill: var(--color-own);
-}
+  .tick,
+  .minorTick,
+  .marketTick {
+    font-family: var(--font-code);
+    font-size: var(--text-chart);
+    fill: var(--color-muted);
+  }
 
-.ring {
-  fill: none;
-  stroke: var(--color-own);
-  stroke-width: calc(var(--size-mark) * 0.75);
-}
+  /* The mark of the risk of the IHSG reads as the reference of its axis, as the strong line above it does. */
+  .marketTick {
+    fill: var(--color-ink);
+    font-weight: 600;
+  }
 
-.held {
-  fill: var(--color-data);
-}
+  /* About ten marks overlap below this width, so a narrow map shows every other one. */
+  @container (width < 30rem) {
+    .minorTick {
+      display: none;
+    }
+  }
 
-.other {
-  fill: var(--color-panel);
-  stroke: var(--color-data);
-  stroke-width: calc(var(--size-mark) * 0.875);
-}
+  .axisTitle {
+    font-size: var(--text-chart);
+    fill: var(--color-muted);
+  }
 
-.market {
-  fill: var(--color-ink);
-}
+  .gridLine,
+  .strongLine {
+    stroke-width: var(--size-line);
+  }
 
-.active {
-  fill: none;
-  stroke: var(--color-ink);
-  stroke-width: calc(var(--size-mark) * 0.75);
-}
+  .gridLine {
+    stroke: var(--color-line);
+  }
 
-/* A label keeps a band of the ground of the panel around its letters, so it stays readable where it crosses a line or a mark. */
-.label,
-.lineLabel {
-  paint-order: stroke;
-  stroke: var(--color-panel);
-  stroke-width: calc(var(--size-mark) * 2);
-  stroke-linejoin: round;
-}
+  .strongLine {
+    stroke: var(--color-line-strong);
+  }
 
-.label {
-  fill: var(--color-ink);
-  font-weight: 600;
-}
+  /* The line at the return of the IHSG is dashed, so it reads apart from the lines of the grid and from the line through the IHSG. */
+  .level {
+    stroke: var(--color-ink-secondary);
+    stroke-width: var(--size-line);
+    stroke-dasharray: 0.42em 0.33em;
+  }
 
-.labelValue {
-  font-weight: 400;
-}
+  .line {
+    stroke: var(--color-ink-secondary);
+    stroke-width: calc(var(--size-mark) * 0.75);
+  }
 
-.lineLabel {
-  fill: var(--color-muted);
-}
+  /* A mark stands out from the lines and the marks under it by a ring of the ground of the panel, and the marks differ by their shape and their fill as well as by their color. */
+  .own,
+  .held,
+  .market {
+    stroke: var(--color-panel);
+    stroke-width: var(--size-mark);
+  }
 
-.tip {
-  composes: tip from "./plot.module.css";
-}
+  .own {
+    fill: var(--color-own);
+  }
 
-.coloredTip {
-  composes: tip;
-  border: var(--size-line) solid var(--color-line);
-  background: var(--color-panel);
-  color: var(--color-ink);
-  box-shadow: var(--shadow-popover);
-}
+  .ring {
+    fill: none;
+    stroke: var(--color-own);
+    stroke-width: calc(var(--size-mark) * 0.75);
+  }
 
-.tipName {
-  font-weight: 600;
-}
+  .held {
+    fill: var(--color-data);
+  }
 
-.tipValue {
-  display: flex;
-  gap: var(--space-3);
-  justify-content: space-between;
-}
+  .other {
+    fill: var(--color-panel);
+    stroke: var(--color-data);
+    stroke-width: calc(var(--size-mark) * 0.875);
+  }
 
-.tipNumber {
-  font-variant-numeric: tabular-nums;
-  font-weight: 600;
-  white-space: nowrap;
-}
+  .market {
+    fill: var(--color-ink);
+  }
 
-.legendItem {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  color: var(--color-ink-secondary);
-}
+  .active {
+    fill: none;
+    stroke: var(--color-ink);
+    stroke-width: calc(var(--size-mark) * 0.75);
+  }
 
-.legendItem > :first-child {
-  flex-shrink: 0;
-}
+  /* A label keeps a band of the ground of the panel around its letters, so it stays readable where it crosses a line or a mark. */
+  .label,
+  .lineLabel {
+    paint-order: stroke;
+    stroke: var(--color-panel);
+    stroke-width: calc(var(--size-mark) * 2);
+    stroke-linejoin: round;
+  }
 
-/* A key of the legend draws the mark of its kind at the size of the text beside it. */
-.ownKey,
-.heldKey,
-.otherKey {
-  inline-size: 0.8em;
-  block-size: 0.8em;
-  border-radius: 50%;
-}
+  .label {
+    fill: var(--color-ink);
+    font-weight: 600;
+  }
 
-.ownKey {
-  background: var(--color-own);
-}
+  .labelValue {
+    font-weight: 400;
+  }
 
-.heldKey {
-  background: var(--color-data);
-}
+  .lineLabel {
+    fill: var(--color-muted);
+  }
 
-.otherKey {
-  border: calc(var(--size-mark) * 0.875) solid var(--color-data);
-}
+  .tip {
+    composes: tip from "./plot.module.css";
+  }
 
-.marketKey {
-  inline-size: 0.65em;
-  block-size: 0.65em;
-  margin-inline: 0.1em;
-  background: var(--color-ink);
-  rotate: 45deg;
-}
+  .coloredTip {
+    composes: tip;
+    border: var(--size-line) solid var(--color-line);
+    background: var(--color-panel);
+    color: var(--color-ink);
+    box-shadow: var(--shadow-popover);
+  }
 
-.lineKey {
-  inline-size: 1.15em;
-  block-size: calc(var(--size-mark) * 0.75);
-  background: var(--color-ink-secondary);
-}
+  .tipName {
+    font-weight: 600;
+  }
 
-.corner,
-.medianLabel {
-  fill: var(--color-muted);
-  font-size: var(--text-chart);
-  paint-order: stroke;
-  stroke: var(--color-panel);
-  stroke-width: var(--size-mark);
-}
+  .tipValue {
+    display: flex;
+    gap: var(--space-3);
+    justify-content: space-between;
+  }
 
-@container (width < 30rem) {
+  .tipNumber {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .legendItem {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--color-ink-secondary);
+  }
+
+  .legendItem > :first-child {
+    flex-shrink: 0;
+  }
+
+  /* A key of the legend draws the mark of its kind at the size of the text beside it. */
+  .ownKey,
+  .heldKey,
+  .otherKey {
+    inline-size: 0.8em;
+    block-size: 0.8em;
+    border-radius: 50%;
+  }
+
+  .ownKey {
+    background: var(--color-own);
+  }
+
+  .heldKey {
+    background: var(--color-data);
+  }
+
+  .otherKey {
+    border: calc(var(--size-mark) * 0.875) solid var(--color-data);
+  }
+
+  .marketKey {
+    inline-size: 0.65em;
+    block-size: 0.65em;
+    margin-inline: 0.1em;
+    background: var(--color-ink);
+    rotate: 45deg;
+  }
+
+  .lineKey {
+    inline-size: 1.15em;
+    block-size: calc(var(--size-mark) * 0.75);
+    background: var(--color-ink-secondary);
+  }
+
+  .corner,
   .medianLabel {
-    display: none;
+    fill: var(--color-muted);
+    font-size: var(--text-chart);
+    paint-order: stroke;
+    stroke: var(--color-panel);
+    stroke-width: var(--size-mark);
   }
-}
 
-.spreadPlot {
-  composes: plot;
-  block-size: clamp(var(--size-class-map), 60cqi, 1.75 * var(--size-class-map));
-}
+  @container (width < 30rem) {
+    .medianLabel {
+      display: none;
+    }
+  }
 
-.classmate {
-  fill: var(--color-muted);
-  opacity: 0.45;
-}
-.classmateKey {
-  inline-size: 0.5em;
-  block-size: 0.5em;
-  border-radius: 50%;
-  background: var(--color-muted);
-  opacity: 0.6;
-}
+  .spreadPlot {
+    composes: plot;
+    block-size: clamp(
+      var(--size-class-map),
+      60cqi,
+      1.75 * var(--size-class-map)
+    );
+  }
 
-/* The median of the class is a reference across the whole plot, so it is a light dotted line that never hides the line of zero under it. */
-.medianLine {
-  stroke: var(--color-muted);
-  stroke-width: var(--size-line);
-  stroke-dasharray: 1 4;
-  stroke-linecap: round;
+  .classmate {
+    fill: var(--color-muted);
+    opacity: 0.45;
+  }
+  .classmateKey {
+    inline-size: 0.5em;
+    block-size: 0.5em;
+    border-radius: 50%;
+    background: var(--color-muted);
+    opacity: 0.6;
+  }
+
+  /* The median of the class is a reference across the whole plot, so it is a light dotted line that never hides the line of zero under it. */
+  .medianLine {
+    stroke: var(--color-muted);
+    stroke-width: var(--size-line);
+    stroke-dasharray: 1 4;
+    stroke-linecap: round;
+  }
 }

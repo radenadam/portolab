@@ -1,3 +1,5 @@
+// The theme comes first, so its statement of the order of the cascade layers precedes every other style of the page.
+import "./theme.css";
 import "@fontsource-variable/instrument-sans/wght.css";
 import "@fontsource/dm-mono/400.css";
 import "@fontsource/dm-mono/500.css";
@@ -45,7 +47,6 @@ import type { FrameProfile } from "./frame";
 import { getLocale } from "./paraglide/runtime.js";
 import { m } from "./paraglide/messages.js";
 import { paraglideMiddleware } from "./paraglide/server.js";
-import "./theme.css";
 import { useInitialTheme } from "./features/theme/initial-theme";
 import { isTooLargeForm, TooLargeFormPage } from "./too-large-form";
 

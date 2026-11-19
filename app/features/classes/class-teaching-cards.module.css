@@ -1,218 +1,220 @@
-.cards {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  min-width: 0;
-}
-
-.card {
-  overflow-wrap: anywhere;
-  composes: surface from "../../panel.module.css";
-  composes: returnTarget from "./classes.module.css";
-  padding: var(--space-panel);
-  min-width: 0;
-}
-
-.card h2,
-.sheet h2 {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  margin: 0;
-  color: var(--color-muted);
-  font-size: var(--text-caption);
-  font-weight: 600;
-}
-
-.card p,
-.flagText,
-.quote {
-  color: var(--color-ink-secondary);
-  font-size: var(--text-caption);
-  line-height: 1.5;
-}
-
-.card > h2 {
-  margin-block-end: var(--space-2);
-}
-
-.flag,
-.reason {
-  display: grid;
-  align-items: start;
-  gap: var(--space-3);
-  margin-inline: calc(-1 * var(--space-2));
-  padding: var(--space-3) var(--space-2);
-  min-height: var(--size-touch-target);
-  color: var(--color-ink);
-  font-size: var(--text-body);
-}
-
-/* The whole row opens the student, so it shows a light ground on hover, not the underline of a link. */
-.flag {
-  composes: row-link from global;
-}
-
-.reason {
-  composes: row-link from global;
-}
-
-.flag {
-  grid-template-columns: var(--space-6) minmax(0, 1fr) var(--size-icon);
-}
-
-.flag strong,
-.reason strong {
-  font-weight: 600;
-}
-
-.flag + .flag,
-.reason + .reason {
-  border-block-start: var(--size-line) solid var(--color-line);
-}
-
-.flagText,
-.quote {
-  display: block;
-}
-
-.flagText {
-  color: var(--color-muted);
-}
-
-/* An icon stands on its own, without a tile around it, and sits on the first line of the name beside it. */
-.loss,
-.idle {
-  display: grid;
-  place-items: center;
-  width: var(--space-6);
-  height: 1lh;
-}
-
-.loss {
-  color: var(--color-loss);
-}
-
-.idle {
-  color: var(--color-warning);
-}
-
-.loss svg,
-.idle svg,
-.chevron {
-  width: var(--size-concept-mark);
-  height: var(--size-concept-mark);
-}
-
-.flag > .chevron {
-  color: var(--color-muted);
-}
-
-.badge {
-  padding-inline: var(--space-2);
-  border-radius: var(--radius-item);
-  background: var(--color-data-soft);
-  color: var(--color-ink);
-  font-size: var(--text-chart);
-}
-
-.questions {
-  display: grid;
-  gap: var(--space-2);
-  margin-block: var(--space-2);
-  padding-inline-start: var(--space-4);
-  font-size: var(--text-row);
-  color: var(--color-ink-secondary);
-}
-
-.questions li::marker {
-  color: var(--color-data);
-}
-
-.link {
-  composes: standalone-link from global;
-  padding: 0;
-  border: 0;
-  background: none;
-  font-size: var(--text-caption);
-}
-
-.heading {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.reason {
-  grid-template-columns: calc(var(--size-avatar) - var(--space-1)) minmax(
-      0,
-      1fr
-    );
-}
-
-.reason small {
-  color: var(--color-muted);
-  font-size: var(--text-small);
-}
-
-.quote {
-  overflow-wrap: anywhere;
-}
-
-.avatar {
-  composes: avatar from "../../avatar.module.css";
-  --avatar-size: calc(var(--size-avatar) - var(--space-1));
-  --avatar-text: var(--text-tile);
-}
-
-.sheet.sheet {
-  position-area: none;
-  inset: auto 0 0;
-  margin: 0;
-  width: 100%;
-  max-width: 100%;
-  max-height: calc(100dvh - var(--size-sheet-gap));
-  padding: var(--space-panel);
-  border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
-}
-
-.sheet::backdrop {
-  background: var(--color-backdrop);
-}
-
-.sheet:popover-open {
-  display: flex;
-  flex-direction: column;
-}
-
-/* Every reason of the class scrolls under the heading of the sheet. */
-.sheetList {
-  composes: scroll-box from global;
-  min-height: 0;
-}
-
-.sheet .heading {
-  flex-shrink: 0;
-}
-
-.sheet h2 {
-  color: var(--color-ink);
-  font-size: var(--text-statistic);
-}
-
-@media (width >= 60rem) {
-  .sheet.sheet {
-    inset: 0 0 0 auto;
-    width: calc(var(--width-form) + var(--space-5));
-    height: 100dvh;
-    max-height: 100dvh;
-    border-radius: var(--radius-sheet) 0 0 var(--radius-sheet);
+@layer features {
+  .cards {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    min-width: 0;
   }
-}
 
-@media (width >= 73.75rem) {
-  .cards > :last-child {
-    flex-grow: 1;
+  .card {
+    overflow-wrap: anywhere;
+    composes: surface from "../../panel.module.css";
+    composes: returnTarget from "./classes.module.css";
+    padding: var(--space-panel);
+    min-width: 0;
+  }
+
+  .card h2,
+  .sheet h2 {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin: 0;
+    color: var(--color-muted);
+    font-size: var(--text-caption);
+    font-weight: 600;
+  }
+
+  .card p,
+  .flagText,
+  .quote {
+    color: var(--color-ink-secondary);
+    font-size: var(--text-caption);
+    line-height: 1.5;
+  }
+
+  .card > h2 {
+    margin-block-end: var(--space-2);
+  }
+
+  .flag,
+  .reason {
+    display: grid;
+    align-items: start;
+    gap: var(--space-3);
+    margin-inline: calc(-1 * var(--space-2));
+    padding: var(--space-3) var(--space-2);
+    min-height: var(--size-touch-target);
+    color: var(--color-ink);
+    font-size: var(--text-body);
+  }
+
+  /* The whole row opens the student, so it shows a light ground on hover, not the underline of a link. */
+  .flag {
+    composes: row-link from global;
+  }
+
+  .reason {
+    composes: row-link from global;
+  }
+
+  .flag {
+    grid-template-columns: var(--space-6) minmax(0, 1fr) var(--size-icon);
+  }
+
+  .flag strong,
+  .reason strong {
+    font-weight: 600;
+  }
+
+  .flag + .flag,
+  .reason + .reason {
+    border-block-start: var(--size-line) solid var(--color-line);
+  }
+
+  .flagText,
+  .quote {
+    display: block;
+  }
+
+  .flagText {
+    color: var(--color-muted);
+  }
+
+  /* An icon stands on its own, without a tile around it, and sits on the first line of the name beside it. */
+  .loss,
+  .idle {
+    display: grid;
+    place-items: center;
+    width: var(--space-6);
+    height: 1lh;
+  }
+
+  .loss {
+    color: var(--color-loss);
+  }
+
+  .idle {
+    color: var(--color-warning);
+  }
+
+  .loss svg,
+  .idle svg,
+  .chevron {
+    width: var(--size-concept-mark);
+    height: var(--size-concept-mark);
+  }
+
+  .flag > .chevron {
+    color: var(--color-muted);
+  }
+
+  .badge {
+    padding-inline: var(--space-2);
+    border-radius: var(--radius-item);
+    background: var(--color-data-soft);
+    color: var(--color-ink);
+    font-size: var(--text-chart);
+  }
+
+  .questions {
+    display: grid;
+    gap: var(--space-2);
+    margin-block: var(--space-2);
+    padding-inline-start: var(--space-4);
+    font-size: var(--text-row);
+    color: var(--color-ink-secondary);
+  }
+
+  .questions li::marker {
+    color: var(--color-data);
+  }
+
+  .link {
+    composes: standalone-link from global;
+    padding: 0;
+    border: 0;
+    background: none;
+    font-size: var(--text-caption);
+  }
+
+  .heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .reason {
+    grid-template-columns: calc(var(--size-avatar) - var(--space-1)) minmax(
+        0,
+        1fr
+      );
+  }
+
+  .reason small {
+    color: var(--color-muted);
+    font-size: var(--text-small);
+  }
+
+  .quote {
+    overflow-wrap: anywhere;
+  }
+
+  .avatar {
+    composes: avatar from "../../avatar.module.css";
+    --avatar-size: calc(var(--size-avatar) - var(--space-1));
+    --avatar-text: var(--text-tile);
+  }
+
+  .sheet.sheet {
+    position-area: none;
+    inset: auto 0 0;
+    margin: 0;
+    width: 100%;
+    max-width: 100%;
+    max-height: calc(100dvh - var(--size-sheet-gap));
+    padding: var(--space-panel);
+    border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
+  }
+
+  .sheet::backdrop {
+    background: var(--color-backdrop);
+  }
+
+  .sheet:popover-open {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Every reason of the class scrolls under the heading of the sheet. */
+  .sheetList {
+    composes: scroll-box from global;
+    min-height: 0;
+  }
+
+  .sheet .heading {
+    flex-shrink: 0;
+  }
+
+  .sheet h2 {
+    color: var(--color-ink);
+    font-size: var(--text-statistic);
+  }
+
+  @media (width >= 60rem) {
+    .sheet.sheet {
+      inset: 0 0 0 auto;
+      width: calc(var(--width-form) + var(--space-5));
+      height: 100dvh;
+      max-height: 100dvh;
+      border-radius: var(--radius-sheet) 0 0 var(--radius-sheet);
+    }
+  }
+
+  @media (width >= 73.75rem) {
+    .cards > :last-child {
+      flex-grow: 1;
+    }
   }
 }

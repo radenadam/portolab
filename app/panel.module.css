@@ -1,25 +1,27 @@
-/* A route can load these defaults after the frame or another route, so local styles must win regardless of load order. */
-:where(.surface) {
-  min-inline-size: 0;
-  border: var(--size-line) solid var(--color-line);
-  border-radius: var(--radius-panel);
-  background: var(--color-panel);
-}
-.panel {
-  composes: surface;
-}
-:where(.panel) {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  padding: var(--space-4);
-}
+@layer parts {
+  /* A part of the same layer, such as a form, composes these defaults, so they weigh nothing and the rules of that part win whatever the order in which the build loads the two files. */
+  :where(.surface) {
+    min-inline-size: 0;
+    border: var(--size-line) solid var(--color-line);
+    border-radius: var(--radius-panel);
+    background: var(--color-panel);
+  }
+  .panel {
+    composes: surface;
+  }
+  :where(.panel) {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding: var(--space-4);
+  }
 
-/* A panel that is a link, such as the card of a session, takes a light ground and a stronger edge under the pointer, as a card does. A panel that a mark edges, such as the session of the week, keeps the edge of its mark. */
-a.panel:hover {
-  background-color: var(--color-hover);
-}
+  /* A panel that is a link, such as the card of a session, takes a light ground and a stronger edge under the pointer, as a card does. A panel that a mark edges, such as the session of the week, keeps the edge of its mark. */
+  a.panel:hover {
+    background-color: var(--color-hover);
+  }
 
-a.panel:not([aria-current]):hover {
-  border-color: var(--color-line-strong);
+  a.panel:not([aria-current]):hover {
+    border-color: var(--color-line-strong);
+  }
 }

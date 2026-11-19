@@ -1,141 +1,143 @@
-.overview {
-  display: grid;
-  gap: var(--space-4);
-  width: 100%;
-  min-width: 0;
-}
-
-.heading {
-  display: grid;
-  gap: var(--space-2);
-}
-
-.heading > p {
-  color: var(--color-ink-secondary);
-  max-width: 80ch;
-}
-
-.heading > .time {
-  color: var(--color-muted);
-  font-size: var(--text-caption);
-}
-
-.panel {
-  --size-chart: var(--size-class-map);
-  composes: panel from "../../panel.module.css";
-  gap: 0;
-  padding: 0;
-}
-
-.mapHeader,
-.legend {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-3);
-  padding-inline: var(--space-4);
-}
-
-/* The map keeps the padding of its panel, like its header, so its axis and its labels never touch the edge of the panel. */
-.mapArea {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  padding-inline: var(--space-4);
-}
-
-.mapHeader {
-  justify-content: space-between;
-  padding-block-start: var(--space-3);
-}
-
-.mapHeader h2 {
-  margin: 0;
-  font-size: var(--text-body);
-  color: var(--color-ink);
-}
-
-.legend {
-  justify-content: space-between;
-  font-size: var(--text-small);
-}
-
-.choice {
-  composes: choice compact from "../../segmented-choice.module.css";
-}
-
-.strip {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  border-block-start: var(--size-line) solid var(--color-line);
-}
-
-.strip > div {
-  display: grid;
-  gap: var(--space-1);
-  padding: var(--space-3) var(--space-4);
-}
-
-.strip > div:nth-child(even) {
-  border-inline-start: var(--size-line) solid var(--color-line);
-}
-
-.strip > div:nth-child(n + 3) {
-  border-block-start: var(--size-line) solid var(--color-line);
-}
-
-.strip strong {
-  font-size: var(--text-stock);
-  line-height: 1.25;
-}
-
-.strip > div > span {
-  color: var(--color-muted);
-  font-size: var(--text-small);
-}
-
-.empty {
-  padding: var(--space-4);
-}
-
-@media (width >= 60rem) {
-  .strip {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+@layer features {
+  .overview {
+    display: grid;
+    gap: var(--space-4);
+    width: 100%;
+    min-width: 0;
   }
 
-  .strip > div + div {
+  .heading {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .heading > p {
+    color: var(--color-ink-secondary);
+    max-width: 80ch;
+  }
+
+  .heading > .time {
+    color: var(--color-muted);
+    font-size: var(--text-caption);
+  }
+
+  .panel {
+    --size-chart: var(--size-class-map);
+    composes: panel from "../../panel.module.css";
+    gap: 0;
+    padding: 0;
+  }
+
+  .mapHeader,
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    padding-inline: var(--space-4);
+  }
+
+  /* The map keeps the padding of its panel, like its header, so its axis and its labels never touch the edge of the panel. */
+  .mapArea {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    padding-inline: var(--space-4);
+  }
+
+  .mapHeader {
+    justify-content: space-between;
+    padding-block-start: var(--space-3);
+  }
+
+  .mapHeader h2 {
+    margin: 0;
+    font-size: var(--text-body);
+    color: var(--color-ink);
+  }
+
+  .legend {
+    justify-content: space-between;
+    font-size: var(--text-small);
+  }
+
+  .choice {
+    composes: choice compact from "../../segmented-choice.module.css";
+  }
+
+  .strip {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-block-start: var(--size-line) solid var(--color-line);
+  }
+
+  .strip > div {
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .strip > div:nth-child(even) {
     border-inline-start: var(--size-line) solid var(--color-line);
   }
 
   .strip > div:nth-child(n + 3) {
-    border-block-start: 0;
-  }
-}
-
-.titleRow {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.columns,
-.main {
-  display: grid;
-  gap: var(--space-4);
-  min-width: 0;
-}
-
-.main {
-  grid-template-rows: auto 1fr;
-}
-
-@media (width >= 73.75rem) {
-  .columns {
-    grid-template-columns: minmax(0, 2.4fr) minmax(0, 1fr);
-    align-items: stretch;
+    border-block-start: var(--size-line) solid var(--color-line);
   }
 
-  .strip {
-    margin-block-start: auto;
+  .strip strong {
+    font-size: var(--text-stock);
+    line-height: 1.25;
+  }
+
+  .strip > div > span {
+    color: var(--color-muted);
+    font-size: var(--text-small);
+  }
+
+  .empty {
+    padding: var(--space-4);
+  }
+
+  @media (width >= 60rem) {
+    .strip {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .strip > div + div {
+      border-inline-start: var(--size-line) solid var(--color-line);
+    }
+
+    .strip > div:nth-child(n + 3) {
+      border-block-start: 0;
+    }
+  }
+
+  .titleRow {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .columns,
+  .main {
+    display: grid;
+    gap: var(--space-4);
+    min-width: 0;
+  }
+
+  .main {
+    grid-template-rows: auto 1fr;
+  }
+
+  @media (width >= 73.75rem) {
+    .columns {
+      grid-template-columns: minmax(0, 2.4fr) minmax(0, 1fr);
+      align-items: stretch;
+    }
+
+    .strip {
+      margin-block-start: auto;
+    }
   }
 }

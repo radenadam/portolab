@@ -1,39 +1,41 @@
-.range {
-  display: grid;
-  align-content: start;
-  gap: var(--space-1);
-}
+@layer features {
+  .range {
+    display: grid;
+    align-content: start;
+    gap: var(--space-1);
+  }
 
-.track {
-  display: block;
-  width: 100%;
-  height: var(--space-2);
-  overflow: visible;
-  margin-block: var(--space-2);
-}
+  .track {
+    display: block;
+    width: 100%;
+    height: var(--space-2);
+    overflow: visible;
+    margin-block: var(--space-2);
+  }
 
-.line {
-  stroke: var(--color-data);
-  stroke-opacity: 0.4;
-  stroke-width: var(--space-1);
-  stroke-linecap: round;
-}
+  .line {
+    stroke: var(--color-data);
+    stroke-opacity: 0.4;
+    stroke-width: var(--space-1);
+    stroke-linecap: round;
+  }
 
-.mark {
-  stroke: var(--color-ink);
-  stroke-width: var(--size-mark);
-}
+  .mark {
+    stroke: var(--color-ink);
+    stroke-width: var(--size-mark);
+  }
 
-.ends {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: var(--space-2);
-  color: var(--color-muted);
-  font-size: var(--text-small);
-  font-weight: 400;
-}
+  .ends {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-2);
+    color: var(--color-muted);
+    font-size: var(--text-small);
+    font-weight: 400;
+  }
 
-.ends > :last-child {
-  margin-inline-start: auto;
+  .ends > :last-child {
+    margin-inline-start: auto;
+  }
 }

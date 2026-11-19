@@ -1,307 +1,309 @@
-.index {
-  width: 100%;
-  display: grid;
-  gap: var(--space-4);
-}
-
-.tools {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-}
-
-.toolLinks {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
-
-.tools h1,
-.reading > h1 {
-  font-size: var(--text-learning-title);
-}
-
-.link {
-  composes: standalone-link from global;
-  justify-content: center;
-  gap: var(--space-2);
-  font-size: var(--text-row);
-}
-
-.button {
-  composes: button from "../../button.module.css";
-  gap: var(--space-2);
-  font-size: var(--text-row);
-}
-
-.icon {
-  flex: none;
-  width: var(--size-learning-icon);
-  height: var(--size-learning-icon);
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--space-3);
-}
-
-.card {
-  composes: panel from "../../panel.module.css";
-  gap: var(--space-2);
-  color: var(--color-ink);
-  text-decoration: none;
-}
-
-.card[aria-current="step"] {
-  border-color: var(--color-data);
-}
-
-.card h2,
-.reading h2 {
-  margin: 0;
-  color: var(--color-ink);
-  font-size: var(--text-mark);
-}
-
-.card p {
-  color: var(--color-ink-secondary);
-  font-size: var(--text-learning-summary);
-}
-
-.session {
-  composes: row from "../../caption-row.module.css";
-  font-weight: 500;
-}
-
-.badge {
-  align-self: flex-start;
-  flex: none;
-  padding-inline: var(--space-2);
-  border-radius: var(--size-touch-target);
-  background: var(--color-data-soft);
-  color: var(--color-ink);
-  font-size: var(--text-tile);
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.review {
-  background: var(--color-raised);
-  border-color: transparent;
-}
-
-.foot,
-.count {
-  color: var(--color-muted);
-  font-size: var(--text-small);
-}
-
-.foot {
-  margin-block-start: auto;
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-}
-
-.foot svg {
-  color: var(--color-data);
-}
-
-.reading {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-learning-section);
-  width: 100%;
-  max-width: var(--width-reading);
-  min-width: 0;
-  margin-inline: auto;
-}
-
-.reading > .link,
-.hero > .link {
-  align-self: flex-start;
-}
-
-.hero {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.hero h1 {
-  font-size: var(--text-lesson-title);
-  letter-spacing: -0.02em;
-  line-height: 1.4;
-}
-
-.heroRow {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.heroRow > .badge {
-  align-self: center;
-}
-
-.heroRow > .link {
-  margin-block: calc((1.5 * var(--text-row) - var(--size-touch-target)) / 2);
-}
-
-.keyIdea {
-  padding-inline-start: var(--space-4);
-  border-inline-start: var(--size-mark) solid var(--color-data);
-  font-size: var(--text-statistic);
-  color: var(--color-ink-secondary);
-}
-
-.body {
-  composes: panel from "../../panel.module.css";
-  gap: var(--space-3);
-  padding: var(--space-learning-section);
-}
-
-.body p,
-.termBody,
-.glossRow p {
-  color: var(--color-ink-secondary);
-}
-
-.note {
-  padding: var(--space-4);
-  border-radius: var(--radius-item);
-  background: var(--color-raised);
-  color: var(--color-ink-secondary);
-}
-
-.terms {
-  display: grid;
-  gap: var(--space-2);
-}
-
-.term {
-  border: var(--size-line) solid var(--color-line);
-  border-radius: var(--radius-item);
-  background: var(--color-panel);
-  scroll-margin-block-start: calc(var(--size-top-bar) + var(--space-4));
-}
-
-.term summary {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-4);
-  line-height: 1.5;
-  color: var(--color-ink);
-  list-style: none;
-  text-decoration: none;
-}
-
-/* A key term is a card that opens in place, so it takes a light ground and a stronger edge under the pointer, as a card does, instead of the underline of a link. */
-.term:has(> summary:hover) {
-  border-color: var(--color-line-strong);
-  background: var(--color-hover);
-}
-
-.term summary::-webkit-details-marker {
-  display: none;
-}
-
-.term summary svg {
-  color: var(--color-muted);
-}
-
-.term[open] summary svg {
-  transform: rotate(180deg);
-}
-
-.termBody {
-  display: grid;
-  gap: var(--space-2);
-  padding: 0 var(--space-4) var(--space-3);
-  font-size: var(--text-row);
-}
-
-.lessonNav {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: var(--space-3);
-  padding-block-start: var(--space-3);
-  border-block-start: var(--size-line) solid var(--color-line);
-}
-
-.searchField {
-  composes: search-field from global;
-}
-
-.searchField input {
-  font-size: var(--text-learning-summary);
-}
-
-.searchSubmit {
-  composes: button from "../../icon-button.module.css";
-  border-radius: var(--radius-item);
-  color: var(--color-muted);
-}
-
-.error {
-  margin-block-start: var(--space-2);
-  color: var(--color-loss);
-}
-
-.glossary {
-  composes: panel from "../../panel.module.css";
-  display: block;
-  padding: var(--space-1) var(--space-learning-section);
-}
-
-.glossRow {
-  display: grid;
-  gap: var(--space-1);
-  padding-block: var(--space-4);
-  scroll-margin-block-start: calc(var(--size-top-bar) + var(--space-4));
-}
-
-.glossRow + .glossRow {
-  border-block-start: var(--size-line) solid var(--color-line);
-}
-
-.glossRow .link {
-  justify-self: start;
-}
-
-.empty {
-  padding-block: var(--space-4);
-}
-
-@media (width >= 43.75rem) {
-  .grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+@layer features {
+  .index {
+    width: 100%;
+    display: grid;
+    gap: var(--space-4);
   }
+
+  .tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
+  .toolLinks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .tools h1,
+  .reading > h1 {
+    font-size: var(--text-learning-title);
+  }
+
+  .link {
+    composes: standalone-link from global;
+    justify-content: center;
+    gap: var(--space-2);
+    font-size: var(--text-row);
+  }
+
+  .button {
+    composes: button from "../../button.module.css";
+    gap: var(--space-2);
+    font-size: var(--text-row);
+  }
+
+  .icon {
+    flex: none;
+    width: var(--size-learning-icon);
+    height: var(--size-learning-icon);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-3);
+  }
+
   .card {
+    composes: panel from "../../panel.module.css";
+    gap: var(--space-2);
+    color: var(--color-ink);
+    text-decoration: none;
+  }
+
+  .card[aria-current="step"] {
+    border-color: var(--color-data);
+  }
+
+  .card h2,
+  .reading h2 {
+    margin: 0;
+    color: var(--color-ink);
+    font-size: var(--text-mark);
+  }
+
+  .card p {
+    color: var(--color-ink-secondary);
+    font-size: var(--text-learning-summary);
+  }
+
+  .session {
+    composes: row from "../../caption-row.module.css";
+    font-weight: 500;
+  }
+
+  .badge {
+    align-self: flex-start;
+    flex: none;
+    padding-inline: var(--space-2);
+    border-radius: var(--size-touch-target);
+    background: var(--color-data-soft);
+    color: var(--color-ink);
+    font-size: var(--text-tile);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .review {
+    background: var(--color-raised);
+    border-color: transparent;
+  }
+
+  .foot,
+  .count {
+    color: var(--color-muted);
+    font-size: var(--text-small);
+  }
+
+  .foot {
+    margin-block-start: auto;
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+  }
+
+  .foot svg {
+    color: var(--color-data);
+  }
+
+  .reading {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-learning-section);
+    width: 100%;
+    max-width: var(--width-reading);
+    min-width: 0;
+    margin-inline: auto;
+  }
+
+  .reading > .link,
+  .hero > .link {
+    align-self: flex-start;
+  }
+
+  .hero {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .hero h1 {
+    font-size: var(--text-lesson-title);
+    letter-spacing: -0.02em;
+    line-height: 1.4;
+  }
+
+  .heroRow {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .heroRow > .badge {
+    align-self: center;
+  }
+
+  .heroRow > .link {
+    margin-block: calc((1.5 * var(--text-row) - var(--size-touch-target)) / 2);
+  }
+
+  .keyIdea {
+    padding-inline-start: var(--space-4);
+    border-inline-start: var(--size-mark) solid var(--color-data);
+    font-size: var(--text-statistic);
+    color: var(--color-ink-secondary);
+  }
+
+  .body {
+    composes: panel from "../../panel.module.css";
+    gap: var(--space-3);
     padding: var(--space-learning-section);
   }
-}
 
-@media (width >= 75rem) {
-  .grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  .body p,
+  .termBody,
+  .glossRow p {
+    color: var(--color-ink-secondary);
   }
-}
 
-.sheetTools {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-2);
-}
+  .note {
+    padding: var(--space-4);
+    border-radius: var(--radius-item);
+    background: var(--color-raised);
+    color: var(--color-ink-secondary);
+  }
 
-.sheetTools > .badge {
-  align-self: center;
+  .terms {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .term {
+    border: var(--size-line) solid var(--color-line);
+    border-radius: var(--radius-item);
+    background: var(--color-panel);
+    scroll-margin-block-start: calc(var(--size-top-bar) + var(--space-4));
+  }
+
+  .term summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    line-height: 1.5;
+    color: var(--color-ink);
+    list-style: none;
+    text-decoration: none;
+  }
+
+  /* A key term is a card that opens in place, so it takes a light ground and a stronger edge under the pointer, as a card does, instead of the underline of a link. */
+  .term:has(> summary:hover) {
+    border-color: var(--color-line-strong);
+    background: var(--color-hover);
+  }
+
+  .term summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .term summary svg {
+    color: var(--color-muted);
+  }
+
+  .term[open] summary svg {
+    transform: rotate(180deg);
+  }
+
+  .termBody {
+    display: grid;
+    gap: var(--space-2);
+    padding: 0 var(--space-4) var(--space-3);
+    font-size: var(--text-row);
+  }
+
+  .lessonNav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding-block-start: var(--space-3);
+    border-block-start: var(--size-line) solid var(--color-line);
+  }
+
+  .searchField {
+    composes: search-field from global;
+  }
+
+  .searchField input {
+    font-size: var(--text-learning-summary);
+  }
+
+  .searchSubmit {
+    composes: button from "../../icon-button.module.css";
+    border-radius: var(--radius-item);
+    color: var(--color-muted);
+  }
+
+  .error {
+    margin-block-start: var(--space-2);
+    color: var(--color-loss);
+  }
+
+  .glossary {
+    composes: panel from "../../panel.module.css";
+    display: block;
+    padding: var(--space-1) var(--space-learning-section);
+  }
+
+  .glossRow {
+    display: grid;
+    gap: var(--space-1);
+    padding-block: var(--space-4);
+    scroll-margin-block-start: calc(var(--size-top-bar) + var(--space-4));
+  }
+
+  .glossRow + .glossRow {
+    border-block-start: var(--size-line) solid var(--color-line);
+  }
+
+  .glossRow .link {
+    justify-self: start;
+  }
+
+  .empty {
+    padding-block: var(--space-4);
+  }
+
+  @media (width >= 43.75rem) {
+    .grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .card {
+      padding: var(--space-learning-section);
+    }
+  }
+
+  @media (width >= 75rem) {
+    .grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .sheetTools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+  }
+
+  .sheetTools > .badge {
+    align-self: center;
+  }
 }

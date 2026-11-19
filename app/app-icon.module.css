@@ -1,13 +1,15 @@
-.icon {
-  flex: none;
-  width: var(--size-app-icon);
-  height: var(--size-app-icon);
-}
+@layer parts {
+  .icon {
+    flex: none;
+    width: var(--size-app-icon);
+    height: var(--size-app-icon);
+  }
 
-.flask {
-  stroke: var(--color-ink);
-}
+  .flask {
+    stroke: var(--color-ink);
+  }
 
-.line {
-  stroke: var(--color-gain);
+  .line {
+    stroke: var(--color-gain);
+  }
 }

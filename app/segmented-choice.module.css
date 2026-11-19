@@ -1,82 +1,84 @@
-:where(.choice) {
-  position: relative;
-  isolation: isolate;
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(0, 1fr);
-  padding-inline: var(--space-1);
-}
+@layer parts {
+  :where(.choice) {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    padding-inline: var(--space-1);
+  }
 
-:where(.choice)::before {
-  position: absolute;
-  inset: var(--space-1) 0;
-  z-index: -1;
-  border-radius: var(--radius-item);
-  background: var(--color-raised);
-  content: "";
-}
+  :where(.choice)::before {
+    position: absolute;
+    inset: var(--space-1) 0;
+    z-index: -1;
+    border-radius: var(--radius-item);
+    background: var(--color-raised);
+    content: "";
+  }
 
-:where(.choice) :is(a, button) {
-  position: relative;
-  isolation: isolate;
-  display: flex;
-  border: 0;
-  background: none;
-  font: inherit;
-  font-weight: var(--choice-weight, inherit);
-  min-block-size: var(--size-touch-target);
-  align-items: center;
-  justify-content: center;
-  color: var(--color-ink-secondary);
-  font-size: var(--text-row);
-  text-decoration: none;
-}
+  :where(.choice) :is(a, button) {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-weight: var(--choice-weight, inherit);
+    min-block-size: var(--size-touch-target);
+    align-items: center;
+    justify-content: center;
+    color: var(--color-ink-secondary);
+    font-size: var(--text-row);
+    text-decoration: none;
+  }
 
-:where(.choice) :is(a[aria-current], button[aria-pressed="true"]) {
-  color: var(--color-ink);
-  font-weight: 600;
-}
+  :where(.choice) :is(a[aria-current], button[aria-pressed="true"]) {
+    color: var(--color-ink);
+    font-weight: 600;
+  }
 
-/* The pill that marks the chosen option, which an option that is not chosen shows faintly under the pointer, in the same place and shape. */
-:where(.choice)
-  :is(a, button):is([aria-current], [aria-pressed="true"], :hover)::before {
-  position: absolute;
-  inset: var(--choice-inset, calc(var(--space-2) - var(--size-line))) 0;
-  z-index: -1;
-  border-radius: var(--choice-radius, var(--radius-button));
-  content: "";
-}
+  /* The pill that marks the chosen option, which an option that is not chosen shows faintly under the pointer, in the same place and shape. */
+  :where(.choice)
+    :is(a, button):is([aria-current], [aria-pressed="true"], :hover)::before {
+    position: absolute;
+    inset: var(--choice-inset, calc(var(--space-2) - var(--size-line))) 0;
+    z-index: -1;
+    border-radius: var(--choice-radius, var(--radius-button));
+    content: "";
+  }
 
-:where(.choice) :is(a[aria-current], button[aria-pressed="true"])::before {
-  background: var(--color-panel);
-  box-shadow: var(--shadow-choice);
-}
+  :where(.choice) :is(a[aria-current], button[aria-pressed="true"])::before {
+    background: var(--color-panel);
+    box-shadow: var(--shadow-choice);
+  }
 
-.intrinsic {
-  display: inline-grid;
-  grid-auto-columns: auto;
-}
-.intrinsic a {
-  border-radius: var(--radius-button);
-  padding-inline: var(--space-3);
-  font-size: inherit;
-}
-.compact {
-  composes: intrinsic;
-  padding: var(--space-1);
-  font-size: var(--text-caption);
-  --choice-inset: 0;
-}
-.compact::before {
-  inset: 0;
-}
+  .intrinsic {
+    display: inline-grid;
+    grid-auto-columns: auto;
+  }
+  .intrinsic a {
+    border-radius: var(--radius-button);
+    padding-inline: var(--space-3);
+    font-size: inherit;
+  }
+  .compact {
+    composes: intrinsic;
+    padding: var(--space-1);
+    font-size: var(--text-caption);
+    --choice-inset: 0;
+  }
+  .compact::before {
+    inset: 0;
+  }
 
-/* An option that is not chosen shows the faint pill under the pointer, and its text turns to ink. */
-:where(.choice)
-  :is(a, button):not([aria-current], [aria-pressed="true"]):hover::before {
-  background: color-mix(in oklab, var(--color-panel) 55%, transparent);
-}
+  /* An option that is not chosen shows the faint pill under the pointer, and its text turns to ink. */
+  :where(.choice)
+    :is(a, button):not([aria-current], [aria-pressed="true"]):hover::before {
+    background: color-mix(in oklab, var(--color-panel) 55%, transparent);
+  }
 
-:where(.choice) :is(a, button):hover {
-  color: var(--color-ink);
+  :where(.choice) :is(a, button):hover {
+    color: var(--color-ink);
+  }
 }

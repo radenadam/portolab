@@ -1,4 +1,6 @@
-/* The choice of a range is a segmented choice like every other choice of a view, so it looks and behaves the same. */
-.ranges {
-  composes: choice compact from "../segmented-choice.module.css";
+@layer parts {
+  /* The choice of a range is a segmented choice like every other choice of a view, so it looks and behaves the same. */
+  .ranges {
+    composes: choice compact from "../segmented-choice.module.css";
+  }
 }

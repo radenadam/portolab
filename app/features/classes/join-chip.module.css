@@ -1,18 +1,20 @@
-.code {
-  font-family: var(--font-code);
-  color: var(--color-ink);
-}
+@layer features {
+  .code {
+    font-family: var(--font-code);
+    color: var(--color-ink);
+  }
 
-.details {
-  display: grid;
-  gap: var(--space-3);
-}
+  .details {
+    display: grid;
+    gap: var(--space-3);
+  }
 
-.copy {
-  composes: button from "../../button.module.css";
-}
+  .copy {
+    composes: button from "../../button.module.css";
+  }
 
-.copyIcon {
-  width: var(--text-small);
-  height: var(--text-small);
+  .copyIcon {
+    width: var(--text-small);
+    height: var(--text-small);
+  }
 }

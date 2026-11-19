@@ -1,383 +1,388 @@
-.students {
-  align-self: stretch;
-  display: grid;
-  gap: var(--space-6);
-  min-width: 0;
-}
-.column {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  min-width: 0;
-}
-.tools {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-3);
-}
-.tools h1 {
-  font-size: var(--text-title);
-}
-/* The choice of the measure is a segmented choice like every other choice of a view, so it looks and reacts the same. It wraps when the column is too narrow for all its options. */
-.measures {
-  composes: choice intrinsic from "../../segmented-choice.module.css";
-  display: flex;
-  flex-wrap: wrap;
-  font-size: var(--text-small);
-}
-.filters a {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: var(--size-touch-target);
-  color: var(--color-ink-secondary);
-  font-size: var(--text-small);
-  text-decoration: none;
-}
-.search {
-  display: flex;
-  flex-wrap: wrap;
-  flex: 1 1 var(--width-ranking-search);
-  min-width: 0;
-  gap: var(--space-1);
-}
-.searchField {
-  composes: search-field from global;
-  flex: 1;
-  min-width: 0;
-}
-.searchSubmit {
-  composes: button from "../../icon-button.module.css";
-  border-radius: var(--radius-item);
-  color: var(--color-muted);
-}
-.searchIcon {
-  flex: none;
-  width: var(--size-icon);
-  height: var(--size-icon);
-}
-.button {
-  composes: button from "../../button.module.css";
-}
-.export {
-  gap: var(--space-2);
-  min-width: var(--size-touch-target);
-}
-.export svg {
-  width: var(--size-icon);
-  height: var(--size-icon);
-  fill: none;
-  stroke: currentColor;
-  stroke-width: var(--size-mark);
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.export span {
-  display: none;
-}
-.filters {
-  display: flex;
-  flex-wrap: wrap;
-  column-gap: var(--space-2);
-}
-.listPanel {
-  flex: 1;
-  overflow: hidden;
-  border: var(--size-line) solid var(--color-line);
-  border-radius: var(--radius-panel);
-  background: var(--color-panel);
-}
-.table {
-  display: block;
-  width: 100%;
-  border-collapse: collapse;
-  font-size: var(--text-small);
-}
-.table thead {
-  display: none;
-}
-.table tbody {
-  display: block;
-}
-.table tr {
-  display: grid;
-  grid-template-columns: var(--width-ranking-rank) minmax(0, 1fr) minmax(0, 1fr);
-  align-items: center;
-  column-gap: var(--space-2);
-  padding: var(--space-3);
-  border-block-end: var(--size-line) solid var(--color-line);
-}
-.table td {
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-.rank {
-  grid-column: 1;
-  grid-row: 1;
-  color: var(--color-muted);
-  font-size: var(--text-small);
-  text-align: right;
-}
-.rankHeading {
-  composes: text from "../../visually-hidden.module.css";
-}
-.who {
-  grid-column: 2;
-  grid-row: 1;
-}
-.who a {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  min-height: var(--size-touch-target);
-  color: var(--color-ink);
-  font-weight: 600;
-  text-decoration: none;
-}
-/* An avatar shows in the rows of a ranking on a wide screen, where the references draw it. The rule weighs more than the display of the avatar module, because a build can load that module after this one. */
-.who .avatar {
-  display: none;
-}
-.studentName {
-  display: block;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.table small {
-  display: block;
-  color: var(--color-muted);
-  font-size: var(--text-chart);
-  font-weight: 400;
-}
-.studentName small {
-  white-space: normal;
-  font-family: var(--font-code);
-}
-.measureCell {
-  grid-column: 3;
-  grid-row: 1;
-  text-align: right;
-  font-weight: 600;
-}
-.returnCell {
-  grid-column: 2;
-  grid-row: 2;
-}
-.betaCell {
-  grid-column: 3;
-  grid-row: 2;
-}
-/* A cell without a measure says so in two short words, which stay on one line like the numbers of the other rows. */
-.betaCell,
-.riskCell {
-  white-space: nowrap;
-}
-.returnCell,
-.betaCell {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-  gap: var(--space-2);
-}
-.riskCell {
-  display: none;
-}
-.activityCell {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-1);
-  grid-column: 2 / -1;
-  color: var(--color-muted);
-}
-.activityCell small {
-  display: inline;
-  margin-inline-start: var(--space-1);
-}
-.active {
-  color: var(--color-gain);
-}
-.inactive {
-  color: var(--color-line-strong);
-}
-/* The reason why a student has no measure belongs to the row of that student, so it stands right under the name, as a line of the row, and the row ends below it. Its label reaches its touch target over the space around its line, as a link that stands alone does, so it adds no gap of its own. */
-.reasonCell {
-  grid-column: 2 / -1;
-  padding-block: var(--space-1) var(--space-2);
-  color: var(--color-muted);
-}
-.reasonCell summary {
-  min-height: var(--size-touch-target);
-  margin-block: calc((1lh - var(--size-touch-target)) / 2);
-  font-size: var(--text-small);
-  line-height: 1.4;
-}
-.reasonCell p {
-  padding-block-start: var(--space-2);
-}
-.scale {
-  display: block;
-  width: 100%;
-  height: var(--space-4);
-  overflow: visible;
-}
-.track {
-  composes: track from "../../charts/inline-scale.module.css";
-}
-.reference {
-  composes: reference from "../../charts/inline-scale.module.css";
-}
-.rise {
-  fill: var(--color-gain);
-}
-.fall {
-  fill: var(--color-loss);
-}
-.none {
-  fill: var(--color-muted);
-}
-.dot {
-  fill: var(--color-data);
-}
-.tableNote {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-1) var(--space-4);
-  padding: var(--space-2) var(--space-4);
-  color: var(--color-muted);
-  font-size: var(--text-small);
-}
-.tick {
-  display: inline-block;
-  width: var(--size-line);
-  height: 0.875em;
-  margin-inline-end: var(--space-2);
-  vertical-align: -0.125em;
-  background: var(--color-ink-secondary);
-}
-.ranking {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-}
-.empty {
-  padding: var(--space-6);
-}
-.selected {
-  --color-gain: var(--color-gain-selected);
-  --color-loss: var(--color-loss-selected);
-  --color-muted: var(--color-ink-secondary);
-  background: var(--color-own-soft);
-}
-@media (width >= 60rem) {
-  .export span {
-    display: inline;
+@layer features {
+  .students {
+    align-self: stretch;
+    display: grid;
+    gap: var(--space-6);
+    min-width: 0;
   }
-  .table tr {
-    /* The name and the numbers share the spare width in proportion, so a wide screen spreads the columns instead of leaving a gap between the name and its numbers. */
-    grid-template-columns:
-      var(--width-ranking-rank) minmax(var(--width-ranking-name), 1.4fr)
-      minmax(var(--width-ranking-return), 1.4fr)
-      minmax(var(--width-ranking-beta), 1fr)
-      minmax(var(--width-ranking-number), 0.8fr)
-      minmax(var(--width-ranking-number), 0.8fr)
-      minmax(var(--width-ranking-activity), 1fr);
-    padding: 0 var(--space-3);
+  .column {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    min-width: 0;
+  }
+  .tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  .tools h1 {
+    font-size: var(--text-title);
+  }
+  /* The choice of the measure is a segmented choice like every other choice of a view, so it looks and reacts the same. It wraps when the column is too narrow for all its options. */
+  .measures {
+    composes: choice intrinsic from "../../segmented-choice.module.css";
+    display: flex;
+    flex-wrap: wrap;
+    font-size: var(--text-small);
+  }
+  .filters a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--size-touch-target);
+    color: var(--color-ink-secondary);
+    font-size: var(--text-small);
+    text-decoration: none;
+  }
+  .search {
+    display: flex;
+    flex-wrap: wrap;
+    flex: 1 1 var(--width-ranking-search);
+    min-width: 0;
+    gap: var(--space-1);
+  }
+  .searchField {
+    composes: search-field from global;
+    flex: 1;
+    min-width: 0;
+  }
+  .searchSubmit {
+    composes: button from "../../icon-button.module.css";
+    border-radius: var(--radius-item);
+    color: var(--color-muted);
+  }
+  .searchIcon {
+    flex: none;
+    width: var(--size-icon);
+    height: var(--size-icon);
+  }
+  .button {
+    composes: button from "../../button.module.css";
+  }
+  .export {
+    gap: var(--space-2);
+    min-width: var(--size-touch-target);
+  }
+  .export svg {
+    width: var(--size-icon);
+    height: var(--size-icon);
+    fill: none;
+    stroke: currentColor;
+    stroke-width: var(--size-mark);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .export span {
+    display: none;
+  }
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: var(--space-2);
+  }
+  .listPanel {
+    flex: 1;
+    overflow: hidden;
+    border: var(--size-line) solid var(--color-line);
+    border-radius: var(--radius-panel);
+    background: var(--color-panel);
+  }
+  .table {
+    display: block;
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--text-small);
   }
   .table thead {
+    display: none;
+  }
+  .table tbody {
+    display: block;
+  }
+  .table tr {
+    display: grid;
+    grid-template-columns: var(--width-ranking-rank) minmax(0, 1fr) minmax(
+        0,
+        1fr
+      );
+    align-items: center;
+    column-gap: var(--space-2);
+    padding: var(--space-3);
+    border-block-end: var(--size-line) solid var(--color-line);
+  }
+  .table td {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .rank {
+    grid-column: 1;
+    grid-row: 1;
+    color: var(--color-muted);
+    font-size: var(--text-small);
+    text-align: right;
+  }
+  .rankHeading {
+    composes: text from "../../visually-hidden.module.css";
+  }
+  .who {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .who a {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: var(--size-touch-target);
+    color: var(--color-ink);
+    font-weight: 600;
+    text-decoration: none;
+  }
+  /* An avatar shows in the rows of a ranking on a wide screen, where the references draw it. */
+  .who .avatar {
+    display: none;
+  }
+  .studentName {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .table small {
     display: block;
     color: var(--color-muted);
     font-size: var(--text-chart);
+    font-weight: 400;
   }
-  .table th {
-    padding-block: var(--space-3);
-    text-align: left;
-    font-weight: 500;
-    overflow-wrap: anywhere;
+  .studentName small {
+    white-space: normal;
+    font-family: var(--font-code);
   }
-  .table td {
-    grid-column: auto;
-    grid-row: auto;
+  .measureCell {
+    grid-column: 3;
+    grid-row: 1;
+    text-align: right;
+    font-weight: 600;
   }
-  .table .avatar {
+  .returnCell {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .betaCell {
+    grid-column: 3;
+    grid-row: 2;
+  }
+  /* A cell without a measure says so in two short words, which stay on one line like the numbers of the other rows. */
+  .betaCell,
+  .riskCell {
+    white-space: nowrap;
+  }
+  .returnCell,
+  .betaCell {
     display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: var(--space-2);
   }
-  .table .riskCell {
-    display: block;
-    text-align: right;
-  }
-  .table .measureCell {
-    text-align: right;
-  }
-  .measureCell small {
+  .riskCell {
     display: none;
   }
-  .table .activityCell {
-    padding-inline-start: var(--space-2);
-  }
-  /* On a wide screen the reason starts where the name starts, after the avatar, and it pulls up against the line of the name. */
-  .table .reasonCell {
+  .activityCell {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-1);
     grid-column: 2 / -1;
-    margin-block-start: calc(-1 * var(--space-2));
-    padding-inline-start: calc(var(--size-avatar) + var(--space-2));
+    color: var(--color-muted);
   }
-}
-@media (width >= 82.5rem) {
-  .tools .search {
-    margin-inline-start: auto;
-    max-width: var(--width-ranking-search);
+  .activityCell small {
+    display: inline;
+    margin-inline-start: var(--space-1);
   }
-}
+  .active {
+    color: var(--color-gain);
+  }
+  .inactive {
+    color: var(--color-line-strong);
+  }
+  /* The reason why a student has no measure belongs to the row of that student, so it stands right under the name, as a line of the row, and the row ends below it. Its label reaches its touch target over the space around its line, as a link that stands alone does, so it adds no gap of its own. */
+  .reasonCell {
+    grid-column: 2 / -1;
+    padding-block: var(--space-1) var(--space-2);
+    color: var(--color-muted);
+  }
+  .reasonCell summary {
+    min-height: var(--size-touch-target);
+    margin-block: calc((1lh - var(--size-touch-target)) / 2);
+    font-size: var(--text-small);
+    line-height: 1.4;
+  }
+  .reasonCell p {
+    padding-block-start: var(--space-2);
+  }
+  .scale {
+    display: block;
+    width: 100%;
+    height: var(--space-4);
+    overflow: visible;
+  }
+  .track {
+    composes: track from "../../charts/inline-scale.module.css";
+  }
+  .reference {
+    composes: reference from "../../charts/inline-scale.module.css";
+  }
+  .rise {
+    fill: var(--color-gain);
+  }
+  .fall {
+    fill: var(--color-loss);
+  }
+  .none {
+    fill: var(--color-muted);
+  }
+  .dot {
+    fill: var(--color-data);
+  }
+  .tableNote {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1) var(--space-4);
+    padding: var(--space-2) var(--space-4);
+    color: var(--color-muted);
+    font-size: var(--text-small);
+  }
+  .tick {
+    display: inline-block;
+    width: var(--size-line);
+    height: 0.875em;
+    margin-inline-end: var(--space-2);
+    vertical-align: -0.125em;
+    background: var(--color-ink-secondary);
+  }
+  .ranking {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+  }
+  .empty {
+    padding: var(--space-6);
+  }
+  .selected {
+    --color-gain: var(--color-gain-selected);
+    --color-loss: var(--color-loss-selected);
+    --color-muted: var(--color-ink-secondary);
+    background: var(--color-own-soft);
+  }
+  @media (width >= 60rem) {
+    .export span {
+      display: inline;
+    }
+    .table tr {
+      /* The name and the numbers share the spare width in proportion, so a wide screen spreads the columns instead of leaving a gap between the name and its numbers. */
+      grid-template-columns:
+        var(--width-ranking-rank) minmax(var(--width-ranking-name), 1.4fr)
+        minmax(var(--width-ranking-return), 1.4fr)
+        minmax(var(--width-ranking-beta), 1fr)
+        minmax(var(--width-ranking-number), 0.8fr)
+        minmax(var(--width-ranking-number), 0.8fr)
+        minmax(var(--width-ranking-activity), 1fr);
+      padding: 0 var(--space-3);
+    }
+    .table thead {
+      display: block;
+      color: var(--color-muted);
+      font-size: var(--text-chart);
+    }
+    .table th {
+      padding-block: var(--space-3);
+      text-align: left;
+      font-weight: 500;
+      overflow-wrap: anywhere;
+    }
+    .table td {
+      grid-column: auto;
+      grid-row: auto;
+    }
+    .table .avatar {
+      display: grid;
+    }
+    .table .riskCell {
+      display: block;
+      text-align: right;
+    }
+    .table .measureCell {
+      text-align: right;
+    }
+    .measureCell small {
+      display: none;
+    }
+    .table .activityCell {
+      padding-inline-start: var(--space-2);
+    }
+    /* On a wide screen the reason starts where the name starts, after the avatar, and it pulls up against the line of the name. */
+    .table .reasonCell {
+      grid-column: 2 / -1;
+      margin-block-start: calc(-1 * var(--space-2));
+      padding-inline-start: calc(var(--size-avatar) + var(--space-2));
+    }
+  }
+  @media (width >= 82.5rem) {
+    .tools .search {
+      margin-inline-start: auto;
+      max-width: var(--width-ranking-search);
+    }
+  }
 
-.content {
-  align-self: stretch;
-  min-width: 0;
-}
-.returnCell {
-  grid-template-columns: var(--width-ranking-return-value) minmax(0, 1fr);
-}
-.betaCell {
-  grid-template-columns: var(--size-touch-target) minmax(0, 1fr);
-}
+  .content {
+    align-self: stretch;
+    min-width: 0;
+  }
+  .returnCell {
+    grid-template-columns: var(--width-ranking-return-value) minmax(0, 1fr);
+  }
+  .betaCell {
+    grid-template-columns: var(--size-touch-target) minmax(0, 1fr);
+  }
 
-.table tr {
-  scroll-margin-block-start: calc(var(--size-top-bar) + var(--space-4));
-}
-.searchFailure {
-  flex-basis: 100%;
-  color: var(--color-loss);
-  font-size: var(--text-small);
-}
+  .table tr {
+    scroll-margin-block-start: calc(var(--size-top-bar) + var(--space-4));
+  }
+  .searchFailure {
+    flex-basis: 100%;
+    color: var(--color-loss);
+    font-size: var(--text-small);
+  }
 
-/* The whole row of a student opens the page of that student, so the link of the name covers the row and the row shows a light ground on hover. A part of a row that opens something of its own stays above that link. */
-.table tbody tr {
-  position: relative;
-}
+  /* The whole row of a student opens the page of that student, so the link of the name covers the row and the row shows a light ground on hover. A part of a row that opens something of its own stays above that link. */
+  .table tbody tr {
+    position: relative;
+  }
 
-.who a::after {
-  position: absolute;
-  inset: 0;
-  content: "";
-}
+  .who a::after {
+    position: absolute;
+    inset: 0;
+    content: "";
+  }
 
-.table tbody tr:has(.who a:hover) {
-  background: var(--color-hover);
-}
+  .table tbody tr:has(.who a:hover) {
+    background: var(--color-hover);
+  }
 
-/* The row of the student that the address marks keeps its tint under the pointer and deepens it, so the mark stays while the row reacts. */
-.table tbody tr.selected:has(.who a:hover) {
-  background: color-mix(in oklab, var(--color-own-soft), var(--color-own) 8%);
-}
+  /* The row of the student that the address marks keeps its tint under the pointer and deepens it, so the mark stays while the row reacts. */
+  .table tbody tr.selected:has(.who a:hover) {
+    background: color-mix(in oklab, var(--color-own-soft), var(--color-own) 8%);
+  }
 
-.table .reasonCell {
-  position: relative;
-  z-index: 1;
-}
+  .table .reasonCell {
+    position: relative;
+    z-index: 1;
+  }
 
-/* The head of a column of numbers stands at the end of its column, over the numbers, as the numbers stand at the end of their cells. */
-.table th.numberHeading {
-  text-align: right;
+  /* The head of a column of numbers stands at the end of its column, over the numbers, as the numbers stand at the end of their cells. */
+  .table th.numberHeading {
+    text-align: right;
+  }
 }

@@ -1,217 +1,221 @@
-.page {
-  align-self: stretch;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  min-width: 0;
-}
+@layer features {
+  .page {
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    min-width: 0;
+  }
 
-.withTicket {
-  align-self: stretch;
-  min-width: 0;
-}
-
-@media (width >= 73.75rem) {
   .withTicket {
+    align-self: stretch;
+    min-width: 0;
+  }
+
+  @media (width >= 73.75rem) {
+    .withTicket {
+      display: grid;
+      grid-template-columns: minmax(0, 2.2fr) minmax(0, 1fr);
+      gap: calc(var(--space-4) + var(--space-1));
+      align-items: stretch;
+    }
+
+    .withTicket .page > section:last-of-type {
+      flex: 1;
+    }
+  }
+
+  .header {
     display: grid;
-    grid-template-columns: minmax(0, 2.2fr) minmax(0, 1fr);
-    gap: calc(var(--space-4) + var(--space-1));
-    align-items: stretch;
+    gap: var(--space-2);
   }
 
-  .withTicket .page > section:last-of-type {
-    flex: 1;
-  }
-}
-
-.header {
-  display: grid;
-  gap: var(--space-2);
-}
-
-.identity,
-.quote {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-/* The actions of the stock take the other end of the row of its name, where the eye looks for them. */
-.identity {
-  gap: var(--space-1) var(--space-2);
-}
-
-.identity h1 {
-  font-size: var(--text-stock);
-}
-
-/* The way back is a small link above the name, so the name, the price, and their details share one left edge. */
-/* The way back takes only the width of its text in the grid of the header, so its target never reaches over the empty space beside it. */
-.back {
-  composes: standalone-link from global;
-  justify-self: start;
-  margin-block-end: calc((1lh - var(--size-touch-target)) / 2 + var(--space-2));
-  color: var(--color-ink-secondary);
-  font-size: var(--text-caption);
-  font-weight: 500;
-}
-
-.quote {
-  flex-wrap: wrap;
-  align-items: baseline;
-  margin-block-start: var(--space-2);
-}
-
-.price {
-  font-size: var(--text-stock-price);
-  line-height: 1.15;
-  overflow-wrap: anywhere;
-}
-
-.muted {
-  color: var(--color-muted);
-  font-size: var(--text-small);
-}
-
-.quoteDetails {
-  display: grid;
-}
-
-.otherQuoteTimes {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  color: var(--color-muted);
-  font-size: var(--text-small);
-}
-
-.panel {
-  composes: panel from "../../panel.module.css";
-}
-
-.panel h2 {
-  margin: 0;
-  color: var(--color-ink);
-  font-size: var(--text-body);
-}
-
-.calculations {
-  min-width: 0;
-}
-
-.calculations > p {
-  margin-block: var(--space-3);
-}
-
-/* Closes and returns share one column template when their expansions are open. */
-.calculations table {
-  table-layout: fixed;
-}
-
-.calculations table th:nth-child(2) {
-  width: var(--width-close-column);
-}
-
-.calculations table th:nth-child(3) {
-  width: var(--width-return-column);
-}
-
-.calculations table td {
-  white-space: normal;
-  overflow-wrap: anywhere;
-}
-
-/* On a phone, Beli and Jual stay at the bottom of the screen above the tabs, where a thumb reaches them, and the page keeps room for them. */
-.actions {
-  position: fixed;
-  inset-inline: 0;
-  bottom: var(--size-tab-bar);
-  z-index: 2;
-  display: flex;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-gutter);
-  border-block-start: var(--size-line) solid var(--color-line);
-  background: var(--color-panel);
-}
-
-.page:has(.actions:not([hidden])) {
-  padding-block-end: calc(var(--size-touch-target) + 2 * var(--space-3));
-}
-
-.actions[hidden] {
-  visibility: hidden;
-}
-
-@media (width >= 73.75rem) {
-  .actions[hidden] {
-    display: none;
-  }
-}
-
-.buy,
-.sell {
-  display: flex;
-  flex: 1;
-  align-items: center;
-  justify-content: center;
-  min-height: var(--size-touch-target);
-  border-radius: var(--radius-item);
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.buy {
-  background: var(--color-buy);
-  color: var(--color-on-buy);
-}
-
-.sell {
-  background: var(--color-sell);
-  color: var(--color-on-sell);
-}
-
-@media (width >= 60rem) {
-  .panel {
-    padding: var(--space-6);
+  .identity,
+  .quote {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
   }
 
-  .actions {
-    position: static;
-    margin-inline-start: auto;
+  /* The actions of the stock take the other end of the row of its name, where the eye looks for them. */
+  .identity {
+    gap: var(--space-1) var(--space-2);
+  }
+
+  .identity h1 {
+    font-size: var(--text-stock);
+  }
+
+  /* The way back is a small link above the name, so the name, the price, and their details share one left edge. */
+  /* The way back takes only the width of its text in the grid of the header, so its target never reaches over the empty space beside it. */
+  .back {
+    composes: standalone-link from global;
+    justify-self: start;
+    margin-block-end: calc(
+      (1lh - var(--size-touch-target)) / 2 + var(--space-2)
+    );
+    color: var(--color-ink-secondary);
+    font-size: var(--text-caption);
+    font-weight: 500;
+  }
+
+  .quote {
+    flex-wrap: wrap;
+    align-items: baseline;
+    margin-block-start: var(--space-2);
+  }
+
+  .price {
+    font-size: var(--text-stock-price);
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+  }
+
+  .muted {
+    color: var(--color-muted);
+    font-size: var(--text-small);
+  }
+
+  .quoteDetails {
+    display: grid;
+  }
+
+  .otherQuoteTimes {
+    margin: 0;
     padding: 0;
-    border: 0;
-    background: none;
+    list-style: none;
+    color: var(--color-muted);
+    font-size: var(--text-small);
+  }
+
+  .panel {
+    composes: panel from "../../panel.module.css";
+  }
+
+  .panel h2 {
+    margin: 0;
+    color: var(--color-ink);
+    font-size: var(--text-body);
+  }
+
+  .calculations {
+    min-width: 0;
+  }
+
+  .calculations > p {
+    margin-block: var(--space-3);
+  }
+
+  /* Closes and returns share one column template when their expansions are open. */
+  .calculations table {
+    table-layout: fixed;
+  }
+
+  .calculations table th:nth-child(2) {
+    width: var(--width-close-column);
+  }
+
+  .calculations table th:nth-child(3) {
+    width: var(--width-return-column);
+  }
+
+  .calculations table td {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  /* On a phone, Beli and Jual stay at the bottom of the screen above the tabs, where a thumb reaches them, and the page keeps room for them. */
+  .actions {
+    position: fixed;
+    inset-inline: 0;
+    bottom: var(--size-tab-bar);
+    z-index: 2;
+    display: flex;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-gutter);
+    border-block-start: var(--size-line) solid var(--color-line);
+    background: var(--color-panel);
   }
 
   .page:has(.actions:not([hidden])) {
-    padding-block-end: 0;
+    padding-block-end: calc(var(--size-touch-target) + 2 * var(--space-3));
+  }
+
+  .actions[hidden] {
+    visibility: hidden;
+  }
+
+  @media (width >= 73.75rem) {
+    .actions[hidden] {
+      display: none;
+    }
   }
 
   .buy,
   .sell {
-    flex: none;
-    min-width: var(--width-trade-button);
-    padding-inline: var(--space-5);
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--size-touch-target);
+    border-radius: var(--radius-item);
+    font-weight: 600;
+    text-decoration: none;
   }
-}
 
-.statisticsHeader {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
+  .buy {
+    background: var(--color-buy);
+    color: var(--color-on-buy);
+  }
 
-.statisticsHeader > .muted {
-  font-size: var(--text-caption);
-}
+  .sell {
+    background: var(--color-sell);
+    color: var(--color-on-sell);
+  }
 
-/* Beli and Jual take a deeper green and a deeper red on hover. */
-.buy:hover {
-  background: var(--color-buy-hover);
-}
+  @media (width >= 60rem) {
+    .panel {
+      padding: var(--space-6);
+    }
 
-.sell:hover {
-  background: var(--color-sell-hover);
+    .actions {
+      position: static;
+      margin-inline-start: auto;
+      padding: 0;
+      border: 0;
+      background: none;
+    }
+
+    .page:has(.actions:not([hidden])) {
+      padding-block-end: 0;
+    }
+
+    .buy,
+    .sell {
+      flex: none;
+      min-width: var(--width-trade-button);
+      padding-inline: var(--space-5);
+    }
+  }
+
+  .statisticsHeader {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .statisticsHeader > .muted {
+    font-size: var(--text-caption);
+  }
+
+  /* Beli and Jual take a deeper green and a deeper red on hover. */
+  .buy:hover {
+    background: var(--color-buy-hover);
+  }
+
+  .sell:hover {
+    background: var(--color-sell-hover);
+  }
 }

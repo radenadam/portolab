@@ -1,117 +1,119 @@
-.link {
-  composes: standalone-link from global;
-}
+@layer features {
+  .link {
+    composes: standalone-link from global;
+  }
 
-/* Every measure is a block of the same parts in the same order: its name with its value beside it, the sentence that says what it computes, and its formula with its numbers. The blocks stand side by side where the screen has room, each as wide as a formula with its numbers needs, so a value stays near its name. The parts of the blocks of one line share the rows of the list, so each part starts at the same height in every block of the line. */
-.measures {
-  display: grid;
-  grid-template-columns: repeat(
-    auto-fill,
-    minmax(min(100%, var(--width-measure)), 1fr)
-  );
-  column-gap: var(--space-6);
-  align-self: stretch;
-  margin: 0;
-}
+  /* Every measure is a block of the same parts in the same order: its name with its value beside it, the sentence that says what it computes, and its formula with its numbers. The blocks stand side by side where the screen has room, each as wide as a formula with its numbers needs, so a value stays near its name. The parts of the blocks of one line share the rows of the list, so each part starts at the same height in every block of the line. */
+  .measures {
+    display: grid;
+    grid-template-columns: repeat(
+      auto-fill,
+      minmax(min(100%, var(--width-measure)), 1fr)
+    );
+    column-gap: var(--space-6);
+    align-self: stretch;
+    margin: 0;
+  }
 
-.measure {
-  display: grid;
-  grid-row: span 3;
-  grid-template-rows: subgrid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-content: start;
-  column-gap: var(--space-3);
-  row-gap: var(--space-1);
-  padding-block: var(--space-3) var(--space-4);
-  border-block-start: var(--size-line) solid var(--color-line);
-}
+  .measure {
+    display: grid;
+    grid-row: span 3;
+    grid-template-rows: subgrid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-content: start;
+    column-gap: var(--space-3);
+    row-gap: var(--space-1);
+    padding-block: var(--space-3) var(--space-4);
+    border-block-start: var(--size-line) solid var(--color-line);
+  }
 
-.measure dt {
-  color: var(--color-ink);
-  font-weight: 600;
-}
+  .measure dt {
+    color: var(--color-ink);
+    font-weight: 600;
+  }
 
-.measure dd {
-  margin: 0;
-}
+  .measure dd {
+    margin: 0;
+  }
 
-.measure .value {
-  font-family: var(--font-numbers);
-  font-size: var(--text-statistic);
-  font-weight: 600;
-  line-height: 1.2;
-  text-align: right;
-  white-space: nowrap;
-}
+  .measure .value {
+    font-family: var(--font-numbers);
+    font-size: var(--text-statistic);
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: right;
+    white-space: nowrap;
+  }
 
-.measure .description,
-.measure .formula {
-  grid-column: 1 / -1;
-}
+  .measure .description,
+  .measure .formula {
+    grid-column: 1 / -1;
+  }
 
-.measure .description {
-  color: var(--color-ink-secondary);
-  font-size: var(--text-row);
-}
+  .measure .description {
+    color: var(--color-ink-secondary);
+    font-size: var(--text-row);
+  }
 
-.measure .formula {
-  min-width: 0;
-}
+  .measure .formula {
+    min-width: 0;
+  }
 
-/* The formulas of the columns of a table follow the table, after the sentence that says where they come from. */
-.tableFormulas {
-  display: grid;
-  gap: var(--space-3);
-}
+  /* The formulas of the columns of a table follow the table, after the sentence that says where they come from. */
+  .tableFormulas {
+    display: grid;
+    gap: var(--space-3);
+  }
 
-/* A measure that a portfolio does not have gives its reason on a line of its own below the formula. */
-.formulaNote {
-  display: block;
-}
+  /* A measure that a portfolio does not have gives its reason on a line of its own below the formula. */
+  .formulaNote {
+    display: block;
+  }
 
-.details {
-  color: var(--color-muted);
-  font-size: var(--text-small);
-}
+  .details {
+    color: var(--color-muted);
+    font-size: var(--text-small);
+  }
 
-.returns,
-.points {
-  align-self: stretch;
-}
+  .returns,
+  .points {
+    align-self: stretch;
+  }
 
-.returns table {
-  table-layout: fixed;
-}
-.returns :is(th, td):nth-child(2) {
-  inline-size: var(--width-close-column);
-}
-.returns :is(th, td):nth-child(3) {
-  inline-size: var(--width-return-column);
-}
+  .returns table {
+    table-layout: fixed;
+  }
+  .returns :is(th, td):nth-child(2) {
+    inline-size: var(--width-close-column);
+  }
+  .returns :is(th, td):nth-child(3) {
+    inline-size: var(--width-return-column);
+  }
 
-/* A few values of equal weight stand in a grid of four columns on a desktop and two on a phone, each under a small muted label, as decision 0026 sets. The width of a column is the one at which four fit beside each other in the main column of a desktop, and two on a phone. */
-.keyMeasures {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 7rem), 1fr));
-  gap: var(--space-4);
-  align-self: stretch;
-  margin: 0;
-}
+  /* A few values of equal weight stand in a grid of four columns on a desktop and two on a phone, each under a small muted label, as decision 0026 sets. The width of a column is the one at which four fit beside each other in the main column of a desktop, and two on a phone. */
+  .keyMeasures {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 7rem), 1fr));
+    gap: var(--space-4);
+    align-self: stretch;
+    margin: 0;
+  }
 
-.keyMeasure {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: var(--space-1);
-}
+  .keyMeasure {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: var(--space-1);
+  }
 
-.keyMeasure dt {
-  color: var(--color-muted);
-  font-size: var(--text-small);
-}
+  .keyMeasure dt {
+    color: var(--color-muted);
+    font-size: var(--text-small);
+  }
 
-.keyMeasure dd {
-  margin: 0;
-  font-family: var(--font-numbers);
-  font-size: var(--text-measure);
+  .keyMeasure dd {
+    margin: 0;
+    font-family: var(--font-numbers);
+    font-size: var(--text-measure);
+  }
 }

@@ -3,6 +3,7 @@ import { expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import { expectDefinitionTerms } from "./expect-definition-terms.ts";
 import { sidewaysProblems } from "./expect-layout.ts";
+import { styleOrderProblems } from "./style-order-problems.ts";
 import { waitForPageStyles } from "./wait-for-page-styles.ts";
 
 // The section "Interface behavior" of AGENTS.md sets this as the smallest touch target, and axe does not check it.
@@ -80,6 +81,7 @@ export async function expectAccessibleScreen(page: Page): Promise<void> {
   expect(await scrollProblems(page)).toEqual([]);
   // Axe does not check the width of the page.
   expect(await sidewaysProblems(page)).toEqual([]);
+  expect(await styleOrderProblems(page)).toEqual([]);
 }
 
 /** The section "Interface behavior" of AGENTS.md asks every control to turn the pointer into a hand and nothing that only informs to look clickable, which axe does not check. This lists every visible control that shows another cursor, and every other part that shows a hand outside a control. */

@@ -1,92 +1,98 @@
-/* A chip draws a pill smaller than its touch target inside it, as the references of decision 0028 draw the name of the reader and the badge of the simulation in the top bar. */
-.chip {
-  position: relative;
-  isolation: isolate;
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  gap: 0.375rem;
-  min-height: var(--size-touch-target);
-  padding-inline: 0.6875rem;
-  border: 0;
-  background: none;
-  color: var(--color-ink-secondary);
-  font: inherit;
-  font-size: var(--text-caption);
-  white-space: nowrap;
-}
+@layer parts {
+  /* A chip draws a pill smaller than its touch target inside it, as the references of decision 0028 draw the name of the reader and the badge of the simulation in the top bar. */
+  .chip {
+    position: relative;
+    isolation: isolate;
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 0.375rem;
+    min-height: var(--size-touch-target);
+    padding-inline: 0.6875rem;
+    border: 0;
+    background: none;
+    color: var(--color-ink-secondary);
+    font: inherit;
+    font-size: var(--text-caption);
+    white-space: nowrap;
+  }
 
-.chip::before {
-  position: absolute;
-  z-index: -1;
-  inset: 0.4375rem 0;
-  border: var(--size-line) solid var(--color-line);
-  border-radius: var(--size-touch-target);
-  content: "";
-}
+  .chip::before {
+    position: absolute;
+    z-index: -1;
+    inset: 0.4375rem 0;
+    border: var(--size-line) solid var(--color-line);
+    border-radius: var(--size-touch-target);
+    content: "";
+  }
 
-.filter > span {
-  padding: var(--space-1) var(--space-3);
-  border: var(--size-line) solid var(--color-line);
-  border-radius: var(--size-touch-target);
-  background: var(--color-panel);
-}
+  .filter > span {
+    padding: var(--space-1) var(--space-3);
+    border: var(--size-line) solid var(--color-line);
+    border-radius: var(--size-touch-target);
+    background: var(--color-panel);
+  }
 
-/* The references fill a chosen filter with the color of a button. A filter is chosen by its state, such as the current link of a list or the checked choice of a field. */
-.filter:is([aria-pressed="true"], [aria-current], :has(> input:checked))
-  > span {
-  border-color: var(--color-button);
-  background: var(--color-button);
-  color: var(--color-on-button);
-  font-weight: 600;
-}
+  /* The references fill a chosen filter with the color of a button. A filter is chosen by its state, such as the current link of a list or the checked choice of a field. */
+  .filter:is([aria-pressed="true"], [aria-current], :has(> input:checked))
+    > span {
+    border-color: var(--color-button);
+    background: var(--color-button);
+    color: var(--color-on-button);
+    font-weight: 600;
+  }
 
-/* A text that can be longer than the chip, such as a name, ends in an ellipsis. */
-.text {
-  max-width: 15rem;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+  /* A text that can be longer than the chip, such as a name, ends in an ellipsis. */
+  .text {
+    max-width: 15rem;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
-/* The badge of the simulation takes the color of a warning on its tint, without a line. */
-.warning {
-  color: var(--color-warning);
-  font-weight: 600;
-}
+  /* The badge of the simulation takes the color of a warning on its tint, without a line. */
+  .warning {
+    color: var(--color-warning);
+    font-weight: 600;
+  }
 
-.warning::before {
-  border-color: transparent;
-  background: var(--color-warning-soft);
-}
+  .warning::before {
+    border-color: transparent;
+    background: var(--color-warning-soft);
+  }
 
-/* A filter that is not chosen fills its own pill and draws a stronger edge under the pointer. A chosen filter keeps its fill. */
-.filter:not([aria-pressed="true"], [aria-current], :has(> input:checked)):hover
-  > span {
-  border-color: var(--color-line-strong);
-  background: var(--color-control-hover);
-  color: var(--color-ink);
-}
+  /* A filter that is not chosen fills its own pill and draws a stronger edge under the pointer. A chosen filter keeps its fill. */
+  .filter:not(
+      [aria-pressed="true"],
+      [aria-current],
+      :has(> input:checked)
+    ):hover
+    > span {
+    border-color: var(--color-line-strong);
+    background: var(--color-control-hover);
+    color: var(--color-ink);
+  }
 
-/* A chip that opens something fills its own pill under the pointer: the name of the reader with the fill of a control, and the badge of the simulation with a deeper tint of its warning. */
-button.chip:hover::before {
-  border-color: var(--color-line-strong);
-  background: var(--color-control-hover);
-}
+  /* A chip that opens something fills its own pill under the pointer: the name of the reader with the fill of a control, and the badge of the simulation with a deeper tint of its warning. */
+  button.chip:hover::before {
+    border-color: var(--color-line-strong);
+    background: var(--color-control-hover);
+  }
 
-button.chip:hover {
-  color: var(--color-ink);
-}
+  button.chip:hover {
+    color: var(--color-ink);
+  }
 
-button.warning:hover::before {
-  border-color: transparent;
-  background: color-mix(
-    in oklab,
-    var(--color-warning-soft),
-    var(--color-warning) 14%
-  );
-}
+  button.warning:hover::before {
+    border-color: transparent;
+    background: color-mix(
+      in oklab,
+      var(--color-warning-soft),
+      var(--color-warning) 14%
+    );
+  }
 
-button.warning:hover {
-  color: var(--color-warning);
+  button.warning:hover {
+    color: var(--color-warning);
+  }
 }

@@ -1,62 +1,64 @@
-.left {
-  display: contents;
-}
-.welcome {
-  composes: panel from "../../panel.module.css";
-  min-inline-size: 0;
-  padding: var(--space-panel);
-  gap: var(--space-3);
-  order: 0;
-  container-type: inline-size;
-  --text-home-amount: var(--text-welcome-amount);
-}
-.welcome h2 {
-  margin: 0;
-  color: var(--color-ink);
-  font-size: var(--text-mark);
-}
-.greeting {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-2);
-  color: var(--color-muted);
-  font-size: var(--text-caption);
-  overflow-wrap: anywhere;
-}
-.opener {
-  composes: question from "../../concept-card.module.css";
-  flex: none;
-  text-decoration: none;
-  margin-inline-end: calc(-1 * var(--space-3));
-}
-.body {
-  color: var(--color-ink-secondary);
-  font-size: var(--text-body);
-}
-.find {
-  composes: filled from "../../button.module.css";
-  align-self: start;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-4);
-  font-size: var(--text-mark);
-}
-.icon {
-  inline-size: var(--size-learning-icon);
-  block-size: var(--size-learning-icon);
-  flex: none;
-}
-.guide {
-  order: 2;
-}
-@media (width >= 73.75rem) {
+@layer features {
   .left {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
+    display: contents;
+  }
+  .welcome {
+    composes: panel from "../../panel.module.css";
     min-inline-size: 0;
+    padding: var(--space-panel);
+    gap: var(--space-3);
+    order: 0;
+    container-type: inline-size;
+    --text-home-amount: var(--text-welcome-amount);
+  }
+  .welcome h2 {
+    margin: 0;
+    color: var(--color-ink);
+    font-size: var(--text-mark);
+  }
+  .greeting {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    color: var(--color-muted);
+    font-size: var(--text-caption);
+    overflow-wrap: anywhere;
+  }
+  .opener {
+    composes: question from "../../concept-card.module.css";
+    flex: none;
+    text-decoration: none;
+    margin-inline-end: calc(-1 * var(--space-3));
+  }
+  .body {
+    color: var(--color-ink-secondary);
+    font-size: var(--text-body);
+  }
+  .find {
+    composes: filled from "../../button.module.css";
+    align-self: start;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    font-size: var(--text-mark);
+  }
+  .icon {
+    inline-size: var(--size-learning-icon);
+    block-size: var(--size-learning-icon);
+    flex: none;
   }
   .guide {
-    flex: 1;
+    order: 2;
+  }
+  @media (width >= 73.75rem) {
+    .left {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+      min-inline-size: 0;
+    }
+    .guide {
+      flex: 1;
+    }
   }
 }
