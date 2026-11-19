@@ -230,11 +230,13 @@
       white-space: normal;
     }
   }
+  /* A fixed column is too narrow for a long label beside its "?", so the label keeps its line and reaches into the room of its scale. */
   .table thead th {
     color: var(--color-muted);
     font-size: var(--text-small);
     font-weight: 500;
     text-align: start;
+    white-space: nowrap;
   }
   /* The head of a column of numbers ends where its numbers end, and the numbers of a change and of a measure end before their scale. */
   .table thead th:nth-child(n + 5) {
