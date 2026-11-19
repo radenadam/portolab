@@ -22,6 +22,7 @@ export function Popover({
   placement,
   children,
   className,
+  tabStop,
 }: {
   id: string;
   /** The name of the popover, which a screen reader reads when it opens. */
@@ -29,6 +30,8 @@ export function Popover({
   placement: PopoverPlacement;
   children: ReactNode;
   className?: string | undefined;
+  /** Whether the popover itself is a stop of the Tab key, which a popover that holds no control needs, so that a keyboard can scroll it. */
+  tabStop?: boolean;
 }): ReactNode {
   const popoverRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
@@ -49,8 +52,7 @@ export function Popover({
       popover="auto"
       role="dialog"
       aria-label={label}
-      // eslint-disable-next-line jsx-a11y-x/no-noninteractive-tabindex -- A popover taller than the room beside its button scrolls inside it, and a keyboard reaches a region that scrolls only through a stop of the Tab key.
-      tabIndex={0}
+      tabIndex={tabStop === true ? 0 : undefined}
       className={[styles["popover"], styles[placement], className]
         .filter(Boolean)
         .join(" ")}

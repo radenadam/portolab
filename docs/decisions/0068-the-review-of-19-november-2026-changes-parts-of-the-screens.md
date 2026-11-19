@@ -16,7 +16,7 @@
 - A checkbox is an element of 44 pixels that draws a box of 18 pixels in its middle, with the color of data when it is checked.
 - The app icon in the rail is 28 pixels, smaller than the 36 pixels of the references.
 - An open `details` that holds a table shows about six rows and scrolls inside its own box, and the head of its table stays in view.
-- A popover stays beside its button. It takes the side with the most room, scrolls inside that room when it is taller, and never scrolls sideways. It no longer moves to the middle of the screen when neither side has room. Because it can scroll, it is a stop of the Tab key, so a keyboard reaches it to scroll it. A "?" card that holds a table is wider than one without.
+- A popover stays beside its button. It takes the side with the most room, scrolls inside that room when it is taller, and never scrolls sideways. It no longer moves to the middle of the screen when neither side has room. A popover that holds no control, such as a table of values, is a stop of the Tab key, so a keyboard reaches it to scroll it. A "?" card that holds a table is wider than one without.
 - A choice of a view, such as the axis of a map, the allocation of Analisis, a choice of Dampak, or the measure and the filter of Mahasiswa, uses `ViewLink` of `app/view-link.tsx`. Before JavaScript loads, the fragment of its address, where it has one, brings the reader back to the part that changed. Once the app runs, it changes the part in place, keeps the scroll position, and replaces the current entry of the history, so Back leaves the screen instead of stepping through earlier views.
 - The label of a part that opens a table starts with "Tabel" in Bahasa Indonesia and "Table of" in English, such as "Tabel harga penutupan".
 
@@ -30,7 +30,7 @@
 - The four numbers of a position share one row on a wide screen.
 - In Dampak, the choice of the size of the example purchase has a visible label under the title. "Buka tiket" ends the row of the sentence that the size changes, and the choice of the axis shares a row with the legend of the map.
 - The docked order ticket is a panel only as tall as its form, so no empty panel runs down beside the page. It stays in view while the page scrolls and moves along its whole column, so the standard of `AGENTS.md` that columns side by side end on one line excepts such a panel, and `e2e/expect-layout.ts` measures its column to the end of its track.
-- The list of Beranda since the last visit scrolls inside its card after about four rows. Like a popover, it is a stop of the Tab key, so a keyboard reaches it to scroll it.
+- The list of Beranda since the last visit scrolls inside its card after about four rows. It holds no control, so like such a popover it is a stop of the Tab key.
 
 ### Kelas
 

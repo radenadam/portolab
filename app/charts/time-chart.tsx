@@ -211,7 +211,12 @@ export function TimeSeriesChart<
           {table}
         </details>
       ) : (
-        <Popover id={tablePopover} label={tableLabel} placement="belowEnd">
+        <Popover
+          id={tablePopover}
+          label={tableLabel}
+          placement="belowEnd"
+          tabStop
+        >
           <div className={styles["tableCard"]}>
             <h2>
               <NumberText>{tableLabel}</NumberText>

@@ -106,7 +106,7 @@ for (const locale of locales) {
     ).toBe(
       [
         `<button type="button" popoverTarget="class-switcher" style="anchor-name:--class-switcher"><span><span>Manajemen Portofolio A</span><span>${text.oddTerm}</span></span><svg/></button>`,
-        `<div id="class-switcher" popover="auto" role="dialog" aria-label="${text.switcher}" tabindex="0" style="position-anchor:--class-switcher"><p>${text.joinedClasses}</p><ul>`,
+        `<div id="class-switcher" popover="auto" role="dialog" aria-label="${text.switcher}" style="position-anchor:--class-switcher"><p>${text.joinedClasses}</p><ul>`,
         classLink({
           path: "/classes/3",
           name: "Manajemen Portofolio A",
