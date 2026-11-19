@@ -1,7 +1,7 @@
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
-import { m } from "~/paraglide/messages.js";
-import { Popover, PopoverButton } from "~/popover";
+
+import { Popover } from "~/popover";
 import type { MeasureRow } from "./measure-list";
 import styles from "./analysis.module.css";
 
@@ -28,9 +28,6 @@ export function AnalysisCalculation({
         <p>{row.formula}</p>
         {row.inputs}
         {children}
-        <PopoverButton popover={analysisDataId} className={styles["link"]}>
-          {m.measures_analysis_data_label()}
-        </PopoverButton>
       </div>
     </Popover>
   );

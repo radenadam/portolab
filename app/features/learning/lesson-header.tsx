@@ -54,7 +54,7 @@ export function LessonHeader({
                 : undefined
             }
           >
-            {m.learning_skip_practice_link()} <span aria-hidden>⌄</span>
+            {m.learning_skip_practice_link()} <span aria-hidden="true">↓</span>
           </a>
         )}
         {inSheet && (

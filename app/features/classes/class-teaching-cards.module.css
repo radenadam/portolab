@@ -43,7 +43,6 @@
   gap: var(--space-3);
   margin-inline: calc(-1 * var(--space-2));
   padding: var(--space-3) var(--space-2);
-  border-radius: var(--radius-item);
   min-height: var(--size-touch-target);
   color: var(--color-ink);
   font-size: var(--text-body);

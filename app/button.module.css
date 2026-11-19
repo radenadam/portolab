@@ -17,15 +17,17 @@
   color: var(--button-ink, var(--color-ink));
 }
 
-/* A button without a fill takes a light ground on hover, because darkening nothing shows nothing. A button that names its fill keeps it, and the theme darkens it as it darkens every button. */
+/* An outlined button fills its own shape with the raised color and draws a stronger edge on hover. A filled button takes the deeper color that it names. */
 .button:hover {
-  background: var(--button-fill, var(--color-hover));
+  border-color: var(--color-line-strong);
+  background: var(--button-hover, var(--color-raised));
 }
 
 /* A button filled with the color of buttons, such as the first step of a welcome. */
 .filled {
   composes: button;
   --button-fill: var(--color-button);
+  --button-hover: var(--color-button-hover);
   --button-ink: var(--color-on-button);
   border-color: var(--color-button);
   background: var(--button-fill);

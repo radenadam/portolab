@@ -205,3 +205,12 @@
 .statisticsHeader > .muted {
   font-size: var(--text-caption);
 }
+
+/* Beli and Jual take a deeper green and a deeper red on hover. */
+.buy:hover {
+  background: var(--color-buy-hover);
+}
+
+.sell:hover {
+  background: var(--color-sell-hover);
+}

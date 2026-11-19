@@ -83,3 +83,8 @@
   border: 0;
   border-block-start: var(--size-line) solid var(--color-line);
 }
+
+/* An item of a menu shows a light ground under the pointer, as a row does. */
+.item:hover {
+  background: var(--color-raised);
+}

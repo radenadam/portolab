@@ -1,7 +1,6 @@
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import chipStyles from "~/chip.module.css";
-import { ConceptLesson } from "~/features/learning/concept-lesson";
 import { SimulationLabel } from "./simulation-label";
 import { m } from "~/paraglide/messages.js";
 import { Popover, PopoverButton } from "~/popover";
@@ -43,9 +42,6 @@ export function SimulationBadge({
               <NumberText>{paragraph}</NumberText>
             </p>
           ))}
-          <p>
-            <ConceptLesson termId="harga-tertunda" />
-          </p>
         </div>
       </Popover>
     </>

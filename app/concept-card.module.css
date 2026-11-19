@@ -68,12 +68,15 @@ th > .question {
   font-size: var(--text-small);
 }
 
+/* A calculation is a block, so a formula written as loose text and subscripts flows as one line of text. A flex column would put each symbol and each subscript on its own line. */
 .calculation {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
+  display: block;
   overflow-wrap: anywhere;
   font-size: var(--text-row);
+}
+
+.calculation > * + * {
+  margin-block-start: var(--space-2);
 }
 
 /* A code or a heading of a column is one word, which must not break between its letters. */
@@ -88,4 +91,9 @@ th > .question {
 
 .calculation th:first-child {
   white-space: nowrap;
+}
+
+/* A "?" turns its mark to ink under the pointer and draws nothing around its touch box. */
+.question:hover {
+  color: var(--color-ink);
 }

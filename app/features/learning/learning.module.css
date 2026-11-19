@@ -298,3 +298,9 @@
 .sheetTools > .badge {
   align-self: center;
 }
+
+/* A card of a session opens the lesson, so it shows a light ground and a stronger edge under the pointer. */
+a.card:hover {
+  border-color: var(--color-line-strong);
+  background-color: var(--color-hover);
+}

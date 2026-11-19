@@ -181,6 +181,7 @@
   background: var(--color-ink-secondary);
 }
 .riskRow {
+  composes: row-link from global;
   display: grid;
   grid-column: 1 / -1;
   grid-template-columns: subgrid;
@@ -190,7 +191,6 @@
   min-block-size: var(--size-touch-target);
   border: 0;
   border-block-end: var(--size-line) solid var(--color-line);
-  border-radius: var(--radius-item);
   padding: var(--space-1) 0;
   background: none;
   color: var(--color-ink-secondary);
@@ -233,4 +233,10 @@
   display: grid;
   grid-template-columns: var(--width-analysis-risk-code) minmax(0, 1fr) auto;
   column-gap: var(--space-3);
+}
+
+/* A cell of the correlations opens the calculation of its pair, so it draws a ring of ink under the pointer, in the shape of the cell. */
+.cell:hover rect {
+  stroke: var(--color-ink-secondary);
+  stroke-width: var(--size-mark);
 }

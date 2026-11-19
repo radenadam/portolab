@@ -355,6 +355,7 @@
 
 .chip {
   position: relative;
+  isolation: isolate;
   border: 0;
 }
 .chip::before {
@@ -393,4 +394,34 @@
 
 .learning {
   padding: 0 var(--space-learning-section) var(--space-4);
+}
+
+/* The steps of the count fill their own square with the line color under the pointer. */
+.stepper a:hover {
+  background: var(--color-line);
+}
+
+/* A quick count, such as 25%, fills its own pill and draws a stronger edge under the pointer. */
+.chip:hover::before,
+.fix:hover {
+  border-color: var(--color-line-strong);
+}
+
+.chip:hover,
+.fix:hover {
+  color: var(--color-ink);
+}
+
+.chip:hover::before {
+  background: var(--color-raised);
+  z-index: -1;
+}
+
+/* The button that sends the order takes the deeper color of its side on hover. */
+[data-side="buy"] .submit:hover:not(:disabled) {
+  background: var(--color-buy-hover);
+}
+
+[data-side="sell"] .submit:hover:not(:disabled) {
+  background: var(--color-sell-hover);
 }

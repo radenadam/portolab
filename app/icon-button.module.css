@@ -11,3 +11,8 @@
   font: inherit;
   cursor: pointer;
 }
+
+/* An icon button, such as a star or a close mark, turns its icon to ink under the pointer instead of drawing a box around it. */
+.button:hover {
+  color: var(--color-ink);
+}

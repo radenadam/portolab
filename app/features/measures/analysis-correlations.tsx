@@ -13,7 +13,7 @@ import { m } from "~/paraglide/messages.js";
 import { PopoverButton } from "~/popover";
 import { percentOf } from "~/charts/plot";
 import { plotFraction } from "~/units/plot-fraction";
-import { AnalysisCalculation, analysisDataId } from "./analysis-calculation";
+import { AnalysisCalculation } from "./analysis-calculation";
 import { CorrelationFormula, CovarianceFormula } from "./formulas";
 import type { PortfolioSummary } from "./measure-summaries";
 import { PairTable } from "./portfolio-tables";
@@ -114,9 +114,6 @@ export function AnalysisCorrelations({
                     />
                   </p>
                   <PairTable portfolio={portfolio} />
-                  <PopoverButton popover={analysisDataId}>
-                    {m.measures_analysis_data_label()}
-                  </PopoverButton>
                 </>
               )
             }
@@ -135,7 +132,7 @@ export function AnalysisCorrelations({
               <thead>
                 <tr>
                   <td />
-                  {portfolio.holdings.map(({ code }) => (
+                  {portfolio.holdings.slice(0, -1).map(({ code }) => (
                     <th key={code} scope="col">
                       {code}
                     </th>
@@ -143,15 +140,14 @@ export function AnalysisCorrelations({
                 </tr>
               </thead>
               <tbody>
-                {portfolio.holdings.map((holding) => (
+                {/* A pair appears once, below the diagonal, because the correlation of two stocks is the same in either order and a stock with itself is always 1. */}
+                {portfolio.holdings.slice(1).map((holding, row) => (
                   <tr key={holding.code}>
                     <th scope="row">{holding.code}</th>
-                    {portfolio.holdings.map((other) => {
+                    {portfolio.holdings.slice(0, -1).map((other, column) => {
+                      if (column > row) return <td key={other.code} />;
                       const pair = pairOf(portfolio, holding.code, other.code);
-                      const diagonal = holding.code === other.code;
-                      const text = diagonal
-                        ? formatNumber(1)
-                        : formatCorrelation(pair.correlation);
+                      const text = formatCorrelation(pair.correlation);
                       const drawing = (
                         <>
                           <svg width="100%" height="100%" aria-hidden="true">
@@ -159,11 +155,7 @@ export function AnalysisCorrelations({
                               width="100%"
                               height="100%"
                               rx="0.5em"
-                              fill={
-                                diagonal
-                                  ? "var(--color-raised)"
-                                  : correlationFill(pair.correlation)
-                              }
+                              fill={correlationFill(pair.correlation)}
                             />
                           </svg>
                           <NumberText whole>{text}</NumberText>
@@ -171,23 +163,17 @@ export function AnalysisCorrelations({
                       );
                       return (
                         <td key={other.code}>
-                          {diagonal ? (
-                            <span className={styles["cell"]}>{drawing}</span>
-                          ) : (
-                            <PopoverButton
-                              popover={`analysis-pair-${holding.code}-${other.code}`}
-                              label={m.measures_analysis_correlation_cell_label(
-                                {
-                                  first: holding.code,
-                                  second: other.code,
-                                  value: text,
-                                },
-                              )}
-                              className={styles["cell"]}
-                            >
-                              {drawing}
-                            </PopoverButton>
-                          )}
+                          <PopoverButton
+                            popover={`analysis-pair-${holding.code}-${other.code}`}
+                            label={m.measures_analysis_correlation_cell_label({
+                              first: holding.code,
+                              second: other.code,
+                              value: text,
+                            })}
+                            className={styles["cell"]}
+                          >
+                            {drawing}
+                          </PopoverButton>
                         </td>
                       );
                     })}
@@ -210,54 +196,52 @@ export function AnalysisCorrelations({
               }).format(1)}
             </NumberText>
           </div>
-          {portfolio.holdings.flatMap((first) =>
-            portfolio.holdings
-              .filter((second) => second.code !== first.code)
-              .map((second) => {
-                const pair = pairOf(portfolio, first.code, second.code);
-                return (
-                  <AnalysisCalculation
-                    key={`${first.code}-${second.code}`}
-                    id={`analysis-pair-${first.code}-${second.code}`}
-                    title={m.measures_analysis_pair_title({
-                      first: first.code,
-                      second: second.code,
-                    })}
-                    row={{
-                      label: title,
-                      value: formatCorrelation(pair.correlation),
-                      formula: (
-                        <CorrelationFormula
-                          first="i"
-                          second="j"
-                          correlation={{
-                            formula: "correlation",
-                            value: pair.correlation,
-                            inputs: {
-                              covariance: pair.covariance,
-                              firstStandardDeviation: first.standardDeviation,
-                              secondStandardDeviation: second.standardDeviation,
+          {portfolio.holdings.flatMap((first, firstIndex) =>
+            portfolio.holdings.slice(0, firstIndex).map((second) => {
+              const pair = pairOf(portfolio, first.code, second.code);
+              return (
+                <AnalysisCalculation
+                  key={`${first.code}-${second.code}`}
+                  id={`analysis-pair-${first.code}-${second.code}`}
+                  title={m.measures_analysis_pair_title({
+                    first: first.code,
+                    second: second.code,
+                  })}
+                  row={{
+                    label: title,
+                    value: formatCorrelation(pair.correlation),
+                    formula: (
+                      <CorrelationFormula
+                        first="i"
+                        second="j"
+                        correlation={{
+                          formula: "correlation",
+                          value: pair.correlation,
+                          inputs: {
+                            covariance: pair.covariance,
+                            firstStandardDeviation: first.standardDeviation,
+                            secondStandardDeviation: second.standardDeviation,
+                          },
+                        }}
+                      />
+                    ),
+                    inputs: (
+                      <PairTable
+                        portfolio={{
+                          pairs: [
+                            {
+                              ...pair,
+                              first: first.code,
+                              second: second.code,
                             },
-                          }}
-                        />
-                      ),
-                      inputs: (
-                        <PairTable
-                          portfolio={{
-                            pairs: [
-                              {
-                                ...pair,
-                                first: first.code,
-                                second: second.code,
-                              },
-                            ],
-                          }}
-                        />
-                      ),
-                    }}
-                  />
-                );
-              }),
+                          ],
+                        }}
+                      />
+                    ),
+                  }}
+                />
+              );
+            }),
           )}
         </>
       )}

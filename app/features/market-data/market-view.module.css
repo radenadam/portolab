@@ -535,3 +535,8 @@
     align-self: flex-end;
   }
 }
+
+/* The link of a stock covers its row, so the whole row shows a light ground under the pointer. */
+.table tbody tr:has(.stockLink:hover) {
+  background: var(--color-hover);
+}

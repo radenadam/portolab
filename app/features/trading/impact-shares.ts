@@ -2,7 +2,7 @@ import type { FieldOption } from "~/form";
 import { formatPercent } from "~/formatting";
 import { portfolioWeight } from "~/units/portfolio-weight";
 
-export const impactShares = [
+const impactShares = [
   portfolioWeight(0.05),
   portfolioWeight(0.1),
   portfolioWeight(0.2),

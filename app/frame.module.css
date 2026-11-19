@@ -180,6 +180,17 @@
   background: var(--color-data-soft);
 }
 
+/* An item of the navigation that is not the current one shows a light ground under the pointer, where the current one shows its tint. */
+.railItem:not([aria-current="page"]):hover,
+.tabItem:not([aria-current="page"]):hover::before {
+  background: var(--color-raised);
+}
+
+.railItem:hover,
+.tabItem:hover {
+  color: var(--color-ink);
+}
+
 .railItem[aria-current="page"],
 .tabItem[aria-current="page"] {
   color: var(--color-ink);
@@ -304,4 +315,9 @@
   .workspaceToolsPhone {
     display: none;
   }
+}
+
+/* An avatar that opens the menu of the profile deepens its circle under the pointer. */
+.avatarButton:hover > * {
+  background: var(--color-line);
 }

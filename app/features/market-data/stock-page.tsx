@@ -14,9 +14,6 @@ import { parseStockCode } from "~/features/trading/order-form-fields";
 import { StockPosition } from "~/features/trading/stock-position";
 import { TicketDraftMemory } from "~/features/trading/ticket-draft-memory";
 import { readStockPortfolio } from "./read-stock-portfolio.server";
-import { StockImpact } from "~/features/trading/stock-impact";
-import { readImpactSelection } from "~/features/trading/read-impact-selection.server";
-import { TradeImpactSelectionForm } from "~/features/trading/trade-impact-selection-form";
 import { pageTitle } from "~/page-title";
 import { m } from "~/paraglide/messages.js";
 import { wibDateOf } from "~/wib";
@@ -80,52 +77,40 @@ export function loader({ context, params, request, url }: Route.LoaderArgs) {
     watched,
     ...moment,
   });
-  const selection = readImpactSelection(url);
-  return data(
-    {
-      classId,
-      task: readLessonTask(url),
-      draftKey: `${String(reader.id)}:${stockPath(classId, code)}`,
+  return data({
+    classId,
+    task: readLessonTask(url),
+    draftKey: `${String(reader.id)}:${stockPath(classId, code)}`,
+    code,
+    watched,
+    quote,
+    dayRangeText: readStockDayRange(
       code,
-      watched,
-      quote,
-      dayRangeText: readStockDayRange(
-        code,
-        quote?.kind === "stock" ? quote : undefined,
-        now,
+      quote?.kind === "stock" ? quote : undefined,
+      now,
+    ),
+    quoteNotice:
+      quote === undefined
+        ? missingQuoteText(code, attempt, moment)
+        : quoteFailureText(attempt, [quote], moment),
+    history: {
+      ...history,
+      closes: history.closes.filter(
+        (point) => point.date >= chartStart && point.date <= wibDateOf(now),
       ),
-      quoteNotice:
-        quote === undefined
-          ? missingQuoteText(code, attempt, moment)
-          : quoteFailureText(attempt, [quote], moment),
-      history: {
-        ...history,
-        closes: history.closes.filter(
-          (point) => point.date >= chartStart && point.date <= wibDateOf(now),
-        ),
-      },
-      chartRange,
-      range: readStockYearRange(stockPriceRange(history, wibDateOf(now))),
-      measures: readStockMeasures(database, code),
-      ...portfolio,
-      selection,
-      isLq45: isLq45Stock(code, universe),
-      lotShares: rules.ok ? rules.value.lotShares : undefined,
     },
-    { status: selection.fields === undefined ? 200 : 400 },
-  );
+    chartRange,
+    range: readStockYearRange(stockPriceRange(history, wibDateOf(now))),
+    measures: readStockMeasures(database, code),
+    ...portfolio,
+    isLq45: isLq45Stock(code, universe),
+    lotShares: rules.ok ? rules.value.lotShares : undefined,
+  });
 }
 
 export default function StockPage({
   loaderData: stock,
 }: Route.ComponentProps): ReactNode {
-  if (stock.selection.fields !== undefined) {
-    return (
-      <div className={styles["page"]}>
-        <TradeImpactSelectionForm fields={stock.selection.fields} />
-      </div>
-    );
-  }
   return <StockPageContent stock={stock} />;
 }
 
@@ -205,13 +190,6 @@ function StockPageContent({
             </section>
           )}
           <StockStatistics stock={stock} />
-          <StockImpact
-            classId={classId}
-            portfolioKind={stock.portfolioKind}
-            code={code}
-            ticket={stock.tradePreview}
-            {...stock.selection}
-          />
         </div>
         {ticket}
       </div>

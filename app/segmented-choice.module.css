@@ -66,3 +66,18 @@
 .compact::before {
   inset: 0;
 }
+
+/* An option that is not chosen shows under the pointer a faint version of the pill that marks the chosen one, in the same place and shape, and its text turns to ink. */
+:where(.choice)
+  :is(a, button):not([aria-current], [aria-pressed="true"]):hover::before {
+  position: absolute;
+  inset: var(--choice-inset, calc(var(--space-2) - var(--size-line))) 0;
+  z-index: -1;
+  border-radius: var(--choice-radius, var(--radius-button));
+  background: color-mix(in oklab, var(--color-panel) 55%, transparent);
+  content: "";
+}
+
+:where(.choice) :is(a, button):hover {
+  color: var(--color-ink);
+}

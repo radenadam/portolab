@@ -7,6 +7,8 @@
   --color-raised: light-dark(#eef2f5, #1d252d);
   /* The ground of a row or a card under the pointer, lighter than the raised color, so a row in a raised part still shows it. */
   --color-hover: light-dark(#f3f6f9, #1a2129);
+  /* Each filled control takes its own color on hover, a step deeper than at rest, so its text keeps its contrast. */
+  --color-button-hover: light-dark(#2c3946, #c6d0d9);
   --color-line: light-dark(#dfe5ea, #25303a);
   --color-line-strong: light-dark(#b9c4cf, #3b4956);
   --color-ink: light-dark(#0f1820, #e9eef2);
@@ -23,8 +25,8 @@
   --color-warning: light-dark(#8a5a00, #e9b44c);
   --color-on-button: light-dark(#ffffff, #0f1317);
   --color-link: light-dark(#1a5fba, #7db3f5);
-  /* A company draws its logo for a white ground, so the tile of a logo stays white in both themes, as in the prototype. */
-  --color-logo-ground: #ffffff;
+  /* A logo stands on the page itself in the light theme. Many logos are dark, so the dark theme keeps a white ground under them, where they stay readable. */
+  --color-logo-ground: light-dark(transparent, #ffffff);
   --color-data-soft: light-dark(
     rgba(31, 111, 214, 0.1),
     rgba(57, 135, 229, 0.18)
@@ -37,6 +39,8 @@
   --color-warning-soft: light-dark(#fbf0d9, rgba(233, 180, 76, 0.14));
   /* The button is ink, Beli is the green of gains, Jual is the red of losses, and each carries the text of a button, so these follow the colors of their role in each theme. */
   --color-button: var(--color-ink);
+  --color-buy-hover: color-mix(in oklab, var(--color-buy), black 14%);
+  --color-sell-hover: color-mix(in oklab, var(--color-sell), black 14%);
   --color-buy: var(--color-gain);
   --color-on-buy: var(--color-on-button);
   --color-sell: var(--color-loss);
@@ -383,6 +387,11 @@ a {
   cursor: pointer;
 }
 
+/* The primary button takes a deeper ink on hover. */
+.primary-button:hover {
+  background: var(--color-button-hover);
+}
+
 /* The label of a part that opens, such as a table of returns, has the color of a link and the height of a touch target, and it keeps the marker that shows whether the part is open. Padding reaches that height, because a line as high as the target would set the lines of a label that wraps a whole target apart. */
 summary {
   min-height: var(--size-touch-target);
@@ -391,20 +400,23 @@ summary {
   cursor: pointer;
 }
 
-/* Only a link looks like a link on hover: a link that stands alone and the label of a part that opens gain the underline that a link in a sentence already has. */
-:is(.standalone-link, summary):hover {
+/* The pointer turns into a hand over every control, so a reader with a mouse sees what reacts before clicking. */
+:is(button, summary, [role="button"], label:has(> input)):not(:disabled) {
+  cursor: pointer;
+}
+
+/* A link that stands alone gains on hover the underline that a link in a sentence already has, as links do in other apps. */
+.standalone-link:hover {
   text-decoration-line: underline;
   text-decoration-thickness: var(--size-line);
   text-underline-offset: 0.2em;
 }
 
-/* A button, or a link drawn as a button, darkens on hover, as buttons do in other apps. An option of a choice draws its look over a hidden radio button, so it darkens the same way. */
-:is(button, a[class], label:has(> input[type="radio"])):not(
-    .standalone-link,
-    .row-link,
-    :disabled
-  ):hover {
-  filter: brightness(0.94);
+/* A plain label of a part that opens is drawn as a link, so it reacts as a link does: its text takes the underline under the pointer. A label that a module draws, such as a key term on a card, sets its own hover. */
+details:not([class]) > summary:not([class]):hover {
+  text-decoration-line: underline;
+  text-decoration-thickness: var(--size-line);
+  text-underline-offset: 0.2em;
 }
 
 /* A row or a card that opens something, such as a student in a list, shows a light ground on hover instead of an underline, because the whole row is the target. A CSS module composes it from global. */

@@ -92,3 +92,8 @@
   height: 1.125rem;
   color: var(--color-data);
 }
+
+/* The switcher of the class fills its own shape with the raised color under the pointer. */
+.button:hover {
+  background: var(--color-raised);
+}

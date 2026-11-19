@@ -17,7 +17,7 @@ import { holdingQuoteFailureText } from "~/features/trading/holding-quote-failur
 import type { PortfolioReport } from "~/features/trading/read-portfolio-report.server";
 import { formatPercent } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
-import { Popover, PopoverButton } from "~/popover";
+import { Popover } from "~/popover";
 import type { Result } from "~/result";
 import { analysisDataId } from "./analysis-calculation";
 import { DiversificationCalculation } from "./diversification-calculation";
@@ -153,9 +153,9 @@ export function AnalysisView({
                 {m.measures_analysis_market_link()}
               </Link>
             )}
-            <PopoverButton popover={analysisDataId} className={styles["link"]}>
+            <a href={`#${analysisDataId}`} className={styles["link"]}>
               {m.measures_analysis_data_label()}
-            </PopoverButton>
+            </a>
           </section>
         )}
       </div>
@@ -181,14 +181,10 @@ export function AnalysisView({
         firstSessionDate={firstSessionDate}
         reader={reader}
       />
-      <Popover
-        id={analysisDataId}
-        label={m.measures_analysis_data_label()}
-        placement="belowEnd"
-        className={showData ? styles["returnedData"] : undefined}
-      >
-        <div className={styles["data"]}>
-          <h2>{m.measures_analysis_data_label()}</h2>
+      {/* The data and the method behind every measure close the page as a part that opens, because they are a reference for checking a number, not something to read first. A link to the part opens it. */}
+      <details className={styles["dataSection"]} open={showData}>
+        <summary>{m.measures_analysis_data_label()}</summary>
+        <div id={analysisDataId} className={styles["data"]}>
           <MethodNotice />
           <PortfolioMeasuresView
             report={measures}
@@ -200,7 +196,7 @@ export function AnalysisView({
           <h2>{m.measures_stocks_title()}</h2>
           <StockTable classId={classId} stocks={stocks} />
         </div>
-      </Popover>
+      </details>
       {portfolio !== undefined && (
         <DiversificationCalculation portfolio={portfolio} />
       )}

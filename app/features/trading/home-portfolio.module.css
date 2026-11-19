@@ -186,6 +186,21 @@
   color: var(--color-ink);
   text-decoration: none;
 }
+
+/* The link of a holding covers its row, so the whole row opens the stock and shows a light ground under the pointer. */
+.table tbody tr {
+  position: relative;
+}
+
+.table .stockLink::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+}
+
+.table tbody tr:has(.stockLink:hover) {
+  background: var(--color-hover);
+}
 .table small,
 .cashName small,
 .rowPrice small,

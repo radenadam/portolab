@@ -62,3 +62,33 @@ button.chip {
   border-color: transparent;
   background: var(--color-warning-soft);
 }
+
+/* A filter that is not chosen fills its own pill and draws a stronger edge under the pointer. */
+.filter:not([aria-pressed="true"], [aria-current="page"]):hover > span {
+  border-color: var(--color-line-strong);
+  background: var(--color-raised);
+  color: var(--color-ink);
+}
+
+/* A chip that opens something fills its own pill under the pointer: the name of the reader with the raised color, and the badge of the simulation with a deeper tint of its warning. */
+button.chip:hover::before {
+  border-color: var(--color-line-strong);
+  background: var(--color-raised);
+}
+
+button.chip:hover {
+  color: var(--color-ink);
+}
+
+button.warning:hover::before {
+  border-color: transparent;
+  background: color-mix(
+    in oklab,
+    var(--color-warning-soft),
+    var(--color-warning) 14%
+  );
+}
+
+button.warning:hover {
+  color: var(--color-warning);
+}

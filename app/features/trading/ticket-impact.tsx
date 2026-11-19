@@ -7,7 +7,7 @@ import type { AnalysisAxis } from "~/features/measures/analysis-axes";
 import { previewTrade } from "./preview-trade";
 import { ImpactHeading, TradeImpact } from "./trade-impact";
 import { OtherQuoteTimes } from "~/features/market-data/other-quote-times";
-import { unpricedImpactText } from "./stock-impact";
+import { unpricedImpactText } from "./unpriced-impact-text";
 import styles from "./trade-impact.module.css";
 
 export function TicketImpact({
