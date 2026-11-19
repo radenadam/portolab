@@ -6,7 +6,6 @@ import { HomeHoldingPrice } from "./home-holding-price";
 import { NumberText } from "~/number-text";
 import { homeHoldingsSectionId } from "./home-holdings-section-id";
 import { homeSparklineMonths } from "./home-sparkline-months";
-import { portfolioWeight } from "~/units/portfolio-weight";
 import { rupiah } from "~/units/rupiah";
 import { lots } from "~/units/lots";
 import { lotCount, shareCount } from "./count-parts";
@@ -46,13 +45,6 @@ export function HomeHoldingsSection({
   const sharedTime = sharedQuoteTime(
     home.report.valuation.holdings.map((holding) =>
       holding.kind === "priced" ? holding.quote : undefined,
-    ),
-  );
-  const maximumWeight = portfolioWeight(
-    Math.max(
-      values.cashWeight ?? 0,
-      ...values.holdings.map(({ weight }) => weight ?? 0),
-      0.01,
     ),
   );
   const maximumGain = rupiah(
@@ -147,7 +139,6 @@ export function HomeHoldingsSection({
                 row={row}
                 home={home}
                 classId={classId}
-                maximumWeight={maximumWeight}
                 maximumGain={maximumGain}
                 sharedTime={sharedTime}
                 keepReturn={studentName !== undefined}
@@ -158,7 +149,7 @@ export function HomeHoldingsSection({
                 <CashName note={cashNote} />
               </th>
               <td>
-                <WeightMark value={values.cashWeight} maximum={maximumWeight} />
+                <WeightMark value={values.cashWeight} kind="cash" />
               </td>
               <td />
               <td />
@@ -224,7 +215,7 @@ export function HomeHoldingsSection({
               )}
             </div>
             <div className={styles["rowWeight"]}>
-              <WeightMark value={row.weight} maximum={maximumWeight} />
+              <WeightMark value={row.weight} kind="stock" />
             </div>
             <div className={styles["rowGain"]}>
               {row.holding.kind === "priced" && (
@@ -245,7 +236,7 @@ export function HomeHoldingsSection({
             <NumberText>{formatRupiah(home.report.valuation.cash)}</NumberText>
           </strong>
           <div className={styles["rowWeight"]}>
-            <WeightMark value={values.cashWeight} maximum={maximumWeight} />
+            <WeightMark value={values.cashWeight} kind="cash" />
           </div>
         </li>
       </ul>

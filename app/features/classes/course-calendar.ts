@@ -21,7 +21,7 @@ export const sessionCount: SessionNumber = sessionNumbers.length;
 const daysPerWeek = 7;
 
 /** Where a week lies in the course of a class, with the session that it names. */
-export interface CourseWeek {
+interface CourseWeek {
   /** Whether the week comes before the week of session 1, is the week of a session, or comes after the week of the last session. */
   kind: "ahead" | "session" | "over";
   /** Session 1 before the course, the session of the week during the course, and the last session after it. */

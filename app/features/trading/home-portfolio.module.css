@@ -218,11 +218,20 @@
   border-radius: var(--radius-button);
   overflow: hidden;
 }
+.weightTrack {
+  display: flex;
+}
 .weightTrack > span {
   display: block;
   block-size: 100%;
-  background: var(--color-data);
   border-radius: inherit;
+}
+.stockWeight {
+  background: var(--color-data);
+}
+.cashWeight {
+  margin-inline-start: auto;
+  background: var(--color-line-strong);
 }
 .gainTrack {
   position: relative;

@@ -66,12 +66,42 @@
   gap: var(--space-2);
 }
 
+/* A browser draws a checkbox as large as its element, and the element must be a whole touch target. So the element keeps the size of a touch target, reaches over the space around it, and draws a box at the size of a line of text in its middle. */
 .box {
+  display: grid;
   flex: none;
+  place-content: center;
   width: var(--size-touch-target);
   height: var(--size-touch-target);
-  margin: 0;
-  accent-color: var(--color-data);
+  margin: calc((var(--size-checkbox) - var(--size-touch-target)) / 2);
+  appearance: none;
+  background: none;
+  cursor: pointer;
+}
+
+.box::before {
+  width: var(--size-checkbox);
+  height: var(--size-checkbox);
+  border: var(--size-mark) solid var(--color-line-strong);
+  border-radius: var(--radius-checkbox);
+  background: var(--color-panel);
+  content: "";
+}
+
+.box:checked::before {
+  border-color: var(--color-data);
+  background: var(--color-data)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    center / 80% no-repeat;
+}
+
+.box:focus-visible {
+  outline: none;
+}
+
+.box:focus-visible::before {
+  outline: var(--size-mark) solid var(--color-data);
+  outline-offset: var(--size-mark);
 }
 
 .stepButton {

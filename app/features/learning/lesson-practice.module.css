@@ -64,7 +64,6 @@
 
 .checkbox {
   composes: box from "../../form.module.css";
-  width: var(--space-5);
 }
 
 .formula {

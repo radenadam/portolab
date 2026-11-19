@@ -7,12 +7,18 @@ import type { PortfolioWeight } from "~/units/portfolio-weight";
 import type { Rupiah } from "~/units/rupiah";
 import styles from "./home-portfolio.module.css";
 
+const weightFills = {
+  stock: "stockWeight",
+  cash: "cashWeight",
+} as const;
+
+/** A weight fills its share of the whole track, so the weights of a portfolio and its cash add up to one full track. Cash fills from the other end, because it is the part of the portfolio that is not invested. */
 export function WeightMark({
   value,
-  maximum,
+  kind,
 }: {
   value: PortfolioWeight | undefined;
-  maximum: PortfolioWeight;
+  kind: keyof typeof weightFills;
 }): ReactNode {
   return value === undefined ? null : (
     <div className={styles["weight"]}>
@@ -20,7 +26,10 @@ export function WeightMark({
         <NumberText>{formatPercent(value, "two")}</NumberText>
       </span>
       <span className={styles["weightTrack"]} aria-hidden="true">
-        <span style={{ width: percentOf(plotFraction(value / maximum)) }} />
+        <span
+          className={styles[weightFills[kind]]}
+          style={{ width: percentOf(plotFraction(value)) }}
+        />
       </span>
     </div>
   );

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { Link, useLocation } from "react-router";
+import { useLocation } from "react-router";
+import { ViewLink } from "~/view-link";
 import { ConceptCard } from "~/concept-card";
 import { ConceptLesson } from "~/features/learning/concept-lesson";
 import type { ConceptTermId } from "~/features/learning/concept-term-ids";
@@ -39,7 +40,6 @@ export function AnalysisAllocation({
   const allocation = analysisAllocationRows(valuation, group);
   const rows = allocation.kind === "valued" ? allocation.rows : [];
   const notice = allocationNotice(allocation, reader);
-  const maximum = Math.max(...rows.map((row) => row.weight));
   const details: Record<
     AllocationGroup,
     { label: string; title: string; term: ConceptTermId }
@@ -118,17 +118,13 @@ export function AnalysisAllocation({
             const parameters = new URLSearchParams(search);
             parameters.set("allocation", choice);
             return (
-              <Link
+              <ViewLink
                 key={choice}
-                to={{
-                  search: `?${parameters.toString()}`,
-                  hash: "#analysis-allocation",
-                }}
-                preventScrollReset
+                to={`?${parameters.toString()}#analysis-allocation`}
                 aria-current={group === choice ? "true" : undefined}
               >
                 <span>{details[choice].label}</span>
-              </Link>
+              </ViewLink>
             );
           })}
         </nav>
@@ -182,8 +178,14 @@ export function AnalysisAllocation({
                     height="100%"
                     className={styles["track"]}
                   />
+                  {/* A weight fills its share of the whole track, and cash fills from the other end, as in the table of holdings. */}
                   <rect
-                    width={percentOf(plotFraction(row.weight / maximum))}
+                    x={
+                      row.key === "cash"
+                        ? percentOf(plotFraction(1 - row.weight))
+                        : undefined
+                    }
+                    width={percentOf(plotFraction(row.weight))}
                     height="100%"
                     className={row.key === "cash" ? styles["cash"] : undefined}
                   />

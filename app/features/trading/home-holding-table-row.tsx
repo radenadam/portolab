@@ -11,7 +11,6 @@ import {
   formatSignedPercent,
   formatSignedRupiah,
 } from "~/formatting";
-import type { PortfolioWeight } from "~/units/portfolio-weight";
 import type { Rupiah } from "~/units/rupiah";
 import { HomeHoldingPrice } from "./home-holding-price";
 import { WeightMark, GainMark } from "./home-holding-marks";
@@ -23,7 +22,6 @@ export function HomeHoldingTableRow({
   row,
   home,
   classId,
-  maximumWeight,
   maximumGain,
   sharedTime,
   keepReturn,
@@ -31,7 +29,6 @@ export function HomeHoldingTableRow({
   row: HomeHolding;
   home: HomePortfolioData;
   classId: ClassId;
-  maximumWeight: PortfolioWeight;
   maximumGain: Rupiah;
   sharedTime: Date | undefined;
   keepReturn: boolean;
@@ -52,7 +49,7 @@ export function HomeHoldingTableRow({
         </StockPageLink>
       </th>
       <td>
-        <WeightMark value={row.weight} maximum={maximumWeight} />
+        <WeightMark value={row.weight} kind="stock" />
       </td>
       <td>
         <NumberText>

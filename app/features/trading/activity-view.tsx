@@ -1,14 +1,10 @@
 import type { ReactNode, ComponentProps } from "react";
-import { withLessonTask } from "~/features/learning/lesson-task";
 import { LessonTaskBanner } from "~/features/learning/lesson-task-banner";
-import { Link } from "react-router";
 import { FormFailure } from "~/form";
 import { m } from "~/paraglide/messages.js";
 import { ActivitySelectionForm } from "./activity-selection-form";
 import type { ActivitySelectionFields } from "./activity-selection-form";
 import { ActivityOrders } from "./activity-orders";
-import { JournalList } from "./journal-list";
-import type { ActivityView as ActivityChoice } from "./activity-selection";
 import styles from "./activity.module.css";
 
 export function ActivityView({
@@ -20,7 +16,6 @@ export function ActivityView({
   prices,
   fields,
   filter,
-  view,
   base,
   readOnly = false,
   cancelFailure,
@@ -28,16 +23,14 @@ export function ActivityView({
   returnPath,
   portfolioKind,
   showTitle = !readOnly,
-}: ComponentProps<typeof ActivityOrders> &
-  Omit<ComponentProps<typeof JournalList>, "readOnly"> & {
-    fields: ActivitySelectionFields | undefined;
-    view: ActivityChoice;
-    base: string;
-    readOnly?: boolean;
-    cancelFailure?: string | undefined;
-    returnPath?: string | undefined;
-    showTitle?: boolean;
-  }): ReactNode {
+}: ComponentProps<typeof ActivityOrders> & {
+  fields: ActivitySelectionFields | undefined;
+  base: string;
+  readOnly?: boolean;
+  cancelFailure?: string | undefined;
+  returnPath?: string | undefined;
+  showTitle?: boolean;
+}): ReactNode {
   const separator = base.includes("?") ? "&" : "?";
 
   return (
@@ -52,31 +45,10 @@ export function ActivityView({
         />
       )}
       {cancelFailure !== undefined && <FormFailure text={cancelFailure} />}
-      <nav
-        className={styles["toggle"]}
-        aria-label={m.trading_activity_view_label()}
-      >
-        <Link
-          to={withLessonTask(
-            `${base}${separator}view=orders&status=${filter}`,
-            task,
-          )}
-          aria-current={view === "orders" ? "page" : undefined}
-        >
-          {m.trading_activity_orders_label()}
-        </Link>
-        <Link
-          to={withLessonTask(
-            `${base}${separator}view=journal&status=${filter}`,
-            task,
-          )}
-          aria-current={view === "journal" ? "page" : undefined}
-        >
-          {m.trading_activity_journal_label()}
-        </Link>
-      </nav>
-      <div className={styles["columns"]} data-layout="columns" data-view={view}>
+      <div className={styles["columns"]}>
         <ActivityOrders
+          trades={trades}
+          prices={prices}
           orders={orders}
           task={task}
           now={now}
@@ -86,13 +58,6 @@ export function ActivityView({
           studentName={studentName}
           portfolioKind={portfolioKind}
           basePath={readOnly ? `${base}${separator}view=orders` : base}
-        />
-        <JournalList
-          trades={trades}
-          task={task}
-          prices={prices}
-          classId={classId}
-          readOnly={readOnly}
         />
       </div>
     </div>

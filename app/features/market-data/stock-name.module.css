@@ -1,8 +1,8 @@
-/* The tile lines up with the code, so a table that aligns its cells at their first line aligns its numbers with the code too. A column too narrow for the tile beside a name, such as the table of prices on a phone, puts the tile above the code, so the name keeps the whole width. */
+/* The tile stands in the middle of the code and the name beside it, as the cells of a row stand in its middle, so the tile, the name, and the numbers of a row share one center. A column too narrow for the tile beside a name, such as the table of prices on a phone, puts the tile above the code, so the name keeps the whole width. */
 .stock {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: center;
   gap: var(--space-1) var(--space-3);
 }
 

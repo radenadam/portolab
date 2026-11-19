@@ -28,17 +28,13 @@ export default function ActivityPage({
   actionData,
 }: Route.ComponentProps): ReactNode {
   const cancelFailure = actionData?.cancelFailure;
-  const { filter, view } =
-    cancelFailure === undefined
-      ? loaderData
-      : { filter: "all" as const, view: "orders" as const };
+  const filter = cancelFailure === undefined ? loaderData.filter : "all";
   return (
     <ActivityView
       {...loaderData}
       base={loaderData.path}
       showTitle={!loaderData.demonstration}
       filter={filter}
-      view={view}
       cancelFailure={cancelFailure}
     />
   );

@@ -296,11 +296,9 @@
   font-size: var(--text-heading);
 }
 @media (width >= 73.75rem) {
+  /* The docked ticket is a panel only as tall as its form, which stays in view beside the stock while the page scrolls, so no empty panel runs down beside the page. */
   .column {
     display: flex;
-    border: var(--size-line) solid var(--color-line);
-    border-radius: var(--radius-panel);
-    background: var(--color-panel);
   }
   .ticket {
     position: sticky;
@@ -309,7 +307,7 @@
     align-self: flex-start;
     height: auto;
     max-height: calc(100dvh - var(--size-top-bar) - var(--space-8));
-    border: 0;
+    border: var(--size-line) solid var(--color-line);
     border-radius: var(--radius-panel);
     z-index: auto;
   }

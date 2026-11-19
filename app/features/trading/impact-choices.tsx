@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { Link, useLocation } from "react-router";
+import { useLocation } from "react-router";
+import { ViewLink } from "~/view-link";
 import { pathWithQuery } from "~/path-with-query";
 import styles from "./trade-impact.module.css";
 
@@ -23,14 +24,13 @@ export function ImpactChoices<Choice extends string | number>({
   return (
     <nav className={styles["segments"]} aria-label={label}>
       {choices.map((choice) => (
-        <Link
+        <ViewLink
           key={choice}
           to={`${pathWithQuery(`${location.pathname}${location.search}`, { [field]: String(choice) })}#${anchor}`}
-          preventScrollReset
           aria-current={selected === choice ? "true" : undefined}
         >
           {name(choice)}
-        </Link>
+        </ViewLink>
       ))}
     </nav>
   );

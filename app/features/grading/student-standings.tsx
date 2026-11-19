@@ -34,6 +34,7 @@ import type { ClassId } from "~/features/classes/classes.schema";
 import { Link } from "react-router";
 import { pathReturningTo } from "~/features/accounts/path-returning-to";
 import { studentPortfolioPath } from "./grading-paths";
+import { StudentStandingsHead } from "./student-standings-head";
 import styles from "./grading.module.css";
 
 export function StudentStandings({
@@ -61,21 +62,7 @@ export function StudentStandings({
   const betas = paddedRange(betaValues, beta);
   return (
     <table className={styles["table"]} data-layout="table">
-      <thead>
-        <tr>
-          <th>
-            <span className={styles["rankHeading"]}>
-              {m.grading_rank_label()}
-            </span>
-          </th>
-          <th>{m.grading_student_label()}</th>
-          <th>{m.grading_short_return_label()}</th>
-          <th>{m.grading_short_beta_label()}</th>
-          <th>{m.grading_short_risk_label()}</th>
-          <th aria-sort="descending">{rankingLabel(options.measure)} ↓</th>
-          <th>{m.grading_last_activity_label()}</th>
-        </tr>
-      </thead>
+      <StudentStandingsHead measure={options.measure} />
       <tbody data-layout="rows">
         {shown.map((student) => {
           const value = rankingValue(student, options.measure);

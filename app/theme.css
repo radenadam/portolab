@@ -110,6 +110,9 @@
   --width-rail-item: 3.875rem;
   /* A menu that opens in place is wide enough for the name of a class beside its mark. */
   --width-popover: 16.25rem;
+  /* A popover holds a short card or a few rows, and a longer list scrolls inside it, so it never covers the whole screen. */
+  --size-popover-height: 30rem;
+  --size-since-list: 18rem;
   --width-concept-card: 24rem;
   --width-concept-card-table: 32rem;
   --width-trade-button: 7.5rem;
@@ -130,6 +133,8 @@
   --width-chart-tip: 12rem;
   /* The app icon takes the size that the rail of the references draws it at. */
   --size-app-icon: 1.75rem;
+  --size-checkbox: 1.125rem;
+  --radius-checkbox: 0.25rem;
   --size-top-bar: 3.5rem;
   --size-tab-bar: 3.875rem;
   --size-icon: 1.25rem;
@@ -384,7 +389,6 @@ a {
 summary {
   min-height: var(--size-touch-target);
   padding-block: calc((var(--size-touch-target) - 1lh) / 2);
-  margin-block: calc((1lh - var(--size-touch-target)) / 2);
   color: var(--color-link);
   cursor: pointer;
 }

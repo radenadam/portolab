@@ -277,8 +277,10 @@
 .measureColumn {
   inline-size: var(--width-market-measure);
 }
+/* The link fills the height of its touch target and centers the tile and the names in it, so they share the center of the row. */
 .stockLink {
-  display: block;
+  display: flex;
+  align-items: center;
   min-block-size: var(--size-touch-target);
   color: inherit;
   text-decoration: none;

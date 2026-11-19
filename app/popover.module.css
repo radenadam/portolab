@@ -21,7 +21,7 @@
     inset: auto;
     margin: 0;
     /* The popover stays beside its button. It takes the side with the most room and scrolls inside that room when it is taller, instead of moving to the middle of the screen. */
-    max-height: 100%;
+    max-height: min(100%, var(--size-popover-height));
     position-try-order: most-height;
     position-try-fallbacks:
       flip-block,

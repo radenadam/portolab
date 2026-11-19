@@ -16,15 +16,14 @@ import { fractionOf, paddedRange } from "~/charts/scale";
 import { plotFraction } from "~/units/plot-fraction";
 import { monthlyReturn } from "~/units/monthly-return";
 import type { PortfolioReader } from "~/features/trading/text-for-reader";
-import {
-  AnalysisCalculation,
-  AnalysisCalculationButton,
-} from "./analysis-calculation";
+import { AnalysisCalculation } from "./analysis-calculation";
 import { MeasureLabel } from "./measure-list";
 import type { MeasureRow } from "./measure-list";
 import type { PortfolioSummary } from "./measure-summaries";
 import { portfolioMeasureRows } from "./portfolio-measure-rows";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
+import { PopoverButton } from "~/popover";
+import { Icon } from "~/icon";
 import styles from "./analysis.module.css";
 
 export interface AnalysisMeasure {
@@ -117,16 +116,10 @@ export function analysisMeasures(
             }
           : {}),
       },
-      reference:
-        row.concept === "alpha"
-          ? m.measures_analysis_market_alpha_notice({
-              index: marketIndex.code,
-              value: comparison.text,
-            })
-          : m.measures_analysis_market_notice({
-              index: marketIndex.code,
-              value: comparison.text,
-            }),
+      reference: m.measures_analysis_market_reference_label({
+        index: marketIndex.code,
+        value: comparison.text,
+      }),
       scale: comparison.scale,
     });
   }
@@ -193,13 +186,23 @@ export function AnalysisMeasures({
             <dt>
               <MeasureLabel row={row} />
             </dt>
-            <dd className={styles["value"]}>
-              <NumberText whole>{row.value}</NumberText>
-            </dd>
-            <dd>{scale}</dd>
-            <dd className={styles["comparison"]}>
-              <NumberText>{reference}</NumberText>{" "}
-              <AnalysisCalculationButton id={`analysis-${key}`} />
+            <dd>
+              <PopoverButton
+                popover={`analysis-${key}`}
+                className={styles["measureButton"]}
+              >
+                <span className={styles["value"]}>
+                  <NumberText whole>{row.value}</NumberText>
+                  <small>
+                    <NumberText>{reference}</NumberText>
+                  </small>
+                </span>
+                {scale}
+                <span className={styles["srOnly"]}>
+                  {m.app_concept_calculation_label()}
+                </span>
+                <Icon name="chevronRight" className={styles["chevron"]} />
+              </PopoverButton>
             </dd>
           </div>
         ))}

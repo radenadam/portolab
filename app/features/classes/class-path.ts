@@ -7,7 +7,7 @@ export type ClassMapAxis = (typeof classMapAxes)[number];
 export const classMapSections = ["data", "administration"] as const;
 export type ClassMapSection = (typeof classMapSections)[number];
 
-export function classMapTargetId(
+function classMapTargetId(
   section: ClassMapSection,
   studentId?: UserId,
 ): string {

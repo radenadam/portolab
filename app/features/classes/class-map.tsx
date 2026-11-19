@@ -1,9 +1,10 @@
 import { marketIndex } from "~/features/market-data/tracked-instruments";
 import type { ReactNode } from "react";
-import { Link } from "react-router";
+
 import { NumberText } from "~/number-text";
 import { RiskMap } from "~/charts/risk-map";
 import { mapSpread } from "~/charts/map-spread";
+import { ViewLink } from "~/view-link";
 import { RiskMapLegend } from "~/charts/risk-map-legend";
 import type { MapValue, MarkedPoint } from "~/charts/layout-risk-map";
 import {
@@ -221,18 +222,18 @@ function ClassMapHeader({
         )}
       </div>
       <div className={styles["choice"]}>
-        <Link
+        <ViewLink
           to="?axis=beta"
           aria-current={axis === "beta" ? "true" : undefined}
         >
           {m.classes_map_beta_label()}
-        </Link>
-        <Link
+        </ViewLink>
+        <ViewLink
           to="?axis=deviation"
           aria-current={axis === "deviation" ? "true" : undefined}
         >
           {m.classes_map_deviation_label()}
-        </Link>
+        </ViewLink>
       </div>
     </div>
   );

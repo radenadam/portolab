@@ -5,6 +5,7 @@
 .activity {
   display: grid;
   gap: var(--space-4);
+  inline-size: 100%;
 }
 
 .selectionForm {
@@ -38,8 +39,7 @@
   gap: var(--space-4);
 }
 
-.orderSection,
-.journalSection {
+.orderSection {
   display: flex;
   min-inline-size: 0;
   flex-direction: column;
@@ -60,33 +60,14 @@
   list-style: none;
 }
 
-.order,
-.journalRow {
+.order {
   display: grid;
   gap: var(--space-2);
   padding-block: var(--space-4);
   border-block-end: var(--size-line) solid var(--color-line);
 }
 
-.journalSection .list {
-  display: grid;
-  grid-template-columns:
-    max-content minmax(max-content, var(--width-journal-change))
-    minmax(max-content, var(--width-journal-price))
-    minmax(0, 1fr);
-}
-
-.journalRow {
-  grid-column: 1 / -1;
-  grid-template-columns: subgrid;
-}
-
-.journalRow > * {
-  grid-column: 1 / -1;
-}
-
-.order:last-child,
-.journalRow:last-child {
+.order:last-child {
   border-block-end: 0;
 }
 
@@ -159,10 +140,6 @@
   font-weight: 600;
 }
 
-.toggle {
-  composes: choice from "../../segmented-choice.module.css";
-}
-
 .journalTitle {
   display: flex;
   min-block-size: var(--size-touch-target);
@@ -211,14 +188,6 @@
   font-size: var(--text-small);
 }
 
-.journalRow blockquote {
-  margin: 0;
-  padding-inline-start: var(--space-3);
-  border-inline-start: var(--size-mark) solid var(--color-line-strong);
-  overflow-wrap: anywhere;
-  white-space: pre-line;
-}
-
 .performance {
   color: var(--color-ink-secondary);
   font-size: var(--text-row);
@@ -230,29 +199,13 @@
   font-size: var(--text-small);
 }
 
+/* How a filled order has done since it filled reads as one line under its fill: the label, the change, the current price, and a bar on the shared scale of the list. */
 .comparison,
 .since {
-  display: grid;
-  grid-template-columns: subgrid;
-  grid-column: 1 / -1;
-  gap: var(--space-2);
-  align-items: center;
-}
-
-.journalRow > .performance:last-child {
-  display: grid;
-  grid-template-columns: subgrid;
-}
-
-.performance small,
-.comparison > p {
-  grid-column: 1 / -1;
-}
-
-.comparison[data-side="sell"],
-.since[data-side="sell"] {
   display: flex;
   flex-wrap: wrap;
+  gap: var(--space-1) var(--space-2);
+  align-items: center;
 }
 
 .comparison[data-side="sell"] {
@@ -262,10 +215,7 @@
 .bar {
   position: relative;
   display: block;
-  min-inline-size: 0;
-  max-inline-size: calc(
-    var(--width-journal-bar) - 2 * (var(--space-1) + var(--size-line))
-  );
+  inline-size: var(--width-journal-bar);
   block-size: var(--size-journal-mark);
   margin-inline: calc(var(--space-1) + var(--size-line));
 }
@@ -308,43 +258,8 @@
   color: var(--color-muted);
 }
 
-@media (width < 60rem) {
-  .columns[data-view="orders"] > .journalSection,
-  .columns[data-view="journal"] > .orderSection {
-    display: none;
-  }
-
-  .journalSection .list {
-    grid-template-columns: max-content minmax(0, 1fr);
-  }
-
-  .since {
-    row-gap: var(--space-1);
-  }
-}
-
 @media (width >= 60rem) {
-  .toggle {
-    display: none;
-  }
-  .columns {
-    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-  }
   .activity {
     gap: var(--space-6);
-  }
-}
-
-@media (width >= 60rem) {
-  .activity[data-read-only] .columns {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .activity[data-read-only] .journalSection {
-    grid-column: 1;
-    grid-row: 1;
-  }
-  .activity[data-read-only] .orderSection {
-    grid-column: 2;
-    grid-row: 1;
   }
 }

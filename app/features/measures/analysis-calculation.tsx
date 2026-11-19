@@ -35,11 +35,3 @@ export function AnalysisCalculation({
     </Popover>
   );
 }
-
-export function AnalysisCalculationButton({ id }: { id: string }): ReactNode {
-  return (
-    <PopoverButton popover={id} className={styles["link"]}>
-      {m.app_concept_calculation_label()} <span aria-hidden>›</span>
-    </PopoverButton>
-  );
-}

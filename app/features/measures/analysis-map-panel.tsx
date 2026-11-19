@@ -5,7 +5,7 @@ import { analysisAxisDetails } from "./analysis-axis-details";
 import { analysisAxes } from "./analysis-axes";
 import { AnalysisCaption } from "./analysis-caption";
 import type { ReactNode } from "react";
-import { Link, useLocation } from "react-router";
+import { useLocation } from "react-router";
 import { ConceptCard } from "~/concept-card";
 import {
   ConceptLesson,
@@ -21,6 +21,7 @@ import { measureFailureText } from "./measure-failure-text";
 import type { MarketSummary, PortfolioSummary } from "./measure-summaries";
 import type { StoredMeasureFailure } from "./measure-stored.server";
 import type { StudentLine } from "./read-measures.server";
+import { ViewLink } from "~/view-link";
 import styles from "./analysis.module.css";
 import type { AnalysisHolding } from "./analysis-holdings";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
@@ -122,13 +123,13 @@ function AxisLinks({ axis }: { axis: AnalysisAxis }): ReactNode {
         const query = new URLSearchParams(location.search);
         query.set("axis", value);
         return (
-          <Link
+          <ViewLink
             key={value}
-            to={{ pathname: location.pathname, search: query.toString() }}
+            to={`${location.pathname}?${query.toString()}`}
             aria-current={axis === value ? "true" : undefined}
           >
             <span>{analysisAxisDetails(value).label}</span>
-          </Link>
+          </ViewLink>
         );
       })}
     </nav>

@@ -1,16 +1,10 @@
-import type { LessonTask } from "~/features/learning/lesson-task";
-import { MarketTime } from "~/market-time";
 import { NumberText } from "~/number-text";
 import { cumulativeReturn } from "~/units/cumulative-return";
 import type { CumulativeReturn } from "~/units/cumulative-return";
 import type { ReactNode } from "react";
 import { ChangeText } from "~/change-text";
-import { countedText } from "~/counted-text";
 import { percentOf } from "~/charts/plot";
 import { plotFraction } from "~/units/plot-fraction";
-import type { ClassId } from "~/features/classes/classes.schema";
-import { StockName } from "~/features/market-data/stock-name";
-import { StockPageLink } from "~/features/market-data/stock-page-link";
 import {
   attemptForCodes,
   missingQuoteText,
@@ -21,20 +15,15 @@ import {
   ownQuoteTime,
   sharedQuoteTime,
 } from "~/features/market-data/shared-quote-time";
-import { SharedQuoteTimeNotice } from "~/features/market-data/shared-quote-time-notice";
 import { QuoteTime } from "~/features/market-data/quote-time";
 import {
-  formatNumber,
   formatRupiah,
   formatSignedPercent,
   formatSignedRupiah,
 } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
-import { lotCount } from "./count-parts";
-import { journalEntryId } from "./journal-entry-id";
 import type { JournalTrade } from "./trade-journal";
 import type { OrderSide } from "./order";
-import { SideTag } from "./side-tag";
 import styles from "./activity.module.css";
 
 type JournalPrices = Pick<PricesOfView, "now" | "source" | "latestAttempt">;
@@ -44,112 +33,25 @@ const sinceLabels: Record<OrderSide, () => string> = {
   sell: m.trading_activity_since_sell_label,
 };
 
-export function JournalList({
-  trades,
-  prices,
-  classId,
-  task,
-  readOnly,
-}: {
-  trades: readonly JournalTrade[];
-  prices: JournalPrices;
-  classId: ClassId;
-  task?: LessonTask | undefined;
-  readOnly: boolean;
-}): ReactNode {
-  const maximum = cumulativeReturn(
-    Math.max(0.01, ...trades.map((trade) => Math.abs(trade.change ?? 0))),
-  );
-  // Only a price that an entry compares with its trade shows a time.
-  const sharedTime = sharedQuoteTime(
-    trades.map((trade) =>
-      trade.change === undefined ? undefined : trade.quote,
+/** The scale of the bars of the changes since the trades, shared by every filled order of a list, and the time that the current prices of the list share, which the list states once, so only a price of another time shows its own. */
+export function tradePerformanceScale(trades: readonly JournalTrade[]): {
+  maximum: CumulativeReturn;
+  sharedTime: Date | undefined;
+} {
+  return {
+    maximum: cumulativeReturn(
+      Math.max(0.01, ...trades.map((trade) => Math.abs(trade.change ?? 0))),
     ),
-  );
-  return (
-    <section
-      className={styles["journalSection"]}
-      aria-labelledby="journal-heading"
-    >
-      <h2 id="journal-heading" className={styles["journalTitle"]}>
-        {m.trading_activity_journal_title()}{" "}
-        <span>
-          <NumberText whole>
-            {countedText(
-              trades.length,
-              {
-                one: m.trading_activity_one_trade_label,
-                several: m.trading_activity_several_trades_label,
-              },
-              { count: formatNumber(trades.length) },
-            )}
-          </NumberText>
-        </span>
-      </h2>
-      <div className={styles["panel"]}>
-        {trades.length === 0 ? (
-          <p className={styles["empty"]}>
-            {m.trading_activity_no_trades_body()}
-          </p>
-        ) : (
-          <ul className={styles["list"]} data-layout="rows">
-            {trades.map((trade) => (
-              <li className={styles["journalRow"]} key={trade.order.id}>
-                <div className={styles["journalHeader"]}>
-                  <SideTag side={trade.order.side} />
-                  <StockPageLink
-                    classId={classId}
-                    code={trade.order.code}
-                    id={journalEntryId(trade.order.id)}
-                    keepReturn={readOnly}
-                    className={styles["stock"]}
-                    task={task}
-                  >
-                    <StockName
-                      code={trade.order.code}
-                      withCompanyName={false}
-                      smallTile
-                    />
-                  </StockPageLink>
-                  <span className={styles["tradePrice"]}>
-                    <NumberText>{lotCount(trade.order.lots)}</NumberText> ·{" "}
-                    <NumberText>{formatRupiah(trade.fill.price)}</NumberText>
-                  </span>
-                  <small>
-                    <MarketTime moment={trade.fill.quotedAt} />
-                  </small>
-                </div>
-                {trade.order.reason === undefined ? (
-                  <p className={styles["reason"]}>
-                    {m.trading_activity_no_reason_body()}
-                  </p>
-                ) : (
-                  <blockquote>
-                    <NumberText verbatim>{trade.order.reason}</NumberText>
-                  </blockquote>
-                )}
-                <JournalPerformance
-                  trade={trade}
-                  prices={prices}
-                  maximum={maximum}
-                  sharedTime={sharedTime}
-                />
-              </li>
-            ))}
-          </ul>
-        )}
-        {sharedTime !== undefined && (
-          <SharedQuoteTimeNotice
-            moment={sharedTime}
-            className={styles["journalNote"]}
-          />
-        )}
-      </div>
-    </section>
-  );
+    sharedTime: sharedQuoteTime(
+      trades.map((trade) =>
+        trade.change === undefined ? undefined : trade.quote,
+      ),
+    ),
+  };
 }
 
-function JournalPerformance({
+/** How a filled order has done since it filled: the change of its price since then and, for a sale, the realised gain from the average purchase cost. */
+export function TradePerformance({
   trade,
   prices,
   maximum,

@@ -20,7 +20,7 @@ import type { ComparedStudent } from "./student-filters";
 import { StudentStandings } from "./student-standings";
 import { studentsAddress } from "./students-address";
 import type { StudentOptions } from "./students-address";
-import { StudentLink } from "./student-link";
+import { ViewLink } from "~/view-link";
 import styles from "./grading.module.css";
 
 export function ClassPortfoliosView({
@@ -51,7 +51,7 @@ export function ClassPortfoliosView({
               aria-label={m.grading_measure_label()}
             >
               {rankingMeasures.map((measure) => (
-                <StudentLink
+                <ViewLink
                   key={measure}
                   to={studentsAddress(classId, { ...options, measure })}
                   aria-current={
@@ -59,7 +59,7 @@ export function ClassPortfoliosView({
                   }
                 >
                   <span>{rankingLabel(measure)}</span>
-                </StudentLink>
+                </ViewLink>
               ))}
             </nav>
             <Form
@@ -131,7 +131,7 @@ export function ClassPortfoliosView({
                 (filter) => filter !== "no-stocks" || options.filter === filter,
               )
               .map((filter) => (
-                <StudentLink
+                <ViewLink
                   key={filter}
                   to={studentsAddress(classId, { ...options, filter })}
                   aria-current={options.filter === filter ? "true" : undefined}
@@ -146,7 +146,7 @@ export function ClassPortfoliosView({
                       )}
                     </NumberText>
                   </span>
-                </StudentLink>
+                </ViewLink>
               ))}
           </nav>
           <section

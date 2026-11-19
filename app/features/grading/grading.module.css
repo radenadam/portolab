@@ -612,3 +612,8 @@
   position: relative;
   z-index: 1;
 }
+
+/* The head of a column of numbers stands at the end of its column, over the numbers, as the numbers stand at the end of their cells. */
+.table th.numberHeading {
+  text-align: right;
+}
