@@ -8,12 +8,10 @@ import { m } from "~/paraglide/messages.js";
 import type { Route } from "./+types/class-portfolios-page";
 import { ClassPortfoliosView } from "./class-portfolios-view";
 import { readClassPortfolios } from "./read-class-portfolios.server";
-import { readTaughtPortfolio } from "./read-taught-portfolio.server";
 import { orderStudents } from "./order-students";
 import { failureOf } from "~/result";
 import { parseStudentSearch } from "./parse-student-search";
 import { parseStudentOptions } from "./parse-student-options";
-import { studentPanelData } from "./student-panel-data.server";
 import { filterStudents } from "./student-filters";
 
 export function meta(): Route.MetaDescriptors {
@@ -37,21 +35,13 @@ export function loader({ context, request, params, url }: Route.LoaderArgs) {
   });
   const all = orderStudents(portfolios, options.value.measure);
   const shown = query.ok ? filterStudents(all, viewOptions) : [];
+  // The row of the student whom the lecturer came back from stays marked, so the lecturer keeps their place in the list.
   const selected =
     options.value.studentId === undefined
-      ? shown[0]
+      ? undefined
       : all.find((student) => student.studentId === options.value.studentId);
   if (options.value.studentId !== undefined && selected === undefined)
     throw data(null, { status: 404 });
-  const selectedPortfolio =
-    selected === undefined
-      ? undefined
-      : readTaughtPortfolio(context, {
-          request,
-          url,
-          params: { ...params, studentId: String(selected.studentId) },
-          now,
-        });
   return data(
     {
       classId: taughtClass.id,
@@ -61,10 +51,6 @@ export function loader({ context, request, params, url }: Route.LoaderArgs) {
       queryFailure: failureOf(query),
       shown,
       selected,
-      panel:
-        selectedPortfolio === undefined
-          ? undefined
-          : studentPanelData(database, selectedPortfolio),
     },
     { status: query.ok ? 200 : 400 },
   );

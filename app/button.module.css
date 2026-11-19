@@ -16,3 +16,8 @@
 .button {
   color: var(--button-ink, var(--color-ink));
 }
+
+/* A button without a fill takes a light ground on hover, because darkening nothing shows nothing. */
+.button:hover {
+  background: var(--color-hover);
+}

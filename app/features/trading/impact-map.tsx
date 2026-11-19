@@ -118,22 +118,24 @@ export function ImpactMap({
   };
   return (
     <div className={styles["map"]}>
-      <RiskMapLegend
-        items={[
-          { kind: "before", name: m.trading_impact_before_label() },
-          { kind: "own", name: m.trading_impact_after_label() },
-          { kind: "held", name: code },
-          { kind: "market", name: marketIndex.code },
-        ]}
-      />
-      <ImpactChoices
-        choices={analysisAxes}
-        selected={axis}
-        label={controlLabels[anchor]}
-        name={(value) => axisLabels[value]}
-        field="impactAxis"
-        anchor={anchor}
-      />
+      <div className={styles["mapHead"]}>
+        <RiskMapLegend
+          items={[
+            { kind: "before", name: m.trading_impact_before_label() },
+            { kind: "own", name: m.trading_impact_after_label() },
+            { kind: "held", name: code },
+            { kind: "market", name: marketIndex.code },
+          ]}
+        />
+        <ImpactChoices
+          choices={analysisAxes}
+          selected={axis}
+          label={controlLabels[anchor]}
+          name={(value) => axisLabels[value]}
+          field="impactAxis"
+          anchor={anchor}
+        />
+      </div>
       {graphs[axis]()}
     </div>
   );

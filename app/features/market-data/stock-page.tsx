@@ -149,6 +149,36 @@ function StockPageContent({
           <StockHeader
             stock={stock}
             returnTo={`${location.pathname}${location.search}${location.hash}`}
+            trade={
+              <nav
+                className={styles["actions"]}
+                hidden={ticket !== null}
+                aria-label={m.market_data_trade_label()}
+              >
+                <Link
+                  data-stock-trade="buy"
+                  className={styles["buy"]}
+                  to={{
+                    pathname: stockPath(classId, code, "buy"),
+                    search: location.search,
+                  }}
+                  preventScrollReset
+                >
+                  {m.market_data_buy_link()}
+                </Link>
+                <Link
+                  data-stock-trade="sell"
+                  className={styles["sell"]}
+                  to={{
+                    pathname: stockPath(classId, code, "sell"),
+                    search: location.search,
+                  }}
+                  preventScrollReset
+                >
+                  {m.market_data_sell_link()}
+                </Link>
+              </nav>
+            }
           />
           <section
             className={styles["panel"]}
@@ -182,34 +212,6 @@ function StockPageContent({
             ticket={stock.tradePreview}
             {...stock.selection}
           />
-          <nav
-            className={styles["actions"]}
-            hidden={ticket !== null}
-            aria-label={m.market_data_trade_label()}
-          >
-            <Link
-              data-stock-trade="buy"
-              className={styles["buy"]}
-              to={{
-                pathname: stockPath(classId, code, "buy"),
-                search: location.search,
-              }}
-              preventScrollReset
-            >
-              {m.market_data_buy_link()}
-            </Link>
-            <Link
-              data-stock-trade="sell"
-              className={styles["sell"]}
-              to={{
-                pathname: stockPath(classId, code, "sell"),
-                search: location.search,
-              }}
-              preventScrollReset
-            >
-              {m.market_data_sell_link()}
-            </Link>
-          </nav>
         </div>
         {ticket}
       </div>

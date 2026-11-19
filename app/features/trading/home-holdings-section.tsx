@@ -155,7 +155,7 @@ export function HomeHoldingsSection({
             ))}
             <tr>
               <th scope="row">
-                <CashName note={cashNote} cash={home.report.valuation.cash} />
+                <CashName note={cashNote} />
               </th>
               <td>
                 <WeightMark value={values.cashWeight} maximum={maximumWeight} />
@@ -240,7 +240,7 @@ export function HomeHoldingsSection({
           </li>
         ))}
         <li className={styles["holdingRow"]}>
-          <CashName note={cashNote} cash={home.report.valuation.cash} />
+          <CashName note={cashNote} />
           <strong className={styles["rowValue"]}>
             <NumberText>{formatRupiah(home.report.valuation.cash)}</NumberText>
           </strong>

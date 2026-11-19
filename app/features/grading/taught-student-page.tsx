@@ -1,5 +1,8 @@
 import { classBackLabel } from "~/features/classes/class-back-label";
-import { isClassMapPath } from "~/features/classes/class-path";
+import {
+  isClassMapPath,
+  resetStudentPasswordPath,
+} from "~/features/classes/class-path";
 import { Icon } from "~/icon";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
@@ -62,18 +65,13 @@ export function TaughtStudentPage({
 }): ReactNode {
   return (
     <div className={styles["page"]}>
+      <Link to={returnPath} className={styles["back"]}>
+        ‹{" "}
+        {isClassMapPath(returnPath, student.classId)
+          ? classBackLabel(student.className)
+          : m.grading_back_label()}
+      </Link>
       <header className={styles["header"]}>
-        <Link
-          to={returnPath}
-          className={styles["back"]}
-          aria-label={
-            isClassMapPath(returnPath, student.classId)
-              ? classBackLabel(student.className)
-              : m.grading_back_label()
-          }
-        >
-          <Icon name="chevronDown" className={undefined} />
-        </Link>
         <Avatar name={student.name} look="own" className={styles["avatar"]} />
         <div className={styles["identity"]}>
           <h1>
@@ -83,28 +81,39 @@ export function TaughtStudentPage({
             <IdentityLine student={student} />
           </p>
         </div>
+        <Link
+          className={styles["reset"]}
+          to={pathReturningTo(
+            resetStudentPasswordPath(student.classId, student.studentId),
+            studentPagePaths[page](student.classId, student.studentId),
+          )}
+        >
+          {m.grading_reset_link()}
+        </Link>
       </header>
-      <p className={styles["notice"]}>
-        <Icon name="eye" className={undefined} />
-        {m.grading_read_only_notice()}
-      </p>
-      <nav
-        className={styles["tabs"]}
-        aria-label={m.grading_student_sections_label()}
-      >
-        {studentPages.map((section) => (
-          <Link
-            key={section}
-            to={pathReturningTo(
-              studentPagePaths[section](student.classId, student.studentId),
-              returnPath,
-            )}
-            aria-current={page === section ? "page" : undefined}
-          >
-            {tabLabels[section]()}
-          </Link>
-        ))}
-      </nav>
+      <div className={styles["bar"]}>
+        <nav
+          className={styles["tabs"]}
+          aria-label={m.grading_student_sections_label()}
+        >
+          {studentPages.map((section) => (
+            <Link
+              key={section}
+              to={pathReturningTo(
+                studentPagePaths[section](student.classId, student.studentId),
+                returnPath,
+              )}
+              aria-current={page === section ? "page" : undefined}
+            >
+              {tabLabels[section]()}
+            </Link>
+          ))}
+        </nav>
+        <p className={styles["notice"]}>
+          <Icon name="eye" className={undefined} />
+          {m.grading_read_only_notice()}
+        </p>
+      </div>
       {children}
     </div>
   );

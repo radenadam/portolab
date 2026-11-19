@@ -36,23 +36,23 @@
   gap: var(--space-3);
 }
 
+/* The star belongs to the name, so it stands right beside it, and the actions of the stock take the other end of the row, where the eye looks for them. */
+.identity {
+  gap: var(--space-1) var(--space-2);
+}
+
 .identity h1 {
   font-size: var(--text-stock);
 }
-.star {
-  margin-inline-start: auto;
-}
 
+/* The way back is a small link above the name, so the name, the price, and their details share one left edge. */
 .back {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: var(--size-touch-target);
-  min-height: var(--size-touch-target);
+  composes: standalone-link from global;
+  align-self: start;
+  margin-block-end: calc((1lh - var(--size-touch-target)) / 2 + var(--space-2));
   color: var(--color-ink-secondary);
-  font-size: var(--text-title);
-  text-decoration: none;
+  font-size: var(--text-caption);
+  font-weight: 500;
 }
 
 .quote {
@@ -120,13 +120,21 @@
   overflow-wrap: anywhere;
 }
 
+/* On a phone, Beli and Jual stay at the bottom of the screen above the tabs, where a thumb reaches them, and the page keeps room for them. */
 .actions {
-  position: sticky;
+  position: fixed;
+  inset-inline: 0;
   bottom: var(--size-tab-bar);
+  z-index: 2;
   display: flex;
   gap: var(--space-3);
-  padding-block: var(--space-3);
+  padding: var(--space-3) var(--space-gutter);
+  border-block-start: var(--size-line) solid var(--color-line);
   background: var(--color-panel);
+}
+
+.page:has(.actions:not([hidden])) {
+  padding-block-end: calc(var(--size-touch-target) + 2 * var(--space-3));
 }
 
 .actions[hidden] {
@@ -168,10 +176,21 @@
 
   .actions {
     position: static;
-    align-self: flex-start;
-    min-width: var(--width-aside);
+    margin-inline-start: auto;
     padding: 0;
+    border: 0;
     background: none;
+  }
+
+  .page:has(.actions:not([hidden])) {
+    padding-block-end: 0;
+  }
+
+  .buy,
+  .sell {
+    flex: none;
+    min-width: var(--width-trade-button);
+    padding-inline: var(--space-5);
   }
 }
 

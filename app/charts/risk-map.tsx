@@ -29,7 +29,6 @@ import { useMapLabels } from "./use-map-labels";
 // Every length around the plot is a multiple of the size of the text of its marks, so the map keeps its proportions when a reader enlarges the text.
 const bottomRoom = 3.5;
 const sideRoom = 0.5;
-const spreadRoom = 3.5;
 /** A map of risk across against return up, as decisions 0028 and 0035 set: each point by its mark and its name, the IHSG as a diamond with a strong line through its risk and a dashed line at its return, and an optional line from a point through the IHSG, such as the security market line. The server draws it in SVG and places its labels from estimated widths of their texts. Once JavaScript runs, the browser places the labels again from their measured widths at the size of the plot, and the plot is a slider that a pointer, a finger, or the keys move over the points in the order of their risk, which shows the values of the marked point in a tooltip. */
 export function RiskMap<Across extends number, Up extends number>({
   market,
@@ -140,7 +139,7 @@ export function RiskMap<Across extends number, Up extends number>({
         : ownStop,
     labelledBy,
   });
-  const outsideRoom = spread === undefined ? sideRoom : spreadRoom;
+  const outsideRoom = sideRoom;
   const plotClass =
     spread === undefined ? styles["plot"] : styles["spreadPlot"];
   const mapClass = riskMapClass(fill, compact);

@@ -54,11 +54,14 @@ export function StockImpact({
       aria-labelledby="stock-impact-title"
       data-layout="card"
     >
-      <div className={styles["header"]}>
-        <ImpactHeading
-          id="stock-impact-title"
-          months={ticket.impact.ok ? ticket.impact.value.months : undefined}
-        />
+      <ImpactHeading
+        id="stock-impact-title"
+        months={ticket.impact.ok ? ticket.impact.value.months : undefined}
+      />
+      <div className={styles["sizeChoice"]}>
+        <span className={styles["sizeLabel"]}>
+          {m.trading_impact_share_label()}
+        </span>
         <ImpactChoices
           choices={impactShares}
           selected={share}
@@ -181,30 +184,32 @@ function StockImpactPreview({
   };
   return (
     <>
-      <p className={styles["notice"]}>
-        <NumberText>
-          {available < total * share
-            ? m.trading_impact_limited_notice(inputs)
-            : m.trading_impact_purchase_notice(inputs)}
-        </NumberText>
-      </p>
+      <div className={styles["lead"]}>
+        <p className={styles["notice"]}>
+          <NumberText>
+            {available < total * share
+              ? m.trading_impact_limited_notice(inputs)
+              : m.trading_impact_purchase_notice(inputs)}
+          </NumberText>
+        </p>
+        {preview.ok && (
+          <Link
+            className={styles["open"]}
+            preventScrollReset
+            to={pathWithQuery(ticketPath, { lots: formatNumber(count) })}
+          >
+            <NumberText>
+              {m.trading_impact_open_link({ lots: lotCount(count) })}
+            </NumberText>
+          </Link>
+        )}
+      </div>
       <TradeImpact
         code={code}
         preview={preview}
         axis={axis}
         portfolioKind={portfolioKind}
       />
-      {preview.ok && (
-        <Link
-          className={styles["open"]}
-          preventScrollReset
-          to={pathWithQuery(ticketPath, { lots: formatNumber(count) })}
-        >
-          <NumberText>
-            {m.trading_impact_open_link({ lots: lotCount(count) })}
-          </NumberText>
-        </Link>
-      )}
     </>
   );
 }

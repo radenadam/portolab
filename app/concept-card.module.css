@@ -76,6 +76,16 @@ th > .question {
   font-size: var(--text-row);
 }
 
+/* A code or a heading of a column is one word, which must not break between its letters. */
+:is(.calculation, .example) :is(th, td) {
+  overflow-wrap: normal;
+}
+
+/* A card that holds a table of the numbers on the page takes more width, so its columns keep their words on one line where they can. */
+.card:has(table) {
+  width: min(var(--width-concept-card-table), calc(100vw - 4 * var(--space-3)));
+}
+
 .calculation th:first-child {
   white-space: nowrap;
 }

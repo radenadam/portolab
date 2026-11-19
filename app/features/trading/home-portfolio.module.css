@@ -198,8 +198,10 @@
 .table td:nth-child(5) {
   min-inline-size: var(--width-home-bar);
 }
+/* The number of a weight ends the cell, under the head of its column, and its bar stands before it, so the head and the number line up. */
 .weight {
   display: flex;
+  flex-direction: row-reverse;
   align-items: center;
   gap: var(--space-2);
   font-size: var(--text-small);
@@ -273,16 +275,8 @@
   overflow-wrap: anywhere;
 }
 .cashTile {
-  display: grid;
-  place-items: center;
   flex-shrink: 0;
   inline-size: var(--size-tile);
-  block-size: var(--size-tile);
-  background: var(--color-raised);
-  border: var(--size-line) solid var(--color-line);
-  border-radius: var(--radius-tile);
-  font-family: var(--font-code);
-  font-size: var(--text-tile);
 }
 .phoneHoldings {
   display: grid;

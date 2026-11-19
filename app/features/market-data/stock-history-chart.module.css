@@ -3,6 +3,17 @@
   justify-content: flex-end;
 }
 
+/* The title of the chart and the choice of its range share the first row of the panel, so the choice sits next to what it changes. */
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
 .title {
-  composes: text from "../../visually-hidden.module.css";
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--text-body);
 }

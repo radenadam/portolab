@@ -18,8 +18,6 @@ import {
 } from "./student-filters";
 import type { ComparedStudent } from "./student-filters";
 import { StudentStandings } from "./student-standings";
-import { StudentPanel } from "./student-panel";
-import type { StudentPanelData } from "./student-panel-data.server";
 import { studentsAddress } from "./students-address";
 import type { StudentOptions } from "./students-address";
 import { StudentLink } from "./student-link";
@@ -32,7 +30,6 @@ export function ClassPortfoliosView({
   options,
   shown,
   selected,
-  panel,
   queryFailure,
 }: {
   classId: ClassId;
@@ -41,7 +38,6 @@ export function ClassPortfoliosView({
   options: StudentOptions;
   shown: readonly ComparedStudent[];
   selected: ComparedStudent | undefined;
-  panel: StudentPanelData | undefined;
   queryFailure?: string | undefined;
 }): ReactNode {
   return (
@@ -211,15 +207,6 @@ export function ClassPortfoliosView({
             </div>
           </section>
         </div>
-        {selected !== undefined && panel !== undefined && (
-          <StudentPanel
-            classId={classId}
-            student={selected}
-            all={all}
-            options={options}
-            panel={panel}
-          />
-        )}
       </div>
     </div>
   );

@@ -41,11 +41,21 @@
   display: grid;
   align-items: start;
   gap: var(--space-3);
-  padding-block: var(--space-3);
+  margin-inline: calc(-1 * var(--space-2));
+  padding: var(--space-3) var(--space-2);
+  border-radius: var(--radius-item);
   min-height: var(--size-touch-target);
-  text-decoration: none;
   color: var(--color-ink);
   font-size: var(--text-body);
+}
+
+/* The whole row opens the student, so it shows a light ground on hover, not the underline of a link. */
+.flag {
+  composes: row-link from global;
+}
+
+.reason {
+  composes: row-link from global;
 }
 
 .flag {
@@ -62,11 +72,6 @@
   border-block-start: var(--size-line) solid var(--color-line);
 }
 
-.flag:last-child,
-.reason:last-child {
-  padding-block-end: 0;
-}
-
 .flagText,
 .quote {
   display: block;
@@ -76,23 +81,21 @@
   color: var(--color-muted);
 }
 
+/* An icon stands on its own, without a tile around it, and sits on the first line of the name beside it. */
 .loss,
 .idle {
   display: grid;
   place-items: center;
   width: var(--space-6);
-  height: var(--space-6);
-  border-radius: var(--radius-item);
+  height: 1lh;
 }
 
 .loss {
   color: var(--color-loss);
-  background: var(--color-loss-soft);
 }
 
 .idle {
   color: var(--color-warning);
-  background: var(--color-warning-soft);
 }
 
 .loss svg,

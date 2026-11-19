@@ -5,6 +5,8 @@
   --color-background: light-dark(#f1f4f7, #0f1317);
   --color-panel: light-dark(#ffffff, #151b21);
   --color-raised: light-dark(#eef2f5, #1d252d);
+  /* The ground of a row or a card under the pointer, lighter than the raised color, so a row in a raised part still shows it. */
+  --color-hover: light-dark(#f3f6f9, #1a2129);
   --color-line: light-dark(#dfe5ea, #25303a);
   --color-line-strong: light-dark(#b9c4cf, #3b4956);
   --color-ink: light-dark(#0f1820, #e9eef2);
@@ -97,7 +99,8 @@
   --width-ranking-number: 5.5rem;
   --width-ranking-activity: 6.5rem;
   /* The field for a search of students holds its placeholder beside its icon. */
-  --width-ranking-search: 18rem;
+  --width-ranking-search: 22rem;
+  --width-ranking-name: 14rem;
   --color-backdrop: rgba(15, 24, 32, 0.48);
   --width-aside: 21.5rem;
   --width-form: 25rem;
@@ -108,6 +111,9 @@
   /* A menu that opens in place is wide enough for the name of a class beside its mark. */
   --width-popover: 16.25rem;
   --width-concept-card: 24rem;
+  --width-concept-card-table: 32rem;
+  --width-trade-button: 7.5rem;
+  --width-impact-sentence: 20rem;
   --width-analysis-scale: 4.5rem;
   --width-analysis-data: 46rem;
   --width-allocation-bar: min(32%, 7.5rem);
@@ -123,7 +129,7 @@
   /* The tooltip of a chart holds a date and a name with a return on each line. */
   --width-chart-tip: 12rem;
   /* The app icon takes the size that the rail of the references draws it at. */
-  --size-app-icon: 2.25rem;
+  --size-app-icon: 1.75rem;
   --size-top-bar: 3.5rem;
   --size-tab-bar: 3.875rem;
   --size-icon: 1.25rem;
@@ -317,6 +323,8 @@ a {
   align-items: center;
   gap: var(--space-1);
   min-height: var(--size-touch-target);
+  /* The touch target reaches into the space around the link, so the link takes only the height of its line in the layout and adds no gap of its own. */
+  margin-block: calc((1lh - var(--size-touch-target)) / 2);
   color: var(--color-link);
   font-weight: 600;
   text-decoration: none;
@@ -324,7 +332,7 @@ a {
 }
 
 /* A link that stands alone can open a card in place, which takes a button, so such a button drops the look of a button. */
-button.standalone-link {
+:where(button).standalone-link {
   padding: 0;
   border: 0;
   background: none;
@@ -376,14 +384,36 @@ button.standalone-link {
 summary {
   min-height: var(--size-touch-target);
   padding-block: calc((var(--size-touch-target) - 1lh) / 2);
+  margin-block: calc((1lh - var(--size-touch-target)) / 2);
   color: var(--color-link);
   cursor: pointer;
 }
 
-/* An option of a choice draws its look over a hidden radio button, so it shows the hover and the focus of that button. */
-:is(a, button, summary, label:has(> input[type="radio"])):hover {
+/* Only a link looks like a link on hover: a link that stands alone and the label of a part that opens gain the underline that a link in a sentence already has. */
+:is(.standalone-link, summary):hover {
   text-decoration-line: underline;
-  text-decoration-thickness: var(--size-mark);
+  text-decoration-thickness: var(--size-line);
+  text-underline-offset: 0.2em;
+}
+
+/* A button, or a link drawn as a button, darkens on hover, as buttons do in other apps. An option of a choice draws its look over a hidden radio button, so it darkens the same way. */
+:is(button, a[class], label:has(> input[type="radio"])):not(
+    .standalone-link,
+    .row-link,
+    :disabled
+  ):hover {
+  filter: brightness(0.94);
+}
+
+/* A row or a card that opens something, such as a student in a list, shows a light ground on hover instead of an underline, because the whole row is the target. A CSS module composes it from global. */
+.row-link {
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.row-link:hover {
+  background-color: var(--color-hover);
 }
 
 /* A button that waits for the answer to its form shows muted text on the raised color, so a reader on a touch screen sees the wait too, which the pointer shows on a mouse. */
@@ -397,4 +427,17 @@ button:disabled {
 label:has(> input[type="radio"]:focus-visible) {
   outline: var(--size-mark) solid var(--color-data);
   outline-offset: var(--size-mark);
+}
+
+/* An open table of values, such as the closes of a year, shows about five rows and scrolls inside its own box, so it never pushes the rest of the screen away. Its head stays in view while its rows scroll. */
+details:has(> table)::details-content {
+  max-block-size: calc(6 * var(--size-touch-target));
+  overflow-y: auto;
+}
+
+details > table thead th {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 1;
+  background: var(--color-panel);
 }

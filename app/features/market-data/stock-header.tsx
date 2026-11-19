@@ -22,30 +22,30 @@ import styles from "./stock-page.module.css";
 export function StockHeader({
   stock,
   returnTo,
+  trade,
 }: {
   stock: ComponentProps<typeof StockPage>["loaderData"];
   returnTo: string;
+  trade: ReactNode;
 }): ReactNode {
   const { classId, code, quote, holding } = stock;
   return (
     <header className={styles["header"]}>
+      <Link
+        to={withLessonTask(stock.returnPath, stock.task)}
+        className={styles["back"]}
+      >
+        ‹ {stock.returnLabel}
+      </Link>
       <div className={styles["identity"]}>
-        <Link
-          to={withLessonTask(stock.returnPath, stock.task)}
-          className={styles["back"]}
-          aria-label={stock.returnLabel}
-        >
-          ‹
-        </Link>
         <StockName code={code} heading />
-        <div className={styles["star"]}>
-          <StarButton
-            classId={classId}
-            code={code}
-            watched={stock.watched}
-            returnTo={returnTo}
-          />
-        </div>
+        <StarButton
+          classId={classId}
+          code={code}
+          watched={stock.watched}
+          returnTo={returnTo}
+        />
+        {trade}
       </div>
       <p className={styles["muted"]}>
         <StockMetadata

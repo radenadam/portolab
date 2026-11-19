@@ -70,8 +70,9 @@
   max-width: 100%;
 }
 
+/* The four numbers of a position share one row on a wide screen, so none of them drops alone to a second row. */
 @media (width >= 60rem) {
   .position > .stat {
-    flex-basis: calc((100% - var(--space-4) * 2) / 3);
+    flex-basis: calc((100% - var(--space-4) * 3) / 4);
   }
 }

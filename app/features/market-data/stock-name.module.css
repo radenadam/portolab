@@ -14,7 +14,6 @@
   place-items: center;
   inline-size: var(--size-tile);
   block-size: var(--size-tile);
-  border: var(--size-line) solid var(--color-line);
   border-radius: var(--radius-tile);
   background: var(--color-raised);
   color: var(--color-ink-secondary);

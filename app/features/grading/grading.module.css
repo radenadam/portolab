@@ -471,12 +471,14 @@
     display: inline;
   }
   .table tr {
+    /* The name and the numbers share the spare width in proportion, so a wide screen spreads the columns instead of leaving a gap between the name and its numbers. */
     grid-template-columns:
-      var(--width-ranking-rank) minmax(0, 1fr) var(--width-ranking-return)
-      var(--width-ranking-beta) var(--width-ranking-number) var(
-        --width-ranking-number
-      )
-      var(--width-ranking-activity);
+      var(--width-ranking-rank) minmax(var(--width-ranking-name), 1.4fr)
+      minmax(var(--width-ranking-return), 1.4fr)
+      minmax(var(--width-ranking-beta), 1fr)
+      minmax(var(--width-ranking-number), 0.8fr)
+      minmax(var(--width-ranking-number), 0.8fr)
+      minmax(var(--width-ranking-activity), 1fr);
     padding: 0 var(--space-3);
   }
   .table thead {
@@ -589,4 +591,24 @@
   flex-basis: 100%;
   color: var(--color-loss);
   font-size: var(--text-small);
+}
+
+/* The whole row of a student opens the page of that student, so the link of the name covers the row and the row shows a light ground on hover. A part of a row that opens something of its own stays above that link. */
+.table tbody tr {
+  position: relative;
+}
+
+.who a::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+}
+
+.table tbody tr:has(.who a:hover) {
+  background: var(--color-hover);
+}
+
+.table .reasonCell {
+  position: relative;
+  z-index: 1;
 }

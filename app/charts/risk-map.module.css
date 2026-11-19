@@ -87,9 +87,6 @@
   cursor: pointer;
   pointer-events: auto;
 }
-.pointButton:hover .pointFocus {
-  border: var(--size-line) solid var(--color-ink);
-}
 .pointFocus {
   inline-size: var(--space-6);
   block-size: var(--space-6);
@@ -308,11 +305,6 @@
   background: var(--color-ink-secondary);
 }
 
-.distribution {
-  fill: var(--color-data);
-  fill-opacity: 0.25;
-}
-
 .corner,
 .medianLabel {
   fill: var(--color-muted);
@@ -343,4 +335,12 @@
   border-radius: 50%;
   background: var(--color-muted);
   opacity: 0.6;
+}
+
+/* The median of the class is a reference across the whole plot, so it is a light dotted line that never hides the line of zero under it. */
+.medianLine {
+  stroke: var(--color-muted);
+  stroke-width: var(--size-line);
+  stroke-dasharray: 1 4;
+  stroke-linecap: round;
 }

@@ -31,7 +31,9 @@ import type { ComparedStudent } from "./student-filters";
 import type { StudentOptions } from "./students-address";
 import { studentRowId, studentsAddress } from "./students-address";
 import type { ClassId } from "~/features/classes/classes.schema";
-import { StudentLink } from "./student-link";
+import { Link } from "react-router";
+import { pathReturningTo } from "~/features/accounts/path-returning-to";
+import { studentPortfolioPath } from "./grading-paths";
 import styles from "./grading.module.css";
 
 export function StudentStandings({
@@ -98,11 +100,14 @@ export function StudentStandings({
                 </NumberText>
               </td>
               <td className={styles["who"]}>
-                <StudentLink
-                  to={studentsAddress(classId, {
-                    ...options,
-                    studentId: student.studentId,
-                  })}
+                <Link
+                  to={pathReturningTo(
+                    studentPortfolioPath(classId, student.studentId),
+                    studentsAddress(classId, {
+                      ...options,
+                      studentId: student.studentId,
+                    }),
+                  )}
                   aria-current={
                     options.studentId === student.studentId ? "true" : undefined
                   }
@@ -120,7 +125,7 @@ export function StudentStandings({
                       </NumberText>
                     </small>
                   </span>
-                </StudentLink>
+                </Link>
               </td>
               <StudentNumbers
                 student={student}

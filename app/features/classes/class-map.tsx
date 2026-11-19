@@ -114,51 +114,53 @@ export function ClassMap({
           {m.classes_map_unavailable_notice({ index: marketIndex.code })}
         </p>
       ) : (
-        <RiskMap
-          fill
-          labelledBy="class-map-heading"
-          coloredValues
-          market={{
-            key: marketIndex.code,
-            name: marketIndex.code,
-            across: marketRisk,
-            up: marketReturn,
-            values: marketValues(marketReturn, overview.marketDeviation),
-          }}
-          points={points}
-          across={chosen}
-          up={{ style: "change", toValue: cumulativeReturn }}
-          levelLabel={m.app_map_value_part({
-            name: marketIndex.code,
-            value: formatSignedPercent(marketReturn).text,
-          })}
-          spread={mapSpread({
-            median: overview.summary.medianReturn,
-            medianLabel: m.classes_map_median_label({
-              value: formatSignedPercent(overview.summary.medianReturn ?? 0)
-                .text,
-            }),
-            zeroLabel: m.classes_map_zero_label(),
-            corners: [
-              {
-                text: m.classes_map_calm_gain_label(),
-                wideText: m.classes_map_calm_gain_wide_label(),
-              },
-              {
-                text: m.classes_map_wild_gain_label(),
-                wideText: m.classes_map_wild_gain_wide_label(),
-              },
-              {
-                text: m.classes_map_calm_loss_label(),
-                wideText: m.classes_map_calm_loss_wide_label(),
-              },
-              {
-                text: m.classes_map_wild_loss_label(),
-                wideText: m.classes_map_wild_loss_wide_label(),
-              },
-            ],
-          })}
-        />
+        <div className={styles["mapArea"]}>
+          <RiskMap
+            fill
+            labelledBy="class-map-heading"
+            coloredValues
+            market={{
+              key: marketIndex.code,
+              name: marketIndex.code,
+              across: marketRisk,
+              up: marketReturn,
+              values: marketValues(marketReturn, overview.marketDeviation),
+            }}
+            points={points}
+            across={chosen}
+            up={{ style: "change", toValue: cumulativeReturn }}
+            levelLabel={m.app_map_value_part({
+              name: marketIndex.code,
+              value: formatSignedPercent(marketReturn).text,
+            })}
+            spread={mapSpread({
+              median: overview.summary.medianReturn,
+              medianLabel: m.classes_map_median_label({
+                value: formatSignedPercent(overview.summary.medianReturn ?? 0)
+                  .text,
+              }),
+              zeroLabel: m.classes_map_zero_label(),
+              corners: [
+                {
+                  text: m.classes_map_calm_gain_label(),
+                  wideText: m.classes_map_calm_gain_wide_label(),
+                },
+                {
+                  text: m.classes_map_wild_gain_label(),
+                  wideText: m.classes_map_wild_gain_wide_label(),
+                },
+                {
+                  text: m.classes_map_calm_loss_label(),
+                  wideText: m.classes_map_calm_loss_wide_label(),
+                },
+                {
+                  text: m.classes_map_wild_loss_label(),
+                  wideText: m.classes_map_wild_loss_wide_label(),
+                },
+              ],
+            })}
+          />
+        </div>
       )}
       <div className={styles["strip"]}>
         <Stat

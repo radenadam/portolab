@@ -47,28 +47,30 @@ export function StockHistoryChart({
       : directionOf(first.close, latest.close);
   return (
     <>
-      <nav
-        className={styles["ranges"]}
-        aria-label={m.market_data_chart_range_label()}
-      >
-        {priceChartRangeOptions().map(({ value: choice, label }) => (
-          <Link
-            key={choice}
-            to={pathWithQuery(path, { range: choice, returnTo })}
-            preventScrollReset
-            aria-current={choice === range ? "true" : undefined}
-          >
-            {label}
-          </Link>
-        ))}
-      </nav>
       {first === undefined || latest === undefined ? (
         <p>{m.market_data_no_closes_notice()}</p>
       ) : (
         <>
-          <h2 id="price-chart-title" className={styles["title"]}>
-            {m.market_data_price_chart_title({ code: history.code })}
-          </h2>
+          <div className={styles["head"]}>
+            <h2 id="price-chart-title" className={styles["title"]}>
+              {m.market_data_price_chart_title({ code: history.code })}
+            </h2>
+            <nav
+              className={styles["ranges"]}
+              aria-label={m.market_data_chart_range_label()}
+            >
+              {priceChartRangeOptions().map(({ value: choice, label }) => (
+                <Link
+                  key={choice}
+                  to={pathWithQuery(path, { range: choice, returnTo })}
+                  preventScrollReset
+                  aria-current={choice === range ? "true" : undefined}
+                >
+                  {label}
+                </Link>
+              ))}
+            </nav>
+          </div>
           <TimeSeriesChart
             points={history.closes}
             lines={[

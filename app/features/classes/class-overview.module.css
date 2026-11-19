@@ -36,6 +36,14 @@
   padding-inline: var(--space-4);
 }
 
+/* The map keeps the padding of its panel, like its header, so its axis and its labels never touch the edge of the panel. */
+.mapArea {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding-inline: var(--space-4);
+}
+
 .mapHeader {
   justify-content: space-between;
   padding-block-start: var(--space-3);

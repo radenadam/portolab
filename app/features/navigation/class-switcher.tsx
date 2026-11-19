@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { countedText } from "~/counted-text";
 import type { Role } from "~/features/accounts/accounts.schema";
-import { createClassPath } from "~/features/classes/class-path";
+import { calendarPath, createClassPath } from "~/features/classes/class-path";
 import { termText } from "~/features/classes/term-text";
 import { Icon } from "~/icon";
 import { m } from "~/paraglide/messages.js";
@@ -71,6 +71,11 @@ export function ClassSwitcher({
           ))}
         </ul>
         <hr className={popoverStyles["separator"]} />
+        {readerRole === "lecturer" && (
+          <Link to={calendarPath(current.id)} className={popoverStyles["item"]}>
+            {m.navigation_calendar_link()}
+          </Link>
+        )}
         <Link to={nextClass.path} className={popoverStyles["item"]}>
           <NumberText>{nextClass.label()}</NumberText>
         </Link>
