@@ -251,15 +251,21 @@ for (const locale of locales) {
       await student.keyboard.press("Escape");
       await expect(dayHelp).toBeFocused();
       await expectDraft();
-      await student.locator('a[href*="range=1m"]').first().click();
+      await student
+        .locator('a[href*="range=1m"]:not([data-stock-trade])')
+        .first()
+        .click();
       await expect(student).toHaveURL(`${classPath}/stocks/BBCA/buy?range=1m`);
       await expect(
-        student.locator('a[href*="range=1m"]').first(),
+        student.locator('a[href*="range=1m"]:not([data-stock-trade])').first(),
       ).toHaveAttribute("aria-current", "true");
       await expectDraft();
-      await student.locator('a[href*="range=1y"]').first().click();
+      await student
+        .locator('a[href*="range=1y"]:not([data-stock-trade])')
+        .first()
+        .click();
       await expect(
-        student.locator('a[href*="range=1y"]').first(),
+        student.locator('a[href*="range=1y"]:not([data-stock-trade])').first(),
       ).toHaveAttribute("aria-current", "true");
     }
     await ticket.getByRole("link", { name: text.sell, exact: true }).click();

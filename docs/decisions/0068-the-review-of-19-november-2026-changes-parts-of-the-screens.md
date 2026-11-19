@@ -30,7 +30,7 @@
 - The four numbers of a position share one row on a wide screen.
 - In Dampak, the choice of the size of the example purchase has a visible label under the title. "Buka tiket" ends the row of the sentence that the size changes, and the choice of the axis shares a row with the legend of the map.
 - The docked order ticket is a panel only as tall as its form, so no empty panel runs down beside the page. It stays in view while the page scrolls and moves along its whole column, so the standard of `AGENTS.md` that columns side by side end on one line excepts such a panel, and `e2e/expect-layout.ts` measures its column to the end of its track.
-- The list of Beranda since the last visit scrolls inside its card after about four rows.
+- The list of Beranda since the last visit scrolls inside its card after about four rows. Like a popover, it is a stop of the Tab key, so a keyboard reaches it to scroll it.
 
 ### Kelas
 

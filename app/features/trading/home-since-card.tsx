@@ -58,7 +58,12 @@ export function HomeSinceCard({
           </Form>
         )}
       </div>
-      <ul className={styles["list"]}>
+      <ul
+        className={styles["list"]}
+        aria-labelledby="home-since-title"
+        // eslint-disable-next-line jsx-a11y-x/no-noninteractive-tabindex -- The list scrolls inside the card after about four outcomes, and a keyboard reaches a region that scrolls only through a stop of the Tab key.
+        tabIndex={0}
+      >
         {orders.map((order) => (
           <li key={order.id} className={styles["item"]}>
             <div className={styles["trade"]}>
