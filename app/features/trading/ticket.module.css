@@ -46,11 +46,8 @@
     font-size: var(--text-statistic);
   }
   .close {
-    display: grid;
-    place-items: center;
-    width: var(--size-touch-target);
-    min-height: var(--size-touch-target);
-    color: var(--color-ink-secondary);
+    composes: button from "../../icon-button.module.css";
+    --icon-button-ink: var(--color-ink-secondary);
     text-decoration: none;
     font-size: var(--text-heading);
   }
@@ -436,5 +433,11 @@
 
   [data-side="sell"] .submit:hover:not(:disabled) {
     background: var(--color-sell-hover);
+  }
+
+  /* While the order waits for its answer, the button shows the look of waiting of app/theme.css instead of the color of its side, so a reader on a touch screen sees the wait. */
+  [data-side] .submit:disabled {
+    background: var(--color-raised);
+    color: var(--color-muted);
   }
 }

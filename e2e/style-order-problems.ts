@@ -14,7 +14,7 @@ interface AppliedDeclaration {
   selector: string;
 }
 
-/** The section "Interface behavior" of AGENTS.md asks a screen to look the same whatever the order in which the build loads its styles, which axe does not check. Each file of the app puts its rules in the cascade layer of its place, so the order of the layers decides between a rule of a feature and a rule of a shared part. This lists every rule outside a layer, a page whose layers take their order from another rule than one statement that names them all, and every property of an element that two modules of one layer give two values at the same weight, where only the order of loading decides. */
+/** The section "Interface behavior" of AGENTS.md asks a screen to look the same whatever the order in which the build loads its styles, which axe does not check. Each file of the app puts its rules in the cascade layer of its place, so the order of the layers decides between a rule of a feature and a rule of a shared part. The first style sheet that names a layer names every layer, so it alone sets their order, because the build orders the blocks of a file by the statement at the start of the theme and leaves the statement out once the blocks name every layer. This lists every rule outside a layer, a layer that a later style sheet names first, and every property of an element that two modules of one layer give two values at the same weight, where only the order of loading decides. */
 export async function styleOrderProblems(page: Page): Promise<string[]> {
   return [...(await layerProblems(page)), ...(await moduleOrderProblems(page))];
 }
@@ -22,9 +22,6 @@ export async function styleOrderProblems(page: Page): Promise<string[]> {
 async function layerProblems(page: Page): Promise<string[]> {
   return page.evaluate(() => {
     const found: string[] = [];
-    const names: string[] = [];
-    let firstStatement: string | undefined;
-    let firstNamed: string | undefined;
     // Playwright sends this function to the browser as its source, so it holds the helpers that it calls.
     const namesOf = (rule: CSSRule): readonly string[] => {
       if (rule instanceof CSSLayerBlockRule) return [rule.name];
@@ -36,35 +33,40 @@ async function layerProblems(page: Page): Promise<string[]> {
       if (rule instanceof CSSImportRule) return rule.styleSheet?.cssRules;
       return undefined;
     };
-    const record = (rule: CSSRule, named: readonly string[]): void => {
-      const isStatement = rule instanceof CSSLayerStatementRule;
-      firstNamed ??= `the ${isStatement ? "statement" : "block"} "@layer ${named.join(", ")}"`;
-      if (isStatement) firstStatement ??= named.join(", ");
-      for (const name of named) if (!names.includes(name)) names.push(name);
-    };
     const walk = (
       rules: CSSRuleList,
       layered: boolean,
-      source: string,
+      sheet: { source: string; names: Set<string> },
     ): void => {
       for (const rule of rules) {
-        const named = namesOf(rule);
-        if (named.length > 0) record(rule, named);
+        for (const name of namesOf(rule)) sheet.names.add(name);
         if (rule instanceof CSSStyleRule && !layered)
           found.push(
-            `The rule "${rule.selectorText}" of ${source} lies outside every cascade layer, so it beats every layer.`,
+            `The rule "${rule.selectorText}" of ${sheet.source} lies outside every cascade layer, so it beats every layer.`,
           );
         const children = childrenOf(rule);
         if (children !== undefined)
-          walk(children, layered || rule instanceof CSSLayerBlockRule, source);
+          walk(children, layered || rule instanceof CSSLayerBlockRule, sheet);
       }
     };
-    for (const sheet of document.styleSheets)
-      walk(sheet.cssRules, false, sheet.href ?? "a style element");
-    if (names.length > 0 && firstStatement !== names.join(", "))
-      found.push(
-        `The cascade layers of the page take the order ${names.join(", ")} from the rules that first name them, which ${firstNamed ?? "no rule"} starts, so the order of loading sets it. A statement that names every layer must come before any other rule that names one.`,
-      );
+    let first: { source: string; names: Set<string> } | undefined;
+    for (const sheet of document.styleSheets) {
+      const named = {
+        source: sheet.href ?? "a style element",
+        names: new Set<string>(),
+      };
+      walk(sheet.cssRules, false, named);
+      if (named.names.size === 0) continue;
+      if (first === undefined) {
+        first = named;
+        continue;
+      }
+      for (const name of named.names)
+        if (!first.names.has(name))
+          found.push(
+            `The layer "${name}" is first named by ${named.source}, which loads after ${first.source} named the layers ${[...first.names].join(", ")}, so the order of loading sets the order of the layers. The first style sheet that names a layer must name every layer.`,
+          );
+    }
     return found;
   });
 }

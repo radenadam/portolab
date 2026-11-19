@@ -130,7 +130,7 @@
 
   .button {
     composes: button from "../../button.module.css";
-    background: var(--color-panel);
+    --button-fill: var(--color-panel);
     font-size: var(--text-row);
   }
 

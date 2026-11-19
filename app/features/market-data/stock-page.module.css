@@ -48,17 +48,6 @@
 
   /* The way back is a small link above the name, so the name, the price, and their details share one left edge. */
   /* The way back takes only the width of its text in the grid of the header, so its target never reaches over the empty space beside it. */
-  .back {
-    composes: standalone-link from global;
-    justify-self: start;
-    margin-block-end: calc(
-      (1lh - var(--size-touch-target)) / 2 + var(--space-2)
-    );
-    color: var(--color-ink-secondary);
-    font-size: var(--text-caption);
-    font-weight: 500;
-  }
-
   .quote {
     flex-wrap: wrap;
     align-items: baseline;
@@ -78,14 +67,6 @@
 
   .quoteDetails {
     display: grid;
-  }
-
-  .otherQuoteTimes {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    color: var(--color-muted);
-    font-size: var(--text-small);
   }
 
   .panel {

@@ -58,6 +58,7 @@ function renderView(
         report={report}
         quoteFailure={quoteFailure}
         source={yahooFinance}
+        quoteTimes={[]}
       />,
       conceptLessonDataForTest(),
       initialPath,

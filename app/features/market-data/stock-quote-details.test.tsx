@@ -19,26 +19,22 @@ const portfolioQuotes = [
   { code: "ANTM", quotedAt: new Date("2026-10-30T09:13:30Z") },
 ];
 
-const texts: Record<
-  Locale,
-  { quote: string; shared: string; other: string; label: string }
-> = {
-  id: {
-    quote: "30 Okt 2026, 16.14 WIB · penutupan sebelumnya Rp 4.940",
-    shared: "Harga 30 Okt 2026, 16.14 WIB.",
-    other: "Waktu harga ANTM: 16.13 WIB",
-    label: "Waktu harga",
-  },
-  en: {
-    quote: "Oct 30, 2026, 4:14 PM WIB · previous close IDR 4,940",
-    shared: "Prices Oct 30, 2026, 4:14 PM WIB.",
-    other: "Price time for ANTM: 4:13 PM WIB",
-    label: "Price time",
-  },
-};
+const texts: Record<Locale, { quote: string; shared: string; label: string }> =
+  {
+    id: {
+      quote: "30 Okt 2026, 16.14 WIB · penutupan sebelumnya Rp 4.940",
+      shared: "Harga 30 Okt 2026, 16.14 WIB.",
+      label: "Waktu harga",
+    },
+    en: {
+      quote: "Oct 30, 2026, 4:14 PM WIB · previous close IDR 4,940",
+      shared: "Prices Oct 30, 2026, 4:14 PM WIB.",
+      label: "Price time",
+    },
+  };
 
 for (const locale of locales) {
-  test(`states the time of the price of the stock, or the time that the holdings share without it, and the holdings of another time, in ${languageNames[locale]}`, () => {
+  test(`states the time of the price of the stock, or the time that the holdings share without it, and leaves the holdings of another time to the values beside them, in ${languageNames[locale]}`, () => {
     switchLocaleForTest(locale);
     const render = (props: Parameters<typeof StockQuoteDetails>[0]) =>
       renderTextMarkupForTest(<StockQuoteDetails {...props} />).replaceAll(
@@ -50,11 +46,11 @@ for (const locale of locales) {
     expect(alone).not.toContain(texts[locale].label);
     const withHoldings = render({ quote, portfolioQuotes });
     expect(withHoldings).toContain(markupTextForTest(texts[locale].quote));
-    expect(withHoldings).toContain(markupTextForTest(texts[locale].other));
+    expect(withHoldings).not.toContain(texts[locale].label);
     // The history can support a correlation while the latest quote of a stock that the reader does not hold is missing.
     const withoutQuote = render({ quote: undefined, portfolioQuotes });
     expect(withoutQuote).toContain(markupTextForTest(texts[locale].shared));
-    expect(withoutQuote).toContain(markupTextForTest(texts[locale].other));
+    expect(withoutQuote).not.toContain(texts[locale].label);
     expect(
       renderMarkupForTest(
         <StockQuoteDetails quote={undefined} portfolioQuotes={[]} />,

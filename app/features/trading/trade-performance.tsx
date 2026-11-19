@@ -11,10 +11,7 @@ import {
   quoteFailureText,
 } from "~/features/market-data/quote-failure-text";
 import type { PricesOfView } from "~/features/market-data/read-prices.server";
-import {
-  ownQuoteTime,
-  sharedQuoteTime,
-} from "~/features/market-data/shared-quote-time";
+import { sharedQuoteTime } from "~/features/market-data/shared-quote-time";
 import { QuoteTime } from "~/features/market-data/quote-time";
 import {
   formatRupiah,
@@ -106,6 +103,10 @@ export function TradePerformance({
                 <NumberText>{formatRupiah(comparison.quote.price)}</NumberText>
               </span>
             )}
+            <QuoteTime
+              quotedAt={comparison.quote.quotedAt}
+              sharedTime={sharedTime}
+            />
             {trade.order.side === "buy" && (
               <span className={styles["bar"]} aria-hidden="true">
                 <span
@@ -128,31 +129,11 @@ export function TradePerformance({
           </div>
         )}
       </div>
-      <OwnQuoteTime comparison={comparison} sharedTime={sharedTime} />
       {notice !== undefined && (
         <small>
           <NumberText>{notice}</NumberText>
         </small>
       )}
     </div>
-  );
-}
-
-function OwnQuoteTime({
-  comparison,
-  sharedTime,
-}: {
-  comparison: { quote: { quotedAt: Date } } | undefined;
-  sharedTime: Date | undefined;
-}): ReactNode {
-  if (
-    comparison === undefined ||
-    ownQuoteTime(comparison.quote.quotedAt, sharedTime) === undefined
-  )
-    return null;
-  return (
-    <small>
-      <QuoteTime quotedAt={comparison.quote.quotedAt} sharedTime={sharedTime} />
-    </small>
   );
 }

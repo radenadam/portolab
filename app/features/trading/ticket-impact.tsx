@@ -61,7 +61,6 @@ export function TicketImpact({
             (stock) => stock.shares > 0,
           )}
           sharedTime={ticket.quote.quotedAt}
-          className={styles["quoteTimes"]}
         />
       )}
       {preview === undefined ? (

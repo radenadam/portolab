@@ -74,6 +74,7 @@ export function MapDrawing({
           y1={percentOf(layout.market.position.y)}
           y2={percentOf(layout.market.position.y)}
           className={styles["level"]}
+          data-map-line=""
         />
       )}
       {layout.line !== undefined && (
@@ -83,6 +84,7 @@ export function MapDrawing({
           x2={percentOf(layout.line.end.x)}
           y2={percentOf(layout.line.end.y)}
           className={styles["line"]}
+          data-map-line=""
         />
       )}
       {spread}
@@ -99,6 +101,7 @@ export function MapDrawing({
                   ? styles["gainStem"]
                   : styles["lossStem"]
               }
+              data-map-line=""
             />
           )}
           {point.arrowTo !== undefined && (

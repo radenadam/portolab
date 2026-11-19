@@ -508,7 +508,10 @@ for (const plot of [
       boxes.push({ key, box: boxOf(place, estimatedLabelWidth(text), plot) });
     }
     for (const [index, { key, box }] of boxes.entries()) {
-      expect(box.left).toBeGreaterThanOrEqual(0);
+      // The name of the reader may use the gutter that the axis leaves beside the plot, to stay clear of the marks around its point.
+      expect(box.left).toBeGreaterThanOrEqual(
+        key === own.key ? -keptNameRoom : 0,
+      );
       expect(box.right).toBeLessThanOrEqual(plot.width);
       expect(box.top).toBeGreaterThanOrEqual(0);
       for (const other of boxes.slice(index + 1)) {
@@ -568,4 +571,112 @@ test("places more names of a crowded map on a desktop than on a phone, where the
   // The map is crowded enough on a phone that some names find no place.
   expect(phone.points.size).toBeLessThan(marks.length);
   expect(desktop.points.size).toBeGreaterThan(phone.points.size);
+});
+
+// A line across the plot at the height of the middle of a mark crosses every place of a name that meets the middle of the mark.
+function lineAcross(height: number): {
+  start: {
+    x: ReturnType<typeof plotFraction>;
+    y: ReturnType<typeof plotFraction>;
+  };
+  end: {
+    x: ReturnType<typeof plotFraction>;
+    y: ReturnType<typeof plotFraction>;
+  };
+} {
+  return {
+    start: { x: plotFraction(0), y: plotFraction(height) },
+    end: { x: plotFraction(1), y: plotFraction(height) },
+  };
+}
+
+test("places the name of a point clear of a line through its mark", () => {
+  const marks = [mark("BBCA", { x: 0.5, y: 0.5 })];
+  const free = placeMapLabels(others(["BBCA"]), { size, marks, widthOf });
+  expect(free.points.get("BBCA")).toEqual({
+    at: marks[0]?.position,
+    dx: beside,
+    dy: middle,
+    anchor: "start",
+  });
+  const placed = placeMapLabels(others(["BBCA"]), {
+    size,
+    marks,
+    lines: [lineAcross(0.5)],
+    widthOf,
+  });
+  const place = placed.points.get("BBCA");
+  expect(place).toBeDefined();
+  // The letters reach 1 above the baseline and 0.25 below it, so a baseline 0.25 or more above the line or 1 or more below it keeps them off the line.
+  const baseline = place?.dy ?? 0;
+  expect(baseline <= -0.25 || baseline >= 1).toBe(true);
+});
+
+test("leaves out a fixed label whose every place crosses a line, and keeps one that touches the line beside it", () => {
+  const places: LabelPlace[] = [
+    {
+      at: { x: plotFraction(0.2), y: plotFraction(0.5) },
+      dx: 0,
+      dy: 0.375,
+      anchor: "start",
+    },
+  ];
+  expect(
+    placeMapLabels(fixedLabel(places), {
+      size,
+      marks: [],
+      lines: [lineAcross(0.5)],
+      widthOf,
+    }).lines.has("zero"),
+  ).toBe(false);
+  // Above the line, the baseline stands 0.25 above it, so the letters end where the line starts.
+  const above = places.map((place) => ({ ...place, dy: -0.25 }));
+  expect(
+    placeMapLabels(fixedLabel(above), {
+      size,
+      marks: [],
+      lines: [lineAcross(0.5)],
+      widthOf,
+    }).lines.has("zero"),
+  ).toBe(true);
+});
+
+test("keeps the name of the portfolio off its own mark when its other places cover only another mark", () => {
+  // The mark of the portfolio is large, and small marks lie on every side of it, so each place beside it covers one of them.
+  const portfolio = mark("portfolio", { x: 0.5, y: 0.5 }, 1);
+  const neighbors = [
+    [0.62, 0.5],
+    [0.38, 0.5],
+    [0.5, 0.25],
+    [0.5, 0.75],
+    [0.6, 0.3],
+    [0.6, 0.7],
+    [0.4, 0.3],
+    [0.4, 0.7],
+  ].map(([across, down], index) =>
+    mark(`classmate-${String(index)}`, { x: across ?? 0, y: down ?? 0 }, 0.3),
+  );
+  const placed = placeMapLabels(
+    { kept: [{ key: "portfolio", text: "Portfolio" }], lines: [], others: [] },
+    { size, marks: [portfolio, ...neighbors], widthOf },
+  );
+  const place = placed.points.get("portfolio");
+  expect(place).toBeDefined();
+  const width = widthOf("Portfolio");
+  const center = { x: 0.5 * size.width, y: 0.5 * size.height };
+  const anchor = (place?.at.x ?? 0) * size.width + (place?.dx ?? 0);
+  const shares = { start: 0, middle: 0.5, end: 1 } as const;
+  const left = anchor - shares[place?.anchor ?? "start"] * width;
+  const baseline = (place?.at.y ?? 0) * size.height + (place?.dy ?? 0);
+  const box = {
+    left,
+    right: left + width,
+    top: baseline - 1,
+    bottom: baseline + 0.25,
+  };
+  const nearestX = Math.max(box.left, Math.min(center.x, box.right));
+  const nearestY = Math.max(box.top, Math.min(center.y, box.bottom));
+  expect(
+    Math.hypot(center.x - nearestX, center.y - nearestY),
+  ).toBeGreaterThanOrEqual(1);
 });

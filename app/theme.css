@@ -1,4 +1,4 @@
-/* The cascade layers in the order in which they win: a rule of a feature beats a rule of a shared part, and a rule of a shared part beats a rule of the theme, whatever the order in which the build loads their files. Each file of app/ puts its rules in the layer of its place, which scripts/check-style-layers.ts checks, and this statement comes first in the styles of every page, so it sets the order. */
+/* The cascade layers in the order in which they win: a rule of a feature beats a rule of a shared part, and a rule of a shared part beats a rule of the theme, whatever the order in which the build loads their files. Each file of app/ puts its rules in the layer of its place, which scripts/check-style-layers.ts checks. app/root.tsx imports this file first, so the first style sheet of every page names every layer in this order, and the minifier of the build keeps the blocks of a file in the order of this statement. */
 @layer theme, parts, features;
 
 @layer theme {
@@ -296,6 +296,11 @@
     box-sizing: border-box;
   }
 
+  /* The page keeps the room of a vertical scroll bar whether or not it scrolls, so the top bar and the content keep their width when the reader moves from a long page to a short one. */
+  :root {
+    scrollbar-gutter: stable;
+  }
+
   body {
     margin: 0;
     background: var(--color-background);
@@ -458,6 +463,7 @@
 
   /* A row that opens something, such as a student in a list, shows a light ground across the whole row instead of an underline, because the whole row is the target. A row has no rounded corners, so the lines between rows stay straight. A chosen row keeps the tint that marks it, as a chosen option does. A CSS module composes it from global. */
   .row-link {
+    background: none;
     color: inherit;
     text-decoration: none;
   }
@@ -482,6 +488,11 @@
   label:has(> input[type="radio"]:focus-visible) {
     outline: var(--size-mark) solid var(--color-data);
     outline-offset: var(--size-mark);
+  }
+
+  /* A dialog that opens by itself, such as the ticket on a phone, takes the focus itself, so a screen reader names it and no control shows a ring before the reader has done anything. A dialog is no control, so it draws no ring, and Tab goes on to its first control. */
+  dialog:focus-visible {
+    outline: none;
   }
 
   /* A box that scrolls inside a page, such as a list capped inside its card, keeps a gap between its content and its scroll bar, so the bar never touches or covers the last column of numbers. A bar that takes space, as on Windows, stands beyond the gap, and a bar drawn over the content, as on a phone, stands inside it. The box reaches as far past its content on each side as that gap, so a box that does not scroll keeps the edges of the text around it, and a row whose ground reaches a little past its text, as the rows of Kelas do, fits inside the box instead of making it scroll sideways. It scrolls sideways only when its content cannot fit, such as a matrix of many stocks. A CSS module composes it from global, and an open table of values below shares it. */

@@ -164,6 +164,10 @@
   }
 
   .formPage {
+    display: grid;
+  }
+
+  .formCard {
     composes: panel from "./panel.module.css";
   }
 

@@ -96,8 +96,11 @@ export function LessonCapm({
       className={styles["interactive"]}
       aria-labelledby={`${idPrefix}lesson-interactive-title`}
     >
-      <h2 id={`${idPrefix}lesson-interactive-title`}>
-        {m.learning_capm_interactive_title()}
+      <h2>
+        <span id={`${idPrefix}lesson-interactive-title`}>
+          {m.learning_capm_interactive_title()}
+        </span>
+        {explanation}
       </h2>
       <LessonSlider
         id={`${idPrefix}lesson-beta`}
@@ -181,7 +184,6 @@ export function LessonCapm({
               })}
             </NumberText>
           </p>
-          {explanation}
         </div>
       </div>
     </section>

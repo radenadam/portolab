@@ -1,5 +1,5 @@
 import type { ComponentProps, ReactNode } from "react";
-import { Link } from "react-router";
+import { BackLink } from "~/back-link";
 import { withLessonTask } from "~/features/learning/lesson-task";
 import { StarButton } from "~/features/watchlist/star-button";
 import { NumberText } from "~/number-text";
@@ -31,12 +31,10 @@ export function StockHeader({
   const { classId, code, quote, holding } = stock;
   return (
     <header className={styles["header"]}>
-      <Link
+      <BackLink
         to={withLessonTask(stock.returnPath, stock.task)}
-        className={styles["back"]}
-      >
-        ‹ {stock.returnLabel}
-      </Link>
+        label={stock.returnLabel}
+      />
       {/* The star belongs to the code, and the sector and the place of the stock in the portfolio belong to its name, so they stand in the column of the name beside the tile, and the identity of the stock reads as one block. */}
       <div className={styles["identity"]}>
         <StockName

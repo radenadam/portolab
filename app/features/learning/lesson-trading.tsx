@@ -63,15 +63,17 @@ export function LessonTrading({
           className={styles["interactive"]}
           aria-labelledby={`${idPrefix}lesson-interactive-title`}
         >
-          <h2 id={`${idPrefix}lesson-interactive-title`}>
-            {m.learning_try_price_title()}
+          <h2>
+            <span id={`${idPrefix}lesson-interactive-title`}>
+              {m.learning_try_price_title()}
+            </span>
+            {explanation}
           </h2>
           <p>
             {day === undefined
               ? m.learning_trading_data_notice()
               : orderFailureText(day.failure, trading.portfolioKind)}
           </p>
-          {explanation}
         </section>
         {ownNumbers}
         {children}
@@ -107,8 +109,11 @@ export function LessonTrading({
         className={styles["interactive"]}
         aria-labelledby={`${idPrefix}lesson-interactive-title`}
       >
-        <h2 id={`${idPrefix}lesson-interactive-title`}>
-          {m.learning_try_price_title()}
+        <h2>
+          <span id={`${idPrefix}lesson-interactive-title`}>
+            {m.learning_try_price_title()}
+          </span>
+          {explanation}
         </h2>
         <LessonSlider
           id={`${idPrefix}lesson-price`}
@@ -182,7 +187,6 @@ export function LessonTrading({
           ))}
         </dl>
         <TickTable rules={rules} highlight={reference} />
-        {explanation}
       </section>
       {ownNumbers}
       {children}

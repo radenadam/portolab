@@ -93,7 +93,6 @@ export function MarketView(props: MarketViewProps): ReactNode {
               props.map?.heldCodes.includes(quote.code),
           )}
           sharedTime={sharedTime}
-          className={styles["status"]}
         />
       )}
       <MarketNotes

@@ -3,16 +3,15 @@ import { formatList } from "~/formatting";
 import { NumberText } from "~/number-text";
 import { m } from "~/paraglide/messages.js";
 import { ownQuoteTime } from "./shared-quote-time";
+import styles from "./quote-time.module.css";
 
-/** The times of the prices that differ from the time that a screen states once, such as the prices of the other holdings beside the price of a stock, with the codes of each time in one line. */
+/** The times of the prices behind a value of several prices, such as the weight of a holding, that differ from the time that a screen states once, with the codes of each time in one note, which stands beside that value in the look of the time of a price. */
 export function OtherQuoteTimes({
   quotes,
   sharedTime,
-  className,
 }: {
   quotes: readonly { code: string; quotedAt: Date }[];
   sharedTime: Date | undefined;
-  className: string | undefined;
 }): ReactNode {
   const different = new Map<string, string[]>();
   for (const quote of quotes) {
@@ -24,9 +23,9 @@ export function OtherQuoteTimes({
   }
   if (different.size === 0) return null;
   return (
-    <ul className={className}>
+    <span className={styles["times"]}>
       {[...different].map(([time, codes]) => (
-        <li key={time}>
+        <span key={time} className={styles["time"]}>
           <NumberText>
             {(textValue) =>
               m.market_data_codes_price_time_notice({
@@ -35,8 +34,8 @@ export function OtherQuoteTimes({
               })
             }
           </NumberText>
-        </li>
+        </span>
       ))}
-    </ul>
+    </span>
   );
 }

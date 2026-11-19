@@ -184,6 +184,7 @@ export function MarketTable({
                     quotedAt={row.quote.quotedAt}
                     sharedTime={sharedTime}
                     dayAlone
+                    below
                   />
                 </>
               )}

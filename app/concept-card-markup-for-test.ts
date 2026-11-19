@@ -8,9 +8,10 @@ export function conceptCardBodiesForTest(markup: string): string[] {
 
 /** Leaves the rows for tests of their values, because the cards have tests of their own. */
 export function withoutConceptCardsForTest(markup: string): string {
+  // The button of a card stands in a slot that a word joiner starts, which goes with it.
   return markup
     .replaceAll(
-      /<button[^>]*popoverTarget="concept-[^"]*"[^>]*>[\s\S]*?<\/button>/g,
+      /(?:<span[^>]*>⁠)?<button[^>]*popoverTarget="concept-[^"]*"[^>]*>[\s\S]*?<\/button>(?:<\/span>)?/gu,
       "",
     )
     .replaceAll(cardPattern, "");

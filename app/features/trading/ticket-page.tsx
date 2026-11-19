@@ -203,6 +203,8 @@ export default function TicketPage({
       for (const popover of popovers) popover.showPopover();
       if (focused instanceof HTMLElement && dialog.contains(focused))
         focused.focus({ preventScroll: true });
+      // A sheet takes the focus itself instead of its first control, so the close mark shows no ring before the reader has done anything.
+      else if (narrow.matches) dialog.focus({ preventScroll: true });
     };
     resize();
     narrow.addEventListener("change", resize);
@@ -222,6 +224,7 @@ export default function TicketPage({
         open
         ref={dialogRef}
         className={styles["ticket"]}
+        tabIndex={-1}
         aria-labelledby="ticket-title"
         data-side={side}
         onCancel={(event) => {

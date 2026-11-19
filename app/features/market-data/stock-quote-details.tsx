@@ -2,13 +2,12 @@ import type { ReactNode } from "react";
 import { formatMarketTime, formatRupiah } from "~/formatting";
 import { NumberText } from "~/number-text";
 import { m } from "~/paraglide/messages.js";
-import { OtherQuoteTimes } from "./other-quote-times";
 import type { StockQuote } from "./price-source.server";
 import { sharedQuoteTime } from "./shared-quote-time";
 import { SharedQuoteTimeNotice } from "./shared-quote-time-notice";
 import styles from "./stock-page.module.css";
 
-/** The time of the price of the stock, which the page states once, and the times of the prices of the holdings that differ from it, because the position, the correlation, and the impact of a trade use them. */
+/** The time of the price of the stock, which the page states once. The weight of the position and the impact of a trade show beside them the times of the prices of the holdings that differ from it. */
 export function StockQuoteDetails({
   quote,
   portfolioQuotes,
@@ -17,7 +16,7 @@ export function StockQuoteDetails({
   /** The prices of the holdings behind the values of the portfolio that the page shows, or none when it shows no such value. */
   portfolioQuotes: readonly { code: string; quotedAt: Date }[];
 }): ReactNode {
-  const sharedTime = quote?.quotedAt ?? sharedQuoteTime(portfolioQuotes);
+  const sharedTime = stockPageTime(quote, portfolioQuotes);
   if (sharedTime === undefined) return null;
   return (
     <div className={styles["quoteDetails"]}>
@@ -36,11 +35,14 @@ export function StockQuoteDetails({
           </NumberText>
         </p>
       )}
-      <OtherQuoteTimes
-        quotes={portfolioQuotes}
-        sharedTime={sharedTime}
-        className={styles["otherQuoteTimes"]}
-      />
     </div>
   );
+}
+
+/** The time that the page of a stock states once: the time of the price of the stock, or of most prices of the holdings when the stock has none. */
+export function stockPageTime(
+  quote: Pick<StockQuote, "quotedAt"> | undefined,
+  portfolioQuotes: readonly { code: string; quotedAt: Date }[],
+): Date | undefined {
+  return quote?.quotedAt ?? sharedQuoteTime(portfolioQuotes);
 }

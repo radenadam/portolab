@@ -3,6 +3,13 @@ import type { PlacedMark } from "./layout-risk-map";
 import { percentOf } from "./plot";
 import styles from "./risk-map.module.css";
 
+// The head of an arrow stands this far beside the mark that it points at, and it is this wide, in sizes of the text of the labels.
+const headGap = 0.4;
+const headWidth = 1.5;
+
+/** How far beyond the edge of the mark that an arrow points at its head reaches, which the labels of a map keep clear of as of a mark. */
+export const arrowHeadReach = headGap + headWidth / 2;
+
 export function MapArrow({
   from,
   to,
@@ -20,6 +27,7 @@ export function MapArrow({
         y1={percentOf(from.position.y)}
         x2={percentOf(to.position.x)}
         y2={percentOf(to.position.y)}
+        data-map-line=""
       />
       <svg
         x={percentOf(to.position.x)}
@@ -27,13 +35,14 @@ export function MapArrow({
         overflow="visible"
       >
         <svg
-          x={`${String((from.position.x < to.position.x ? -1 : 1) * (to.outerRadius + 0.4) - 0.75)}em`}
+          x={`${String((from.position.x < to.position.x ? -1 : 1) * (to.outerRadius + headGap) - headWidth / 2)}em`}
           y="-0.5em"
-          width="1.5em"
+          width={`${String(headWidth)}em`}
           height="1em"
           viewBox="-0.75 -0.5 1.5 1"
         >
           <path
+            data-map-line=""
             vectorEffect="non-scaling-stroke"
             d="M 0.6 -0.35 L 0 0 L 0.6 0.35"
             transform={

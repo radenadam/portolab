@@ -51,6 +51,7 @@ for (const locale of locales) {
         holding={holding}
         lotShares={shares(100)}
         totalValue={rupiah(100_000_000)}
+        quoteTimes={undefined}
       />,
       conceptLessonDataForTest(),
     ).replaceAll("\u00a0", " ");

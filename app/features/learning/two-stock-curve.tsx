@@ -64,9 +64,31 @@ export function TwoStockCurve({
       monthlyReturn,
     ).map((tick) => formatPercent(tick).length),
   );
+  // The names keep clear of the line between the two stocks and of the curve of their portfolios, as of the points.
+  const obstacles = useMemo(() => {
+    const at = (risk: MonthlyReturn, expected: MonthlyReturn) => ({
+      x: layout.acrossPosition(risk),
+      y: layout.upPosition(expected),
+    });
+    const lines = [
+      {
+        start: at(layout.firstPoint.risk, layout.firstPoint.expected),
+        end: at(layout.secondPoint.risk, layout.secondPoint.expected),
+      },
+    ];
+    for (const [index, entry] of layout.curve.entries()) {
+      const previous = layout.curve[index - 1];
+      if (previous !== undefined)
+        lines.push({
+          start: at(previous.risk, previous.expected),
+          end: at(entry.risk, entry.expected),
+        });
+    }
+    return { marks: layout.marks, lines };
+  }, [layout]);
   const { placed, areaRef, drawingRef, measureRef } = useMapLabels(
     labels,
-    layout.marks,
+    obstacles,
     returnCharacters,
   );
   const pointClasses: Record<TwoStockPointKind, string | undefined> = {
@@ -171,6 +193,7 @@ export function TwoStockCurve({
               x2={acrossPosition(secondPoint.risk)}
               y2={upPosition(secondPoint.expected)}
               className={styles["baseline"]}
+              data-map-line=""
             />
             {curve.map((entry, index) => {
               const previous = curve[index - 1];
@@ -182,6 +205,7 @@ export function TwoStockCurve({
                   x2={acrossPosition(entry.risk)}
                   y2={upPosition(entry.expected)}
                   className={styles["combined"]}
+                  data-map-line=""
                 />
               );
             })}

@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { expectAccessibleScreen } from "./expect-accessible-screen.ts";
+import { styleOrderProblems } from "./style-order-problems.ts";
 
 // The styles of the app lie in cascade layers, which expectAccessibleScreen checks, so the styles of a page of a test do too.
 const layeredStart = "@layer theme, parts, features; @layer theme {";
@@ -163,51 +164,84 @@ for (const { name, extra, failure } of scrollCases) {
   });
 }
 
+const theme =
+  "@layer theme, parts, features; @layer theme { :root { --size-touch-target: 44px; } body { background: white; color: black; } }";
+const head = '<thead class="_head_bbbbb_9 _text_aaaaa_2">';
+
 const styleOrderCases = [
   {
     name: "accepts a feature that changes a property of a shared part in a later layer, and two modules of one layer at different weights",
-    styles:
-      "@layer theme, parts, features; @layer theme { :root { --size-touch-target: 44px; } body { background: white; color: black; } } @layer parts { ._text_aaaaa_2 { position: absolute; clip-path: inset(50%); } :where(._button_ccccc_4) { padding: 4px; } } @layer features { ._head_bbbbb_9 { position: static; clip-path: none; } } @layer parts { ._wide_ddddd_3 { padding: 8px; } }",
-    failure: undefined,
+    styles: `${theme} @layer parts { ._text_aaaaa_2 { position: absolute; clip-path: inset(50%); } :where(._button_ccccc_4) { padding: 4px; } } @layer features { ._head_bbbbb_9 { position: static; clip-path: none; } } @layer parts { ._wide_ddddd_3 { padding: 8px; } }`,
+    problems: [],
   },
   {
     name: "rejects two modules of one layer that give one property two values at the same weight",
-    styles:
-      "@layer theme, parts, features; @layer theme { :root { --size-touch-target: 44px; } body { background: white; color: black; } } @layer parts { ._text_aaaaa_2 { position: absolute; clip-path: inset(50%); } } @layer parts { ._head_bbbbb_9 { position: static; clip-path: none; } }",
-    failure:
-      'takes position from "._text_aaaaa_2" and from "._head_bbbbb_9", two modules of the layer "parts" with the same weight, so the module that loads later wins.',
+    styles: `${theme} @layer parts { ._text_aaaaa_2 { position: absolute; clip-path: inset(50%); } } @layer parts { ._head_bbbbb_9 { position: static; clip-path: none; } }`,
+    problems: [
+      `${head} takes position from "._text_aaaaa_2" and from "._head_bbbbb_9", two modules of the layer "parts" with the same weight, so the module that loads later wins.`,
+      `${head} takes clip-path from "._text_aaaaa_2" and from "._head_bbbbb_9", two modules of the layer "parts" with the same weight, so the module that loads later wins.`,
+    ],
   },
   {
     name: "rejects a shorthand of one module and a longhand of another module of one layer at the same weight",
-    styles:
-      "@layer theme, parts, features; @layer theme { :root { --size-touch-target: 44px; } body { background: white; color: black; } } @layer parts { :where(._button_ccccc_4) { padding: 4px; } } @layer parts { ._wide_ddddd_3 { padding: 8px; } } @layer features { ._head_bbbbb_9 { padding-top: 6px; } ._text_aaaaa_2 { padding: 2px; } }",
-    failure:
-      'takes padding-top from "._head_bbbbb_9" and from "._text_aaaaa_2", two modules of the layer "features" with the same weight, so the module that loads later wins.',
+    styles: `${theme} @layer parts { :where(._button_ccccc_4) { padding: 4px; } } @layer parts { ._wide_ddddd_3 { padding: 8px; } } @layer features { ._head_bbbbb_9 { padding-top: 6px; } ._text_aaaaa_2 { padding: 2px; } }`,
+    problems: [
+      `${head} takes padding-top from "._head_bbbbb_9" and from "._text_aaaaa_2", two modules of the layer "features" with the same weight, so the module that loads later wins.`,
+    ],
   },
   {
     name: "rejects a rule outside every layer, also inside a media query",
     styles:
       "@layer theme, parts, features; @layer theme { :root { --size-touch-target: 44px; } } @media (width > 0) { body { background: white; color: black; } }",
-    failure:
+    problems: [
       'The rule "body" of a style element lies outside every cascade layer, so it beats every layer.',
+    ],
   },
   {
-    name: "rejects layers that take their order from another rule than one statement that names them all",
+    name: "rejects a layer that a later style sheet names first",
     styles:
-      "@layer features { ._head_bbbbb_9 { position: static; } } @layer theme, parts, features; @layer theme { :root { --size-touch-target: 44px; } body { background: white; color: black; } }",
-    failure:
-      'The cascade layers of the page take the order features, theme, parts from the rules that first name them, which the block "@layer features" starts, so the order of loading sets it. A statement that names every layer must come before any other rule that names one.',
+      "@layer theme, parts; @layer theme { :root { --size-touch-target: 44px; } body { background: white; color: black; } } </style><style>@layer features { ._head_bbbbb_9 { position: static; } }",
+    problems: [
+      'The layer "features" is first named by a style element, which loads after a style element named the layers theme, parts, so the order of loading sets the order of the layers. The first style sheet that names a layer must name every layer.',
+    ],
   },
 ] as const;
 
-for (const { name, styles, failure } of styleOrderCases) {
+for (const { name, styles, problems } of styleOrderCases) {
   test(name, async ({ page }) => {
     await page.setContent(`<!doctype html>
       <html lang="en"><head><title>Style order</title><style>${styles}</style></head><body><main><h1>Style order</h1>
-        <table><thead class="_head_bbbbb_9 _text_aaaaa_2"><tr><th>Code</th></tr></thead><tbody><tr><td>BBCA</td></tr></tbody></table>
+        <table>${head}<tr><th>Code</th></tr></thead><tbody><tr><td>BBCA</td></tr></tbody></table>
         <p class="_button_ccccc_4 _wide_ddddd_3">Wide</p>
       </main></body></html>`);
-    if (failure === undefined) await expectAccessibleScreen(page);
-    else await expect(expectAccessibleScreen(page)).rejects.toThrow(failure);
+    expect(await styleOrderProblems(page)).toEqual(problems);
+    if (problems.length === 0) await expectAccessibleScreen(page);
+    else await expect(expectAccessibleScreen(page)).rejects.toThrow();
   });
+}
+
+for (const radius of ["0", "50%"] as const) {
+  test(
+    radius === "0"
+      ? "rejects a control that shows only a mark and draws its focus ring as a box"
+      : "accepts a round control that shows only a mark, a control with a label, and a control with a box",
+    async ({ page }) => {
+      await page.setContent(`<!doctype html>
+      <html lang="en"><head><title>Focus shapes</title><style>${layeredStart}
+        :root { --size-touch-target: 44px; }
+        body { background: white; color: black; }
+        button { width: 44px; height: 44px; padding: 0; border: 0; background: none; cursor: pointer; }
+        .boxed { border: 1px solid black; }
+      ${layeredEnd}</style></head><body><main><h1>Focus shapes</h1>
+        <button type="button" aria-label="Tutup" style="border-radius: ${radius}">×</button>
+        <button type="button">Beli</button>
+        <button type="button" class="boxed" aria-label="Salin">⧉</button>
+      </main></body></html>`);
+      if (radius === "50%") await expectAccessibleScreen(page);
+      else
+        await expect(expectAccessibleScreen(page)).rejects.toThrow(
+          "shows only an icon or a mark, but its corners are square, so its focus ring draws a box.",
+        );
+    },
+  );
 }

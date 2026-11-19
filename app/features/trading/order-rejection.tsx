@@ -26,17 +26,16 @@ export function OrderRejection({
     return readOnly ? <q>{value}</q> : value;
   };
   const title = m.trading_activity_rejection_title();
+  // The "?" stands in the sentence, which is no paragraph, because its card is a block that a paragraph cannot hold.
   return (
     <div className={styles["rejection"]}>
-      <p>
-        <Message
-          text={m.trading_activity_rejection_notice}
-          values={{
-            time: <MarketTime moment={rejection.rejectedAt} />,
-            reason: quoted(texts.summary),
-          }}
-        />
-      </p>
+      <Message
+        text={m.trading_activity_rejection_notice}
+        values={{
+          time: <MarketTime moment={rejection.rejectedAt} />,
+          reason: quoted(texts.summary),
+        }}
+      />
       <ConceptHelp title={title} label={title}>
         <p>
           <Message

@@ -1,0 +1,13 @@
+@layer parts {
+  /* The way back of a screen stands at its top in small secondary text with a chevron, as the page of a stock draws it, and its touch target reaches into the space around it. */
+  .back {
+    composes: standalone-link from global;
+    justify-self: start;
+    margin-block-end: calc(
+      (1lh - var(--size-touch-target)) / 2 + var(--space-2)
+    );
+    color: var(--color-ink-secondary);
+    font-size: var(--text-caption);
+    font-weight: 500;
+  }
+}

@@ -15,6 +15,8 @@ interface AllocationRow {
   name: string;
   value: Rupiah;
   weight: PortfolioWeight;
+  /** The codes of the holdings whose prices set the weight, whose times stand beside it. */
+  codes: readonly string[];
 }
 
 type Allocation =
@@ -51,6 +53,7 @@ export function analysisAllocationRows(
           name: holding.code,
           value: holding.value,
           weight: holding.weight,
+          codes: [holding.code],
         });
       break;
     case "sector": {
@@ -63,6 +66,7 @@ export function analysisAllocationRows(
           name: sectorName(sector),
           value: rupiah((existing?.value ?? 0) + holding.value),
           weight: sectorWeight(holdings, holding.code),
+          codes: [...(existing?.codes ?? []), holding.code],
         });
       }
       rows.push(...values.values());
@@ -79,6 +83,7 @@ export function analysisAllocationRows(
         name: m.measures_cash_label(),
         value: valuation.cash,
         weight: portfolioWeightOf(valuation.cash, total),
+        codes: [],
       },
     ],
   };

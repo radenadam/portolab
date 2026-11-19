@@ -10,9 +10,9 @@ A screen composes shared parts from CSS modules of `app/`, such as the hidden te
 ## Decision
 
 - Every style of `app/` lies in one of three cascade layers, which win in this order: `features` over `parts` over `theme`. The theme holds the tokens, the styles of elements, and the global classes, such as `.primary-button`. A module in `app/` outside the features is a shared part, and a module in `app/features/` belongs to its feature. A rule of a later layer beats a rule of an earlier layer whatever their weights and whatever the order in which they load.
-- `app/theme.css` starts with the statement `@layer theme, parts, features`, and `app/root.tsx` imports it before any other module, so the statement comes first in the styles of every page and alone sets the order.
-- Each file puts all of its rules in one block of the layer of its place. `scripts/check-style-layers.ts` checks this in `pnpm check`.
-- Within one layer, the order of loading still decides between two modules. So two modules of one layer never give one property of an element two values at the same weight, and a part that another part of its layer composes keeps its defaults weightless with `:where()`, as `app/panel.module.css` does. `e2e/expect-accessible-screen.ts` checks on every screen that no rule lies outside a layer, that the statement sets the order, and that no element takes a property from two modules of one layer at the same weight.
+- `app/theme.css` starts with the statement `@layer theme, parts, features`, and `app/root.tsx` imports it before any other module, so the first style sheet of every page names every layer in this order. The minifier of the build sorts the blocks of a file by the statement and leaves the statement out once the blocks name every layer, so the order holds in the file that the build makes, while the statement itself may be gone.
+- Each file puts all of its rules in the layer of its place. `scripts/check-style-layers.ts` checks this in `pnpm check`.
+- Within one layer, the order of loading still decides between two modules. So two modules of one layer never give one property of an element two values at the same weight, and a part that another part of its layer composes keeps its defaults weightless with `:where()`, as `app/panel.module.css` does. `e2e/expect-accessible-screen.ts` checks on every screen that no rule lies outside a layer, that the first style sheet that names a layer names every layer, and that no element takes a property from two modules of one layer at the same weight.
 
 ## Alternatives
 

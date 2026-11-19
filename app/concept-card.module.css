@@ -18,10 +18,27 @@
     color: var(--color-muted);
     font: inherit;
     vertical-align: middle;
+    border-radius: 50%;
+  }
+
+  /* The focus ring of a "?" circles its mark, as the ring of an icon circles the icon, instead of the touch target around it, also where the mark stands at the end of its box in the head of a column. */
+  .question:focus-visible {
+    outline: none;
+  }
+
+  .question:focus-visible > span {
+    outline: var(--size-mark) solid var(--color-data);
+    outline-offset: var(--size-mark);
+  }
+
+  /* A browser may break a line before a button even where no space can break, which would leave a "?" alone on a line. So the "?" stands in a slot that never breaks inside, and the slot starts with a word joiner, which binds it to the word before it unless a space comes between them. */
+  .slot {
+    flex: none;
+    white-space: nowrap;
   }
 
   /* The references set the "?" of the head of a column farther from its label than a "?" in a line of text, and they line it up with the values of the column. So its mark stands at the end of its box, which reaches over the label instead of past the cell. */
-  th > .question {
+  th > .slot > .question {
     justify-items: end;
     margin-inline: calc(
         var(--space-2) + var(--size-concept-mark) - var(--size-touch-target)

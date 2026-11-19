@@ -36,19 +36,11 @@ for (const locale of locales) {
     switchLocaleForTest(locale);
     const render = (quotes: { code: string; quotedAt: Date }[]) =>
       renderMarkupForTest(
-        <OtherQuoteTimes
-          quotes={quotes}
-          sharedTime={sharedTime}
-          className={undefined}
-        />,
+        <OtherQuoteTimes quotes={quotes} sharedTime={sharedTime} />,
       );
     const renderText = (quotes: { code: string; quotedAt: Date }[]) =>
       renderTextMarkupForTest(
-        <OtherQuoteTimes
-          quotes={quotes}
-          sharedTime={sharedTime}
-          className={undefined}
-        />,
+        <OtherQuoteTimes quotes={quotes} sharedTime={sharedTime} />,
       );
     expect(
       render([
@@ -76,6 +68,8 @@ for (const locale of locales) {
       markupTextForTest(texts[locale].several),
     );
     expect(grouped).toContain(markupTextForTest(texts[locale].time));
-    expect(grouped.match(/<li>/g)).toHaveLength(1);
+    expect(grouped.split(markupTextForTest(texts[locale].time))).toHaveLength(
+      2,
+    );
   });
 }

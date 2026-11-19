@@ -23,11 +23,6 @@
     color: var(--color-muted);
     font-size: var(--text-caption);
   }
-  .otherPrices {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
   .top {
     display: grid;
     gap: var(--space-5);

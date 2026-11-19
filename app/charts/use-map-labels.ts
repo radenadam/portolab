@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { RefObject } from "react";
 import { keptNameRoom, placeMapLabels } from "./map-labels";
 import type { LabelledMark, MapLabels, PlacedLabels } from "./map-labels";
+import type { LabelledLine } from "./label-box";
 
 // Before a browser measures the plot, the labels take their places in the plot of a phone 360 pixels wide, the narrowest that Portolab lays out, in which the marks lie closest together. Its size is in sizes of the text of the labels.
 const phonePlot = { width: 21 - keptNameRoom, height: 17 };
@@ -12,7 +13,10 @@ const extraCharacterRoom = 0.6;
 /** Where the labels of a map stand, as decision 0035 sets: where the server placed them from estimated widths in the plot of a phone, until the browser has measured each label and the plot, which it does once the fonts load and again whenever the plot changes its size. The refs go on the area of the plot, on the drawing, whose size of text every length of the map counts in, and on a hidden text in the font of the labels. textSize gives that size in pixels once the drawing is on the page. */
 export function useMapLabels(
   labels: MapLabels,
-  marks: readonly LabelledMark[],
+  drawing: {
+    marks: readonly LabelledMark[];
+    lines: readonly LabelledLine[];
+  },
   returnCharacters: number,
 ): {
   placed: PlacedLabels;
@@ -24,10 +28,12 @@ export function useMapLabels(
   const areaRef = useRef<HTMLDivElement>(null);
   const drawingRef = useRef<SVGSVGElement>(null);
   const measureRef = useRef<SVGTextElement>(null);
+  const { marks, lines } = drawing;
   const [measured, setMeasured] = useState<
     | {
         labels: MapLabels;
         marks: readonly LabelledMark[];
+        lines: readonly LabelledLine[];
         placed: PlacedLabels;
       }
     | undefined
@@ -50,12 +56,14 @@ export function useMapLabels(
       setMeasured({
         labels,
         marks,
+        lines,
         placed: placeMapLabels(labels, {
           size: {
             width: area.clientWidth / size,
             height: area.clientHeight / size,
           },
           marks,
+          lines,
           widthOf,
         }),
       });
@@ -72,7 +80,7 @@ export function useMapLabels(
       isLive = false;
       observer.disconnect();
     };
-  }, [labels, marks]);
+  }, [labels, marks, lines]);
   const estimated = useMemo(
     () =>
       placeMapLabels(labels, {
@@ -86,14 +94,17 @@ export function useMapLabels(
           ),
         },
         marks,
+        lines,
         widthOf: estimatedLabelWidth,
         canGrow: true,
       }),
-    [labels, marks, returnCharacters],
+    [labels, marks, lines, returnCharacters],
   );
   return {
     placed:
-      measured?.labels === labels && measured.marks === marks
+      measured?.labels === labels &&
+      measured.marks === marks &&
+      measured.lines === lines
         ? measured.placed
         : estimated,
     areaRef,

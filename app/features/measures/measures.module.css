@@ -1,6 +1,9 @@
 @layer features {
+  /* The link of a stock in a table holds its code, which never breaks inside, so a narrow table gives the column of codes the width of a code. */
   .link {
     composes: standalone-link from global;
+    overflow-wrap: normal;
+    white-space: nowrap;
   }
 
   /* Every measure is a block of the same parts in the same order: its name with its value beside it, the sentence that says what it computes, and its formula with its numbers. The blocks stand side by side where the screen has room, each as wide as a formula with its numbers needs, so a value stays near its name. The parts of the blocks of one line share the rows of the list, so each part starts at the same height in every block of the line. */

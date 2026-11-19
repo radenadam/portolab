@@ -40,8 +40,7 @@
   }
   .searchSubmit {
     composes: button from "../../icon-button.module.css";
-    border-radius: var(--radius-item);
-    color: var(--color-muted);
+    --icon-button-ink: var(--color-muted);
   }
   .searchIcon,
   .sortIcon {
@@ -75,13 +74,12 @@
     padding-block: 0;
     padding-inline: calc(var(--space-3) + var(--size-icon) + var(--space-2))
       var(--space-3);
-    background: var(--color-panel);
+    --button-fill: var(--color-panel);
     font-size: var(--text-small);
   }
   .direction {
     composes: button from "../../icon-button.module.css";
-    border-radius: var(--radius-item);
-    color: var(--color-ink-secondary);
+    --icon-button-ink: var(--color-ink-secondary);
   }
   .direction[data-direction="ascending"] svg {
     transform: scaleY(-1);
@@ -129,7 +127,6 @@
   .indexPrice strong {
     font-size: var(--text-index);
   }
-  .indexPrice time,
   .status {
     font-size: var(--text-small);
     color: var(--color-muted);
@@ -239,6 +236,15 @@
     font-weight: 500;
     text-align: start;
   }
+  /* The head of a column of numbers ends where its numbers end, and the numbers of a change and of a measure end before their scale. */
+  .table thead th:nth-child(n + 5) {
+    text-align: end;
+  }
+  .table thead th:nth-child(n + 6) {
+    padding-inline-end: calc(
+      var(--space-2) + var(--width-market-scale) + var(--space-2)
+    );
+  }
   .watchColumn {
     inline-size: var(--size-touch-target);
   }
@@ -298,11 +304,6 @@
   }
   .priceCell strong {
     font-weight: 500;
-  }
-  .priceCell time {
-    display: block;
-    font-size: var(--text-small);
-    color: var(--color-muted);
   }
   .changeCell,
   .measureCell {

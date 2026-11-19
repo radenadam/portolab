@@ -32,19 +32,6 @@
     font-size: var(--text-learning-summary);
     color: var(--color-ink-secondary);
   }
-  .quoteTimes {
-    margin: var(--space-1) 0;
-    padding: 0;
-    list-style: none;
-    color: var(--color-muted);
-    font-size: var(--text-caption);
-  }
-  /* The docked ticket stands beside the header of the stock, which states the times of the other prices of the portfolio, so only the sheet states them. */
-  @media (width >= 73.75rem) {
-    .ticket .quoteTimes {
-      display: none;
-    }
-  }
   .sector {
     display: block;
     color: var(--color-muted);
@@ -73,10 +60,17 @@
     table-layout: fixed;
     font-size: var(--text-small);
   }
+  /* The space between columns stays the space of the data table, so two columns of numbers never read as one run. */
   .inputs th,
   .inputs td {
     overflow-wrap: anywhere;
-    padding: var(--space-1);
+    padding-inline-end: var(--space-1);
+  }
+  .inputs tbody :is(th, td) {
+    padding-block: var(--space-1);
+  }
+  .inputs :is(th, td):first-child {
+    padding-inline-start: var(--space-1);
   }
   .points:not([open]) > :not(summary) {
     display: none;

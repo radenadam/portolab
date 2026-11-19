@@ -12,7 +12,7 @@ import { bbcaHolding } from "./bbca-holding.ts";
 import type { BrowserProjectName } from "./browser-projects.ts";
 import { chooseLanguage } from "./choose-language.ts";
 import { readTestClass } from "./create-test-class.ts";
-import { layoutProblems } from "./expect-layout.ts";
+import { layoutProblems, openingFocusProblems } from "./expect-layout.ts";
 import type { LayoutRule } from "./expect-layout.ts";
 import { newDevice } from "./new-device.ts";
 import { storeTestHolding } from "./store-test-holding.ts";
@@ -294,7 +294,9 @@ async function inspectScreen(
   },
   testInfo: TestInfo,
 ): Promise<string[]> {
-  const problems: string[] = [];
+  const problems = (await openingFocusProblems(page)).map(
+    ({ text }) => `${screen.locale} ${screen.address}: ${text}`,
+  );
   for (const colorScheme of ["light", "dark"] as const) {
     await page.emulateMedia({ colorScheme });
     const found = await layoutProblems(page);

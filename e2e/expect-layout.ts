@@ -8,6 +8,8 @@ export const contentWidthToken = "--width-content";
 /** A rule of the layout of decision 0028 that a program can measure. */
 export type LayoutRule =
   | "width"
+  | "gutter"
+  | "focus"
   | "content"
   | "reading"
   | "columns"
@@ -15,7 +17,9 @@ export type LayoutRule =
   | "rows"
   | "tables"
   | "cells"
-  | "numbers";
+  | "numbers"
+  | "codes"
+  | "help";
 
 /** A rule that the screen of a page breaks, with the sentence that says where and by how much. */
 export interface LayoutProblem {
@@ -39,9 +43,47 @@ export async function sidewaysProblems(page: Page): Promise<LayoutProblem[]> {
     : [];
 }
 
+/** Returns the problem of a page that shows a focus ring when it opens, before the reader has done anything, such as a sheet that moves the focus to its close mark, or none. The page opens without input, so it waits until the app has run its effects, which move the focus. */
+export async function openingFocusProblems(
+  page: Page,
+): Promise<LayoutProblem[]> {
+  await page.waitForLoadState("networkidle");
+  const ring = await page.evaluate(() => {
+    const focused = document.querySelector(":focus-visible");
+    if (focused === null || getComputedStyle(focused).outlineStyle === "none")
+      return undefined;
+    return focused.outerHTML.slice(0, focused.outerHTML.indexOf(">") + 1);
+  });
+  return ring === undefined
+    ? []
+    : [
+        {
+          rule: "focus",
+          text: `The page opens with a focus ring on ${ring} before the reader has done anything.`,
+        },
+      ];
+}
+
+/** Returns the problem of a page that gives the room of its vertical scroll bar to its content when it does not scroll, so that the top bar and the content change their width between a long page and a short one, or none. A browser of a test can hide its scroll bars, so the rule reads the style that keeps the room instead of measuring it. */
+async function gutterProblems(page: Page): Promise<LayoutProblem[]> {
+  const gutter = await page.evaluate(
+    () => getComputedStyle(document.documentElement).scrollbarGutter,
+  );
+  return gutter.startsWith("stable")
+    ? []
+    : [
+        {
+          rule: "gutter",
+          text: `The page keeps no room for its scroll bar, because the scrollbar-gutter of its root is "${gutter}", so its top bar changes its width between a page that scrolls and one that does not.`,
+        },
+      ];
+}
+
 /**
- * Returns each rule of the layout of decision 0028 that the screen of a page breaks, after its styles and fonts load. The rules other than `width` and `numbers` skip each element that is itself hidden, or placed outside the flow with `position: absolute` or `fixed`. A part inside an element outside the flow that a rule finds by itself, such as a table or an element marked with `data-layout`, is still measured.
+ * Returns each rule of the layout of decision 0028 that the screen of a page breaks, after its styles and fonts load. The rules other than `width`, `gutter`, `numbers`, `codes`, and `help` skip each element that is itself hidden, or placed outside the flow with `position: absolute` or `fixed`. A part inside an element outside the flow that a rule finds by itself, such as a table or an element marked with `data-layout`, is still measured.
  * - `width`: the page never scrolls sideways.
+ * - `focus`: the page opens without a focus ring, which `openingFocusProblems` checks apart from the other rules, because a page that a test has typed in shows its ring.
+ * - `gutter`: the page keeps the room of its vertical scroll bar whether or not it scrolls.
  * - `content`: an element marked `data-layout="content"` is never wider than the token of the width of content, and it stands in the middle of the content box of its parent.
  * - `reading`: an element marked `data-layout="reading"` stands in the middle of the content box of its parent.
  * - `columns`: the children of `data-layout="columns"` that sit side by side end on one line, within 2 pixels. A child ends where the last of its parts with a ground or a line under it ends, so a column that stretches while its cards stay short still ends early.
@@ -50,11 +92,14 @@ export async function sidewaysProblems(page: Page): Promise<LayoutProblem[]> {
  * - `tables`: tables with the same heads of their columns put each column at the same place, within 1 pixel. Tables that stand one above the other compare their columns on the screen, and tables side by side compare them from their own left edge.
  * - `cells`: no cell of a table holds more than its column shows.
  * - `numbers`: a number keeps its digits, unit, sign, and arrow on one line, including text split between inline elements.
+ * - `codes`: the code of a stock or of the IHSG never breaks inside.
+ * - `help`: a "?" that opens help stands on the line of the last word before it, so it never stands alone on a line.
  */
 export async function layoutProblems(page: Page): Promise<LayoutProblem[]> {
   await waitForPageStyles(page);
   return [
     ...(await sidewaysProblems(page)),
+    ...(await gutterProblems(page)),
     ...(await page.evaluate(inspectLayout, {
       widthToken: contentWidthToken,
       numberSource: numberPattern.source,
@@ -538,6 +583,77 @@ function inspectLayout({
     }
   }
 
+  // IDX writes the code of every stock in four capital letters, and the code of the IHSG takes the same form.
+  function checkCodes(): void {
+    for (const [element, nodes] of numberTextGroups()) {
+      const text = nodes.map((node) => node.data).join("");
+      for (const match of text.matchAll(
+        /(?<![\p{L}\p{N}_])\p{Lu}{4}(?![\p{L}\p{N}_])/gu,
+      )) {
+        if (numberBreaks(nodes, match.index, match.index + match[0].length))
+          problems.push({
+            rule: "codes",
+            text: `The code "${match[0]}" in ${nameOf(element)} breaks inside.`,
+          });
+      }
+    }
+  }
+
+  function blockOf(element: Element): Element | null {
+    let block = element.parentElement;
+    while (
+      block !== null &&
+      ["inline", "contents"].includes(getComputedStyle(block).display)
+    )
+      block = block.parentElement;
+    return block;
+  }
+
+  // The box of the last letter of visible text before an element in its block, outside controls and popovers.
+  function lastLetterBefore(element: Element): DOMRect | undefined {
+    const block = blockOf(element);
+    if (block === null) return undefined;
+    let last: DOMRect | undefined;
+    const walker = document.createTreeWalker(block, NodeFilter.SHOW_TEXT);
+    for (
+      let node = walker.nextNode();
+      node !== null;
+      node = walker.nextNode()
+    ) {
+      if (
+        element.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING
+      )
+        break;
+      const parent = node.parentElement;
+      if (
+        !(node instanceof Text) ||
+        parent?.closest("button, [popover]") !== null ||
+        !parent.checkVisibility()
+      )
+        continue;
+      const end = node.data.trimEnd().length;
+      if (end > 0) last = characterBoxes(node, end - 1, end)[0] ?? last;
+    }
+    return last;
+  }
+
+  // A "?" is a button, and a browser may break a line before a button even where a space cannot break, so the last word before it must share its line.
+  function checkHelp(): void {
+    for (const button of document.querySelectorAll("button")) {
+      if (button.textContent.trim() !== "?" || !button.checkVisibility())
+        continue;
+      const last = lastLetterBefore(button);
+      if (last === undefined) continue;
+      const mark = button.getBoundingClientRect();
+      const middle = (mark.top + mark.bottom) / 2;
+      if (middle < last.top || middle > last.bottom)
+        problems.push({
+          rule: "help",
+          text: `The "?" of ${button.getAttribute("aria-label") ?? nameOf(button)} stands on a line apart from the word before it.`,
+        });
+    }
+  }
+
   checkContents();
   checkReading();
   checkColumns();
@@ -546,6 +662,8 @@ function inspectLayout({
   checkTables();
   checkCells();
   checkNumbers();
+  checkCodes();
+  checkHelp();
   return problems;
 }
 

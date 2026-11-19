@@ -16,7 +16,8 @@ import type {
   MarkedPoint,
   RiskMapLayout,
 } from "./layout-risk-map";
-import { MapDrawing, markReach } from "./map-drawing";
+import { MapDrawing } from "./map-drawing";
+import { mapObstacles } from "./map-obstacles";
 import type { DrawnPoint } from "./map-drawing";
 import { riskMapLabels } from "./risk-map-labels";
 import type { MapLabels, PlacedLabels } from "./map-labels";
@@ -106,19 +107,13 @@ export function RiskMap<Across extends number, Up extends number>({
       }),
     [drawn, line, levelLabel, layout, spread, annotations],
   );
-  const marks = useMemo(
-    () =>
-      drawn.map(({ point, placed }) => ({
-        key: point.key,
-        position: placed.position,
-        outerRadius: placed.outerRadius,
-        selectionRadius: placed.outerRadius + markReach,
-      })),
-    [drawn],
+  const obstacles = useMemo(
+    () => mapObstacles(layout, drawn, levelLabel !== undefined),
+    [layout, drawn, levelLabel],
   );
   const { placed, areaRef, drawingRef, measureRef, textSize } = useMapLabels(
     labels,
-    marks,
+    obstacles,
     layout.upTextLength,
   );
   const stops = useMemo(

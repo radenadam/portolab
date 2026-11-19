@@ -3,7 +3,8 @@ import { data, Form, redirect } from "react-router";
 import { databaseContext } from "~/database/database.server";
 import { SubmitButton } from "~/form";
 import { parseReturnPath } from "~/parse-return-path";
-import { ClassBackLink } from "./class-back-link";
+import { FormPage } from "~/form-page";
+import { classBackLabel } from "./class-back-label";
 import { FirstSessionField } from "./first-session-field";
 import formStyles from "~/form.module.css";
 import { typedText } from "~/form-text";
@@ -71,8 +72,10 @@ export default function CalendarPage({
 }: Route.ComponentProps): ReactNode {
   const { className, firstSessionDate, returnPath } = loaderData;
   return (
-    <>
-      <h1>{m.classes_calendar_title()}</h1>
+    <FormPage
+      title={m.classes_calendar_title()}
+      back={{ to: returnPath, label: classBackLabel(className) }}
+    >
       <Form method="post" noValidate className={formStyles["form"]}>
         <FirstSessionField
           failure={actionData?.failure}
@@ -82,8 +85,7 @@ export default function CalendarPage({
         />
         <SubmitButton label={m.classes_save_calendar_label()} />
       </Form>
-      <ClassBackLink className={className} to={returnPath} />
-    </>
+    </FormPage>
   );
 }
 

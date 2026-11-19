@@ -54,9 +54,11 @@ export function LessonDiversification({
     return (
       <>
         <section className={styles["interactive"]}>
-          <h2>{m.learning_two_stocks_title()}</h2>
+          <h2>
+            {m.learning_two_stocks_title()}
+            {explanation}
+          </h2>
           <p>{m.learning_interactive_data_notice()}</p>
-          {explanation}
         </section>
         {own !== undefined && ownNumbers}
         {children}
@@ -140,8 +142,11 @@ function TwoStockLesson({
         className={styles["interactive"]}
         aria-labelledby={`${idPrefix}lesson-interactive-title`}
       >
-        <h2 id={`${idPrefix}lesson-interactive-title`}>
-          {m.learning_two_stocks_title()}
+        <h2>
+          <span id={`${idPrefix}lesson-interactive-title`}>
+            {m.learning_two_stocks_title()}
+          </span>
+          {explanation}
         </h2>
         {(own?.holdings.length ?? 0) < 2 && (
           <p className={styles["muted"]}>{m.learning_example_notice()}</p>
@@ -268,7 +273,6 @@ function TwoStockLesson({
             correlation={rho}
             result={measured.standardDeviation.value}
           />
-          {explanation}
         </div>
       </section>
       {own !== undefined && ownNumbers}

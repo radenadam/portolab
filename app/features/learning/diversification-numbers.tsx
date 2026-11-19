@@ -5,6 +5,7 @@ import {
   isOnePercentagePoint,
 } from "~/formatting";
 import { Message } from "~/message";
+import { NumberText } from "~/number-text";
 import { m } from "~/paraglide/messages.js";
 import { monthlyReturn } from "~/units/monthly-return";
 import type { MonthlyReturn } from "~/units/monthly-return";
@@ -27,15 +28,18 @@ export function DiversificationNumbers({
       values={{
         average: emphasizedNumber(formatPercent(average, "two")),
         risk: emphasizedNumber(formatPercent(risk, "two")),
+        // The emphasis splits the number from its unit into two elements, so the whole part keeps them on one line.
         saving: (
-          <Message
-            text={
-              isOnePercentagePoint(points)
-                ? m.learning_one_risk_point_part
-                : m.learning_several_risk_points_part
-            }
-            values={{ points: emphasizedNumber(points) }}
-          />
+          <NumberText whole>
+            <Message
+              text={
+                isOnePercentagePoint(points)
+                  ? m.learning_one_risk_point_part
+                  : m.learning_several_risk_points_part
+              }
+              values={{ points: emphasizedNumber(points) }}
+            />
+          </NumberText>
         ),
       }}
     />

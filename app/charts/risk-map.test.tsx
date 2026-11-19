@@ -168,7 +168,7 @@ for (const locale of locales) {
       ),
       // The strong line through the risk of the IHSG, the name of the axis of risk, the dashed line at the return of the IHSG, and the line from its start to the right edge.
       '<line x1="46.3%" x2="46.3%" y1="0" y2="100%"></line><text x="100%" y="100%" dy="3em" text-anchor="end">Beta</text>',
-      '<line x1="0" x2="100%" y1="50%" y2="50%"></line><line x1="0%" y1="60.78%" x2="100%" y2="37.5%"></line>',
+      '<line x1="0" x2="100%" y1="50%" y2="50%" data-map-line=""></line><line x1="0%" y1="60.78%" x2="100%" y2="37.5%" data-map-line=""></line>',
       // The hollow dot of a stock that the portfolio does not hold, the dot of a stock that it holds with a weight of 25%, the diamond of the IHSG, and the ringed dot of the reader, in that order.
       '<circle cx="92.59%" cy="6.9%" r="0.42em"></circle>' +
         '<circle cx="69.44%" cy="93.1%" r="0.88em"></circle>' +

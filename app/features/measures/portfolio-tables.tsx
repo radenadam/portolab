@@ -16,17 +16,42 @@ import type { Rupiah } from "~/units/rupiah";
 import type { HoldingRiskSummary, PortfolioSummary } from "./measure-summaries";
 import { MeasureTable, StockLink } from "./measure-table";
 import type { MeasureTableRow } from "./measure-table";
+import { QuoteTime } from "~/features/market-data/quote-time";
+import { sharedQuoteTime } from "~/features/market-data/shared-quote-time";
+
+/** The codes and the times of the prices behind the weights of a table. */
+type QuoteTimes = readonly { code: string; quotedAt: Date }[];
+
+/** The name of a stock with the time of its price under it when that time differs from the time that the screen states once, because the weight beside it comes from that price. */
+function withQuoteTime(
+  name: ReactNode,
+  code: string,
+  quotes: QuoteTimes | undefined,
+): ReactNode {
+  const quote = quotes?.find((candidate) => candidate.code === code);
+  if (quote === undefined) return name;
+  return (
+    <>
+      {name}
+      <QuoteTime
+        quotedAt={quote.quotedAt}
+        sharedTime={sharedQuoteTime(quotes ?? [])}
+        below
+      />
+    </>
+  );
+}
 
 // The total value is the whole of which every weight is a share.
 const wholePortfolio = portfolioWeight(1);
 
 function valueRow(
-  name: string,
+  { key, name }: { key: string; name: ReactNode },
   value: Rupiah,
   weight: PortfolioWeight,
 ): MeasureTableRow {
   return {
-    key: name,
+    key,
     name,
     cells: {
       kind: "numbers",
@@ -38,8 +63,10 @@ function valueRow(
 /** The value and the weight of each stock of a portfolio and of its cash, and the total value of which each weight is a share. */
 export function WeightTable({
   portfolio,
+  quoteTimes,
 }: {
   portfolio: PortfolioSummary;
+  quoteTimes?: QuoteTimes;
 }): ReactNode {
   return (
     <MeasureTable
@@ -50,15 +77,22 @@ export function WeightTable({
       ]}
       rows={[
         ...portfolio.holdings.map((holding) =>
-          valueRow(holding.code, holding.value, holding.weight),
+          valueRow(
+            {
+              key: holding.code,
+              name: withQuoteTime(holding.code, holding.code, quoteTimes),
+            },
+            holding.value,
+            holding.weight,
+          ),
         ),
         valueRow(
-          m.measures_cash_label(),
+          { key: "cash", name: m.measures_cash_label() },
           portfolio.cash.value,
           portfolio.cash.weight,
         ),
         valueRow(
-          m.measures_total_label(),
+          { key: "total", name: m.measures_total_label() },
           portfolio.totalValue,
           wholePortfolio,
         ),
@@ -72,10 +106,12 @@ export function HoldingTable({
   portfolio,
   reader,
   measure,
+  quoteTimes,
 }: {
   portfolio: PortfolioSummary;
   reader: PortfolioReader;
   measure?: "expectedReturn" | "beta";
+  quoteTimes?: QuoteTimes;
 }): ReactNode {
   const measures: readonly ("expectedReturn" | "beta")[] =
     measure === undefined ? ["expectedReturn", "beta"] : [measure];
@@ -104,7 +140,11 @@ export function HoldingTable({
       ]}
       rows={portfolio.holdings.map((holding) => ({
         key: holding.code,
-        name: stockName(holding.code, reader),
+        name: withQuoteTime(
+          stockName(holding.code, reader),
+          holding.code,
+          quoteTimes,
+        ),
         cells: {
           kind: "numbers",
           values: [

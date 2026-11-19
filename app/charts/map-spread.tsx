@@ -49,6 +49,7 @@ function SpreadDrawing({
           y1={percentOf(layout.median)}
           y2={percentOf(layout.median)}
           className={styles["medianLine"]}
+          data-map-line=""
         />
       )}
       <MapLabel

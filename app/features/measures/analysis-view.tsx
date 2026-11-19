@@ -53,7 +53,6 @@ import { analysisHoldings } from "./analysis-holdings";
 import { MarketSection } from "./market-section";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
 import { attemptForCodes } from "~/features/market-data/quote-failure-text";
-import { OtherQuoteTimes } from "~/features/market-data/other-quote-times";
 import { holdingQuoteTimes } from "~/features/trading/value-portfolio";
 import { sharedQuoteTime } from "~/features/market-data/shared-quote-time";
 import { SharedQuoteTimeNotice } from "~/features/market-data/shared-quote-time-notice";
@@ -193,6 +192,7 @@ export function AnalysisView({
             reader={reader}
             quoteFailure={quoteFailure}
             source={source}
+            quoteTimes={holdingQuoteTimes(report.valuation.holdings)}
           />
           <StudentMarketLine marketLine={marketLine} reader={reader} />
           <h2>{m.measures_stocks_title()}</h2>
@@ -249,7 +249,7 @@ function AnalysisHeader({
               monthly: formatPercent(market.riskFreeRate.value, "three"),
               annual: formatPercent(market.riskFreeRate.inputs.annualRate),
             })}
-          </NumberText>{" "}
+          </NumberText>
           <ConceptCard
             title={m.measures_risk_free_rate_label()}
             meaning={riskFreeConcept.meaning}
@@ -272,11 +272,6 @@ function AnalysisHeader({
       {sharedTime !== undefined && (
         <div className={styles["prices"]}>
           <SharedQuoteTimeNotice moment={sharedTime} />
-          <OtherQuoteTimes
-            quotes={quotes}
-            sharedTime={sharedTime}
-            className={styles["otherPrices"]}
-          />
         </div>
       )}
     </header>

@@ -27,6 +27,12 @@ const values: Record<Locale, readonly string[]> = {
     "100 karakter",
     "30 mahasiswa",
     "52 minggu",
+    "19 Nov 2026, 16.14 WIB",
+    "19 Nov 2026",
+    "19 November 2026",
+    "10 Nov",
+    "Okt 2026",
+    "16.10 WIB",
   ],
   en: [
     "IDR 498,000,000,000",
@@ -46,6 +52,12 @@ const values: Record<Locale, readonly string[]> = {
     "100 characters",
     "30 students",
     "52-week",
+    "Nov 19, 2026, 4:14 PM WIB",
+    "Nov 19, 2026",
+    "November 19, 2026",
+    "Nov 10",
+    "Oct 2026",
+    "4:10 PM WIB",
   ],
 };
 

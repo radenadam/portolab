@@ -1,22 +1,30 @@
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import { setTimeout } from "node:timers/promises";
-import { contentWidthToken, layoutProblems } from "./expect-layout.ts";
+import {
+  contentWidthToken,
+  layoutProblems,
+  openingFocusProblems,
+} from "./expect-layout.ts";
 
 // Each page sets its own width of content, narrower than the phone of the tests, so a rule is broken only where a page breaks it on purpose.
 const contentWidth = 200;
 
-/** Shows a page that holds the markup of a test, with the width of content as its token unless the test leaves the token out. */
+/** Shows a page that holds the markup of a test, with the width of content as its token and the room of a scroll bar unless the test leaves them out. */
 async function showPage(
   page: Page,
   body: string,
-  { hasToken = true }: { hasToken?: boolean } = {},
+  {
+    hasToken = true,
+    hasGutter = true,
+  }: { hasToken?: boolean; hasGutter?: boolean } = {},
 ): Promise<void> {
   const token = hasToken
     ? `:root { ${contentWidthToken}: ${String(contentWidth)}px; }`
     : "";
+  const gutter = hasGutter ? ":root { scrollbar-gutter: stable; }" : "";
   await page.setContent(
-    `<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><style>${token} body { margin: 0; font: 14px sans-serif; } * { box-sizing: border-box; } .card { background: #eee; }</style></head><body>${body}</body></html>`,
+    `<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><style>${token} ${gutter} body { margin: 0; font: 14px sans-serif; } * { box-sizing: border-box; } .card { background: #eee; }</style></head><body>${body}</body></html>`,
   );
 }
 
@@ -164,6 +172,18 @@ test("rejects a page that scrolls sideways", async ({ page }) => {
     {
       rule: "width",
       text: `The page is 2000 pixels wide, but the screen is ${String(screenWidth)} pixels wide, so it scrolls sideways.`,
+    },
+  ]);
+});
+
+test("rejects a page that gives the room of its scroll bar to its content when it does not scroll", async ({
+  page,
+}) => {
+  await showPage(page, "<p>Jadwal kuliah</p>", { hasGutter: false });
+  expect(await layoutProblems(page)).toEqual([
+    {
+      rule: "gutter",
+      text: 'The page keeps no room for its scroll bar, because the scrollbar-gutter of its root is "auto", so its top bar changes its width between a page that scrolls and one that does not.',
     },
   ]);
 });
@@ -637,6 +657,13 @@ for (const [name, text, visible] of [
     '<span aria-hidden="true">▲ </span>+Rp 3.259.000.000',
     "▲ +Rp 3.259.000.000",
   ],
+  ["date", "18 Nov 2026, 22.15 WIB", "18 Nov 2026, 22.15 WIB"],
+  [
+    "date in English",
+    "Nov 18, 2026, 10:15 PM WIB",
+    "Nov 18, 2026, 10:15 PM WIB",
+  ],
+  ["time of day", "22.15 WIB", "22.15 WIB"],
 ] as const) {
   test(`rejects a number that breaks at its ${name}`, async ({ page }) => {
     await showPage(
@@ -698,4 +725,61 @@ test("still rejects a broken quantity beside a wrapping digit-only name", async 
   const problems = await layoutProblems(page);
   expect(problems.filter(({ rule }) => rule === "numbers")).toHaveLength(1);
   expect(problems[0]?.text).toContain('The number "Rp 498.000.000.000"');
+});
+
+test("rejects the code of a stock that breaks inside, and accepts codes that wrap as words", async ({
+  page,
+}) => {
+  await showPage(
+    page,
+    '<p style="width: 20px; overflow-wrap: anywhere">ANTM</p><p style="width: 60px">Saham ANTM dan BBCA</p>',
+  );
+  expect(await layoutProblems(page)).toEqual([
+    { rule: "codes", text: 'The code "ANTM" in <p> "ANTM" breaks inside.' },
+  ]);
+});
+
+test("rejects a question mark that stands on a line apart from the word before it", async ({
+  page,
+}) => {
+  await showPage(
+    page,
+    '<div style="display: flex; flex-direction: column"><span>Imbal hasil harapan</span><button type="button" aria-label="Apa itu Imbal hasil harapan?">?</button></div>',
+  );
+  expect(await layoutProblems(page)).toEqual([
+    {
+      rule: "help",
+      text: 'The "?" of Apa itu Imbal hasil harapan? stands on a line apart from the word before it.',
+    },
+  ]);
+});
+
+test("accepts a question mark that a slot binds to the word before it at every width", async ({
+  page,
+}) => {
+  for (const width of [90, 120, 150, 180]) {
+    await showPage(
+      page,
+      `<p style="width: ${String(width)}px">Semua ukuran per bulan dari BI-Rate 5,75%.<span style="white-space: nowrap">⁠<button type="button" style="display: inline-grid; width: 20px; padding: 0">?</button></span></p>`,
+    );
+    expect(await layoutProblems(page)).toEqual([]);
+  }
+});
+
+test("rejects a page that opens with a focus ring on a control, and accepts one whose dialog takes the focus itself", async ({
+  page,
+}) => {
+  await page.setContent(
+    '<!doctype html><html><head><style>:focus-visible { outline: 2px solid blue; } dialog:focus-visible { outline: none; }</style></head><body><dialog open tabindex="-1"><a href="#close">×</a></dialog><script>document.querySelector("a").focus();</script></body></html>',
+  );
+  expect(await openingFocusProblems(page)).toEqual([
+    {
+      rule: "focus",
+      text: 'The page opens with a focus ring on <a href="#close"> before the reader has done anything.',
+    },
+  ]);
+  await page.setContent(
+    '<!doctype html><html><head><style>:focus-visible { outline: 2px solid blue; } dialog:focus-visible { outline: none; }</style></head><body><dialog open tabindex="-1"><a href="#close">×</a></dialog><script>document.querySelector("dialog").focus();</script></body></html>',
+  );
+  expect(await openingFocusProblems(page)).toEqual([]);
 });

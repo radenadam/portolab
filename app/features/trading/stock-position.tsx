@@ -25,10 +25,13 @@ export function StockPosition({
   holding,
   lotShares,
   totalValue,
+  quoteTimes,
 }: {
   holding: ValuedHolding;
   lotShares: Shares | undefined;
   totalValue: Rupiah | undefined;
+  /** The times of the prices of the other holdings behind the weight that differ from the time that the page states, which stand beside the weight. */
+  quoteTimes: ReactNode;
 }): ReactNode {
   const average = rupiah(
     roundedShare(
@@ -105,6 +108,7 @@ export function StockPosition({
                     ),
                   })}
                 </NumberText>
+                {quoteTimes}
               </dd>
             )}
           </div>

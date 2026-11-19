@@ -34,17 +34,16 @@ for (const javaScriptEnabled of [true, false]) {
           student.getByText(texts[locale].body, { exact: true }),
         ).toHaveCount(0);
         await student.goto(`${classPath}/stocks/BMRI/buy?lots=10`);
-        // The header of the stock states the times beside the docked ticket of a desktop, and the sheet of a phone states them itself.
-        const inTicket = student
+        // The impact of the ticket states the times beside the values that they qualify, on the docked ticket of a desktop and on the sheet of a phone, and the header of the stock states only the time of its own price.
+        const notice = student
           .locator("dialog")
           .getByText(texts[locale].body, { exact: true });
-        const notice =
-          test.info().project.name === "desktop"
-            ? student.getByText(texts[locale].body, { exact: true }).first()
-            : inTicket;
         await expect(notice).toBeVisible();
-        if (test.info().project.name === "desktop")
-          await expect(inTicket).toBeHidden();
+        await expect(
+          student
+            .locator("main header")
+            .getByText(texts[locale].body, { exact: true }),
+        ).toHaveCount(0);
         await expect(notice.locator("[data-number]")).toHaveText(
           texts[locale].time,
         );

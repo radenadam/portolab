@@ -10,7 +10,7 @@ interface MapTextContext {
   extraLines: MapLabels["lines"];
 }
 
-// The portfolio and every holding keep their names ahead of every other point, even when the caller lists the holdings before the portfolio. Larger marks leave less room for their names, so they take their places before smaller marks of the same kind.
+// The portfolio and every holding keep their names ahead of every other point, even when the caller lists the holdings before the portfolio. Larger marks leave less room for their names, so they take their places before smaller marks of the same kind, and marks of one size take them in the order of their keys, so the order of the points never moves a name.
 const labelOrder: Record<MarkKind, number> = {
   own: 0,
   before: 0,
@@ -32,7 +32,8 @@ export function riskMapLabels(
   for (const { point, kind } of drawn.toSorted(
     (first, second) =>
       labelOrder[first.kind] - labelOrder[second.kind] ||
-      second.placed.outerRadius - first.placed.outerRadius,
+      second.placed.outerRadius - first.placed.outerRadius ||
+      first.point.key.localeCompare(second.point.key),
   )) {
     const label = {
       key: point.key,

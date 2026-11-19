@@ -41,6 +41,9 @@ export function ConceptCard({
   );
 }
 
+// A word joiner binds the slot of the "?" to the word before it, so a caller puts no space between them.
+const wordJoiner = "\u2060";
+
 /** Contextual help and measured concepts share the native question button and its card. The button asks what the concept of the title is, unless a label names the question that the card answers, such as why an order was rejected. */
 export function ConceptHelp({
   title,
@@ -57,13 +60,16 @@ export function ConceptHelp({
   const id = providedId ?? generatedId;
   return (
     <>
-      <PopoverButton
-        popover={id}
-        label={label ?? m.app_concept_help_label({ concept: title })}
-        className={styles["question"]}
-      >
-        <span aria-hidden="true">?</span>
-      </PopoverButton>
+      <span className={styles["slot"]}>
+        {wordJoiner}
+        <PopoverButton
+          popover={id}
+          label={label ?? m.app_concept_help_label({ concept: title })}
+          className={styles["question"]}
+        >
+          <span aria-hidden="true">?</span>
+        </PopoverButton>
+      </span>
       <Popover id={id} label={title} placement="belowEnd">
         <div className={styles["card"]}>
           <p className={styles["title"]}>

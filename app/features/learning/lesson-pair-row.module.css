@@ -9,7 +9,6 @@
     border: 0;
     border-block-end: var(--size-line) solid var(--color-line);
     color: var(--color-ink);
-    background: transparent;
     text-align: start;
     font: inherit;
     font-size: var(--text-row);

@@ -225,7 +225,7 @@ test("counts the minor marks of risk from the first mark when the risk of the IH
   );
 });
 
-test("offers places for the label of the line at the return of the IHSG along that line from its left end, above it and then below it, and for the label of the line around its right end", () => {
+test("offers places for the label of the line at the return of the IHSG along that line from its left end and then from its right end, above it and then below it, and for the label of the line around its right end", () => {
   const map = layout(points);
   const level = { x: 0, y: map.market.position.y };
   expect(map.linePlaces.level.slice(0, 4)).toEqual([
@@ -234,7 +234,13 @@ test("offers places for the label of the line at the return of the IHSG along th
     { at: level, dx: 3.5, dy: -0.5, anchor: "start" },
     { at: level, dx: 3.5, dy: 1.17, anchor: "start" },
   ]);
-  expect(map.linePlaces.level).toHaveLength(36);
+  expect(map.linePlaces.level).toHaveLength(72);
+  expect(map.linePlaces.level[36]).toEqual({
+    at: { x: 1, y: map.market.position.y },
+    dx: -0.83,
+    dy: -0.5,
+    anchor: "end",
+  });
   expect(map.linePlaces.line).toEqual([
     { at: map.line?.end, dx: -0.33, dy: -0.67, anchor: "end" },
     { at: map.line?.end, dx: -0.33, dy: 1.33, anchor: "end" },

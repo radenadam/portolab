@@ -69,3 +69,4 @@
 0069-the-review-of-19-november-2026-has-measured-allowances.md
 0070-a-formula-is-mathml-that-the-browser-typesets.md
 0071-styles-take-their-order-from-cascade-layers.md
+0072-a-label-of-a-chart-covers-no-mark-line-or-label.md

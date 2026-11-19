@@ -1,5 +1,7 @@
 import styles from "./stock-page.module.css";
 import { StockHeader } from "./stock-header";
+import { OtherQuoteTimes } from "./other-quote-times";
+import { stockPageTime } from "./stock-quote-details";
 import { readLessonTask } from "~/features/learning/read-lesson-task.server";
 import { isLq45Stock } from "./is-lq45-stock";
 import { LessonTaskBanner } from "~/features/learning/lesson-task-banner";
@@ -186,6 +188,15 @@ function StockPageContent({
                 holding={holding}
                 lotShares={stock.lotShares}
                 totalValue={stock.totalValue}
+                quoteTimes={
+                  <OtherQuoteTimes
+                    quotes={stock.portfolioQuotes}
+                    sharedTime={stockPageTime(
+                      stock.quote?.kind === "stock" ? stock.quote : undefined,
+                      stock.portfolioQuotes,
+                    )}
+                  />
+                }
               />
             </section>
           )}

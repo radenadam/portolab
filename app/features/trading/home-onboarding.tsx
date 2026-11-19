@@ -46,12 +46,17 @@ export function HomeOnboarding({
       dialog?.close();
     };
   }, [enhanced]);
+  const hasOpenedRef = useRef(false);
   useEffect(() => {
-    if (enhanced) {
-      const failure =
-        dialogRef.current?.querySelector<HTMLElement>('[role="alert"] a');
-      (failure ?? nextRef.current)?.focus({ preventScroll: true });
-    }
+    if (!enhanced) return;
+    const failure =
+      dialogRef.current?.querySelector<HTMLElement>('[role="alert"] a');
+    // The dialog that opens with the page takes the focus itself, so no control shows a ring before the reader has done anything. A later step takes the reader to its next step.
+    const target = hasOpenedRef.current
+      ? (failure ?? nextRef.current)
+      : (failure ?? dialogRef.current);
+    hasOpenedRef.current = true;
+    target?.focus({ preventScroll: true });
   }, [step, enhanced]);
   const index = onboardingSteps.indexOf(step);
   const previous = onboardingSteps[index - 1];
@@ -165,6 +170,7 @@ export function HomeOnboarding({
     <dialog
       ref={dialogRef}
       className={styles["dialog"]}
+      tabIndex={-1}
       aria-labelledby="home-onboarding-title"
       onCancel={(event) => {
         event.preventDefault();

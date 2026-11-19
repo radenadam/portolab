@@ -65,8 +65,11 @@ export function LessonAllocation({
         aria-labelledby={`${idPrefix}lesson-interactive-title`}
       >
         <div className={styles["head"]}>
-          <h2 id={`${idPrefix}lesson-interactive-title`}>
-            {m.learning_allocation_interactive_title()}
+          <h2>
+            <span id={`${idPrefix}lesson-interactive-title`}>
+              {m.learning_allocation_interactive_title()}
+            </span>
+            {explanation}
           </h2>
           {interactive && (
             <button
@@ -152,7 +155,6 @@ export function LessonAllocation({
               inputs={{ ...excess, beta: measured.beta.value }}
             />
           </ExplainedFormula>
-          {explanation}
         </div>
       </section>
       {children}

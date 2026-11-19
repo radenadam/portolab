@@ -140,9 +140,11 @@ function UnavailableLessonInteractive({
     />
   ) : (
     <section className={styles["interactive"]}>
-      <h2>{unavailableTitles[activity]()}</h2>
+      <h2>
+        {unavailableTitles[activity]()}
+        {explanation}
+      </h2>
       <p>{m.learning_interactive_data_notice()}</p>
-      {explanation}
     </section>
   );
 }

@@ -7,6 +7,10 @@ import type { ConceptTermId } from "~/features/learning/concept-term-ids";
 import { recordsStepForReader } from "~/features/trading/text-for-reader";
 import type { PortfolioReader } from "~/features/trading/text-for-reader";
 import type { PortfolioValuation } from "~/features/trading/value-portfolio";
+import { holdingQuoteTimes } from "~/features/trading/value-portfolio";
+import { OtherQuoteTimes } from "~/features/market-data/other-quote-times";
+import { QuoteTime } from "~/features/market-data/quote-time";
+import { sharedQuoteTime } from "~/features/market-data/shared-quote-time";
 import { formatPercent, formatRupiah, formatList } from "~/formatting";
 import {
   ConditionSeparator,
@@ -49,6 +53,8 @@ export function AnalysisAllocation({
   const allocation = analysisAllocationRows(valuation, group);
   const rows = allocation.kind === "valued" ? allocation.rows : [];
   const notice = allocationNotice(allocation, reader);
+  const quotes = holdingQuoteTimes(valuation.holdings);
+  const sharedTime = sharedQuoteTime(quotes);
   const details: Record<
     AllocationGroup,
     { label: string; title: string; term: ConceptTermId }
@@ -181,14 +187,23 @@ export function AnalysisAllocation({
             <div className={styles["allocationRows"]} data-layout="rows">
               {rows.map((row) => (
                 <div key={row.key} className={styles["allocationRow"]}>
-                  <span
-                    className={
-                      group === "stock" && row.key !== "cash"
-                        ? styles["stockName"]
-                        : undefined
-                    }
-                  >
-                    {row.name}
+                  <span>
+                    <span
+                      className={
+                        group === "stock" && row.key !== "cash"
+                          ? styles["stockName"]
+                          : undefined
+                      }
+                    >
+                      {row.name}
+                    </span>
+                    <RowQuoteTimes
+                      group={group}
+                      quotes={quotes.filter((quote) =>
+                        row.codes.includes(quote.code),
+                      )}
+                      sharedTime={sharedTime}
+                    />
                   </span>
                   <svg
                     width="100%"
@@ -228,6 +243,31 @@ export function AnalysisAllocation({
       )}
     </section>
   );
+}
+
+/** The times of the prices behind the weight of a row that differ from the time that Analisis states once: the time alone beside a stock, and the codes with each time beside a sector. */
+function RowQuoteTimes({
+  group,
+  quotes,
+  sharedTime,
+}: {
+  group: AllocationGroup;
+  quotes: readonly { code: string; quotedAt: Date }[];
+  sharedTime: Date | undefined;
+}): ReactNode {
+  switch (group) {
+    case "stock":
+      return quotes.map((quote) => (
+        <QuoteTime
+          key={quote.code}
+          quotedAt={quote.quotedAt}
+          sharedTime={sharedTime}
+          below
+        />
+      ));
+    case "sector":
+      return <OtherQuoteTimes quotes={quotes} sharedTime={sharedTime} />;
+  }
 }
 
 function allocationNotice(

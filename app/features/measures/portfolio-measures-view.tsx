@@ -38,6 +38,8 @@ interface PortfolioMeasuresProps {
   /** The sentences that name the delayed prices of the holdings that the latest attempt of the quote job could not update, or undefined when it updated all of them. */
   quoteFailure: string | undefined;
   source: PriceSourceDescription;
+  /** The codes and the times of the prices behind the weights, whose times stand beside the weights where they differ from the time that the screen states once. */
+  quoteTimes: readonly { code: string; quotedAt: Date }[];
 }
 
 /** An owner and a lecturer reading a student need different names for the same measures and inputs. */
@@ -46,6 +48,7 @@ export function PortfolioMeasuresView({
   reader,
   quoteFailure,
   source,
+  quoteTimes,
 }: PortfolioMeasuresProps): ReactNode {
   if (report.kind === "measured" && report.measures.ok) {
     return (
@@ -54,6 +57,7 @@ export function PortfolioMeasuresView({
         reader={reader}
         quoteFailure={quoteFailure}
         source={source}
+        quoteTimes={quoteTimes}
       />
     );
   }
@@ -75,6 +79,7 @@ function MeasuredPortfolio({
   reader,
   quoteFailure,
   source,
+  quoteTimes,
 }: Omit<PortfolioMeasuresProps, "report"> & {
   portfolio: PortfolioSummary;
 }): ReactNode {
@@ -114,7 +119,7 @@ function MeasuredPortfolio({
         </NumberText>
       </p>
       <QuoteNotice text={quoteFailure} className={styles["details"]} />
-      <WeightTable portfolio={portfolio} />
+      <WeightTable portfolio={portfolio} quoteTimes={quoteTimes} />
       <h2>
         <NumberText>
           {textForReader(reader, {
@@ -131,7 +136,11 @@ function MeasuredPortfolio({
           })}
         </NumberText>
       </p>
-      <HoldingTable portfolio={portfolio} reader={reader} />
+      <HoldingTable
+        portfolio={portfolio}
+        reader={reader}
+        quoteTimes={quoteTimes}
+      />
       <TableFormulas text={m.measures_holdings_formulas_notice()}>
         <ExplainedFormula text={m.measures_mean_formula_notice()}>
           <MeanFormula of="i" count={portfolio.market.returns.length} />

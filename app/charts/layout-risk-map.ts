@@ -8,6 +8,7 @@ import { plotFraction } from "~/units/plot-fraction";
 import type { PlotFraction } from "~/units/plot-fraction";
 import type { PortfolioWeight } from "~/units/portfolio-weight";
 import type { LabelPlace } from "./map-labels";
+import { comparisonLinePlaces, levelPlaces } from "./line-label-places";
 import type { PlotPosition } from "./plot";
 import { fractionOf, niceTicks } from "./scale";
 import type { Range } from "./scale";
@@ -131,21 +132,6 @@ const otherRadius = 0.42;
 const smallestHeldRadius = 0.46;
 const heldRadiusPerRootPercent = 0.175;
 
-// The label of the line of the return of the IHSG tries places along the line from its left end, above the line and then below it, so it names the line where no point lies. The label of the line sits above the end of the line, or below it, as the prototype of decision 0028 places them.
-const levelStart = 0.83;
-const levelStep = 2.67;
-const levelSteps = 8;
-// A band of points can fill the line, so labels try a little farther above and below it after the nearer places.
-const levelOffsets = [
-  [-0.5, 1.17],
-  [-1.5, 2.17],
-];
-const lineEndPlaces = [
-  { dx: -0.33, dy: -0.67 },
-  { dx: -0.33, dy: 1.33 },
-  { dx: -3.33, dy: 1.33 },
-];
-
 /** A comparison line needs room for its endpoints as well as the points. Zero separates gains from losses, and an axis whose values are never negative starts at zero at the lowest. */
 export function layoutRiskMap<
   Across extends number,
@@ -249,32 +235,6 @@ export function layoutRiskMap<
       line: comparisonLinePlaces(drawnLine),
     },
   };
-}
-
-function comparisonLinePlaces(
-  line: { end: PlotPosition } | undefined,
-): LabelPlace[] {
-  if (line === undefined) return [];
-  return lineEndPlaces.map(({ dx, dy }) => ({
-    at: line.end,
-    dx,
-    dy,
-    anchor: "end",
-  }));
-}
-
-function levelPlaces(height: PlotFraction): LabelPlace[] {
-  const at = { x: plotFraction(0), y: height };
-  const places: LabelPlace[] = [];
-  for (const offsets of levelOffsets) {
-    for (let step = 0; step <= levelSteps; step += 1) {
-      const dx = levelStart + step * levelStep;
-      for (const dy of offsets) {
-        places.push({ at, dx, dy, anchor: "start" });
-      }
-    }
-  }
-  return places;
 }
 
 function upTickCountOf(short: boolean | undefined): number {

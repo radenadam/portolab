@@ -70,6 +70,7 @@
   }
   .stockName {
     font-family: var(--font-code);
+    white-space: nowrap;
   }
   .allocationRow strong {
     min-inline-size: var(--width-market-scale);
@@ -201,7 +202,6 @@
     border: 0;
     border-block-end: var(--size-line) solid var(--color-line);
     padding: var(--space-1) var(--space-2);
-    background: none;
     color: var(--color-ink-secondary);
     text-align: start;
     font-size: var(--text-caption);

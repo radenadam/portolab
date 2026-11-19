@@ -88,4 +88,10 @@
   .item:hover {
     background: var(--color-raised);
   }
+
+  /* An item that sends a form, such as signing out, shows the look of waiting of app/theme.css while it waits, which the ground of the item would otherwise cover. */
+  .item:disabled {
+    background: var(--color-raised);
+    color: var(--color-muted);
+  }
 }

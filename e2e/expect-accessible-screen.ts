@@ -3,6 +3,7 @@ import { expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import { expectDefinitionTerms } from "./expect-definition-terms.ts";
 import { sidewaysProblems } from "./expect-layout.ts";
+import { expectMapLabelsClear } from "./expect-map-labels-clear.ts";
 import { styleOrderProblems } from "./style-order-problems.ts";
 import { waitForPageStyles } from "./wait-for-page-styles.ts";
 
@@ -78,10 +79,17 @@ export async function expectAccessibleScreen(page: Page): Promise<void> {
     }, smallestTargetHeight);
   expect(smallTargets).toEqual([]);
   expect(await cursorProblems(page)).toEqual([]);
+  expect(await focusShapeProblems(page)).toEqual([]);
   expect(await scrollProblems(page)).toEqual([]);
   // Axe does not check the width of the page.
   expect(await sidewaysProblems(page)).toEqual([]);
   expect(await styleOrderProblems(page)).toEqual([]);
+  // Axe does not check whether the labels of a chart cover its marks and lines.
+  for (const map of await page
+    .locator("svg:has([data-map-label])")
+    .filter({ visible: true })
+    .all())
+    await expectMapLabelsClear(map);
 }
 
 /** The section "Interface behavior" of AGENTS.md asks every control to turn the pointer into a hand and nothing that only informs to look clickable, which axe does not check. This lists every visible control that shows another cursor, and every other part that shows a hand outside a control. */
@@ -106,6 +114,57 @@ async function cursorProblems(page: Page): Promise<string[]> {
         element.closest(controls) === null
       )
         problems.push(`${openingTag} shows a hand but is not a control.`);
+    }
+    return problems;
+  });
+}
+
+/** The section "Interface behavior" of AGENTS.md asks a focus ring to follow the shape of its control, which axe does not check. The ring follows the corners of the box of a control, so a control that shows only an icon or a mark, such as a star or a close mark, without a box of its own needs round corners, as the ground of its hover has, or its ring draws a square box that the control never shows. This lists every such control with square corners. */
+async function focusShapeProblems(page: Page): Promise<string[]> {
+  return page.locator("body").evaluate((body) => {
+    const controls =
+      "a[href], button, summary, select, [role=button], [tabindex]:not([tabindex='-1'])";
+    // Playwright sends this function to the browser as its source, so it holds the helpers that it calls. A text that only a screen reader reads is clipped away, so it shows no word.
+    const showsWords = (element: Element): boolean => {
+      const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+      for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+        if (!/[\p{L}\p{N}]/u.test(node.textContent ?? "")) continue;
+        let clipped = false;
+        for (
+          let part = node.parentElement;
+          part !== null && part !== element.parentElement;
+          part = part.parentElement
+        )
+          clipped ||= getComputedStyle(part).clipPath === "inset(50%)";
+        if (!clipped) return true;
+      }
+      return false;
+    };
+    const problems: string[] = [];
+    for (const element of body.querySelectorAll(controls)) {
+      if (!element.checkVisibility({ visibilityProperty: true })) continue;
+      if (showsWords(element)) continue;
+      const style = getComputedStyle(element);
+      const drawsBox =
+        style.backgroundColor !== "rgba(0, 0, 0, 0)" ||
+        style.boxShadow !== "none" ||
+        ["top", "right", "bottom", "left"].some(
+          (side) =>
+            style.getPropertyValue(`border-${side}-style`) !== "none" &&
+            Number.parseFloat(style.getPropertyValue(`border-${side}-width`)) >
+              0,
+        );
+      if (drawsBox) continue;
+      const radius = Number.parseFloat(style.borderTopLeftRadius);
+      if (radius === 0) {
+        const openingTag = element.outerHTML.slice(
+          0,
+          element.outerHTML.indexOf(">") + 1,
+        );
+        problems.push(
+          `${openingTag} shows only an icon or a mark, but its corners are square, so its focus ring draws a box.`,
+        );
+      }
     }
     return problems;
   });

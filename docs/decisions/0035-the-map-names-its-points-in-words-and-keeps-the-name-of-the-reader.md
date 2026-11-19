@@ -1,6 +1,6 @@
 # 0035. The map names its points in words and keeps the names of the portfolio and every holding
 
-- Status: Accepted. [Decision 0047](0047-chart-names-use-an-ellipsis-when-they-are-too-wide.md) supersedes how a chart fits a name wider than its allowance. [Decision 0068](0068-the-review-of-19-november-2026-changes-parts-of-the-screens.md) replaces its rules about the bars of the spread of a class, the short line of its median, the table that keeps every student below the class map, and the return to a row of that table or to the administration.
+- Status: Accepted. [Decision 0047](0047-chart-names-use-an-ellipsis-when-they-are-too-wide.md) supersedes how a chart fits a name wider than its allowance. [Decision 0068](0068-the-review-of-19-november-2026-changes-parts-of-the-screens.md) replaces its rules about the bars of the spread of a class, the short line of its median, the table that keeps every student below the class map, and the return to a row of that table or to the administration. [Decision 0072](0072-a-label-of-a-chart-covers-no-mark-line-or-label.md) changes what a name keeps clear of, which rule a kept name gives up first, and when it may cross its own mark.
 - Date: 2026-11-14
 
 ## Context
