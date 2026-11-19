@@ -1,10 +1,8 @@
 import type { ReactNode } from "react";
 import type { PortfolioSummary } from "~/features/measures/measure-summaries";
-import {
-  Operand,
-  PortfolioVarianceFormula,
-} from "~/features/measures/formulas";
+import { PortfolioVarianceFormula } from "~/features/measures/portfolio-formulas";
 import { formatCorrelation, formatPercent, formatVariance } from "~/formatting";
+import { Formula, MathNumber, Operand } from "~/math-notation";
 import { NumberText } from "~/number-text";
 import { m } from "~/paraglide/messages.js";
 import type { MonthlyVariance } from "~/units/monthly-variance";
@@ -43,8 +41,7 @@ export function LessonCovariances({
     <details className={styles["covariances"]}>
       <summary>{m.learning_covariances_title()}</summary>
       <p>
-        <PortfolioVarianceFormula /> ={" "}
-        <NumberText>{formatVariance(variance)}</NumberText>
+        <PortfolioVarianceFormula variance={variance} />
       </p>
       <div className={styles["matrix"]}>
         {terms.map((pair) => (
@@ -61,20 +58,26 @@ export function LessonCovariances({
             <span>
               ρ <NumberText>{formatCorrelation(pair.correlation)}</NumberText>
             </span>
-            <span>
-              <NumberText>{formatPercent(pair.firstWeight, "two")}</NumberText>{" "}
-              <Operand
-                value={pair.secondWeight}
-                text={formatPercent(pair.secondWeight, "two")}
-                operator="×"
-              />{" "}
-              <Operand
-                value={pair.covariance}
-                text={formatVariance(pair.covariance)}
-                operator="×"
-              />{" "}
-              = <NumberText>{formatVariance(pair.term)}</NumberText>
-            </span>
+            <Formula
+              left={
+                <>
+                  <MathNumber>
+                    {formatPercent(pair.firstWeight, "two")}
+                  </MathNumber>
+                  <Operand
+                    value={pair.secondWeight}
+                    text={formatPercent(pair.secondWeight, "two")}
+                    operator="×"
+                  />
+                  <Operand
+                    value={pair.covariance}
+                    text={formatVariance(pair.covariance)}
+                    operator="×"
+                  />
+                </>
+              }
+              right={<MathNumber>{formatVariance(pair.term)}</MathNumber>}
+            />
           </div>
         ))}
       </div>

@@ -1,6 +1,14 @@
 import type { ReactNode } from "react";
-import { Operand } from "~/features/measures/formulas";
 import { formatCorrelation, formatNumber, formatPercent } from "~/formatting";
+import {
+  Formula,
+  MathNumber,
+  Operand,
+  Operator,
+  SquareRoot,
+  Squared,
+  Variable,
+} from "~/math-notation";
 import { NumberText } from "~/number-text";
 import { m } from "~/paraglide/messages.js";
 import type { Correlation } from "~/units/correlation";
@@ -19,29 +27,68 @@ export function TwoStockFormula({
   correlation: Correlation;
   result: MonthlyReturn;
 }): ReactNode {
-  const first = formatNumber(weight, 2);
-  const second = formatNumber(1 - weight, 2);
-  const firstRisk = formatPercent(risks.first, "two");
-  const secondRisk = formatPercent(risks.second, "two");
+  const first = <MathNumber>{formatNumber(weight, 2)}</MathNumber>;
+  const second = <MathNumber>{formatNumber(1 - weight, 2)}</MathNumber>;
+  const firstRisk = (
+    <MathNumber>{formatPercent(risks.first, "two")}</MathNumber>
+  );
+  const secondRisk = (
+    <MathNumber>{formatPercent(risks.second, "two")}</MathNumber>
+  );
   return (
     <>
       <p>
-        σ<sub>p</sub> = √(w²<sub>i</sub>σ²<sub>i</sub> + w²<sub>j</sub>σ²
-        <sub>j</sub> + 2w<sub>i</sub>w<sub>j</sub>ρ<sub>ij</sub>σ<sub>i</sub>σ
-        <sub>j</sub>)
-        <br />= √(<NumberText whole>{first}</NumberText>² ×{" "}
-        <NumberText whole>{firstRisk}</NumberText>² +{" "}
-        <NumberText whole>{second}</NumberText>² ×{" "}
-        <NumberText whole>{secondRisk}</NumberText>² + 2 ×{" "}
-        <NumberText whole>{first}</NumberText> ×{" "}
-        <NumberText whole>{second}</NumberText>{" "}
-        <Operand
-          value={correlation}
-          text={formatCorrelation(correlation)}
-          operator="×"
-        />{" "}
-        × <NumberText whole>{firstRisk}</NumberText> ×{" "}
-        <NumberText whole>{secondRisk}</NumberText>)
+        <Formula
+          left={<Variable name="σ" index="p" />}
+          right={
+            <SquareRoot>
+              <Variable name="w" index="i" power={2} />
+              <Variable name="σ" index="i" power={2} />
+              <Operator symbol="+" />
+              <Variable name="w" index="j" power={2} />
+              <Variable name="σ" index="j" power={2} />
+              <Operator symbol="+" />
+              <MathNumber>2</MathNumber>
+              <Variable name="w" index="i" />
+              <Variable name="w" index="j" />
+              <Variable name="ρ" index="ij" />
+              <Variable name="σ" index="i" />
+              <Variable name="σ" index="j" />
+            </SquareRoot>
+          }
+          followingLines={[
+            {
+              operator: "=",
+              expression: (
+                <SquareRoot>
+                  <Squared>{first}</Squared>
+                  <Operator symbol="×" />
+                  <Squared>{firstRisk}</Squared>
+                  <Operator symbol="+" />
+                  <Squared>{second}</Squared>
+                  <Operator symbol="×" />
+                  <Squared>{secondRisk}</Squared>
+                  <Operator symbol="+" />
+                  <MathNumber>2</MathNumber>
+                  <Operator symbol="×" />
+                  {first}
+                  <Operator symbol="×" />
+                  {second}
+                  <Operand
+                    value={correlation}
+                    text={formatCorrelation(correlation)}
+                    operator="×"
+                  />
+                  <Operator symbol="×" />
+                  {firstRisk}
+                  <Operator symbol="×" />
+                  {secondRisk}
+                </SquareRoot>
+              ),
+            },
+          ]}
+          scrolls
+        />
       </p>
       <strong>
         <NumberText>

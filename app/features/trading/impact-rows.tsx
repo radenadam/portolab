@@ -10,11 +10,11 @@ import { MeasureTable } from "~/features/measures/measure-table";
 import type { MeasureTableRow } from "~/features/measures/measure-table";
 import { MeasureLabel } from "~/features/measures/measure-list";
 import type { MeasureRow } from "~/features/measures/measure-list";
+import { StandardDeviationFormula } from "~/features/measures/formulas";
 import {
-  StandardDeviationFormula,
   PortfolioVarianceFormula,
   WeightedSumFormula,
-} from "~/features/measures/formulas";
+} from "~/features/measures/portfolio-formulas";
 import { ReturnTables } from "~/features/measures/return-tables";
 import type { TradeImpact } from "~/features/measures/measure-trade";
 import type { ValuedPortfolioMeasures } from "~/features/measures/measure-valued-portfolio";

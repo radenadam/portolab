@@ -4,7 +4,7 @@ import { ConceptLesson } from "~/features/learning/concept-lesson";
 import { percentOf } from "~/charts/plot";
 import { fractionOf } from "~/charts/scale";
 import { NumberText } from "~/number-text";
-import { formatPercent, formatVariance } from "~/formatting";
+import { formatPercent } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { PopoverButton } from "~/popover";
 import { plotFraction } from "~/units/plot-fraction";
@@ -13,7 +13,7 @@ import { UnavailableMeasures } from "./unavailable-measures";
 import {
   CovarianceWithPortfolioFormula,
   VarianceShareFormula,
-} from "./formulas";
+} from "./portfolio-formulas";
 import { riskMeasureFailureText } from "./measure-failure-text";
 import type { PortfolioSummary } from "./measure-summaries";
 import { RiskTable } from "./portfolio-tables";
@@ -165,20 +165,13 @@ export function AnalysisRiskSources({
                 label: title,
                 value: formatPercent(risk.varianceShare, "two"),
                 formula: (
-                  <>
-                    <VarianceShareFormula /> ≈{" "}
-                    <NumberText whole>
-                      {formatPercent(risk.weight, "two")}
-                    </NumberText>{" "}
-                    ×{" "}
-                    <NumberText whole>
-                      {formatVariance(risk.covarianceWithPortfolio)}
-                    </NumberText>{" "}
-                    /{" "}
-                    <NumberText whole>
-                      {formatVariance(portfolio.variance)}
-                    </NumberText>
-                  </>
+                  <VarianceShareFormula
+                    inputs={{
+                      weight: risk.weight,
+                      covarianceWithPortfolio: risk.covarianceWithPortfolio,
+                      portfolioVariance: portfolio.variance,
+                    }}
+                  />
                 ),
                 inputs: (
                   <>

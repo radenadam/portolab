@@ -1,12 +1,23 @@
 import { NumberText } from "~/number-text";
-import { Fragment } from "react";
 import type { ReactNode } from "react";
 import { formatPercent } from "~/formatting";
+import {
+  Average,
+  Formula,
+  MathNumber,
+  Operator,
+  Sum,
+  Variable,
+  sumLines,
+} from "~/math-notation";
 import { m } from "~/paraglide/messages.js";
 import { AnalysisCalculation } from "./analysis-calculation";
 import { analysisDiversificationInsight } from "./analysis-insight";
 import type { PortfolioSummary } from "./measure-summaries";
 import { weightedHoldingRisk } from "./weighted-holding-risk";
+
+// Two products of a weight and a risk fit on a line of a phone, beside the left side of the formula.
+const holdingsPerLine = 2;
 
 export function DiversificationCalculation({
   portfolio,
@@ -22,19 +33,42 @@ export function DiversificationCalculation({
         label: m.measures_analysis_without_diversification_label(),
         value: formatPercent(average, "two"),
         formula: (
-          <>
-            σ̄ = Σ w<sub>i</sub> σ<sub>i</sub> ≈{" "}
-            {portfolio.holdings.map((holding, index) => (
-              <Fragment key={holding.code}>
-                {index === 0 ? "" : " + "}
-                <NumberText whole>
-                  {formatPercent(holding.weight, "two")} ×{" "}
-                  {formatPercent(holding.standardDeviation, "two")}
-                </NumberText>
-              </Fragment>
-            ))}{" "}
-            ≈ <NumberText whole>{formatPercent(average, "two")}</NumberText>
-          </>
+          <Formula
+            left={<Average name="σ" />}
+            right={
+              <>
+                <Sum />
+                <Variable name="w" index="i" />
+                <Variable name="σ" index="i" />
+              </>
+            }
+            followingLines={[
+              ...sumLines(
+                "≈",
+                portfolio.holdings.map((holding) => ({
+                  key: holding.code,
+                  term: (
+                    <>
+                      <MathNumber>
+                        {formatPercent(holding.weight, "two")}
+                      </MathNumber>
+                      <Operator symbol="×" />
+                      <MathNumber>
+                        {formatPercent(holding.standardDeviation, "two")}
+                      </MathNumber>
+                    </>
+                  ),
+                })),
+                holdingsPerLine,
+              ),
+              {
+                operator: "≈",
+                expression: (
+                  <MathNumber>{formatPercent(average, "two")}</MathNumber>
+                ),
+              },
+            ]}
+          />
         ),
       }}
     >

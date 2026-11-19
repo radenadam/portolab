@@ -13,10 +13,12 @@ import {
   BetaFormula,
   CorrelationFormula,
   CovarianceFormula,
-  CovarianceWithPortfolioFormula,
   MeanFormula,
-  VarianceShareFormula,
 } from "./formulas";
+import {
+  CovarianceWithPortfolioFormula,
+  VarianceShareFormula,
+} from "./portfolio-formulas";
 import { MarketSection } from "./market-section";
 import { riskMeasureFailureText } from "./measure-failure-text";
 import { MarketLinePosition, MeasureList, MonthsNotice } from "./measure-list";

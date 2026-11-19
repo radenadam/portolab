@@ -11,7 +11,8 @@ import { beta, marketBeta } from "~/units/beta";
 import type { Beta } from "~/units/beta";
 import { monthlyReturn } from "~/units/monthly-return";
 import type { MonthlyReturn } from "~/units/monthly-return";
-import { riskFreeSymbol } from "./formulas";
+import { InlineMath, Variable } from "~/math-notation";
+import { RiskFreeRate } from "./formulas";
 import { SecurityMarketLineFormula } from "./capm-formulas";
 import { MeasureTable } from "./measure-table";
 import type { MeasureTableRow } from "./measure-table";
@@ -29,22 +30,16 @@ interface PortfolioNames {
   holdings: string;
 }
 
-/** A symbol of decision 0020 that names a point in the table of the points, with its subscript if it has one, such as R with the subscript f. */
-interface PointSymbol {
-  letter: string;
-  subscript: string | undefined;
-}
-
 /** A row of the table of the points: the name of the point and its numbers. */
 interface TablePoint extends LinePoint {
   key: string;
   title: ReactNode;
 }
 
-// The table names the risk-free rate, the IHSG, and the portfolio with the symbols that the formula of the line gives them, as decision 0035 sets, while the map names them in words.
-const riskFreeName: PointSymbol = { ...riskFreeSymbol };
-const marketName: PointSymbol = { letter: "M", subscript: undefined };
-const portfolioName: PointSymbol = { letter: "p", subscript: undefined };
+// The table names the risk-free rate, the IHSG, and the portfolio with the symbols of decision 0020 that the formula of the line gives them, as decision 0035 sets, while the map names them in words.
+const riskFreeName = <RiskFreeRate />;
+const marketName = <Variable name="M" />;
+const portfolioName = <Variable name="p" />;
 // The key of the portfolio is not a code of a stock, so it never meets the key of a stock.
 const portfolioKey = "portfolio";
 
@@ -234,12 +229,12 @@ function PointName({
   symbol,
 }: {
   name: string;
-  symbol: PointSymbol;
+  symbol: ReactNode;
 }): ReactNode {
   return (
     <>
-      <NumberText verbatim>{name}</NumberText> ({symbol.letter}
-      {symbol.subscript !== undefined && <sub>{symbol.subscript}</sub>})
+      <NumberText verbatim>{name}</NumberText> (
+      <InlineMath>{symbol}</InlineMath>)
     </>
   );
 }

@@ -2,7 +2,7 @@
   composes: standalone-link from global;
 }
 
-/* Each measure has a row with its name and its value, and a row below them with its formula, so a formula can take the whole width of a phone. A formula reads as a sentence, so its numbers keep the font of the text, as decision 0012 sets. */
+/* Each measure has a row with its name and its value, and a row below them with its formula, so a formula can take the whole width of a phone. The notation takes the math font, as decision 0070 sets, and the name of its spreadsheet function keeps the font of the text. */
 .measures .formula {
   grid-column: 1 / -1;
   padding-block-end: var(--space-2);

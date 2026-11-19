@@ -158,12 +158,7 @@ export function LessonCapm({
       )}
       <div className={styles["formula"]}>
         <p>
-          <RequiredReturnFormula
-            of="i"
-            required={required}
-            decimals="three"
-            stacked
-          />
+          <RequiredReturnFormula of="i" required={required} decimals="three" />
         </p>
         <strong>
           <NumberText>

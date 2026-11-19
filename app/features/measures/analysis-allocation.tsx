@@ -8,6 +8,14 @@ import { recordsStepForReader } from "~/features/trading/text-for-reader";
 import type { PortfolioReader } from "~/features/trading/text-for-reader";
 import type { PortfolioValuation } from "~/features/trading/value-portfolio";
 import { formatPercent, formatRupiah, formatList } from "~/formatting";
+import {
+  ConditionSeparator,
+  Formula,
+  Fraction,
+  MathNumber,
+  Operator,
+  Variable,
+} from "~/math-notation";
 import { NumberText } from "~/number-text";
 import { m } from "~/paraglide/messages.js";
 import { parseChoice } from "~/value-parsers";
@@ -59,8 +67,21 @@ export function AnalysisAllocation({
     allocation.kind !== "valued" ? undefined : (
       <>
         <p>
-          w<sub>i</sub> = V<sub>i</sub> / V<sub>p</sub>, V<sub>p</sub> ={" "}
-          <NumberText whole>{formatRupiah(allocation.total)}</NumberText>
+          <Formula
+            left={<Variable name="w" index="i" />}
+            right={
+              <>
+                <Fraction
+                  numerator={<Variable name="V" index="i" />}
+                  denominator={<Variable name="V" index="p" />}
+                />
+                <ConditionSeparator />
+                <Variable name="V" index="p" />
+                <Operator symbol="=" />
+                <MathNumber>{formatRupiah(allocation.total)}</MathNumber>
+              </>
+            }
+          />
         </p>
         <MeasureTable
           header={[

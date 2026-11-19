@@ -4,11 +4,13 @@ import {
   BetaFormula,
   CorrelationFormula,
   CovarianceFormula,
-  PortfolioVarianceFormula,
   VarianceFormula,
+} from "~/features/measures/formulas";
+import {
+  PortfolioVarianceFormula,
   VarianceShareFormula,
   WeightedSumFormula,
-} from "~/features/measures/formulas";
+} from "~/features/measures/portfolio-formulas";
 import {
   MarketLineFormula,
   RequiredReturnFormula,

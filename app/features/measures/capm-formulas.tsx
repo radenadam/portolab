@@ -1,6 +1,16 @@
 import type { ReactNode } from "react";
-import { NumberText } from "~/number-text";
 import { formatBeta, formatNumber, formatPercent } from "~/formatting";
+import {
+  Formula,
+  Fraction,
+  MathNumber,
+  MathWord,
+  Operand,
+  Operator,
+  Parenthesized,
+  Variable,
+} from "~/math-notation";
+import type { FormulaLine } from "~/math-notation";
 import type { Beta } from "~/units/beta";
 import type {
   MarketLine,
@@ -9,7 +19,7 @@ import type {
 } from "./capm";
 import type { RiskFreeRateMeasure } from "./measure-risk-free-rate";
 import { monthsPerYear } from "./measure-risk-free-rate";
-import { ExpectedReturn, Operand, RiskFree } from "./formulas";
+import { ExpectedReturn, RiskFreeRate } from "./formulas";
 import type { Subject } from "./formulas";
 
 /** k = R_f + β(E(Rₘ) − R_f) with the numbers of a line, for a stock or a portfolio with the subscript and the number of its beta, or for the whole line with the symbol of beta. */
@@ -18,42 +28,59 @@ function CapmFormula({
   line,
   beta,
   decimals = "two",
-  stacked = false,
 }: {
   of: Subject | undefined;
   line: MarketLine | undefined;
   beta: Beta | undefined;
   decimals?: "two" | "three";
-  stacked?: boolean;
 }): ReactNode {
-  const riskFree =
-    line === undefined ? undefined : formatPercent(line.riskFreeRate, decimals);
-  const subscript = of === undefined ? null : <sub>{of}</sub>;
-  return (
+  const right = (
     <>
-      k{subscript} = <RiskFree /> + β{subscript}(
-      <ExpectedReturn of="M" /> − <RiskFree />)
-      {line !== undefined && (
+      <RiskFreeRate />
+      <Operator symbol="+" />
+      <Variable name="β" index={of} />
+      <Parenthesized>
+        <ExpectedReturn of="M" />
+        <Operator symbol="−" />
+        <RiskFreeRate />
+      </Parenthesized>
+    </>
+  );
+  const lines: FormulaLine[] = [];
+  if (line !== undefined)
+    lines.push({
+      operator: "=",
+      expression: (
         <>
-          {stacked ? <br /> : " "}= <NumberText>{riskFree}</NumberText>{" "}
+          <MathNumber>{formatPercent(line.riskFreeRate, decimals)}</MathNumber>
           {beta === undefined ? (
-            "+ β"
+            <>
+              <Operator symbol="+" />
+              <Variable name="β" />
+            </>
           ) : (
             <Operand value={beta} text={formatBeta(beta)} operator="+" />
-          )}{" "}
-          × (
-          <NumberText>
-            {formatPercent(line.marketExpectedReturn, decimals)}
-          </NumberText>{" "}
-          <Operand
-            value={line.riskFreeRate}
-            text={formatPercent(line.riskFreeRate, decimals)}
-            operator="−"
-          />
-          )
+          )}
+          <Operator symbol="×" />
+          <Parenthesized>
+            <MathNumber>
+              {formatPercent(line.marketExpectedReturn, decimals)}
+            </MathNumber>
+            <Operand
+              value={line.riskFreeRate}
+              text={formatPercent(line.riskFreeRate, decimals)}
+              operator="−"
+            />
+          </Parenthesized>
         </>
-      )}
-    </>
+      ),
+    });
+  return (
+    <Formula
+      left={<Variable name="k" index={of} />}
+      right={right}
+      followingLines={lines}
+    />
   );
 }
 
@@ -62,12 +89,10 @@ export function RequiredReturnFormula({
   of,
   required,
   decimals,
-  stacked,
 }: {
   of: Subject;
   required: RequiredReturnMeasure | undefined;
   decimals?: "two" | "three" | undefined;
-  stacked?: boolean | undefined;
 }): ReactNode {
   return (
     <CapmFormula
@@ -75,7 +100,6 @@ export function RequiredReturnFormula({
       line={required?.inputs}
       beta={required?.inputs.beta}
       decimals={decimals ?? "two"}
-      stacked={stacked ?? false}
     />
   );
 }
@@ -97,24 +121,35 @@ export function MarketLineFormula({
   of: Subject;
   distance: SecurityMarketLineMeasure | undefined;
 }): ReactNode {
-  return (
-    <>
-      α<sub>{of}</sub> = <ExpectedReturn of={of} /> − k<sub>{of}</sub>
-      {distance !== undefined && (
+  const lines: FormulaLine[] = [];
+  if (distance !== undefined)
+    lines.push({
+      operator: "=",
+      expression: (
         <>
-          {" "}
-          ={" "}
-          <NumberText>
+          <MathNumber>
             {formatPercent(distance.inputs.expectedReturn, "two")}
-          </NumberText>{" "}
+          </MathNumber>
           <Operand
             value={distance.inputs.requiredReturn}
             text={formatPercent(distance.inputs.requiredReturn, "two")}
             operator="−"
           />
         </>
-      )}
-    </>
+      ),
+    });
+  return (
+    <Formula
+      left={<Variable name="α" index={of} />}
+      right={
+        <>
+          <ExpectedReturn of={of} />
+          <Operator symbol="−" />
+          <Variable name="k" index={of} />
+        </>
+      }
+      followingLines={lines}
+    />
   );
 }
 
@@ -124,18 +159,34 @@ export function RiskFreeFormula({
 }: {
   rate: RiskFreeRateMeasure | undefined;
 }): ReactNode {
-  const months = formatNumber(rate?.inputs.monthsPerYear ?? monthsPerYear);
+  const months = (
+    <MathNumber>
+      {formatNumber(rate?.inputs.monthsPerYear ?? monthsPerYear)}
+    </MathNumber>
+  );
+  const lines: FormulaLine[] = [];
+  if (rate !== undefined)
+    lines.push({
+      operator: "=",
+      expression: (
+        <Fraction
+          numerator={
+            <MathNumber>{formatPercent(rate.inputs.annualRate)}</MathNumber>
+          }
+          denominator={months}
+        />
+      ),
+    });
   return (
-    <>
-      <RiskFree /> = BI-Rate / <NumberText>{months}</NumberText>
-      {rate !== undefined && (
-        <>
-          {" "}
-          = <NumberText>
-            {formatPercent(rate.inputs.annualRate)}
-          </NumberText> / <NumberText>{months}</NumberText>
-        </>
-      )}
-    </>
+    <Formula
+      left={<RiskFreeRate />}
+      right={
+        <Fraction
+          numerator={<MathWord>BI-Rate</MathWord>}
+          denominator={months}
+        />
+      }
+      followingLines={lines}
+    />
   );
 }

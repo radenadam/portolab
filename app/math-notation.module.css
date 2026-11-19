@@ -1,0 +1,31 @@
+/* A formula takes the math font of the device and the size of the text around it from the styles that browsers give MathML, as decision 0070 sets. Its box never makes a page wider than the screen, so a formula wider than its column scrolls inside it. */
+.formula {
+  display: inline-block;
+  max-inline-size: 100%;
+  overflow-x: auto;
+  vertical-align: middle;
+}
+
+.formula mtd {
+  padding-block: 0.25ex;
+  padding-inline: 0;
+}
+
+/* An operator alone in a cell gets none of the space that MathML puts around an operator between two terms, so its cell gives it the thick space of a relation, 5/18 of an em. */
+.formula mtd:nth-child(2) {
+  padding-inline: 0.2778em;
+}
+
+/* The left side of a formula ends at the operator of its line, and every expression starts after it, as the aligned environment of LaTeX sets them. Chromium aligns the content of a cell of MathML only through the values of text-align that align blocks, which start with -webkit-. */
+.formula mtd:first-child {
+  text-align: -webkit-right;
+}
+
+.formula mtd:last-child {
+  text-align: left;
+}
+
+.function {
+  color: var(--color-muted);
+  font-size: var(--text-small);
+}

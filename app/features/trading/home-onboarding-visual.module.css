@@ -30,6 +30,5 @@
   margin-block-end: var(--space-1);
 }
 .formula {
-  font-family: var(--font-code);
   font-size: var(--text-learning-summary);
 }

@@ -1,35 +1,81 @@
-import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
 import {
   formatFormulaBeta,
   formatFormulaPercent,
 } from "~/formula-input-formatting";
+import {
+  Formula,
+  Fraction,
+  MathNumber,
+  Operand,
+  Operator,
+  Variable,
+} from "~/math-notation";
+import type { FormulaLine } from "~/math-notation";
 import type { MonthlyReturn } from "~/units/monthly-return";
-import { ExpectedReturn, Operand, RiskFree } from "./formulas";
+import { ExpectedReturn, RiskFreeRate } from "./formulas";
 import type {
   SharpeRatioMeasure,
   TreynorRatioMeasure,
 } from "./performance-ratios";
 
-// Decision 0020 explains why a formula is markup and not a message, and decision 0031 gives the symbols of these ratios.
+// Decision 0020 explains why a formula is notation and not a message, and decision 0031 gives the symbols of these ratios.
 
-/** The numbers of E(Rₚ) − R_f, the return of a portfolio above the rate free of risk. */
-function ExcessReturnNumbers({
-  expectedReturn,
-  riskFreeRate,
+/** (E(Rₚ) − R_f) / x, the return of a portfolio above the rate free of risk for each unit of a risk, with its numbers when a calculation shows them. */
+function ExcessReturnRatio({
+  symbol,
+  risk,
+  inputs,
 }: {
-  expectedReturn: MonthlyReturn;
-  riskFreeRate: MonthlyReturn;
+  symbol: "S" | "T";
+  risk: ReactNode;
+  inputs:
+    | {
+        expectedReturn: MonthlyReturn;
+        riskFreeRate: MonthlyReturn;
+        risk: ReactNode;
+      }
+    | undefined;
 }): ReactNode {
+  const lines: FormulaLine[] = [];
+  if (inputs !== undefined)
+    lines.push({
+      operator: "=",
+      expression: (
+        <Fraction
+          numerator={
+            <>
+              <MathNumber>
+                {formatFormulaPercent(inputs.expectedReturn)}
+              </MathNumber>
+              <Operand
+                value={inputs.riskFreeRate}
+                text={formatFormulaPercent(inputs.riskFreeRate)}
+                operator="−"
+              />
+            </>
+          }
+          denominator={inputs.risk}
+        />
+      ),
+    });
   return (
-    <>
-      <NumberText>{formatFormulaPercent(expectedReturn)}</NumberText>{" "}
-      <Operand
-        value={riskFreeRate}
-        text={formatFormulaPercent(riskFreeRate)}
-        operator="−"
-      />
-    </>
+    <Formula
+      left={<Variable name={symbol} index="p" />}
+      right={
+        <Fraction
+          numerator={
+            <>
+              <ExpectedReturn of="p" />
+              <Operator symbol="−" />
+              <RiskFreeRate />
+            </>
+          }
+          denominator={risk}
+        />
+      }
+      followingLines={lines}
+    />
   );
 }
 
@@ -40,23 +86,22 @@ export function SharpeRatioFormula({
   inputs: SharpeRatioMeasure["inputs"] | undefined;
 }): ReactNode {
   return (
-    <>
-      S<sub>p</sub> = (<ExpectedReturn of="p" /> − <RiskFree />) / σ<sub>p</sub>
-      {inputs !== undefined && (
-        <>
-          {" "}
-          = (
-          <ExcessReturnNumbers
-            expectedReturn={inputs.expectedReturn}
-            riskFreeRate={inputs.riskFreeRate}
-          />
-          ) /{" "}
-          <NumberText>
-            {formatFormulaPercent(inputs.standardDeviation)}
-          </NumberText>
-        </>
-      )}
-    </>
+    <ExcessReturnRatio
+      symbol="S"
+      risk={<Variable name="σ" index="p" />}
+      inputs={
+        inputs === undefined
+          ? undefined
+          : {
+              ...inputs,
+              risk: (
+                <MathNumber>
+                  {formatFormulaPercent(inputs.standardDeviation)}
+                </MathNumber>
+              ),
+            }
+      }
+    />
   );
 }
 
@@ -67,20 +112,17 @@ export function TreynorRatioFormula({
   inputs: TreynorRatioMeasure["inputs"] | undefined;
 }): ReactNode {
   return (
-    <>
-      T<sub>p</sub> = (<ExpectedReturn of="p" /> − <RiskFree />) / β<sub>p</sub>
-      {inputs !== undefined && (
-        <>
-          {" "}
-          = (
-          <ExcessReturnNumbers
-            expectedReturn={inputs.expectedReturn}
-            riskFreeRate={inputs.riskFreeRate}
-          />
-          ) /{" "}
-          <Operand value={inputs.beta} text={formatFormulaBeta(inputs.beta)} />
-        </>
-      )}
-    </>
+    <ExcessReturnRatio
+      symbol="T"
+      risk={<Variable name="β" index="p" />}
+      inputs={
+        inputs === undefined
+          ? undefined
+          : {
+              ...inputs,
+              risk: <MathNumber>{formatFormulaBeta(inputs.beta)}</MathNumber>,
+            }
+      }
+    />
   );
 }

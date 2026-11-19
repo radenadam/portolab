@@ -2,7 +2,7 @@ import { NumberText } from "~/number-text";
 import type { PortfolioReader } from "~/features/trading/text-for-reader";
 import { formatPercent, formatSharpeRatio, formatVariance } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
-import { PortfolioVarianceFormula } from "./formulas";
+import { PortfolioVarianceFormula } from "./portfolio-formulas";
 import { riskMeasureFailureText } from "./measure-failure-text";
 import { capmRows } from "./measure-list";
 import type { MeasureRow } from "./measure-list";
