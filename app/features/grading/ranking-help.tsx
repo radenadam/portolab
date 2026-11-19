@@ -1,5 +1,11 @@
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
+import { ExplainedFormula } from "~/math-notation";
+import {
+  alphaFormulaText,
+  sharpeFormulaText,
+  treynorFormulaText,
+} from "~/features/measures/formula-texts";
 import { ConceptCard } from "~/concept-card";
 import { ConceptLesson } from "~/features/learning/concept-lesson";
 import { MarketLineFormula } from "~/features/measures/capm-formulas";
@@ -36,12 +42,20 @@ export function RankingHelp({
         </p>
       }
       calculation={
-        <RankingFormula measures={student.measures} measure={measure} />
+        <ExplainedFormula text={rankingFormulaTexts[measure]()}>
+          <RankingFormula measures={student.measures} measure={measure} />
+        </ExplainedFormula>
       }
       lesson={<ConceptLesson termId={concept.termId} />}
     />
   );
 }
+
+const rankingFormulaTexts: Record<RankingMeasure, () => string> = {
+  alpha: alphaFormulaText,
+  sharpe: sharpeFormulaText,
+  treynor: treynorFormulaText,
+};
 
 function RankingFormula({
   measures,

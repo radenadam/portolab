@@ -112,6 +112,7 @@
   color: var(--color-on-sell);
 }
 .stepper {
+  composes: field-with-icon from global;
   display: grid;
   grid-template-columns: var(--size-touch-target) minmax(0, 1fr) var(
       --size-touch-target
@@ -296,17 +297,20 @@
   font-size: var(--text-heading);
 }
 @media (width >= 73.75rem) {
-  /* The docked ticket is a panel only as tall as its form, which stays in view beside the stock while the page scrolls, so no empty panel runs down beside the page. */
+  /* The docked ticket is a panel only as tall as its form, which stays in view beside the stock while the page scrolls, so no empty panel runs down beside the page. It stays where the page starts, below the top bar, and it keeps the gap of the page below it too, from the moment the page opens, when a note of a sample class may still stand above the page. */
   .column {
     display: flex;
   }
   .ticket {
     position: sticky;
     inset: auto;
-    top: calc(var(--size-top-bar) + var(--space-4));
+    top: calc(var(--size-top-bar) + var(--space-page-top));
     align-self: flex-start;
     height: auto;
-    max-height: calc(100dvh - var(--size-top-bar) - var(--space-8));
+    max-height: calc(
+      100dvh - var(--size-above-page) - var(--space-page-top) -
+        var(--space-page-bottom)
+    );
     border: var(--size-line) solid var(--color-line);
     border-radius: var(--radius-panel);
     z-index: auto;

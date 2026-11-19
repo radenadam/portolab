@@ -32,6 +32,7 @@ export function DiversificationCalculation({
       row={{
         label: m.measures_analysis_without_diversification_label(),
         value: formatPercent(average, "two"),
+        description: m.measures_analysis_average_formula_notice(),
         formula: (
           <Formula
             left={<Average name="σ" />}
@@ -72,9 +73,6 @@ export function DiversificationCalculation({
         ),
       }}
     >
-      <p>
-        <NumberText>{m.measures_analysis_average_formula_notice()}</NumberText>
-      </p>
       <p>
         <NumberText>
           {

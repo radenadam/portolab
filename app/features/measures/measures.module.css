@@ -2,15 +2,66 @@
   composes: standalone-link from global;
 }
 
-/* Each measure has a row with its name and its value, and a row below them with its formula, so a formula can take the whole width of a phone. The notation takes the math font, as decision 0070 sets, and the name of its spreadsheet function keeps the font of the text. */
-.measures .formula {
+/* Every measure is a block of the same parts in the same order: its name with its value beside it, the sentence that says what it computes, and its formula with its numbers. The blocks stand side by side where the screen has room, each as wide as a formula with its numbers needs, so a value stays near its name. The parts of the blocks of one line share the rows of the list, so each part starts at the same height in every block of the line. */
+.measures {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(min(100%, var(--width-measure)), 1fr)
+  );
+  column-gap: var(--space-6);
+  align-self: stretch;
+  margin: 0;
+}
+
+.measure {
+  display: grid;
+  grid-row: span 3;
+  grid-template-rows: subgrid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-content: start;
+  column-gap: var(--space-3);
+  row-gap: var(--space-1);
+  padding-block: var(--space-3) var(--space-4);
+  border-block-start: var(--size-line) solid var(--color-line);
+}
+
+.measure dt {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+.measure dd {
+  margin: 0;
+}
+
+.measure .value {
+  font-family: var(--font-numbers);
+  font-size: var(--text-statistic);
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.measure .description,
+.measure .formula {
   grid-column: 1 / -1;
-  padding-block-end: var(--space-2);
-  border-block-end: var(--size-line) solid var(--color-line);
-  color: var(--color-muted);
-  font-family: var(--font-text);
-  font-size: var(--text-small);
-  text-align: start;
+}
+
+.measure .description {
+  color: var(--color-ink-secondary);
+  font-size: var(--text-row);
+}
+
+.measure .formula {
+  min-width: 0;
+}
+
+/* The formulas of the columns of a table follow the table, after the sentence that says where they come from. */
+.tableFormulas {
+  display: grid;
+  gap: var(--space-3);
 }
 
 /* A measure that a portfolio does not have gives its reason on a line of its own below the formula. */

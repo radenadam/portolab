@@ -10,11 +10,14 @@ import { numberFormat } from "~/intl-formats";
 import { intlLocale } from "~/intl-locale";
 import { NumberText } from "~/number-text";
 import { m } from "~/paraglide/messages.js";
+import { ExplainedFormula } from "~/math-notation";
+import { correlationFormulaText } from "./formula-texts";
 import { PopoverButton } from "~/popover";
 import { percentOf } from "~/charts/plot";
 import { plotFraction } from "~/units/plot-fraction";
 import { AnalysisCalculation } from "./analysis-calculation";
-import { CorrelationFormula, CovarianceFormula } from "./formulas";
+import { CovarianceFormula } from "./formulas";
+import { CorrelationFormula } from "./comovement-formulas";
 import type { PortfolioSummary } from "./measure-summaries";
 import { PairTable } from "./portfolio-tables";
 import { UnavailableMeasures } from "./unavailable-measures";
@@ -105,14 +108,18 @@ export function AnalysisCorrelations({
             calculation={
               portfolio === undefined ? undefined : (
                 <>
-                  <CovarianceFormula first="i" second="j" />
-                  <p>
+                  <ExplainedFormula
+                    text={m.measures_covariance_formula_notice()}
+                  >
+                    <CovarianceFormula first="i" second="j" />
+                  </ExplainedFormula>
+                  <ExplainedFormula text={correlationFormulaText()}>
                     <CorrelationFormula
                       first="i"
                       second="j"
                       correlation={undefined}
                     />
-                  </p>
+                  </ExplainedFormula>
                   <PairTable portfolio={portfolio} />
                 </>
               )
@@ -127,7 +134,7 @@ export function AnalysisCorrelations({
         <p className={styles["notice"]}>{oneHoldingNotice}</p>
       ) : (
         <>
-          <div className={styles["matrixViewport"]}>
+          <div className={styles["matrixViewport"]} data-scrolls-sideways="">
             <table className={styles["matrix"]} aria-label={title}>
               <thead>
                 <tr>
@@ -210,6 +217,7 @@ export function AnalysisCorrelations({
                   row={{
                     label: title,
                     value: formatCorrelation(pair.correlation),
+                    description: correlationFormulaText(),
                     formula: (
                       <CorrelationFormula
                         first="i"

@@ -37,23 +37,29 @@ export function StockHeader({
       >
         ‹ {stock.returnLabel}
       </Link>
+      {/* The star belongs to the code, and the sector and the place of the stock in the portfolio belong to its name, so they stand in the column of the name beside the tile, and the identity of the stock reads as one block. */}
       <div className={styles["identity"]}>
-        <StockName code={code} heading />
-        <StarButton
-          classId={classId}
+        <StockName
           code={code}
-          watched={stock.watched}
-          returnTo={returnTo}
+          heading
+          codeAction={
+            <StarButton
+              classId={classId}
+              code={code}
+              watched={stock.watched}
+              returnTo={returnTo}
+            />
+          }
+          detail={
+            <StockMetadata
+              code={code}
+              held={holding !== undefined}
+              isLq45={stock.isLq45}
+            />
+          }
         />
         {trade}
       </div>
-      <p className={styles["muted"]}>
-        <StockMetadata
-          code={code}
-          held={holding !== undefined}
-          isLq45={stock.isLq45}
-        />
-      </p>
       {quote?.kind === "stock" && (
         <div className={styles["quote"]}>
           <strong className={styles["price"]}>

@@ -2,7 +2,13 @@ import type { ReactNode } from "react";
 import type { PortfolioSummary } from "~/features/measures/measure-summaries";
 import { PortfolioVarianceFormula } from "~/features/measures/portfolio-formulas";
 import { formatCorrelation, formatPercent, formatVariance } from "~/formatting";
-import { Formula, MathNumber, Operand } from "~/math-notation";
+import {
+  ExplainedFormula,
+  Formula,
+  MathNumber,
+  Operand,
+} from "~/math-notation";
+import { portfolioVarianceFormulaText } from "~/features/measures/formula-texts";
 import { NumberText } from "~/number-text";
 import { m } from "~/paraglide/messages.js";
 import type { MonthlyVariance } from "~/units/monthly-variance";
@@ -40,9 +46,9 @@ export function LessonCovariances({
   return (
     <details className={styles["covariances"]}>
       <summary>{m.learning_covariances_title()}</summary>
-      <p>
+      <ExplainedFormula text={portfolioVarianceFormulaText()}>
         <PortfolioVarianceFormula variance={variance} />
-      </p>
+      </ExplainedFormula>
       <div className={styles["matrix"]}>
         {terms.map((pair) => (
           <div

@@ -1,10 +1,8 @@
 import { NumberText } from "~/number-text";
-import { Fragment } from "react";
 import type { ReactNode } from "react";
 import { ChangeText } from "~/change-text";
 import { ConceptCard } from "~/concept-card";
 import { ConceptLesson } from "~/features/learning/concept-lesson";
-import definitionStyles from "~/definition-list.module.css";
 import type { ChangeDirection } from "~/formatting";
 import { formatPercent, formatSignedPercent } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
@@ -12,16 +10,19 @@ import type { MonthlyReturn } from "~/units/monthly-return";
 import type { ReturnMeasure } from "./aligned-returns";
 import type { RequiredReturnMeasure, SecurityMarketLineMeasure } from "./capm";
 import { MarketLineFormula, RequiredReturnFormula } from "./capm-formulas";
+import { requiredReturnFormulaText } from "./formula-texts";
 import type { Subject } from "./formulas";
 import { measureConcept, measureUnitText } from "./measure-concept";
 import type { MeasureConcept } from "./measure-concept";
 import styles from "./measures.module.css";
 import { monthSpanInputs, monthSpanOf } from "./month-span";
 
-/** A measure as a list of measures shows it: its name, its value, and its formula with its inputs. */
+/** A measure as every list and card of measures shows it, in this order: its name, its value beside the name, the sentence that says what its formula computes, and its formula with its numbers where the data gives them. */
 export interface MeasureRow {
   label: string;
   value: ReactNode;
+  /** One sentence that says what the formula computes, from which values. */
+  description: string;
   formula: ReactNode;
   calculation?: ReactNode;
   concept?: MeasureConcept;
@@ -29,24 +30,27 @@ export interface MeasureRow {
   example?: ReactNode;
 }
 
-/** A list of measures, each with its name and its value, and below them its formula with its inputs. */
+/** A list of measures, each a block of the parts of MeasureRow in their order, so every measure reads alike. The blocks stand side by side where the screen has room, and the parts of the blocks of one line start at the same height. */
 export function MeasureList({
   rows,
 }: {
   rows: readonly MeasureRow[];
 }): ReactNode {
   return (
-    <dl className={[definitionStyles["list"], styles["measures"]].join(" ")}>
+    <dl className={styles["measures"]}>
       {rows.map((row) => (
-        <Fragment key={row.label}>
+        <div key={row.label} className={styles["measure"]}>
           <dt>
             <MeasureLabel row={row} />
           </dt>
-          <dd>
+          <dd className={styles["value"]}>
             <NumberText whole>{row.value}</NumberText>
           </dd>
+          <dd className={styles["description"]}>
+            <NumberText>{row.description}</NumberText>
+          </dd>
           <dd className={styles["formula"]}>{row.formula}</dd>
-        </Fragment>
+        </div>
       ))}
     </dl>
   );
@@ -87,6 +91,9 @@ export function MeasureLabel({
           }
           calculation={
             <>
+              <p>
+                <NumberText>{row.description}</NumberText>
+              </p>
               <p>{row.calculation ?? row.formula}</p>
               {row.inputs}
             </>
@@ -110,6 +117,7 @@ export function capmRows(
     {
       label: m.measures_required_return_label(),
       value: formatPercent(measures.requiredReturn.value, "two"),
+      description: requiredReturnFormulaText(),
       formula: (
         <RequiredReturnFormula of={of} required={measures.requiredReturn} />
       ),
@@ -117,6 +125,7 @@ export function capmRows(
     {
       label: m.measures_market_line_label(),
       concept: "alpha",
+      description: m.measures_alpha_formula_notice(),
       value: (
         <ChangeText
           colored={colored}

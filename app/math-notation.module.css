@@ -1,8 +1,15 @@
-/* A formula takes the math font of the device and the size of the text around it from the styles that browsers give MathML, as decision 0070 sets. Its box never makes a page wider than the screen, so a formula wider than its column scrolls inside it. */
+/* A formula takes the math font of the device from the styles that browsers give MathML, as decision 0070 sets, at one size on every screen. Its box never makes a page wider than the screen. When the formula is wider than its column, its spreadsheet function moves to a line of its own, the notation shrinks to its smallest scale, and only then does the box scroll sideways. It never scrolls up and down, so the padding above and below holds the ink of a sum or a fraction that the boxes of MathML leave outside. */
 .formula {
-  display: inline-block;
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--space-2);
   max-inline-size: 100%;
+  padding-block: 0.25em;
   overflow-x: auto;
+  overflow-y: hidden;
+  font-size: calc(var(--text-formula) * var(--formula-scale, 1));
+  line-height: normal;
   vertical-align: middle;
 }
 
@@ -27,5 +34,17 @@
 
 .function {
   color: var(--color-muted);
+  font-family: var(--font-text);
   font-size: var(--text-small);
+}
+
+/* A formula that stands on its own follows the sentence that says what it computes, close to it, so the two read as one part. */
+.explained {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.explained > p:first-child {
+  color: var(--color-ink-secondary);
+  font-size: var(--text-row);
 }

@@ -12,6 +12,11 @@ import {
 import { NumberText } from "~/number-text";
 import { Message } from "~/message";
 import { m } from "~/paraglide/messages.js";
+import { ExplainedFormula } from "~/math-notation";
+import {
+  sharpeFormulaText,
+  treynorFormulaText,
+} from "~/features/measures/formula-texts";
 import { portfolioWeight } from "~/units/portfolio-weight";
 import type { PortfolioWeight } from "~/units/portfolio-weight";
 import { LessonSlider } from "./lesson-slider";
@@ -134,19 +139,19 @@ export function LessonAllocation({
           variance={measured.variance.value}
         />
         <div className={styles["formula"]}>
-          <p>
+          <ExplainedFormula text={sharpeFormulaText()}>
             <SharpeRatioFormula
               inputs={{
                 ...excess,
                 standardDeviation: measured.standardDeviation.value,
               }}
             />
-          </p>
-          <p>
+          </ExplainedFormula>
+          <ExplainedFormula text={treynorFormulaText()}>
             <TreynorRatioFormula
               inputs={{ ...excess, beta: measured.beta.value }}
             />
-          </p>
+          </ExplainedFormula>
           {explanation}
         </div>
       </section>

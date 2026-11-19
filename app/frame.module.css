@@ -26,12 +26,22 @@
   min-width: 0;
 }
 
+/* The note of a sample class has a fixed height, so a panel that stays in view, such as the docked order ticket, knows how far down the page starts while the note shows. */
 .sampleClass {
-  padding: var(--space-1) var(--space-gutter);
+  padding-inline: var(--space-gutter);
+  line-height: var(--size-sample-note);
   background: var(--color-warning-soft);
   color: var(--color-warning);
   font-size: var(--text-small);
   text-align: center;
+}
+
+.body {
+  --size-above-page: var(--size-top-bar);
+}
+
+.body:has(> .sampleClass:not([hidden])) {
+  --size-above-page: calc(var(--size-top-bar) + var(--size-sample-note));
 }
 
 /* The top bar stays at the top while the page scrolls, and its parts line up with the content under it. */
@@ -99,9 +109,8 @@
 /* The ground of a plain avatar is the raised color, which the page and the filled pill nearly match, so a plain avatar in the pill takes the color of a panel. */
 .chipAvatar {
   --avatar-ground: var(--color-panel);
-  width: var(--size-chip-avatar);
-  height: var(--size-chip-avatar);
-  font-size: var(--text-tile);
+  --avatar-size: var(--size-chip-avatar);
+  --avatar-text: var(--text-tile);
 }
 
 .avatarButton {
@@ -110,7 +119,7 @@
 }
 
 .main {
-  padding: var(--space-4) var(--space-gutter) var(--space-6);
+  padding: var(--space-page-top) var(--space-gutter) var(--space-page-bottom);
 }
 
 /* The main landmark takes the focus of the link that skips the navigation, which moves the reader there without drawing a control. */
@@ -303,7 +312,7 @@
 
   .main,
   .mainAboveTabBar {
-    padding: 1.625rem var(--space-gutter) 1.875rem;
+    padding: var(--space-page-top) var(--space-gutter) var(--space-page-bottom);
   }
 }
 

@@ -84,6 +84,8 @@
   --text-learning-title: 1.375rem;
   --text-lesson-title: 1.5rem;
   --text-learning-summary: 0.8125rem;
+  /* A formula is a little larger than the text around it, because the math font of a device draws its letters smaller than the font of the text, and a subscript under a fraction must stay readable. */
+  --text-formula: 1rem;
 
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -97,6 +99,11 @@
   --space-section: 2.5rem;
   /* The space beside the content and inside the top bar, which a desktop widens. */
   --space-gutter: 1rem;
+  /* The gap of the page above and below its content, which a desktop widens. A panel that stays in view while the page scrolls, such as the docked order ticket, keeps it at both ends. */
+  --space-page-top: var(--space-4);
+  --space-page-bottom: var(--space-6);
+  /* The note of a sample class under the top bar holds one line of small text. */
+  --size-sample-note: 1.625rem;
 
   --width-ranking-rank: 1.5rem;
   --width-ranking-return: 10rem;
@@ -125,6 +132,8 @@
   --width-impact-sentence: 20rem;
   --width-analysis-scale: 4.5rem;
   --width-analysis-data: 46rem;
+  /* A block of a measure is as wide as a formula with the numbers of two terms on each line needs at the size of a formula, so its value stays near its name. */
+  --width-measure: 21rem;
   --width-allocation-bar: min(32%, 7.5rem);
   --width-analysis-risk-code: 3rem;
   --size-allocation-row: 2.25rem;
@@ -245,6 +254,8 @@
   :root {
     --size-top-bar: 3.625rem;
     --space-gutter: 1.75rem;
+    --space-page-top: 1.625rem;
+    --space-page-bottom: 1.875rem;
     --text-learning-title: 1.625rem;
     --text-lesson-title: 1.75rem;
   }
@@ -373,6 +384,16 @@ a {
   font: inherit;
 }
 
+/* A field that holds an icon or a button beside its text, such as a search or the count of a ticket, shows focus on its whole shape, so the ring never cuts through the field between the text and the icon. A CSS module composes it from global. */
+:is(.search-field, .field-with-icon):has(input:focus-visible) {
+  outline: var(--size-mark) solid var(--color-data);
+  outline-offset: var(--size-mark);
+}
+
+:is(.search-field, .field-with-icon) input:focus-visible {
+  outline: none;
+}
+
 /* The primary button of a screen, such as the button that sends a form or "Buka portofolio" in the panel of a student, takes the ink of buttons, as the references of decision 0028 draw it. A CSS module composes it from global, so every primary button shares this one style. */
 .primary-button {
   display: inline-flex;
@@ -456,10 +477,17 @@ label:has(> input[type="radio"]:focus-visible) {
   outline-offset: var(--size-mark);
 }
 
+/* A box that scrolls inside a page, such as a list capped inside its card, keeps a gap between its content and its scroll bar, so the bar never touches or covers the last column of numbers. A bar that takes space, as on Windows, stands beyond the gap, and a bar drawn over the content, as on a phone, stands inside it. The box reaches as far past its content on each side as that gap, so a box that does not scroll keeps the edges of the text around it, and a row whose ground reaches a little past its text, as the rows of Kelas do, fits inside the box instead of making it scroll sideways. It scrolls sideways only when its content cannot fit, such as a matrix of many stocks. A CSS module composes it from global, and an open table of values below shares it. */
+.scroll-box,
+details:has(> table)::details-content {
+  margin-inline: calc(-1 * var(--space-2));
+  padding-inline: var(--space-2);
+  overflow: auto;
+}
+
 /* An open table of values, such as the closes of a year, shows about five rows and scrolls inside its own box, so it never pushes the rest of the screen away. Its head stays in view while its rows scroll. */
 details:has(> table)::details-content {
   max-block-size: calc(6 * var(--size-touch-target));
-  overflow-y: auto;
 }
 
 details > table thead th {

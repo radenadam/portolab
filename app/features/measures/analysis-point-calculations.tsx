@@ -1,13 +1,15 @@
 import { Fragment } from "react";
 import type { ReactNode } from "react";
-import { ChangeText } from "~/change-text";
-import { formatPercent, formatSignedPercent } from "~/formatting";
+import { formatPercent } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { AnalysisCalculation } from "./analysis-calculation";
-import { measureSecurityMarketLineDistance } from "./capm";
-import { MarketLineFormula, RequiredReturnFormula } from "./capm-formulas";
 import { StandardDeviationFormula } from "./formulas";
 import type { AnalysisHolding } from "./analysis-holdings";
+import {
+  HoldingRequiredReturnPart,
+  holdingAlphaRow,
+  holdingAlphaTitle,
+} from "./holding-alpha-calculation";
 
 export function AnalysisPointCalculations({
   holdings,
@@ -18,32 +20,10 @@ export function AnalysisPointCalculations({
     <Fragment key={holding.code}>
       <AnalysisCalculation
         id={`analysis-stock-${holding.code}-alpha`}
-        title={m.measures_analysis_stock_calculation_title({
-          code: holding.code,
-          measure: m.measures_market_line_label(),
-        })}
-        row={{
-          label: m.measures_market_line_label(),
-          value: (
-            <ChangeText
-              colored
-              change={formatSignedPercent(holding.distance)}
-            />
-          ),
-          formula: (
-            <MarketLineFormula
-              of="i"
-              distance={measureSecurityMarketLineDistance(
-                holding.expectedReturn,
-                holding.requiredReturn,
-              )}
-            />
-          ),
-        }}
+        title={holdingAlphaTitle(holding.code)}
+        row={holdingAlphaRow(holding)}
       >
-        <p>
-          <RequiredReturnFormula of="i" required={holding.requiredReturn} />
-        </p>
+        <HoldingRequiredReturnPart holding={holding} />
       </AnalysisCalculation>
       <AnalysisCalculation
         id={`analysis-stock-${holding.code}-risk`}
@@ -54,6 +34,7 @@ export function AnalysisPointCalculations({
         row={{
           label: m.measures_standard_deviation_label(),
           value: formatPercent(holding.standardDeviation, "two"),
+          description: m.measures_standard_deviation_formula_notice(),
           formula: (
             <StandardDeviationFormula of="i" variance={holding.variance} />
           ),

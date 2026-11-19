@@ -15,7 +15,7 @@ import type { Correlation } from "~/units/correlation";
 import type { MonthlyReturn } from "~/units/monthly-return";
 import type { PortfolioWeight } from "~/units/portfolio-weight";
 
-/** σₚ = √(w²ᵢσ²ᵢ + w²ⱼσ²ⱼ + 2wᵢwⱼρᵢⱼσᵢσⱼ), the risk of two stocks, which shows the correlation that the lesson changes. */
+/** σ²ₚ = w²ᵢσ²ᵢ + w²ⱼσ²ⱼ + 2wᵢwⱼρᵢⱼσᵢσⱼ with each term of the numbers on a line of its own, so the formula fits a phone, and σₚ = √σ²ₚ, the risk of two stocks, which shows the correlation that the lesson changes. */
 export function TwoStockFormula({
   weight,
   risks,
@@ -39,9 +39,9 @@ export function TwoStockFormula({
     <>
       <p>
         <Formula
-          left={<Variable name="σ" index="p" />}
+          left={<Variable name="σ" index="p" power={2} />}
           right={
-            <SquareRoot>
+            <>
               <Variable name="w" index="i" power={2} />
               <Variable name="σ" index="i" power={2} />
               <Operator symbol="+" />
@@ -54,21 +54,33 @@ export function TwoStockFormula({
               <Variable name="ρ" index="ij" />
               <Variable name="σ" index="i" />
               <Variable name="σ" index="j" />
-            </SquareRoot>
+            </>
           }
           followingLines={[
             {
               operator: "=",
               expression: (
-                <SquareRoot>
+                <>
                   <Squared>{first}</Squared>
                   <Operator symbol="×" />
                   <Squared>{firstRisk}</Squared>
-                  <Operator symbol="+" />
+                </>
+              ),
+            },
+            {
+              operator: "+",
+              expression: (
+                <>
                   <Squared>{second}</Squared>
                   <Operator symbol="×" />
                   <Squared>{secondRisk}</Squared>
-                  <Operator symbol="+" />
+                </>
+              ),
+            },
+            {
+              operator: "+",
+              expression: (
+                <>
                   <MathNumber>2</MathNumber>
                   <Operator symbol="×" />
                   {first}
@@ -83,11 +95,21 @@ export function TwoStockFormula({
                   {firstRisk}
                   <Operator symbol="×" />
                   {secondRisk}
-                </SquareRoot>
+                </>
               ),
             },
           ]}
           scrolls
+        />
+      </p>
+      <p>
+        <Formula
+          left={<Variable name="σ" index="p" />}
+          right={
+            <SquareRoot>
+              <Variable name="σ" index="p" power={2} />
+            </SquareRoot>
+          }
         />
       </p>
       <strong>

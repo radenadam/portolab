@@ -15,3 +15,9 @@
 .button:hover {
   color: var(--color-ink);
 }
+
+/* An icon button that waits for the answer to its form never shows a box, unlike a button with a label. Its icon turns muted, and the pointer shows the wait. */
+.button:disabled {
+  background: none;
+  color: var(--color-muted);
+}

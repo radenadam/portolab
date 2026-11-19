@@ -25,8 +25,8 @@
   flex-shrink: 0;
 }
 .avatar {
-  --size-avatar: var(--size-student-avatar);
-  font-size: var(--text-caption);
+  --avatar-size: var(--size-student-avatar);
+  --avatar-text: var(--text-caption);
 }
 .identity {
   min-inline-size: 0;

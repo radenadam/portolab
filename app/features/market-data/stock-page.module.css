@@ -36,7 +36,7 @@
   gap: var(--space-3);
 }
 
-/* The star belongs to the name, so it stands right beside it, and the actions of the stock take the other end of the row, where the eye looks for them. */
+/* The actions of the stock take the other end of the row of its name, where the eye looks for them. */
 .identity {
   gap: var(--space-1) var(--space-2);
 }

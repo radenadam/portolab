@@ -13,7 +13,7 @@ import { databaseWithClosesForTest } from "./measures-for-test.server";
 import { readStockMeasures } from "./read-measures.server";
 import { StockMeasuresView } from "./stock-measures-view";
 
-// The measures of BBCA and AMMN that the decimal module of Python computed, as measure-stock.test.ts gives them: for BBCA an expected return of -0.001023, a variance of 0.002732, a standard deviation of 0.052272, a covariance with the IHSG of 0.001413, a correlation of 0.596994, a beta of 0.689371, a required return of 0.001803, and a distance of -0.002826 from the security market line, and for AMMN an expected return of 0.028220, a beta of 1.110656, a required return of -0.002765, and a distance of 0.030986. The IHSG has an expected return of 0.000457 and a variance of 0.002049 over the months of BBCA, and an expected return of -0.002012 over those of AMMN. The standard deviation of the IHSG over the months of BBCA is the square root of its variance, 0.045268, and the risk-free rate is the BI-Rate of 5.75% that Bank Indonesia set on 18 June 2026, divided by 12.
+// The measures of BBCA and AMMN that the decimal module of Python computed, as measure-stock.test.ts gives them: for BBCA an expected return of -0.001023, a variance of 0.002732, a standard deviation of 0.052272, a covariance with the IHSG of 0.001413, a correlation of 0.596994, a beta of 0.689371, a required return of 0.001803, and a distance of -0.002826 from the security market line, and for AMMN an expected return of 0.028220, a beta of 1.110656, a required return of -0.002765, and a distance of 0.030986. The IHSG has an expected return of 0.000457 and a variance of 0.002049 over the months of BBCA, and an expected return of -0.002012 over those of AMMN. The standard deviation of the IHSG over the months of BBCA is the square root of its variance, 0.045268, and the risk-free rate is the BI-Rate of 5.75% that Bank Indonesia set on 18 June 2026, divided by 12. The formulas show the sums behind the expected returns, the variances, and the covariance, which return-statistics.test.ts checks: the 60 returns of BBCA add up to -6.14% and those of the IHSG to 2.74%, their squared deviations to 0.1612 and 0.1209, and the products of their deviations to 0.08334.
 function render(code: string): string {
   return withoutConceptCardsForTest(
     renderInRouterForTest(
@@ -33,13 +33,13 @@ const texts: Record<
   Locale,
   {
     bbcaMonths: string;
-    bbcaRows: readonly (readonly [string, string, string])[];
+    bbcaRows: readonly (readonly [string, string, string, string])[];
     below: string;
     ammnMonths: string;
-    ammnRows: readonly (readonly [string, string, string])[];
+    ammnRows: readonly (readonly [string, string, string, string])[];
     above: string;
     marketTitle: string;
-    marketRows: readonly (readonly [string, string, string])[];
+    marketRows: readonly (readonly [string, string, string, string])[];
     rateNotice: string;
     rateLink: string;
     returnsTitle: string;
@@ -52,22 +52,25 @@ const texts: Record<
       [
         "Imbal hasil harapan",
         "-0,10%",
+        "Jumlah imbal hasil bulanan dibagi banyaknya bulan, yaitu rata-ratanya.",
         formulaMarkupForTest(
-          String.raw`E(R_i) = \frac{∑R_i}{n}, n = 60`,
+          String.raw`E(R_i) = \frac{∑R_i}{n} \\ = \frac{-6,14%}{60}`,
           "AVERAGE",
         ),
       ],
       [
         "Varians",
         "0,002732",
+        "Jumlah kuadrat selisih setiap imbal hasil bulanan dari rata-ratanya, dibagi banyaknya bulan dikurangi satu.",
         formulaMarkupForTest(
-          String.raw`σ_i^2 = \frac{∑(R_i − E(R_i))^2}{n − 1}`,
+          String.raw`σ_i^2 = \frac{∑(R_i − E(R_i))^2}{n − 1} \\ = \frac{0,1612}{60 − 1}`,
           "VAR.S",
         ),
       ],
       [
         "Simpangan baku",
         "5,23%",
+        "Akar kuadrat varians, sehingga sebarannya kembali dalam persen per bulan seperti imbal hasilnya.",
         formulaMarkupForTest(
           String.raw`σ_i = \sqrt{σ_i^2} \\ = \sqrt{0,002732}`,
           "STDEV.S",
@@ -76,14 +79,16 @@ const texts: Record<
       [
         "Kovarians dengan IHSG",
         "0,001413",
+        "Jumlah hasil kali selisih kedua imbal hasil dari rata-ratanya pada bulan yang sama, dibagi banyaknya bulan dikurangi satu.",
         formulaMarkupForTest(
-          String.raw`σ_{iM} = \frac{∑(R_i − E(R_i))(R_M − E(R_M))}{n − 1}`,
+          String.raw`σ_{iM} = \frac{∑(R_i − E(R_i))(R_M − E(R_M))}{n − 1} \\ = \frac{0,08334}{60 − 1}`,
           "COVARIANCE.S",
         ),
       ],
       [
         "Korelasi dengan IHSG",
         "0,60",
+        "Kovarians dibagi hasil kali kedua simpangan baku, sehingga nilainya selalu antara -1 dan 1.",
         formulaMarkupForTest(
           String.raw`ρ_{iM} = \frac{σ_{iM}}{σ_iσ_M} \\ = \frac{0,001413}{5,23% × 4,53%}`,
           "CORREL",
@@ -92,6 +97,7 @@ const texts: Record<
       [
         "Beta terhadap IHSG",
         "0,69",
+        "Kovarians saham dengan IHSG dibagi varians IHSG, yaitu kemiringan garis dari imbal hasil IHSG ke imbal hasil saham.",
         formulaMarkupForTest(
           String.raw`β_i = \frac{σ_{iM}}{σ_M^2} \\ = \frac{0,001413}{0,002049}`,
           "SLOPE",
@@ -100,6 +106,7 @@ const texts: Record<
       [
         "Imbal hasil yang disyaratkan CAPM",
         "0,18%",
+        "Suku bunga bebas risiko ditambah beta dikali selisih imbal hasil harapan IHSG dengan suku bunga bebas risiko.",
         formulaMarkupForTest(
           String.raw`k_i = R_f + β_i(E(R_M) − R_f) \\ = 0,48% + 0,69 × (0,05% − 0,48%)`,
         ),
@@ -107,6 +114,7 @@ const texts: Record<
       [
         "Alpha Jensen",
         `<span data-change="fall">${fall}-0,28%</span>`,
+        "Imbal hasil harapan dikurangi imbal hasil yang disyaratkan CAPM untuk betanya.",
         formulaMarkupForTest(
           String.raw`α_i = E(R_i) − k_i \\ = -0,10% − 0,18%`,
         ),
@@ -120,6 +128,7 @@ const texts: Record<
       [
         "Imbal hasil yang disyaratkan CAPM",
         "-0,28%",
+        "Suku bunga bebas risiko ditambah beta dikali selisih imbal hasil harapan IHSG dengan suku bunga bebas risiko.",
         formulaMarkupForTest(
           String.raw`k_i = R_f + β_i(E(R_M) − R_f) \\ = 0,48% + 1,11 × (-0,20% − 0,48%)`,
         ),
@@ -127,6 +136,7 @@ const texts: Record<
       [
         "Alpha Jensen",
         `<span data-change="rise">${rise}+3,10%</span>`,
+        "Imbal hasil harapan dikurangi imbal hasil yang disyaratkan CAPM untuk betanya.",
         formulaMarkupForTest(
           String.raw`α_i = E(R_i) − k_i \\ = 2,82% − (-0,28%)`,
         ),
@@ -139,22 +149,25 @@ const texts: Record<
       [
         "Imbal hasil harapan IHSG",
         "0,05%",
+        "Jumlah imbal hasil bulanan dibagi banyaknya bulan, yaitu rata-ratanya.",
         formulaMarkupForTest(
-          String.raw`E(R_M) = \frac{∑R_M}{n}, n = 60`,
+          String.raw`E(R_M) = \frac{∑R_M}{n} \\ = \frac{2,74%}{60}`,
           "AVERAGE",
         ),
       ],
       [
         "Varians IHSG",
         "0,002049",
+        "Jumlah kuadrat selisih setiap imbal hasil bulanan dari rata-ratanya, dibagi banyaknya bulan dikurangi satu.",
         formulaMarkupForTest(
-          String.raw`σ_M^2 = \frac{∑(R_M − E(R_M))^2}{n − 1}`,
+          String.raw`σ_M^2 = \frac{∑(R_M − E(R_M))^2}{n − 1} \\ = \frac{0,1209}{60 − 1}`,
           "VAR.S",
         ),
       ],
       [
         "Simpangan baku IHSG",
         "4,53%",
+        "Akar kuadrat varians, sehingga sebarannya kembali dalam persen per bulan seperti imbal hasilnya.",
         formulaMarkupForTest(
           String.raw`σ_M = \sqrt{σ_M^2} \\ = \sqrt{0,002049}`,
           "STDEV.S",
@@ -163,6 +176,7 @@ const texts: Record<
       [
         "Suku bunga bebas risiko",
         "0,48%",
+        "BI-Rate per tahun dibagi 12, yaitu suku bunga bebas risiko untuk satu bulan.",
         formulaMarkupForTest(
           String.raw`R_f = \frac{BI-Rate}{12} \\ = \frac{5,75%}{12}`,
         ),
@@ -180,22 +194,25 @@ const texts: Record<
       [
         "Expected return",
         "-0.10%",
+        "The sum of the monthly returns divided by the number of months, which is their average.",
         formulaMarkupForTest(
-          String.raw`E(R_i) = \frac{∑R_i}{n}, n = 60`,
+          String.raw`E(R_i) = \frac{∑R_i}{n} \\ = \frac{-6.14%}{60}`,
           "AVERAGE",
         ),
       ],
       [
         "Variance",
         "0.002732",
+        "The sum of the squared differences of each monthly return from their average, divided by the number of months less one.",
         formulaMarkupForTest(
-          String.raw`σ_i^2 = \frac{∑(R_i − E(R_i))^2}{n − 1}`,
+          String.raw`σ_i^2 = \frac{∑(R_i − E(R_i))^2}{n − 1} \\ = \frac{0.1612}{60 − 1}`,
           "VAR.S",
         ),
       ],
       [
         "Standard deviation",
         "5.23%",
+        "The square root of the variance, so the spread is in percent a month again, as the returns are.",
         formulaMarkupForTest(
           String.raw`σ_i = \sqrt{σ_i^2} \\ = \sqrt{0.002732}`,
           "STDEV.S",
@@ -204,14 +221,16 @@ const texts: Record<
       [
         "Covariance with the IHSG",
         "0.001413",
+        "The sum of the products of the differences of both returns from their averages in the same month, divided by the number of months less one.",
         formulaMarkupForTest(
-          String.raw`σ_{iM} = \frac{∑(R_i − E(R_i))(R_M − E(R_M))}{n − 1}`,
+          String.raw`σ_{iM} = \frac{∑(R_i − E(R_i))(R_M − E(R_M))}{n − 1} \\ = \frac{0.08334}{60 − 1}`,
           "COVARIANCE.S",
         ),
       ],
       [
         "Correlation with the IHSG",
         "0.60",
+        "The covariance divided by the product of both standard deviations, so the value always lies between -1 and 1.",
         formulaMarkupForTest(
           String.raw`ρ_{iM} = \frac{σ_{iM}}{σ_iσ_M} \\ = \frac{0.001413}{5.23% × 4.53%}`,
           "CORREL",
@@ -220,6 +239,7 @@ const texts: Record<
       [
         "Beta against the IHSG",
         "0.69",
+        "The covariance of the stock with the IHSG divided by the variance of the IHSG, which is the slope of the line from the returns of the IHSG to those of the stock.",
         formulaMarkupForTest(
           String.raw`β_i = \frac{σ_{iM}}{σ_M^2} \\ = \frac{0.001413}{0.002049}`,
           "SLOPE",
@@ -228,6 +248,7 @@ const texts: Record<
       [
         "Return that CAPM requires",
         "0.18%",
+        "The risk-free rate plus the beta times the expected return of the IHSG above the risk-free rate.",
         formulaMarkupForTest(
           String.raw`k_i = R_f + β_i(E(R_M) − R_f) \\ = 0.48% + 0.69 × (0.05% − 0.48%)`,
         ),
@@ -235,6 +256,7 @@ const texts: Record<
       [
         "Jensen's alpha",
         `<span data-change="fall">${fall}-0.28%</span>`,
+        "The expected return less the return that CAPM requires for its beta.",
         formulaMarkupForTest(
           String.raw`α_i = E(R_i) − k_i \\ = -0.10% − 0.18%`,
         ),
@@ -248,6 +270,7 @@ const texts: Record<
       [
         "Return that CAPM requires",
         "-0.28%",
+        "The risk-free rate plus the beta times the expected return of the IHSG above the risk-free rate.",
         formulaMarkupForTest(
           String.raw`k_i = R_f + β_i(E(R_M) − R_f) \\ = 0.48% + 1.11 × (-0.20% − 0.48%)`,
         ),
@@ -255,6 +278,7 @@ const texts: Record<
       [
         "Jensen's alpha",
         `<span data-change="rise">${rise}+3.10%</span>`,
+        "The expected return less the return that CAPM requires for its beta.",
         formulaMarkupForTest(
           String.raw`α_i = E(R_i) − k_i \\ = 2.82% − (-0.28%)`,
         ),
@@ -267,22 +291,25 @@ const texts: Record<
       [
         "Expected return of the IHSG",
         "0.05%",
+        "The sum of the monthly returns divided by the number of months, which is their average.",
         formulaMarkupForTest(
-          String.raw`E(R_M) = \frac{∑R_M}{n}, n = 60`,
+          String.raw`E(R_M) = \frac{∑R_M}{n} \\ = \frac{2.74%}{60}`,
           "AVERAGE",
         ),
       ],
       [
         "Variance of the IHSG",
         "0.002049",
+        "The sum of the squared differences of each monthly return from their average, divided by the number of months less one.",
         formulaMarkupForTest(
-          String.raw`σ_M^2 = \frac{∑(R_M − E(R_M))^2}{n − 1}`,
+          String.raw`σ_M^2 = \frac{∑(R_M − E(R_M))^2}{n − 1} \\ = \frac{0.1209}{60 − 1}`,
           "VAR.S",
         ),
       ],
       [
         "Standard deviation of the IHSG",
         "4.53%",
+        "The square root of the variance, so the spread is in percent a month again, as the returns are.",
         formulaMarkupForTest(
           String.raw`σ_M = \sqrt{σ_M^2} \\ = \sqrt{0.002049}`,
           "STDEV.S",
@@ -291,6 +318,7 @@ const texts: Record<
       [
         "Risk-free rate",
         "0.48%",
+        "The yearly BI-Rate divided by 12, which is the risk-free rate of one month.",
         formulaMarkupForTest(
           String.raw`R_f = \frac{BI-Rate}{12} \\ = \frac{5.75%}{12}`,
         ),
@@ -307,7 +335,7 @@ for (const locale of locales) {
   const text = texts[locale];
   const language = languageNames[locale];
 
-  test(`shows each measure of a stock with its formula and its inputs, the position below the security market line, the measures of the IHSG with the BI-Rate behind the risk-free rate, and the monthly returns, in ${language}`, () => {
+  test(`shows each measure of a stock with what its formula computes, its formula, and its numbers, the position below the security market line, the measures of the IHSG with the BI-Rate behind the risk-free rate, and the monthly returns, in ${language}`, () => {
     switchLocaleForTest(locale);
     const html = render("BBCA");
     expect(html).toContain(

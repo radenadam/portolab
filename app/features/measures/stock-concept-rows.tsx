@@ -2,10 +2,13 @@ import { stockComparisonText } from "./stock-comparison-text";
 import { formatBeta, formatPercent } from "~/formatting";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
 import { m } from "~/paraglide/messages.js";
-import { BetaFormula, MeanFormula, StandardDeviationFormula } from "./formulas";
+import { MeanFormula, StandardDeviationFormula } from "./formulas";
+import { BetaFormula } from "./comovement-formulas";
 import type { MeasureRow } from "./measure-list";
 import type { StockSummary } from "./measure-summaries";
 import { ReturnTables } from "./return-tables";
+import { betaFormulaText } from "./formula-texts";
+import { sumOfReturns } from "./return-statistics";
 
 /** One definition keeps the summary and the full calculation from showing different help. */
 export function stockConceptRows(
@@ -30,7 +33,14 @@ export function stockConceptRows(
         />
       ),
       value: formatPercent(stock.expectedReturn, "two"),
-      formula: <MeanFormula of="i" count={stock.returns.length} />,
+      description: m.measures_mean_formula_notice(),
+      formula: (
+        <MeanFormula
+          of="i"
+          count={stock.returns.length}
+          sum={sumOfReturns(stock.returns.map((measure) => measure.value))}
+        />
+      ),
     },
     risk: {
       label: m.measures_standard_deviation_label(),
@@ -41,6 +51,7 @@ export function stockConceptRows(
         value: formatPercent(stock.market.standardDeviation, "two"),
       }),
       value: formatPercent(stock.standardDeviation, "two"),
+      description: m.measures_standard_deviation_formula_notice(),
       formula: <StandardDeviationFormula of="i" variance={stock.variance} />,
     },
     beta: {
@@ -52,6 +63,7 @@ export function stockConceptRows(
         value: stock.beta.value,
       }),
       value: formatBeta(stock.beta.value),
+      description: betaFormulaText(),
       formula: <BetaFormula beta={stock.beta} />,
     },
   };

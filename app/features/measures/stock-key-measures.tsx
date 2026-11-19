@@ -8,9 +8,11 @@ import type { PortfolioKind } from "~/features/trading/portfolio-store.server";
 import { ConceptLesson } from "~/features/learning/concept-lesson";
 import { formatCorrelation, formatPercent } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
+import { ExplainedFormula } from "~/math-notation";
+import { correlationFormulaText } from "./formula-texts";
 import type { Result } from "~/result";
 import styles from "~/stat-grid.module.css";
-import { CorrelationFormula } from "./formulas";
+import { CorrelationFormula } from "./comovement-formulas";
 import {
   measureFailureText,
   riskMeasureFailureText,
@@ -109,13 +111,13 @@ export function StockKeyMeasures({
                           page: portfolioTitle(portfolioKind),
                         })}
                       </p>
-                      <p>
+                      <ExplainedFormula text={correlationFormulaText()}>
                         <CorrelationFormula
                           first="i"
                           second="p"
                           correlation={correlation.value.correlation}
                         />
-                      </p>
+                      </ExplainedFormula>
                       <MeasureTable
                         header={[
                           m.measures_stock_label(),

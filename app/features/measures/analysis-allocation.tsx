@@ -10,6 +10,7 @@ import type { PortfolioValuation } from "~/features/trading/value-portfolio";
 import { formatPercent, formatRupiah, formatList } from "~/formatting";
 import {
   ConditionSeparator,
+  ExplainedFormula,
   Formula,
   Fraction,
   MathNumber,
@@ -66,7 +67,7 @@ export function AnalysisAllocation({
   const calculation =
     allocation.kind !== "valued" ? undefined : (
       <>
-        <p>
+        <ExplainedFormula text={m.measures_weight_formula_notice()}>
           <Formula
             left={<Variable name="w" index="i" />}
             right={
@@ -82,7 +83,7 @@ export function AnalysisAllocation({
               </>
             }
           />
-        </p>
+        </ExplainedFormula>
         <MeasureTable
           header={[
             details[group].label,
@@ -176,48 +177,52 @@ export function AnalysisAllocation({
               );
             })}
           </svg>
-          <div className={styles["allocationRows"]} data-layout="rows">
-            {rows.map((row) => (
-              <div key={row.key} className={styles["allocationRow"]}>
-                <span
-                  className={
-                    group === "stock" && row.key !== "cash"
-                      ? styles["stockName"]
-                      : undefined
-                  }
-                >
-                  {row.name}
-                </span>
-                <svg
-                  width="100%"
-                  height="100%"
-                  className={styles["bar"]}
-                  aria-hidden="true"
-                >
-                  <rect
-                    width="100%"
-                    height="100%"
-                    className={styles["track"]}
-                  />
-                  {/* A weight fills its share of the whole track, and cash fills from the other end, as in the table of holdings. */}
-                  <rect
-                    x={
-                      row.key === "cash"
-                        ? percentOf(plotFraction(1 - row.weight))
+          <div className={styles["allocationViewport"]}>
+            <div className={styles["allocationRows"]} data-layout="rows">
+              {rows.map((row) => (
+                <div key={row.key} className={styles["allocationRow"]}>
+                  <span
+                    className={
+                      group === "stock" && row.key !== "cash"
+                        ? styles["stockName"]
                         : undefined
                     }
-                    width={percentOf(plotFraction(row.weight))}
+                  >
+                    {row.name}
+                  </span>
+                  <svg
+                    width="100%"
                     height="100%"
-                    className={row.key === "cash" ? styles["cash"] : undefined}
-                  />
-                </svg>
-                <strong>
-                  <NumberText whole>
-                    {formatPercent(row.weight, "one")}
-                  </NumberText>
-                </strong>
-              </div>
-            ))}
+                    className={styles["bar"]}
+                    aria-hidden="true"
+                  >
+                    <rect
+                      width="100%"
+                      height="100%"
+                      className={styles["track"]}
+                    />
+                    {/* A weight fills its share of the whole track, and cash fills from the other end, as in the table of holdings. */}
+                    <rect
+                      x={
+                        row.key === "cash"
+                          ? percentOf(plotFraction(1 - row.weight))
+                          : undefined
+                      }
+                      width={percentOf(plotFraction(row.weight))}
+                      height="100%"
+                      className={
+                        row.key === "cash" ? styles["cash"] : undefined
+                      }
+                    />
+                  </svg>
+                  <strong>
+                    <NumberText whole>
+                      {formatPercent(row.weight, "one")}
+                    </NumberText>
+                  </strong>
+                </div>
+              ))}
+            </div>
           </div>
         </>
       )}

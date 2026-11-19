@@ -8,6 +8,8 @@ import {
 } from "./analysis-insight";
 import type { AnalysisInsight } from "./analysis-insight";
 import { SecurityMarketLineFormula } from "./capm-formulas";
+import { marketLineFormulaText } from "./formula-texts";
+import { ExplainedFormula } from "~/math-notation";
 import { measureConcept } from "./measure-concept";
 import type { MarketSummary, PortfolioSummary } from "./measure-summaries";
 import { weightedHoldingRisk } from "./weighted-holding-risk";
@@ -35,12 +37,14 @@ export function analysisAxisDetails(
       insight: (portfolio) =>
         analysisAlphaInsight(portfolio.securityMarketLine.value, studentName),
       calculation: (market) => (
-        <SecurityMarketLineFormula
-          line={{
-            riskFreeRate: market.riskFreeRate.value,
-            marketExpectedReturn: market.expectedReturn,
-          }}
-        />
+        <ExplainedFormula text={marketLineFormulaText()}>
+          <SecurityMarketLineFormula
+            line={{
+              riskFreeRate: market.riskFreeRate.value,
+              marketExpectedReturn: market.expectedReturn,
+            }}
+          />
+        </ExplainedFormula>
       ),
       sessionLabel: m.measures_analysis_capm_session_label,
     },

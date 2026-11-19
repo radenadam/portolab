@@ -26,12 +26,24 @@ export function portfolioConceptRows(
         />
       ),
       value: formatPercent(portfolio.expectedReturn, "two"),
-      formula: <WeightedSumFormula measure="expectedReturn" />,
+      description: m.measures_weighted_return_formula_notice(),
+      formula: (
+        <WeightedSumFormula
+          measure="expectedReturn"
+          terms={portfolio.holdings.map((holding) => ({
+            code: holding.code,
+            weight: holding.weight,
+            kind: "expectedReturn",
+            value: holding.expectedReturn,
+          }))}
+        />
+      ),
     },
     risk: {
       label: m.measures_standard_deviation_label(),
       concept: "risk",
       value: formatPercent(portfolio.standardDeviation, "two"),
+      description: m.measures_standard_deviation_formula_notice(),
       formula: (
         <StandardDeviationFormula of="p" variance={portfolio.variance} />
       ),
@@ -43,7 +55,18 @@ export function portfolioConceptRows(
         <HoldingTable portfolio={portfolio} reader={reader} measure="beta" />
       ),
       value: formatBeta(portfolio.beta),
-      formula: <WeightedSumFormula measure="beta" />,
+      description: m.measures_weighted_beta_formula_notice(),
+      formula: (
+        <WeightedSumFormula
+          measure="beta"
+          terms={portfolio.holdings.map((holding) => ({
+            code: holding.code,
+            weight: holding.weight,
+            kind: "beta",
+            value: holding.beta,
+          }))}
+        />
+      ),
     },
   };
 }

@@ -8,7 +8,10 @@ import { SimulationLabel } from "~/features/market-data/simulation-label";
 import { marketIndex } from "~/features/market-data/tracked-instruments";
 import { sectorName } from "~/features/market-data/sector-name";
 import { measureConcept } from "~/features/measures/measure-concept";
-import { BetaFormula, RiskFree } from "~/features/measures/formulas";
+import { RiskFree } from "~/features/measures/formulas";
+import { BetaFormula } from "~/features/measures/comovement-formulas";
+import { betaFormulaText } from "~/features/measures/formula-texts";
+import { ExplainedFormula } from "~/math-notation";
 import {
   formatBeta,
   formatCalendarDate,
@@ -123,7 +126,11 @@ export function HomeOnboardingVisual({
     }
     case "help": {
       const meaning = measureConcept("beta").meaning;
-      const formula = <BetaFormula beta={undefined} />;
+      const formula = (
+        <ExplainedFormula text={betaFormulaText()}>
+          <BetaFormula beta={undefined} />
+        </ExplainedFormula>
+      );
       const example = (
         <p>
           <NumberText>{m.trading_onboarding_beta_notice()}</NumberText>
@@ -149,7 +156,7 @@ export function HomeOnboardingVisual({
             </p>
             {example}
           </div>
-          <p className={styles["formula"]}>{formula}</p>
+          <div className={styles["formula"]}>{formula}</div>
           {welcome.riskFree.ok ? (
             <p className={styles["caption"]}>
               <RiskFree />{" "}

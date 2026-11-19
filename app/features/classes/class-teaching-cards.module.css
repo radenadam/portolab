@@ -162,9 +162,8 @@
 
 .avatar {
   composes: avatar from "../../avatar.module.css";
-  width: calc(var(--size-avatar) - var(--space-1));
-  height: calc(var(--size-avatar) - var(--space-1));
-  font-size: var(--text-tile);
+  --avatar-size: calc(var(--size-avatar) - var(--space-1));
+  --avatar-text: var(--text-tile);
 }
 
 .sheet.sheet {
@@ -187,9 +186,10 @@
   flex-direction: column;
 }
 
-.sheet > div:last-child {
+/* Every reason of the class scrolls under the heading of the sheet. */
+.sheetList {
+  composes: scroll-box from global;
   min-height: 0;
-  overflow-y: auto;
 }
 
 .sheet .heading {

@@ -11,9 +11,10 @@ import { beta, marketBeta } from "~/units/beta";
 import type { Beta } from "~/units/beta";
 import { monthlyReturn } from "~/units/monthly-return";
 import type { MonthlyReturn } from "~/units/monthly-return";
-import { InlineMath, Variable } from "~/math-notation";
+import { ExplainedFormula, InlineMath, Variable } from "~/math-notation";
 import { RiskFreeRate } from "./formulas";
 import { SecurityMarketLineFormula } from "./capm-formulas";
+import { marketLineFormulaText } from "./formula-texts";
 import { MeasureTable } from "./measure-table";
 import type { MeasureTableRow } from "./measure-table";
 import styles from "./measures.module.css";
@@ -156,9 +157,9 @@ export function MarketLineFigure({
         })}
         labelledBy={labelledBy}
       />
-      <p className={styles["details"]}>
+      <ExplainedFormula text={marketLineFormulaText()}>
         <SecurityMarketLineFormula line={line} />
-      </p>
+      </ExplainedFormula>
       <details className={styles["points"]}>
         <summary>{m.measures_line_points_label()}</summary>
         <MeasureTable

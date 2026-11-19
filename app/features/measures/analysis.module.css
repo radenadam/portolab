@@ -220,6 +220,19 @@
   composes: surface from "../../panel.module.css";
   padding: var(--space-2) var(--space-panel);
 }
+/* A calculation that opens in place is as wide as a "?" card, so its sentences wrap instead of stretching the popover across the screen. Its parts follow each other with the gap of a card. */
+.calculation {
+  display: grid;
+  gap: var(--space-3);
+  inline-size: min(var(--width-concept-card), calc(100vw - 4 * var(--space-3)));
+  padding-block: var(--space-3);
+}
+.calculation:has(table) {
+  inline-size: min(
+    var(--width-concept-card-table),
+    calc(100vw - 4 * var(--space-3))
+  );
+}
 .dataSection > summary {
   font-weight: 600;
 }

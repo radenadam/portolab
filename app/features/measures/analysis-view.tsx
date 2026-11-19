@@ -33,6 +33,8 @@ import { AnalysisPointCalculations } from "./analysis-point-calculations";
 import { explainPortfolioMeasures } from "./explain-portfolio-measures";
 import { RiskFree } from "./formulas";
 import { RiskFreeFormula } from "./capm-formulas";
+import { riskFreeFormulaText } from "./formula-texts";
+import { ExplainedFormula } from "~/math-notation";
 import { measureConcept } from "./measure-concept";
 import type { MarketSummary } from "./measure-summaries";
 import type { StoredMeasureFailure } from "./measure-stored.server";
@@ -258,7 +260,11 @@ function AnalysisHeader({
                 </NumberText>
               </strong>
             }
-            calculation={<RiskFreeFormula rate={market.riskFreeRate} />}
+            calculation={
+              <ExplainedFormula text={riskFreeFormulaText()}>
+                <RiskFreeFormula rate={market.riskFreeRate} />
+              </ExplainedFormula>
+            }
             lesson={<ConceptLesson termId={riskFreeConcept.termId} />}
           />
         </div>

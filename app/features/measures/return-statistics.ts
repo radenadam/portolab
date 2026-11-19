@@ -6,6 +6,8 @@ import { monthlyVariance } from "~/units/monthly-variance";
 import type { MonthlyVariance } from "~/units/monthly-variance";
 import type { Measure } from "./measure";
 import type { ReturnMeasure } from "./aligned-returns";
+import { deviationProductSum, returnSum } from "~/units/return-sums";
+import type { DeviationProductSum, ReturnSum } from "~/units/return-sums";
 
 /** The expected return of an instrument, as the mean of its past returns. */
 type MeanMeasure = Measure<
@@ -61,11 +63,7 @@ export function measureSeries(
   returns: readonly ReturnMeasure[],
 ): SeriesMeasures {
   const values = returns.map((measure) => measure.value);
-  let total = 0;
-  for (const value of values) {
-    total += value;
-  }
-  const mean = monthlyReturn(total / values.length);
+  const mean = monthlyReturn(sumOfReturns(values) / values.length);
   const variance = sampleCovariance(
     { returns: values, mean },
     { returns: values, mean },
@@ -132,11 +130,20 @@ export function measureCorrelation(inputs: {
   };
 }
 
-// Decision 0013 explains why the sum is divided by n - 1.
-function sampleCovariance(
+/** The sum of monthly returns, which an expected return divides by their number, and which a formula shows with its numbers. */
+export function sumOfReturns(returns: readonly MonthlyReturn[]): ReturnSum {
+  let total = 0;
+  for (const value of returns) {
+    total += value;
+  }
+  return returnSum(total);
+}
+
+/** The sum of the products of the deviations of two series of returns over the same months from their means, which a sample covariance divides by n - 1, and which a formula shows with its numbers. Of one series with itself, it is the sum of its squared deviations. */
+export function sumOfDeviationProducts(
   first: { returns: readonly MonthlyReturn[]; mean: MonthlyReturn },
   second: { returns: readonly MonthlyReturn[]; mean: MonthlyReturn },
-): MonthlyVariance {
+): DeviationProductSum {
   let sumOfProducts = 0;
   for (const [index, firstReturn] of first.returns.entries()) {
     const secondReturn = second.returns[index];
@@ -151,5 +158,15 @@ function sampleCovariance(
     }
     sumOfProducts += (firstReturn - first.mean) * (secondReturn - second.mean);
   }
-  return monthlyVariance(sumOfProducts / (first.returns.length - 1));
+  return deviationProductSum(sumOfProducts);
+}
+
+// Decision 0013 explains why the sum is divided by n - 1.
+function sampleCovariance(
+  first: { returns: readonly MonthlyReturn[]; mean: MonthlyReturn },
+  second: { returns: readonly MonthlyReturn[]; mean: MonthlyReturn },
+): MonthlyVariance {
+  return monthlyVariance(
+    sumOfDeviationProducts(first, second) / (first.returns.length - 1),
+  );
 }

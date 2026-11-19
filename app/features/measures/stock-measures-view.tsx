@@ -5,11 +5,8 @@ import { marketIndex } from "~/features/market-data/tracked-instruments";
 import { formatCorrelation, formatVariance } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import type { Result } from "~/result";
-import {
-  CorrelationFormula,
-  CovarianceFormula,
-  VarianceFormula,
-} from "./formulas";
+import { CovarianceFormula, VarianceFormula } from "./formulas";
+import { CorrelationFormula } from "./comovement-formulas";
 import { MarketSection } from "./market-section";
 import { measureFailureText } from "./measure-failure-text";
 import {
@@ -22,6 +19,8 @@ import type { StoredMeasureFailure } from "./measure-stored.server";
 import type { StockSummary } from "./measure-summaries";
 import { stockConceptRows } from "./stock-concept-rows";
 import { ReturnTables } from "./return-tables";
+import { correlationFormulaText } from "./formula-texts";
+import { sumOfDeviationProducts } from "./return-statistics";
 
 /** The measures of one stock against the IHSG, each with its formula and its inputs, and the closes and the returns that they use, or why the stock has none. */
 export function StockMeasuresView({
@@ -49,6 +48,15 @@ export function StockMeasuresView({
   const stock = measures.value;
   const index = marketIndex.code;
   const concepts = stockConceptRows(stock);
+  const stockSeries = {
+    returns: stock.returns.map((measure) => measure.value),
+    mean: stock.expectedReturn,
+  };
+  const marketSeries = {
+    returns: stock.market.returns.map((measure) => measure.value),
+    mean: stock.market.expectedReturn,
+  };
+  const count = stock.returns.length;
   return (
     <>
       <MonthsNotice returns={stock.returns} />
@@ -58,17 +66,37 @@ export function StockMeasuresView({
           {
             label: m.measures_variance_label(),
             value: formatVariance(stock.variance),
-            formula: <VarianceFormula of="i" />,
+            description: m.measures_variance_formula_notice(),
+            formula: (
+              <VarianceFormula
+                of="i"
+                numbers={{
+                  sum: sumOfDeviationProducts(stockSeries, stockSeries),
+                  count,
+                }}
+              />
+            ),
           },
           concepts.risk,
           {
             label: m.measures_covariance_label({ index }),
             value: formatVariance(stock.covarianceWithMarket),
-            formula: <CovarianceFormula first="i" second="M" />,
+            description: m.measures_covariance_formula_notice(),
+            formula: (
+              <CovarianceFormula
+                first="i"
+                second="M"
+                numbers={{
+                  sum: sumOfDeviationProducts(stockSeries, marketSeries),
+                  count,
+                }}
+              />
+            ),
           },
           {
             label: m.measures_correlation_label({ index }),
             value: formatCorrelation(stock.correlationWithMarket.value),
+            description: correlationFormulaText(),
             formula: (
               <CorrelationFormula
                 first="i"

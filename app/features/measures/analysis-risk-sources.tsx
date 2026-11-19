@@ -6,6 +6,7 @@ import { fractionOf } from "~/charts/scale";
 import { NumberText } from "~/number-text";
 import { formatPercent } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
+import { ExplainedFormula } from "~/math-notation";
 import { PopoverButton } from "~/popover";
 import { plotFraction } from "~/units/plot-fraction";
 import { AnalysisCalculation } from "./analysis-calculation";
@@ -67,10 +68,16 @@ export function AnalysisRiskSources({
             }
             calculation={
               <>
-                <CovarianceWithPortfolioFormula />
-                <p>
+                <ExplainedFormula
+                  text={m.measures_covariance_with_portfolio_formula_notice()}
+                >
+                  <CovarianceWithPortfolioFormula />
+                </ExplainedFormula>
+                <ExplainedFormula
+                  text={m.measures_variance_share_formula_notice()}
+                >
                   <VarianceShareFormula />
-                </p>
+                </ExplainedFormula>
               </>
             }
             lesson={<ConceptLesson termId="kontribusi-risiko" />}
@@ -95,57 +102,59 @@ export function AnalysisRiskSources({
               {m.measures_weight_label()}
             </span>
           </div>
-          <div className={styles["riskRows"]} data-layout="rows">
-            {rows.map((risk) => (
-              <PopoverButton
-                key={risk.code}
-                popover={`analysis-risk-${risk.code}`}
-                label={m.measures_analysis_risk_row_label({
-                  code: risk.code,
-                  share: formatPercent(risk.varianceShare, "one"),
-                  weight: formatPercent(risk.weight, "one"),
-                })}
-                className={styles["riskRow"]}
-              >
-                <b>{risk.code} </b>
-                <svg
-                  width="100%"
-                  height="100%"
-                  className={styles["riskBar"]}
-                  aria-hidden="true"
+          <div className={styles["riskViewport"]}>
+            <div className={styles["riskRows"]} data-layout="rows">
+              {rows.map((risk) => (
+                <PopoverButton
+                  key={risk.code}
+                  popover={`analysis-risk-${risk.code}`}
+                  label={m.measures_analysis_risk_row_label({
+                    code: risk.code,
+                    share: formatPercent(risk.varianceShare, "one"),
+                    weight: formatPercent(risk.weight, "one"),
+                  })}
+                  className={styles["riskRow"]}
                 >
-                  <rect
-                    x={percentOf(
-                      plotFraction(
-                        Math.min(position(0), position(risk.varianceShare)),
-                      ),
-                    )}
-                    y="25%"
-                    width={percentOf(
-                      plotFraction(
-                        Math.abs(position(risk.varianceShare) - position(0)),
-                      ),
-                    )}
-                    height="50%"
-                    rx="0.25em"
-                  />
-                  <line
-                    x1={percentOf(plotFraction(position(risk.weight)))}
-                    x2={percentOf(plotFraction(position(risk.weight)))}
-                    y1="0"
-                    y2="100%"
-                  />
-                </svg>
-                <span>
-                  <NumberText whole>
-                    {formatPercent(risk.varianceShare, "one")}{" "}
-                    <span className={styles["muted"]}>
-                      / {formatPercent(risk.weight, "one")}
-                    </span>
-                  </NumberText>
-                </span>
-              </PopoverButton>
-            ))}
+                  <b>{risk.code} </b>
+                  <svg
+                    width="100%"
+                    height="100%"
+                    className={styles["riskBar"]}
+                    aria-hidden="true"
+                  >
+                    <rect
+                      x={percentOf(
+                        plotFraction(
+                          Math.min(position(0), position(risk.varianceShare)),
+                        ),
+                      )}
+                      y="25%"
+                      width={percentOf(
+                        plotFraction(
+                          Math.abs(position(risk.varianceShare) - position(0)),
+                        ),
+                      )}
+                      height="50%"
+                      rx="0.25em"
+                    />
+                    <line
+                      x1={percentOf(plotFraction(position(risk.weight)))}
+                      x2={percentOf(plotFraction(position(risk.weight)))}
+                      y1="0"
+                      y2="100%"
+                    />
+                  </svg>
+                  <span>
+                    <NumberText whole>
+                      {formatPercent(risk.varianceShare, "one")}{" "}
+                      <span className={styles["muted"]}>
+                        / {formatPercent(risk.weight, "one")}
+                      </span>
+                    </NumberText>
+                  </span>
+                </PopoverButton>
+              ))}
+            </div>
           </div>
           <p className={styles["notice"]}>
             <NumberText>
@@ -164,6 +173,7 @@ export function AnalysisRiskSources({
               row={{
                 label: title,
                 value: formatPercent(risk.varianceShare, "two"),
+                description: m.measures_variance_share_formula_notice(),
                 formula: (
                   <VarianceShareFormula
                     inputs={{
@@ -176,9 +186,11 @@ export function AnalysisRiskSources({
                 inputs: (
                   <>
                     <RiskTable risks={[risk]} />
-                    <p>
+                    <ExplainedFormula
+                      text={m.measures_covariance_with_portfolio_formula_notice()}
+                    >
                       <CovarianceWithPortfolioFormula />
-                    </p>
+                    </ExplainedFormula>
                   </>
                 ),
               }}

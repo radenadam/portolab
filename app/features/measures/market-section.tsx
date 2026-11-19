@@ -17,6 +17,8 @@ import { MeasureList } from "./measure-list";
 import type { MarketSummary } from "./measure-summaries";
 import styles from "./measures.module.css";
 import { ReturnTables } from "./return-tables";
+import { riskFreeFormulaText } from "./formula-texts";
+import { sumOfDeviationProducts, sumOfReturns } from "./return-statistics";
 
 /** The measures of the IHSG over the months of the stock or the portfolio beside it, and the rate free of risk, which the return that CAPM requires takes. */
 export function MarketSection({
@@ -26,6 +28,10 @@ export function MarketSection({
 }): ReactNode {
   const index = marketIndex.code;
   const { riskFreeRate } = market;
+  const series = {
+    returns: market.returns.map((measure) => measure.value),
+    mean: market.expectedReturn,
+  };
   return (
     <>
       <h2>
@@ -43,17 +49,34 @@ export function MarketSection({
               />
             ),
             value: formatPercent(market.expectedReturn, "two"),
-            formula: <MeanFormula of="M" count={market.returns.length} />,
+            description: m.measures_mean_formula_notice(),
+            formula: (
+              <MeanFormula
+                of="M"
+                count={market.returns.length}
+                sum={sumOfReturns(series.returns)}
+              />
+            ),
           },
           {
             label: m.measures_market_variance_label({ index }),
             value: formatVariance(market.variance),
-            formula: <VarianceFormula of="M" />,
+            description: m.measures_variance_formula_notice(),
+            formula: (
+              <VarianceFormula
+                of="M"
+                numbers={{
+                  sum: sumOfDeviationProducts(series, series),
+                  count: market.returns.length,
+                }}
+              />
+            ),
           },
           {
             label: m.measures_market_standard_deviation_label({ index }),
             concept: "risk",
             value: formatPercent(market.standardDeviation, "two"),
+            description: m.measures_standard_deviation_formula_notice(),
             formula: (
               <StandardDeviationFormula of="M" variance={market.variance} />
             ),
@@ -62,6 +85,7 @@ export function MarketSection({
             label: m.measures_risk_free_rate_label(),
             concept: "riskFree",
             value: formatPercent(riskFreeRate.value, "two"),
+            description: riskFreeFormulaText(),
             formula: <RiskFreeFormula rate={riskFreeRate} />,
           },
         ]}

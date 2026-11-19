@@ -135,8 +135,8 @@
   font-weight: 600;
   text-decoration: none;
 }
-/* An avatar shows in the rows of a ranking on a wide screen, where the references draw it. */
-.avatar {
+/* An avatar shows in the rows of a ranking on a wide screen, where the references draw it. The rule weighs more than the display of the avatar module, because a build can load that module after this one. */
+.who .avatar {
   display: none;
 }
 .studentName {
@@ -202,14 +202,20 @@
 .inactive {
   color: var(--color-line-strong);
 }
+/* The reason why a student has no measure belongs to the row of that student, so it stands right under the name, as a line of the row, and the row ends below it. Its label reaches its touch target over the space around its line, as a link that stands alone does, so it adds no gap of its own. */
 .reasonCell {
   grid-column: 2 / -1;
+  padding-block: var(--space-1) var(--space-2);
   color: var(--color-muted);
 }
 .reasonCell summary {
+  min-height: var(--size-touch-target);
+  margin-block: calc((1lh - var(--size-touch-target)) / 2);
   font-size: var(--text-small);
   line-height: 1.4;
-  padding-block: var(--space-3);
+}
+.reasonCell p {
+  padding-block-start: var(--space-2);
 }
 .scale {
   display: block;
@@ -312,8 +318,11 @@
   .table .activityCell {
     padding-inline-start: var(--space-2);
   }
+  /* On a wide screen the reason starts where the name starts, after the avatar, and it pulls up against the line of the name. */
   .table .reasonCell {
     grid-column: 2 / -1;
+    margin-block-start: calc(-1 * var(--space-2));
+    padding-inline-start: calc(var(--size-avatar) + var(--space-2));
   }
 }
 @media (width >= 82.5rem) {

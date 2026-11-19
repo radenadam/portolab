@@ -1,10 +1,8 @@
 import type { ReactNode } from "react";
 import { ConceptCard } from "~/concept-card";
 import { ConceptLesson } from "~/features/learning/concept-lesson";
-import {
-  BetaFormula,
-  StandardDeviationFormula,
-} from "~/features/measures/formulas";
+import { StandardDeviationFormula } from "~/features/measures/formulas";
+import { BetaFormula } from "~/features/measures/comovement-formulas";
 import {
   measureConcept,
   measureUnitText,
@@ -12,6 +10,11 @@ import {
 import { monthSpanInputs } from "~/features/measures/month-span";
 import { formatBeta, formatPercent } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
+import { ExplainedFormula } from "~/math-notation";
+import {
+  betaFormulaText,
+  standardDeviationFormulaText,
+} from "~/features/measures/formula-texts";
 import { NumberText } from "~/number-text";
 import type { readMarket } from "./read-market.server";
 
@@ -42,12 +45,18 @@ export function MarketMeasureHelp({
     switch (kind) {
       case "beta":
         value = formatBeta(market.beta.value);
-        calculation = <BetaFormula beta={market.beta} />;
+        calculation = (
+          <ExplainedFormula text={betaFormulaText()}>
+            <BetaFormula beta={market.beta} />
+          </ExplainedFormula>
+        );
         break;
       case "risk":
         value = formatPercent(market.standardDeviation, "two");
         calculation = (
-          <StandardDeviationFormula of="M" variance={market.variance} />
+          <ExplainedFormula text={standardDeviationFormulaText()}>
+            <StandardDeviationFormula of="M" variance={market.variance} />
+          </ExplainedFormula>
         );
     }
   }

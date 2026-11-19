@@ -1,5 +1,5 @@
 import { NumberText } from "~/number-text";
-import { useId } from "react";
+import { useId, useState } from "react";
 import type { ReactNode } from "react";
 import { useNavigation } from "react-router";
 import {
@@ -143,7 +143,7 @@ export function SelectField({
   );
 }
 
-/** The button that sends its form. Once the app runs in the browser, the button waits while the page changes, because a second tap on a slow network would ask again for what the first one asked, such as a new account. */
+/** The button that sends its form. Once the app runs in the browser, the button waits while the page changes after it sent its form, because a second tap on a slow network would ask again for what the first one asked, such as a new account. A change of the page that another control started, such as a link, leaves the button as it is. */
 export function SubmitButton({
   label,
   className = styles["button"],
@@ -156,8 +156,12 @@ export function SubmitButton({
   children?: ReactNode;
   pressed?: boolean;
 }): ReactNode {
-  // After the answer, the next page still loads, and a tap then would send the form again too.
-  const isWaiting = useNavigation().state !== "idle";
+  const navigationState = useNavigation().state;
+  // A click sends the form, and so does Enter in a field, which clicks the first submit button of its form. The page starts to change after the click, and the button waits until it is idle again, because after the answer the next page still loads, and a tap then would send the form again too.
+  const [sending, setSending] = useState<"idle" | "sent" | "changing">("idle");
+  if (sending === "sent" && navigationState !== "idle") setSending("changing");
+  if (sending === "changing" && navigationState === "idle") setSending("idle");
+  const isWaiting = sending !== "idle" && navigationState !== "idle";
   return (
     <button
       type="submit"
@@ -165,6 +169,9 @@ export function SubmitButton({
       className={className}
       aria-label={children === undefined ? undefined : label}
       aria-pressed={pressed}
+      onClick={() => {
+        setSending("sent");
+      }}
     >
       {children ?? <NumberText>{label}</NumberText>}
     </button>

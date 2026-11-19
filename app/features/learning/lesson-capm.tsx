@@ -11,6 +11,8 @@ import { formatBeta, formatPercent, formatNumber } from "~/formatting";
 import { monthlyReturnCount } from "~/features/measures/monthly-return-count";
 import { NumberText } from "~/number-text";
 import { m } from "~/paraglide/messages.js";
+import { ExplainedFormula } from "~/math-notation";
+import { requiredReturnFormulaText } from "~/features/measures/formula-texts";
 import { singularOrPlural } from "~/sentences";
 import { beta, marketBeta } from "~/units/beta";
 import type { Beta } from "~/units/beta";
@@ -157,9 +159,9 @@ export function LessonCapm({
         </label>
       )}
       <div className={styles["formula"]}>
-        <p>
+        <ExplainedFormula text={requiredReturnFormulaText()}>
           <RequiredReturnFormula of="i" required={required} decimals="three" />
-        </p>
+        </ExplainedFormula>
         <strong>
           <NumberText>
             {m.learning_monthly_result_notice({

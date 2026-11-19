@@ -23,7 +23,14 @@ export function portfolioMeasureRows(
     {
       label: m.measures_variance_label(),
       value: formatVariance(portfolio.variance),
-      formula: <PortfolioVarianceFormula />,
+      description: m.measures_portfolio_variance_formula_notice(),
+      formula: (
+        <PortfolioVarianceFormula
+          risks={
+            portfolio.holdingRisks.ok ? portfolio.holdingRisks.value : undefined
+          }
+        />
+      ),
     },
     concepts.risk,
     concepts.beta,
@@ -56,6 +63,7 @@ export function portfolioRatioRows(
     sharpe: {
       label: m.measures_sharpe_ratio_label(),
       concept: "sharpe",
+      description: m.measures_sharpe_formula_notice(),
       calculation: sharpeFormula,
       example: !sharpeRatio.ok ? (
         <p>
@@ -81,6 +89,7 @@ export function portfolioRatioRows(
     treynor: {
       label: m.measures_treynor_ratio_label(),
       concept: "treynor",
+      description: m.measures_treynor_formula_notice(),
       calculation: treynorFormula,
       example: !treynorRatio.ok ? (
         <p>

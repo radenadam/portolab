@@ -35,6 +35,15 @@
 .cash {
   fill: var(--color-line-strong);
 }
+/* Many holdings scroll inside their card. The rows stand inside a box that scrolls, so the box can reach past the rows for the gap of its scroll bar while the rows keep the edges of the card. */
+.allocationViewport {
+  composes: scroll-box from global;
+  max-block-size: var(--size-analysis-list);
+}
+.riskViewport {
+  composes: scroll-box from global;
+  max-block-size: var(--size-analysis-list);
+}
 .allocationRows {
   display: grid;
   grid-template-columns:
@@ -72,13 +81,10 @@
 .track {
   fill: var(--color-raised);
 }
-.matrixViewport,
-.allocationRows,
-.riskRows {
-  overflow: auto;
-  max-block-size: var(--size-analysis-list);
-}
+/* A list of many holdings scrolls inside its card. */
 .matrixViewport {
+  composes: scroll-box from global;
+  max-block-size: var(--size-analysis-list);
   isolation: isolate;
 }
 .matrix {

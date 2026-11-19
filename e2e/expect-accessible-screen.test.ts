@@ -117,3 +117,44 @@ for (const [theme, colorScheme] of [
     ).toBe(true);
   });
 }
+
+const scrollCases = [
+  {
+    name: "accepts a capped list that keeps its gap from its scroll bar, a row of filters marked to scroll sideways, and a formula that is wider than its column",
+    extra: "",
+    failure: undefined,
+  },
+  {
+    name: "rejects a box that scrolls sideways without the mark of a part that is meant to",
+    extra:
+      '<div tabindex="0" style="overflow: auto; width: 100px"><p style="width: 200px; margin: 0">Too wide</p></div>',
+    failure: "scrolls sideways by 100 pixels.",
+  },
+  {
+    name: "rejects a box that scrolls up and down with its text against its scroll bar",
+    extra:
+      '<div tabindex="0" style="overflow-y: auto; height: 40px; width: 120px"><p style="margin: 0; text-align: right">One</p><p style="margin: 0; text-align: right">Two</p><p style="margin: 0; text-align: right">Three</p></div>',
+    failure: "pixels from the edge of its scroll bar.",
+  },
+] as const;
+
+for (const { name, extra, failure } of scrollCases) {
+  test(name, async ({ page }) => {
+    await page.setContent(`<!doctype html>
+      <html lang="en"><head><title>Scroll boxes</title><style>
+        :root { --size-touch-target: 44px; }
+        body { background: white; color: black; }
+        .scroll-box { overflow: auto; padding-inline: 8px; height: 40px; width: 120px; }
+        .filters { display: flex; gap: 8px; overflow-x: auto; width: 100px; }
+        .filters span { flex: none; }
+        .formula { display: inline-flex; overflow-x: auto; overflow-y: hidden; max-inline-size: 60px; }
+      </style></head><body><main><h1>Scroll boxes</h1>
+        <div class="scroll-box" tabindex="0"><p style="margin: 0; text-align: right">One</p><p style="margin: 0; text-align: right">Two</p><p style="margin: 0; text-align: right">Three</p></div>
+        <div class="filters" tabindex="0" data-scrolls-sideways><span>All · 9</span><span>Waiting · 0</span><span>Filled · 6</span></div>
+        <span class="formula" tabindex="0"><math><mi>x</mi><mo>=</mo><mn>1234567890123</mn></math></span>
+        ${extra}
+      </main></body></html>`);
+    if (failure === undefined) await expectAccessibleScreen(page);
+    else await expect(expectAccessibleScreen(page)).rejects.toThrow(failure);
+  });
+}

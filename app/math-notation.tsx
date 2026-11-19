@@ -1,5 +1,6 @@
-import { Fragment } from "react";
-import type { ReactNode } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
+import type { ReactNode, RefObject } from "react";
+import { NumberText } from "./number-text";
 import styles from "./math-notation.module.css";
 
 // Decision 0070 explains why a formula is MathML, which each browser typesets in the math font of the device.
@@ -15,7 +16,7 @@ export interface FormulaLine {
 
 const noFollowingLines: readonly FormulaLine[] = [];
 
-/** A formula of the course: its left side, what equals it, the lines that follow, such as the same expression with the numbers in it, and the spreadsheet function that gives its value, which follows the notation as small text. A formula with several lines aligns them at their operators, as the aligned environment of LaTeX does. A formula that is wider than its column scrolls inside its own box, and one whose numbers can be that wide on a phone is a stop of the Tab key, so a keyboard can scroll it. */
+/** A formula of the course: its left side, what equals it, the lines that follow, such as the same expression with the numbers in it, and the spreadsheet function that gives its value, which follows the notation as small text. A formula with several lines aligns them at their operators, as the aligned environment of LaTeX does. A formula that is wider than its column first puts its spreadsheet function on a line of its own, then shrinks, and scrolls sideways inside its own box only when it is still too wide, as decision 0070 sets. A formula that scrolls is a stop of the Tab key, so a keyboard can scroll it, and one whose numbers can be that wide on a phone is a stop before JavaScript loads too. */
 export function Formula({
   left,
   right,
@@ -29,15 +30,17 @@ export function Formula({
   spreadsheetFunction?: string | undefined;
   scrolls?: boolean;
 }): ReactNode {
+  const { boxRef, overflows } = useFormulaFit();
   const lines: FormulaLine[] = [
     { operator: "=", expression: right },
     ...followingLines,
   ];
   return (
     <span
+      ref={boxRef}
       className={styles["formula"]}
       // eslint-disable-next-line jsx-a11y-x/no-noninteractive-tabindex -- A keyboard reaches a box that scrolls only through a stop of the Tab key.
-      tabIndex={scrolls ? 0 : undefined}
+      tabIndex={scrolls || overflows ? 0 : undefined}
     >
       <math displaystyle="true">
         {followingLines.length === 0 ? (
@@ -63,11 +66,73 @@ export function Formula({
       </math>
       {spreadsheetFunction !== undefined && (
         <>
-          {" "}
+          {/* The flex box of the formula sets the gap, and the space keeps the function apart from the notation in copied text. */}{" "}
           <small className={styles["function"]}>({spreadsheetFunction})</small>
         </>
       )}
     </span>
+  );
+}
+
+// A formula shrinks to three quarters of its size at most, which keeps its subscripts readable. A formula that is wider at that size scrolls.
+const smallestFormulaScale = 0.75;
+
+/** Shrinks a formula that is wider than its column, down to its smallest size, and tells whether it still overflows, once the app runs in the browser. Before that, a formula that is too wide scrolls. */
+function useFormulaFit(): {
+  boxRef: RefObject<HTMLSpanElement | null>;
+  overflows: boolean;
+} {
+  const boxRef = useRef<HTMLSpanElement>(null);
+  const [overflows, setOverflows] = useState(false);
+  useEffect(() => {
+    const box = boxRef.current;
+    if (box === null) return undefined;
+    const column = box.parentElement;
+    const math = box.querySelector("math");
+    if (column === null || math === null) return undefined;
+    let isLive = true;
+    const fit = (): void => {
+      box.style.removeProperty("--formula-scale");
+      const available = box.clientWidth;
+      const width = math.getBoundingClientRect().width;
+      // A formula in a closed part, such as a details or a popover, has no width until it opens, and the observer measures it again then.
+      if (available === 0 || width === 0) return;
+      const scale = Math.max(
+        smallestFormulaScale,
+        Math.min(1, available / width),
+      );
+      if (scale < 1) box.style.setProperty("--formula-scale", String(scale));
+      setOverflows(box.scrollWidth > box.clientWidth + 1);
+    };
+    const observer = new ResizeObserver(fit);
+    observer.observe(column);
+    // Until the fonts load, the browser measures a formula in a fallback font, whose widths differ.
+    void document.fonts.ready.then(() => {
+      if (isLive) fit();
+    });
+    return () => {
+      isLive = false;
+      observer.disconnect();
+    };
+  }, []);
+  return { boxRef, overflows };
+}
+
+/** A formula that stands on its own, outside a list of measures, with the sentence before it that says what it computes, so no formula appears without its meaning. A paragraph holds the formula, so its child is a Formula and never a block. */
+export function ExplainedFormula({
+  text,
+  children,
+}: {
+  text: string;
+  children: ReactNode;
+}): ReactNode {
+  return (
+    <div className={styles["explained"]}>
+      <p>
+        <NumberText>{text}</NumberText>
+      </p>
+      <p>{children}</p>
+    </div>
   );
 }
 

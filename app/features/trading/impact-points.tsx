@@ -4,6 +4,8 @@ import { SecurityMarketLineFormula } from "~/features/measures/capm-formulas";
 import { MeasureTable } from "~/features/measures/measure-table";
 import { formatBeta, formatPercent } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
+import { ExplainedFormula } from "~/math-notation";
+import { marketLineFormulaText } from "~/features/measures/formula-texts";
 import styles from "./trade-impact.module.css";
 import { impactPointValues } from "./impact-point-values";
 
@@ -19,14 +21,14 @@ export function ImpactPoints({
   return (
     <details className={styles["points"]}>
       <summary>{m.trading_impact_points_label()}</summary>
-      <p>
+      <ExplainedFormula text={marketLineFormulaText()}>
         <SecurityMarketLineFormula
           line={{
             riskFreeRate: impact.before.market.riskFreeRate.value,
             marketExpectedReturn: impact.before.market.expectedReturn.value,
           }}
         />
-      </p>
+      </ExplainedFormula>
       <MeasureTable
         header={[
           m.trading_impact_point_label(),

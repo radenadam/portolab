@@ -1,6 +1,7 @@
-/* The box of a "?" is a whole touch target, which decision 0028 keeps, and the mark inside it stands as close to its label as the references draw it, so the box reaches over the space around the mark. */
+/* The box of a "?" is a whole touch target, which decision 0028 keeps, and the mark inside it stands as close to its label as the references draw it, so the box reaches over the space around the mark. In a row of flex items it keeps its width, because a box that shrank to its mark would push the mark past the end of the row. */
 .question {
   display: inline-grid;
+  flex: none;
   place-items: center;
   width: var(--size-touch-target);
   height: var(--size-touch-target);

@@ -78,6 +78,7 @@ export function ActivityOrders({
       )}
       <nav
         className={styles["filters"]}
+        data-scrolls-sideways=""
         aria-label={m.trading_activity_status_label()}
       >
         {activityFilters.map((status) => (

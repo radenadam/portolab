@@ -22,6 +22,13 @@ import { companyOf } from "~/features/market-data/company-of";
 import { sectorName } from "~/features/market-data/sector-name";
 import { formatBeta, formatPercent, formatVariance } from "~/formatting";
 import { NumberText } from "~/number-text";
+import { ExplainedFormula } from "~/math-notation";
+import {
+  portfolioVarianceFormulaText,
+  standardDeviationFormulaText,
+  weightedBetaFormulaText,
+  weightedReturnFormulaText,
+} from "~/features/measures/formula-texts";
 import { m } from "~/paraglide/messages.js";
 import { sectorWeight } from "./sector-weight";
 import styles from "./trade-impact.module.css";
@@ -42,31 +49,38 @@ export function ImpactRows({
       label: string;
       value: (portfolio: ValuedPortfolioMeasures) => number;
       format: (value: number) => string;
+      description: string;
       formula: ReactNode;
+      /** A formula that the measure takes its input from, such as the variance of a standard deviation. */
+      inputFormula?: ReactNode;
     }
   > = {
     beta: {
       label: m.trading_impact_beta_label(),
       value: (portfolio) => portfolio.beta.value,
       format: (value) => formatBeta(beta(value)),
+      description: weightedBetaFormulaText(),
       formula: <WeightedSumFormula measure="beta" />,
     },
     risk: {
       label: m.trading_impact_risk_label(),
       value: (portfolio) => portfolio.standardDeviation.value,
       format: (value) => formatPercent(value, "two"),
+      description: standardDeviationFormulaText(),
       formula: (
-        <>
+        <StandardDeviationFormula of="p" variance={after.variance.value} />
+      ),
+      inputFormula: (
+        <ExplainedFormula text={portfolioVarianceFormulaText()}>
           <PortfolioVarianceFormula />
-          <br />
-          <StandardDeviationFormula of="p" variance={after.variance.value} />
-        </>
+        </ExplainedFormula>
       ),
     },
     expectedReturn: {
       label: m.trading_impact_return_label(),
       value: (portfolio) => portfolio.expectedReturn.value,
       format: (value) => formatPercent(value, "two"),
+      description: weightedReturnFormulaText(),
       formula: <WeightedSumFormula measure="expectedReturn" />,
     },
   };
@@ -84,8 +98,14 @@ export function ImpactRows({
           label: measure.label,
           concept: key,
           value: measure.format(measure.value(after)),
+          description: measure.description,
           formula: measure.formula,
-          inputs: <ImpactInputs impact={impact} risk={key === "risk"} />,
+          inputs: (
+            <>
+              {measure.inputFormula}
+              <ImpactInputs impact={impact} risk={key === "risk"} />
+            </>
+          ),
         };
         return (
           <ImpactRow

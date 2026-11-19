@@ -1,13 +1,12 @@
 import type { ReactNode } from "react";
-import { ChangeText } from "~/change-text";
 import { formatSignedPercent } from "~/formatting";
 import type { AnalysisHolding } from "~/features/measures/analysis-holdings";
+import { CalculationPart } from "~/features/measures/calculation-part";
 import {
-  MarketLineFormula,
-  RequiredReturnFormula,
-} from "~/features/measures/capm-formulas";
-import { measureSecurityMarketLineDistance } from "~/features/measures/capm";
-import { NumberText } from "~/number-text";
+  HoldingRequiredReturnPart,
+  holdingAlphaRow,
+  holdingAlphaTitle,
+} from "~/features/measures/holding-alpha-calculation";
 import { m } from "~/paraglide/messages.js";
 import { Popover } from "~/popover";
 import styles from "./lesson-practice.module.css";
@@ -23,6 +22,7 @@ export function lessonAlphaLabel(holding: AnalysisHolding): string {
   });
 }
 
+/** The calculation of the alpha of one stock, with the return that CAPM requires of it, as the calculations of Analisis show them. */
 export function LessonAlphaPopover({
   id,
   holding,
@@ -33,29 +33,12 @@ export function LessonAlphaPopover({
   return (
     <Popover id={id} label={lessonAlphaLabel(holding)} placement="aboveStart">
       <div className={styles["calculation"]}>
-        <h2>{holding.code}</h2>
-        <p>
-          <MarketLineFormula
-            of="i"
-            distance={measureSecurityMarketLineDistance(
-              holding.expectedReturn,
-              holding.requiredReturn,
-            )}
-          />
-        </p>
-        <strong>
-          <ChangeText colored change={formatSignedPercent(holding.distance)} />
-        </strong>
-        <p>
-          <RequiredReturnFormula of="i" required={holding.requiredReturn} />
-        </p>
-        <p>
-          <NumberText>
-            {m.learning_monthly_result_notice({
-              value: formatSignedPercent(holding.requiredReturn.value).text,
-            })}
-          </NumberText>
-        </p>
+        <CalculationPart
+          title={holdingAlphaTitle(holding.code)}
+          level={2}
+          row={holdingAlphaRow(holding)}
+        />
+        <HoldingRequiredReturnPart holding={holding} />
       </div>
     </Popover>
   );

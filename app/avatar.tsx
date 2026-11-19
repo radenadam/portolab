@@ -5,7 +5,7 @@ import { initialsOf } from "./initials-of";
 /** How an avatar is drawn: in the raised color, or in the tint of the reader's own point. */
 export type AvatarLook = "plain" | "own";
 
-/** The picture of a person, a circle with the initials of the name. The name of its button or the name beside it says whose it is, so the picture is drawn by its style and stays out of what a screen reader reads, as an image would. A class of the caller sets what only its screen needs, such as a larger size or a place in a grid. */
+/** The picture of a person, a circle with the initials of the name. The name of its button or the name beside it says whose it is, so the picture is drawn by its style and stays out of what a screen reader reads, as an image would. A class of the caller sets what only its screen needs, such as a place in a grid, and it sets a size through the custom properties of the module, as avatar.module.css says. */
 export function Avatar({
   name,
   look,
@@ -19,7 +19,6 @@ export function Avatar({
     plain: styles["avatar"],
     own: styles["own"],
   };
-  // The frame loads this module on every page before the styles of a route, so the class of the caller comes later in the cascade and wins over the look.
   return (
     <span
       className={[classes[look], className].join(" ").trim()}

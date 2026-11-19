@@ -6,7 +6,7 @@ import { sectorName } from "./sector-name";
 import styles from "./stock-name.module.css";
 import { companyLogoPath } from "./company-logo-paths";
 
-/** A stock as decision 0028 shows it where stocks are listed or headlined: the tile of its company beside its code, with the name of the company under the code, and the sector of the company under the name when the screen shows the sector. */
+/** A stock as decision 0028 shows it where stocks are listed or headlined: the tile of its company beside its code, with the name of the company under the code, and the sector of the company under the name when the screen shows the sector. A control of the stock itself, such as the star of the page of a stock, stands right after the code. */
 export function StockName({
   code,
   withSector = false,
@@ -14,6 +14,7 @@ export function StockName({
   withCompanyName = true,
   detail,
   codeDetail,
+  codeAction,
   smallTile = false,
 }: {
   code: string;
@@ -22,10 +23,10 @@ export function StockName({
   withCompanyName?: boolean;
   detail?: ReactNode;
   codeDetail?: ReactNode;
+  codeAction?: ReactNode;
   smallTile?: boolean;
 }): ReactNode {
   const company = companyOf(code);
-  const codeLabel = <CodeName code={code} heading={heading} />;
   return (
     <div
       className={[
@@ -38,14 +39,12 @@ export function StockName({
     >
       <CompanyTile code={code} small={smallTile} />
       <div className={styles["names"]}>
-        {codeDetail === undefined ? (
-          codeLabel
-        ) : (
-          <div className={styles["codeLine"]}>
-            {codeLabel}
-            <span className={styles["codeDetail"]}>{codeDetail}</span>
-          </div>
-        )}
+        <CodeLine
+          code={code}
+          heading={heading}
+          detail={codeDetail}
+          action={codeAction}
+        />
         {withCompanyName && (
           <span className={styles["detail"]}>{company.name}</span>
         )}
@@ -56,6 +55,33 @@ export function StockName({
           <span className={styles["detail"]}>{sectorName(company.sector)}</span>
         )}
       </div>
+    </div>
+  );
+}
+
+/** The code of a stock, with a detail or a control of the stock beside it when a screen gives one. */
+function CodeLine({
+  code,
+  heading,
+  detail,
+  action,
+}: {
+  code: string;
+  heading: boolean;
+  detail: ReactNode;
+  action: ReactNode;
+}): ReactNode {
+  const codeLabel = <CodeName code={code} heading={heading} />;
+  if (detail === undefined && action === undefined) return codeLabel;
+  return (
+    <div className={styles["codeLine"]}>
+      {codeLabel}
+      {detail !== undefined && (
+        <span className={styles["codeDetail"]}>{detail}</span>
+      )}
+      {action !== undefined && (
+        <div className={styles["codeAction"]}>{action}</div>
+      )}
     </div>
   );
 }

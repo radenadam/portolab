@@ -42,7 +42,7 @@ export function MarketSectors({
       >
         {m.market_data_sector_label()}
       </legend>
-      <div className={styles["chipList"]}>
+      <div className={styles["chipList"]} data-scrolls-sideways="">
         {failure !== undefined && (
           <label className={chipClassName}>
             <input type="radio" name="sector" value={value} defaultChecked />

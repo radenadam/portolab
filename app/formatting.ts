@@ -177,11 +177,11 @@ function percentOptions(decimals: PercentDecimals): Intl.NumberFormatOptions {
   return { style: "percent", minimumFractionDigits, maximumFractionDigits };
 }
 
-/** Formats a variance or a covariance of monthly returns with four significant digits, such as 0.002732, because it is a square of returns and too small for a percentage. */
+/** A variance is a square of returns and too small for a percentage, so it and the sums behind it keep four significant digits, such as 0.002732. */
+export const varianceDigits = { maximumSignificantDigits: 4 };
+
 export function formatVariance(variance: MonthlyVariance): string {
-  return numberFormat(intlLocale(), {
-    maximumSignificantDigits: 4,
-  }).format(variance);
+  return numberFormat(intlLocale(), varianceDigits).format(variance);
 }
 
 /** The axis names its market reference with one decimal, while measure columns align two decimals. */

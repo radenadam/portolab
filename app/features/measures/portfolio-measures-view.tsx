@@ -9,12 +9,8 @@ import type { PortfolioReader } from "~/features/trading/text-for-reader";
 import { formatNumber } from "~/formatting";
 import { m } from "~/paraglide/messages.js";
 import { PortfolioMeasuresNotice } from "./portfolio-measures-notice";
-import {
-  BetaFormula,
-  CorrelationFormula,
-  CovarianceFormula,
-  MeanFormula,
-} from "./formulas";
+import { CovarianceFormula, MeanFormula } from "./formulas";
+import { BetaFormula, CorrelationFormula } from "./comovement-formulas";
 import {
   CovarianceWithPortfolioFormula,
   VarianceShareFormula,
@@ -33,6 +29,8 @@ import {
 import type { PortfolioMeasuresReport } from "./read-measures.server";
 import { portfolioMeasureRows } from "./portfolio-measure-rows";
 import { ReturnTables } from "./return-tables";
+import { betaFormulaText, correlationFormulaText } from "./formula-texts";
+import { ExplainedFormula } from "~/math-notation";
 
 interface PortfolioMeasuresProps {
   report: PortfolioMeasuresReport;
@@ -134,12 +132,14 @@ function MeasuredPortfolio({
         </NumberText>
       </p>
       <HoldingTable portfolio={portfolio} reader={reader} />
-      <p className={styles["details"]}>
-        <MeanFormula of="i" count={portfolio.market.returns.length} />
-      </p>
-      <p className={styles["details"]}>
-        <BetaFormula beta={undefined} />
-      </p>
+      <TableFormulas text={m.measures_holdings_formulas_notice()}>
+        <ExplainedFormula text={m.measures_mean_formula_notice()}>
+          <MeanFormula of="i" count={portfolio.market.returns.length} />
+        </ExplainedFormula>
+        <ExplainedFormula text={betaFormulaText()}>
+          <BetaFormula beta={undefined} />
+        </ExplainedFormula>
+      </TableFormulas>
       <h2>
         <NumberText>
           {textForReader(reader, {
@@ -150,12 +150,14 @@ function MeasuredPortfolio({
       </h2>
       <p>{m.measures_pairs_notice()}</p>
       <PairTable portfolio={portfolio} />
-      <p className={styles["details"]}>
-        <CovarianceFormula first="i" second="j" />
-      </p>
-      <p className={styles["details"]}>
-        <CorrelationFormula first="i" second="j" correlation={undefined} />
-      </p>
+      <TableFormulas text={m.measures_pairs_formulas_notice()}>
+        <ExplainedFormula text={m.measures_covariance_formula_notice()}>
+          <CovarianceFormula first="i" second="j" />
+        </ExplainedFormula>
+        <ExplainedFormula text={correlationFormulaText()}>
+          <CorrelationFormula first="i" second="j" correlation={undefined} />
+        </ExplainedFormula>
+      </TableFormulas>
       <h2>
         <NumberText>
           {textForReader(reader, {
@@ -168,15 +170,23 @@ function MeasuredPortfolio({
         <>
           <p>{m.measures_risks_notice()}</p>
           <RiskTable risks={portfolio.holdingRisks.value} />
-          <p className={styles["details"]}>
-            <CovarianceWithPortfolioFormula />
-          </p>
-          <p className={styles["details"]}>
-            <VarianceShareFormula />
-          </p>
-          <p className={styles["details"]}>
-            <CorrelationFormula first="i" second="p" correlation={undefined} />
-          </p>
+          <TableFormulas text={m.measures_risks_formulas_notice()}>
+            <ExplainedFormula
+              text={m.measures_covariance_with_portfolio_formula_notice()}
+            >
+              <CovarianceWithPortfolioFormula />
+            </ExplainedFormula>
+            <ExplainedFormula text={m.measures_variance_share_formula_notice()}>
+              <VarianceShareFormula />
+            </ExplainedFormula>
+            <ExplainedFormula text={correlationFormulaText()}>
+              <CorrelationFormula
+                first="i"
+                second="p"
+                correlation={undefined}
+              />
+            </ExplainedFormula>
+          </TableFormulas>
         </>
       ) : (
         <p>
@@ -193,5 +203,23 @@ function MeasuredPortfolio({
         ]}
       />
     </>
+  );
+}
+
+/** The formulas from which the columns of the table above them come, after the sentence that says so, each with its own sentence. */
+function TableFormulas({
+  text,
+  children,
+}: {
+  text: string;
+  children: ReactNode;
+}): ReactNode {
+  return (
+    <div className={styles["tableFormulas"]}>
+      <p>
+        <NumberText>{text}</NumberText>
+      </p>
+      {children}
+    </div>
   );
 }

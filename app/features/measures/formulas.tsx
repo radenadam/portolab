@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 import { formatNumber, formatPercent, formatVariance } from "~/formatting";
+import { formatDeviationProductSum } from "~/format-deviation-product-sum";
+import type { FormulaLine } from "~/math-notation";
 import {
   ConditionSeparator,
   Formula,
@@ -14,8 +16,7 @@ import {
   Variable,
 } from "~/math-notation";
 import type { MonthlyVariance } from "~/units/monthly-variance";
-import type { StockMeasures } from "./capm";
-import type { CorrelationMeasure } from "./return-statistics";
+import type { DeviationProductSum, ReturnSum } from "~/units/return-sums";
 
 // Decision 0020 explains why a formula is notation and not a message, and what each symbol and subscript stands for. Decision 0070 explains why it is MathML.
 
@@ -58,6 +59,32 @@ function SampleDenominator(): ReactNode {
   );
 }
 
+/** The sum of the products of the deviations over n - 1 with their numbers, which a variance and a covariance show below their notation. */
+function sampleLines(
+  numbers: { sum: DeviationProductSum; count: number } | undefined,
+): FormulaLine[] {
+  if (numbers === undefined) return [];
+  return [
+    {
+      operator: "=",
+      expression: (
+        <Fraction
+          numerator={
+            <MathNumber>{formatDeviationProductSum(numbers.sum)}</MathNumber>
+          }
+          denominator={
+            <>
+              <MathNumber>{formatNumber(numbers.count)}</MathNumber>
+              <Operator symbol="−" />
+              <MathNumber>1</MathNumber>
+            </>
+          }
+        />
+      ),
+    },
+  ];
+}
+
 /** R_f, the rate free of risk, inside a formula. */
 export function RiskFreeRate(): ReactNode {
   return <Variable name="R" index="f" />;
@@ -72,41 +99,73 @@ export function RiskFree(): ReactNode {
   );
 }
 
-/** E(Rᵢ) = ΣRᵢ / n, with the number of returns. */
+/** E(Rᵢ) = ΣRᵢ / n, with the sum and the number of the returns of one instrument below it, or with the number of returns alone where the formula stands for every stock. */
 export function MeanFormula({
   of,
   count,
+  sum,
 }: {
   of: Subject;
   count: number;
+  sum?: ReturnSum | undefined;
 }): ReactNode {
+  const notation = (
+    <Fraction
+      numerator={
+        <>
+          <Sum />
+          <Return of={of} />
+        </>
+      }
+      denominator={<Variable name="n" />}
+    />
+  );
   return (
     <Formula
       left={<ExpectedReturn of={of} />}
       right={
-        <>
-          <Fraction
-            numerator={
-              <>
-                <Sum />
-                <Return of={of} />
-              </>
-            }
-            denominator={<Variable name="n" />}
-          />
-          <ConditionSeparator />
-          <Variable name="n" />
-          <Operator symbol="=" />
-          <MathNumber>{formatNumber(count)}</MathNumber>
-        </>
+        sum === undefined ? (
+          <>
+            {notation}
+            <ConditionSeparator />
+            <Variable name="n" />
+            <Operator symbol="=" />
+            <MathNumber>{formatNumber(count)}</MathNumber>
+          </>
+        ) : (
+          notation
+        )
+      }
+      followingLines={
+        sum === undefined
+          ? []
+          : [
+              {
+                operator: "=",
+                expression: (
+                  <Fraction
+                    numerator={
+                      <MathNumber>{formatPercent(sum, "two")}</MathNumber>
+                    }
+                    denominator={<MathNumber>{formatNumber(count)}</MathNumber>}
+                  />
+                ),
+              },
+            ]
       }
       spreadsheetFunction="AVERAGE"
     />
   );
 }
 
-/** σ²ᵢ = Σ(Rᵢ − E(Rᵢ))² / (n − 1). */
-export function VarianceFormula({ of }: { of: Subject }): ReactNode {
+/** σ²ᵢ = Σ(Rᵢ − E(Rᵢ))² / (n − 1), with the sum of the squared deviations and the number of returns below it where the formula stands for one instrument. */
+export function VarianceFormula({
+  of,
+  numbers,
+}: {
+  of: Subject;
+  numbers?: { sum: DeviationProductSum; count: number } | undefined;
+}): ReactNode {
   return (
     <Formula
       left={<Variable name="σ" index={of} power={2} />}
@@ -123,6 +182,7 @@ export function VarianceFormula({ of }: { of: Subject }): ReactNode {
           denominator={<SampleDenominator />}
         />
       }
+      followingLines={sampleLines(numbers)}
       spreadsheetFunction="VAR.S"
     />
   );
@@ -167,13 +227,15 @@ export function StandardDeviationFormula({
   );
 }
 
-/** σᵢₘ = Σ(Rᵢ − E(Rᵢ))(Rₘ − E(Rₘ)) / (n − 1). */
+/** σᵢₘ = Σ(Rᵢ − E(Rᵢ))(Rₘ − E(Rₘ)) / (n − 1), with the sum of the products of the deviations and the number of returns below it where the formula stands for one pair. */
 export function CovarianceFormula({
   first,
   second,
+  numbers,
 }: {
   first: Subject;
   second: Subject;
+  numbers?: { sum: DeviationProductSum; count: number } | undefined;
 }): ReactNode {
   return (
     <Formula
@@ -190,110 +252,8 @@ export function CovarianceFormula({
           denominator={<SampleDenominator />}
         />
       }
+      followingLines={sampleLines(numbers)}
       spreadsheetFunction="COVARIANCE.S"
-    />
-  );
-}
-
-/** ρᵢₘ = σᵢₘ / (σᵢ σₘ), with the covariance and the standard deviations. */
-export function CorrelationFormula({
-  first,
-  second,
-  correlation,
-}: {
-  first: Subject;
-  second: Subject;
-  correlation: CorrelationMeasure | undefined;
-}): ReactNode {
-  const pair = `${first}${second}`;
-  const inputs = correlation?.inputs;
-  return (
-    <Formula
-      left={<Variable name="ρ" index={pair} />}
-      right={
-        <Fraction
-          numerator={<Variable name="σ" index={pair} />}
-          denominator={
-            <>
-              <Variable name="σ" index={first} />
-              <Variable name="σ" index={second} />
-            </>
-          }
-        />
-      }
-      followingLines={
-        inputs === undefined
-          ? []
-          : [
-              {
-                operator: "=",
-                expression: (
-                  <Fraction
-                    numerator={
-                      <MathNumber>
-                        {formatVariance(inputs.covariance)}
-                      </MathNumber>
-                    }
-                    denominator={
-                      <>
-                        <MathNumber>
-                          {formatPercent(inputs.firstStandardDeviation, "two")}
-                        </MathNumber>
-                        <Operator symbol="×" />
-                        <MathNumber>
-                          {formatPercent(inputs.secondStandardDeviation, "two")}
-                        </MathNumber>
-                      </>
-                    }
-                  />
-                ),
-              },
-            ]
-      }
-      spreadsheetFunction="CORREL"
-    />
-  );
-}
-
-/** βᵢ = σᵢₘ / σ²ₘ, with the covariance and the variance of the market. */
-export function BetaFormula({
-  beta,
-}: {
-  beta: StockMeasures["beta"] | undefined;
-}): ReactNode {
-  return (
-    <Formula
-      left={<Variable name="β" index="i" />}
-      right={
-        <Fraction
-          numerator={<Variable name="σ" index="iM" />}
-          denominator={<Variable name="σ" index="M" power={2} />}
-        />
-      }
-      followingLines={
-        beta === undefined
-          ? []
-          : [
-              {
-                operator: "=",
-                expression: (
-                  <Fraction
-                    numerator={
-                      <MathNumber>
-                        {formatVariance(beta.inputs.covarianceWithMarket)}
-                      </MathNumber>
-                    }
-                    denominator={
-                      <MathNumber>
-                        {formatVariance(beta.inputs.marketVariance)}
-                      </MathNumber>
-                    }
-                  />
-                ),
-              },
-            ]
-      }
-      spreadsheetFunction="SLOPE"
     />
   );
 }

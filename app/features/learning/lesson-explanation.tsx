@@ -1,11 +1,13 @@
 import type { ReactNode } from "react";
 import { ConceptHelp } from "~/concept-card";
 import {
-  BetaFormula,
-  CorrelationFormula,
   CovarianceFormula,
   VarianceFormula,
 } from "~/features/measures/formulas";
+import {
+  BetaFormula,
+  CorrelationFormula,
+} from "~/features/measures/comovement-formulas";
 import {
   PortfolioVarianceFormula,
   VarianceShareFormula,

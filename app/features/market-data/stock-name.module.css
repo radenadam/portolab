@@ -64,6 +64,14 @@
   font-weight: 400;
 }
 
+/* A control of the stock stands right after its code and centered on the line of the code. Its touch target reaches over the space around that line, so the line keeps the height of its text, and the visible icon stands as far from the code as the gap of the line. */
+.codeAction {
+  display: flex;
+  align-self: center;
+  margin-block: calc((1lh - var(--size-touch-target)) / 2);
+  margin-inline-start: calc((var(--size-icon) - var(--size-touch-target)) / 2);
+}
+
 .compact {
   flex-wrap: nowrap;
   align-items: center;

@@ -25,11 +25,12 @@
 }
 .list {
   /* Many outcomes since the last visit scroll inside the card after about four, so the portfolio below stays near the top of Beranda. */
+  composes: scroll-box from global;
   max-block-size: var(--size-since-list);
-  overflow-y: auto;
+  /* Its text wraps, so only the touch box of a "?" at the end of a line reaches past it, and clipping that box hides no text. */
+  overflow-x: hidden;
   list-style: none;
-  margin: 0;
-  padding: 0;
+  margin-block: 0;
 }
 .item {
   display: grid;

@@ -164,7 +164,9 @@ export function ClassTeachingCards({
                 {m.classes_reasons_close_label()}
               </button>
             </div>
-            <Reasons reasons={overview.reasons} />
+            <div className={styles["sheetList"]}>
+              <Reasons reasons={overview.reasons} />
+            </div>
           </Popover>
         )}
       </section>

@@ -28,7 +28,7 @@ import { PortfolioMeasuresView } from "./portfolio-measures-view";
 import { readPortfolioMeasures } from "./read-measures.server";
 import type { PortfolioMeasuresReport } from "./read-measures.server";
 
-// The portfolio of measures-for-test.server.ts holds BBCA, TLKM, and cash at weights of 0.5, 0.3, and 0.2. read-measures.server.test.ts explains its measures, which come from the values that the decimal module of Python computed for BBCA and TLKM: an expected return of -0.002159, a variance of 0.001653, a standard deviation of 0.040657, a beta of 0.620693, a required return of 0.002101, a Jensen's alpha of -0.004260, a Sharpe ratio of -0.170950, a Treynor ratio of -0.011198, covariances of BBCA and TLKM with the portfolio of 0.0019095 and 0.0023275, shares of the variance of 0.577587 and 0.422413, and correlations with the portfolio of 0.898491 and 0.831512. Intl puts a no-break space after the currency, which the texts write as \u00a0.
+// The portfolio of measures-for-test.server.ts holds BBCA, TLKM, and cash at weights of 0.5, 0.3, and 0.2. read-measures.server.test.ts explains its measures, which come from the values that the decimal module of Python computed for BBCA and TLKM: an expected return of -0.002159, a variance of 0.001653, a standard deviation of 0.040657, a beta of 0.620693, a required return of 0.002101, a Jensen's alpha of -0.004260, a Sharpe ratio of -0.170950, a Treynor ratio of -0.011198, covariances of BBCA and TLKM with the portfolio of 0.0019095 and 0.0023275, shares of the variance of 0.577587 and 0.422413, and correlations with the portfolio of 0.898491 and 0.831512. The weighted sums show the terms behind them, which Python computed the same way: expected returns of -0.001023 for BBCA and -0.005491 for TLKM, and betas of 0.689371 and 0.920024. Intl puts a no-break space after the currency, which the texts write as \u00a0.
 const yahooFinance: PriceSourceDescription = {
   name: "Yahoo Finance",
   delayMinutes: 10,
@@ -90,13 +90,44 @@ const stockNames: Record<PortfolioReader["kind"], (code: string) => string> = {
   lecturer: (code) => code,
 };
 
+// The sentences before the formulas under the tables of the stocks of a portfolio: one that says where the columns of a table come from, and one for each formula that only these tables show.
+const tableFormulaTexts: Record<
+  Locale,
+  Record<"holdings" | "pairs" | "risks" | "withPortfolio" | "share", string>
+> = {
+  id: {
+    holdings:
+      "Imbal hasil harapan dan beta setiap saham di tabel ini dihitung dengan rumus berikut.",
+    pairs:
+      "Kovarians dan korelasi setiap pasangan saham di tabel ini dihitung dengan rumus berikut.",
+    risks:
+      "Kovarians dengan portofolio, bagian varians, dan korelasi setiap saham di tabel ini dihitung dengan rumus berikut.",
+    withPortfolio:
+      "Kovarians saham dengan setiap saham portofolio dikali bobot saham itu, lalu dijumlahkan.",
+    share:
+      "Bobot saham dikali kovariansnya dengan portofolio, dibagi varians portofolio, yaitu bagian varians portofolio yang berasal dari saham ini.",
+  },
+  en: {
+    holdings:
+      "The expected return and the beta of each stock in this table come from these formulas.",
+    pairs:
+      "The covariance and the correlation of each pair of stocks in this table come from these formulas.",
+    risks:
+      "The covariance with the portfolio, the share of the variance, and the correlation of each stock in this table come from these formulas.",
+    withPortfolio:
+      "The covariance of the stock with each stock of the portfolio times the weight of that stock, added up.",
+    share:
+      "The weight of the stock times its covariance with the portfolio, divided by the variance of the portfolio, which is the share of the variance of the portfolio that comes from this stock.",
+  },
+};
+
 const fall = '<span aria-hidden="true">▼ </span>';
 
 const texts: Record<
   Locale,
   {
     months: string;
-    rows: readonly (readonly [string, string, string])[];
+    rows: readonly (readonly [string, string, string, string])[];
     below: string;
     weightsTable: string;
     holdingsHeader: readonly string[];
@@ -118,16 +149,25 @@ const texts: Record<
       [
         "Imbal hasil harapan",
         "-0,22%",
-        formulaMarkupForTest(String.raw`E(R_p) = ∑w_iE(R_i)`, "SUMPRODUCT"),
+        "Imbal hasil harapan setiap saham dikali bobotnya dalam portofolio, lalu dijumlahkan. Kas tidak menghasilkan imbal hasil.",
+        formulaMarkupForTest(
+          String.raw`E(R_p) = ∑w_iE(R_i) \\ = 50,00% × (-0,10%) + 30,00% × (-0,55%)`,
+          "SUMPRODUCT",
+        ),
       ],
       [
         "Varians",
         "0,001653",
-        formulaMarkupForTest(String.raw`σ_p^2 = ∑_i∑_jw_iw_jσ_{ij}`, "MMULT"),
+        "Kovarians setiap pasangan saham dikali kedua bobotnya, lalu dijumlahkan. Jumlah itu sama dengan bobot setiap saham dikali kovariansnya dengan portofolio, lalu dijumlahkan.",
+        formulaMarkupForTest(
+          String.raw`σ_p^2 = ∑_i∑_jw_iw_jσ_{ij} \\ = ∑_iw_iσ_{ip} \\ = 50,00% × 0,00191 + 30,00% × 0,002328`,
+          "MMULT",
+        ),
       ],
       [
         "Simpangan baku",
         "4,07%",
+        "Akar kuadrat varians, sehingga sebarannya kembali dalam persen per bulan seperti imbal hasilnya.",
         formulaMarkupForTest(
           String.raw`σ_p = \sqrt{σ_p^2} \\ = \sqrt{0,001653}`,
         ),
@@ -135,11 +175,16 @@ const texts: Record<
       [
         "Beta terhadap IHSG",
         "0,62",
-        formulaMarkupForTest(String.raw`β_p = ∑w_iβ_i`, "SUMPRODUCT"),
+        "Beta setiap saham dikali bobotnya dalam portofolio, lalu dijumlahkan. Kas tidak menambah beta.",
+        formulaMarkupForTest(
+          String.raw`β_p = ∑w_iβ_i \\ = 50,00% × 0,69 + 30,00% × 0,92`,
+          "SUMPRODUCT",
+        ),
       ],
       [
         "Rasio Sharpe",
         "-0,17",
+        "Imbal hasil harapan di atas suku bunga bebas risiko, dibagi simpangan baku portofolio.",
         formulaMarkupForTest(
           String.raw`S_p = \frac{E(R_p) − R_f}{σ_p} \\ = \frac{-0,22% − 0,48%}{4,07%}`,
         ),
@@ -147,6 +192,7 @@ const texts: Record<
       [
         "Rasio Treynor",
         "-1,12%",
+        "Imbal hasil harapan di atas suku bunga bebas risiko, dibagi beta portofolio.",
         formulaMarkupForTest(
           String.raw`T_p = \frac{E(R_p) − R_f}{β_p} \\ = \frac{-0,22% − 0,48%}{0,62}`,
         ),
@@ -154,6 +200,7 @@ const texts: Record<
       [
         "Imbal hasil yang disyaratkan CAPM",
         "0,21%",
+        "Suku bunga bebas risiko ditambah beta dikali selisih imbal hasil harapan IHSG dengan suku bunga bebas risiko.",
         formulaMarkupForTest(
           String.raw`k_p = R_f + β_p(E(R_M) − R_f) \\ = 0,48% + 0,62 × (0,05% − 0,48%)`,
         ),
@@ -161,6 +208,7 @@ const texts: Record<
       [
         "Alpha Jensen",
         `${fall}-0,43%`,
+        "Imbal hasil harapan dikurangi imbal hasil yang disyaratkan CAPM untuk betanya.",
         formulaMarkupForTest(
           String.raw`α_p = E(R_p) − k_p \\ = -0,22% − 0,21%`,
         ),
@@ -187,7 +235,7 @@ const texts: Record<
       ["BBCA", "50,00%", "-0,10%", "0,69"],
       ["TLKM", "30,00%", "-0,55%", "0,92"],
     ],
-    holdingFormulas: `<p>${formulaMarkupForTest(String.raw`E(R_i) = \frac{∑R_i}{n}, n = 60`, "AVERAGE")}</p><p>${formulaMarkupForTest(String.raw`β_i = \frac{σ_{iM}}{σ_M^2}`, "SLOPE")}</p>`,
+    holdingFormulas: `<div><p>${tableFormulaTexts.id.holdings}</p><div><p>Jumlah imbal hasil bulanan dibagi banyaknya bulan, yaitu rata-ratanya.</p><p>${formulaMarkupForTest(String.raw`E(R_i) = \frac{∑R_i}{n}, n = 60`, "AVERAGE")}</p></div><div><p>Kovarians saham dengan IHSG dibagi varians IHSG, yaitu kemiringan garis dari imbal hasil IHSG ke imbal hasil saham.</p><p>${formulaMarkupForTest(String.raw`β_i = \frac{σ_{iM}}{σ_M^2}`, "SLOPE")}</p></div></div>`,
     pairsNotice:
       "Kovarians suatu saham dengan dirinya sendiri adalah variansnya, dan korelasi suatu saham dengan dirinya sendiri sempurna.",
     pairsTable: measureTableForTest(
@@ -198,7 +246,7 @@ const texts: Record<
         ["TLKM", "0,00474", "1,00"],
       ],
     ),
-    pairFormulas: `<p>${formulaMarkupForTest(String.raw`σ_{ij} = \frac{∑(R_i − E(R_i))(R_j − E(R_j))}{n − 1}`, "COVARIANCE.S")}</p><p>${formulaMarkupForTest(String.raw`ρ_{ij} = \frac{σ_{ij}}{σ_iσ_j}`, "CORREL")}</p>`,
+    pairFormulas: `<div><p>${tableFormulaTexts.id.pairs}</p><div><p>Jumlah hasil kali selisih kedua imbal hasil dari rata-ratanya pada bulan yang sama, dibagi banyaknya bulan dikurangi satu.</p><p>${formulaMarkupForTest(String.raw`σ_{ij} = \frac{∑(R_i − E(R_i))(R_j − E(R_j))}{n − 1}`, "COVARIANCE.S")}</p></div><div><p>Kovarians dibagi hasil kali kedua simpangan baku, sehingga nilainya selalu antara -1 dan 1.</p><p>${formulaMarkupForTest(String.raw`ρ_{ij} = \frac{σ_{ij}}{σ_iσ_j}`, "CORREL")}</p></div></div>`,
     risksNotice:
       "Bagian varians suatu saham adalah bobotnya dikali kovariansnya dengan portofolio, dibagi varians portofolio, sehingga bagian semua saham bersama-sama membentuk seluruh varians. Bagian yang lebih besar daripada bobotnya berarti saham itu menambahkan bagian risiko portofolio yang lebih besar daripada bagian nilainya.",
     risksTable: measureTableForTest(
@@ -214,7 +262,7 @@ const texts: Record<
         ["TLKM", "30,00%", "0,002328", "42,24%", "0,83"],
       ],
     ),
-    riskFormulas: `<p>${formulaMarkupForTest(String.raw`σ_{ip} = ∑_jw_jσ_{ij}`, "SUMPRODUCT")}</p><p>${formulaMarkupForTest(String.raw`c_i = \frac{w_iσ_{ip}}{σ_p^2}`)}</p><p>${formulaMarkupForTest(String.raw`ρ_{ip} = \frac{σ_{ip}}{σ_iσ_p}`, "CORREL")}</p>`,
+    riskFormulas: `<div><p>${tableFormulaTexts.id.risks}</p><div><p>${tableFormulaTexts.id.withPortfolio}</p><p>${formulaMarkupForTest(String.raw`σ_{ip} = ∑_jw_jσ_{ij}`, "SUMPRODUCT")}</p></div><div><p>${tableFormulaTexts.id.share}</p><p>${formulaMarkupForTest(String.raw`c_i = \frac{w_iσ_{ip}}{σ_p^2}`)}</p></div><div><p>Kovarians dibagi hasil kali kedua simpangan baku, sehingga nilainya selalu antara -1 dan 1.</p><p>${formulaMarkupForTest(String.raw`ρ_{ip} = \frac{σ_{ip}}{σ_iσ_p}`, "CORREL")}</p></div></div>`,
     summaries: [
       "<h2>IHSG dan suku bunga bebas risiko</h2>",
       "<summary>Tabel imbal hasil bulanan IHSG</summary>",
@@ -229,16 +277,25 @@ const texts: Record<
       [
         "Expected return",
         "-0.22%",
-        formulaMarkupForTest(String.raw`E(R_p) = ∑w_iE(R_i)`, "SUMPRODUCT"),
+        "The expected return of each stock times its weight in the portfolio, added up. Cash earns no return.",
+        formulaMarkupForTest(
+          String.raw`E(R_p) = ∑w_iE(R_i) \\ = 50.00% × (-0.10%) + 30.00% × (-0.55%)`,
+          "SUMPRODUCT",
+        ),
       ],
       [
         "Variance",
         "0.001653",
-        formulaMarkupForTest(String.raw`σ_p^2 = ∑_i∑_jw_iw_jσ_{ij}`, "MMULT"),
+        "The covariance of each pair of stocks times both of their weights, added up. That sum equals the weight of each stock times its covariance with the portfolio, added up.",
+        formulaMarkupForTest(
+          String.raw`σ_p^2 = ∑_i∑_jw_iw_jσ_{ij} \\ = ∑_iw_iσ_{ip} \\ = 50.00% × 0.00191 + 30.00% × 0.002328`,
+          "MMULT",
+        ),
       ],
       [
         "Standard deviation",
         "4.07%",
+        "The square root of the variance, so the spread is in percent a month again, as the returns are.",
         formulaMarkupForTest(
           String.raw`σ_p = \sqrt{σ_p^2} \\ = \sqrt{0.001653}`,
         ),
@@ -246,11 +303,16 @@ const texts: Record<
       [
         "Beta against the IHSG",
         "0.62",
-        formulaMarkupForTest(String.raw`β_p = ∑w_iβ_i`, "SUMPRODUCT"),
+        "The beta of each stock times its weight in the portfolio, added up. Cash adds no beta.",
+        formulaMarkupForTest(
+          String.raw`β_p = ∑w_iβ_i \\ = 50.00% × 0.69 + 30.00% × 0.92`,
+          "SUMPRODUCT",
+        ),
       ],
       [
         "Sharpe ratio",
         "-0.17",
+        "The expected return above the risk-free rate, divided by the standard deviation of the portfolio.",
         formulaMarkupForTest(
           String.raw`S_p = \frac{E(R_p) − R_f}{σ_p} \\ = \frac{-0.22% − 0.48%}{4.07%}`,
         ),
@@ -258,6 +320,7 @@ const texts: Record<
       [
         "Treynor ratio",
         "-1.12%",
+        "The expected return above the risk-free rate, divided by the beta of the portfolio.",
         formulaMarkupForTest(
           String.raw`T_p = \frac{E(R_p) − R_f}{β_p} \\ = \frac{-0.22% − 0.48%}{0.62}`,
         ),
@@ -265,6 +328,7 @@ const texts: Record<
       [
         "Return that CAPM requires",
         "0.21%",
+        "The risk-free rate plus the beta times the expected return of the IHSG above the risk-free rate.",
         formulaMarkupForTest(
           String.raw`k_p = R_f + β_p(E(R_M) − R_f) \\ = 0.48% + 0.62 × (0.05% − 0.48%)`,
         ),
@@ -272,6 +336,7 @@ const texts: Record<
       [
         "Jensen's alpha",
         `${fall}-0.43%`,
+        "The expected return less the return that CAPM requires for its beta.",
         formulaMarkupForTest(
           String.raw`α_p = E(R_p) − k_p \\ = -0.22% − 0.21%`,
         ),
@@ -298,7 +363,7 @@ const texts: Record<
       ["BBCA", "50.00%", "-0.10%", "0.69"],
       ["TLKM", "30.00%", "-0.55%", "0.92"],
     ],
-    holdingFormulas: `<p>${formulaMarkupForTest(String.raw`E(R_i) = \frac{∑R_i}{n}, n = 60`, "AVERAGE")}</p><p>${formulaMarkupForTest(String.raw`β_i = \frac{σ_{iM}}{σ_M^2}`, "SLOPE")}</p>`,
+    holdingFormulas: `<div><p>${tableFormulaTexts.en.holdings}</p><div><p>The sum of the monthly returns divided by the number of months, which is their average.</p><p>${formulaMarkupForTest(String.raw`E(R_i) = \frac{∑R_i}{n}, n = 60`, "AVERAGE")}</p></div><div><p>The covariance of the stock with the IHSG divided by the variance of the IHSG, which is the slope of the line from the returns of the IHSG to those of the stock.</p><p>${formulaMarkupForTest(String.raw`β_i = \frac{σ_{iM}}{σ_M^2}`, "SLOPE")}</p></div></div>`,
     pairsNotice:
       "The covariance of a stock with itself is its variance, and a stock correlates perfectly with itself.",
     pairsTable: measureTableForTest(
@@ -309,7 +374,7 @@ const texts: Record<
         ["TLKM", "0.00474", "1.00"],
       ],
     ),
-    pairFormulas: `<p>${formulaMarkupForTest(String.raw`σ_{ij} = \frac{∑(R_i − E(R_i))(R_j − E(R_j))}{n − 1}`, "COVARIANCE.S")}</p><p>${formulaMarkupForTest(String.raw`ρ_{ij} = \frac{σ_{ij}}{σ_iσ_j}`, "CORREL")}</p>`,
+    pairFormulas: `<div><p>${tableFormulaTexts.en.pairs}</p><div><p>The sum of the products of the differences of both returns from their averages in the same month, divided by the number of months less one.</p><p>${formulaMarkupForTest(String.raw`σ_{ij} = \frac{∑(R_i − E(R_i))(R_j − E(R_j))}{n − 1}`, "COVARIANCE.S")}</p></div><div><p>The covariance divided by the product of both standard deviations, so the value always lies between -1 and 1.</p><p>${formulaMarkupForTest(String.raw`ρ_{ij} = \frac{σ_{ij}}{σ_iσ_j}`, "CORREL")}</p></div></div>`,
     risksNotice:
       "The share of the variance of a stock is its weight times its covariance with the portfolio, divided by the variance of the portfolio, so together the shares of the stocks make up the whole variance. A share above the weight means that the stock adds more of the risk of the portfolio than of its value.",
     risksTable: measureTableForTest(
@@ -325,7 +390,7 @@ const texts: Record<
         ["TLKM", "30.00%", "0.002328", "42.24%", "0.83"],
       ],
     ),
-    riskFormulas: `<p>${formulaMarkupForTest(String.raw`σ_{ip} = ∑_jw_jσ_{ij}`, "SUMPRODUCT")}</p><p>${formulaMarkupForTest(String.raw`c_i = \frac{w_iσ_{ip}}{σ_p^2}`)}</p><p>${formulaMarkupForTest(String.raw`ρ_{ip} = \frac{σ_{ip}}{σ_iσ_p}`, "CORREL")}</p>`,
+    riskFormulas: `<div><p>${tableFormulaTexts.en.risks}</p><div><p>${tableFormulaTexts.en.withPortfolio}</p><p>${formulaMarkupForTest(String.raw`σ_{ip} = ∑_jw_jσ_{ij}`, "SUMPRODUCT")}</p></div><div><p>${tableFormulaTexts.en.share}</p><p>${formulaMarkupForTest(String.raw`c_i = \frac{w_iσ_{ip}}{σ_p^2}`)}</p></div><div><p>The covariance divided by the product of both standard deviations, so the value always lies between -1 and 1.</p><p>${formulaMarkupForTest(String.raw`ρ_{ip} = \frac{σ_{ip}}{σ_iσ_p}`, "CORREL")}</p></div></div>`,
     summaries: [
       "<h2>The IHSG and the risk-free rate</h2>",
       "<summary>Table of monthly returns of the IHSG</summary>",
@@ -461,7 +526,7 @@ for (const locale of locales) {
       quoteFailure: string | undefined,
     ): string => renderView(report, reader, { quoteFailure });
 
-    test(`shows each measure of a portfolio with its formula, the weights, the measures of its stocks, their covariances and correlations, the risk that each stock adds, the IHSG, and the monthly returns, in ${language}`, () => {
+    test(`shows each measure of a portfolio with what its formula computes, its formula, and its numbers, the weights, the measures of its stocks, their covariances and correlations, the risk that each stock adds, the IHSG, and the monthly returns, in ${language}`, () => {
       switchLocaleForTest(locale);
       const quoteFailure = quoteFailureForTest();
       const html = render(
@@ -560,12 +625,13 @@ for (const locale of locales) {
 // The decimal module of Python computed the measures of that portfolio from the same closes at 50 significant digits: an expected return of 0.000828, a standard deviation of 0.023833, a beta of -0.524884, and a Sharpe ratio of -0.166294.
 const againstMarketTexts: Record<
   Locale,
-  readonly (readonly [string, string, string])[]
+  readonly (readonly [string, string, string, string])[]
 > = {
   id: [
     [
       "Rasio Sharpe",
       "-0,17",
+      "Imbal hasil harapan di atas suku bunga bebas risiko, dibagi simpangan baku portofolio.",
       formulaMarkupForTest(
         String.raw`S_p = \frac{E(R_p) − R_f}{σ_p} \\ = \frac{0,08% − 0,48%}{2,38%}`,
       ),
@@ -573,6 +639,7 @@ const againstMarketTexts: Record<
     [
       "Rasio Treynor",
       "Tidak ada",
+      "Imbal hasil harapan di atas suku bunga bebas risiko, dibagi beta portofolio.",
       `${formulaMarkupForTest(String.raw`T_p = \frac{E(R_p) − R_f}{β_p} \\ = \frac{0,08% − 0,48%}{-0,52}`)}<span>${negativeTreynorTextForTest.id}</span>`,
     ],
   ],
@@ -580,6 +647,7 @@ const againstMarketTexts: Record<
     [
       "Sharpe ratio",
       "-0.17",
+      "The expected return above the risk-free rate, divided by the standard deviation of the portfolio.",
       formulaMarkupForTest(
         String.raw`S_p = \frac{E(R_p) − R_f}{σ_p} \\ = \frac{0.08% − 0.48%}{2.38%}`,
       ),
@@ -587,6 +655,7 @@ const againstMarketTexts: Record<
     [
       "Treynor ratio",
       "None",
+      "The expected return above the risk-free rate, divided by the beta of the portfolio.",
       `${formulaMarkupForTest(String.raw`T_p = \frac{E(R_p) − R_f}{β_p} \\ = \frac{0.08% − 0.48%}{-0.52}`)}<span>${negativeTreynorTextForTest.en}</span>`,
     ],
   ],

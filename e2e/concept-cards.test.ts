@@ -18,6 +18,7 @@ const texts: Record<
     example: string;
     lesson: string;
     beta: string;
+    betaFormula: string;
     help: (title: string) => string;
     market: string;
     cards: readonly (readonly [string, string, string])[];
@@ -28,16 +29,18 @@ const texts: Record<
     example: "Angka pada halaman ini",
     lesson: "Pelajari lebih lanjut di sesi 9",
     beta: "Beta",
+    // The weight of BBCA in bbca-holding.ts is 49.64%, and its beta is 0.69, as measure-stock.test.ts gives it.
+    betaFormula: "βp=∑wiβi=49,64%×0,69 (SUMPRODUCT)",
     help: (title) => `Apa itu ${title}?`,
     market: "Pasar",
     cards: [
       ["Imbal hasil harapan", "-0,05%", "SUMPRODUCT"],
       ["Simpangan baku", "2,59%", "σp=σp2=0,0006732"],
       ["Beta", "0,34", "SUMPRODUCT"],
-      ["Rasio Sharpe", "-0,20", "(-0,05% − 0,48%) / 2,59%"],
-      ["Rasio Treynor", "-1,55%", "(-0,05% − 0,48%) / 0,34"],
-      ["Alpha Jensen", "-0,38%", "-0,05% − 0,33%"],
-      ["Suku bunga bebas risiko", "0,48%", "5,75% / 12"],
+      ["Rasio Sharpe", "-0,20", "Sp=E(Rp)−Rfσp=-0,05%−0,48%2,59%"],
+      ["Rasio Treynor", "-1,55%", "Tp=E(Rp)−Rfβp=-0,05%−0,48%0,34"],
+      ["Alpha Jensen", "-0,38%", "αp=E(Rp)−kp=-0,05%−0,33%"],
+      ["Suku bunga bebas risiko", "0,48%", "Rf=BI-Rate12=5,75%12"],
     ],
   },
   en: {
@@ -45,16 +48,17 @@ const texts: Record<
     example: "Value on this page",
     lesson: "Learn more in session 9",
     beta: "Beta",
+    betaFormula: "βp=∑wiβi=49.64%×0.69 (SUMPRODUCT)",
     help: (title) => `What is ${title}?`,
     market: "Market",
     cards: [
       ["Expected return", "-0.05%", "SUMPRODUCT"],
       ["Standard deviation", "2.59%", "σp=σp2=0.0006732"],
       ["Beta", "0.34", "SUMPRODUCT"],
-      ["Sharpe ratio", "-0.20", "(-0.05% − 0.48%) / 2.59%"],
-      ["Treynor ratio", "-1.55%", "(-0.05% − 0.48%) / 0.34"],
-      ["Jensen's alpha", "-0.38%", "-0.05% − 0.33%"],
-      ["Risk-free rate", "0.48%", "5.75% / 12"],
+      ["Sharpe ratio", "-0.20", "Sp=E(Rp)−Rfσp=-0.05%−0.48%2.59%"],
+      ["Treynor ratio", "-1.55%", "Tp=E(Rp)−Rfβp=-0.05%−0.48%0.34"],
+      ["Jensen's alpha", "-0.38%", "αp=E(Rp)−kp=-0.05%−0.33%"],
+      ["Risk-free rate", "0.48%", "Rf=BI-Rate12=5.75%12"],
     ],
   },
 };
@@ -100,15 +104,20 @@ async function openCalculation(
   return calculation;
 }
 
-async function expectBetaCalculation(card: Locator): Promise<void> {
-  const formula = card.locator(":scope > div > details > div > p");
-  await expect(formula).toHaveText("βp=∑wiβi (SUMPRODUCT)");
+async function expectBetaCalculation(
+  card: Locator,
+  locale: Locale,
+): Promise<void> {
+  // The calculation says what the formula computes before the formula, so the formula is its last paragraph.
+  const formula = card.locator(":scope > div > details > div > p").last();
+  await expect(formula).toHaveText(texts[locale].betaFormula);
   const lines = await formula.evaluate(
     (element) =>
       element.getBoundingClientRect().height /
       Number.parseFloat(getComputedStyle(element).lineHeight),
   );
-  expect(lines).toBeLessThanOrEqual(2);
+  // The notation and the line of its numbers.
+  expect(lines).toBeLessThanOrEqual(3);
   await expect(card.locator("thead th")).toHaveCount(3);
 }
 
@@ -164,7 +173,7 @@ for (const locale of locales) {
     const card = await openConcept(page, locale, text.beta);
     await expect(card).toContainText(text.lesson);
     await openCalculation(card, locale);
-    await expectBetaCalculation(card);
+    await expectBetaCalculation(card, locale);
     await expectAccessibleScreen(page);
     await captureScreens(page, test.info(), {
       name: `beta-${locale}`,
@@ -199,7 +208,7 @@ for (const locale of locales) {
         const address = page.url();
         const card = await openConcept(page, locale, text.beta);
         const calculation = await openCalculation(card, locale);
-        await expectBetaCalculation(card);
+        await expectBetaCalculation(card, locale);
 
         await loadClient();
         await expect(page.getByRole("slider").first()).toBeVisible();
@@ -224,7 +233,7 @@ for (const locale of locales) {
       const address = page.url();
       const card = await openConcept(page, locale, text.beta);
       await openCalculation(card, locale);
-      await expectBetaCalculation(card);
+      await expectBetaCalculation(card, locale);
       await expectCardInsideScreen(page, card);
       await page.keyboard.press("Escape");
       await expect(card).toBeHidden();

@@ -259,6 +259,9 @@ function TwoStockLesson({
           </div>
         </dl>
         <div className={styles["formula"]}>
+          <p>
+            <NumberText>{m.learning_two_stock_formula_notice()}</NumberText>
+          </p>
           <TwoStockFormula
             weight={weight}
             risks={measured.risks}

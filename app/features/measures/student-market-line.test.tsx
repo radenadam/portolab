@@ -53,6 +53,7 @@ const texts: Record<
     holdingsName: string;
     weightedHoldingsName: string;
     verticalNotice: string;
+    formulaNotice: string;
     lecturerPortfolioName: string;
     lecturerHoldingsName: string;
     otherStocksName: string;
@@ -91,6 +92,8 @@ const texts: Record<
     lecturerPortfolioName: "Portofolio",
     lecturerHoldingsName: "Saham portofolio, ukuran = bobot",
     otherStocksName: "Saham lain",
+    formulaNotice:
+      "Garis pasar sekuritas memberi imbal hasil yang disyaratkan CAPM untuk setiap beta, dari suku bunga bebas risiko dan imbal hasil harapan IHSG.",
     formula: formulaMarkupForTest(
       String.raw`k = R_f + β(E(R_M) − R_f) \\ = 0,48% + β × (0,05% − 0,48%)`,
     ),
@@ -145,6 +148,8 @@ const texts: Record<
     lecturerPortfolioName: "Portfolio",
     lecturerHoldingsName: "Stocks of the portfolio, size = weight",
     otherStocksName: "Other stocks",
+    formulaNotice:
+      "The security market line gives the return that CAPM requires for every beta, from the risk-free rate and the expected return of the IHSG.",
     formula: formulaMarkupForTest(
       String.raw`k = R_f + β(E(R_M) − R_f) \\ = 0.48% + β × (0.05% − 0.48%)`,
     ),
@@ -189,6 +194,7 @@ function sectionWithoutChart(
     lineNotice: string;
     legend: string;
     verticalNotice: string;
+    formulaNotice: string;
     formula: string;
     pointsLabel: string;
     table: string;
@@ -202,7 +208,7 @@ function sectionWithoutChart(
     parts.legend,
     `<p>${parts.verticalNotice}</p>`,
     "CHART",
-    `<p>${parts.formula}</p>`,
+    `<div><p>${parts.formulaNotice}</p><p>${parts.formula}</p></div>`,
     `<details><summary>${parts.pointsLabel}</summary>${parts.table}</details>`,
   ].join("");
 }
@@ -247,6 +253,7 @@ for (const locale of locales) {
           lineNotice: text.lineNotice,
           legend: legend([text.portfolioName, text.weightedHoldingsName]),
           verticalNotice: text.verticalNotice,
+          formulaNotice: text.formulaNotice,
           formula: text.formula,
           pointsLabel: text.pointsLabel,
           table: measureTableForTest(text.header, [
@@ -285,6 +292,7 @@ for (const locale of locales) {
           lineNotice: text.lineNotice,
           legend: legend([text.portfolioName, text.weightedHoldingsName]),
           verticalNotice: text.verticalNotice,
+          formulaNotice: text.formulaNotice,
           formula: text.ammnFormula,
           pointsLabel: text.pointsLabel,
           table: measureTableForTest(text.header, [
@@ -314,6 +322,7 @@ for (const locale of locales) {
           lineNotice: text.lineNotice,
           legend: legend(legendItems),
           verticalNotice: text.verticalNotice,
+          formulaNotice: text.formulaNotice,
           formula: text.formula,
           pointsLabel: text.pointsLabel,
           table: measureTableForTest(text.header, [
@@ -394,6 +403,7 @@ for (const locale of locales) {
             text.lecturerHoldingsName,
           ]),
           verticalNotice: text.verticalNotice,
+          formulaNotice: text.formulaNotice,
           formula: text.formula,
           pointsLabel: text.pointsLabel,
           table: measureTableForTest(text.header, [
