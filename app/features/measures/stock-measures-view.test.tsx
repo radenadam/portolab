@@ -5,6 +5,7 @@ import { expect, test } from "vitest";
 import { languageNames } from "~/language-names";
 import { locales } from "~/paraglide/runtime.js";
 import type { Locale } from "~/paraglide/runtime.js";
+import { formulaMarkupForTest } from "~/math-text-for-test";
 import { switchLocaleForTest } from "~/switch-locale-for-test";
 import { measureDefinitionsForTest } from "./measure-definitions-for-test";
 import { measureFailureText } from "./measure-failure-text";
@@ -51,42 +52,64 @@ const texts: Record<
       [
         "Imbal hasil harapan",
         "-0,10%",
-        "E(R<sub>i</sub>) = ΣR<sub>i</sub> / n, n = 60 (AVERAGE)",
+        formulaMarkupForTest(
+          String.raw`E(R_i) = \frac{∑R_i}{n}, n = 60`,
+          "AVERAGE",
+        ),
       ],
       [
         "Varians",
         "0,002732",
-        "σ²<sub>i</sub> = Σ(R<sub>i</sub> − E(R<sub>i</sub>))² / (n − 1) (VAR.S)",
+        formulaMarkupForTest(
+          String.raw`σ_i^2 = \frac{∑(R_i − E(R_i))^2}{n − 1}`,
+          "VAR.S",
+        ),
       ],
       [
         "Simpangan baku",
         "5,23%",
-        "σ<sub>i</sub> = √σ²<sub>i</sub> = √0,002732 (STDEV.S)",
+        formulaMarkupForTest(
+          String.raw`σ_i = \sqrt{σ_i^2} \\ = \sqrt{0,002732}`,
+          "STDEV.S",
+        ),
       ],
       [
         "Kovarians dengan IHSG",
         "0,001413",
-        "σ<sub>iM</sub> = Σ(R<sub>i</sub> − E(R<sub>i</sub>))(R<sub>M</sub> − E(R<sub>M</sub>)) / (n − 1) (COVARIANCE.S)",
+        formulaMarkupForTest(
+          String.raw`σ_{iM} = \frac{∑(R_i − E(R_i))(R_M − E(R_M))}{n − 1}`,
+          "COVARIANCE.S",
+        ),
       ],
       [
         "Korelasi dengan IHSG",
         "0,60",
-        "ρ<sub>iM</sub> = σ<sub>iM</sub> / (σ<sub>i</sub> σ<sub>M</sub>) = 0,001413 / (5,23% × 4,53%) (CORREL)",
+        formulaMarkupForTest(
+          String.raw`ρ_{iM} = \frac{σ_{iM}}{σ_iσ_M} \\ = \frac{0,001413}{5,23% × 4,53%}`,
+          "CORREL",
+        ),
       ],
       [
         "Beta terhadap IHSG",
         "0,69",
-        "β<sub>i</sub> = σ<sub>iM</sub> / σ²<sub>M</sub> = 0,001413 / 0,002049 (SLOPE)",
+        formulaMarkupForTest(
+          String.raw`β_i = \frac{σ_{iM}}{σ_M^2} \\ = \frac{0,001413}{0,002049}`,
+          "SLOPE",
+        ),
       ],
       [
         "Imbal hasil yang disyaratkan CAPM",
         "0,18%",
-        "k<sub>i</sub> = R<sub>f</sub> + β<sub>i</sub>(E(R<sub>M</sub>) − R<sub>f</sub>) = 0,48% + 0,69 × (0,05% − 0,48%)",
+        formulaMarkupForTest(
+          String.raw`k_i = R_f + β_i(E(R_M) − R_f) \\ = 0,48% + 0,69 × (0,05% − 0,48%)`,
+        ),
       ],
       [
         "Alpha Jensen",
         `<span data-change="fall">${fall}-0,28%</span>`,
-        "α<sub>i</sub> = E(R<sub>i</sub>) − k<sub>i</sub> = -0,10% − 0,18%",
+        formulaMarkupForTest(
+          String.raw`α_i = E(R_i) − k_i \\ = -0,10% − 0,18%`,
+        ),
       ],
     ],
     below:
@@ -97,12 +120,16 @@ const texts: Record<
       [
         "Imbal hasil yang disyaratkan CAPM",
         "-0,28%",
-        "k<sub>i</sub> = R<sub>f</sub> + β<sub>i</sub>(E(R<sub>M</sub>) − R<sub>f</sub>) = 0,48% + 1,11 × (-0,20% − 0,48%)",
+        formulaMarkupForTest(
+          String.raw`k_i = R_f + β_i(E(R_M) − R_f) \\ = 0,48% + 1,11 × (-0,20% − 0,48%)`,
+        ),
       ],
       [
         "Alpha Jensen",
         `<span data-change="rise">${rise}+3,10%</span>`,
-        "α<sub>i</sub> = E(R<sub>i</sub>) − k<sub>i</sub> = 2,82% − (-0,28%)",
+        formulaMarkupForTest(
+          String.raw`α_i = E(R_i) − k_i \\ = 2,82% − (-0,28%)`,
+        ),
       ],
     ],
     above:
@@ -112,22 +139,33 @@ const texts: Record<
       [
         "Imbal hasil harapan IHSG",
         "0,05%",
-        "E(R<sub>M</sub>) = ΣR<sub>M</sub> / n, n = 60 (AVERAGE)",
+        formulaMarkupForTest(
+          String.raw`E(R_M) = \frac{∑R_M}{n}, n = 60`,
+          "AVERAGE",
+        ),
       ],
       [
         "Varians IHSG",
         "0,002049",
-        "σ²<sub>M</sub> = Σ(R<sub>M</sub> − E(R<sub>M</sub>))² / (n − 1) (VAR.S)",
+        formulaMarkupForTest(
+          String.raw`σ_M^2 = \frac{∑(R_M − E(R_M))^2}{n − 1}`,
+          "VAR.S",
+        ),
       ],
       [
         "Simpangan baku IHSG",
         "4,53%",
-        "σ<sub>M</sub> = √σ²<sub>M</sub> = √0,002049 (STDEV.S)",
+        formulaMarkupForTest(
+          String.raw`σ_M = \sqrt{σ_M^2} \\ = \sqrt{0,002049}`,
+          "STDEV.S",
+        ),
       ],
       [
         "Suku bunga bebas risiko",
         "0,48%",
-        "R<sub>f</sub> = BI-Rate / 12 = 5,75% / 12",
+        formulaMarkupForTest(
+          String.raw`R_f = \frac{BI-Rate}{12} \\ = \frac{5,75%}{12}`,
+        ),
       ],
     ],
     rateNotice:
@@ -142,42 +180,64 @@ const texts: Record<
       [
         "Expected return",
         "-0.10%",
-        "E(R<sub>i</sub>) = ΣR<sub>i</sub> / n, n = 60 (AVERAGE)",
+        formulaMarkupForTest(
+          String.raw`E(R_i) = \frac{∑R_i}{n}, n = 60`,
+          "AVERAGE",
+        ),
       ],
       [
         "Variance",
         "0.002732",
-        "σ²<sub>i</sub> = Σ(R<sub>i</sub> − E(R<sub>i</sub>))² / (n − 1) (VAR.S)",
+        formulaMarkupForTest(
+          String.raw`σ_i^2 = \frac{∑(R_i − E(R_i))^2}{n − 1}`,
+          "VAR.S",
+        ),
       ],
       [
         "Standard deviation",
         "5.23%",
-        "σ<sub>i</sub> = √σ²<sub>i</sub> = √0.002732 (STDEV.S)",
+        formulaMarkupForTest(
+          String.raw`σ_i = \sqrt{σ_i^2} \\ = \sqrt{0.002732}`,
+          "STDEV.S",
+        ),
       ],
       [
         "Covariance with the IHSG",
         "0.001413",
-        "σ<sub>iM</sub> = Σ(R<sub>i</sub> − E(R<sub>i</sub>))(R<sub>M</sub> − E(R<sub>M</sub>)) / (n − 1) (COVARIANCE.S)",
+        formulaMarkupForTest(
+          String.raw`σ_{iM} = \frac{∑(R_i − E(R_i))(R_M − E(R_M))}{n − 1}`,
+          "COVARIANCE.S",
+        ),
       ],
       [
         "Correlation with the IHSG",
         "0.60",
-        "ρ<sub>iM</sub> = σ<sub>iM</sub> / (σ<sub>i</sub> σ<sub>M</sub>) = 0.001413 / (5.23% × 4.53%) (CORREL)",
+        formulaMarkupForTest(
+          String.raw`ρ_{iM} = \frac{σ_{iM}}{σ_iσ_M} \\ = \frac{0.001413}{5.23% × 4.53%}`,
+          "CORREL",
+        ),
       ],
       [
         "Beta against the IHSG",
         "0.69",
-        "β<sub>i</sub> = σ<sub>iM</sub> / σ²<sub>M</sub> = 0.001413 / 0.002049 (SLOPE)",
+        formulaMarkupForTest(
+          String.raw`β_i = \frac{σ_{iM}}{σ_M^2} \\ = \frac{0.001413}{0.002049}`,
+          "SLOPE",
+        ),
       ],
       [
         "Return that CAPM requires",
         "0.18%",
-        "k<sub>i</sub> = R<sub>f</sub> + β<sub>i</sub>(E(R<sub>M</sub>) − R<sub>f</sub>) = 0.48% + 0.69 × (0.05% − 0.48%)",
+        formulaMarkupForTest(
+          String.raw`k_i = R_f + β_i(E(R_M) − R_f) \\ = 0.48% + 0.69 × (0.05% − 0.48%)`,
+        ),
       ],
       [
         "Jensen's alpha",
         `<span data-change="fall">${fall}-0.28%</span>`,
-        "α<sub>i</sub> = E(R<sub>i</sub>) − k<sub>i</sub> = -0.10% − 0.18%",
+        formulaMarkupForTest(
+          String.raw`α_i = E(R_i) − k_i \\ = -0.10% − 0.18%`,
+        ),
       ],
     ],
     below:
@@ -188,12 +248,16 @@ const texts: Record<
       [
         "Return that CAPM requires",
         "-0.28%",
-        "k<sub>i</sub> = R<sub>f</sub> + β<sub>i</sub>(E(R<sub>M</sub>) − R<sub>f</sub>) = 0.48% + 1.11 × (-0.20% − 0.48%)",
+        formulaMarkupForTest(
+          String.raw`k_i = R_f + β_i(E(R_M) − R_f) \\ = 0.48% + 1.11 × (-0.20% − 0.48%)`,
+        ),
       ],
       [
         "Jensen's alpha",
         `<span data-change="rise">${rise}+3.10%</span>`,
-        "α<sub>i</sub> = E(R<sub>i</sub>) − k<sub>i</sub> = 2.82% − (-0.28%)",
+        formulaMarkupForTest(
+          String.raw`α_i = E(R_i) − k_i \\ = 2.82% − (-0.28%)`,
+        ),
       ],
     ],
     above:
@@ -203,19 +267,34 @@ const texts: Record<
       [
         "Expected return of the IHSG",
         "0.05%",
-        "E(R<sub>M</sub>) = ΣR<sub>M</sub> / n, n = 60 (AVERAGE)",
+        formulaMarkupForTest(
+          String.raw`E(R_M) = \frac{∑R_M}{n}, n = 60`,
+          "AVERAGE",
+        ),
       ],
       [
         "Variance of the IHSG",
         "0.002049",
-        "σ²<sub>M</sub> = Σ(R<sub>M</sub> − E(R<sub>M</sub>))² / (n − 1) (VAR.S)",
+        formulaMarkupForTest(
+          String.raw`σ_M^2 = \frac{∑(R_M − E(R_M))^2}{n − 1}`,
+          "VAR.S",
+        ),
       ],
       [
         "Standard deviation of the IHSG",
         "4.53%",
-        "σ<sub>M</sub> = √σ²<sub>M</sub> = √0.002049 (STDEV.S)",
+        formulaMarkupForTest(
+          String.raw`σ_M = \sqrt{σ_M^2} \\ = \sqrt{0.002049}`,
+          "STDEV.S",
+        ),
       ],
-      ["Risk-free rate", "0.48%", "R<sub>f</sub> = BI-Rate / 12 = 5.75% / 12"],
+      [
+        "Risk-free rate",
+        "0.48%",
+        formulaMarkupForTest(
+          String.raw`R_f = \frac{BI-Rate}{12} \\ = \frac{5.75%}{12}`,
+        ),
+      ],
     ],
     rateNotice:
       "Portolab takes the BI-Rate as the risk-free rate. Bank Indonesia set the BI-Rate at 5.75% on June 18, 2026, and that rate held at the end of the last month of the returns.",

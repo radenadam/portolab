@@ -23,6 +23,7 @@ import {
   databaseWithClosesForTest,
   valuationForTest,
 } from "./measures-for-test.server";
+import { formulaMarkupForTest } from "~/math-text-for-test";
 import { PortfolioMeasuresView } from "./portfolio-measures-view";
 import { readPortfolioMeasures } from "./read-measures.server";
 import type { PortfolioMeasuresReport } from "./read-measures.server";
@@ -117,42 +118,52 @@ const texts: Record<
       [
         "Imbal hasil harapan",
         "-0,22%",
-        "E(R<sub>p</sub>) = Σ w<sub>i</sub> E(R<sub>i</sub>) (SUMPRODUCT)",
+        formulaMarkupForTest(String.raw`E(R_p) = ∑w_iE(R_i)`, "SUMPRODUCT"),
       ],
       [
         "Varians",
         "0,001653",
-        "σ²<sub>p</sub> = Σ<sub>i</sub> Σ<sub>j</sub> w<sub>i</sub> w<sub>j</sub> σ<sub>ij</sub> (MMULT)",
+        formulaMarkupForTest(String.raw`σ_p^2 = ∑_i∑_jw_iw_jσ_{ij}`, "MMULT"),
       ],
       [
         "Simpangan baku",
         "4,07%",
-        "σ<sub>p</sub> = √σ²<sub>p</sub> = √0,001653",
+        formulaMarkupForTest(
+          String.raw`σ_p = \sqrt{σ_p^2} \\ = \sqrt{0,001653}`,
+        ),
       ],
       [
         "Beta terhadap IHSG",
         "0,62",
-        "β<sub>p</sub> = Σ w<sub>i</sub> β<sub>i</sub> (SUMPRODUCT)",
+        formulaMarkupForTest(String.raw`β_p = ∑w_iβ_i`, "SUMPRODUCT"),
       ],
       [
         "Rasio Sharpe",
         "-0,17",
-        "S<sub>p</sub> = (E(R<sub>p</sub>) − R<sub>f</sub>) / σ<sub>p</sub> = (-0,22% − 0,48%) / 4,07%",
+        formulaMarkupForTest(
+          String.raw`S_p = \frac{E(R_p) − R_f}{σ_p} \\ = \frac{-0,22% − 0,48%}{4,07%}`,
+        ),
       ],
       [
         "Rasio Treynor",
         "-1,12%",
-        "T<sub>p</sub> = (E(R<sub>p</sub>) − R<sub>f</sub>) / β<sub>p</sub> = (-0,22% − 0,48%) / 0,62",
+        formulaMarkupForTest(
+          String.raw`T_p = \frac{E(R_p) − R_f}{β_p} \\ = \frac{-0,22% − 0,48%}{0,62}`,
+        ),
       ],
       [
         "Imbal hasil yang disyaratkan CAPM",
         "0,21%",
-        "k<sub>p</sub> = R<sub>f</sub> + β<sub>p</sub>(E(R<sub>M</sub>) − R<sub>f</sub>) = 0,48% + 0,62 × (0,05% − 0,48%)",
+        formulaMarkupForTest(
+          String.raw`k_p = R_f + β_p(E(R_M) − R_f) \\ = 0,48% + 0,62 × (0,05% − 0,48%)`,
+        ),
       ],
       [
         "Alpha Jensen",
         `${fall}-0,43%`,
-        "α<sub>p</sub> = E(R<sub>p</sub>) − k<sub>p</sub> = -0,22% − 0,21%",
+        formulaMarkupForTest(
+          String.raw`α_p = E(R_p) − k_p \\ = -0,22% − 0,21%`,
+        ),
       ],
     ],
     below:
@@ -176,8 +187,7 @@ const texts: Record<
       ["BBCA", "50,00%", "-0,10%", "0,69"],
       ["TLKM", "30,00%", "-0,55%", "0,92"],
     ],
-    holdingFormulas:
-      "<p>E(R<sub>i</sub>) = ΣR<sub>i</sub> / n, n = 60 (AVERAGE)</p><p>β<sub>i</sub> = σ<sub>iM</sub> / σ²<sub>M</sub> (SLOPE)</p>",
+    holdingFormulas: `<p>${formulaMarkupForTest(String.raw`E(R_i) = \frac{∑R_i}{n}, n = 60`, "AVERAGE")}</p><p>${formulaMarkupForTest(String.raw`β_i = \frac{σ_{iM}}{σ_M^2}`, "SLOPE")}</p>`,
     pairsNotice:
       "Kovarians suatu saham dengan dirinya sendiri adalah variansnya, dan korelasi suatu saham dengan dirinya sendiri sempurna.",
     pairsTable: measureTableForTest(
@@ -188,8 +198,7 @@ const texts: Record<
         ["TLKM", "0,00474", "1,00"],
       ],
     ),
-    pairFormulas:
-      "<p>σ<sub>ij</sub> = Σ(R<sub>i</sub> − E(R<sub>i</sub>))(R<sub>j</sub> − E(R<sub>j</sub>)) / (n − 1) (COVARIANCE.S)</p><p>ρ<sub>ij</sub> = σ<sub>ij</sub> / (σ<sub>i</sub> σ<sub>j</sub>) (CORREL)</p>",
+    pairFormulas: `<p>${formulaMarkupForTest(String.raw`σ_{ij} = \frac{∑(R_i − E(R_i))(R_j − E(R_j))}{n − 1}`, "COVARIANCE.S")}</p><p>${formulaMarkupForTest(String.raw`ρ_{ij} = \frac{σ_{ij}}{σ_iσ_j}`, "CORREL")}</p>`,
     risksNotice:
       "Bagian varians suatu saham adalah bobotnya dikali kovariansnya dengan portofolio, dibagi varians portofolio, sehingga bagian semua saham bersama-sama membentuk seluruh varians. Bagian yang lebih besar daripada bobotnya berarti saham itu menambahkan bagian risiko portofolio yang lebih besar daripada bagian nilainya.",
     risksTable: measureTableForTest(
@@ -205,8 +214,7 @@ const texts: Record<
         ["TLKM", "30,00%", "0,002328", "42,24%", "0,83"],
       ],
     ),
-    riskFormulas:
-      "<p>σ<sub>ip</sub> = Σ<sub>j</sub> w<sub>j</sub> σ<sub>ij</sub> (SUMPRODUCT)</p><p>c<sub>i</sub> = w<sub>i</sub> σ<sub>ip</sub> / σ²<sub>p</sub></p><p>ρ<sub>ip</sub> = σ<sub>ip</sub> / (σ<sub>i</sub> σ<sub>p</sub>) (CORREL)</p>",
+    riskFormulas: `<p>${formulaMarkupForTest(String.raw`σ_{ip} = ∑_jw_jσ_{ij}`, "SUMPRODUCT")}</p><p>${formulaMarkupForTest(String.raw`c_i = \frac{w_iσ_{ip}}{σ_p^2}`)}</p><p>${formulaMarkupForTest(String.raw`ρ_{ip} = \frac{σ_{ip}}{σ_iσ_p}`, "CORREL")}</p>`,
     summaries: [
       "<h2>IHSG dan suku bunga bebas risiko</h2>",
       "<summary>Tabel imbal hasil bulanan IHSG</summary>",
@@ -221,42 +229,52 @@ const texts: Record<
       [
         "Expected return",
         "-0.22%",
-        "E(R<sub>p</sub>) = Σ w<sub>i</sub> E(R<sub>i</sub>) (SUMPRODUCT)",
+        formulaMarkupForTest(String.raw`E(R_p) = ∑w_iE(R_i)`, "SUMPRODUCT"),
       ],
       [
         "Variance",
         "0.001653",
-        "σ²<sub>p</sub> = Σ<sub>i</sub> Σ<sub>j</sub> w<sub>i</sub> w<sub>j</sub> σ<sub>ij</sub> (MMULT)",
+        formulaMarkupForTest(String.raw`σ_p^2 = ∑_i∑_jw_iw_jσ_{ij}`, "MMULT"),
       ],
       [
         "Standard deviation",
         "4.07%",
-        "σ<sub>p</sub> = √σ²<sub>p</sub> = √0.001653",
+        formulaMarkupForTest(
+          String.raw`σ_p = \sqrt{σ_p^2} \\ = \sqrt{0.001653}`,
+        ),
       ],
       [
         "Beta against the IHSG",
         "0.62",
-        "β<sub>p</sub> = Σ w<sub>i</sub> β<sub>i</sub> (SUMPRODUCT)",
+        formulaMarkupForTest(String.raw`β_p = ∑w_iβ_i`, "SUMPRODUCT"),
       ],
       [
         "Sharpe ratio",
         "-0.17",
-        "S<sub>p</sub> = (E(R<sub>p</sub>) − R<sub>f</sub>) / σ<sub>p</sub> = (-0.22% − 0.48%) / 4.07%",
+        formulaMarkupForTest(
+          String.raw`S_p = \frac{E(R_p) − R_f}{σ_p} \\ = \frac{-0.22% − 0.48%}{4.07%}`,
+        ),
       ],
       [
         "Treynor ratio",
         "-1.12%",
-        "T<sub>p</sub> = (E(R<sub>p</sub>) − R<sub>f</sub>) / β<sub>p</sub> = (-0.22% − 0.48%) / 0.62",
+        formulaMarkupForTest(
+          String.raw`T_p = \frac{E(R_p) − R_f}{β_p} \\ = \frac{-0.22% − 0.48%}{0.62}`,
+        ),
       ],
       [
         "Return that CAPM requires",
         "0.21%",
-        "k<sub>p</sub> = R<sub>f</sub> + β<sub>p</sub>(E(R<sub>M</sub>) − R<sub>f</sub>) = 0.48% + 0.62 × (0.05% − 0.48%)",
+        formulaMarkupForTest(
+          String.raw`k_p = R_f + β_p(E(R_M) − R_f) \\ = 0.48% + 0.62 × (0.05% − 0.48%)`,
+        ),
       ],
       [
         "Jensen's alpha",
         `${fall}-0.43%`,
-        "α<sub>p</sub> = E(R<sub>p</sub>) − k<sub>p</sub> = -0.22% − 0.21%",
+        formulaMarkupForTest(
+          String.raw`α_p = E(R_p) − k_p \\ = -0.22% − 0.21%`,
+        ),
       ],
     ],
     below:
@@ -280,8 +298,7 @@ const texts: Record<
       ["BBCA", "50.00%", "-0.10%", "0.69"],
       ["TLKM", "30.00%", "-0.55%", "0.92"],
     ],
-    holdingFormulas:
-      "<p>E(R<sub>i</sub>) = ΣR<sub>i</sub> / n, n = 60 (AVERAGE)</p><p>β<sub>i</sub> = σ<sub>iM</sub> / σ²<sub>M</sub> (SLOPE)</p>",
+    holdingFormulas: `<p>${formulaMarkupForTest(String.raw`E(R_i) = \frac{∑R_i}{n}, n = 60`, "AVERAGE")}</p><p>${formulaMarkupForTest(String.raw`β_i = \frac{σ_{iM}}{σ_M^2}`, "SLOPE")}</p>`,
     pairsNotice:
       "The covariance of a stock with itself is its variance, and a stock correlates perfectly with itself.",
     pairsTable: measureTableForTest(
@@ -292,8 +309,7 @@ const texts: Record<
         ["TLKM", "0.00474", "1.00"],
       ],
     ),
-    pairFormulas:
-      "<p>σ<sub>ij</sub> = Σ(R<sub>i</sub> − E(R<sub>i</sub>))(R<sub>j</sub> − E(R<sub>j</sub>)) / (n − 1) (COVARIANCE.S)</p><p>ρ<sub>ij</sub> = σ<sub>ij</sub> / (σ<sub>i</sub> σ<sub>j</sub>) (CORREL)</p>",
+    pairFormulas: `<p>${formulaMarkupForTest(String.raw`σ_{ij} = \frac{∑(R_i − E(R_i))(R_j − E(R_j))}{n − 1}`, "COVARIANCE.S")}</p><p>${formulaMarkupForTest(String.raw`ρ_{ij} = \frac{σ_{ij}}{σ_iσ_j}`, "CORREL")}</p>`,
     risksNotice:
       "The share of the variance of a stock is its weight times its covariance with the portfolio, divided by the variance of the portfolio, so together the shares of the stocks make up the whole variance. A share above the weight means that the stock adds more of the risk of the portfolio than of its value.",
     risksTable: measureTableForTest(
@@ -309,8 +325,7 @@ const texts: Record<
         ["TLKM", "30.00%", "0.002328", "42.24%", "0.83"],
       ],
     ),
-    riskFormulas:
-      "<p>σ<sub>ip</sub> = Σ<sub>j</sub> w<sub>j</sub> σ<sub>ij</sub> (SUMPRODUCT)</p><p>c<sub>i</sub> = w<sub>i</sub> σ<sub>ip</sub> / σ²<sub>p</sub></p><p>ρ<sub>ip</sub> = σ<sub>ip</sub> / (σ<sub>i</sub> σ<sub>p</sub>) (CORREL)</p>",
+    riskFormulas: `<p>${formulaMarkupForTest(String.raw`σ_{ip} = ∑_jw_jσ_{ij}`, "SUMPRODUCT")}</p><p>${formulaMarkupForTest(String.raw`c_i = \frac{w_iσ_{ip}}{σ_p^2}`)}</p><p>${formulaMarkupForTest(String.raw`ρ_{ip} = \frac{σ_{ip}}{σ_iσ_p}`, "CORREL")}</p>`,
     summaries: [
       "<h2>The IHSG and the risk-free rate</h2>",
       "<summary>Table of monthly returns of the IHSG</summary>",
@@ -551,24 +566,28 @@ const againstMarketTexts: Record<
     [
       "Rasio Sharpe",
       "-0,17",
-      "S<sub>p</sub> = (E(R<sub>p</sub>) − R<sub>f</sub>) / σ<sub>p</sub> = (0,08% − 0,48%) / 2,38%",
+      formulaMarkupForTest(
+        String.raw`S_p = \frac{E(R_p) − R_f}{σ_p} \\ = \frac{0,08% − 0,48%}{2,38%}`,
+      ),
     ],
     [
       "Rasio Treynor",
       "Tidak ada",
-      `T<sub>p</sub> = (E(R<sub>p</sub>) − R<sub>f</sub>) / β<sub>p</sub> = (0,08% − 0,48%) / (-0,52)<span>${negativeTreynorTextForTest.id}</span>`,
+      `${formulaMarkupForTest(String.raw`T_p = \frac{E(R_p) − R_f}{β_p} \\ = \frac{0,08% − 0,48%}{-0,52}`)}<span>${negativeTreynorTextForTest.id}</span>`,
     ],
   ],
   en: [
     [
       "Sharpe ratio",
       "-0.17",
-      "S<sub>p</sub> = (E(R<sub>p</sub>) − R<sub>f</sub>) / σ<sub>p</sub> = (0.08% − 0.48%) / 2.38%",
+      formulaMarkupForTest(
+        String.raw`S_p = \frac{E(R_p) − R_f}{σ_p} \\ = \frac{0.08% − 0.48%}{2.38%}`,
+      ),
     ],
     [
       "Treynor ratio",
       "None",
-      `T<sub>p</sub> = (E(R<sub>p</sub>) − R<sub>f</sub>) / β<sub>p</sub> = (0.08% − 0.48%) / (-0.52)<span>${negativeTreynorTextForTest.en}</span>`,
+      `${formulaMarkupForTest(String.raw`T_p = \frac{E(R_p) − R_f}{β_p} \\ = \frac{0.08% − 0.48%}{-0.52}`)}<span>${negativeTreynorTextForTest.en}</span>`,
     ],
   ],
 };

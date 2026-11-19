@@ -1,6 +1,7 @@
 import type { ClassId } from "~/features/classes/classes.schema";
 import { renderMarkupForTest } from "~/render-markup-for-test";
 import { markupTextForTest } from "~/markup-text-for-test";
+import { formulaMarkupForTest } from "~/math-text-for-test";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router";
 import type { ReactNode } from "react";
@@ -37,7 +38,7 @@ function legend(names: readonly string[]): string {
 
 const fall = '<span aria-hidden="true">▼ </span>';
 const rise = '<span aria-hidden="true">▲ </span>';
-const riskFreeSymbol = "R<sub>f</sub>";
+const riskFreeSymbol = "R_f";
 
 const texts: Record<
   Locale,
@@ -90,8 +91,12 @@ const texts: Record<
     lecturerPortfolioName: "Portofolio",
     lecturerHoldingsName: "Saham portofolio, ukuran = bobot",
     otherStocksName: "Saham lain",
-    formula: `k = ${riskFreeSymbol} + β(E(R<sub>M</sub>) − ${riskFreeSymbol}) = 0,48% + β × (0,05% − 0,48%)`,
-    ammnFormula: `k = ${riskFreeSymbol} + β(E(R<sub>M</sub>) − ${riskFreeSymbol}) = 0,48% + β × (-0,20% − 0,48%)`,
+    formula: formulaMarkupForTest(
+      String.raw`k = R_f + β(E(R_M) − R_f) \\ = 0,48% + β × (0,05% − 0,48%)`,
+    ),
+    ammnFormula: formulaMarkupForTest(
+      String.raw`k = R_f + β(E(R_M) − R_f) \\ = 0,48% + β × (-0,20% − 0,48%)`,
+    ),
     pointsLabel: "Titik-titik grafik",
     header: [
       "Titik",
@@ -140,8 +145,12 @@ const texts: Record<
     lecturerPortfolioName: "Portfolio",
     lecturerHoldingsName: "Stocks of the portfolio, size = weight",
     otherStocksName: "Other stocks",
-    formula: `k = ${riskFreeSymbol} + β(E(R<sub>M</sub>) − ${riskFreeSymbol}) = 0.48% + β × (0.05% − 0.48%)`,
-    ammnFormula: `k = ${riskFreeSymbol} + β(E(R<sub>M</sub>) − ${riskFreeSymbol}) = 0.48% + β × (-0.20% − 0.48%)`,
+    formula: formulaMarkupForTest(
+      String.raw`k = R_f + β(E(R_M) − R_f) \\ = 0.48% + β × (0.05% − 0.48%)`,
+    ),
+    ammnFormula: formulaMarkupForTest(
+      String.raw`k = R_f + β(E(R_M) − R_f) \\ = 0.48% + β × (-0.20% − 0.48%)`,
+    ),
     pointsLabel: "The points of the chart",
     header: [
       "Point",

@@ -32,7 +32,7 @@ const texts: Record<
     market: "Pasar",
     cards: [
       ["Imbal hasil harapan", "-0,05%", "SUMPRODUCT"],
-      ["Simpangan baku", "2,59%", "√0,0006732"],
+      ["Simpangan baku", "2,59%", "σp=σp2=0,0006732"],
       ["Beta", "0,34", "SUMPRODUCT"],
       ["Rasio Sharpe", "-0,20", "(-0,05% − 0,48%) / 2,59%"],
       ["Rasio Treynor", "-1,55%", "(-0,05% − 0,48%) / 0,34"],
@@ -49,7 +49,7 @@ const texts: Record<
     market: "Market",
     cards: [
       ["Expected return", "-0.05%", "SUMPRODUCT"],
-      ["Standard deviation", "2.59%", "√0.0006732"],
+      ["Standard deviation", "2.59%", "σp=σp2=0.0006732"],
       ["Beta", "0.34", "SUMPRODUCT"],
       ["Sharpe ratio", "-0.20", "(-0.05% − 0.48%) / 2.59%"],
       ["Treynor ratio", "-1.55%", "(-0.05% − 0.48%) / 0.34"],
@@ -102,7 +102,7 @@ async function openCalculation(
 
 async function expectBetaCalculation(card: Locator): Promise<void> {
   const formula = card.locator(":scope > div > details > div > p");
-  await expect(formula).toHaveText("βp = Σ wi βi (SUMPRODUCT)");
+  await expect(formula).toHaveText("βp=∑wiβi (SUMPRODUCT)");
   const lines = await formula.evaluate(
     (element) =>
       element.getBoundingClientRect().height /

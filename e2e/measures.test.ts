@@ -745,7 +745,7 @@ for (const locale of locales) {
             exact: true,
           });
           await expect(calculation).toContainText(text.average);
-          await expect(calculation).toContainText("σ̄ = Σ wi σi");
+          await expect(calculation).toContainText("σ¯=∑wiσi");
           await student.keyboard.press("Escape");
         }
         await student

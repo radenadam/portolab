@@ -31,8 +31,8 @@ const texts: Record<
     sentence:
       "Imbal hasil harapan -0,00%, risiko 0,00%, Sharpe -3.166.112.493,86, dan Treynor -23.692.559.215,10% per bulan. Penggeser dimulai dari bobot portofolio Anda sekarang.",
     formulas: [
-      "Sp = (E(Rp) − Rf) / σp = (-0,00000000001207% − 0,48%) / 0,0000000001513%",
-      "Tp = (E(Rp) − Rf) / βp = (-0,00000000001207% − 0,48%) / 0,00000000002022",
+      "Sp=E(Rp)−Rfσp=-0,00000000001207%−0,48%0,0000000001513%",
+      "Tp=E(Rp)−Rfβp=-0,00000000001207%−0,48%0,00000000002022",
     ],
   },
   en: {
@@ -49,8 +49,8 @@ const texts: Record<
     sentence:
       "Expected return is -0.00%, risk 0.00%, Sharpe -3,166,112,493.86, and Treynor -23,692,559,215.10% per month. The sliders start at your current portfolio weights.",
     formulas: [
-      "Sp = (E(Rp) − Rf) / σp = (-0.00000000001207% − 0.48%) / 0.0000000001513%",
-      "Tp = (E(Rp) − Rf) / βp = (-0.00000000001207% − 0.48%) / 0.00000000002022",
+      "Sp=E(Rp)−Rfσp=-0.00000000001207%−0.48%0.0000000001513%",
+      "Tp=E(Rp)−Rfβp=-0.00000000001207%−0.48%0.00000000002022",
     ],
   },
 };

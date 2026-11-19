@@ -257,11 +257,11 @@ for (const locale of locales) {
       expect(sheet).toContain(texts[locale].openPractice);
       expect(sheet).toContain(`href="${taskPage}"`);
       if (lesson.session === 9) {
-        expect(text).toContain("kp = Rf + βp(E(RM) − Rf)");
-        expect(text).toContain("Rf = BI-Rate / 12");
+        expect(text).toContain("k_p = R_f + β_p(E(R_M) − R_f)");
+        expect(text).toContain(String.raw`R_f = \frac{BI-Rate}{12}`);
       } else {
-        expect(text).toContain("Sp = (E(Rp) − Rf) / σp");
-        expect(text).toContain("Tp = (E(Rp) − Rf) / βp");
+        expect(text).toContain(String.raw`S_p = \frac{E(R_p) − R_f}{σ_p}`);
+        expect(text).toContain(String.raw`T_p = \frac{E(R_p) − R_f}{β_p}`);
       }
     }
   });

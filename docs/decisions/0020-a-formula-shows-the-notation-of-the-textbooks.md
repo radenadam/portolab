@@ -1,6 +1,6 @@
 # 0020. A formula shows the notation of the textbooks in both languages
 
-- Status: Accepted
+- Status: Accepted. [Decision 0070](0070-a-formula-is-mathml-that-the-browser-typesets.md) changes one of its rules: how a formula is marked up, which is MathML instead of HTML with subscripts.
 - Date: 2026-11-10
 
 ## Context

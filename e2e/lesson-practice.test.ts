@@ -71,8 +71,8 @@ const texts: Record<
     ],
     own: "Angka Anda",
     tinyFormulas: [
-      "Sp = (E(Rp) − Rf) / σp = (-0,00001182% − 0,48%) / 0,0002227%",
-      "Tp = (E(Rp) − Rf) / βp = (-0,00001182% − 0,48%) / 0,000034",
+      "Sp=E(Rp)−Rfσp=-0,00001182%−0,48%0,0002227%",
+      "Tp=E(Rp)−Rfβp=-0,00001182%−0,48%0,000034",
     ],
     tinyTask:
       "Tugas. Dengan penggeser di atas, naikkan risiko portofolio hingga di atas 0,01%. Sekarang 0,00%.",
@@ -118,8 +118,8 @@ const texts: Record<
     ],
     own: "Your numbers",
     tinyFormulas: [
-      "Sp = (E(Rp) − Rf) / σp = (-0.00001182% − 0.48%) / 0.0002227%",
-      "Tp = (E(Rp) − Rf) / βp = (-0.00001182% − 0.48%) / 0.000034",
+      "Sp=E(Rp)−Rfσp=-0.00001182%−0.48%0.0002227%",
+      "Tp=E(Rp)−Rfβp=-0.00001182%−0.48%0.000034",
     ],
     tinyTask:
       "Task. Use the sliders above to raise portfolio risk above 0.01%. It is now 0.00%.",

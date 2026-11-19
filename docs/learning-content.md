@@ -38,22 +38,22 @@ Every configured language must have the same sessions, sections, term ids, lesso
 
 A reference occupies one paragraph, such as `{{formula:beta}}` or `{{table:trading-rules}}`. Unknown names and inline references fail parsing. These are typed requests for the lesson renderer, so they carry no duplicated formula or number. The pages render paragraphs and key terms. Full lessons render their formula and table references in the question card. The trading schedule remains visible above the price exercise. Content supplies no numerical fallback values.
 
-| Formula id           | Existing component in the measures feature                                   |
-| -------------------- | ---------------------------------------------------------------------------- |
-| `weighted-return`    | `WeightedSumFormula` for `expectedReturn`                                    |
-| `portfolio-variance` | `PortfolioVarianceFormula`                                                   |
-| `variance`           | `VarianceFormula`                                                            |
-| `covariance`         | `CovarianceFormula`                                                          |
-| `correlation`        | `CorrelationFormula`                                                         |
-| `beta`               | `BetaFormula`                                                                |
-| `required-return`    | `RequiredReturnFormula` or `SecurityMarketLineFormula` for the subject shown |
-| `jensens-alpha`      | `MarketLineFormula`                                                          |
-| `sharpe`             | `SharpeRatioFormula` in `ratio-formulas.tsx`                                 |
-| `treynor`            | `TreynorRatioFormula` in `ratio-formulas.tsx`                                |
-| `risk-free-rate`     | `RiskFreeFormula`                                                            |
-| `variance-share`     | `VarianceShareFormula`                                                       |
+| Formula id           | Existing component in the measures feature                                                          |
+| -------------------- | --------------------------------------------------------------------------------------------------- |
+| `weighted-return`    | `WeightedSumFormula` for `expectedReturn` in `portfolio-formulas.tsx`                               |
+| `portfolio-variance` | `PortfolioVarianceFormula` in `portfolio-formulas.tsx`                                              |
+| `variance`           | `VarianceFormula` in `formulas.tsx`                                                                 |
+| `covariance`         | `CovarianceFormula` in `formulas.tsx`                                                               |
+| `correlation`        | `CorrelationFormula` in `formulas.tsx`                                                              |
+| `beta`               | `BetaFormula` in `formulas.tsx`                                                                     |
+| `required-return`    | `RequiredReturnFormula` or `SecurityMarketLineFormula` in `capm-formulas.tsx` for the subject shown |
+| `jensens-alpha`      | `MarketLineFormula` in `capm-formulas.tsx`                                                          |
+| `sharpe`             | `SharpeRatioFormula` in `ratio-formulas.tsx`                                                        |
+| `treynor`            | `TreynorRatioFormula` in `ratio-formulas.tsx`                                                       |
+| `risk-free-rate`     | `RiskFreeFormula` in `capm-formulas.tsx`                                                            |
+| `variance-share`     | `VarianceShareFormula` in `portfolio-formulas.tsx`                                                  |
 
-All components except the two ratio components live in `formulas.tsx`. They keep the notation of [decision 0020](decisions/0020-a-formula-shows-the-notation-of-the-textbooks.md) and the active language's number formats.
+Each component composes the building blocks of [`app/math-notation.tsx`](../app/math-notation.tsx) into MathML, as [decision 0070](decisions/0070-a-formula-is-mathml-that-the-browser-typesets.md) sets. They keep the notation of [decision 0020](decisions/0020-a-formula-shows-the-notation-of-the-textbooks.md) and the number formats of the active language.
 
 | Table id              | Source the later page uses                                                       |
 | --------------------- | -------------------------------------------------------------------------------- |

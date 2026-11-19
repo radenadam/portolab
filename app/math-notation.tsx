@@ -5,7 +5,7 @@ import styles from "./math-notation.module.css";
 // Decision 0070 explains why a formula is MathML, which each browser typesets in the math font of the device.
 
 /** The operator at the start of a line of a formula: a relation, or a plus that continues the sum of the line before it. */
-export type LineOperator = "=" | "≈" | "+";
+type LineOperator = "=" | "≈" | "+";
 
 /** A line of a formula: the operator at its start and the expression after it. */
 export interface FormulaLine {

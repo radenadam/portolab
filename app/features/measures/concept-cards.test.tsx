@@ -129,7 +129,7 @@ const texts: Record<
       ["Beta terhadap IHSG", "0,69"],
       ["Alpha Jensen", "-0,28%"],
     ],
-    negativeBeta: "(-0,52)",
+    negativeBeta: String.raw`\frac{0,08% − 0,48%}{-0,52}`,
     noSharpe:
       "Imbal hasil portofolio sama di setiap bulan, sehingga varians dan simpangan bakunya nol, dan ukuran yang membagi dengan keduanya tidak memiliki nilai. Portolab menghitung ukuran seperti itu setelah suatu order tereksekusi atau pembaruan riwayat harga memberi portofolio imbal hasil yang berbeda dari bulan ke bulan.",
   },
@@ -210,7 +210,7 @@ const texts: Record<
       ["Beta against the IHSG", "0.69"],
       ["Jensen's alpha", "-0.28%"],
     ],
-    negativeBeta: "(-0.52)",
+    negativeBeta: String.raw`\frac{0.08% − 0.48%}{-0.52}`,
     noSharpe:
       "The returns of the portfolio are the same in every month, so its variance and its standard deviation are zero, and a measure that divides by them has no value. Portolab computes such a measure once an order fills or an update of the price history gives the portfolio returns that differ from month to month.",
   },
