@@ -257,17 +257,16 @@ async function walkedReaders(
   ).toBeVisible();
   await page.goto(classPath);
   const { joinPath } = await readTestClass(page);
-  const resetAddress = await page
-    .locator('main a[href*="/password"]')
+  await page.goto(`${classPath}/students`);
+  const studentAddress = await page
+    .locator("main tbody tr")
     .first()
+    .getByRole("link")
     .getAttribute("href");
-  if (resetAddress === null) {
-    throw new Error("The page of the class links to no reset of a password.");
+  if (studentAddress === null) {
+    throw new Error("Mahasiswa links to no page of a student.");
   }
-  const studentPath = new URL(resetAddress, page.url()).pathname.replace(
-    /\/password$/,
-    "",
-  );
+  const studentPath = new URL(studentAddress, page.url()).pathname;
   const visitor = await newDevice(browser, baseLocale);
   const newLecturer = await newDevice(browser, baseLocale);
   const username = uniqueUsername("dosen");

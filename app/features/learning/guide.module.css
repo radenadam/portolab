@@ -12,8 +12,11 @@
   font-weight: 600;
 }
 
+/* A link that stands alone reaches its touch target over the space around it, so each row of the contents keeps the height of a touch target, and the targets of two links never cover each other. */
 .contents nav {
   display: grid;
+  grid-auto-rows: minmax(var(--size-touch-target), auto);
+  align-items: center;
 }
 
 .contentsLink {

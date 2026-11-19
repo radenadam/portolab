@@ -110,7 +110,8 @@
 }
 .next {
   flex: 1;
-  background: var(--color-button);
+  --button-fill: var(--color-button);
+  background: var(--button-fill);
   border-color: var(--color-button);
   --button-ink: var(--color-on-button);
 }

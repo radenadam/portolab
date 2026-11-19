@@ -40,7 +40,8 @@
   gap: var(--space-2);
   padding: var(--space-3) var(--space-4);
   font-size: var(--text-mark);
-  background: var(--color-button);
+  --button-fill: var(--color-button);
+  background: var(--button-fill);
   border-color: var(--color-button);
   --button-ink: var(--color-on-button);
 }
