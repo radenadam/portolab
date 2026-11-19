@@ -102,18 +102,17 @@
   display: flex;
   gap: calc(var(--space-2) + var(--size-mark));
 }
-.back,
-.next {
+.back {
   composes: button from "../../button.module.css";
-  padding: var(--space-3) var(--space-4);
-  font-size: var(--text-body);
 }
 .next {
+  composes: filled from "../../button.module.css";
   flex: 1;
-  --button-fill: var(--color-button);
-  background: var(--button-fill);
-  border-color: var(--color-button);
-  --button-ink: var(--color-on-button);
+}
+.back,
+.next {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-body);
 }
 .srOnly {
   composes: text from "../../visually-hidden.module.css";

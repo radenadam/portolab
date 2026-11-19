@@ -35,15 +35,11 @@
   font-size: var(--text-body);
 }
 .find {
-  composes: button from "../../button.module.css";
+  composes: filled from "../../button.module.css";
   align-self: start;
   gap: var(--space-2);
   padding: var(--space-3) var(--space-4);
   font-size: var(--text-mark);
-  --button-fill: var(--color-button);
-  background: var(--button-fill);
-  border-color: var(--color-button);
-  --button-ink: var(--color-on-button);
 }
 .icon {
   inline-size: var(--size-learning-icon);
