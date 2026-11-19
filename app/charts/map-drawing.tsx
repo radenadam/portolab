@@ -117,9 +117,15 @@ export function MapDrawing({
           (first, second) => drawOrder[first.kind] - drawOrder[second.kind],
         )
         .map(({ point, kind, placed: mark }) => (
-          <Mark key={point.key} kind={kind} placed={mark} />
+          <Mark
+            key={point.key}
+            kind={kind}
+            placed={mark}
+            isActive={point.key === active?.point.key}
+          />
         ))}
-      {active !== undefined && (
+      {/* The mark of the reader draws a ring already, so that ring marks it when it is active, and the point shows one ring. */}
+      {active !== undefined && active.kind !== "own" && (
         <circle
           cx={percentOf(active.placed.position.x)}
           cy={percentOf(active.placed.position.y)}
@@ -226,9 +232,11 @@ function acrossTickClass(tick: {
 function Mark({
   kind,
   placed,
+  isActive,
 }: {
   kind: MarkKind;
   placed: PlacedMark;
+  isActive: boolean;
 }): ReactNode {
   const cx = percentOf(placed.position.x);
   const cy = percentOf(placed.position.y);
@@ -243,7 +251,7 @@ function Mark({
             cx={cx}
             cy={cy}
             r={emOf(placed.outerRadius)}
-            className={styles["ring"]}
+            className={isActive ? styles["active"] : styles["ring"]}
           />
           {dot(styles["own"])}
         </g>

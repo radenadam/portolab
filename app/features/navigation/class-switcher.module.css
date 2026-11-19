@@ -13,7 +13,6 @@
   color: var(--color-ink);
   font: inherit;
   text-align: start;
-  cursor: pointer;
 }
 
 .current {

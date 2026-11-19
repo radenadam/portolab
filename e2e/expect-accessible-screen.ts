@@ -74,6 +74,34 @@ export async function expectAccessibleScreen(page: Page): Promise<void> {
       return undersized;
     }, smallestTargetHeight);
   expect(smallTargets).toEqual([]);
+  expect(await cursorProblems(page)).toEqual([]);
   // Axe does not check the width of the page.
   expect(await sidewaysProblems(page)).toEqual([]);
+}
+
+/** The section "Interface behavior" of AGENTS.md asks every control to turn the pointer into a hand and nothing that only informs to look clickable, which axe does not check. This lists every visible control that shows another cursor, and every other part that shows a hand outside a control. */
+async function cursorProblems(page: Page): Promise<string[]> {
+  return page.locator("body").evaluate((body) => {
+    const controls =
+      "a[href], button:not(:disabled), summary, select:not(:disabled), label:has(> input), [role=button], input:is([type=checkbox], [type=radio], [type=range]):not(:disabled)";
+    const problems: string[] = [];
+    for (const element of body.querySelectorAll("*")) {
+      if (!element.checkVisibility({ visibilityProperty: true })) continue;
+      const cursor = getComputedStyle(element).cursor;
+      const isControl = element.matches(controls);
+      const openingTag = element.outerHTML.slice(
+        0,
+        element.outerHTML.indexOf(">") + 1,
+      );
+      if (isControl && cursor !== "pointer")
+        problems.push(`${openingTag} shows the cursor ${cursor}.`);
+      if (
+        !isControl &&
+        cursor === "pointer" &&
+        element.closest(controls) === null
+      )
+        problems.push(`${openingTag} shows a hand but is not a control.`);
+    }
+    return problems;
+  });
 }

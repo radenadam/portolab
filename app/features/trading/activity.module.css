@@ -93,6 +93,28 @@
   min-inline-size: 0;
 }
 
+/* The link of the stock covers its order, so the whole order opens the stock and shows the light ground of a row under the pointer, as a holding of Beranda does. A control of the order that does something of its own, such as cancelling it, stays above that link. The ground reaches a little past the text on each side, as the rows of Kelas do. */
+.order {
+  position: relative;
+  margin-inline: calc(-1 * var(--space-2));
+  padding-inline: var(--space-2);
+}
+
+.stock::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+}
+
+.order:has(.stock:hover) {
+  background: var(--color-hover);
+}
+
+.order :is(a, button, summary):not(.stock) {
+  position: relative;
+  z-index: 1;
+}
+
 .orderBody {
   display: grid;
   justify-items: start;
@@ -130,13 +152,6 @@
 
 .filters a > span {
   white-space: nowrap;
-}
-
-.filters a[aria-current="page"] > span {
-  border-color: var(--color-button);
-  background: var(--color-button);
-  color: var(--color-on-button);
-  font-weight: 600;
 }
 
 .journalTitle {

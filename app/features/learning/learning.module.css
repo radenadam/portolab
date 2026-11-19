@@ -198,6 +198,13 @@
   line-height: 1.5;
   color: var(--color-ink);
   list-style: none;
+  text-decoration: none;
+}
+
+/* A key term is a card that opens in place, so it takes a light ground and a stronger edge under the pointer, as a card does, instead of the underline of a link. */
+.term:has(> summary:hover) {
+  border-color: var(--color-line-strong);
+  background: var(--color-hover);
 }
 
 .term summary::-webkit-details-marker {
@@ -297,10 +304,4 @@
 
 .sheetTools > .badge {
   align-self: center;
-}
-
-/* A card of a session opens the lesson, so it shows a light ground and a stronger edge under the pointer. */
-a.card:hover {
-  border-color: var(--color-line-strong);
-  background-color: var(--color-hover);
 }

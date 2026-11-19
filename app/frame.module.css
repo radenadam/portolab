@@ -86,18 +86,27 @@
   }
 }
 
-/* A phone opens the menu of the profile from the avatar in the top bar, and a desktop from the name and from the avatar of the rail. */
+/* A phone opens the menu of the profile from the avatar in the top bar, and a desktop from the pill of the name, which holds the avatar, as decision 0068 sets. */
 .nameChip {
   display: none;
+}
+
+/* The avatar stands in the round end of the pill, as far from its edge on every side. */
+.nameChip > button {
+  padding-inline-start: var(--space-1);
+}
+
+/* The ground of a plain avatar is the raised color, which the page and the filled pill nearly match, so a plain avatar in the pill takes the color of a panel. */
+.chipAvatar {
+  --avatar-ground: var(--color-panel);
+  width: var(--size-chip-avatar);
+  height: var(--size-chip-avatar);
+  font-size: var(--text-tile);
 }
 
 .avatarButton {
   composes: button from "./icon-button.module.css";
   border-radius: 50%;
-}
-
-.topAvatarButton {
-  composes: avatarButton;
 }
 
 .main {
@@ -180,7 +189,8 @@
   background: var(--color-data-soft);
 }
 
-/* An item of the navigation that is not the current one shows a light ground under the pointer, where the current one shows its tint. */
+/* An item of the navigation that is not the current one shows a light ground under the pointer, where the current one shows its tint. The app icon leads home from the rail, so it reacts as an item does. */
+.railIcon:hover,
 .railItem:not([aria-current="page"]):hover,
 .tabItem:not([aria-current="page"]):hover::before {
   background: var(--color-raised);
@@ -222,7 +232,7 @@
 
   .tabBar,
   .mark,
-  .topAvatarButton {
+  .avatarButton {
     display: none;
   }
 
@@ -247,6 +257,7 @@
     width: var(--size-touch-target);
     height: var(--size-touch-target);
     margin-block-end: var(--space-3);
+    border-radius: var(--radius-item);
   }
 
   .railItems {
@@ -266,10 +277,6 @@
     height: var(--size-icon);
   }
 
-  .railFoot {
-    margin-block-start: auto;
-  }
-
   .topBar {
     padding-inline: var(--space-gutter);
   }
@@ -281,6 +288,17 @@
 
   .nameChip {
     display: contents;
+  }
+
+  /* The top bar of a lecturer holds the code for joining too, so a desktop narrower than this shows the avatar alone in the pill, and the name of the class keeps its room. */
+  @media (width < 75rem) {
+    .topBarEnd:has(> .workspaceToolsWide) .nameText {
+      display: none;
+    }
+
+    .topBarEnd:has(> .workspaceToolsWide) .nameChip > button {
+      padding-inline-end: var(--space-1);
+    }
   }
 
   .main,

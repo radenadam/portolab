@@ -24,7 +24,6 @@
   background: none;
   font: inherit;
   font-weight: var(--choice-weight, inherit);
-  cursor: pointer;
   min-block-size: var(--size-touch-target);
   align-items: center;
   justify-content: center;
@@ -38,14 +37,19 @@
   font-weight: 600;
 }
 
-:where(.choice) :is(a[aria-current], button[aria-pressed="true"])::before {
+/* The pill that marks the chosen option, which an option that is not chosen shows faintly under the pointer, in the same place and shape. */
+:where(.choice)
+  :is(a, button):is([aria-current], [aria-pressed="true"], :hover)::before {
   position: absolute;
   inset: var(--choice-inset, calc(var(--space-2) - var(--size-line))) 0;
   z-index: -1;
   border-radius: var(--choice-radius, var(--radius-button));
+  content: "";
+}
+
+:where(.choice) :is(a[aria-current], button[aria-pressed="true"])::before {
   background: var(--color-panel);
   box-shadow: var(--shadow-choice);
-  content: "";
 }
 
 .intrinsic {
@@ -67,15 +71,10 @@
   inset: 0;
 }
 
-/* An option that is not chosen shows under the pointer a faint version of the pill that marks the chosen one, in the same place and shape, and its text turns to ink. */
+/* An option that is not chosen shows the faint pill under the pointer, and its text turns to ink. */
 :where(.choice)
   :is(a, button):not([aria-current], [aria-pressed="true"]):hover::before {
-  position: absolute;
-  inset: var(--choice-inset, calc(var(--space-2) - var(--size-line))) 0;
-  z-index: -1;
-  border-radius: var(--choice-radius, var(--radius-button));
   background: color-mix(in oklab, var(--color-panel) 55%, transparent);
-  content: "";
 }
 
 :where(.choice) :is(a, button):hover {

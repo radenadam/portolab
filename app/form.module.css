@@ -55,6 +55,11 @@
   font-size: var(--text-mark);
 }
 
+/* A field draws a stronger edge under the pointer. A refused value keeps the edge of its loss. */
+.control:not([aria-invalid="true"]):hover {
+  border-color: var(--color-muted);
+}
+
 /* A thicker border marks a refused value even when a reader cannot see the loss color. */
 .input[aria-invalid="true"] {
   border: var(--size-mark) solid var(--color-loss);
@@ -76,7 +81,6 @@
   margin: calc((var(--size-checkbox) - var(--size-touch-target)) / 2);
   appearance: none;
   background: none;
-  cursor: pointer;
 }
 
 .box::before {
@@ -93,6 +97,16 @@
   background: var(--color-data)
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
     center / 80% no-repeat;
+}
+
+/* A checkbox draws a stronger edge under the pointer, or a deeper fill when it is checked. Its label is part of its target, so the label reacts too. */
+:is(.box:hover, label:hover .box):not(:checked)::before {
+  border-color: var(--color-muted);
+}
+
+:is(.box:hover, label:hover .box):checked::before {
+  border-color: color-mix(in oklab, var(--color-data), black 14%);
+  background-color: color-mix(in oklab, var(--color-data), black 14%);
 }
 
 .box:focus-visible {

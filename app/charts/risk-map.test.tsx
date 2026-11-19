@@ -1,6 +1,5 @@
 import { renderMarkupForTest } from "~/render-markup-for-test";
 import { expect, test } from "vitest";
-import { formatSignedPercent } from "~/formatting";
 import { languageNames } from "~/language-names";
 import { locales } from "~/paraglide/runtime.js";
 import type { Locale } from "~/paraglide/runtime.js";
@@ -13,49 +12,26 @@ import { portfolioWeight } from "~/units/portfolio-weight";
 import { crowdedMapForTest } from "./crowded-map-for-test";
 import { RiskMap } from "./risk-map";
 import { RiskMapLegend } from "./risk-map-legend";
-import type { MapPoint, MarkedPoint } from "./layout-risk-map";
+import type { MarkedPoint } from "./layout-risk-map";
+import {
+  mapPointForTest,
+  markedPointsForTest,
+  marketPointForTest,
+} from "./map-points-for-test";
 
-// The points of layout-risk-map.test.ts, which places a beta b at b / 2.16 across the plot and a return r at (3.32% - r) / 4.64% down it. The chart writes each position as a percentage with two decimals.
-function mapPoint(
-  key: string,
-  values: { beta: number; return: number },
-): MapPoint<Beta, MonthlyReturn> {
-  return {
-    key,
-    name: key,
-    across: beta(values.beta),
-    up: monthlyReturn(values.return),
-    values: [
-      { name: "Beta", value: String(values.beta) },
-      { name: "Alpha", value: formatSignedPercent(values.return) },
-    ],
-  };
-}
-
-const points: MarkedPoint<Beta, MonthlyReturn>[] = [
-  {
-    ...mapPoint("Portofolio Anda", { beta: 0.5, return: 0.02 }),
-    mark: { kind: "own" },
-  },
-  {
-    ...mapPoint("BBCA", { beta: 1.5, return: -0.01 }),
-    mark: { kind: "held", weight: portfolioWeight(0.25) },
-  },
-  {
-    ...mapPoint("TLKM", { beta: 2, return: 0.03 }),
-    mark: { kind: "other" },
-  },
-];
+const points = markedPointsForTest;
 
 const tickTexts: Record<Locale, { across: readonly string[] }> = {
   id: { across: ["0,0", "0,5", "1,0", "1,5", "2,0"] },
   en: { across: ["0.0", "0.5", "1.0", "1.5", "2.0"] },
 };
 
-function render(mapPoints = points): string {
+function render(
+  mapPoints: readonly MarkedPoint<Beta, MonthlyReturn>[] = points,
+): string {
   return renderMarkupForTest(
     <RiskMap
-      market={mapPoint("IHSG", { beta: 1, return: 0.01 })}
+      market={marketPointForTest}
       points={mapPoints}
       across={{ style: "decimal", toValue: beta, title: "Beta" }}
       up={{ style: "percent", toValue: monthlyReturn }}
@@ -94,7 +70,7 @@ function crowdedPoints(
   for (const point of [...holdings, ...others]) {
     const holdingIndex = holdings.indexOf(point);
     stocks.push({
-      ...mapPoint(point.key, {
+      ...mapPointForTest(point.key, {
         beta: point.position.x * 2,
         return: (point.position.y - 0.5) * 0.04,
       }),
@@ -110,7 +86,7 @@ function crowdedPoints(
   return [
     ...stocks,
     {
-      ...mapPoint(portfolioName, { beta: 1, return: 0 }),
+      ...mapPointForTest(portfolioName, { beta: 1, return: 0 }),
       mark: { kind: "own" },
     },
   ];

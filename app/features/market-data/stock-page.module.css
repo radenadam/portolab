@@ -46,9 +46,10 @@
 }
 
 /* The way back is a small link above the name, so the name, the price, and their details share one left edge. */
+/* The way back takes only the width of its text in the grid of the header, so its target never reaches over the empty space beside it. */
 .back {
   composes: standalone-link from global;
-  align-self: start;
+  justify-self: start;
   margin-block-end: calc((1lh - var(--size-touch-target)) / 2 + var(--space-2));
   color: var(--color-ink-secondary);
   font-size: var(--text-caption);

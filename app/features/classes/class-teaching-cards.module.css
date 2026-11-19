@@ -135,7 +135,6 @@
   border: 0;
   background: none;
   font-size: var(--text-caption);
-  cursor: pointer;
 }
 
 .heading {

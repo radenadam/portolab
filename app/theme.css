@@ -9,6 +9,8 @@
   --color-hover: light-dark(#f3f6f9, #1a2129);
   /* Each filled control takes its own color on hover, a step deeper than at rest, so its text keeps its contrast. */
   --color-button-hover: light-dark(#2c3946, #c6d0d9);
+  /* An outlined control or a pill, such as an outlined button or a filter, fills its own shape with this color under the pointer. It is a step deeper than the raised color, so it shows on the ground of the page as well as on a panel. */
+  --color-control-hover: light-dark(#e3e9ee, #242d37);
   --color-line: light-dark(#dfe5ea, #25303a);
   --color-line-strong: light-dark(#b9c4cf, #3b4956);
   --color-ink: light-dark(#0f1820, #e9eef2);
@@ -144,6 +146,8 @@
   --size-icon: 1.25rem;
   --size-tab-icon: 1.375rem;
   --size-avatar: 2rem;
+  /* The avatar inside the pill of the name in the top bar fills the pill but for a small margin. */
+  --size-chip-avatar: 1.375rem;
   --size-student-avatar: 2.5rem;
   /* A chart takes about a third of the screen of a phone held upright, so the text around it stays in view. */
   --size-chart: 16rem;
@@ -345,7 +349,6 @@ a {
   background: none;
   font-family: inherit;
   font-size: inherit;
-  cursor: pointer;
 }
 
 /* A search field draws its button as a magnifier inside its border, as the references of decision 0028 draw a search, so Enter and the magnifier both send it. A CSS module composes it from global. */
@@ -384,12 +387,6 @@ a {
   font: inherit;
   font-weight: 600;
   text-decoration: none;
-  cursor: pointer;
-}
-
-/* The primary button takes a deeper ink on hover. */
-.primary-button:hover {
-  background: var(--color-button-hover);
 }
 
 /* The label of a part that opens, such as a table of returns, has the color of a link and the height of a touch target, and it keeps the marker that shows whether the part is open. Padding reaches that height, because a line as high as the target would set the lines of a label that wraps a whole target apart. */
@@ -397,37 +394,53 @@ summary {
   min-height: var(--size-touch-target);
   padding-block: calc((var(--size-touch-target) - 1lh) / 2);
   color: var(--color-link);
+}
+
+/* The pointer turns into a hand over every control, so a reader with a mouse sees what reacts before clicking. A link has the hand already. e2e/expect-accessible-screen.ts checks every screen for it. */
+:is(
+  button,
+  summary,
+  select,
+  [role="button"],
+  label:has(> input),
+  input:is([type="checkbox"], [type="radio"], [type="range"])
+):not(:disabled) {
   cursor: pointer;
 }
 
-/* The pointer turns into a hand over every control, so a reader with a mouse sees what reacts before clicking. */
-:is(button, summary, [role="button"], label:has(> input)):not(:disabled) {
-  cursor: pointer;
+/* Under the pointer, each kind of control reacts in its own visible shape, never in the touch box around it, and nothing moves or changes its size, as decision 0068 lists. The kinds that several screens share react here or in their shared module. */
+
+/* A filled button takes a deeper fill of its own color. */
+.primary-button:hover {
+  background: var(--color-button-hover);
 }
 
-/* A link that stands alone gains on hover the underline that a link in a sentence already has, as links do in other apps. */
-.standalone-link:hover {
+/* A link in a sentence already carries its underline, so it draws the underline thicker. The selector weighs nothing, so a link that a module draws without an underline, such as a row, keeps its own hover. */
+:where(a[href]:hover) {
+  text-decoration-thickness: var(--size-mark);
+}
+
+/* A link that stands alone gains the underline that a link in a sentence already has, as links do in other apps. The label of a part that opens is drawn as a link, so it reacts as a link does. Its selector weighs nothing, so a module that draws a label as another kind, such as a key term on a card, sets its own hover. */
+.standalone-link:hover,
+:where(summary:hover) {
   text-decoration-line: underline;
   text-decoration-thickness: var(--size-line);
   text-underline-offset: 0.2em;
 }
 
-/* A plain label of a part that opens is drawn as a link, so it reacts as a link does: its text takes the underline under the pointer. A label that a module draws, such as a key term on a card, sets its own hover. */
-details:not([class]) > summary:not([class]):hover {
-  text-decoration-line: underline;
-  text-decoration-thickness: var(--size-line);
-  text-underline-offset: 0.2em;
-}
-
-/* A row or a card that opens something, such as a student in a list, shows a light ground on hover instead of an underline, because the whole row is the target. A CSS module composes it from global. */
+/* A row that opens something, such as a student in a list, shows a light ground across the whole row instead of an underline, because the whole row is the target. A row has no rounded corners, so the lines between rows stay straight. A chosen row keeps the tint that marks it, as a chosen option does. A CSS module composes it from global. */
 .row-link {
   color: inherit;
   text-decoration: none;
-  cursor: pointer;
 }
 
-.row-link:hover {
+.row-link:not([aria-pressed="true"], [aria-current]):hover {
   background-color: var(--color-hover);
+}
+
+/* A field draws a stronger edge. */
+.search-field:hover {
+  border-color: var(--color-line-strong);
 }
 
 /* A button that waits for the answer to its form shows muted text on the raised color, so a reader on a touch screen sees the wait too, which the pointer shows on a mouse. */

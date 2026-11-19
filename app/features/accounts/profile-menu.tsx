@@ -1,5 +1,4 @@
 import { Avatar } from "~/avatar";
-import type { AvatarLook } from "~/avatar";
 import { ThemeSwitch } from "~/features/theme/theme-switch";
 import { NumberText } from "~/number-text";
 import type { ReactNode } from "react";
@@ -8,17 +7,12 @@ import { LanguageSwitch } from "~/features/language/language-switch";
 import { m } from "~/paraglide/messages.js";
 import popoverStyles from "~/popover.module.css";
 import type { Role } from "./accounts.schema";
+import { profileAvatarLook } from "./profile-avatar-look";
 import styles from "./profile-menu.module.css";
 import { roleName } from "./role-name";
 import { SignOutButton } from "./sign-out-button";
 
-// The prototype of decision 0028 draws the avatar of a student in the tint of the reader's own point, which marks the portfolio of the student on every map.
-const avatarLooks: Record<Role, AvatarLook> = {
-  student: "own",
-  lecturer: "plain",
-};
-
-/** The menu of the profile of the person who is signed in, which the frame opens from the name and from the avatar: who the person is, with the avatar beside the name and the role, the link to the account, the theme, the language, and the button that signs out. */
+/** The menu of the profile of the person who is signed in, which the frame opens from the name on a desktop and from the avatar on a phone: who the person is, with the avatar beside the name and the role, the link to the account, the theme, the language, and the button that signs out. */
 export function ProfileMenu({
   name,
   readerRole,
@@ -29,7 +23,7 @@ export function ProfileMenu({
   return (
     <>
       <p className={styles["person"]}>
-        <Avatar name={name} look={avatarLooks[readerRole]} />
+        <Avatar name={name} look={profileAvatarLook(readerRole)} />
         <span className={styles["identity"]}>
           <span className={styles["name"]}>
             <NumberText verbatim>{name}</NumberText>

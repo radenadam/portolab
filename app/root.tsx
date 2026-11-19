@@ -16,6 +16,7 @@ import { tabIconAddress } from "./app-icon";
 import { RouteErrorPage } from "./error-page";
 import { sessionMiddleware } from "./features/accounts/current-session.server";
 import { crossSiteProtection } from "./features/accounts/cross-site-protection.server";
+import { profileAvatarLook } from "./features/accounts/profile-avatar-look";
 import { ProfileMenu } from "./features/accounts/profile-menu";
 import {
   isRefusedForm,
@@ -157,6 +158,7 @@ function readerParts(reader: FrameReader | undefined): {
       ),
     profile: {
       name: reader.name,
+      look: profileAvatarLook(reader.role),
       menu: <ProfileMenu name={reader.name} readerRole={reader.role} />,
     },
     tools: undefined,

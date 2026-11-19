@@ -14,3 +14,8 @@
   width: var(--size-icon);
   height: var(--size-icon);
 }
+
+/* A star that is on changes its color toward ink under the pointer, as every icon does, and keeps its own color enough to stay on. */
+.button[aria-pressed="true"]:hover {
+  color: color-mix(in oklab, var(--color-own), var(--color-ink) 35%);
+}

@@ -66,20 +66,16 @@
   color: var(--color-ink-secondary);
   pointer-events: none;
 }
-.sortControl select {
+/* The choice of the order is drawn as an outlined button, so it takes the look of one and its hover. */
+.sort {
+  composes: button from "../../button.module.css";
   appearance: none;
-  min-block-size: var(--size-touch-target);
   max-inline-size: 100%;
+  padding-block: 0;
   padding-inline: calc(var(--space-3) + var(--size-icon) + var(--space-2))
     var(--space-3);
-  border: var(--size-line) solid var(--color-line-strong);
-  border-radius: var(--radius-item);
   background: var(--color-panel);
-  color: var(--color-ink);
-  font: inherit;
   font-size: var(--text-small);
-  font-weight: 600;
-  cursor: pointer;
 }
 .direction {
   composes: button from "../../icon-button.module.css";
@@ -189,7 +185,6 @@
   min-block-size: var(--size-touch-target);
   max-inline-size: 100%;
   font-size: var(--text-small);
-  cursor: pointer;
 }
 .chip input {
   position: absolute;
@@ -198,16 +193,9 @@
   block-size: 100%;
   margin: 0;
   opacity: 0;
-  cursor: pointer;
 }
 .chip > span {
   overflow-wrap: anywhere;
-}
-.chip:has(:checked) > span {
-  background: var(--color-ink);
-  border-color: var(--color-ink);
-  color: var(--color-panel);
-  font-weight: 600;
 }
 .select {
   display: flex;

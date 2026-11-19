@@ -1,4 +1,6 @@
+/* A row of a lesson opens or chooses something, so it shows the light ground of a row under the pointer. */
 .row {
+  composes: row-link from global;
   align-items: center;
   inline-size: 100%;
   min-block-size: var(--size-touch-target);

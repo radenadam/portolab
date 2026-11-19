@@ -11,9 +11,9 @@ for (const short of [false, true]) {
       <html lang="en"><head><title>Touch targets</title><style>
         :root { --size-touch-target: 44px; }
         body { background: white; color: black; }
-        button { box-sizing: border-box; min-height: 44px; }
+        button { box-sizing: border-box; min-height: 44px; cursor: pointer; }
         details { margin-top: 40px; }
-        summary { min-height: 44px; }
+        summary { min-height: 44px; cursor: pointer; }
         .short { min-height: 0; height: 20px; }
       </style></head><body><main><h1>Touch targets</h1>
         <button type="button" class="${short ? "short" : "full"}">Visible target</button>
@@ -28,6 +28,57 @@ for (const short of [false, true]) {
       else await expectAccessibleScreen(page);
     },
   );
+}
+
+const cursorCases = [
+  {
+    name: "accepts a hand on every kind of control and on the parts inside it, and ignores a waiting button and controls hidden in native details and popovers",
+    extra: "",
+    failure: undefined,
+  },
+  {
+    name: "rejects a visible control that keeps the arrow",
+    extra: '<button type="button" style="cursor: default">Arrow</button>',
+    failure: "shows the cursor default.",
+  },
+  {
+    name: "rejects a visible slider that keeps the arrow",
+    extra: '<input type="range" aria-label="Arrow" style="cursor: default">',
+    failure: "shows the cursor default.",
+  },
+  {
+    name: "rejects a part that shows a hand but is not a control",
+    extra: '<p style="cursor: pointer">Only informs</p>',
+    failure: "shows a hand but is not a control.",
+  },
+] as const;
+
+for (const { name, extra, failure } of cursorCases) {
+  test(name, async ({ page }) => {
+    await page.setContent(`<!doctype html>
+      <html lang="en"><head><title>Cursors</title><style>
+        :root { --size-touch-target: 44px; }
+        body { background: white; color: black; }
+        a, button, summary, label, select, input, [role="button"] { display: block; min-height: 44px; }
+        input[type="checkbox"] { width: 44px; height: 44px; }
+        :is(button, summary, select, [role="button"], label:has(> input), input:is([type="checkbox"], [type="radio"], [type="range"])):not(:disabled) { cursor: pointer; }
+        button:disabled { cursor: progress; }
+        .arrow { cursor: default; }
+      </style></head><body><main><h1>Cursors</h1>
+        <a href="#here">Link</a>
+        <button type="button"><span>Part of a button</span></button>
+        <button type="button" disabled>Waiting</button>
+        <span role="button" tabindex="0">Drawn button</span>
+        <label><input type="checkbox"> Choice</label>
+        <select aria-label="Order"><option>Change</option></select>
+        <input type="range" aria-label="Weight">
+        <details><summary>More</summary><button type="button" class="arrow">Closed detail control</button></details>
+        <div popover><button type="button" class="arrow">Closed popover control</button></div>
+        ${extra}
+      </main></body></html>`);
+    if (failure === undefined) await expectAccessibleScreen(page);
+    else await expect(expectAccessibleScreen(page)).rejects.toThrow(failure);
+  });
 }
 
 for (const [theme, colorScheme] of [

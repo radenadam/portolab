@@ -19,22 +19,13 @@
 .tools h1 {
   font-size: var(--text-title);
 }
+/* The choice of the measure is a segmented choice like every other choice of a view, so it looks and reacts the same. It wraps when the column is too narrow for all its options. */
 .measures {
+  composes: choice intrinsic from "../../segmented-choice.module.css";
   display: flex;
   flex-wrap: wrap;
-  position: relative;
-  isolation: isolate;
-  padding-inline: var(--space-1);
+  font-size: var(--text-small);
 }
-.measures::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  inset: var(--space-1) 0;
-  border-radius: var(--radius-item);
-  background: var(--color-raised);
-}
-.measures a,
 .filters a {
   display: inline-flex;
   align-items: center;
@@ -43,17 +34,6 @@
   color: var(--color-ink-secondary);
   font-size: var(--text-small);
   text-decoration: none;
-}
-.measures a > span,
-.filters a > span {
-  padding: var(--space-1) var(--space-3);
-}
-.measures a[aria-current] > span {
-  border-radius: var(--radius-button);
-  background: var(--color-panel);
-  color: var(--color-ink);
-  box-shadow: var(--shadow-choice);
-  font-weight: 600;
 }
 .search {
   display: flex;
@@ -100,17 +80,6 @@
   display: flex;
   flex-wrap: wrap;
   column-gap: var(--space-2);
-}
-.filters a > span {
-  border: var(--size-line) solid var(--color-line);
-  border-radius: var(--radius-panel);
-  background: var(--color-panel);
-}
-.filters a[aria-current] > span {
-  border-color: var(--color-button);
-  background: var(--color-button);
-  color: var(--color-on-button);
-  font-weight: 600;
 }
 .listPanel {
   flex: 1;
@@ -387,6 +356,11 @@
 
 .table tbody tr:has(.who a:hover) {
   background: var(--color-hover);
+}
+
+/* The row of the student that the address marks keeps its tint under the pointer and deepens it, so the mark stays while the row reacts. */
+.table tbody tr.selected:has(.who a:hover) {
+  background: color-mix(in oklab, var(--color-own-soft), var(--color-own) 8%);
 }
 
 .table .reasonCell {

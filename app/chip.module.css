@@ -16,10 +16,6 @@
   white-space: nowrap;
 }
 
-button.chip {
-  cursor: pointer;
-}
-
 .chip::before {
   position: absolute;
   z-index: -1;
@@ -36,8 +32,9 @@ button.chip {
   background: var(--color-panel);
 }
 
-/* The references fill a chosen filter with the color of a button. */
-.filter[aria-pressed="true"] > span {
+/* The references fill a chosen filter with the color of a button. A filter is chosen by its state, such as the current link of a list or the checked choice of a field. */
+.filter:is([aria-pressed="true"], [aria-current], :has(> input:checked))
+  > span {
   border-color: var(--color-button);
   background: var(--color-button);
   color: var(--color-on-button);
@@ -63,17 +60,18 @@ button.chip {
   background: var(--color-warning-soft);
 }
 
-/* A filter that is not chosen fills its own pill and draws a stronger edge under the pointer. */
-.filter:not([aria-pressed="true"], [aria-current="page"]):hover > span {
+/* A filter that is not chosen fills its own pill and draws a stronger edge under the pointer. A chosen filter keeps its fill. */
+.filter:not([aria-pressed="true"], [aria-current], :has(> input:checked)):hover
+  > span {
   border-color: var(--color-line-strong);
-  background: var(--color-raised);
+  background: var(--color-control-hover);
   color: var(--color-ink);
 }
 
-/* A chip that opens something fills its own pill under the pointer: the name of the reader with the raised color, and the badge of the simulation with a deeper tint of its warning. */
+/* A chip that opens something fills its own pill under the pointer: the name of the reader with the fill of a control, and the badge of the simulation with a deeper tint of its warning. */
 button.chip:hover::before {
   border-color: var(--color-line-strong);
-  background: var(--color-raised);
+  background: var(--color-control-hover);
 }
 
 button.chip:hover {

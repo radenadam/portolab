@@ -17,13 +17,17 @@
   border-block-end: 0;
 }
 
-.classItem > .link {
+/* A class of the list is a row that opens the class, so it shows the light ground of a row under the pointer instead of an underline. The ground reaches a little past the text on each side, as the rows of Kelas do. */
+.classLink {
+  composes: row-link from global;
+  display: flex;
   flex-direction: column;
-  align-items: stretch;
   justify-content: center;
-  padding-block: var(--space-3);
-  color: var(--color-ink);
-  text-decoration: none;
+  gap: var(--space-1);
+  min-height: var(--size-touch-target);
+  margin-inline: calc(-1 * var(--space-2));
+  padding-inline: var(--space-2);
+  overflow-wrap: anywhere;
 }
 
 .className {

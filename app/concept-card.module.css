@@ -14,7 +14,6 @@
   color: var(--color-muted);
   font: inherit;
   vertical-align: middle;
-  cursor: pointer;
 }
 
 /* The references set the "?" of the head of a column farther from its label than a "?" in a line of text, and they line it up with the values of the column. So its mark stands at the end of its box, which reaches over the label instead of past the cell. */

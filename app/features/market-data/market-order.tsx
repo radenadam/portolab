@@ -76,6 +76,7 @@ export function MarketOrder({
           <OrderIcon path={slidersPath} />
           <select
             id="market-sort"
+            className={styles["sort"]}
             name="sort"
             aria-label={m.market_data_sort_label()}
             aria-invalid={failures.sort !== undefined}

@@ -11,10 +11,21 @@
 
 ### Shared parts
 
-- A button, and a link drawn as a button, darkens on hover. A button without a fill takes a light ground on hover. A row or a card that opens something composes the global class `.row-link` of `app/theme.css`, which gives it the light ground of the token `--color-hover` on hover instead of an underline. Only a link that stands alone and the label of a part that opens, such as a `summary`, underline on hover.
+- Every control turns the pointer into a hand, and each kind of control reacts to the pointer in its own way, in the shape that it shows and never in the touch box around that shape. Nothing moves or changes its size under the pointer. A chosen option, filter, or row keeps its look, and a row that a tint marks, such as the student whom the lecturer came back from, deepens that tint.
+  - A filled button, such as a primary button or Beli, takes a deeper fill of its own color.
+  - An outlined button, a pill, and a chip, such as a filter or the name of the reader, fill their own shape with the token `--color-control-hover`, which shows on the ground of the page as well as on a panel.
+  - An icon or a "?" changes its color.
+  - A link that stands alone and the label of a part that opens, such as a `summary`, underline. A link in a sentence draws its underline thicker.
+  - A row that opens something composes the global class `.row-link` of `app/theme.css`, or a link that covers it, and takes the light ground of the token `--color-hover` across the whole row. A row has no rounded corners, so the lines between rows stay straight.
+  - An item of the navigation or of a menu takes a light ground.
+  - An option of a segmented choice shows a faint version of the chosen pill in its place.
+  - A card, such as the card of a session or a key term, takes a light ground and a stronger edge.
+  - A field draws a stronger edge, and a checkbox a stronger edge or a deeper fill.
+  - A point of a map shows one ring centered on it. The mark of the reader turns its own ring into that ring.
 - A link that stands alone reaches its touch target of 44 pixels over the space around it, so it takes only the height of its line in the layout.
 - A checkbox is an element of 44 pixels that draws a box of 18 pixels in its middle, with the color of data when it is checked.
 - The app icon in the rail is 28 pixels, smaller than the 36 pixels of the references.
+- On a desktop, the name of the reader in the top bar is a pill that holds the avatar and opens the menu of the profile beside it. A lecturer sees it beside the code for joining, and a desktop narrower than 1200 pixels shows only the avatar in the pill of a lecturer, so the name of the class keeps its room. The rail has no profile at its foot, so the screen draws the reader once, and nothing else in the top bar looks like a button without being one. A phone keeps the avatar in the top bar, which opens the same menu.
 - An open `details` that holds a table shows about six rows and scrolls inside its own box, and the head of its table stays in view.
 - A popover stays beside its button. It takes the side with the most room, scrolls inside that room when it is taller, and never scrolls sideways. It no longer moves to the middle of the screen when neither side has room. A popover that holds no control, such as a table of values, is a stop of the Tab key, so a keyboard reaches it to scroll it. A "?" card that holds a table is wider than one without.
 - A choice of a view, such as the axis of a map, the allocation of Analisis, a choice of Dampak, or the measure and the filter of Mahasiswa, uses `ViewLink` of `app/view-link.tsx`. Before JavaScript loads, the fragment of its address, where it has one, brings the reader back to the part that changed. Once the app runs, it changes the part in place, keeps the scroll position, and replaces the current entry of the history, so Back leaves the screen instead of stepping through earlier views.
@@ -63,7 +74,7 @@
 
 This record replaces these rules:
 
-- In decision 0028, the labels of the ranges of the price chart, the panel of a selected student and the width at which it docks, the journal beside the orders of Aktivitas, and "Lihat perhitungan" as what opens a calculation in Analisis.
+- In decision 0028, the labels of the ranges of the price chart, the panel of a selected student and the width at which it docks, the journal beside the orders of Aktivitas, "Lihat perhitungan" as what opens a calculation in Analisis, the profile at the foot of the rail, and the name or the code for joining in the top bar.
 - In decision 0030, the student whom Mahasiswa shows in its panel as a view in the address, the panel of a selected student among what opens in place, the end of the menu of the class switcher, and Back that returns to an earlier view of the same screen.
 - In decision 0032, what the page of the class names about the week of the course.
 - In decision 0035, the bars of the spread of a class, the short line of its median, the table that keeps every student below the class map, and the return to a row of that table or to the administration.

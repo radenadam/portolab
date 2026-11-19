@@ -5,7 +5,8 @@
   width: var(--size-avatar);
   height: var(--size-avatar);
   border-radius: 50%;
-  background: var(--color-raised);
+  /* A caller whose ground is the raised color sets a ground that stands out from it for the plain look. */
+  background: var(--avatar-ground, var(--color-raised));
   color: var(--color-ink-secondary);
   font-size: var(--text-small);
   font-weight: 600;

@@ -20,6 +20,7 @@ import type { ComparedStudent } from "./student-filters";
 import { StudentStandings } from "./student-standings";
 import { studentsAddress } from "./students-address";
 import type { StudentOptions } from "./students-address";
+import chipStyles from "~/chip.module.css";
 import { ViewLink } from "~/view-link";
 import styles from "./grading.module.css";
 
@@ -135,6 +136,7 @@ export function ClassPortfoliosView({
                   key={filter}
                   to={studentsAddress(classId, { ...options, filter })}
                   aria-current={options.filter === filter ? "true" : undefined}
+                  className={chipStyles["filter"]}
                 >
                   <span>
                     <NumberText>{studentFilterLabel(filter)}</NumberText> ·{" "}

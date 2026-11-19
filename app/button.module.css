@@ -17,10 +17,10 @@
   color: var(--button-ink, var(--color-ink));
 }
 
-/* An outlined button fills its own shape with the raised color and draws a stronger edge on hover. A filled button takes the deeper color that it names. */
+/* An outlined button fills its own shape inside its strong edge with the fill of a control on hover. A filled button takes the deeper color of its own that it names, edge and fill alike. */
 .button:hover {
-  border-color: var(--color-line-strong);
-  background: var(--button-hover, var(--color-raised));
+  border-color: var(--button-hover, var(--color-line-strong));
+  background: var(--button-hover, var(--color-control-hover));
 }
 
 /* A button filled with the color of buttons, such as the first step of a welcome. */

@@ -9,12 +9,8 @@ import { monthlyReturn } from "~/units/monthly-return";
 import type { MonthlyReturn } from "~/units/monthly-return";
 import { portfolioWeight } from "~/units/portfolio-weight";
 import { layoutRiskMap } from "./layout-risk-map";
-import type {
-  MapMark,
-  MapPoint,
-  MarkedPoint,
-  RiskMapLayout,
-} from "./layout-risk-map";
+import { mapPointForTest } from "./map-points-for-test";
+import type { MapMark, MarkedPoint, RiskMapLayout } from "./layout-risk-map";
 
 // The IHSG lies at a beta of 1 and a return of 1%, and the line starts at a beta of 0 and a return of 0.5%, so it rises by 0.5% for each step of beta. The betas reach from 0 to 2, which a padding of 8% of their spread widens to -0.16 to 2.16, and the axis starts at zero, because no beta lies below it. The line ends at the right edge at 0.5% + 2.16 × 0.5% = 1.58%. The returns, with zero and the ends of the line, reach from -1% to 3%, which the padding widens to -1.32% to 3.32%, a range of 4.64%. So a beta b lies at b / 2.16 across the plot, and a return r at (3.32% - r) / 4.64% down it.
 function across(value: number): number {
@@ -25,28 +21,15 @@ function down(value: number): number {
   return (0.0332 - value) / 0.0464;
 }
 
-function mapPoint(
-  key: string,
-  values: { beta: number; return: number },
-): MapPoint<Beta, MonthlyReturn> {
-  return {
-    key,
-    name: key,
-    across: beta(values.beta),
-    up: monthlyReturn(values.return),
-    values: [],
-  };
-}
-
 function markedPoint(
   key: string,
   values: { beta: number; return: number },
   mark: MapMark,
 ): MarkedPoint<Beta, MonthlyReturn> {
-  return { ...mapPoint(key, values), mark };
+  return { ...mapPointForTest(key, values), mark };
 }
 
-const market = mapPoint("IHSG", { beta: 1, return: 0.01 });
+const market = mapPointForTest("IHSG", { beta: 1, return: 0.01 });
 const points = [
   markedPoint("portfolio", { beta: 0.5, return: 0.02 }, { kind: "own" }),
   markedPoint(
@@ -227,7 +210,7 @@ for (const locale of locales) {
 test("counts the minor marks of risk from the first mark when the risk of the IHSG falls between marks", () => {
   // The betas reach from 0 to 3, which the padding widens to 3.24, so the step is 0.5, and the IHSG lies at 0.7, between the marks.
   const map = layoutRiskMap({
-    market: mapPoint("IHSG", { beta: 0.7, return: 0.01 }),
+    market: mapPointForTest("IHSG", { beta: 0.7, return: 0.01 }),
     points: [markedPoint("ANTM", { beta: 3, return: 0.01 }, { kind: "other" })],
     ...axes,
     line,
@@ -325,7 +308,7 @@ for (const locale of locales) {
     switchLocaleForTest(locale);
     // The returns, the line, and zero reach from 0% to 0.003%, so the marks stand a hundredth of a percent apart at the least, and only the mark at 0% lies in their range.
     const map = layoutRiskMap({
-      market: mapPoint("IHSG", { beta: 1, return: 0.00002 }),
+      market: mapPointForTest("IHSG", { beta: 1, return: 0.00002 }),
       points: [
         markedPoint(
           "portfolio",

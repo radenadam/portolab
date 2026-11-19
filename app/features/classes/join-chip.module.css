@@ -10,7 +10,6 @@
 
 .copy {
   composes: button from "../../button.module.css";
-  cursor: pointer;
 }
 
 .copyIcon {

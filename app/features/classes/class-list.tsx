@@ -33,7 +33,7 @@ export function ClassList({
     <ul className={styles["list"]} data-layout="rows">
       {classes.map((listed) => (
         <li key={listed.id} className={styles["classItem"]}>
-          <Link to={classPath(listed.id)} className={styles["link"]}>
+          <Link to={classPath(listed.id)} className={styles["classLink"]}>
             <span className={styles["className"]}>
               <NumberText verbatim>{listed.name}</NumberText>
             </span>

@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { AppIcon } from "./app-icon";
 import { Avatar } from "./avatar";
+import type { AvatarLook } from "./avatar";
 import chipStyles from "./chip.module.css";
 import styles from "./frame.module.css";
 import { Icon } from "./icon";
@@ -21,7 +22,9 @@ export interface FrameItem {
 /** The person who is signed in, whose name the frame shows and whose menu it opens. */
 export interface FrameProfile {
   name: string;
-  /** The items of the menu of the profile, which the frame shows in a popover beside each button that opens it. */
+  /** How the avatar in the name is drawn, the same as in the menu. */
+  look: AvatarLook;
+  /** The items of the menu of the profile, which the frame shows in a popover beside the button that opens it. */
   menu: ReactNode;
 }
 
@@ -40,11 +43,10 @@ interface FrameProps {
   children: ReactNode;
 }
 
-// Each place that opens the menu of the profile has a popover of its own, so the menu opens beside the button that the reader chose.
-const railProfileId = "rail-profile";
-const topProfileId = "top-profile";
+// The name of a desktop and the avatar of a phone open one popover. Only one of them shows on a screen, so the menu opens beside the one that shows.
+const profileId = "top-profile";
 
-/** The frame of every page, as decision 0028 sets it: on a desktop, the rail with the app icon, the items, and the profile at its foot, beside the top bar. On a phone, the top bar and the tab bar with the items of the rail. The content stays in the middle of the screen beyond its largest width. */
+/** The frame of every page, as decision 0028 sets it with the changes of decision 0068: on a desktop, the rail with the app icon and the items, beside the top bar, where the name of the reader opens the profile. On a phone, the top bar, where the avatar of the reader opens the profile, and the tab bar with the items of the rail. The content stays in the middle of the screen beyond its largest width. */
 export function Frame({
   sampleClassLabel,
   items,
@@ -68,24 +70,6 @@ export function Frame({
             <AppIcon />
           </Link>
           <ItemList items={items} placement="rail" />
-          {profile !== undefined && (
-            <div className={styles["railFoot"]}>
-              <PopoverButton
-                popover={railProfileId}
-                label={profileLabel}
-                className={styles["avatarButton"]}
-              >
-                <Avatar name={profile.name} look="plain" />
-              </PopoverButton>
-              <Popover
-                id={railProfileId}
-                label={m.app_profile_title()}
-                placement="aboveStart"
-              >
-                {profile.menu}
-              </Popover>
-            </div>
-          )}
         </nav>
         <div className={styles["body"]}>
           <header className={styles["topBar"]}>
@@ -107,14 +91,24 @@ export function Frame({
                     {workspaceTools}
                   </span>
                 )}
-                {profile !== undefined && workspaceTools === undefined && (
+                {profile !== undefined && (
                   <span className={styles["nameChip"]}>
                     <PopoverButton
-                      popover={topProfileId}
+                      popover={profileId}
                       label={profileLabel}
                       className={chipStyles["chip"]}
                     >
-                      <span className={chipStyles["text"]}>
+                      <Avatar
+                        name={profile.name}
+                        look={profile.look}
+                        className={styles["chipAvatar"]}
+                      />
+                      <span
+                        className={classNames(
+                          chipStyles["text"],
+                          styles["nameText"],
+                        )}
+                      >
                         <NumberText verbatim>{profile.name}</NumberText>
                       </span>
                     </PopoverButton>
@@ -124,14 +118,14 @@ export function Frame({
                 {profile !== undefined && (
                   <>
                     <PopoverButton
-                      popover={topProfileId}
+                      popover={profileId}
                       label={profileLabel}
-                      className={styles["topAvatarButton"]}
+                      className={styles["avatarButton"]}
                     >
                       <Avatar name={profile.name} look="plain" />
                     </PopoverButton>
                     <Popover
-                      id={topProfileId}
+                      id={profileId}
                       label={m.app_profile_title()}
                       placement="belowEnd"
                     >
