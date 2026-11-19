@@ -1,6 +1,6 @@
 # 0067. Shared parts have measured allowances
 
-- Status: Accepted
+- Status: Accepted. [Decision 0069](0069-the-review-of-19-november-2026-has-measured-allowances.md) replaces its JavaScript ceilings for demonstration analysis, student analysis, the stock page, the ticket, and the lecturer's student analysis, and its CSS ceilings for class home, Market, the stock page, and the lecturer's student summary.
 - Date: 2026-11-18
 
 ## Context

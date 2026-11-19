@@ -169,7 +169,10 @@ async function expectTradeActions(
       .filter({ visible: true })
       .boundingBox();
     if (tabBar === null) throw new Error("A phone shows the tab bar.");
-    expect(actionsBox.y + actionsBox.height).toBeCloseTo(tabBar.y, 0);
+    // The bar rests on the line at the top of the tab bar, which the two may share.
+    expect(
+      Math.abs(actionsBox.y + actionsBox.height - tabBar.y),
+    ).toBeLessThanOrEqual(1);
   } else {
     expect(actionsBox.x).toBeGreaterThan(nameBox.x + nameBox.width);
     expect(actionsBox.y).toBeLessThan(nameBox.y + nameBox.height);

@@ -3,46 +3,44 @@ interface ClientRouteLimits {
   stylesheets: string;
 }
 
-const exerciseStylesheetLimit = "24 kB";
-
-// Decisions 0049, 0060, 0061, 0063, 0065, and 0067 record these allowances for complete lesson sheets, the analysis panels, the stars of the watchlist, the welcome on Beranda, and the parts that every screen shares.
+// Decisions 0049, 0060, 0061, 0063, 0065, 0067, and 0069 record these allowances for complete lesson sheets, the analysis panels, the stars of the watchlist, the welcome on Beranda, the parts that every screen shares, and the review of 19 November 2026.
 const measuredRoutes: ReadonlyMap<string, Partial<ClientRouteLimits>> = new Map(
   [
     [
       "features/classes/class-page",
-      { javascript: "241.7 kB", stylesheets: "27.9 kB" },
+      { javascript: "241.7 kB", stylesheets: "28.4 kB" },
     ],
     [
       "features/market-data/market-page",
-      { javascript: "222.1 kB", stylesheets: "23.6 kB" },
+      { javascript: "222.1 kB", stylesheets: "24.5 kB" },
     ],
     [
       "features/trading/activity-page",
-      { javascript: "212.3 kB", stylesheets: "20.7 kB" },
+      { javascript: "212.3 kB", stylesheets: "20.8 kB" },
     ],
     [
       "features/trading/demonstration-summary-page",
-      { javascript: "226.3 kB", stylesheets: exerciseStylesheetLimit },
+      { javascript: "226.3 kB", stylesheets: "24.7 kB" },
     ],
     [
       "features/trading/demonstration-activity-page",
-      { javascript: "213.1 kB", stylesheets: "21.3 kB" },
+      { javascript: "213.1 kB", stylesheets: "21.5 kB" },
     ],
     [
       "features/measures/demonstration-analysis-page",
-      { javascript: "231.4 kB", stylesheets: "23.2 kB" },
+      { javascript: "231.5 kB", stylesheets: "24 kB" },
     ],
     [
       "features/measures/measures-page",
-      { javascript: "230.5 kB", stylesheets: "22.5 kB" },
+      { javascript: "230.7 kB", stylesheets: "23.3 kB" },
     ],
     [
       "features/market-data/stock-page",
-      { javascript: "232.1 kB", stylesheets: "23.9 kB" },
+      { javascript: "232.2 kB", stylesheets: "24.9 kB" },
     ],
     [
       "features/trading/ticket-page",
-      { javascript: "239.8 kB", stylesheets: "26.6 kB" },
+      { javascript: "240 kB", stylesheets: "28 kB" },
     ],
     [
       "features/grading/class-portfolios-page",
@@ -50,15 +48,15 @@ const measuredRoutes: ReadonlyMap<string, Partial<ClientRouteLimits>> = new Map(
     ],
     [
       "features/grading/student-portfolio-page",
-      { javascript: "227.2 kB", stylesheets: "24.3 kB" },
+      { javascript: "227.2 kB", stylesheets: "25.1 kB" },
     ],
     [
       "features/grading/student-measures-page",
-      { javascript: "232 kB", stylesheets: "23.6 kB" },
+      { javascript: "232.2 kB", stylesheets: "24.4 kB" },
     ],
     [
       "features/grading/student-journal-page",
-      { javascript: "213.6 kB", stylesheets: "21.7 kB" },
+      { javascript: "213.6 kB", stylesheets: "21.8 kB" },
     ],
   ],
 );

@@ -1,6 +1,6 @@
 # 0065. The welcome has measured shared and route allowances
 
-- Status: Accepted. [Decision 0067](0067-shared-parts-have-measured-allowances.md) replaces its JavaScript ceilings for every set that it names, and its CSS ceilings for class home, Market, the stock page, and the lecturer's student summary.
+- Status: Accepted. [Decision 0067](0067-shared-parts-have-measured-allowances.md) replaces its JavaScript ceilings for every set that it names, and its CSS ceilings for class home, Market, the stock page, and the lecturer's student summary. [Decision 0069](0069-the-review-of-19-november-2026-has-measured-allowances.md) replaces its CSS ceilings for Activity, demonstration summary, demonstration Activity, demonstration analysis, student analysis, the ticket, and the lecturer's student analysis and journal.
 - Date: 2026-11-18
 
 ## Context
