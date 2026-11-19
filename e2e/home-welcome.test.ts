@@ -70,9 +70,8 @@ for (const locale of locales) {
             exact: true,
           });
           await expect(dialog).toBeVisible();
-          await expect(
-            dialog.getByRole("link", { name: text.next, exact: true }),
-          ).toBeFocused();
+          // A dialog that opens with the page takes the focus itself, so no control shows a ring before the reader has done anything in it.
+          await expect(dialog).toBeFocused();
           await dialog
             .getByRole("link", { name: text.next, exact: true })
             .click();
