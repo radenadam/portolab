@@ -1,7 +1,7 @@
 # Decision 0010 builds this image on the server from the repository, and docs/deploy.md runs it with Docker Compose.
 
 # The full image has the compilers that better-sqlite3 needs, because its package ships no binary for this version of Node.
-FROM node:26.13.0-trixie@sha256:438603bbb5cda404b9416f0b5c8026f61501ab911760d861ec28c36b5d675725 AS base
+FROM node:26.13.1-trixie@sha256:e18c3ccdf7d71619990b0e85639f506e2028a95410999cab24cc373cbd10e0ac AS base
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 # package.json names the version of pnpm, so the image installs that one.
@@ -16,7 +16,7 @@ RUN pnpm install --frozen-lockfile --ignore-scripts
 COPY . .
 RUN pnpm build
 
-FROM node:26.13.0-trixie-slim@sha256:5adad64f9a1fca2d51972caa65983634c8a774eb300d72b20f7f2a0f60368072
+FROM node:26.13.1-trixie-slim@sha256:e6bedef217677b276c591795e169840edd9096dbf13f29df8ef8d1856b8820bc
 # docs/deploy.md backs up the database and deletes the records of a person with the command line of SQLite.
 RUN apt-get update \
   && apt-get install --yes --no-install-recommends sqlite3 \
